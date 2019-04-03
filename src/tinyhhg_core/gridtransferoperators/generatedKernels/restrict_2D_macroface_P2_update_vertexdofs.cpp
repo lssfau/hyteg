@@ -15,15 +15,9 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_2(double * _data_ed
    const double xi_103 = 1 / (num_neighbor_faces_vertex0);
    const double xi_106 = 1 / (num_neighbor_faces_edge0);
    const double xi_107 = 1 / (num_neighbor_faces_edge2);
-   const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_119 = 1 / (num_neighbor_faces_vertex1);
-   const double xi_122 = 1 / (num_neighbor_faces_edge0);
    const double xi_123 = 1 / (num_neighbor_faces_edge1);
-   const double xi_83 = 1 / (num_neighbor_faces_edge2);
-   const double xi_59 = 1 / (num_neighbor_faces_edge1);
    const double xi_135 = 1 / (num_neighbor_faces_vertex2);
-   const double xi_138 = 1 / (num_neighbor_faces_edge1);
-   const double xi_139 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
       // bottom left vertex
@@ -51,11 +45,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_2(double * _data_ed
          const double xi_44 = -0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 9];
          const double xi_45 = -0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 9];
          const double xi_46 = -0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_47 = 1.0*xi_35*_data_vertexFineSrc[2*ctr_1 + 20*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_48 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_49 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_50 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
-         const double xi_51 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
+         const double xi_47 = 1.0*xi_106*_data_vertexFineSrc[2*ctr_1 + 20*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_48 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_49 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_50 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_51 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          _data_vertexCoarseDst[ctr_1 + 6*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_37 + xi_38 + xi_39 + xi_40 + xi_41 + xi_42 + xi_43 + xi_44 + xi_45 + xi_46 + xi_47 + xi_48 + xi_49 + xi_50 + xi_51;
       }
       // bottom right vertex
@@ -64,8 +58,8 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_2(double * _data_ed
          const double xi_125 = -0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + ((72) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_126 = -0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 7];
          const double xi_127 = 1.0*xi_119*_data_vertexFineSrc[2*ctr_1 + 20*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_128 = xi_122*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_130 = xi_122*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_128 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_130 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_129 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + ((72) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
          const double xi_131 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + ((72) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 7];
          _data_vertexCoarseDst[ctr_1 + 6*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_125 + xi_126 + xi_127 + xi_128 + xi_129 + xi_130 + xi_131;
@@ -86,11 +80,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_2(double * _data_ed
          const double xi_92 = -0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 17];
          const double xi_93 = -0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          const double xi_94 = -0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_95 = 1.0*xi_83*_data_vertexFineSrc[2*ctr_1 + 20*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_96 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 9];
-         const double xi_97 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_98 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 18];
-         const double xi_99 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 9];
+         const double xi_95 = 1.0*xi_107*_data_vertexFineSrc[2*ctr_1 + 20*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_96 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 9];
+         const double xi_97 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_98 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 18];
+         const double xi_99 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 9];
          _data_vertexCoarseDst[ctr_1 + 6*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
       }
       // inner triangle
@@ -136,11 +130,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_2(double * _data_ed
          const double xi_68 = -0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + ((72) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 18];
          const double xi_69 = -0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 18];
          const double xi_70 = -0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 17];
-         const double xi_71 = 1.0*xi_59*_data_vertexFineSrc[2*ctr_1 + 20*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_72 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + ((72) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_73 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + ((72) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 9];
-         const double xi_74 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + ((72) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 7];
-         const double xi_75 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + ((72) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 17];
+         const double xi_71 = 1.0*xi_123*_data_vertexFineSrc[2*ctr_1 + 20*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_72 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + ((72) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_73 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + ((72) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 9];
+         const double xi_74 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + ((72) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 7];
+         const double xi_75 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + ((72) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 17];
          _data_vertexCoarseDst[ctr_1 + 6*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75;
       }
    }
@@ -152,10 +146,10 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_2(double * _data_ed
          const double xi_141 = -0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + ((72) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 18];
          const double xi_142 = -0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 17];
          const double xi_143 = 1.0*xi_135*_data_vertexFineSrc[2*ctr_1 + 20*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_144 = xi_138*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + ((72) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 9];
-         const double xi_146 = xi_138*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + ((72) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 17];
-         const double xi_145 = xi_139*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 9];
-         const double xi_147 = xi_139*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 18];
+         const double xi_144 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + ((72) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 9];
+         const double xi_146 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + ((72) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 17];
+         const double xi_145 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 9];
+         const double xi_147 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 18*ctr_2 + 2*((72) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 18];
          _data_vertexCoarseDst[ctr_1 + 6*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_141 + xi_142 + xi_143 + xi_144 + xi_145 + xi_146 + xi_147;
       }
    }
@@ -169,15 +163,9 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_3(double * _data_ed
    const double xi_103 = 1 / (num_neighbor_faces_vertex0);
    const double xi_106 = 1 / (num_neighbor_faces_edge0);
    const double xi_107 = 1 / (num_neighbor_faces_edge2);
-   const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_119 = 1 / (num_neighbor_faces_vertex1);
-   const double xi_122 = 1 / (num_neighbor_faces_edge0);
    const double xi_123 = 1 / (num_neighbor_faces_edge1);
-   const double xi_83 = 1 / (num_neighbor_faces_edge2);
-   const double xi_59 = 1 / (num_neighbor_faces_edge1);
    const double xi_135 = 1 / (num_neighbor_faces_vertex2);
-   const double xi_138 = 1 / (num_neighbor_faces_edge1);
-   const double xi_139 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
       // bottom left vertex
@@ -205,11 +193,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_3(double * _data_ed
          const double xi_44 = -0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 17];
          const double xi_45 = -0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 17];
          const double xi_46 = -0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_47 = 1.0*xi_35*_data_vertexFineSrc[2*ctr_1 + 36*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_48 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_49 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_50 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
-         const double xi_51 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
+         const double xi_47 = 1.0*xi_106*_data_vertexFineSrc[2*ctr_1 + 36*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_48 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_49 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_50 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_51 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          _data_vertexCoarseDst[ctr_1 + 10*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_37 + xi_38 + xi_39 + xi_40 + xi_41 + xi_42 + xi_43 + xi_44 + xi_45 + xi_46 + xi_47 + xi_48 + xi_49 + xi_50 + xi_51;
       }
       // bottom right vertex
@@ -218,8 +206,8 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_3(double * _data_ed
          const double xi_125 = -0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + ((272) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_126 = -0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 15];
          const double xi_127 = 1.0*xi_119*_data_vertexFineSrc[2*ctr_1 + 36*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_128 = xi_122*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_130 = xi_122*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_128 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_130 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_129 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + ((272) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
          const double xi_131 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + ((272) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 15];
          _data_vertexCoarseDst[ctr_1 + 10*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_125 + xi_126 + xi_127 + xi_128 + xi_129 + xi_130 + xi_131;
@@ -240,11 +228,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_3(double * _data_ed
          const double xi_92 = -0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 33];
          const double xi_93 = -0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          const double xi_94 = -0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_95 = 1.0*xi_83*_data_vertexFineSrc[2*ctr_1 + 36*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_96 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 17];
-         const double xi_97 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_98 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 34];
-         const double xi_99 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 17];
+         const double xi_95 = 1.0*xi_107*_data_vertexFineSrc[2*ctr_1 + 36*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_96 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 17];
+         const double xi_97 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_98 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 34];
+         const double xi_99 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 17];
          _data_vertexCoarseDst[ctr_1 + 10*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
       }
       // inner triangle
@@ -290,11 +278,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_3(double * _data_ed
          const double xi_68 = -0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + ((272) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 34];
          const double xi_69 = -0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 34];
          const double xi_70 = -0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 33];
-         const double xi_71 = 1.0*xi_59*_data_vertexFineSrc[2*ctr_1 + 36*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_72 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + ((272) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_73 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + ((272) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 17];
-         const double xi_74 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + ((272) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 15];
-         const double xi_75 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + ((272) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 33];
+         const double xi_71 = 1.0*xi_123*_data_vertexFineSrc[2*ctr_1 + 36*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_72 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + ((272) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_73 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + ((272) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 17];
+         const double xi_74 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + ((272) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 15];
+         const double xi_75 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + ((272) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 33];
          _data_vertexCoarseDst[ctr_1 + 10*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75;
       }
    }
@@ -306,10 +294,10 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_3(double * _data_ed
          const double xi_141 = -0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + ((272) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 34];
          const double xi_142 = -0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 33];
          const double xi_143 = 1.0*xi_135*_data_vertexFineSrc[2*ctr_1 + 36*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_144 = xi_138*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + ((272) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 17];
-         const double xi_146 = xi_138*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + ((272) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 33];
-         const double xi_145 = xi_139*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 17];
-         const double xi_147 = xi_139*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 34];
+         const double xi_144 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + ((272) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 17];
+         const double xi_146 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + ((272) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 33];
+         const double xi_145 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 17];
+         const double xi_147 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 34*ctr_2 + 2*((272) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 34];
          _data_vertexCoarseDst[ctr_1 + 10*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_141 + xi_142 + xi_143 + xi_144 + xi_145 + xi_146 + xi_147;
       }
    }
@@ -323,15 +311,9 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_4(double * _data_ed
    const double xi_103 = 1 / (num_neighbor_faces_vertex0);
    const double xi_106 = 1 / (num_neighbor_faces_edge0);
    const double xi_107 = 1 / (num_neighbor_faces_edge2);
-   const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_119 = 1 / (num_neighbor_faces_vertex1);
-   const double xi_122 = 1 / (num_neighbor_faces_edge0);
    const double xi_123 = 1 / (num_neighbor_faces_edge1);
-   const double xi_83 = 1 / (num_neighbor_faces_edge2);
-   const double xi_59 = 1 / (num_neighbor_faces_edge1);
    const double xi_135 = 1 / (num_neighbor_faces_vertex2);
-   const double xi_138 = 1 / (num_neighbor_faces_edge1);
-   const double xi_139 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
       // bottom left vertex
@@ -359,11 +341,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_4(double * _data_ed
          const double xi_44 = -0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 33];
          const double xi_45 = -0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 33];
          const double xi_46 = -0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_47 = 1.0*xi_35*_data_vertexFineSrc[2*ctr_1 + 68*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_48 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_49 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_50 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
-         const double xi_51 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
+         const double xi_47 = 1.0*xi_106*_data_vertexFineSrc[2*ctr_1 + 68*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_48 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_49 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_50 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_51 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          _data_vertexCoarseDst[ctr_1 + 18*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_37 + xi_38 + xi_39 + xi_40 + xi_41 + xi_42 + xi_43 + xi_44 + xi_45 + xi_46 + xi_47 + xi_48 + xi_49 + xi_50 + xi_51;
       }
       // bottom right vertex
@@ -372,8 +354,8 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_4(double * _data_ed
          const double xi_125 = -0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + ((1056) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_126 = -0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 31];
          const double xi_127 = 1.0*xi_119*_data_vertexFineSrc[2*ctr_1 + 68*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_128 = xi_122*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_130 = xi_122*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_128 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_130 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_129 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + ((1056) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
          const double xi_131 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + ((1056) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 31];
          _data_vertexCoarseDst[ctr_1 + 18*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_125 + xi_126 + xi_127 + xi_128 + xi_129 + xi_130 + xi_131;
@@ -394,11 +376,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_4(double * _data_ed
          const double xi_92 = -0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65];
          const double xi_93 = -0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          const double xi_94 = -0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_95 = 1.0*xi_83*_data_vertexFineSrc[2*ctr_1 + 68*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_96 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 33];
-         const double xi_97 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_98 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 66];
-         const double xi_99 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 33];
+         const double xi_95 = 1.0*xi_107*_data_vertexFineSrc[2*ctr_1 + 68*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_96 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 33];
+         const double xi_97 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_98 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 66];
+         const double xi_99 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 33];
          _data_vertexCoarseDst[ctr_1 + 18*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
       }
       // inner triangle
@@ -444,11 +426,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_4(double * _data_ed
          const double xi_68 = -0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + ((1056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 66];
          const double xi_69 = -0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 66];
          const double xi_70 = -0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65];
-         const double xi_71 = 1.0*xi_59*_data_vertexFineSrc[2*ctr_1 + 68*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_72 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + ((1056) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_73 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + ((1056) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 33];
-         const double xi_74 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + ((1056) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 31];
-         const double xi_75 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + ((1056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65];
+         const double xi_71 = 1.0*xi_123*_data_vertexFineSrc[2*ctr_1 + 68*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_72 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + ((1056) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_73 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + ((1056) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 33];
+         const double xi_74 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + ((1056) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 31];
+         const double xi_75 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + ((1056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65];
          _data_vertexCoarseDst[ctr_1 + 18*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75;
       }
    }
@@ -460,10 +442,10 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_4(double * _data_ed
          const double xi_141 = -0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + ((1056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 66];
          const double xi_142 = -0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65];
          const double xi_143 = 1.0*xi_135*_data_vertexFineSrc[2*ctr_1 + 68*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_144 = xi_138*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + ((1056) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 33];
-         const double xi_146 = xi_138*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + ((1056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65];
-         const double xi_145 = xi_139*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 33];
-         const double xi_147 = xi_139*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 66];
+         const double xi_144 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + ((1056) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 33];
+         const double xi_146 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + ((1056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65];
+         const double xi_145 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 33];
+         const double xi_147 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 66*ctr_2 + 2*((1056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 66];
          _data_vertexCoarseDst[ctr_1 + 18*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_141 + xi_142 + xi_143 + xi_144 + xi_145 + xi_146 + xi_147;
       }
    }
@@ -477,15 +459,9 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_5(double * _data_ed
    const double xi_103 = 1 / (num_neighbor_faces_vertex0);
    const double xi_106 = 1 / (num_neighbor_faces_edge0);
    const double xi_107 = 1 / (num_neighbor_faces_edge2);
-   const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_119 = 1 / (num_neighbor_faces_vertex1);
-   const double xi_122 = 1 / (num_neighbor_faces_edge0);
    const double xi_123 = 1 / (num_neighbor_faces_edge1);
-   const double xi_83 = 1 / (num_neighbor_faces_edge2);
-   const double xi_59 = 1 / (num_neighbor_faces_edge1);
    const double xi_135 = 1 / (num_neighbor_faces_vertex2);
-   const double xi_138 = 1 / (num_neighbor_faces_edge1);
-   const double xi_139 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
       // bottom left vertex
@@ -513,11 +489,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_5(double * _data_ed
          const double xi_44 = -0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 65];
          const double xi_45 = -0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 65];
          const double xi_46 = -0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_47 = 1.0*xi_35*_data_vertexFineSrc[2*ctr_1 + 132*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_48 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_49 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_50 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
-         const double xi_51 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
+         const double xi_47 = 1.0*xi_106*_data_vertexFineSrc[2*ctr_1 + 132*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_48 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_49 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_50 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_51 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          _data_vertexCoarseDst[ctr_1 + 34*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_37 + xi_38 + xi_39 + xi_40 + xi_41 + xi_42 + xi_43 + xi_44 + xi_45 + xi_46 + xi_47 + xi_48 + xi_49 + xi_50 + xi_51;
       }
       // bottom right vertex
@@ -526,8 +502,8 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_5(double * _data_ed
          const double xi_125 = -0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + ((4160) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_126 = -0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 63];
          const double xi_127 = 1.0*xi_119*_data_vertexFineSrc[2*ctr_1 + 132*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_128 = xi_122*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_130 = xi_122*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_128 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_130 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_129 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + ((4160) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
          const double xi_131 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + ((4160) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 63];
          _data_vertexCoarseDst[ctr_1 + 34*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_125 + xi_126 + xi_127 + xi_128 + xi_129 + xi_130 + xi_131;
@@ -548,11 +524,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_5(double * _data_ed
          const double xi_92 = -0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 129];
          const double xi_93 = -0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          const double xi_94 = -0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_95 = 1.0*xi_83*_data_vertexFineSrc[2*ctr_1 + 132*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_96 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 65];
-         const double xi_97 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_98 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 130];
-         const double xi_99 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 65];
+         const double xi_95 = 1.0*xi_107*_data_vertexFineSrc[2*ctr_1 + 132*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_96 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 65];
+         const double xi_97 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_98 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 130];
+         const double xi_99 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 65];
          _data_vertexCoarseDst[ctr_1 + 34*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
       }
       // inner triangle
@@ -598,11 +574,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_5(double * _data_ed
          const double xi_68 = -0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + ((4160) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 130];
          const double xi_69 = -0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 130];
          const double xi_70 = -0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 129];
-         const double xi_71 = 1.0*xi_59*_data_vertexFineSrc[2*ctr_1 + 132*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_72 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + ((4160) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_73 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + ((4160) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 65];
-         const double xi_74 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + ((4160) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 63];
-         const double xi_75 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + ((4160) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 129];
+         const double xi_71 = 1.0*xi_123*_data_vertexFineSrc[2*ctr_1 + 132*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_72 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + ((4160) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_73 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + ((4160) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 65];
+         const double xi_74 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + ((4160) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 63];
+         const double xi_75 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + ((4160) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 129];
          _data_vertexCoarseDst[ctr_1 + 34*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75;
       }
    }
@@ -614,10 +590,10 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_5(double * _data_ed
          const double xi_141 = -0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + ((4160) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 130];
          const double xi_142 = -0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 129];
          const double xi_143 = 1.0*xi_135*_data_vertexFineSrc[2*ctr_1 + 132*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_144 = xi_138*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + ((4160) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 65];
-         const double xi_146 = xi_138*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + ((4160) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 129];
-         const double xi_145 = xi_139*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 65];
-         const double xi_147 = xi_139*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 130];
+         const double xi_144 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + ((4160) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 65];
+         const double xi_146 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + ((4160) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 129];
+         const double xi_145 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 65];
+         const double xi_147 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 130*ctr_2 + 2*((4160) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 130];
          _data_vertexCoarseDst[ctr_1 + 34*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_141 + xi_142 + xi_143 + xi_144 + xi_145 + xi_146 + xi_147;
       }
    }
@@ -631,15 +607,9 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_6(double * _data_ed
    const double xi_103 = 1 / (num_neighbor_faces_vertex0);
    const double xi_106 = 1 / (num_neighbor_faces_edge0);
    const double xi_107 = 1 / (num_neighbor_faces_edge2);
-   const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_119 = 1 / (num_neighbor_faces_vertex1);
-   const double xi_122 = 1 / (num_neighbor_faces_edge0);
    const double xi_123 = 1 / (num_neighbor_faces_edge1);
-   const double xi_83 = 1 / (num_neighbor_faces_edge2);
-   const double xi_59 = 1 / (num_neighbor_faces_edge1);
    const double xi_135 = 1 / (num_neighbor_faces_vertex2);
-   const double xi_138 = 1 / (num_neighbor_faces_edge1);
-   const double xi_139 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
       // bottom left vertex
@@ -667,11 +637,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_6(double * _data_ed
          const double xi_44 = -0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 129];
          const double xi_45 = -0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 129];
          const double xi_46 = -0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_47 = 1.0*xi_35*_data_vertexFineSrc[2*ctr_1 + 260*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_48 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_49 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_50 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
-         const double xi_51 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
+         const double xi_47 = 1.0*xi_106*_data_vertexFineSrc[2*ctr_1 + 260*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_48 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_49 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_50 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_51 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          _data_vertexCoarseDst[ctr_1 + 66*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_37 + xi_38 + xi_39 + xi_40 + xi_41 + xi_42 + xi_43 + xi_44 + xi_45 + xi_46 + xi_47 + xi_48 + xi_49 + xi_50 + xi_51;
       }
       // bottom right vertex
@@ -680,8 +650,8 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_6(double * _data_ed
          const double xi_125 = -0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + ((16512) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_126 = -0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 127];
          const double xi_127 = 1.0*xi_119*_data_vertexFineSrc[2*ctr_1 + 260*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_128 = xi_122*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_130 = xi_122*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_128 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_130 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_129 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + ((16512) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
          const double xi_131 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + ((16512) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 127];
          _data_vertexCoarseDst[ctr_1 + 66*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_125 + xi_126 + xi_127 + xi_128 + xi_129 + xi_130 + xi_131;
@@ -702,11 +672,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_6(double * _data_ed
          const double xi_92 = -0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 257];
          const double xi_93 = -0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          const double xi_94 = -0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_95 = 1.0*xi_83*_data_vertexFineSrc[2*ctr_1 + 260*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_96 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 129];
-         const double xi_97 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_98 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 258];
-         const double xi_99 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 129];
+         const double xi_95 = 1.0*xi_107*_data_vertexFineSrc[2*ctr_1 + 260*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_96 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 129];
+         const double xi_97 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_98 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 258];
+         const double xi_99 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 129];
          _data_vertexCoarseDst[ctr_1 + 66*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
       }
       // inner triangle
@@ -752,11 +722,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_6(double * _data_ed
          const double xi_68 = -0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + ((16512) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 258];
          const double xi_69 = -0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 258];
          const double xi_70 = -0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 257];
-         const double xi_71 = 1.0*xi_59*_data_vertexFineSrc[2*ctr_1 + 260*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_72 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + ((16512) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_73 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + ((16512) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 129];
-         const double xi_74 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + ((16512) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 127];
-         const double xi_75 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + ((16512) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 257];
+         const double xi_71 = 1.0*xi_123*_data_vertexFineSrc[2*ctr_1 + 260*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_72 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + ((16512) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_73 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + ((16512) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 129];
+         const double xi_74 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + ((16512) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 127];
+         const double xi_75 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + ((16512) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 257];
          _data_vertexCoarseDst[ctr_1 + 66*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75;
       }
    }
@@ -768,10 +738,10 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_6(double * _data_ed
          const double xi_141 = -0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + ((16512) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 258];
          const double xi_142 = -0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 257];
          const double xi_143 = 1.0*xi_135*_data_vertexFineSrc[2*ctr_1 + 260*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_144 = xi_138*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + ((16512) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 129];
-         const double xi_146 = xi_138*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + ((16512) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 257];
-         const double xi_145 = xi_139*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 129];
-         const double xi_147 = xi_139*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 258];
+         const double xi_144 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + ((16512) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 129];
+         const double xi_146 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + ((16512) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 257];
+         const double xi_145 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 129];
+         const double xi_147 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 258*ctr_2 + 2*((16512) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 258];
          _data_vertexCoarseDst[ctr_1 + 66*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_141 + xi_142 + xi_143 + xi_144 + xi_145 + xi_146 + xi_147;
       }
    }
@@ -785,15 +755,9 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_7(double * _data_ed
    const double xi_103 = 1 / (num_neighbor_faces_vertex0);
    const double xi_106 = 1 / (num_neighbor_faces_edge0);
    const double xi_107 = 1 / (num_neighbor_faces_edge2);
-   const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_119 = 1 / (num_neighbor_faces_vertex1);
-   const double xi_122 = 1 / (num_neighbor_faces_edge0);
    const double xi_123 = 1 / (num_neighbor_faces_edge1);
-   const double xi_83 = 1 / (num_neighbor_faces_edge2);
-   const double xi_59 = 1 / (num_neighbor_faces_edge1);
    const double xi_135 = 1 / (num_neighbor_faces_vertex2);
-   const double xi_138 = 1 / (num_neighbor_faces_edge1);
-   const double xi_139 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
       // bottom left vertex
@@ -821,11 +785,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_7(double * _data_ed
          const double xi_44 = -0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 257];
          const double xi_45 = -0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 257];
          const double xi_46 = -0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_47 = 1.0*xi_35*_data_vertexFineSrc[2*ctr_1 + 516*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_48 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_49 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_50 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
-         const double xi_51 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
+         const double xi_47 = 1.0*xi_106*_data_vertexFineSrc[2*ctr_1 + 516*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_48 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_49 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_50 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_51 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          _data_vertexCoarseDst[ctr_1 + 130*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_37 + xi_38 + xi_39 + xi_40 + xi_41 + xi_42 + xi_43 + xi_44 + xi_45 + xi_46 + xi_47 + xi_48 + xi_49 + xi_50 + xi_51;
       }
       // bottom right vertex
@@ -834,8 +798,8 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_7(double * _data_ed
          const double xi_125 = -0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + ((65792) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_126 = -0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 255];
          const double xi_127 = 1.0*xi_119*_data_vertexFineSrc[2*ctr_1 + 516*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_128 = xi_122*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_130 = xi_122*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_128 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_130 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_129 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + ((65792) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
          const double xi_131 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + ((65792) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 255];
          _data_vertexCoarseDst[ctr_1 + 130*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_125 + xi_126 + xi_127 + xi_128 + xi_129 + xi_130 + xi_131;
@@ -856,11 +820,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_7(double * _data_ed
          const double xi_92 = -0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 513];
          const double xi_93 = -0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          const double xi_94 = -0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_95 = 1.0*xi_83*_data_vertexFineSrc[2*ctr_1 + 516*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_96 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 257];
-         const double xi_97 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_98 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 514];
-         const double xi_99 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 257];
+         const double xi_95 = 1.0*xi_107*_data_vertexFineSrc[2*ctr_1 + 516*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_96 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 257];
+         const double xi_97 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_98 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 514];
+         const double xi_99 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 257];
          _data_vertexCoarseDst[ctr_1 + 130*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
       }
       // inner triangle
@@ -906,11 +870,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_7(double * _data_ed
          const double xi_68 = -0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + ((65792) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 514];
          const double xi_69 = -0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 514];
          const double xi_70 = -0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 513];
-         const double xi_71 = 1.0*xi_59*_data_vertexFineSrc[2*ctr_1 + 516*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_72 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + ((65792) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_73 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + ((65792) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 257];
-         const double xi_74 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + ((65792) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 255];
-         const double xi_75 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + ((65792) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 513];
+         const double xi_71 = 1.0*xi_123*_data_vertexFineSrc[2*ctr_1 + 516*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_72 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + ((65792) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_73 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + ((65792) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 257];
+         const double xi_74 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + ((65792) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 255];
+         const double xi_75 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + ((65792) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 513];
          _data_vertexCoarseDst[ctr_1 + 130*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75;
       }
    }
@@ -922,10 +886,10 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_7(double * _data_ed
          const double xi_141 = -0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + ((65792) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 514];
          const double xi_142 = -0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 513];
          const double xi_143 = 1.0*xi_135*_data_vertexFineSrc[2*ctr_1 + 516*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_144 = xi_138*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + ((65792) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 257];
-         const double xi_146 = xi_138*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + ((65792) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 513];
-         const double xi_145 = xi_139*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 257];
-         const double xi_147 = xi_139*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 514];
+         const double xi_144 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + ((65792) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 257];
+         const double xi_146 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + ((65792) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 513];
+         const double xi_145 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 257];
+         const double xi_147 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 514*ctr_2 + 2*((65792) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 514];
          _data_vertexCoarseDst[ctr_1 + 130*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_141 + xi_142 + xi_143 + xi_144 + xi_145 + xi_146 + xi_147;
       }
    }
@@ -939,15 +903,9 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_8(double * _data_ed
    const double xi_103 = 1 / (num_neighbor_faces_vertex0);
    const double xi_106 = 1 / (num_neighbor_faces_edge0);
    const double xi_107 = 1 / (num_neighbor_faces_edge2);
-   const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_119 = 1 / (num_neighbor_faces_vertex1);
-   const double xi_122 = 1 / (num_neighbor_faces_edge0);
    const double xi_123 = 1 / (num_neighbor_faces_edge1);
-   const double xi_83 = 1 / (num_neighbor_faces_edge2);
-   const double xi_59 = 1 / (num_neighbor_faces_edge1);
    const double xi_135 = 1 / (num_neighbor_faces_vertex2);
-   const double xi_138 = 1 / (num_neighbor_faces_edge1);
-   const double xi_139 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
       // bottom left vertex
@@ -975,11 +933,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_8(double * _data_ed
          const double xi_44 = -0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 513];
          const double xi_45 = -0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 513];
          const double xi_46 = -0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_47 = 1.0*xi_35*_data_vertexFineSrc[2*ctr_1 + 1028*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_48 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_49 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_50 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
-         const double xi_51 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
+         const double xi_47 = 1.0*xi_106*_data_vertexFineSrc[2*ctr_1 + 1028*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_48 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_49 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_50 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_51 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          _data_vertexCoarseDst[ctr_1 + 258*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_37 + xi_38 + xi_39 + xi_40 + xi_41 + xi_42 + xi_43 + xi_44 + xi_45 + xi_46 + xi_47 + xi_48 + xi_49 + xi_50 + xi_51;
       }
       // bottom right vertex
@@ -988,8 +946,8 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_8(double * _data_ed
          const double xi_125 = -0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + ((262656) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_126 = -0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 511];
          const double xi_127 = 1.0*xi_119*_data_vertexFineSrc[2*ctr_1 + 1028*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_128 = xi_122*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_130 = xi_122*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_128 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_130 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_129 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + ((262656) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
          const double xi_131 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + ((262656) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 511];
          _data_vertexCoarseDst[ctr_1 + 258*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_125 + xi_126 + xi_127 + xi_128 + xi_129 + xi_130 + xi_131;
@@ -1010,11 +968,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_8(double * _data_ed
          const double xi_92 = -0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 1025];
          const double xi_93 = -0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          const double xi_94 = -0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_95 = 1.0*xi_83*_data_vertexFineSrc[2*ctr_1 + 1028*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_96 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 513];
-         const double xi_97 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_98 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 1026];
-         const double xi_99 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 513];
+         const double xi_95 = 1.0*xi_107*_data_vertexFineSrc[2*ctr_1 + 1028*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_96 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 513];
+         const double xi_97 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_98 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 1026];
+         const double xi_99 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 513];
          _data_vertexCoarseDst[ctr_1 + 258*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
       }
       // inner triangle
@@ -1060,11 +1018,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_8(double * _data_ed
          const double xi_68 = -0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + ((262656) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 1026];
          const double xi_69 = -0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 1026];
          const double xi_70 = -0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 1025];
-         const double xi_71 = 1.0*xi_59*_data_vertexFineSrc[2*ctr_1 + 1028*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_72 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + ((262656) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_73 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + ((262656) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 513];
-         const double xi_74 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + ((262656) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 511];
-         const double xi_75 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + ((262656) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 1025];
+         const double xi_71 = 1.0*xi_123*_data_vertexFineSrc[2*ctr_1 + 1028*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_72 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + ((262656) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_73 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + ((262656) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 513];
+         const double xi_74 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + ((262656) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 511];
+         const double xi_75 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + ((262656) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 1025];
          _data_vertexCoarseDst[ctr_1 + 258*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75;
       }
    }
@@ -1076,10 +1034,10 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_8(double * _data_ed
          const double xi_141 = -0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + ((262656) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 1026];
          const double xi_142 = -0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 1025];
          const double xi_143 = 1.0*xi_135*_data_vertexFineSrc[2*ctr_1 + 1028*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_144 = xi_138*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + ((262656) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 513];
-         const double xi_146 = xi_138*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + ((262656) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 1025];
-         const double xi_145 = xi_139*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 513];
-         const double xi_147 = xi_139*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 1026];
+         const double xi_144 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + ((262656) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 513];
+         const double xi_146 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + ((262656) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 1025];
+         const double xi_145 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 513];
+         const double xi_147 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 1026*ctr_2 + 2*((262656) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 1026];
          _data_vertexCoarseDst[ctr_1 + 258*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_141 + xi_142 + xi_143 + xi_144 + xi_145 + xi_146 + xi_147;
       }
    }
@@ -1093,15 +1051,9 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_9(double * _data_ed
    const double xi_103 = 1 / (num_neighbor_faces_vertex0);
    const double xi_106 = 1 / (num_neighbor_faces_edge0);
    const double xi_107 = 1 / (num_neighbor_faces_edge2);
-   const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_119 = 1 / (num_neighbor_faces_vertex1);
-   const double xi_122 = 1 / (num_neighbor_faces_edge0);
    const double xi_123 = 1 / (num_neighbor_faces_edge1);
-   const double xi_83 = 1 / (num_neighbor_faces_edge2);
-   const double xi_59 = 1 / (num_neighbor_faces_edge1);
    const double xi_135 = 1 / (num_neighbor_faces_vertex2);
-   const double xi_138 = 1 / (num_neighbor_faces_edge1);
-   const double xi_139 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
       // bottom left vertex
@@ -1129,11 +1081,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_9(double * _data_ed
          const double xi_44 = -0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1025];
          const double xi_45 = -0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1025];
          const double xi_46 = -0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_47 = 1.0*xi_35*_data_vertexFineSrc[2*ctr_1 + 2052*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_48 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_49 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_50 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
-         const double xi_51 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
+         const double xi_47 = 1.0*xi_106*_data_vertexFineSrc[2*ctr_1 + 2052*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_48 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_49 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_50 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_51 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          _data_vertexCoarseDst[ctr_1 + 514*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_37 + xi_38 + xi_39 + xi_40 + xi_41 + xi_42 + xi_43 + xi_44 + xi_45 + xi_46 + xi_47 + xi_48 + xi_49 + xi_50 + xi_51;
       }
       // bottom right vertex
@@ -1142,8 +1094,8 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_9(double * _data_ed
          const double xi_125 = -0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + ((1049600) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_126 = -0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1023];
          const double xi_127 = 1.0*xi_119*_data_vertexFineSrc[2*ctr_1 + 2052*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_128 = xi_122*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_130 = xi_122*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_128 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_130 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_129 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + ((1049600) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
          const double xi_131 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + ((1049600) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1023];
          _data_vertexCoarseDst[ctr_1 + 514*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_125 + xi_126 + xi_127 + xi_128 + xi_129 + xi_130 + xi_131;
@@ -1164,11 +1116,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_9(double * _data_ed
          const double xi_92 = -0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 2049];
          const double xi_93 = -0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          const double xi_94 = -0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_95 = 1.0*xi_83*_data_vertexFineSrc[2*ctr_1 + 2052*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_96 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 1025];
-         const double xi_97 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_98 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 2050];
-         const double xi_99 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1025];
+         const double xi_95 = 1.0*xi_107*_data_vertexFineSrc[2*ctr_1 + 2052*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_96 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 1025];
+         const double xi_97 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_98 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 2050];
+         const double xi_99 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1025];
          _data_vertexCoarseDst[ctr_1 + 514*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
       }
       // inner triangle
@@ -1214,11 +1166,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_9(double * _data_ed
          const double xi_68 = -0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + ((1049600) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 2050];
          const double xi_69 = -0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 2050];
          const double xi_70 = -0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 2049];
-         const double xi_71 = 1.0*xi_59*_data_vertexFineSrc[2*ctr_1 + 2052*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_72 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + ((1049600) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_73 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + ((1049600) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 1025];
-         const double xi_74 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + ((1049600) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1023];
-         const double xi_75 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + ((1049600) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 2049];
+         const double xi_71 = 1.0*xi_123*_data_vertexFineSrc[2*ctr_1 + 2052*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_72 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + ((1049600) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_73 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + ((1049600) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 1025];
+         const double xi_74 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + ((1049600) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 1023];
+         const double xi_75 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + ((1049600) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 2049];
          _data_vertexCoarseDst[ctr_1 + 514*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75;
       }
    }
@@ -1230,10 +1182,10 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_9(double * _data_ed
          const double xi_141 = -0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + ((1049600) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 2050];
          const double xi_142 = -0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 2049];
          const double xi_143 = 1.0*xi_135*_data_vertexFineSrc[2*ctr_1 + 2052*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_144 = xi_138*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + ((1049600) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 1025];
-         const double xi_146 = xi_138*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + ((1049600) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 2049];
-         const double xi_145 = xi_139*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 1025];
-         const double xi_147 = xi_139*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 2050];
+         const double xi_144 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + ((1049600) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 1025];
+         const double xi_146 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + ((1049600) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 2049];
+         const double xi_145 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 1025];
+         const double xi_147 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 2050*ctr_2 + 2*((1049600) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 2050];
          _data_vertexCoarseDst[ctr_1 + 514*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_141 + xi_142 + xi_143 + xi_144 + xi_145 + xi_146 + xi_147;
       }
    }
@@ -1247,15 +1199,9 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_10(double * _data_e
    const double xi_103 = 1 / (num_neighbor_faces_vertex0);
    const double xi_106 = 1 / (num_neighbor_faces_edge0);
    const double xi_107 = 1 / (num_neighbor_faces_edge2);
-   const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_119 = 1 / (num_neighbor_faces_vertex1);
-   const double xi_122 = 1 / (num_neighbor_faces_edge0);
    const double xi_123 = 1 / (num_neighbor_faces_edge1);
-   const double xi_83 = 1 / (num_neighbor_faces_edge2);
-   const double xi_59 = 1 / (num_neighbor_faces_edge1);
    const double xi_135 = 1 / (num_neighbor_faces_vertex2);
-   const double xi_138 = 1 / (num_neighbor_faces_edge1);
-   const double xi_139 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
       // bottom left vertex
@@ -1283,11 +1229,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_10(double * _data_e
          const double xi_44 = -0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2049];
          const double xi_45 = -0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2049];
          const double xi_46 = -0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_47 = 1.0*xi_35*_data_vertexFineSrc[2*ctr_1 + 4100*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_48 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_49 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_50 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
-         const double xi_51 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
+         const double xi_47 = 1.0*xi_106*_data_vertexFineSrc[2*ctr_1 + 4100*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_48 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_49 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_50 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_51 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          _data_vertexCoarseDst[ctr_1 + 1026*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_37 + xi_38 + xi_39 + xi_40 + xi_41 + xi_42 + xi_43 + xi_44 + xi_45 + xi_46 + xi_47 + xi_48 + xi_49 + xi_50 + xi_51;
       }
       // bottom right vertex
@@ -1296,8 +1242,8 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_10(double * _data_e
          const double xi_125 = -0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + ((4196352) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_126 = -0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2047];
          const double xi_127 = 1.0*xi_119*_data_vertexFineSrc[2*ctr_1 + 4100*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_128 = xi_122*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_130 = xi_122*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_128 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_130 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_129 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + ((4196352) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
          const double xi_131 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + ((4196352) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2047];
          _data_vertexCoarseDst[ctr_1 + 1026*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_125 + xi_126 + xi_127 + xi_128 + xi_129 + xi_130 + xi_131;
@@ -1318,11 +1264,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_10(double * _data_e
          const double xi_92 = -0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 4097];
          const double xi_93 = -0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          const double xi_94 = -0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_95 = 1.0*xi_83*_data_vertexFineSrc[2*ctr_1 + 4100*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_96 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 2049];
-         const double xi_97 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_98 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 4098];
-         const double xi_99 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2049];
+         const double xi_95 = 1.0*xi_107*_data_vertexFineSrc[2*ctr_1 + 4100*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_96 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 2049];
+         const double xi_97 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_98 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 4098];
+         const double xi_99 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2049];
          _data_vertexCoarseDst[ctr_1 + 1026*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
       }
       // inner triangle
@@ -1368,11 +1314,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_10(double * _data_e
          const double xi_68 = -0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + ((4196352) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 4098];
          const double xi_69 = -0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 4098];
          const double xi_70 = -0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 4097];
-         const double xi_71 = 1.0*xi_59*_data_vertexFineSrc[2*ctr_1 + 4100*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_72 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + ((4196352) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_73 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + ((4196352) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 2049];
-         const double xi_74 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + ((4196352) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2047];
-         const double xi_75 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + ((4196352) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 4097];
+         const double xi_71 = 1.0*xi_123*_data_vertexFineSrc[2*ctr_1 + 4100*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_72 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + ((4196352) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_73 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + ((4196352) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 2049];
+         const double xi_74 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + ((4196352) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2047];
+         const double xi_75 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + ((4196352) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 4097];
          _data_vertexCoarseDst[ctr_1 + 1026*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75;
       }
    }
@@ -1384,10 +1330,10 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_10(double * _data_e
          const double xi_141 = -0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + ((4196352) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 4098];
          const double xi_142 = -0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 4097];
          const double xi_143 = 1.0*xi_135*_data_vertexFineSrc[2*ctr_1 + 4100*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_144 = xi_138*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + ((4196352) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 2049];
-         const double xi_146 = xi_138*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + ((4196352) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 4097];
-         const double xi_145 = xi_139*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 2049];
-         const double xi_147 = xi_139*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 4098];
+         const double xi_144 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + ((4196352) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 2049];
+         const double xi_146 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + ((4196352) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 4097];
+         const double xi_145 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 2049];
+         const double xi_147 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 4098*ctr_2 + 2*((4196352) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 4098];
          _data_vertexCoarseDst[ctr_1 + 1026*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_141 + xi_142 + xi_143 + xi_144 + xi_145 + xi_146 + xi_147;
       }
    }
@@ -1401,15 +1347,9 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_11(double * _data_e
    const double xi_103 = 1 / (num_neighbor_faces_vertex0);
    const double xi_106 = 1 / (num_neighbor_faces_edge0);
    const double xi_107 = 1 / (num_neighbor_faces_edge2);
-   const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_119 = 1 / (num_neighbor_faces_vertex1);
-   const double xi_122 = 1 / (num_neighbor_faces_edge0);
    const double xi_123 = 1 / (num_neighbor_faces_edge1);
-   const double xi_83 = 1 / (num_neighbor_faces_edge2);
-   const double xi_59 = 1 / (num_neighbor_faces_edge1);
    const double xi_135 = 1 / (num_neighbor_faces_vertex2);
-   const double xi_138 = 1 / (num_neighbor_faces_edge1);
-   const double xi_139 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
       // bottom left vertex
@@ -1437,11 +1377,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_11(double * _data_e
          const double xi_44 = -0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4097];
          const double xi_45 = -0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4097];
          const double xi_46 = -0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_47 = 1.0*xi_35*_data_vertexFineSrc[2*ctr_1 + 8196*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_48 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_49 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_50 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
-         const double xi_51 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
+         const double xi_47 = 1.0*xi_106*_data_vertexFineSrc[2*ctr_1 + 8196*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_48 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_49 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_50 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_51 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          _data_vertexCoarseDst[ctr_1 + 2050*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_37 + xi_38 + xi_39 + xi_40 + xi_41 + xi_42 + xi_43 + xi_44 + xi_45 + xi_46 + xi_47 + xi_48 + xi_49 + xi_50 + xi_51;
       }
       // bottom right vertex
@@ -1450,8 +1390,8 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_11(double * _data_e
          const double xi_125 = -0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + ((16781312) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_126 = -0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4095];
          const double xi_127 = 1.0*xi_119*_data_vertexFineSrc[2*ctr_1 + 8196*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_128 = xi_122*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_130 = xi_122*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_128 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_130 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_129 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + ((16781312) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
          const double xi_131 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + ((16781312) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4095];
          _data_vertexCoarseDst[ctr_1 + 2050*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_125 + xi_126 + xi_127 + xi_128 + xi_129 + xi_130 + xi_131;
@@ -1472,11 +1412,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_11(double * _data_e
          const double xi_92 = -0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 8193];
          const double xi_93 = -0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          const double xi_94 = -0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_95 = 1.0*xi_83*_data_vertexFineSrc[2*ctr_1 + 8196*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_96 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 4097];
-         const double xi_97 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_98 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 8194];
-         const double xi_99 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4097];
+         const double xi_95 = 1.0*xi_107*_data_vertexFineSrc[2*ctr_1 + 8196*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_96 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 4097];
+         const double xi_97 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_98 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 8194];
+         const double xi_99 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4097];
          _data_vertexCoarseDst[ctr_1 + 2050*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
       }
       // inner triangle
@@ -1522,11 +1462,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_11(double * _data_e
          const double xi_68 = -0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + ((16781312) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 8194];
          const double xi_69 = -0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 8194];
          const double xi_70 = -0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 8193];
-         const double xi_71 = 1.0*xi_59*_data_vertexFineSrc[2*ctr_1 + 8196*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_72 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + ((16781312) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_73 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + ((16781312) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 4097];
-         const double xi_74 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + ((16781312) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4095];
-         const double xi_75 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + ((16781312) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 8193];
+         const double xi_71 = 1.0*xi_123*_data_vertexFineSrc[2*ctr_1 + 8196*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_72 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + ((16781312) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_73 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + ((16781312) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 4097];
+         const double xi_74 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + ((16781312) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 4095];
+         const double xi_75 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + ((16781312) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 8193];
          _data_vertexCoarseDst[ctr_1 + 2050*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75;
       }
    }
@@ -1538,10 +1478,10 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_11(double * _data_e
          const double xi_141 = -0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + ((16781312) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 8194];
          const double xi_142 = -0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 8193];
          const double xi_143 = 1.0*xi_135*_data_vertexFineSrc[2*ctr_1 + 8196*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_144 = xi_138*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + ((16781312) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 4097];
-         const double xi_146 = xi_138*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + ((16781312) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 8193];
-         const double xi_145 = xi_139*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 4097];
-         const double xi_147 = xi_139*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 8194];
+         const double xi_144 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + ((16781312) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 4097];
+         const double xi_146 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + ((16781312) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 8193];
+         const double xi_145 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 4097];
+         const double xi_147 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 8194*ctr_2 + 2*((16781312) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 8194];
          _data_vertexCoarseDst[ctr_1 + 2050*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_141 + xi_142 + xi_143 + xi_144 + xi_145 + xi_146 + xi_147;
       }
    }
@@ -1555,15 +1495,9 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_12(double * _data_e
    const double xi_103 = 1 / (num_neighbor_faces_vertex0);
    const double xi_106 = 1 / (num_neighbor_faces_edge0);
    const double xi_107 = 1 / (num_neighbor_faces_edge2);
-   const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_119 = 1 / (num_neighbor_faces_vertex1);
-   const double xi_122 = 1 / (num_neighbor_faces_edge0);
    const double xi_123 = 1 / (num_neighbor_faces_edge1);
-   const double xi_83 = 1 / (num_neighbor_faces_edge2);
-   const double xi_59 = 1 / (num_neighbor_faces_edge1);
    const double xi_135 = 1 / (num_neighbor_faces_vertex2);
-   const double xi_138 = 1 / (num_neighbor_faces_edge1);
-   const double xi_139 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
       // bottom left vertex
@@ -1591,11 +1525,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_12(double * _data_e
          const double xi_44 = -0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8193];
          const double xi_45 = -0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8193];
          const double xi_46 = -0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_47 = 1.0*xi_35*_data_vertexFineSrc[2*ctr_1 + 16388*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_48 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_49 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_50 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
-         const double xi_51 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
+         const double xi_47 = 1.0*xi_106*_data_vertexFineSrc[2*ctr_1 + 16388*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_48 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_49 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_50 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_51 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          _data_vertexCoarseDst[ctr_1 + 4098*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_37 + xi_38 + xi_39 + xi_40 + xi_41 + xi_42 + xi_43 + xi_44 + xi_45 + xi_46 + xi_47 + xi_48 + xi_49 + xi_50 + xi_51;
       }
       // bottom right vertex
@@ -1604,8 +1538,8 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_12(double * _data_e
          const double xi_125 = -0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + ((67117056) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_126 = -0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8191];
          const double xi_127 = 1.0*xi_119*_data_vertexFineSrc[2*ctr_1 + 16388*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_128 = xi_122*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_130 = xi_122*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_128 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_130 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_129 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + ((67117056) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
          const double xi_131 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + ((67117056) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8191];
          _data_vertexCoarseDst[ctr_1 + 4098*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_125 + xi_126 + xi_127 + xi_128 + xi_129 + xi_130 + xi_131;
@@ -1626,11 +1560,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_12(double * _data_e
          const double xi_92 = -0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 16385];
          const double xi_93 = -0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          const double xi_94 = -0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_95 = 1.0*xi_83*_data_vertexFineSrc[2*ctr_1 + 16388*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_96 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 8193];
-         const double xi_97 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_98 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 16386];
-         const double xi_99 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8193];
+         const double xi_95 = 1.0*xi_107*_data_vertexFineSrc[2*ctr_1 + 16388*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_96 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 8193];
+         const double xi_97 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_98 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 16386];
+         const double xi_99 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8193];
          _data_vertexCoarseDst[ctr_1 + 4098*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
       }
       // inner triangle
@@ -1676,11 +1610,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_12(double * _data_e
          const double xi_68 = -0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + ((67117056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 16386];
          const double xi_69 = -0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 16386];
          const double xi_70 = -0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 16385];
-         const double xi_71 = 1.0*xi_59*_data_vertexFineSrc[2*ctr_1 + 16388*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_72 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + ((67117056) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_73 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + ((67117056) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 8193];
-         const double xi_74 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + ((67117056) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8191];
-         const double xi_75 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + ((67117056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 16385];
+         const double xi_71 = 1.0*xi_123*_data_vertexFineSrc[2*ctr_1 + 16388*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_72 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + ((67117056) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_73 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + ((67117056) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 8193];
+         const double xi_74 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + ((67117056) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 8191];
+         const double xi_75 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + ((67117056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 16385];
          _data_vertexCoarseDst[ctr_1 + 4098*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75;
       }
    }
@@ -1692,10 +1626,10 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_12(double * _data_e
          const double xi_141 = -0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + ((67117056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 16386];
          const double xi_142 = -0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 16385];
          const double xi_143 = 1.0*xi_135*_data_vertexFineSrc[2*ctr_1 + 16388*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_144 = xi_138*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + ((67117056) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 8193];
-         const double xi_146 = xi_138*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + ((67117056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 16385];
-         const double xi_145 = xi_139*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 8193];
-         const double xi_147 = xi_139*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 16386];
+         const double xi_144 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + ((67117056) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 8193];
+         const double xi_146 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + ((67117056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 16385];
+         const double xi_145 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 8193];
+         const double xi_147 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 16386*ctr_2 + 2*((67117056) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 16386];
          _data_vertexCoarseDst[ctr_1 + 4098*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_141 + xi_142 + xi_143 + xi_144 + xi_145 + xi_146 + xi_147;
       }
    }
@@ -1709,15 +1643,9 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_13(double * _data_e
    const double xi_103 = 1 / (num_neighbor_faces_vertex0);
    const double xi_106 = 1 / (num_neighbor_faces_edge0);
    const double xi_107 = 1 / (num_neighbor_faces_edge2);
-   const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_119 = 1 / (num_neighbor_faces_vertex1);
-   const double xi_122 = 1 / (num_neighbor_faces_edge0);
    const double xi_123 = 1 / (num_neighbor_faces_edge1);
-   const double xi_83 = 1 / (num_neighbor_faces_edge2);
-   const double xi_59 = 1 / (num_neighbor_faces_edge1);
    const double xi_135 = 1 / (num_neighbor_faces_vertex2);
-   const double xi_138 = 1 / (num_neighbor_faces_edge1);
-   const double xi_139 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
       // bottom left vertex
@@ -1745,11 +1673,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_13(double * _data_e
          const double xi_44 = -0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16385];
          const double xi_45 = -0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16385];
          const double xi_46 = -0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_47 = 1.0*xi_35*_data_vertexFineSrc[2*ctr_1 + 32772*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_48 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_49 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_50 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
-         const double xi_51 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
+         const double xi_47 = 1.0*xi_106*_data_vertexFineSrc[2*ctr_1 + 32772*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_48 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_49 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_50 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_51 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          _data_vertexCoarseDst[ctr_1 + 8194*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_37 + xi_38 + xi_39 + xi_40 + xi_41 + xi_42 + xi_43 + xi_44 + xi_45 + xi_46 + xi_47 + xi_48 + xi_49 + xi_50 + xi_51;
       }
       // bottom right vertex
@@ -1758,8 +1686,8 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_13(double * _data_e
          const double xi_125 = -0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + ((268451840) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_126 = -0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16383];
          const double xi_127 = 1.0*xi_119*_data_vertexFineSrc[2*ctr_1 + 32772*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_128 = xi_122*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_130 = xi_122*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_128 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_130 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_129 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + ((268451840) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
          const double xi_131 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + ((268451840) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16383];
          _data_vertexCoarseDst[ctr_1 + 8194*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_125 + xi_126 + xi_127 + xi_128 + xi_129 + xi_130 + xi_131;
@@ -1780,11 +1708,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_13(double * _data_e
          const double xi_92 = -0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 32769];
          const double xi_93 = -0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          const double xi_94 = -0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_95 = 1.0*xi_83*_data_vertexFineSrc[2*ctr_1 + 32772*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_96 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 16385];
-         const double xi_97 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_98 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 32770];
-         const double xi_99 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16385];
+         const double xi_95 = 1.0*xi_107*_data_vertexFineSrc[2*ctr_1 + 32772*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_96 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 16385];
+         const double xi_97 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_98 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 32770];
+         const double xi_99 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16385];
          _data_vertexCoarseDst[ctr_1 + 8194*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
       }
       // inner triangle
@@ -1830,11 +1758,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_13(double * _data_e
          const double xi_68 = -0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + ((268451840) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 32770];
          const double xi_69 = -0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 32770];
          const double xi_70 = -0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 32769];
-         const double xi_71 = 1.0*xi_59*_data_vertexFineSrc[2*ctr_1 + 32772*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_72 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + ((268451840) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_73 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + ((268451840) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 16385];
-         const double xi_74 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + ((268451840) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16383];
-         const double xi_75 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + ((268451840) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 32769];
+         const double xi_71 = 1.0*xi_123*_data_vertexFineSrc[2*ctr_1 + 32772*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_72 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + ((268451840) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_73 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + ((268451840) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 16385];
+         const double xi_74 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + ((268451840) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 16383];
+         const double xi_75 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + ((268451840) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 32769];
          _data_vertexCoarseDst[ctr_1 + 8194*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75;
       }
    }
@@ -1846,10 +1774,10 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_13(double * _data_e
          const double xi_141 = -0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + ((268451840) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 32770];
          const double xi_142 = -0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 32769];
          const double xi_143 = 1.0*xi_135*_data_vertexFineSrc[2*ctr_1 + 32772*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_144 = xi_138*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + ((268451840) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 16385];
-         const double xi_146 = xi_138*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + ((268451840) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 32769];
-         const double xi_145 = xi_139*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 16385];
-         const double xi_147 = xi_139*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 32770];
+         const double xi_144 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + ((268451840) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 16385];
+         const double xi_146 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + ((268451840) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 32769];
+         const double xi_145 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 16385];
+         const double xi_147 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 32770*ctr_2 + 2*((268451840) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 32770];
          _data_vertexCoarseDst[ctr_1 + 8194*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_141 + xi_142 + xi_143 + xi_144 + xi_145 + xi_146 + xi_147;
       }
    }
@@ -1863,15 +1791,9 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_14(double * _data_e
    const double xi_103 = 1 / (num_neighbor_faces_vertex0);
    const double xi_106 = 1 / (num_neighbor_faces_edge0);
    const double xi_107 = 1 / (num_neighbor_faces_edge2);
-   const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_119 = 1 / (num_neighbor_faces_vertex1);
-   const double xi_122 = 1 / (num_neighbor_faces_edge0);
    const double xi_123 = 1 / (num_neighbor_faces_edge1);
-   const double xi_83 = 1 / (num_neighbor_faces_edge2);
-   const double xi_59 = 1 / (num_neighbor_faces_edge1);
    const double xi_135 = 1 / (num_neighbor_faces_vertex2);
-   const double xi_138 = 1 / (num_neighbor_faces_edge1);
-   const double xi_139 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
       // bottom left vertex
@@ -1899,11 +1821,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_14(double * _data_e
          const double xi_44 = -0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32769];
          const double xi_45 = -0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32769];
          const double xi_46 = -0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_47 = 1.0*xi_35*_data_vertexFineSrc[2*ctr_1 + 65540*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_48 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_49 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_50 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
-         const double xi_51 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
+         const double xi_47 = 1.0*xi_106*_data_vertexFineSrc[2*ctr_1 + 65540*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_48 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_49 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_50 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_51 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          _data_vertexCoarseDst[ctr_1 + 16386*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_37 + xi_38 + xi_39 + xi_40 + xi_41 + xi_42 + xi_43 + xi_44 + xi_45 + xi_46 + xi_47 + xi_48 + xi_49 + xi_50 + xi_51;
       }
       // bottom right vertex
@@ -1912,8 +1834,8 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_14(double * _data_e
          const double xi_125 = -0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + ((1073774592) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_126 = -0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32767];
          const double xi_127 = 1.0*xi_119*_data_vertexFineSrc[2*ctr_1 + 65540*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_128 = xi_122*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_130 = xi_122*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_128 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_130 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_129 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + ((1073774592) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
          const double xi_131 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + ((1073774592) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32767];
          _data_vertexCoarseDst[ctr_1 + 16386*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_125 + xi_126 + xi_127 + xi_128 + xi_129 + xi_130 + xi_131;
@@ -1934,11 +1856,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_14(double * _data_e
          const double xi_92 = -0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65537];
          const double xi_93 = -0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          const double xi_94 = -0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
-         const double xi_95 = 1.0*xi_83*_data_vertexFineSrc[2*ctr_1 + 65540*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_96 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 32769];
-         const double xi_97 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_98 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65538];
-         const double xi_99 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32769];
+         const double xi_95 = 1.0*xi_107*_data_vertexFineSrc[2*ctr_1 + 65540*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_96 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 32769];
+         const double xi_97 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_98 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65538];
+         const double xi_99 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32769];
          _data_vertexCoarseDst[ctr_1 + 16386*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
       }
       // inner triangle
@@ -1984,11 +1906,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_14(double * _data_e
          const double xi_68 = -0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + ((1073774592) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65538];
          const double xi_69 = -0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65538];
          const double xi_70 = -0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65537];
-         const double xi_71 = 1.0*xi_59*_data_vertexFineSrc[2*ctr_1 + 65540*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_72 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + ((1073774592) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_73 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + ((1073774592) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 32769];
-         const double xi_74 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + ((1073774592) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32767];
-         const double xi_75 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + ((1073774592) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65537];
+         const double xi_71 = 1.0*xi_123*_data_vertexFineSrc[2*ctr_1 + 65540*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_72 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + ((1073774592) / (2)) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_73 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + ((1073774592) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 32769];
+         const double xi_74 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + ((1073774592) / (2)) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 32767];
+         const double xi_75 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + ((1073774592) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65537];
          _data_vertexCoarseDst[ctr_1 + 16386*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75;
       }
    }
@@ -2000,10 +1922,10 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_14(double * _data_e
          const double xi_141 = -0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + ((1073774592) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65538];
          const double xi_142 = -0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65537];
          const double xi_143 = 1.0*xi_135*_data_vertexFineSrc[2*ctr_1 + 65540*ctr_2 - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_144 = xi_138*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + ((1073774592) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 32769];
-         const double xi_146 = xi_138*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + ((1073774592) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65537];
-         const double xi_145 = xi_139*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 32769];
-         const double xi_147 = xi_139*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65538];
+         const double xi_144 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + ((1073774592) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 32769];
+         const double xi_146 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + ((1073774592) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65537];
+         const double xi_145 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) - 32769];
+         const double xi_147 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + 65538*ctr_2 + 2*((1073774592) / (2)) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) - 65538];
          _data_vertexCoarseDst[ctr_1 + 16386*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_141 + xi_142 + xi_143 + xi_144 + xi_145 + xi_146 + xi_147;
       }
    }
@@ -2017,15 +1939,9 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_any(double * _data_
    const double xi_103 = 1 / (num_neighbor_faces_vertex0);
    const double xi_106 = 1 / (num_neighbor_faces_edge0);
    const double xi_107 = 1 / (num_neighbor_faces_edge2);
-   const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_119 = 1 / (num_neighbor_faces_vertex1);
-   const double xi_122 = 1 / (num_neighbor_faces_edge0);
    const double xi_123 = 1 / (num_neighbor_faces_edge1);
-   const double xi_83 = 1 / (num_neighbor_faces_edge2);
-   const double xi_59 = 1 / (num_neighbor_faces_edge1);
    const double xi_135 = 1 / (num_neighbor_faces_vertex2);
-   const double xi_138 = 1 / (num_neighbor_faces_edge1);
-   const double xi_139 = 1 / (num_neighbor_faces_edge2);
    for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
    {
       // bottom left vertex
@@ -2053,11 +1969,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_any(double * _data_
          const double xi_44 = -0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2))];
          const double xi_45 = -0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
          const double xi_46 = -0.125*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2)) + 1];
-         const double xi_47 = 1.0*xi_35*_data_vertexFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 2) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_48 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_49 = xi_35*0.375*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_50 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
-         const double xi_51 = xi_35*-0.125*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
+         const double xi_47 = 1.0*xi_106*_data_vertexFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 2) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_48 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_49 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_50 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_51 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          _data_vertexCoarseDst[ctr_1 + ctr_2*((1 << (coarse_level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_37 + xi_38 + xi_39 + xi_40 + xi_41 + xi_42 + xi_43 + xi_44 + xi_45 + xi_46 + xi_47 + xi_48 + xi_49 + xi_50 + xi_51;
       }
       // bottom right vertex
@@ -2066,8 +1982,8 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_any(double * _data_
          const double xi_125 = -0.125*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2)) - 2];
          const double xi_126 = -0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) - 2];
          const double xi_127 = 1.0*xi_119*_data_vertexFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 2) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_128 = xi_122*0.375*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
-         const double xi_130 = xi_122*-0.125*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
+         const double xi_128 = xi_106*0.375*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 1];
+         const double xi_130 = xi_106*-0.125*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - 2];
          const double xi_129 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2)) - 1];
          const double xi_131 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2)) - 2];
          _data_vertexCoarseDst[ctr_1 + ctr_2*((1 << (coarse_level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_125 + xi_126 + xi_127 + xi_128 + xi_129 + xi_130 + xi_131;
@@ -2088,11 +2004,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_any(double * _data_
          const double xi_92 = -0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 2)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2)) + 1];
          const double xi_93 = -0.125*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 1];
          const double xi_94 = -0.125*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2)) + 1];
-         const double xi_95 = 1.0*xi_83*_data_vertexFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 2) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_96 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 1)*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
-         const double xi_97 = xi_83*0.375*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
-         const double xi_98 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 2)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
-         const double xi_99 = xi_83*-0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
+         const double xi_95 = 1.0*xi_107*_data_vertexFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 2) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_96 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 1)*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
+         const double xi_97 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
+         const double xi_98 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 2)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
+         const double xi_99 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
          _data_vertexCoarseDst[ctr_1 + ctr_2*((1 << (coarse_level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
       }
       // inner triangle
@@ -2138,11 +2054,11 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_any(double * _data_
          const double xi_68 = -0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 2)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
          const double xi_69 = -0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 2)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
          const double xi_70 = -0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 2)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2)) + 1];
-         const double xi_71 = 1.0*xi_59*_data_vertexFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 2) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_72 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2)) - 1];
-         const double xi_73 = xi_59*0.375*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 1)*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
-         const double xi_74 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2)) - 2];
-         const double xi_75 = xi_59*-0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 2)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2)) + 1];
+         const double xi_71 = 1.0*xi_123*_data_vertexFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 2) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
+         const double xi_72 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2)) - 1];
+         const double xi_73 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 1)*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
+         const double xi_74 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 + 1)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2)) - 2];
+         const double xi_75 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 2)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2)) + 1];
          _data_vertexCoarseDst[ctr_1 + ctr_2*((1 << (coarse_level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75;
       }
    }
@@ -2154,10 +2070,10 @@ static void restrict_2D_macroface_P2_update_vertexdofs_level_any(double * _data_
          const double xi_141 = -0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 2)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
          const double xi_142 = -0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 2)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2)) + 1];
          const double xi_143 = 1.0*xi_135*_data_vertexFineSrc[2*ctr_1 + 2*ctr_2*((1 << (coarse_level + 1)) + 2) - ((2*ctr_2*(2*ctr_2 + 1)) / (2))];
-         const double xi_144 = xi_138*0.375*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 1)*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
-         const double xi_146 = xi_138*-0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 2)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2)) + 1];
-         const double xi_145 = xi_139*0.375*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 1)*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
-         const double xi_147 = xi_139*-0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 2)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
+         const double xi_144 = xi_123*0.375*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 1)*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
+         const double xi_146 = xi_123*-0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 2)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2)) + 1];
+         const double xi_145 = xi_107*0.375*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 1)*((1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 - 1)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
+         const double xi_147 = xi_107*-0.125*_data_edgeFineSrc[2*ctr_1 + (2*ctr_2 - 2)*((1 << (coarse_level + 1)) + 1) - (((2*ctr_2 - 2)*(2*ctr_2 - 1)) / (2)) + 2*((((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (2))];
          _data_vertexCoarseDst[ctr_1 + ctr_2*((1 << (coarse_level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_141 + xi_142 + xi_143 + xi_144 + xi_145 + xi_146 + xi_147;
       }
    }
