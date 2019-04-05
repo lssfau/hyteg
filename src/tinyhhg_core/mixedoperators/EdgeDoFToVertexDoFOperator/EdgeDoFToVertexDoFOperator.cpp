@@ -1,6 +1,7 @@
 #include "EdgeDoFToVertexDoFOperator.hpp"
 #include "EdgeDoFToVertexDoFApply.hpp"
 #include "generatedKernels/GeneratedKernelsEdgeToVertexMacroFace2D.hpp"
+#include "generatedKernels/GeneratedKernelsEdgeToVertexMacroCell3D.hpp"
 
 #include "tinyhhg_core/p2functionspace/P2Elements.hpp"
 
@@ -153,20 +154,50 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
 
   ///there might be room for optimization in the communication. i.e. splitting communicate into start and end to overlap comm and calc
 
-  src.communicate<Face, Cell>( level );
+  src.communicate< Face, Cell >( level );
 
-  for (auto& it : storage_->getCells()) {
-    Cell& cell = *it.second;
+  this->timingTree_->start( "Macro-Cell" );
 
-    const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-    if (testFlag(cellBC, flag))
-    {
-      applyCell(level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType);
-    }
+  for ( auto& it : storage_->getCells() )
+  {
+     Cell& cell = *it.second;
+
+     const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+     if ( testFlag( cellBC, flag ) )
+     {
+        if ( hhg::globalDefines::useGeneratedKernels && updateType == Add )
+        {
+           typedef edgedof::EdgeDoFOrientation eo;
+           auto                                dstData     = cell.getData( dst.getCellDataID() )->getPointer( level );
+           auto                                srcData     = cell.getData( src.getCellDataID() )->getPointer( level );
+           auto                                stencilData = cell.getData( cellStencilID_ )->getData( level );
+           std::map< eo, uint_t >              firstIdx;
+           for ( auto e : edgedof::allEdgeDoFOrientations )
+              firstIdx[e] = edgedof::macrocell::index( level, 0, 0, 0, e );
+           EdgeDoFToVertexDoF::generated::apply_3D_macrocell_edgedof_to_vertexdof_add( &srcData[firstIdx[eo::X]],
+                                                                                       &srcData[firstIdx[eo::XY]],
+                                                                                       &srcData[firstIdx[eo::XYZ]],
+                                                                                       &srcData[firstIdx[eo::XZ]],
+                                                                                       &srcData[firstIdx[eo::Y]],
+                                                                                       &srcData[firstIdx[eo::YZ]],
+                                                                                       &srcData[firstIdx[eo::Z]],
+                                                                                       dstData,
+                                                                                       stencilData,
+                                                                                       static_cast< int64_t >( level ) );
+        }
+        else
+        {
+           applyCell( level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType );
+        }
+     }
   }
+
+  this->timingTree_->stop( "Macro-Cell" );
 
   src.communicate<Edge, Face>( level );
   src.communicate<Cell, Face>( level );
+
+  this->timingTree_->start( "Macro-Face" );
 
   for (auto& it : storage_->getFaces()) {
     Face& face = *it.second;
@@ -198,8 +229,11 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
     }
   }
 
+  this->timingTree_->stop( "Macro-Face" );
 
   src.communicate<Face, Edge>( level );
+
+  this->timingTree_->start( "Macro-Edge" );
 
   for (auto& it : storage_->getEdges()) {
     Edge& edge = *it.second;
@@ -218,7 +252,11 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
     }
   }
 
+  this->timingTree_->stop( "Macro-Edge" );
+
   src.communicate<Edge, Vertex>( level );
+
+  this->timingTree_->start( "Macro-Vertex" );
 
   for (auto& it : storage_->getVertices()) {
     Vertex& vertex = *it.second;
@@ -236,6 +274,9 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
       }
     }
   }
+
+  this->timingTree_->stop( "Macro-Vertex" );
+
   this->stopTiming( "Apply" );
 }
 

@@ -14,11 +14,12 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_2(double * _data
 {
    for (int ctr_2 = 1; ctr_2 < 4; ctr_2 += 1)
    {
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 4; ctr_1 += 1)
       {
-         const double xi_2 = c0*_data_p1FaceSrc0[ctr_1 + 6*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const double xi_3 = c1*_data_p1FaceSrc1[ctr_1 + 6*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         _data_p1FaceDst[ctr_1 + 6*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_2 + xi_3;
+         const double xi_3 = c0*_data_p1FaceSrc0[ctr_1 + 6*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const double xi_4 = c1*_data_p1FaceSrc1[ctr_1 + 6*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         _data_p1FaceDst[ctr_1 + 6*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_3 + xi_4;
       }
    }
 }
@@ -27,11 +28,12 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_3(double * _data
 {
    for (int ctr_2 = 1; ctr_2 < 8; ctr_2 += 1)
    {
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 8; ctr_1 += 1)
       {
-         const double xi_2 = c0*_data_p1FaceSrc0[ctr_1 + 10*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const double xi_3 = c1*_data_p1FaceSrc1[ctr_1 + 10*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         _data_p1FaceDst[ctr_1 + 10*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_2 + xi_3;
+         const double xi_3 = c0*_data_p1FaceSrc0[ctr_1 + 10*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const double xi_4 = c1*_data_p1FaceSrc1[ctr_1 + 10*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         _data_p1FaceDst[ctr_1 + 10*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_3 + xi_4;
       }
    }
 }
@@ -40,11 +42,12 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_4(double * _data
 {
    for (int ctr_2 = 1; ctr_2 < 16; ctr_2 += 1)
    {
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 16; ctr_1 += 1)
       {
-         const double xi_2 = c0*_data_p1FaceSrc0[ctr_1 + 18*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const double xi_3 = c1*_data_p1FaceSrc1[ctr_1 + 18*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         _data_p1FaceDst[ctr_1 + 18*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_2 + xi_3;
+         const double xi_3 = c0*_data_p1FaceSrc0[ctr_1 + 18*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const double xi_4 = c1*_data_p1FaceSrc1[ctr_1 + 18*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         _data_p1FaceDst[ctr_1 + 18*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_3 + xi_4;
       }
    }
 }
@@ -53,11 +56,12 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_5(double * _data
 {
    for (int ctr_2 = 1; ctr_2 < 32; ctr_2 += 1)
    {
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 32; ctr_1 += 1)
       {
-         const double xi_2 = c0*_data_p1FaceSrc0[ctr_1 + 34*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const double xi_3 = c1*_data_p1FaceSrc1[ctr_1 + 34*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         _data_p1FaceDst[ctr_1 + 34*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_2 + xi_3;
+         const double xi_3 = c0*_data_p1FaceSrc0[ctr_1 + 34*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const double xi_4 = c1*_data_p1FaceSrc1[ctr_1 + 34*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         _data_p1FaceDst[ctr_1 + 34*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_3 + xi_4;
       }
    }
 }
@@ -66,11 +70,12 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_6(double * _data
 {
    for (int ctr_2 = 1; ctr_2 < 64; ctr_2 += 1)
    {
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 64; ctr_1 += 1)
       {
-         const double xi_2 = c0*_data_p1FaceSrc0[ctr_1 + 66*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const double xi_3 = c1*_data_p1FaceSrc1[ctr_1 + 66*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         _data_p1FaceDst[ctr_1 + 66*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_2 + xi_3;
+         const double xi_3 = c0*_data_p1FaceSrc0[ctr_1 + 66*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const double xi_4 = c1*_data_p1FaceSrc1[ctr_1 + 66*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         _data_p1FaceDst[ctr_1 + 66*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_3 + xi_4;
       }
    }
 }
@@ -79,11 +84,12 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_7(double * _data
 {
    for (int ctr_2 = 1; ctr_2 < 128; ctr_2 += 1)
    {
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 128; ctr_1 += 1)
       {
-         const double xi_2 = c0*_data_p1FaceSrc0[ctr_1 + 130*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const double xi_3 = c1*_data_p1FaceSrc1[ctr_1 + 130*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         _data_p1FaceDst[ctr_1 + 130*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_2 + xi_3;
+         const double xi_3 = c0*_data_p1FaceSrc0[ctr_1 + 130*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const double xi_4 = c1*_data_p1FaceSrc1[ctr_1 + 130*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         _data_p1FaceDst[ctr_1 + 130*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_3 + xi_4;
       }
    }
 }
@@ -92,11 +98,12 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_8(double * _data
 {
    for (int ctr_2 = 1; ctr_2 < 256; ctr_2 += 1)
    {
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 256; ctr_1 += 1)
       {
-         const double xi_2 = c0*_data_p1FaceSrc0[ctr_1 + 258*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const double xi_3 = c1*_data_p1FaceSrc1[ctr_1 + 258*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         _data_p1FaceDst[ctr_1 + 258*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_2 + xi_3;
+         const double xi_3 = c0*_data_p1FaceSrc0[ctr_1 + 258*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const double xi_4 = c1*_data_p1FaceSrc1[ctr_1 + 258*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         _data_p1FaceDst[ctr_1 + 258*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_3 + xi_4;
       }
    }
 }
@@ -105,11 +112,12 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_9(double * _data
 {
    for (int ctr_2 = 1; ctr_2 < 512; ctr_2 += 1)
    {
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 512; ctr_1 += 1)
       {
-         const double xi_2 = c0*_data_p1FaceSrc0[ctr_1 + 514*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const double xi_3 = c1*_data_p1FaceSrc1[ctr_1 + 514*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         _data_p1FaceDst[ctr_1 + 514*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_2 + xi_3;
+         const double xi_3 = c0*_data_p1FaceSrc0[ctr_1 + 514*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const double xi_4 = c1*_data_p1FaceSrc1[ctr_1 + 514*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         _data_p1FaceDst[ctr_1 + 514*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_3 + xi_4;
       }
    }
 }
@@ -118,11 +126,12 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_10(double * _dat
 {
    for (int ctr_2 = 1; ctr_2 < 1024; ctr_2 += 1)
    {
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 1024; ctr_1 += 1)
       {
-         const double xi_2 = c0*_data_p1FaceSrc0[ctr_1 + 1026*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const double xi_3 = c1*_data_p1FaceSrc1[ctr_1 + 1026*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         _data_p1FaceDst[ctr_1 + 1026*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_2 + xi_3;
+         const double xi_3 = c0*_data_p1FaceSrc0[ctr_1 + 1026*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const double xi_4 = c1*_data_p1FaceSrc1[ctr_1 + 1026*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         _data_p1FaceDst[ctr_1 + 1026*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_3 + xi_4;
       }
    }
 }
@@ -131,11 +140,12 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_11(double * _dat
 {
    for (int ctr_2 = 1; ctr_2 < 2048; ctr_2 += 1)
    {
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 2048; ctr_1 += 1)
       {
-         const double xi_2 = c0*_data_p1FaceSrc0[ctr_1 + 2050*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const double xi_3 = c1*_data_p1FaceSrc1[ctr_1 + 2050*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         _data_p1FaceDst[ctr_1 + 2050*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_2 + xi_3;
+         const double xi_3 = c0*_data_p1FaceSrc0[ctr_1 + 2050*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const double xi_4 = c1*_data_p1FaceSrc1[ctr_1 + 2050*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         _data_p1FaceDst[ctr_1 + 2050*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_3 + xi_4;
       }
    }
 }
@@ -144,11 +154,12 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_12(double * _dat
 {
    for (int ctr_2 = 1; ctr_2 < 4096; ctr_2 += 1)
    {
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 4096; ctr_1 += 1)
       {
-         const double xi_2 = c0*_data_p1FaceSrc0[ctr_1 + 4098*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const double xi_3 = c1*_data_p1FaceSrc1[ctr_1 + 4098*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         _data_p1FaceDst[ctr_1 + 4098*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_2 + xi_3;
+         const double xi_3 = c0*_data_p1FaceSrc0[ctr_1 + 4098*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const double xi_4 = c1*_data_p1FaceSrc1[ctr_1 + 4098*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         _data_p1FaceDst[ctr_1 + 4098*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_3 + xi_4;
       }
    }
 }
@@ -157,11 +168,12 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_13(double * _dat
 {
    for (int ctr_2 = 1; ctr_2 < 8192; ctr_2 += 1)
    {
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 8192; ctr_1 += 1)
       {
-         const double xi_2 = c0*_data_p1FaceSrc0[ctr_1 + 8194*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const double xi_3 = c1*_data_p1FaceSrc1[ctr_1 + 8194*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         _data_p1FaceDst[ctr_1 + 8194*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_2 + xi_3;
+         const double xi_3 = c0*_data_p1FaceSrc0[ctr_1 + 8194*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const double xi_4 = c1*_data_p1FaceSrc1[ctr_1 + 8194*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         _data_p1FaceDst[ctr_1 + 8194*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_3 + xi_4;
       }
    }
 }
@@ -170,11 +182,12 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_14(double * _dat
 {
    for (int ctr_2 = 1; ctr_2 < 16384; ctr_2 += 1)
    {
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + 16384; ctr_1 += 1)
       {
-         const double xi_2 = c0*_data_p1FaceSrc0[ctr_1 + 16386*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const double xi_3 = c1*_data_p1FaceSrc1[ctr_1 + 16386*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
-         _data_p1FaceDst[ctr_1 + 16386*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_2 + xi_3;
+         const double xi_3 = c0*_data_p1FaceSrc0[ctr_1 + 16386*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const double xi_4 = c1*_data_p1FaceSrc1[ctr_1 + 16386*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
+         _data_p1FaceDst[ctr_1 + 16386*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_3 + xi_4;
       }
    }
 }
@@ -183,11 +196,12 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_any(double * _da
 {
    for (int ctr_2 = 1; ctr_2 < (1 << (level)); ctr_2 += 1)
    {
+      // inner triangle
       for (int ctr_1 = 1; ctr_1 < -ctr_2 + (1 << (level)); ctr_1 += 1)
       {
-         const double xi_2 = c0*_data_p1FaceSrc0[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const double xi_3 = c1*_data_p1FaceSrc1[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
-         _data_p1FaceDst[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_2 + xi_3;
+         const double xi_3 = c0*_data_p1FaceSrc0[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const double xi_4 = c1*_data_p1FaceSrc1[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
+         _data_p1FaceDst[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_3 + xi_4;
       }
    }
 }
