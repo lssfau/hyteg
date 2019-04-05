@@ -3,6 +3,7 @@
 #include "tinyhhg_core/HHGDefinitions.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroFace2D.hpp"
+#include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroCell3D.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroEdge.hpp"
@@ -54,7 +55,37 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
     const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
     if ( testFlag( cellBC, flag ) )
     {
-      edgedof::macrocell::apply(level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType);
+      if( hhg::globalDefines::useGeneratedKernels && updateType == Replace )
+      {
+        typedef edgedof::EdgeDoFOrientation eo;
+        auto dstData = cell.getData( dst.getCellDataID() )->getPointer( level );
+        auto srcData = cell.getData( src.getCellDataID() )->getPointer( level );
+        auto stencilData = cell.getData( cellStencilID_ )->getData( level );
+        std::map< eo, uint_t > firstIdx;
+        for ( auto e : edgedof::allEdgeDoFOrientations )
+            firstIdx[e] = edgedof::macrocell::index( level, 0, 0, 0, e );
+        edgedof::macrocell::generated::apply_3D_macrocell_edgedof_to_edgedof_replace ( &dstData[firstIdx[eo::X]],
+                                                                                   &dstData[firstIdx[eo::XY]],
+                                                                                   &dstData[firstIdx[eo::XYZ]],
+                                                                                   &dstData[firstIdx[eo::XZ]],
+                                                                                   &dstData[firstIdx[eo::Y]],
+                                                                                   &dstData[firstIdx[eo::YZ]],
+                                                                                   &dstData[firstIdx[eo::Z]],
+                                                                                   &srcData[firstIdx[eo::X]],
+                                                                                   &srcData[firstIdx[eo::XY]],
+                                                                                   &srcData[firstIdx[eo::XYZ]],
+                                                                                   &srcData[firstIdx[eo::XZ]],
+                                                                                   &srcData[firstIdx[eo::Y]],
+                                                                                   &srcData[firstIdx[eo::YZ]],
+                                                                                   &srcData[firstIdx[eo::Z]],
+                                                                                   stencilData,
+                                                                                   static_cast< int64_t >( level ) );
+          
+      }
+      else
+      {
+        edgedof::macrocell::apply(level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType);
+      }
     }
   }
 
