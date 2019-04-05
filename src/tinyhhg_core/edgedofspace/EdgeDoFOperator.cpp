@@ -48,6 +48,8 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
   src.communicate< Cell, Face >( level );
   src.startCommunication<Face, Edge>( level );
 
+  this->timingTree_->start( "Macro-Cell" );
+
   for (auto& it : storage_->getCells())
   {
     Cell & cell = *it.second;
@@ -89,7 +91,9 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
     }
   }
 
+  this->timingTree_->stop( "Macro-Cell" );
 
+  this->timingTree_->start( "Macro-Face" );
 
   for (auto& it : storage_->getFaces())
   {
@@ -122,9 +126,11 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
     }
   }
 
+  this->timingTree_->stop( "Macro-Face" );
+
   src.endCommunication<Face, Edge>( level );
 
-
+  this->timingTree_->start( "Macro-Edge" );
 
   for (auto& it : storage_->getEdges())
   {
@@ -145,9 +151,7 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
     }
   }
 
-
-
-
+  this->timingTree_->stop( "Macro-Edge" );
 
   this->stopTiming( "Apply" );
 }
