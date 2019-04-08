@@ -837,9 +837,9 @@ clang_7.0_serial_dbg:
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
    variables:
       <<: *build_serial_dbg_variables
-   except:
+   only:
       variables:
-         - $DISABLE_PER_COMMIT_BUILDS
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
@@ -848,9 +848,9 @@ clang_7.0_mpionly_dbg:
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
    variables:
       <<: *build_mpionly_dbg_variables
-   except:
+   only:
       variables:
-         - $DISABLE_PER_COMMIT_BUILDS
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
@@ -859,15 +859,81 @@ clang_7.0_hybrid_dbg_sp:
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
    variables:
       <<: *build_hybrid_dbg_sp_variables
-   except:
+   only:
       variables:
-         - $DISABLE_PER_COMMIT_BUILDS
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 clang_7.0_eigen_petsc:
    <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
+   variables:
+      <<: *build_eigen_petsc_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_8.0_serial:
+   <<: *build_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_8.0_mpionly:
+   <<: *build_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+clang_8.0_serial_dbg:
+   <<: *build_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
+   variables:
+      <<: *build_serial_dbg_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
+   tags:
+      - docker
+
+clang_8.0_mpionly_dbg:
+   <<: *build_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
+   variables:
+      <<: *build_mpionly_dbg_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
+   tags:
+      - docker
+
+clang_8.0_hybrid_dbg_sp:
+   <<: *build_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
+   variables:
+      <<: *build_hybrid_dbg_sp_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
+   tags:
+      - docker
+
+clang_8.0_eigen_petsc:
+   <<: *build_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
    stage: pretest
    variables:
       <<: *build_eigen_petsc_variables
@@ -1037,7 +1103,7 @@ msvc-14.1_MpiOnly_Dbg:
       - mkdir $CI_PROJECT_DIR/build
       - cd $CI_PROJECT_DIR/build
       - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
-      - cmake .. -DWALBERLA_DIR=$CI_PROJECT_DIR/walberla -DWALBERLA_BUFFER_DEBUG=OFF -DWALBERLA_BUILD_TESTS=OFF -DWALBERLA_BUILD_BENCHMARKS=OFF -DWALBERLA_BUILD_TUTORIALS=OFF -DWALBERLA_BUILD_TOOLS=OFF -DWALBERLA_BUILD_WITH_MPI=ON -DWALBERLA_BUILD_WITH_CUDA=OFF -DWALBERLA_BUILD_WITH_PYTHON=OFF -DWALBERLA_BUILD_WITH_OPENMP=OFF -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DWALBERLA_DOUBLE_ACCURACY=ON -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_METIS=OFF -DWALBERLA_BUILD_WITH_PARMETIS=OFF -DWALBERLA_OPTIMIZE_FOR_LOCALHOST=ON -DWALBERLA_BUILD_WITH_FASTMATH=OFF -DWALBERLA_BUILD_WITH_LTO=ON
+      - cmake .. -DWALBERLA_DIR=$CI_PROJECT_DIR/walberla -DWALBERLA_BUFFER_DEBUG=OFF -DWALBERLA_BUILD_TESTS=OFF -DWALBERLA_BUILD_BENCHMARKS=OFF -DWALBERLA_BUILD_TUTORIALS=OFF -DWALBERLA_BUILD_TOOLS=OFF -DWALBERLA_BUILD_WITH_MPI=ON -DWALBERLA_BUILD_WITH_CUDA=OFF -DWALBERLA_BUILD_WITH_PYTHON=OFF -DWALBERLA_BUILD_WITH_OPENMP=OFF -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DWALBERLA_DOUBLE_ACCURACY=ON -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_METIS=OFF -DWALBERLA_BUILD_WITH_PARMETIS=OFF -DWALBERLA_OPTIMIZE_FOR_LOCALHOST=ON -DWALBERLA_BUILD_WITH_FASTMATH=OFF -DWALBERLA_BUILD_WITH_LTO=OFF
       - cmake . -LAH
       - time make core -j20
       - time make tinyhhg_core -j20
@@ -1080,14 +1146,14 @@ msvc-14.1_MpiOnly_Dbg:
    tags:
       - docker-benchmark
 
-benchmark_intel17:
+benchmark_intel19:
    <<: *benchmark_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:17
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
 
-benchmark_gcc7:
+benchmark_gcc8:
    <<: *benchmark_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
 
-benchmark_clang6:
+benchmark_clang8:
    <<: *benchmark_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0

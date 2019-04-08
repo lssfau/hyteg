@@ -492,6 +492,8 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
    src.communicate< Face, Edge >( level );
    src.communicate< Edge, Vertex >( level );
 
+  this->timingTree_->start( "Macro-Vertex" );
+
    for( const auto& it : storage_->getVertices() )
    {
       Vertex& vertex = *it.second;
@@ -504,6 +506,10 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
       }
    }
 
+  this->timingTree_->stop( "Macro-Vertex" );
+
+  this->timingTree_->start( "Macro-Edge" );
+
    for( const auto& it : storage_->getEdges() )
    {
       Edge& edge = *it.second;
@@ -515,6 +521,10 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
                  level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType );
       }
    }
+
+  this->timingTree_->stop( "Macro-Edge" );
+
+  this->timingTree_->start( "Macro-Face" );
 
    for( const auto& it : storage_->getFaces() )
    {
@@ -542,6 +552,10 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
          }
       }
    }
+
+  this->timingTree_->stop( "Macro-Face" );
+
+  this->timingTree_->start( "Macro-Cell" );
 
    for( const auto& it : storage_->getCells() )
    {
@@ -571,6 +585,9 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
 
       }
    }
+
+  this->timingTree_->stop( "Macro-Cell" );
+
    this->stopTiming( "Apply" );
 }
 

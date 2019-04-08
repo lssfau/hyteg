@@ -32,7 +32,7 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv( argc, argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  WALBERLA_LOG_INFO_ON_ROOT( " --- Primitive Sizes --- " );
+  WALBERLA_LOG_INFO_ON_ROOT( " --- Primitive Sizes (number of INNER DoFs) --- " );
   WALBERLA_LOG_INFO_ON_ROOT( "P1:" );
   WALBERLA_LOG_INFO_ON_ROOT( "" );
   hhg::printPrimitiveSizes< hhg::P1FunctionTag >();
