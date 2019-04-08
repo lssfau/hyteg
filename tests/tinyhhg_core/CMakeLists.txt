@@ -13,6 +13,10 @@ waLBerla_compile_test(FILES convergence/P1GMGConvergenceTest.cpp DEPENDS tinyhhg
 waLBerla_execute_test(NAME P1GMGConvergenceTest)
 waLBerla_execute_test(NAME P1GMGConvergenceTestMPI COMMAND $<TARGET_FILE:P1GMGConvergenceTest> PROCESSES 2 )
 
+waLBerla_compile_test(FILES convergence/P1FASConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P1FASConvergenceTest)
+waLBerla_execute_test(NAME P1FASConvergenceTestMPI COMMAND $<TARGET_FILE:P1FASConvergenceTest> PROCESSES 2 )
+
 waLBerla_compile_test(FILES convergence/P1GMG3DConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1GMG3DConvergenceTest)
 waLBerla_execute_test(NAME P1GMG3DConvergenceTestMPI COMMAND $<TARGET_FILE:P1GMG3DConvergenceTest> PROCESSES 2 )
