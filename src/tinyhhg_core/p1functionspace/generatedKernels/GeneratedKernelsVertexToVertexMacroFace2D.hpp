@@ -7,6 +7,10 @@
 
 #include "core/DataTypes.h"
 
+#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
+
+#include <map>
+
 namespace hhg {
 namespace vertexdof {
 namespace macroface {
