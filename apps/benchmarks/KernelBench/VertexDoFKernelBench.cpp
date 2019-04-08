@@ -35,7 +35,8 @@ int main( int argc, char** argv )
       std::vector< double > stencil( 7 );
       std::generate( stencil.begin(), stencil.end(), std::rand );
 
-      double timeSpecial, timeAny;
+      double timeSpecial(0.0);
+      double timeAny(0.0);
 
       size_t iter = 2;
       while( timerSpecial.total() < 0.5 )
