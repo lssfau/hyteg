@@ -14,11 +14,6 @@ namespace hhg {
 using walberla::real_t;
 using walberla::uint_t;
 
-enum class CycleType
-{
-   VCYCLE,
-   WCYCLE
-};
 
 template < class OperatorType >
 class GeometricMultigridSolver : public Solver< OperatorType >
