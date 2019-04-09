@@ -1103,7 +1103,7 @@ msvc-14.1_MpiOnly_Dbg:
       - mkdir $CI_PROJECT_DIR/build
       - cd $CI_PROJECT_DIR/build
       - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
-      - cmake .. -DWALBERLA_DIR=$CI_PROJECT_DIR/walberla -DWALBERLA_BUFFER_DEBUG=OFF -DWALBERLA_BUILD_TESTS=OFF -DWALBERLA_BUILD_BENCHMARKS=OFF -DWALBERLA_BUILD_TUTORIALS=OFF -DWALBERLA_BUILD_TOOLS=OFF -DWALBERLA_BUILD_WITH_MPI=ON -DWALBERLA_BUILD_WITH_CUDA=OFF -DWALBERLA_BUILD_WITH_PYTHON=OFF -DWALBERLA_BUILD_WITH_OPENMP=OFF -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DWALBERLA_DOUBLE_ACCURACY=ON -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_METIS=OFF -DWALBERLA_BUILD_WITH_PARMETIS=OFF -DWALBERLA_OPTIMIZE_FOR_LOCALHOST=ON -DWALBERLA_BUILD_WITH_FASTMATH=OFF -DWALBERLA_BUILD_WITH_LTO=OFF
+      - cmake .. -DWALBERLA_DIR=$CI_PROJECT_DIR/walberla -DWALBERLA_BUFFER_DEBUG=OFF -DWALBERLA_BUILD_TESTS=OFF -DWALBERLA_BUILD_BENCHMARKS=OFF -DWALBERLA_BUILD_TUTORIALS=OFF -DWALBERLA_BUILD_TOOLS=OFF -DWALBERLA_BUILD_WITH_MPI=ON -DWALBERLA_BUILD_WITH_CUDA=OFF -DWALBERLA_BUILD_WITH_PYTHON=OFF -DWALBERLA_BUILD_WITH_OPENMP=OFF -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DWALBERLA_DOUBLE_ACCURACY=ON -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_METIS=OFF -DWALBERLA_BUILD_WITH_PARMETIS=OFF -DWALBERLA_OPTIMIZE_FOR_LOCALHOST=ON -DWALBERLA_BUILD_WITH_FASTMATH=OFF -DWALBERLA_BUILD_WITH_LTO=OFF -DWALBERLA_BUILD_WITH_LIKWID_MARKERS=ON
       - cmake . -LAH
       - time make core -j20
       - time make tinyhhg_core -j20
@@ -1140,11 +1140,20 @@ msvc-14.1_MpiOnly_Dbg:
       - likwid-setFrequencies -f 3.3 # set frequency to 3.3
       - mpirun --allow-run-as-root -np 1 --map-by core --bind-to core --report-bindings ./P2SolverBenchmark P2SolverBenchmark.prm -Parameters.level=8 | tee P2SolverBenchmarkOutput.txt
       - python3 upload.py
-   # only:
-   #    variables:
-   #       - $ENABLE_BENCHMARKS
+      - cd $CI_PROJECT_DIR/build/apps/benchmarks/ApplyPerformanceAnalysis-2D-P2/
+      - make -j 20
+      - python3 createLevelScalingDataOnSwarm.py
+      - mkdir -p ~/.config/matplotlib
+      - echo backend:Agg > ~/.config/matplotlib/matplotlibrc
+      - cat $DOCKER_IMAGE_NAME.txt
+      - python3 createLevelScalingPlot.py $DOCKER_IMAGE_NAME.txt 2 15 --perfgroup "DP MFLOP/s STAT"
    tags:
       - docker-benchmark
+   artifacts:
+     paths:
+       - $CI_PROJECT_DIR/build/apps/benchmarks/ApplyPerformanceAnalysis-2D-P2/*.pdf
+       - $CI_PROJECT_DIR/build/apps/benchmarks/ApplyPerformanceAnalysis-2D-P2/*.txt
+     expire_in: 1 weeks
 
 benchmark_intel19:
    <<: *benchmark_definition

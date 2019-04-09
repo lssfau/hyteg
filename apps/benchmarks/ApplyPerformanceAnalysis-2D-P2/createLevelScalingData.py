@@ -10,7 +10,7 @@ def main(cores, minLevel, maxLevel, outputfile):
     if cores is 1:
         for level in range(minLevel, maxLevel + 1):
             levelstring = str("-Parameters.level=" + str(level))
-            subprocess.run(["likwid-mpirun",  "-n", "1", "likwid-perfctr", "-g", "MEM_DP", "-m", "-O", "--stats", "./ApplyPerformanceAnalysis-2D-P2",
+            subprocess.run(["likwid-mpirun", "-n", "1", "likwid-perfctr", "-g", "MEM_DP", "-m", "-O", "--stats", "./ApplyPerformanceAnalysis-2D-P2",
                             "ApplyPerformanceAnalysis-2D-P2.prm", levelstring], stdout=f)
     else:
         for level in range(minLevel, maxLevel + 1):
