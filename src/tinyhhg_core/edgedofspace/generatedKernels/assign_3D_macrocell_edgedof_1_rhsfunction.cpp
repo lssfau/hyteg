@@ -10,7 +10,7 @@ namespace edgedof {
 namespace macrocell {
 namespace generated {
 
-static void assign_3D_macrocell_edgedof_1_rhs_function_level_2(double * _data_edgeCellDst_X, double * _data_edgeCellDst_XY, double * _data_edgeCellDst_XYZ, double * _data_edgeCellDst_XZ, double * _data_edgeCellDst_Y, double * _data_edgeCellDst_YZ, double * _data_edgeCellDst_Z, double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double c)
+static void assign_3D_macrocell_edgedof_1_rhs_function_level_2(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c)
 {
    for (int ctr_3 = 0; ctr_3 < 1; ctr_3 += 1)
    {
@@ -205,7 +205,7 @@ static void assign_3D_macrocell_edgedof_1_rhs_function_level_2(double * _data_ed
    }
 }
 
-static void assign_3D_macrocell_edgedof_1_rhs_function_level_3(double * _data_edgeCellDst_X, double * _data_edgeCellDst_XY, double * _data_edgeCellDst_XYZ, double * _data_edgeCellDst_XZ, double * _data_edgeCellDst_Y, double * _data_edgeCellDst_YZ, double * _data_edgeCellDst_Z, double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double c)
+static void assign_3D_macrocell_edgedof_1_rhs_function_level_3(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c)
 {
    for (int ctr_3 = 0; ctr_3 < 1; ctr_3 += 1)
    {
@@ -400,7 +400,7 @@ static void assign_3D_macrocell_edgedof_1_rhs_function_level_3(double * _data_ed
    }
 }
 
-static void assign_3D_macrocell_edgedof_1_rhs_function_level_4(double * _data_edgeCellDst_X, double * _data_edgeCellDst_XY, double * _data_edgeCellDst_XYZ, double * _data_edgeCellDst_XZ, double * _data_edgeCellDst_Y, double * _data_edgeCellDst_YZ, double * _data_edgeCellDst_Z, double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double c)
+static void assign_3D_macrocell_edgedof_1_rhs_function_level_4(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c)
 {
    for (int ctr_3 = 0; ctr_3 < 1; ctr_3 += 1)
    {
@@ -595,7 +595,7 @@ static void assign_3D_macrocell_edgedof_1_rhs_function_level_4(double * _data_ed
    }
 }
 
-static void assign_3D_macrocell_edgedof_1_rhs_function_level_5(double * _data_edgeCellDst_X, double * _data_edgeCellDst_XY, double * _data_edgeCellDst_XYZ, double * _data_edgeCellDst_XZ, double * _data_edgeCellDst_Y, double * _data_edgeCellDst_YZ, double * _data_edgeCellDst_Z, double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double c)
+static void assign_3D_macrocell_edgedof_1_rhs_function_level_5(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c)
 {
    for (int ctr_3 = 0; ctr_3 < 1; ctr_3 += 1)
    {
@@ -790,7 +790,7 @@ static void assign_3D_macrocell_edgedof_1_rhs_function_level_5(double * _data_ed
    }
 }
 
-static void assign_3D_macrocell_edgedof_1_rhs_function_level_6(double * _data_edgeCellDst_X, double * _data_edgeCellDst_XY, double * _data_edgeCellDst_XYZ, double * _data_edgeCellDst_XZ, double * _data_edgeCellDst_Y, double * _data_edgeCellDst_YZ, double * _data_edgeCellDst_Z, double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double c)
+static void assign_3D_macrocell_edgedof_1_rhs_function_level_6(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c)
 {
    for (int ctr_3 = 0; ctr_3 < 1; ctr_3 += 1)
    {
@@ -985,7 +985,7 @@ static void assign_3D_macrocell_edgedof_1_rhs_function_level_6(double * _data_ed
    }
 }
 
-static void assign_3D_macrocell_edgedof_1_rhs_function_level_7(double * _data_edgeCellDst_X, double * _data_edgeCellDst_XY, double * _data_edgeCellDst_XYZ, double * _data_edgeCellDst_XZ, double * _data_edgeCellDst_Y, double * _data_edgeCellDst_YZ, double * _data_edgeCellDst_Z, double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double c)
+static void assign_3D_macrocell_edgedof_1_rhs_function_level_7(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c)
 {
    for (int ctr_3 = 0; ctr_3 < 1; ctr_3 += 1)
    {
@@ -1180,7 +1180,7 @@ static void assign_3D_macrocell_edgedof_1_rhs_function_level_7(double * _data_ed
    }
 }
 
-static void assign_3D_macrocell_edgedof_1_rhs_function_level_8(double * _data_edgeCellDst_X, double * _data_edgeCellDst_XY, double * _data_edgeCellDst_XYZ, double * _data_edgeCellDst_XZ, double * _data_edgeCellDst_Y, double * _data_edgeCellDst_YZ, double * _data_edgeCellDst_Z, double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double c)
+static void assign_3D_macrocell_edgedof_1_rhs_function_level_8(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c)
 {
    for (int ctr_3 = 0; ctr_3 < 1; ctr_3 += 1)
    {
@@ -1375,7 +1375,7 @@ static void assign_3D_macrocell_edgedof_1_rhs_function_level_8(double * _data_ed
    }
 }
 
-static void assign_3D_macrocell_edgedof_1_rhs_function_level_9(double * _data_edgeCellDst_X, double * _data_edgeCellDst_XY, double * _data_edgeCellDst_XYZ, double * _data_edgeCellDst_XZ, double * _data_edgeCellDst_Y, double * _data_edgeCellDst_YZ, double * _data_edgeCellDst_Z, double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double c)
+static void assign_3D_macrocell_edgedof_1_rhs_function_level_9(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c)
 {
    for (int ctr_3 = 0; ctr_3 < 1; ctr_3 += 1)
    {
@@ -1570,7 +1570,7 @@ static void assign_3D_macrocell_edgedof_1_rhs_function_level_9(double * _data_ed
    }
 }
 
-static void assign_3D_macrocell_edgedof_1_rhs_function_level_10(double * _data_edgeCellDst_X, double * _data_edgeCellDst_XY, double * _data_edgeCellDst_XYZ, double * _data_edgeCellDst_XZ, double * _data_edgeCellDst_Y, double * _data_edgeCellDst_YZ, double * _data_edgeCellDst_Z, double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double c)
+static void assign_3D_macrocell_edgedof_1_rhs_function_level_10(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c)
 {
    for (int ctr_3 = 0; ctr_3 < 1; ctr_3 += 1)
    {
@@ -1765,7 +1765,7 @@ static void assign_3D_macrocell_edgedof_1_rhs_function_level_10(double * _data_e
    }
 }
 
-static void assign_3D_macrocell_edgedof_1_rhs_function_level_11(double * _data_edgeCellDst_X, double * _data_edgeCellDst_XY, double * _data_edgeCellDst_XYZ, double * _data_edgeCellDst_XZ, double * _data_edgeCellDst_Y, double * _data_edgeCellDst_YZ, double * _data_edgeCellDst_Z, double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double c)
+static void assign_3D_macrocell_edgedof_1_rhs_function_level_11(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c)
 {
    for (int ctr_3 = 0; ctr_3 < 1; ctr_3 += 1)
    {
@@ -1960,7 +1960,7 @@ static void assign_3D_macrocell_edgedof_1_rhs_function_level_11(double * _data_e
    }
 }
 
-static void assign_3D_macrocell_edgedof_1_rhs_function_level_12(double * _data_edgeCellDst_X, double * _data_edgeCellDst_XY, double * _data_edgeCellDst_XYZ, double * _data_edgeCellDst_XZ, double * _data_edgeCellDst_Y, double * _data_edgeCellDst_YZ, double * _data_edgeCellDst_Z, double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double c)
+static void assign_3D_macrocell_edgedof_1_rhs_function_level_12(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c)
 {
    for (int ctr_3 = 0; ctr_3 < 1; ctr_3 += 1)
    {
@@ -2155,7 +2155,7 @@ static void assign_3D_macrocell_edgedof_1_rhs_function_level_12(double * _data_e
    }
 }
 
-static void assign_3D_macrocell_edgedof_1_rhs_function_level_13(double * _data_edgeCellDst_X, double * _data_edgeCellDst_XY, double * _data_edgeCellDst_XYZ, double * _data_edgeCellDst_XZ, double * _data_edgeCellDst_Y, double * _data_edgeCellDst_YZ, double * _data_edgeCellDst_Z, double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double c)
+static void assign_3D_macrocell_edgedof_1_rhs_function_level_13(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c)
 {
    for (int ctr_3 = 0; ctr_3 < 1; ctr_3 += 1)
    {
@@ -2350,7 +2350,7 @@ static void assign_3D_macrocell_edgedof_1_rhs_function_level_13(double * _data_e
    }
 }
 
-static void assign_3D_macrocell_edgedof_1_rhs_function_level_14(double * _data_edgeCellDst_X, double * _data_edgeCellDst_XY, double * _data_edgeCellDst_XYZ, double * _data_edgeCellDst_XZ, double * _data_edgeCellDst_Y, double * _data_edgeCellDst_YZ, double * _data_edgeCellDst_Z, double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double c)
+static void assign_3D_macrocell_edgedof_1_rhs_function_level_14(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c)
 {
    for (int ctr_3 = 0; ctr_3 < 1; ctr_3 += 1)
    {
@@ -2545,7 +2545,7 @@ static void assign_3D_macrocell_edgedof_1_rhs_function_level_14(double * _data_e
    }
 }
 
-static void assign_3D_macrocell_edgedof_1_rhs_function_level_any(double * _data_edgeCellDst_X, double * _data_edgeCellDst_XY, double * _data_edgeCellDst_XYZ, double * _data_edgeCellDst_XZ, double * _data_edgeCellDst_Y, double * _data_edgeCellDst_YZ, double * _data_edgeCellDst_Z, double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double c, int64_t level)
+static void assign_3D_macrocell_edgedof_1_rhs_function_level_any(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c, int64_t level)
 {
    for (int ctr_3 = 0; ctr_3 < 1; ctr_3 += 1)
    {
@@ -2741,7 +2741,7 @@ static void assign_3D_macrocell_edgedof_1_rhs_function_level_any(double * _data_
 }
 
 
-void assign_3D_macrocell_edgedof_1_rhs_function(double * _data_edgeCellDst_X, double * _data_edgeCellDst_XY, double * _data_edgeCellDst_XYZ, double * _data_edgeCellDst_XZ, double * _data_edgeCellDst_Y, double * _data_edgeCellDst_YZ, double * _data_edgeCellDst_Z, double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double c, int64_t level)
+void assign_3D_macrocell_edgedof_1_rhs_function(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c, int64_t level)
 {
     switch( level )
     {

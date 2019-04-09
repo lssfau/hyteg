@@ -9,7 +9,7 @@ namespace hhg {
 namespace EdgeDoFToVertexDoF {
 namespace generated {
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_2(double * _data_edgeFaceSrc, double * const _data_edgeToVertexFaceStencil, double * _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_2(double const * RESTRICT const _data_edgeFaceSrc, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[0];
@@ -45,7 +45,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_2(double * _da
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_3(double * _data_edgeFaceSrc, double * const _data_edgeToVertexFaceStencil, double * _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_3(double const * RESTRICT const _data_edgeFaceSrc, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[0];
@@ -81,7 +81,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_3(double * _da
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_4(double * _data_edgeFaceSrc, double * const _data_edgeToVertexFaceStencil, double * _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_4(double const * RESTRICT const _data_edgeFaceSrc, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[0];
@@ -117,7 +117,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_4(double * _da
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_5(double * _data_edgeFaceSrc, double * const _data_edgeToVertexFaceStencil, double * _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_5(double const * RESTRICT const _data_edgeFaceSrc, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[0];
@@ -153,7 +153,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_5(double * _da
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_6(double * _data_edgeFaceSrc, double * const _data_edgeToVertexFaceStencil, double * _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_6(double const * RESTRICT const _data_edgeFaceSrc, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[0];
@@ -189,7 +189,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_6(double * _da
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_7(double * _data_edgeFaceSrc, double * const _data_edgeToVertexFaceStencil, double * _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_7(double const * RESTRICT const _data_edgeFaceSrc, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[0];
@@ -225,7 +225,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_7(double * _da
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_8(double * _data_edgeFaceSrc, double * const _data_edgeToVertexFaceStencil, double * _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_8(double const * RESTRICT const _data_edgeFaceSrc, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[0];
@@ -261,7 +261,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_8(double * _da
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_9(double * _data_edgeFaceSrc, double * const _data_edgeToVertexFaceStencil, double * _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_9(double const * RESTRICT const _data_edgeFaceSrc, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[0];
@@ -297,7 +297,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_9(double * _da
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_10(double * _data_edgeFaceSrc, double * const _data_edgeToVertexFaceStencil, double * _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_10(double const * RESTRICT const _data_edgeFaceSrc, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[0];
@@ -333,7 +333,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_10(double * _d
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_11(double * _data_edgeFaceSrc, double * const _data_edgeToVertexFaceStencil, double * _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_11(double const * RESTRICT const _data_edgeFaceSrc, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[0];
@@ -369,7 +369,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_11(double * _d
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_12(double * _data_edgeFaceSrc, double * const _data_edgeToVertexFaceStencil, double * _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_12(double const * RESTRICT const _data_edgeFaceSrc, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[0];
@@ -405,7 +405,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_12(double * _d
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_13(double * _data_edgeFaceSrc, double * const _data_edgeToVertexFaceStencil, double * _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_13(double const * RESTRICT const _data_edgeFaceSrc, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[0];
@@ -441,7 +441,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_13(double * _d
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_14(double * _data_edgeFaceSrc, double * const _data_edgeToVertexFaceStencil, double * _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_14(double const * RESTRICT const _data_edgeFaceSrc, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[0];
@@ -477,7 +477,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_14(double * _d
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_any(double * _data_edgeFaceSrc, double * const _data_edgeToVertexFaceStencil, double * _data_p1FaceDst, int64_t level)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_any(double const * RESTRICT const _data_edgeFaceSrc, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst, int64_t level)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[0];
@@ -514,7 +514,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_any(double * _
 }
 
 
-void apply_2D_macroface_edgedof_to_vertexdof_replace(double * _data_edgeFaceSrc, double * const _data_edgeToVertexFaceStencil, double * _data_p1FaceDst, int64_t level)
+void apply_2D_macroface_edgedof_to_vertexdof_replace(double const * RESTRICT const _data_edgeFaceSrc, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst, int64_t level)
 {
     switch( level )
     {

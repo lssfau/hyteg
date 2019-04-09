@@ -10,7 +10,7 @@ namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-static void assign_2D_macroface_vertexdof_2_rhs_functions_level_2(double * _data_p1FaceDst, double * _data_p1FaceSrc0, double * _data_p1FaceSrc1, double c0, double c1)
+static void assign_2D_macroface_vertexdof_2_rhs_functions_level_2(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double c0, double c1)
 {
    for (int ctr_2 = 1; ctr_2 < 4; ctr_2 += 1)
    {
@@ -24,7 +24,7 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_2(double * _data
    }
 }
 
-static void assign_2D_macroface_vertexdof_2_rhs_functions_level_3(double * _data_p1FaceDst, double * _data_p1FaceSrc0, double * _data_p1FaceSrc1, double c0, double c1)
+static void assign_2D_macroface_vertexdof_2_rhs_functions_level_3(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double c0, double c1)
 {
    for (int ctr_2 = 1; ctr_2 < 8; ctr_2 += 1)
    {
@@ -38,7 +38,7 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_3(double * _data
    }
 }
 
-static void assign_2D_macroface_vertexdof_2_rhs_functions_level_4(double * _data_p1FaceDst, double * _data_p1FaceSrc0, double * _data_p1FaceSrc1, double c0, double c1)
+static void assign_2D_macroface_vertexdof_2_rhs_functions_level_4(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double c0, double c1)
 {
    for (int ctr_2 = 1; ctr_2 < 16; ctr_2 += 1)
    {
@@ -52,7 +52,7 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_4(double * _data
    }
 }
 
-static void assign_2D_macroface_vertexdof_2_rhs_functions_level_5(double * _data_p1FaceDst, double * _data_p1FaceSrc0, double * _data_p1FaceSrc1, double c0, double c1)
+static void assign_2D_macroface_vertexdof_2_rhs_functions_level_5(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double c0, double c1)
 {
    for (int ctr_2 = 1; ctr_2 < 32; ctr_2 += 1)
    {
@@ -66,7 +66,7 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_5(double * _data
    }
 }
 
-static void assign_2D_macroface_vertexdof_2_rhs_functions_level_6(double * _data_p1FaceDst, double * _data_p1FaceSrc0, double * _data_p1FaceSrc1, double c0, double c1)
+static void assign_2D_macroface_vertexdof_2_rhs_functions_level_6(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double c0, double c1)
 {
    for (int ctr_2 = 1; ctr_2 < 64; ctr_2 += 1)
    {
@@ -80,7 +80,7 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_6(double * _data
    }
 }
 
-static void assign_2D_macroface_vertexdof_2_rhs_functions_level_7(double * _data_p1FaceDst, double * _data_p1FaceSrc0, double * _data_p1FaceSrc1, double c0, double c1)
+static void assign_2D_macroface_vertexdof_2_rhs_functions_level_7(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double c0, double c1)
 {
    for (int ctr_2 = 1; ctr_2 < 128; ctr_2 += 1)
    {
@@ -94,7 +94,7 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_7(double * _data
    }
 }
 
-static void assign_2D_macroface_vertexdof_2_rhs_functions_level_8(double * _data_p1FaceDst, double * _data_p1FaceSrc0, double * _data_p1FaceSrc1, double c0, double c1)
+static void assign_2D_macroface_vertexdof_2_rhs_functions_level_8(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double c0, double c1)
 {
    for (int ctr_2 = 1; ctr_2 < 256; ctr_2 += 1)
    {
@@ -108,7 +108,7 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_8(double * _data
    }
 }
 
-static void assign_2D_macroface_vertexdof_2_rhs_functions_level_9(double * _data_p1FaceDst, double * _data_p1FaceSrc0, double * _data_p1FaceSrc1, double c0, double c1)
+static void assign_2D_macroface_vertexdof_2_rhs_functions_level_9(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double c0, double c1)
 {
    for (int ctr_2 = 1; ctr_2 < 512; ctr_2 += 1)
    {
@@ -122,7 +122,7 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_9(double * _data
    }
 }
 
-static void assign_2D_macroface_vertexdof_2_rhs_functions_level_10(double * _data_p1FaceDst, double * _data_p1FaceSrc0, double * _data_p1FaceSrc1, double c0, double c1)
+static void assign_2D_macroface_vertexdof_2_rhs_functions_level_10(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double c0, double c1)
 {
    for (int ctr_2 = 1; ctr_2 < 1024; ctr_2 += 1)
    {
@@ -136,7 +136,7 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_10(double * _dat
    }
 }
 
-static void assign_2D_macroface_vertexdof_2_rhs_functions_level_11(double * _data_p1FaceDst, double * _data_p1FaceSrc0, double * _data_p1FaceSrc1, double c0, double c1)
+static void assign_2D_macroface_vertexdof_2_rhs_functions_level_11(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double c0, double c1)
 {
    for (int ctr_2 = 1; ctr_2 < 2048; ctr_2 += 1)
    {
@@ -150,7 +150,7 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_11(double * _dat
    }
 }
 
-static void assign_2D_macroface_vertexdof_2_rhs_functions_level_12(double * _data_p1FaceDst, double * _data_p1FaceSrc0, double * _data_p1FaceSrc1, double c0, double c1)
+static void assign_2D_macroface_vertexdof_2_rhs_functions_level_12(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double c0, double c1)
 {
    for (int ctr_2 = 1; ctr_2 < 4096; ctr_2 += 1)
    {
@@ -164,7 +164,7 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_12(double * _dat
    }
 }
 
-static void assign_2D_macroface_vertexdof_2_rhs_functions_level_13(double * _data_p1FaceDst, double * _data_p1FaceSrc0, double * _data_p1FaceSrc1, double c0, double c1)
+static void assign_2D_macroface_vertexdof_2_rhs_functions_level_13(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double c0, double c1)
 {
    for (int ctr_2 = 1; ctr_2 < 8192; ctr_2 += 1)
    {
@@ -178,7 +178,7 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_13(double * _dat
    }
 }
 
-static void assign_2D_macroface_vertexdof_2_rhs_functions_level_14(double * _data_p1FaceDst, double * _data_p1FaceSrc0, double * _data_p1FaceSrc1, double c0, double c1)
+static void assign_2D_macroface_vertexdof_2_rhs_functions_level_14(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double c0, double c1)
 {
    for (int ctr_2 = 1; ctr_2 < 16384; ctr_2 += 1)
    {
@@ -192,7 +192,7 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_14(double * _dat
    }
 }
 
-static void assign_2D_macroface_vertexdof_2_rhs_functions_level_any(double * _data_p1FaceDst, double * _data_p1FaceSrc0, double * _data_p1FaceSrc1, double c0, double c1, int64_t level)
+static void assign_2D_macroface_vertexdof_2_rhs_functions_level_any(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double c0, double c1, int64_t level)
 {
    for (int ctr_2 = 1; ctr_2 < (1 << (level)); ctr_2 += 1)
    {
@@ -207,7 +207,7 @@ static void assign_2D_macroface_vertexdof_2_rhs_functions_level_any(double * _da
 }
 
 
-void assign_2D_macroface_vertexdof_2_rhs_functions(double * _data_p1FaceDst, double * _data_p1FaceSrc0, double * _data_p1FaceSrc1, double c0, double c1, int64_t level)
+void assign_2D_macroface_vertexdof_2_rhs_functions(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double c0, double c1, int64_t level)
 {
     switch( level )
     {

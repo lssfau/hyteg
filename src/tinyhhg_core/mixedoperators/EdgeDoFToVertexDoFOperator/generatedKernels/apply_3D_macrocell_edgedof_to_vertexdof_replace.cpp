@@ -9,7 +9,7 @@ namespace hhg {
 namespace EdgeDoFToVertexDoF {
 namespace generated {
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_2(double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double * _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_2(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -124,7 +124,7 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_2(double * _da
    }
 }
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_3(double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double * _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_3(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -239,7 +239,7 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_3(double * _da
    }
 }
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_4(double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double * _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_4(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -354,7 +354,7 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_4(double * _da
    }
 }
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_5(double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double * _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_5(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -469,7 +469,7 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_5(double * _da
    }
 }
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_6(double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double * _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_6(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -584,7 +584,7 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_6(double * _da
    }
 }
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_7(double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double * _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_7(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -699,7 +699,7 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_7(double * _da
    }
 }
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_8(double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double * _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_8(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -814,7 +814,7 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_8(double * _da
    }
 }
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_9(double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double * _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_9(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -929,7 +929,7 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_9(double * _da
    }
 }
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_any(double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double * _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap, int64_t level)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_any(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap, int64_t level)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -1045,7 +1045,7 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_any(double * _
 }
 
 
-void apply_3D_macrocell_edgedof_to_vertexdof_replace(double * _data_edgeCellSrc_X, double * _data_edgeCellSrc_XY, double * _data_edgeCellSrc_XYZ, double * _data_edgeCellSrc_XZ, double * _data_edgeCellSrc_Y, double * _data_edgeCellSrc_YZ, double * _data_edgeCellSrc_Z, double * _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap, int64_t level)
+void apply_3D_macrocell_edgedof_to_vertexdof_replace(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap, int64_t level)
 {
     switch( level )
     {

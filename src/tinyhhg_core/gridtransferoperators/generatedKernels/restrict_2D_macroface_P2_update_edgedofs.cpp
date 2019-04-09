@@ -10,7 +10,7 @@ namespace P2 {
 namespace macroface {
 namespace generated {
 
-static void restrict_2D_macroface_P2_update_edgedofs_level_2(double * _data_edgeCoarseDst, double * _data_edgeFineSrc, double * _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
+static void restrict_2D_macroface_P2_update_edgedofs_level_2(double * RESTRICT _data_edgeCoarseDst, double * RESTRICT _data_edgeFineSrc, double * RESTRICT _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
 {
    const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_38 = 1 / (num_neighbor_faces_edge2);
@@ -219,7 +219,7 @@ static void restrict_2D_macroface_P2_update_edgedofs_level_2(double * _data_edge
    }
 }
 
-static void restrict_2D_macroface_P2_update_edgedofs_level_3(double * _data_edgeCoarseDst, double * _data_edgeFineSrc, double * _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
+static void restrict_2D_macroface_P2_update_edgedofs_level_3(double * RESTRICT _data_edgeCoarseDst, double * RESTRICT _data_edgeFineSrc, double * RESTRICT _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
 {
    const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_38 = 1 / (num_neighbor_faces_edge2);
@@ -428,7 +428,7 @@ static void restrict_2D_macroface_P2_update_edgedofs_level_3(double * _data_edge
    }
 }
 
-static void restrict_2D_macroface_P2_update_edgedofs_level_4(double * _data_edgeCoarseDst, double * _data_edgeFineSrc, double * _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
+static void restrict_2D_macroface_P2_update_edgedofs_level_4(double * RESTRICT _data_edgeCoarseDst, double * RESTRICT _data_edgeFineSrc, double * RESTRICT _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
 {
    const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_38 = 1 / (num_neighbor_faces_edge2);
@@ -637,7 +637,7 @@ static void restrict_2D_macroface_P2_update_edgedofs_level_4(double * _data_edge
    }
 }
 
-static void restrict_2D_macroface_P2_update_edgedofs_level_5(double * _data_edgeCoarseDst, double * _data_edgeFineSrc, double * _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
+static void restrict_2D_macroface_P2_update_edgedofs_level_5(double * RESTRICT _data_edgeCoarseDst, double * RESTRICT _data_edgeFineSrc, double * RESTRICT _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
 {
    const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_38 = 1 / (num_neighbor_faces_edge2);
@@ -846,7 +846,7 @@ static void restrict_2D_macroface_P2_update_edgedofs_level_5(double * _data_edge
    }
 }
 
-static void restrict_2D_macroface_P2_update_edgedofs_level_6(double * _data_edgeCoarseDst, double * _data_edgeFineSrc, double * _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
+static void restrict_2D_macroface_P2_update_edgedofs_level_6(double * RESTRICT _data_edgeCoarseDst, double * RESTRICT _data_edgeFineSrc, double * RESTRICT _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
 {
    const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_38 = 1 / (num_neighbor_faces_edge2);
@@ -1055,7 +1055,7 @@ static void restrict_2D_macroface_P2_update_edgedofs_level_6(double * _data_edge
    }
 }
 
-static void restrict_2D_macroface_P2_update_edgedofs_level_7(double * _data_edgeCoarseDst, double * _data_edgeFineSrc, double * _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
+static void restrict_2D_macroface_P2_update_edgedofs_level_7(double * RESTRICT _data_edgeCoarseDst, double * RESTRICT _data_edgeFineSrc, double * RESTRICT _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
 {
    const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_38 = 1 / (num_neighbor_faces_edge2);
@@ -1264,7 +1264,7 @@ static void restrict_2D_macroface_P2_update_edgedofs_level_7(double * _data_edge
    }
 }
 
-static void restrict_2D_macroface_P2_update_edgedofs_level_8(double * _data_edgeCoarseDst, double * _data_edgeFineSrc, double * _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
+static void restrict_2D_macroface_P2_update_edgedofs_level_8(double * RESTRICT _data_edgeCoarseDst, double * RESTRICT _data_edgeFineSrc, double * RESTRICT _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
 {
    const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_38 = 1 / (num_neighbor_faces_edge2);
@@ -1473,7 +1473,7 @@ static void restrict_2D_macroface_P2_update_edgedofs_level_8(double * _data_edge
    }
 }
 
-static void restrict_2D_macroface_P2_update_edgedofs_level_9(double * _data_edgeCoarseDst, double * _data_edgeFineSrc, double * _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
+static void restrict_2D_macroface_P2_update_edgedofs_level_9(double * RESTRICT _data_edgeCoarseDst, double * RESTRICT _data_edgeFineSrc, double * RESTRICT _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
 {
    const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_38 = 1 / (num_neighbor_faces_edge2);
@@ -1682,7 +1682,7 @@ static void restrict_2D_macroface_P2_update_edgedofs_level_9(double * _data_edge
    }
 }
 
-static void restrict_2D_macroface_P2_update_edgedofs_level_10(double * _data_edgeCoarseDst, double * _data_edgeFineSrc, double * _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
+static void restrict_2D_macroface_P2_update_edgedofs_level_10(double * RESTRICT _data_edgeCoarseDst, double * RESTRICT _data_edgeFineSrc, double * RESTRICT _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
 {
    const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_38 = 1 / (num_neighbor_faces_edge2);
@@ -1891,7 +1891,7 @@ static void restrict_2D_macroface_P2_update_edgedofs_level_10(double * _data_edg
    }
 }
 
-static void restrict_2D_macroface_P2_update_edgedofs_level_11(double * _data_edgeCoarseDst, double * _data_edgeFineSrc, double * _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
+static void restrict_2D_macroface_P2_update_edgedofs_level_11(double * RESTRICT _data_edgeCoarseDst, double * RESTRICT _data_edgeFineSrc, double * RESTRICT _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
 {
    const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_38 = 1 / (num_neighbor_faces_edge2);
@@ -2100,7 +2100,7 @@ static void restrict_2D_macroface_P2_update_edgedofs_level_11(double * _data_edg
    }
 }
 
-static void restrict_2D_macroface_P2_update_edgedofs_level_12(double * _data_edgeCoarseDst, double * _data_edgeFineSrc, double * _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
+static void restrict_2D_macroface_P2_update_edgedofs_level_12(double * RESTRICT _data_edgeCoarseDst, double * RESTRICT _data_edgeFineSrc, double * RESTRICT _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
 {
    const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_38 = 1 / (num_neighbor_faces_edge2);
@@ -2309,7 +2309,7 @@ static void restrict_2D_macroface_P2_update_edgedofs_level_12(double * _data_edg
    }
 }
 
-static void restrict_2D_macroface_P2_update_edgedofs_level_13(double * _data_edgeCoarseDst, double * _data_edgeFineSrc, double * _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
+static void restrict_2D_macroface_P2_update_edgedofs_level_13(double * RESTRICT _data_edgeCoarseDst, double * RESTRICT _data_edgeFineSrc, double * RESTRICT _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
 {
    const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_38 = 1 / (num_neighbor_faces_edge2);
@@ -2518,7 +2518,7 @@ static void restrict_2D_macroface_P2_update_edgedofs_level_13(double * _data_edg
    }
 }
 
-static void restrict_2D_macroface_P2_update_edgedofs_level_14(double * _data_edgeCoarseDst, double * _data_edgeFineSrc, double * _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
+static void restrict_2D_macroface_P2_update_edgedofs_level_14(double * RESTRICT _data_edgeCoarseDst, double * RESTRICT _data_edgeFineSrc, double * RESTRICT _data_vertexFineSrc, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
 {
    const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_38 = 1 / (num_neighbor_faces_edge2);
@@ -2727,7 +2727,7 @@ static void restrict_2D_macroface_P2_update_edgedofs_level_14(double * _data_edg
    }
 }
 
-static void restrict_2D_macroface_P2_update_edgedofs_level_any(double * _data_edgeCoarseDst, double * _data_edgeFineSrc, double * _data_vertexFineSrc, int64_t coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
+static void restrict_2D_macroface_P2_update_edgedofs_level_any(double * RESTRICT _data_edgeCoarseDst, double * RESTRICT _data_edgeFineSrc, double * RESTRICT _data_vertexFineSrc, int64_t coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
 {
    const double xi_35 = 1 / (num_neighbor_faces_edge0);
    const double xi_38 = 1 / (num_neighbor_faces_edge2);
@@ -2937,7 +2937,7 @@ static void restrict_2D_macroface_P2_update_edgedofs_level_any(double * _data_ed
 }
 
 
-void restrict_2D_macroface_P2_update_edgedofs(double * _data_edgeCoarseDst, double * _data_edgeFineSrc, double * _data_vertexFineSrc, int64_t coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
+void restrict_2D_macroface_P2_update_edgedofs(double * RESTRICT _data_edgeCoarseDst, double * RESTRICT _data_edgeFineSrc, double * RESTRICT _data_vertexFineSrc, int64_t coarse_level, double num_neighbor_faces_edge0, double num_neighbor_faces_edge1, double num_neighbor_faces_edge2)
 {
     switch( coarse_level )
     {

@@ -10,7 +10,7 @@ namespace P2 {
 namespace macroface {
 namespace generated {
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_2(double * _data_edgeFaceDst, double * const _data_edge_stencil_at_vertex, double * _data_vertexFaceDst, double * _data_vertexFaceRhs, double * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_2(double * RESTRICT _data_edgeFaceDst, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -63,7 +63,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_2(double * _data_edgeFac
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_3(double * _data_edgeFaceDst, double * const _data_edge_stencil_at_vertex, double * _data_vertexFaceDst, double * _data_vertexFaceRhs, double * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_3(double * RESTRICT _data_edgeFaceDst, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -116,7 +116,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_3(double * _data_edgeFac
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_4(double * _data_edgeFaceDst, double * const _data_edge_stencil_at_vertex, double * _data_vertexFaceDst, double * _data_vertexFaceRhs, double * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_4(double * RESTRICT _data_edgeFaceDst, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -169,7 +169,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_4(double * _data_edgeFac
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_5(double * _data_edgeFaceDst, double * const _data_edge_stencil_at_vertex, double * _data_vertexFaceDst, double * _data_vertexFaceRhs, double * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_5(double * RESTRICT _data_edgeFaceDst, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -222,7 +222,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_5(double * _data_edgeFac
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_6(double * _data_edgeFaceDst, double * const _data_edge_stencil_at_vertex, double * _data_vertexFaceDst, double * _data_vertexFaceRhs, double * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_6(double * RESTRICT _data_edgeFaceDst, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -275,7 +275,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_6(double * _data_edgeFac
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_7(double * _data_edgeFaceDst, double * const _data_edge_stencil_at_vertex, double * _data_vertexFaceDst, double * _data_vertexFaceRhs, double * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_7(double * RESTRICT _data_edgeFaceDst, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -328,7 +328,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_7(double * _data_edgeFac
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_8(double * _data_edgeFaceDst, double * const _data_edge_stencil_at_vertex, double * _data_vertexFaceDst, double * _data_vertexFaceRhs, double * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_8(double * RESTRICT _data_edgeFaceDst, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -381,7 +381,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_8(double * _data_edgeFac
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_9(double * _data_edgeFaceDst, double * const _data_edge_stencil_at_vertex, double * _data_vertexFaceDst, double * _data_vertexFaceRhs, double * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_9(double * RESTRICT _data_edgeFaceDst, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -434,7 +434,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_9(double * _data_edgeFac
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_10(double * _data_edgeFaceDst, double * const _data_edge_stencil_at_vertex, double * _data_vertexFaceDst, double * _data_vertexFaceRhs, double * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_10(double * RESTRICT _data_edgeFaceDst, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -487,7 +487,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_10(double * _data_edgeFa
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_11(double * _data_edgeFaceDst, double * const _data_edge_stencil_at_vertex, double * _data_vertexFaceDst, double * _data_vertexFaceRhs, double * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_11(double * RESTRICT _data_edgeFaceDst, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -540,7 +540,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_11(double * _data_edgeFa
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_12(double * _data_edgeFaceDst, double * const _data_edge_stencil_at_vertex, double * _data_vertexFaceDst, double * _data_vertexFaceRhs, double * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_12(double * RESTRICT _data_edgeFaceDst, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -593,7 +593,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_12(double * _data_edgeFa
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_13(double * _data_edgeFaceDst, double * const _data_edge_stencil_at_vertex, double * _data_vertexFaceDst, double * _data_vertexFaceRhs, double * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_13(double * RESTRICT _data_edgeFaceDst, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -646,7 +646,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_13(double * _data_edgeFa
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_14(double * _data_edgeFaceDst, double * const _data_edge_stencil_at_vertex, double * _data_vertexFaceDst, double * _data_vertexFaceRhs, double * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_14(double * RESTRICT _data_edgeFaceDst, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -699,7 +699,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_14(double * _data_edgeFa
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_any(double * _data_edgeFaceDst, double * const _data_edge_stencil_at_vertex, double * _data_vertexFaceDst, double * _data_vertexFaceRhs, double * const _data_vertex_stencil_at_vertex, int64_t level, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_any(double * RESTRICT _data_edgeFaceDst, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, int64_t level, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -753,7 +753,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_any(double * _data_edgeF
 }
 
 
-void sor_2D_macroface_P2_update_vertexdofs(double * _data_edgeFaceDst, double * const _data_edge_stencil_at_vertex, double * _data_vertexFaceDst, double * _data_vertexFaceRhs, double * const _data_vertex_stencil_at_vertex, int64_t level, double relax)
+void sor_2D_macroface_P2_update_vertexdofs(double * RESTRICT _data_edgeFaceDst, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, int64_t level, double relax)
 {
     switch( level )
     {

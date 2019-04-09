@@ -10,7 +10,7 @@ namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_2(double * _data_p1FaceDst, double * _data_p1FaceSrc, double * const _data_p1FaceStencil)
+static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_2(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * const _data_p1FaceStencil)
 {
    const double xi_0 = _data_p1FaceStencil[2];
    const double xi_1 = _data_p1FaceStencil[5];
@@ -37,7 +37,7 @@ static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_2(double * _data
    }
 }
 
-static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_3(double * _data_p1FaceDst, double * _data_p1FaceSrc, double * const _data_p1FaceStencil)
+static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_3(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * const _data_p1FaceStencil)
 {
    const double xi_0 = _data_p1FaceStencil[2];
    const double xi_1 = _data_p1FaceStencil[5];
@@ -64,7 +64,7 @@ static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_3(double * _data
    }
 }
 
-static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_4(double * _data_p1FaceDst, double * _data_p1FaceSrc, double * const _data_p1FaceStencil)
+static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_4(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * const _data_p1FaceStencil)
 {
    const double xi_0 = _data_p1FaceStencil[2];
    const double xi_1 = _data_p1FaceStencil[5];
@@ -91,7 +91,7 @@ static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_4(double * _data
    }
 }
 
-static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_5(double * _data_p1FaceDst, double * _data_p1FaceSrc, double * const _data_p1FaceStencil)
+static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_5(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * const _data_p1FaceStencil)
 {
    const double xi_0 = _data_p1FaceStencil[2];
    const double xi_1 = _data_p1FaceStencil[5];
@@ -118,7 +118,7 @@ static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_5(double * _data
    }
 }
 
-static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_6(double * _data_p1FaceDst, double * _data_p1FaceSrc, double * const _data_p1FaceStencil)
+static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_6(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * const _data_p1FaceStencil)
 {
    const double xi_0 = _data_p1FaceStencil[2];
    const double xi_1 = _data_p1FaceStencil[5];
@@ -145,7 +145,7 @@ static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_6(double * _data
    }
 }
 
-static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_7(double * _data_p1FaceDst, double * _data_p1FaceSrc, double * const _data_p1FaceStencil)
+static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_7(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * const _data_p1FaceStencil)
 {
    const double xi_0 = _data_p1FaceStencil[2];
    const double xi_1 = _data_p1FaceStencil[5];
@@ -172,7 +172,7 @@ static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_7(double * _data
    }
 }
 
-static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_8(double * _data_p1FaceDst, double * _data_p1FaceSrc, double * const _data_p1FaceStencil)
+static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_8(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * const _data_p1FaceStencil)
 {
    const double xi_0 = _data_p1FaceStencil[2];
    const double xi_1 = _data_p1FaceStencil[5];
@@ -199,7 +199,7 @@ static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_8(double * _data
    }
 }
 
-static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_9(double * _data_p1FaceDst, double * _data_p1FaceSrc, double * const _data_p1FaceStencil)
+static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_9(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * const _data_p1FaceStencil)
 {
    const double xi_0 = _data_p1FaceStencil[2];
    const double xi_1 = _data_p1FaceStencil[5];
@@ -226,7 +226,7 @@ static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_9(double * _data
    }
 }
 
-static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_10(double * _data_p1FaceDst, double * _data_p1FaceSrc, double * const _data_p1FaceStencil)
+static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_10(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * const _data_p1FaceStencil)
 {
    const double xi_0 = _data_p1FaceStencil[2];
    const double xi_1 = _data_p1FaceStencil[5];
@@ -253,7 +253,7 @@ static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_10(double * _dat
    }
 }
 
-static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_11(double * _data_p1FaceDst, double * _data_p1FaceSrc, double * const _data_p1FaceStencil)
+static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_11(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * const _data_p1FaceStencil)
 {
    const double xi_0 = _data_p1FaceStencil[2];
    const double xi_1 = _data_p1FaceStencil[5];
@@ -280,7 +280,7 @@ static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_11(double * _dat
    }
 }
 
-static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_12(double * _data_p1FaceDst, double * _data_p1FaceSrc, double * const _data_p1FaceStencil)
+static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_12(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * const _data_p1FaceStencil)
 {
    const double xi_0 = _data_p1FaceStencil[2];
    const double xi_1 = _data_p1FaceStencil[5];
@@ -307,7 +307,7 @@ static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_12(double * _dat
    }
 }
 
-static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_13(double * _data_p1FaceDst, double * _data_p1FaceSrc, double * const _data_p1FaceStencil)
+static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_13(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * const _data_p1FaceStencil)
 {
    const double xi_0 = _data_p1FaceStencil[2];
    const double xi_1 = _data_p1FaceStencil[5];
@@ -334,7 +334,7 @@ static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_13(double * _dat
    }
 }
 
-static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_14(double * _data_p1FaceDst, double * _data_p1FaceSrc, double * const _data_p1FaceStencil)
+static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_14(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * const _data_p1FaceStencil)
 {
    const double xi_0 = _data_p1FaceStencil[2];
    const double xi_1 = _data_p1FaceStencil[5];
@@ -361,7 +361,7 @@ static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_14(double * _dat
    }
 }
 
-static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_any(double * _data_p1FaceDst, double * _data_p1FaceSrc, double * const _data_p1FaceStencil, int64_t level)
+static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_any(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * const _data_p1FaceStencil, int64_t level)
 {
    const double xi_0 = _data_p1FaceStencil[2];
    const double xi_1 = _data_p1FaceStencil[5];
@@ -389,7 +389,7 @@ static void apply_2D_macroface_vertexdof_to_vertexdof_add_level_any(double * _da
 }
 
 
-void apply_2D_macroface_vertexdof_to_vertexdof_add(double * _data_p1FaceDst, double * _data_p1FaceSrc, double * const _data_p1FaceStencil, int64_t level)
+void apply_2D_macroface_vertexdof_to_vertexdof_add(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * const _data_p1FaceStencil, int64_t level)
 {
     switch( level )
     {
