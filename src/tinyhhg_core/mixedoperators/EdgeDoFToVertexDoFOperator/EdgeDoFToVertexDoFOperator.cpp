@@ -214,12 +214,29 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
         real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
         real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
         real_t* dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
-        if( updateType == hhg::Replace )
+
+        typedef edgedof::EdgeDoFOrientation eo;
+        std::map< eo, uint_t >              firstIdx;
+        for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
+           firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
+
+        if ( updateType == hhg::Replace )
         {
-          EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_replace( src_data, opr_data, dst_data, static_cast< int64_t >( level ) );
-        } else if( updateType == hhg::Add )
+           EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_replace( &src_data[firstIdx[eo::X]],
+                                                                                           &src_data[firstIdx[eo::XY]],
+                                                                                           &src_data[firstIdx[eo::Y]],
+                                                                                           opr_data,
+                                                                                           dst_data,
+                                                                                           static_cast< int64_t >( level ) );
+        }
+        else if ( updateType == hhg::Add )
         {
-          EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_add( src_data, opr_data, dst_data, static_cast< int64_t >( level ) );
+           EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_add( &src_data[firstIdx[eo::X]],
+                                                                                       &src_data[firstIdx[eo::XY]],
+                                                                                       &src_data[firstIdx[eo::Y]],
+                                                                                       opr_data,
+                                                                                       dst_data,
+                                                                                       static_cast< int64_t >( level ) );
         }
       }
       else

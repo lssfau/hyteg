@@ -9,7 +9,7 @@ namespace hhg {
 namespace EdgeDoFToVertexDoF {
 namespace generated {
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_2(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_2(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -68,7 +68,6 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_2(double const * R
          // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 4; ctr_1 += 1)
          {
-            const double xi_103 = _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 6) + ((210) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 5)*(-ctr_3 + 6)*(-ctr_3 + 7)) / (6))];
             const double xi_53 = xi_1*_data_edgeCellSrc_XYZ[ctr_1 + (ctr_2 - 1)*(-ctr_3 + 4) + ((60) / (6)) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + 3)*(-ctr_3 + 4)*(-ctr_3 + 5)) / (6)) - 1];
             const double xi_64 = xi_2*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + 5) + ((60) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 4)*(-ctr_3 + 5)*(-ctr_3 + 6)) / (6)) - 1];
             const double xi_75 = xi_3*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + 4) + ((60) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 3)*(-ctr_3 + 4)*(-ctr_3 + 5)) / (6)) - 1];
@@ -119,13 +118,13 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_2(double const * R
             const double xi_95 = xi_48*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 + 1)*(-ctr_3 + 6) + ((120) / (6)) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) - (((-ctr_3 + 5)*(-ctr_3 + 6)*(-ctr_3 + 7)) / (6))];
             const double xi_96 = xi_49*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 - 1)*(-ctr_3 + 5) + ((120) / (6)) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + 4)*(-ctr_3 + 5)*(-ctr_3 + 6)) / (6)) + 1];
             const double xi_98 = xi_50*_data_edgeCellSrc_Z[ctr_1 + ctr_2*(-ctr_3 + 6) + ((120) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 5)*(-ctr_3 + 6)*(-ctr_3 + 7)) / (6)) + 1];
-            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 6) + ((210) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 5)*(-ctr_3 + 6)*(-ctr_3 + 7)) / (6))] = xi_100 + xi_101 + xi_102 + xi_103 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
+            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 6) + ((210) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 5)*(-ctr_3 + 6)*(-ctr_3 + 7)) / (6))] = xi_100 + xi_101 + xi_102 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
          }
       }
    }
 }
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_3(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_3(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -184,7 +183,6 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_3(double const * R
          // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 8; ctr_1 += 1)
          {
-            const double xi_103 = _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 10) + ((990) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 9)*(-ctr_3 + 10)*(-ctr_3 + 11)) / (6))];
             const double xi_53 = xi_1*_data_edgeCellSrc_XYZ[ctr_1 + (ctr_2 - 1)*(-ctr_3 + 8) + ((504) / (6)) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + 7)*(-ctr_3 + 8)*(-ctr_3 + 9)) / (6)) - 1];
             const double xi_64 = xi_2*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + 9) + ((504) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 8)*(-ctr_3 + 9)*(-ctr_3 + 10)) / (6)) - 1];
             const double xi_75 = xi_3*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + 8) + ((504) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 7)*(-ctr_3 + 8)*(-ctr_3 + 9)) / (6)) - 1];
@@ -235,13 +233,13 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_3(double const * R
             const double xi_95 = xi_48*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 + 1)*(-ctr_3 + 10) + ((720) / (6)) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) - (((-ctr_3 + 9)*(-ctr_3 + 10)*(-ctr_3 + 11)) / (6))];
             const double xi_96 = xi_49*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 - 1)*(-ctr_3 + 9) + ((720) / (6)) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + 8)*(-ctr_3 + 9)*(-ctr_3 + 10)) / (6)) + 1];
             const double xi_98 = xi_50*_data_edgeCellSrc_Z[ctr_1 + ctr_2*(-ctr_3 + 10) + ((720) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 9)*(-ctr_3 + 10)*(-ctr_3 + 11)) / (6)) + 1];
-            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 10) + ((990) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 9)*(-ctr_3 + 10)*(-ctr_3 + 11)) / (6))] = xi_100 + xi_101 + xi_102 + xi_103 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
+            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 10) + ((990) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 9)*(-ctr_3 + 10)*(-ctr_3 + 11)) / (6))] = xi_100 + xi_101 + xi_102 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
          }
       }
    }
 }
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_4(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_4(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -300,7 +298,6 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_4(double const * R
          // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 16; ctr_1 += 1)
          {
-            const double xi_103 = _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 18) + ((5814) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 17)*(-ctr_3 + 18)*(-ctr_3 + 19)) / (6))];
             const double xi_53 = xi_1*_data_edgeCellSrc_XYZ[ctr_1 + (ctr_2 - 1)*(-ctr_3 + 16) + ((4080) / (6)) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + 15)*(-ctr_3 + 16)*(-ctr_3 + 17)) / (6)) - 1];
             const double xi_64 = xi_2*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + 17) + ((4080) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 16)*(-ctr_3 + 17)*(-ctr_3 + 18)) / (6)) - 1];
             const double xi_75 = xi_3*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + 16) + ((4080) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 15)*(-ctr_3 + 16)*(-ctr_3 + 17)) / (6)) - 1];
@@ -351,13 +348,13 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_4(double const * R
             const double xi_95 = xi_48*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 + 1)*(-ctr_3 + 18) + ((4896) / (6)) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) - (((-ctr_3 + 17)*(-ctr_3 + 18)*(-ctr_3 + 19)) / (6))];
             const double xi_96 = xi_49*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 - 1)*(-ctr_3 + 17) + ((4896) / (6)) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + 16)*(-ctr_3 + 17)*(-ctr_3 + 18)) / (6)) + 1];
             const double xi_98 = xi_50*_data_edgeCellSrc_Z[ctr_1 + ctr_2*(-ctr_3 + 18) + ((4896) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 17)*(-ctr_3 + 18)*(-ctr_3 + 19)) / (6)) + 1];
-            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 18) + ((5814) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 17)*(-ctr_3 + 18)*(-ctr_3 + 19)) / (6))] = xi_100 + xi_101 + xi_102 + xi_103 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
+            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 18) + ((5814) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 17)*(-ctr_3 + 18)*(-ctr_3 + 19)) / (6))] = xi_100 + xi_101 + xi_102 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
          }
       }
    }
 }
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_5(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_5(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -416,7 +413,6 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_5(double const * R
          // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 32; ctr_1 += 1)
          {
-            const double xi_103 = _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 34) + ((39270) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 33)*(-ctr_3 + 34)*(-ctr_3 + 35)) / (6))];
             const double xi_53 = xi_1*_data_edgeCellSrc_XYZ[ctr_1 + (ctr_2 - 1)*(-ctr_3 + 32) + ((32736) / (6)) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + 31)*(-ctr_3 + 32)*(-ctr_3 + 33)) / (6)) - 1];
             const double xi_64 = xi_2*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + 33) + ((32736) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 32)*(-ctr_3 + 33)*(-ctr_3 + 34)) / (6)) - 1];
             const double xi_75 = xi_3*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + 32) + ((32736) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 31)*(-ctr_3 + 32)*(-ctr_3 + 33)) / (6)) - 1];
@@ -467,13 +463,13 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_5(double const * R
             const double xi_95 = xi_48*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 + 1)*(-ctr_3 + 34) + ((35904) / (6)) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) - (((-ctr_3 + 33)*(-ctr_3 + 34)*(-ctr_3 + 35)) / (6))];
             const double xi_96 = xi_49*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 - 1)*(-ctr_3 + 33) + ((35904) / (6)) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + 32)*(-ctr_3 + 33)*(-ctr_3 + 34)) / (6)) + 1];
             const double xi_98 = xi_50*_data_edgeCellSrc_Z[ctr_1 + ctr_2*(-ctr_3 + 34) + ((35904) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 33)*(-ctr_3 + 34)*(-ctr_3 + 35)) / (6)) + 1];
-            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 34) + ((39270) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 33)*(-ctr_3 + 34)*(-ctr_3 + 35)) / (6))] = xi_100 + xi_101 + xi_102 + xi_103 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
+            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 34) + ((39270) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 33)*(-ctr_3 + 34)*(-ctr_3 + 35)) / (6))] = xi_100 + xi_101 + xi_102 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
          }
       }
    }
 }
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_6(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_6(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -532,7 +528,6 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_6(double const * R
          // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 64; ctr_1 += 1)
          {
-            const double xi_103 = _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 66) + ((287430) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 65)*(-ctr_3 + 66)*(-ctr_3 + 67)) / (6))];
             const double xi_53 = xi_1*_data_edgeCellSrc_XYZ[ctr_1 + (ctr_2 - 1)*(-ctr_3 + 64) + ((262080) / (6)) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + 63)*(-ctr_3 + 64)*(-ctr_3 + 65)) / (6)) - 1];
             const double xi_64 = xi_2*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + 65) + ((262080) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 64)*(-ctr_3 + 65)*(-ctr_3 + 66)) / (6)) - 1];
             const double xi_75 = xi_3*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + 64) + ((262080) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 63)*(-ctr_3 + 64)*(-ctr_3 + 65)) / (6)) - 1];
@@ -583,13 +578,13 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_6(double const * R
             const double xi_95 = xi_48*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 + 1)*(-ctr_3 + 66) + ((274560) / (6)) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) - (((-ctr_3 + 65)*(-ctr_3 + 66)*(-ctr_3 + 67)) / (6))];
             const double xi_96 = xi_49*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 - 1)*(-ctr_3 + 65) + ((274560) / (6)) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + 64)*(-ctr_3 + 65)*(-ctr_3 + 66)) / (6)) + 1];
             const double xi_98 = xi_50*_data_edgeCellSrc_Z[ctr_1 + ctr_2*(-ctr_3 + 66) + ((274560) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 65)*(-ctr_3 + 66)*(-ctr_3 + 67)) / (6)) + 1];
-            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 66) + ((287430) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 65)*(-ctr_3 + 66)*(-ctr_3 + 67)) / (6))] = xi_100 + xi_101 + xi_102 + xi_103 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
+            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 66) + ((287430) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 65)*(-ctr_3 + 66)*(-ctr_3 + 67)) / (6))] = xi_100 + xi_101 + xi_102 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
          }
       }
    }
 }
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_7(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_7(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -648,7 +643,6 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_7(double const * R
          // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 128; ctr_1 += 1)
          {
-            const double xi_103 = _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 130) + ((2196870) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 129)*(-ctr_3 + 130)*(-ctr_3 + 131)) / (6))];
             const double xi_53 = xi_1*_data_edgeCellSrc_XYZ[ctr_1 + (ctr_2 - 1)*(-ctr_3 + 128) + ((2097024) / (6)) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + 127)*(-ctr_3 + 128)*(-ctr_3 + 129)) / (6)) - 1];
             const double xi_64 = xi_2*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + 129) + ((2097024) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 128)*(-ctr_3 + 129)*(-ctr_3 + 130)) / (6)) - 1];
             const double xi_75 = xi_3*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + 128) + ((2097024) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 127)*(-ctr_3 + 128)*(-ctr_3 + 129)) / (6)) - 1];
@@ -699,13 +693,13 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_7(double const * R
             const double xi_95 = xi_48*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 + 1)*(-ctr_3 + 130) + ((2146560) / (6)) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) - (((-ctr_3 + 129)*(-ctr_3 + 130)*(-ctr_3 + 131)) / (6))];
             const double xi_96 = xi_49*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 - 1)*(-ctr_3 + 129) + ((2146560) / (6)) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + 128)*(-ctr_3 + 129)*(-ctr_3 + 130)) / (6)) + 1];
             const double xi_98 = xi_50*_data_edgeCellSrc_Z[ctr_1 + ctr_2*(-ctr_3 + 130) + ((2146560) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 129)*(-ctr_3 + 130)*(-ctr_3 + 131)) / (6)) + 1];
-            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 130) + ((2196870) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 129)*(-ctr_3 + 130)*(-ctr_3 + 131)) / (6))] = xi_100 + xi_101 + xi_102 + xi_103 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
+            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 130) + ((2196870) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 129)*(-ctr_3 + 130)*(-ctr_3 + 131)) / (6))] = xi_100 + xi_101 + xi_102 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
          }
       }
    }
 }
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_8(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_8(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -764,7 +758,6 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_8(double const * R
          // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 256; ctr_1 += 1)
          {
-            const double xi_103 = _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 258) + ((17173254) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 257)*(-ctr_3 + 258)*(-ctr_3 + 259)) / (6))];
             const double xi_53 = xi_1*_data_edgeCellSrc_XYZ[ctr_1 + (ctr_2 - 1)*(-ctr_3 + 256) + ((16776960) / (6)) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + 255)*(-ctr_3 + 256)*(-ctr_3 + 257)) / (6)) - 1];
             const double xi_64 = xi_2*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + 257) + ((16776960) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 256)*(-ctr_3 + 257)*(-ctr_3 + 258)) / (6)) - 1];
             const double xi_75 = xi_3*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + 256) + ((16776960) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 255)*(-ctr_3 + 256)*(-ctr_3 + 257)) / (6)) - 1];
@@ -815,13 +808,13 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_8(double const * R
             const double xi_95 = xi_48*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 + 1)*(-ctr_3 + 258) + ((16974336) / (6)) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) - (((-ctr_3 + 257)*(-ctr_3 + 258)*(-ctr_3 + 259)) / (6))];
             const double xi_96 = xi_49*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 - 1)*(-ctr_3 + 257) + ((16974336) / (6)) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + 256)*(-ctr_3 + 257)*(-ctr_3 + 258)) / (6)) + 1];
             const double xi_98 = xi_50*_data_edgeCellSrc_Z[ctr_1 + ctr_2*(-ctr_3 + 258) + ((16974336) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 257)*(-ctr_3 + 258)*(-ctr_3 + 259)) / (6)) + 1];
-            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 258) + ((17173254) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 257)*(-ctr_3 + 258)*(-ctr_3 + 259)) / (6))] = xi_100 + xi_101 + xi_102 + xi_103 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
+            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 258) + ((17173254) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 257)*(-ctr_3 + 258)*(-ctr_3 + 259)) / (6))] = xi_100 + xi_101 + xi_102 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
          }
       }
    }
 }
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_9(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_9(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -880,7 +873,6 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_9(double const * R
          // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + 512; ctr_1 += 1)
          {
-            const double xi_103 = _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 514) + ((135796230) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 513)*(-ctr_3 + 514)*(-ctr_3 + 515)) / (6))];
             const double xi_53 = xi_1*_data_edgeCellSrc_XYZ[ctr_1 + (ctr_2 - 1)*(-ctr_3 + 512) + ((134217216) / (6)) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + 511)*(-ctr_3 + 512)*(-ctr_3 + 513)) / (6)) - 1];
             const double xi_64 = xi_2*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + 513) + ((134217216) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 512)*(-ctr_3 + 513)*(-ctr_3 + 514)) / (6)) - 1];
             const double xi_75 = xi_3*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + 512) + ((134217216) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 511)*(-ctr_3 + 512)*(-ctr_3 + 513)) / (6)) - 1];
@@ -931,13 +923,13 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_9(double const * R
             const double xi_95 = xi_48*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 + 1)*(-ctr_3 + 514) + ((135005184) / (6)) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) - (((-ctr_3 + 513)*(-ctr_3 + 514)*(-ctr_3 + 515)) / (6))];
             const double xi_96 = xi_49*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 - 1)*(-ctr_3 + 513) + ((135005184) / (6)) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + 512)*(-ctr_3 + 513)*(-ctr_3 + 514)) / (6)) + 1];
             const double xi_98 = xi_50*_data_edgeCellSrc_Z[ctr_1 + ctr_2*(-ctr_3 + 514) + ((135005184) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 513)*(-ctr_3 + 514)*(-ctr_3 + 515)) / (6)) + 1];
-            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 514) + ((135796230) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 513)*(-ctr_3 + 514)*(-ctr_3 + 515)) / (6))] = xi_100 + xi_101 + xi_102 + xi_103 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
+            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + 514) + ((135796230) / (6)) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + 513)*(-ctr_3 + 514)*(-ctr_3 + 515)) / (6))] = xi_100 + xi_101 + xi_102 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
          }
       }
    }
 }
 
-static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_any(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap, int64_t level)
+static void apply_3D_macrocell_edgedof_to_vertexdof_replace_level_any(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap, int64_t level)
 {
    const double xi_1 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
    const double xi_2 = e2vStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
@@ -996,7 +988,6 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_any(double const *
          // cell (inner)
          for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + (1 << (level)); ctr_1 += 1)
          {
-            const double xi_103 = _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + (1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*((1 << (level)) + 2)*((1 << (level)) + 3)) / (6)) - (((-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)*(-ctr_3 + (1 << (level)) + 3)) / (6))];
             const double xi_53 = xi_1*_data_edgeCellSrc_XYZ[ctr_1 + (ctr_2 - 1)*(-ctr_3 + (1 << (level))) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + (1 << (level)))*(-ctr_3 + (1 << (level)) - 1)*(-ctr_3 + (1 << (level)) + 1)) / (6)) + ((((1 << (level)) - 1)*((1 << (level)) + 1)*(1 << (level))) / (6)) - 1];
             const double xi_64 = xi_2*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + (1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + (1 << (level)))*(-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)) / (6)) + ((((1 << (level)) - 1)*((1 << (level)) + 1)*(1 << (level))) / (6)) - 1];
             const double xi_75 = xi_3*_data_edgeCellSrc_XYZ[ctr_1 + ctr_2*(-ctr_3 + (1 << (level))) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + (1 << (level)))*(-ctr_3 + (1 << (level)) - 1)*(-ctr_3 + (1 << (level)) + 1)) / (6)) + ((((1 << (level)) - 1)*((1 << (level)) + 1)*(1 << (level))) / (6)) - 1];
@@ -1047,43 +1038,43 @@ static void apply_3D_macrocell_edgedof_to_vertexdof_add_level_any(double const *
             const double xi_95 = xi_48*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 + 1)*(-ctr_3 + (1 << (level)) + 2) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) + ((((1 << (level)) + 1)*((1 << (level)) + 2)*(1 << (level))) / (6)) - (((-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)*(-ctr_3 + (1 << (level)) + 3)) / (6))];
             const double xi_96 = xi_49*_data_edgeCellSrc_Z[ctr_1 + (ctr_2 - 1)*(-ctr_3 + (1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) - (((-ctr_3 + (1 << (level)))*(-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)) / (6)) + ((((1 << (level)) + 1)*((1 << (level)) + 2)*(1 << (level))) / (6)) + 1];
             const double xi_98 = xi_50*_data_edgeCellSrc_Z[ctr_1 + ctr_2*(-ctr_3 + (1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*((1 << (level)) + 2)*(1 << (level))) / (6)) - (((-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)*(-ctr_3 + (1 << (level)) + 3)) / (6)) + 1];
-            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + (1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*((1 << (level)) + 2)*((1 << (level)) + 3)) / (6)) - (((-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)*(-ctr_3 + (1 << (level)) + 3)) / (6))] = xi_100 + xi_101 + xi_102 + xi_103 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
+            _data_vertexCellDst[ctr_1 + ctr_2*(-ctr_3 + (1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*((1 << (level)) + 2)*((1 << (level)) + 3)) / (6)) - (((-ctr_3 + (1 << (level)) + 1)*(-ctr_3 + (1 << (level)) + 2)*(-ctr_3 + (1 << (level)) + 3)) / (6))] = xi_100 + xi_101 + xi_102 + xi_53 + xi_54 + xi_55 + xi_56 + xi_57 + xi_58 + xi_59 + xi_60 + xi_61 + xi_62 + xi_63 + xi_64 + xi_65 + xi_66 + xi_67 + xi_68 + xi_69 + xi_70 + xi_71 + xi_72 + xi_73 + xi_74 + xi_75 + xi_76 + xi_77 + xi_78 + xi_79 + xi_80 + xi_81 + xi_82 + xi_83 + xi_84 + xi_85 + xi_86 + xi_87 + xi_88 + xi_89 + xi_90 + xi_91 + xi_92 + xi_93 + xi_94 + xi_95 + xi_96 + xi_97 + xi_98 + xi_99;
          }
       }
    }
 }
 
 
-void apply_3D_macrocell_edgedof_to_vertexdof_add(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap, int64_t level)
+void apply_3D_macrocell_edgedof_to_vertexdof_replace(double const * RESTRICT const _data_edgeCellSrc_X, double const * RESTRICT const _data_edgeCellSrc_XY, double const * RESTRICT const _data_edgeCellSrc_XYZ, double const * RESTRICT const _data_edgeCellSrc_XZ, double const * RESTRICT const _data_edgeCellSrc_Y, double const * RESTRICT const _data_edgeCellSrc_YZ, double const * RESTRICT const _data_edgeCellSrc_Z, double * RESTRICT _data_vertexCellDst, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2vStencilMap, int64_t level)
 {
     switch( level )
     {
     case 2:
-        apply_3D_macrocell_edgedof_to_vertexdof_add_level_2(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap);
+        apply_3D_macrocell_edgedof_to_vertexdof_replace_level_2(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap);
         break;
     case 3:
-        apply_3D_macrocell_edgedof_to_vertexdof_add_level_3(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap);
+        apply_3D_macrocell_edgedof_to_vertexdof_replace_level_3(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap);
         break;
     case 4:
-        apply_3D_macrocell_edgedof_to_vertexdof_add_level_4(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap);
+        apply_3D_macrocell_edgedof_to_vertexdof_replace_level_4(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap);
         break;
     case 5:
-        apply_3D_macrocell_edgedof_to_vertexdof_add_level_5(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap);
+        apply_3D_macrocell_edgedof_to_vertexdof_replace_level_5(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap);
         break;
     case 6:
-        apply_3D_macrocell_edgedof_to_vertexdof_add_level_6(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap);
+        apply_3D_macrocell_edgedof_to_vertexdof_replace_level_6(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap);
         break;
     case 7:
-        apply_3D_macrocell_edgedof_to_vertexdof_add_level_7(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap);
+        apply_3D_macrocell_edgedof_to_vertexdof_replace_level_7(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap);
         break;
     case 8:
-        apply_3D_macrocell_edgedof_to_vertexdof_add_level_8(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap);
+        apply_3D_macrocell_edgedof_to_vertexdof_replace_level_8(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap);
         break;
     case 9:
-        apply_3D_macrocell_edgedof_to_vertexdof_add_level_9(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap);
+        apply_3D_macrocell_edgedof_to_vertexdof_replace_level_9(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap);
         break;
     default:
-        apply_3D_macrocell_edgedof_to_vertexdof_add_level_any(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap, level);
+        apply_3D_macrocell_edgedof_to_vertexdof_replace_level_any(_data_edgeCellSrc_X, _data_edgeCellSrc_XY, _data_edgeCellSrc_XYZ, _data_edgeCellSrc_XZ, _data_edgeCellSrc_Y, _data_edgeCellSrc_YZ, _data_edgeCellSrc_Z, _data_vertexCellDst, e2vStencilMap, level);
         break;
     }
 }

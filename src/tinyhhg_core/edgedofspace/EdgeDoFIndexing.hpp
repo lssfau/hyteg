@@ -65,28 +65,48 @@ inline std::ostream& operator<<(std::ostream& out, const EdgeDoFOrientation ornt
 inline EdgeDoFOrientation calcEdgeDoFOrientation( const indexing::IndexIncrement & vertexIndex0, const indexing::IndexIncrement & vertexIndex1 )
 {
   const indexing::IndexIncrement offset = vertexIndex1 - vertexIndex0;
-  const uint_t x = std::abs( offset.x() );
-  const uint_t y = std::abs( offset.y() );
-  const uint_t z = std::abs( offset.z() );
-
-  WALBERLA_ASSERT_GREATER( x + y + z, 0 );
-  WALBERLA_ASSERT_LESS_EQUAL( x, 1 );
-  WALBERLA_ASSERT_LESS_EQUAL( y, 1 );
-  WALBERLA_ASSERT_LESS_EQUAL( z, 1 );
+  const int x = offset.x();
+  const int y = offset.y();
+  const int z = offset.z();
+//
+//  WALBERLA_ASSERT_GREATER( x + y + z, 0 );
+//  WALBERLA_ASSERT_LESS_EQUAL( x, 1 );
+//  WALBERLA_ASSERT_LESS_EQUAL( y, 1 );
+//  WALBERLA_ASSERT_LESS_EQUAL( z, 1 );
 
   if ( x == 1 && y == 0 && z == 0 )
     return EdgeDoFOrientation::X;
+  if ( x == -1 && y == 0 && z == 0 )
+    return EdgeDoFOrientation::X;
+
   if ( x == 0 && y == 1 && z == 0 )
     return EdgeDoFOrientation::Y;
+  if ( x == 0 && y == -1 && z == 0 )
+    return EdgeDoFOrientation::Y;
+
   if ( x == 0 && y == 0 && z == 1 )
     return EdgeDoFOrientation::Z;
-  if ( x == 1 && y == 1 && z == 0 )
+  if ( x == 0 && y == 0 && z == -1 )
+    return EdgeDoFOrientation::Z;
+
+  if ( x == -1 && y == 1 && z == 0 )
     return EdgeDoFOrientation::XY;
-  if ( x == 1 && y == 0 && z == 1 )
+  if ( x == 1 && y == -1 && z == 0 )
+    return EdgeDoFOrientation::XY;
+
+  if ( x == 1 && y == 0 && z == -1 )
     return EdgeDoFOrientation::XZ;
-  if ( x == 0 && y == 1 && z == 1 )
+  if ( x == -1 && y == 0 && z == 1 )
+    return EdgeDoFOrientation::XZ;
+
+  if ( x == 0 && y == 1 && z == -1 )
     return EdgeDoFOrientation::YZ;
-  if ( x == 1 && y == 1 && z == 1 )
+  if ( x == 0 && y == -1 && z == 1 )
+    return EdgeDoFOrientation::YZ;
+
+  if ( x == 1 && y == -1 && z == 1 )
+    return EdgeDoFOrientation::XYZ;
+  if ( x == -1 && y == 1 && z == -1 )
     return EdgeDoFOrientation::XYZ;
 
   WALBERLA_ASSERT( false, "Invalid index offset." );

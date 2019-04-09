@@ -185,23 +185,44 @@ void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::apply( const P1
       }
       else if( hhg::globalDefines::useGeneratedKernels )
       {
-        real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
-        real_t* vertexToDiagonalEdgeStencil   = &opr_data[4];
-        real_t* vertexToHorizontalEdgeStencil = &opr_data[0];
-        real_t* vertexToVerticalEdgeStencil   = &opr_data[8];
-        real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
-        real_t* dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
-        if( updateType == hhg::Replace )
-        {
-          VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace( dst_data, src_data, vertexToDiagonalEdgeStencil, vertexToHorizontalEdgeStencil, vertexToVerticalEdgeStencil, static_cast< int64_t  >( level ) );
-        } else if( updateType == hhg::Add )
-        {
-          VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_add( dst_data, src_data, vertexToDiagonalEdgeStencil, vertexToHorizontalEdgeStencil, vertexToVerticalEdgeStencil, static_cast< int64_t  >( level ) );
-        }
+         real_t* opr_data                      = face.getData( faceStencilID_ )->getPointer( level );
+         real_t* vertexToDiagonalEdgeStencil   = &opr_data[4];
+         real_t* vertexToHorizontalEdgeStencil = &opr_data[0];
+         real_t* vertexToVerticalEdgeStencil   = &opr_data[8];
+         real_t* src_data                      = face.getData( src.getFaceDataID() )->getPointer( level );
+         real_t* dst_data                      = face.getData( dst.getFaceDataID() )->getPointer( level );
+
+         typedef edgedof::EdgeDoFOrientation eo;
+         std::map< eo, uint_t >              firstIdx;
+         for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
+            firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
+
+         if ( updateType == hhg::Replace )
+         {
+            VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace( &dst_data[firstIdx[eo::X]],
+                                                                                            &dst_data[firstIdx[eo::XY]],
+                                                                                            &dst_data[firstIdx[eo::Y]],
+                                                                                            src_data,
+                                                                                            vertexToDiagonalEdgeStencil,
+                                                                                            vertexToHorizontalEdgeStencil,
+                                                                                            vertexToVerticalEdgeStencil,
+                                                                                            static_cast< int64_t >( level ) );
+         }
+         else if ( updateType == hhg::Add )
+         {
+            VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_add( &dst_data[firstIdx[eo::X]],
+                                                                                        &dst_data[firstIdx[eo::XY]],
+                                                                                        &dst_data[firstIdx[eo::Y]],
+                                                                                        src_data,
+                                                                                        vertexToDiagonalEdgeStencil,
+                                                                                        vertexToHorizontalEdgeStencil,
+                                                                                        vertexToVerticalEdgeStencil,
+                                                                                        static_cast< int64_t >( level ) );
+         }
       }
       else
       {
-        VertexDoFToEdgeDoF::applyFace( level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+         VertexDoFToEdgeDoF::applyFace( level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
       }
     }
   }

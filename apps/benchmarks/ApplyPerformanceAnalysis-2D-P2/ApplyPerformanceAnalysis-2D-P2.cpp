@@ -58,6 +58,11 @@ static void performBenchmark( hhg::P2Function< double >&      src,
    WALBERLA_LOG_INFO_ON_ROOT(
        hhg::format( "%18s|%10s|%10s|%10s|%6s|%5s", "kernel", "Time (s)", "MLUPs", "MFLOPs", " Iter", " Level" ) );
 
+   typedef edgedof::EdgeDoFOrientation eo;
+   std::map< eo, uint_t >              firstIdx;
+   for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
+      firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
+
    /// Vertex to Vertex
 
    do
@@ -114,8 +119,12 @@ static void performBenchmark( hhg::P2Function< double >&      src,
 
       for ( uint_t i = 0; i < iterations; i++ )
       {
-         hhg::EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_replace(
-             srcPtr, stencilPtr, dstPtr, static_cast< int64_t >( level ) );
+         hhg::EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_replace( &srcPtr[firstIdx[eo::X]],
+                                                                                              &srcPtr[firstIdx[eo::XY]],
+                                                                                              &srcPtr[firstIdx[eo::Y]],
+                                                                                              stencilPtr,
+                                                                                              dstPtr,
+                                                                                              static_cast< int64_t >( level ) );
          hhg::misc::dummy( srcPtr, dstPtr );
       }
       LIKWID_MARKER_STOP( evname.c_str() );
@@ -152,8 +161,16 @@ static void performBenchmark( hhg::P2Function< double >&      src,
 
       for ( uint_t i = 0; i < iterations; i++ )
       {
-         hhg::edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace(
-             dstPtr, srcPtr, &stencilPtr[5], &stencilPtr[0], &stencilPtr[10], static_cast< int64_t >( level ) );
+         hhg::edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace( &dstPtr[firstIdx[eo::X]],
+                                                                                            &dstPtr[firstIdx[eo::XY]],
+                                                                                            &dstPtr[firstIdx[eo::Y]],
+                                                                                            &srcPtr[firstIdx[eo::X]],
+                                                                                            &srcPtr[firstIdx[eo::XY]],
+                                                                                            &srcPtr[firstIdx[eo::Y]],
+                                                                                            &stencilPtr[5],
+                                                                                            &stencilPtr[0],
+                                                                                            &stencilPtr[10],
+                                                                                            static_cast< int64_t >( level ) );
          hhg::misc::dummy( srcPtr, dstPtr );
       }
 
@@ -196,7 +213,9 @@ static void performBenchmark( hhg::P2Function< double >&      src,
 
       for ( uint_t i = 0; i < iterations; i++ )
       {
-         hhg::VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace( dstPtr,
+         hhg::VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace( &dstPtr[firstIdx[eo::X]],
+                                                                                              &dstPtr[firstIdx[eo::XY]],
+                                                                                              &dstPtr[firstIdx[eo::Y]],
                                                                                               srcPtr,
                                                                                               vertexToDiagonalEdgeStencil,
                                                                                               vertexToHorizontalEdgeStencil,
