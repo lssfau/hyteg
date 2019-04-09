@@ -33,7 +33,7 @@ int main( int argc, char** argv )
       std::vector< double > stencil( 25 );
       std::generate( stencil.begin(), stencil.end(), std::rand );
 
-      double time;
+      double time(0.0);
 
       size_t iter = 2;
       while( timer.total() < 0.5 )

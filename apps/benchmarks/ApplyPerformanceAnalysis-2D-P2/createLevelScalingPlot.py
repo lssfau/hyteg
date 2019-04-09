@@ -39,7 +39,8 @@ def main(datafile, perfgroup, minLevel, maxLevel):
                 max_measure_level = current_level
             if min_measure_level > current_level:
                 min_measure_level = current_level
-            outputData[region.split("-level")[0]].append(float(likwidRegions[region][messure][0]))
+            outputData[region.split(
+                "-level")[0]].append(float(likwidRegions[region][messure][0]))
 
         print("Max measure level: " + str(max_measure_level))
         print("Min measure level: " + str(min_measure_level))
@@ -64,13 +65,15 @@ def main(datafile, perfgroup, minLevel, maxLevel):
 
         # plt.ylim(bottom=0)
         # plt.xlim(left=0, right=totalProcs[-1] + 1)
-        # plt.xticks(range(2, int(totalProcs[-1] + 1), 2))
+        plt.xticks(range(minLevel, maxLevel+1))
         plt.grid(True)
-        plt.gca().get_yaxis().set_major_formatter(ticker.FuncFormatter(lambda x, p: format(int(x), ',')))
+        plt.gca().get_yaxis().set_major_formatter(
+            ticker.FuncFormatter(lambda x, p: format(int(x), ',')))
 
         plt.legend()
         namepart = messure.split('[')[0].replace(' ', '_').replace('/', '-')
-        savename = ".".join(datafile.split(".")[0:-1]) + "-" + namepart + ".pdf"
+        savename = ".".join(datafile.split(
+            ".")[0:-1]) + "-" + namepart + ".pdf"
         plt.tight_layout()
         plt.savefig(savename)
         plt.clf()
@@ -78,10 +81,12 @@ def main(datafile, perfgroup, minLevel, maxLevel):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("datafile", help="file to read input from and also name of output")
+    parser.add_argument(
+        "datafile", help="file to read input from and also name of output")
     parser.add_argument("minLevel", help="first level to plot", type=int)
     parser.add_argument("maxLevel", help="last level to plot", type=int)
-    parser.add_argument("--perfgroup", default='MFLOP/s STAT', help="which likwid performance group to plot")
+    parser.add_argument("--perfgroup", default='MFLOP/s STAT',
+                        help="which likwid performance group to plot")
     args = parser.parse_args()
 
     main(args.datafile, args.perfgroup, args.minLevel, args.maxLevel)
