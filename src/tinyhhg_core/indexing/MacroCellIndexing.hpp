@@ -114,9 +114,8 @@ private:
 };
 
 
-/// \brief Iterator to iterate over a border of a macro-cell.
+/// \brief Iterator to iterate over a face-boundary of a macro-cell.
 ///
-/// A border is one of its four faces.
 /// Using this iterator, each face with corner-coordinates a, b and c can be iterated over in six ways:
 ///
 /// c
