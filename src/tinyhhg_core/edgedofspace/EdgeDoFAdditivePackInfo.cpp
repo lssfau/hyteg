@@ -86,7 +86,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::packFaceForEdge( const Face*         
                                                             walberla::mpi::SendBuffer& buffer ) const
 {
    WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Edge only meaningful in 2D." );
-   using hhg::edgedof::macroface::BorderIterator;
+   using hhg::edgedof::macroface::BoundaryIterator;
    ValueType*                    faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = sender->edge_index( receiver );
    indexing::FaceBoundaryDirection faceBorderDir =
@@ -108,7 +108,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::packFaceForEdge( const Face*         
       WALBERLA_ABORT( "Invalid orienation" );
    }
 
-   for ( const auto& it : BorderIterator( level_, faceBorderDir, 0, 0 ) )
+   for ( const auto& it : BoundaryIterator( level_, faceBorderDir, 0, 0 ) )
    {
       buffer << faceData[edgedof::macroface::index( level_, it.x(), it.y(), orientation )];
    }
@@ -143,7 +143,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalFaceToEdge( const Fac
    if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
       return;
 
-   using hhg::edgedof::macroface::BorderIterator;
+   using hhg::edgedof::macroface::BoundaryIterator;
    ValueType*                    edgeData        = receiver->getData( dataIDEdge_ )->getPointer( level_ );
    ValueType*                    faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = sender->edge_index( receiver->getID() );
@@ -167,7 +167,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalFaceToEdge( const Fac
    }
 
    edgedof::macroedge::Iterator edgeIterator( level_, 0 );
-   for ( const auto& it : BorderIterator( level_, faceBorderDir, 0, 0 ) )
+   for ( const auto& it : BoundaryIterator( level_, faceBorderDir, 0, 0 ) )
    {
       edgeData[edgedof::macroedge::index( level_, edgeIterator->x() )] +=
           faceData[edgedof::macroface::index( level_, it.x(), it.y(), orientation )];

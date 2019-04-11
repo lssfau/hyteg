@@ -801,10 +801,10 @@ public:
   {}
 };
 
-class BorderIterator : public indexing::FaceBoundaryIterator
+class BoundaryIterator : public indexing::FaceBoundaryIterator
 {
 public:
-  BorderIterator( const uint_t & level, const indexing::FaceBoundaryDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0 ) :
+  BoundaryIterator( const uint_t & level, const indexing::FaceBoundaryDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0 ) :
     FaceBoundaryIterator( levelinfo::num_microedges_per_edge( level ), direction, offsetToCenter, offsetFromVertices )
   {}
 };
