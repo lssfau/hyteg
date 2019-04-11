@@ -203,7 +203,7 @@ void smoothSOR(const uint_t &level,
              relax * invVertexCenter * tmpVertex;
       }
       ////////// HORIZONTAL EDGE //////////
-      if( !edgedof::isHorizontalEdgeOnBoundary( level, it ) )
+      if( !edgedof::macroface::isHorizontalEdgeOnBoundary( level, it ) )
       {
          tmpEdgeHO = rhsEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), sD::EDGE_HO_C )];
          /// vertex to edge
@@ -223,7 +223,7 @@ void smoothSOR(const uint_t &level,
              relax * invEdgeXCenter * tmpEdgeHO;      
       }
       ////////// VERTICAL EDGE //////////
-      if( !edgedof::isVerticalEdgeOnBoundary( level, it ) )
+      if( !edgedof::macroface::isVerticalEdgeOnBoundary( level, it ) )
       {
          tmpEdgeVE = rhsEdgeDoF[edgedof::macroface::indexFromVerticalEdge( level, it.col(), it.row(), sD::EDGE_VE_C )];
          /// vertex to edge
@@ -243,7 +243,7 @@ void smoothSOR(const uint_t &level,
              relax * invEdgeYCenter * tmpEdgeVE;      
       }
       ////////// DIAGONAL EDGE //////////
-      if( !edgedof::isDiagonalEdgeOnBoundary( level, it ) )
+      if( !edgedof::macroface::isDiagonalEdgeOnBoundary( level, it ) )
       {
          tmpEdgeDI = rhsEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.col(), it.row(), sD::EDGE_DI_C )];
          /// vertex to edge

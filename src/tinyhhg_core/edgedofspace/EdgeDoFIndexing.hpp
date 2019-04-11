@@ -809,6 +809,22 @@ public:
   {}
 };
 
+inline bool isHorizontalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
+  /// level is only needed in the diagonal case
+  WALBERLA_UNUSED( level );
+  return ( idx.row() == 0 );
+}
+
+inline bool isVerticalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
+  /// level is only needed in the diagonal case
+  WALBERLA_UNUSED( level );
+  return ( idx.col() == 0 );
+}
+
+inline bool isDiagonalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
+  return ( (idx.col() + idx.row()) == (hhg::levelinfo::num_microedges_per_edge( level ) - 1) );
+}
+
 } // namespace macroface
 
 
@@ -1186,21 +1202,7 @@ constexpr inline uint_t stencilIndexFromVerticalEdge(const stencilDirection dir)
   }
 }
 
-inline bool isHorizontalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
-  /// level is only needed in the diagonal case
-  WALBERLA_UNUSED( level );
-  return ( idx.row() == 0 );
-}
 
-inline bool isVerticalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
-  /// level is only needed in the diagonal case
-  WALBERLA_UNUSED( level );
-  return ( idx.col() == 0 );
-}
-
-inline bool isDiagonalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
-  return ( (idx.col() + idx.row()) == (hhg::levelinfo::num_microedges_per_edge( level ) - 1) );
-}
 
 
 } // namespace edgedof

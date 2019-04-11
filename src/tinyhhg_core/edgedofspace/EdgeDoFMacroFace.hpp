@@ -520,11 +520,11 @@ inline void apply3D( const uint_t & level, Face &face,
 
     for ( const auto & faceCenterOrientation : edgedof::faceLocalEdgeDoFOrientations )
     {
-      if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::X && edgedof::isHorizontalEdgeOnBoundary( level, centerIndexInFace ) )
+      if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::X && edgedof::macroface::isHorizontalEdgeOnBoundary( level, centerIndexInFace ) )
         continue;
-      if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::Y && edgedof::isVerticalEdgeOnBoundary( level, centerIndexInFace ) )
+      if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::Y && edgedof::macroface::isVerticalEdgeOnBoundary( level, centerIndexInFace ) )
         continue;
-      if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::XY && edgedof::isDiagonalEdgeOnBoundary( level, centerIndexInFace )  )
+      if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::XY && edgedof::macroface::isDiagonalEdgeOnBoundary( level, centerIndexInFace )  )
         continue;
 
       for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++  )
