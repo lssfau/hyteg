@@ -241,6 +241,12 @@ waLBerla_execute_test(NAME P2RestrictTest)
 waLBerla_compile_test(FILES P2/P2ProlongateTest.cpp DEPENDS tinyhhg_core core )
 waLBerla_execute_test(NAME P2ProlongateTest)
 
+waLBerla_compile_test(FILES P2/P2QuadraticRestriction3DTest.cpp DEPENDS tinyhhg_core core )
+waLBerla_execute_test(NAME P2QuadraticRestriction3DTest)
+
+waLBerla_compile_test(FILES P2/P2QuadraticProlongation3DTest.cpp DEPENDS tinyhhg_core core )
+waLBerla_execute_test(NAME P2QuadraticProlongation3DTest)
+
 waLBerla_compile_test(FILES P2/P2BasicFunctionsTest.cpp DEPENDS tinyhhg_core core )
 waLBerla_execute_test(NAME P2BasicFunctionsTest)
 
