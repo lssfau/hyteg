@@ -365,6 +365,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::unpackEdgeFromCell( Edge*            
    WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Additive communication Cell -> Edge only meaningful in 3D." );
    ValueType* edgeData = receiver->getData( dataIDEdge_ )->getPointer( level_ );
 
+   WALBERLA_UNUSED( sender );
    WALBERLA_ASSERT_GREATER( receiver->getNumNeighborCells(), 0 );
    WALBERLA_ASSERT( receiver->neighborPrimitiveExists( sender ) );
 
