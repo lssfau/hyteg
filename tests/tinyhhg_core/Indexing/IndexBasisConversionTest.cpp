@@ -17,10 +17,10 @@ static void testBasisConversion( const std::array< uint_t, 4 > testBasis0,
                                  const uint_t & cellWidth,
                                  const uint_t & offsetToCenter )
 {
-  auto testIterator0 = indexing::CellBorderIterator( cellWidth, {{ testBasis0[0], testBasis0[1], testBasis0[2] }}, offsetToCenter );
-  auto testIterator1 = indexing::CellBorderIterator( cellWidth, {{ testBasis1[0], testBasis1[1], testBasis1[2] }}, offsetToCenter );
+  auto testIterator0 = indexing::CellBoundaryIterator( cellWidth, {{ testBasis0[0], testBasis0[1], testBasis0[2] }}, offsetToCenter );
+  auto testIterator1 = indexing::CellBoundaryIterator( cellWidth, {{ testBasis1[0], testBasis1[1], testBasis1[2] }}, offsetToCenter );
 
-  for( auto referenceIdx : indexing::CellBorderIterator( cellWidth, {{ 0, 1, 2 }}, offsetToCenter ) )
+  for( auto referenceIdx : indexing::CellBoundaryIterator( cellWidth, {{ 0, 1, 2 }}, offsetToCenter ) )
   {
     auto testIdx0 = *testIterator0;
     auto testIdx1 = *testIterator1;

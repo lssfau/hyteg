@@ -61,7 +61,7 @@ static void testCellBorderIterator( const std::vector< std::array< uint_t, 3 > >
 {
   std::vector< std::array< uint_t, 3 > > iteratorResult;
 
-  for ( const auto & it : indexing::CellBorderIterator( width, vertices, offsetToCenter ) )
+  for ( const auto & it : indexing::CellBoundaryIterator( width, vertices, offsetToCenter ) )
   {
     iteratorResult.push_back( {{ it.col(), it.row(), it.dep() }} );
   }
