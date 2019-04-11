@@ -226,52 +226,202 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalFaceToCell(const Face
 /// @name Cell to Face
 ///@{
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::packCellForFace(const Cell */*sender*/, const PrimitiveID &/*receiver*/, walberla::mpi::SendBuffer &/*buffer*/) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::packCellForFace( const Cell*                sender,
+                                                            const PrimitiveID&         receiver,
+                                                            walberla::mpi::SendBuffer& buffer ) const
 {
    WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Additive communication Cell -> Face only meaningful in 3D." );
-   WALBERLA_ABORT( "Additive communication Cell -> Face not implemented." );
+
+   ValueType* cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
+
+   const uint_t localFaceID      = sender->getLocalFaceID( receiver );
+   const uint_t iterationVertex0 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 );
+   const uint_t iterationVertex1 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
+   const uint_t iterationVertex2 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
+
+   auto srcEdgeOrientationX = edgedof::convertEdgeDoFOrientationFaceToCell(
+       edgedof::EdgeDoFOrientation::X, iterationVertex0, iterationVertex1, iterationVertex2 );
+   auto srcEdgeOrientationY = edgedof::convertEdgeDoFOrientationFaceToCell(
+       edgedof::EdgeDoFOrientation::Y, iterationVertex0, iterationVertex1, iterationVertex2 );
+   auto srcEdgeOrientationXY = edgedof::convertEdgeDoFOrientationFaceToCell(
+       edgedof::EdgeDoFOrientation::XY, iterationVertex0, iterationVertex1, iterationVertex2 );
+
+   for ( const auto& cellIterator :
+         edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 ) )
+   {
+      buffer << cellData[edgedof::macrocell::index(
+          level_, cellIterator.x(), cellIterator.y(), cellIterator.z(), srcEdgeOrientationX )];
+      buffer << cellData[edgedof::macrocell::index(
+          level_, cellIterator.x(), cellIterator.y(), cellIterator.z(), srcEdgeOrientationY )];
+      buffer << cellData[edgedof::macrocell::index(
+          level_, cellIterator.x(), cellIterator.y(), cellIterator.z(), srcEdgeOrientationXY )];
+   }
 }
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::unpackFaceFromCell(Face */*receiver*/, const PrimitiveID &/*sender*/, walberla::mpi::RecvBuffer &/*buffer*/) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::unpackFaceFromCell( Face*                      receiver,
+                                                               const PrimitiveID&         sender,
+                                                               walberla::mpi::RecvBuffer& buffer ) const
 {
    WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Additive communication Cell -> Face only meaningful in 3D." );
-   WALBERLA_ABORT( "Additive communication Cell -> Face not implemented." );
+
+   WALBERLA_UNUSED( sender );
+   ValueType* faceData = receiver->getData( dataIDFace_ )->getPointer( level_ );
+   for ( const auto& faceIdx : edgedof::macroface::Iterator( level_ ) )
+   {
+      ValueType tmpX, tmpY, tmpXY;
+      buffer >> tmpX;
+      buffer >> tmpY;
+      buffer >> tmpXY;
+      if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) != boundaryTypeToSkip_ )
+      {
+         faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::X )] += tmpX;
+         faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::Y )] += tmpY;
+         faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XY )] += tmpXY;
+      }
+   }
 }
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalCellToFace(const Cell */*sender*/, Face */*receiver*/) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalCellToFace( const Cell* sender, Face* receiver ) const
 {
    WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Edge only meaningful in 3D." );
-   WALBERLA_ABORT( "Additive communication Cell -> Face not implemented." );
+
+   if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
+   {
+      return;
+   }
+
+   ValueType*       faceData = receiver->getData( dataIDFace_ )->getPointer( level_ );
+   const ValueType* cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
+
+   const uint_t localFaceID      = sender->getLocalFaceID( receiver->getID() );
+   const uint_t iterationVertex0 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 );
+   const uint_t iterationVertex1 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
+   const uint_t iterationVertex2 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
+
+   auto srcEdgeOrientationX = edgedof::convertEdgeDoFOrientationFaceToCell(
+       edgedof::EdgeDoFOrientation::X, iterationVertex0, iterationVertex1, iterationVertex2 );
+   auto srcEdgeOrientationY = edgedof::convertEdgeDoFOrientationFaceToCell(
+       edgedof::EdgeDoFOrientation::Y, iterationVertex0, iterationVertex1, iterationVertex2 );
+   auto srcEdgeOrientationXY = edgedof::convertEdgeDoFOrientationFaceToCell(
+       edgedof::EdgeDoFOrientation::XY, iterationVertex0, iterationVertex1, iterationVertex2 );
+
+   auto cellIterator = edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
+
+   for ( const auto& faceIdx : edgedof::macroface::Iterator( level_ ) )
+   {
+      auto cellIdx = *cellIterator;
+      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::X )] +=
+          cellData[edgedof::macrocell::index( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), srcEdgeOrientationX )];
+      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::Y )] +=
+          cellData[edgedof::macrocell::index( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), srcEdgeOrientationY )];
+      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XY )] +=
+          cellData[edgedof::macrocell::index( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), srcEdgeOrientationXY )];
+      cellIterator++;
+   }
+
+   WALBERLA_ASSERT( cellIterator == cellIterator.end() );
 }
 
 ///@}
 /// @name Cell to Edge
 ///@{
 
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::packCellForEdge(const Cell */*sender*/, const PrimitiveID &/*receiver*/, walberla::mpi::SendBuffer &/*buffer*/) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::packCellForEdge( const Cell*                sender,
+                                                            const PrimitiveID&         receiver,
+                                                            walberla::mpi::SendBuffer& buffer ) const
 {
    WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Additive communication Cell -> Edge only meaningful in 3D." );
-   WALBERLA_ABORT( "Additive communication Cell -> Edge not implemented." );
+
+   ValueType* cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
+
+   const uint_t localEdgeID      = sender->getLocalEdgeID( receiver );
+   const uint_t iterationVertex0 = sender->getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeID ).at( 0 );
+   const uint_t iterationVertex1 = sender->getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeID ).at( 1 );
+   const uint_t iterationVertex2 =
+       algorithms::getMissingIntegersAscending< 2, 4 >( {iterationVertex0, iterationVertex1} ).at( 2 );
+
+   auto srcEdgeOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(
+       edgedof::EdgeDoFOrientation::X, iterationVertex0, iterationVertex1, iterationVertex2 );
+
+   auto cellIterator = edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
+
+   for ( uint_t i = 0; i < levelinfo::num_microedges_per_edge( level_ ); i++ )
+   {
+      buffer << cellData[edgedof::macrocell::index(
+          level_, cellIterator->x(), cellIterator->y(), cellIterator->z(), srcEdgeOrientation )];
+      cellIterator++;
+   }
 }
 
-
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::unpackEdgeFromCell(Edge */*receiver*/, const PrimitiveID &/*sender*/, walberla::mpi::RecvBuffer &/*buffer*/) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::unpackEdgeFromCell( Edge*                      receiver,
+                                                               const PrimitiveID&         sender,
+                                                               walberla::mpi::RecvBuffer& buffer ) const
 {
    WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Additive communication Cell -> Edge only meaningful in 3D." );
-   WALBERLA_ABORT( "Additive communication Cell -> Edge not implemented." );
+   ValueType* edgeData = receiver->getData( dataIDEdge_ )->getPointer( level_ );
+
+   WALBERLA_ASSERT_GREATER( receiver->getNumNeighborCells(), 0 );
+   WALBERLA_ASSERT( receiver->neighborPrimitiveExists( sender ) );
+
+   if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
+   {
+      for ( const auto& it : edgedof::macroedge::Iterator( level_ ) )
+      {
+         WALBERLA_UNUSED( it );
+         ValueType tmp;
+         buffer >> tmp;
+      }
+   }
+   else
+   {
+      for ( const auto& it : edgedof::macroedge::Iterator( level_ ) )
+      {
+         ValueType tmp;
+         buffer >> tmp;
+         edgeData[edgedof::macroedge::index( level_, it.x() )] += tmp;
+      }
+   }
 }
 
-
-template< typename ValueType >
-void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalCellToEdge(const Cell */*sender*/, Edge */*receiver*/) const
+template < typename ValueType >
+void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalCellToEdge( const Cell* sender, Edge* receiver ) const
 {
    WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Additive communication Cell -> Edge only meaningful in 3D." );
-   WALBERLA_ABORT( "Additive communication Cell -> Edge not implemented." );
+
+   WALBERLA_ASSERT_GREATER( receiver->getNumNeighborCells(), 0 );
+   WALBERLA_ASSERT( receiver->neighborPrimitiveExists( sender->getID() ) );
+
+   if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
+   {
+      return;
+   }
+
+   ValueType* cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
+
+   const uint_t localEdgeID      = sender->getLocalEdgeID( receiver->getID() );
+   const uint_t iterationVertex0 = sender->getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeID ).at( 0 );
+   const uint_t iterationVertex1 = sender->getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeID ).at( 1 );
+   const uint_t iterationVertex2 =
+       algorithms::getMissingIntegersAscending< 2, 4 >( {iterationVertex0, iterationVertex1} ).at( 2 );
+
+   auto srcEdgeOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(
+       edgedof::EdgeDoFOrientation::X, iterationVertex0, iterationVertex1, iterationVertex2 );
+
+   auto cellIterator = edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
+
+   ValueType* edgeData = receiver->getData( dataIDEdge_ )->getPointer( level_ );
+
+   for ( const auto& it : edgedof::macroedge::Iterator( level_ ) )
+   {
+      edgeData[edgedof::macroedge::index( level_, it.x() )] += cellData[edgedof::macrocell::index(
+          level_, cellIterator->x(), cellIterator->y(), cellIterator->z(), srcEdgeOrientation )];
+      cellIterator++;
+   }
 }
 
 ///@}
