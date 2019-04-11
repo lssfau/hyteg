@@ -825,6 +825,22 @@ inline bool isDiagonalEdgeOnBoundary(const uint_t level, const hhg::indexing::In
   return ( (idx.col() + idx.row()) == (hhg::levelinfo::num_microedges_per_edge( level ) - 1) );
 }
 
+inline bool isInnerEdgeDoF( const uint_t & level, const indexing::Index & idx, const EdgeDoFOrientation & orientation )
+{
+  switch ( orientation )
+  {
+    case EdgeDoFOrientation::X:
+      return !isHorizontalEdgeOnBoundary( level, idx );
+    case EdgeDoFOrientation::Y:
+      return !isVerticalEdgeOnBoundary( level, idx );
+    case EdgeDoFOrientation::XY:
+      return !isDiagonalEdgeOnBoundary( level, idx );
+    default:
+    WALBERLA_ASSERT( false, "Invalid orientation." );
+      return true;
+  }
+}
+
 } // namespace macroface
 
 
