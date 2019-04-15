@@ -9,6 +9,8 @@ stages:
    - test
    - deploy
 
+variables:
+   GIT_SUBMODULE_STRATEGY: normal
 
 ###############################################################################
 ##                                                                           ##
@@ -24,7 +26,6 @@ stages:
       - cmake --version
       - ccache --version
       - mpirun --version
-      - git clone --depth 1 --branch master https://i10git.cs.fau.de/walberla/walberla.git
       - export CCACHE_BASEDIR=$CI_PROJECT_DIR
       - mkdir $CI_PROJECT_DIR/build
       - cd $CI_PROJECT_DIR/build
@@ -954,7 +955,6 @@ clang_8.0_eigen_petsc:
 pages:
   image: walberla/buildenv-ubuntu-basic:16.04
   script:
-   - git clone --depth 1 --branch master https://i10git.cs.fau.de/walberla/walberla.git
    - export CCACHE_BASEDIR=$CI_PROJECT_DIR
    - mkdir $CI_PROJECT_DIR/build
    - cd $CI_PROJECT_DIR/build
@@ -1002,7 +1002,6 @@ coverage:
       - mpirun --version
       - gcov --version
       - echo $CI_PROJECT_DIR
-      - git clone --depth 1 --branch master https://i10git.cs.fau.de/walberla/walberla.git
       # - export CCACHE_BASEDIR=$CI_PROJECT_DIR
       - mkdir build
       - cd build
@@ -1045,7 +1044,6 @@ coverage:
       - export MSMPI_DISABLE_SHM=1
       - export
       - cmake --version
-      - git clone --depth 1 --branch master https://i10git.cs.fau.de/walberla/walberla.git
       - mkdir build
       - cd build
       - cmake -LAH -DWALBERLA_BUILD_BENCHMARKS=OFF -DWALBERLA_BUILD_TUTORIALS=OFF -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DWALBERLA_DOUBLE_ACCURACY=$WALBERLA_DOUBLE_ACCURACY -DWARNING_ERROR=OFF -G "$CMAKE_GENERATOR" ..
@@ -1098,7 +1096,6 @@ msvc-14.1_MpiOnly_Dbg:
       - cmake --version
       - ccache --version
       - mpirun --version
-      - git clone --depth 1 --branch master https://i10git.cs.fau.de/walberla/walberla.git
       - export CCACHE_BASEDIR=$CI_PROJECT_DIR
       - mkdir $CI_PROJECT_DIR/build
       - cd $CI_PROJECT_DIR/build
