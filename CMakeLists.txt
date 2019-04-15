@@ -10,6 +10,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON CACHE BOOL "Enable compiler optimizations spcific to localhost")
+set(WALBERLA_DIR ${tinyhhg_SOURCE_DIR}/walberla CACHE  PATH  "waLBerla path")
 
 
 include_directories ( src )
