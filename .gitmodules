@@ -1,0 +1,3 @@
+[submodule "walberla"]
+	path = walberla
+	url = https://i10git.cs.fau.de/walberla/walberla
