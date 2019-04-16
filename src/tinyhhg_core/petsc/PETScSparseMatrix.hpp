@@ -122,6 +122,27 @@ public:
        WALBERLA_ASSERT( isSymmetric() );
     }
 
+    /// \brief Variant of applyDirichletBCSymmetrically() that only modifies the matrix itself
+    void applyDirichletBCSymmetrically( const FunctionType< PetscInt >& numerator,
+                                        const uint_t&                   level )
+    {
+       std::vector< PetscInt > bcIndices;
+       hhg::petsc::applyDirichletBC( numerator, bcIndices, level );
+
+       WALBERLA_ASSERT(
+           isSymmetric(),
+           "PETSc: Dirichlet boundary conditions can only be applied symmetrically if the original system is symmetric." );
+
+       // This is required as the implementation of MatZeroRowsColumns() checks (for performance reasons?!)
+       // if there are zero diagonals in the matrix. If there are, the function halts.
+       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
+       MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
+
+       MatZeroRowsColumns( mat, bcIndices.size(), bcIndices.data(), 1.0, NULL, NULL );
+
+       WALBERLA_ASSERT( isSymmetric() );
+    }
+
   inline void reset()  { assembled = false; }
 
   inline void setName(const char name[]){ PetscObjectSetName((PetscObject)mat,name); }
