@@ -43,7 +43,18 @@ void P2toP2QuadraticRestriction::restrictAdditively( const P2Function< real_t >&
       const double numNeighborFacesVertex2 =
           static_cast< double >( storage->getVertex( face->neighborVertices().at( 2 ) )->getNumNeighborFaces() );
 
-      P2::macroface::generated::restrict_2D_macroface_P2_update_vertexdofs( edgeFineData,
+      typedef edgedof::EdgeDoFOrientation eo;
+      std::map< eo, uint_t >              firstIdxFine;
+      std::map< eo, uint_t >              firstIdxCoarse;
+      for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
+      {
+        firstIdxFine[e]   = edgedof::macroface::index( fineLevel, 0, 0, e );
+        firstIdxCoarse[e] = edgedof::macroface::index( coarseLevel, 0, 0, e );
+      }
+
+      P2::macroface::generated::restrict_2D_macroface_P2_update_vertexdofs( &edgeFineData[firstIdxFine[eo::X]],
+                                                                            &edgeFineData[firstIdxFine[eo::XY]],
+                                                                            &edgeFineData[firstIdxFine[eo::Y]],
                                                                             vertexCoarseData,
                                                                             vertexFineData,
                                                                             static_cast< int64_t >( coarseLevel ),
@@ -54,8 +65,12 @@ void P2toP2QuadraticRestriction::restrictAdditively( const P2Function< real_t >&
                                                                             numNeighborFacesVertex1,
                                                                             numNeighborFacesVertex2 );
 
-      P2::macroface::generated::restrict_2D_macroface_P2_update_edgedofs( edgeCoarseData,
-                                                                          edgeFineData,
+      P2::macroface::generated::restrict_2D_macroface_P2_update_edgedofs( &edgeCoarseData[firstIdxCoarse[eo::X]],
+                                                                          &edgeCoarseData[firstIdxCoarse[eo::XY]],
+                                                                          &edgeCoarseData[firstIdxCoarse[eo::Y]],
+                                                                          &edgeFineData[firstIdxFine[eo::X]],
+                                                                          &edgeFineData[firstIdxFine[eo::XY]],
+                                                                          &edgeFineData[firstIdxFine[eo::Y]],
                                                                           vertexFineData,
                                                                           static_cast< int64_t >( coarseLevel ),
                                                                           numNeighborFacesEdge0,

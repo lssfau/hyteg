@@ -35,11 +35,11 @@ waLBerla_add_executable( NAME show_mesh
         DEPENDS tinyhhg_core)
 
 waLBerla_add_executable( NAME PolarLaplacian
-        FILES  polar_laplacian.cpp
+        FILES polar_laplacian.cpp
         DEPENDS tinyhhg_core)
 
 waLBerla_add_executable( NAME PrimitiveSizes
-        FILES  PrimitiveSizes.cpp
+        FILES PrimitiveSizes.cpp
         DEPENDS tinyhhg_core)
 
 if( HHG_BUILD_WITH_EIGEN )
@@ -50,6 +50,12 @@ if( HHG_BUILD_WITH_EIGEN )
     waLBerla_add_executable( NAME gmg_blending
             FILES gmg_blending.cpp
             DEPENDS tinyhhg_core)
+endif()
+
+if( HHG_BUILD_WITH_PETSC )
+waLBerla_add_executable( NAME exportOperatorMatrix
+        FILES exportOperatorMatrix.cpp
+        DEPENDS tinyhhg_core)
 endif()
 
 add_subdirectory(benchmarks)

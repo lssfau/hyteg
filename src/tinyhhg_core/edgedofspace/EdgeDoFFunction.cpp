@@ -8,6 +8,7 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFAdditivePackInfo.hpp"
 #include "tinyhhg_core/communication/Syncing.hpp"
 #include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroFace2D.hpp"
+#include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroCell3D.hpp"
 
 namespace hhg {
 
@@ -290,12 +291,24 @@ void macroFaceAssign< double >( const uint_t & level, Face & face, const std::ve
                                const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > > & srcFaceIDs,
                                const PrimitiveDataID< FunctionMemory< double >, Face > & dstFaceID )
 {
+   typedef edgedof::EdgeDoFOrientation eo;
+   std::map< eo, uint_t >              firstIdx;
+   for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
+      firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
+
    if ( globalDefines::useGeneratedKernels && scalars.size() == 1 )
    {
       auto dstData = face.getData( dstFaceID )->getPointer( level );
       auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
       auto scalar  = scalars.at( 0 );
-      edgedof::macroface::generated::assign_2D_macroface_edgedof_1_rhs_function( dstData, srcData, scalar, static_cast< int64_t >( level ) );
+      edgedof::macroface::generated::assign_2D_macroface_edgedof_1_rhs_function( &dstData[firstIdx[eo::X]],
+                                                                                 &dstData[firstIdx[eo::XY]],
+                                                                                 &dstData[firstIdx[eo::Y]],
+                                                                                 &srcData[firstIdx[eo::X]],
+                                                                                 &srcData[firstIdx[eo::XY]],
+                                                                                 &srcData[firstIdx[eo::Y]],
+                                                                                 scalar,
+                                                                                 static_cast< int64_t >( level ) );
    }
    else if ( globalDefines::useGeneratedKernels && scalars.size() == 2 )
    {
@@ -304,7 +317,18 @@ void macroFaceAssign< double >( const uint_t & level, Face & face, const std::ve
       auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
       auto scalar0  = scalars.at( 0 );
       auto scalar1  = scalars.at( 1 );
-      edgedof::macroface::generated::assign_2D_macroface_edgedof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int64_t >( level ) );
+      edgedof::macroface::generated::assign_2D_macroface_edgedof_2_rhs_functions( &dstData[firstIdx[eo::X]],
+                                                                                  &dstData[firstIdx[eo::XY]],
+                                                                                  &dstData[firstIdx[eo::Y]],
+                                                                                  &srcData0[firstIdx[eo::X]],
+                                                                                  &srcData0[firstIdx[eo::XY]],
+                                                                                  &srcData0[firstIdx[eo::Y]],
+                                                                                  &srcData1[firstIdx[eo::X]],
+                                                                                  &srcData1[firstIdx[eo::XY]],
+                                                                                  &srcData1[firstIdx[eo::Y]],
+                                                                                  scalar0,
+                                                                                  scalar1,
+                                                                                  static_cast< int64_t >( level ) );
    }
    else if ( globalDefines::useGeneratedKernels && scalars.size() == 3 )
    {
@@ -315,11 +339,93 @@ void macroFaceAssign< double >( const uint_t & level, Face & face, const std::ve
       auto scalar0  = scalars.at( 0 );
       auto scalar1  = scalars.at( 1 );
       auto scalar2  = scalars.at( 2 );
-      edgedof::macroface::generated::assign_2D_macroface_edgedof_3_rhs_functions( dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int64_t >( level ) );
+      edgedof::macroface::generated::assign_2D_macroface_edgedof_3_rhs_functions( &dstData[firstIdx[eo::X]],
+                                                                                  &dstData[firstIdx[eo::XY]],
+                                                                                  &dstData[firstIdx[eo::Y]],
+                                                                                  &srcData0[firstIdx[eo::X]],
+                                                                                  &srcData0[firstIdx[eo::XY]],
+                                                                                  &srcData0[firstIdx[eo::Y]],
+                                                                                  &srcData1[firstIdx[eo::X]],
+                                                                                  &srcData1[firstIdx[eo::XY]],
+                                                                                  &srcData1[firstIdx[eo::Y]],
+                                                                                  &srcData2[firstIdx[eo::X]],
+                                                                                  &srcData2[firstIdx[eo::XY]],
+                                                                                  &srcData2[firstIdx[eo::Y]],
+                                                                                  scalar0,
+                                                                                  scalar1,
+                                                                                  scalar2,
+                                                                                  static_cast< int64_t >( level ) );
    }
    else
    {
       edgedof::macroface::assign< double >( level, face, scalars, srcFaceIDs, dstFaceID );
+   }
+}
+
+template< typename ValueType >
+void macroCellAssign( const uint_t & level, Cell & cell, const std::vector< ValueType > & scalars,
+                     const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcCellIDs,
+                     const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstCellID )
+{
+   edgedof::macrocell::assign< ValueType >( level, cell, scalars, srcCellIDs, dstCellID );
+}
+
+template<>
+void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::vector< double > & scalars,
+                               const std::vector< PrimitiveDataID< FunctionMemory< double >, Cell > > & srcCellIDs,
+                               const PrimitiveDataID< FunctionMemory< double >, Cell > & dstCellID )
+{
+   typedef edgedof::EdgeDoFOrientation eo;
+   if ( globalDefines::useGeneratedKernels && scalars.size() == 1 )
+   {
+      auto dstData = cell.getData( dstCellID )->getPointer( level );
+      auto srcData = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
+      auto scalar  = scalars.at( 0 );
+      std::map< eo, uint_t > firstIdx;
+      for ( auto e : edgedof::allEdgeDoFOrientations )
+          firstIdx[e] = edgedof::macrocell::index( level, 0, 0, 0, e );
+      edgedof::macrocell::generated::assign_3D_macrocell_edgedof_1_rhs_function( &dstData[firstIdx[eo::X]],
+                                                                                 &dstData[firstIdx[eo::XY]],
+                                                                                 &dstData[firstIdx[eo::XYZ]],
+                                                                                 &dstData[firstIdx[eo::XZ]],
+                                                                                 &dstData[firstIdx[eo::Y]],
+                                                                                 &dstData[firstIdx[eo::YZ]],
+                                                                                 &dstData[firstIdx[eo::Z]],
+                                                                                 &srcData[firstIdx[eo::X]],
+                                                                                 &srcData[firstIdx[eo::XY]],
+                                                                                 &srcData[firstIdx[eo::XYZ]],
+                                                                                 &srcData[firstIdx[eo::XZ]],
+                                                                                 &srcData[firstIdx[eo::Y]],
+                                                                                 &srcData[firstIdx[eo::YZ]],
+                                                                                 &srcData[firstIdx[eo::Z]],
+                                                                                 scalar,
+                                                                                 static_cast< int64_t >( level ) );
+   }
+ #if 0
+   else if ( globalDefines::useGeneratedKernels && scalars.size() == 2 )
+   {
+      auto dstData  = cell.getData( dstCellID )->getPointer( level );
+      auto srcData0 = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
+      auto srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
+      auto scalar0  = scalars.at( 0 );
+      auto scalar1  = scalars.at( 1 );
+      edgedof::macrocell::generated::assign_2D_macrocell_edgedof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int64_t >( level ) );
+   }
+   else if ( globalDefines::useGeneratedKernels && scalars.size() == 3 )
+   {
+      auto dstData  = cell.getData( dstCellID )->getPointer( level );
+      auto srcData0 = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
+      auto srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
+      auto srcData2 = cell.getData( srcCellIDs.at( 2 ) )->getPointer( level );
+      auto scalar0  = scalars.at( 0 );
+      auto scalar1  = scalars.at( 1 );
+      auto scalar2  = scalars.at( 2 );
+      edgedof::macrocell::generated::assign_2D_macrocell_edgedof_3_rhs_functions( dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int64_t >( level ) );
+   }
+ #endif
+   else
+   {
+      edgedof::macrocell::assign< double >( level, cell, scalars, srcCellIDs, dstCellID );
    }
 }
 
@@ -373,7 +479,7 @@ void EdgeDoFFunction< ValueType >::assign(
 
       if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
-         edgedof::macrocell::assign< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
+         macroCellAssign< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
       }
    }
 

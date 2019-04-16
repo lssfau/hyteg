@@ -3,6 +3,7 @@
 #include "tinyhhg_core/HHGDefinitions.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroFace2D.hpp"
+#include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroCell3D.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroEdge.hpp"
@@ -47,6 +48,8 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
   src.communicate< Cell, Face >( level );
   src.startCommunication<Face, Edge>( level );
 
+  this->timingTree_->start( "Macro-Cell" );
+
   for (auto& it : storage_->getCells())
   {
     Cell & cell = *it.second;
@@ -54,46 +57,105 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
     const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
     if ( testFlag( cellBC, flag ) )
     {
-      edgedof::macrocell::apply(level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType);
-    }
-  }
-
-
-
-  for (auto& it : storage_->getFaces())
-  {
-    Face& face = *it.second;
-
-    const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-    if ( testFlag( faceBC, flag ) )
-    {
-      if ( storage_->hasGlobalCells() )
+      if( hhg::globalDefines::useGeneratedKernels && updateType == Replace )
       {
-        edgedof::macroface::apply3D( level, face, *storage_, faceStencil3DID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
-      }
-      else if( hhg::globalDefines::useGeneratedKernels )
-      {
-        real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
-        real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
-        real_t*       dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
-        if( updateType == hhg::Replace )
-        {
-          edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace( dst_data, src_data, &opr_data[5], &opr_data[0], &opr_data[10], static_cast< int64_t  >( level ) );
-        } else if( updateType == hhg::Add )
-        {
-          edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_add( dst_data, src_data, &opr_data[5], &opr_data[0], &opr_data[10], static_cast< int64_t >( level ) );
-        }
+        typedef edgedof::EdgeDoFOrientation eo;
+        auto dstData = cell.getData( dst.getCellDataID() )->getPointer( level );
+        auto srcData = cell.getData( src.getCellDataID() )->getPointer( level );
+        auto stencilData = cell.getData( cellStencilID_ )->getData( level );
+        std::map< eo, uint_t > firstIdx;
+        for ( auto e : edgedof::allEdgeDoFOrientations )
+            firstIdx[e] = edgedof::macrocell::index( level, 0, 0, 0, e );
+        edgedof::macrocell::generated::apply_3D_macrocell_edgedof_to_edgedof_replace ( &dstData[firstIdx[eo::X]],
+                                                                                   &dstData[firstIdx[eo::XY]],
+                                                                                   &dstData[firstIdx[eo::XYZ]],
+                                                                                   &dstData[firstIdx[eo::XZ]],
+                                                                                   &dstData[firstIdx[eo::Y]],
+                                                                                   &dstData[firstIdx[eo::YZ]],
+                                                                                   &dstData[firstIdx[eo::Z]],
+                                                                                   &srcData[firstIdx[eo::X]],
+                                                                                   &srcData[firstIdx[eo::XY]],
+                                                                                   &srcData[firstIdx[eo::XYZ]],
+                                                                                   &srcData[firstIdx[eo::XZ]],
+                                                                                   &srcData[firstIdx[eo::Y]],
+                                                                                   &srcData[firstIdx[eo::YZ]],
+                                                                                   &srcData[firstIdx[eo::Z]],
+                                                                                   stencilData,
+                                                                                   static_cast< int64_t >( level ) );
+          
       }
       else
       {
-        edgedof::macroface::apply( level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+        edgedof::macrocell::apply(level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType);
       }
     }
   }
 
+  this->timingTree_->stop( "Macro-Cell" );
+
+  this->timingTree_->start( "Macro-Face" );
+
+  for ( auto& it : storage_->getFaces() )
+  {
+     Face& face = *it.second;
+
+     const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+     if ( testFlag( faceBC, flag ) )
+     {
+        if ( storage_->hasGlobalCells() )
+        {
+           edgedof::macroface::apply3D(
+               level, face, *storage_, faceStencil3DID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+        }
+        else if ( hhg::globalDefines::useGeneratedKernels )
+        {
+           typedef edgedof::EdgeDoFOrientation eo;
+           real_t*                             opr_data = face.getData( faceStencilID_ )->getPointer( level );
+           real_t*                             src_data = face.getData( src.getFaceDataID() )->getPointer( level );
+           real_t*                             dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
+           std::map< eo, uint_t >              firstIdx;
+           for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
+              firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
+
+           if ( updateType == hhg::Replace )
+           {
+              edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace( &dst_data[firstIdx[eo::X]],
+                                                                                            &dst_data[firstIdx[eo::XY]],
+                                                                                            &dst_data[firstIdx[eo::Y]],
+                                                                                            &src_data[firstIdx[eo::X]],
+                                                                                            &src_data[firstIdx[eo::XY]],
+                                                                                            &src_data[firstIdx[eo::Y]],
+                                                                                            &opr_data[5],
+                                                                                            &opr_data[0],
+                                                                                            &opr_data[10],
+                                                                                            static_cast< int64_t >( level ) );
+           }
+           else if ( updateType == hhg::Add )
+           {
+              edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_add( &dst_data[firstIdx[eo::X]],
+                                                                                        &dst_data[firstIdx[eo::XY]],
+                                                                                        &dst_data[firstIdx[eo::Y]],
+                                                                                        &src_data[firstIdx[eo::X]],
+                                                                                        &src_data[firstIdx[eo::XY]],
+                                                                                        &src_data[firstIdx[eo::Y]],
+                                                                                        &opr_data[5],
+                                                                                        &opr_data[0],
+                                                                                        &opr_data[10],
+                                                                                        static_cast< int64_t >( level ) );
+           }
+        }
+        else
+        {
+           edgedof::macroface::apply( level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+        }
+     }
+  }
+
+  this->timingTree_->stop( "Macro-Face" );
+
   src.endCommunication<Face, Edge>( level );
 
-
+  this->timingTree_->start( "Macro-Edge" );
 
   for (auto& it : storage_->getEdges())
   {
@@ -114,9 +176,7 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
     }
   }
 
-
-
-
+  this->timingTree_->stop( "Macro-Edge" );
 
   this->stopTiming( "Apply" );
 }

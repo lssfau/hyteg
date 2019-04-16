@@ -272,6 +272,13 @@ int main( int argc, char* argv[] )
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
+
+   if( beVerbose )
+   {
+     std::string pInfo = storage->getGlobalInfo();
+     WALBERLA_LOG_INFO_ON_ROOT( "" << pInfo );
+   }
+
 #ifdef WALBERLA_BUILD_WITH_PARMETIS
    if( loadBalancingType == PARMETIS )
    {
@@ -290,7 +297,7 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hhg::Point3D& ) > myFunc = []( const hhg::Point3D& xx ) { return xx[0] * xx[0] - xx[1] * xx[1]; };
    someData.interpolate( myFunc, maxLevel );
    vtkOutput.add( someData );
-   WALBERLA_LOG_INFO_ON_ROOT( "Output goes to file with basename: '" << vtkFileName );
+   WALBERLA_LOG_INFO_ON_ROOT( "Output goes to file with basename: " << vtkFileName );
    vtkOutput.write( outLevel );
 
    delete meshInfo;

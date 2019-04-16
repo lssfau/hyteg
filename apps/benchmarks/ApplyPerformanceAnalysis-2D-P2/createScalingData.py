@@ -6,19 +6,11 @@ import collections
 
 
 def main():
+    totalProcs = range(2,41)
 
-    #procs = range(20)
-    totalProcs = range(2,20)
-
-    if "emmy" in socket.gethostname():
-        subprocess.call(["source", "~/script/modules/intel.emmy.modules"])
-
-    f = open('createScaling.txt','w')
-
+    f = open('scalingData.txt','w')
     for i in totalProcs:
-        subprocess.call(["likwid-mpirun", "-np", str(i), "-g", "MEM", "-m", "-O",
-                         "./ApplyPerformanceAnalysis-2D-P2", "ApplyPerformanceAnalysis-2D-P2.prm",
-                         "-Parameters.level=11"], stdout=f)
+        subprocess.run(["likwid-mpirun", "-np", str(i), "-g", "MEM_DP", "-m", "-O","./ApplyPerformanceAnalysis-2D-P2", "ApplyPerformanceAnalysis-2D-P2.prm", "-Parameters.level=11"], stdout=f)
     f.close()
 
 if __name__ == "__main__":

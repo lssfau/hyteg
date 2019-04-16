@@ -38,8 +38,6 @@ public:
   const uint_t minLevel_;
   const uint_t maxLevel_;
 
- private:
-
   std::shared_ptr< walberla::WcTimingTree > timingTree_;
 
  protected:
