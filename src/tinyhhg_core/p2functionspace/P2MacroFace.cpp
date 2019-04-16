@@ -386,13 +386,13 @@ void smoothSOR3D(
       for ( const auto& faceCenterOrientation : edgedof::faceLocalEdgeDoFOrientations )
       {
          if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::X &&
-              edgedof::isHorizontalEdgeOnBoundary( level, centerIndexInFace ) )
+              edgedof::macroface::isHorizontalEdgeOnBoundary( level, centerIndexInFace ) )
             continue;
          if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::Y &&
-              edgedof::isVerticalEdgeOnBoundary( level, centerIndexInFace ) )
+              edgedof::macroface::isVerticalEdgeOnBoundary( level, centerIndexInFace ) )
             continue;
          if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::XY &&
-              edgedof::isDiagonalEdgeOnBoundary( level, centerIndexInFace ) )
+              edgedof::macroface::isDiagonalEdgeOnBoundary( level, centerIndexInFace ) )
             continue;
 
          const auto dstIdx =
