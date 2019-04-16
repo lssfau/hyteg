@@ -5,12 +5,12 @@ enable_testing()
 
 option ( HHG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
 option ( HHG_BUILD_WITH_EIGEN       "Build with Eigen"                             OFF)
-option ( HHG_REMOVE_WALBERLA        "Remove unnecessary walberla components"       OFF)
 option ( HHG_USE_GENERATED_KERNELS   "Use generated pystencil kernels if available"  ON)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON CACHE BOOL "Enable compiler optimizations spcific to localhost")
+set(WALBERLA_DIR ${tinyhhg_SOURCE_DIR}/walberla CACHE  PATH  "waLBerla path")
 
 
 include_directories ( src )
@@ -31,10 +31,6 @@ if ( HHG_BUILD_WITH_EIGEN )
     find_package( Eigen3 REQUIRED )
     include_directories ( ${EIGEN3_INCLUDE_DIRS} )
     link_directories    ( ${EIGEN3_LIBRARY_DIR} )
-endif()
-
-if( HHG_REMOVE_WALBERLA )
-    execute_process(COMMAND ${tinyhhg_SOURCE_DIR}/cmake/patchWalberla.sh WORKING_DIRECTORY ${WALBERLA_DIR})
 endif()
 
 find_package( waLBerla )
