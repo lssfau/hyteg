@@ -149,36 +149,36 @@ void P2toP2QuadraticProlongation::prolongateAdditively3D( const P2Function< real
       edgeFineData[i] = real_c( 0 );
     }
 
-//    const double numNeighborCellsFace0 =
-//    static_cast< double >( storage->getFace( cell->neighborFaces().at( 0 ) )->getNumNeighborCells() );
-//    const double numNeighborCellsFace1 =
-//    static_cast< double >( storage->getFace( cell->neighborFaces().at( 1) )->getNumNeighborCells() );
-//    const double numNeighborCellsFace2 =
-//    static_cast< double >( storage->getFace( cell->neighborFaces().at( 2 ) )->getNumNeighborCells() );
-//    const double numNeighborCellsFace3 =
-//    static_cast< double >( storage->getFace( cell->neighborFaces().at( 3 ) )->getNumNeighborCells() );
-//
-//    const double numNeighborCellsEdge0 =
-//    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 0 ) )->getNumNeighborCells() );
-//    const double numNeighborCellsEdge1 =
-//    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 1) )->getNumNeighborCells() );
-//    const double numNeighborCellsEdge2 =
-//    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 2 ) )->getNumNeighborCells() );
-//    const double numNeighborCellsEdge3 =
-//    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 3 ) )->getNumNeighborCells() );
-//    const double numNeighborCellsEdge4 =
-//    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 4 ) )->getNumNeighborCells() );
-//    const double numNeighborCellsEdge5 =
-//    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 5 ) )->getNumNeighborCells() );
-//
-//    const double numNeighborCellsVertex0 =
-//    static_cast< double >( storage->getVertex( cell->neighborVertices().at( 0 ) )->getNumNeighborCells() );
-//    const double numNeighborCellsVertex1 =
-//    static_cast< double >( storage->getVertex( cell->neighborVertices().at( 1) )->getNumNeighborCells() );
-//    const double numNeighborCellsVertex2 =
-//    static_cast< double >( storage->getVertex( cell->neighborVertices().at( 2 ) )->getNumNeighborCells() );
-//    const double numNeighborCellsVertex3 =
-//    static_cast< double >( storage->getVertex( cell->neighborVertices().at( 3 ) )->getNumNeighborCells() );
+    const double numNeighborCellsFace0 =
+    static_cast< double >( storage->getFace( cell->neighborFaces().at( 0 ) )->getNumNeighborCells() );
+    const double numNeighborCellsFace1 =
+    static_cast< double >( storage->getFace( cell->neighborFaces().at( 1) )->getNumNeighborCells() );
+    const double numNeighborCellsFace2 =
+    static_cast< double >( storage->getFace( cell->neighborFaces().at( 2 ) )->getNumNeighborCells() );
+    const double numNeighborCellsFace3 =
+    static_cast< double >( storage->getFace( cell->neighborFaces().at( 3 ) )->getNumNeighborCells() );
+
+    const double numNeighborCellsEdge0 =
+    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 0 ) )->getNumNeighborCells() );
+    const double numNeighborCellsEdge1 =
+    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 1) )->getNumNeighborCells() );
+    const double numNeighborCellsEdge2 =
+    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 2 ) )->getNumNeighborCells() );
+    const double numNeighborCellsEdge3 =
+    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 3 ) )->getNumNeighborCells() );
+    const double numNeighborCellsEdge4 =
+    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 4 ) )->getNumNeighborCells() );
+    const double numNeighborCellsEdge5 =
+    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 5 ) )->getNumNeighborCells() );
+
+    const double numNeighborCellsVertex0 =
+    static_cast< double >( storage->getVertex( cell->neighborVertices().at( 0 ) )->getNumNeighborCells() );
+    const double numNeighborCellsVertex1 =
+    static_cast< double >( storage->getVertex( cell->neighborVertices().at( 1) )->getNumNeighborCells() );
+    const double numNeighborCellsVertex2 =
+    static_cast< double >( storage->getVertex( cell->neighborVertices().at( 2 ) )->getNumNeighborCells() );
+    const double numNeighborCellsVertex3 =
+    static_cast< double >( storage->getVertex( cell->neighborVertices().at( 3 ) )->getNumNeighborCells() );
 
     typedef edgedof::EdgeDoFOrientation eo;
     std::map< eo, uint_t >              firstIdxFine;
@@ -198,7 +198,21 @@ void P2toP2QuadraticProlongation::prolongateAdditively3D( const P2Function< real
                                                                                &edgeFineData[firstIdxFine[eo::Z]],
                                                                                vertexCoarseData,
                                                                                vertexFineData,
-                                                                               static_cast< int64_t >( coarseLevel ) );
+                                                                               static_cast< int64_t >( coarseLevel ),
+                                                                               numNeighborCellsEdge0,
+                                                                               numNeighborCellsEdge1,
+                                                                               numNeighborCellsEdge2,
+                                                                               numNeighborCellsEdge3,
+                                                                               numNeighborCellsEdge4,
+                                                                               numNeighborCellsEdge5,
+                                                                               numNeighborCellsFace0,
+                                                                               numNeighborCellsFace1,
+                                                                               numNeighborCellsFace2,
+                                                                               numNeighborCellsFace3,
+                                                                               numNeighborCellsVertex0,
+                                                                               numNeighborCellsVertex1,
+                                                                               numNeighborCellsVertex2,
+                                                                               numNeighborCellsVertex3 );
 
     P2::macrocell::generated::prolongate_3D_macrocell_P2_push_from_edgedofs( &edgeCoarseData[firstIdxCoarse[eo::X]],
                                                                              &edgeCoarseData[firstIdxCoarse[eo::XY]],
@@ -215,10 +229,25 @@ void P2toP2QuadraticProlongation::prolongateAdditively3D( const P2Function< real
                                                                              &edgeFineData[firstIdxFine[eo::YZ]],
                                                                              &edgeFineData[firstIdxFine[eo::Z]],
                                                                              vertexFineData,
-                                                                             static_cast< int64_t >( coarseLevel ) );
+                                                                             static_cast< int64_t >( coarseLevel ),
+                                                                             numNeighborCellsEdge0,
+                                                                             numNeighborCellsEdge1,
+                                                                             numNeighborCellsEdge2,
+                                                                             numNeighborCellsEdge3,
+                                                                             numNeighborCellsEdge4,
+                                                                             numNeighborCellsEdge5,
+                                                                             numNeighborCellsFace0,
+                                                                             numNeighborCellsFace1,
+                                                                             numNeighborCellsFace2,
+                                                                             numNeighborCellsFace3 );
   }
 
-  // TODO communicate additively (vertex and edge unknowns)
+  function.getVertexDoFFunction().communicateAdditively< Cell, Face >( fineLevel );
+  function.getVertexDoFFunction().communicateAdditively< Cell, Edge >( fineLevel );
+  function.getVertexDoFFunction().communicateAdditively< Cell, Vertex >( fineLevel );
+
+  function.getEdgeDoFFunction().communicateAdditively< Cell, Face >( fineLevel );
+  function.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( fineLevel );
 
 }
 

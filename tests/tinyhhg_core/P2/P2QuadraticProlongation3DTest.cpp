@@ -255,12 +255,10 @@ int main( int argc, char* argv[] )
    testWeightsInCellEdgeDoF();
 
    testGridTransfer3D( "../../data/meshes/3D/tet_1el.msh", 3 );
-#if 0
    testGridTransfer3D( "../../data/meshes/3D/pyramid_2el.msh", 3 );
    testGridTransfer3D( "../../data/meshes/3D/pyramid_4el.msh", 3 );
    testGridTransfer3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 3 );
    testGridTransfer3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 3 );
-#endif
 
    return 0;
 }
