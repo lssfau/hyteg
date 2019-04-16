@@ -73,7 +73,7 @@ public:
 
     if(Amat.createMatrixFromFunctionOnce(A, level, num, All))
     {
-        Amat.applyDirichletBCSymmetrically(x, num, bVec, level);
+        Amat.applyDirichletBC(num, level);
       KSPSetOperators(ksp,Amat.get(),Amat.get());
 
       KSPGetPC(ksp,&pc);
