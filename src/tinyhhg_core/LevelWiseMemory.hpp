@@ -2,6 +2,7 @@
 #pragma once
 
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
+#include "tinyhhg_core/primitivedata/PrimitiveDataHandling.hpp"
 
 #include "core/DataTypes.h"
 #include <core/DataTypes.h>
