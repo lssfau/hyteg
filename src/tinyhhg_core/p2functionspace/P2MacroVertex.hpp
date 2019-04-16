@@ -1,6 +1,8 @@
 #pragma once
 
 #include "core/DataTypes.h"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
 
 class Vertex;
 class Edge;
@@ -30,6 +32,17 @@ void smoothSORVertexDoF( uint_t                                                 
                          const PrimitiveDataID< StencilMemory< real_t >, Vertex >&  edgeDoFStencilID,
                          const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& dstEdgeDoFID,
                          const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& rhsVertexDoFID );
+
+void smoothSOR3D(
+    const uint_t&                                                                                    level,
+    const PrimitiveStorage&                                                                          storage,
+    Vertex&                                                                                          vertex,
+    const real_t&                                                                                    relax,
+    const PrimitiveDataID< StencilMemory< real_t >, Vertex >&                                        vertexToVertexOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroVertexStencilMap_T >, Vertex >& edgeToVertexOperatorId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Vertex >&                                       vertexDoFDstId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Vertex >&                                       vertexDoFRhsId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Vertex >&                                       edgeDoFDstId );
 
 } // namespace vertex
 
