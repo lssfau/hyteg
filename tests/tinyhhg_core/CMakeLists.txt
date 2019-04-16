@@ -217,6 +217,9 @@ if( HHG_BUILD_WITH_PETSC )
   waLBerla_execute_test(NAME P1PetscSolveTest1 COMMAND $<TARGET_FILE:P1PetscSolveTest> PROCESSES 1)
   waLBerla_execute_test(NAME P1PetscSolveTest2 COMMAND $<TARGET_FILE:P1PetscSolveTest> PROCESSES 2)
   waLBerla_execute_test(NAME P1PetscSolveTest3 COMMAND $<TARGET_FILE:P1PetscSolveTest> PROCESSES 8)
+
+  waLBerla_compile_test(FILES P1/P1PETScCGTest.cpp DEPENDS tinyhhg_core core)
+  waLBerla_execute_test(NAME P1PETScCGTest1 COMMAND $<TARGET_FILE:P1PetscSolveTest> PROCESSES 1)
 endif()
 
 ############################################

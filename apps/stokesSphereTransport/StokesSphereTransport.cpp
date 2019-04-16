@@ -243,9 +243,9 @@ int main( int argc, char* argv[] )
       M.apply( temp, f.v, maxLevel, hhg::All );
       M.apply( temp, f.w, maxLevel, hhg::All );
 
-      f.u.multElementwise( {&f.u, &normalX}, maxLevel, hhg::All );
-      f.v.multElementwise( {&f.v, &normalY}, maxLevel, hhg::All );
-      f.w.multElementwise( {&f.w, &normalZ}, maxLevel, hhg::All );
+       f.u.multElementwise({f.u, normalX}, maxLevel, hhg::All);
+       f.v.multElementwise({f.v, normalY}, maxLevel, hhg::All);
+       f.w.multElementwise({f.w, normalZ}, maxLevel, hhg::All);
 
       f.u.assign( {rhsScaleFactor}, {f.u}, maxLevel, hhg::All );
       f.v.assign( {rhsScaleFactor}, {f.v}, maxLevel, hhg::All );
@@ -272,7 +272,7 @@ int main( int argc, char* argv[] )
                              real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
          WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] " << std::setw( 9 ) << i + 1 << " | " << std::setw( 13 ) << std::scientific
                                                       << currentResidualL2 << " | " << std::setw( 16 ) << std::scientific
-                                                      << currentResidualL2 / lastResidualL2 )
+                                                      << currentResidualL2 / lastResidualL2);
          //WALBERLA_LOG_INFO_ON_ROOT( "after it " << i << ": " << std::scientific << residualMG );
       }
 

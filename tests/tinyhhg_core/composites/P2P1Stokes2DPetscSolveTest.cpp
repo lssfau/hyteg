@@ -9,6 +9,7 @@
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/petsc/PETScLUSolver.hpp"
+#include "tinyhhg_core/petsc/PETScCGSolver.hpp"
 #include "tinyhhg_core/petsc/PETScManager.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
@@ -63,8 +64,8 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   x_exact.v.interpolate( exactV, level );
   x_exact.p.interpolate( exactP, level );
 
-  b.u.interpolate( exactU, level, DirichletBoundary );
-  b.v.interpolate( exactV, level, DirichletBoundary );
+//  b.u.interpolate( exactU, level, DirichletBoundary );
+//  b.v.interpolate( exactV, level, DirichletBoundary );
 
   VTKOutput vtkOutput("../../output", "P2P1Stokes2DPetscSolve", storage);
   vtkOutput.add( x.u );
@@ -84,16 +85,43 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   uint_t localDoFs1 = hhg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
   uint_t globalDoFs1 = hhg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
 
+    uint_t globalDoFsu = hhg::numberOfGlobalDoFs<P2FunctionTag>(*storage, level);
+    uint_t globalDoFsp = hhg::numberOfGlobalDoFs<P1FunctionTag>(*storage, level);
+
+    WALBERLA_LOG_INFO_ON_ROOT("dofs velocity total " << 2 * globalDoFsu);
+    WALBERLA_LOG_INFO_ON_ROOT("dofs pressure total " << globalDoFsp);
+
+    P2P1TaylorHoodFunction<PetscInt> numerator("numerator", storage, level, level);
+    numerator.enumerate(level);
+    PETScVector<real_t, P2P1TaylorHoodFunction> bVec(localDoFs1);
+    PETScVector<real_t, P2P1TaylorHoodFunction> xVec(localDoFs1);
+    PETScVector<real_t, P2P1TaylorHoodFunction> exVec(localDoFs1);
+    PETScSparseMatrix<P2P1TaylorHoodStokesOperator, P2P1TaylorHoodFunction> petscMatrix(localDoFs1, globalDoFs1);
+
+    bVec.createVectorFromFunction(b, numerator, level, All);
+    exVec.createVectorFromFunction(x_exact, numerator, level, All);
+    petscMatrix.createMatrixFromFunction(A, level, numerator, All);
+
+    petscMatrix.applyDirichletBCSymmetrically(x, numerator, bVec, level);
+    bVec.print("bLU.m");
+    exVec.print("exLU.m");
+    petscMatrix.print("ALU.m");
+
   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
-  PETScLUSolver< P2P1TaylorHoodStokesOperator > solver_1( storage, level );
+//    PETScLUSolver< P2P1TaylorHoodStokesOperator > solver_1( storage, level );
+    PETScCGSolver<P2P1TaylorHoodStokesOperator> solver_1(storage, level);
 
   walberla::WcTimer timer;
   solver_1.solve( A, x, b, level );
   timer.end();
 
-  hhg::vertexdof::projectMean( x.p, level );
+
+    hhg::vertexdof::projectMean(x.p, level);
   hhg::vertexdof::projectMean( x_exact.p, level );
+
+    xVec.createVectorFromFunction(x, numerator, level, All);
+    xVec.print("xLU.m");
 
   WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
   A.apply( x, residuum, level, hhg::Inner | hhg::NeumannBoundary );
@@ -102,7 +130,7 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
 
   real_t discr_l2_err_1_u = std::sqrt( err.u.dotGlobal( err.u, level ) / (real_t) globalDoFs1 );
   real_t discr_l2_err_1_v = std::sqrt( err.v.dotGlobal( err.v, level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFs1 );
+    real_t discr_l2_err_1_p = std::sqrt(err.p.dotGlobal(err.p, level) / (real_t) globalDoFsp);
   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
 
   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_1_u );

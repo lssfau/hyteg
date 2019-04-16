@@ -5,7 +5,9 @@
 
 #ifdef HHG_BUILD_WITH_PETSC
 
+#include <petscsys.h>
 #include "tinyhhg_core/p1functionspace/P1Petsc.hpp"
+
 
 #include "tinyhhg_core/composites/petsc/P1StokesPetsc.hpp"
 
@@ -37,9 +39,18 @@ public:
     reset();
   }
 
+    // this copy constructor needs to be corrected/completed
+//    PETScSparseMatrix(PETScSparseMatrix &original) {
+//        assembled=original.assembled;
+//        // or based on createMatrixFromFunctionOnce()
+//        MatDuplicate(original, MAT_COPY_VALUES, this->mat);
+//    }
 
+    void copyMat(PETScSparseMatrix &other) {
+        MatDuplicate(other.get(), MAT_COPY_VALUES, &mat);
+    }
 
-  virtual ~PETScSparseMatrix() {
+    virtual ~PETScSparseMatrix() {
     MatDestroy(&mat);
   }
 
@@ -108,7 +119,7 @@ public:
 
        PETScVector< real_t, FunctionType > dirichletSolutionVec( dirichletSolution, numerator, level );
 
-       WALBERLA_ASSERT(
+        WALBERLA_CHECK(
            isSymmetric(),
            "PETSc: Dirichlet boundary conditions can only be applied symmetrically if the original system is symmetric." );
 
@@ -119,7 +130,7 @@ public:
 
        MatZeroRowsColumns( mat, bcIndices.size(), bcIndices.data(), 1.0, dirichletSolutionVec.get(), rhsVec.get() );
 
-       WALBERLA_ASSERT( isSymmetric() );
+        WALBERLA_CHECK(isSymmetric());
     }
 
   inline void reset()  { assembled = false; }

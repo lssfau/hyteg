@@ -16,6 +16,8 @@
 #include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
 #include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
+#include "tinyhhg_core/petsc/PETScManager.hpp"
+#include "tinyhhg_core/petsc/PETScLUSolver.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -37,6 +39,9 @@ int main(int argc, char* argv[])
     cfg = walberlaEnv.config();
   }
 
+  PETScManager petscManager;
+
+
   auto parameters = cfg->getOneBlock("Parameters");
   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( parameters.getParameter<std::string>("mesh") );
   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -52,6 +57,7 @@ int main(int argc, char* argv[])
   std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
 
   hhg::P1StokesFunction<real_t> r("r", storage, minLevel, maxLevel);
+  hhg::P1StokesFunction<real_t> bdr("bdr", storage, minLevel, maxLevel);
   hhg::P1StokesFunction<real_t> f("f", storage, minLevel, maxLevel);
   hhg::P1StokesFunction<real_t> u("u", storage, minLevel, maxLevel);
 
@@ -65,12 +71,14 @@ int main(int argc, char* argv[])
   std::function<real_t(const hhg::Point3D&)> rand = [](const hhg::Point3D&) { return static_cast <real_t> (std::rand()) / static_cast <real_t> (RAND_MAX); };
 
   r.interpolate(ones, maxLevel);
-  uint_t npoints = (uint_t) r.dotGlobal(r, maxLevel);
+  auto npoints = (uint_t) r.dotGlobal(r, maxLevel);
   r.interpolate(zero, maxLevel);
 
   u.u.interpolate(rand, maxLevel, hhg::Inner);
   u.v.interpolate(rand, maxLevel, hhg::Inner);
   u.p.interpolate(rand, maxLevel, hhg::All);
+
+  bdr.interpolate(ones, maxLevel, hhg::DirichletBoundary);
 
   u.u.interpolate(zero, maxLevel, hhg::DirichletBoundary);
   u.v.interpolate(zero, maxLevel, hhg::DirichletBoundary);
@@ -78,8 +86,28 @@ int main(int argc, char* argv[])
   L.apply(u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary);
   r.assign({1.0, -1.0}, { f, r }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
-   auto smoother = std::make_shared< hhg::UzawaSmoother< hhg::P1StokesOperator > >(
-       storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.3 );
+  // exporting
+  hhg::P1StokesFunction<PetscInt> numerator("numerator", storage, maxLevel, maxLevel);
+  numerator.enumerate(maxLevel);
+  uint_t localDoFs = hhg::numberOfLocalDoFs<hhg::P1StokesFunctionTag>(*storage, maxLevel);
+  uint_t globalDoFs = hhg::numberOfGlobalDoFs<hhg::P1StokesFunctionTag>(*storage, maxLevel);
+
+  hhg::PETScVector<real_t, hhg::P1StokesFunction> bVec(localDoFs);
+  hhg::PETScVector<real_t, hhg::P1StokesFunction> xVec(localDoFs);
+  hhg::PETScVector<real_t, hhg::P1StokesFunction> bdrVec(localDoFs);
+  hhg::PETScSparseMatrix<hhg::P1StokesOperator, hhg::P1StokesFunction> petscMatrix(localDoFs, globalDoFs);
+
+  bVec.createVectorFromFunction(f, numerator, maxLevel, hhg::All);
+  bdrVec.createVectorFromFunction(bdr, numerator, maxLevel, hhg::All);
+  petscMatrix.createMatrixFromFunction(L, maxLevel, numerator, hhg::All);
+  petscMatrix.applyDirichletBC(numerator, maxLevel);
+  bVec.print("bLU.m");
+  bdrVec.print("bdr.m");
+  petscMatrix.print("ALU.m");
+
+//    0.3
+  auto smoother = std::make_shared<hhg::UzawaSmoother<hhg::P1StokesOperator> >(
+          storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.3);
    auto coarseGridSolver = std::make_shared< hhg::MinResSolver< hhg::P1StokesOperator > >( storage, minLevel, minLevel, coarseMaxiter );
    auto restrictionOperator = std::make_shared< hhg::P1P1StokesToP1P1StokesRestriction>();
    auto prolongationOperator = std::make_shared< hhg::P1P1StokesToP1P1StokesProlongation >();
@@ -128,6 +156,11 @@ int main(int argc, char* argv[])
       break;
     }
   }
+
+  xVec.createVectorFromFunction(u, numerator, maxLevel, hhg::All);
+  xVec.print("xLU.m");
+
+
 
   WALBERLA_LOG_INFO_ON_ROOT("Time to solution: " << std::scientific << totalTime);
   WALBERLA_LOG_INFO_ON_ROOT("Avg. convergence rate: " << std::scientific << averageConvergenceRate / real_c(outer+1-convergenceStartIter));
