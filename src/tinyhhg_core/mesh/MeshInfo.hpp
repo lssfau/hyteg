@@ -387,6 +387,16 @@ public:
   /// Constructs a MeshInfo object for a chain of triangles with regular size.
   static MeshInfo meshFaceChain( uint_t numFaces );
 
+  /// Construct a MeshInfo object for a rectangular cuboid
+
+  /// \param lowerLeftFront   coordinates of lower left front corner of cuboid
+  /// \param upperRightBack   coordinates of upper right back corner of cuboid
+  /// \param nx               (nx+1) gives the number of vertices along cuboid edges in x-direction
+  /// \param ny               (ny+1) gives the number of vertices along cuboid edges in y-direction
+  /// \param nz               (nz+1) gives the number of vertices along cuboid edges in z-direction
+  static MeshInfo meshCuboid( const Point3D lowerLeftFront, const Point3D upperRightBack,
+                              uint_t nx, uint_t ny, uint_t nz );
+
   /// Returns vertices of the mesh
   const VertexContainer & getVertices() const { return vertices_; };
 

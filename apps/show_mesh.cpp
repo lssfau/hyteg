@@ -22,18 +22,20 @@ using namespace hhg;
 void showUsage()
 {
    std::cout << "\n --------\n  USAGE:\n --------\n\n"
-             << " show_mesh demonstrates generation of a MeshInfo object by one of five methods:\n\n"
+             << " show_mesh demonstrates generation of a MeshInfo object by one of the\n following methods:\n\n"
              << " 1) by importing a file in Gmsh format\n"
              << " 2) by meshing a rectangle in a certain flavour\n"
              << " 3) by meshing a full or partial annulus\n"
-             << " 4) by meshing a thick spherical shell\n"
-             << " 5) by generating a strip of chained triangles\n\n"
+             << " 4) by generating a strip of chained triangles\n"
+             << " 5) by meshing a thick spherical shell\n"
+             << " 6) by meshing a rectangular cuboid\n\n"
              << " This is steered by choosing one of the options below:\n\n"
              << "  --file <name of Gmsh file>\n"
              << "  --rect [criss|cross|crisscross|diamond]\n"
              << "  --annulus [full|partial]\n"
+             << "  --face-chain [numFaces]\n"
              << "  --spherical-shell [ntan]\n"
-             << "  --face-chain [numFaces]\n\n"
+             << "  --cuboid [nHint]\n\n"
              << " The generated base mesh will be tested be doing two levels of refinement.\n"
              << " Then it will be exported to a VTU file for visualisation.\n\n"
              << " Also visualization of the domain partitioning, mesh boundary flags and MPI rank assignment will be output.\n"
@@ -53,14 +55,16 @@ int main( int argc, char* argv[] )
       RECTANGLE,
       ANNULUS,
       PARTIAL_ANNULUS,
+      FACE_CHAIN,
       SPHERICAL_SHELL,
-      FACE_CHAIN
+      CUBOID
    } meshDomainType;
    meshDomainType        meshDomain;
    MeshInfo::meshFlavour rectMeshType = MeshInfo::CROSS;
    MeshInfo*             meshInfo     = nullptr;
    bool                  beVerbose    = false;
    uint_t                ntan         = 5;
+   uint_t                nHint        = 1;
    std::vector< real_t > layers       = {0.5, 0.6, 0.7, 0.8};
    uint_t                numFaces     = 2;
 
@@ -121,16 +125,21 @@ int main( int argc, char* argv[] )
       {
          WALBERLA_ABORT( "Subtype of --annulus not recognised!" );
       }
-   } else if( strcmp( argv[1], "--spherical-shell" ) == 0 )
-   {
-      ntan        = uint_c( std::stoi( argv[2] ) );
-      meshDomain  = SPHERICAL_SHELL;
-      vtkFileName = std::string( "sphericalShell" );
    } else if( strcmp( argv[1], "--face-chain" ) == 0 )
    {
       numFaces    = uint_c( std::stoi( argv[2] ) );
       meshDomain  = FACE_CHAIN;
       vtkFileName = std::string( "faceChain" );
+   } else if( strcmp( argv[1], "--spherical-shell" ) == 0 )
+   {
+      ntan        = uint_c( std::stoi( argv[2] ) );
+      meshDomain  = SPHERICAL_SHELL;
+      vtkFileName = std::string( "sphericalShell" );
+   } else if( strcmp( argv[1], "--cuboid" ) == 0 )
+   {
+      nHint       = uint_c( std::stoi( argv[2] ) );
+      meshDomain  = CUBOID;
+      vtkFileName = std::string( "cuboidMesh" );
    } else
    {
       WALBERLA_ABORT( "Could not understand command-line args!" );
@@ -191,12 +200,18 @@ int main( int argc, char* argv[] )
       meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, 15, 2 ) );
       break;
 
+   case FACE_CHAIN:
+      meshInfo = new MeshInfo( MeshInfo::meshFaceChain( numFaces ) );
+      break;
+
    case SPHERICAL_SHELL:
       meshInfo = new MeshInfo( MeshInfo::meshSphericalShell( ntan, layers ) );
       break;
 
-   case FACE_CHAIN:
-      meshInfo = new MeshInfo( MeshInfo::meshFaceChain( numFaces ) );
+   case CUBOID:
+      meshInfo = new MeshInfo( MeshInfo::meshCuboid( Point3D( { -1.0, -1.0, 0.0 } ),
+                                                     Point3D( {  2.0,  0.0, 2.0 } ),
+                                                     nHint + 1, nHint + 1, nHint ) );
       break;
    }
 
