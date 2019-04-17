@@ -1,0 +1,17 @@
+Parameters
+{
+    calcError true;
+    writeVTK true;
+    printTiming false;
+    jsonTiming true;
+    minLevel 2;
+    maxLevel 4;
+    sorOmega 1.0;
+    preSmoothing 2;
+    postSmoothing 2;
+    numCycles 10;
+
+    nx 2;
+    ny 2;
+    nz 2;
+}
