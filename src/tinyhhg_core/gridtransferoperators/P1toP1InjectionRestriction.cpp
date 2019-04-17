@@ -7,7 +7,7 @@
 
 namespace hhg {
 
-void P1toP1InjectionRestriction::restrict2D( const P1Function< real_t >& function,
+void P1toP1InjectionRestriction::restrict3D( const P1Function< real_t >& function,
                                              const uint_t&               sourceLevel,
                                              const DoFType&              flag ) const
 {
@@ -55,19 +55,27 @@ void P1toP1InjectionRestriction::restrict2D( const P1Function< real_t >& functio
          restrictMacroFace( srcData, dstData, sourceLevel );
       }
    }
+
+   for ( const auto& it : storage->getCells() )
+   {
+      const Cell& cell    = *it.second;
+      const auto  srcData = cell.getData( function.getCellDataID() )->getPointer( sourceLevel );
+      auto        dstData = cell.getData( function.getCellDataID() )->getPointer( destinationLevel );
+
+      if ( testFlag( boundaryCondition.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      {
+         restrictMacroCell( srcData, dstData, sourceLevel );
+      }
+   }
 }
 
-void P1toP1InjectionRestriction::restrictMacroVertex( const real_t* src,
-                                                      real_t*       dst,
-                                                      const uint_t& sourceLevel) const
+void P1toP1InjectionRestriction::restrictMacroVertex( const real_t* src, real_t* dst, const uint_t& sourceLevel ) const
 {
    WALBERLA_UNUSED( sourceLevel );
    dst[0] = src[0];
 }
 
-void P1toP1InjectionRestriction::restrictMacroEdge( const real_t* src,
-                                                    real_t*       dst,
-                                                    const uint_t& sourceLevel) const
+void P1toP1InjectionRestriction::restrictMacroEdge( const real_t* src, real_t* dst, const uint_t& sourceLevel ) const
 {
    size_t rowsize_c = levelinfo::num_microvertices_per_edge( sourceLevel - 1 );
 
@@ -79,9 +87,7 @@ void P1toP1InjectionRestriction::restrictMacroEdge( const real_t* src,
    }
 }
 
-void P1toP1InjectionRestriction::restrictMacroFace( const real_t* src,
-                                                    real_t*       dst,
-                                                    const uint_t& sourceLevel ) const
+void P1toP1InjectionRestriction::restrictMacroFace( const real_t* src, real_t* dst, const uint_t& sourceLevel ) const
 {
    uint_t N_c   = levelinfo::num_microvertices_per_edge( sourceLevel - 1 );
    uint_t N_c_i = N_c;
@@ -98,6 +104,15 @@ void P1toP1InjectionRestriction::restrictMacroFace( const real_t* src,
       }
 
       --N_c_i;
+   }
+}
+
+void P1toP1InjectionRestriction::restrictMacroCell( const real_t* src, real_t* dst, const uint_t& sourceLevel ) const
+{
+   for ( const auto& it : vertexdof::macrocell::Iterator( sourceLevel - 1, 1 ) )
+   {
+      dst[vertexdof::macrocell::index( sourceLevel - 1, it.x(), it.y(), it.z() )] =
+          src[vertexdof::macrocell::index( sourceLevel, 2 * it.x(), 2 * it.y(), 2 * it.z() )];
    }
 }
 
