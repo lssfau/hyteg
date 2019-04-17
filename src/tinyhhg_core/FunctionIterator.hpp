@@ -497,20 +497,20 @@ inline void FunctionIterator< FunctionType >::skipEdgeDoFBoundaryCoordinates()
    // on macro-faces
 
    while ( *edgeDoFMacroFaceOrientationIterator_ == edgedof::EdgeDoFOrientation::X &&
-           edgedof::isHorizontalEdgeOnBoundary( level_, *edgeDoFMacroFaceIterator_ ) &&
+           edgedof::macroface::isHorizontalEdgeOnBoundary( level_, *edgeDoFMacroFaceIterator_ ) &&
            edgeDoFMacroFaceIterator_ != edgedof::macroface::Iterator( level_ ).end() )
    {
       edgeDoFMacroFaceIterator_++;
    }
 
    while ( *edgeDoFMacroFaceOrientationIterator_ == edgedof::EdgeDoFOrientation::Y &&
-           edgedof::isVerticalEdgeOnBoundary( level_, *edgeDoFMacroFaceIterator_ ) &&
+           edgedof::macroface::isVerticalEdgeOnBoundary( level_, *edgeDoFMacroFaceIterator_ ) &&
            edgeDoFMacroFaceIterator_ != edgedof::macroface::Iterator( level_ ).end() )
    {
       edgeDoFMacroFaceIterator_++;
    }
    while ( *edgeDoFMacroFaceOrientationIterator_ == edgedof::EdgeDoFOrientation::XY &&
-           edgedof::isDiagonalEdgeOnBoundary( level_, *edgeDoFMacroFaceIterator_ ) &&
+           edgedof::macroface::isDiagonalEdgeOnBoundary( level_, *edgeDoFMacroFaceIterator_ ) &&
            edgeDoFMacroFaceIterator_ != edgedof::macroface::Iterator( level_ ).end() )
    {
       edgeDoFMacroFaceIterator_++;

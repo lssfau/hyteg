@@ -155,7 +155,7 @@ CellIterator CellIterator::operator++( int ) // postfix
 }
 
 
-CellBorderIterator::CellBorderIterator( const uint_t & width, const std::array< uint_t, 3 > & vertices,
+CellBoundaryIterator::CellBoundaryIterator( const uint_t & width, const std::array< uint_t, 3 > & vertices,
                                         const uint_t & offsetToCenter, const bool & end ) :
   width_( width ), vertices_( vertices ), offsetToCenter_( offsetToCenter ),
 	totalNumberOfSteps_( levelinfo::num_microvertices_per_face_from_width( width - offsetToCenter ) ),
@@ -195,7 +195,7 @@ CellBorderIterator::CellBorderIterator( const uint_t & width, const std::array< 
     coordinates_ = Index( 0, 0, width_ - 1 );
     break;
   default:
-    WALBERLA_ASSERT( false, "Invalid coordinates in CellBorderIterator!" );
+    WALBERLA_ASSERT( false, "Invalid coordinates in CellBoundaryIterator!" );
     break;
   }
 
@@ -262,13 +262,13 @@ CellBorderIterator::CellBorderIterator( const uint_t & width, const std::array< 
 }
 
 
-CellBorderIterator::CellBorderIterator( const uint_t & width, const uint_t & vertex0,
+CellBoundaryIterator::CellBoundaryIterator( const uint_t & width, const uint_t & vertex0,
                                         const uint_t & vertex1, const uint_t & vertex2,
                                         const uint_t & offsetToCenter, const bool & end ) :
-    CellBorderIterator( width, {{ vertex0, vertex1, vertex2 }}, offsetToCenter, end )
+    CellBoundaryIterator( width, {{ vertex0, vertex1, vertex2 }}, offsetToCenter, end )
 {}
 
-CellBorderIterator & CellBorderIterator::operator++() // prefix
+CellBoundaryIterator & CellBoundaryIterator::operator++() // prefix
 {
   WALBERLA_ASSERT_LESS_EQUAL( step_, totalNumberOfSteps_, "Incrementing iterator beyond end!" );
 
@@ -297,14 +297,14 @@ CellBorderIterator & CellBorderIterator::operator++() // prefix
   return *this;
 }
 
-CellBorderIterator CellBorderIterator::operator++( int ) // postfix
+CellBoundaryIterator CellBoundaryIterator::operator++( int ) // postfix
 {
-  const CellBorderIterator tmp( *this );
+  const CellBoundaryIterator tmp( *this );
   ++*this;
   return tmp;
 }
 
-IndexIncrement CellBorderIterator::calculateIncrement( const uint_t & vertex0, const uint_t & vertex1 ) const
+IndexIncrement CellBoundaryIterator::calculateIncrement( const uint_t & vertex0, const uint_t & vertex1 ) const
 {
   WALBERLA_ASSERT_NOT_IDENTICAL( vertex0, vertex1 );
   WALBERLA_ASSERT_LESS_EQUAL( vertex0, 3 );

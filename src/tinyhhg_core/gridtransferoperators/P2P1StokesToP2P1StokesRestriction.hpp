@@ -25,6 +25,7 @@ class P2P1StokesToP2P1StokesRestriction : public RestrictionOperator< P2P1Taylor
    {
       quadraticRestrictionOperator_.restrict( function.u, sourceLevel, flag );
       quadraticRestrictionOperator_.restrict( function.v, sourceLevel, flag );
+      quadraticRestrictionOperator_.restrict( function.w, sourceLevel, flag );
       linearRestrictionOperator_.restrict( function.p, sourceLevel, flag );
 
       if ( projectMeanAfterRestriction_ )

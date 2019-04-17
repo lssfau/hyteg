@@ -19,6 +19,7 @@ public:
     {
       quadraticProlongationOperator_.prolongate( function.u, sourceLevel, flag );
       quadraticProlongationOperator_.prolongate( function.v, sourceLevel, flag );
+      quadraticProlongationOperator_.prolongate( function.w, sourceLevel, flag );
       linearProlongationOperator_.prolongate( function.p, sourceLevel, flag );
     }
 

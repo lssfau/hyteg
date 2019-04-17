@@ -373,7 +373,7 @@ public:
 
 /// Iterator over the borders (faces) of a macro-cell.
 /// See \ref CellBorderIterator for more information.
-class BoundaryIterator : public hhg::indexing::CellBorderIterator
+class BoundaryIterator : public hhg::indexing::CellBoundaryIterator
 {
 public:
   BoundaryIterator( const uint_t & level, const uint_t & vertex0, const uint_t & vertex1,

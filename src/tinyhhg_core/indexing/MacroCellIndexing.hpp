@@ -114,9 +114,8 @@ private:
 };
 
 
-/// \brief Iterator to iterate over a border of a macro-cell.
+/// \brief Iterator to iterate over a face-boundary of a macro-cell.
 ///
-/// A border is one of its four faces.
 /// Using this iterator, each face with corner-coordinates a, b and c can be iterated over in six ways:
 ///
 /// c
@@ -143,7 +142,7 @@ private:
 /// 2: (      0, width-1,       0)
 /// 3: (      0,       0, width-1)
 ///
-class CellBorderIterator
+class CellBoundaryIterator
 {
 public:
 
@@ -153,24 +152,24 @@ public:
   using pointer           = value_type const*;
   using difference_type   = ptrdiff_t;
 
-  CellBorderIterator( const uint_t & width, const uint_t & vertex0,
+  CellBoundaryIterator( const uint_t & width, const uint_t & vertex0,
                       const uint_t & vertex1, const uint_t & vertex2,
                       const uint_t & offsetToCenter = 0, const bool & end = false );
 
-  CellBorderIterator( const uint_t & width, const std::array< uint_t, 3 > & vertices,
+  CellBoundaryIterator( const uint_t & width, const std::array< uint_t, 3 > & vertices,
                       const uint_t & offsetToCenter = 0, const bool & end = false );
 
-  CellBorderIterator begin() { return CellBorderIterator( width_, vertices_, offsetToCenter_       ); }
-  CellBorderIterator end()   { return CellBorderIterator( width_, vertices_, offsetToCenter_, true ); }
+  CellBoundaryIterator begin() { return CellBoundaryIterator( width_, vertices_, offsetToCenter_       ); }
+  CellBoundaryIterator end()   { return CellBoundaryIterator( width_, vertices_, offsetToCenter_, true ); }
 
-  bool operator==( const CellBorderIterator & other ) const { return other.step_ == step_; }
-  bool operator!=( const CellBorderIterator & other ) const { return other.step_ != step_; }
+  bool operator==( const CellBoundaryIterator & other ) const { return other.step_ == step_; }
+  bool operator!=( const CellBoundaryIterator & other ) const { return other.step_ != step_; }
 
   reference operator*()  const { return   coordinates_; };
   pointer   operator->() const { return & coordinates_; };
 
-  CellBorderIterator & operator++(); // prefix
-  CellBorderIterator operator++( int );
+  CellBoundaryIterator & operator++(); // prefix
+  CellBoundaryIterator operator++( int );
 
 private:
 

@@ -120,8 +120,23 @@ class UzawaSmoother : public Solver< OperatorType >
       A.A.smooth_gs( x.v, r_.v, level, flag_ );
       A.A.smooth_gs( x.v, r_.v, level, flag_ );
 
+      if ( hasGlobalCells_ )
+      {
+        A.divT_z.apply( x.p, r_.w, level, flag_, Replace );
+        r_.w.assign( {1.0, -1.0}, {b.w, r_.w}, level, flag_ );
+
+        A.A.smooth_gs( x.w, r_.w, level, flag_ );
+        A.A.smooth_gs( x.w, r_.w, level, flag_ );
+      }
+
       A.div_x.apply( x.u, r_.p, level, flag_ | DirichletBoundary, Replace );
       A.div_y.apply( x.v, r_.p, level, flag_ | DirichletBoundary, Add );
+
+      if ( hasGlobalCells_ )
+      {
+        A.div_z.apply( x.w, r_.p, level, flag_ | DirichletBoundary, Add );
+      }
+
       r_.p.assign( {1.0, -1.0}, {b.p, r_.p}, level, flag_ | DirichletBoundary );
 
       tmp_.p.interpolate( 0.0, level );

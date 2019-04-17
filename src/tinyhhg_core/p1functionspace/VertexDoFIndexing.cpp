@@ -450,7 +450,7 @@ BoundaryIterator::BoundaryIterator( const uint_t& level,
                                     const uint_t& vertex1,
                                     const uint_t& vertex2,
                                     const uint_t& offsetToCenter )
-: CellBorderIterator( levelinfo::num_microvertices_per_edge( level ), vertex0, vertex1, vertex2, offsetToCenter )
+: CellBoundaryIterator( levelinfo::num_microvertices_per_edge( level ), vertex0, vertex1, vertex2, offsetToCenter )
 {}
 } // namespace macrocell
 

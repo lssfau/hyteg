@@ -801,13 +801,45 @@ public:
   {}
 };
 
-class BorderIterator : public indexing::FaceBoundaryIterator
+class BoundaryIterator : public indexing::FaceBoundaryIterator
 {
 public:
-  BorderIterator( const uint_t & level, const indexing::FaceBoundaryDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0 ) :
+  BoundaryIterator( const uint_t & level, const indexing::FaceBoundaryDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0 ) :
     FaceBoundaryIterator( levelinfo::num_microedges_per_edge( level ), direction, offsetToCenter, offsetFromVertices )
   {}
 };
+
+inline bool isHorizontalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
+  /// level is only needed in the diagonal case
+  WALBERLA_UNUSED( level );
+  return ( idx.row() == 0 );
+}
+
+inline bool isVerticalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
+  /// level is only needed in the diagonal case
+  WALBERLA_UNUSED( level );
+  return ( idx.col() == 0 );
+}
+
+inline bool isDiagonalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
+  return ( (idx.col() + idx.row()) == (hhg::levelinfo::num_microedges_per_edge( level ) - 1) );
+}
+
+inline bool isInnerEdgeDoF( const uint_t & level, const indexing::Index & idx, const EdgeDoFOrientation & orientation )
+{
+  switch ( orientation )
+  {
+    case EdgeDoFOrientation::X:
+      return !isHorizontalEdgeOnBoundary( level, idx );
+    case EdgeDoFOrientation::Y:
+      return !isVerticalEdgeOnBoundary( level, idx );
+    case EdgeDoFOrientation::XY:
+      return !isDiagonalEdgeOnBoundary( level, idx );
+    default:
+    WALBERLA_ASSERT( false, "Invalid orientation." );
+      return true;
+  }
+}
 
 } // namespace macroface
 
@@ -1075,21 +1107,21 @@ public:
     {}
 };
 
-class BoundaryIterator : public hhg::indexing::CellBorderIterator
+class BoundaryIterator : public hhg::indexing::CellBoundaryIterator
 {
 public:
   BoundaryIterator( const uint_t & level, const uint_t & vertex0, const uint_t & vertex1,
                     const uint_t & vertex2, const uint_t & offsetToCenter = 0 ) :
-     CellBorderIterator( levelinfo::num_microedges_per_edge( level ), vertex0, vertex1, vertex2, offsetToCenter )
+     CellBoundaryIterator( levelinfo::num_microedges_per_edge( level ), vertex0, vertex1, vertex2, offsetToCenter )
   {}
 };
 
-class BoundaryIteratorXYZ : public hhg::indexing::CellBorderIterator
+class BoundaryIteratorXYZ : public hhg::indexing::CellBoundaryIterator
 {
 public:
   BoundaryIteratorXYZ( const uint_t & level, const uint_t & vertex0, const uint_t & vertex1,
                     const uint_t & vertex2, const uint_t & offsetToCenter = 0 ) :
-     CellBorderIterator( levelinfo::num_microedges_per_edge( level ) - 1, vertex0, vertex1, vertex2, offsetToCenter )
+     CellBoundaryIterator( levelinfo::num_microedges_per_edge( level ) - 1, vertex0, vertex1, vertex2, offsetToCenter )
   {}
 };
 
@@ -1186,21 +1218,7 @@ constexpr inline uint_t stencilIndexFromVerticalEdge(const stencilDirection dir)
   }
 }
 
-inline bool isHorizontalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
-  /// level is only needed in the diagonal case
-  WALBERLA_UNUSED( level );
-  return ( idx.row() == 0 );
-}
 
-inline bool isVerticalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
-  /// level is only needed in the diagonal case
-  WALBERLA_UNUSED( level );
-  return ( idx.col() == 0 );
-}
-
-inline bool isDiagonalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
-  return ( (idx.col() + idx.row()) == (hhg::levelinfo::num_microedges_per_edge( level ) - 1) );
-}
 
 
 } // namespace edgedof
