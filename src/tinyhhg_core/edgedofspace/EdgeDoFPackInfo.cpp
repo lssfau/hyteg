@@ -143,12 +143,12 @@ void EdgeDoFPackInfo< ValueType >::unpackFaceFromEdge( Face*                    
                                                        walberla::mpi::RecvBuffer& buffer ) const
 {
    using edgedof::macroface::indexFromHorizontalEdge;
-   using hhg::edgedof::macroface::BorderIterator;
+   using hhg::edgedof::macroface::BoundaryIterator;
    ValueType*                    faceData        = receiver->getData( dataIDFace_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = receiver->edge_index( sender );
    indexing::FaceBoundaryDirection faceDir =
        indexing::getFaceBorderDirection( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace] );
-   for( const auto& it : BorderIterator( level_, faceDir, 0 ) )
+   for( const auto& it : BoundaryIterator( level_, faceDir, 0 ) )
    {
       if( edgeIndexOnFace == 0 )
       {
@@ -173,14 +173,14 @@ template < typename ValueType >
 void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToFace( const Edge* sender, Face* receiver ) const
 {
    using edgedof::macroface::indexFromHorizontalEdge;
-   using hhg::edgedof::macroface::BorderIterator;
+   using hhg::edgedof::macroface::BoundaryIterator;
    ValueType*                    faceData        = receiver->getData( dataIDFace_ )->getPointer( level_ );
    ValueType*                    edgeData        = sender->getData( dataIDEdge_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = receiver->edge_index( sender->getID() );
    indexing::FaceBoundaryDirection faceDir =
        indexing::getFaceBorderDirection( edgeIndexOnFace, receiver->edge_orientation[edgeIndexOnFace] );
    uint_t indexOnEdge = 0;
-   for( const auto& it : BorderIterator( level_, faceDir, 0 ) )
+   for( const auto& it : BoundaryIterator( level_, faceDir, 0 ) )
    {
       if( edgeIndexOnFace == 0 )
       {
@@ -207,7 +207,7 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge( const Face*                s
                                                     const PrimitiveID&         receiver,
                                                     walberla::mpi::SendBuffer& buffer ) const
 {
-   using hhg::edgedof::macroface::BorderIterator;
+   using hhg::edgedof::macroface::BoundaryIterator;
    ValueType*                    faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = sender->edge_index( receiver );
    indexing::FaceBoundaryDirection faceBorderDir =
@@ -255,15 +255,15 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge( const Face*                s
    {
       WALBERLA_ABORT( "Wrong edgeIndexOnFace" )
    }
-   for( const auto& it : BorderIterator( level_, faceBorderDir, 1 ) )
+   for( const auto& it : BoundaryIterator( level_, faceBorderDir, 1 ) )
    {
       buffer << faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), faceDirOne )];
    }
-   for( const auto& it : BorderIterator( level_, faceBorderDir, 0 ) )
+   for( const auto& it : BoundaryIterator( level_, faceBorderDir, 0 ) )
    {
       buffer << faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), faceDirTwo )];
    }
-   for( const auto& it : BorderIterator( level_, faceBorderDir, 0 ) )
+   for( const auto& it : BoundaryIterator( level_, faceBorderDir, 0 ) )
    {
       buffer << faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), faceDirThree )];
    }
@@ -433,7 +433,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
       const auto edgeOrientationOnFace = edgedof::convertEdgeDoFOrientationEdgeToFace(
           edgeOriOnReferenceEdge, faceLocalVertexIDOfEdge0, faceLocalVertexIDOfEdge1 );
 
-      for( const auto& it : edgedof::macroface::BorderIterator( level_, faceBorderDir, 0 ) )
+      for( const auto& it : edgedof::macroface::BoundaryIterator( level_, faceBorderDir, 0 ) )
       {
          uint_t idxOnEdge =
              edgedof::macroedge::indexOnNeighborFace( level_, edgeIndexCounter, edgeLocalFaceID, edgeOriOnReferenceEdge );
@@ -448,7 +448,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
       const auto edgeOrientationOnFace = edgedof::convertEdgeDoFOrientationEdgeToFace(
           edgeOriOnReferenceEdge, faceLocalVertexIDOfEdge0, faceLocalVertexIDOfEdge1 );
 
-      for( const auto& it : edgedof::macroface::BorderIterator( level_, faceBorderDir, 1 ) )
+      for( const auto& it : edgedof::macroface::BoundaryIterator( level_, faceBorderDir, 1 ) )
       {
          uint_t idxOnEdge =
              edgedof::macroedge::indexOnNeighborFace( level_, edgeIndexCounter, edgeLocalFaceID, edgeOriOnReferenceEdge );

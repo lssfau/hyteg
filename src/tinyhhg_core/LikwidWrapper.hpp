@@ -20,6 +20,7 @@
 #define LIKWID_MARKER_STOP(regionTag)
 #define LIKWID_MARKER_CLOSE
 #define LIKWID_MARKER_GET(regionTag, nevents, events, time, count)
+#define LIKWID_MARKER_RESET(regionTag)
 #endif // HHG_LIKWID
 
 

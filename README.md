@@ -31,13 +31,14 @@ Optional:
 
 To build TinyHHG, clone the TinyHHG and the waLBerla source code:
 
-    $ git clone https://i10git.cs.fau.de/terraneo/tinyhhg
-    $ git clone https://i10git.cs.fau.de/walberla/walberla
+    $ git clone --recurse-submodules https://i10git.cs.fau.de/terraneo/tinyhhg
 
-Then run cmake (out-of-source build recommended) and supply the waLBerla source code directory via `-DWALBERLA_DIR=<walberla-source-directory>`:
+`--recurse-submodules` will automatically initialize and clone walberla as a submodule.
 
-    $ mkdir tinyhhg-build && cd tinyhhg-build
-    $ cmake ../tinyhhg -DWALBERLA_DIR=../walberla
+
+    $ mkdir tinyhhg-build 
+    $ cd tinyhhg-build
+    $ cmake ../tinyhhg
 
 CMake will then produce Makefiles for the included tests and applications. To build and run an application (e.g. a stabilized stokes solver) invoke:
 

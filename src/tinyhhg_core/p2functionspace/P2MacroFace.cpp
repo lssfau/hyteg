@@ -5,6 +5,12 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
+#include "tinyhhg_core/LevelWiseMemory.hpp"
+#include "tinyhhg_core/StencilMemory.hpp"
+#include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
+#include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
+#include "tinyhhg_core/primitives/Face.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
 
 namespace hhg {
 namespace P2 {
@@ -203,7 +209,7 @@ void smoothSOR(const uint_t &level,
              relax * invVertexCenter * tmpVertex;
       }
       ////////// HORIZONTAL EDGE //////////
-      if( !edgedof::isHorizontalEdgeOnBoundary( level, it ) )
+      if( !edgedof::macroface::isHorizontalEdgeOnBoundary( level, it ) )
       {
          tmpEdgeHO = rhsEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( level, it.col(), it.row(), sD::EDGE_HO_C )];
          /// vertex to edge
@@ -223,7 +229,7 @@ void smoothSOR(const uint_t &level,
              relax * invEdgeXCenter * tmpEdgeHO;      
       }
       ////////// VERTICAL EDGE //////////
-      if( !edgedof::isVerticalEdgeOnBoundary( level, it ) )
+      if( !edgedof::macroface::isVerticalEdgeOnBoundary( level, it ) )
       {
          tmpEdgeVE = rhsEdgeDoF[edgedof::macroface::indexFromVerticalEdge( level, it.col(), it.row(), sD::EDGE_VE_C )];
          /// vertex to edge
@@ -243,7 +249,7 @@ void smoothSOR(const uint_t &level,
              relax * invEdgeYCenter * tmpEdgeVE;      
       }
       ////////// DIAGONAL EDGE //////////
-      if( !edgedof::isDiagonalEdgeOnBoundary( level, it ) )
+      if( !edgedof::macroface::isDiagonalEdgeOnBoundary( level, it ) )
       {
          tmpEdgeDI = rhsEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.col(), it.row(), sD::EDGE_DI_C )];
          /// vertex to edge
@@ -261,6 +267,221 @@ void smoothSOR(const uint_t &level,
          dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.col(), it.row(), sD::EDGE_DI_C )] =
              (1.0 - relax) * dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge( level, it.col(), it.row(), sD::EDGE_DI_C )] +
              relax * invEdgeXYCenter * tmpEdgeDI;
+      }
+   }
+}
+
+void smoothSOR3D(
+    const uint_t&                                                                                level,
+    const PrimitiveStorage&                                                                      storage,
+    Face&                                                                                        face,
+    const real_t&                                                                                relax,
+    const PrimitiveDataID< StencilMemory< real_t >, Face >&                                      vertexToVertexOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face >& edgeToVertexOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroFaceStencilMap_T >, Face >& vertexToEdgeOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< edgedof::macroface::StencilMap_T >, Face >&          edgeToEdgeOperatorId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Face >&                                     vertexDoFDstId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Face >&                                     vertexDoFRhsId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Face >&                                     edgeDoFDstId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Face >&                                     edgeDoFRhsId )
+{
+   using edgedof::EdgeDoFOrientation;
+   using indexing::IndexIncrement;
+
+   auto v2v_operator = face.getData( vertexToVertexOperatorId )->getPointer( level );
+   auto e2v_operator = face.getData( edgeToVertexOperatorId )->getData( level );
+   auto v2e_operator = face.getData( vertexToEdgeOperatorId )->getData( level );
+   auto e2e_operator = face.getData( edgeToEdgeOperatorId )->getData( level );
+
+   real_t* vertexDoFDst = face.getData( vertexDoFDstId )->getPointer( level );
+   real_t* vertexDoFRhs = face.getData( vertexDoFRhsId )->getPointer( level );
+   real_t* edgeDoFDst   = face.getData( edgeDoFDstId )->getPointer( level );
+   real_t* edgeDoFRhs   = face.getData( edgeDoFRhsId )->getPointer( level );
+
+   const real_t vertexDoFRelaxOverCenter = relax / v2v_operator[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
+   const real_t oneMinusRelax            = real_c( 1 ) - relax;
+
+   real_t tmp;
+
+   // updating vertex unknowns
+   for ( const auto& centerIndexInFace : hhg::vertexdof::macroface::Iterator( level, 1 ) )
+   {
+      const auto dstIdx = vertexdof::macroface::index( level, centerIndexInFace.x(), centerIndexInFace.y() );
+      tmp               = vertexDoFRhs[dstIdx];
+
+      // vertex leaves
+      if ( face.getNumNeighborCells() == 1 )
+      {
+         for ( const auto direction : vertexdof::macroface::neighborsWithOneNeighborCellWithoutCenter )
+         {
+            tmp -= v2v_operator[vertexdof::stencilIndexFromVertex( direction )] *
+                   vertexDoFDst[vertexdof::macroface::indexFromVertex(
+                       level, centerIndexInFace.x(), centerIndexInFace.y(), direction )];
+         }
+      }
+      else if ( face.getNumNeighborCells() == 2 )
+      {
+         for ( const auto direction : vertexdof::macroface::neighborsWithTwoNeighborCellsWithoutCenter )
+         {
+            tmp -= v2v_operator[vertexdof::stencilIndexFromVertex( direction )] *
+                   vertexDoFDst[vertexdof::macroface::indexFromVertex(
+                       level, centerIndexInFace.x(), centerIndexInFace.y(), direction )];
+         }
+      }
+
+      // edge leaves
+      for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++ )
+      {
+         const Cell&  neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
+         const uint_t localFaceID  = neighborCell.getLocalFaceID( face.getID() );
+
+         const auto centerIndexInCell =
+             vertexdof::macroface::getIndexInNeighboringMacroCell( centerIndexInFace, face, neighborCellID, storage, level );
+
+         WALBERLA_ASSERT_GREATER( vertexdof::macrocell::isOnCellFace( centerIndexInCell, level ).size(), 0 );
+
+         for ( const auto& leafOrientation : edgedof::allEdgeDoFOrientations )
+         {
+            for ( const auto& stencilIt : e2v_operator[neighborCellID][leafOrientation] )
+            {
+               const auto stencilOffset = stencilIt.first;
+               const auto stencilWeight = stencilIt.second;
+
+               const auto leafOrientationInFace = edgedof::macrocell::getOrientattionInNeighboringMacroFace(
+                   leafOrientation, neighborCell, localFaceID, storage );
+
+               const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+               const auto leafIndexInFace = leafOrientation == edgedof::EdgeDoFOrientation::XYZ ?
+                                                edgedof::macrocell::getIndexInNeighboringMacroFaceXYZ(
+                                                    leafIndexInCell, neighborCell, localFaceID, storage, level ) :
+                                                edgedof::macrocell::getIndexInNeighboringMacroFace(
+                                                    leafIndexInCell, neighborCell, localFaceID, storage, level );
+
+               WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 );
+
+               uint_t leafArrayIndexInFace;
+               if ( algorithms::contains( edgedof::faceLocalEdgeDoFOrientations, leafOrientationInFace ) &&
+                    leafIndexInFace.z() == 0 )
+               {
+                  leafArrayIndexInFace =
+                      edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientationInFace );
+               }
+               else
+               {
+                  leafArrayIndexInFace = edgedof::macroface::index(
+                      level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientationInFace, neighborCellID );
+               }
+
+               tmp -= stencilWeight * edgeDoFDst[leafArrayIndexInFace];
+            }
+         }
+      }
+
+      vertexDoFDst[dstIdx] = oneMinusRelax * vertexDoFDst[dstIdx] + vertexDoFRelaxOverCenter * tmp;
+   }
+
+   // updating edge unknowns
+   for ( const auto& centerIndexInFace : hhg::edgedof::macroface::Iterator( level, 0 ) )
+   {
+      for ( const auto& faceCenterOrientation : edgedof::faceLocalEdgeDoFOrientations )
+      {
+         if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::X &&
+              edgedof::macroface::isHorizontalEdgeOnBoundary( level, centerIndexInFace ) )
+            continue;
+         if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::Y &&
+              edgedof::macroface::isVerticalEdgeOnBoundary( level, centerIndexInFace ) )
+            continue;
+         if ( faceCenterOrientation == edgedof::EdgeDoFOrientation::XY &&
+              edgedof::macroface::isDiagonalEdgeOnBoundary( level, centerIndexInFace ) )
+            continue;
+
+         const auto dstIdx =
+             edgedof::macroface::index( level, centerIndexInFace.x(), centerIndexInFace.y(), faceCenterOrientation );
+         tmp = edgeDoFRhs[dstIdx];
+
+         real_t e2eDiagonalEntry = 0;
+
+         for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++ )
+         {
+            const Cell&  neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
+            const uint_t localFaceID  = neighborCell.getLocalFaceID( face.getID() );
+
+            const auto centerIndexInCell =
+                edgedof::macroface::getIndexInNeighboringMacroCell( centerIndexInFace, face, neighborCellID, storage, level );
+            const auto cellCenterOrientation =
+                edgedof::macroface::getOrientattionInNeighboringMacroCell( faceCenterOrientation, face, neighborCellID, storage );
+
+            // vertex leaves
+            for ( const auto& stencilIt : v2e_operator[neighborCellID][cellCenterOrientation] )
+            {
+               const auto stencilOffset = stencilIt.first;
+               const auto stencilWeight = stencilIt.second;
+
+               const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+               const auto leafIndexInFace = vertexdof::macrocell::getIndexInNeighboringMacroFace(
+                   leafIndexInCell, neighborCell, localFaceID, storage, level );
+
+               WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 );
+
+               uint_t leafArrayIndexInFace;
+               if ( leafIndexInFace.z() == 0 )
+               {
+                  leafArrayIndexInFace = vertexdof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y() );
+               }
+               else
+               {
+                  leafArrayIndexInFace =
+                      vertexdof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), neighborCellID );
+               }
+
+               tmp -= stencilWeight * vertexDoFDst[leafArrayIndexInFace];
+            }
+
+            // edge leaves
+            for ( const auto& leafOrientation : edgedof::allEdgeDoFOrientations )
+            {
+               for ( const auto& stencilIt : e2e_operator[neighborCellID][cellCenterOrientation][leafOrientation] )
+               {
+                  const auto stencilOffset = stencilIt.first;
+                  const auto stencilWeight = stencilIt.second;
+
+                  if ( leafOrientation == cellCenterOrientation && stencilOffset == IndexIncrement( 0, 0, 0 ) )
+                  {
+                     e2eDiagonalEntry += stencilWeight;
+                     continue;
+                  }
+
+                  const auto leafOrientationInFace = edgedof::macrocell::getOrientattionInNeighboringMacroFace(
+                      leafOrientation, neighborCell, localFaceID, storage );
+
+                  const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+                  const auto leafIndexInFace = leafOrientation == edgedof::EdgeDoFOrientation::XYZ ?
+                                                   edgedof::macrocell::getIndexInNeighboringMacroFaceXYZ(
+                                                       leafIndexInCell, neighborCell, localFaceID, storage, level ) :
+                                                   edgedof::macrocell::getIndexInNeighboringMacroFace(
+                                                       leafIndexInCell, neighborCell, localFaceID, storage, level );
+
+                  WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 );
+
+                  uint_t leafArrayIndexInFace;
+                  if ( algorithms::contains( edgedof::faceLocalEdgeDoFOrientations, leafOrientationInFace ) &&
+                       leafIndexInFace.z() == 0 )
+                  {
+                     leafArrayIndexInFace =
+                         edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientationInFace );
+                  }
+                  else
+                  {
+                     leafArrayIndexInFace = edgedof::macroface::index(
+                         level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientationInFace, neighborCellID );
+                  }
+
+                  tmp -= stencilWeight * edgeDoFDst[leafArrayIndexInFace];
+               }
+            }
+         }
+
+         edgeDoFDst[dstIdx] = oneMinusRelax * edgeDoFDst[dstIdx] + ( relax / e2eDiagonalEntry ) * tmp;
       }
    }
 }

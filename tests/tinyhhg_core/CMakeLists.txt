@@ -21,6 +21,10 @@ waLBerla_compile_test(FILES convergence/P1GMG3DConvergenceTest.cpp DEPENDS tinyh
 waLBerla_execute_test(NAME P1GMG3DConvergenceTest)
 waLBerla_execute_test(NAME P1GMG3DConvergenceTestMPI COMMAND $<TARGET_FILE:P1GMG3DConvergenceTest> PROCESSES 2 )
 
+waLBerla_compile_test(FILES convergence/P2GMG3DConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P2GMG3DConvergenceTest)
+waLBerla_execute_test(NAME P2GMG3DConvergenceTestMPI COMMAND $<TARGET_FILE:P2GMG3DConvergenceTest> PROCESSES 2 )
+
 waLBerla_compile_test(FILES convergence/P1StokesBlockCGTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P1StokesBlockCGTest)
 
@@ -48,6 +52,11 @@ if(CMAKE_BUILD_TYPE MATCHES "Release")
 
   waLBerla_compile_test(FILES convergence/P2P1Stokes3DMinResConvergenceTest.cpp DEPENDS tinyhhg_core core)
   waLBerla_execute_test(NAME P2P1Stokes3DMinResConvergenceTest)
+
+  if( HHG_BUILD_WITH_PETSC )
+    waLBerla_compile_test(FILES convergence/P2P1Stokes3DUzawaConvergenceTest.cpp DEPENDS tinyhhg_core core)
+    waLBerla_execute_test(NAME P2P1Stokes3DUzawaConvergenceTest)
+  endif()
 endif()
 
 waLBerla_compile_test(FILES convergence/P2CGConvergenceTest.cpp DEPENDS tinyhhg_core core)
@@ -56,6 +65,9 @@ waLBerla_execute_test(NAME P2CGConvergenceTestMPI COMMAND $<TARGET_FILE:P2CGConv
 
 waLBerla_compile_test(FILES convergence/P2SmoothConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2SmoothConvergenceTest)
+
+waLBerla_compile_test(FILES convergence/P23DSmoothConvergenceTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME P23DSmoothConvergenceTest)
 
 waLBerla_compile_test(FILES convergence/P2JacobiConvergenceTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME P2JacobiConvergenceTest)
@@ -244,6 +256,12 @@ waLBerla_execute_test(NAME P2RestrictTest)
 
 waLBerla_compile_test(FILES P2/P2ProlongateTest.cpp DEPENDS tinyhhg_core core )
 waLBerla_execute_test(NAME P2ProlongateTest)
+
+waLBerla_compile_test(FILES P2/P2QuadraticRestriction3DTest.cpp DEPENDS tinyhhg_core core )
+waLBerla_execute_test(NAME P2QuadraticRestriction3DTest)
+
+waLBerla_compile_test(FILES P2/P2QuadraticProlongation3DTest.cpp DEPENDS tinyhhg_core core )
+waLBerla_execute_test(NAME P2QuadraticProlongation3DTest)
 
 waLBerla_compile_test(FILES P2/P2BasicFunctionsTest.cpp DEPENDS tinyhhg_core core )
 waLBerla_execute_test(NAME P2BasicFunctionsTest)

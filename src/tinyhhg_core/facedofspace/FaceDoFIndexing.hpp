@@ -2,6 +2,7 @@
 #include <array>
 #include <core/logging/Logging.h>
 #include <iterator>
+#include <cassert>
 
 #include "tinyhhg_core/StencilDirections.hpp"
 #include "tinyhhg_core/Levelinfo.hpp"

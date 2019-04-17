@@ -65,28 +65,48 @@ inline std::ostream& operator<<(std::ostream& out, const EdgeDoFOrientation ornt
 inline EdgeDoFOrientation calcEdgeDoFOrientation( const indexing::IndexIncrement & vertexIndex0, const indexing::IndexIncrement & vertexIndex1 )
 {
   const indexing::IndexIncrement offset = vertexIndex1 - vertexIndex0;
-  const uint_t x = std::abs( offset.x() );
-  const uint_t y = std::abs( offset.y() );
-  const uint_t z = std::abs( offset.z() );
-
-  WALBERLA_ASSERT_GREATER( x + y + z, 0 );
-  WALBERLA_ASSERT_LESS_EQUAL( x, 1 );
-  WALBERLA_ASSERT_LESS_EQUAL( y, 1 );
-  WALBERLA_ASSERT_LESS_EQUAL( z, 1 );
+  const int x = offset.x();
+  const int y = offset.y();
+  const int z = offset.z();
+//
+//  WALBERLA_ASSERT_GREATER( x + y + z, 0 );
+//  WALBERLA_ASSERT_LESS_EQUAL( x, 1 );
+//  WALBERLA_ASSERT_LESS_EQUAL( y, 1 );
+//  WALBERLA_ASSERT_LESS_EQUAL( z, 1 );
 
   if ( x == 1 && y == 0 && z == 0 )
     return EdgeDoFOrientation::X;
+  if ( x == -1 && y == 0 && z == 0 )
+    return EdgeDoFOrientation::X;
+
   if ( x == 0 && y == 1 && z == 0 )
     return EdgeDoFOrientation::Y;
+  if ( x == 0 && y == -1 && z == 0 )
+    return EdgeDoFOrientation::Y;
+
   if ( x == 0 && y == 0 && z == 1 )
     return EdgeDoFOrientation::Z;
-  if ( x == 1 && y == 1 && z == 0 )
+  if ( x == 0 && y == 0 && z == -1 )
+    return EdgeDoFOrientation::Z;
+
+  if ( x == -1 && y == 1 && z == 0 )
     return EdgeDoFOrientation::XY;
-  if ( x == 1 && y == 0 && z == 1 )
+  if ( x == 1 && y == -1 && z == 0 )
+    return EdgeDoFOrientation::XY;
+
+  if ( x == 1 && y == 0 && z == -1 )
     return EdgeDoFOrientation::XZ;
-  if ( x == 0 && y == 1 && z == 1 )
+  if ( x == -1 && y == 0 && z == 1 )
+    return EdgeDoFOrientation::XZ;
+
+  if ( x == 0 && y == 1 && z == -1 )
     return EdgeDoFOrientation::YZ;
-  if ( x == 1 && y == 1 && z == 1 )
+  if ( x == 0 && y == -1 && z == 1 )
+    return EdgeDoFOrientation::YZ;
+
+  if ( x == 1 && y == -1 && z == 1 )
+    return EdgeDoFOrientation::XYZ;
+  if ( x == -1 && y == 1 && z == -1 )
     return EdgeDoFOrientation::XYZ;
 
   WALBERLA_ASSERT( false, "Invalid index offset." );
@@ -521,7 +541,7 @@ inline uint_t index( const uint_t & level, const uint_t & x, const uint_t & y, c
   }
 }
 
-/// Index of a vertex DoF on a ghost layer of a macro face.
+/// Index of a edge DoF on a ghost layer of a macro face.
 /// EXAMPLE: number of DoFs in each direction for level 2:
 /// - X  on face:  start  0; size 10; last 9
 /// - Y  on face:  start 10; size 10; last 19
@@ -781,13 +801,45 @@ public:
   {}
 };
 
-class BorderIterator : public indexing::FaceBoundaryIterator
+class BoundaryIterator : public indexing::FaceBoundaryIterator
 {
 public:
-  BorderIterator( const uint_t & level, const indexing::FaceBoundaryDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0 ) :
+  BoundaryIterator( const uint_t & level, const indexing::FaceBoundaryDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0 ) :
     FaceBoundaryIterator( levelinfo::num_microedges_per_edge( level ), direction, offsetToCenter, offsetFromVertices )
   {}
 };
+
+inline bool isHorizontalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
+  /// level is only needed in the diagonal case
+  WALBERLA_UNUSED( level );
+  return ( idx.row() == 0 );
+}
+
+inline bool isVerticalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
+  /// level is only needed in the diagonal case
+  WALBERLA_UNUSED( level );
+  return ( idx.col() == 0 );
+}
+
+inline bool isDiagonalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
+  return ( (idx.col() + idx.row()) == (hhg::levelinfo::num_microedges_per_edge( level ) - 1) );
+}
+
+inline bool isInnerEdgeDoF( const uint_t & level, const indexing::Index & idx, const EdgeDoFOrientation & orientation )
+{
+  switch ( orientation )
+  {
+    case EdgeDoFOrientation::X:
+      return !isHorizontalEdgeOnBoundary( level, idx );
+    case EdgeDoFOrientation::Y:
+      return !isVerticalEdgeOnBoundary( level, idx );
+    case EdgeDoFOrientation::XY:
+      return !isDiagonalEdgeOnBoundary( level, idx );
+    default:
+    WALBERLA_ASSERT( false, "Invalid orientation." );
+      return true;
+  }
+}
 
 } // namespace macroface
 
@@ -1055,21 +1107,21 @@ public:
     {}
 };
 
-class BoundaryIterator : public hhg::indexing::CellBorderIterator
+class BoundaryIterator : public hhg::indexing::CellBoundaryIterator
 {
 public:
   BoundaryIterator( const uint_t & level, const uint_t & vertex0, const uint_t & vertex1,
                     const uint_t & vertex2, const uint_t & offsetToCenter = 0 ) :
-     CellBorderIterator( levelinfo::num_microedges_per_edge( level ), vertex0, vertex1, vertex2, offsetToCenter )
+     CellBoundaryIterator( levelinfo::num_microedges_per_edge( level ), vertex0, vertex1, vertex2, offsetToCenter )
   {}
 };
 
-class BoundaryIteratorXYZ : public hhg::indexing::CellBorderIterator
+class BoundaryIteratorXYZ : public hhg::indexing::CellBoundaryIterator
 {
 public:
   BoundaryIteratorXYZ( const uint_t & level, const uint_t & vertex0, const uint_t & vertex1,
                     const uint_t & vertex2, const uint_t & offsetToCenter = 0 ) :
-     CellBorderIterator( levelinfo::num_microedges_per_edge( level ) - 1, vertex0, vertex1, vertex2, offsetToCenter )
+     CellBoundaryIterator( levelinfo::num_microedges_per_edge( level ) - 1, vertex0, vertex1, vertex2, offsetToCenter )
   {}
 };
 
@@ -1166,21 +1218,7 @@ constexpr inline uint_t stencilIndexFromVerticalEdge(const stencilDirection dir)
   }
 }
 
-inline bool isHorizontalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
-  /// level is only needed in the diagonal case
-  WALBERLA_UNUSED( level );
-  return ( idx.row() == 0 );
-}
 
-inline bool isVerticalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
-  /// level is only needed in the diagonal case
-  WALBERLA_UNUSED( level );
-  return ( idx.col() == 0 );
-}
-
-inline bool isDiagonalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
-  return ( (idx.col() + idx.row()) == (hhg::levelinfo::num_microedges_per_edge( level ) - 1) );
-}
 
 
 } // namespace edgedof

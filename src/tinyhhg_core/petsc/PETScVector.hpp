@@ -27,7 +27,7 @@ public:
   PETScVector(const FunctionType< ValueType > & function, const FunctionType<PetscInt> & numerator, const uint_t & level, const DoFType & flag = All, const std::string& name = "Vec" )
     : PETScVector( numberOfLocalDoFs< typename FunctionType< ValueType >::Tag >( *function.getStorage(), level ), name )
   {
-    createVectorFromFunction(function, numerator, vec, level, flag);
+    createVectorFromFunction(function, numerator, level, flag);
   }
 
   PETScVector(uint_t localSize, const std::string& name = "Vec") {

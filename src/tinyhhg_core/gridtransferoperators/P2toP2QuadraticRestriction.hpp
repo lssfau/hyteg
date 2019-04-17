@@ -11,7 +11,17 @@ class P2toP2QuadraticRestriction : public RestrictionOperator< P2Function< real_
  public:
    inline void restrict( const P2Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
    {
-      restrictAdditively( function, sourceLevel, flag );
+      if ( function.isDummy() )
+         return;
+
+      if ( function.getStorage()->hasGlobalCells() )
+      {
+         restrictAdditively3D( function, sourceLevel, flag );
+      }
+      else
+      {
+         restrictAdditively( function, sourceLevel, flag );
+      }
    }
 
  private:
@@ -19,6 +29,7 @@ class P2toP2QuadraticRestriction : public RestrictionOperator< P2Function< real_
                                        const uint_t&               sourceLevel,
                                        const DoFType&              flag ) const;
    void restrictAdditively( const P2Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const;
+   void restrictAdditively3D( const P2Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const;
 };
 
 } // namespace hhg
