@@ -382,22 +382,24 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_gs(const P2Funct
 }
 
 template < class UFCOperator2D, class UFCOperator3D >
-void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor(const P2Function <real_t> &dst,
-                                                                    const P2Function <real_t> &rhs,
-                                                                    const real_t& relax,
-                                                                    const size_t level,
-                                                                    const DoFType flag) const
+void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Function< real_t >& dst,
+                                                                     const P2Function< real_t >& rhs,
+                                                                     const real_t&               relax,
+                                                                     const size_t                level,
+                                                                     const DoFType               flag ) const
 {
    this->startTiming( "SOR" );
 
    communication::syncP2FunctionBetweenPrimitives( dst, level );
 
-   for( auto& it : storage_->getVertices() )
+   this->timingTree_->start( "Macro-Vertex" );
+
+   for ( auto& it : storage_->getVertices() )
    {
       Vertex& vertex = *it.second;
 
       const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-      if( testFlag( vertexBC, flag ) )
+      if ( testFlag( vertexBC, flag ) )
       {
          if ( storage_->hasGlobalCells() )
          {
@@ -420,20 +422,24 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor(const P2Func
                                                  dst.getVertexDoFFunction().getVertexDataID(),
                                                  edgeToVertex.getVertexStencilID(),
                                                  dst.getEdgeDoFFunction().getVertexDataID(),
-                                                 rhs.getVertexDoFFunction().getVertexDataID());
+                                                 rhs.getVertexDoFFunction().getVertexDataID() );
          }
       }
    }
 
+   this->timingTree_->stop( "Macro-Vertex" );
+
    dst.getVertexDoFFunction().communicate< Vertex, Edge >( level );
    dst.getEdgeDoFFunction().communicate< Vertex, Edge >( level );
 
-   for( auto& it : storage_->getEdges() )
+   this->timingTree_->start( "Macro-Edge" );
+
+   for ( auto& it : storage_->getEdges() )
    {
       Edge& edge = *it.second;
 
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if( testFlag( edgeBC, flag ) )
+      if ( testFlag( edgeBC, flag ) )
       {
          if ( storage_->hasGlobalCells() )
          {
@@ -462,13 +468,17 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor(const P2Func
                                       edgeToEdge.getEdgeStencilID(),
                                       dst.getEdgeDoFFunction().getEdgeDataID(),
                                       rhs.getVertexDoFFunction().getEdgeDataID(),
-                                      rhs.getEdgeDoFFunction().getEdgeDataID());
+                                      rhs.getEdgeDoFFunction().getEdgeDataID() );
          }
       }
    }
 
+   this->timingTree_->stop( "Macro-Edge" );
+
    dst.getVertexDoFFunction().communicate< Edge, Face >( level );
    dst.getEdgeDoFFunction().communicate< Edge, Face >( level );
+
+   this->timingTree_->start( "Macro-Face" );
 
    for ( auto& it : storage_->getFaces() )
    {
@@ -496,46 +506,46 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor(const P2Func
          {
             if ( globalDefines::useGeneratedKernels )
             {
-              real_t* v_dst_data = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-              real_t* v_rhs_data = face.getData( rhs.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* v_dst_data = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* v_rhs_data = face.getData( rhs.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
 
-              real_t* e_dst_data = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-              real_t* e_rhs_data = face.getData( rhs.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* e_dst_data = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* e_rhs_data = face.getData( rhs.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
 
-              real_t* v2v_opr_data = face.getData( vertexToVertex.getFaceStencilID() )->getPointer( level );
-              real_t* v2e_opr_data = face.getData( vertexToEdge.getFaceStencilID() )->getPointer( level );
-              real_t* e2v_opr_data = face.getData( edgeToVertex.getFaceStencilID() )->getPointer( level );
-              real_t* e2e_opr_data = face.getData( edgeToEdge.getFaceStencilID() )->getPointer( level );
+               real_t* v2v_opr_data = face.getData( vertexToVertex.getFaceStencilID() )->getPointer( level );
+               real_t* v2e_opr_data = face.getData( vertexToEdge.getFaceStencilID() )->getPointer( level );
+               real_t* e2v_opr_data = face.getData( edgeToVertex.getFaceStencilID() )->getPointer( level );
+               real_t* e2e_opr_data = face.getData( edgeToEdge.getFaceStencilID() )->getPointer( level );
 
-              typedef edgedof::EdgeDoFOrientation eo;
-              std::map< eo, uint_t >              firstIdx;
-              for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
-                firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
+               typedef edgedof::EdgeDoFOrientation eo;
+               std::map< eo, uint_t >              firstIdx;
+               for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
+                  firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
 
-              P2::macroface::generated::sor_2D_macroface_P2_update_vertexdofs( &e_dst_data[firstIdx[eo::X]],
-                                                                               &e_dst_data[firstIdx[eo::XY]],
-                                                                               &e_dst_data[firstIdx[eo::Y]],
-                                                                               e2v_opr_data,
-                                                                               v_dst_data,
-                                                                               v_rhs_data,
-                                                                               v2v_opr_data,
-                                                                               static_cast< int64_t >( level ),
-                                                                               relax );
-              P2::macroface::generated::sor_2D_macroface_P2_update_edgedofs( &e_dst_data[firstIdx[eo::X]],
-                                                                             &e_dst_data[firstIdx[eo::XY]],
-                                                                             &e_dst_data[firstIdx[eo::Y]],
-                                                                             &e_rhs_data[firstIdx[eo::X]],
-                                                                             &e_rhs_data[firstIdx[eo::XY]],
-                                                                             &e_rhs_data[firstIdx[eo::Y]],
-                                                                             &e2e_opr_data[0],
-                                                                             &e2e_opr_data[5],
-                                                                             &e2e_opr_data[10],
-                                                                             v_dst_data,
-                                                                             &v2e_opr_data[0],
-                                                                             &v2e_opr_data[4],
-                                                                             &v2e_opr_data[8],
-                                                                             static_cast< int64_t >( level ),
-                                                                             relax );
+               P2::macroface::generated::sor_2D_macroface_P2_update_vertexdofs( &e_dst_data[firstIdx[eo::X]],
+                                                                                &e_dst_data[firstIdx[eo::XY]],
+                                                                                &e_dst_data[firstIdx[eo::Y]],
+                                                                                e2v_opr_data,
+                                                                                v_dst_data,
+                                                                                v_rhs_data,
+                                                                                v2v_opr_data,
+                                                                                static_cast< int64_t >( level ),
+                                                                                relax );
+               P2::macroface::generated::sor_2D_macroface_P2_update_edgedofs( &e_dst_data[firstIdx[eo::X]],
+                                                                              &e_dst_data[firstIdx[eo::XY]],
+                                                                              &e_dst_data[firstIdx[eo::Y]],
+                                                                              &e_rhs_data[firstIdx[eo::X]],
+                                                                              &e_rhs_data[firstIdx[eo::XY]],
+                                                                              &e_rhs_data[firstIdx[eo::Y]],
+                                                                              &e2e_opr_data[0],
+                                                                              &e2e_opr_data[5],
+                                                                              &e2e_opr_data[10],
+                                                                              v_dst_data,
+                                                                              &v2e_opr_data[0],
+                                                                              &v2e_opr_data[4],
+                                                                              &v2e_opr_data[8],
+                                                                              static_cast< int64_t >( level ),
+                                                                              relax );
             }
             else
             {
@@ -555,29 +565,35 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor(const P2Func
       }
    }
 
+   this->timingTree_->stop( "Macro-Face" );
+
    dst.getVertexDoFFunction().communicate< Face, Cell >( level );
    dst.getEdgeDoFFunction().communicate< Face, Cell >( level );
 
-  for( auto& it : storage_->getCells() )
-  {
-    Cell& cell = *it.second;
+   this->timingTree_->start( "Macro-Cell" );
 
-    const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-    if( testFlag( cellBC, flag ) )
-    {
-      P2::macrocell::smoothSOR( level,
-                                cell,
-                                relax,
-                                vertexToVertex.getCellStencilID(),
-                                edgeToVertex.getCellStencilID(),
-                                vertexToEdge.getCellStencilID(),
-                                edgeToEdge.getCellStencilID(),
-                                dst.getVertexDoFFunction().getCellDataID(),
-                                rhs.getVertexDoFFunction().getCellDataID(),
-                                dst.getEdgeDoFFunction().getCellDataID(),
-                                rhs.getEdgeDoFFunction().getCellDataID() );
-    }
-  }
+   for ( auto& it : storage_->getCells() )
+   {
+      Cell& cell = *it.second;
+
+      const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+      if ( testFlag( cellBC, flag ) )
+      {
+         P2::macrocell::smoothSOR( level,
+                                   cell,
+                                   relax,
+                                   vertexToVertex.getCellStencilID(),
+                                   edgeToVertex.getCellStencilID(),
+                                   vertexToEdge.getCellStencilID(),
+                                   edgeToEdge.getCellStencilID(),
+                                   dst.getVertexDoFFunction().getCellDataID(),
+                                   rhs.getVertexDoFFunction().getCellDataID(),
+                                   dst.getEdgeDoFFunction().getCellDataID(),
+                                   rhs.getEdgeDoFFunction().getCellDataID() );
+      }
+   }
+
+   this->timingTree_->stop( "Macro-Cell" );
 
    this->stopTiming( "SOR" );
 }
