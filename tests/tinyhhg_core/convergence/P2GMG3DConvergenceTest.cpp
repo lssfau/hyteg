@@ -122,7 +122,7 @@ int main( int argc, char* argv[] )
     discrL2ResHigherLevel = res.dotGlobal( res, maxLevel, DoFType::Inner ) / numPointsHigherLevel;
 
     const real_t discrResConvRate = discrL2ResHigherLevel / lastResidual;
-    WALBERLA_CHECK_LESS( discrResConvRate, 3.0e-02 )
+    WALBERLA_CHECK_LESS( discrResConvRate, 4.2e-02 )
 
     lastResidual = discrL2ResHigherLevel;
 

@@ -170,7 +170,7 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
 
       const real_t discrResConvRate = residuum_l2_1 / lastResidual;
-      WALBERLA_CHECK_LESS( discrResConvRate, 1.6e-01 )
+      WALBERLA_CHECK_LESS( discrResConvRate, 1.7e-01 )
 
       lastResidual = residuum_l2_1;
 
@@ -188,9 +188,9 @@ int main( int argc, char* argv[] )
    o << ttjson;
    o.close();
 
-   WALBERLA_CHECK_LESS( discr_l2_err_1_u + discr_l2_err_1_v + discr_l2_err_1_w, 8e-03 );
-   WALBERLA_CHECK_LESS( discr_l2_err_1_p, 1.38 );
-   WALBERLA_CHECK_LESS( residuum_l2_1, 1.1e-04 );
+   WALBERLA_CHECK_LESS( discr_l2_err_1_u + discr_l2_err_1_v + discr_l2_err_1_w, 8.7e-03 );
+   WALBERLA_CHECK_LESS( discr_l2_err_1_p, 1.39 );
+   WALBERLA_CHECK_LESS( residuum_l2_1, 1.2e-04 );
 
    return EXIT_SUCCESS;
 }

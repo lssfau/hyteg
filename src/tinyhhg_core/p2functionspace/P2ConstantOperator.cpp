@@ -46,6 +46,7 @@
 #include "tinyhhg_core/p2functionspace/P2MacroVertex.hpp"
 #include "tinyhhg_core/communication/Syncing.hpp"
 #include "tinyhhg_core/p2functionspace/generatedKernels/GeneratedKernelsP2MacroFace2D.hpp"
+#include "tinyhhg_core/p2functionspace/generatedKernels/GeneratedKernelsP2MacroCell3D.hpp"
 
 namespace hhg {
 
@@ -579,17 +580,73 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Fun
       const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
       if ( testFlag( cellBC, flag ) )
       {
-         P2::macrocell::smoothSOR( level,
-                                   cell,
-                                   relax,
-                                   vertexToVertex.getCellStencilID(),
-                                   edgeToVertex.getCellStencilID(),
-                                   vertexToEdge.getCellStencilID(),
-                                   edgeToEdge.getCellStencilID(),
-                                   dst.getVertexDoFFunction().getCellDataID(),
-                                   rhs.getVertexDoFFunction().getCellDataID(),
-                                   dst.getEdgeDoFFunction().getCellDataID(),
-                                   rhs.getEdgeDoFFunction().getCellDataID() );
+        if ( globalDefines::useGeneratedKernels )
+        {
+          real_t *v_dst_data = cell.getData( dst.getVertexDoFFunction().getCellDataID())->getPointer( level );
+          real_t *v_rhs_data = cell.getData( rhs.getVertexDoFFunction().getCellDataID())->getPointer( level );
+
+          real_t *e_dst_data = cell.getData( dst.getEdgeDoFFunction().getCellDataID())->getPointer( level );
+          real_t *e_rhs_data = cell.getData( rhs.getEdgeDoFFunction().getCellDataID())->getPointer( level );
+
+          auto v2v_opr_data = cell.getData( vertexToVertex.getCellStencilID())->getPointer( level );
+          auto v2e_opr_data = cell.getData( vertexToEdge.getCellStencilID())->getData( level );
+          auto e2v_opr_data = cell.getData( edgeToVertex.getCellStencilID())->getData( level );
+          auto e2e_opr_data = cell.getData( edgeToEdge.getCellStencilID())->getData( level );
+
+          typedef edgedof::EdgeDoFOrientation eo;
+          std::map< eo, uint_t >              firstIdx;
+          for ( auto e : edgedof::allEdgeDoFOrientations )
+            firstIdx[e] = edgedof::macrocell::index( level, 0, 0, 0, e );
+
+          P2::macrocell::generated::sor_3D_macrocell_P2_update_vertexdofs( &e_dst_data[firstIdx[eo::X]],
+                                                                           &e_dst_data[firstIdx[eo::XY]],
+                                                                           &e_dst_data[firstIdx[eo::XYZ]],
+                                                                           &e_dst_data[firstIdx[eo::XZ]],
+                                                                           &e_dst_data[firstIdx[eo::Y]],
+                                                                           &e_dst_data[firstIdx[eo::YZ]],
+                                                                           &e_dst_data[firstIdx[eo::Z]],
+                                                                           v2v_opr_data,
+                                                                           v_dst_data,
+                                                                           v_rhs_data,
+                                                                           e2v_opr_data,
+                                                                           static_cast< int64_t >( level ),
+                                                                           relax );
+
+          P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs( &e_dst_data[firstIdx[eo::X]],
+                                                                         &e_dst_data[firstIdx[eo::XY]],
+                                                                         &e_dst_data[firstIdx[eo::XYZ]],
+                                                                         &e_dst_data[firstIdx[eo::XZ]],
+                                                                         &e_dst_data[firstIdx[eo::Y]],
+                                                                         &e_dst_data[firstIdx[eo::YZ]],
+                                                                         &e_dst_data[firstIdx[eo::Z]],
+                                                                         &e_rhs_data[firstIdx[eo::X]],
+                                                                         &e_rhs_data[firstIdx[eo::XY]],
+                                                                         &e_rhs_data[firstIdx[eo::XYZ]],
+                                                                         &e_rhs_data[firstIdx[eo::XZ]],
+                                                                         &e_rhs_data[firstIdx[eo::Y]],
+                                                                         &e_rhs_data[firstIdx[eo::YZ]],
+                                                                         &e_rhs_data[firstIdx[eo::Z]],
+                                                                         v_dst_data,
+                                                                         e2e_opr_data,
+                                                                         static_cast< int64_t >( level ),
+                                                                         relax,
+                                                                         v2e_opr_data );
+        } else
+        {
+
+
+          P2::macrocell::smoothSOR( level,
+                                    cell,
+                                    relax,
+                                    vertexToVertex.getCellStencilID(),
+                                    edgeToVertex.getCellStencilID(),
+                                    vertexToEdge.getCellStencilID(),
+                                    edgeToEdge.getCellStencilID(),
+                                    dst.getVertexDoFFunction().getCellDataID(),
+                                    rhs.getVertexDoFFunction().getCellDataID(),
+                                    dst.getEdgeDoFFunction().getCellDataID(),
+                                    rhs.getEdgeDoFFunction().getCellDataID());
+        }
       }
    }
 
