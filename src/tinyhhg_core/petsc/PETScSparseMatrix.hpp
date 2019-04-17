@@ -123,8 +123,10 @@ public:
     }
 
     /// \brief Variant of applyDirichletBCSymmetrically() that only modifies the matrix itself
-    void applyDirichletBCSymmetrically( const FunctionType< PetscInt >& numerator,
-                                        const uint_t&                   level )
+    ///
+    /// \return Vector with global indices of the Dirichlet DoFs
+   std::vector< PetscInt > applyDirichletBCSymmetrically( const FunctionType< PetscInt >& numerator,
+                                                          const uint_t&                   level )
     {
        std::vector< PetscInt > bcIndices;
        hhg::petsc::applyDirichletBC( numerator, bcIndices, level );
@@ -141,6 +143,8 @@ public:
        MatZeroRowsColumns( mat, bcIndices.size(), bcIndices.data(), 1.0, NULL, NULL );
 
        WALBERLA_ASSERT( isSymmetric() );
+
+       return bcIndices;
     }
 
   inline void reset()  { assembled = false; }

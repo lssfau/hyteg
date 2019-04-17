@@ -1,5 +1,7 @@
 #pragma once
 
+#include <fstream>
+
 // Primitive management
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -51,14 +53,17 @@ namespace hhg {
 
     // Create PETSc matrix
     if( beVerbose ) {
-    WALBERLA_LOG_INFO_ON_ROOT( " * Converting Operator to PETSc matrix" );
+      WALBERLA_LOG_INFO_ON_ROOT( " * Converting Operator to PETSc matrix" );
     }
     PETScSparseMatrix< OperatorType, FunctionType > petscMatrix( localDoFs, globalDoFs, matrixName.c_str() );
     FunctionType< PetscInt > numerator( "numerator", storage, level, level );
     numerator.enumerate( level );
     petscMatrix.createMatrixFromFunction( op, level, numerator );
+
+    // Zero rows and columns of "Dirichlet DoFs"
+    std::vector< PetscInt > indices;
     if( elimDirichletBC ) {
-      petscMatrix.applyDirichletBCSymmetrically( numerator, level );
+      indices = petscMatrix.applyDirichletBCSymmetrically( numerator, level );
     }
 
     // Write out matrix
@@ -67,6 +72,28 @@ namespace hhg {
     }
     petscMatrix.print( fName.c_str() );
 
+    // Now make Matlab be a little talkative
+    std::ofstream ofs;
+    ofs.open( fName.c_str(), std::ofstream::out | std::ofstream::app );
+    ofs << "fprintf( 'Constructed matrix %s\\n', '" << matrixName << "' );\n";
+
+    // Export indices of DoFs fixed by Dirichlet boundary conditions and add
+    // code to Matlab script to truly eliminate them from the final matrix
+    if( elimDirichletBC ) {
+      hhg::petsc::applyDirichletBC( numerator, indices, level );
+      ofs << "DirichletDoFs = [" << indices[0] + 1;
+      for( auto k = indices.begin() + 1; k != indices.end(); ++k ) {
+        ofs << ", " << *k + 1;
+      }
+      ofs << "];\n"
+          << "tmpIndices = ~ismember( 1:size(" << matrixName << ",1), DirichletDoFs );\n"
+          << matrixName << " = " << matrixName << "( tmpIndices, tmpIndices );\n"
+          << "clear tmpIndices;\n"
+          << "fprintf( 'Eliminated DoFs fixed by Dirichlet BCs from matrix\\n' );\n";
+    }
+
+    // Close file explicitely
+    ofs.close();
   }
 
 } // hhg
