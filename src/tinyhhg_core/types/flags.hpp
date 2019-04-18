@@ -59,5 +59,11 @@ enum class MemoryType {
   P1BubbleStencil
 };
 
+enum class CycleType
+{
+   VCYCLE,
+   WCYCLE
+};
+
 } // namespace hhg
 

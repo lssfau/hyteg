@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include "core/DataTypes.h"
@@ -14,35 +15,34 @@ namespace hhg {
 using walberla::real_t;
 using walberla::uint_t;
 
-
 template < class OperatorType >
-class GeometricMultigridSolver : public Solver< OperatorType >
+class FASSolver : public Solver< OperatorType >
 {
  public:
    typedef typename OperatorType::srcType FunctionType;
 
-   //  static_assert( !std::is_same< FunctionType, typename OperatorType::dstType >::value,
-   //                 "CGSolver does not work for Operator with different src and dst FunctionTypes" );
-
-   GeometricMultigridSolver( const std::shared_ptr< PrimitiveStorage >&              storage,
-                             std::shared_ptr< Solver< OperatorType > >               smoother,
-                             std::shared_ptr< Solver< OperatorType > >               coarseSolver,
-                             std::shared_ptr< RestrictionOperator< FunctionType > >  restrictionOperator,
-                             std::shared_ptr< ProlongationOperator< FunctionType > > prolongationOperator,
-                             uint_t                                                  minLevel,
-                             uint_t                                                  maxLevel,
-                             uint_t                                                  preSmoothSteps                = 3,
-                             uint_t                                                  postSmoothSteps               = 3,
-                             uint_t                                                  smoothIncrementOnCoarserGrids = 0,
-                             CycleType                                               cycleType = CycleType::VCYCLE )
+   FASSolver( const std::shared_ptr< PrimitiveStorage >&              storage,
+              std::shared_ptr< Solver< OperatorType > >               smoother,
+              std::shared_ptr< Solver< OperatorType > >               coarseSolver,
+              std::shared_ptr< RestrictionOperator< FunctionType > >  restrictionOperator,
+              std::shared_ptr< RestrictionOperator< FunctionType > >  solutionRestrictionOperator,
+              std::shared_ptr< ProlongationOperator< FunctionType > > prolongationOperator,
+              uint_t                                                  minLevel,
+              uint_t                                                  maxLevel,
+              uint_t                                                  preSmoothSteps                = 3,
+              uint_t                                                  postSmoothSteps               = 3,
+              uint_t                                                  smoothIncrementOnCoarserGrids = 0,
+              CycleType                                               cycleType                     = CycleType::VCYCLE )
    : minLevel_( minLevel )
    , maxLevel_( maxLevel )
    , smoother_( smoother )
    , coarseSolver_( coarseSolver )
    , restrictionOperator_( restrictionOperator )
+   , solutionRestrictionOperator_( solutionRestrictionOperator )
    , prolongationOperator_( prolongationOperator )
-   , ax_( "gmg_ax", storage, minLevel, maxLevel )
-   , tmp_( "gmg_tmp", storage, minLevel, maxLevel )
+   , tmp_( "fas_tmp", storage, minLevel, maxLevel )
+   , d_( "fas_d", storage, minLevel, maxLevel )
+   , w_( "fas_w", storage, minLevel, maxLevel )
    , preSmoothSteps_( preSmoothSteps )
    , postSmoothSteps_( postSmoothSteps )
    , smoothIncrement_( smoothIncrementOnCoarserGrids )
@@ -50,8 +50,6 @@ class GeometricMultigridSolver : public Solver< OperatorType >
    , cycleType_( cycleType )
    , timingTree_( storage->getTimingTree() )
    {
-      zero_ = []( const hhg::Point3D& ) { return 0.0; };
-
       uint_t inc = 0;
       for ( uint_t level = maxLevel; level >= minLevel; level-- )
       {
@@ -61,13 +59,13 @@ class GeometricMultigridSolver : public Solver< OperatorType >
       }
    }
 
-   ~GeometricMultigridSolver() = default;
+   ~FASSolver() = default;
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
-      timingTree_->start( "Geometric Multigrid Solver" );
+      timingTree_->start( "FAS Multigrid Solver" );
       solveRecursively( A, x, b, level );
-      timingTree_->stop( "Geometric Multigrid Solver" );
+      timingTree_->stop( "FAS Multigrid Solver" );
    }
 
    void solveRecursively( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) const
@@ -88,17 +86,19 @@ class GeometricMultigridSolver : public Solver< OperatorType >
             timingTree_->stop( "Smoother" );
          }
 
-         A.apply( x, ax_, level, flag_ );
-         tmp_.assign( {1.0, -1.0}, {b, ax_}, level, flag_ );
+         A.apply( x, tmp_, level, flag_ );
+         d_.assign( {1.0, -1.0}, {b, tmp_}, level, flag_ );
 
          // restrict
          timingTree_->start( "Restriction" );
-         restrictionOperator_->restrict( tmp_, level, flag_ );
+         restrictionOperator_->restrict( d_, level, flag_ );
+         solutionRestrictionOperator_->restrict( x, level, flag_ );
          timingTree_->stop( "Restriction" );
 
-         b.assign( {1.0}, {tmp_}, level - 1, flag_ );
+         A.apply( x, tmp_, level - 1, flag_ );
+         b.assign( {1.0, 1.0}, {d_, tmp_}, level - 1, flag_ );
 
-         x.interpolate( zero_, level - 1 );
+         w_.assign( {1.0}, {x}, level - 1, All );
 
          solveRecursively( A, x, b, level - 1 );
 
@@ -107,10 +107,10 @@ class GeometricMultigridSolver : public Solver< OperatorType >
             solveRecursively( A, x, b, level - 1 );
          }
 
-         // prolongate
-         tmp_.assign( {1.0}, {x}, level, flag_ );
+         // coarse grid correction
+         tmp_.assign( {1.0, -1.0}, {x, w_}, level - 1, flag_ );
          timingTree_->start( "Prolongation" );
-         prolongationOperator_->prolongate( x, level - 1, flag_ );
+         prolongationOperator_->prolongate( tmp_, level - 1, flag_ );
          timingTree_->stop( "Prolongation" );
          x.add( {1.0}, {tmp_}, level, flag_ );
 
@@ -137,12 +137,12 @@ class GeometricMultigridSolver : public Solver< OperatorType >
    std::shared_ptr< hhg::Solver< OperatorType > >               smoother_;
    std::shared_ptr< hhg::Solver< OperatorType > >               coarseSolver_;
    std::shared_ptr< hhg::RestrictionOperator< FunctionType > >  restrictionOperator_;
+   std::shared_ptr< hhg::RestrictionOperator< FunctionType > >  solutionRestrictionOperator_;
    std::shared_ptr< hhg::ProlongationOperator< FunctionType > > prolongationOperator_;
 
-   FunctionType ax_;
    FunctionType tmp_;
-
-   std::function< real_t( const hhg::Point3D& ) > zero_;
+   FunctionType d_;
+   FunctionType w_;
 
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
 
