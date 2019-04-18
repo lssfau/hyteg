@@ -83,6 +83,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
    const PrimitiveDataID< StencilMemory< real_t >, Face >& getFaceStencilID() const { return faceStencilID_; }
 
+   const PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face >& getFaceStencil3DID() const { return faceStencil3DID_; }
+
    const PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell >& getCellStencilID() const { return cellStencilID_; }
 
  private:
@@ -99,6 +101,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    PrimitiveDataID< StencilMemory< real_t >, Vertex > vertexStencilID_;
    PrimitiveDataID< StencilMemory< real_t >, Edge >   edgeStencilID_;
    PrimitiveDataID< StencilMemory< real_t >, Face >   faceStencilID_;
+   PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face > faceStencil3DID_;
    PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell > cellStencilID_;
 
    void compute_local_stiffness( const Face& face, size_t level, Matrix3r& local_stiffness, fenics::ElementType element_type );

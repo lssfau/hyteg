@@ -8,6 +8,7 @@
 
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
 #include "tinyhhg_core/facedofspace/FaceDoFIndexing.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
 #include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
@@ -17,6 +18,7 @@
 #include "tinyhhg_core/primitives/Face.hpp"
 #include "tinyhhg_core/primitives/Cell.hpp"
 #include "tinyhhg_core/Algorithms.hpp"
+#include "tinyhhg_core/LevelWiseMemory.hpp"
 
 namespace hhg {
 namespace vertexdof {
@@ -403,6 +405,60 @@ inline void apply( const uint_t&                                               L
   }
 }
 
+template < typename ValueType >
+inline void apply3D( const uint_t&                                                   Level,
+                     Face&                                                           face,
+                     const PrimitiveStorage&                                         storage,
+                     const PrimitiveDataID< LevelWiseMemory< StencilMap_T >, Face >& operatorId,
+                     const PrimitiveDataID< FunctionMemory< ValueType >, Face >&     srcId,
+                     const PrimitiveDataID< FunctionMemory< ValueType >, Face >&     dstId,
+                     UpdateType                                                      update )
+{
+   auto       opr_data = face.getData( operatorId )->getData( Level );
+   ValueType* src      = face.getData( srcId )->getPointer( Level );
+   ValueType* dst      = face.getData( dstId )->getPointer( Level );
+
+   for ( const auto& idxIt : Iterator( Level, 1 ) )
+   {
+     ValueType tmp = real_c( 0 );
+
+     for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
+      {
+         auto neighborCell = storage.getCell( face.neighborCells().at( neighborCellIdx ) );
+         auto centerIndexInCell =
+             vertexdof::macroface::getIndexInNeighboringMacroCell( idxIt, face, neighborCellIdx, storage, Level );
+         for ( auto stencilIt : opr_data[neighborCellIdx] )
+         {
+            auto weight               = stencilIt.second;
+            auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first;
+            auto leafIndexInMacroFace = macrocell::getIndexInNeighboringMacroFace(
+                leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID( face.getID() ), storage, Level );
+
+            uint_t leafArrayIndexInMacroFace;
+            if ( leafIndexInMacroFace.z() == 0 )
+            {
+              leafArrayIndexInMacroFace = vertexdof::macroface::index( Level, leafIndexInMacroFace.x(), leafIndexInMacroFace.y() );
+            }
+            else
+            {
+              WALBERLA_ASSERT_EQUAL( leafIndexInMacroFace.z(), 1 );
+              leafArrayIndexInMacroFace = vertexdof::macroface::index( Level, leafIndexInMacroFace.x(), leafIndexInMacroFace.y(), neighborCellIdx );
+            }
+
+            tmp += weight * src[ leafArrayIndexInMacroFace ];
+         }
+      }
+
+     if ( update == Replace )
+     {
+       dst[ vertexdof::macroface::index( Level, idxIt.x(), idxIt.y() ) ] = tmp;
+     }
+     else if ( update == Add )
+     {
+       dst[ vertexdof::macroface::index( Level, idxIt.x(), idxIt.y() ) ] += tmp;
+     }
+   }
+}
 
 template < typename ValueType >
 inline void applyPointwise( const uint_t&                                               Level,
@@ -880,6 +936,67 @@ inline void smooth_sor( const uint_t&                                           
 }
 
 template < typename ValueType >
+inline void smoothSOR3D( const uint_t&                                                   Level,
+                         Face&                                                           face,
+                         const PrimitiveStorage&                                         storage,
+                         const PrimitiveDataID< LevelWiseMemory< StencilMap_T >, Face >& operatorId,
+                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >&     dstId,
+                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >&     rhsId,
+                         ValueType                                                       relax )
+{
+   auto       opr_data = face.getData( operatorId )->getData( Level );
+   ValueType* rhs      = face.getData( rhsId )->getPointer( Level );
+   ValueType* dst      = face.getData( dstId )->getPointer( Level );
+
+   real_t centerWeight = real_c( 0 );
+   for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
+   {
+      centerWeight += opr_data[neighborCellIdx][{0, 0, 0}];
+   }
+   const auto invCenterWeight = 1.0 / centerWeight;
+
+   for ( const auto& idxIt : Iterator( Level, 1 ) )
+   {
+      ValueType tmp = rhs[vertexdof::macroface::index( Level, idxIt.x(), idxIt.y() )];
+
+      for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
+      {
+         auto neighborCell = storage.getCell( face.neighborCells().at( neighborCellIdx ) );
+         auto centerIndexInCell =
+             vertexdof::macroface::getIndexInNeighboringMacroCell( idxIt, face, neighborCellIdx, storage, Level );
+         for ( auto stencilIt : opr_data[neighborCellIdx] )
+         {
+            if ( stencilIt.first == indexing::IndexIncrement( {0, 0, 0} ) )
+               continue;
+
+            auto weight               = stencilIt.second;
+            auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first;
+            auto leafIndexInMacroFace = macrocell::getIndexInNeighboringMacroFace(
+                leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID( face.getID() ), storage, Level );
+
+            uint_t leafArrayIndexInMacroFace;
+            if ( leafIndexInMacroFace.z() == 0 )
+            {
+               leafArrayIndexInMacroFace =
+                   vertexdof::macroface::index( Level, leafIndexInMacroFace.x(), leafIndexInMacroFace.y() );
+            }
+            else
+            {
+               WALBERLA_ASSERT_EQUAL( leafIndexInMacroFace.z(), 1 );
+               leafArrayIndexInMacroFace =
+                   vertexdof::macroface::index( Level, leafIndexInMacroFace.x(), leafIndexInMacroFace.y(), neighborCellIdx );
+            }
+
+            tmp -= weight * dst[leafArrayIndexInMacroFace];
+         }
+      }
+
+      dst[vertexdof::macroface::index( Level, idxIt.x(), idxIt.y() )] =
+          ( 1.0 - relax ) * dst[vertexdof::macroface::index( Level, idxIt.x(), idxIt.y() )] + relax * tmp * invCenterWeight;
+   }
+}
+
+template < typename ValueType >
 inline void smooth_jac( const uint_t&                                               Level,
                         Face&                                                       face,
                         const PrimitiveDataID< StencilMemory< ValueType >, Face >&  operatorId,
@@ -1153,6 +1270,54 @@ inline void saveOperator( const uint_t&                                         
     }
     --inner_rowsize;
   }
+}
+
+inline void saveOperator3D( const uint_t&                                                   Level,
+                            Face&                                                           face,
+                            const PrimitiveStorage&                                         storage,
+                            const PrimitiveDataID< LevelWiseMemory< StencilMap_T >, Face >& operatorId,
+                            const PrimitiveDataID< FunctionMemory< PetscInt >, Face >&      srcId,
+                            const PrimitiveDataID< FunctionMemory< PetscInt >, Face >&      dstId,
+                            Mat&                                                            mat )
+{
+   auto opr_data = face.getData( operatorId )->getData( Level );
+   auto src      = face.getData( srcId )->getPointer( Level );
+   auto dst      = face.getData( dstId )->getPointer( Level );
+
+   for ( const auto& idxIt : Iterator( Level, 1 ) )
+   {
+      const PetscInt dstInt = dst[vertexdof::macroface::index( Level, idxIt.x(), idxIt.y() )];
+
+      for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
+      {
+         auto neighborCell = storage.getCell( face.neighborCells().at( neighborCellIdx ) );
+         auto centerIndexInCell =
+             vertexdof::macroface::getIndexInNeighboringMacroCell( idxIt, face, neighborCellIdx, storage, Level );
+         for ( const auto& stencilIt : opr_data[neighborCellIdx] )
+         {
+            auto weight               = stencilIt.second;
+            auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first;
+            auto leafIndexInMacroFace = macrocell::getIndexInNeighboringMacroFace(
+                leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID( face.getID() ), storage, Level );
+
+            uint_t leafArrayIndexInMacroFace;
+            if ( leafIndexInMacroFace.z() == 0 )
+            {
+               leafArrayIndexInMacroFace =
+                   vertexdof::macroface::index( Level, leafIndexInMacroFace.x(), leafIndexInMacroFace.y() );
+            }
+            else
+            {
+               WALBERLA_ASSERT_EQUAL( leafIndexInMacroFace.z(), 1 );
+               leafArrayIndexInMacroFace =
+                   vertexdof::macroface::index( Level, leafIndexInMacroFace.x(), leafIndexInMacroFace.y(), neighborCellIdx );
+            }
+
+            const PetscInt srcInt = src[leafArrayIndexInMacroFace];
+            MatSetValues( mat, 1, &dstInt, 1, &srcInt, &weight, ADD_VALUES );
+         }
+      }
+   }
 }
 
 template < typename ValueType >

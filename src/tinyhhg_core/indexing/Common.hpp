@@ -170,6 +170,12 @@ inline bool operator==( const IndexIncrement & lhs, const IndexIncrement & rhs )
   return lhs.x() == rhs.x() && lhs.y() == rhs.y() && lhs.z() == rhs.z();
 }
 
+inline bool operator!=( const IndexIncrement & lhs, const IndexIncrement & rhs )
+{
+  return !(lhs == rhs);
+}
+
+
 inline std::ostream & operator<<( std::ostream & os, const Index & index )
 {
   os << "( " << index.x() << ", " << index.y() << ", " << index.z() << " )";

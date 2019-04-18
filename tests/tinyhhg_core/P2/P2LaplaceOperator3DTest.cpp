@@ -58,15 +58,15 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
     if ( face->getNumNeighborCells() < 2 )
       continue;
 
-    // At vertices
-    auto vertexToVertexStencilSize = face->getData( laplaceOperator3D.getVertexToVertexOpr().getFaceStencilID() )->getSize( level );
-    auto vertexToVertexStencilArray = face->getData( laplaceOperator3D.getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
-
     real_t sumAtVertex = real_c(0);
-    for ( uint_t i = 0; i < vertexToVertexStencilSize; i++ )
-    {
-      sumAtVertex += vertexToVertexStencilArray[i];
-    }
+
+    // At vertices
+    auto vertexToVertexStencilMap = face->getData( laplaceOperator3D.getVertexToVertexOpr().getFaceStencil3DID() )->getData( level );
+    for ( uint_t neighborCellId = 0; neighborCellId < 2; neighborCellId++ )
+      for ( auto direction : vertexToVertexStencilMap.at(neighborCellId) )
+      {
+        sumAtVertex += direction.second;
+      }
 
     auto edgeToVertexStencilMap = face->getData( laplaceOperator3D.getEdgeToVertexOpr().getFaceStencil3DID() )->getData( level );
     for ( uint_t neighborCellId = 0; neighborCellId < 2; neighborCellId++ )

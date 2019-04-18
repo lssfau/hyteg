@@ -169,7 +169,15 @@ inline void createMatrix( const OperatorType&           opr,
     const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
     if (testFlag(faceBC, flag))
     {
-      vertexdof::macroface::saveOperator(level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat);
+      if ( storage->hasGlobalCells() )
+      {
+        vertexdof::macroface::saveOperator3D(level, face, *storage, opr.getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat);
+      }
+      else
+      {
+        vertexdof::macroface::saveOperator(level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat);
+      }
+
     }
   }
 

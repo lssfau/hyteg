@@ -299,43 +299,20 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::assembleStencils3D()
       /// Faces ///
       /////////////
 
-      for( const auto& it : storage_->getFaces() )
-      {
-         const auto& face = *it.second;
+     for ( const auto& it : storage_->getFaces() )
+     {
+       auto face = it.second;
+       auto & stencilMemory = face->getData( getVertexToVertexOpr().getFaceStencil3DID())->getData( level );
 
-         WALBERLA_ASSERT_GREATER( face.getNumNeighborCells(), 0 );
-
-         auto stencilMemory = face.getData( getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
-
-         auto stencil =
-             P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, face, indexing::Index( 1, 1, 0 ), level, ufcOperator );
-
-         if( face.getNumNeighborCells() == 1 )
-         {
-            for( const auto stencilDir : vertexdof::macroface::neighborsWithOneNeighborCellWithCenter )
-            {
-               if( stencil.count( stencilDir ) == 0 )
-               {
-                  stencil[stencilDir] = real_c( 0 );
-               }
-            }
-         } else
-         {
-            for( const auto stencilDir : vertexdof::macroface::neighborsWithTwoNeighborCellsWithCenter )
-            {
-               if( stencil.count( stencilDir ) == 0 )
-               {
-                  stencil[stencilDir] = real_c( 0 );
-               }
-            }
-         }
-
-         for( const auto stencilIt : stencil )
-         {
-            const auto stencilIdx     = vertexdof::stencilIndexFromVertex( stencilIt.first );
-            stencilMemory[stencilIdx] = stencil[stencilIt.first];
-         }
-      }
+       for ( uint_t neighborCellID = 0; neighborCellID < face->getNumNeighborCells(); neighborCellID++ )
+       {
+         auto neighborCell = storage_->getCell( face->neighborCells().at( neighborCellID ));
+         auto vertexAssemblyIndexInCell =
+         vertexdof::macroface::getIndexInNeighboringMacroCell( { 1, 1, 0 }, *face, neighborCellID, *storage_, level );
+         stencilMemory[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
+         storage_, *neighborCell, vertexAssemblyIndexInCell, level, ufcOperator );
+       }
+     }
 
       /////////////
       /// Cells ///
@@ -488,7 +465,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Fun
                                         *storage_,
                                         face,
                                         relax,
-                                        vertexToVertex.getFaceStencilID(),
+                                        vertexToVertex.getFaceStencil3DID(),
                                         edgeToVertex.getFaceStencil3DID(),
                                         vertexToEdge.getFaceStencil3DID(),
                                         edgeToEdge.getFaceStencil3DID(),

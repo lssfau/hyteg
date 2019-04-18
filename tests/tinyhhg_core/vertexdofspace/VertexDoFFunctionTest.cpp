@@ -146,9 +146,27 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
     }
     for ( const auto & it : storage->getFaces() )
     {
-      StencilMemory< real_t > * faceStencil = it.second->getData( op->getFaceStencilID() );
-      WALBERLA_CHECK_EQUAL( faceStencil->getSize( level ), 27 );
-      for ( uint_t i = 0; i < 27; i++ ) faceStencil->getPointer( level )[ i ] = 1.0;
+      auto & faceStencil = it.second->getData( op->getFaceStencil3DID() )->getData( level );
+      for ( uint_t neighborCellID = 0; neighborCellID < it.second->getNumNeighborCells(); neighborCellID++ )
+      {
+        fenics::NoAssemble ufcOperator;
+        auto face = it.second;
+        auto neighborCell = storage->getCell( face->neighborCells().at( neighborCellID ) );
+        auto vertexAssemblyIndexInCell =
+        vertexdof::macroface::getIndexInNeighboringMacroCell( {1, 1, 0}, *face, neighborCellID, *storage, level );
+        faceStencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
+           storage, *neighborCell, vertexAssemblyIndexInCell, level, ufcOperator );
+
+        for ( auto & stencilIt : faceStencil[neighborCellID] )
+        {
+          auto leafIndexInMacroFace = vertexdof::macrocell::getIndexInNeighboringMacroFace(
+          vertexAssemblyIndexInCell + stencilIt.first, *neighborCell, neighborCell->getLocalFaceID( face->getID() ), *storage, level );
+          if ( leafIndexInMacroFace.z() == 0 )
+            stencilIt.second = 0.5;
+          else
+            stencilIt.second = 1.0;
+        }
+      }
     }
     for ( const auto & it : storage->getCells() )
     {
@@ -190,7 +208,7 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
       {
         WALBERLA_CHECK_FLOAT_EQUAL( faceDst[vertexdof::macroface::indexFromVertex( level, idxIt.x(),
                                                                                    idxIt.y(),
-                                                                                   stencilDirection::VERTEX_C )], real_c( 7 + 6 * it.second->getNumNeighborCells() ) );
+                                                                                   stencilDirection::VERTEX_C )], 7.5 * real_c( it.second->getNumNeighborCells() ) );
       }
     }
     for ( const auto & it : storage->getCells() )

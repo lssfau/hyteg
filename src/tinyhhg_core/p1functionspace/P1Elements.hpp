@@ -598,131 +598,6 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
 }
 
 
-/// \brief Assembles the local P1 operator stencil on a macro-face
-///
-/// \param storage the governing \ref PrimitiveStorage
-/// \param face the macro-face
-/// \param microVertexIndex the micro-vertex index on the macro-face (z coordinate must be 0)
-/// \param level the multigrid level
-/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
-/// \return a map containing the stencil weights for the micro-vertex on that macro-face,
-///         it maps the 13 or 19 (== 7 on face + 6 on ghost face 0 + 6 on ghost face 1) stencil directions to the stencil weights
-///         refer to the documentation to better understand that mapping
-///
-template< typename UFCOperator >
-inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::shared_ptr< PrimitiveStorage > & storage, const Face & face,
-                                                                    const indexing::Index & microVertexIndex, const uint_t & level, const UFCOperator & ufcGen )
-{
-  // check if index lies in the face's interior
-  WALBERLA_CHECK_EQUAL( microVertexIndex.z(), 0, "[P1 face stencil assembly] z-coordinate on face must be zero" );
-  WALBERLA_CHECK_GREATER( microVertexIndex.x() + microVertexIndex.y(), 0 );
-  WALBERLA_CHECK_LESS( microVertexIndex.x() + microVertexIndex.y(), levelinfo::num_microvertices_per_edge( level ) );
-
-  std::map< stencilDirection, real_t > faceStencil;
-
-  for ( const auto & macroCellID : face.neighborCells() )
-  {
-    const auto macroCell = storage->getCell( macroCellID );
-
-    // 1. translate coordinate to macro-cell
-    
-    // find out the local ID of the face in the cell
-    const uint_t localFaceID = macroCell->getLocalFaceID( face.getID() );
-    
-    // find out the coordinate system basis of the index on the macro-cell
-    WALBERLA_ASSERT_EQUAL( macroCell->getFaceLocalVertexToCellLocalVertexMaps()[ localFaceID ].size(), 3 );
-    const uint_t basisCenter     = macroCell->getFaceLocalVertexToCellLocalVertexMaps()[ localFaceID ].at( 0 );
-    const uint_t basisXDirection = macroCell->getFaceLocalVertexToCellLocalVertexMaps()[ localFaceID ].at( 1 );
-    const uint_t basisYDirection = macroCell->getFaceLocalVertexToCellLocalVertexMaps()[ localFaceID ].at( 2 );
-    // find out the missing Z direction
-    const std::set< uint_t > allDirections     = { 0, 1, 2, 3 };
-    const std::set< uint_t > allDirectionsButZ = { basisCenter, basisXDirection, basisYDirection };
-    std::set< uint_t > missingDirection;
-    std::set_difference( allDirections.begin(), allDirections.end(), allDirectionsButZ.begin(), allDirectionsButZ.end(), std::inserter(missingDirection, missingDirection.begin()) );
-    WALBERLA_ASSERT_EQUAL( missingDirection.size(), 1 );
-    const uint_t basisZDirection = *missingDirection.begin();
-    const std::array< uint_t, 4 > indexingBasis = { basisCenter, basisXDirection, basisYDirection, basisZDirection };
-    const auto indexInMacroCell = indexing::basisConversion( microVertexIndex, indexingBasis, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ) );
-
-    WALBERLA_DEBUG_SECTION()
-    {
-      const auto debugLocalFaces = vertexdof::macrocell::isOnCellFace( indexInMacroCell, level );
-      WALBERLA_ASSERT_EQUAL( debugLocalFaces.size(), 1 );
-      WALBERLA_ASSERT_EQUAL( *debugLocalFaces.begin(), localFaceID );
-    }
-
-    // 2. calculate stiffness matrix for each micro-cell and store contributions
-    const auto cellLocalStencilWeights = calculateStencilInMacroCell( indexInMacroCell, *macroCell, level, ufcGen );
-
-    // 3. translate coordinates / stencil directions back to face-local coordinate system
-    for ( const auto it : cellLocalStencilWeights )
-    {
-      const auto cellLocalDir  = it.first;
-      const auto stencilWeight = it.second;
-
-      const auto cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
-      const auto faceLocalIndexInDir = indexing::basisConversion( cellLocalIndexInDir, { 0, 1, 2, 3 }, indexingBasis, levelinfo::num_microvertices_per_edge ( level ) );
-      WALBERLA_ASSERT_LESS_EQUAL( faceLocalIndexInDir.z(), 1 );
-      const auto indexOnGhostLayer = faceLocalIndexInDir.z() == 1;
-      const auto localCellID = face.cell_index( macroCellID );
-      WALBERLA_ASSERT_LESS_EQUAL( localCellID, 1 );
-      const auto faceLocalStencilDirection = [ &face, microVertexIndex, faceLocalIndexInDir, indexOnGhostLayer, localCellID ]
-      {
-        const auto xOffset = static_cast< int >( faceLocalIndexInDir.x() ) - static_cast< int >( microVertexIndex.x() );
-        const auto yOffset = static_cast< int >( faceLocalIndexInDir.y() ) - static_cast< int >( microVertexIndex.y() );
-        stencilDirection projectedDirection;
-        if ( xOffset == 0 && yOffset == 0 )
-          projectedDirection = stencilDirection::VERTEX_C;
-        else if ( xOffset ==  1 && yOffset ==  1 )
-          projectedDirection = stencilDirection::VERTEX_NE;
-        else if ( xOffset ==  0 && yOffset ==  1 )
-          projectedDirection = stencilDirection::VERTEX_N;
-        else if ( xOffset == -1 && yOffset ==  1 )
-          projectedDirection = stencilDirection::VERTEX_NW;
-        else if ( xOffset ==  1 && yOffset ==  0 )
-          projectedDirection = stencilDirection::VERTEX_E;
-        else if ( xOffset == -1 && yOffset ==  0 )
-          projectedDirection = stencilDirection::VERTEX_W;
-        else if ( xOffset ==  1 && yOffset == -1 )
-          projectedDirection = stencilDirection::VERTEX_SE;
-        else if ( xOffset ==  0 && yOffset == -1 )
-          projectedDirection = stencilDirection::VERTEX_S;
-        else if ( xOffset == -1 && yOffset == -1 )
-          projectedDirection = stencilDirection::VERTEX_SW;
-        else
-        {
-          WALBERLA_ASSERT(false, "Invalid offsets");
-          projectedDirection = stencilDirection::VERTEX_TC;
-        }
-
-        if ( indexOnGhostLayer )
-        {
-          // deciding here that the stencil direction for the first cell at a face is top
-          if ( localCellID == 0 )
-            return makeVertexDirectionTop( projectedDirection );
-          else
-          {
-            WALBERLA_ASSERT_EQUAL( face.getNumNeighborCells(), 2 );
-            WALBERLA_UNUSED( face );
-            return makeVertexDirectionBottom( projectedDirection );
-          }
-        }
-        else
-        {
-          return projectedDirection;
-        }
-      }();
-
-      if ( faceStencil.count( faceLocalStencilDirection ) == 0 )
-      {
-        faceStencil[ faceLocalStencilDirection ] = real_c( 0 );
-      }
-      faceStencil[ faceLocalStencilDirection ] += stencilWeight;
-    }
-  }
-  return faceStencil;
-}
-
 /// \brief Assembles the local P1 operator stencil on a macro-cell
 ///
 /// \param storage the governing \ref PrimitiveStorage
@@ -766,12 +641,12 @@ inline std::map< indexing::IndexIncrement, real_t > assembleP1LocalStencilNew( c
   WALBERLA_UNUSED( storage );
   WALBERLA_DEBUG_SECTION()
   {
-    const auto onCellVertices = vertexdof::macrocell::isOnCellVertex( microVertexIndex, level );
-    const auto onCellEdges = vertexdof::macrocell::isOnCellEdge( microVertexIndex, level );
-    const auto onCellFaces = vertexdof::macrocell::isOnCellFace( microVertexIndex, level );
-    WALBERLA_CHECK_EQUAL( onCellVertices.size(), 0 );
-    WALBERLA_CHECK_EQUAL( onCellEdges.size(), 0 );
-    WALBERLA_CHECK_EQUAL( onCellFaces.size(), 0 );
+//    const auto onCellVertices = vertexdof::macrocell::isOnCellVertex( microVertexIndex, level );
+//    const auto onCellEdges = vertexdof::macrocell::isOnCellEdge( microVertexIndex, level );
+//    const auto onCellFaces = vertexdof::macrocell::isOnCellFace( microVertexIndex, level );
+//    WALBERLA_CHECK_EQUAL( onCellVertices.size(), 0 );
+//    WALBERLA_CHECK_EQUAL( onCellEdges.size(), 0 );
+//    WALBERLA_CHECK_EQUAL( onCellFaces.size(), 0 );
   }
   auto stencilMap = calculateStencilInMacroCell( microVertexIndex, cell, level, ufcGen );
   std::map< indexing::IndexIncrement, real_t > convertedMap;

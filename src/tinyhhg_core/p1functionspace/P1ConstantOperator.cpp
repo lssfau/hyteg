@@ -53,6 +53,10 @@ P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDiagon
        std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell > >(
            minLevel_, maxLevel_ );
 
+   auto face3DP1StencilMemoryDataHandling =
+       std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face > >(
+           minLevel_, maxLevel_ );
+
    auto faceP1StencilMemoryDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Face > >(
        minLevel_, maxLevel_, vertexDoFMacroFaceStencilMemorySize );
    auto edgeP1StencilMemoryDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Edge > >(
@@ -62,20 +66,22 @@ P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDiagon
 
    storage->addCellData( cellStencilID_, cellP1StencilMemoryDataHandling, "P1OperatorCellStencil" );
    storage->addFaceData( faceStencilID_, faceP1StencilMemoryDataHandling, "P1OperatorFaceStencil" );
+   storage->addFaceData( faceStencil3DID_, face3DP1StencilMemoryDataHandling, "P1OperatorFaceStencil" );
    storage->addEdgeData( edgeStencilID_, edgeP1StencilMemoryDataHandling, "P1OperatorEdgeStencil" );
    storage->addVertexData( vertexStencilID_, vertexP1StencilMemoryDataHandling, "P1OperatorVertexStencil" );
 
-   if( storage_->hasGlobalCells() )
+   if ( storage_->hasGlobalCells() )
    {
       const bool assemblyDefined = !std::is_same< UFCOperator3D, hhg::fenics::UndefinedAssembly >::value;
       WALBERLA_CHECK( assemblyDefined, "Assembly undefined for 3D elements." );
-      if( !std::is_same< UFCOperator3D, fenics::NoAssemble >::value )
+      if ( !std::is_same< UFCOperator3D, fenics::NoAssemble >::value )
       {
          assembleStencils3D();
       }
-   } else
+   }
+   else
    {
-      if( !std::is_same< UFCOperator2D, fenics::NoAssemble >::value )
+      if ( !std::is_same< UFCOperator2D, fenics::NoAssemble >::value )
       {
          const bool assemblyDefined = !std::is_same< UFCOperator2D, hhg::fenics::UndefinedAssembly >::value;
          WALBERLA_CHECK( assemblyDefined, "Assembly undefined for 2D elements." );
@@ -167,66 +173,49 @@ void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertD
          }
       }
 
-      for( const auto& it : storage_->getFaces() )
+      for ( const auto& it : storage_->getFaces() )
       {
          auto          face          = it.second;
-         auto          stencilMemory = face->getData( getFaceStencilID() )->getPointer( level );
+         auto&         stencilMemory = face->getData( getFaceStencil3DID() )->getData( level );
          UFCOperator3D ufcOperator;
 
-         auto stencil =
-             P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, *face, indexing::Index( 1, 1, 0 ), level, ufcOperator );
-
-         if( face->getNumNeighborCells() == 1 )
+         for ( uint_t neighborCellID = 0; neighborCellID < face->getNumNeighborCells(); neighborCellID++ )
          {
-            for( const auto stencilDir : vertexdof::macroface::neighborsWithOneNeighborCellWithCenter )
-            {
-               if( stencil.count( stencilDir ) == 0 )
-               {
-                  stencil[stencilDir] = real_c( 0 );
-               }
-            }
-         } else
-         {
-            for( const auto stencilDir : vertexdof::macroface::neighborsWithTwoNeighborCellsWithCenter )
-            {
-               if( stencil.count( stencilDir ) == 0 )
-               {
-                  stencil[stencilDir] = real_c( 0 );
-               }
-            }
+            auto neighborCell = storage_->getCell( face->neighborCells().at( neighborCellID ) );
+            auto vertexAssemblyIndexInCell =
+                vertexdof::macroface::getIndexInNeighboringMacroCell( {1, 1, 0}, *face, neighborCellID, *storage_, level );
+            stencilMemory[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
+                storage_, *neighborCell, vertexAssemblyIndexInCell, level, ufcOperator );
          }
 
-         for( const auto stencilIt : stencil )
-         {
-            const auto stencilIdx     = vertexdof::stencilIndexFromVertex( stencilIt.first );
-            stencilMemory[stencilIdx] = stencil[stencilIt.first];
-         }
+         // The lumping and inverted diagonal modifications for split stencils is realized
+         // by adding up the diagonal entries on the _first_ neighbor cell and setting all other parts to zero.
 
-         if( Lumped )
+         WALBERLA_ASSERT_GREATER( face->getNumNeighborCells(), 0 );
+
+         if ( Lumped )
          {
-            if( face->getNumNeighborCells() == 1 )
+            for ( uint_t neighborCellID = 0; neighborCellID < face->getNumNeighborCells(); neighborCellID++ )
             {
-               for( auto dir : vertexdof::macroface::neighborsWithOneNeighborCellWithoutCenter )
+               for ( auto& stencilIt : stencilMemory[neighborCellID] )
                {
-                  stencilMemory[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] +=
-                      stencilMemory[vertexdof::stencilIndexFromVertex( dir )];
-                  stencilMemory[vertexdof::stencilIndexFromVertex( dir )] = 0;
-               }
-            } else
-            {
-               for( auto dir : vertexdof::macroface::neighborsWithTwoNeighborCellsWithoutCenter )
-               {
-                  stencilMemory[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] +=
-                      stencilMemory[vertexdof::stencilIndexFromVertex( dir )];
-                  stencilMemory[vertexdof::stencilIndexFromVertex( dir )] = 0;
+                  if ( !( neighborCellID == 0 && stencilIt.first == indexing::IndexIncrement( {0, 0, 0} ) ) )
+                  {
+                     stencilMemory[0][{0, 0, 0}] += stencilIt.second;
+                     stencilIt.second = 0;
+                  }
                }
             }
          }
 
-         if( InvertDiagonal )
+         if ( InvertDiagonal )
          {
-            stencilMemory[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] =
-                1.0 / stencilMemory[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
+            for ( uint_t neighborCellID = 1; neighborCellID < face->getNumNeighborCells(); neighborCellID++ )
+            {
+               stencilMemory[0][{0, 0, 0}] += stencilMemory[neighborCellID][{0, 0, 0}];
+               stencilMemory[neighborCellID][{0, 0, 0}] = 0;
+            }
+            stencilMemory[0][{0, 0, 0}] = 1.0 / stencilMemory[0][{0, 0, 0}];
          }
       }
 
@@ -523,32 +512,44 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
 
   this->timingTree_->start( "Macro-Face" );
 
-   for( const auto& it : storage_->getFaces() )
-   {
-      Face& face = *it.second;
+  for ( const auto& it : storage_->getFaces() )
+  {
+     Face& face = *it.second;
 
-      const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if( testFlag( faceBC, flag ) )
-      {
-         if( hhg::globalDefines::useGeneratedKernels && ( !storage_->hasGlobalCells() ) )
-         {
-            real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
-            real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
-            real_t*       dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
-            if( updateType == hhg::Replace )
-            {
-               vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace( dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
-            } else if( updateType == hhg::Add )
-            {
-               vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_add( dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
-            }
-         } else
-         {
-            vertexdof::macroface::apply< real_t >(
-                    level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
-         }
-      }
-   }
+     const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+     if ( testFlag( faceBC, flag ) )
+     {
+        if ( storage_->hasGlobalCells() )
+        {
+           vertexdof::macroface::apply3D< real_t >(
+               level, face, *storage_, faceStencil3DID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+        }
+        else
+        {
+           if ( hhg::globalDefines::useGeneratedKernels )
+           {
+              real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
+              real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
+              real_t* dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
+              if ( updateType == hhg::Replace )
+              {
+                 vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace(
+                     dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
+              }
+              else if ( updateType == hhg::Add )
+              {
+                 vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_add(
+                     dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
+              }
+           }
+           else
+           {
+              vertexdof::macroface::apply< real_t >(
+                  level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+           }
+        }
+     }
+  }
 
   this->timingTree_->stop( "Macro-Face" );
 
@@ -593,78 +594,11 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
     const P1Function<real_t> &dst,
     const P1Function<real_t> &rhs,
     size_t level,
-    DoFType flag) const{
-
-   dst.communicate< Vertex, Edge >( level );
-   dst.communicate< Edge, Face >( level );
-   dst.communicate< Face, Cell >( level );
-
-   dst.communicate< Cell, Face >( level );
-   dst.communicate< Face, Edge >( level );
-   dst.communicate< Edge, Vertex >( level );
-
-   for( auto& it : storage_->getVertices() )
-   {
-      Vertex& vertex = *it.second;
-
-      const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-      if( testFlag( vertexBC, flag ) )
-      {
-         vertexdof::macrovertex::smooth_gs< real_t >(
-                 vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), level );
-      }
-   }
-
-   dst.communicate< Vertex, Edge >( level );
-
-   for( auto& it : storage_->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if( testFlag( edgeBC, flag ) )
-      {
-         vertexdof::macroedge::smooth_gs< real_t >( level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID() );
-      }
-   }
-
-   dst.communicate< Edge, Face >( level );
-
-   for( auto& it : storage_->getFaces() )
-   {
-      Face& face = *it.second;
-
-      const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if( testFlag( faceBC, flag ) )
-      {
-         if( hhg::globalDefines::useGeneratedKernels && ( !storage_->hasGlobalCells() ) )
-         {
-            real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
-            real_t* dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
-            real_t* rhs_data = face.getData( rhs.getFaceDataID() )->getPointer( level );
-            vertexdof::macroface::generated::gaussseidel_2D_macroface_vertexdof_to_vertexdof( dst_data, rhs_data, opr_data, static_cast< int64_t >( level ) );
-         }
-         else
-         {
-            vertexdof::macroface::smooth_gs< real_t >( level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID() );
-         }
-
-      }
-   }
-
-   dst.communicate< Face, Cell >( level );
-
-   for( auto& it : storage_->getCells() )
-   {
-      Cell& cell = *it.second;
-
-      const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-      if( testFlag( cellBC, flag ) )
-      {
-         vertexdof::macrocell::smooth_gs< real_t >( level, cell, cellStencilID_, dst.getCellDataID(), rhs.getCellDataID() );
-      }
-   }
+    DoFType flag) const
+{
+  smooth_sor( dst, rhs, 1.0, level, flag );
 }
+
 
 template < class UFCOperator2D, class UFCOperator3D, bool Diagonal, bool Lumped, bool InvertDiagonal >
 void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDiagonal >::smooth_sor(
@@ -717,8 +651,16 @@ void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertD
       const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if( testFlag( faceBC, flag ) )
       {
-         vertexdof::macroface::smooth_sor< real_t >(
-                 level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), relax );
+        if ( storage_->hasGlobalCells() )
+        {
+          vertexdof::macroface::smoothSOR3D< real_t >(
+          level, face, *storage_, faceStencil3DID_, dst.getFaceDataID(), rhs.getFaceDataID(), relax );
+        }
+        else
+        {
+          vertexdof::macroface::smooth_sor< real_t >(
+          level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), relax );
+        }
       }
    }
 
