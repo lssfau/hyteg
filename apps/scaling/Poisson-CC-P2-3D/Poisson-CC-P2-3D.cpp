@@ -45,8 +45,6 @@ class ErrorAnalysis
  public:
    ErrorAnalysis( const std::shared_ptr< PrimitiveStorage >& storage )
    : storage_( storage )
-   , minLevel_( 0 )
-   , maxLevel_( 0 )
    , active_( false )
    , r( "r", storage )
    , uExact( "uExact", storage )
@@ -58,8 +56,6 @@ class ErrorAnalysis
                   uint_t                                         maxLevel,
                   std::function< real_t( const hhg::Point3D& ) > analyticalSolution )
    : storage_( storage )
-   , minLevel_( minLevel )
-   , maxLevel_( maxLevel )
    , active_( true )
    , r( "r", storage, minLevel, maxLevel )
    , uExact( "uExact", storage, minLevel, maxLevel )
@@ -124,8 +120,6 @@ class ErrorAnalysis
 
  private:
    std::shared_ptr< PrimitiveStorage > storage_;
-   uint_t                              minLevel_;
-   uint_t                              maxLevel_;
    bool                                active_;
 
    P2Function< real_t > r;
