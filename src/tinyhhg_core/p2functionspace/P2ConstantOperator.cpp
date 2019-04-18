@@ -346,15 +346,9 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::assembleStencils3D()
          const auto& cell = *it.second;
 
          // vertex to vertex
-         auto       vertexToVertexStencilMemory = cell.getData( getVertexToVertexOpr().getCellStencilID() )->getPointer( level );
-         const auto vertexToVertexStencilMap    = P1Elements::P1Elements3D::assembleP1LocalStencil(
+         auto       vertexToVertexStencilMemory = cell.getData( getVertexToVertexOpr().getCellStencilID() )->getData( level );
+         vertexToVertexStencilMemory = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
              getStorage(), cell, indexing::Index( 1, 1, 1 ), level, ufcOperator );
-
-         for( const auto stencilIt : vertexToVertexStencilMap )
-         {
-            const auto stencilIdx                   = vertexdof::stencilIndexFromVertex( stencilIt.first );
-            vertexToVertexStencilMemory[stencilIdx] = stencilIt.second;
-         }
       }
    }
 }
@@ -588,7 +582,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Fun
           real_t *e_dst_data = cell.getData( dst.getEdgeDoFFunction().getCellDataID())->getPointer( level );
           real_t *e_rhs_data = cell.getData( rhs.getEdgeDoFFunction().getCellDataID())->getPointer( level );
 
-          auto v2v_opr_data = cell.getData( vertexToVertex.getCellStencilID())->getPointer( level );
+          auto v2v_opr_data = cell.getData( vertexToVertex.getCellStencilID())->getData( level );
           auto v2e_opr_data = cell.getData( vertexToEdge.getCellStencilID())->getData( level );
           auto e2v_opr_data = cell.getData( edgeToVertex.getCellStencilID())->getData( level );
           auto e2e_opr_data = cell.getData( edgeToEdge.getCellStencilID())->getData( level );
@@ -605,12 +599,12 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Fun
                                                                            &e_dst_data[firstIdx[eo::Y]],
                                                                            &e_dst_data[firstIdx[eo::YZ]],
                                                                            &e_dst_data[firstIdx[eo::Z]],
-                                                                           v2v_opr_data,
                                                                            v_dst_data,
                                                                            v_rhs_data,
                                                                            e2v_opr_data,
                                                                            static_cast< int64_t >( level ),
-                                                                           relax );
+                                                                           relax,
+                                                                           v2v_opr_data );
 
           P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs( &e_dst_data[firstIdx[eo::X]],
                                                                          &e_dst_data[firstIdx[eo::XY]],

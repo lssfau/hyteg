@@ -6,7 +6,8 @@
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/fenics/fenics.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
-
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
+#include "tinyhhg_core/LevelWiseMemory.hpp"
 
 class p1_diffusion_cell_integral_0_otherwise;
 class p1_tet_diffusion_cell_integral_0_otherwise;
@@ -82,7 +83,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
    const PrimitiveDataID< StencilMemory< real_t >, Face >& getFaceStencilID() const { return faceStencilID_; }
 
-   const PrimitiveDataID< StencilMemory< real_t >, Cell >& getCellStencilID() const { return cellStencilID_; }
+   const PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell >& getCellStencilID() const { return cellStencilID_; }
 
  private:
    void assembleStencils();
@@ -98,7 +99,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    PrimitiveDataID< StencilMemory< real_t >, Vertex > vertexStencilID_;
    PrimitiveDataID< StencilMemory< real_t >, Edge >   edgeStencilID_;
    PrimitiveDataID< StencilMemory< real_t >, Face >   faceStencilID_;
-   PrimitiveDataID< StencilMemory< real_t >, Cell >   cellStencilID_;
+   PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell > cellStencilID_;
 
    void compute_local_stiffness( const Face& face, size_t level, Matrix3r& local_stiffness, fenics::ElementType element_type );
 };

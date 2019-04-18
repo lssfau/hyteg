@@ -749,6 +749,43 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
   return calculateStencilInMacroCell( microVertexIndex, cell, level, ufcGen );
 }
 
+
+/// \brief Assembles the local P1 operator stencil on a macro-cell
+///
+/// \param storage the governing \ref PrimitiveStorage
+/// \param face the macro-cell
+/// \param microVertexIndex the micro-vertex index on the macro-cell (must lie in the interior of the macro-cell)
+/// \param level the multigrid level
+/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \return a map containing the stencil weights for the micro-vertex on that macro-cell,
+///
+template< typename UFCOperator >
+inline std::map< indexing::IndexIncrement, real_t > assembleP1LocalStencilNew( const std::shared_ptr< PrimitiveStorage > & storage, const Cell & cell,
+                                                                               const indexing::Index & microVertexIndex, const uint_t & level, const UFCOperator & ufcGen )
+{
+  WALBERLA_UNUSED( storage );
+  WALBERLA_DEBUG_SECTION()
+  {
+    const auto onCellVertices = vertexdof::macrocell::isOnCellVertex( microVertexIndex, level );
+    const auto onCellEdges = vertexdof::macrocell::isOnCellEdge( microVertexIndex, level );
+    const auto onCellFaces = vertexdof::macrocell::isOnCellFace( microVertexIndex, level );
+    WALBERLA_CHECK_EQUAL( onCellVertices.size(), 0 );
+    WALBERLA_CHECK_EQUAL( onCellEdges.size(), 0 );
+    WALBERLA_CHECK_EQUAL( onCellFaces.size(), 0 );
+  }
+  auto stencilMap = calculateStencilInMacroCell( microVertexIndex, cell, level, ufcGen );
+  std::map< indexing::IndexIncrement, real_t > convertedMap;
+  for ( const auto & it : stencilMap )
+  {
+    convertedMap[vertexdof::logicalIndexOffsetFromVertex(it.first)] = it.second;
+  }
+  return convertedMap;
+}
+
+
+
+
+
 }
 }
 }

@@ -83,8 +83,8 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
   // Simple check if apply is working at all on macro-cells.
   // The apply test II below probably also covers this case but we want to keep old tests anyway right? :)
   {
-    auto operatorHandling  = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Cell > >( level, level, vertexDoFMacroCellStencilMemorySize );
-    PrimitiveDataID< StencilMemory< real_t >, Cell > cellOperatorID;
+    auto operatorHandling  = std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell > >( level, level );
+    PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell > cellOperatorID;
     storage->addCellData( cellOperatorID, operatorHandling, "cell operator" );
 
     auto src = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "src", storage, level, level );
@@ -95,9 +95,13 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
 
     for ( const auto & cellIt : storage->getCells() )
     {
-      auto operatorData = cellIt.second->getData( cellOperatorID )->getPointer( level );
-      operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ]  = 1.0;
-      operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TC ) ] = 2.0;
+      auto & operatorData = cellIt.second->getData( cellOperatorID )->getData( level );
+      for ( const auto & neighbor : vertexdof::macrocell::neighborsWithCenter )
+      {
+        operatorData[ vertexdof::logicalIndexOffsetFromVertex( neighbor ) ] = 0.0;
+      }
+      operatorData[ vertexdof::logicalIndexOffsetFromVertex( stencilDirection::VERTEX_C ) ]  = 1.0;
+      operatorData[ vertexdof::logicalIndexOffsetFromVertex( stencilDirection::VERTEX_TC ) ] = 2.0;
     }
 
     src->interpolate( ones, level );
@@ -148,9 +152,9 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
     }
     for ( const auto & it : storage->getCells() )
     {
-      StencilMemory< real_t > * cellStencil = it.second->getData( op->getCellStencilID() );
-      WALBERLA_CHECK_EQUAL( cellStencil->getSize( level ), 27 );
-      for ( uint_t i = 0; i < 27; i++ ) cellStencil->getPointer( level )[ i ] = 1.0;
+      auto & cellStencil = it.second->getData( op->getCellStencilID() )->getData( level );
+      for ( const auto & neighbor : vertexdof::macrocell::neighborsWithCenter )
+        cellStencil[ vertexdof::logicalIndexOffsetFromVertex( neighbor ) ] = 1.0;
     }
 
     auto src = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "src", storage, level, level );

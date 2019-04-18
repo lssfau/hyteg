@@ -31,9 +31,9 @@ inline void apply( const uint_t&                                               l
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& uxId,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& uyId,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& uzId,
-                   const PrimitiveDataID< StencilMemory< ValueType >, Cell >&  xOprId,
-                   const PrimitiveDataID< StencilMemory< ValueType >, Cell >&  yOprId,
-                   const PrimitiveDataID< StencilMemory< ValueType >, Cell >&  zOprId )
+                   const PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell >&  xOprId,
+                   const PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell >&  yOprId,
+                   const PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell >&  zOprId )
 {
    typedef stencilDirection sd;
 
@@ -44,12 +44,12 @@ inline void apply( const uint_t&                                               l
    const ValueType* uy = cell.getData( uyId )->getPointer( level );
    const ValueType* uz = cell.getData( uzId )->getPointer( level );
 
-   const ValueType* xOperatorData = cell.getData( xOprId )->getPointer( level );
-   const ValueType* yOperatorData = cell.getData( yOprId )->getPointer( level );
-   const ValueType* zOperatorData = cell.getData( zOprId )->getPointer( level );
+   auto xOperatorData = cell.getData( xOprId )->getData( level );
+   auto yOperatorData = cell.getData( yOprId )->getData( level );
+   auto zOperatorData = cell.getData( zOprId )->getData( level );
 
-   std::vector< ValueType > stencil( 27 );
-   real_t                   dTmp;
+   vertexdof::macrocell::StencilMap_T stencil;
+   real_t                             dTmp;
 
    ValueType tmp;
    for( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) )
@@ -59,14 +59,14 @@ inline void apply( const uint_t&                                               l
       const uint_t z = it.z();
 
       const uint_t centerIdx        = vertexdof::macrocell::indexFromVertex( level, x, y, z, sd::VERTEX_C );
-      const uint_t centerStencilIdx = vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C );
+      auto centerStencilIdx = vertexdof::logicalIndexOffsetFromVertex( stencilDirection::VERTEX_C );
 
       // fill stencil
       stencil[centerStencilIdx] = 0.0;
 
       for( const auto& neighbor : vertexdof::macrocell::neighborsWithoutCenter )
       {
-         const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( neighbor );
+         auto stencilIdx = vertexdof::logicalIndexOffsetFromVertex( neighbor );
          const uint_t idx        = vertexdof::macrocell::indexFromVertex( level, x, y, z, neighbor );
          stencil[stencilIdx]     = 0.5 * ( ux[centerIdx] + ux[idx] ) * xOperatorData[stencilIdx];
          stencil[stencilIdx] += 0.5 * ( uy[centerIdx] + uy[idx] ) * yOperatorData[stencilIdx];
@@ -80,7 +80,7 @@ inline void apply( const uint_t&                                               l
       {
          for( const auto& neighbor : vertexdof::macrocell::neighborsWithoutCenter )
          {
-            const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( neighbor );
+            auto stencilIdx = vertexdof::logicalIndexOffsetFromVertex( neighbor );
 
             dTmp = std::abs( stencil[stencilIdx] );
             stencil[centerStencilIdx] += dTmp;
@@ -92,7 +92,7 @@ inline void apply( const uint_t&                                               l
 
       for( const auto& neighbor : vertexdof::macrocell::neighborsWithoutCenter )
       {
-         const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( neighbor );
+         auto stencilIdx = vertexdof::logicalIndexOffsetFromVertex( neighbor );
          const uint_t idx        = vertexdof::macrocell::indexFromVertex( level, x, y, z, neighbor );
          tmp += stencil[stencilIdx] * src[idx];
       }

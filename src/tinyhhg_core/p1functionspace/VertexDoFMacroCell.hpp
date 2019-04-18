@@ -14,6 +14,7 @@
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 #include "tinyhhg_core/Algorithms.hpp"
 #include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
+#include "tinyhhg_core/LevelWiseMemory.hpp"
 
 namespace hhg {
 namespace vertexdof {
@@ -257,16 +258,16 @@ inline real_t sum( const uint_t & level,
 template< typename ValueType >
 inline void apply( const uint_t & level,
                    Cell & cell,
-                   const PrimitiveDataID< StencilMemory< ValueType >,  Cell > & operatorId,
+                   const PrimitiveDataID< LevelWiseMemory< StencilMap_T >,  Cell > & operatorId,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & srcId,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstId,
                    const UpdateType update )
 {
   typedef stencilDirection sd;
 
-  const ValueType * operatorData = cell.getData( operatorId )->getPointer( level );
-  const ValueType * src          = cell.getData( srcId )->getPointer( level );
-        ValueType * dst          = cell.getData( dstId )->getPointer( level );
+  auto operatorData     = cell.getData( operatorId )->getData( level );
+  const ValueType * src = cell.getData( srcId )->getPointer( level );
+        ValueType * dst = cell.getData( dstId )->getPointer( level );
 
   ValueType tmp;
 
@@ -280,13 +281,13 @@ inline void apply( const uint_t & level,
 
       const uint_t centerIdx = vertexdof::macrocell::indexFromVertex( level, x, y, z, sd::VERTEX_C );
 
-      tmp = operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] * src[ centerIdx ];
+      tmp = operatorData.at({0, 0, 0}) * src[ centerIdx ];
 
       for ( const auto & neighbor : vertexdof::macrocell::neighborsWithoutCenter )
       {
-        const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( neighbor );
         const uint_t idx        = vertexdof::macrocell::indexFromVertex( level, x, y, z, neighbor );
-        tmp += operatorData[ stencilIdx ] * src[ idx ];
+        WALBERLA_ASSERT_GREATER( operatorData.count( vertexdof::logicalIndexOffsetFromVertex( neighbor ) ), 0 );
+        tmp += operatorData.at( vertexdof::logicalIndexOffsetFromVertex( neighbor ) ) * src[ idx ];
       }
 
       dst[ centerIdx ] = tmp;
@@ -302,13 +303,13 @@ inline void apply( const uint_t & level,
 
       const uint_t centerIdx = vertexdof::macrocell::indexFromVertex( level, x, y, z, sd::VERTEX_C );
 
-      tmp = operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] * src[ centerIdx ];
+      tmp = operatorData.at( {0, 0, 0} ) * src[ centerIdx ];
 
       for ( const auto & neighbor : vertexdof::macrocell::neighborsWithoutCenter )
       {
         const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( neighbor );
         const uint_t idx        = vertexdof::macrocell::indexFromVertex( level, x, y, z, neighbor );
-        tmp += operatorData[ stencilIdx ] * src[ idx ];
+        tmp += operatorData.at( logicalIndexOffsetFromVertex( neighbor ) ) * src[ idx ];
       }
 
       dst[ centerIdx ] += tmp;
@@ -320,19 +321,19 @@ inline void apply( const uint_t & level,
 template< typename ValueType >
 inline void smooth_gs( const uint_t & level,
                        Cell & cell,
-                       const PrimitiveDataID< StencilMemory< ValueType >,  Cell > & operatorId,
+                       const PrimitiveDataID<LevelWiseMemory< StencilMap_T >,  Cell > & operatorId,
                        const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstId,
                        const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & rhsId )
 {
   typedef stencilDirection sd;
 
-  const ValueType * operatorData = cell.getData( operatorId )->getPointer( level );
+  auto operatorData = cell.getData( operatorId )->getData( level );
   const ValueType * rhs          = cell.getData( rhsId )->getPointer( level );
         ValueType * dst          = cell.getData( dstId )->getPointer( level );
 
   ValueType tmp;
 
-  const auto inverseCenterWeight = 1.0 / operatorData[ vertexdof::stencilIndexFromVertex( sd::VERTEX_C ) ];
+  const auto inverseCenterWeight = 1.0 / operatorData[ { 0, 0, 0 } ];
 
   for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
   {
@@ -346,9 +347,8 @@ inline void smooth_gs( const uint_t & level,
 
     for ( const auto & neighbor : vertexdof::macrocell::neighborsWithoutCenter )
     {
-      const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( neighbor );
       const uint_t idx        = vertexdof::macrocell::indexFromVertex( level, x, y, z, neighbor );
-      tmp -= operatorData[ stencilIdx ] * dst[ idx ];
+      tmp -= operatorData[ logicalIndexOffsetFromVertex( neighbor ) ] * dst[ idx ];
     }
 
     dst[ centerIdx ] = tmp * inverseCenterWeight;
@@ -358,20 +358,20 @@ inline void smooth_gs( const uint_t & level,
 template< typename ValueType >
 inline void smooth_sor( const uint_t & level,
                        Cell & cell,
-                       const PrimitiveDataID< StencilMemory< ValueType >,  Cell > & operatorId,
+                       const PrimitiveDataID< LevelWiseMemory< StencilMap_T >,  Cell > & operatorId,
                        const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstId,
                        const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & rhsId,
                        ValueType                                                    relax )
 {
   typedef stencilDirection sd;
 
-  const ValueType * operatorData = cell.getData( operatorId )->getPointer( level );
+  auto operatorData = cell.getData( operatorId )->getData( level );
   const ValueType * rhs          = cell.getData( rhsId )->getPointer( level );
   ValueType * dst          = cell.getData( dstId )->getPointer( level );
 
   ValueType tmp;
 
-  const auto inverseCenterWeight = 1.0 / operatorData[ vertexdof::stencilIndexFromVertex( sd::VERTEX_C ) ];
+  const auto inverseCenterWeight = 1.0 / operatorData[ { 0, 0, 0 } ];
 
   for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
   {
@@ -385,9 +385,8 @@ inline void smooth_sor( const uint_t & level,
 
     for ( const auto & neighbor : vertexdof::macrocell::neighborsWithoutCenter )
     {
-      const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( neighbor );
       const uint_t idx        = vertexdof::macrocell::indexFromVertex( level, x, y, z, neighbor );
-      tmp -= operatorData[ stencilIdx ] * dst[ idx ];
+      tmp -= operatorData[ logicalIndexOffsetFromVertex( neighbor ) ] * dst[ idx ];
     }
 
     dst[ centerIdx ] = ( 1.0 - relax ) * dst[ centerIdx ] + tmp * relax * inverseCenterWeight;
@@ -454,12 +453,12 @@ inline ValueType getMaxMagnitude( const uint_t & level, Cell &cell, const Primit
 
 #ifdef HHG_BUILD_WITH_PETSC
 
-inline void saveOperator(const uint_t & Level, Cell & cell, const PrimitiveDataID<StencilMemory< real_t >, Cell>& operatorId,
+inline void saveOperator(const uint_t & Level, Cell & cell, const PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T > , Cell>& operatorId,
                               const PrimitiveDataID<FunctionMemory< PetscInt >, Cell> &srcId,
                               const PrimitiveDataID<FunctionMemory< PetscInt >, Cell> &dstId, Mat& mat)
 {
 
-  auto opr_data = cell.getData(operatorId)->getPointer( Level );
+  auto opr_data = cell.getData(operatorId)->getData( Level );
   auto src = cell.getData(srcId)->getPointer( Level );
   auto dst = cell.getData(dstId)->getPointer( Level );
 
@@ -468,12 +467,12 @@ inline void saveOperator(const uint_t & Level, Cell & cell, const PrimitiveDataI
       PetscInt srcInt = src[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C)];
       PetscInt dstInt = dst[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C)];
 
-      MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)] ,ADD_VALUES);
+      MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[ { 0, 0, 0 } ] ,ADD_VALUES);
 
       for ( const auto & neighbor : vertexdof::macrocell::neighborsWithoutCenter ) {
         srcInt = src[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), neighbor)];
 
-        MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[vertexdof::stencilIndexFromVertex(neighbor)] ,ADD_VALUES);
+        MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[vertexdof::logicalIndexOffsetFromVertex(neighbor)] ,ADD_VALUES);
       }
   }
 }

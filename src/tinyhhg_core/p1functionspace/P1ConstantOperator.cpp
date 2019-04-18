@@ -38,6 +38,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
+#include "tinyhhg_core/LevelWiseMemory.hpp"
 
 namespace hhg {
 
@@ -48,8 +49,10 @@ P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDiagon
     size_t                                     maxLevel )
 : Operator( storage, minLevel, maxLevel )
 {
-   auto cellP1StencilMemoryDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Cell > >(
-       minLevel_, maxLevel_, vertexDoFMacroCellStencilMemorySize );
+   auto cellP1StencilMemoryDataHandling =
+       std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell > >(
+           minLevel_, maxLevel_ );
+
    auto faceP1StencilMemoryDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Face > >(
        minLevel_, maxLevel_, vertexDoFMacroFaceStencilMemorySize );
    auto edgeP1StencilMemoryDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Edge > >(
@@ -230,32 +233,26 @@ void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertD
       for( const auto& it : storage_->getCells() )
       {
          auto          cell          = it.second;
-         auto          stencilMemory = cell->getData( getCellStencilID() )->getPointer( level );
+         auto &        stencilMemory = cell->getData( getCellStencilID() )->getData( level );
          UFCOperator3D ufcOperator;
 
-         auto stencil =
-             P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, *cell, indexing::Index( 1, 1, 1 ), level, ufcOperator );
-
-         for( const auto stencilIt : stencil )
-         {
-            const auto stencilIdx     = vertexdof::stencilIndexFromVertex( stencilIt.first );
-            stencilMemory[stencilIdx] = stencil[stencilIt.first];
-         }
+         stencilMemory =
+             P1Elements::P1Elements3D::assembleP1LocalStencilNew( storage_, *cell, indexing::Index( 1, 1, 1 ), level, ufcOperator );
 
          if( Lumped )
          {
             for( auto dir : vertexdof::macrocell::neighborsWithoutCenter )
             {
-               stencilMemory[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] +=
-                   stencilMemory[vertexdof::stencilIndexFromVertex( dir )];
-               stencilMemory[vertexdof::stencilIndexFromVertex( dir )] = 0;
+               stencilMemory[{ 0, 0, 0 }] +=
+                   stencilMemory[vertexdof::logicalIndexOffsetFromVertex( dir )];
+               stencilMemory[vertexdof::logicalIndexOffsetFromVertex( dir )] = 0;
             }
          }
 
          if( InvertDiagonal )
          {
-            stencilMemory[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] =
-                1.0 / stencilMemory[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
+            stencilMemory[{ 0, 0, 0 }] =
+                1.0 / stencilMemory[{ 0, 0, 0 }];
          }
       }
    }
@@ -566,16 +563,16 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
       {
          if ( hhg::globalDefines::useGeneratedKernels )
          {
-            real_t* opr_data = cell.getData( cellStencilID_ )->getPointer( level );
+            auto opr_data = cell.getData( cellStencilID_ )->getData( level );
             real_t* src_data = cell.getData( src.getCellDataID() )->getPointer( level );
             real_t* dst_data = cell.getData( dst.getCellDataID() )->getPointer( level );
             if ( updateType == Replace )
             {
-              vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_replace( dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
+              vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_replace( dst_data, src_data, static_cast< int64_t >( level ), opr_data );
             }
             else if ( updateType == Add )
             {
-              vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_add( dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
+              vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_add( dst_data, src_data, static_cast< int64_t >( level ), opr_data );
             }
          }
          else

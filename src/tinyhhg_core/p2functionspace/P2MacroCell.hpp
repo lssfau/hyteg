@@ -20,7 +20,7 @@ void smoothSOR(
     const uint_t&                                                                                level,
     Cell&                                                                                        cell,
     const real_t&                                                                                relax,
-    const PrimitiveDataID< StencilMemory< real_t >, Cell >&                                      vertexToVertexOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell >&        vertexToVertexOperatorId,
     const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell >& edgeToVertexOperatorId,
     const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroCellStencilMap_T >, Cell >& vertexToEdgeOperatorId,
     const PrimitiveDataID< LevelWiseMemory< edgedof::macrocell::StencilMap_T >, Cell >&          edgeToEdgeOperatorId,

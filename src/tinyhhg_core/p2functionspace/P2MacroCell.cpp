@@ -18,7 +18,7 @@ void smoothSOR(
     const uint_t&                                                                                level,
     Cell&                                                                                        cell,
     const real_t&                                                                                relax,
-    const PrimitiveDataID< StencilMemory< real_t >, Cell >&                                      vertexToVertexOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell >&        vertexToVertexOperatorId,
     const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell >& edgeToVertexOperatorId,
     const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroCellStencilMap_T >, Cell >& vertexToEdgeOperatorId,
     const PrimitiveDataID< LevelWiseMemory< edgedof::macrocell::StencilMap_T >, Cell >&          edgeToEdgeOperatorId,
@@ -27,7 +27,7 @@ void smoothSOR(
     const PrimitiveDataID< FunctionMemory< real_t >, Cell >&                                     edgeDoFDstId,
     const PrimitiveDataID< FunctionMemory< real_t >, Cell >&                                     edgeDoFRhsId )
 {
-   auto v2v_operator = cell.getData( vertexToVertexOperatorId )->getPointer( level );
+   auto v2v_operator = cell.getData( vertexToVertexOperatorId )->getData( level );
    auto e2v_operator = cell.getData( edgeToVertexOperatorId )->getData( level );
    auto v2e_operator = cell.getData( vertexToEdgeOperatorId )->getData( level );
    auto e2e_operator = cell.getData( edgeToEdgeOperatorId )->getData( level );
@@ -37,7 +37,7 @@ void smoothSOR(
    real_t* edgeDoFDst   = cell.getData( edgeDoFDstId )->getPointer( level );
    real_t* edgeDoFRhs   = cell.getData( edgeDoFRhsId )->getPointer( level );
 
-   const real_t vertexDoFRelaxOverCenter = relax / v2v_operator[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
+   const real_t vertexDoFRelaxOverCenter = relax / v2v_operator[ { 0, 0, 0 } ];
    const real_t oneMinusRelax            = real_c( 1 ) - relax;
 
    std::map< EdgeDoFOrientation, real_t > edgeDoFRelaxOverCenter;
@@ -68,8 +68,7 @@ void smoothSOR(
       for ( const auto& vertexLeaf : vertexdof::macrocell::neighborsWithoutCenter )
       {
          const auto idx         = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), vertexLeaf );
-         const auto operatorIdx = vertexdof::stencilIndexFromVertex( vertexLeaf );
-         tmp -= v2v_operator[operatorIdx] * vertexDoFDst[idx];
+         tmp -= v2v_operator[ vertexdof::logicalIndexOffsetFromVertex( vertexLeaf ) ] * vertexDoFDst[idx];
       }
 
       // edge leaves
