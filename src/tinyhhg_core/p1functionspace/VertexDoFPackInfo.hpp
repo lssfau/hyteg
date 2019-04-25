@@ -351,6 +351,7 @@ void VertexDoFPackInfo< ValueType >::unpackCellFromFace(Cell *receiver, const Pr
 template< typename ValueType >
 void VertexDoFPackInfo< ValueType >::communicateLocalFaceToCell(const Face *sender, Cell *receiver) const
 {
+  this->storage_.lock()->getTimingTree()->start( "VertexDoF - Face to Cell" );
   const ValueType * faceData = sender->getData( dataIDFace_ )->getPointer( level_ );
         ValueType * cellData = receiver->getData( dataIDCell_ )->getPointer( level_ );
 
@@ -372,6 +373,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalFaceToCell(const Face *send
   }
 
   WALBERLA_ASSERT( cellIterator == cellIterator.end() );
+  this->storage_.lock()->getTimingTree()->stop( "VertexDoF - Face to Cell" );
 }
 
 template< typename ValueType >
@@ -421,6 +423,7 @@ void VertexDoFPackInfo< ValueType >::unpackFaceFromCell(Face *receiver, const Pr
 template< typename ValueType >
 void VertexDoFPackInfo< ValueType >::communicateLocalCellToFace(const Cell *sender, Face *receiver) const
 {
+  this->storage_.lock()->getTimingTree()->start( "VertexDoF - Cell to Face" );
   const ValueType * cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
   const uint_t localFaceID = sender->getLocalFaceID( receiver->getID() );
   const uint_t iterationVertex0 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 );
@@ -458,6 +461,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalCellToFace(const Cell *send
   }
 
   WALBERLA_ASSERT( cellIterator == cellIterator.end() );
+  this->storage_.lock()->getTimingTree()->stop( "VertexDoF - Cell to Face" );
 }
 
 
