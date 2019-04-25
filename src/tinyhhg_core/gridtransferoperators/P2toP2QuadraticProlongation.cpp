@@ -1,10 +1,28 @@
-
 #include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
+
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
 
 #include "tinyhhg_core/gridtransferoperators/generatedKernels/GeneratedKernelsP2MacroFace2D.hpp"
 #include "tinyhhg_core/gridtransferoperators/generatedKernels/GeneratedKernelsP2MacroCell3D.hpp"
 
 namespace hhg {
+
+void P2toP2QuadraticProlongation::prolongate( const P2Function< walberla::real_t >& function,
+                                              const walberla::uint_t&               sourceLevel,
+                                              const DoFType&                        flag ) const
+{
+   if ( function.isDummy() )
+      return;
+
+   if ( function.getStorage()->hasGlobalCells() )
+   {
+      prolongateAdditively3D( function, sourceLevel, flag );
+   }
+   else
+   {
+      prolongateAdditively( function, sourceLevel, flag );
+   }
+}
 
 void P2toP2QuadraticProlongation::prolongateAdditively( const P2Function< real_t >& function,
                                                         const uint_t&               sourceLevel,

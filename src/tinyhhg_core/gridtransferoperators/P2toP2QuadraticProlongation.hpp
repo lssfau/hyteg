@@ -1,35 +1,33 @@
-
 #pragma once
 
+#include "core/DataTypes.h"
+
 #include "tinyhhg_core/gridtransferoperators/ProlongationOperator.hpp"
-#include "tinyhhg_core/p2functionspace/P2Function.hpp"
 
 namespace hhg {
 
-class P2toP2QuadraticProlongation : public ProlongationOperator< P2Function< real_t > >
+template < typename VType >
+class P2Function;
+
+class P2toP2QuadraticProlongation : public ProlongationOperator< P2Function< walberla::real_t > >
 {
  public:
-   inline void prolongate( const P2Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
-   {
-      if ( function.isDummy() )
-         return;
-
-      if ( function.getStorage()->hasGlobalCells() )
-      {
-         prolongateAdditively3D( function, sourceLevel, flag );
-      }
-      else
-      {
-         prolongateAdditively( function, sourceLevel, flag );
-      }
-   }
+   void prolongate( const P2Function< walberla::real_t >& function,
+                    const walberla::uint_t&               sourceLevel,
+                    const DoFType&                        flag ) const;
 
  private:
-   void prolongateAdditively( const P2Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const;
+   void prolongateAdditively( const P2Function< walberla::real_t >& function,
+                              const walberla::uint_t&               sourceLevel,
+                              const DoFType&                        flag ) const;
 
-   void prolongateAdditively3D( const P2Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const;
+   void prolongateAdditively3D( const P2Function< walberla::real_t >& function,
+                                const walberla::uint_t&               sourceLevel,
+                                const DoFType&                        flag ) const;
 
-   void prolongateStandard( const P2Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const;
+   void prolongateStandard( const P2Function< walberla::real_t >& function,
+                            const walberla::uint_t&               sourceLevel,
+                            const DoFType&                        flag ) const;
 };
 
 } // namespace hhg
