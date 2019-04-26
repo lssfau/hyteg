@@ -292,7 +292,7 @@ inline void multElementwise( const uint_t&                                      
 
 
 template < typename ValueType >
-inline real_t dot( const uint_t&                                               Level,
+inline ValueType dot( const uint_t&                                               Level,
                    Face&                                                       face,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Face >& lhsId,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsId )
@@ -318,7 +318,7 @@ inline real_t dot( const uint_t&                                               L
 }
 
 template < typename ValueType >
-inline real_t sum( const uint_t& level, const Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dataID )
+inline ValueType sum( const uint_t& level, const Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dataID )
 {
    ValueType* faceData = face.getData( dataID )->getPointer( level );
    real_t     sum      = real_c( 0 );

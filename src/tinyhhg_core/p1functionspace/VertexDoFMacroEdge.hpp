@@ -204,7 +204,7 @@ inline void multElementwise( const uint_t & level,
 
 
 template< typename ValueType >
-inline real_t dot( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &lhsMemoryId,
+inline ValueType dot( const uint_t & level, Edge &edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &lhsMemoryId,
                   const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &rhsMemoryId) {
 
   walberla::math::KahanAccumulator< ValueType > scalarProduct;
@@ -219,7 +219,7 @@ inline real_t dot( const uint_t & level, Edge &edge, const PrimitiveDataID<Funct
 }
 
 template< typename ValueType >
-inline real_t sum( const uint_t & level, const Edge & edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dataID)
+inline ValueType sum( const uint_t & level, const Edge & edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dataID)
 {
   real_t sum = real_c(0);
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);

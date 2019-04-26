@@ -215,12 +215,12 @@ inline void multElementwise( const uint_t & level,
 }
 
 template< typename ValueType >
-inline real_t dot( const uint_t & level,
+inline ValueType dot( const uint_t & level,
                    const Cell & cell,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & lhsId,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & rhsId)
 {
-  real_t sp = 0.0;
+   ValueType sp = 0.0;
 
   const ValueType * lhsPtr = cell.getData( lhsId )->getPointer( level );
   const ValueType * rhsPtr = cell.getData( rhsId )->getPointer( level );
@@ -236,11 +236,11 @@ inline real_t dot( const uint_t & level,
 
 
 template< typename ValueType >
-inline real_t sum( const uint_t & level,
+inline ValueType sum( const uint_t & level,
                    const Cell & cell,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dataID )
 {
-  real_t sum = 0.0;
+   ValueType sum = 0.0;
 
   const ValueType * data = cell.getData( dataID )->getPointer( level );
 

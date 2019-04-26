@@ -331,7 +331,7 @@ ValueType P2Function< ValueType >::sumGlobal( const uint_t level, const DoFType 
 template < typename ValueType >
 ValueType P2Function< ValueType >::sumLocal( const uint_t level, const DoFType flag ) const
 {
-   real_t sum = real_c( 0 );
+   ValueType sum = real_c( 0 );
    sum += vertexDoFFunction_.sumLocal( level, flag );
    sum += edgeDoFFunction_.sumLocal( level, flag );
    return sum;

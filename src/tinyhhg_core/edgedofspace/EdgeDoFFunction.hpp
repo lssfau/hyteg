@@ -89,10 +89,10 @@ public:
                             uint_t                                                                               level,
                             BoundaryUID                                                                          boundaryUID ) const;
 
-  real_t dotLocal(const EdgeDoFFunction <ValueType> &rhs, const uint_t level, const DoFType flag = All) const;
+  ValueType dotLocal(const EdgeDoFFunction <ValueType> &rhs, const uint_t level, const DoFType flag = All) const;
 
-  real_t sumLocal( const uint_t& level, const DoFType& flag = All ) const;
-  real_t sumGlobal( const uint_t& level, const DoFType& flag = All ) const;
+  ValueType sumLocal( const uint_t& level, const DoFType& flag = All ) const;
+  ValueType sumGlobal( const uint_t& level, const DoFType& flag = All ) const;
 
   void enumerate( uint_t level ) const;
 
