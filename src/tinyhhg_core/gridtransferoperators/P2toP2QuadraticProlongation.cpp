@@ -7,6 +7,9 @@
 
 namespace hhg {
 
+using walberla::uint_t;
+using walberla::real_t;
+
 void P2toP2QuadraticProlongation::prolongate( const P2Function< walberla::real_t >& function,
                                               const walberla::uint_t&               sourceLevel,
                                               const DoFType&                        flag ) const

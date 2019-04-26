@@ -14,7 +14,7 @@ class P2toP2QuadraticProlongation : public ProlongationOperator< P2Function< wal
  public:
    void prolongate( const P2Function< walberla::real_t >& function,
                     const walberla::uint_t&               sourceLevel,
-                    const DoFType&                        flag ) const;
+                    const DoFType&                        flag ) const override;
 
  private:
    void prolongateAdditively( const P2Function< walberla::real_t >& function,
