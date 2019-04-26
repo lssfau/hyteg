@@ -750,9 +750,9 @@ void VertexDoFFunction< ValueType >::multElementwise( const std::vector< std::re
 }
 
 template < typename ValueType >
-real_t VertexDoFFunction< ValueType >::dotGlobal(const VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
+ValueType VertexDoFFunction< ValueType >::dotGlobal(const VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
 {
-   real_t scalarProduct = dotLocal( rhs, level, flag );
+   ValueType scalarProduct = dotLocal( rhs, level, flag );
    this->startTiming( "Dot (reduce)" );
    walberla::mpi::allReduceInplace( scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
    this->stopTiming( "Dot (reduce)" );
@@ -760,14 +760,14 @@ real_t VertexDoFFunction< ValueType >::dotGlobal(const VertexDoFFunction< ValueT
 }
 
 template < typename ValueType >
-real_t VertexDoFFunction< ValueType >::dotLocal(const VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
+ValueType VertexDoFFunction< ValueType >::dotLocal(const VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
 {
    if( isDummy() )
    {
-      return real_c( 0 );
+      return ValueType( 0 );
    }
    this->startTiming( "Dot (local)" );
-   real_t scalarProduct = 0.0;
+   ValueType scalarProduct = 0.0;
 
    for( const auto& it : this->getStorage()->getVertices() )
    {
@@ -812,9 +812,9 @@ real_t VertexDoFFunction< ValueType >::dotLocal(const VertexDoFFunction< ValueTy
 }
 
 template < typename ValueType >
-real_t VertexDoFFunction< ValueType >::sumGlobal( const uint_t & level, const DoFType & flag ) const
+ValueType VertexDoFFunction< ValueType >::sumGlobal( const uint_t & level, const DoFType & flag ) const
 {
-  real_t sum = sumLocal( level, flag );
+   ValueType sum = sumLocal( level, flag );
   this->startTiming( "Sum (reduce)" );
   walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
   this->stopTiming( "Sum (reduce)" );
@@ -822,14 +822,14 @@ real_t VertexDoFFunction< ValueType >::sumGlobal( const uint_t & level, const Do
 }
 
 template < typename ValueType >
-real_t VertexDoFFunction< ValueType >::sumLocal( const uint_t & level, const DoFType & flag ) const
+ValueType VertexDoFFunction< ValueType >::sumLocal( const uint_t & level, const DoFType & flag ) const
 {
    if( isDummy() )
    {
-      return real_c( 0 );
+      return ValueType( 0 );
    }
    this->startTiming( "Sum (local)" );
-   real_t sum = 0.0;
+   ValueType sum = 0.0;
 
    for( const auto& it : this->getStorage()->getVertices() )
    {

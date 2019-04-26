@@ -1,30 +1,29 @@
 #pragma once
 
-#include <string>
 #include <memory>
+#include <string>
 #include <vector>
 
-
 #include "core/DataTypes.h"
-#include "tinyhhg_core/FunctionProperties.hpp"
-#include "tinyhhg_core/types/flags.hpp"
+
 #include "tinyhhg_core/Function.hpp"
+#include "tinyhhg_core/FunctionProperties.hpp"
 #include "tinyhhg_core/boundary/BoundaryConditions.hpp"
+#include "tinyhhg_core/types/flags.hpp"
 /// TODO this should be improved but we need the enum which cant be forward declared
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
 
 namespace hhg {
 
-using walberla::uint_t;
-using walberla::real_t;
 using walberla::real_c;
+using walberla::real_t;
+using walberla::uint_t;
 
-
-template< typename ValueType >
+template < typename ValueType >
 class DGFunction;
-template< typename ValueType >
+template < typename ValueType >
 class FunctionMemory;
-template< typename DataType, typename PrimitiveType >
+template < typename DataType, typename PrimitiveType >
 class PrimitiveDataID;
 
 class PrimitiveStorage;
@@ -33,17 +32,15 @@ class Edge;
 class Face;
 class Cell;
 
-
 namespace vertexdof {
 
 template < typename ValueType >
 class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 {
  public:
-
    typedef ValueType valueType;
 
-   template< typename VType >
+   template < typename VType >
    using FunctionType = vertexdof::VertexDoFFunction< VType >;
 
    VertexDoFFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage );
@@ -58,16 +55,14 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
                       uint_t                                     minLevel,
                       uint_t                                     maxLevel,
                       BoundaryCondition                          boundaryCondition,
-                      const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication = DoFType::DirichletBoundary );
+                      const DoFType& boundaryTypeToSkipDuringAdditiveCommunication = DoFType::DirichletBoundary );
 
    const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& getVertexDataID() const { return vertexDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Edge >&   getEdgeDataID() const { return edgeDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Face >&   getFaceDataID() const { return faceDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&   getCellDataID() const { return cellDataID_; }
 
-    void swap( const VertexDoFFunction< ValueType > & other,
-               const uint_t & level,
-               const DoFType & flag = All ) const;
+   void swap( const VertexDoFFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const;
 
    void assign( const std::vector< ValueType >&                                                      scalars,
                 const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
@@ -87,11 +82,11 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
                          uint_t                                                                               level,
                          DoFType                                                                              flag = All ) const;
 
-   real_t dotLocal(const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
-   real_t dotGlobal(const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
+   ValueType dotLocal( const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
+   ValueType dotGlobal( const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
 
-   real_t sumLocal( const uint_t & level, const DoFType & flag = All) const;
-   real_t sumGlobal( const uint_t & level, const DoFType & flag = All) const;
+   ValueType sumLocal( const uint_t& level, const DoFType& flag = All ) const;
+   ValueType sumGlobal( const uint_t& level, const DoFType& flag = All ) const;
 
    void integrateDG( DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
 
@@ -105,12 +100,12 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
                              const std::vector< VertexDoFFunction* >                                              srcFunctions,
                              uint_t                                                                               level,
-                             DoFType                                                                              flag = All ) const;
+                             DoFType flag = All ) const;
 
    void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
                              const std::vector< VertexDoFFunction* >                                              srcFunctions,
                              uint_t                                                                               level,
-                             BoundaryUID                                                                          boundaryUID ) const;
+                             BoundaryUID boundaryUID ) const;
 
    /// assigns unique values to all data points
    /// this function is mainly used for petsc to get global identifier for all DoFs
@@ -124,12 +119,15 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
    BoundaryCondition getBoundaryCondition() const;
-   inline DoFType    getBoundaryTypeToSkipDuringAdditiveCommunication() const { return boundaryTypeToSkipDuringAdditiveCommunication_; }
+   inline DoFType    getBoundaryTypeToSkipDuringAdditiveCommunication() const
+   {
+      return boundaryTypeToSkipDuringAdditiveCommunication_;
+   }
 
    template < typename SenderType, typename ReceiverType >
    inline void startCommunication( const uint_t& level ) const
    {
-      if( isDummy() )
+      if ( isDummy() )
       {
          return;
       }
@@ -139,7 +137,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    template < typename SenderType, typename ReceiverType >
    inline void endCommunication( const uint_t& level ) const
    {
-      if( isDummy() )
+      if ( isDummy() )
       {
          return;
       }
@@ -149,7 +147,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    template < typename SenderType, typename ReceiverType >
    inline void communicate( const uint_t& level ) const
    {
-      if( isDummy() )
+      if ( isDummy() )
       {
          return;
       }
@@ -159,7 +157,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    template < typename SenderType, typename ReceiverType >
    inline void startAdditiveCommunication( const uint_t& level ) const
    {
-      if( isDummy() )
+      if ( isDummy() )
       {
          return;
       }
@@ -171,7 +169,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    template < typename SenderType, typename ReceiverType >
    inline void endAdditiveCommunication( const uint_t& level ) const
    {
-      if( isDummy() )
+      if ( isDummy() )
       {
          return;
       }
@@ -181,7 +179,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    template < typename SenderType, typename ReceiverType >
    inline void communicateAdditively( const uint_t& level ) const
    {
-      if( isDummy() )
+      if ( isDummy() )
       {
          return;
       }
@@ -218,17 +216,16 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    friend class P2P1TaylorHoodFunction< ValueType >;
 };
 
-inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint_t & level )
+inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint_t& level )
 {
-  if( pressure.isDummy() )
-  {
-    return;
-  }
-  const uint_t numGlobalVertices = numberOfGlobalDoFs< VertexDoFFunctionTag >( *pressure.getStorage(), level );
-  const real_t sum = pressure.sumGlobal( level, All );
-  pressure.add( -sum / real_c( numGlobalVertices ), level, All );
+   if ( pressure.isDummy() )
+   {
+      return;
+   }
+   const uint_t numGlobalVertices = numberOfGlobalDoFs< VertexDoFFunctionTag >( *pressure.getStorage(), level );
+   const real_t sum               = pressure.sumGlobal( level, All );
+   pressure.add( -sum / real_c( numGlobalVertices ), level, All );
 }
-
 
 } // namespace vertexdof
 } // namespace hhg

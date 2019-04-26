@@ -584,14 +584,14 @@ void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >&         
 }
 
 template < typename ValueType >
-real_t EdgeDoFFunction< ValueType >::dotLocal(const EdgeDoFFunction <ValueType> &rhs, const uint_t level, const DoFType flag) const
+ValueType EdgeDoFFunction< ValueType >::dotLocal(const EdgeDoFFunction <ValueType> &rhs, const uint_t level, const DoFType flag) const
 {
    if( isDummy() )
    {
-      return real_c( 0 );
+      return ValueType( 0 );
    }
    this->startTiming( "Dot (local)" );
-   real_t scalarProduct = 0.0;
+   ValueType scalarProduct = 0.0;
 
    for( auto& it : this->getStorage()->getEdges() )
    {
@@ -630,9 +630,9 @@ real_t EdgeDoFFunction< ValueType >::dotLocal(const EdgeDoFFunction <ValueType> 
 
 
 template < typename ValueType >
-real_t EdgeDoFFunction< ValueType >::sumGlobal( const uint_t & level, const DoFType & flag ) const
+ValueType EdgeDoFFunction< ValueType >::sumGlobal( const uint_t & level, const DoFType & flag ) const
 {
-   real_t sum = sumLocal( level, flag );
+   ValueType sum = sumLocal( level, flag );
    this->startTiming( "Sum (reduce)" );
    walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
    this->stopTiming( "Sum (reduce)" );
@@ -640,14 +640,14 @@ real_t EdgeDoFFunction< ValueType >::sumGlobal( const uint_t & level, const DoFT
 }
 
 template < typename ValueType >
-real_t EdgeDoFFunction< ValueType >::sumLocal( const uint_t & level, const DoFType & flag ) const
+ValueType EdgeDoFFunction< ValueType >::sumLocal( const uint_t & level, const DoFType & flag ) const
 {
    if( isDummy() )
    {
-      return real_c( 0 );
+      return ValueType( 0 );
    }
    this->startTiming( "Sum (local)" );
-   real_t sum = 0.0;
+   ValueType sum = 0.0;
 
    for( const auto& it : this->getStorage()->getEdges() )
    {

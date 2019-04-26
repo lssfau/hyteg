@@ -159,7 +159,7 @@ inline void assign( const uint_t & Level, Edge & edge, const std::vector< ValueT
 
 
 template< typename ValueType >
-inline real_t dot( const uint_t & Level, Edge & edge,
+inline ValueType dot( const uint_t & Level, Edge & edge,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& lhsId,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& rhsId )
 {
@@ -178,7 +178,7 @@ inline real_t dot( const uint_t & Level, Edge & edge,
 }
 
 template < typename ValueType >
-inline real_t sum( const uint_t& Level, Edge& edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dataId )
+inline ValueType sum( const uint_t& Level, Edge& edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dataId )
 {
    auto data = edge.getData( dataId )->getPointer( Level );
 

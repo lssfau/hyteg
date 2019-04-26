@@ -1,8 +1,10 @@
-
 #include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 
-#include "tinyhhg_core/gridtransferoperators/generatedKernels/GeneratedKernelsP2MacroFace2D.hpp"
+#include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/gridtransferoperators/generatedKernels/GeneratedKernelsP2MacroCell3D.hpp"
+#include "tinyhhg_core/gridtransferoperators/generatedKernels/GeneratedKernelsP2MacroFace2D.hpp"
+#include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
+#include "tinyhhg_core/p2functionspace/P2Multigrid.hpp"
 
 namespace hhg {
 
@@ -31,17 +33,17 @@ void P2toP2QuadraticRestriction::restrictAdditively( const P2Function< real_t >&
       auto vertexCoarseData = face->getData( function.getVertexDoFFunction().getFaceDataID() )->getPointer( coarseLevel );
       auto edgeCoarseData   = face->getData( function.getEdgeDoFFunction().getFaceDataID() )->getPointer( coarseLevel );
 
-      const double numNeighborFacesEdge0 =
+      const auto numNeighborFacesEdge0 =
           static_cast< double >( storage->getEdge( face->neighborEdges().at( 0 ) )->getNumNeighborFaces() );
-      const double numNeighborFacesEdge1 =
+      const auto numNeighborFacesEdge1 =
           static_cast< double >( storage->getEdge( face->neighborEdges().at( 1 ) )->getNumNeighborFaces() );
-      const double numNeighborFacesEdge2 =
+      const auto numNeighborFacesEdge2 =
           static_cast< double >( storage->getEdge( face->neighborEdges().at( 2 ) )->getNumNeighborFaces() );
-      const double numNeighborFacesVertex0 =
+      const auto numNeighborFacesVertex0 =
           static_cast< double >( storage->getVertex( face->neighborVertices().at( 0 ) )->getNumNeighborFaces() );
-      const double numNeighborFacesVertex1 =
+      const auto numNeighborFacesVertex1 =
           static_cast< double >( storage->getVertex( face->neighborVertices().at( 1 ) )->getNumNeighborFaces() );
-      const double numNeighborFacesVertex2 =
+      const auto numNeighborFacesVertex2 =
           static_cast< double >( storage->getVertex( face->neighborVertices().at( 2 ) )->getNumNeighborFaces() );
 
       typedef edgedof::EdgeDoFOrientation eo;
@@ -108,35 +110,35 @@ void P2toP2QuadraticRestriction::restrictAdditively3D( const P2Function< real_t 
       auto vertexCoarseData = cell->getData( function.getVertexDoFFunction().getCellDataID() )->getPointer( coarseLevel );
       auto edgeCoarseData   = cell->getData( function.getEdgeDoFFunction().getCellDataID() )->getPointer( coarseLevel );
 
-      const double numNeighborCellsFace0 =
+      const auto numNeighborCellsFace0 =
           static_cast< double >( storage->getFace( cell->neighborFaces().at( 0 ) )->getNumNeighborCells() );
-      const double numNeighborCellsFace1 =
+      const auto numNeighborCellsFace1 =
           static_cast< double >( storage->getFace( cell->neighborFaces().at( 1 ) )->getNumNeighborCells() );
-      const double numNeighborCellsFace2 =
+      const auto numNeighborCellsFace2 =
           static_cast< double >( storage->getFace( cell->neighborFaces().at( 2 ) )->getNumNeighborCells() );
-      const double numNeighborCellsFace3 =
+      const auto numNeighborCellsFace3 =
           static_cast< double >( storage->getFace( cell->neighborFaces().at( 3 ) )->getNumNeighborCells() );
 
-      const double numNeighborCellsEdge0 =
+      const auto numNeighborCellsEdge0 =
           static_cast< double >( storage->getEdge( cell->neighborEdges().at( 0 ) )->getNumNeighborCells() );
-      const double numNeighborCellsEdge1 =
+      const auto numNeighborCellsEdge1 =
           static_cast< double >( storage->getEdge( cell->neighborEdges().at( 1 ) )->getNumNeighborCells() );
-      const double numNeighborCellsEdge2 =
+      const auto numNeighborCellsEdge2 =
           static_cast< double >( storage->getEdge( cell->neighborEdges().at( 2 ) )->getNumNeighborCells() );
-      const double numNeighborCellsEdge3 =
+      const auto numNeighborCellsEdge3 =
           static_cast< double >( storage->getEdge( cell->neighborEdges().at( 3 ) )->getNumNeighborCells() );
-      const double numNeighborCellsEdge4 =
+      const auto numNeighborCellsEdge4 =
           static_cast< double >( storage->getEdge( cell->neighborEdges().at( 4 ) )->getNumNeighborCells() );
-      const double numNeighborCellsEdge5 =
+      const auto numNeighborCellsEdge5 =
           static_cast< double >( storage->getEdge( cell->neighborEdges().at( 5 ) )->getNumNeighborCells() );
 
-      const double numNeighborCellsVertex0 =
+      const auto numNeighborCellsVertex0 =
           static_cast< double >( storage->getVertex( cell->neighborVertices().at( 0 ) )->getNumNeighborCells() );
-      const double numNeighborCellsVertex1 =
+      const auto numNeighborCellsVertex1 =
           static_cast< double >( storage->getVertex( cell->neighborVertices().at( 1 ) )->getNumNeighborCells() );
-      const double numNeighborCellsVertex2 =
+      const auto numNeighborCellsVertex2 =
           static_cast< double >( storage->getVertex( cell->neighborVertices().at( 2 ) )->getNumNeighborCells() );
-      const double numNeighborCellsVertex3 =
+      const auto numNeighborCellsVertex3 =
           static_cast< double >( storage->getVertex( cell->neighborVertices().at( 3 ) )->getNumNeighborCells() );
 
       typedef edgedof::EdgeDoFOrientation eo;
