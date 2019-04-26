@@ -2,6 +2,19 @@
 
 #include <algorithm>
 
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroEdge.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
+#include "tinyhhg_core/p2functionspace/P2MacroVertex.hpp"
+#include "tinyhhg_core/p2functionspace/P2MacroCell.hpp"
+#include "tinyhhg_core/p2functionspace/P2MacroEdge.hpp"
+#include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
+#include "tinyhhg_core/p2functionspace/P2TransferOperators.hpp"
+#include "tinyhhg_core/p2functionspace/P2Multigrid.hpp"
+
 namespace hhg {
 
 template < typename ValueType >
@@ -44,30 +57,9 @@ P2Function< ValueType >::P2Function( const std::string&                         
    {
       /// one has to use the communicators of the vertexDoF and edgeDoF function to communicate
       /// TODO: find better solution
-      communicators_[level] = NULL;
+      communicators_[level] = nullptr;
    }
 }
-//template < typename ValueType >
-//vertexdof::VertexDoFFunction< ValueType > P2Function< ValueType >::getVertexDoFFunctionCopy() const
-//{
-//   return vertexDoFFunction_;
-//}
-//template < typename ValueType >
-//EdgeDoFFunction< ValueType > P2Function< ValueType >::getEdgeDoFFunctionCopy() const
-//{
-//   return edgeDoFFunction_;
-//}
-//
-//template < typename ValueType >
-//const vertexdof::VertexDoFFunction< ValueType >& P2Function< ValueType >::getVertexDoFFunction() const
-//{
-//   return vertexDoFFunction_;
-//}
-//template < typename ValueType >
-//const EdgeDoFFunction< ValueType >& P2Function< ValueType >::getEdgeDoFFunction() const
-//{
-//   return edgeDoFFunction_;
-//}
 
 template < typename ValueType >
 void P2Function< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag ) const
@@ -151,8 +143,8 @@ void P2Function< ValueType >::assign( const P1Function< ValueType >& src, const 
 
    const auto P1Level = P2Level + 1;
 
-   WALBERLA_CHECK_GREATER_EQUAL( P1Level, src.getMinLevel() );
-   WALBERLA_CHECK_LESS_EQUAL( P1Level, src.getMaxLevel() );
+   WALBERLA_CHECK_GREATER_EQUAL( P1Level, src.getMinLevel() )
+   WALBERLA_CHECK_LESS_EQUAL( P1Level, src.getMaxLevel() )
 
    for ( const auto& it : this->getStorage()->getVertices() )
    {
@@ -292,7 +284,7 @@ void P2Function< ValueType >::add( const std::vector< ValueType >&              
 }
 
 template < typename ValueType >
-ValueType P2Function< ValueType >::dotGlobal( const P2Function< ValueType >& rhs, const uint_t level, const DoFType flag ) const
+ValueType P2Function< ValueType >::dotGlobal( const P2Function< ValueType >& rhs, const uint_t level, const DoFType& flag ) const
 {
    ValueType sum = dotLocal( rhs, level, flag );
    this->startTiming( "Dot (reduce)" );
@@ -302,7 +294,7 @@ ValueType P2Function< ValueType >::dotGlobal( const P2Function< ValueType >& rhs
 }
 
 template < typename ValueType >
-ValueType P2Function< ValueType >::dotLocal( const P2Function< ValueType >& rhs, const uint_t level, const DoFType flag ) const
+ValueType P2Function< ValueType >::dotLocal( const P2Function< ValueType >& rhs, const uint_t level, const DoFType& flag ) const
 {
    auto sum = ValueType( 0 );
    sum += vertexDoFFunction_.dotLocal( rhs.vertexDoFFunction_, level, flag );
@@ -311,7 +303,7 @@ ValueType P2Function< ValueType >::dotLocal( const P2Function< ValueType >& rhs,
 }
 
 template < typename ValueType >
-ValueType P2Function< ValueType >::sumGlobal( const uint_t level, const DoFType flag ) const
+ValueType P2Function< ValueType >::sumGlobal( const uint_t level, const DoFType& flag ) const
 {
    ValueType sum = sumLocal( level, flag );
    this->startTiming( "Sum (reduce)" );
@@ -321,7 +313,7 @@ ValueType P2Function< ValueType >::sumGlobal( const uint_t level, const DoFType 
 }
 
 template < typename ValueType >
-ValueType P2Function< ValueType >::sumLocal( const uint_t level, const DoFType flag ) const
+ValueType P2Function< ValueType >::sumLocal( const uint_t level, const DoFType& flag ) const
 {
    auto sum = ValueType( 0 );
    sum += vertexDoFFunction_.sumLocal( level, flag );
@@ -558,7 +550,7 @@ BoundaryCondition P2Function< ValueType >::getBoundaryCondition() const
 {
    WALBERLA_ASSERT_EQUAL( vertexDoFFunction_.getBoundaryCondition(),
                           edgeDoFFunction_.getBoundaryCondition(),
-                          "P2Function: boundary conditions of underlying vertex- and edgedof functions differ!" );
+                          "P2Function: boundary conditions of underlying vertex- and edgedof functions differ!" )
    return vertexDoFFunction_.getBoundaryCondition();
 }
 

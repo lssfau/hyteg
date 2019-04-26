@@ -3,13 +3,9 @@
 #include "core/DataTypes.h"
 
 #include "tinyhhg_core/Function.hpp"
-#include "tinyhhg_core/FunctionProperties.hpp"
-#include "tinyhhg_core/StencilMemory.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
-#include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFFunction.hpp"
-#include "tinyhhg_core/p2functionspace/P2Multigrid.hpp"
-#include "tinyhhg_core/p2functionspace/P2TransferOperators.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
 
 namespace hhg {
 
@@ -75,13 +71,13 @@ class P2Function : public Function< P2Function< ValueType > >
              uint_t                                                                        level,
              DoFType                                                                       flag = All ) const;
 
-   ValueType dotGlobal( const P2Function< ValueType >& rhs, const uint_t level, const DoFType flag = All ) const;
+   ValueType dotGlobal( const P2Function< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const;
 
-   ValueType dotLocal( const P2Function< ValueType >& rhs, const uint_t level, const DoFType flag = All ) const;
+   ValueType dotLocal( const P2Function< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const;
 
-   ValueType sumGlobal( const uint_t level, const DoFType flag = All ) const;
+   ValueType sumGlobal( uint_t level, const DoFType& flag = All ) const;
 
-   ValueType sumLocal( const uint_t level, const DoFType flag = All ) const;
+   ValueType sumLocal( uint_t level, const DoFType& flag = All ) const;
 
    void prolongateP1ToP2( const hhg::P1Function< ValueType >& p1Function, const uint_t& level, const DoFType& flag = All ) const;
 

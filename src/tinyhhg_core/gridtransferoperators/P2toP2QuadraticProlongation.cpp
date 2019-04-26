@@ -1,9 +1,13 @@
 #include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 
-#include "tinyhhg_core/p2functionspace/P2Function.hpp"
-
-#include "tinyhhg_core/gridtransferoperators/generatedKernels/GeneratedKernelsP2MacroFace2D.hpp"
+#include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/gridtransferoperators/generatedKernels/GeneratedKernelsP2MacroCell3D.hpp"
+#include "tinyhhg_core/gridtransferoperators/generatedKernels/GeneratedKernelsP2MacroFace2D.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
+#include "tinyhhg_core/p2functionspace/P2Multigrid.hpp"
 
 namespace hhg {
 

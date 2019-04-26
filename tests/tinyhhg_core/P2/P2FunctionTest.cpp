@@ -1,3 +1,5 @@
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
+
 #include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
@@ -6,8 +8,8 @@
 
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/communication/Syncing.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/p2functionspace/P2Function.hpp"
 
 namespace hhg {
 
