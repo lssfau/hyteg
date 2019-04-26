@@ -1,5 +1,5 @@
-#include <vector>
 #include <functional>
+#include <vector>
 
 #include "core/DataTypes.h"
 #include "core/Environment.h"
@@ -7,12 +7,14 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
-
-#include "tinyhhg_core/p2functionspace/P2Function.hpp"
-#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/PrimitiveID.hpp"
-#include "tinyhhg_core/primitives/all.hpp"
 #include "tinyhhg_core/communication/Syncing.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/primitives/all.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
 using walberla::real_t;
 

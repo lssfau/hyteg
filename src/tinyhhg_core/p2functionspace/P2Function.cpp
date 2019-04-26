@@ -596,7 +596,6 @@ template class P2Function< int >;
 
 namespace p2function {
 
-template < typename ValueType >
 void projectMean( const P2Function< real_t >& pressure, const uint_t& level )
 {
    if ( pressure.isDummy() )

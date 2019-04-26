@@ -3,12 +3,14 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
+#include "tinyhhg_core/FunctionMemory.hpp"
+#include "tinyhhg_core/boundary/BoundaryConditions.hpp"
+#include "tinyhhg_core/communication/Syncing.hpp"
+#include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/communication/Syncing.hpp"
-#include "tinyhhg_core/boundary/BoundaryConditions.hpp"
-#include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
-
 
 namespace hhg {
 

@@ -113,7 +113,6 @@ class P2Function : public Function< P2Function< ValueType > >
 
 namespace p2function {
 
-template < typename ValueType >
 void projectMean( const P2Function< real_t >& pressure, const uint_t& level );
 
 } // namespace p2function

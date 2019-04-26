@@ -10,6 +10,7 @@
 #include "tinyhhg_core/p2functionspace/P2MacroEdge.hpp"
 #include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
 #include "tinyhhg_core/p2functionspace/P2MacroVertex.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
