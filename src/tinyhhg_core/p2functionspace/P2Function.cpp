@@ -70,14 +70,6 @@ P2Function< ValueType >::P2Function( const std::string&                         
 //}
 
 template < typename ValueType >
-template < typename SenderType, typename ReceiverType >
-void P2Function< ValueType >::communicate( const uint_t& level ) const
-{
-   vertexDoFFunction_.template communicate< SenderType, ReceiverType >( level );
-   edgeDoFFunction_.template communicate< SenderType, ReceiverType >( level );
-}
-
-template < typename ValueType >
 void P2Function< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag ) const
 {
    vertexDoFFunction_.interpolate( constant, level, flag );
@@ -331,7 +323,7 @@ ValueType P2Function< ValueType >::sumGlobal( const uint_t level, const DoFType 
 template < typename ValueType >
 ValueType P2Function< ValueType >::sumLocal( const uint_t level, const DoFType flag ) const
 {
-   ValueType sum = real_c( 0 );
+   auto sum = ValueType( 0 );
    sum += vertexDoFFunction_.sumLocal( level, flag );
    sum += edgeDoFFunction_.sumLocal( level, flag );
    return sum;
