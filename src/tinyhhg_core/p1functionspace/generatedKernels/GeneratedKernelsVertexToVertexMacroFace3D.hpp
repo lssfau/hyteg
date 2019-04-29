@@ -20,7 +20,9 @@ namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-void apply_3D_macroface_vertexdof_to_vertexdof_replace(double * RESTRICT _data_p1CellDst, double const * RESTRICT const _data_p1CellSrc, double const * RESTRICT const _data_p1CellSrc_gl_cell_0, double const * RESTRICT const _data_p1CellSrc_gl_cell_1, int64_t level, int64_t neighbor_cell_0_local_vertex_id_0, int64_t neighbor_cell_0_local_vertex_id_1, int64_t neighbor_cell_0_local_vertex_id_2, int64_t neighbor_cell_1_local_vertex_id_0, int64_t neighbor_cell_1_local_vertex_id_1, int64_t neighbor_cell_1_local_vertex_id_2, std::map< walberla::uint_t, std::map< hhg::indexing::IndexIncrement, double > > p1CellStencil);
+void apply_3D_macroface_one_sided_vertexdof_to_vertexdof_replace(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * RESTRICT const _data_p1FaceSrc_gl0, int64_t level, int64_t neighbor_cell_local_vertex_id_0, int64_t neighbor_cell_local_vertex_id_1, int64_t neighbor_cell_local_vertex_id_2, std::map< hhg::indexing::IndexIncrement, double > p1FaceStencil);
+
+void apply_3D_macroface_one_sided_vertexdof_to_vertexdof_add(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * RESTRICT const _data_p1FaceSrc_gl0, int64_t level, int64_t neighbor_cell_local_vertex_id_0, int64_t neighbor_cell_local_vertex_id_1, int64_t neighbor_cell_local_vertex_id_2, std::map< hhg::indexing::IndexIncrement, double > p1FaceStencil);
 
 } // namespace generated
 } // namespace macroface

@@ -541,19 +541,25 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
              auto neighbor_cell_1_local_vertex_id_1 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(1) );
              auto neighbor_cell_1_local_vertex_id_2 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(2) );
 
-             vertexdof::macroface::generated::apply_3D_macroface_vertexdof_to_vertexdof_replace(
+             vertexdof::macroface::generated::apply_3D_macroface_one_sided_vertexdof_to_vertexdof_replace(
                  dst_data,
                  src_data,
                  &src_data[offset_gl_0],
-                 &src_data[offset_gl_1],
                  static_cast< int64_t >( level ),
                  neighbor_cell_0_local_vertex_id_0,
                  neighbor_cell_0_local_vertex_id_1,
                  neighbor_cell_0_local_vertex_id_2,
-                 neighbor_cell_1_local_vertex_id_0,
-                 neighbor_cell_1_local_vertex_id_1,
-                 neighbor_cell_1_local_vertex_id_2,
-                 opr_data );
+                 opr_data[0] );
+
+             vertexdof::macroface::generated::apply_3D_macroface_one_sided_vertexdof_to_vertexdof_add(
+               dst_data,
+               src_data,
+               &src_data[offset_gl_1],
+               static_cast< int64_t >( level ),
+               neighbor_cell_1_local_vertex_id_0,
+               neighbor_cell_1_local_vertex_id_1,
+               neighbor_cell_1_local_vertex_id_2,
+               opr_data[1] );
            }
            else
            {
