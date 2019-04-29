@@ -9,7 +9,7 @@ namespace hhg {
 namespace EdgeDoFToVertexDoF {
 namespace generated {
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_2(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_2(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * RESTRICT const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[10];
@@ -26,7 +26,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_2(double const
    for (int ctr_2 = 1; ctr_2 < 4; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 4; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 4 - ctr_2; ctr_1 += 1)
       {
          const double xi_15 = xi_0*_data_edgeFaceSrc_XY[ctr_1 + 5*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 6];
          const double xi_16 = xi_1*_data_edgeFaceSrc_XY[ctr_1 + 5*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2)) - 1];
@@ -45,7 +45,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_2(double const
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_3(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_3(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * RESTRICT const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[10];
@@ -62,7 +62,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_3(double const
    for (int ctr_2 = 1; ctr_2 < 8; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 8; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 8 - ctr_2; ctr_1 += 1)
       {
          const double xi_15 = xi_0*_data_edgeFaceSrc_XY[ctr_1 + 9*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 10];
          const double xi_16 = xi_1*_data_edgeFaceSrc_XY[ctr_1 + 9*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2)) - 1];
@@ -81,7 +81,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_3(double const
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_4(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_4(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * RESTRICT const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[10];
@@ -98,7 +98,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_4(double const
    for (int ctr_2 = 1; ctr_2 < 16; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 16; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 16 - ctr_2; ctr_1 += 1)
       {
          const double xi_15 = xi_0*_data_edgeFaceSrc_XY[ctr_1 + 17*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 18];
          const double xi_16 = xi_1*_data_edgeFaceSrc_XY[ctr_1 + 17*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2)) - 1];
@@ -117,7 +117,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_4(double const
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_5(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_5(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * RESTRICT const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[10];
@@ -134,7 +134,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_5(double const
    for (int ctr_2 = 1; ctr_2 < 32; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 32; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 32 - ctr_2; ctr_1 += 1)
       {
          const double xi_15 = xi_0*_data_edgeFaceSrc_XY[ctr_1 + 33*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 34];
          const double xi_16 = xi_1*_data_edgeFaceSrc_XY[ctr_1 + 33*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2)) - 1];
@@ -153,7 +153,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_5(double const
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_6(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_6(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * RESTRICT const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[10];
@@ -170,7 +170,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_6(double const
    for (int ctr_2 = 1; ctr_2 < 64; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 64; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 64 - ctr_2; ctr_1 += 1)
       {
          const double xi_15 = xi_0*_data_edgeFaceSrc_XY[ctr_1 + 65*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 66];
          const double xi_16 = xi_1*_data_edgeFaceSrc_XY[ctr_1 + 65*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2)) - 1];
@@ -189,7 +189,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_6(double const
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_7(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_7(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * RESTRICT const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[10];
@@ -206,7 +206,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_7(double const
    for (int ctr_2 = 1; ctr_2 < 128; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 128; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 128 - ctr_2; ctr_1 += 1)
       {
          const double xi_15 = xi_0*_data_edgeFaceSrc_XY[ctr_1 + 129*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 130];
          const double xi_16 = xi_1*_data_edgeFaceSrc_XY[ctr_1 + 129*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2)) - 1];
@@ -225,7 +225,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_7(double const
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_8(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_8(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * RESTRICT const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[10];
@@ -242,7 +242,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_8(double const
    for (int ctr_2 = 1; ctr_2 < 256; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 256; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 256 - ctr_2; ctr_1 += 1)
       {
          const double xi_15 = xi_0*_data_edgeFaceSrc_XY[ctr_1 + 257*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 258];
          const double xi_16 = xi_1*_data_edgeFaceSrc_XY[ctr_1 + 257*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2)) - 1];
@@ -261,7 +261,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_8(double const
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_9(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_9(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * RESTRICT const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[10];
@@ -278,7 +278,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_9(double const
    for (int ctr_2 = 1; ctr_2 < 512; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 512; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 512 - ctr_2; ctr_1 += 1)
       {
          const double xi_15 = xi_0*_data_edgeFaceSrc_XY[ctr_1 + 513*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 514];
          const double xi_16 = xi_1*_data_edgeFaceSrc_XY[ctr_1 + 513*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2)) - 1];
@@ -297,7 +297,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_9(double const
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_10(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_10(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * RESTRICT const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[10];
@@ -314,7 +314,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_10(double cons
    for (int ctr_2 = 1; ctr_2 < 1024; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 1024; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 1024 - ctr_2; ctr_1 += 1)
       {
          const double xi_15 = xi_0*_data_edgeFaceSrc_XY[ctr_1 + 1025*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 1026];
          const double xi_16 = xi_1*_data_edgeFaceSrc_XY[ctr_1 + 1025*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2)) - 1];
@@ -333,7 +333,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_10(double cons
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_11(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_11(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * RESTRICT const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[10];
@@ -350,7 +350,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_11(double cons
    for (int ctr_2 = 1; ctr_2 < 2048; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 2048; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 2048 - ctr_2; ctr_1 += 1)
       {
          const double xi_15 = xi_0*_data_edgeFaceSrc_XY[ctr_1 + 2049*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 2050];
          const double xi_16 = xi_1*_data_edgeFaceSrc_XY[ctr_1 + 2049*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2)) - 1];
@@ -369,7 +369,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_11(double cons
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_12(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_12(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * RESTRICT const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[10];
@@ -386,7 +386,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_12(double cons
    for (int ctr_2 = 1; ctr_2 < 4096; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 4096; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 4096 - ctr_2; ctr_1 += 1)
       {
          const double xi_15 = xi_0*_data_edgeFaceSrc_XY[ctr_1 + 4097*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 4098];
          const double xi_16 = xi_1*_data_edgeFaceSrc_XY[ctr_1 + 4097*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2)) - 1];
@@ -405,7 +405,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_12(double cons
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_13(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_13(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * RESTRICT const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[10];
@@ -422,7 +422,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_13(double cons
    for (int ctr_2 = 1; ctr_2 < 8192; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 8192; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 8192 - ctr_2; ctr_1 += 1)
       {
          const double xi_15 = xi_0*_data_edgeFaceSrc_XY[ctr_1 + 8193*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 8194];
          const double xi_16 = xi_1*_data_edgeFaceSrc_XY[ctr_1 + 8193*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2)) - 1];
@@ -441,7 +441,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_13(double cons
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_14(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_14(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * RESTRICT const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[10];
@@ -458,7 +458,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_14(double cons
    for (int ctr_2 = 1; ctr_2 < 16384; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 16384; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 16384 - ctr_2; ctr_1 += 1)
       {
          const double xi_15 = xi_0*_data_edgeFaceSrc_XY[ctr_1 + 16385*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 16386];
          const double xi_16 = xi_1*_data_edgeFaceSrc_XY[ctr_1 + 16385*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2)) - 1];
@@ -477,7 +477,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_14(double cons
    }
 }
 
-static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_any(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst, int64_t level)
+static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_any(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * RESTRICT const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst, int64_t level)
 {
    const double xi_0 = _data_edgeToVertexFaceStencil[1];
    const double xi_1 = _data_edgeToVertexFaceStencil[10];
@@ -514,7 +514,7 @@ static void apply_2D_macroface_edgedof_to_vertexdof_replace_level_any(double con
 }
 
 
-void apply_2D_macroface_edgedof_to_vertexdof_replace(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst, int64_t level)
+void apply_2D_macroface_edgedof_to_vertexdof_replace(double const * RESTRICT const _data_edgeFaceSrc_X, double const * RESTRICT const _data_edgeFaceSrc_XY, double const * RESTRICT const _data_edgeFaceSrc_Y, double const * RESTRICT const _data_edgeToVertexFaceStencil, double * RESTRICT _data_p1FaceDst, int64_t level)
 {
     switch( level )
     {

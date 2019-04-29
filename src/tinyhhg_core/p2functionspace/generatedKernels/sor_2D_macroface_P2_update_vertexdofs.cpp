@@ -10,7 +10,7 @@ namespace P2 {
 namespace macroface {
 namespace generated {
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_2(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_2(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * RESTRICT const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -37,7 +37,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_2(double * RESTRICT _dat
    for (int ctr_2 = 1; ctr_2 < 4; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 4; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 4 - ctr_2; ctr_1 += 1)
       {
          const double xi_43 = _data_vertexFaceRhs[ctr_1 + 6*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
          const double xi_25 = -xi_1*_data_edgeFaceDst_XY[ctr_1 + 5*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 6];
@@ -63,7 +63,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_2(double * RESTRICT _dat
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_3(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_3(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * RESTRICT const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -90,7 +90,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_3(double * RESTRICT _dat
    for (int ctr_2 = 1; ctr_2 < 8; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 8; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 8 - ctr_2; ctr_1 += 1)
       {
          const double xi_43 = _data_vertexFaceRhs[ctr_1 + 10*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
          const double xi_25 = -xi_1*_data_edgeFaceDst_XY[ctr_1 + 9*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 10];
@@ -116,7 +116,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_3(double * RESTRICT _dat
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_4(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_4(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * RESTRICT const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -143,7 +143,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_4(double * RESTRICT _dat
    for (int ctr_2 = 1; ctr_2 < 16; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 16; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 16 - ctr_2; ctr_1 += 1)
       {
          const double xi_43 = _data_vertexFaceRhs[ctr_1 + 18*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
          const double xi_25 = -xi_1*_data_edgeFaceDst_XY[ctr_1 + 17*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 18];
@@ -169,7 +169,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_4(double * RESTRICT _dat
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_5(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_5(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * RESTRICT const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -196,7 +196,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_5(double * RESTRICT _dat
    for (int ctr_2 = 1; ctr_2 < 32; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 32; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 32 - ctr_2; ctr_1 += 1)
       {
          const double xi_43 = _data_vertexFaceRhs[ctr_1 + 34*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
          const double xi_25 = -xi_1*_data_edgeFaceDst_XY[ctr_1 + 33*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 34];
@@ -222,7 +222,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_5(double * RESTRICT _dat
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_6(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_6(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * RESTRICT const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -249,7 +249,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_6(double * RESTRICT _dat
    for (int ctr_2 = 1; ctr_2 < 64; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 64; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 64 - ctr_2; ctr_1 += 1)
       {
          const double xi_43 = _data_vertexFaceRhs[ctr_1 + 66*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
          const double xi_25 = -xi_1*_data_edgeFaceDst_XY[ctr_1 + 65*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 66];
@@ -275,7 +275,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_6(double * RESTRICT _dat
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_7(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_7(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * RESTRICT const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -302,7 +302,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_7(double * RESTRICT _dat
    for (int ctr_2 = 1; ctr_2 < 128; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 128; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 128 - ctr_2; ctr_1 += 1)
       {
          const double xi_43 = _data_vertexFaceRhs[ctr_1 + 130*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
          const double xi_25 = -xi_1*_data_edgeFaceDst_XY[ctr_1 + 129*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 130];
@@ -328,7 +328,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_7(double * RESTRICT _dat
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_8(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_8(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * RESTRICT const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -355,7 +355,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_8(double * RESTRICT _dat
    for (int ctr_2 = 1; ctr_2 < 256; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 256; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 256 - ctr_2; ctr_1 += 1)
       {
          const double xi_43 = _data_vertexFaceRhs[ctr_1 + 258*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
          const double xi_25 = -xi_1*_data_edgeFaceDst_XY[ctr_1 + 257*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 258];
@@ -381,7 +381,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_8(double * RESTRICT _dat
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_9(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_9(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * RESTRICT const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -408,7 +408,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_9(double * RESTRICT _dat
    for (int ctr_2 = 1; ctr_2 < 512; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 512; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 512 - ctr_2; ctr_1 += 1)
       {
          const double xi_43 = _data_vertexFaceRhs[ctr_1 + 514*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
          const double xi_25 = -xi_1*_data_edgeFaceDst_XY[ctr_1 + 513*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 514];
@@ -434,7 +434,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_9(double * RESTRICT _dat
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_10(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_10(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * RESTRICT const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -461,7 +461,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_10(double * RESTRICT _da
    for (int ctr_2 = 1; ctr_2 < 1024; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 1024; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 1024 - ctr_2; ctr_1 += 1)
       {
          const double xi_43 = _data_vertexFaceRhs[ctr_1 + 1026*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
          const double xi_25 = -xi_1*_data_edgeFaceDst_XY[ctr_1 + 1025*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 1026];
@@ -487,7 +487,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_10(double * RESTRICT _da
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_11(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_11(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * RESTRICT const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -514,7 +514,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_11(double * RESTRICT _da
    for (int ctr_2 = 1; ctr_2 < 2048; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 2048; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 2048 - ctr_2; ctr_1 += 1)
       {
          const double xi_43 = _data_vertexFaceRhs[ctr_1 + 2050*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
          const double xi_25 = -xi_1*_data_edgeFaceDst_XY[ctr_1 + 2049*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 2050];
@@ -540,7 +540,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_11(double * RESTRICT _da
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_12(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_12(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * RESTRICT const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -567,7 +567,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_12(double * RESTRICT _da
    for (int ctr_2 = 1; ctr_2 < 4096; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 4096; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 4096 - ctr_2; ctr_1 += 1)
       {
          const double xi_43 = _data_vertexFaceRhs[ctr_1 + 4098*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
          const double xi_25 = -xi_1*_data_edgeFaceDst_XY[ctr_1 + 4097*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 4098];
@@ -593,7 +593,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_12(double * RESTRICT _da
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_13(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_13(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * RESTRICT const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -620,7 +620,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_13(double * RESTRICT _da
    for (int ctr_2 = 1; ctr_2 < 8192; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 8192; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 8192 - ctr_2; ctr_1 += 1)
       {
          const double xi_43 = _data_vertexFaceRhs[ctr_1 + 8194*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
          const double xi_25 = -xi_1*_data_edgeFaceDst_XY[ctr_1 + 8193*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 8194];
@@ -646,7 +646,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_13(double * RESTRICT _da
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_14(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_14(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * RESTRICT const _data_vertex_stencil_at_vertex, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -673,7 +673,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_14(double * RESTRICT _da
    for (int ctr_2 = 1; ctr_2 < 16384; ctr_2 += 1)
    {
       // inner triangle
-      for (int ctr_1 = 1; ctr_1 < -ctr_2 + 16384; ctr_1 += 1)
+      for (int ctr_1 = 1; ctr_1 < 16384 - ctr_2; ctr_1 += 1)
       {
          const double xi_43 = _data_vertexFaceRhs[ctr_1 + 16386*ctr_2 - ((ctr_2*(ctr_2 + 1)) / (2))];
          const double xi_25 = -xi_1*_data_edgeFaceDst_XY[ctr_1 + 16385*ctr_2 - ((ctr_2*(ctr_2 - 1)) / (2)) - 16386];
@@ -699,7 +699,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_14(double * RESTRICT _da
    }
 }
 
-static void sor_2D_macroface_P2_update_vertexdofs_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, int64_t level, double relax)
+static void sor_2D_macroface_P2_update_vertexdofs_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * RESTRICT const _data_vertex_stencil_at_vertex, int64_t level, double relax)
 {
    const double xi_23 = 1.0;
    const double xi_24 = -relax;
@@ -753,7 +753,7 @@ static void sor_2D_macroface_P2_update_vertexdofs_level_any(double * RESTRICT _d
 }
 
 
-void sor_2D_macroface_P2_update_vertexdofs(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * const _data_vertex_stencil_at_vertex, int64_t level, double relax)
+void sor_2D_macroface_P2_update_vertexdofs(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_edge_stencil_at_vertex, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceRhs, double const * RESTRICT const _data_vertex_stencil_at_vertex, int64_t level, double relax)
 {
     switch( level )
     {
