@@ -3,6 +3,7 @@
 #include "tinyhhg_core/HHGDefinitions.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroFace2D.hpp"
+#include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroFace3D.hpp"
 #include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroCell3D.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
@@ -104,49 +105,153 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
      {
         if ( storage_->hasGlobalCells() )
         {
-           edgedof::macroface::apply3D(
-               level, face, *storage_, faceStencil3DID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
-        }
-        else if ( hhg::globalDefines::useGeneratedKernels )
-        {
-           typedef edgedof::EdgeDoFOrientation eo;
-           real_t*                             opr_data = face.getData( faceStencilID_ )->getPointer( level );
-           real_t*                             src_data = face.getData( src.getFaceDataID() )->getPointer( level );
-           real_t*                             dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
-           std::map< eo, uint_t >              firstIdx;
-           for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
-              firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
+           if ( hhg::globalDefines::useGeneratedKernels && face.getNumNeighborCells() == 2 )
+           {
+             auto opr_data = face.getData( faceStencil3DID_ )->getData( level );
+             auto src_data = face.getData( src.getFaceDataID() )->getPointer( level );
+             auto dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
 
-           if ( updateType == hhg::Replace )
-           {
-              edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace( &dst_data[firstIdx[eo::X]],
-                                                                                            &dst_data[firstIdx[eo::XY]],
-                                                                                            &dst_data[firstIdx[eo::Y]],
-                                                                                            &src_data[firstIdx[eo::X]],
-                                                                                            &src_data[firstIdx[eo::XY]],
-                                                                                            &src_data[firstIdx[eo::Y]],
-                                                                                            &opr_data[5],
-                                                                                            &opr_data[0],
-                                                                                            &opr_data[10],
-                                                                                            static_cast< int64_t >( level ) );
+             const uint_t offset_x = edgedof::macroface::index( level, 0, 0, edgedof::EdgeDoFOrientation::X );
+             const uint_t offset_xy = edgedof::macroface::index( level, 0, 0, edgedof::EdgeDoFOrientation::XY );
+             const uint_t offset_y = edgedof::macroface::index( level, 0, 0, edgedof::EdgeDoFOrientation::Y );
+
+             std::map< uint_t, std::map< edgedof::EdgeDoFOrientation, uint_t > > offset_gl_orientation;
+             for ( uint_t gl = 0; gl < 2; gl++ )
+             {
+               for ( const auto & eo : edgedof::allEdgeDoFOrientations )
+               {
+                 offset_gl_orientation[gl][eo] = edgedof::macroface::index( level, 0, 0, eo, gl );
+               }
+             }
+
+             auto neighborCell0 = storage_->getCell( face.neighborCells()[0] );
+             auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
+
+             auto neighbor_cell_0_local_vertex_id_0 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(0) );
+             auto neighbor_cell_0_local_vertex_id_1 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(1) );
+             auto neighbor_cell_0_local_vertex_id_2 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(2) );
+
+             auto neighbor_cell_1_local_vertex_id_0 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(0) );
+             auto neighbor_cell_1_local_vertex_id_1 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(1) );
+             auto neighbor_cell_1_local_vertex_id_2 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(2) );
+
+             if ( updateType == Replace )
+             {
+               edgedof::macroface::generated::apply_3D_macroface_one_sided_edgedof_to_edgedof_replace(
+               &dst_data[offset_x],
+               &dst_data[offset_xy],
+               &dst_data[offset_y],
+               &src_data[offset_x],
+               &src_data[offset_xy],
+               &src_data[offset_y],
+               &src_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+               &src_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+               &src_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+               &src_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+               &src_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+               &src_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+               &src_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+               opr_data[0],
+               static_cast< int64_t >( level ),
+               neighbor_cell_0_local_vertex_id_0,
+               neighbor_cell_0_local_vertex_id_1,
+               neighbor_cell_0_local_vertex_id_2
+               );
+             }
+             else
+             {
+               edgedof::macroface::generated::apply_3D_macroface_one_sided_edgedof_to_edgedof_add(
+               &dst_data[offset_x],
+               &dst_data[offset_xy],
+               &dst_data[offset_y],
+               &src_data[offset_x],
+               &src_data[offset_xy],
+               &src_data[offset_y],
+               &src_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+               &src_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+               &src_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+               &src_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+               &src_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+               &src_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+               &src_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+               opr_data[0],
+               static_cast< int64_t >( level ),
+               neighbor_cell_0_local_vertex_id_0,
+               neighbor_cell_0_local_vertex_id_1,
+               neighbor_cell_0_local_vertex_id_2
+               );
+             }
+
+             edgedof::macroface::generated::apply_3D_macroface_one_sided_edgedof_to_edgedof_add(
+             &dst_data[offset_x],
+             &dst_data[offset_xy],
+             &dst_data[offset_y],
+             &src_data[offset_x],
+             &src_data[offset_xy],
+             &src_data[offset_y],
+             &src_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
+             &src_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
+             &src_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
+             &src_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
+             &src_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
+             &src_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
+             &src_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
+             opr_data[1],
+             static_cast< int64_t >( level ),
+             neighbor_cell_1_local_vertex_id_0,
+             neighbor_cell_1_local_vertex_id_1,
+             neighbor_cell_1_local_vertex_id_2
+             );
            }
-           else if ( updateType == hhg::Add )
+           else
            {
-              edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_add( &dst_data[firstIdx[eo::X]],
-                                                                                        &dst_data[firstIdx[eo::XY]],
-                                                                                        &dst_data[firstIdx[eo::Y]],
-                                                                                        &src_data[firstIdx[eo::X]],
-                                                                                        &src_data[firstIdx[eo::XY]],
-                                                                                        &src_data[firstIdx[eo::Y]],
-                                                                                        &opr_data[5],
-                                                                                        &opr_data[0],
-                                                                                        &opr_data[10],
-                                                                                        static_cast< int64_t >( level ) );
+              edgedof::macroface::apply3D(
+                  level, face, *storage_, faceStencil3DID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
            }
         }
         else
         {
-           edgedof::macroface::apply( level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+           if ( hhg::globalDefines::useGeneratedKernels )
+           {
+              typedef edgedof::EdgeDoFOrientation eo;
+              real_t*                             opr_data = face.getData( faceStencilID_ )->getPointer( level );
+              real_t*                             src_data = face.getData( src.getFaceDataID() )->getPointer( level );
+              real_t*                             dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
+              std::map< eo, uint_t >              firstIdx;
+              for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
+                 firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
+
+              if ( updateType == hhg::Replace )
+              {
+                 edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace( &dst_data[firstIdx[eo::X]],
+                                                                                               &dst_data[firstIdx[eo::XY]],
+                                                                                               &dst_data[firstIdx[eo::Y]],
+                                                                                               &src_data[firstIdx[eo::X]],
+                                                                                               &src_data[firstIdx[eo::XY]],
+                                                                                               &src_data[firstIdx[eo::Y]],
+                                                                                               &opr_data[5],
+                                                                                               &opr_data[0],
+                                                                                               &opr_data[10],
+                                                                                               static_cast< int64_t >( level ) );
+              }
+              else if ( updateType == hhg::Add )
+              {
+                 edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_add( &dst_data[firstIdx[eo::X]],
+                                                                                           &dst_data[firstIdx[eo::XY]],
+                                                                                           &dst_data[firstIdx[eo::Y]],
+                                                                                           &src_data[firstIdx[eo::X]],
+                                                                                           &src_data[firstIdx[eo::XY]],
+                                                                                           &src_data[firstIdx[eo::Y]],
+                                                                                           &opr_data[5],
+                                                                                           &opr_data[0],
+                                                                                           &opr_data[10],
+                                                                                           static_cast< int64_t >( level ) );
+              }
+           }
+           else
+           {
+              edgedof::macroface::apply( level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+           }
         }
      }
   }

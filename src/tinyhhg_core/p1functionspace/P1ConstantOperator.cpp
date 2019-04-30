@@ -522,7 +522,7 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
      {
         if ( storage_->hasGlobalCells() )
         {
-           if ( hhg::globalDefines::useGeneratedKernels && face.getNumNeighborCells() == 2 && updateType == Replace )
+           if ( hhg::globalDefines::useGeneratedKernels && face.getNumNeighborCells() == 2 )
            {
              auto opr_data = face.getData( faceStencil3DID_ )->getData( level );
              auto src_data = face.getData( src.getFaceDataID() )->getPointer( level );
@@ -541,15 +541,30 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
              auto neighbor_cell_1_local_vertex_id_1 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(1) );
              auto neighbor_cell_1_local_vertex_id_2 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(2) );
 
-             vertexdof::macroface::generated::apply_3D_macroface_one_sided_vertexdof_to_vertexdof_replace(
-                 dst_data,
-                 src_data,
-                 &src_data[offset_gl_0],
-                 static_cast< int64_t >( level ),
-                 neighbor_cell_0_local_vertex_id_0,
-                 neighbor_cell_0_local_vertex_id_1,
-                 neighbor_cell_0_local_vertex_id_2,
-                 opr_data[0] );
+             if ( updateType == Replace )
+             {
+                vertexdof::macroface::generated::apply_3D_macroface_one_sided_vertexdof_to_vertexdof_replace(
+                    dst_data,
+                    src_data,
+                    &src_data[offset_gl_0],
+                    static_cast< int64_t >( level ),
+                    neighbor_cell_0_local_vertex_id_0,
+                    neighbor_cell_0_local_vertex_id_1,
+                    neighbor_cell_0_local_vertex_id_2,
+                    opr_data[0] );
+             }
+             else
+             {
+                vertexdof::macroface::generated::apply_3D_macroface_one_sided_vertexdof_to_vertexdof_add(
+                    dst_data,
+                    src_data,
+                    &src_data[offset_gl_0],
+                    static_cast< int64_t >( level ),
+                    neighbor_cell_0_local_vertex_id_0,
+                    neighbor_cell_0_local_vertex_id_1,
+                    neighbor_cell_0_local_vertex_id_2,
+                    opr_data[0] );
+             }
 
              vertexdof::macroface::generated::apply_3D_macroface_one_sided_vertexdof_to_vertexdof_add(
                dst_data,
