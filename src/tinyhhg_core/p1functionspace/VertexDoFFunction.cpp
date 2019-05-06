@@ -1238,9 +1238,24 @@ void VertexDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType
    this->stopTiming( "Interpolate" );
 }
 
-template class VertexDoFFunction< float >;
 template class VertexDoFFunction< double >;
 template class VertexDoFFunction< int >;
+
+template void VertexDoFFunction< double >::interpolateByPrimitiveType< hhg::Vertex >( const double& constant,
+                                                                                      uint_t        level,
+                                                                                      DoFType       flag ) const;
+
+template void VertexDoFFunction< double >::interpolateByPrimitiveType< hhg::Edge >( const double& constant,
+                                                                                    uint_t        level,
+                                                                                    DoFType       flag ) const;
+
+template void VertexDoFFunction< double >::interpolateByPrimitiveType< hhg::Face >( const double& constant,
+                                                                                    uint_t        level,
+                                                                                    DoFType       flag ) const;
+
+template void VertexDoFFunction< double >::interpolateByPrimitiveType< hhg::Cell >( const double& constant,
+                                                                                    uint_t        level,
+                                                                                    DoFType       flag ) const;
 
 } // namespace vertexdof
 } // namespace hhg

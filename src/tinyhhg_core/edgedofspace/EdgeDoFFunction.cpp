@@ -9,6 +9,7 @@
 #include "tinyhhg_core/communication/Syncing.hpp"
 #include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroFace2D.hpp"
 #include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroCell3D.hpp"
+#include "tinyhhg_core/primitives/all.hpp"
 
 namespace hhg {
 
@@ -914,10 +915,24 @@ void EdgeDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType& 
    this->stopTiming( "Interpolate" );
 }
 
-
-template class EdgeDoFFunction< float >;
 template class EdgeDoFFunction< double >;
 template class EdgeDoFFunction< int >;
+
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hhg::Vertex >( const double& constant,
+                                                                                    uint_t        level,
+                                                                                    DoFType       flag ) const;
+
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hhg::Edge >( const double& constant,
+                                                                                  uint_t        level,
+                                                                                  DoFType       flag ) const;
+
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hhg::Face >( const double& constant,
+                                                                                  uint_t        level,
+                                                                                  DoFType       flag ) const;
+
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hhg::Cell >( const double& constant,
+                                                                                  uint_t        level,
+                                                                                  DoFType       flag ) const;
 
 uint_t edgedof::edgeDoFMacroVertexFunctionMemorySize( const uint_t& level, const Primitive& primitive )
 {
