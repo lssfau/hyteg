@@ -29,7 +29,6 @@ static void testFunctionSpaceDataTypes()
 
   P1Function< real_t > realP1Function ( "real_t P1Function", storage, minLevel, maxLevel );
   P1Function< int >    intP1Function  ( "int    P1Function", storage, minLevel, maxLevel );
-  P1Function< float >  floatP1Function( "float  P1Function", storage, minLevel, maxLevel );
 
 }
 

@@ -590,7 +590,6 @@ void P2Function< ValueType >::setLocalCommunicationMode(
    edgeDoFFunction_.setLocalCommunicationMode( localCommMode );
 }
 
-template class P2Function< float >;
 template class P2Function< double >;
 template class P2Function< int >;
 

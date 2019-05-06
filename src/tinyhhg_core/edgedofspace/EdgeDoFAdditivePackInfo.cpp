@@ -455,7 +455,6 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalCellToVertex(const Ce
 ///@}
 
 template class EdgeDoFAdditivePackInfo< double >;
-template class EdgeDoFAdditivePackInfo< float >;
 template class EdgeDoFAdditivePackInfo< int >;
 
 } // namespace hhg

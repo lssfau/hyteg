@@ -784,7 +784,6 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalCellToFace( const Cell* sende
 }
 
 template class EdgeDoFPackInfo< double >;
-template class EdgeDoFPackInfo< float >;
 template class EdgeDoFPackInfo< int >;
 
 } // namespace hhg
