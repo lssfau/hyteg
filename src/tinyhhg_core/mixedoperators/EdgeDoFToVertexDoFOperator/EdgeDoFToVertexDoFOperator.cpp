@@ -1,8 +1,6 @@
 #include "EdgeDoFToVertexDoFOperator.hpp"
 #include "EdgeDoFToVertexDoFApply.hpp"
-#include "generatedKernels/GeneratedKernelsEdgeToVertexMacroFace2D.hpp"
-#include "generatedKernels/GeneratedKernelsEdgeToVertexMacroFace3D.hpp"
-#include "generatedKernels/GeneratedKernelsEdgeToVertexMacroCell3D.hpp"
+#include "generatedKernels/all.hpp"
 
 #include "tinyhhg_core/p2functionspace/P2Elements.hpp"
 

@@ -7,8 +7,7 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFPackInfo.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFAdditivePackInfo.hpp"
 #include "tinyhhg_core/communication/Syncing.hpp"
-#include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroFace2D.hpp"
-#include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroCell3D.hpp"
+#include "tinyhhg_core/edgedofspace/generatedKernels/all.hpp"
 
 namespace hhg {
 

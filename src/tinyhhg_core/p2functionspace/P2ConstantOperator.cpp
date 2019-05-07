@@ -45,8 +45,7 @@
 #include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
 #include "tinyhhg_core/p2functionspace/P2MacroVertex.hpp"
 #include "tinyhhg_core/communication/Syncing.hpp"
-#include "tinyhhg_core/p2functionspace/generatedKernels/GeneratedKernelsP2MacroFace2D.hpp"
-#include "tinyhhg_core/p2functionspace/generatedKernels/GeneratedKernelsP2MacroCell3D.hpp"
+#include "tinyhhg_core/p2functionspace/generatedKernels/all.hpp"
 
 namespace hhg {
 

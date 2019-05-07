@@ -31,9 +31,7 @@
 #pragma warning( pop )
 #endif
 
-#include "generatedKernels/GeneratedKernelsVertexToVertexMacroFace2D.hpp"
-#include "generatedKernels/GeneratedKernelsVertexToVertexMacroCell3D.hpp"
-#include "generatedKernels/GeneratedKernelsVertexToVertexMacroFace3D.hpp"
+#include "generatedKernels/all.hpp"
 #include "P1Elements.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
