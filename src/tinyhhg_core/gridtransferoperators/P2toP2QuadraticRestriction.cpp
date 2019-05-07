@@ -1,8 +1,7 @@
 
 #include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 
-#include "tinyhhg_core/gridtransferoperators/generatedKernels/GeneratedKernelsP2MacroFace2D.hpp"
-#include "tinyhhg_core/gridtransferoperators/generatedKernels/GeneratedKernelsP2MacroCell3D.hpp"
+#include "tinyhhg_core/gridtransferoperators/generatedKernels/all.hpp"
 
 namespace hhg {
 
