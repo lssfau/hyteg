@@ -3,7 +3,7 @@
 // This file is generated! To fix issues, please fix them in the generator. //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "GeneratedKernelsEdgeToEdgeMacroCell3D.hpp"
+#include "apply_3D_macrocell_edgedof_to_edgedof_replace.hpp"
 
 namespace hhg {
 namespace edgedof {

@@ -3,7 +3,7 @@
 // This file is generated! To fix issues, please fix them in the generator. //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "GeneratedKernelsEdgeToEdgeMacroFace2D.hpp"
+#include "assign_2D_macroface_edgedof_1_rhsfunction.hpp"
 
 namespace hhg {
 namespace edgedof {

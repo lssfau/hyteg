@@ -3,7 +3,7 @@
 // This file is generated! To fix issues, please fix them in the generator. //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "GeneratedKernelsP2MacroCell3D.hpp"
+#include "sor_3D_macrocell_P2_update_vertexdofs.hpp"
 
 namespace hhg {
 namespace P2 {

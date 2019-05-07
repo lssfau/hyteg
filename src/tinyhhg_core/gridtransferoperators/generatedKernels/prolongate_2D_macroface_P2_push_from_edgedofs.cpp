@@ -3,7 +3,7 @@
 // This file is generated! To fix issues, please fix them in the generator. //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "GeneratedKernelsP2MacroFace2D.hpp"
+#include "prolongate_2D_macroface_P2_push_from_edgedofs.hpp"
 
 namespace hhg {
 namespace P2 {

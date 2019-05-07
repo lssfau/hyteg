@@ -3,7 +3,7 @@
 // This file is generated! To fix issues, please fix them in the generator. //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "GeneratedKernelsEdgeToVertexMacroFace2D.hpp"
+#include "apply_2D_macroface_edgedof_to_vertexdof_replace.hpp"
 
 namespace hhg {
 namespace EdgeDoFToVertexDoF {

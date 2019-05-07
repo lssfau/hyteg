@@ -3,7 +3,7 @@
 // This file is generated! To fix issues, please fix them in the generator. //
 //////////////////////////////////////////////////////////////////////////////
 
-#include "GeneratedKernelsVertexToEdgeMacroCell3D.hpp"
+#include "apply_3D_macrocell_vertexdof_to_edgedof_add.hpp"
 
 namespace hhg {
 namespace VertexDoFToEdgeDoF {
