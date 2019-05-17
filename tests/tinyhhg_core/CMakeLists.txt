@@ -454,3 +454,6 @@ endif()
 waLBerla_compile_test(FILES FindMaxMinMagTest.cpp DEPENDS tinyhhg_core core)
 waLBerla_execute_test(NAME FindMaxMinMagTest1 COMMAND $<TARGET_FILE:FindMaxMinMagTest> )
 waLBerla_execute_test(NAME FindMaxMinMagTest2 COMMAND $<TARGET_FILE:FindMaxMinMagTest> PROCESSES 2 )
+
+waLBerla_compile_test(FILES FunctionPropertiesTest.cpp DEPENDS tinyhhg_core core)
+waLBerla_execute_test(NAME FunctionPropertiesTest)
