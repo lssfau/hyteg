@@ -43,10 +43,11 @@ int main( int argc, char* argv[] )
    const walberla::Config::BlockHandle mainConf        = cfg->getBlock( "Parameters" );
    const uint_t                        level           = mainConf.getParameter< uint_t >( "level" );
    const uint_t                        facesPerProcess = mainConf.getParameter< uint_t >( "facesPerProcess" );
+   const uint_t                        numProc         = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
-   hhg::MeshInfo meshInfo =
-       hhg::MeshInfo::meshFaceChain( uint_c( walberla::MPIManager::instance()->numProcesses() ) * facesPerProcess );
-   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hhg::MeshInfo meshInfo = hhg::MeshInfo::meshFaceChain( numProc * facesPerProcess );
+
+   hhg::SetupPrimitiveStorage setupStorage( meshInfo, numProc );
    hhg::loadbalancing::roundRobin( setupStorage );
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
@@ -86,7 +87,7 @@ int main( int argc, char* argv[] )
       LIKWID_MARKER_STOP( "HyTeG-apply" );
       timer.end();
       iterations *= 2;
-   } while ( timer.last() < 0.5 );
+   } while ( timer.last() < 1 );
 
    iterations /= 2;
 
@@ -113,9 +114,16 @@ int main( int argc, char* argv[] )
    const real_t glups           = real_c( globalInnerDoFs * iterations ) / 1e9 / hyteg_apply;
    const real_t gflops          = real_c( globalInnerDoFs * iterations * 13 ) / 1e9 / hyteg_apply;
 
-   WALBERLA_LOG_INFO_ON_ROOT( hhg::format( "%10s|%10s|%10s|%10s|%5s", "Time (s)", "GDoF/s", "GFLOP/s", " DoFs ", " Level" ) )
-   WALBERLA_LOG_INFO_ON_ROOT(
-       hhg::format( "%10.3e|%10.3e|%10.3e|%10.3e|%5u", hyteg_apply, glups, gflops, real_c( globalInnerDoFs ), level ) )
+   WALBERLA_LOG_INFO_ON_ROOT( hhg::format(
+       "%10s|%10s|%10s|%10s|%5s|%5s|%7s", "Time (s)", "GDoF/s", "GFLOP/s", " DoFs ", "Level", "Procs", "face/proc" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( hhg::format( "%10.3e|%10.3e|%10.3e|%10.3e|%5u|%5u|%7u",
+                                           hyteg_apply,
+                                           glups,
+                                           gflops,
+                                           real_c( globalInnerDoFs ),
+                                           level,
+                                           numProc,
+                                           facesPerProcess ) )
    //WALBERLA_LOG_INFO_ON_ROOT( std::scientific << " | " << level << " | " << totalDoFs << " | " << hyteg_apply << " | " )
 
    LIKWID_MARKER_CLOSE;
