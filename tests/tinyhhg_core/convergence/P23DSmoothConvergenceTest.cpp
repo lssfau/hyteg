@@ -66,7 +66,7 @@ int main( int argc, char* argv[] )
    hhg::testP2SmoothConvergence( 3, "../../data/meshes/3D/tet_1el.msh", 50, 1.2e-02 );
    hhg::testP2SmoothConvergence( 2, "../../data/meshes/3D/pyramid_2el.msh", 50, 9.3e-07 );
    hhg::testP2SmoothConvergence( 2, "../../data/meshes/3D/pyramid_4el.msh", 50, 1.5e-03 );
-   hhg::testP2SmoothConvergence( 2, "../../data/meshes/3D/regular_octahedron_8el.msh", 50, 7.1e-02 );
+   hhg::testP2SmoothConvergence( 2, "../../data/meshes/3D/regular_octahedron_8el.msh", 50, 7.16e-02 );
 
    return EXIT_SUCCESS;
 }
