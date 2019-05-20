@@ -16,13 +16,13 @@ static void apply_3D_macroface_one_sided_vertexdof_to_vertexdof_replace_031_leve
    const double xi_2 = p1FaceStencil[{ 0, 1, -1 }];
    const double xi_3 = p1FaceStencil[{ -1, 1, 0 }];
    const double xi_4 = p1FaceStencil[{ 0, 1, 0 }];
-   const double xi_5 = p1FaceStencil[{ -1, 0, 1 }];
-   const double xi_6 = p1FaceStencil[{ 0, 0, 1 }];
-   const double xi_7 = p1FaceStencil[{ 1, 0, -1 }];
-   const double xi_8 = p1FaceStencil[{ 0, 0, -1 }];
+   const double xi_5 = p1FaceStencil[{ 0, 0, -1 }];
+   const double xi_6 = p1FaceStencil[{ 1, 0, -1 }];
+   const double xi_7 = p1FaceStencil[{ -1, 0, 0 }];
+   const double xi_8 = p1FaceStencil[{ 0, 0, 0 }];
    const double xi_9 = p1FaceStencil[{ 1, 0, 0 }];
-   const double xi_10 = p1FaceStencil[{ -1, 0, 0 }];
-   const double xi_11 = p1FaceStencil[{ 0, 0, 0 }];
+   const double xi_10 = p1FaceStencil[{ -1, 0, 1 }];
+   const double xi_11 = p1FaceStencil[{ 0, 0, 1 }];
    for (int ctr_2 = 1; ctr_2 < (1 << (level)); ctr_2 += 1)
    {
       // inner triangle
@@ -32,13 +32,13 @@ static void apply_3D_macroface_one_sided_vertexdof_to_vertexdof_replace_031_leve
          const double xi_17 = xi_2*_data_p1FaceSrc_gl0[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) - 1];
          const double xi_18 = xi_3*_data_p1FaceSrc_gl0[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2))];
          const double xi_19 = xi_4*_data_p1FaceSrc_gl0[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))];
-         const double xi_20 = xi_5*_data_p1FaceSrc[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 2) - ((ctr_2*(ctr_2 - 1)) / (2)) + 1];
-         const double xi_21 = xi_6*_data_p1FaceSrc[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + 1];
-         const double xi_22 = xi_7*_data_p1FaceSrc[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 2) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) - 1];
-         const double xi_23 = xi_8*_data_p1FaceSrc[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) - 1];
+         const double xi_20 = xi_5*_data_p1FaceSrc[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) - 1];
+         const double xi_21 = xi_6*_data_p1FaceSrc[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 2) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) - 1];
+         const double xi_22 = xi_7*_data_p1FaceSrc[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 2) - ((ctr_2*(ctr_2 - 1)) / (2))];
+         const double xi_23 = xi_8*_data_p1FaceSrc[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
          const double xi_24 = xi_9*_data_p1FaceSrc[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 2) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2))];
-         const double xi_15 = xi_10*_data_p1FaceSrc[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 2) - ((ctr_2*(ctr_2 - 1)) / (2))];
-         const double xi_16 = xi_11*_data_p1FaceSrc[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))];
+         const double xi_15 = xi_10*_data_p1FaceSrc[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 2) - ((ctr_2*(ctr_2 - 1)) / (2)) + 1];
+         const double xi_16 = xi_11*_data_p1FaceSrc[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2)) + 1];
          _data_p1FaceDst[ctr_1 + ctr_2*((1 << (level)) + 2) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_14 + xi_15 + xi_16 + xi_17 + xi_18 + xi_19 + xi_20 + xi_21 + xi_22 + xi_23 + xi_24;
       }
    }

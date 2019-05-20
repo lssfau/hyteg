@@ -27,7 +27,7 @@ bool p2PetscApplyTest( const uint_t& level, const std::string& meshFile, const D
 {
    WALBERLA_LOG_INFO_ON_ROOT( "level: " << level << ", mesh file: " << meshFile );
 
-   const bool writeVTK = false;
+   const bool writeVTK = true;
 
    PETScManager petscManager;
 

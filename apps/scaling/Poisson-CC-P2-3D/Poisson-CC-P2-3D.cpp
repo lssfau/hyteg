@@ -151,6 +151,9 @@ void run( uint_t                                    nx,
    auto storageInfo = storage->getGlobalInfo();
    WALBERLA_LOG_INFO_ON_ROOT( storageInfo );
 
+   const auto numberOfGlobalP2DoFs = numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel );
+   WALBERLA_LOG_INFO_ON_ROOT( "Number of global P2 DoFs (incl. boundary, level " << maxLevel << "): " << numberOfGlobalP2DoFs )
+
    if ( writeVTK )
    {
       writeDomainPartitioningVTK( storage, "output", "domain_partitioning" );
