@@ -2,27 +2,28 @@ Parameters
 {
     equation stokes;
     dim 3;
-    numFacesPerSide 4;
+    numFacesPerSide 1;
     discretization P2;
     meshLayout CRISS;
-    numCycles 20;
+    numCycles 3;
     cycleType V;
     fmgInnerCycles 0; // 0 == no fmg
 
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
-    sorRelax 0.72;
+    sorRelax 0.4;
 
-    preSmoothingSteps 6;
-    postSmoothingSteps 6;
+    preSmoothingSteps 2;
+    postSmoothingSteps 2;
     smoothingIncrement 2;
     minLevel 2;
     maxLevel 5; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-15;
     projectPressureAfterRestriction true;
-    calculateDiscretizationError true;
+    calculateDiscretizationError false;
     coarseGridMaxIterations 1000;
+    coarseGridResidualTolerance 1e-16;
 
     outputVTK false;
     outputTiming false;

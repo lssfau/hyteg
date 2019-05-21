@@ -250,12 +250,12 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
    M.apply( tmp.v, f.v, level, All );
 
 #ifdef HHG_BUILD_WITH_PETSC
-   auto solver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, level );
+   auto solver = std::make_shared< PETScMinResSolver< StokesOperator > >( storage, level, 1e-16  );
 #else
    auto cgVelocity =
        std::make_shared< CGSolver< typename StokesOperator::VelocityOperator_T > >( storage, level, level, 0, 1e-14 );
-   auto preconditioner = std::make_shared< StokesBlockDiagonalPreconditioner< StokesOperator, P1LumpedInvMassOperator > >(
-       storage, level, level, 1, cgVelocity );
+   auto preconditioner = std::make_shared< StokesPressureBlockPreconditioner< StokesOperator, P1LumpedInvMassOperator > >(
+       storage, level, level ); //, 1, cgVelocity );
    auto solver = std::make_shared< MinResSolver< StokesOperator > >(
        storage, level, level, std::numeric_limits< uint_t >::max(), 1e-16, preconditioner );
 #endif
@@ -433,7 +433,11 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
    ///////////
 
    auto smoother         = std::make_shared< SORSmoother< LaplaceOperator > >( sorRelax );
+#ifdef HHG_BUILD_WITH_PETSC
    auto coarseGridSolver = std::make_shared< PETScLUSolver< LaplaceOperator > >( storage, minLevel );
+#else
+  auto coarseGridSolver = std::make_shared< CGSolver< LaplaceOperator > >( storage, minLevel, minLevel );
+#endif
 
    auto prolongationOperator = std::make_shared< Prolongation >();
    auto restrictionOperator  = std::make_shared< Restriction >();
@@ -574,6 +578,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       const uint_t&                                        smoothingIncrement,
                       const bool&                                          projectPressureAfterRestriction,
                       const uint_t&                                        coarseGridMaxIterations,
+                      const real_t&                                        coarseResidualTolerance,
                       const bool&                                          outputVTK,
                       const uint_t&                                        skipCyclesForAvgConvRate,
                       const bool&                                          calcDiscretizationError,
@@ -725,20 +730,22 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    // Solve //
    ///////////
 
+   const uint_t coarseGridMaxLevel  = ( numCycles == 0 ? maxLevel : minLevel );
+
    auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage, minLevel, maxLevel, storage->hasGlobalCells(), sorRelax );
 
-   const uint_t preconditionerCGIterations = 0;
+//   const uint_t preconditionerCGIterations = 0;
+//
+//   auto cgVelocity = std::make_shared< CGSolver< typename StokesOperator::VelocityOperator_T > >(
+//       storage, minLevel, coarseGridMaxLevel, preconditionerCGIterations, 1e-14 );
 
-   auto cgVelocity = std::make_shared< CGSolver< typename StokesOperator::VelocityOperator_T > >(
-       storage, minLevel, maxLevel, preconditionerCGIterations, 1e-14 );
    auto preconditioner = std::make_shared< StokesPressureBlockPreconditioner< StokesOperator, P1LumpedInvMassOperator > >(
-       storage, minLevel, maxLevel );//, 1, cgVelocity );
+       storage, minLevel, coarseGridMaxLevel );//, 1, cgVelocity );
    auto coarseGridSolver = std::make_shared< MinResSolver< StokesOperator > >(
-       storage, minLevel, maxLevel, coarseGridMaxIterations, 1e-16, preconditioner );
+       storage, minLevel, coarseGridMaxLevel, coarseGridMaxIterations, coarseResidualTolerance, preconditioner );
 
 #ifdef HHG_BUILD_WITH_PETSC
-   const uint_t petscLevel  = ( numCycles == 0 ? maxLevel : minLevel );
-   auto         petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >( storage, petscLevel, 1e-16 );
+   auto         petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >( storage, coarseGridMaxLevel, coarseResidualTolerance, coarseGridMaxIterations );
 #endif
 
    auto prolongationOperator = std::make_shared< Prolongation >();
@@ -952,6 +959,7 @@ void setup( int argc, char** argv )
                                                       mainConf.getParameter< uint_t >( "maxLevel" ) - 1 );
    const bool        calculateDiscretizationError    = mainConf.getParameter< bool >( "calculateDiscretizationError" );
    const uint_t      coarseGridMaxIterations         = mainConf.getParameter< uint_t >( "coarseGridMaxIterations" );
+   const real_t      coarseGridResidualTolerance     = mainConf.getParameter< real_t >( "coarseGridResidualTolerance" );
    const bool        outputVTK                       = mainConf.getParameter< bool >( "outputVTK" );
    const bool        outputTiming                    = mainConf.getParameter< bool >( "outputTiming" );
    const bool        outputTimingJSON                = mainConf.getParameter< bool >( "outputTimingJSON" );
@@ -986,6 +994,7 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - project pressure after restriction: " << ( projectPressureAfterRestriction ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - calculate discretization error: " << ( calculateDiscretizationError ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid max itertions (stokes only): " << coarseGridMaxIterations );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid residual tol  (stokes only): " << coarseGridResidualTolerance );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output VTK:                    " << ( outputVTK ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing:                 " << ( outputTiming ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing JSON:            " << ( outputTimingJSON ? "yes" : "no" ) );
@@ -1021,6 +1030,7 @@ void setup( int argc, char** argv )
    sqlIntegerProperties["min_level"]                  = int64_c( minLevel );
    sqlIntegerProperties["max_level"]                  = int64_c( maxLevel );
    sqlIntegerProperties["coarse_grid_max_iterations"] = int64_c( coarseGridMaxIterations );
+   sqlRealProperties["coarse_grid_residual_tolerance"] = coarseGridResidualTolerance;
    sqlIntegerProperties["project_after_restriction"]  = int64_c( projectPressureAfterRestriction );
 
    ////////////
@@ -1161,6 +1171,7 @@ void setup( int argc, char** argv )
                                                                 smoothingIncrement,
                                                                 projectPressureAfterRestriction,
                                                                 coarseGridMaxIterations,
+                                                                coarseGridResidualTolerance,
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
@@ -1190,6 +1201,7 @@ void setup( int argc, char** argv )
                                                                 smoothingIncrement,
                                                                 projectPressureAfterRestriction,
                                                                 coarseGridMaxIterations,
+                                                                coarseGridResidualTolerance,
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
