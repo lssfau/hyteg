@@ -774,6 +774,8 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Fun
           for ( auto e : edgedof::allEdgeDoFOrientations )
             firstIdx[e] = edgedof::macrocell::index( level, 0, 0, 0, e );
 
+          this->timingTree_->start( "Updating VertexDoFs" );
+
           P2::macrocell::generated::sor_3D_macrocell_P2_update_vertexdofs( &e_dst_data[firstIdx[eo::X]],
                                                                            &e_dst_data[firstIdx[eo::XY]],
                                                                            &e_dst_data[firstIdx[eo::XYZ]],
@@ -787,6 +789,10 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Fun
                                                                            static_cast< int64_t >( level ),
                                                                            relax,
                                                                            v2v_opr_data );
+
+          this->timingTree_->stop( "Updating VertexDoFs" );
+
+          this->timingTree_->start( "Updating EdgeDoFs" );
 
           P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs( &e_dst_data[firstIdx[eo::X]],
                                                                          &e_dst_data[firstIdx[eo::XY]],
@@ -807,6 +813,9 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Fun
                                                                          static_cast< int64_t >( level ),
                                                                          relax,
                                                                          v2e_opr_data );
+
+          this->timingTree_->stop( "Updating EdgeDoFs" );
+
         } else
         {
 
