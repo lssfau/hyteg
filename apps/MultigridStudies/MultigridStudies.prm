@@ -1,6 +1,7 @@
 Parameters
 {
     equation stokes;
+    dim 3;
     numFacesPerSide 4;
     discretization P2;
     meshLayout CRISS;

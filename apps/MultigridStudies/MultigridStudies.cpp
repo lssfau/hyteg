@@ -24,6 +24,7 @@
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/petsc/PETScLUSolver.hpp"
+#include "tinyhhg_core/petsc/PETScMinResSolver.hpp"
 #include "tinyhhg_core/petsc/PETScManager.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
@@ -95,7 +96,7 @@ std::function< real_t( const hhg::Point3D& ) > exactP = []( const hhg::Point3D& 
    return 60 * std::pow( x[0], 2.0 ) * x[1] - 20 * std::pow( x[1], 3.0 );
 };
 std::function< real_t( const hhg::Point3D& ) > rhsU = []( const hhg::Point3D& ) { return 0; };
-std::function< real_t( const hhg::Point3D& ) > rhsV = []( const hhg::Point3D& x ) { return 0; };
+std::function< real_t( const hhg::Point3D& ) > rhsV = []( const hhg::Point3D& ) { return 0; };
 
 #else
 std::function< real_t( const hhg::Point3D& ) > exactU = []( const hhg::Point3D& x ) {
@@ -171,8 +172,8 @@ void calculateErrorAndResidualStokes( const uint_t&         level,
 
    vertexdof::projectMean( error.p, level );
 
-   auto numU = numberOfGlobalDoFs< typename Function::VelocityFunction_T::Tag >( *u.p.getStorage(), level );
-   auto numP = numberOfGlobalDoFs< typename Function::PressureFunction_T::Tag >( *u.u.getStorage(), level );
+   auto numU = numberOfGlobalDoFs< typename Function::VelocityFunction_T::Tag >( *u.u.getStorage(), level );
+   auto numP = numberOfGlobalDoFs< typename Function::PressureFunction_T::Tag >( *u.p.getStorage(), level );
 
    l2ErrorU    = std::sqrt( error.u.dotGlobal( error.u, level, Inner | NeumannBoundary ) / real_c( numU ) );
    l2ErrorV    = std::sqrt( error.v.dotGlobal( error.v, level, Inner | NeumannBoundary ) );
@@ -432,7 +433,7 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
    ///////////
 
    auto smoother         = std::make_shared< SORSmoother< LaplaceOperator > >( sorRelax );
-   auto coarseGridSolver = std::make_shared< CGSolver< LaplaceOperator > >( storage, minLevel, minLevel );
+   auto coarseGridSolver = std::make_shared< PETScLUSolver< LaplaceOperator > >( storage, minLevel );
 
    auto prolongationOperator = std::make_shared< Prolongation >();
    auto restrictionOperator  = std::make_shared< Restriction >();
@@ -669,6 +670,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
    sqlIntegerProperties["total_dofs"] = int64_c( totalDoFs );
 
+   storage->getTimingTree()->reset();
+
    walberla::WcTimer timer;
    double            timeError;
    double            timeVTK;
@@ -722,20 +725,20 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    // Solve //
    ///////////
 
-   auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage, minLevel, maxLevel, false, sorRelax );
+   auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage, minLevel, maxLevel, storage->hasGlobalCells(), sorRelax );
 
    const uint_t preconditionerCGIterations = 0;
 
    auto cgVelocity = std::make_shared< CGSolver< typename StokesOperator::VelocityOperator_T > >(
        storage, minLevel, maxLevel, preconditionerCGIterations, 1e-14 );
-   auto preconditioner = std::make_shared< StokesBlockDiagonalPreconditioner< StokesOperator, P1LumpedInvMassOperator > >(
-       storage, minLevel, maxLevel, 1, cgVelocity );
+   auto preconditioner = std::make_shared< StokesPressureBlockPreconditioner< StokesOperator, P1LumpedInvMassOperator > >(
+       storage, minLevel, maxLevel );//, 1, cgVelocity );
    auto coarseGridSolver = std::make_shared< MinResSolver< StokesOperator > >(
        storage, minLevel, maxLevel, coarseGridMaxIterations, 1e-16, preconditioner );
 
 #ifdef HHG_BUILD_WITH_PETSC
    const uint_t petscLevel  = ( numCycles == 0 ? maxLevel : minLevel );
-   auto         petscSolver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, petscLevel );
+   auto         petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >( storage, petscLevel, 1e-16 );
 #endif
 
    auto prolongationOperator = std::make_shared< Prolongation >();
@@ -931,6 +934,7 @@ void setup( int argc, char** argv )
    ////////////////
 
    const std::string equation                        = mainConf.getParameter< std::string >( "equation" );
+   const uint_t      dim                             = mainConf.getParameter< uint_t >( "dim" );
    const uint_t      numProcesses                    = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
    const uint_t      numFacesPerSide                 = mainConf.getParameter< uint_t >( "numFacesPerSide" );
    const std::string discretization                  = mainConf.getParameter< std::string >( "discretization" );
@@ -965,6 +969,7 @@ void setup( int argc, char** argv )
 
    WALBERLA_LOG_INFO_ON_ROOT( "Parameters:" );
    WALBERLA_LOG_INFO_ON_ROOT( "  - equation:                      " << equation );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - dim:                           " << dim );
    WALBERLA_LOG_INFO_ON_ROOT( "  - num processes:                 " << numProcesses );
    WALBERLA_LOG_INFO_ON_ROOT( "  - num faces per side:            " << numFacesPerSide );
    WALBERLA_LOG_INFO_ON_ROOT( "  - discretization:                " << discretization );
@@ -1003,6 +1008,7 @@ void setup( int argc, char** argv )
    sqlStringProperties["equation"] = equation;
 
    sqlIntegerProperties["num_processes"]              = int64_c( numProcesses );
+   sqlIntegerProperties["dim"]                        = int64_c( dim );
    sqlIntegerProperties["num_faces_per_side"]         = int64_c( numFacesPerSide );
    sqlStringProperties["discretization"]              = discretization;
    sqlIntegerProperties["num_cycles"]                 = int64_c( numCycles );
@@ -1022,9 +1028,11 @@ void setup( int argc, char** argv )
    ////////////
 
    Point2D leftBottom( {0, 0} );
+   Point3D leftBottom3D( {0, 0, 0} );
    if ( equation == "stokes" && ( NEUMANN_PROBLEM || COLLIDING_FLOW ) )
    {
       leftBottom = Point2D( {-1, -1} );
+      leftBottom3D = Point3D( {-1, -1, -1} );
    }
 
    MeshInfo::meshFlavour meshFlavour;
@@ -1035,7 +1043,11 @@ void setup( int argc, char** argv )
    else
       WALBERLA_ABORT( "Invalid mesh layout." );
 
-   const auto meshInfo = MeshInfo::meshRectangle( leftBottom, Point2D( {1, 1} ), meshFlavour, numFacesPerSide, numFacesPerSide );
+   auto meshInfo = MeshInfo::meshRectangle( leftBottom, Point2D( {1, 1} ), meshFlavour, numFacesPerSide, numFacesPerSide );
+   if ( dim == 3 )
+   {
+     meshInfo = MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( {1, 1, 1} ) , numFacesPerSide, numFacesPerSide, numFacesPerSide );
+   }
    SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
@@ -1063,6 +1075,7 @@ void setup( int argc, char** argv )
    sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
    sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
    sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
+   sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
 
    if ( outputVTK )
    {
@@ -1193,14 +1206,17 @@ void setup( int argc, char** argv )
       WALBERLA_LOG_INFO_ON_ROOT( tt );
    }
 
-   if ( outputTimingJSON )
+   WALBERLA_ROOT_SECTION()
    {
-      nlohmann::json ttJson;
-      walberla::timing::to_json( ttJson, tt );
-      std::ofstream jsonOutput;
-      jsonOutput.open( "MultigridStudies.json" );
-      jsonOutput << ttJson.dump( 4 );
-      jsonOutput.close();
+     if ( outputTimingJSON )
+     {
+       nlohmann::json ttJson;
+       walberla::timing::to_json( ttJson, tt );
+       std::ofstream jsonOutput;
+       jsonOutput.open( "MultigridStudies.json" );
+       jsonOutput << ttJson.dump( 4 );
+       jsonOutput.close();
+     }
    }
 
    if ( outputSQL )
