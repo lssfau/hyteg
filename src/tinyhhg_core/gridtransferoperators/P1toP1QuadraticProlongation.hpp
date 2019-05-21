@@ -13,6 +13,8 @@ public:
 
     inline void prolongate( const P1Function< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) const override
     {
+      WALBERLA_CHECK( !function.getStorage()->hasGlobalCells(), "P1 quadratic prolongation not implemented in 3D." )
+
       const uint_t destinationLevel = sourceLevel + 1;
 
       for ( const auto & it : function.getStorage()->getVertices() )
