@@ -388,7 +388,7 @@ public:
   static MeshInfo meshFaceChain( uint_t numFaces );
 
   /// Construct a MeshInfo object for a rectangular cuboid
-
+  ///
   /// \param lowerLeftFront   coordinates of lower left front corner of cuboid
   /// \param upperRightBack   coordinates of upper right back corner of cuboid
   /// \param nx               (nx+1) gives the number of vertices along cuboid edges in x-direction
@@ -396,6 +396,20 @@ public:
   /// \param nz               (nz+1) gives the number of vertices along cuboid edges in z-direction
   static MeshInfo meshCuboid( const Point3D lowerLeftFront, const Point3D upperRightBack,
                               uint_t nx, uint_t ny, uint_t nz );
+
+  /// Construct a MeshInfo object for a symmetric, rectangular cuboid.
+  /// This version of the cuboid is made up of numCubesX * numCubesY * numCubesZ 24-element-cubes,
+  /// and has the following properties:
+  /// - point symmetric at the center,
+  /// - no edge at the corner points towards its interior.
+  ///
+  /// \param lowerLeftFront   coordinates of lower left front corner of cuboid
+  /// \param upperRightBack   coordinates of upper right back corner of cuboid
+  /// \param numCubesX        gives the number of 24-element cubes in x-direction
+  /// \param numCubesY        gives the number of 24-element cubes in y-direction
+  /// \param numCubesZ        gives the number of 24-element cubes in z-direction
+  static MeshInfo meshSymmetricCuboid( const Point3D lowerLeftFront, const Point3D upperRightBack,
+                                       uint_t numCubesX, uint_t numCubesY, uint_t numCubesZ );
 
   /// Returns vertices of the mesh
   const VertexContainer & getVertices() const { return vertices_; };
@@ -418,6 +432,9 @@ private:
 
   /// Adds face in ascending index order and performs checks
   void addFace( const Face & face );
+
+  /// Adds cell and all edges and faces
+  void addCellAndAllEdgesAndFaces( const Cell & cell );
 
   /// Construct a MeshInfo for a rectangular domain using diamond approach
   static MeshInfo meshRectangleDiamond( const Point2D lowerLeft, const Point2D upperRight, uint_t nx, uint_t ny );
