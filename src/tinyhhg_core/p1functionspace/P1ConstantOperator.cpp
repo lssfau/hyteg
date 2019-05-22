@@ -520,24 +520,29 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
      {
         if ( storage_->hasGlobalCells() )
         {
-           if ( hhg::globalDefines::useGeneratedKernels && face.getNumNeighborCells() == 2 )
+           if ( hhg::globalDefines::useGeneratedKernels )
            {
+             if ( face.getNumNeighborCells() == 2 )
+             {
+               this->timingTree_->start( "Two-sided" );
+             }
+             else
+             {
+               this->timingTree_->start( "One-sided" );
+             }
+
              auto opr_data = face.getData( faceStencil3DID_ )->getData( level );
              auto src_data = face.getData( src.getFaceDataID() )->getPointer( level );
              auto dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
              const uint_t offset_gl_0 = levelinfo::num_microvertices_per_face( level );
-             const uint_t offset_gl_1 = offset_gl_0 + levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge(level) - 1 );
 
              auto neighborCell0 = storage_->getCell( face.neighborCells()[0] );
-             auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
 
              auto neighbor_cell_0_local_vertex_id_0 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(0) );
              auto neighbor_cell_0_local_vertex_id_1 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(1) );
              auto neighbor_cell_0_local_vertex_id_2 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(2) );
 
-             auto neighbor_cell_1_local_vertex_id_0 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(0) );
-             auto neighbor_cell_1_local_vertex_id_1 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(1) );
-             auto neighbor_cell_1_local_vertex_id_2 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(2) );
+
 
              if ( updateType == Replace )
              {
@@ -564,7 +569,17 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
                     opr_data[0] );
              }
 
-             vertexdof::macroface::generated::apply_3D_macroface_one_sided_vertexdof_to_vertexdof_add(
+             if ( face.getNumNeighborCells() == 2  )
+             {
+               const uint_t offset_gl_1 = offset_gl_0 + levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge(level) - 1 );
+
+               auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
+
+               auto neighbor_cell_1_local_vertex_id_0 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(0) );
+               auto neighbor_cell_1_local_vertex_id_1 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(1) );
+               auto neighbor_cell_1_local_vertex_id_2 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(2) );
+
+               vertexdof::macroface::generated::apply_3D_macroface_one_sided_vertexdof_to_vertexdof_add(
                dst_data,
                src_data,
                &src_data[offset_gl_1],
@@ -573,6 +588,16 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
                neighbor_cell_1_local_vertex_id_1,
                neighbor_cell_1_local_vertex_id_2,
                opr_data[1] );
+             }
+
+             if ( face.getNumNeighborCells() == 2 )
+             {
+               this->timingTree_->stop( "Two-sided" );
+             }
+             else
+             {
+               this->timingTree_->stop( "One-sided" );
+             }
            }
            else
            {
@@ -664,6 +689,8 @@ void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertD
     size_t                      level,
     DoFType                     flag ) const
 {
+   this->startTiming( "SOR" );
+
    dst.communicate< Vertex, Edge >( level );
    dst.communicate< Edge, Face >( level );
    dst.communicate< Face, Cell >( level );
@@ -671,6 +698,8 @@ void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertD
    dst.communicate< Cell, Face >( level );
    dst.communicate< Face, Edge >( level );
    dst.communicate< Edge, Vertex >( level );
+
+   this->timingTree_->start( "Macro-Vertex" );
 
    for( auto& it : storage_->getVertices() )
    {
@@ -684,7 +713,11 @@ void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertD
       }
    }
 
+   this->timingTree_->stop( "Macro-Vertex" );
+
    dst.communicate< Vertex, Edge >( level );
+
+   this->timingTree_->start( "Macro-Edge" );
 
    for( auto& it : storage_->getEdges() )
    {
@@ -698,7 +731,11 @@ void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertD
       }
    }
 
+   this->timingTree_->stop( "Macro-Edge" );
+
    dst.communicate< Edge, Face >( level );
+
+   this->timingTree_->start( "Macro-Face" );
 
    for( auto& it : storage_->getFaces() )
    {
@@ -709,8 +746,76 @@ void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertD
       {
         if ( storage_->hasGlobalCells() )
         {
-          vertexdof::macroface::smoothSOR3D< real_t >(
-          level, face, *storage_, faceStencil3DID_, dst.getFaceDataID(), rhs.getFaceDataID(), relax );
+          if ( globalDefines::useGeneratedKernels && face.getNumNeighborCells() == 2 )
+          {
+            this->timingTree_->start( "Two-sided" );
+            auto rhs_data = face.getData( rhs.getFaceDataID() )->getPointer( level );
+            auto dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
+            auto stencil = face.getData( faceStencil3DID_ )->getData( level );
+
+            auto neighborCell0 = storage_->getCell( face.neighborCells()[0] );
+            auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
+
+            auto neighbor_cell_0_local_vertex_id_0 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(0) );
+            auto neighbor_cell_0_local_vertex_id_1 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(1) );
+            auto neighbor_cell_0_local_vertex_id_2 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(2) );
+
+            auto neighbor_cell_1_local_vertex_id_0 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(0) );
+            auto neighbor_cell_1_local_vertex_id_1 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(1) );
+            auto neighbor_cell_1_local_vertex_id_2 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(2) );
+
+
+            const uint_t vertex_offset_gl_0 = levelinfo::num_microvertices_per_face( level );
+            const uint_t vertex_offset_gl_1 = vertex_offset_gl_0 + levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge(level) - 1 );
+
+            if ( neighbor_cell_0_local_vertex_id_0 > neighbor_cell_1_local_vertex_id_0 ||
+                 ( neighbor_cell_0_local_vertex_id_0 == neighbor_cell_1_local_vertex_id_0 &&
+                   neighbor_cell_0_local_vertex_id_1 > neighbor_cell_1_local_vertex_id_1 ) ||
+                 ( neighbor_cell_0_local_vertex_id_0 == neighbor_cell_1_local_vertex_id_0 &&
+                   neighbor_cell_0_local_vertex_id_1 == neighbor_cell_1_local_vertex_id_1 &&
+                   neighbor_cell_0_local_vertex_id_2 > neighbor_cell_1_local_vertex_id_2 ) )
+            {
+              vertexdof::macroface::generated::sor_3D_macroface_P1( dst_data,
+                                                                    &dst_data[vertex_offset_gl_1],
+                                                                    &dst_data[vertex_offset_gl_0],
+                                                                    rhs_data,
+                                                                    static_cast< int64_t >( level ),
+                                                                    neighbor_cell_1_local_vertex_id_0,
+                                                                    neighbor_cell_1_local_vertex_id_1,
+                                                                    neighbor_cell_1_local_vertex_id_2,
+                                                                    neighbor_cell_0_local_vertex_id_0,
+                                                                    neighbor_cell_0_local_vertex_id_1,
+                                                                    neighbor_cell_0_local_vertex_id_2,
+                                                                    relax,
+                                                                    stencil[1],
+                                                                    stencil[0] );
+            }
+            else
+            {
+              vertexdof::macroface::generated::sor_3D_macroface_P1( dst_data,
+                                                                    &dst_data[vertex_offset_gl_0],
+                                                                    &dst_data[vertex_offset_gl_1],
+                                                                    rhs_data,
+                                                                    static_cast< int64_t >( level ),
+                                                                    neighbor_cell_0_local_vertex_id_0,
+                                                                    neighbor_cell_0_local_vertex_id_1,
+                                                                    neighbor_cell_0_local_vertex_id_2,
+                                                                    neighbor_cell_1_local_vertex_id_0,
+                                                                    neighbor_cell_1_local_vertex_id_1,
+                                                                    neighbor_cell_1_local_vertex_id_2,
+                                                                    relax,
+                                                                    stencil[0],
+                                                                    stencil[1] );
+            }
+            this->timingTree_->stop( "Two-sided" );
+          }
+          else
+          {
+            this->timingTree_->start( "One-sided" );
+            vertexdof::macroface::smoothSOR3D< real_t >(
+            level, face, *storage_, faceStencil3DID_, dst.getFaceDataID(), rhs.getFaceDataID(), relax );
+            this->timingTree_->stop( "One-sided" );
+          }
         }
         else
         {
@@ -720,7 +825,11 @@ void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertD
       }
    }
 
+   this->timingTree_->stop( "Macro-Face" );
+
    dst.communicate< Face, Cell >( level );
+
+   this->timingTree_->start( "Macro-Cell" );
 
    for( auto& it : storage_->getCells() )
    {
@@ -729,9 +838,24 @@ void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertD
       const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
       if( testFlag( cellBC, flag ) )
       {
-         vertexdof::macrocell::smooth_sor< real_t >( level, cell, cellStencilID_, dst.getCellDataID(), rhs.getCellDataID(), relax );
+         if ( globalDefines::useGeneratedKernels )
+         {
+            auto rhs_data = cell.getData( rhs.getCellDataID() )->getPointer( level );
+            auto dst_data = cell.getData( dst.getCellDataID() )->getPointer( level );
+            auto stencil = cell.getData( cellStencilID_ )->getData( level );
+
+            vertexdof::macrocell::generated::sor_3D_macrocell_P1( dst_data, rhs_data, static_cast< int64_t >( level ), stencil, relax );
+         }
+         else
+         {
+           vertexdof::macrocell::smooth_sor< real_t >( level, cell, cellStencilID_, dst.getCellDataID(), rhs.getCellDataID(), relax );
+         }
       }
    }
+
+   this->timingTree_->stop( "Macro-Cell" );
+
+   this->stopTiming( "SOR" );
 }
 
 template < class UFCOperator2D, class UFCOperator3D, bool Diagonal, bool Lumped, bool InvertDiagonal >
