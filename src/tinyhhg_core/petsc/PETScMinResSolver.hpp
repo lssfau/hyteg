@@ -44,7 +44,7 @@ class PETScMinResSolver : public Solver< OperatorType >
    {
       KSPDestroy( &ksp );
       if ( nullSpaceSet_ )
-        MatNullSpaceDestroy( &nullspace_ );
+         MatNullSpaceDestroy( &nullspace_ );
    }
 
    void setNullSpace( const FunctionType& nullspace )
@@ -64,16 +64,17 @@ class PETScMinResSolver : public Solver< OperatorType >
       bVec.createVectorFromFunction( b, num, level, All );
 
       AmatNonEliminatedBC.createMatrixFromFunctionOnce( A, level, num, All );
+      Amat.createMatrixFromFunctionOnce( A, level, num, All );
       MatCopy( AmatNonEliminatedBC.get(), Amat.get(), DIFFERENT_NONZERO_PATTERN );
 
-       Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
-       if ( nullSpaceSet_ )
-       {
-          MatSetNullSpace( Amat.get(), nullspace_ );
-       }
-       KSPSetOperators( ksp, Amat.get(), Amat.get() );
-       KSPGetPC( ksp, &pc );
-       PCSetType( pc, PCNONE );
+      Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
+      if ( nullSpaceSet_ )
+      {
+         MatSetNullSpace( Amat.get(), nullspace_ );
+      }
+      KSPSetOperators( ksp, Amat.get(), Amat.get() );
+      KSPGetPC( ksp, &pc );
+      PCSetType( pc, PCNONE );
 
       KSPSolve( ksp, bVec.get(), xVec.get() );
 
