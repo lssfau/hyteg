@@ -63,6 +63,8 @@ class VTKOutput
       P2
    };
 
+  enum class VTK_DATA_FORMAT { ASCII, BINARY, APPENDED };
+
    static const std::map< VTKOutput::DoFType, std::string > DoFTypeToString_;
 
    void   writeDoFByType( std::ostream& output, const uint_t& level, const VTKOutput::DoFType& dofType ) const;
@@ -101,6 +103,9 @@ class VTKOutput
 
    void syncAllFunctions( const uint_t& level ) const;
 
+   void openDataElement( std::ostream& output, const std::string& type, const std::string& name,
+                         const uint_t nComponents, const VTK_DATA_FORMAT fmt ) const;
+
    /// Writes only macro-faces.
    void set2D() { write2D_ = true; }
    /// Writes only macro-cells.
@@ -108,6 +113,8 @@ class VTKOutput
 
    std::string dir_;
    std::string filename_;
+
+   const std::string defaultFMT_ = "format=\"ascii\"";
 
    uint_t writeFrequency_;
 
