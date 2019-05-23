@@ -23,7 +23,7 @@ static void writeXMLHeader( std::ostream& output )
    WALBERLA_ROOT_SECTION()
    {
       output << "<?xml version=\"1.0\"?>\n";
-      output << "<VTKFile type=\"UnstructuredGrid\">\n";
+      output << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\">\n";
       output << " <UnstructuredGrid>\n";
    }
 }
@@ -53,7 +53,9 @@ static void writePieceFooter( std::ostream& output )
 static void writePointsHeader( std::ostream& output )
 {
    output << "<Points>\n";
-   output << "<DataArray type=\"Float64\" NumberOfComponents=\"3\">\n";
+   output << "<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
+   // VTKOutput::openDataElement( output, "Float64", "", 3, VTKOutput::VTK_DATA_FORMAT::ASCII );
+
 }
 
 static void writePointsFooter( std::ostream& output )
@@ -457,7 +459,7 @@ void VTKOutput::writeCells2D( std::ostream&                              output,
                               const uint_t&                              faceWidth ) const
 {
    output << "<Cells>\n";
-   output << "<DataArray type=\"Int32\" Name=\"connectivity\">\n";
+   openDataElement( output, "Int32", "connectivity", 0, VTK_DATA_FORMAT::ASCII );
 
    const uint_t numberOfCells = ( ( ( faceWidth - 1 ) * faceWidth ) / 2 ) + ( ( ( faceWidth - 2 ) * ( faceWidth - 1 ) ) / 2 );
 
@@ -490,7 +492,7 @@ void VTKOutput::writeCells2D( std::ostream&                              output,
    }
 
    output << "\n</DataArray>\n";
-   output << "<DataArray type=\"Int32\" Name=\"offsets\">\n";
+   openDataElement( output, "Int32", "offsets", 0, VTK_DATA_FORMAT::ASCII );
 
    // offsets
    offset = 3;
@@ -506,7 +508,7 @@ void VTKOutput::writeCells2D( std::ostream&                              output,
    }
 
    output << "\n</DataArray>\n";
-   output << "<DataArray type=\"UInt8\" Name=\"types\">\n";
+   openDataElement( output, "UInt8", "types", 0, VTK_DATA_FORMAT::ASCII );
 
    // cell types
    for( auto& it : storage->getFaces() )
@@ -527,7 +529,7 @@ void VTKOutput::writeCells3D( std::ostream&                              output,
                               const uint_t&                              width ) const
 {
    output << "<Cells>\n";
-   output << "<DataArray type=\"Int32\" Name=\"connectivity\">\n";
+   openDataElement( output, "Int32", "connectivity", 0, VTK_DATA_FORMAT::ASCII );
 
    // calculates the position of the point in the VTK list of points from a logical vertex index
    auto calcVTKPointArrayPosition = [width]( const indexing::Index& vertexIndex ) -> uint_t {
@@ -614,7 +616,7 @@ void VTKOutput::writeCells3D( std::ostream&                              output,
    }
 
    output << "\n</DataArray>\n";
-   output << "<DataArray type=\"Int32\" Name=\"offsets\">\n";
+   openDataElement( output, "Int32", "offsets", 0, VTK_DATA_FORMAT::ASCII );
 
    // offsets
    uint_t offset = 4;
@@ -630,7 +632,7 @@ void VTKOutput::writeCells3D( std::ostream&                              output,
    }
 
    output << "\n</DataArray>\n";
-   output << "<DataArray type=\"UInt8\" Name=\"types\">\n";
+   openDataElement( output, "Uint8", "types", 0, VTK_DATA_FORMAT::ASCII );
 
    // cell types
    for( const auto& it : storage->getCells() )
@@ -685,7 +687,7 @@ void VTKOutput::writeP1( std::ostream& output, const uint_t& level ) const
 
    for( const auto& function : p1Functions_ )
    {
-      output << "<DataArray type=\"Float64\" Name=\"" << function.getFunctionName() << "\" NumberOfComponents=\"1\">\n";
+      openDataElement( output, "Float64", function.getFunctionName(), 1, VTK_DATA_FORMAT::ASCII );
 
       writeVertexDoFData( output, function, storage, level );
 
@@ -744,7 +746,7 @@ void VTKOutput::writeEdgeDoFs( std::ostream& output, const uint_t& level, const 
 
    for( const auto& function : edgeDoFFunctions_ )
    {
-      output << "<DataArray type=\"Float64\" Name=\"" << function.getFunctionName() << "\" NumberOfComponents=\"1\">\n";
+      openDataElement( output, "Float64", function.getFunctionName(), 1, VTK_DATA_FORMAT::ASCII );
 
       writeEdgeDoFData( output, function, storage, level, dofType );
 
@@ -791,7 +793,8 @@ void VTKOutput::writeDGDoFs( std::ostream& output, const uint_t& level ) const
 
    for( const auto& function : dgFunctions_ )
    {
-      output << "<DataArray type=\"Float64\" Name=\"" << function.getFunctionName() << "\" NumberOfComponents=\"1\">\n";
+      openDataElement( output, "Float64", function.getFunctionName(), 1, VTK_DATA_FORMAT::ASCII );
+
       for( const auto& it : storage->getFaces() )
       {
          const Face& face = *it.second;
@@ -858,7 +861,7 @@ void VTKOutput::writeP2( std::ostream& output, const uint_t& level ) const
 
    for( const auto& function : p2Functions_ )
    {
-      output << "<DataArray type=\"Float64\" Name=\"" << function.getFunctionName() << "\" NumberOfComponents=\"1\">\n";
+      openDataElement( output, "Float64", function.getFunctionName(), 1, VTK_DATA_FORMAT::ASCII );
 
       if( write2D_ )
       {
@@ -1067,6 +1070,31 @@ void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
       }
    }
 }
+
+void VTKOutput::openDataElement( std::ostream& output, const std::string& type, const std::string& name,
+                                 const uint_t nComponents, const VTK_DATA_FORMAT fmt ) const
+{
+
+  // open element and write type
+  output << "<DataArray type=\"" << type << "\"";
+
+  // write name, if given
+  if( name.length() > 0 ) {
+    output << " Name=\"" << name << "\"";
+  }
+
+  // write number of components, if required
+  if( nComponents > 0 ) {
+    output << " NumberOfComponents=\"" << nComponents << "\"";
+  }
+  // specify format
+  WALBERLA_UNUSED( fmt );
+  WALBERLA_ASSERT( fmt == VTK_DATA_FORMAT::ASCII,
+                   "Only ASCII is supported as VTK_DATA_FORMAT at the moment" );
+  output << " format=\"ascii\">\n";
+
+}
+  
 
 void VTKOutput::syncAllFunctions( const uint_t& level ) const
 {
