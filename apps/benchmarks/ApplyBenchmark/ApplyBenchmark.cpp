@@ -43,11 +43,6 @@ static walberla::WcTimingTree runbenchmark( const uint_t& level, const uint_t& f
 
    ///// Functions / operators / allocation /////
 
-   //   std::shared_ptr< hhg::Function > src;
-
-   //   if ( discretization == "P1" ) {}
-   //   else if ( discretization == "P2" )
-   //   {
    Discretization src( "src", storage, level, level );
    Discretization dst( "dst", storage, level, level );
 
@@ -65,6 +60,7 @@ static walberla::WcTimingTree runbenchmark( const uint_t& level, const uint_t& f
    do
    {
       timer.reset();
+      LIKWID_MARKER_RESET( "HyTeG-apply" );
       LIKWID_MARKER_START( "HyTeG-apply" );
       for ( uint_t i = 0; i < iterations; ++i )
       {
