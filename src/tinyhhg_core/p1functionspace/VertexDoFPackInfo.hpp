@@ -6,6 +6,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
+#include "tinyhhg_core/p1functionspace/generatedKernels/all.hpp"
 
 namespace hhg {
 
@@ -348,8 +349,44 @@ void VertexDoFPackInfo< ValueType >::unpackCellFromFace(Cell *receiver, const Pr
   }
 }
 
+template<>
+inline void VertexDoFPackInfo< real_t >::communicateLocalFaceToCell(const Face *sender, Cell *receiver) const
+{
+  this->storage_.lock()->getTimingTree()->start( "VertexDoF - Face to Cell" );
+  const real_t * faceData = sender->getData( dataIDFace_ )->getPointer( level_ );
+  real_t * cellData = receiver->getData( dataIDCell_ )->getPointer( level_ );
+
+  const uint_t localFaceID = receiver->getLocalFaceID( sender->getID());
+  const uint_t iterationVertex0 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 );
+  const uint_t iterationVertex1 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
+  const uint_t iterationVertex2 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
+
+  if ( globalDefines::useGeneratedKernels )
+  {
+    vertexdof::comm::generated::communicate_directly_vertexdof_face_to_cell(
+     cellData, faceData, static_cast< int64_t >( level_ ), iterationVertex0, iterationVertex1, iterationVertex2 );
+  }
+  else
+  {
+    auto cellIterator = vertexdof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
+
+    for ( const auto & faceIdx : vertexdof::macroface::Iterator( level_ ))
+    {
+      auto cellIdx = *cellIterator;
+
+      cellData[vertexdof::macrocell::indexFromVertex( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), stencilDirection::VERTEX_C )] =
+      faceData[vertexdof::macroface::indexFromVertex( level_, faceIdx.x(), faceIdx.y(), stencilDirection::VERTEX_C )];
+
+      cellIterator++;
+    }
+
+    WALBERLA_ASSERT( cellIterator == cellIterator.end());
+  }
+  this->storage_.lock()->getTimingTree()->stop( "VertexDoF - Face to Cell" );
+}
+
 template< typename ValueType >
-void VertexDoFPackInfo< ValueType >::communicateLocalFaceToCell(const Face *sender, Cell *receiver) const
+inline void VertexDoFPackInfo< ValueType >::communicateLocalFaceToCell(const Face *sender, Cell *receiver) const
 {
   this->storage_.lock()->getTimingTree()->start( "VertexDoF - Face to Cell" );
   const ValueType * faceData = sender->getData( dataIDFace_ )->getPointer( level_ );
@@ -420,8 +457,65 @@ void VertexDoFPackInfo< ValueType >::unpackFaceFromCell(Face *receiver, const Pr
   }
 }
 
+
+template<>
+inline void VertexDoFPackInfo< real_t >::communicateLocalCellToFace(const Cell *sender, Face *receiver) const
+{
+  this->storage_.lock()->getTimingTree()->start( "VertexDoF - Cell to Face" );
+  const real_t * cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
+  const uint_t localFaceID = sender->getLocalFaceID( receiver->getID() );
+  const uint_t iterationVertex0 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 );
+  const uint_t iterationVertex1 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
+  const uint_t iterationVertex2 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
+
+  real_t * faceData = receiver->getData( dataIDFace_ )->getPointer( level_ );
+
+  WALBERLA_ASSERT_GREATER( receiver->getNumNeighborCells(), 0 );
+  WALBERLA_ASSERT( receiver->neighborPrimitiveExists( sender->getID() ) );
+
+  if ( globalDefines::useGeneratedKernels )
+  {
+    const auto faceLocalCellID = receiver->cell_index( sender->getID() );
+    const auto offsetToGhostLayer = faceLocalCellID == 0 ? levelinfo::num_microvertices_per_face( level_ ) :
+      levelinfo::num_microvertices_per_face( level_ ) + levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level_ ) - 1 );
+    vertexdof::comm::generated::communicate_directly_vertexdof_cell_to_face(
+      cellData, &faceData[offsetToGhostLayer], static_cast< int64_t >( level_ ), iterationVertex0, iterationVertex1, iterationVertex2
+    );
+  }
+  else
+  {
+    stencilDirection neighborDirection;
+
+    if ( receiver->cell_index( sender->getID()) == 0 )
+    {
+      neighborDirection = stencilDirection::VERTEX_TC;
+    } else
+    {
+      WALBERLA_ASSERT_EQUAL( receiver->cell_index( sender->getID()), 1 );
+      neighborDirection = stencilDirection::VERTEX_BC;
+    }
+
+    auto cellIterator = vertexdof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 );
+
+    for ( const auto & it : vertexdof::macroface::Iterator( level_ ))
+    {
+      if ( it.x() + it.y() < levelinfo::num_microvertices_per_edge( level_ ) - 1 )
+      {
+        auto cellIdx = *cellIterator;
+        faceData[vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), neighborDirection )] =
+        cellData[vertexdof::macrocell::indexFromVertex( level_, cellIdx.x(), cellIdx.y(), cellIdx.z(), stencilDirection::VERTEX_C )];
+        cellIterator++;
+      }
+    }
+
+    WALBERLA_ASSERT( cellIterator == cellIterator.end());
+  }
+  this->storage_.lock()->getTimingTree()->stop( "VertexDoF - Cell to Face" );
+}
+
+
 template< typename ValueType >
-void VertexDoFPackInfo< ValueType >::communicateLocalCellToFace(const Cell *sender, Face *receiver) const
+inline void VertexDoFPackInfo< ValueType >::communicateLocalCellToFace(const Cell *sender, Face *receiver) const
 {
   this->storage_.lock()->getTimingTree()->start( "VertexDoF - Cell to Face" );
   const ValueType * cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
