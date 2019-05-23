@@ -170,7 +170,7 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
 
       const real_t discrResConvRate = residuum_l2_1 / lastResidual;
-      WALBERLA_CHECK_LESS( discrResConvRate, 1.6e-01 )
+      WALBERLA_CHECK_LESS( discrResConvRate, 1.7e-01 )
 
       lastResidual = residuum_l2_1;
 

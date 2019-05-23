@@ -1,8 +1,10 @@
 
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "tinyhhg_core/gridtransferoperators/generatedKernels/all.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/Levelinfo.hpp"
+#include "tinyhhg_core/HHGDefinitions.hpp"
 
 namespace hhg {
 
@@ -108,97 +110,150 @@ void P1toP1LinearProlongation::prolongate3D( const P1Function< real_t >& functio
       dstData[ arrayIdxDst ] = real_c( 0 );
     }
 
-    // Calculate inverse number of neighboring cells for each neighboring macro-primitive.
-    std::array< real_t, 4 > invNumNeighborsOfVertex;
-    std::array< real_t, 6 > invNumNeighborsOfEdge;
-    std::array< real_t, 4 > invNumNeighborsOfFace;
-
-    invNumNeighborsOfVertex.fill( real_c(0) );
-    invNumNeighborsOfEdge.fill( real_c(0) );
-    invNumNeighborsOfFace.fill( real_c(0) );
-
-    for ( const auto & neighborVertexID : cell->neighborVertices() )
+    if ( globalDefines::useGeneratedKernels )
     {
-      invNumNeighborsOfVertex[ cell->getLocalVertexID( neighborVertexID ) ] = real_c( 1 ) / real_c( function.getStorage()->getVertex( neighborVertexID )->getNumNeighborCells() );
+       auto storage = function.getStorage();
+
+       const double numNeighborCellsFace0 =
+           static_cast< double >( storage->getFace( cell->neighborFaces().at( 0 ) )->getNumNeighborCells() );
+       const double numNeighborCellsFace1 =
+           static_cast< double >( storage->getFace( cell->neighborFaces().at( 1 ) )->getNumNeighborCells() );
+       const double numNeighborCellsFace2 =
+           static_cast< double >( storage->getFace( cell->neighborFaces().at( 2 ) )->getNumNeighborCells() );
+       const double numNeighborCellsFace3 =
+           static_cast< double >( storage->getFace( cell->neighborFaces().at( 3 ) )->getNumNeighborCells() );
+
+       const double numNeighborCellsEdge0 =
+           static_cast< double >( storage->getEdge( cell->neighborEdges().at( 0 ) )->getNumNeighborCells() );
+       const double numNeighborCellsEdge1 =
+           static_cast< double >( storage->getEdge( cell->neighborEdges().at( 1 ) )->getNumNeighborCells() );
+       const double numNeighborCellsEdge2 =
+           static_cast< double >( storage->getEdge( cell->neighborEdges().at( 2 ) )->getNumNeighborCells() );
+       const double numNeighborCellsEdge3 =
+           static_cast< double >( storage->getEdge( cell->neighborEdges().at( 3 ) )->getNumNeighborCells() );
+       const double numNeighborCellsEdge4 =
+           static_cast< double >( storage->getEdge( cell->neighborEdges().at( 4 ) )->getNumNeighborCells() );
+       const double numNeighborCellsEdge5 =
+           static_cast< double >( storage->getEdge( cell->neighborEdges().at( 5 ) )->getNumNeighborCells() );
+
+       const double numNeighborCellsVertex0 =
+           static_cast< double >( storage->getVertex( cell->neighborVertices().at( 0 ) )->getNumNeighborCells() );
+       const double numNeighborCellsVertex1 =
+           static_cast< double >( storage->getVertex( cell->neighborVertices().at( 1 ) )->getNumNeighborCells() );
+       const double numNeighborCellsVertex2 =
+           static_cast< double >( storage->getVertex( cell->neighborVertices().at( 2 ) )->getNumNeighborCells() );
+       const double numNeighborCellsVertex3 =
+           static_cast< double >( storage->getVertex( cell->neighborVertices().at( 3 ) )->getNumNeighborCells() );
+
+       vertexdof::macrocell::generated::prolongate_3D_macrocell_P1_push_additive( srcData,
+                                                                                  dstData,
+                                                                                  static_cast< int32_t >( sourceLevel ),
+                                                                                  numNeighborCellsEdge0,
+                                                                                  numNeighborCellsEdge1,
+                                                                                  numNeighborCellsEdge2,
+                                                                                  numNeighborCellsEdge3,
+                                                                                  numNeighborCellsEdge4,
+                                                                                  numNeighborCellsEdge5,
+                                                                                  numNeighborCellsFace0,
+                                                                                  numNeighborCellsFace1,
+                                                                                  numNeighborCellsFace2,
+                                                                                  numNeighborCellsFace3,
+                                                                                  numNeighborCellsVertex0,
+                                                                                  numNeighborCellsVertex1,
+                                                                                  numNeighborCellsVertex2,
+                                                                                  numNeighborCellsVertex3 );
     }
-    for ( const auto & neighborEdgeID : cell->neighborEdges() )
+    else
     {
-      invNumNeighborsOfEdge[ cell->getLocalEdgeID( neighborEdgeID ) ] = real_c( 1 ) / real_c( function.getStorage()->getEdge( neighborEdgeID )->getNumNeighborCells() );
-    }
-    for ( const auto & neighborFaceID : cell->neighborFaces() )
-    {
-      invNumNeighborsOfFace[ cell->getLocalFaceID( neighborFaceID ) ] = real_c( 1 ) / real_c( function.getStorage()->getFace( neighborFaceID )->getNumNeighborCells() );
-    }
+      // Calculate inverse number of neighboring cells for each neighboring macro-primitive.
+      std::array< real_t, 4 > invNumNeighborsOfVertex;
+      std::array< real_t, 6 > invNumNeighborsOfEdge;
+      std::array< real_t, 4 > invNumNeighborsOfFace;
 
-    for ( const auto & srcIdx : vertexdof::macrocell::Iterator( sourceLevel ) )
-    {
-      const auto arrayIdxSrc = vertexdof::macrocell::index( sourceLevel, srcIdx.x(), srcIdx.y(), srcIdx.z() );
-      const auto dstIdx = srcIdx * 2;
+      invNumNeighborsOfVertex.fill( real_c( 0 ));
+      invNumNeighborsOfEdge.fill( real_c( 0 ));
+      invNumNeighborsOfFace.fill( real_c( 0 ));
 
-      const auto onCellVertices = vertexdof::macrocell::isOnCellVertex( srcIdx, sourceLevel );
-      const auto onCellEdges    = vertexdof::macrocell::isOnCellEdge  ( srcIdx, sourceLevel );
-      const auto onCellFaces    = vertexdof::macrocell::isOnCellFace  ( srcIdx, sourceLevel );
-
-      // update center
-      const auto invFactorToScaleContributionCenter = calculateInverseFactorToScaleNeighborhoodContribution( invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace,
-                                                                                                             dstIdx, destinationLevel );
-
-      const auto arrayIdxDstCenter = vertexdof::macrocell::index( destinationLevel, dstIdx.x(), dstIdx.y(), dstIdx.z() );
-      dstData[ arrayIdxDstCenter ] += invFactorToScaleContributionCenter * srcData[ arrayIdxSrc ];
-
-      // update new points depending on location in macro-cell
-      if ( onCellVertices.size() > 0 )
+      for ( const auto & neighborVertexID : cell->neighborVertices())
       {
-        WALBERLA_ASSERT_EQUAL( onCellVertices.size(), 1 );
-        const auto localVertexID = *onCellVertices.begin();
-
-        for ( const auto & dir : vertexdof::macrocell::neighborsOnVertexWithoutCenter[localVertexID] )
-        {
-          const auto increment = vertexdof::logicalIndexOffsetFromVertex( dir );
-          const auto dirIdxDst = dstIdx + increment;
-          const auto invFactorToScaleContribution = calculateInverseFactorToScaleNeighborhoodContribution( invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace,
-                                                                                                           dirIdxDst, destinationLevel );
-
-          const auto arrayIdxDst = vertexdof::macrocell::index( destinationLevel, dirIdxDst.x(), dirIdxDst.y(), dirIdxDst.z() );
-          dstData[ arrayIdxDst ] += 0.5 * invFactorToScaleContribution * srcData[ arrayIdxSrc ];
-        }
+        invNumNeighborsOfVertex[cell->getLocalVertexID( neighborVertexID )] = real_c( 1 ) / real_c( function.getStorage()->getVertex( neighborVertexID )->getNumNeighborCells());
       }
-      else if ( onCellEdges.size() > 0 )
+      for ( const auto & neighborEdgeID : cell->neighborEdges())
       {
-        WALBERLA_ASSERT_EQUAL( onCellEdges.size(), 1 );
-        const auto localEdgeID = *onCellEdges.begin();
-
-        for ( const auto & dir : vertexdof::macrocell::neighborsOnEdgeWithoutCenter[localEdgeID] )
-        {
-          const auto increment = vertexdof::logicalIndexOffsetFromVertex( dir );
-          const auto dirIdxDst = dstIdx + increment;
-          const auto invFactorToScaleContribution = calculateInverseFactorToScaleNeighborhoodContribution( invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace,
-                                                                                                           dirIdxDst, destinationLevel );
-          const auto arrayIdxDst = vertexdof::macrocell::index( destinationLevel, dirIdxDst.x(), dirIdxDst.y(), dirIdxDst.z() );
-          dstData[ arrayIdxDst ] += 0.5 * invFactorToScaleContribution * srcData[ arrayIdxSrc ];
-        }
+        invNumNeighborsOfEdge[cell->getLocalEdgeID( neighborEdgeID )] = real_c( 1 ) / real_c( function.getStorage()->getEdge( neighborEdgeID )->getNumNeighborCells());
       }
-      else if ( onCellFaces.size() > 0 )
+      for ( const auto & neighborFaceID : cell->neighborFaces())
       {
-        WALBERLA_ASSERT_EQUAL( onCellFaces.size(), 1 );
-        const auto localFaceID = *onCellFaces.begin();
-
-        for ( const auto & dir : vertexdof::macrocell::neighborsOnFaceWithoutCenter[localFaceID] )
-        {
-          const auto increment = vertexdof::logicalIndexOffsetFromVertex( dir );
-          const auto dirIdxDst = dstIdx + increment;
-          const auto invFactorToScaleContribution = calculateInverseFactorToScaleNeighborhoodContribution( invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace,
-                                                                                                           dirIdxDst, destinationLevel );
-          const auto arrayIdxDst = vertexdof::macrocell::index( destinationLevel, dirIdxDst.x(), dirIdxDst.y(), dirIdxDst.z() );
-          dstData[ arrayIdxDst ] += 0.5 * invFactorToScaleContribution * srcData[ arrayIdxSrc ];
-        }
+        invNumNeighborsOfFace[cell->getLocalFaceID( neighborFaceID )] = real_c( 1 ) / real_c( function.getStorage()->getFace( neighborFaceID )->getNumNeighborCells());
       }
-      else
+
+      for ( const auto & srcIdx : vertexdof::macrocell::Iterator( sourceLevel ))
       {
-        for ( const auto & dir : vertexdof::macrocell::neighborsWithoutCenter )
+        const auto arrayIdxSrc = vertexdof::macrocell::index( sourceLevel, srcIdx.x(), srcIdx.y(), srcIdx.z());
+        const auto dstIdx = srcIdx * 2;
+
+        const auto onCellVertices = vertexdof::macrocell::isOnCellVertex( srcIdx, sourceLevel );
+        const auto onCellEdges = vertexdof::macrocell::isOnCellEdge( srcIdx, sourceLevel );
+        const auto onCellFaces = vertexdof::macrocell::isOnCellFace( srcIdx, sourceLevel );
+
+        // update center
+        const auto invFactorToScaleContributionCenter = calculateInverseFactorToScaleNeighborhoodContribution( invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace,
+                                                                                                               dstIdx, destinationLevel );
+
+        const auto arrayIdxDstCenter = vertexdof::macrocell::index( destinationLevel, dstIdx.x(), dstIdx.y(), dstIdx.z());
+        dstData[arrayIdxDstCenter] += invFactorToScaleContributionCenter * srcData[arrayIdxSrc];
+
+        // update new points depending on location in macro-cell
+        if ( onCellVertices.size() > 0 )
         {
-          const auto arrayIdxDst = vertexdof::macrocell::indexFromVertex( destinationLevel, dstIdx.x(), dstIdx.y(), dstIdx.z(), dir );
-          dstData[ arrayIdxDst ] += 0.5 * srcData[ arrayIdxSrc ];
+          WALBERLA_ASSERT_EQUAL( onCellVertices.size(), 1 );
+          const auto localVertexID = *onCellVertices.begin();
+
+          for ( const auto & dir : vertexdof::macrocell::neighborsOnVertexWithoutCenter[localVertexID] )
+          {
+            const auto increment = vertexdof::logicalIndexOffsetFromVertex( dir );
+            const auto dirIdxDst = dstIdx + increment;
+            const auto invFactorToScaleContribution = calculateInverseFactorToScaleNeighborhoodContribution( invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace,
+                                                                                                             dirIdxDst, destinationLevel );
+
+            const auto arrayIdxDst = vertexdof::macrocell::index( destinationLevel, dirIdxDst.x(), dirIdxDst.y(), dirIdxDst.z());
+            dstData[arrayIdxDst] += 0.5 * invFactorToScaleContribution * srcData[arrayIdxSrc];
+          }
+        } else if ( onCellEdges.size() > 0 )
+        {
+          WALBERLA_ASSERT_EQUAL( onCellEdges.size(), 1 );
+          const auto localEdgeID = *onCellEdges.begin();
+
+          for ( const auto & dir : vertexdof::macrocell::neighborsOnEdgeWithoutCenter[localEdgeID] )
+          {
+            const auto increment = vertexdof::logicalIndexOffsetFromVertex( dir );
+            const auto dirIdxDst = dstIdx + increment;
+            const auto invFactorToScaleContribution = calculateInverseFactorToScaleNeighborhoodContribution( invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace,
+                                                                                                             dirIdxDst, destinationLevel );
+            const auto arrayIdxDst = vertexdof::macrocell::index( destinationLevel, dirIdxDst.x(), dirIdxDst.y(), dirIdxDst.z());
+            dstData[arrayIdxDst] += 0.5 * invFactorToScaleContribution * srcData[arrayIdxSrc];
+          }
+        } else if ( onCellFaces.size() > 0 )
+        {
+          WALBERLA_ASSERT_EQUAL( onCellFaces.size(), 1 );
+          const auto localFaceID = *onCellFaces.begin();
+
+          for ( const auto & dir : vertexdof::macrocell::neighborsOnFaceWithoutCenter[localFaceID] )
+          {
+            const auto increment = vertexdof::logicalIndexOffsetFromVertex( dir );
+            const auto dirIdxDst = dstIdx + increment;
+            const auto invFactorToScaleContribution = calculateInverseFactorToScaleNeighborhoodContribution( invNumNeighborsOfVertex, invNumNeighborsOfEdge, invNumNeighborsOfFace,
+                                                                                                             dirIdxDst, destinationLevel );
+            const auto arrayIdxDst = vertexdof::macrocell::index( destinationLevel, dirIdxDst.x(), dirIdxDst.y(), dirIdxDst.z());
+            dstData[arrayIdxDst] += 0.5 * invFactorToScaleContribution * srcData[arrayIdxSrc];
+          }
+        } else
+        {
+          for ( const auto & dir : vertexdof::macrocell::neighborsWithoutCenter )
+          {
+            const auto arrayIdxDst = vertexdof::macrocell::indexFromVertex( destinationLevel, dstIdx.x(), dstIdx.y(), dstIdx.z(), dir );
+            dstData[arrayIdxDst] += 0.5 * srcData[arrayIdxSrc];
+          }
         }
       }
     }
