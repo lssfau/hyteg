@@ -59,15 +59,16 @@ static walberla::WcTimingTree runbenchmark( const uint_t& level, const uint_t& f
    uint_t            iterations = 1;
    do
    {
-      timer.reset();
       LIKWID_MARKER_RESET( "HyTeG-apply" );
       LIKWID_MARKER_START( "HyTeG-apply" );
+      timer.reset();
       for ( uint_t i = 0; i < iterations; ++i )
       {
          laplace.apply( src, dst, level, hhg::Inner );
       }
-      LIKWID_MARKER_STOP( "HyTeG-apply" );
       timer.end();
+      LIKWID_MARKER_STOP( "HyTeG-apply" );
+
       iterations *= 2;
    } while ( timer.last() < 1 );
 
@@ -79,7 +80,7 @@ static walberla::WcTimingTree runbenchmark( const uint_t& level, const uint_t& f
    walberla::WcTimingTree tt  = timingTree->getReduced();
    auto                   tt2 = tt.getCopyWithRemainder();
 
-   const uint_t globalInnerDoFs = hhg::numberOfGlobalInnerDoFs< hhg::P2FunctionTag >( *storage, level );
+   const uint_t globalInnerDoFs = hhg::numberOfGlobalInnerDoFs< typename Discretization::Tag >( *storage, level );
    const real_t glups           = real_c( globalInnerDoFs * iterations ) / 1e9 / hyteg_apply;
    const real_t gflops          = real_c( globalInnerDoFs * iterations * flopsPerIter ) / 1e9 / hyteg_apply;
 
