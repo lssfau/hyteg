@@ -338,7 +338,7 @@ void macroFaceAssign< double >( const uint_t & level, Face & face, const std::ve
      auto dstData = face.getData( dstFaceID )->getPointer( level );
      auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
      auto scalar  = scalars.at( 0 );
-     vertexdof::macroface::generated::assign_2D_macroface_vertexdof_1_rhs_function( dstData, srcData, scalar, static_cast< int64_t >( level ) );
+     vertexdof::macroface::generated::assign_2D_macroface_vertexdof_1_rhs_function( dstData, srcData, scalar, static_cast< int32_t >( level ) );
   }
   else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
   {
@@ -347,7 +347,7 @@ void macroFaceAssign< double >( const uint_t & level, Face & face, const std::ve
      auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
      auto scalar0  = scalars.at( 0 );
      auto scalar1  = scalars.at( 1 );
-     vertexdof::macroface::generated::assign_2D_macroface_vertexdof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int64_t >( level ) );
+     vertexdof::macroface::generated::assign_2D_macroface_vertexdof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
   }
   else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
   {
@@ -358,7 +358,7 @@ void macroFaceAssign< double >( const uint_t & level, Face & face, const std::ve
      auto scalar0  = scalars.at( 0 );
      auto scalar1  = scalars.at( 1 );
      auto scalar2  = scalars.at( 2 );
-     vertexdof::macroface::generated::assign_2D_macroface_vertexdof_3_rhs_functions( dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int64_t >( level ) );
+     vertexdof::macroface::generated::assign_2D_macroface_vertexdof_3_rhs_functions( dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
   }
   else
   {
@@ -385,7 +385,7 @@ void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::ve
     auto dstData = cell.getData( dstCellID )->getPointer( level );
     auto srcData = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
     auto scalar  = scalars.at( 0 );
-    vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_1_rhs_function( dstData, srcData, scalar, static_cast< int64_t >( level ) );
+    vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_1_rhs_function( dstData, srcData, scalar, static_cast< int32_t >( level ) );
   }
   else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
   {
@@ -394,7 +394,7 @@ void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::ve
     auto srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
     auto scalar0  = scalars.at( 0 );
     auto scalar1  = scalars.at( 1 );
-    vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int64_t >( level ) );
+    vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
   }
   else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
   {
@@ -405,7 +405,7 @@ void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::ve
     auto scalar0  = scalars.at( 0 );
     auto scalar1  = scalars.at( 1 );
     auto scalar2  = scalars.at( 2 );
-    vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_3_rhs_functions( dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int64_t >( level ) );
+    vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_3_rhs_functions( dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
   }
   else
   {
