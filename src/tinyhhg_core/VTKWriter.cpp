@@ -632,7 +632,7 @@ void VTKOutput::writeCells3D( std::ostream&                              output,
    }
 
    output << "\n</DataArray>\n";
-   openDataElement( output, "Uint8", "types", 0, VTK_DATA_FORMAT::ASCII );
+   openDataElement( output, "UInt8", "types", 0, VTK_DATA_FORMAT::ASCII );
 
    // cell types
    for( const auto& it : storage->getCells() )
