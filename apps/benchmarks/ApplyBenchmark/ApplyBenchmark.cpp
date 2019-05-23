@@ -1,10 +1,9 @@
-
 #include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/config/Config.h"
+#include "core/math/Constants.h"
 #include "core/mpi/MPIManager.h"
 #include "core/timing/TimingJSON.h"
-#include "core/math/Constants.h"
 
 #include "tinyhhg_core/FunctionProperties.hpp"
 #include "tinyhhg_core/LikwidWrapper.hpp"
@@ -13,112 +12,153 @@
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
+using walberla::real_c;
 using walberla::real_t;
+using walberla::uint_c;
 using walberla::uint_t;
 
-int main( int argc, char* argv[] )
+template < typename Discretization, typename Operator >
+static walberla::WcTimingTree runbenchmark( const uint_t& level, const uint_t& facesPerProcess, const uint_t& flopsPerIter )
 {
-   LIKWID_MARKER_INIT;
+   const uint_t  numProc  = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
+   hhg::MeshInfo meshInfo = hhg::MeshInfo::meshFaceChain( numProc * facesPerProcess );
 
-   walberla::Environment env( argc, argv );
-   walberla::MPIManager::instance()->useWorldComm();
-
-   LIKWID_MARKER_THREADINIT;
-
-
-   auto cfg = std::make_shared< walberla::config::Config >();
-   if( env.config() == nullptr )
-   {
-      auto defaultFile = "./ApplyBenchmark.prm";
-      WALBERLA_LOG_PROGRESS_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
-      cfg->readParameterFile( defaultFile );
-   } else
-   {
-      cfg = env.config();
-   }
-   const walberla::Config::BlockHandle mainConf     = cfg->getBlock( "Parameters" );
-   const uint_t                        level        = mainConf.getParameter< uint_t >( "level" );
-   std::string                         meshFileName = mainConf.getParameter< std::string >( "mesh" );
-
-   hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
-
-   //hhg::MeshInfo::meshUnitSquare( 2 );
-
-   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-
+   hhg::SetupPrimitiveStorage setupStorage( meshInfo, numProc );
    hhg::loadbalancing::roundRobin( setupStorage );
 
-   std::function< real_t( const hhg::Point3D& ) > ones  = []( const hhg::Point3D& ) { return 1.0; };
+   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+   std::shared_ptr< hhg::PrimitiveStorage >  storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
+
    std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) {
-      //return 5.0;
       return std::sin( walberla::math::M_PI * xx[0] ) + std::cos( walberla::math::M_PI * xx[1] );
-      //return ( real_c(std::rand()) / real_c(RAND_MAX));
    };
 
-   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
+   auto storageInfo = storage->getGlobalInfo();
+   WALBERLA_LOG_PROGRESS_ON_ROOT( storageInfo )
 
-   if( mainConf.getParameter< bool >( "writeDomain" ) )
-   {
-      hhg::writeDomainPartitioningVTK( storage, "./output", "domain" );
-   }
+   ///// Functions / operators / allocation /////
 
-   hhg::P1Function< double > oneFunc( "x", storage, level, level );
-   oneFunc.interpolate( ones, level );
-   hhg::P1Function< double > x( "x", storage, level, level );
-   hhg::P1Function< double > y( "y", storage, level, level );
-   hhg::P1Function< double > z( "z", storage, level, level );
-   x.interpolate( exact, level, hhg::Inner );
-   //hhg::communication::syncFunctionBetweenPrimitives(x,level);
-   hhg::P1ConstantLaplaceOperator mass( storage, level, level );
+   Discretization src( "src", storage, level, level );
+   Discretization dst( "dst", storage, level, level );
 
-   const uint_t localDoFs = hhg::numberOfLocalDoFs< hhg::P1FunctionTag >( *storage, level );
-   const uint_t totalDoFs = hhg::numberOfGlobalDoFs< hhg::P1FunctionTag >( *storage, level );
+   Operator laplace( storage, level, level );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "totalDoFs: " << totalDoFs );
-   WALBERLA_LOG_INFO( "localDoFs: " << localDoFs << " totalDoFs: " << totalDoFs );
+   const uint_t localDoFs = hhg::numberOfLocalDoFs< typename Discretization::Tag >( *storage, level );
+   const uint_t totalDoFs = hhg::numberOfGlobalDoFs< typename Discretization::Tag >( *storage, level );
+
+   src.interpolate( exact, level, hhg::Inner );
+
+   WALBERLA_LOG_PROGRESS( "localDoFs: " << localDoFs << " totalDoFs: " << totalDoFs )
 
    walberla::WcTimer timer;
-
-   timer.reset();
-   LIKWID_MARKER_START( "HyTeG-apply" );
-   mass.apply( x, y, level, hhg::Inner );
-   LIKWID_MARKER_STOP( "HyTeG-apply" );
-   timer.end();
-   double hyteg_apply = timer.last();
-   WALBERLA_LOG_INFO_ON_ROOT( "HyTeG apply runtime: " << hyteg_apply );
-
-   if( mainConf.getParameter< bool >( "VTKOutput" ) )
+   uint_t            iterations = 1;
+   do
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "writing VTK output" );
-      hhg::VTKOutput vtkOutput("./output", "ApplyBenchmark", storage);
-      vtkOutput.add( x );
-      vtkOutput.add( z );
-      vtkOutput.add( y );
-      vtkOutput.write( level );
-   }
+      LIKWID_MARKER_RESET( "HyTeG-apply" );
+      LIKWID_MARKER_START( "HyTeG-apply" );
+      timer.reset();
+      for ( uint_t i = 0; i < iterations; ++i )
+      {
+         laplace.apply( src, dst, level, hhg::Inner );
+      }
+      timer.end();
+      LIKWID_MARKER_STOP( "HyTeG-apply" );
+
+      iterations *= 2;
+   } while ( timer.last() < 1 );
+
+   iterations /= 2;
+
+   double hyteg_apply = timer.last();
+   WALBERLA_LOG_PROGRESS_ON_ROOT( "HyTeG apply runtime: " << hyteg_apply )
 
    walberla::WcTimingTree tt  = timingTree->getReduced();
    auto                   tt2 = tt.getCopyWithRemainder();
 
-   if( mainConf.getParameter< bool >( "printTiming" ) )
+   const uint_t globalInnerDoFs = hhg::numberOfGlobalInnerDoFs< typename Discretization::Tag >( *storage, level );
+   const real_t glups           = real_c( globalInnerDoFs * iterations ) / 1e9 / hyteg_apply;
+   const real_t gflops          = real_c( globalInnerDoFs * iterations * flopsPerIter ) / 1e9 / hyteg_apply;
+
+   WALBERLA_LOG_INFO_ON_ROOT( hhg::format( "%10.3e|%10.3e|%10.3e|%10.3e|%5u|%5u|%7u",
+                                           hyteg_apply,
+                                           glups,
+                                           gflops,
+                                           real_c( globalInnerDoFs ),
+                                           level,
+                                           numProc,
+                                           facesPerProcess ) )
+
+   return tt2;
+}
+int main( int argc, char* argv[] )
+{
+   LIKWID_MARKER_INIT;
+   walberla::Environment env( argc, argv );
+   walberla::MPIManager::instance()->useWorldComm();
+   LIKWID_MARKER_THREADINIT;
+
+   auto cfg = std::make_shared< walberla::config::Config >();
+   if ( env.config() == nullptr )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( tt2 );
+      auto defaultFile = "./ApplyBenchmark.prm";
+      WALBERLA_LOG_PROGRESS_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile )
+      cfg->readParameterFile( defaultFile );
+   }
+   else
+   {
+      cfg = env.config();
+   }
+   const walberla::Config::BlockHandle mainConf        = cfg->getBlock( "Parameters" );
+   const uint_t                        level           = mainConf.getParameter< uint_t >( "level" );
+   const uint_t                        facesPerProcess = mainConf.getParameter< uint_t >( "facesPerProcess" );
+   const uint_t                        logLevel        = mainConf.getParameter< uint_t >( "logLevel" );
+   const std::string                   discretization  = mainConf.getParameter< std::string >( "discretization" );
+
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::LogLevel( logLevel ) );
+
+   walberla::WcTimingTree tt2;
+
+   WALBERLA_LOG_INFO_ON_ROOT( hhg::format( "%10s|%10s|%10s|%10s|%5s|%5s|%7s| Discr.: %s",
+                                           "Time (s)",
+                                           "GDoF/s",
+                                           "GFLOP/s",
+                                           " DoFs ",
+                                           "Level",
+                                           "Procs",
+                                           "face/proc",
+                                           discretization.c_str() ) )
+
+   if ( discretization == "P1" )
+   {
+      tt2 = runbenchmark< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator >( level, facesPerProcess, 13 );
+   }
+   else if ( discretization == "P2" )
+   {
+      const uint_t flops           = 13 + 21 + 23 + 27;
+      tt2 = runbenchmark< hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator >( level, facesPerProcess, flops );
+   }
+   else
+   {
+      WALBERLA_ABORT( "Unknown discretization: " << discretization )
    }
 
-   if( mainConf.getParameter< bool >( "writeJSON" ) )
+   if ( mainConf.getParameter< bool >( "printTiming" ) )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( tt2 )
+   }
+
+   if ( mainConf.getParameter< bool >( "writeJSON" ) )
    {
       nlohmann::json ttjson = nlohmann::json( tt2 );
       std::ofstream  o( "ApplyBenchmarkOutput.json" );
       o << ttjson;
       o.close();
    }
-
-   WALBERLA_LOG_INFO_ON_ROOT( std::scientific <<  " | " << meshFileName << " | " << level << " | " << totalDoFs << " | " << hyteg_apply << " | " );
 
    LIKWID_MARKER_CLOSE;
 }
