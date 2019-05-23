@@ -10,7 +10,7 @@ namespace vertexdof {
 namespace macrocell {
 namespace generated {
 
-static void apply_3D_macrocell_vertexdof_to_vertexdof_add_level_any(double * RESTRICT _data_p1CellDstAdd, double const * RESTRICT const _data_p1CellSrcAdd, int64_t level, std::map< hhg::indexing::IndexIncrement, double > p1CellStencil)
+static void apply_3D_macrocell_vertexdof_to_vertexdof_add_level_any(double * RESTRICT _data_p1CellDstAdd, double const * RESTRICT const _data_p1CellSrcAdd, int32_t level, std::map< hhg::indexing::IndexIncrement, double > p1CellStencil)
 {
    const double xi_1 = p1CellStencil[{ -1, 0, 0 }];
    const double xi_2 = p1CellStencil[{ -1, 0, 1 }];
@@ -57,7 +57,7 @@ static void apply_3D_macrocell_vertexdof_to_vertexdof_add_level_any(double * RES
 }
 
 
-void apply_3D_macrocell_vertexdof_to_vertexdof_add(double * RESTRICT _data_p1CellDstAdd, double const * RESTRICT const _data_p1CellSrcAdd, int64_t level, std::map< hhg::indexing::IndexIncrement, double > p1CellStencil)
+void apply_3D_macrocell_vertexdof_to_vertexdof_add(double * RESTRICT _data_p1CellDstAdd, double const * RESTRICT const _data_p1CellSrcAdd, int32_t level, std::map< hhg::indexing::IndexIncrement, double > p1CellStencil)
 {
     switch( level )
     {

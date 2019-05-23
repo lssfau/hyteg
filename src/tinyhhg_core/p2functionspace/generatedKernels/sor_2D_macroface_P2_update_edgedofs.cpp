@@ -10,7 +10,7 @@ namespace P2 {
 namespace macroface {
 namespace generated {
 
-static void sor_2D_macroface_P2_update_edgedofs_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double * RESTRICT _data_edgeFaceRhs_X, double * RESTRICT _data_edgeFaceRhs_XY, double * RESTRICT _data_edgeFaceRhs_Y, double const * RESTRICT const _data_edge_stencil_at_edge_x, double const * RESTRICT const _data_edge_stencil_at_edge_xy, double const * RESTRICT const _data_edge_stencil_at_edge_y, double * RESTRICT _data_vertexFaceDst, double const * RESTRICT const _data_vertex_stencil_at_edge_x, double const * RESTRICT const _data_vertex_stencil_at_edge_xy, double const * RESTRICT const _data_vertex_stencil_at_edge_y, int64_t level, double relax)
+static void sor_2D_macroface_P2_update_edgedofs_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double * RESTRICT _data_edgeFaceRhs_X, double * RESTRICT _data_edgeFaceRhs_XY, double * RESTRICT _data_edgeFaceRhs_Y, double const * RESTRICT const _data_edge_stencil_at_edge_x, double const * RESTRICT const _data_edge_stencil_at_edge_xy, double const * RESTRICT const _data_edge_stencil_at_edge_y, double * RESTRICT _data_vertexFaceDst, double const * RESTRICT const _data_vertex_stencil_at_edge_x, double const * RESTRICT const _data_vertex_stencil_at_edge_xy, double const * RESTRICT const _data_vertex_stencil_at_edge_y, int32_t level, double relax)
 {
    const double xi_80 = 1.0;
    const double xi_81 = -relax;
@@ -206,7 +206,7 @@ static void sor_2D_macroface_P2_update_edgedofs_level_any(double * RESTRICT _dat
 }
 
 
-void sor_2D_macroface_P2_update_edgedofs(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double * RESTRICT _data_edgeFaceRhs_X, double * RESTRICT _data_edgeFaceRhs_XY, double * RESTRICT _data_edgeFaceRhs_Y, double const * RESTRICT const _data_edge_stencil_at_edge_x, double const * RESTRICT const _data_edge_stencil_at_edge_xy, double const * RESTRICT const _data_edge_stencil_at_edge_y, double * RESTRICT _data_vertexFaceDst, double const * RESTRICT const _data_vertex_stencil_at_edge_x, double const * RESTRICT const _data_vertex_stencil_at_edge_xy, double const * RESTRICT const _data_vertex_stencil_at_edge_y, int64_t level, double relax)
+void sor_2D_macroface_P2_update_edgedofs(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double * RESTRICT _data_edgeFaceRhs_X, double * RESTRICT _data_edgeFaceRhs_XY, double * RESTRICT _data_edgeFaceRhs_Y, double const * RESTRICT const _data_edge_stencil_at_edge_x, double const * RESTRICT const _data_edge_stencil_at_edge_xy, double const * RESTRICT const _data_edge_stencil_at_edge_y, double * RESTRICT _data_vertexFaceDst, double const * RESTRICT const _data_vertex_stencil_at_edge_x, double const * RESTRICT const _data_vertex_stencil_at_edge_xy, double const * RESTRICT const _data_vertex_stencil_at_edge_y, int32_t level, double relax)
 {
     switch( level )
     {

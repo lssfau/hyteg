@@ -307,7 +307,7 @@ void macroFaceAssign< double >( const uint_t & level, Face & face, const std::ve
                                                                                  &srcData[firstIdx[eo::XY]],
                                                                                  &srcData[firstIdx[eo::Y]],
                                                                                  scalar,
-                                                                                 static_cast< int64_t >( level ) );
+                                                                                 static_cast< int32_t >( level ) );
    }
    else if ( globalDefines::useGeneratedKernels && scalars.size() == 2 )
    {
@@ -327,7 +327,7 @@ void macroFaceAssign< double >( const uint_t & level, Face & face, const std::ve
                                                                                   &srcData1[firstIdx[eo::Y]],
                                                                                   scalar0,
                                                                                   scalar1,
-                                                                                  static_cast< int64_t >( level ) );
+                                                                                  static_cast< int32_t >( level ) );
    }
    else if ( globalDefines::useGeneratedKernels && scalars.size() == 3 )
    {
@@ -353,7 +353,7 @@ void macroFaceAssign< double >( const uint_t & level, Face & face, const std::ve
                                                                                   scalar0,
                                                                                   scalar1,
                                                                                   scalar2,
-                                                                                  static_cast< int64_t >( level ) );
+                                                                                  static_cast< int32_t >( level ) );
    }
    else
    {
@@ -398,7 +398,7 @@ void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::ve
                                                                                  &srcData[firstIdx[eo::YZ]],
                                                                                  &srcData[firstIdx[eo::Z]],
                                                                                  scalar,
-                                                                                 static_cast< int64_t >( level ) );
+                                                                                 static_cast< int32_t >( level ) );
    }
  #if 0
    else if ( globalDefines::useGeneratedKernels && scalars.size() == 2 )
@@ -408,7 +408,7 @@ void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::ve
       auto srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
       auto scalar0  = scalars.at( 0 );
       auto scalar1  = scalars.at( 1 );
-      edgedof::macrocell::generated::assign_2D_macrocell_edgedof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int64_t >( level ) );
+      edgedof::macrocell::generated::assign_2D_macrocell_edgedof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
    }
    else if ( globalDefines::useGeneratedKernels && scalars.size() == 3 )
    {
@@ -419,7 +419,7 @@ void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::ve
       auto scalar0  = scalars.at( 0 );
       auto scalar1  = scalars.at( 1 );
       auto scalar2  = scalars.at( 2 );
-      edgedof::macrocell::generated::assign_2D_macrocell_edgedof_3_rhs_functions( dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int64_t >( level ) );
+      edgedof::macrocell::generated::assign_2D_macrocell_edgedof_3_rhs_functions( dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
    }
  #endif
    else

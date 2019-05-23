@@ -10,7 +10,7 @@ namespace edgedof {
 namespace macrocell {
 namespace generated {
 
-static void assign_3D_macrocell_edgedof_1_rhs_function_level_any(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c, int64_t level)
+static void assign_3D_macrocell_edgedof_1_rhs_function_level_any(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c, int32_t level)
 {
    {
       for (int ctr_3 = 0; ctr_3 < 1; ctr_3 += 1)
@@ -205,7 +205,7 @@ static void assign_3D_macrocell_edgedof_1_rhs_function_level_any(double * RESTRI
 }
 
 
-void assign_3D_macrocell_edgedof_1_rhs_function(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c, int64_t level)
+void assign_3D_macrocell_edgedof_1_rhs_function(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double * RESTRICT _data_edgeCellSrc_X, double * RESTRICT _data_edgeCellSrc_XY, double * RESTRICT _data_edgeCellSrc_XYZ, double * RESTRICT _data_edgeCellSrc_XZ, double * RESTRICT _data_edgeCellSrc_Y, double * RESTRICT _data_edgeCellSrc_YZ, double * RESTRICT _data_edgeCellSrc_Z, double c, int32_t level)
 {
     switch( level )
     {

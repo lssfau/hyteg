@@ -9,7 +9,7 @@ namespace hhg {
 namespace VertexDoFToEdgeDoF {
 namespace generated {
 
-static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_add_013_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int64_t level, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_add_013_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int32_t level, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > v2e_cell_stencil)
 {
    const double xi_42 = v2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 0 }];
    const double xi_43 = v2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 1 }];
@@ -162,7 +162,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_edgedof_add_013_level_any(
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_edgedof_add_013(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int64_t level, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > v2e_cell_stencil)
+void apply_3D_macroface_one_sided_vertexdof_to_edgedof_add_013(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexFaceSrc_gl0, int32_t level, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > v2e_cell_stencil)
 {
     switch( level )
     {

@@ -16,7 +16,7 @@ namespace vertexdof {
 namespace comm {
 namespace generated {
 
-void communicate_directly_vertexdof_face_to_cell_impl_012(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int64_t level);
+void communicate_directly_vertexdof_face_to_cell_impl_012(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
 
 } // namespace generated
 } // namespace comm

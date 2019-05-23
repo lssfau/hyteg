@@ -538,9 +538,9 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
 
              auto neighborCell0 = storage_->getCell( face.neighborCells()[0] );
 
-             auto neighbor_cell_0_local_vertex_id_0 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(0) );
-             auto neighbor_cell_0_local_vertex_id_1 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(1) );
-             auto neighbor_cell_0_local_vertex_id_2 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(2) );
+             auto neighbor_cell_0_local_vertex_id_0 = static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(0) );
+             auto neighbor_cell_0_local_vertex_id_1 = static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(1) );
+             auto neighbor_cell_0_local_vertex_id_2 = static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(2) );
 
 
 
@@ -550,7 +550,7 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
                     dst_data,
                     src_data,
                     &src_data[offset_gl_0],
-                    static_cast< int64_t >( level ),
+                    static_cast< int32_t >( level ),
                     neighbor_cell_0_local_vertex_id_0,
                     neighbor_cell_0_local_vertex_id_1,
                     neighbor_cell_0_local_vertex_id_2,
@@ -562,7 +562,7 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
                     dst_data,
                     src_data,
                     &src_data[offset_gl_0],
-                    static_cast< int64_t >( level ),
+                    static_cast< int32_t >( level ),
                     neighbor_cell_0_local_vertex_id_0,
                     neighbor_cell_0_local_vertex_id_1,
                     neighbor_cell_0_local_vertex_id_2,
@@ -575,15 +575,15 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
 
                auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
 
-               auto neighbor_cell_1_local_vertex_id_0 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(0) );
-               auto neighbor_cell_1_local_vertex_id_1 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(1) );
-               auto neighbor_cell_1_local_vertex_id_2 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(2) );
+               auto neighbor_cell_1_local_vertex_id_0 = static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(0) );
+               auto neighbor_cell_1_local_vertex_id_1 = static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(1) );
+               auto neighbor_cell_1_local_vertex_id_2 = static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(2) );
 
                vertexdof::macroface::generated::apply_3D_macroface_one_sided_vertexdof_to_vertexdof_add(
                dst_data,
                src_data,
                &src_data[offset_gl_1],
-               static_cast< int64_t >( level ),
+               static_cast< int32_t >( level ),
                neighbor_cell_1_local_vertex_id_0,
                neighbor_cell_1_local_vertex_id_1,
                neighbor_cell_1_local_vertex_id_2,
@@ -615,12 +615,12 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
               if ( updateType == hhg::Replace )
               {
                  vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace(
-                     dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
+                     dst_data, src_data, opr_data, static_cast< int32_t >( level ) );
               }
               else if ( updateType == hhg::Add )
               {
                  vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_add(
-                     dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
+                     dst_data, src_data, opr_data, static_cast< int32_t >( level ) );
               }
            }
            else
@@ -650,11 +650,11 @@ void P1ConstantOperator<UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertDi
             real_t* dst_data = cell.getData( dst.getCellDataID() )->getPointer( level );
             if ( updateType == Replace )
             {
-              vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_replace( dst_data, src_data, static_cast< int64_t >( level ), opr_data );
+              vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_replace( dst_data, src_data, static_cast< int32_t >( level ), opr_data );
             }
             else if ( updateType == Add )
             {
-              vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_add( dst_data, src_data, static_cast< int64_t >( level ), opr_data );
+              vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_add( dst_data, src_data, static_cast< int32_t >( level ), opr_data );
             }
          }
          else
@@ -756,13 +756,13 @@ void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertD
             auto neighborCell0 = storage_->getCell( face.neighborCells()[0] );
             auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
 
-            auto neighbor_cell_0_local_vertex_id_0 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(0) );
-            auto neighbor_cell_0_local_vertex_id_1 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(1) );
-            auto neighbor_cell_0_local_vertex_id_2 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(2) );
+            auto neighbor_cell_0_local_vertex_id_0 = static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(0) );
+            auto neighbor_cell_0_local_vertex_id_1 = static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(1) );
+            auto neighbor_cell_0_local_vertex_id_2 = static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(2) );
 
-            auto neighbor_cell_1_local_vertex_id_0 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(0) );
-            auto neighbor_cell_1_local_vertex_id_1 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(1) );
-            auto neighbor_cell_1_local_vertex_id_2 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(2) );
+            auto neighbor_cell_1_local_vertex_id_0 = static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(0) );
+            auto neighbor_cell_1_local_vertex_id_1 = static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(1) );
+            auto neighbor_cell_1_local_vertex_id_2 = static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(2) );
 
 
             const uint_t vertex_offset_gl_0 = levelinfo::num_microvertices_per_face( level );
@@ -779,7 +779,7 @@ void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertD
                                                                     &dst_data[vertex_offset_gl_1],
                                                                     &dst_data[vertex_offset_gl_0],
                                                                     rhs_data,
-                                                                    static_cast< int64_t >( level ),
+                                                                    static_cast< int32_t >( level ),
                                                                     neighbor_cell_1_local_vertex_id_0,
                                                                     neighbor_cell_1_local_vertex_id_1,
                                                                     neighbor_cell_1_local_vertex_id_2,
@@ -796,7 +796,7 @@ void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertD
                                                                     &dst_data[vertex_offset_gl_0],
                                                                     &dst_data[vertex_offset_gl_1],
                                                                     rhs_data,
-                                                                    static_cast< int64_t >( level ),
+                                                                    static_cast< int32_t >( level ),
                                                                     neighbor_cell_0_local_vertex_id_0,
                                                                     neighbor_cell_0_local_vertex_id_1,
                                                                     neighbor_cell_0_local_vertex_id_2,
@@ -844,7 +844,7 @@ void P1ConstantOperator< UFCOperator2D, UFCOperator3D, Diagonal, Lumped, InvertD
             auto dst_data = cell.getData( dst.getCellDataID() )->getPointer( level );
             auto stencil = cell.getData( cellStencilID_ )->getData( level );
 
-            vertexdof::macrocell::generated::sor_3D_macrocell_P1( dst_data, rhs_data, static_cast< int64_t >( level ), stencil, relax );
+            vertexdof::macrocell::generated::sor_3D_macrocell_P1( dst_data, rhs_data, static_cast< int32_t >( level ), stencil, relax );
          }
          else
          {

@@ -47,7 +47,7 @@ int main( int argc, char** argv )
          {
 
             hhg::vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_add(
-                dst.data(), src.data(), (int64_t) level, stencil );
+                dst.data(), src.data(), (int32_t) level, stencil );
             hhg::misc::dummy( dst.data(), src.data() );
          }
          timer.end();

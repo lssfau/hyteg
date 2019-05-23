@@ -80,7 +80,7 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
                                                                                    &srcData[firstIdx[eo::YZ]],
                                                                                    &srcData[firstIdx[eo::Z]],
                                                                                    stencilData,
-                                                                                   static_cast< int64_t >( level ) );
+                                                                                   static_cast< int32_t >( level ) );
           
       }
       else
@@ -126,28 +126,28 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
               auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
 
               auto neighbor_cell_0_local_vertex_id_0 =
-                  static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
+                  static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
                                               .at( neighborCell0->getLocalFaceID( face.getID() ) )
                                               .at( 0 ) );
               auto neighbor_cell_0_local_vertex_id_1 =
-                  static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
+                  static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
                                               .at( neighborCell0->getLocalFaceID( face.getID() ) )
                                               .at( 1 ) );
               auto neighbor_cell_0_local_vertex_id_2 =
-                  static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
+                  static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
                                               .at( neighborCell0->getLocalFaceID( face.getID() ) )
                                               .at( 2 ) );
 
               auto neighbor_cell_1_local_vertex_id_0 =
-                  static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                  static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
                                               .at( neighborCell1->getLocalFaceID( face.getID() ) )
                                               .at( 0 ) );
               auto neighbor_cell_1_local_vertex_id_1 =
-                  static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                  static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
                                               .at( neighborCell1->getLocalFaceID( face.getID() ) )
                                               .at( 1 ) );
               auto neighbor_cell_1_local_vertex_id_2 =
-                  static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                  static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
                                               .at( neighborCell1->getLocalFaceID( face.getID() ) )
                                               .at( 2 ) );
 
@@ -159,7 +159,7 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
                      &dst_data[offset_y],
                      &src_data[offset_x],
                      opr_data[0],
-                     static_cast< int64_t >( level ),
+                     static_cast< int32_t >( level ),
                      neighbor_cell_0_local_vertex_id_0,
                      neighbor_cell_0_local_vertex_id_1,
                      neighbor_cell_0_local_vertex_id_2 );
@@ -181,7 +181,7 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
                      &src_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
                      &src_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
                      opr_data[0],
-                     static_cast< int64_t >( level ),
+                     static_cast< int32_t >( level ),
                      neighbor_cell_0_local_vertex_id_0,
                      neighbor_cell_0_local_vertex_id_1,
                      neighbor_cell_0_local_vertex_id_2 );
@@ -202,7 +202,7 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
                   &src_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
                   &src_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
                   opr_data[1],
-                  static_cast< int64_t >( level ),
+                  static_cast< int32_t >( level ),
                   neighbor_cell_1_local_vertex_id_0,
                   neighbor_cell_1_local_vertex_id_1,
                   neighbor_cell_1_local_vertex_id_2 );
@@ -236,7 +236,7 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
                                                                                                &opr_data[5],
                                                                                                &opr_data[0],
                                                                                                &opr_data[10],
-                                                                                               static_cast< int64_t >( level ) );
+                                                                                               static_cast< int32_t >( level ) );
               }
               else if ( updateType == hhg::Add )
               {
@@ -249,7 +249,7 @@ void EdgeDoFOperator::apply(const EdgeDoFFunction<real_t> &src,const EdgeDoFFunc
                                                                                            &opr_data[5],
                                                                                            &opr_data[0],
                                                                                            &opr_data[10],
-                                                                                           static_cast< int64_t >( level ) );
+                                                                                           static_cast< int32_t >( level ) );
               }
            }
            else

@@ -10,7 +10,7 @@ namespace vertexdof {
 namespace macrocell {
 namespace generated {
 
-static void assign_3D_macrocell_vertexdof_3_rhs_functions_level_any(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double * RESTRICT _data_p1FaceSrc2, double c0, double c1, double c2, int64_t level)
+static void assign_3D_macrocell_vertexdof_3_rhs_functions_level_any(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double * RESTRICT _data_p1FaceSrc2, double c0, double c1, double c2, int32_t level)
 {
    for (int ctr_3 = 1; ctr_3 < (1 << (level)); ctr_3 += 1)
    {
@@ -29,7 +29,7 @@ static void assign_3D_macrocell_vertexdof_3_rhs_functions_level_any(double * RES
 }
 
 
-void assign_3D_macrocell_vertexdof_3_rhs_functions(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double * RESTRICT _data_p1FaceSrc2, double c0, double c1, double c2, int64_t level)
+void assign_3D_macrocell_vertexdof_3_rhs_functions(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc0, double * RESTRICT _data_p1FaceSrc1, double * RESTRICT _data_p1FaceSrc2, double c0, double c1, double c2, int32_t level)
 {
     switch( level )
     {

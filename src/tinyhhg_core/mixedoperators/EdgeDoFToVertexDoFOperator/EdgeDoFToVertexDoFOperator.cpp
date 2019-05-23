@@ -182,7 +182,7 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
                                                                                        &srcData[firstIdx[eo::Z]],
                                                                                        dstData,
                                                                                        stencilData,
-                                                                                       static_cast< int64_t >( level ) );
+                                                                                       static_cast< int32_t >( level ) );
         }
         else
         {
@@ -234,28 +234,28 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
               auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
 
               auto neighbor_cell_0_local_vertex_id_0 =
-                  static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
+                  static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
                                               .at( neighborCell0->getLocalFaceID( face.getID() ) )
                                               .at( 0 ) );
               auto neighbor_cell_0_local_vertex_id_1 =
-                  static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
+                  static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
                                               .at( neighborCell0->getLocalFaceID( face.getID() ) )
                                               .at( 1 ) );
               auto neighbor_cell_0_local_vertex_id_2 =
-                  static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
+                  static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
                                               .at( neighborCell0->getLocalFaceID( face.getID() ) )
                                               .at( 2 ) );
 
               auto neighbor_cell_1_local_vertex_id_0 =
-                  static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                  static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
                                               .at( neighborCell1->getLocalFaceID( face.getID() ) )
                                               .at( 0 ) );
               auto neighbor_cell_1_local_vertex_id_1 =
-                  static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                  static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
                                               .at( neighborCell1->getLocalFaceID( face.getID() ) )
                                               .at( 1 ) );
               auto neighbor_cell_1_local_vertex_id_2 =
-                  static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                  static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
                                               .at( neighborCell1->getLocalFaceID( face.getID() ) )
                                               .at( 2 ) );
 
@@ -272,7 +272,7 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
                   &srcData[firstIdxNeighbor[0][eo::Z]],
                   dstData,
                   stencilData[0],
-                  static_cast< int64_t >( level ),
+                  static_cast< int32_t >( level ),
                   neighbor_cell_0_local_vertex_id_0,
                   neighbor_cell_0_local_vertex_id_1,
                   neighbor_cell_0_local_vertex_id_2 );
@@ -290,7 +290,7 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
                   &srcData[firstIdxNeighbor[1][eo::Z]],
                   dstData,
                   stencilData[1],
-                  static_cast< int64_t >( level ),
+                  static_cast< int32_t >( level ),
                   neighbor_cell_1_local_vertex_id_0,
                   neighbor_cell_1_local_vertex_id_1,
                   neighbor_cell_1_local_vertex_id_2 );
@@ -321,7 +321,7 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
                      &src_data[firstIdx[eo::Y]],
                      opr_data,
                      dst_data,
-                     static_cast< int64_t >( level ) );
+                     static_cast< int32_t >( level ) );
               }
               else if ( updateType == hhg::Add )
               {
@@ -330,7 +330,7 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
                                                                                              &src_data[firstIdx[eo::Y]],
                                                                                              opr_data,
                                                                                              dst_data,
-                                                                                             static_cast< int64_t >( level ) );
+                                                                                             static_cast< int32_t >( level ) );
               }
            }
            else

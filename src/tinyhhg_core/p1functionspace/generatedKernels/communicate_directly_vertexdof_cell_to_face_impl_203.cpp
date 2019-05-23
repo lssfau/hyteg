@@ -10,7 +10,7 @@ namespace vertexdof {
 namespace comm {
 namespace generated {
 
-static void communicate_directly_vertexdof_cell_to_face_impl_203_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int64_t level)
+static void communicate_directly_vertexdof_cell_to_face_impl_203_level_any(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -61,7 +61,7 @@ static void communicate_directly_vertexdof_cell_to_face_impl_203_level_any(doubl
 }
 
 
-void communicate_directly_vertexdof_cell_to_face_impl_203(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int64_t level)
+void communicate_directly_vertexdof_cell_to_face_impl_203(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level)
 {
     switch( level )
     {

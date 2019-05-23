@@ -16,7 +16,7 @@ namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-void gaussseidel_2D_macroface_vertexdof_to_vertexdof(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceRhs, double const * RESTRICT const _data_p1FaceStencil, int64_t level);
+void gaussseidel_2D_macroface_vertexdof_to_vertexdof(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceRhs, double const * RESTRICT const _data_p1FaceStencil, int32_t level);
 
 } // namespace generated
 } // namespace macroface

@@ -111,7 +111,7 @@ int main( int argc, char** argv )
       real_t* src_data      = face->getData( src->getFaceDataID() )->getPointer( level );
       real_t* dst_data      = face->getData( dst->getFaceDataID() )->getPointer( level );
       timer.reset();
-      vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace( dst_data, src_data, opr_data, static_cast< int64_t >( level ) );
+      vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace( dst_data, src_data, opr_data, static_cast< int32_t >( level ) );
    } else {
       vertexdof::macroface::apply< real_t >(
             level, *face, M.getFaceStencilID(), src->getFaceDataID(), dst->getFaceDataID(), Replace );

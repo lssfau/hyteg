@@ -46,7 +46,7 @@ int main( int argc, char** argv )
          for( size_t i = 0; i < iter; ++i )
          {
             hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_add(
-                dst.data(), src.data(), stencil.data(), (int64_t) level );
+                dst.data(), src.data(), stencil.data(), (int32_t) level );
             hhg::misc::dummy( dst.data(), src.data() );
          }
          timerSpecial.end();
@@ -57,7 +57,7 @@ int main( int argc, char** argv )
          for( size_t i = 0; i < iter; ++i )
          {
             hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_add_level_any(
-                dst.data(), src.data(), stencil.data(), (int64_t) level );
+                dst.data(), src.data(), stencil.data(), (int32_t) level );
             hhg::misc::dummy( dst.data(), src.data() );
          }
          timerAny.end();

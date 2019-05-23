@@ -79,7 +79,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
       for ( uint_t i = 0; i < iterations; ++i )
       {
          hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace(
-             dstPtr, srcPtr, stencilPtr, static_cast< int64_t >( level ) );
+             dstPtr, srcPtr, stencilPtr, static_cast< int32_t >( level ) );
          hhg::misc::dummy( srcPtr, dstPtr );
       }
       LIKWID_MARKER_STOP( vvname.c_str() );
@@ -124,7 +124,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
                                                                                               &srcPtr[firstIdx[eo::Y]],
                                                                                               stencilPtr,
                                                                                               dstPtr,
-                                                                                              static_cast< int64_t >( level ) );
+                                                                                              static_cast< int32_t >( level ) );
          hhg::misc::dummy( srcPtr, dstPtr );
       }
       LIKWID_MARKER_STOP( evname.c_str() );
@@ -170,7 +170,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
                                                                                             &stencilPtr[5],
                                                                                             &stencilPtr[0],
                                                                                             &stencilPtr[10],
-                                                                                            static_cast< int64_t >( level ) );
+                                                                                            static_cast< int32_t >( level ) );
          hhg::misc::dummy( srcPtr, dstPtr );
       }
 
@@ -220,7 +220,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
                                                                                               vertexToDiagonalEdgeStencil,
                                                                                               vertexToHorizontalEdgeStencil,
                                                                                               vertexToVerticalEdgeStencil,
-                                                                                              static_cast< int64_t >( level ) );
+                                                                                              static_cast< int32_t >( level ) );
          hhg::misc::dummy( srcPtr, dstPtr );
       }
       LIKWID_MARKER_STOP( vename.c_str() );

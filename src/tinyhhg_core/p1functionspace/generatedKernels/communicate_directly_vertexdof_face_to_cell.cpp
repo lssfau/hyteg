@@ -10,7 +10,7 @@ namespace vertexdof {
 namespace comm {
 namespace generated {
 
-void communicate_directly_vertexdof_face_to_cell(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int64_t level, int64_t neighbor_cell_local_vertex_id_0, int64_t neighbor_cell_local_vertex_id_1, int64_t neighbor_cell_local_vertex_id_2)
+void communicate_directly_vertexdof_face_to_cell(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level, int64_t neighbor_cell_local_vertex_id_0, int64_t neighbor_cell_local_vertex_id_1, int64_t neighbor_cell_local_vertex_id_2)
 {
    if (((0) == (neighbor_cell_local_vertex_id_0)) && ((1) == (neighbor_cell_local_vertex_id_1)) && ((2) == (neighbor_cell_local_vertex_id_2)))
    {

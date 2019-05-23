@@ -10,7 +10,7 @@ namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-static void gaussseidel_2D_macroface_vertexdof_to_vertexdof_level_any(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceRhs, double const * RESTRICT const _data_p1FaceStencil, int64_t level)
+static void gaussseidel_2D_macroface_vertexdof_to_vertexdof_level_any(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceRhs, double const * RESTRICT const _data_p1FaceStencil, int32_t level)
 {
    const double xi_0 = _data_p1FaceStencil[3];
    const double xi_9 = 1 / (xi_0);
@@ -38,7 +38,7 @@ static void gaussseidel_2D_macroface_vertexdof_to_vertexdof_level_any(double * R
 }
 
 
-void gaussseidel_2D_macroface_vertexdof_to_vertexdof(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceRhs, double const * RESTRICT const _data_p1FaceStencil, int64_t level)
+void gaussseidel_2D_macroface_vertexdof_to_vertexdof(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceRhs, double const * RESTRICT const _data_p1FaceStencil, int32_t level)
 {
     switch( level )
     {

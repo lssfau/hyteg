@@ -492,13 +492,13 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Fun
              auto neighborCell0 = storage_->getCell( face.neighborCells()[0] );
              auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
 
-             auto neighbor_cell_0_local_vertex_id_0 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(0) );
-             auto neighbor_cell_0_local_vertex_id_1 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(1) );
-             auto neighbor_cell_0_local_vertex_id_2 = static_cast< int64_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(2) );
+             auto neighbor_cell_0_local_vertex_id_0 = static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(0) );
+             auto neighbor_cell_0_local_vertex_id_1 = static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(1) );
+             auto neighbor_cell_0_local_vertex_id_2 = static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(2) );
 
-             auto neighbor_cell_1_local_vertex_id_0 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(0) );
-             auto neighbor_cell_1_local_vertex_id_1 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(1) );
-             auto neighbor_cell_1_local_vertex_id_2 = static_cast< int64_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(2) );
+             auto neighbor_cell_1_local_vertex_id_0 = static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(0) );
+             auto neighbor_cell_1_local_vertex_id_1 = static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(1) );
+             auto neighbor_cell_1_local_vertex_id_2 = static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(2) );
              
 
              const uint_t vertex_offset_gl_0 = levelinfo::num_microvertices_per_face( level );
@@ -535,7 +535,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Fun
                v_rhs_data,
                e2v_operator[1],
                e2v_operator[0],
-               static_cast< int64_t >( level ),
+               static_cast< int32_t >( level ),
                neighbor_cell_1_local_vertex_id_0,
                neighbor_cell_1_local_vertex_id_1,
                neighbor_cell_1_local_vertex_id_2,
@@ -573,7 +573,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Fun
                &v_dst_data[vertex_offset_gl_0],
                e2e_operator[1],
                e2e_operator[0],
-               static_cast< int64_t >( level ),
+               static_cast< int32_t >( level ),
                neighbor_cell_1_local_vertex_id_0,
                neighbor_cell_1_local_vertex_id_1,
                neighbor_cell_1_local_vertex_id_2,
@@ -611,7 +611,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Fun
                v_rhs_data,
                e2v_operator[0],
                e2v_operator[1],
-               static_cast< int64_t >( level ),
+               static_cast< int32_t >( level ),
                neighbor_cell_0_local_vertex_id_0,
                neighbor_cell_0_local_vertex_id_1,
                neighbor_cell_0_local_vertex_id_2,
@@ -649,7 +649,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Fun
                &v_dst_data[vertex_offset_gl_1],
                e2e_operator[0],
                e2e_operator[1],
-               static_cast< int64_t >( level ),
+               static_cast< int32_t >( level ),
                neighbor_cell_0_local_vertex_id_0,
                neighbor_cell_0_local_vertex_id_1,
                neighbor_cell_0_local_vertex_id_2,
@@ -706,7 +706,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Fun
                                                                                 v_dst_data,
                                                                                 v_rhs_data,
                                                                                 v2v_opr_data,
-                                                                                static_cast< int64_t >( level ),
+                                                                                static_cast< int32_t >( level ),
                                                                                 relax );
                P2::macroface::generated::sor_2D_macroface_P2_update_edgedofs( &e_dst_data[firstIdx[eo::X]],
                                                                               &e_dst_data[firstIdx[eo::XY]],
@@ -721,7 +721,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Fun
                                                                               &v2e_opr_data[0],
                                                                               &v2e_opr_data[4],
                                                                               &v2e_opr_data[8],
-                                                                              static_cast< int64_t >( level ),
+                                                                              static_cast< int32_t >( level ),
                                                                               relax );
             }
             else
@@ -786,7 +786,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Fun
                                                                            v_dst_data,
                                                                            v_rhs_data,
                                                                            e2v_opr_data,
-                                                                           static_cast< int64_t >( level ),
+                                                                           static_cast< int32_t >( level ),
                                                                            relax,
                                                                            v2v_opr_data );
 
@@ -810,7 +810,7 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Fun
                                                                          &e_rhs_data[firstIdx[eo::Z]],
                                                                          v_dst_data,
                                                                          e2e_opr_data,
-                                                                         static_cast< int64_t >( level ),
+                                                                         static_cast< int32_t >( level ),
                                                                          relax,
                                                                          v2e_opr_data );
 
