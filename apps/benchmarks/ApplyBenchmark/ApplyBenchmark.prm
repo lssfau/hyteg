@@ -2,6 +2,11 @@ Parameters
 {
   level 6;
   facesPerProcess 1;
+
+  /// logLevel can be: WARNING = 0, INFO = 1, PROGRESS = 2, DETAIL = 3, TRACING = 4
+  logLevel 1;
+  /// discretization can be: P1, P2
+  discretization P2;
   printTiming false;
   writeJSON false;
 }
