@@ -194,6 +194,7 @@ void VertexDoFPackInfo< ValueType >::unpackFaceFromEdge(Face *receiver, const Pr
 template< typename ValueType >
 void VertexDoFPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *sender, Face *receiver) const
 {
+  this->storage_.lock()->getTimingTree()->start( "VertexDoF - Edge to Face" );
   ValueType *edgeData = sender->getData(dataIDEdge_)->getPointer( level_ );
   ValueType *faceData = receiver->getData(dataIDFace_)->getPointer( level_ );
   uint_t edgeIndexOnFace = receiver->edge_index(sender->getID());
@@ -204,6 +205,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalEdgeToFace(const Edge *send
     faceData[ vertexdof::macroface::indexFromVertex( level_, it.col(), it.row(), stencilDirection::VERTEX_C ) ] = edgeData[idx];
     idx++;
   }
+  this->storage_.lock()->getTimingTree()->stop( "VertexDoF - Edge to Face" );
 }
 
 ///@}
@@ -283,6 +285,7 @@ void VertexDoFPackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, const Pr
 template< typename ValueType >
 void VertexDoFPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) const
 {
+  this->storage_.lock()->getTimingTree()->start( "VertexDoF - Face to Edge" );
   ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
   uint_t faceIdOnEdge = receiver->face_index(sender->getID());
@@ -320,6 +323,7 @@ void VertexDoFPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *send
       }
     }
   }
+  this->storage_.lock()->getTimingTree()->stop( "VertexDoF - Face to Edge" );
 }
 
 template< typename ValueType >
