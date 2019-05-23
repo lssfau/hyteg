@@ -31,7 +31,7 @@ Optional:
 
 To build TinyHHG, clone the TinyHHG and the waLBerla source code:
 
-    $ git clone --recurse-submodules https://i10git.cs.fau.de/terraneo/tinyhhg
+    $ git clone --recurse-submodules https://i10git.cs.fau.de/terraneo/tinyhhg.git
 
 `--recurse-submodules` will automatically initialize and clone walberla as a submodule.
 
@@ -40,14 +40,24 @@ To build TinyHHG, clone the TinyHHG and the waLBerla source code:
     $ cd tinyhhg-build
     $ cmake ../tinyhhg
 
-CMake will then produce Makefiles for the included tests and applications. To build and run an application (e.g. a stabilized stokes solver) invoke:
+CMake will then produce Makefiles for the included tests and applications. To build and run an application (e.g. a multigrid benchmark setting) invoke:
 
-    tinyhhg-build $ cd apps
-    tinyhhg-build/apps $ make stokes_stab
-    tinyhhg-build/apps $ ./stokes_stab
+    tinyhhg-build $ cd apps/MultigridStudies
+    tinyhhg-build/apps/MultigridStudies $ make
+    tinyhhg-build/apps/MultigridStudies $ ./MultigridStudies
 
 ... or for a parallel run:
 
-    tinyhhg-build/apps $ mpirun -np 4 ./stokes_stab
+    tinyhhg-build/apps/MultigridStudies $ mpirun -np 4 ./MultigridStudies
 
 
+### Notes
+
+#### CCache
+
+Due to the large amount of generated files it is advisable to activate ccache.
+To do so use the CMake setting
+    
+    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+See also [this StackOverflow answer](https://stackoverflow.com/a/37828605).
