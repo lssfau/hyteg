@@ -1056,7 +1056,8 @@ void setup( int argc, char** argv )
    auto meshInfo = MeshInfo::meshRectangle( leftBottom, Point2D( {1, 1} ), meshFlavour, numFacesPerSide, numFacesPerSide );
    if ( dim == 3 )
    {
-     meshInfo = MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( {1, 1, 1} ) , numFacesPerSide, numFacesPerSide, numFacesPerSide );
+     // meshInfo = MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( {1, 1, 1} ) , numFacesPerSide, numFacesPerSide, numFacesPerSide );
+     meshInfo = MeshInfo::meshCuboid( leftBottom3D, Point3D( {1, 1, 1} ) , numFacesPerSide, numFacesPerSide, numFacesPerSide );
    }
    SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
