@@ -366,6 +366,54 @@ void macroFaceAssign< double >( const uint_t & level, Face & face, const std::ve
   }
 }
 
+
+template < typename ValueType >
+void macroCellAssign( const uint_t & level, Cell & cell, const std::vector< ValueType > & scalars,
+                      const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcCellIDs,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstCellID )
+{
+  vertexdof::macrocell::assign< ValueType >( level, cell, scalars, srcCellIDs, dstCellID );
+}
+
+template<>
+void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::vector< double > & scalars,
+                                const std::vector< PrimitiveDataID< FunctionMemory< double >, Cell > > & srcCellIDs,
+                                const PrimitiveDataID< FunctionMemory< double >, Cell > & dstCellID )
+{
+  if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
+  {
+    auto dstData = cell.getData( dstCellID )->getPointer( level );
+    auto srcData = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
+    auto scalar  = scalars.at( 0 );
+    vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_1_rhs_function( dstData, srcData, scalar, static_cast< int64_t >( level ) );
+  }
+  else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
+  {
+    auto dstData  = cell.getData( dstCellID )->getPointer( level );
+    auto srcData0 = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
+    auto srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
+    auto scalar0  = scalars.at( 0 );
+    auto scalar1  = scalars.at( 1 );
+    vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int64_t >( level ) );
+  }
+  else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
+  {
+    auto dstData  = cell.getData( dstCellID )->getPointer( level );
+    auto srcData0 = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
+    auto srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
+    auto srcData2 = cell.getData( srcCellIDs.at( 2 ) )->getPointer( level );
+    auto scalar0  = scalars.at( 0 );
+    auto scalar1  = scalars.at( 1 );
+    auto scalar2  = scalars.at( 2 );
+    vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_3_rhs_functions( dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int64_t >( level ) );
+  }
+  else
+  {
+    vertexdof::macrocell::assign< double >( level, cell, scalars, srcCellIDs, dstCellID );
+  }
+}
+
+
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::assign(
     const std::vector< ValueType >&                                                      scalars,
@@ -434,7 +482,7 @@ void VertexDoFFunction< ValueType >::assign(
       Cell& cell = *it.second;
       if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
-         vertexdof::macrocell::assign< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
+        macroCellAssign< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
       }
    }
    this->getStorage()->getTimingTree()->stop( "Cell" );
