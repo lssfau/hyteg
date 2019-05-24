@@ -172,6 +172,7 @@ void EdgeDoFPackInfo< ValueType >::unpackFaceFromEdge( Face*                    
 template < typename ValueType >
 void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToFace( const Edge* sender, Face* receiver ) const
 {
+   this->storage_.lock()->getTimingTree()->start( "EdgeDoF - Edge to Face" );
    using edgedof::macroface::indexFromHorizontalEdge;
    using hhg::edgedof::macroface::BoundaryIterator;
    ValueType*                    faceData        = receiver->getData( dataIDFace_ )->getPointer( level_ );
@@ -200,6 +201,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToFace( const Edge* sende
       }
       ++indexOnEdge;
    }
+   this->storage_.lock()->getTimingTree()->stop( "EdgeDoF - Edge to Face" );
 }
 
 template < typename ValueType >
@@ -413,6 +415,7 @@ void EdgeDoFPackInfo< ValueType >::unpackEdgeFromFace( Edge*                    
 template < typename ValueType >
 void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sender, Edge* receiver ) const
 {
+   this->storage_.lock()->getTimingTree()->start( "EdgeDoF - Face to Edge" );
    ValueType* faceData = sender->getData( dataIDFace_ )->getPointer( level_ );
    ValueType* edgeData = receiver->getData( dataIDEdge_ )->getPointer( level_ );
 
@@ -548,6 +551,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
          }
       }
    }
+   this->storage_.lock()->getTimingTree()->stop( "EdgeDoF - Face to Edge" );
 }
 
 template < typename ValueType >
@@ -599,6 +603,7 @@ void EdgeDoFPackInfo< ValueType >::unpackCellFromFace( Cell*                    
 template < typename ValueType >
 void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToCell( const Face* sender, Cell* receiver ) const
 {
+   this->storage_.lock()->getTimingTree()->start( "EdgeDoF - Face to Cell" );
    const ValueType* faceData = sender->getData( dataIDFace_ )->getPointer( level_ );
    ValueType*       cellData = receiver->getData( dataIDCell_ )->getPointer( level_ );
 
@@ -631,6 +636,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToCell( const Face* sende
    }
 
    WALBERLA_ASSERT( cellIterator == cellIterator.end() );
+   this->storage_.lock()->getTimingTree()->stop( "EdgeDoF - Face to Cell" );
 }
 
 template < typename ValueType >
@@ -714,6 +720,7 @@ void EdgeDoFPackInfo< ValueType >::unpackFaceFromCell( Face*                    
 template < typename ValueType >
 void EdgeDoFPackInfo< ValueType >::communicateLocalCellToFace( const Cell* sender, Face* receiver ) const
 {
+   this->storage_.lock()->getTimingTree()->start( "EdgeDoF - Cell to Face" );
    const ValueType* cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
    ValueType*       faceData = receiver->getData( dataIDFace_ )->getPointer( level_ );
 
@@ -781,6 +788,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalCellToFace( const Cell* sende
    }
 
    WALBERLA_ASSERT( cellIterator == cellIterator.end() );
+   this->storage_.lock()->getTimingTree()->stop( "EdgeDoF - Cell to Face" );
 }
 
 template class EdgeDoFPackInfo< double >;
