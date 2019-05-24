@@ -141,7 +141,7 @@ void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::apply( const P1
     const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
     if ( testFlag( cellBC, flag ) )
     {
-       if ( hhg::globalDefines::useGeneratedKernels && updateType == Add )
+       if ( hhg::globalDefines::useGeneratedKernels )
        {
           typedef edgedof::EdgeDoFOrientation eo;
           auto                                dstData     = cell.getData( dst.getCellDataID() )->getPointer( level );
@@ -150,16 +150,33 @@ void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::apply( const P1
           std::map< eo, uint_t >              firstIdx;
           for ( auto e : edgedof::allEdgeDoFOrientations )
              firstIdx[e] = edgedof::macrocell::index( level, 0, 0, 0, e );
-          VertexDoFToEdgeDoF::generated::apply_3D_macrocell_vertexdof_to_edgedof_add( &dstData[firstIdx[eo::X]],
-                                                                                      &dstData[firstIdx[eo::XY]],
-                                                                                      &dstData[firstIdx[eo::XYZ]],
-                                                                                      &dstData[firstIdx[eo::XZ]],
-                                                                                      &dstData[firstIdx[eo::Y]],
-                                                                                      &dstData[firstIdx[eo::YZ]],
-                                                                                      &dstData[firstIdx[eo::Z]],
-                                                                                      srcData,
-                                                                                      static_cast< int32_t >( level ),
-                                                                                      stencilData );
+
+          if ( updateType == Replace )
+          {
+             VertexDoFToEdgeDoF::generated::apply_3D_macrocell_vertexdof_to_edgedof_replace( &dstData[firstIdx[eo::X]],
+                                                                                             &dstData[firstIdx[eo::XY]],
+                                                                                             &dstData[firstIdx[eo::XYZ]],
+                                                                                             &dstData[firstIdx[eo::XZ]],
+                                                                                             &dstData[firstIdx[eo::Y]],
+                                                                                             &dstData[firstIdx[eo::YZ]],
+                                                                                             &dstData[firstIdx[eo::Z]],
+                                                                                             srcData,
+                                                                                             static_cast< int32_t >( level ),
+                                                                                             stencilData );
+          }
+          else
+          {
+             VertexDoFToEdgeDoF::generated::apply_3D_macrocell_vertexdof_to_edgedof_add( &dstData[firstIdx[eo::X]],
+                                                                                         &dstData[firstIdx[eo::XY]],
+                                                                                         &dstData[firstIdx[eo::XYZ]],
+                                                                                         &dstData[firstIdx[eo::XZ]],
+                                                                                         &dstData[firstIdx[eo::Y]],
+                                                                                         &dstData[firstIdx[eo::YZ]],
+                                                                                         &dstData[firstIdx[eo::Z]],
+                                                                                         srcData,
+                                                                                         static_cast< int32_t >( level ),
+                                                                                         stencilData );
+          }
        }
        else
        {

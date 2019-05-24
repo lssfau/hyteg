@@ -207,8 +207,9 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
      {
         if ( storage_->hasGlobalCells() )
         {
-           if ( hhg::globalDefines::useGeneratedKernels && updateType == Add && face.getNumNeighborCells() == 2 )
+           if ( hhg::globalDefines::useGeneratedKernels && updateType == Add )
            {
+              this->timingTree_->start( "Generated" );
               auto dstData     = face.getData( dst.getFaceDataID() )->getPointer( level );
               auto srcData     = face.getData( src.getFaceDataID() )->getPointer( level );
               auto stencilData = face.getData( faceStencil3DID_ )->getData( level );
@@ -231,7 +232,6 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
               }
 
               auto neighborCell0 = storage_->getCell( face.neighborCells()[0] );
-              auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
 
               auto neighbor_cell_0_local_vertex_id_0 =
                   static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
@@ -244,19 +244,6 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
               auto neighbor_cell_0_local_vertex_id_2 =
                   static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
                                               .at( neighborCell0->getLocalFaceID( face.getID() ) )
-                                              .at( 2 ) );
-
-              auto neighbor_cell_1_local_vertex_id_0 =
-                  static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
-                                              .at( neighborCell1->getLocalFaceID( face.getID() ) )
-                                              .at( 0 ) );
-              auto neighbor_cell_1_local_vertex_id_1 =
-                  static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
-                                              .at( neighborCell1->getLocalFaceID( face.getID() ) )
-                                              .at( 1 ) );
-              auto neighbor_cell_1_local_vertex_id_2 =
-                  static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
-                                              .at( neighborCell1->getLocalFaceID( face.getID() ) )
                                               .at( 2 ) );
 
               EdgeDoFToVertexDoF::generated::apply_3D_macroface_one_sided_edgedof_to_vertexdof_add(
@@ -277,27 +264,48 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
                   neighbor_cell_0_local_vertex_id_1,
                   neighbor_cell_0_local_vertex_id_2 );
 
-              EdgeDoFToVertexDoF::generated::apply_3D_macroface_one_sided_edgedof_to_vertexdof_add(
-                  &srcData[firstIdxInner[eo::X]],
-                  &srcData[firstIdxInner[eo::XY]],
-                  &srcData[firstIdxInner[eo::Y]],
-                  &srcData[firstIdxNeighbor[1][eo::X]],
-                  &srcData[firstIdxNeighbor[1][eo::XY]],
-                  &srcData[firstIdxNeighbor[1][eo::XYZ]],
-                  &srcData[firstIdxNeighbor[1][eo::XZ]],
-                  &srcData[firstIdxNeighbor[1][eo::Y]],
-                  &srcData[firstIdxNeighbor[1][eo::YZ]],
-                  &srcData[firstIdxNeighbor[1][eo::Z]],
-                  dstData,
-                  stencilData[1],
-                  static_cast< int32_t >( level ),
-                  neighbor_cell_1_local_vertex_id_0,
-                  neighbor_cell_1_local_vertex_id_1,
-                  neighbor_cell_1_local_vertex_id_2 );
+              if ( face.getNumNeighborCells() == 2 )
+              {
+                 auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
+                 auto neighbor_cell_1_local_vertex_id_0 =
+                     static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                                                 .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                                 .at( 0 ) );
+                 auto neighbor_cell_1_local_vertex_id_1 =
+                     static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                                                 .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                                 .at( 1 ) );
+                 auto neighbor_cell_1_local_vertex_id_2 =
+                     static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                                                 .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                                 .at( 2 ) );
+
+
+                  EdgeDoFToVertexDoF::generated::apply_3D_macroface_one_sided_edgedof_to_vertexdof_add(
+                      &srcData[firstIdxInner[eo::X]],
+                      &srcData[firstIdxInner[eo::XY]],
+                      &srcData[firstIdxInner[eo::Y]],
+                      &srcData[firstIdxNeighbor[1][eo::X]],
+                      &srcData[firstIdxNeighbor[1][eo::XY]],
+                      &srcData[firstIdxNeighbor[1][eo::XYZ]],
+                      &srcData[firstIdxNeighbor[1][eo::XZ]],
+                      &srcData[firstIdxNeighbor[1][eo::Y]],
+                      &srcData[firstIdxNeighbor[1][eo::YZ]],
+                      &srcData[firstIdxNeighbor[1][eo::Z]],
+                      dstData,
+                      stencilData[1],
+                      static_cast< int32_t >( level ),
+                      neighbor_cell_1_local_vertex_id_0,
+                      neighbor_cell_1_local_vertex_id_1,
+                      neighbor_cell_1_local_vertex_id_2 );
+              }
+              this->timingTree_->stop( "Generated" );
            }
            else
            {
+              this->timingTree_->start( "Not generated" );
               applyFace3D( level, face, *storage_, faceStencil3DID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
+              this->timingTree_->stop( "Not generated" );
            }
         }
         else
