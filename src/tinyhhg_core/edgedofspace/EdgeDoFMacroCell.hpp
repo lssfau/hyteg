@@ -392,7 +392,7 @@ inline void add( const uint_t&                                               Lev
 }
 
 template< typename ValueType >
-inline real_t dot( const uint_t & Level, Cell & cell,
+inline ValueType dot( const uint_t & Level, Cell & cell,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& lhsId,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& rhsId )
 {
@@ -451,7 +451,7 @@ inline real_t dot( const uint_t & Level, Cell & cell,
 
 
 template< typename ValueType >
-inline real_t sum( const uint_t & Level, Cell & cell,
+inline ValueType sum( const uint_t & Level, Cell & cell,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& dataId )
 {
   auto data = cell.getData( dataId )->getPointer( Level );

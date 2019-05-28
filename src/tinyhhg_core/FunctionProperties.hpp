@@ -147,4 +147,40 @@ inline uint_t numberOfGlobalDoFs( const PrimitiveStorage& primitiveStorage, cons
                                     walberla::mpi::MPIManager::instance()->comm() );
 }
 
+/**
+ * calculates the global number of DoFs that are not on the domain boundary
+ * performs a mpi all Reduce
+ * @tparam FunctionTag_T type of Function (e.g. P1Function)
+ * @param primitiveStorage
+ * @param level refinement level
+ * @return global number of points that are not on the domain boundary
+ */
+template < typename FunctionTag_T >
+inline uint_t numberOfGlobalInnerDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
+{
+   uint_t boundaryPoints = 0;
+   for ( const auto& it : primitiveStorage.getFaceIDs() )
+   {
+      if ( primitiveStorage.onBoundary( it, true ) )
+      {
+         boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Face >( level );
+      }
+   }
+   for ( const auto& it : primitiveStorage.getEdgeIDs() )
+   {
+      if ( primitiveStorage.onBoundary( it, true ) )
+      {
+         boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Edge >( level );
+      }
+   }
+   for ( const auto& it : primitiveStorage.getVertexIDs() )
+   {
+      if ( primitiveStorage.onBoundary( it, true ) )
+      {
+         boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Vertex >( level );
+      }
+   }
+   return numberOfGlobalDoFs< FunctionTag_T >( primitiveStorage, level ) - boundaryPoints;
+}
+
 } // namespace hhg

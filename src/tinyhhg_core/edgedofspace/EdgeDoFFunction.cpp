@@ -8,6 +8,8 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFAdditivePackInfo.hpp"
 #include "tinyhhg_core/communication/Syncing.hpp"
 #include "tinyhhg_core/edgedofspace/generatedKernels/all.hpp"
+#include "tinyhhg_core/primitives/all.hpp"
+
 
 namespace hhg {
 
@@ -583,14 +585,14 @@ void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >&         
 }
 
 template < typename ValueType >
-real_t EdgeDoFFunction< ValueType >::dotLocal(const EdgeDoFFunction <ValueType> &rhs, const uint_t level, const DoFType flag) const
+ValueType EdgeDoFFunction< ValueType >::dotLocal(const EdgeDoFFunction <ValueType> &rhs, const uint_t level, const DoFType flag) const
 {
    if( isDummy() )
    {
-      return real_c( 0 );
+      return ValueType( 0 );
    }
    this->startTiming( "Dot (local)" );
-   real_t scalarProduct = 0.0;
+   ValueType scalarProduct = 0.0;
 
    for( auto& it : this->getStorage()->getEdges() )
    {
@@ -629,9 +631,9 @@ real_t EdgeDoFFunction< ValueType >::dotLocal(const EdgeDoFFunction <ValueType> 
 
 
 template < typename ValueType >
-real_t EdgeDoFFunction< ValueType >::sumGlobal( const uint_t & level, const DoFType & flag ) const
+ValueType EdgeDoFFunction< ValueType >::sumGlobal( const uint_t & level, const DoFType & flag ) const
 {
-   real_t sum = sumLocal( level, flag );
+   ValueType sum = sumLocal( level, flag );
    this->startTiming( "Sum (reduce)" );
    walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
    this->stopTiming( "Sum (reduce)" );
@@ -639,14 +641,14 @@ real_t EdgeDoFFunction< ValueType >::sumGlobal( const uint_t & level, const DoFT
 }
 
 template < typename ValueType >
-real_t EdgeDoFFunction< ValueType >::sumLocal( const uint_t & level, const DoFType & flag ) const
+ValueType EdgeDoFFunction< ValueType >::sumLocal( const uint_t & level, const DoFType & flag ) const
 {
    if( isDummy() )
    {
-      return real_c( 0 );
+      return ValueType( 0 );
    }
    this->startTiming( "Sum (local)" );
-   real_t sum = 0.0;
+   ValueType sum = 0.0;
 
    for( const auto& it : this->getStorage()->getEdges() )
    {
@@ -913,10 +915,24 @@ void EdgeDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType& 
    this->stopTiming( "Interpolate" );
 }
 
-
-template class EdgeDoFFunction< float >;
 template class EdgeDoFFunction< double >;
 template class EdgeDoFFunction< int >;
+
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hhg::Vertex >( const double& constant,
+                                                                                    uint_t        level,
+                                                                                    DoFType       flag ) const;
+
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hhg::Edge >( const double& constant,
+                                                                                  uint_t        level,
+                                                                                  DoFType       flag ) const;
+
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hhg::Face >( const double& constant,
+                                                                                  uint_t        level,
+                                                                                  DoFType       flag ) const;
+
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hhg::Cell >( const double& constant,
+                                                                                  uint_t        level,
+                                                                                  DoFType       flag ) const;
 
 uint_t edgedof::edgeDoFMacroVertexFunctionMemorySize( const uint_t& level, const Primitive& primitive )
 {

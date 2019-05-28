@@ -29,18 +29,14 @@ void syncP2FunctionBetweenPrimitives( const P2Function< ValueType >& function, c
    syncFunctionBetweenPrimitives< hhg::EdgeDoFFunction< ValueType > >( function.getEdgeDoFFunction(), level );
 }
 
-template void syncP2FunctionBetweenPrimitives( const P2Function< float >& function, const uint_t& level );
 template void syncP2FunctionBetweenPrimitives( const P2Function< double >& function, const uint_t& level );
 
-template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction<float>& function, const uint_t& level );
 template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction<double>& function, const uint_t& level );
 template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction<int>& function, const uint_t& level );
 
-template void syncFunctionBetweenPrimitives( const EdgeDoFFunction<float>& function, const uint_t& level );
 template void syncFunctionBetweenPrimitives( const EdgeDoFFunction<double>& function, const uint_t& level );
 template void syncFunctionBetweenPrimitives( const EdgeDoFFunction<int>& function, const uint_t& level );
 
-//template void syncFunctionBetweenPrimitives( const P1Function<float>& function, const uint_t& level );
 //template void syncFunctionBetweenPrimitives( const P1Function<double>& function, const uint_t& level );
 
 } // namespace communication

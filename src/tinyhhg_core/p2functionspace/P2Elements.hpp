@@ -4,6 +4,7 @@
 
 #include "tinyhhg_core/StencilDirections.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 
 namespace hhg {
 namespace P2Elements {

@@ -107,7 +107,7 @@ inline void multElementwise(Vertex &vertex,
 }
 
 template< typename ValueType >
-inline real_t dot(Vertex &vertex,
+inline ValueType dot(Vertex &vertex,
                   const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &lhsMemoryId,
                   const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &rhsMemoryId,
                   size_t level) {
@@ -115,7 +115,7 @@ inline real_t dot(Vertex &vertex,
 }
 
 template < typename ValueType >
-inline real_t
+inline ValueType
     sum( const uint_t& level, const Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dataID )
 {
    return vertex.getData( dataID )->getPointer( level )[0];
