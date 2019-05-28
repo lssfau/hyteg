@@ -221,14 +221,14 @@ MeshInfo MeshInfo::meshSymmetricCuboid( const Point3D lowerLeftFront,
 
             for ( int i = 0; i < 14; i++ )
             {
-               const auto coords      = offset + subCubeVertexCoordinates[i];
+               const auto coords      = offset + subCubeVertexCoordinates[uint_c(i)];
                const auto id          = uint_c(vertexMapping[x][y][z][i]);
                meshInfo.vertices_[id] = Vertex( id, coords, 0 );
             }
 
             // cells
 
-            for ( int i = 0; i < 24; i++ )
+            for ( uint_t i = 0; i < 24; i++ )
             {
                std::vector< uint_t > cv( 4 );
                for ( uint_t ii = 0; ii < 4; ii++ )
