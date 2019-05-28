@@ -402,28 +402,88 @@ void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::ve
                                                                                  scalar,
                                                                                  static_cast< int32_t >( level ) );
    }
- #if 0
    else if ( globalDefines::useGeneratedKernels && scalars.size() == 2 )
    {
-      auto dstData  = cell.getData( dstCellID )->getPointer( level );
-      auto srcData0 = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
-      auto srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
-      auto scalar0  = scalars.at( 0 );
-      auto scalar1  = scalars.at( 1 );
-      edgedof::macrocell::generated::assign_2D_macrocell_edgedof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
+      auto                   dstData  = cell.getData( dstCellID )->getPointer( level );
+      auto                   srcData0 = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
+      auto                   srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
+      auto                   scalar0  = scalars.at( 0 );
+      auto                   scalar1  = scalars.at( 1 );
+      std::map< eo, uint_t > firstIdx;
+      for ( auto e : edgedof::allEdgeDoFOrientations )
+         firstIdx[e] = edgedof::macrocell::index( level, 0, 0, 0, e );
+
+      edgedof::macrocell::generated::assign_3D_macrocell_edgedof_2_rhs_functions( &dstData[firstIdx[eo::X]],
+                                                                                  &dstData[firstIdx[eo::XY]],
+                                                                                  &dstData[firstIdx[eo::XYZ]],
+                                                                                  &dstData[firstIdx[eo::XZ]],
+                                                                                  &dstData[firstIdx[eo::Y]],
+                                                                                  &dstData[firstIdx[eo::YZ]],
+                                                                                  &dstData[firstIdx[eo::Z]],
+                                                                                  &srcData0[firstIdx[eo::X]],
+                                                                                  &srcData0[firstIdx[eo::XY]],
+                                                                                  &srcData0[firstIdx[eo::XYZ]],
+                                                                                  &srcData0[firstIdx[eo::XZ]],
+                                                                                  &srcData0[firstIdx[eo::Y]],
+                                                                                  &srcData0[firstIdx[eo::YZ]],
+                                                                                  &srcData0[firstIdx[eo::Z]],
+                                                                                  &srcData1[firstIdx[eo::X]],
+                                                                                  &srcData1[firstIdx[eo::XY]],
+                                                                                  &srcData1[firstIdx[eo::XYZ]],
+                                                                                  &srcData1[firstIdx[eo::XZ]],
+                                                                                  &srcData1[firstIdx[eo::Y]],
+                                                                                  &srcData1[firstIdx[eo::YZ]],
+                                                                                  &srcData1[firstIdx[eo::Z]],
+                                                                                  scalar0,
+                                                                                  scalar1,
+                                                                                  static_cast< int32_t >( level ) );
    }
    else if ( globalDefines::useGeneratedKernels && scalars.size() == 3 )
    {
-      auto dstData  = cell.getData( dstCellID )->getPointer( level );
-      auto srcData0 = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
-      auto srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
-      auto srcData2 = cell.getData( srcCellIDs.at( 2 ) )->getPointer( level );
-      auto scalar0  = scalars.at( 0 );
-      auto scalar1  = scalars.at( 1 );
-      auto scalar2  = scalars.at( 2 );
-      edgedof::macrocell::generated::assign_2D_macrocell_edgedof_3_rhs_functions( dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
+     auto                   dstData  = cell.getData( dstCellID )->getPointer( level );
+     auto                   srcData0 = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
+     auto                   srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
+     auto                   srcData2 = cell.getData( srcCellIDs.at( 2 ) )->getPointer( level );
+     auto                   scalar0  = scalars.at( 0 );
+     auto                   scalar1  = scalars.at( 1 );
+     auto                   scalar2  = scalars.at( 2 );
+     std::map< eo, uint_t > firstIdx;
+     for ( auto e : edgedof::allEdgeDoFOrientations )
+       firstIdx[e] = edgedof::macrocell::index( level, 0, 0, 0, e );
+
+     edgedof::macrocell::generated::assign_3D_macrocell_edgedof_3_rhs_functions( &dstData[firstIdx[eo::X]],
+                                                                                 &dstData[firstIdx[eo::XY]],
+                                                                                 &dstData[firstIdx[eo::XYZ]],
+                                                                                 &dstData[firstIdx[eo::XZ]],
+                                                                                 &dstData[firstIdx[eo::Y]],
+                                                                                 &dstData[firstIdx[eo::YZ]],
+                                                                                 &dstData[firstIdx[eo::Z]],
+                                                                                 &srcData0[firstIdx[eo::X]],
+                                                                                 &srcData0[firstIdx[eo::XY]],
+                                                                                 &srcData0[firstIdx[eo::XYZ]],
+                                                                                 &srcData0[firstIdx[eo::XZ]],
+                                                                                 &srcData0[firstIdx[eo::Y]],
+                                                                                 &srcData0[firstIdx[eo::YZ]],
+                                                                                 &srcData0[firstIdx[eo::Z]],
+                                                                                 &srcData1[firstIdx[eo::X]],
+                                                                                 &srcData1[firstIdx[eo::XY]],
+                                                                                 &srcData1[firstIdx[eo::XYZ]],
+                                                                                 &srcData1[firstIdx[eo::XZ]],
+                                                                                 &srcData1[firstIdx[eo::Y]],
+                                                                                 &srcData1[firstIdx[eo::YZ]],
+                                                                                 &srcData1[firstIdx[eo::Z]],
+                                                                                 &srcData2[firstIdx[eo::X]],
+                                                                                 &srcData2[firstIdx[eo::XY]],
+                                                                                 &srcData2[firstIdx[eo::XYZ]],
+                                                                                 &srcData2[firstIdx[eo::XZ]],
+                                                                                 &srcData2[firstIdx[eo::Y]],
+                                                                                 &srcData2[firstIdx[eo::YZ]],
+                                                                                 &srcData2[firstIdx[eo::Z]],
+                                                                                 scalar0,
+                                                                                 scalar1,
+                                                                                 scalar2,
+                                                                                 static_cast< int32_t >( level ) );
    }
- #endif
    else
    {
       edgedof::macrocell::assign< double >( level, cell, scalars, srcCellIDs, dstCellID );

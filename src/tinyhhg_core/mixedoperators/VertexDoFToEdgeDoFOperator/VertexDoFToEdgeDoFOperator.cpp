@@ -198,7 +198,7 @@ void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::apply( const P1
      {
         if ( storage_->hasGlobalCells() )
         {
-           if ( hhg::globalDefines::useGeneratedKernels && updateType == Add && face.getNumNeighborCells() == 2 )
+           if ( hhg::globalDefines::useGeneratedKernels )
            {
               auto dstData     = face.getData( dst.getFaceDataID() )->getPointer( level );
               auto srcData     = face.getData( src.getFaceDataID() )->getPointer( level );
@@ -210,11 +210,9 @@ void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::apply( const P1
                  firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
 
               const uint_t offset_gl_0 = levelinfo::num_microvertices_per_face( level );
-              const uint_t offset_gl_1 = offset_gl_0 + levelinfo::num_microvertices_per_face_from_width(
-                                                           levelinfo::num_microvertices_per_edge( level ) - 1 );
+
 
               auto neighborCell0 = storage_->getCell( face.neighborCells()[0] );
-              auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
 
               auto neighbor_cell_0_local_vertex_id_0 =
                   static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
@@ -229,42 +227,67 @@ void VertexDoFToEdgeDoFOperator< UFCOperator2D, UFCOperator3D >::apply( const P1
                                               .at( neighborCell0->getLocalFaceID( face.getID() ) )
                                               .at( 2 ) );
 
-              auto neighbor_cell_1_local_vertex_id_0 =
-                  static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
-                                              .at( neighborCell1->getLocalFaceID( face.getID() ) )
-                                              .at( 0 ) );
-              auto neighbor_cell_1_local_vertex_id_1 =
-                  static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
-                                              .at( neighborCell1->getLocalFaceID( face.getID() ) )
-                                              .at( 1 ) );
-              auto neighbor_cell_1_local_vertex_id_2 =
-                  static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
-                                              .at( neighborCell1->getLocalFaceID( face.getID() ) )
-                                              .at( 2 ) );
+              if ( updateType == Replace )
+              {
+                VertexDoFToEdgeDoF::generated::apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace(
+                &dstData[firstIdx[eo::X]],
+                &dstData[firstIdx[eo::XY]],
+                &dstData[firstIdx[eo::Y]],
+                &srcData[0],
+                &srcData[offset_gl_0],
+                static_cast< int32_t >( level ),
+                neighbor_cell_0_local_vertex_id_0,
+                neighbor_cell_0_local_vertex_id_1,
+                neighbor_cell_0_local_vertex_id_2,
+                stencilData[0] );
+              }
+              else
+              {
+                VertexDoFToEdgeDoF::generated::apply_3D_macroface_one_sided_vertexdof_to_edgedof_add(
+                &dstData[firstIdx[eo::X]],
+                &dstData[firstIdx[eo::XY]],
+                &dstData[firstIdx[eo::Y]],
+                &srcData[0],
+                &srcData[offset_gl_0],
+                static_cast< int32_t >( level ),
+                neighbor_cell_0_local_vertex_id_0,
+                neighbor_cell_0_local_vertex_id_1,
+                neighbor_cell_0_local_vertex_id_2,
+                stencilData[0] );
+              }
 
-              VertexDoFToEdgeDoF::generated::apply_3D_macroface_one_sided_vertexdof_to_edgedof_add(
-                  &dstData[firstIdx[eo::X]],
-                  &dstData[firstIdx[eo::XY]],
-                  &dstData[firstIdx[eo::Y]],
-                  &srcData[0],
-                  &srcData[offset_gl_0],
-                  static_cast< int32_t >( level ),
-                  neighbor_cell_0_local_vertex_id_0,
-                  neighbor_cell_0_local_vertex_id_1,
-                  neighbor_cell_0_local_vertex_id_2,
-                  stencilData[0] );
+              if ( face.getNumNeighborCells() == 2 )
+              {
+                 const uint_t offset_gl_1 = offset_gl_0 + levelinfo::num_microvertices_per_face_from_width(
+                                                              levelinfo::num_microvertices_per_edge( level ) - 1 );
 
-              VertexDoFToEdgeDoF::generated::apply_3D_macroface_one_sided_vertexdof_to_edgedof_add(
-                  &dstData[firstIdx[eo::X]],
-                  &dstData[firstIdx[eo::XY]],
-                  &dstData[firstIdx[eo::Y]],
-                  &srcData[0],
-                  &srcData[offset_gl_1],
-                  static_cast< int32_t >( level ),
-                  neighbor_cell_1_local_vertex_id_0,
-                  neighbor_cell_1_local_vertex_id_1,
-                  neighbor_cell_1_local_vertex_id_2,
-                  stencilData[1] );
+                 auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
+
+                 auto neighbor_cell_1_local_vertex_id_0 =
+                     static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                                                 .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                                 .at( 0 ) );
+                 auto neighbor_cell_1_local_vertex_id_1 =
+                     static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                                                 .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                                 .at( 1 ) );
+                 auto neighbor_cell_1_local_vertex_id_2 =
+                     static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                                                 .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                                 .at( 2 ) );
+
+                 VertexDoFToEdgeDoF::generated::apply_3D_macroface_one_sided_vertexdof_to_edgedof_add(
+                     &dstData[firstIdx[eo::X]],
+                     &dstData[firstIdx[eo::XY]],
+                     &dstData[firstIdx[eo::Y]],
+                     &srcData[0],
+                     &srcData[offset_gl_1],
+                     static_cast< int32_t >( level ),
+                     neighbor_cell_1_local_vertex_id_0,
+                     neighbor_cell_1_local_vertex_id_1,
+                     neighbor_cell_1_local_vertex_id_2,
+                     stencilData[1] );
+              }
            }
            else
            {

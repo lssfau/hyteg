@@ -58,3 +58,5 @@
 #include "assign_2D_macroface_edgedof_2_rhsfunctions.hpp"
 #include "assign_2D_macroface_edgedof_3_rhsfunctions.hpp"
 #include "assign_3D_macrocell_edgedof_1_rhsfunction.hpp"
+#include "assign_3D_macrocell_edgedof_2_rhsfunctions.hpp"
+#include "assign_3D_macrocell_edgedof_3_rhsfunctions.hpp"
