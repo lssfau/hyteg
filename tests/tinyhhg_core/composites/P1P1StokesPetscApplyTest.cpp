@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->useWorldComm();
 
   hhg::p1StokesPetscApplyTest( 3, "../../data/meshes/quad_4el.msh",       hhg::All,   1.9e-15 );
-  hhg::p1StokesPetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh", hhg::All,   7.5e-14 );
+  hhg::p1StokesPetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh", hhg::All,   9.0e-14 );
   hhg::p1StokesPetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh",     hhg::Inner, 1.0e-16 );
   hhg::p1StokesPetscApplyTest( 3, "../../data/meshes/3D/pyramid_2el.msh", hhg::Inner, 4.5e-16 );
   hhg::p1StokesPetscApplyTest( 3, "../../data/meshes/3D/pyramid_4el.msh", hhg::Inner, 8.0e-16 );
