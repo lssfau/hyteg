@@ -363,7 +363,50 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
     {
       if ( storage_->hasGlobalCells() )
       {
-        applyEdge3D( level, edge, *getStorage(), edgeStencil3DID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType );
+        if ( globalDefines::useGeneratedKernels && updateType == Add )
+        {
+          auto dstData     = edge.getData( dst.getEdgeDataID() )->getPointer( level );
+          auto srcData     = edge.getData( src.getEdgeDataID() )->getPointer( level );
+          auto stencilData = edge.getData( edgeStencil3DID_ )->getData( level );
+
+          for ( uint_t cellID = 0; cellID < edge.getNumNeighborCells(); cellID++ )
+          {
+            const auto neighborCell = storage_->getCell( edge.neighborCells().at( cellID ) );
+            const auto cellLocalEdgeID = neighborCell->getLocalEdgeID( edge.getID() );
+
+            const auto cellLocalVertexID0 = neighborCell->getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 );
+            const auto cellLocalVertexID1 = neighborCell->getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 );
+            const auto cellLocalVertexID2 = algorithms::getMissingIntegersAscending< 2, 4 >( {{ cellLocalVertexID0, cellLocalVertexID1 }} ).at(2);
+
+            const std::vector< uint_t > neighborFaces( indexing::cellLocalEdgeIDsToCellLocalNeighborFaceIDs.at( cellLocalEdgeID ).begin(),
+                                                       indexing::cellLocalEdgeIDsToCellLocalNeighborFaceIDs.at( cellLocalEdgeID ).end() );
+            const auto cellLocalNeighborFaceID0 = neighborFaces.at(0) < neighborFaces.at(1) ? neighborFaces.at(0) : neighborFaces.at(1);
+            const auto cellLocalNeighborFaceID1 = neighborFaces.at(0) > neighborFaces.at(1) ? neighborFaces.at(0) : neighborFaces.at(1);
+
+            const auto neighborFacePrimitiveID0 = neighborCell->neighborFaces().at( cellLocalNeighborFaceID0 );
+            const auto neighborFacePrimitiveID1 = neighborCell->neighborFaces().at( cellLocalNeighborFaceID1 );
+
+            const auto edgeLocalFaceID0 = edge.face_index( neighborFacePrimitiveID0 );
+            const auto edgeLocalFaceID1 = edge.face_index( neighborFacePrimitiveID1 );
+
+            EdgeDoFToVertexDoF::generated::apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add(
+            srcData,
+            dstData,
+            static_cast< int64_t >( cellID ),
+            stencilData[uint_c( cellID )],
+            static_cast< int64_t >( edgeLocalFaceID0 ),
+            static_cast< int64_t >( edgeLocalFaceID1 ),
+            static_cast< int32_t >( level ),
+            static_cast< int64_t >( cellLocalVertexID0 ),
+            static_cast< int64_t >( cellLocalVertexID1 ),
+            static_cast< int64_t >( cellLocalVertexID2 ),
+            static_cast< int64_t >( edge.getNumNeighborFaces()));
+          }
+        }
+        else
+        {
+          applyEdge3D( level, edge, *getStorage(), edgeStencil3DID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType );
+        }
       }
       else
       {
