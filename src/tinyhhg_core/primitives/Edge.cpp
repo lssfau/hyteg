@@ -80,6 +80,7 @@ PrimitiveID Edge::get_opposite_vertex(const PrimitiveID& vertex) const
 
 bool Edge::opposite_face_exists(const PrimitiveID& face) const
 {
+  WALBERLA_ABORT( "This function is deprecated." )
   if (face.getID() == neighborFaces_[0].getID()) {
     if (getNumNeighborFaces() == 2) {
       return true;
@@ -98,6 +99,7 @@ bool Edge::opposite_face_exists(const PrimitiveID& face) const
 
 PrimitiveID Edge::get_opposite_face(const PrimitiveID& face) const
 {
+  WALBERLA_ABORT( "This function is deprecated." )
   if (face.getID() == neighborFaces_[0].getID()) {
     if (getNumNeighborFaces() == 2) {
       return neighborFaces_[1];

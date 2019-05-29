@@ -70,10 +70,10 @@ std::vector<PrimitiveID> Face::adjacent_edges(const PrimitiveID& vertex) const
 
   if (vertex_index(vertex) == 0) {
     e.push_back(neighborEdges_[0]);
-    e.push_back(neighborEdges_[2]);
+    e.push_back(neighborEdges_[1]);
   } else if (vertex_index(vertex) == 1) {
     e.push_back(neighborEdges_[0]);
-    e.push_back(neighborEdges_[1]);
+    e.push_back(neighborEdges_[2]);
   } else if (vertex_index(vertex) == 2) {
     e.push_back(neighborEdges_[1]);
     e.push_back(neighborEdges_[2]);
@@ -91,9 +91,9 @@ PrimitiveID Face::get_vertex_opposite_to_edge(const PrimitiveID& edge) const
   if (edge_index(edge) == 0) {
     return neighborVertices_[2];
   } else if (edge_index(edge) == 1) {
-    return neighborVertices_[0];
-  } else if (edge_index(edge) == 2) {
     return neighborVertices_[1];
+  } else if (edge_index(edge) == 2) {
+    return neighborVertices_[0];
   }
 
   WALBERLA_ABORT("Face::get_vertex_opposite_to_edge: Edge does not belong to face");
@@ -101,6 +101,7 @@ PrimitiveID Face::get_vertex_opposite_to_edge(const PrimitiveID& edge) const
 
 PrimitiveID Face::get_edge_between_vertices(const PrimitiveID& v0, const PrimitiveID& v1) const
 {
+  WALBERLA_ABORT( "This function is deprecated." );
   std::vector<PrimitiveID> edges_v0 = adjacent_edges(v0);
   std::vector<PrimitiveID> edges_v1 = adjacent_edges(v1);
 

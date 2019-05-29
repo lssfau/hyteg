@@ -156,11 +156,11 @@ void EdgeDoFPackInfo< ValueType >::unpackFaceFromEdge( Face*                    
       {
          buffer >>
              faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_HO_C )];
-      } else if( edgeIndexOnFace == 1 )
+      } else if( edgeIndexOnFace == 2 )
       {
          buffer >>
              faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_DI_N )];
-      } else if( edgeIndexOnFace == 2 )
+      } else if( edgeIndexOnFace == 1 )
       {
          buffer >>
              faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW )];
@@ -189,11 +189,11 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToFace( const Edge* sende
       {
          faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_HO_C )] =
              edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, indexOnEdge, stencilDirection::EDGE_HO_C )];
-      } else if( edgeIndexOnFace == 1 )
+      } else if( edgeIndexOnFace == 2 )
       {
          faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_DI_N )] =
              edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, indexOnEdge, stencilDirection::EDGE_HO_C )];
-      } else if( edgeIndexOnFace == 2 )
+      } else if( edgeIndexOnFace == 1 )
       {
          faceData[edgedof::macroface::indexFromHorizontalEdge( level_, it.col(), it.row(), stencilDirection::EDGE_VE_NW )] =
              edgeData[edgedof::macroedge::indexFromHorizontalEdge( level_, indexOnEdge, stencilDirection::EDGE_HO_C )];
@@ -231,7 +231,7 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge( const Face*                s
          faceDirTwo   = stencilDirection::EDGE_DI_N;
          faceDirThree = stencilDirection::EDGE_VE_NW;
       }
-   } else if( edgeIndexOnFace == 1 )
+   } else if( edgeIndexOnFace == 2 )
    {
       faceDirOne = stencilDirection::EDGE_DI_N;
       if( sender->edge_orientation[edgeIndexOnFace] == 1 )
@@ -243,10 +243,10 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge( const Face*                s
          faceDirTwo   = stencilDirection::EDGE_VE_NW;
          faceDirThree = stencilDirection::EDGE_HO_C;
       }
-   } else if( edgeIndexOnFace == 2 )
+   } else if( edgeIndexOnFace == 1 )
    {
       faceDirOne = stencilDirection::EDGE_VE_NW;
-      if( sender->edge_orientation[edgeIndexOnFace] == 1 )
+      if( sender->edge_orientation[edgeIndexOnFace] == -1 )
       {
          faceDirTwo   = stencilDirection::EDGE_DI_N;
          faceDirThree = stencilDirection::EDGE_HO_C;

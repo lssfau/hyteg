@@ -98,10 +98,10 @@ void EdgeDoFAdditivePackInfo< ValueType >::packFaceForEdge( const Face*         
    case 0:
       orientation = edgedof::EdgeDoFOrientation::X;
       break;
-   case 1:
+   case 2:
       orientation = edgedof::EdgeDoFOrientation::XY;
       break;
-   case 2:
+   case 1:
       orientation = edgedof::EdgeDoFOrientation::Y;
       break;
    default:
@@ -156,10 +156,10 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalFaceToEdge( const Fac
    case 0:
       orientation = edgedof::EdgeDoFOrientation::X;
       break;
-   case 1:
+   case 2:
       orientation = edgedof::EdgeDoFOrientation::XY;
       break;
-   case 2:
+   case 1:
       orientation = edgedof::EdgeDoFOrientation::Y;
       break;
    default:

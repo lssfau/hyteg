@@ -61,7 +61,7 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     PrimitiveID edgeID = generatePrimitiveID();
 
     WALBERLA_ASSERT_EQUAL( meshInfoEdge.getVertices().size(), 2, "Edges are expected to have two vertices." );
-    PrimitiveID vertexID0 = meshVertexIDToPrimitiveID[ meshInfoEdge.getVertices().at( 0 )  ];
+    PrimitiveID vertexID0 = meshVertexIDToPrimitiveID[ meshInfoEdge.getVertices().at( 0 ) ];
     PrimitiveID vertexID1 = meshVertexIDToPrimitiveID[ meshInfoEdge.getVertices().at( 1 ) ];
 
     std::array<Point3D, 2> coords;
@@ -131,8 +131,8 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     WALBERLA_ASSERT_EQUAL( vertices_.count( vertexID2.getID() ), 1 );
 
     PrimitiveID edgeID0 = findCachedPrimitiveID( {{ vertexID0, vertexID1 }}, vertexIDsToEdgeIDs );
-    PrimitiveID edgeID1 = findCachedPrimitiveID( {{ vertexID1, vertexID2 }}, vertexIDsToEdgeIDs );
-    PrimitiveID edgeID2 = findCachedPrimitiveID( {{ vertexID2, vertexID0 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID1 = findCachedPrimitiveID( {{ vertexID0, vertexID2 }}, vertexIDsToEdgeIDs );
+    PrimitiveID edgeID2 = findCachedPrimitiveID( {{ vertexID1, vertexID2 }}, vertexIDsToEdgeIDs );
 
     WALBERLA_ASSERT_EQUAL( edges_.count( edgeID0.getID() ), 1 );
     WALBERLA_ASSERT_EQUAL( edges_.count( edgeID1.getID() ), 1 );
@@ -148,37 +148,42 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     PrimitiveID edge2Vertex0 = edges_[ edgeID2.getID() ]->getVertexID0();
     PrimitiveID edge2Vertex1 = edges_[ edgeID2.getID() ]->getVertexID1();
 
-    if (edge0Vertex1 == edge1Vertex0 && edge1Vertex1 == edge2Vertex0 && edge2Vertex1 == edge0Vertex0)
+    WALBERLA_UNUSED( edge2Vertex1 );
+
+    if ( edge0Vertex0 == vertexID0 )
     {
-      edgeOrientation = {{1, 1, 1}};
+      WALBERLA_ASSERT( edge0Vertex1 == vertexID1 );
+      edgeOrientation[0] = 1;
     }
-    else if (edge0Vertex1 == edge1Vertex0 && edge1Vertex1 == edge2Vertex1 && edge2Vertex0 == edge0Vertex0)
+    else
     {
-      edgeOrientation = {{1, 1, -1}};
+      WALBERLA_ASSERT( edge0Vertex0 == vertexID1 );
+      WALBERLA_ASSERT( edge0Vertex1 == vertexID0 );
+      edgeOrientation[0] = -1;
     }
-    else if (edge0Vertex1 == edge1Vertex1 && edge1Vertex0 == edge2Vertex0 && edge2Vertex1 == edge0Vertex0)
+
+    if ( edge1Vertex0 == vertexID0 )
     {
-      edgeOrientation = {{1, -1, 1}};
+      WALBERLA_ASSERT( edge1Vertex1 == vertexID2 );
+      edgeOrientation[1] = 1;
     }
-    else if (edge0Vertex1 == edge1Vertex1 && edge1Vertex0 == edge2Vertex1 && edge2Vertex0 == edge0Vertex0)
+    else
     {
-      edgeOrientation = {{1, -1, -1}};
+      WALBERLA_ASSERT( edge1Vertex0 == vertexID2 );
+      WALBERLA_ASSERT( edge1Vertex1 == vertexID0 );
+      edgeOrientation[1] = -1;
     }
-    else if (edge0Vertex0 == edge1Vertex0 && edge1Vertex1 == edge2Vertex0 && edge2Vertex1 == edge0Vertex1)
+
+    if ( edge2Vertex0 == vertexID1 )
     {
-      edgeOrientation = {{-1, 1, 1}};
+      WALBERLA_ASSERT( edge2Vertex1 == vertexID2 );
+      edgeOrientation[2] = 1;
     }
-    else if (edge0Vertex0 == edge1Vertex0 && edge1Vertex1 == edge2Vertex1 && edge2Vertex0 == edge0Vertex1)
+    else
     {
-      edgeOrientation = {{-1, 1, -1}};
-    }
-    else if (edge0Vertex0 == edge1Vertex1 && edge1Vertex0 == edge2Vertex0 && edge2Vertex1 == edge0Vertex1)
-    {
-      edgeOrientation = {{-1, -1, 1}};
-    }
-    else if (edge0Vertex0 == edge1Vertex1 && edge1Vertex0 == edge2Vertex1 && edge2Vertex0 == edge0Vertex1)
-    {
-      edgeOrientation = {{-1, -1, -1}};
+      WALBERLA_ASSERT( edge2Vertex0 == vertexID2 );
+      WALBERLA_ASSERT( edge2Vertex1 == vertexID1 );
+      edgeOrientation[2] = -1;
     }
 
     // Corner coordinates
