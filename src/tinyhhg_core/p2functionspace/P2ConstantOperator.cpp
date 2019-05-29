@@ -794,29 +794,136 @@ void P2ConstantOperator< UFCOperator2D, UFCOperator3D >::smooth_sor( const P2Fun
 
           this->timingTree_->start( "Updating EdgeDoFs" );
 
-          P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs( &e_dst_data[firstIdx[eo::X]],
-                                                                         &e_dst_data[firstIdx[eo::XY]],
-                                                                         &e_dst_data[firstIdx[eo::XYZ]],
-                                                                         &e_dst_data[firstIdx[eo::XZ]],
-                                                                         &e_dst_data[firstIdx[eo::Y]],
-                                                                         &e_dst_data[firstIdx[eo::YZ]],
-                                                                         &e_dst_data[firstIdx[eo::Z]],
-                                                                         &e_rhs_data[firstIdx[eo::X]],
-                                                                         &e_rhs_data[firstIdx[eo::XY]],
-                                                                         &e_rhs_data[firstIdx[eo::XYZ]],
-                                                                         &e_rhs_data[firstIdx[eo::XZ]],
-                                                                         &e_rhs_data[firstIdx[eo::Y]],
-                                                                         &e_rhs_data[firstIdx[eo::YZ]],
-                                                                         &e_rhs_data[firstIdx[eo::Z]],
-                                                                         v_dst_data,
-                                                                         e2e_opr_data,
-                                                                         static_cast< int32_t >( level ),
-                                                                         relax,
-                                                                         v2e_opr_data );
+          // Splitting the SOR into multiple sweeps: one per edge type.
+          // This has severe performance advantages.
+          // Due to the memory layout of the edge DoFs and the coincidence that there are
+          // never two (or more) edges per type in one element, this split is a natural
+          // coloring of the edge DoFs.
+          // Therefore each of the split-kernels can be vectorized!
+          // However it is not clear how the smoothing property suffers from this splitting.
+          // In first tests it is marginally worse - but the performance gain is huge.
+          const bool splitByEdgeType = true;
+          if ( splitByEdgeType )
+          {
+             P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_X( &e_dst_data[firstIdx[eo::X]],
+                                                                                      &e_dst_data[firstIdx[eo::XY]],
+                                                                                      &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                      &e_dst_data[firstIdx[eo::XZ]],
+                                                                                      &e_dst_data[firstIdx[eo::Y]],
+                                                                                      &e_dst_data[firstIdx[eo::YZ]],
+                                                                                      &e_dst_data[firstIdx[eo::Z]],
+                                                                                      &e_rhs_data[firstIdx[eo::X]],
+                                                                                      v_dst_data,
+                                                                                      e2e_opr_data,
+                                                                                      static_cast< int32_t >( level ),
+                                                                                      relax,
+                                                                                      v2e_opr_data );
+             P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_Y( &e_dst_data[firstIdx[eo::X]],
+                                                                                      &e_dst_data[firstIdx[eo::XY]],
+                                                                                      &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                      &e_dst_data[firstIdx[eo::XZ]],
+                                                                                      &e_dst_data[firstIdx[eo::Y]],
+                                                                                      &e_dst_data[firstIdx[eo::YZ]],
+                                                                                      &e_dst_data[firstIdx[eo::Z]],
+                                                                                      &e_rhs_data[firstIdx[eo::Y]],
+                                                                                      v_dst_data,
+                                                                                      e2e_opr_data,
+                                                                                      static_cast< int32_t >( level ),
+                                                                                      relax,
+                                                                                      v2e_opr_data );
+             P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_Z( &e_dst_data[firstIdx[eo::X]],
+                                                                                      &e_dst_data[firstIdx[eo::XY]],
+                                                                                      &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                      &e_dst_data[firstIdx[eo::XZ]],
+                                                                                      &e_dst_data[firstIdx[eo::Y]],
+                                                                                      &e_dst_data[firstIdx[eo::YZ]],
+                                                                                      &e_dst_data[firstIdx[eo::Z]],
+                                                                                      &e_rhs_data[firstIdx[eo::Z]],
+                                                                                      v_dst_data,
+                                                                                      e2e_opr_data,
+                                                                                      static_cast< int32_t >( level ),
+                                                                                      relax,
+                                                                                      v2e_opr_data );
+             P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_XY( &e_dst_data[firstIdx[eo::X]],
+                                                                                       &e_dst_data[firstIdx[eo::XY]],
+                                                                                       &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                       &e_dst_data[firstIdx[eo::XZ]],
+                                                                                       &e_dst_data[firstIdx[eo::Y]],
+                                                                                       &e_dst_data[firstIdx[eo::YZ]],
+                                                                                       &e_dst_data[firstIdx[eo::Z]],
+                                                                                       &e_rhs_data[firstIdx[eo::XY]],
+                                                                                       v_dst_data,
+                                                                                       e2e_opr_data,
+                                                                                       static_cast< int32_t >( level ),
+                                                                                       relax,
+                                                                                       v2e_opr_data );
+             P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_XZ( &e_dst_data[firstIdx[eo::X]],
+                                                                                       &e_dst_data[firstIdx[eo::XY]],
+                                                                                       &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                       &e_dst_data[firstIdx[eo::XZ]],
+                                                                                       &e_dst_data[firstIdx[eo::Y]],
+                                                                                       &e_dst_data[firstIdx[eo::YZ]],
+                                                                                       &e_dst_data[firstIdx[eo::Z]],
+                                                                                       &e_rhs_data[firstIdx[eo::XZ]],
+                                                                                       v_dst_data,
+                                                                                       e2e_opr_data,
+                                                                                       static_cast< int32_t >( level ),
+                                                                                       relax,
+                                                                                       v2e_opr_data );
+             P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_YZ( &e_dst_data[firstIdx[eo::X]],
+                                                                                       &e_dst_data[firstIdx[eo::XY]],
+                                                                                       &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                       &e_dst_data[firstIdx[eo::XZ]],
+                                                                                       &e_dst_data[firstIdx[eo::Y]],
+                                                                                       &e_dst_data[firstIdx[eo::YZ]],
+                                                                                       &e_dst_data[firstIdx[eo::Z]],
+                                                                                       &e_rhs_data[firstIdx[eo::YZ]],
+                                                                                       v_dst_data,
+                                                                                       e2e_opr_data,
+                                                                                       static_cast< int32_t >( level ),
+                                                                                       relax,
+                                                                                       v2e_opr_data );
+             P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_XYZ( &e_dst_data[firstIdx[eo::X]],
+                                                                                        &e_dst_data[firstIdx[eo::XY]],
+                                                                                        &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                        &e_dst_data[firstIdx[eo::XZ]],
+                                                                                        &e_dst_data[firstIdx[eo::Y]],
+                                                                                        &e_dst_data[firstIdx[eo::YZ]],
+                                                                                        &e_dst_data[firstIdx[eo::Z]],
+                                                                                        &e_rhs_data[firstIdx[eo::XYZ]],
+                                                                                        v_dst_data,
+                                                                                        e2e_opr_data,
+                                                                                        static_cast< int32_t >( level ),
+                                                                                        relax,
+                                                                                        v2e_opr_data );
+          }
+          else
+          {
+            P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs( &e_dst_data[firstIdx[eo::X]],
+                                                                           &e_dst_data[firstIdx[eo::XY]],
+                                                                           &e_dst_data[firstIdx[eo::XYZ]],
+                                                                           &e_dst_data[firstIdx[eo::XZ]],
+                                                                           &e_dst_data[firstIdx[eo::Y]],
+                                                                           &e_dst_data[firstIdx[eo::YZ]],
+                                                                           &e_dst_data[firstIdx[eo::Z]],
+                                                                           &e_rhs_data[firstIdx[eo::X]],
+                                                                           &e_rhs_data[firstIdx[eo::XY]],
+                                                                           &e_rhs_data[firstIdx[eo::XYZ]],
+                                                                           &e_rhs_data[firstIdx[eo::XZ]],
+                                                                           &e_rhs_data[firstIdx[eo::Y]],
+                                                                           &e_rhs_data[firstIdx[eo::YZ]],
+                                                                           &e_rhs_data[firstIdx[eo::Z]],
+                                                                           v_dst_data,
+                                                                           e2e_opr_data,
+                                                                           static_cast< int32_t >( level ),
+                                                                           relax,
+                                                                           v2e_opr_data );
+          }
 
           this->timingTree_->stop( "Updating EdgeDoFs" );
 
-        } else
+        }
+        else
         {
 
 
