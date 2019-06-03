@@ -26,6 +26,7 @@
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/petsc/PETScLUSolver.hpp"
+#include "tinyhhg_core/petsc/PETScMinResSolver.hpp"
 #include "tinyhhg_core/petsc/PETScManager.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
@@ -95,12 +96,12 @@ static void defectCorrection( int argc, char** argv )
    const uint_t numFacesPerSide = 4;
 
    // domain
-#if 1
+#if 0
    auto meshInfo =
        MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, numFacesPerSide, numFacesPerSide );
 #else
    auto meshInfo =
-       MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_24el.msh" );
+       MeshInfo::meshSymmetricCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
 #endif
    SetupPrimitiveStorage setupStorage( meshInfo, 1 );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -177,9 +178,9 @@ static void defectCorrection( int argc, char** argv )
    M_P1.apply( tmp.v, f.v, maxLevel, All );
 
    // solver
-   auto petscSolver           = std::make_shared< PETScLUSolver< P1StokesOperator > >( storage, maxLevel );
+   // auto petscSolver           = std::make_shared< PETScMinResSolver< P1StokesOperator > >( storage, maxLevel, 1e-14 );
    auto petscCoarseGridSolver = std::make_shared< PETScLUSolver< P1StokesOperator > >( storage, minLevel );
-   auto smoother              = std::make_shared< UzawaSmoother< P1StokesOperator > >( storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.4 );
+   auto smoother              = std::make_shared< UzawaSmoother< P1StokesOperator > >( storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.3 );
    auto restriction           = std::make_shared< P1P1StokesToP1P1StokesRestriction >( true );
    auto prolongation          = std::make_shared< P1P1StokesToP1P1StokesProlongation >();
    // auto quadraticProlongation = std::make_shared< P1P1StokesToP1P1StokesProlongation >();
@@ -191,36 +192,61 @@ static void defectCorrection( int argc, char** argv )
    auto minresSolver = std::make_shared< MinResSolver< P1StokesOperator > >( storage, minLevel, maxLevel, std::numeric_limits< uint_t >::max(), 1e-12, minresPrec );
 
 
+  const auto numP1DoFs = numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel );
+  auto       l2ErrorU  = std::sqrt( error.u.dotGlobal( error.u, maxLevel, All ) / real_c( numP1DoFs ) );
+  auto       l2ErrorV  = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
+  auto       l2ErrorW  = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
+  auto       l2ErrorP  = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );
+
+  // calculate error (should be lower than linear discretization error!)
+  error.assign( {1.0, -1.0}, {exact, u}, maxLevel, All );
+  // vtkP1.write( maxLevel, i+1 );
+  // vtkP2.write( maxLevel-1, i+1 );
+  l2ErrorU = std::sqrt( error.u.dotGlobal( error.u, maxLevel, All ) / real_c( numP1DoFs ) );
+  //       l2ErrorV = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
+  //       l2ErrorW = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
+  //       l2ErrorP = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );
+    WALBERLA_LOG_INFO_ON_ROOT( "error (u) initial: " << l2ErrorU );
+  //       WALBERLA_LOG_INFO_ON_ROOT( "error (v) after defect correction: " << l2ErrorV );
+  //       WALBERLA_LOG_INFO_ON_ROOT( "error (w) after defect correction: " << l2ErrorW );
+  //       WALBERLA_LOG_INFO_ON_ROOT( "error (p) after defect correction: " << l2ErrorP );
+
    // solve w/o DC
    // A * u = f
    if ( useGMG )
    {
-     for ( uint_t i = 0; i < 10; i++ )
+     for ( uint_t i = 0; i < 5; i++ )
      {
        gmgSolver->solve( A_P1, u, f, maxLevel );
        vertexdof::projectMean( u.p, maxLevel );
+
+       // calculate error (should be lower than linear discretization error!)
+       error.assign( {1.0, -1.0}, {exact, u}, maxLevel, All );
+       // vtkP1.write( maxLevel, i+1 );
+       // vtkP2.write( maxLevel-1, i+1 );
+       l2ErrorU = std::sqrt( error.u.dotGlobal( error.u, maxLevel, All ) / real_c( numP1DoFs ) );
+//       l2ErrorV = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
+//       l2ErrorW = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
+//       l2ErrorP = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );
+       WALBERLA_LOG_INFO_ON_ROOT( "error (u) " << i << ": " << l2ErrorU );
+//       WALBERLA_LOG_INFO_ON_ROOT( "error (v) after defect correction: " << l2ErrorV );
+//       WALBERLA_LOG_INFO_ON_ROOT( "error (w) after defect correction: " << l2ErrorW );
+//       WALBERLA_LOG_INFO_ON_ROOT( "error (p) after defect correction: " << l2ErrorP );
+
      }
 
      vertexdof::projectMean( u.p, maxLevel );
    }
    else
    {
-      minresSolver->solve( A_P1, u, f, maxLevel );
+      // minresSolver->solve( A_P1, u, f, maxLevel );
+      // petscSolver->solve( A_P1, u, f, maxLevel );
       vertexdof::projectMean( u.p, maxLevel );
    }
 
    // calculate error (= discretization error)
    error.assign( {1.0, -1.0}, {exact, u}, maxLevel, All );
-   const auto numP1DoFs = numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel );
-   auto       l2ErrorU  = std::sqrt( error.u.dotGlobal( error.u, maxLevel, All ) / real_c( numP1DoFs ) );
-   auto       l2ErrorV  = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
-   auto       l2ErrorW  = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
-   auto       l2ErrorP  = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "error (u) (= discretization error) on level " << maxLevel << ": " << l2ErrorU );
-   WALBERLA_LOG_INFO_ON_ROOT( "error (v) (= discretization error) on level " << maxLevel << ": " << l2ErrorV );
-   WALBERLA_LOG_INFO_ON_ROOT( "error (w) (= discretization error) on level " << maxLevel << ": " << l2ErrorW );
-   WALBERLA_LOG_INFO_ON_ROOT( "error (p) (= discretization error) on level " << maxLevel << ": " << l2ErrorP );
 
    vtkP1.write( maxLevel, 0 );
    vtkP2.write( maxLevel-1, 0 );
@@ -256,10 +282,24 @@ static void defectCorrection( int argc, char** argv )
       {
          if ( withDC )
          {
-            for ( uint_t ii = 0; ii < 1; ii++ )
+            for ( uint_t ii = 0; ii < 10; ii++ )
             {
                gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
                vertexdof::projectMean( u.p, maxLevel );
+
+              // calculate error (should be lower than linear discretization error!)
+              error.assign( {1.0, -1.0}, {exact, u}, maxLevel, All );
+              // vtkP1.write( maxLevel, i+1 );
+              // vtkP2.write( maxLevel-1, i+1 );
+              l2ErrorU = std::sqrt( error.u.dotGlobal( error.u, maxLevel, All ) / real_c( numP1DoFs ) );
+//              l2ErrorV = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
+//              l2ErrorW = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
+//              l2ErrorP = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );
+              WALBERLA_LOG_INFO_ON_ROOT( "error (u) after defect correction " << ii << ": " << l2ErrorU );
+//              WALBERLA_LOG_INFO_ON_ROOT( "error (v) after defect correction: " << l2ErrorV );
+//              WALBERLA_LOG_INFO_ON_ROOT( "error (w) after defect correction: " << l2ErrorW );
+//              WALBERLA_LOG_INFO_ON_ROOT( "error (p) after defect correction: " << l2ErrorP );
+
             }
          }
          else
@@ -269,22 +309,12 @@ static void defectCorrection( int argc, char** argv )
       }
       else
       {
-         minresSolver->solve( A_P1, u, fCorrection, maxLevel );
+         // petscSolver->solve( A_P1, u, fCorrection, maxLevel );
+         // minresSolver->solve( A_P1, u, fCorrection, maxLevel );
          vertexdof::projectMean( u.p, maxLevel );
       }
 
-      // calculate error (should be lower than linear discretization error!)
-      error.assign( {1.0, -1.0}, {exact, u}, maxLevel, All );
-      vtkP1.write( maxLevel, i+1 );
-      vtkP2.write( maxLevel-1, i+1 );
-      l2ErrorU = std::sqrt( error.u.dotGlobal( error.u, maxLevel, All ) / real_c( numP1DoFs ) );
-      l2ErrorV = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
-      l2ErrorW = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
-      l2ErrorP = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );
-      WALBERLA_LOG_INFO_ON_ROOT( "error (u) after defect correction: " << l2ErrorU );
-      WALBERLA_LOG_INFO_ON_ROOT( "error (v) after defect correction: " << l2ErrorV );
-      WALBERLA_LOG_INFO_ON_ROOT( "error (w) after defect correction: " << l2ErrorW );
-      WALBERLA_LOG_INFO_ON_ROOT( "error (p) after defect correction: " << l2ErrorP );
+
    }
 }
 

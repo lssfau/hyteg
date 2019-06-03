@@ -24,6 +24,7 @@
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/petsc/PETScLUSolver.hpp"
+#include "tinyhhg_core/petsc/PETScMinResSolver.hpp"
 #include "tinyhhg_core/petsc/PETScManager.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
@@ -91,7 +92,8 @@ static void defectCorrection( int argc, char** argv )
    // domain
 
    auto meshInfo =
-       MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, numFacesPerSide, numFacesPerSide );
+       // MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, numFacesPerSide, numFacesPerSide );
+       MeshInfo::meshSymmetricCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, 1 );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -159,8 +161,8 @@ static void defectCorrection( int argc, char** argv )
 
 
    // solver
-   auto petscSolver           = std::make_shared< PETScLUSolver< P1ConstantLaplaceOperator > >( storage, maxLevel );
-   auto petscCoarseGridSolver = std::make_shared< PETScLUSolver< P1ConstantLaplaceOperator > >( storage, minLevel );
+   // auto petscSolver           = std::make_shared< PETScMinResSolver< P1ConstantLaplaceOperator > >( storage, maxLevel );
+   auto petscCoarseGridSolver = std::make_shared< PETScMinResSolver< P1ConstantLaplaceOperator > >( storage, minLevel );
    auto smoother              = std::make_shared< GaussSeidelSmoother< P1ConstantLaplaceOperator > >();
    auto restriction           = std::make_shared< P1toP1LinearRestriction >();
    auto prolongation          = std::make_shared< P1toP1LinearProlongation >();
@@ -172,10 +174,18 @@ static void defectCorrection( int argc, char** argv )
    if ( useGMG )
    {
       gmgSolver->solve( A_P1, u, f, maxLevel );
+     gmgSolver->solve( A_P1, u, f, maxLevel );
+     gmgSolver->solve( A_P1, u, f, maxLevel );
+     gmgSolver->solve( A_P1, u, f, maxLevel );
+     gmgSolver->solve( A_P1, u, f, maxLevel );
+     gmgSolver->solve( A_P1, u, f, maxLevel );
+     gmgSolver->solve( A_P1, u, f, maxLevel );
+     gmgSolver->solve( A_P1, u, f, maxLevel );
+     gmgSolver->solve( A_P1, u, f, maxLevel );
    }
    else
    {
-      petscSolver->solve( A_P1, u, f, maxLevel );
+      // petscSolver->solve( A_P1, u, f, maxLevel );
    }
 
    // calculate error (= discretization error)
@@ -207,13 +217,24 @@ static void defectCorrection( int argc, char** argv )
       if ( useGMG )
       {
          if ( withDC )
-            gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+         {
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+         }
+
          else
             gmgSolver->solve( A_P1, u, f, maxLevel );
       }
       else
       {
-         petscSolver->solve( A_P1, u, fCorrection, maxLevel );
+         // petscSolver->solve( A_P1, u, fCorrection, maxLevel );
       }
 
       // calculate error (should be lower than linear discretization error!)
