@@ -16,7 +16,7 @@ using walberla::uint_c;
 
 uint_t Face::vertex_index(const PrimitiveID& vertex) const
 {
-  WALBERLA_ASSERT_EQUAL(getNumNeighborVertices(), 3);
+  WALBERLA_ASSERT_EQUAL(getNumNeighborVertices(), 3)
 
   for (size_t i = 0; i < 3; ++i)
   {
@@ -26,13 +26,13 @@ uint_t Face::vertex_index(const PrimitiveID& vertex) const
     }
   }
 
-  WALBERLA_ASSERT(false, "Face::vertex_index: Vertex does not belong to face");
+  WALBERLA_ASSERT(false, "Face::vertex_index: Vertex does not belong to face")
   return std::numeric_limits<std::size_t>::max();
 }
 
 uint_t Face::edge_index(const PrimitiveID& edge) const
 {
-  WALBERLA_ASSERT_EQUAL(getNumNeighborEdges(), 3);
+  WALBERLA_ASSERT_EQUAL(getNumNeighborEdges(), 3)
 
   for (size_t i = 0; i < 3; ++i)
   {
@@ -42,13 +42,13 @@ uint_t Face::edge_index(const PrimitiveID& edge) const
     }
   }
 
-  WALBERLA_ASSERT(false, "Face::edge_index: Edge does not belong to face");
+  WALBERLA_ASSERT(false, "Face::edge_index: Edge does not belong to face")
   return std::numeric_limits<std::size_t>::max();
 }
 
 uint_t Face::cell_index( const PrimitiveID & cell ) const
 {
-  WALBERLA_ASSERT_LESS_EQUAL( getNumNeighborCells(), 2 );
+  WALBERLA_ASSERT_LESS_EQUAL( getNumNeighborCells(), 2 )
 
   for (size_t i = 0; i < 2; ++i)
   {
@@ -58,13 +58,13 @@ uint_t Face::cell_index( const PrimitiveID & cell ) const
     }
   }
 
-  WALBERLA_ASSERT(false, "Face::cell_index: Cell does not belong to face");
+  WALBERLA_ASSERT(false, "Face::cell_index: Cell does not belong to face")
   return std::numeric_limits<std::size_t>::max();
 }
 
 std::vector<PrimitiveID> Face::adjacent_edges(const PrimitiveID& vertex) const
 {
-  WALBERLA_ASSERT_EQUAL(getNumNeighborEdges(), 3);
+  WALBERLA_ASSERT_EQUAL(getNumNeighborEdges(), 3)
 
   std::vector<PrimitiveID> e;
 
@@ -79,14 +79,14 @@ std::vector<PrimitiveID> Face::adjacent_edges(const PrimitiveID& vertex) const
     e.push_back(neighborEdges_[2]);
   }
 
-  WALBERLA_ASSERT_EQUAL(e.size(), 2);
+  WALBERLA_ASSERT_EQUAL(e.size(), 2)
   return e;
 }
 
 PrimitiveID Face::get_vertex_opposite_to_edge(const PrimitiveID& edge) const
 {
-  WALBERLA_ASSERT_EQUAL(getNumNeighborVertices(), 3);
-  WALBERLA_ASSERT_EQUAL(getNumNeighborEdges(), 3);
+  WALBERLA_ASSERT_EQUAL(getNumNeighborVertices(), 3)
+  WALBERLA_ASSERT_EQUAL(getNumNeighborEdges(), 3)
 
   if (edge_index(edge) == 0) {
     return neighborVertices_[2];
@@ -96,12 +96,11 @@ PrimitiveID Face::get_vertex_opposite_to_edge(const PrimitiveID& edge) const
     return neighborVertices_[0];
   }
 
-  WALBERLA_ABORT("Face::get_vertex_opposite_to_edge: Edge does not belong to face");
+  WALBERLA_ABORT("Face::get_vertex_opposite_to_edge: Edge does not belong to face")
 }
 
 PrimitiveID Face::get_edge_between_vertices(const PrimitiveID& v0, const PrimitiveID& v1) const
 {
-  WALBERLA_ABORT( "This function is deprecated." );
   std::vector<PrimitiveID> edges_v0 = adjacent_edges(v0);
   std::vector<PrimitiveID> edges_v1 = adjacent_edges(v1);
 
@@ -121,7 +120,7 @@ PrimitiveID Face::get_edge_between_vertices(const PrimitiveID& v0, const Primiti
     return edges_v0[1];
   }
 
-  WALBERLA_ABORT("Face::get_edge_between_vertices: Vertex v1 does not belong to face");
+  WALBERLA_ABORT("Face::get_edge_between_vertices: Vertex v1 does not belong to face")
 }
 
 std::ostream& operator<<(std::ostream &os, const hhg::Face &face)

@@ -104,12 +104,12 @@ int main( int argc, char* argv[] )
 
    real_t       estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( {{&u->u, &u->v}}, maxLevel );
    const real_t minimalEdgeLength    = hhg::MeshQuality::getMinimalEdgeLength( storage, maxLevel );
-   WALBERLA_LOG_INFO_ON_ROOT( "minimalEdgeLength: " << minimalEdgeLength );
+   WALBERLA_LOG_INFO_ON_ROOT( "minimalEdgeLength: " << minimalEdgeLength )
    real_t dt = std::min( 1.0, 0.25 * minimalEdgeLength / estimatedMaxVelocity );
-   WALBERLA_LOG_INFO_ON_ROOT( "dt: " << dt );
+   WALBERLA_LOG_INFO_ON_ROOT( "dt: " << dt )
    const real_t finalTime = 100000.0;
    //  const real_t plotEach = 2.0;
-   const uint_t timesteps = (uint_t) std::ceil( finalTime / dt );
+   const auto timesteps = (uint_t) std::ceil( finalTime / dt );
    //  const uint_t plotModulo = (uint_t) std::ceil(plotEach/dt);
    const uint_t plotModulo = 10;
    real_t       time       = 0.0;
@@ -153,11 +153,12 @@ int main( int argc, char* argv[] )
    vtkOutput.add( u->p );
    vtkOutput.add( f->u );
    vtkOutput.add( f->v );
+   vtkOutput.add( *c );
 
    uint_t plotIter = 0;
    for( uint_t t = 0; t <= timesteps; ++t )
    {
-      WALBERLA_LOG_PROGRESS_ON_ROOT( "Current timestep: " << time );
+      WALBERLA_LOG_PROGRESS_ON_ROOT( "Current timestep: " << time )
 
       if( t % 3 == 0 )
       {
@@ -178,7 +179,7 @@ int main( int argc, char* argv[] )
 
             r->assign( {1.0, -1.0}, { *f, *r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
             real_t residuum = std::sqrt( r->dotGlobal( *r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) );
-            WALBERLA_LOG_PROGRESS_ON_ROOT( "[Uzawa] residuum: " << std::scientific << residuum );
+            WALBERLA_LOG_PROGRESS_ON_ROOT( "[Uzawa] residuum: " << std::scientific << residuum )
          }
       }
 
@@ -204,7 +205,7 @@ int main( int argc, char* argv[] )
 
    timingTree->stop( "Global" );
    auto reduced_tt = timingTree->getReduced();
-   WALBERLA_LOG_INFO_ON_ROOT( reduced_tt );
+   WALBERLA_LOG_INFO_ON_ROOT( reduced_tt )
 
    return EXIT_SUCCESS;
 }

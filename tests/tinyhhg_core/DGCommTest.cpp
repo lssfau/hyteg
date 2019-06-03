@@ -12,7 +12,7 @@ using namespace hhg;
 
 using walberla::real_t;
 
-void checkComm(std::string meshfile,const uint_t maxLevel, bool bufferComm = false){
+void checkComm(const std::string& meshfile,const uint_t maxLevel, bool bufferComm = false){
 
   //MeshInfo meshInfo = MeshInfo::fromGmshFile("../../data/meshes/quad_4el.msh");
   MeshInfo meshInfo = MeshInfo::fromGmshFile(meshfile);
@@ -40,7 +40,7 @@ void checkComm(std::string meshfile,const uint_t maxLevel, bool bufferComm = fal
     } else if(edgeIt.second.get()->getNumHigherDimNeighbors() == 2){
       totalExpectedChecks += 8;
     } else {
-      WALBERLA_CHECK(false);
+      WALBERLA_CHECK(false)
     }
   }
 
@@ -61,36 +61,36 @@ void checkComm(std::string meshfile,const uint_t maxLevel, bool bufferComm = fal
       } else if(edge.vertex_index(vertex->getID()) == 1) {
         pos = vPerEdge - 2;
       } else {
-        WALBERLA_CHECK(false, "vertex not on Edge");
+        WALBERLA_CHECK(false, "vertex not on Edge")
       }
       uint_t index = facedof::macroedge::indexFaceFromVertex(maxLevel, pos, stencilDirection::CELL_GRAY_SE );
-      WALBERLA_CHECK_UNEQUAL(0,edgeData[index]);
+      WALBERLA_CHECK_UNEQUAL(0,edgeData[index])
       WALBERLA_CHECK_EQUAL(edgeData[index],
-                           vertexData[vertex->face_index(edge.neighborFaces()[0]) * 2]);
+                           vertexData[vertex->face_index(edge.neighborFaces()[0]) * 2])
       index = facedof::macroedge::indexFaceFromVertex(maxLevel,
                                      pos == 0 ? pos + 1 : pos,
                                      stencilDirection::CELL_BLUE_SE );
-      WALBERLA_CHECK_UNEQUAL(0,edgeData[index]);
+      WALBERLA_CHECK_UNEQUAL(0,edgeData[index])
       WALBERLA_CHECK_EQUAL(edgeData[index],
-                           vertexData[vertex->face_index(edge.neighborFaces()[0]) * 2 + 1]);
+                           vertexData[vertex->face_index(edge.neighborFaces()[0]) * 2 + 1])
       numberOfChecks += 2;
       if(edge.getNumNeighborFaces() == 2){
         index = facedof::macroedge::indexFaceFromVertex(maxLevel, pos, stencilDirection::CELL_GRAY_NE );
-        WALBERLA_CHECK_UNEQUAL(0,edgeData[index]);
+        WALBERLA_CHECK_UNEQUAL(0,edgeData[index])
         WALBERLA_CHECK_EQUAL(edgeData[index],
-                             vertexData[vertex->face_index(edge.neighborFaces()[1]) * 2]);
+                             vertexData[vertex->face_index(edge.neighborFaces()[1]) * 2])
         index = facedof::macroedge::indexFaceFromVertex(maxLevel,
                                        pos == 0 ? pos + 1 : pos,
                                        stencilDirection::CELL_BLUE_NW );
-        WALBERLA_CHECK_UNEQUAL(0,edgeData[index]);
+        WALBERLA_CHECK_UNEQUAL(0,edgeData[index])
         WALBERLA_CHECK_EQUAL(edgeData[index],
-                             vertexData[vertex->face_index(edge.neighborFaces()[1]) * 2 + 1]);
+                             vertexData[vertex->face_index(edge.neighborFaces()[1]) * 2 + 1])
         numberOfChecks += 2;
       }
     }
   }
 
-  WALBERLA_CHECK_EQUAL(totalExpectedChecks,numberOfChecks);
+  WALBERLA_CHECK_EQUAL(totalExpectedChecks,numberOfChecks)
 
 
   /// check face edge comms ///
@@ -115,15 +115,15 @@ void checkComm(std::string meshfile,const uint_t maxLevel, bool bufferComm = fal
                                                   maxLevel);
       for(; it != facedof::macroface::indexIterator(); ++it){
         if(faceIdOnEdge == 0) {
-          WALBERLA_CHECK_UNEQUAL(0,faceData[*it]);
-          WALBERLA_CHECK_EQUAL(edgeData[facedof::macroedge::indexFaceFromVertex(maxLevel, idxCounter, stencilDirection::CELL_GRAY_SE)], faceData[*it]);
+          WALBERLA_CHECK_UNEQUAL(0,faceData[*it])
+          WALBERLA_CHECK_EQUAL(edgeData[facedof::macroedge::indexFaceFromVertex(maxLevel, idxCounter, stencilDirection::CELL_GRAY_SE)], faceData[*it])
           numberOfChecks++;
         } else if(faceIdOnEdge == 1){
-          WALBERLA_CHECK_UNEQUAL(0,faceData[*it]);
-          WALBERLA_CHECK_EQUAL(edgeData[facedof::macroedge::indexFaceFromVertex(maxLevel, idxCounter, stencilDirection::CELL_GRAY_NE)], faceData[*it]);
+          WALBERLA_CHECK_UNEQUAL(0,faceData[*it])
+          WALBERLA_CHECK_EQUAL(edgeData[facedof::macroedge::indexFaceFromVertex(maxLevel, idxCounter, stencilDirection::CELL_GRAY_NE)], faceData[*it])
           numberOfChecks++;
         } else{
-          WALBERLA_CHECK(false);
+          WALBERLA_CHECK(false)
         }
         idxCounter++;
       }
@@ -135,19 +135,19 @@ void checkComm(std::string meshfile,const uint_t maxLevel, bool bufferComm = fal
                                              maxLevel);
       for(; it != facedof::macroface::indexIterator(); ++it){
         if(faceIdOnEdge == 0) {
-          WALBERLA_CHECK_EQUAL(edgeData[facedof::macroedge::indexFaceFromVertex(maxLevel, idxCounter + 1, stencilDirection::CELL_BLUE_SE)], faceData[*it]);
+          WALBERLA_CHECK_EQUAL(edgeData[facedof::macroedge::indexFaceFromVertex(maxLevel, idxCounter + 1, stencilDirection::CELL_BLUE_SE)], faceData[*it])
           numberOfChecks++;
         } else if(faceIdOnEdge == 1){
-          WALBERLA_CHECK_EQUAL(edgeData[facedof::macroedge::indexFaceFromVertex(maxLevel, idxCounter + 1, stencilDirection::CELL_BLUE_NW)], faceData[*it]);
+          WALBERLA_CHECK_EQUAL(edgeData[facedof::macroedge::indexFaceFromVertex(maxLevel, idxCounter + 1, stencilDirection::CELL_BLUE_NW)], faceData[*it])
           numberOfChecks++;
         } else{
-          WALBERLA_CHECK(false);
+          WALBERLA_CHECK(false)
         }
         idxCounter++;
       }
     }
   }
-  WALBERLA_CHECK_EQUAL(totalExpectedChecks,numberOfChecks);
+  WALBERLA_CHECK_EQUAL(totalExpectedChecks,numberOfChecks)
 
 }
 
@@ -158,17 +158,17 @@ int main (int argc, char ** argv )
   walberla::MPIManager::instance()->useWorldComm();
   walberla::debug::enterTestMode();
 
-//  checkComm("../../data/meshes/quad_4el.msh",4,true);
-//
-//  checkComm("../../data/meshes/quad_4el.msh",5,true);
-//
-//  checkComm("../../data/meshes/quad_4el.msh",4,false);
-//
-//  checkComm("../../data/meshes/quad_4el.msh",5,false);
-//
-//  checkComm("../../data/meshes/bfs_12el.msh",3,true);
-//
-//  checkComm("../../data/meshes/bfs_12el.msh",3,false);
+  checkComm("../../data/meshes/quad_4el.msh",4,true);
+
+  checkComm("../../data/meshes/quad_4el.msh",5,true);
+
+  checkComm("../../data/meshes/quad_4el.msh",4,false);
+
+  checkComm("../../data/meshes/quad_4el.msh",5,false);
+
+  checkComm("../../data/meshes/bfs_12el.msh",3,true);
+
+  checkComm("../../data/meshes/bfs_12el.msh",3,false);
 
   return 0;
 
