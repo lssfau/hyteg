@@ -112,6 +112,7 @@
 #include "communicate_directly_vertexdof_face_to_cell_impl_320.hpp"
 #include "communicate_directly_vertexdof_face_to_cell_impl_321.hpp"
 #include "gaussseidel_2D_macroface_vertexdof_to_vertexdof.hpp"
+#include "gaussseidel_3D_macrocell_P1.hpp"
 #include "sor_3D_macrocell_P1.hpp"
 #include "sor_3D_macroface_P1.hpp"
 #include "sor_3D_macroface_P1_impl_012_012.hpp"
