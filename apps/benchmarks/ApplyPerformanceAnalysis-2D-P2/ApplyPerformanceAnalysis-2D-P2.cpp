@@ -21,6 +21,8 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
+#include "AbstractApply.hpp"
+
 using walberla::real_t;
 using namespace hhg;
 
@@ -29,7 +31,8 @@ static void performBenchmark( hhg::P2Function< double >&      src,
                               hhg::P2ConstantLaplaceOperator& laplace,
                               const uint_t&                   level,
                               Face&                           face,
-                              walberla::WcTimingTree&         timingTree )
+                              walberla::WcTimingTree&         timingTree,
+                              const bool                      useGeneratedKernels )
 {
    const std::string benchInfoString = "level" + ( level < 10 ? "0" + std::to_string( level ) : std::to_string( level ) ) +
                                        "-numProcs" + std::to_string( walberla::mpi::MPIManager::instance()->numProcesses() );
@@ -76,11 +79,17 @@ static void performBenchmark( hhg::P2Function< double >&      src,
       auto srcPtr     = face.getData( src.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
       auto stencilPtr = face.getData( laplace.getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
 
-      for ( uint_t i = 0; i < iterations; ++i )
+      for ( uint_t iter = 0; iter < iterations; ++iter )
       {
-         hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace(
-             dstPtr, srcPtr, stencilPtr, static_cast< int64_t >( level ) );
-         hhg::misc::dummy( srcPtr, dstPtr );
+         if ( useGeneratedKernels )
+         {
+            hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace(
+                dstPtr, srcPtr, stencilPtr, static_cast< int64_t >( level ) );
+         }
+         else
+         {
+            apply_2d_vertex_to_vertex( dstPtr, srcPtr, stencilPtr, level );
+         }
       }
       LIKWID_MARKER_STOP( vvname.c_str() );
       timingTree.stop( vvname );
@@ -91,6 +100,10 @@ static void performBenchmark( hhg::P2Function< double >&      src,
 
 #ifdef LIKWID_PERFMON
    LIKWID_MARKER_GET( vvname.c_str(), &nevents, &events, &time, &count );
+   if ( time < 1e-16 )
+   {
+      time = timingTree[vvname].last();
+   }
 #else
    time = timingTree[vvname].last();
 #endif
@@ -134,6 +147,10 @@ static void performBenchmark( hhg::P2Function< double >&      src,
 
 #ifdef LIKWID_PERFMON
    LIKWID_MARKER_GET( evname.c_str(), &nevents, &events, &time, &count );
+   if ( time < 1e-16 )
+   {
+      time = timingTree[evname].last();
+   }
 #else
    time = timingTree[evname].last();
 #endif
@@ -183,6 +200,10 @@ static void performBenchmark( hhg::P2Function< double >&      src,
 
 #ifdef LIKWID_PERFMON
    LIKWID_MARKER_GET( eename.c_str(), &nevents, &events, &time, &count );
+   if ( time < 1e-16 )
+   {
+      time = timingTree[eename].last();
+   }
 #else
    time = timingTree[eename].last();
 #endif
@@ -232,6 +253,10 @@ static void performBenchmark( hhg::P2Function< double >&      src,
 
 #ifdef LIKWID_PERFMON
    LIKWID_MARKER_GET( vename.c_str(), &nevents, &events, &time, &count );
+   if ( time < 1e-16 )
+   {
+      time = timingTree[vename].last();
+   }
 #else
    time = timingTree[vename].last();
 #endif
@@ -269,7 +294,8 @@ int main( int argc, char* argv[] )
    }
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
-   const uint_t level = mainConf.getParameter< uint_t >( "level" );
+   const uint_t level               = mainConf.getParameter< uint_t >( "level" );
+   const bool   useGeneratedKernels = mainConf.getParameter< bool >( "useGenKernel" );
 
    hhg::MeshInfo meshInfo = hhg::MeshInfo::meshFaceChain( uint_c( walberla::MPIManager::instance()->numProcesses() ) );
    hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -297,7 +323,7 @@ int main( int argc, char* argv[] )
    WALBERLA_CHECK_EQUAL( macroFaces.size(), 1 );
    auto face = storage->getFace( macroFaces.front() );
 
-   performBenchmark( src, dst, laplace, level, *face, wcTimingTreeApp );
+   performBenchmark( src, dst, laplace, level, *face, wcTimingTreeApp, useGeneratedKernels );
 
    if ( mainConf.getParameter< bool >( "printTiming" ) )
    {
