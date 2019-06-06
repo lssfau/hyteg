@@ -18,13 +18,11 @@ void apply_2d_vertex_to_vertex( double* WALBERLA_RESTRICT dstPtr,
                                 const uint_t                          level )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
-   uint_t inner_rowsize = rowsize;
-   auto   tmp           = real_t( 0 );
    for ( uint_t j = 1; j < rowsize - 2; ++j )
    {
-      for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      for ( uint_t i = 1; i < rowsize -j - 1; ++i )
       {
-         tmp = real_c( 0 );
+         auto tmp = real_t( 0 );
          for ( const auto direction : vertexdof::macroface::neighborsWithCenter )
          {
             tmp += stencilPtr[vertexdof::stencilIndexFromVertex( direction )] *
@@ -32,6 +30,5 @@ void apply_2d_vertex_to_vertex( double* WALBERLA_RESTRICT dstPtr,
          }
          dstPtr[vertexdof::macroface::indexFromVertex( level, i, j, stencilDirection::VERTEX_C )] = tmp;
       }
-      --inner_rowsize;
    }
 }
