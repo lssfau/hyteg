@@ -145,23 +145,46 @@ void P1toP1LinearProlongation::prolongate3D( const P1Function< real_t >& functio
        const double numNeighborCellsVertex3 =
            static_cast< double >( storage->getVertex( cell->neighborVertices().at( 3 ) )->getNumNeighborCells() );
 
-       vertexdof::macrocell::generated::prolongate_3D_macrocell_P1_push_additive( srcData,
-                                                                                  dstData,
-                                                                                  static_cast< int32_t >( sourceLevel ),
-                                                                                  numNeighborCellsEdge0,
-                                                                                  numNeighborCellsEdge1,
-                                                                                  numNeighborCellsEdge2,
-                                                                                  numNeighborCellsEdge3,
-                                                                                  numNeighborCellsEdge4,
-                                                                                  numNeighborCellsEdge5,
-                                                                                  numNeighborCellsFace0,
-                                                                                  numNeighborCellsFace1,
-                                                                                  numNeighborCellsFace2,
-                                                                                  numNeighborCellsFace3,
-                                                                                  numNeighborCellsVertex0,
-                                                                                  numNeighborCellsVertex1,
-                                                                                  numNeighborCellsVertex2,
-                                                                                  numNeighborCellsVertex3 );
+       if ( globalDefines::useP1Coloring )
+       {
+         vertexdof::macrocell::generated::prolongate_3D_macrocell_P1_push_additive_colored( srcData,
+                                                                                            dstData,
+                                                                                            static_cast< int32_t >( sourceLevel ),
+                                                                                            numNeighborCellsEdge0,
+                                                                                            numNeighborCellsEdge1,
+                                                                                            numNeighborCellsEdge2,
+                                                                                            numNeighborCellsEdge3,
+                                                                                            numNeighborCellsEdge4,
+                                                                                            numNeighborCellsEdge5,
+                                                                                            numNeighborCellsFace0,
+                                                                                            numNeighborCellsFace1,
+                                                                                            numNeighborCellsFace2,
+                                                                                            numNeighborCellsFace3,
+                                                                                            numNeighborCellsVertex0,
+                                                                                            numNeighborCellsVertex1,
+                                                                                            numNeighborCellsVertex2,
+                                                                                            numNeighborCellsVertex3 );
+       }
+       else
+       {
+         vertexdof::macrocell::generated::prolongate_3D_macrocell_P1_push_additive( srcData,
+                                                                                    dstData,
+                                                                                    static_cast< int32_t >( sourceLevel ),
+                                                                                    numNeighborCellsEdge0,
+                                                                                    numNeighborCellsEdge1,
+                                                                                    numNeighborCellsEdge2,
+                                                                                    numNeighborCellsEdge3,
+                                                                                    numNeighborCellsEdge4,
+                                                                                    numNeighborCellsEdge5,
+                                                                                    numNeighborCellsFace0,
+                                                                                    numNeighborCellsFace1,
+                                                                                    numNeighborCellsFace2,
+                                                                                    numNeighborCellsFace3,
+                                                                                    numNeighborCellsVertex0,
+                                                                                    numNeighborCellsVertex1,
+                                                                                    numNeighborCellsVertex2,
+                                                                                    numNeighborCellsVertex3 );
+       }
     }
     else
     {

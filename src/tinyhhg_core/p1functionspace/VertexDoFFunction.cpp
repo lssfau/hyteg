@@ -380,36 +380,170 @@ void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::ve
                                 const std::vector< PrimitiveDataID< FunctionMemory< double >, Cell > > & srcCellIDs,
                                 const PrimitiveDataID< FunctionMemory< double >, Cell > & dstCellID )
 {
-  if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
-  {
-    auto dstData = cell.getData( dstCellID )->getPointer( level );
-    auto srcData = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
-    auto scalar  = scalars.at( 0 );
-    vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_1_rhs_function( dstData, srcData, scalar, static_cast< int32_t >( level ) );
-  }
-  else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
-  {
-    auto dstData  = cell.getData( dstCellID )->getPointer( level );
-    auto srcData0 = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
-    auto srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
-    auto scalar0  = scalars.at( 0 );
-    auto scalar1  = scalars.at( 1 );
-    vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
-  }
-  else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
-  {
-    auto dstData  = cell.getData( dstCellID )->getPointer( level );
-    auto srcData0 = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
-    auto srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
-    auto srcData2 = cell.getData( srcCellIDs.at( 2 ) )->getPointer( level );
-    auto scalar0  = scalars.at( 0 );
-    auto scalar1  = scalars.at( 1 );
-    auto scalar2  = scalars.at( 2 );
-    vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_3_rhs_functions( dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
-  }
-  else
-  {
-    vertexdof::macrocell::assign< double >( level, cell, scalars, srcCellIDs, dstCellID );
+   if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
+   {
+      auto dstData = cell.getData( dstCellID )->getPointer( level );
+      auto srcData = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
+      auto scalar  = scalars.at( 0 );
+      if ( hhg::globalDefines::useP1Coloring )
+      {
+         std::map< uint_t, uint_t > groupFirstIdx;
+         groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
+         groupFirstIdx[1] = vertexdof::macrocell::index( level, 1, 0, 0 );
+         groupFirstIdx[2] = vertexdof::macrocell::index( level, 0, 1, 0 );
+         groupFirstIdx[3] = vertexdof::macrocell::index( level, 1, 1, 0 );
+         groupFirstIdx[4] = vertexdof::macrocell::index( level, 0, 0, 1 );
+         groupFirstIdx[5] = vertexdof::macrocell::index( level, 1, 0, 1 );
+         groupFirstIdx[6] = vertexdof::macrocell::index( level, 0, 1, 1 );
+         groupFirstIdx[7] = vertexdof::macrocell::index( level, 1, 1, 1 );
+
+         vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_1_rhs_function_colored( &dstData[groupFirstIdx[0]],
+                                                                                                &dstData[groupFirstIdx[1]],
+                                                                                                &dstData[groupFirstIdx[2]],
+                                                                                                &dstData[groupFirstIdx[3]],
+                                                                                                &dstData[groupFirstIdx[4]],
+                                                                                                &dstData[groupFirstIdx[5]],
+                                                                                                &dstData[groupFirstIdx[6]],
+                                                                                                &dstData[groupFirstIdx[7]],
+                                                                                                &srcData[groupFirstIdx[0]],
+                                                                                                &srcData[groupFirstIdx[1]],
+                                                                                                &srcData[groupFirstIdx[2]],
+                                                                                                &srcData[groupFirstIdx[3]],
+                                                                                                &srcData[groupFirstIdx[4]],
+                                                                                                &srcData[groupFirstIdx[5]],
+                                                                                                &srcData[groupFirstIdx[6]],
+                                                                                                &srcData[groupFirstIdx[7]],
+                                                                                                scalar,
+                                                                                                static_cast< int32_t >( level ) );
+      }
+      else
+      {
+         vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_1_rhs_function(
+             dstData, srcData, scalar, static_cast< int32_t >( level ) );
+      }
+   }
+   else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
+   {
+      auto dstData  = cell.getData( dstCellID )->getPointer( level );
+      auto srcData0 = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
+      auto srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
+      auto scalar0  = scalars.at( 0 );
+      auto scalar1  = scalars.at( 1 );
+      if ( hhg::globalDefines::useP1Coloring )
+      {
+         std::map< uint_t, uint_t > groupFirstIdx;
+         groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
+         groupFirstIdx[1] = vertexdof::macrocell::index( level, 1, 0, 0 );
+         groupFirstIdx[2] = vertexdof::macrocell::index( level, 0, 1, 0 );
+         groupFirstIdx[3] = vertexdof::macrocell::index( level, 1, 1, 0 );
+         groupFirstIdx[4] = vertexdof::macrocell::index( level, 0, 0, 1 );
+         groupFirstIdx[5] = vertexdof::macrocell::index( level, 1, 0, 1 );
+         groupFirstIdx[6] = vertexdof::macrocell::index( level, 0, 1, 1 );
+         groupFirstIdx[7] = vertexdof::macrocell::index( level, 1, 1, 1 );
+
+         vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_2_rhs_functions_colored(
+             &dstData[groupFirstIdx[0]],
+             &dstData[groupFirstIdx[1]],
+             &dstData[groupFirstIdx[2]],
+             &dstData[groupFirstIdx[3]],
+             &dstData[groupFirstIdx[4]],
+             &dstData[groupFirstIdx[5]],
+             &dstData[groupFirstIdx[6]],
+             &dstData[groupFirstIdx[7]],
+             &srcData0[groupFirstIdx[0]],
+             &srcData0[groupFirstIdx[1]],
+             &srcData0[groupFirstIdx[2]],
+             &srcData0[groupFirstIdx[3]],
+             &srcData0[groupFirstIdx[4]],
+             &srcData0[groupFirstIdx[5]],
+             &srcData0[groupFirstIdx[6]],
+             &srcData0[groupFirstIdx[7]],
+             &srcData1[groupFirstIdx[0]],
+             &srcData1[groupFirstIdx[1]],
+             &srcData1[groupFirstIdx[2]],
+             &srcData1[groupFirstIdx[3]],
+             &srcData1[groupFirstIdx[4]],
+             &srcData1[groupFirstIdx[5]],
+             &srcData1[groupFirstIdx[6]],
+             &srcData1[groupFirstIdx[7]],
+             scalar0,
+             scalar1,
+             static_cast< int32_t >( level ) );
+      }
+      else
+      {
+         vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_2_rhs_functions(
+             dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
+      }
+   }
+   else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
+   {
+      auto dstData  = cell.getData( dstCellID )->getPointer( level );
+      auto srcData0 = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
+      auto srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
+      auto srcData2 = cell.getData( srcCellIDs.at( 2 ) )->getPointer( level );
+      auto scalar0  = scalars.at( 0 );
+      auto scalar1  = scalars.at( 1 );
+      auto scalar2  = scalars.at( 2 );
+      if ( hhg::globalDefines::useP1Coloring )
+      {
+         std::map< uint_t, uint_t > groupFirstIdx;
+         groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
+         groupFirstIdx[1] = vertexdof::macrocell::index( level, 1, 0, 0 );
+         groupFirstIdx[2] = vertexdof::macrocell::index( level, 0, 1, 0 );
+         groupFirstIdx[3] = vertexdof::macrocell::index( level, 1, 1, 0 );
+         groupFirstIdx[4] = vertexdof::macrocell::index( level, 0, 0, 1 );
+         groupFirstIdx[5] = vertexdof::macrocell::index( level, 1, 0, 1 );
+         groupFirstIdx[6] = vertexdof::macrocell::index( level, 0, 1, 1 );
+         groupFirstIdx[7] = vertexdof::macrocell::index( level, 1, 1, 1 );
+
+         vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_3_rhs_functions_colored(
+             &dstData[groupFirstIdx[0]],
+             &dstData[groupFirstIdx[1]],
+             &dstData[groupFirstIdx[2]],
+             &dstData[groupFirstIdx[3]],
+             &dstData[groupFirstIdx[4]],
+             &dstData[groupFirstIdx[5]],
+             &dstData[groupFirstIdx[6]],
+             &dstData[groupFirstIdx[7]],
+             &srcData0[groupFirstIdx[0]],
+             &srcData0[groupFirstIdx[1]],
+             &srcData0[groupFirstIdx[2]],
+             &srcData0[groupFirstIdx[3]],
+             &srcData0[groupFirstIdx[4]],
+             &srcData0[groupFirstIdx[5]],
+             &srcData0[groupFirstIdx[6]],
+             &srcData0[groupFirstIdx[7]],
+             &srcData1[groupFirstIdx[0]],
+             &srcData1[groupFirstIdx[1]],
+             &srcData1[groupFirstIdx[2]],
+             &srcData1[groupFirstIdx[3]],
+             &srcData1[groupFirstIdx[4]],
+             &srcData1[groupFirstIdx[5]],
+             &srcData1[groupFirstIdx[6]],
+             &srcData1[groupFirstIdx[7]],
+             &srcData2[groupFirstIdx[0]],
+             &srcData2[groupFirstIdx[1]],
+             &srcData2[groupFirstIdx[2]],
+             &srcData2[groupFirstIdx[3]],
+             &srcData2[groupFirstIdx[4]],
+             &srcData2[groupFirstIdx[5]],
+             &srcData2[groupFirstIdx[6]],
+             &srcData2[groupFirstIdx[7]],
+             scalar0,
+             scalar1,
+             scalar2,
+             static_cast< int32_t >( level ) );
+      }
+      else
+      {
+         vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_3_rhs_functions(
+             dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
+      }
+   }
+   else
+   {
+      vertexdof::macrocell::assign< double >( level, cell, scalars, srcCellIDs, dstCellID );
   }
 }
 
@@ -665,6 +799,69 @@ void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t&
    this->stopTiming( "Add" );
 }
 
+
+template < typename ValueType >
+void macroCellAdd( const uint_t & level, Cell & cell, const std::vector< ValueType > & scalars,
+                      const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcCellIDs,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstCellID )
+{
+  vertexdof::macrocell::add< ValueType >( level, cell, scalars, srcCellIDs, dstCellID );
+}
+
+template<>
+void macroCellAdd< double >( const uint_t & level, Cell & cell, const std::vector< double > & scalars,
+                                const std::vector< PrimitiveDataID< FunctionMemory< double >, Cell > > & srcCellIDs,
+                                const PrimitiveDataID< FunctionMemory< double >, Cell > & dstCellID )
+{
+  if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
+  {
+    auto dstData = cell.getData( dstCellID )->getPointer( level );
+    auto srcData = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
+    auto scalar  = scalars.at( 0 );
+    if ( hhg::globalDefines::useP1Coloring )
+    {
+      std::map< uint_t, uint_t > groupFirstIdx;
+      groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
+      groupFirstIdx[1] = vertexdof::macrocell::index( level, 1, 0, 0 );
+      groupFirstIdx[2] = vertexdof::macrocell::index( level, 0, 1, 0 );
+      groupFirstIdx[3] = vertexdof::macrocell::index( level, 1, 1, 0 );
+      groupFirstIdx[4] = vertexdof::macrocell::index( level, 0, 0, 1 );
+      groupFirstIdx[5] = vertexdof::macrocell::index( level, 1, 0, 1 );
+      groupFirstIdx[6] = vertexdof::macrocell::index( level, 0, 1, 1 );
+      groupFirstIdx[7] = vertexdof::macrocell::index( level, 1, 1, 1 );
+
+      vertexdof::macrocell::generated::add_3D_macrocell_vertexdof_1_rhs_function_colored( &dstData[groupFirstIdx[0]],
+                                                                                             &dstData[groupFirstIdx[1]],
+                                                                                             &dstData[groupFirstIdx[2]],
+                                                                                             &dstData[groupFirstIdx[3]],
+                                                                                             &dstData[groupFirstIdx[4]],
+                                                                                             &dstData[groupFirstIdx[5]],
+                                                                                             &dstData[groupFirstIdx[6]],
+                                                                                             &dstData[groupFirstIdx[7]],
+                                                                                             &srcData[groupFirstIdx[0]],
+                                                                                             &srcData[groupFirstIdx[1]],
+                                                                                             &srcData[groupFirstIdx[2]],
+                                                                                             &srcData[groupFirstIdx[3]],
+                                                                                             &srcData[groupFirstIdx[4]],
+                                                                                             &srcData[groupFirstIdx[5]],
+                                                                                             &srcData[groupFirstIdx[6]],
+                                                                                             &srcData[groupFirstIdx[7]],
+                                                                                             scalar,
+                                                                                             static_cast< int32_t >( level ) );
+    }
+    else
+    {
+      vertexdof::macrocell::generated::add_3D_macrocell_vertexdof_1_rhs_function(
+      dstData, srcData, scalar, static_cast< int32_t >( level ) );
+    }
+  }
+  else
+  {
+    vertexdof::macrocell::add< double >( level, cell, scalars, srcCellIDs, dstCellID );
+  }
+}
+
+
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::add(
     const std::vector< ValueType >&                                                      scalars,
@@ -726,7 +923,7 @@ void VertexDoFFunction< ValueType >::add(
       Cell& cell = *it.second;
       if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
-         vertexdof::macrocell::add< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
+        macroCellAdd< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
       }
    }
    this->stopTiming( "Add" );

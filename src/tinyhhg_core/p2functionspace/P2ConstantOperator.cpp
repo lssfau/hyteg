@@ -59,6 +59,11 @@ P2ConstantOperator< UFCOperator2D, UFCOperator3D >::P2ConstantOperator( const st
 , vertexToEdge( storage, minLevel, maxLevel )
 , edgeToEdge( storage, minLevel, maxLevel )
 {
+   if ( globalDefines::useP1Coloring )
+   {
+     WALBERLA_ABORT( "The colored P1 memory layout is not supported for mixed operators." );
+   }
+
    if( storage_->hasGlobalCells() )
    {
       const bool assemblyDefined = !std::is_same< UFCOperator3D, hhg::fenics::UndefinedAssembly >::value;
