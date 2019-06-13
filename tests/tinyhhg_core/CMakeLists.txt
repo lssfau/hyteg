@@ -58,6 +58,11 @@ if(CMAKE_BUILD_TYPE MATCHES "Release")
   waLBerla_execute_test(NAME P2P1Stokes3DMinResConvergenceTest)
 
   if( HHG_BUILD_WITH_PETSC )
+    waLBerla_compile_test(FILES convergence/P1P1Stokes3DUzawaConvergenceTest.cpp DEPENDS tinyhhg_core core)
+    waLBerla_execute_test(NAME P1P1Stokes3DUzawaConvergenceTest)
+  endif()
+
+  if( HHG_BUILD_WITH_PETSC )
     waLBerla_compile_test(FILES convergence/P2P1Stokes3DUzawaConvergenceTest.cpp DEPENDS tinyhhg_core core)
     waLBerla_execute_test(NAME P2P1Stokes3DUzawaConvergenceTest)
   endif()
