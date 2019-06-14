@@ -581,7 +581,9 @@ template< typename ValueType >
 inline void smooth_sor(const uint_t & level, Edge &edge, const PrimitiveDataID< StencilMemory< ValueType >, Edge> &operatorId,
                           const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId,
                           const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &rhsId,
-                          ValueType relax) {
+                          ValueType relax,
+                          const bool & backwards = false )
+{
 
   typedef stencilDirection sD;
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
@@ -598,8 +600,13 @@ inline void smooth_sor(const uint_t & level, Edge &edge, const PrimitiveDataID< 
 
   ValueType tmp;
 
-  for (size_t i = 1; i < rowsize - 1; ++i)
+  const int start = backwards ? (int)rowsize - 2 : 1;
+  const int stop = backwards ? 0 : (int)rowsize - 1;
+  const int incr = backwards ? -1 : 1;
+
+  for (int ii = start; ii != stop; ii += incr)
   {
+    const uint_t i = uint_c(ii);
     const auto dofIdxW = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_W );
     const auto dofIdxC = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C );
     const auto dofIdxE = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_E );
