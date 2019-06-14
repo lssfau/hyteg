@@ -54,6 +54,7 @@ endif()
 # see: https://stackoverflow.com/questions/31555584/why-is-clang-warning-suggest-braces-around-initialization-of-subobject-wmis
 if(WALBERLA_CXX_COMPILER_IS_CLANG)
     add_flag( CMAKE_CXX_FLAGS "-Wno-missing-braces" )
+    add_flag( CMAKE_CXX_FLAGS "-Wno-parentheses-equality" )
 endif()
 
 # MSVC generates so many warnings that the CI log gets too large to complete the job successfully - therefore we suppress a prominent one.
