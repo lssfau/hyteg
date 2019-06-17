@@ -105,7 +105,7 @@ int main( int argc, char* argv[] )
    hhg::communication::syncFunctionBetweenPrimitives( u_exact.p, maxLevel );
 
    auto pressurePreconditioner = std::make_shared< hhg::StokesPressureBlockPreconditioner< hhg::P2P1TaylorHoodStokesOperator, hhg::P1LumpedInvMassOperator > >(storage, minLevel, maxLevel);
-   auto smoother = std::make_shared< hhg::UzawaSmoother<hhg::P2P1TaylorHoodStokesOperator>  >(storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.37);
+   auto smoother = std::make_shared< hhg::UzawaSmoother<hhg::P2P1TaylorHoodStokesOperator>  >(storage, minLevel, maxLevel, 0.37);
    auto coarseGridSolver = std::make_shared< hhg::MinResSolver< hhg::P2P1TaylorHoodStokesOperator > >( storage, minLevel, minLevel, maxIter, tolerance, pressurePreconditioner );
    auto restrictionOperator = std::make_shared< hhg::P2P1StokesToP2P1StokesRestriction>();
    auto prolongationOperator = std::make_shared< hhg::P2P1StokesToP2P1StokesProlongation >();

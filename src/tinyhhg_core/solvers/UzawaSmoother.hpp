@@ -14,12 +14,19 @@ class UzawaSmoother : public Solver< OperatorType >
    UzawaSmoother( const std::shared_ptr< PrimitiveStorage >& storage,
                   const uint_t                               minLevel,
                   const uint_t                               maxLevel,
-                  bool                                       hasGlobalCells,
                   real_t                                     relaxParam,
-                  hhg::DoFType                               flag = hhg::Inner | hhg::NeumannBoundary )
+                  hhg::DoFType                               flag                    = hhg::Inner | hhg::NeumannBoundary,
+                  const bool                                 symmetricGSVelocity     = false,
+                  const uint_t                               numGSIterationsVelocity = 2,
+                  const bool                                 symmetricGSPressure     = false,
+                  const uint_t                               numGSIterationsPressure = 1 )
    : flag_( flag )
-   , hasGlobalCells_( hasGlobalCells )
+   , hasGlobalCells_( storage->hasGlobalCells() )
    , relaxParam_( relaxParam )
+   , symmetricGSVelocity_( symmetricGSVelocity )
+   , numGSIterationsVelocity_( numGSIterationsVelocity )
+   , symmetricGSPressure_( symmetricGSPressure )
+   , numGSIterationsPressure_( numGSIterationsPressure )
    , r_( "r_", storage, minLevel, maxLevel )
    , tmp_( "tmp_", storage, minLevel, maxLevel )
    {}
@@ -27,7 +34,7 @@ class UzawaSmoother : public Solver< OperatorType >
    void solve( const OperatorType&                   A,
                const typename OperatorType::srcType& x,
                const typename OperatorType::dstType& b,
-               const uint_t                          level )override
+               const uint_t                          level ) override
    {
       uzawaSmooth( A,
                    x,
@@ -48,30 +55,74 @@ class UzawaSmoother : public Solver< OperatorType >
    {
       A.divT_x.apply( x.p, r_.u, level, flag_, Replace );
       r_.u.assign( {1.0, -1.0}, {b.u, r_.u}, level, flag_ );
-      A.A.smooth_gs( x.u, r_.u, level, flag_ );
+      for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
+      {
+         if ( symmetricGSVelocity_ )
+         {
+            A.A.smooth_gs( x.u, r_.u, level, flag_ );
+            A.A.smooth_gs_backwards( x.u, r_.u, level, flag_ );
+         }
+         else
+         {
+            A.A.smooth_gs( x.u, r_.u, level, flag_ );
+         }
+      }
 
       A.divT_y.apply( x.p, r_.v, level, flag_, Replace );
       r_.v.assign( {1.0, -1.0}, {b.v, r_.v}, level, flag_ );
-      A.A.smooth_gs( x.v, r_.v, level, flag_ );
+      for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
+      {
+         if ( symmetricGSVelocity_ )
+         {
+            A.A.smooth_gs( x.v, r_.v, level, flag_ );
+            A.A.smooth_gs_backwards( x.v, r_.v, level, flag_ );
+         }
+         else
+         {
+            A.A.smooth_gs( x.v, r_.v, level, flag_ );
+         }
+      }
 
-      if( hasGlobalCells_ )
+      if ( hasGlobalCells_ )
       {
          A.divT_z.apply( x.p, r_.w, level, flag_, Replace );
          r_.w.assign( {1.0, -1.0}, {b.w, r_.w}, level, flag_ );
-         A.A.smooth_gs( x.w, r_.w, level, flag_ );
+         for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
+         {
+            if ( symmetricGSVelocity_ )
+            {
+               A.A.smooth_gs( x.w, r_.w, level, flag_ );
+               A.A.smooth_gs_backwards( x.w, r_.w, level, flag_ );
+            }
+            else
+            {
+               A.A.smooth_gs( x.w, r_.w, level, flag_ );
+            }
+         }
       }
 
       A.div_x.apply( x.u, r_.p, level, flag_, Replace );
       A.div_y.apply( x.v, r_.p, level, flag_, Add );
 
-      if( hasGlobalCells_ )
+      if ( hasGlobalCells_ )
       {
          A.div_z.apply( x.w, r_.p, level, flag_, Add );
       }
 
       r_.p.assign( {1.0, -1.0}, {b.p, r_.p}, level, flag_ );
 
-      A.pspg.smooth_sor( x.p, r_.p, relaxParam_, level, flag_ );
+      for ( uint_t i = 0; i < numGSIterationsPressure_; i++ )
+      {
+         if ( symmetricGSPressure_ )
+         {
+            A.pspg.smooth_sor( x.p, r_.p, relaxParam_, level, flag_ );
+            A.pspg.smooth_sor_backwards( x.p, r_.p, relaxParam_, level, flag_ );
+         }
+         else
+         {
+            A.pspg.smooth_sor( x.p, r_.p, relaxParam_, level, flag_ );
+         }
+      }
    }
 
    // Tensor variant
@@ -111,22 +162,52 @@ class UzawaSmoother : public Solver< OperatorType >
       A.divT_x.apply( x.p, r_.u, level, flag_, Replace );
       r_.u.assign( {1.0, -1.0}, {b.u, r_.u}, level, flag_ );
 
-      A.A.smooth_gs( x.u, r_.u, level, flag_ );
-      A.A.smooth_gs( x.u, r_.u, level, flag_ );
+      for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
+      {
+         if ( symmetricGSVelocity_ )
+         {
+            A.A.smooth_gs( x.u, r_.u, level, flag_ );
+            A.A.smooth_gs_backwards( x.u, r_.u, level, flag_ );
+         }
+         else
+         {
+            A.A.smooth_gs( x.u, r_.u, level, flag_ );
+         }
+      }
 
       A.divT_y.apply( x.p, r_.v, level, flag_, Replace );
       r_.v.assign( {1.0, -1.0}, {b.v, r_.v}, level, flag_ );
 
-      A.A.smooth_gs( x.v, r_.v, level, flag_ );
-      A.A.smooth_gs( x.v, r_.v, level, flag_ );
+      for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
+      {
+         if ( symmetricGSVelocity_ )
+         {
+            A.A.smooth_gs( x.v, r_.v, level, flag_ );
+            A.A.smooth_gs_backwards( x.v, r_.v, level, flag_ );
+         }
+         else
+         {
+            A.A.smooth_gs( x.v, r_.v, level, flag_ );
+         }
+      }
 
       if ( hasGlobalCells_ )
       {
-        A.divT_z.apply( x.p, r_.w, level, flag_, Replace );
-        r_.w.assign( {1.0, -1.0}, {b.w, r_.w}, level, flag_ );
+         A.divT_z.apply( x.p, r_.w, level, flag_, Replace );
+         r_.w.assign( {1.0, -1.0}, {b.w, r_.w}, level, flag_ );
 
-        A.A.smooth_gs( x.w, r_.w, level, flag_ );
-        A.A.smooth_gs( x.w, r_.w, level, flag_ );
+         for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
+         {
+            if ( symmetricGSVelocity_ )
+            {
+               A.A.smooth_gs( x.w, r_.w, level, flag_ );
+               A.A.smooth_gs_backwards( x.w, r_.w, level, flag_ );
+            }
+            else
+            {
+               A.A.smooth_gs( x.w, r_.w, level, flag_ );
+            }
+         }
       }
 
       A.div_x.apply( x.u, r_.p, level, flag_ | DirichletBoundary, Replace );
@@ -134,20 +215,37 @@ class UzawaSmoother : public Solver< OperatorType >
 
       if ( hasGlobalCells_ )
       {
-        A.div_z.apply( x.w, r_.p, level, flag_ | DirichletBoundary, Add );
+         A.div_z.apply( x.w, r_.p, level, flag_ | DirichletBoundary, Add );
       }
 
       r_.p.assign( {1.0, -1.0}, {b.p, r_.p}, level, flag_ | DirichletBoundary );
 
       tmp_.p.interpolate( 0.0, level );
-      A.pspg_.smooth_sor( tmp_.p, r_.p, relaxParam_, level, flag_ | DirichletBoundary );
+
+      for ( uint_t i = 0; i < numGSIterationsPressure_; i++ )
+      {
+         if ( symmetricGSPressure_ )
+         {
+            A.pspg_.smooth_sor( tmp_.p, r_.p, relaxParam_, level, flag_ | DirichletBoundary );
+            A.pspg_.smooth_sor_backwards( tmp_.p, r_.p, relaxParam_, level, flag_ | DirichletBoundary );
+         }
+         else
+         {
+            A.pspg_.smooth_sor( tmp_.p, r_.p, relaxParam_, level, flag_ | DirichletBoundary );
+         }
+      }
+
       x.p.add( {1.0}, {tmp_.p}, level, flag_ | DirichletBoundary );
    }
 
  private:
    DoFType flag_;
    bool    hasGlobalCells_;
-   real_t relaxParam_;
+   real_t  relaxParam_;
+   bool    symmetricGSVelocity_;
+   uint_t  numGSIterationsVelocity_;
+   bool    symmetricGSPressure_;
+   uint_t  numGSIterationsPressure_;
 
    FunctionType r_;
    FunctionType tmp_;

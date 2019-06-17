@@ -79,7 +79,7 @@ int main(int argc, char* argv[])
   r.assign({1.0, -1.0}, { f, r }, maxLevel, hhg::Inner | hhg::NeumannBoundary);
 
    auto smoother = std::make_shared< hhg::UzawaSmoother< hhg::P1StokesOperator > >(
-       storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.3 );
+       storage, minLevel, maxLevel, 0.3 );
    auto coarseGridSolver = std::make_shared< hhg::MinResSolver< hhg::P1StokesOperator > >( storage, minLevel, minLevel, coarseMaxiter );
    auto restrictionOperator = std::make_shared< hhg::P1P1StokesToP1P1StokesRestriction>();
    auto prolongationOperator = std::make_shared< hhg::P1P1StokesToP1P1StokesProlongation >();

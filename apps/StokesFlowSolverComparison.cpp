@@ -428,7 +428,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
            auto restrictionOperator = std::make_shared< RestrictionOperator_T >();
            auto prolongationOperator = std::make_shared< ProlongationOperator_T >();
            auto uzawaSmoother = std::make_shared< hhg::UzawaSmoother< StokesOperator_T > >(
-               storage, minLevel, maxLevel, storage->hasGlobalCells(), uzawaRelaxParam );
+               storage, minLevel, maxLevel, uzawaRelaxParam );
 
            auto solver = hhg::GeometricMultigridSolver< StokesOperator_T >( storage,
                                                                             uzawaSmoother,
@@ -485,7 +485,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
           auto restrictionOperator = std::make_shared< RestrictionOperator_T >();
           auto prolongationOperator = std::make_shared< ProlongationOperator_T >();
           auto uzawaSmoother = std::make_shared< hhg::UzawaSmoother< StokesOperator_T > >(
-              storage, minLevel, maxLevel, storage->hasGlobalCells(), uzawaRelaxParam );
+              storage, minLevel, maxLevel, uzawaRelaxParam );
 
           auto solver = hhg::GeometricMultigridSolver< StokesOperator_T >( storage,
                                                                            uzawaSmoother,
@@ -540,7 +540,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
            auto restrictionOperator = std::make_shared< RestrictionOperator_T >();
            auto prolongationOperator = std::make_shared< ProlongationOperator_T >();
            auto uzawaSmoother = std::make_shared< hhg::UzawaSmoother< StokesOperator_T > >(
-               storage, minLevel, maxLevel, storage->hasGlobalCells(), uzawaRelaxParam );
+               storage, minLevel, maxLevel, uzawaRelaxParam );
 
            auto solver = hhg::GeometricMultigridSolver< StokesOperator_T >( storage,
                                                                             uzawaSmoother,

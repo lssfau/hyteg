@@ -180,7 +180,7 @@ static void defectCorrection( int argc, char** argv )
    // solver
    // auto petscSolver           = std::make_shared< PETScMinResSolver< P1StokesOperator > >( storage, maxLevel, 1e-14 );
    auto petscCoarseGridSolver = std::make_shared< PETScLUSolver< P1StokesOperator > >( storage, minLevel );
-   auto smoother              = std::make_shared< UzawaSmoother< P1StokesOperator > >( storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.3 );
+   auto smoother              = std::make_shared< UzawaSmoother< P1StokesOperator > >( storage, minLevel, maxLevel, 0.3 );
    auto restriction           = std::make_shared< P1P1StokesToP1P1StokesRestriction >( true );
    auto prolongation          = std::make_shared< P1P1StokesToP1P1StokesProlongation >();
    // auto quadraticProlongation = std::make_shared< P1P1StokesToP1P1StokesProlongation >();

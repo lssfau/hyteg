@@ -732,7 +732,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
    const uint_t coarseGridMaxLevel  = ( numCycles == 0 ? maxLevel : minLevel );
 
-   auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage, minLevel, maxLevel, storage->hasGlobalCells(), sorRelax );
+   auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage, minLevel, maxLevel, sorRelax );
 
 //   const uint_t preconditionerCGIterations = 0;
 //

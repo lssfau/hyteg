@@ -96,7 +96,7 @@ int main( int argc, char* argv[] )
    hhg::P1StokesFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
    auto smoother = std::make_shared< hhg::UzawaSmoother< hhg::P1BlendingStokesOperator > >(
-       storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.3 );
+       storage, minLevel, maxLevel, 0.3 );
    auto coarseGridSolver = std::make_shared< hhg::MinResSolver< hhg::P1BlendingStokesOperator > >( storage, minLevel, minLevel, coarseMaxiter );
    auto restrictionOperator = std::make_shared< hhg::P1P1StokesToP1P1StokesRestriction>();
    auto prolongationOperator = std::make_shared< hhg::P1P1StokesToP1P1StokesProlongation >();

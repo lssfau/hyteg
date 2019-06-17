@@ -123,7 +123,7 @@ int main( int argc, char* argv[] )
    c->assign( {1.0}, {c_old.get()}, maxLevel );
 
    auto pressurePreconditioner = std::make_shared< hhg::StokesPressureBlockPreconditioner< hhg::P1StokesOperator, hhg::P1LumpedInvMassOperator > >(storage, minLevel, maxLevel);
-   auto smoother = std::make_shared< hhg::UzawaSmoother<hhg::P1StokesOperator>  >(storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.37);
+   auto smoother = std::make_shared< hhg::UzawaSmoother<hhg::P1StokesOperator>  >(storage, minLevel, maxLevel, 0.37);
    auto coarseGridSolver = std::make_shared< hhg::MinResSolver< hhg::P1StokesOperator > >( storage, minLevel, minLevel, solverMaxiter, 1e-16, pressurePreconditioner );
    auto restrictionOperator = std::make_shared< hhg::P1P1StokesToP1P1StokesRestriction>();
    auto prolongationOperator = std::make_shared< hhg::P1P1StokesToP1P1StokesProlongation >();

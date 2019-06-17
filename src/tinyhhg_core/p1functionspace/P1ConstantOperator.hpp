@@ -65,6 +65,11 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
    void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const;
 
+   void smooth_gs_backwards( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const
+   {
+      smooth_sor_backwards( dst, rhs, 1.0, level, flag );
+   }
+
    void smooth_sor( const P1Function< real_t >& dst,
                          const P1Function< real_t >& rhs,
                          real_t                      relax,
@@ -79,7 +84,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
                                DoFType                     flag ) const
     {
       smooth_sor( dst, rhs, relax, level, flag, true );
-    };
+    }
 
    void smooth_jac( const P1Function< real_t >& dst,
                          const P1Function< real_t >& rhs,

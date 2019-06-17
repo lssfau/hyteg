@@ -119,7 +119,7 @@ int main( int argc, char* argv[] )
    auto pressurePrec = std::make_shared< PressurePreconditioner_T >( storage, minLevel, maxLevel );
 
    auto smoother =
-       std::make_shared< hhg::UzawaSmoother< hhg::P1StokesOperator > >( storage, minLevel, maxLevel, true, 0.3 );
+       std::make_shared< hhg::UzawaSmoother< hhg::P1StokesOperator > >( storage, minLevel, maxLevel, 0.3 );
    auto restriction      = std::make_shared< hhg::P1P1StokesToP1P1StokesRestriction >( true );
    auto prolongation     = std::make_shared< hhg::P1P1StokesToP1P1StokesProlongation >();
    auto coarseGridSolver = std::make_shared< hhg::PETScLUSolver< hhg::P1StokesOperator > >( storage, minLevel );
