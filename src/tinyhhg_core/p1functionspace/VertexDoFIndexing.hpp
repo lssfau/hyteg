@@ -80,7 +80,7 @@ constexpr std::array<stencilDirection, 1> neighborsOnNorthFaceFromHorizontalEdge
 class Iterator : public hhg::indexing::EdgeIterator
 {
 public:
-  explicit Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 );
+  explicit Iterator( const uint_t & level, const uint_t & offsetToCenter = 0, const bool & backwards = false );
 };
 
 /// map[neighborCellID][indexOffset] = weight

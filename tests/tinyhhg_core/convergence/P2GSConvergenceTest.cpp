@@ -6,7 +6,6 @@
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
-#include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/Format.hpp"
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
@@ -18,36 +17,40 @@ using walberla::uint_c;
 
 using namespace hhg;
 
-int main(int argc, char* argv[])
+/// smoother == 0: SOR, w == 1.0
+/// smoother == 1: SOR_BW, w == 1.0
+static void test( const std::string & meshFile, const uint_t & level, const uint_t & maxiter, const uint_t & smoother )
 {
+  WALBERLA_LOG_INFO_ON_ROOT( "Mesh: " << meshFile << ", level: " << level << ", smoother: " << (smoother == 0 ? "forward SOR" : "backward SOR") )
+  const bool writeVTK = false;
+  const bool printTiming = true;
 
-  walberla::Environment walberlaEnv(argc, argv);
-  walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
-  walberla::MPIManager::instance()->useWorldComm();
-  walberla::shared_ptr<walberla::config::Config> cfg(new walberla::config::Config);
-  cfg->readParameterFile("../../data/param/gs_P2.prm");
-  walberla::Config::BlockHandle parameters = cfg->getOneBlock("Parameters");
-  size_t level = parameters.getParameter<size_t>("level");
-  size_t maxiter = parameters.getParameter<size_t>("maxiter");
-  MeshInfo meshInfo = MeshInfo::fromGmshFile( parameters.getParameter<std::string>("mesh") );
-  SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-  hhg::loadbalancing::roundRobin( setupStorage );
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-  std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage, timingTree);
+
+  const auto meshInfo = MeshInfo::fromGmshFile( meshFile );
+  SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+  setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+  auto storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
 
   hhg::P2ConstantLaplaceOperator L(storage, level, level);
 
   hhg::P2Function< real_t > residuum  ("residuum",  storage, level, level);
   hhg::P2Function< real_t > rhs       ("rhs",       storage, level, level);
-  hhg::P2Function< real_t > p2function("p2Function",storage, level, level);
+  hhg::P2Function< real_t > p2function("p1Function",storage, level, level);
   hhg::P2Function< real_t > Lu        ("Lu",        storage, level, level);
-  hhg::P2Function< real_t > p2Exact   ("p2Exact",   storage, level, level);
+  hhg::P2Function< real_t > p2Exact   ("p1Exact",   storage, level, level);
   hhg::P2Function< real_t > error     ("error",     storage, level, level);
   hhg::P2Function< real_t > helperFun ("helperFun", storage, level, level);
 
+  VTKOutput vtkOutput("../../output", "gs_P2", storage);
+  vtkOutput.add( p2function );
+  vtkOutput.add( p2Exact );
+  vtkOutput.add( rhs );
+  vtkOutput.add( residuum );
+  vtkOutput.add( error );
+  vtkOutput.add( helperFun );
 
   std::function<real_t(const hhg::Point3D&)> exactFunction = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
-  //std::function<real_t(const hhg::Point3D&)> zeros = [](const hhg::Point3D&) { return 0; };
   std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
   walberla::math::seedRandomGenerator(0);
   std::function<real_t(const Point3D &)> rand = [](const Point3D &) { return walberla::math::realRandom(0.0, 1.0); };
@@ -67,8 +70,18 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old))
   walberla::WcTimer timer;
-  for(uint_t i = 0; i < maxiter; ++i) {
-    L.smooth_gs(p2function, rhs, level, hhg::Inner);
+
+  for(uint_t i = 0; i < maxiter; ++i)
+  {
+    if ( writeVTK )
+    {
+      vtkOutput.write( level, i );
+    }
+    if ( smoother == 0 )
+      L.smooth_sor(p2function, rhs, 1.0, level, hhg::Inner);
+    else if ( smoother == 1 )
+      L.smooth_sor_backwards(p2function, rhs, 1.0, level, hhg::Inner);
+
     L.apply(p2function, Lu, level, hhg::Inner);
     residuum.assign({1.0, -1.0}, { rhs, Lu }, level, hhg::Inner);
     abs_res = std::sqrt(residuum.dotGlobal(residuum, level, hhg::Inner));
@@ -89,21 +102,25 @@ int main(int argc, char* argv[])
 
   WALBERLA_LOG_INFO_ON_ROOT("discrete L2 error = " << discr_l2_err);
 
-  if (parameters.getParameter<bool>("vtkOutput")) {
-    VTKOutput vtkOutput("../../output", "gs_P2", storage);
-    vtkOutput.add( p2function );
-    vtkOutput.add( p2Exact );
-    vtkOutput.add( rhs );
-    vtkOutput.add( residuum );
-    vtkOutput.add( error );
-    vtkOutput.add( helperFun );
-    vtkOutput.write( level );
-  }
-
-  if (parameters.getParameter<bool>("printTiming")) {
+  if ( printTiming ) {
     walberla::WcTimingTree tt = timingTree->getReduced();
     WALBERLA_LOG_INFO_ON_ROOT(tt);
   }
+}
+
+int main(int argc, char* argv[])
+{
+
+  walberla::Environment walberlaEnv(argc, argv);
+  walberla::MPIManager::instance()->useWorldComm();
+
+  test( "../../data/meshes/quad_8el.msh", 4, 20, 0 );
+
+  test( "../../data/meshes/3D/tet_1el.msh", 4, 20, 0 );
+  test( "../../data/meshes/3D/tet_1el.msh", 4, 20, 1 );
+  test( "../../data/meshes/3D/regular_octahedron_8el.msh", 4, 20, 0 );
+  test( "../../data/meshes/3D/regular_octahedron_8el.msh", 4, 20, 1 );
+
 
   return 0;
 }

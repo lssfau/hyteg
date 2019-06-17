@@ -506,8 +506,8 @@ constexpr std::array<stencilDirection ,2> neighborsOnNorthFaceFromHorizontalEdge
 class Iterator : public indexing::EdgeIterator
 {
 public:
-  Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
-    EdgeIterator( levelinfo::num_microedges_per_edge( level ), offsetToCenter )
+  Iterator( const uint_t & level, const uint_t & offsetToCenter = 0, const bool & backwards = false ) :
+    EdgeIterator( levelinfo::num_microedges_per_edge( level ), offsetToCenter, backwards )
   {}
 };
 

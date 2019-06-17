@@ -57,7 +57,8 @@ void smoothSOR3D(
     const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     vertexDoFDstId,
     const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     vertexDoFRhsId,
     const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     edgeDoFDstId,
-    const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     edgeDoFRhsId );
+    const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     edgeDoFRhsId,
+    const bool&                                                                                  backwards = false );
 
 } // namespace macroedge
 } // namespace P2

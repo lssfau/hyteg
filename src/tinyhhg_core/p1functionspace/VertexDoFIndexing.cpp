@@ -170,8 +170,8 @@ uint_t indexFromHorizontalEdge( const uint_t& level, const uint_t& x, const sten
    }
 }
 
-Iterator::Iterator( const uint_t& level, const uint_t& offsetToCenter )
-: EdgeIterator( levelinfo::num_microvertices_per_edge( level ), offsetToCenter )
+Iterator::Iterator( const uint_t& level, const uint_t& offsetToCenter, const bool & backwards )
+: EdgeIterator( levelinfo::num_microvertices_per_edge( level ), offsetToCenter, backwards )
 {}
 } // namespace macroedge
 

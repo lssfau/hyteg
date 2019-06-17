@@ -124,7 +124,7 @@ void smoothSOR( const uint_t&                                            level,
    }
 }
 
-void smoothSOR3D(
+static void smoothSOR3DUpdateVertexDoFs(
     const uint_t&                                                                                level,
     const PrimitiveStorage&                                                                      storage,
     Edge&                                                                                        edge,
@@ -136,7 +136,165 @@ void smoothSOR3D(
     const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     vertexDoFDstId,
     const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     vertexDoFRhsId,
     const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     edgeDoFDstId,
-    const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     edgeDoFRhsId )
+    const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     edgeDoFRhsId,
+    const bool&                                                                                  backwards )
+{
+  using edgedof::EdgeDoFOrientation;
+  using indexing::IndexIncrement;
+  typedef stencilDirection sD;
+
+  auto v2v_operator = edge.getData( vertexToVertexOperatorId )->getPointer( level );
+  auto e2v_operator = edge.getData( edgeToVertexOperatorId )->getData( level );
+  auto v2e_operator = edge.getData( vertexToEdgeOperatorId )->getData( level );
+  auto e2e_operator = edge.getData( edgeToEdgeOperatorId )->getData( level );
+
+  real_t *vertexDoFDst = edge.getData( vertexDoFDstId )->getPointer( level );
+  real_t *vertexDoFRhs = edge.getData( vertexDoFRhsId )->getPointer( level );
+  real_t *edgeDoFDst = edge.getData( edgeDoFDstId )->getPointer( level );
+  real_t *edgeDoFRhs = edge.getData( edgeDoFRhsId )->getPointer( level );
+
+  const real_t vertexDoFRelaxOverCenter = relax / v2v_operator[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
+  const real_t oneMinusRelax = real_c( 1 ) - relax;
+
+  real_t tmp;
+
+  WALBERLA_UNUSED( edgeDoFRhs );
+
+  // updating vertex unknowns
+  for ( const auto & centerIndexOnEdge : hhg::vertexdof::macroedge::Iterator( level, 1, backwards ))
+  {
+    const auto dstIdx = vertexdof::macroedge::index( level, centerIndexOnEdge.x() );
+    tmp = vertexDoFRhs[ dstIdx ];
+
+    // vertex leaves
+    const auto stencilIdxW = vertexdof::macroedge::stencilIndexOnEdge( sD::VERTEX_W );
+    const auto stencilIdxE = vertexdof::macroedge::stencilIndexOnEdge( sD::VERTEX_E );
+
+    const auto dofIdxW = vertexdof::macroedge::indexFromVertex( level, centerIndexOnEdge.x(), sD::VERTEX_W );
+    const auto dofIdxE = vertexdof::macroedge::indexFromVertex( level, centerIndexOnEdge.x(), sD::VERTEX_E );
+
+    tmp -= v2v_operator[ stencilIdxW ] * vertexDoFDst[ dofIdxW ] + v2v_operator[ stencilIdxE ] * vertexDoFDst[ dofIdxE ];
+
+    for ( uint_t neighborFace = 0; neighborFace < edge.getNumNeighborFaces(); neighborFace++ )
+    {
+      const auto stencilIdxWNeighborFace = vertexdof::macroedge::stencilIndexOnNeighborFace( sD::VERTEX_W, neighborFace );
+      const auto stencilIdxENeighborFace = vertexdof::macroedge::stencilIndexOnNeighborFace( sD::VERTEX_E, neighborFace );
+      const auto stencilWeightW = v2v_operator[ stencilIdxWNeighborFace ];
+      const auto stencilWeightE = v2v_operator[ stencilIdxENeighborFace ];
+      const auto dofIdxWNeighborFace = vertexdof::macroedge::indexFromVertexOnNeighborFace( level, centerIndexOnEdge.x(), neighborFace, sD::VERTEX_W );
+      const auto dofIdxENeighborFace = vertexdof::macroedge::indexFromVertexOnNeighborFace( level, centerIndexOnEdge.x(), neighborFace, sD::VERTEX_E );
+      tmp -= stencilWeightW * vertexDoFDst[dofIdxWNeighborFace] + stencilWeightE * vertexDoFDst[dofIdxENeighborFace];
+    }
+
+    for ( uint_t neighborCell = 0; neighborCell < edge.getNumNeighborCells(); neighborCell++ )
+    {
+      const auto stencilIdx = vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCell, edge.getNumNeighborFaces() );
+      const auto dofIdx = vertexdof::macroedge::indexFromVertexOnNeighborCell( level, centerIndexOnEdge.x(), neighborCell, edge.getNumNeighborFaces() );
+      tmp -= v2v_operator[ stencilIdx ] * vertexDoFDst[ dofIdx ];
+    }
+
+    // edge leaves
+    for ( uint_t neighborCellID = 0; neighborCellID < edge.getNumNeighborCells(); neighborCellID++ )
+    {
+      const Cell & neighborCell = *( storage.getCell( edge.neighborCells().at( neighborCellID )));
+      auto cellLocalEdgeID = neighborCell.getLocalEdgeID( edge.getID());
+
+      const auto basisInCell = algorithms::getMissingIntegersAscending< 2, 4 >( { neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
+                                                                                  neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 ) } );
+
+      const auto centerIndexInCell = indexing::basisConversion( centerIndexOnEdge, basisInCell, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ));
+
+      for ( const auto & leafOrientationInCell : edgedof::allEdgeDoFOrientations )
+      {
+        for ( const auto & stencilIt : e2v_operator[neighborCellID][leafOrientationInCell] )
+        {
+          const auto stencilOffset = stencilIt.first;
+          const auto stencilWeight = stencilIt.second;
+
+          const auto leafOrientationOnEdge = edgedof::convertEdgeDoFOrientationCellToFace( leafOrientationInCell, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ));
+          const auto leafIndexInCell = centerIndexInCell + stencilOffset;
+
+          const auto leafIndexOnEdge = leafOrientationOnEdge == edgedof::EdgeDoFOrientation::XYZ
+                                       ? edgedof::macrocell::getIndexInNeighboringMacroEdgeXYZ( leafIndexInCell, neighborCell, cellLocalEdgeID, storage, level )
+                                       : edgedof::macrocell::getIndexInNeighboringMacroEdge( leafIndexInCell, neighborCell, cellLocalEdgeID, storage, level );
+
+          const auto onCellFacesSet = edgedof::macrocell::isOnCellFaces( level, leafIndexInCell, leafOrientationInCell );
+          const auto onCellFacesSetOnEdge = edgedof::macrocell::isOnCellFaces( level, leafIndexOnEdge, leafOrientationOnEdge );
+
+          WALBERLA_ASSERT_EQUAL( onCellFacesSet.size(), onCellFacesSetOnEdge.size());
+
+          uint_t leafArrayIndexOnEdge = std::numeric_limits< uint_t >::max();
+
+          const auto cellLocalIDsOfNeighborFaces = indexing::cellLocalEdgeIDsToCellLocalNeighborFaceIDs.at( cellLocalEdgeID );
+          std::vector< uint_t > cellLocalIDsOfNeighborFacesWithLeafOnThem;
+          std::set_intersection( cellLocalIDsOfNeighborFaces.begin(), cellLocalIDsOfNeighborFaces.end(),
+                                 onCellFacesSet.begin(), onCellFacesSet.end(), std::back_inserter( cellLocalIDsOfNeighborFacesWithLeafOnThem ));
+
+          if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 0 )
+          {
+            // leaf in macro-cell
+            leafArrayIndexOnEdge = edgedof::macroedge::indexOnNeighborCell( level, leafIndexOnEdge.x(), neighborCellID, edge.getNumNeighborFaces(), leafOrientationOnEdge );
+          } else if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 1 )
+          {
+            // leaf on macro-face
+            WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ));
+            const auto cellLocalFaceID = *cellLocalIDsOfNeighborFacesWithLeafOnThem.begin();
+            const auto facePrimitiveID = neighborCell.neighborFaces().at( cellLocalFaceID );
+            WALBERLA_ASSERT( std::find( edge.neighborFaces().begin(), edge.neighborFaces().end(), facePrimitiveID ) != edge.neighborFaces().end());
+
+            // The leaf orientation on the edge must be X, Y or XY since it is located on a neighboring face.
+            // Therefore we need to know the three spanning vertex IDs and convert the leaf orientation again.
+            const auto spanningCellLocalVertices = indexing::cellLocalFaceIDsToSpanningVertexIDs.at( cellLocalFaceID );
+            std::array< uint_t, 4 > faceBasisInCell;
+            if ( spanningCellLocalVertices.count( basisInCell.at( 2 )) == 1 )
+            {
+              faceBasisInCell = basisInCell;
+            } else
+            {
+              WALBERLA_ASSERT( spanningCellLocalVertices.count( basisInCell.at( 3 )) == 1 );
+              faceBasisInCell = basisInCell;
+              faceBasisInCell[2] = basisInCell.at( 3 );
+              faceBasisInCell[3] = basisInCell.at( 2 );
+            }
+
+            const auto leafIndexOnEdgeGhostLayer = indexing::basisConversion( leafIndexInCell, { 0, 1, 2, 3 }, faceBasisInCell, levelinfo::num_microedges_per_edge( level ));
+            const auto leafOrientationOnEdgeGhostLayer = edgedof::convertEdgeDoFOrientationCellToFace( leafOrientationInCell, faceBasisInCell.at( 0 ), faceBasisInCell.at( 1 ),
+                                                                                                       faceBasisInCell.at( 2 ));
+
+            const auto localFaceIDOnEdge = edge.face_index( facePrimitiveID );
+            leafArrayIndexOnEdge = edgedof::macroedge::indexOnNeighborFace( level, leafIndexOnEdgeGhostLayer.x(), localFaceIDOnEdge, leafOrientationOnEdgeGhostLayer );
+          } else
+          {
+            // leaf on macro-edge
+            WALBERLA_ASSERT_EQUAL( cellLocalIDsOfNeighborFacesWithLeafOnThem.size(), 2 );
+            WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ));
+            WALBERLA_ASSERT_EQUAL( leafOrientationOnEdge, edgedof::EdgeDoFOrientation::X );
+            leafArrayIndexOnEdge = edgedof::macroedge::index( level, leafIndexOnEdge.x());
+          }
+
+          tmp -= edgeDoFDst[leafArrayIndexOnEdge] * stencilWeight;
+        }
+      }
+    }
+
+    vertexDoFDst[ dstIdx ] = oneMinusRelax * vertexDoFDst[ dstIdx ] + vertexDoFRelaxOverCenter * tmp;
+  }
+}
+
+static void smoothSOR3DUpdateEdgeDoFs(
+    const uint_t&                                                                                level,
+    const PrimitiveStorage&                                                                      storage,
+    Edge&                                                                                        edge,
+    const real_t&                                                                                relax,
+    const PrimitiveDataID< StencilMemory< real_t >, Edge >&                                      vertexToVertexOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge >& edgeToVertexOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroEdgeStencilMap_T >, Edge >& vertexToEdgeOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< edgedof::macroedge::StencilMap_T >, Edge >&          edgeToEdgeOperatorId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     vertexDoFDstId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     vertexDoFRhsId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     edgeDoFDstId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     edgeDoFRhsId,
+    const bool&                                                                                  backwards )
 {
    using edgedof::EdgeDoFOrientation;
    using indexing::IndexIncrement;
@@ -147,194 +305,84 @@ void smoothSOR3D(
    auto v2e_operator = edge.getData( vertexToEdgeOperatorId )->getData( level );
    auto e2e_operator = edge.getData( edgeToEdgeOperatorId )->getData( level );
 
-   real_t *vertexDoFDst = edge.getData( vertexDoFDstId )->getPointer( level );
-   real_t *vertexDoFRhs = edge.getData( vertexDoFRhsId )->getPointer( level );
-   real_t *edgeDoFDst = edge.getData( edgeDoFDstId )->getPointer( level );
-   real_t *edgeDoFRhs = edge.getData( edgeDoFRhsId )->getPointer( level );
+   real_t* vertexDoFDst = edge.getData( vertexDoFDstId )->getPointer( level );
+   real_t* vertexDoFRhs = edge.getData( vertexDoFRhsId )->getPointer( level );
+   real_t* edgeDoFDst   = edge.getData( edgeDoFDstId )->getPointer( level );
+   real_t* edgeDoFRhs   = edge.getData( edgeDoFRhsId )->getPointer( level );
 
    const real_t vertexDoFRelaxOverCenter = relax / v2v_operator[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
-   const real_t oneMinusRelax = real_c( 1 ) - relax;
+   const real_t oneMinusRelax            = real_c( 1 ) - relax;
 
    real_t tmp;
 
-   // updating vertex unknowns
-   for ( const auto & centerIndexOnEdge : hhg::vertexdof::macroedge::Iterator( level, 1 ))
-   {
-      const auto dstIdx = vertexdof::macroedge::index( level, centerIndexOnEdge.x() );
-      tmp = vertexDoFRhs[ dstIdx ];
-
-      // vertex leaves
-      const auto stencilIdxW = vertexdof::macroedge::stencilIndexOnEdge( sD::VERTEX_W );
-      const auto stencilIdxE = vertexdof::macroedge::stencilIndexOnEdge( sD::VERTEX_E );
-
-      const auto dofIdxW = vertexdof::macroedge::indexFromVertex( level, centerIndexOnEdge.x(), sD::VERTEX_W );
-      const auto dofIdxE = vertexdof::macroedge::indexFromVertex( level, centerIndexOnEdge.x(), sD::VERTEX_E );
-
-      tmp -= v2v_operator[ stencilIdxW ] * vertexDoFDst[ dofIdxW ] + v2v_operator[ stencilIdxE ] * vertexDoFDst[ dofIdxE ];
-
-      for ( uint_t neighborFace = 0; neighborFace < edge.getNumNeighborFaces(); neighborFace++ )
-      {
-         const auto stencilIdxWNeighborFace = vertexdof::macroedge::stencilIndexOnNeighborFace( sD::VERTEX_W, neighborFace );
-         const auto stencilIdxENeighborFace = vertexdof::macroedge::stencilIndexOnNeighborFace( sD::VERTEX_E, neighborFace );
-         const auto stencilWeightW = v2v_operator[ stencilIdxWNeighborFace ];
-         const auto stencilWeightE = v2v_operator[ stencilIdxENeighborFace ];
-         const auto dofIdxWNeighborFace = vertexdof::macroedge::indexFromVertexOnNeighborFace( level, centerIndexOnEdge.x(), neighborFace, sD::VERTEX_W );
-         const auto dofIdxENeighborFace = vertexdof::macroedge::indexFromVertexOnNeighborFace( level, centerIndexOnEdge.x(), neighborFace, sD::VERTEX_E );
-         tmp -= stencilWeightW * vertexDoFDst[dofIdxWNeighborFace] + stencilWeightE * vertexDoFDst[dofIdxENeighborFace];
-      }
-
-      for ( uint_t neighborCell = 0; neighborCell < edge.getNumNeighborCells(); neighborCell++ )
-      {
-         const auto stencilIdx = vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCell, edge.getNumNeighborFaces() );
-         const auto dofIdx = vertexdof::macroedge::indexFromVertexOnNeighborCell( level, centerIndexOnEdge.x(), neighborCell, edge.getNumNeighborFaces() );
-         tmp -= v2v_operator[ stencilIdx ] * vertexDoFDst[ dofIdx ];
-      }
-
-      // edge leaves
-      for ( uint_t neighborCellID = 0; neighborCellID < edge.getNumNeighborCells(); neighborCellID++ )
-      {
-         const Cell & neighborCell = *( storage.getCell( edge.neighborCells().at( neighborCellID )));
-         auto cellLocalEdgeID = neighborCell.getLocalEdgeID( edge.getID());
-
-         const auto basisInCell = algorithms::getMissingIntegersAscending< 2, 4 >( { neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
-                                                                                     neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 ) } );
-
-         const auto centerIndexInCell = indexing::basisConversion( centerIndexOnEdge, basisInCell, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ));
-
-         for ( const auto & leafOrientationInCell : edgedof::allEdgeDoFOrientations )
-         {
-            for ( const auto & stencilIt : e2v_operator[neighborCellID][leafOrientationInCell] )
-            {
-               const auto stencilOffset = stencilIt.first;
-               const auto stencilWeight = stencilIt.second;
-
-               const auto leafOrientationOnEdge = edgedof::convertEdgeDoFOrientationCellToFace( leafOrientationInCell, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ));
-               const auto leafIndexInCell = centerIndexInCell + stencilOffset;
-
-               const auto leafIndexOnEdge = leafOrientationOnEdge == edgedof::EdgeDoFOrientation::XYZ
-                                            ? edgedof::macrocell::getIndexInNeighboringMacroEdgeXYZ( leafIndexInCell, neighborCell, cellLocalEdgeID, storage, level )
-                                            : edgedof::macrocell::getIndexInNeighboringMacroEdge( leafIndexInCell, neighborCell, cellLocalEdgeID, storage, level );
-
-               const auto onCellFacesSet = edgedof::macrocell::isOnCellFaces( level, leafIndexInCell, leafOrientationInCell );
-               const auto onCellFacesSetOnEdge = edgedof::macrocell::isOnCellFaces( level, leafIndexOnEdge, leafOrientationOnEdge );
-
-               WALBERLA_ASSERT_EQUAL( onCellFacesSet.size(), onCellFacesSetOnEdge.size());
-
-               uint_t leafArrayIndexOnEdge = std::numeric_limits< uint_t >::max();
-
-               const auto cellLocalIDsOfNeighborFaces = indexing::cellLocalEdgeIDsToCellLocalNeighborFaceIDs.at( cellLocalEdgeID );
-               std::vector< uint_t > cellLocalIDsOfNeighborFacesWithLeafOnThem;
-               std::set_intersection( cellLocalIDsOfNeighborFaces.begin(), cellLocalIDsOfNeighborFaces.end(),
-                                      onCellFacesSet.begin(), onCellFacesSet.end(), std::back_inserter( cellLocalIDsOfNeighborFacesWithLeafOnThem ));
-
-               if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 0 )
-               {
-                  // leaf in macro-cell
-                  leafArrayIndexOnEdge = edgedof::macroedge::indexOnNeighborCell( level, leafIndexOnEdge.x(), neighborCellID, edge.getNumNeighborFaces(), leafOrientationOnEdge );
-               } else if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 1 )
-               {
-                  // leaf on macro-face
-                  WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ));
-                  const auto cellLocalFaceID = *cellLocalIDsOfNeighborFacesWithLeafOnThem.begin();
-                  const auto facePrimitiveID = neighborCell.neighborFaces().at( cellLocalFaceID );
-                  WALBERLA_ASSERT( std::find( edge.neighborFaces().begin(), edge.neighborFaces().end(), facePrimitiveID ) != edge.neighborFaces().end());
-
-                  // The leaf orientation on the edge must be X, Y or XY since it is located on a neighboring face.
-                  // Therefore we need to know the three spanning vertex IDs and convert the leaf orientation again.
-                  const auto spanningCellLocalVertices = indexing::cellLocalFaceIDsToSpanningVertexIDs.at( cellLocalFaceID );
-                  std::array< uint_t, 4 > faceBasisInCell;
-                  if ( spanningCellLocalVertices.count( basisInCell.at( 2 )) == 1 )
-                  {
-                     faceBasisInCell = basisInCell;
-                  } else
-                  {
-                     WALBERLA_ASSERT( spanningCellLocalVertices.count( basisInCell.at( 3 )) == 1 );
-                     faceBasisInCell = basisInCell;
-                     faceBasisInCell[2] = basisInCell.at( 3 );
-                     faceBasisInCell[3] = basisInCell.at( 2 );
-                  }
-
-                  const auto leafIndexOnEdgeGhostLayer = indexing::basisConversion( leafIndexInCell, { 0, 1, 2, 3 }, faceBasisInCell, levelinfo::num_microedges_per_edge( level ));
-                  const auto leafOrientationOnEdgeGhostLayer = edgedof::convertEdgeDoFOrientationCellToFace( leafOrientationInCell, faceBasisInCell.at( 0 ), faceBasisInCell.at( 1 ),
-                                                                                                             faceBasisInCell.at( 2 ));
-
-                  const auto localFaceIDOnEdge = edge.face_index( facePrimitiveID );
-                  leafArrayIndexOnEdge = edgedof::macroedge::indexOnNeighborFace( level, leafIndexOnEdgeGhostLayer.x(), localFaceIDOnEdge, leafOrientationOnEdgeGhostLayer );
-               } else
-               {
-                  // leaf on macro-edge
-                  WALBERLA_ASSERT_EQUAL( cellLocalIDsOfNeighborFacesWithLeafOnThem.size(), 2 );
-                  WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ));
-                  WALBERLA_ASSERT_EQUAL( leafOrientationOnEdge, edgedof::EdgeDoFOrientation::X );
-                  leafArrayIndexOnEdge = edgedof::macroedge::index( level, leafIndexOnEdge.x());
-               }
-
-               tmp -= edgeDoFDst[leafArrayIndexOnEdge] * stencilWeight;
-            }
-         }
-      }
-
-      vertexDoFDst[ dstIdx ] = oneMinusRelax * vertexDoFDst[ dstIdx ] + vertexDoFRelaxOverCenter * tmp;
-   }
+   WALBERLA_UNUSED( vertexDoFRhs );
+   WALBERLA_UNUSED( vertexDoFRelaxOverCenter );
 
    // updating edge unknowns
-   for ( const auto & centerIndexOnEdge : hhg::edgedof::macroedge::Iterator( level, 0 ) )
+   for ( const auto& centerIndexOnEdge : hhg::edgedof::macroedge::Iterator( level, 0, backwards ) )
    {
       const EdgeDoFOrientation edgeCenterOrientation = EdgeDoFOrientation::X;
 
       const auto dstIdx = edgedof::macroedge::index( level, centerIndexOnEdge.x() );
-      tmp = edgeDoFRhs[ dstIdx ];
+      tmp               = edgeDoFRhs[dstIdx];
 
       real_t e2eDiagonalEntry = 0;
 
-      for ( uint_t neighborCellID = 0; neighborCellID < edge.getNumNeighborCells(); neighborCellID++  )
+      for ( uint_t neighborCellID = 0; neighborCellID < edge.getNumNeighborCells(); neighborCellID++ )
       {
-         const Cell & neighborCell = *( storage.getCell( edge.neighborCells().at( neighborCellID ) ) );
-         auto cellLocalEdgeID = neighborCell.getLocalEdgeID( edge.getID() );
+         const Cell& neighborCell    = *( storage.getCell( edge.neighborCells().at( neighborCellID ) ) );
+         auto        cellLocalEdgeID = neighborCell.getLocalEdgeID( edge.getID() );
 
-         const auto basisInCell = algorithms::getMissingIntegersAscending< 2, 4 >( { neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at(cellLocalEdgeID).at(0),
-                                                                                     neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at(cellLocalEdgeID).at(1) } );
+         const auto basisInCell = algorithms::getMissingIntegersAscending< 2, 4 >(
+             {neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
+              neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 )} );
 
-         const auto centerIndexInCell = indexing::basisConversion( centerIndexOnEdge, basisInCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
-         const auto cellCenterOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(edgeCenterOrientation, basisInCell.at(0),
-                                                                                         basisInCell.at(1), basisInCell.at(2));
+         const auto centerIndexInCell = indexing::basisConversion(
+             centerIndexOnEdge, basisInCell, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( level ) );
+         const auto cellCenterOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(
+             edgeCenterOrientation, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ) );
 
          // vertex leaves
-         for ( const auto & stencilIt : v2e_operator[neighborCellID][cellCenterOrientation] )
+         for ( const auto& stencilIt : v2e_operator[neighborCellID][cellCenterOrientation] )
          {
             const auto stencilOffset = stencilIt.first;
             const auto stencilWeight = stencilIt.second;
 
             const auto leafIndexInCell = centerIndexInCell + stencilOffset;
-            const auto leafIndexOnEdge = indexing::basisConversion( leafIndexInCell, {0, 1, 2, 3}, basisInCell, levelinfo::num_microvertices_per_edge( level ) );
+            const auto leafIndexOnEdge = indexing::basisConversion(
+                leafIndexInCell, {0, 1, 2, 3}, basisInCell, levelinfo::num_microvertices_per_edge( level ) );
 
-            const auto onCellFacesSet = vertexdof::macrocell::isOnCellFace( leafIndexInCell, level );
+            const auto onCellFacesSet       = vertexdof::macrocell::isOnCellFace( leafIndexInCell, level );
             const auto onCellFacesSetOnEdge = vertexdof::macrocell::isOnCellFace( leafIndexOnEdge, level );
 
             WALBERLA_ASSERT_EQUAL( onCellFacesSet.size(), onCellFacesSetOnEdge.size() );
 
             const auto cellLocalIDsOfNeighborFaces = indexing::cellLocalEdgeIDsToCellLocalNeighborFaceIDs.at( cellLocalEdgeID );
             std::vector< uint_t > cellLocalIDsOfNeighborFacesWithLeafOnThem;
-            std::set_intersection( cellLocalIDsOfNeighborFaces.begin(), cellLocalIDsOfNeighborFaces.end(),
-                                   onCellFacesSet.begin(), onCellFacesSet.end(), std::back_inserter( cellLocalIDsOfNeighborFacesWithLeafOnThem ) );
+            std::set_intersection( cellLocalIDsOfNeighborFaces.begin(),
+                                   cellLocalIDsOfNeighborFaces.end(),
+                                   onCellFacesSet.begin(),
+                                   onCellFacesSet.end(),
+                                   std::back_inserter( cellLocalIDsOfNeighborFacesWithLeafOnThem ) );
 
             uint_t leafArrayIndexOnEdge = std::numeric_limits< uint_t >::max();
 
             if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 0 )
             {
                // leaf in macro-cell
-               leafArrayIndexOnEdge = vertexdof::macroedge::indexOnNeighborCell( level, leafIndexOnEdge.x(), neighborCellID, edge.getNumNeighborFaces() );
+               leafArrayIndexOnEdge = vertexdof::macroedge::indexOnNeighborCell(
+                   level, leafIndexOnEdge.x(), neighborCellID, edge.getNumNeighborFaces() );
             }
             else if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 1 )
             {
                // leaf on macro-face
 
                const auto faceID = neighborCell.neighborFaces().at( *cellLocalIDsOfNeighborFacesWithLeafOnThem.begin() );
-               WALBERLA_ASSERT( std::find( edge.neighborFaces().begin(), edge.neighborFaces().end(), faceID ) != edge.neighborFaces().end() );
+               WALBERLA_ASSERT( std::find( edge.neighborFaces().begin(), edge.neighborFaces().end(), faceID ) !=
+                                edge.neighborFaces().end() );
 
                const auto localFaceIDOnEdge = edge.face_index( faceID );
                leafArrayIndexOnEdge = vertexdof::macroedge::indexOnNeighborFace( level, leafIndexOnEdge.x(), localFaceIDOnEdge );
-
             }
             else
             {
@@ -343,13 +391,13 @@ void smoothSOR3D(
                leafArrayIndexOnEdge = vertexdof::macroedge::index( level, leafIndexOnEdge.x() );
             }
 
-            tmp -= vertexDoFDst[ leafArrayIndexOnEdge ] * stencilWeight;
+            tmp -= vertexDoFDst[leafArrayIndexOnEdge] * stencilWeight;
          }
 
          // edge leaves
-         for ( const auto & leafOrientationInCell : edgedof::allEdgeDoFOrientations )
+         for ( const auto& leafOrientationInCell : edgedof::allEdgeDoFOrientations )
          {
-            for ( const auto & stencilIt : e2e_operator[neighborCellID][cellCenterOrientation][leafOrientationInCell] )
+            for ( const auto& stencilIt : e2e_operator[neighborCellID][cellCenterOrientation][leafOrientationInCell] )
             {
                const auto stencilOffset = stencilIt.first;
                const auto stencilWeight = stencilIt.second;
@@ -360,27 +408,35 @@ void smoothSOR3D(
                   continue;
                }
 
-               const auto leafOrientationOnEdge = edgedof::convertEdgeDoFOrientationCellToFace( leafOrientationInCell, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ));
+               const auto leafOrientationOnEdge = edgedof::convertEdgeDoFOrientationCellToFace(
+                   leafOrientationInCell, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ) );
                const auto leafIndexInCell = centerIndexInCell + stencilOffset;
 
-               const auto leafIndexOnEdge = indexing::basisConversion( leafIndexInCell, {0, 1, 2, 3}, basisInCell, levelinfo::num_microedges_per_edge( level ) );
+               const auto leafIndexOnEdge = indexing::basisConversion(
+                   leafIndexInCell, {0, 1, 2, 3}, basisInCell, levelinfo::num_microedges_per_edge( level ) );
 
                const auto onCellFacesSet = edgedof::macrocell::isOnCellFaces( level, leafIndexInCell, leafOrientationInCell );
-               const auto onCellFacesSetOnEdge = edgedof::macrocell::isOnCellFaces( level, leafIndexOnEdge, leafOrientationOnEdge );
+               const auto onCellFacesSetOnEdge =
+                   edgedof::macrocell::isOnCellFaces( level, leafIndexOnEdge, leafOrientationOnEdge );
 
                WALBERLA_ASSERT_EQUAL( onCellFacesSet.size(), onCellFacesSetOnEdge.size() );
 
                uint_t leafArrayIndexOnEdge = std::numeric_limits< uint_t >::max();
 
-               const auto cellLocalIDsOfNeighborFaces = indexing::cellLocalEdgeIDsToCellLocalNeighborFaceIDs.at( cellLocalEdgeID );
+               const auto cellLocalIDsOfNeighborFaces =
+                   indexing::cellLocalEdgeIDsToCellLocalNeighborFaceIDs.at( cellLocalEdgeID );
                std::vector< uint_t > cellLocalIDsOfNeighborFacesWithLeafOnThem;
-               std::set_intersection( cellLocalIDsOfNeighborFaces.begin(), cellLocalIDsOfNeighborFaces.end(),
-                                      onCellFacesSet.begin(), onCellFacesSet.end(), std::back_inserter( cellLocalIDsOfNeighborFacesWithLeafOnThem ) );
+               std::set_intersection( cellLocalIDsOfNeighborFaces.begin(),
+                                      cellLocalIDsOfNeighborFaces.end(),
+                                      onCellFacesSet.begin(),
+                                      onCellFacesSet.end(),
+                                      std::back_inserter( cellLocalIDsOfNeighborFacesWithLeafOnThem ) );
 
                if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 0 )
                {
                   // leaf in macro-cell
-                  leafArrayIndexOnEdge = edgedof::macroedge::indexOnNeighborCell( level, leafIndexOnEdge.x(), neighborCellID, edge.getNumNeighborFaces(), leafOrientationOnEdge );
+                  leafArrayIndexOnEdge = edgedof::macroedge::indexOnNeighborCell(
+                      level, leafIndexOnEdge.x(), neighborCellID, edge.getNumNeighborFaces(), leafOrientationOnEdge );
                }
                else if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 1 )
                {
@@ -389,8 +445,8 @@ void smoothSOR3D(
 
                   const auto cellLocalFaceID = *cellLocalIDsOfNeighborFacesWithLeafOnThem.begin();
                   const auto facePrimitiveID = neighborCell.neighborFaces().at( cellLocalFaceID );
-                  WALBERLA_ASSERT( std::find( edge.neighborFaces().begin(), edge.neighborFaces().end(), facePrimitiveID ) != edge.neighborFaces().end() );
-
+                  WALBERLA_ASSERT( std::find( edge.neighborFaces().begin(), edge.neighborFaces().end(), facePrimitiveID ) !=
+                                   edge.neighborFaces().end() );
 
                   // The leaf orientation on the edge must be X, Y or XY since it is located on a neighboring face.
                   // Therefore we need to know the three spanning vertex IDs and convert the leaf orientation again.
@@ -403,16 +459,19 @@ void smoothSOR3D(
                   else
                   {
                      WALBERLA_ASSERT( spanningCellLocalVertices.count( basisInCell.at( 3 ) ) == 1 );
-                     faceBasisInCell = basisInCell;
-                     faceBasisInCell[2] = basisInCell.at(3);
-                     faceBasisInCell[3] = basisInCell.at(2);
+                     faceBasisInCell    = basisInCell;
+                     faceBasisInCell[2] = basisInCell.at( 3 );
+                     faceBasisInCell[3] = basisInCell.at( 2 );
                   }
 
-                  const auto leafIndexOnEdgeGhostLayer = indexing::basisConversion( leafIndexInCell, {0, 1, 2, 3}, faceBasisInCell, levelinfo::num_microedges_per_edge( level ) );
-                  const auto leafOrientationOnEdgeGhostLayer = edgedof::convertEdgeDoFOrientationCellToFace( leafOrientationInCell, faceBasisInCell.at( 0 ), faceBasisInCell.at( 1 ), faceBasisInCell.at( 2 ));
+                  const auto leafIndexOnEdgeGhostLayer = indexing::basisConversion(
+                      leafIndexInCell, {0, 1, 2, 3}, faceBasisInCell, levelinfo::num_microedges_per_edge( level ) );
+                  const auto leafOrientationOnEdgeGhostLayer = edgedof::convertEdgeDoFOrientationCellToFace(
+                      leafOrientationInCell, faceBasisInCell.at( 0 ), faceBasisInCell.at( 1 ), faceBasisInCell.at( 2 ) );
 
                   const auto localFaceIDOnEdge = edge.face_index( facePrimitiveID );
-                  leafArrayIndexOnEdge = edgedof::macroedge::indexOnNeighborFace( level, leafIndexOnEdgeGhostLayer.x(), localFaceIDOnEdge, leafOrientationOnEdgeGhostLayer );
+                  leafArrayIndexOnEdge         = edgedof::macroedge::indexOnNeighborFace(
+                      level, leafIndexOnEdgeGhostLayer.x(), localFaceIDOnEdge, leafOrientationOnEdgeGhostLayer );
                }
                else
                {
@@ -423,15 +482,90 @@ void smoothSOR3D(
                   leafArrayIndexOnEdge = edgedof::macroedge::index( level, leafIndexOnEdge.x() );
                }
 
-               tmp -= edgeDoFDst[ leafArrayIndexOnEdge ] * stencilWeight;
+               tmp -= edgeDoFDst[leafArrayIndexOnEdge] * stencilWeight;
             }
          }
       }
 
       edgeDoFDst[dstIdx] = oneMinusRelax * edgeDoFDst[dstIdx] + ( relax / e2eDiagonalEntry ) * tmp;
    }
+}
 
+void smoothSOR3D(
+    const uint_t&                                                                                level,
+    const PrimitiveStorage&                                                                      storage,
+    Edge&                                                                                        edge,
+    const real_t&                                                                                relax,
+    const PrimitiveDataID< StencilMemory< real_t >, Edge >&                                      vertexToVertexOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge >& edgeToVertexOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroEdgeStencilMap_T >, Edge >& vertexToEdgeOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< edgedof::macroedge::StencilMap_T >, Edge >&          edgeToEdgeOperatorId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     vertexDoFDstId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     vertexDoFRhsId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     edgeDoFDstId,
+    const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     edgeDoFRhsId,
+    const bool&                                                                                  backwards )
+{
+   if ( backwards )
+   {
+      smoothSOR3DUpdateEdgeDoFs( level,
+                                 storage,
+                                 edge,
+                                 relax,
+                                 vertexToVertexOperatorId,
+                                 edgeToVertexOperatorId,
+                                 vertexToEdgeOperatorId,
+                                 edgeToEdgeOperatorId,
+                                 vertexDoFDstId,
+                                 vertexDoFRhsId,
+                                 edgeDoFDstId,
+                                 edgeDoFRhsId,
+                                 backwards );
 
+      smoothSOR3DUpdateVertexDoFs( level,
+                                   storage,
+                                   edge,
+                                   relax,
+                                   vertexToVertexOperatorId,
+                                   edgeToVertexOperatorId,
+                                   vertexToEdgeOperatorId,
+                                   edgeToEdgeOperatorId,
+                                   vertexDoFDstId,
+                                   vertexDoFRhsId,
+                                   edgeDoFDstId,
+                                   edgeDoFRhsId,
+                                   backwards );
+   }
+   else
+   {
+      smoothSOR3DUpdateVertexDoFs( level,
+                                   storage,
+                                   edge,
+                                   relax,
+                                   vertexToVertexOperatorId,
+                                   edgeToVertexOperatorId,
+                                   vertexToEdgeOperatorId,
+                                   edgeToEdgeOperatorId,
+                                   vertexDoFDstId,
+                                   vertexDoFRhsId,
+                                   edgeDoFDstId,
+                                   edgeDoFRhsId,
+                                   backwards );
+
+      smoothSOR3DUpdateEdgeDoFs( level,
+                                 storage,
+                                 edge,
+                                 relax,
+                                 vertexToVertexOperatorId,
+                                 edgeToVertexOperatorId,
+                                 vertexToEdgeOperatorId,
+                                 edgeToEdgeOperatorId,
+                                 vertexDoFDstId,
+                                 vertexDoFRhsId,
+                                 edgeDoFDstId,
+                                 edgeDoFRhsId,
+                                 backwards );
+   }
 }
 
 } // namespace macroedge
