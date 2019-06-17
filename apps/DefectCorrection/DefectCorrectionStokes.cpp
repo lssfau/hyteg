@@ -93,7 +93,7 @@ static void defectCorrection( int argc, char** argv )
    const bool   withDC          = mainConf.getParameter< bool >( "withDC" );
 
    const uint_t minLevel        = 2;
-   const uint_t numFacesPerSide = 4;
+   // const uint_t numFacesPerSide = 4;
 
    // domain
 #if 0
@@ -194,9 +194,9 @@ static void defectCorrection( int argc, char** argv )
 
   const auto numP1DoFs = numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel );
   auto       l2ErrorU  = std::sqrt( error.u.dotGlobal( error.u, maxLevel, All ) / real_c( numP1DoFs ) );
-  auto       l2ErrorV  = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
-  auto       l2ErrorW  = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
-  auto       l2ErrorP  = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );
+//  auto       l2ErrorV  = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
+//  auto       l2ErrorW  = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
+//  auto       l2ErrorP  = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );
 
   // calculate error (should be lower than linear discretization error!)
   error.assign( {1.0, -1.0}, {exact, u}, maxLevel, All );
