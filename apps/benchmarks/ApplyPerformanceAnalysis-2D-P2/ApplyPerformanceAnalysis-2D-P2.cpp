@@ -145,6 +145,8 @@ static void performBenchmark( hhg::P2Function< double >&      src,
       iterations *= 2;
    } while ( timingTree[evname].last() < 0.5 );
 
+   iterations /= 2;
+
 #ifdef LIKWID_PERFMON
    LIKWID_MARKER_GET( evname.c_str(), &nevents, &events, &time, &count );
    if ( time < 1e-16 )
