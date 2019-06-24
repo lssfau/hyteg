@@ -50,8 +50,6 @@ class GeometricMultigridSolver : public Solver< OperatorType >
    , cycleType_( cycleType )
    , timingTree_( storage->getTimingTree() )
    {
-      zero_ = []( const hhg::Point3D& ) { return 0.0; };
-
       uint_t inc = 0;
       for ( uint_t level = maxLevel; level >= minLevel; level-- )
       {
@@ -98,7 +96,7 @@ class GeometricMultigridSolver : public Solver< OperatorType >
 
          b.assign( {1.0}, {tmp_}, level - 1, flag_ );
 
-         x.interpolate( zero_, level - 1 );
+         x.interpolate( 0, level - 1 );
 
          solveRecursively( A, x, b, level - 1 );
 
@@ -141,8 +139,6 @@ class GeometricMultigridSolver : public Solver< OperatorType >
 
    FunctionType ax_;
    FunctionType tmp_;
-
-   std::function< real_t( const hhg::Point3D& ) > zero_;
 
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
 

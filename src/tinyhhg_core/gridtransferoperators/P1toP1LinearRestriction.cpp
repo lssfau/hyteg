@@ -91,6 +91,49 @@ static real_t calculateInverseFactorToScaleNeighborhoodContribution(
   return invFactorDueToNeighborhood;
 }
 
+void P1toP1LinearRestriction::restrict2DAdditively( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType&  ) const
+{
+  const uint_t destinationLevel = sourceLevel - 1;
+
+  function.communicate< Vertex, Edge >  ( sourceLevel );
+  function.communicate< Edge,   Face >  ( sourceLevel );
+
+  auto storage = function.getStorage();
+
+  for ( const auto & faceIt : function.getStorage()->getFaces() )
+  {
+    const auto face = faceIt.second;
+    const auto srcData = face->getData( function.getFaceDataID())->getPointer( sourceLevel );
+    auto dstData = face->getData( function.getFaceDataID())->getPointer( destinationLevel );
+
+    const auto numNeighborFacesEdge0 =
+    static_cast< double >( storage->getEdge( face->neighborEdges().at( 0 ))->getNumNeighborFaces());
+    const auto numNeighborFacesEdge1 =
+    static_cast< double >( storage->getEdge( face->neighborEdges().at( 1 ))->getNumNeighborFaces());
+    const auto numNeighborFacesEdge2 =
+    static_cast< double >( storage->getEdge( face->neighborEdges().at( 2 ))->getNumNeighborFaces());
+    const auto numNeighborFacesVertex0 =
+    static_cast< double >( storage->getVertex( face->neighborVertices().at( 0 ))->getNumNeighborFaces());
+    const auto numNeighborFacesVertex1 =
+    static_cast< double >( storage->getVertex( face->neighborVertices().at( 1 ))->getNumNeighborFaces());
+    const auto numNeighborFacesVertex2 =
+    static_cast< double >( storage->getVertex( face->neighborVertices().at( 2 ))->getNumNeighborFaces());
+
+    vertexdof::macroface::generated::restrict_2D_macroface_P1_pull_additive( dstData,
+                                                                             srcData,
+                                                                             static_cast< int32_t >( destinationLevel ),
+                                                                             numNeighborFacesEdge0,
+                                                                             numNeighborFacesEdge1,
+                                                                             numNeighborFacesEdge2,
+                                                                             numNeighborFacesVertex0,
+                                                                             numNeighborFacesVertex1,
+                                                                             numNeighborFacesVertex2 );
+  }
+
+    function.communicateAdditively< Face, Edge >( destinationLevel );
+    function.communicateAdditively< Face, Vertex >( destinationLevel );
+}
+
 void P1toP1LinearRestriction::restrict3D( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& ) const
 {
   const uint_t destinationLevel = sourceLevel - 1;

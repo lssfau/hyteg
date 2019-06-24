@@ -20,13 +20,14 @@ void prolongate ( const P1Function< real_t > & function, const uint_t & sourceLe
       }
       else
       {
-        prolongate2D( function, sourceLevel, flag );
+        prolongate2DAdditively( function, sourceLevel, flag );
       }
    }
 
  private:
 
    void prolongate2D( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const;
+   void prolongate2DAdditively( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const;
 
    void prolongate3D( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const;
 

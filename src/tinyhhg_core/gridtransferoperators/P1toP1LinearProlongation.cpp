@@ -89,6 +89,61 @@ static real_t calculateInverseFactorToScaleNeighborhoodContribution(
   return invFactorDueToNeighborhood;
 }
 
+
+void P1toP1LinearProlongation::prolongate2DAdditively( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const
+{
+  WALBERLA_CHECK( flag == (function.getBoundaryTypeToSkipDuringAdditiveCommunication() ^ All) );
+
+  const uint_t destinationLevel = sourceLevel + 1;
+
+  function.communicate< Vertex, Edge >  ( sourceLevel );
+  function.communicate< Edge,   Face >  ( sourceLevel );
+
+  auto storage = function.getStorage();
+
+  for ( const auto & faceIt : function.getStorage()->getFaces() )
+  {
+    const auto face = faceIt.second;
+    const auto srcData = face->getData( function.getFaceDataID())->getPointer( sourceLevel );
+          auto dstData = face->getData( function.getFaceDataID())->getPointer( destinationLevel );
+
+    // Clear complete face (incl. ghost-layer) on dst level
+    for ( const auto & dstIdx : vertexdof::macroface::Iterator( destinationLevel, 0 ) )
+    {
+      const auto arrayIdxDst = vertexdof::macroface::index( destinationLevel, dstIdx.x(), dstIdx.y() );
+      dstData[ arrayIdxDst ] = real_c( 0 );
+    }
+
+    const auto numNeighborFacesEdge0 =
+    static_cast< double >( storage->getEdge( face->neighborEdges().at( 0 ))->getNumNeighborFaces());
+    const auto numNeighborFacesEdge1 =
+    static_cast< double >( storage->getEdge( face->neighborEdges().at( 1 ))->getNumNeighborFaces());
+    const auto numNeighborFacesEdge2 =
+    static_cast< double >( storage->getEdge( face->neighborEdges().at( 2 ))->getNumNeighborFaces());
+    const auto numNeighborFacesVertex0 =
+    static_cast< double >( storage->getVertex( face->neighborVertices().at( 0 ))->getNumNeighborFaces());
+    const auto numNeighborFacesVertex1 =
+    static_cast< double >( storage->getVertex( face->neighborVertices().at( 1 ))->getNumNeighborFaces());
+    const auto numNeighborFacesVertex2 =
+    static_cast< double >( storage->getVertex( face->neighborVertices().at( 2 ))->getNumNeighborFaces());
+
+    vertexdof::macroface::generated::prolongate_2D_macroface_P1_push_additive( srcData,
+                                                                               dstData,
+                                                                               static_cast< int32_t >( sourceLevel ),
+                                                                               numNeighborFacesEdge0,
+                                                                               numNeighborFacesEdge1,
+                                                                               numNeighborFacesEdge2,
+                                                                               numNeighborFacesVertex0,
+                                                                               numNeighborFacesVertex1,
+                                                                               numNeighborFacesVertex2 );
+  }
+
+  function.communicateAdditively< Face, Edge >( destinationLevel );
+  function.communicateAdditively< Face, Vertex >( destinationLevel );
+}
+
+
+
 void P1toP1LinearProlongation::prolongate3D( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& ) const
 {
   const uint_t destinationLevel = sourceLevel + 1;
