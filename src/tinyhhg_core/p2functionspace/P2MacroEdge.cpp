@@ -298,7 +298,6 @@ static void smoothSOR3DUpdateEdgeDoFs(
 {
    using edgedof::EdgeDoFOrientation;
    using indexing::IndexIncrement;
-   typedef stencilDirection sD;
 
    auto v2v_operator = edge.getData( vertexToVertexOperatorId )->getPointer( level );
    auto e2v_operator = edge.getData( edgeToVertexOperatorId )->getData( level );
