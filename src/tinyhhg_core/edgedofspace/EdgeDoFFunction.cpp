@@ -589,6 +589,92 @@ void EdgeDoFFunction< ValueType >::add( const real_t& scalar, uint_t level, DoFT
    this->stopTiming( "Add (scalar)" );
 }
 
+
+template< typename ValueType >
+void macroFaceAdd( const uint_t & level, Face & face, const std::vector< ValueType > & scalars,
+                   const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcFaceIDs,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstFaceID )
+{
+  edgedof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, dstFaceID );
+}
+
+template<>
+void macroFaceAdd< double >( const uint_t & level, Face & face, const std::vector< double > & scalars,
+                             const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > > & srcFaceIDs,
+                             const PrimitiveDataID< FunctionMemory< double >, Face > & dstFaceID )
+{
+  typedef edgedof::EdgeDoFOrientation eo;
+  std::map< eo, uint_t >              firstIdx;
+  for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
+    firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
+
+  if ( globalDefines::useGeneratedKernels && scalars.size() == 1 )
+  {
+    auto dstData = face.getData( dstFaceID )->getPointer( level );
+    auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+    auto scalar  = scalars.at( 0 );
+    edgedof::macroface::generated::add_2D_macroface_edgedof_1_rhs_function( &dstData[firstIdx[eo::X]],
+                                                                               &dstData[firstIdx[eo::XY]],
+                                                                               &dstData[firstIdx[eo::Y]],
+                                                                               &srcData[firstIdx[eo::X]],
+                                                                               &srcData[firstIdx[eo::XY]],
+                                                                               &srcData[firstIdx[eo::Y]],
+                                                                               scalar,
+                                                                               static_cast< int32_t >( level ) );
+  }
+  else if ( globalDefines::useGeneratedKernels && scalars.size() == 2 )
+  {
+    auto dstData  = face.getData( dstFaceID )->getPointer( level );
+    auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+    auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
+    auto scalar0  = scalars.at( 0 );
+    auto scalar1  = scalars.at( 1 );
+    edgedof::macroface::generated::add_2D_macroface_edgedof_2_rhs_functions( &dstData[firstIdx[eo::X]],
+                                                                                &dstData[firstIdx[eo::XY]],
+                                                                                &dstData[firstIdx[eo::Y]],
+                                                                                &srcData0[firstIdx[eo::X]],
+                                                                                &srcData0[firstIdx[eo::XY]],
+                                                                                &srcData0[firstIdx[eo::Y]],
+                                                                                &srcData1[firstIdx[eo::X]],
+                                                                                &srcData1[firstIdx[eo::XY]],
+                                                                                &srcData1[firstIdx[eo::Y]],
+                                                                                scalar0,
+                                                                                scalar1,
+                                                                                static_cast< int32_t >( level ) );
+  }
+  else if ( globalDefines::useGeneratedKernels && scalars.size() == 3 )
+  {
+    auto dstData  = face.getData( dstFaceID )->getPointer( level );
+    auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+    auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
+    auto srcData2 = face.getData( srcFaceIDs.at( 2 ) )->getPointer( level );
+    auto scalar0  = scalars.at( 0 );
+    auto scalar1  = scalars.at( 1 );
+    auto scalar2  = scalars.at( 2 );
+    edgedof::macroface::generated::add_2D_macroface_edgedof_3_rhs_functions( &dstData[firstIdx[eo::X]],
+                                                                                &dstData[firstIdx[eo::XY]],
+                                                                                &dstData[firstIdx[eo::Y]],
+                                                                                &srcData0[firstIdx[eo::X]],
+                                                                                &srcData0[firstIdx[eo::XY]],
+                                                                                &srcData0[firstIdx[eo::Y]],
+                                                                                &srcData1[firstIdx[eo::X]],
+                                                                                &srcData1[firstIdx[eo::XY]],
+                                                                                &srcData1[firstIdx[eo::Y]],
+                                                                                &srcData2[firstIdx[eo::X]],
+                                                                                &srcData2[firstIdx[eo::XY]],
+                                                                                &srcData2[firstIdx[eo::Y]],
+                                                                                scalar0,
+                                                                                scalar1,
+                                                                                scalar2,
+                                                                                static_cast< int32_t >( level ) );
+  }
+  else
+  {
+    edgedof::macroface::add< double >( level, face, scalars, srcFaceIDs, dstFaceID );
+  }
+}
+
+
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >&                     scalars,
                                         const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
@@ -627,7 +713,7 @@ void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >&         
 
       if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
-         edgedof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
+         macroFaceAdd< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
       }
    }
 

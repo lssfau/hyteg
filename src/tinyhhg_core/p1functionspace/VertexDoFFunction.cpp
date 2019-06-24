@@ -323,7 +323,8 @@ void VertexDoFFunction< ValueType >::swap( const VertexDoFFunction< ValueType > 
 template < typename ValueType >
 void macroFaceAssign( const uint_t & level, Face & face, const std::vector< ValueType > & scalars,
                       const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcFaceIDs,
-                      const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstFaceID )
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstFaceID,
+                      const PrimitiveStorage & )
 {
   vertexdof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, dstFaceID ); 
 }
@@ -331,26 +332,32 @@ void macroFaceAssign( const uint_t & level, Face & face, const std::vector< Valu
 template<>
 void macroFaceAssign< double >( const uint_t & level, Face & face, const std::vector< double > & scalars,
                                 const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > > & srcFaceIDs,
-                                const PrimitiveDataID< FunctionMemory< double >, Face > & dstFaceID )
+                                const PrimitiveDataID< FunctionMemory< double >, Face > & dstFaceID,
+                                const PrimitiveStorage & storage )
 {
   if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
   {
+     storage.getTimingTree()->start( "1 RHS function" );
      auto dstData = face.getData( dstFaceID )->getPointer( level );
      auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
      auto scalar  = scalars.at( 0 );
      vertexdof::macroface::generated::assign_2D_macroface_vertexdof_1_rhs_function( dstData, srcData, scalar, static_cast< int32_t >( level ) );
+     storage.getTimingTree()->stop( "1 RHS function" );
   }
   else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
   {
+     storage.getTimingTree()->start( "2 RHS functions" );
      auto dstData  = face.getData( dstFaceID )->getPointer( level );
      auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
      auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
      auto scalar0  = scalars.at( 0 );
      auto scalar1  = scalars.at( 1 );
      vertexdof::macroface::generated::assign_2D_macroface_vertexdof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
+    storage.getTimingTree()->stop( "2 RHS functions" );
   }
   else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
   {
+     storage.getTimingTree()->start( "3 RHS functions" );
      auto dstData  = face.getData( dstFaceID )->getPointer( level );
      auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
      auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
@@ -359,6 +366,7 @@ void macroFaceAssign< double >( const uint_t & level, Face & face, const std::ve
      auto scalar1  = scalars.at( 1 );
      auto scalar2  = scalars.at( 2 );
      vertexdof::macroface::generated::assign_2D_macroface_vertexdof_3_rhs_functions( dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
+     storage.getTimingTree()->stop( "3 RHS functions" );
   }
   else
   {
@@ -605,7 +613,7 @@ void VertexDoFFunction< ValueType >::assign(
 
       if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
-        macroFaceAssign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
+        macroFaceAssign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_, *this->getStorage() );
       }
     }
 
@@ -801,6 +809,61 @@ void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t&
 
 
 template < typename ValueType >
+void macroFaceAdd( const uint_t & level, Face & face, const std::vector< ValueType > & scalars,
+                   const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcFaceIDs,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstFaceID,
+                   const PrimitiveStorage & )
+{
+  vertexdof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, dstFaceID );
+}
+
+template<>
+void macroFaceAdd< double >( const uint_t & level, Face & face, const std::vector< double > & scalars,
+                                const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > > & srcFaceIDs,
+                                const PrimitiveDataID< FunctionMemory< double >, Face > & dstFaceID,
+                                const PrimitiveStorage & storage )
+{
+  if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
+  {
+    storage.getTimingTree()->start( "1 RHS function" );
+    auto dstData = face.getData( dstFaceID )->getPointer( level );
+    auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+    auto scalar  = scalars.at( 0 );
+    vertexdof::macroface::generated::add_2D_macroface_vertexdof_1_rhs_function( dstData, srcData, scalar, static_cast< int32_t >( level ) );
+    storage.getTimingTree()->stop( "1 RHS function" );
+  }
+  else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
+  {
+    storage.getTimingTree()->start( "2 RHS functions" );
+    auto dstData  = face.getData( dstFaceID )->getPointer( level );
+    auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+    auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
+    auto scalar0  = scalars.at( 0 );
+    auto scalar1  = scalars.at( 1 );
+    vertexdof::macroface::generated::add_2D_macroface_vertexdof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
+    storage.getTimingTree()->stop( "2 RHS functions" );
+  }
+  else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
+  {
+    storage.getTimingTree()->start( "3 RHS functions" );
+    auto dstData  = face.getData( dstFaceID )->getPointer( level );
+    auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+    auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
+    auto srcData2 = face.getData( srcFaceIDs.at( 2 ) )->getPointer( level );
+    auto scalar0  = scalars.at( 0 );
+    auto scalar1  = scalars.at( 1 );
+    auto scalar2  = scalars.at( 2 );
+    vertexdof::macroface::generated::add_2D_macroface_vertexdof_3_rhs_functions( dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
+    storage.getTimingTree()->stop( "3 RHS functions" );
+  }
+  else
+  {
+    vertexdof::macroface::assign< double >( level, face, scalars, srcFaceIDs, dstFaceID );
+  }
+}
+
+
+template < typename ValueType >
 void macroCellAdd( const uint_t & level, Cell & cell, const std::vector< ValueType > & scalars,
                       const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcCellIDs,
                       const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstCellID )
@@ -914,7 +977,7 @@ void VertexDoFFunction< ValueType >::add(
 
       if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
-         vertexdof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
+         macroFaceAdd< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_, *this->getStorage() );
       }
    }
 

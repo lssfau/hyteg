@@ -1,6 +1,9 @@
 
 #pragma once
 
+#include "add_2D_macroface_vertexdof_1_rhsfunction.hpp"
+#include "add_2D_macroface_vertexdof_2_rhsfunctions.hpp"
+#include "add_2D_macroface_vertexdof_3_rhsfunctions.hpp"
 #include "add_3D_macrocell_vertexdof_1_rhsfunction.hpp"
 #include "add_3D_macrocell_vertexdof_1_rhsfunction_colored.hpp"
 #include "apply_2D_macroface_vertexdof_to_vertexdof_add.hpp"
