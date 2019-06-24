@@ -87,7 +87,7 @@ static void defectCorrection( int argc, char** argv )
    const bool   withDC          = mainConf.getParameter< bool >( "withDC" );
 
    const uint_t minLevel        = 2;
-   const uint_t numFacesPerSide = 4;
+   // const uint_t numFacesPerSide = 4;
 
    // domain
 
