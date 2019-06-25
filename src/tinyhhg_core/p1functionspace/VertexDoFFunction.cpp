@@ -858,7 +858,7 @@ void macroFaceAdd< double >( const uint_t & level, Face & face, const std::vecto
   }
   else
   {
-    vertexdof::macroface::assign< double >( level, face, scalars, srcFaceIDs, dstFaceID );
+    vertexdof::macroface::add< double >( level, face, scalars, srcFaceIDs, dstFaceID );
   }
 }
 
