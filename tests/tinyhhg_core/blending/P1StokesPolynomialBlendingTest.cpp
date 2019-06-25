@@ -225,7 +225,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT("pressure_err = " << std::scientific << discr_p_l2_err);
 
    WALBERLA_CHECK_LESS( discr_u_l2_err, 2e-4 );
-   WALBERLA_CHECK_LESS( discr_p_l2_err, 2e-2 );
+   WALBERLA_CHECK_LESS( discr_p_l2_err, 2.1e-2 );
 
    // u_u*iHat + u_v*jHat
 //   hhg::VTKOutput vtkOutput( "../output", "stokes_stab_varcoeff" );
