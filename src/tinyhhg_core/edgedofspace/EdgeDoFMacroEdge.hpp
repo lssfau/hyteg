@@ -178,7 +178,10 @@ inline ValueType dot( const uint_t & Level, Edge & edge,
 }
 
 template < typename ValueType >
-inline ValueType sum( const uint_t& Level, Edge& edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dataId )
+inline ValueType sum( const uint_t&                                               Level,
+                      Edge&                                                       edge,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dataId,
+                      const bool&                                                 absolute )
 {
    auto data = edge.getData( dataId )->getPointer( Level );
 
@@ -187,7 +190,14 @@ inline ValueType sum( const uint_t& Level, Edge& edge, const PrimitiveDataID< Fu
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
       const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
-      scalarProduct += data[idx];
+      if ( absolute )
+      {
+         scalarProduct += std::abs( data[idx] );
+      }
+      else
+      {
+         scalarProduct += data[idx];
+      }
    }
 
    return scalarProduct.get();

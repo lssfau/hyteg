@@ -235,25 +235,31 @@ inline ValueType dot( const uint_t & level,
   return sp;
 }
 
-
-template< typename ValueType >
-inline ValueType sum( const uint_t & level,
-                   const Cell & cell,
-                   const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dataID )
+template < typename ValueType >
+inline ValueType sum( const uint_t&                                               level,
+                      const Cell&                                                 cell,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& dataID,
+                      const bool&                                                 absolute )
 {
    ValueType sum = 0.0;
 
-  const ValueType * data = cell.getData( dataID )->getPointer( level );
+   const ValueType* data = cell.getData( dataID )->getPointer( level );
 
-  for ( const auto & it : vertexdof::macrocell::Iterator( level, 1 ) )
-  {
-    const uint_t idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
-    sum += data[ idx ];
-  }
+   for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) )
+   {
+      const uint_t idx = vertexdof::macrocell::indexFromVertex( level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C );
+      if ( absolute )
+      {
+         sum += std::abs( data[idx] );
+      }
+      else
+      {
+         sum += data[idx];
+      }
+   }
 
-  return sum;
+   return sum;
 }
-
 
 template< typename ValueType >
 inline void apply( const uint_t & level,

@@ -219,7 +219,7 @@ inline ValueType dot( const uint_t & level, Edge &edge, const PrimitiveDataID<Fu
 }
 
 template< typename ValueType >
-inline ValueType sum( const uint_t & level, const Edge & edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dataID)
+inline ValueType sum( const uint_t & level, const Edge & edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dataID, const bool & absolute)
 {
   real_t sum = real_c(0);
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
@@ -227,9 +227,15 @@ inline ValueType sum( const uint_t & level, const Edge & edge, const PrimitiveDa
   auto data = edge.getData( dataID )->getPointer( level );
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
-    sum += data[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+    if ( absolute )
+    {
+      sum += std::abs( data[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] );
+    }
+    else
+    {
+      sum += data[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+    }
   }
-
   return sum;
 }
 

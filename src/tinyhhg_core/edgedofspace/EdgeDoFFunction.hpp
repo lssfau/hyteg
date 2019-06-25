@@ -91,8 +91,8 @@ public:
 
   ValueType dotLocal(const EdgeDoFFunction <ValueType> &rhs, const uint_t level, const DoFType flag = All) const;
 
-  ValueType sumLocal( const uint_t& level, const DoFType& flag = All ) const;
-  ValueType sumGlobal( const uint_t& level, const DoFType& flag = All ) const;
+  ValueType sumLocal( const uint_t& level, const DoFType& flag = All, const bool & absolute = false ) const;
+  ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool & absolute = false ) const;
 
   void enumerate( uint_t level ) const;
 

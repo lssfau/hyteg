@@ -75,9 +75,9 @@ class P2Function : public Function< P2Function< ValueType > >
 
    ValueType dotLocal( const P2Function< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const;
 
-   ValueType sumGlobal( uint_t level, const DoFType& flag = All ) const;
+   ValueType sumGlobal( uint_t level, const DoFType& flag = All, const bool & absolute = false ) const;
 
-   ValueType sumLocal( uint_t level, const DoFType& flag = All ) const;
+   ValueType sumLocal( uint_t level, const DoFType& flag = All, const bool & absolute = false ) const;
 
    void prolongateP1ToP2( const hhg::P1Function< ValueType >& p1Function, const uint_t& level, const DoFType& flag = All ) const;
 

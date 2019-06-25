@@ -115,9 +115,15 @@ inline ValueType dot(Vertex &vertex,
 }
 
 template < typename ValueType >
-inline ValueType
-    sum( const uint_t& level, const Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dataID )
+inline ValueType sum( const uint_t&                                                 level,
+                      const Vertex&                                                 vertex,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dataID,
+                      const bool&                                                   absolute )
 {
+   if ( absolute )
+   {
+      return std::abs( vertex.getData( dataID )->getPointer( level )[0] );
+   }
    return vertex.getData( dataID )->getPointer( level )[0];
 }
 

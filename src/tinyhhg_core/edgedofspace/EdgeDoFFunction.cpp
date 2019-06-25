@@ -777,9 +777,9 @@ ValueType EdgeDoFFunction< ValueType >::dotLocal(const EdgeDoFFunction <ValueTyp
 
 
 template < typename ValueType >
-ValueType EdgeDoFFunction< ValueType >::sumGlobal( const uint_t & level, const DoFType & flag ) const
+ValueType EdgeDoFFunction< ValueType >::sumGlobal( const uint_t & level, const DoFType & flag, const bool & absolute ) const
 {
-   ValueType sum = sumLocal( level, flag );
+   ValueType sum = sumLocal( level, flag, absolute );
    this->startTiming( "Sum (reduce)" );
    walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
    this->stopTiming( "Sum (reduce)" );
@@ -787,7 +787,7 @@ ValueType EdgeDoFFunction< ValueType >::sumGlobal( const uint_t & level, const D
 }
 
 template < typename ValueType >
-ValueType EdgeDoFFunction< ValueType >::sumLocal( const uint_t & level, const DoFType & flag ) const
+ValueType EdgeDoFFunction< ValueType >::sumLocal( const uint_t & level, const DoFType & flag, const bool & absolute ) const
 {
    if( isDummy() )
    {
@@ -802,7 +802,7 @@ ValueType EdgeDoFFunction< ValueType >::sumLocal( const uint_t & level, const Do
 
       if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
-         sum += edgedof::macroedge::sum< ValueType >( level, edge, edgeDataID_ );
+         sum += edgedof::macroedge::sum< ValueType >( level, edge, edgeDataID_, absolute );
       }
    }
 
@@ -812,7 +812,7 @@ ValueType EdgeDoFFunction< ValueType >::sumLocal( const uint_t & level, const Do
 
       if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
-         sum += edgedof::macroface::sum< ValueType >( level, face, faceDataID_ );
+         sum += edgedof::macroface::sum< ValueType >( level, face, faceDataID_, absolute );
       }
    }
 
@@ -821,7 +821,7 @@ ValueType EdgeDoFFunction< ValueType >::sumLocal( const uint_t & level, const Do
       Cell& cell = *it.second;
       if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
-         sum += edgedof::macrocell::sum< ValueType >( level, cell, cellDataID_ );
+         sum += edgedof::macrocell::sum< ValueType >( level, cell, cellDataID_, absolute );
       }
    }
    this->stopTiming( "Sum (local)" );

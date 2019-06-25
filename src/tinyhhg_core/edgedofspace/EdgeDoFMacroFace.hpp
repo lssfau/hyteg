@@ -371,7 +371,10 @@ inline ValueType dot( const uint_t & Level, Face & face,
 }
 
 template < typename ValueType >
-inline ValueType sum( const uint_t& Level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dataId )
+inline ValueType sum( const uint_t&                                               Level,
+                      Face&                                                       face,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dataId,
+                      const bool&                                                 absolute )
 {
    auto data = face.getData( dataId )->getPointer( Level );
 
@@ -383,21 +386,30 @@ inline ValueType sum( const uint_t& Level, Face& face, const PrimitiveDataID< Fu
       if ( it.row() != 0 )
       {
          const uint_t idx = edgedof::macroface::horizontalIndex( Level, it.col(), it.row() );
-         scalarProduct += data[idx];
+         if ( absolute )
+            scalarProduct += std::abs( data[idx] );
+         else
+            scalarProduct += data[idx];
       }
 
       // Do not read vertical DoFs at left border
       if ( it.col() != 0 )
       {
          const uint_t idx = edgedof::macroface::verticalIndex( Level, it.col(), it.row() );
-         scalarProduct += data[idx];
+         if ( absolute )
+            scalarProduct += std::abs( data[idx] );
+         else
+            scalarProduct += data[idx];
       }
 
       // Do not read diagonal DoFs at diagonal border
       if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
       {
          const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row() );
-         scalarProduct += data[idx];
+         if ( absolute )
+            scalarProduct += std::abs( data[idx] );
+         else
+            scalarProduct += data[idx];
       }
    }
 

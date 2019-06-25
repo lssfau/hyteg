@@ -1120,9 +1120,9 @@ ValueType VertexDoFFunction< ValueType >::dotLocal(const VertexDoFFunction< Valu
 }
 
 template < typename ValueType >
-ValueType VertexDoFFunction< ValueType >::sumGlobal( const uint_t & level, const DoFType & flag ) const
+ValueType VertexDoFFunction< ValueType >::sumGlobal( const uint_t & level, const DoFType & flag, const bool & absolute ) const
 {
-   ValueType sum = sumLocal( level, flag );
+   ValueType sum = sumLocal( level, flag, absolute );
   this->startTiming( "Sum (reduce)" );
   walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
   this->stopTiming( "Sum (reduce)" );
@@ -1130,7 +1130,7 @@ ValueType VertexDoFFunction< ValueType >::sumGlobal( const uint_t & level, const
 }
 
 template < typename ValueType >
-ValueType VertexDoFFunction< ValueType >::sumLocal( const uint_t & level, const DoFType & flag ) const
+ValueType VertexDoFFunction< ValueType >::sumLocal( const uint_t & level, const DoFType & flag, const bool & absolute ) const
 {
    if( isDummy() )
    {
@@ -1145,7 +1145,7 @@ ValueType VertexDoFFunction< ValueType >::sumLocal( const uint_t & level, const 
 
       if( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
-         sum += vertexdof::macrovertex::sum( level, vertex, vertexDataID_ );
+         sum += vertexdof::macrovertex::sum( level, vertex, vertexDataID_, absolute );
       }
    }
 
@@ -1155,7 +1155,7 @@ ValueType VertexDoFFunction< ValueType >::sumLocal( const uint_t & level, const 
 
       if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
-         sum += vertexdof::macroedge::sum< ValueType >( level, edge, edgeDataID_ );
+         sum += vertexdof::macroedge::sum< ValueType >( level, edge, edgeDataID_, absolute );
       }
    }
 
@@ -1165,7 +1165,7 @@ ValueType VertexDoFFunction< ValueType >::sumLocal( const uint_t & level, const 
 
       if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
-         sum += vertexdof::macroface::sum< ValueType >( level, face, faceDataID_ );
+         sum += vertexdof::macroface::sum< ValueType >( level, face, faceDataID_, absolute );
       }
    }
 
@@ -1174,7 +1174,7 @@ ValueType VertexDoFFunction< ValueType >::sumLocal( const uint_t & level, const 
       Cell& cell = *it.second;
       if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
-         sum += vertexdof::macrocell::sum< ValueType >( level, cell, cellDataID_ );
+         sum += vertexdof::macrocell::sum< ValueType >( level, cell, cellDataID_, absolute );
       }
    }
    this->stopTiming( "Sum (local)" );

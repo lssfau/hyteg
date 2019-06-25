@@ -320,14 +320,21 @@ inline ValueType dot( const uint_t&                                             
 }
 
 template < typename ValueType >
-inline ValueType sum( const uint_t& level, const Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dataID )
+inline ValueType sum( const uint_t& level, const Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dataID, const bool & absolute )
 {
    ValueType* faceData = face.getData( dataID )->getPointer( level );
    real_t     sum      = real_c( 0 );
    for ( const auto& it : vertexdof::macroface::Iterator( level, 1 ) )
    {
       const uint_t idx = vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C );
-      sum += faceData[idx];
+      if ( absolute )
+      {
+        sum += std::abs( faceData[idx] );
+      }
+      else
+      {
+        sum += faceData[idx];
+      }
    }
    return sum;
 }

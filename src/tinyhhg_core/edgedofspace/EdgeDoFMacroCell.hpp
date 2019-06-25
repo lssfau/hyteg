@@ -449,63 +449,84 @@ inline ValueType dot( const uint_t & Level, Cell & cell,
   return scalarProduct.get();
 }
 
-
-template< typename ValueType >
-inline ValueType sum( const uint_t & Level, Cell & cell,
-                   const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& dataId )
+template < typename ValueType >
+inline ValueType sum( const uint_t&                                               Level,
+                      Cell&                                                       cell,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& dataId,
+                      const bool&                                                 absolute )
 {
-  auto data = cell.getData( dataId )->getPointer( Level );
+   auto data = cell.getData( dataId )->getPointer( Level );
 
-  walberla::math::KahanAccumulator< ValueType > scalarProduct;
+   walberla::math::KahanAccumulator< ValueType > scalarProduct;
 
-  for ( const auto & it : edgedof::macrocell::Iterator( Level, 0 ) )
-  {
-    if ( isInnerXEdgeDoF( Level, it ) )
-    {
-      const uint_t idx  = edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() );
-      scalarProduct += data[ idx ];
-    }
+   for ( const auto& it : edgedof::macrocell::Iterator( Level, 0 ) )
+   {
+      if ( isInnerXEdgeDoF( Level, it ) )
+      {
+         const uint_t idx = edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() );
+         if ( absolute )
+            scalarProduct += std::abs( data[idx] );
+         else
+            scalarProduct += data[idx];
+      }
 
-    if ( isInnerYEdgeDoF( Level, it ) )
-    {
-      const uint_t idx  = edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() );
-      scalarProduct += data[ idx ];
-    }
+      if ( isInnerYEdgeDoF( Level, it ) )
+      {
+         const uint_t idx = edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() );
+         if ( absolute )
+            scalarProduct += std::abs( data[idx] );
+         else
+            scalarProduct += data[idx];
+      }
 
-    if ( isInnerZEdgeDoF( Level, it ) )
-    {
-      const uint_t idx  = edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() );
-      scalarProduct += data[ idx ];
-    }
+      if ( isInnerZEdgeDoF( Level, it ) )
+      {
+         const uint_t idx = edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() );
+         if ( absolute )
+            scalarProduct += std::abs( data[idx] );
+         else
+            scalarProduct += data[idx];
+      }
 
-    if ( isInnerXYEdgeDoF( Level, it ) )
-    {
-      const uint_t idx  = edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() );
-      scalarProduct += data[ idx ];
-    }
+      if ( isInnerXYEdgeDoF( Level, it ) )
+      {
+         const uint_t idx = edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() );
+         if ( absolute )
+            scalarProduct += std::abs( data[idx] );
+         else
+            scalarProduct += data[idx];
+      }
 
-    if ( isInnerXZEdgeDoF( Level, it ) )
-    {
-      const uint_t idx  = edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() );
-      scalarProduct += data[ idx ];
-    }
+      if ( isInnerXZEdgeDoF( Level, it ) )
+      {
+         const uint_t idx = edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() );
+         if ( absolute )
+            scalarProduct += std::abs( data[idx] );
+         else
+            scalarProduct += data[idx];
+      }
 
-    if ( isInnerYZEdgeDoF( Level, it ) )
-    {
-      const uint_t idx  = edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() );
-      scalarProduct += data[ idx ];
-    }
-  }
+      if ( isInnerYZEdgeDoF( Level, it ) )
+      {
+         const uint_t idx = edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() );
+         if ( absolute )
+            scalarProduct += std::abs( data[idx] );
+         else
+            scalarProduct += data[idx];
+      }
+   }
 
-  for ( const auto & it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
-  {
-    const uint_t idx  = edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() );
-    scalarProduct += data[ idx ];
-  }
+   for ( const auto& it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
+   {
+      const uint_t idx = edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() );
+      if ( absolute )
+         scalarProduct += std::abs( data[idx] );
+      else
+         scalarProduct += data[idx];
+   }
 
-  return scalarProduct.get();
+   return scalarProduct.get();
 }
-
 
 inline void apply(const uint_t & Level, Cell &cell,
                   const PrimitiveDataID< LevelWiseMemory< StencilMap_T >, Cell> &operatorId,
