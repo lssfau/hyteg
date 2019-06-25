@@ -5,7 +5,7 @@ enable_testing()
 
 option ( HHG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
 option ( HHG_BUILD_WITH_EIGEN       "Build with Eigen"                             OFF)
-option ( HHG_USE_GENERATED_KERNEL   "Use generated pystencils kernels if available" ON)
+option ( HHG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if available" ON)
 option ( HHG_P1_COLORING            "Use multicolored P1 layout EXPERIMENTAL (tets only) - only toggle when using only P1 elements" OFF)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -21,6 +21,12 @@ set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${tinyhhg_SOURCE_DIR}/cmake/modules
 
 if ( HHG_P1_COLORING )
     message(STATUS "Using multicolor layout for P1 elements! Do not use other discretizations at all.")
+endif()
+
+if ( HHG_USE_GENERATED_KERNELS )
+    message(STATUS "Using generated HyTeG kernels.")
+else()
+    message(STATUS "Generated HyTeG kernels DISABLED! - Performance might not be optimal and some features might not be working correctly.")
 endif()
 
 if ( HHG_BUILD_WITH_PETSC )
