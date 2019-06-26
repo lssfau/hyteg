@@ -13,7 +13,7 @@
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_diffusion.h"
+#include "tinyhhg_core/p1functionspace/generated_new/P1FenicsForm.hpp"
 #include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 
 namespace hhg {
@@ -31,7 +31,8 @@ static void testVertexDoFStencilAssembly()
 
   auto storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/3D/regular_octahedron_8el.msh" );
 
-  p1_tet_diffusion_cell_integral_0_otherwise ufcOperator;
+  typedef P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > P1TestForm;
+  P1TestForm form;
 
   for ( const auto & it : storage->getVertices() )
   {
@@ -43,8 +44,8 @@ static void testVertexDoFStencilAssembly()
 
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
-        std::vector< real_t > stencil = P1Elements::P1Elements3D::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( storage, vertex, indexing::Index( 0, 0, 0 ), level,
-                                                                                                                                         ufcOperator );
+        std::vector< real_t > stencil = P1Elements::P1Elements3D::assembleP1LocalStencil< P1TestForm >( storage, vertex, indexing::Index( 0, 0, 0 ), level,
+                                                                                                                                         form );
         macroVertexStencilOnLevel[level] = stencil;
         real_t rowSum = real_c( 0 );
 
@@ -77,8 +78,8 @@ static void testVertexDoFStencilAssembly()
 
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
-        std::vector< real_t > stencil = P1Elements::P1Elements3D::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( storage, edge, indexing::Index( 1, 0, 0 ), level,
-                                                                                                                                         ufcOperator );
+        std::vector< real_t > stencil = P1Elements::P1Elements3D::assembleP1LocalStencil< P1TestForm >( storage, edge, indexing::Index( 1, 0, 0 ), level,
+                                                                                                                                         form );
         macroEdgeStencilOnLevel[level] = stencil;
         real_t rowSum = real_c( 0 );
 
@@ -146,8 +147,8 @@ static void testVertexDoFStencilAssembly()
       std::array< std::map< stencilDirection, real_t >, maxLevel + 1 > macroFaceStencilOnLevel;
 
       for ( uint_t level = minLevel; level <= maxLevel; level++ ) {
-        std::map< stencilDirection, real_t > stencil = P1Elements::P1Elements3D::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( storage, face, indexing::Index( 1, 1, 0 ),
-                                                                                                                                                        level, ufcOperator );
+        std::map< stencilDirection, real_t > stencil = P1Elements::P1Elements3D::assembleP1LocalStencil< P1TestForm >( storage, face, indexing::Index( 1, 1, 0 ),
+                                                                                                                                                        level, form );
         macroFaceStencilOnLevel[level] = stencil;
         real_t rowSum = real_c( 0 );
 
@@ -180,7 +181,7 @@ static void testVertexDoFStencilAssembly()
 
     for ( uint_t level = minLevel; level <= maxLevel; level++ )
     {
-      std::map< stencilDirection, real_t > stencil = P1Elements::P1Elements3D::assembleP1LocalStencil< p1_tet_diffusion_cell_integral_0_otherwise >( storage, *cell.second, indexing::Index( 1, 1, 1 ), level, ufcOperator );
+      std::map< stencilDirection, real_t > stencil = P1Elements::P1Elements3D::assembleP1LocalStencil< P1TestForm >( storage, *cell.second, indexing::Index( 1, 1, 1 ), level, form );
       macroCellStencilOnLevel[ level ] = stencil;
       real_t rowSum = real_c( 0 );
 

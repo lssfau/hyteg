@@ -132,7 +132,7 @@ static void defectCorrection( int argc, char** argv )
    P2Function< real_t > f_P2( "f_P2", storage, maxLevel - 1, maxLevel - 1 );
 
    P1ConstantLaplaceOperator A_P1( storage, minLevel, maxLevel );
-   P1MassOperator            M_P1( storage, minLevel, maxLevel );
+   P1ConstantMassOperator    M_P1( storage, minLevel, maxLevel );
    P2ConstantLaplaceOperator A_P2( storage, maxLevel - 1, maxLevel - 1 );
    P2ConstantMassOperator    M_P2( storage, maxLevel - 1, maxLevel - 1 );
 

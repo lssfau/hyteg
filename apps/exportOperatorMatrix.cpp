@@ -125,8 +125,8 @@ int main( int argc, char* argv[] ) {
   case P1MASS:
     {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Mass operator for P1 elements" );
-      hhg::P1MassOperator opr( storage, level, level );
-      exportOperator< P1MassOperator, P1Function, P1FunctionTag >( opr, fileName, matName, storage, level, elim );
+      hhg::P1ConstantMassOperator opr( storage, level, level );
+      exportOperator< P1ConstantMassOperator, P1Function, P1FunctionTag >( opr, fileName, matName, storage, level, elim );
     }
     break;
 

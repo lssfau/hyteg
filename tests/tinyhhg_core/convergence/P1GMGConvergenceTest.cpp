@@ -40,7 +40,7 @@ int main( int argc, char* argv[] )
   hhg::P1Function< real_t > err( "err", storage, minLevel, maxLevel );
   hhg::P1Function< real_t > npoints_helper( "npoints_helper", storage, minLevel, maxLevel );
 
-  hhg::P1MassOperator    M( storage, minLevel, maxLevel );
+  hhg::P1ConstantMassOperator    M( storage, minLevel, maxLevel );
   hhg::P1ConstantLaplaceOperator L( storage, minLevel, maxLevel );
 
   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) {

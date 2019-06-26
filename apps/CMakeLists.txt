@@ -35,7 +35,7 @@ waLBerla_add_executable( NAME show_mesh
         DEPENDS tinyhhg_core)
 
 waLBerla_add_executable( NAME PolarLaplacian
-        FILES polar_laplacian.cpp
+        FILES  PolarLaplacian.cpp
         DEPENDS tinyhhg_core)
 
 waLBerla_add_executable( NAME PrimitiveSizes
