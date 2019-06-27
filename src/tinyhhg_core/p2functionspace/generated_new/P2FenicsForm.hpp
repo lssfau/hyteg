@@ -46,6 +46,10 @@ template < class UFCOperator2D, class UFCOperator3D = fenics::UndefinedAssembly 
 class P2FenicsForm : public P2Form
 {
  public:
+
+   // ---------------------------
+   //  2D versions for triangles
+   // ---------------------------
    void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const override
    {
       Matrix6r localStiffnessMatrix;
@@ -82,9 +86,34 @@ class P2FenicsForm : public P2Form
       out[2] = localStiffnessMatrix( 5, 5 );
    }
 
+   // ----------------------------
+   //  3D versions for tetrahedra
+   // ----------------------------
    void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const override {
-     WALBERLA_ABORT( "P2FenicsForm::integrate() not implemented for 3D!" );
+      Matrix10r localStiffnessMatrix;
+      computeLocalStiffnessMatrix( coords, localStiffnessMatrix );
+      out[0] = localStiffnessMatrix( 0, 0 );
+      out[1] = localStiffnessMatrix( 0, 1 );
+      out[2] = localStiffnessMatrix( 0, 2 );
+      out[3] = localStiffnessMatrix( 0, 3 );
    }
+
+   void integrateEdgeToVertex( const std::array< Point3D, 4 >& coords, Point4D& out ) const
+   {
+      WALBERLA_ABORT( "P2FenicsForm::integrateEdgeToVertex() not implemented for 3D!" );
+   }
+
+   void integrateVertexToEdge( const std::array< Point3D, 4 >& coords, Point4D& out ) const
+   {
+      WALBERLA_ABORT( "P2FenicsForm::integrateVertexToEdge() not implemented for 3D!" );
+   }
+
+   void integrateEdgeToEdge( const std::array< Point3D, 4 >& coords, Point4D& out ) const
+   {
+      WALBERLA_ABORT( "P2FenicsForm::integrateEdgeToEdge() not implemented for 3D!" );
+   }
+
+   // -------------
 
    bool assemble2D() const override { return !std::is_same< UFCOperator2D, hhg::fenics::NoAssemble >::value; }
 
@@ -105,6 +134,18 @@ class P2FenicsForm : public P2Form
       fenicsCoords[4] = coords[2][0];
       fenicsCoords[5] = coords[2][1];
       UFCOperator2D gen;
+      gen.tabulate_tensor( localStiffnessMatrix.data(), nullptr, fenicsCoords, 0 );
+   }
+
+   void computeLocalStiffnessMatrix( const std::array< Point3D, 4 >& coords, Matrix10r& localStiffnessMatrix ) const
+   {
+      real_t fenicsCoords[12];
+      for( int node = 0; node < 4; ++node ) {
+        for( int dim = 0; dim < 3; ++dim ) {
+          fenicsCoords[node*3+dim] = coords[node][dim];
+        }
+      }
+      UFCOperator3D gen;
       gen.tabulate_tensor( localStiffnessMatrix.data(), nullptr, fenicsCoords, 0 );
    }
 };
