@@ -82,7 +82,9 @@ class P2FenicsForm : public P2Form
       out[2] = localStiffnessMatrix( 5, 5 );
    }
 
-   void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const override { WALBERLA_ABORT( "Not implemented." ); }
+   void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const override {
+     WALBERLA_ABORT( "P2FenicsForm::integrate() not implemented for 3D!" );
+   }
 
    bool assemble2D() const override { return !std::is_same< UFCOperator2D, hhg::fenics::NoAssemble >::value; }
 
