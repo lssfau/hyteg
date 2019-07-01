@@ -1,8 +1,8 @@
 
 #include "core/Environment.h"
 #include "core/config/Config.h"
-#include "core/timing/TimingJSON.h"
 #include "core/math/Constants.h"
+#include "core/timing/TimingJSON.h"
 
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
@@ -24,8 +24,8 @@
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/petsc/PETScLUSolver.hpp"
-#include "tinyhhg_core/petsc/PETScMinResSolver.hpp"
 #include "tinyhhg_core/petsc/PETScManager.hpp"
+#include "tinyhhg_core/petsc/PETScMinResSolver.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -48,15 +48,37 @@ using walberla::math::M_PI;
 
 #define NEUMANN_PROBLEM 0
 #define COLLIDING_FLOW 0
+#define CONSTANTA_POISSON 1
 
-#if 0
-std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x )
-{
+#if CONSTANTA_POISSON
+
+std::function< real_t( const hhg::Point3D& ) > exact;
+std::function< real_t( const hhg::Point3D& ) > rhs;
+
+std::function< real_t( const hhg::Point3D& ) > exactConstanta2D = []( const hhg::Point3D& x ) {
+    return cos( M_PI * x[0] ) - sin( 2.0 * M_PI * x[1] );
+};
+
+std::function< real_t( const hhg::Point3D& ) > rhsConstanta2D = []( const hhg::Point3D& x ) {
+    return M_PI * M_PI * cos( M_PI * x[0] ) - 4.0 * M_PI * M_PI * sin( 2.0 * M_PI * x[1] );
+};
+
+
+std::function< real_t( const hhg::Point3D& ) > exactConstanta3D = []( const hhg::Point3D& x ) {
+   return cos( M_PI * x[0] ) - sin( 2.0 * M_PI * x[1] ) + cos( 2.0 * M_PI * x[2] );
+};
+
+std::function< real_t( const hhg::Point3D& ) > rhsConstanta3D = []( const hhg::Point3D& x ) {
+   return M_PI * M_PI * cos( M_PI * x[0] ) - 4.0 * M_PI * M_PI * sin( 2.0 * M_PI * x[1] ) + 4.0 * M_PI * M_PI * cos( 2.0 * M_PI * x[2] );
+};
+
+#else // END IF CONSTANTA
+#if 1
+std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) {
    return ( 1.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
 };
 
-std::function< real_t( const hhg::Point3D& ) > rhs = []( const hhg::Point3D& x )
-{
+std::function< real_t( const hhg::Point3D& ) > rhs = []( const hhg::Point3D& x ) {
    return ( 3.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
 };
 #else
@@ -64,6 +86,7 @@ std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x
 
 std::function< real_t( const hhg::Point3D& ) > rhs    = []( const hhg::Point3D& ) { return 0; };
 #endif
+#endif // END ELSE CONSTANTA
 
 #if NEUMANN_PROBLEM
 std::function< real_t( const hhg::Point3D& ) > bcU = []( const hhg::Point3D& x ) {
@@ -121,17 +144,17 @@ std::function< real_t( const hhg::Point3D& ) > rhsV = []( const hhg::Point3D& x 
 template < typename Function, typename LaplaceOperator, typename MassOperator >
 void calculateErrorAndResidual( const uint_t&          level,
                                 const LaplaceOperator& A,
-                                const MassOperator&    ,
-                                const Function&        u,
-                                const Function&        f,
-                                const Function&        uExact,
-                                const Function&        error,
-                                const Function&        residual,
-                                const Function&        tmp,
-                                real_t&                l2Error,
-                                real_t&                L2Error,
-                                real_t&                l2Residual,
-                                real_t&                L2Residual )
+                                const MassOperator&,
+                                const Function& u,
+                                const Function& f,
+                                const Function& uExact,
+                                const Function& error,
+                                const Function& residual,
+                                const Function& tmp,
+                                long double&    LInfError,
+                                long double&    L2Error,
+                                long double&    LInfResidual,
+                                long double&    L2Residual )
 {
    error.assign( {1.0, -1.0}, {uExact, u}, level, All );
 
@@ -141,11 +164,11 @@ void calculateErrorAndResidual( const uint_t&          level,
 
    auto num = numberOfGlobalDoFs< typename Function::Tag >( *u.getStorage(), level );
 
-   l2Error = std::sqrt( error.dotGlobal( error, level, Inner ) / real_c(num) );
-   l2Residual = std::sqrt( residual.dotGlobal( residual, level, Inner ) / real_c(num) );
+  LInfError    = error.getMaxMagnitude( level );
+  LInfResidual = residual.getMaxMagnitude( level );
 
-   L2Error    = l2Error;
-   L2Residual = l2Residual;
+  L2Error    = std::sqrt( error.dotGlobal( error, level, Inner ) / (long double) ( num ) );
+  L2Residual = std::sqrt( residual.dotGlobal( residual, level, Inner ) / (long double) ( num ) );
 }
 
 template < typename Function, typename StokesOperator >
@@ -157,12 +180,12 @@ void calculateErrorAndResidualStokes( const uint_t&         level,
                                       const Function&       error,
                                       const Function&       residual,
                                       const Function&       tmp,
-                                      real_t&               l2ErrorU,
-                                      real_t&               l2ErrorV,
-                                      real_t&               l2ErrorP,
-                                      real_t&               l2ResidualU,
-                                      real_t&               l2ResidualV,
-                                      real_t&               l2ResidualP )
+                                      long double&          l2ErrorU,
+                                      long double&          l2ErrorV,
+                                      long double&          l2ErrorP,
+                                      long double&          l2ResidualU,
+                                      long double&          l2ResidualV,
+                                      long double&          l2ResidualP )
 {
    error.assign( {1.0, -1.0}, {uExact, u}, level, All );
 
@@ -173,11 +196,12 @@ void calculateErrorAndResidualStokes( const uint_t&         level,
    vertexdof::projectMean( error.p, level );
 
    auto numU = numberOfGlobalDoFs< typename Function::VelocityFunction_T::Tag >( *u.u.getStorage(), level );
+   auto numV = numberOfGlobalDoFs< typename Function::VelocityFunction_T::Tag >( *u.v.getStorage(), level );
    auto numP = numberOfGlobalDoFs< typename Function::PressureFunction_T::Tag >( *u.p.getStorage(), level );
 
-   l2ErrorU    = std::sqrt( error.u.dotGlobal( error.u, level, Inner | NeumannBoundary ) / real_c( numU ) );
-   l2ErrorV    = std::sqrt( error.v.dotGlobal( error.v, level, Inner | NeumannBoundary ) );
-   l2ErrorP    = std::sqrt( error.p.dotGlobal( error.p, level, Inner | NeumannBoundary ) / real_c( numP ) );
+   l2ErrorU    = std::sqrt( error.u.dotGlobal( error.u, level, Inner | NeumannBoundary ) / (long double) ( numU ) );
+   l2ErrorV    = std::sqrt( error.v.dotGlobal( error.v, level, Inner | NeumannBoundary ) / (long double) ( numV ) );
+   l2ErrorP    = std::sqrt( error.p.dotGlobal( error.p, level, Inner | NeumannBoundary ) / (long double) ( numP ) );
    l2ResidualU = std::sqrt( residual.u.dotGlobal( residual.u, level, Inner | NeumannBoundary ) );
    l2ResidualV = std::sqrt( residual.v.dotGlobal( residual.v, level, Inner | NeumannBoundary ) );
    l2ResidualP = std::sqrt( residual.p.dotGlobal( residual.p, level, Inner | NeumannBoundary ) );
@@ -186,7 +210,7 @@ void calculateErrorAndResidualStokes( const uint_t&         level,
 template < typename Function, typename LaplaceOperator, typename MassOperator >
 void calculateDiscretizationError( const std::shared_ptr< PrimitiveStorage >& storage,
                                    const uint_t&                              level,
-                                   real_t&                                    l2DiscretizationError )
+                                   long double&                               l2DiscretizationError )
 {
    Function u( "u", storage, level, level );
    Function f( "f", storage, level, level );
@@ -212,19 +236,19 @@ void calculateDiscretizationError( const std::shared_ptr< PrimitiveStorage >& st
 #endif
    solver->solve( A, u, f, level );
 
-   real_t L2Error;
-   real_t l2Residual;
-   real_t L2Residual;
+   long double L2Error;
+   long double l2Residual;
+   long double L2Residual;
    calculateErrorAndResidual(
-       level, A, M, u, f, uExact, error, residual, tmp, l2DiscretizationError, L2Error, l2Residual, L2Residual );
+       level, A, M, u, f, uExact, error, residual, tmp, L2Error, l2DiscretizationError, l2Residual, L2Residual );
 }
 
 template < typename StokesFunction, typename StokesOperator, typename MassOperator >
 void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage >& storage,
                                          const uint_t&                              level,
-                                         real_t&                                    l2DiscretizationErrorU,
-                                         real_t&                                    l2DiscretizationErrorV,
-                                         real_t&                                    l2DiscretizationErrorP )
+                                         long double&                               l2DiscretizationErrorU,
+                                         long double&                               l2DiscretizationErrorV,
+                                         long double&                               l2DiscretizationErrorP )
 {
    StokesFunction u( "u", storage, level, level );
    StokesFunction f( "f", storage, level, level );
@@ -250,7 +274,8 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
    M.apply( tmp.v, f.v, level, All );
 
 #ifdef HHG_BUILD_WITH_PETSC
-   auto solver = std::make_shared< PETScMinResSolver< StokesOperator > >( storage, level, 1e-16  );
+   auto solver = std::make_shared< PETScMinResSolver< StokesOperator > >( storage, level, 1e-16 );
+   // auto solver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, level );
 #else
    auto cgVelocity =
        std::make_shared< CGSolver< typename StokesOperator::VelocityOperator_T > >( storage, level, level, 0, 1e-14 );
@@ -263,9 +288,9 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
 
    vertexdof::projectMean( u.p, level );
 
-   real_t l2ResidualU;
-   real_t l2ResidualV;
-   real_t l2ResidualP;
+   long double l2ResidualU;
+   long double l2ResidualV;
+   long double l2ResidualP;
 
    calculateErrorAndResidualStokes( level,
                                     A,
@@ -320,10 +345,10 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
    LaplaceOperator A( storage, minLevel, maxLevel );
    MassOperator    M( storage, minLevel, maxLevel );
 
-   real_t l2Error;
-   real_t L2Error;
-   real_t l2Residual;
-   real_t L2Residual;
+   long double LInfError;
+   long double L2Error;
+   long double LInfResidual;
+   long double L2Residual;
 
    ////////////////////
    // Initialize VTK //
@@ -353,7 +378,7 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
    // Misc setup and info //
    /////////////////////////
 
-   real_t discretizationError = 0.0;
+   long double discretizationError = 0.0;
    if ( calcDiscretizationError )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "l2 discretization error per level:" );
@@ -361,7 +386,7 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
       {
          calculateDiscretizationError< Function, LaplaceOperator, MassOperator >( storage, level, discretizationError );
          WALBERLA_LOG_INFO_ON_ROOT( "  level " << std::setw( 2 ) << level << ": " << std::scientific << discretizationError );
-         sqlRealProperties["l2_discr_error_level_" + std::to_string( level )] = discretizationError;
+         sqlRealProperties["l2_discr_error_level_" + std::to_string( level )] = real_c( discretizationError );
       }
       WALBERLA_LOG_DEVEL_ON_ROOT( "" );
    }
@@ -386,7 +411,7 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
    double            timeCycle;
 
    timer.reset();
-   calculateErrorAndResidual( maxLevel, A, M, u, f, uExact, error, residual, tmp, l2Error, L2Error, l2Residual, L2Residual );
+   calculateErrorAndResidual( maxLevel, A, M, u, f, uExact, error, residual, tmp, LInfError, L2Error, LInfResidual, L2Residual );
    timer.end();
    timeError = timer.last();
 
@@ -399,44 +424,44 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
    timeVTK = timer.last();
 
    WALBERLA_LOG_INFO_ON_ROOT(
-       " After cycle... ||     l2 error |     L2 error | L2 error reduction ||  l2 residual |  L2 residual | L2 residual reduction || time cycle [s] | time error calculation [s] | time VTK [s] |" );
+       " After cycle... ||   LInf error |     L2 error | L2 error reduction ||  LInf res.   |  L2 residual | L2 residual reduction || time cycle [s] | time error calculation [s] | time VTK [s] |" );
    WALBERLA_LOG_INFO_ON_ROOT(
        " ---------------++--------------+--------------+--------------------++--------------+--------------+-----------------------++----------------+----------------------------+--------------|" );
-   WALBERLA_LOG_INFO_ON_ROOT( "        initial || " << std::scientific << l2Error << " | " << L2Error << " | "
-                                                    << "               --- || " << l2Residual << " | " << L2Residual
+   WALBERLA_LOG_INFO_ON_ROOT( "        initial || " << std::scientific << LInfError << " | " << L2Error << " | "
+                                                    << "               --- || " << LInfResidual << " | " << L2Residual
                                                     << " |                   --- ||            --- | " << std::fixed
                                                     << std::setprecision( 2 ) << std::setw( 26 ) << timeError << " | "
                                                     << std::setw( 12 ) << timeVTK << " |" );
 
-   real_t avgL2ErrorConvergenceRate    = 0;
-   real_t avgL2ResidualConvergenceRate = 0;
-   real_t avgl2ErrorConvergenceRate    = 0;
-   real_t avgl2ResidualConvergenceRate = 0;
+   long double avgL2ErrorConvergenceRate    = 0;
+   long double avgL2ResidualConvergenceRate = 0;
+   long double avgLInfErrorConvergenceRate    = 0;
+   long double avgLInfResidualConvergenceRate = 0;
 
-   real_t L2ErrorReduction    = 0;
-   real_t L2ResidualReduction = 0;
-   real_t l2ErrorReduction    = 0;
-   real_t l2ResidualReduction = 0;
+   long double L2ErrorReduction    = 0;
+   long double L2ResidualReduction = 0;
+   long double LInfErrorReduction    = 0;
+   long double LInfResidualReduction = 0;
 
-   sqlRealPropertiesMG[0]["capital_L2_error"]              = L2Error;
-   sqlRealPropertiesMG[0]["capital_L2_error_reduction"]    = L2ErrorReduction;
-   sqlRealPropertiesMG[0]["capital_L2_residual"]           = L2Residual;
-   sqlRealPropertiesMG[0]["capital_L2_residual_reduction"] = L2ResidualReduction;
+   sqlRealPropertiesMG[0]["L2_error"]              = real_c( L2Error );
+   sqlRealPropertiesMG[0]["L2_error_reduction"]    = real_c( L2ErrorReduction );
+   sqlRealPropertiesMG[0]["L2_residual"]           = real_c( L2Residual );
+   sqlRealPropertiesMG[0]["L2_residual_reduction"] = real_c( L2ResidualReduction );
 
-   sqlRealPropertiesMG[0]["lowercase_l2_error"]              = l2Error;
-   sqlRealPropertiesMG[0]["lowercase_l2_error_reduction"]    = l2ErrorReduction;
-   sqlRealPropertiesMG[0]["lowercase_l2_residual"]           = l2Residual;
-   sqlRealPropertiesMG[0]["lowercase_l2_residual_reduction"] = l2ResidualReduction;
+   sqlRealPropertiesMG[0]["LInf_error"]              = real_c( LInfError );
+   sqlRealPropertiesMG[0]["LInf_error_reduction"]    = real_c( LInfErrorReduction );
+   sqlRealPropertiesMG[0]["LInf_residual"]           = real_c( LInfResidual );
+   sqlRealPropertiesMG[0]["LInf_residual_reduction"] = real_c( LInfResidualReduction );
 
    ///////////
    // Solve //
    ///////////
 
-   auto smoother         = std::make_shared< SORSmoother< LaplaceOperator > >( sorRelax );
+   auto smoother = std::make_shared< SORSmoother< LaplaceOperator > >( sorRelax );
 #ifdef HHG_BUILD_WITH_PETSC
    auto coarseGridSolver = std::make_shared< PETScLUSolver< LaplaceOperator > >( storage, minLevel );
 #else
-  auto coarseGridSolver = std::make_shared< CGSolver< LaplaceOperator > >( storage, minLevel, minLevel );
+   auto coarseGridSolver = std::make_shared< CGSolver< LaplaceOperator > >( storage, minLevel, minLevel );
 #endif
 
    auto prolongationOperator = std::make_shared< Prolongation >();
@@ -457,23 +482,24 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
    auto fmgProlongation = std::make_shared< FMGProlongation >();
 
    auto postCycle = [&]( uint_t currentLevel ) {
-      real_t _l2Error, _L2Error, _l2Residual, _L2Residual;
+      long double _l2Error, _L2Error, _l2Residual, _L2Residual;
       calculateErrorAndResidual(
           currentLevel, A, M, u, f, uExact, error, residual, tmp, _l2Error, _L2Error, _l2Residual, _L2Residual );
-      sqlRealProperties["fmg_l2_error_level_" + std::to_string( currentLevel )] = _l2Error;
+      sqlRealProperties["fmg_l2_error_level_" + std::to_string( currentLevel )] = real_c( _l2Error );
       WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error: " << std::scientific << _l2Error );
    };
 
    FullMultigridSolver< LaplaceOperator > fullMultigridSolver(
        storage, multigridSolver, fmgProlongation, minLevel, maxLevel, fmgInnerCycles, postCycle );
 
+   uint_t numExecutedCycles = 0;
    for ( uint_t cycle = 1; cycle <= numCycles; cycle++ )
    {
-      const real_t lastL2Error    = L2Error;
-      const real_t lastL2Residual = L2Residual;
+      const long double lastL2Error    = L2Error;
+      const long double lastL2Residual = L2Residual;
 
-      const real_t lastl2Error    = l2Error;
-      const real_t lastl2Residual = l2Residual;
+      const long double lastLInfError    = LInfError;
+      const long double lastLInfResidual = LInfResidual;
 
       timer.reset();
       if ( cycle == 1 && fmgInnerCycles > 0 )
@@ -487,8 +513,10 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
       timer.end();
       timeCycle = timer.last();
 
+      numExecutedCycles++;
+
       timer.reset();
-      calculateErrorAndResidual( maxLevel, A, M, u, f, uExact, error, residual, tmp, l2Error, L2Error, l2Residual, L2Residual );
+      calculateErrorAndResidual( maxLevel, A, M, u, f, uExact, error, residual, tmp, LInfError, L2Error, LInfResidual, L2Residual );
       timer.end();
       timeError = timer.last();
 
@@ -502,33 +530,33 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
 
       L2ErrorReduction    = L2Error / lastL2Error;
       L2ResidualReduction = L2Residual / lastL2Residual;
-      l2ErrorReduction    = l2Error / lastl2Error;
-      l2ResidualReduction = l2Residual / lastl2Residual;
+      LInfErrorReduction    = LInfError / lastLInfError;
+      LInfResidualReduction = LInfResidual / lastLInfResidual;
 
-      WALBERLA_LOG_INFO_ON_ROOT( std::setw( 15 ) << cycle << " || " << std::scientific << l2Error << " | " << L2Error << " | "
-                                                 << "      " << L2ErrorReduction << " || " << l2Residual << " | " << L2Residual
-                                                 << " |          " << L2ResidualReduction << " || " << std::fixed
-                                                 << std::setprecision( 2 ) << std::setw( 14 ) << timeCycle << " | "
-                                                 << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK << " | "
-                                                 << " | ratio discr.err: " << ( calcDiscretizationError ? l2Error / discretizationError : 0.0 ));
+      WALBERLA_LOG_INFO_ON_ROOT(
+          std::setw( 15 ) << cycle << " || " << std::scientific << LInfError << " | " << L2Error << " | "
+                          << "      " << L2ErrorReduction << " || " << LInfResidual << " | " << L2Residual << " |          "
+                          << L2ResidualReduction << " || " << std::fixed << std::setprecision( 2 ) << std::setw( 14 ) << timeCycle
+                          << " | " << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK << " | "
+                          << " | ratio discr.err: " << ( calcDiscretizationError ? LInfError / discretizationError : 0.0 ) );
 
       if ( cycle > skipCyclesForAvgConvRate )
       {
          avgL2ErrorConvergenceRate += L2ErrorReduction;
          avgL2ResidualConvergenceRate += L2ResidualReduction;
-         avgl2ErrorConvergenceRate += l2ErrorReduction;
-         avgl2ResidualConvergenceRate += l2ResidualReduction;
+         avgLInfErrorConvergenceRate += LInfErrorReduction;
+         avgLInfResidualConvergenceRate += LInfResidualReduction;
       }
 
-      sqlRealPropertiesMG[cycle]["capital_L2_error"]              = L2Error;
-      sqlRealPropertiesMG[cycle]["capital_L2_error_reduction"]    = L2ErrorReduction;
-      sqlRealPropertiesMG[cycle]["capital_L2_residual"]           = L2Residual;
-      sqlRealPropertiesMG[cycle]["capital_L2_residual_reduction"] = L2ResidualReduction;
+      sqlRealPropertiesMG[cycle]["L2_error"]              = real_c(L2Error);
+      sqlRealPropertiesMG[cycle]["L2_error_reduction"]    = real_c(L2ErrorReduction);
+      sqlRealPropertiesMG[cycle]["L2_residual"]           = real_c(L2Residual);
+      sqlRealPropertiesMG[cycle]["L2_residual_reduction"] = real_c(L2ResidualReduction);
 
-      sqlRealPropertiesMG[cycle]["lowercase_l2_error"]              = l2Error;
-      sqlRealPropertiesMG[cycle]["lowercase_l2_error_reduction"]    = l2ErrorReduction;
-      sqlRealPropertiesMG[cycle]["lowercase_l2_residual"]           = l2Residual;
-      sqlRealPropertiesMG[cycle]["lowercase_l2_residual_reduction"] = l2ResidualReduction;
+      sqlRealPropertiesMG[cycle]["LInf_error"]              = real_c(LInfError);
+      sqlRealPropertiesMG[cycle]["LInf_error_reduction"]    = real_c(LInfErrorReduction);
+      sqlRealPropertiesMG[cycle]["LInf_residual"]           = real_c(LInfResidual);
+      sqlRealPropertiesMG[cycle]["LInf_residual_reduction"] = real_c(LInfResidualReduction);
 
       if ( L2Residual < L2residualTolerance )
       {
@@ -537,24 +565,24 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
       }
    }
 
-   avgL2ErrorConvergenceRate /= real_c( numCycles - skipCyclesForAvgConvRate );
-   avgL2ResidualConvergenceRate /= real_c( numCycles - skipCyclesForAvgConvRate );
+   avgL2ErrorConvergenceRate /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
+   avgL2ResidualConvergenceRate /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
 
-   avgl2ErrorConvergenceRate /= real_c( numCycles - skipCyclesForAvgConvRate );
-   avgl2ResidualConvergenceRate /= real_c( numCycles - skipCyclesForAvgConvRate );
+   avgLInfErrorConvergenceRate /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
+   avgLInfResidualConvergenceRate /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
 
-   sqlRealProperties["avg_capital_L2_error_conv_rate"]    = avgL2ErrorConvergenceRate;
-   sqlRealProperties["avg_capital_L2_residual_conv_rate"] = avgL2ResidualConvergenceRate;
+   sqlRealProperties["avg_capital_L2_error_conv_rate"]    = real_c(avgL2ErrorConvergenceRate);
+   sqlRealProperties["avg_capital_L2_residual_conv_rate"] = real_c(avgL2ResidualConvergenceRate);
 
-   sqlRealProperties["avg_lowercase_l2_error_conv_rate"]    = avgl2ErrorConvergenceRate;
-   sqlRealProperties["avg_lowercase_l2_residual_conv_rate"] = avgl2ResidualConvergenceRate;
+   sqlRealProperties["avg_LInf_error_conv_rate"]    = real_c(avgLInfErrorConvergenceRate);
+   sqlRealProperties["avg_LInf_residual_conv_rate"] = real_c(avgLInfResidualConvergenceRate);
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Average convergence rates:" );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - L2 error:    " << std::scientific << avgL2ErrorConvergenceRate );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - L2 residual: " << std::scientific << avgL2ResidualConvergenceRate );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - l2 error:    " << std::scientific << avgl2ErrorConvergenceRate );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - l2 residual: " << std::scientific << avgl2ResidualConvergenceRate );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - L2 error:      " << std::scientific << avgL2ErrorConvergenceRate );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - L2 residual:   " << std::scientific << avgL2ResidualConvergenceRate );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - LInf error:    " << std::scientific << avgLInfErrorConvergenceRate );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - LInf residual: " << std::scientific << avgLInfResidualConvergenceRate );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 }
 
@@ -573,6 +601,10 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       const uint_t&                                        fmgInnerCycles,
                       const real_t&                                        L2residualTolerance,
                       const real_t&                                        sorRelax,
+                      const bool&                                          symmGSVelocity,
+                      const uint_t&                                        numGSVelocity,
+                      const bool&                                          symmGSPressure,
+                      const uint_t&                                        numGSPressure,
                       const uint_t&                                        preSmoothingSteps,
                       const uint_t&                                        postSmoothingSteps,
                       const uint_t&                                        smoothingIncrement,
@@ -600,12 +632,12 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    StokesOperator A( storage, minLevel, maxLevel );
    MassOperator   M( storage, minLevel, maxLevel );
 
-   real_t l2ErrorU;
-   real_t l2ErrorV;
-   real_t l2ErrorP;
-   real_t l2ResidualU;
-   real_t l2ResidualV;
-   real_t l2ResidualP;
+   long double l2ErrorU;
+   long double l2ErrorV;
+   long double l2ErrorP;
+   long double l2ResidualU;
+   long double l2ResidualV;
+   long double l2ResidualP;
 
    ////////////////////
    // Initialize VTK //
@@ -642,9 +674,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    // Misc setup and info //
    /////////////////////////
 
-   real_t discretizationErrorU;
-   real_t discretizationErrorV;
-   real_t discretizationErrorP;
+   long double discretizationErrorU = 0;
+   long double discretizationErrorV = 0;
+   long double discretizationErrorP = 0;
    if ( calcDiscretizationError )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "l2 discretization error ( u | v | p ) per level:" );
@@ -654,9 +686,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
              storage, level, discretizationErrorU, discretizationErrorV, discretizationErrorP );
          WALBERLA_LOG_INFO_ON_ROOT( "  level " << std::setw( 2 ) << level << ": " << std::scientific << discretizationErrorU
                                                << " | " << discretizationErrorV << " | " << discretizationErrorP );
-         sqlRealProperties["l2_discr_error_u_level_" + std::to_string( level )] = discretizationErrorU;
-         sqlRealProperties["l2_discr_error_v_level_" + std::to_string( level )] = discretizationErrorV;
-         sqlRealProperties["l2_discr_error_p_level_" + std::to_string( level )] = discretizationErrorP;
+         sqlRealProperties["l2_discr_error_u_level_" + std::to_string( level )] = real_c( discretizationErrorU );
+         sqlRealProperties["l2_discr_error_v_level_" + std::to_string( level )] = real_c( discretizationErrorV );
+         sqlRealProperties["l2_discr_error_p_level_" + std::to_string( level )] = real_c( discretizationErrorP );
       }
       WALBERLA_LOG_DEVEL_ON_ROOT( "" );
    }
@@ -706,46 +738,55 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                                     << std::setprecision( 2 ) << std::setw( 26 ) << timeError << " | "
                                                     << std::setw( 12 ) << timeVTK << " |" );
 
-   real_t avgl2ErrorConvergenceRateU    = 0;
-   real_t avgl2ResidualConvergenceRateU = 0;
-   real_t avgl2ErrorConvergenceRateP    = 0;
-   real_t avgl2ResidualConvergenceRateP = 0;
+   long double avgl2ErrorConvergenceRateU    = 0;
+   long double avgl2ResidualConvergenceRateU = 0;
+   long double avgl2ErrorConvergenceRateP    = 0;
+   long double avgl2ResidualConvergenceRateP = 0;
 
-   real_t l2ErrorReductionU    = 0;
-   real_t l2ResidualReductionU = 0;
-   real_t l2ErrorReductionP    = 0;
-   real_t l2ResidualReductionP = 0;
+   long double l2ErrorReductionU    = 0;
+   long double l2ResidualReductionU = 0;
+   long double l2ErrorReductionP    = 0;
+   long double l2ResidualReductionP = 0;
 
-   sqlRealPropertiesMG[0]["lowercase_l2_error_u"]              = l2ErrorU;
-   sqlRealPropertiesMG[0]["lowercase_l2_error_reduction_u"]    = l2ErrorReductionU;
-   sqlRealPropertiesMG[0]["lowercase_l2_residual_u"]           = l2ResidualU;
-   sqlRealPropertiesMG[0]["lowercase_l2_residual_reduction_u"] = l2ResidualReductionU;
+   sqlRealPropertiesMG[0]["lowercase_l2_error_u"]              = real_c( l2ErrorU );
+   sqlRealPropertiesMG[0]["lowercase_l2_error_reduction_u"]    = real_c( l2ErrorReductionU );
+   sqlRealPropertiesMG[0]["lowercase_l2_residual_u"]           = real_c( l2ResidualU );
+   sqlRealPropertiesMG[0]["lowercase_l2_residual_reduction_u"] = real_c( l2ResidualReductionU );
 
-   sqlRealPropertiesMG[0]["lowercase_l2_error_p"]              = l2ErrorP;
-   sqlRealPropertiesMG[0]["lowercase_l2_error_reduction_p"]    = l2ErrorReductionP;
-   sqlRealPropertiesMG[0]["lowercase_l2_residual_p"]           = l2ResidualP;
-   sqlRealPropertiesMG[0]["lowercase_l2_residual_reduction_p"] = l2ResidualReductionP;
+   sqlRealPropertiesMG[0]["lowercase_l2_error_p"]              = real_c( l2ErrorP );
+   sqlRealPropertiesMG[0]["lowercase_l2_error_reduction_p"]    = real_c( l2ErrorReductionP );
+   sqlRealPropertiesMG[0]["lowercase_l2_residual_p"]           = real_c( l2ResidualP );
+   sqlRealPropertiesMG[0]["lowercase_l2_residual_reduction_p"] = real_c( l2ResidualReductionP );
 
    ///////////
    // Solve //
    ///////////
 
-   const uint_t coarseGridMaxLevel  = ( numCycles == 0 ? maxLevel : minLevel );
+   const uint_t coarseGridMaxLevel = ( numCycles == 0 ? maxLevel : minLevel );
 
-   auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage, minLevel, maxLevel, sorRelax );
+   auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage,
+                                                                        minLevel,
+                                                                        maxLevel,
+                                                                        sorRelax,
+                                                                        Inner | NeumannBoundary,
+                                                                        symmGSVelocity,
+                                                                        numGSVelocity,
+                                                                        symmGSPressure,
+                                                                        numGSPressure );
 
-//   const uint_t preconditionerCGIterations = 0;
-//
-//   auto cgVelocity = std::make_shared< CGSolver< typename StokesOperator::VelocityOperator_T > >(
-//       storage, minLevel, coarseGridMaxLevel, preconditionerCGIterations, 1e-14 );
+   //   const uint_t preconditionerCGIterations = 0;
+   //
+   //   auto cgVelocity = std::make_shared< CGSolver< typename StokesOperator::VelocityOperator_T > >(
+   //       storage, minLevel, coarseGridMaxLevel, preconditionerCGIterations, 1e-14 );
 
    auto preconditioner = std::make_shared< StokesPressureBlockPreconditioner< StokesOperator, P1LumpedInvMassOperator > >(
-       storage, minLevel, coarseGridMaxLevel );//, 1, cgVelocity );
+       storage, minLevel, coarseGridMaxLevel ); //, 1, cgVelocity );
    auto coarseGridSolver = std::make_shared< MinResSolver< StokesOperator > >(
        storage, minLevel, coarseGridMaxLevel, coarseGridMaxIterations, coarseResidualTolerance, preconditioner );
 
 #ifdef HHG_BUILD_WITH_PETSC
-   auto         petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >( storage, coarseGridMaxLevel, coarseResidualTolerance, coarseGridMaxIterations );
+   auto petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >(
+       storage, coarseGridMaxLevel, coarseResidualTolerance, coarseGridMaxIterations );
 #endif
 
    auto prolongationOperator = std::make_shared< Prolongation >();
@@ -770,7 +811,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    auto fmgProlongation = std::make_shared< FMGProlongation >();
 
    auto postCycle = [&]( uint_t currentLevel ) {
-      real_t _l2ErrorU, _l2ErrorV, _l2ErrorP, _l2ResidualU, _l2ResidualV, _l2ResidualP;
+      long double _l2ErrorU, _l2ErrorV, _l2ErrorP, _l2ResidualU, _l2ResidualV, _l2ResidualP;
       calculateErrorAndResidualStokes( currentLevel,
                                        A,
                                        u,
@@ -785,7 +826,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                        _l2ResidualU,
                                        _l2ResidualV,
                                        _l2ResidualP );
-      sqlRealProperties["fmg_l2_error_level_" + std::to_string( currentLevel )] = _l2ErrorU;
+      sqlRealProperties["fmg_l2_error_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorU );
       WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error: " << std::scientific << _l2ErrorU );
    };
 
@@ -813,13 +854,14 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                                  << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK << " |" );
    }
 
+   uint_t numExecutedCycles = 0;
    for ( uint_t cycle = 1; cycle <= numCycles; cycle++ )
    {
-      const real_t lastl2ErrorU    = l2ErrorU;
-      const real_t lastl2ResidualU = l2ResidualU;
+      const long double lastl2ErrorU    = l2ErrorU;
+      const long double lastl2ResidualU = l2ResidualU;
 
-      const real_t lastl2ErrorP    = l2ErrorP;
-      const real_t lastl2ResidualP = l2ResidualP;
+      const long double lastl2ErrorP    = l2ErrorP;
+      const long double lastl2ResidualP = l2ResidualP;
 
       timer.reset();
       if ( cycle == 1 && fmgInnerCycles > 0 )
@@ -832,6 +874,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       }
       timer.end();
       timeCycle = timer.last();
+
+      numExecutedCycles++;
 
       if ( !NEUMANN_PROBLEM )
          vertexdof::projectMean( u.p, maxLevel );
@@ -870,15 +914,15 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
          avgl2ResidualConvergenceRateP += l2ResidualReductionP;
       }
 
-      sqlRealPropertiesMG[cycle]["lowercase_l2_error_u"]              = l2ErrorU;
-      sqlRealPropertiesMG[cycle]["lowercase_l2_error_reduction_u"]    = l2ErrorReductionU;
-      sqlRealPropertiesMG[cycle]["lowercase_l2_residual_u"]           = l2ResidualU;
-      sqlRealPropertiesMG[cycle]["lowercase_l2_residual_reduction_u"] = l2ResidualReductionU;
+      sqlRealPropertiesMG[cycle]["lowercase_l2_error_u"]              = real_c( l2ErrorU );
+      sqlRealPropertiesMG[cycle]["lowercase_l2_error_reduction_u"]    = real_c( l2ErrorReductionU );
+      sqlRealPropertiesMG[cycle]["lowercase_l2_residual_u"]           = real_c( l2ResidualU );
+      sqlRealPropertiesMG[cycle]["lowercase_l2_residual_reduction_u"] = real_c( l2ResidualReductionU );
 
-      sqlRealPropertiesMG[cycle]["lowercase_l2_error_p"]              = l2ErrorP;
-      sqlRealPropertiesMG[cycle]["lowercase_l2_error_reduction_p"]    = l2ErrorReductionP;
-      sqlRealPropertiesMG[cycle]["lowercase_l2_residual_p"]           = l2ResidualP;
-      sqlRealPropertiesMG[cycle]["lowercase_l2_residual_reduction_p"] = l2ResidualReductionP;
+      sqlRealPropertiesMG[cycle]["lowercase_l2_error_p"]              = real_c( l2ErrorP );
+      sqlRealPropertiesMG[cycle]["lowercase_l2_error_reduction_p"]    = real_c( l2ErrorReductionP );
+      sqlRealPropertiesMG[cycle]["lowercase_l2_residual_p"]           = real_c( l2ResidualP );
+      sqlRealPropertiesMG[cycle]["lowercase_l2_residual_reduction_p"] = real_c( l2ResidualReductionP );
 
       if ( l2ResidualU < L2residualTolerance )
       {
@@ -887,17 +931,17 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       }
    }
 
-   avgl2ErrorConvergenceRateU /= real_c( numCycles - skipCyclesForAvgConvRate );
-   avgl2ResidualConvergenceRateU /= real_c( numCycles - skipCyclesForAvgConvRate );
+   avgl2ErrorConvergenceRateU /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
+   avgl2ResidualConvergenceRateU /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
 
-   avgl2ErrorConvergenceRateP /= real_c( numCycles - skipCyclesForAvgConvRate );
-   avgl2ResidualConvergenceRateP /= real_c( numCycles - skipCyclesForAvgConvRate );
+   avgl2ErrorConvergenceRateP /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
+   avgl2ResidualConvergenceRateP /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
 
-   sqlRealProperties["avg_lowercase_l2_error_conv_rate_u"]    = avgl2ErrorConvergenceRateU;
-   sqlRealProperties["avg_lowercase_l2_residual_conv_rate_u"] = avgl2ResidualConvergenceRateU;
+   sqlRealProperties["avg_lowercase_l2_error_conv_rate_u"]    = real_c( avgl2ErrorConvergenceRateU );
+   sqlRealProperties["avg_lowercase_l2_residual_conv_rate_u"] = real_c( avgl2ResidualConvergenceRateU );
 
-   sqlRealProperties["avg_lowercase_l2_error_conv_rate_p"]    = avgl2ErrorConvergenceRateP;
-   sqlRealProperties["avg_lowercase_l2_residual_conv_rate_p"] = avgl2ResidualConvergenceRateP;
+   sqlRealProperties["avg_lowercase_l2_error_conv_rate_p"]    = real_c( avgl2ErrorConvergenceRateP );
+   sqlRealProperties["avg_lowercase_l2_residual_conv_rate_p"] = real_c( avgl2ResidualConvergenceRateP );
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Average convergence rates:" );
@@ -950,6 +994,10 @@ void setup( int argc, char** argv )
    const uint_t      fmgInnerCycles                  = mainConf.getParameter< uint_t >( "fmgInnerCycles" );
    const real_t      L2residualTolerance             = mainConf.getParameter< real_t >( "L2residualTolerance" );
    const real_t      sorRelax                        = mainConf.getParameter< real_t >( "sorRelax" );
+   const bool        symmGSVelocity                  = mainConf.getParameter< bool >( "symmGSVelocity" );
+   const bool        symmGSPressure                  = mainConf.getParameter< bool >( "symmGSPressure" );
+   const uint_t      numGSVelocity                   = mainConf.getParameter< uint_t >( "numGSVelocity" );
+   const uint_t      numGSPressure                   = mainConf.getParameter< uint_t >( "numGSPressure" );
    const uint_t      preSmoothingSteps               = mainConf.getParameter< uint_t >( "preSmoothingSteps" );
    const uint_t      postSmoothingSteps              = mainConf.getParameter< uint_t >( "postSmoothingSteps" );
    const uint_t      smoothingIncrement              = mainConf.getParameter< uint_t >( "smoothingIncrement" );
@@ -963,10 +1011,12 @@ void setup( int argc, char** argv )
    const bool        outputVTK                       = mainConf.getParameter< bool >( "outputVTK" );
    const bool        outputTiming                    = mainConf.getParameter< bool >( "outputTiming" );
    const bool        outputTimingJSON                = mainConf.getParameter< bool >( "outputTimingJSON" );
+   const std::string outputTimingJSONFile            = mainConf.getParameter< std::string >( "outputTimingJSONFile" );
    const bool        outputSQL                       = mainConf.getParameter< bool >( "outputSQL" );
    const std::string sqlTag                          = mainConf.getParameter< std::string >( "sqlTag", "default" );
    const uint_t      skipCyclesForAvgConvRate        = mainConf.getParameter< uint_t >( "skipCyclesForAvgConvRate" );
    const std::string meshLayout                      = mainConf.getParameter< std::string >( "meshLayout" );
+   const bool        symmetricCuboidMesh             = mainConf.getParameter< bool >( "symmetricCuboidMesh" );
 
    // parameter checks
    WALBERLA_CHECK( equation == "stokes" || equation == "poisson" );
@@ -976,32 +1026,40 @@ void setup( int argc, char** argv )
    const CycleType cycleType = ( cycleTypeString == "V" ? CycleType::VCYCLE : CycleType::WCYCLE );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Parameters:" );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - equation:                      " << equation );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - dim:                           " << dim );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - num processes:                 " << numProcesses );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - num faces per side:            " << numFacesPerSide );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - discretization:                " << discretization );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - num cycles:                    " << numCycles );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - cycle type:                    " << cycleTypeString );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - equation:                                " << equation );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - dim:                                     " << dim );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - num processes:                           " << numProcesses );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - num faces per side:                      " << numFacesPerSide );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - discretization:                          " << discretization );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - num cycles:                              " << numCycles );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - cycle type:                              " << cycleTypeString );
    WALBERLA_LOG_INFO_ON_ROOT(
-       "  - full multigrid:                "
+       "  - full multigrid:                          "
        << ( fmgInnerCycles == 0 ? "no" : "yes, inner cycles per level: " + std::to_string( fmgInnerCycles ) ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - L2 residual tolerance:         " << L2residualTolerance );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - SOR relax:                     " << sorRelax );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - pre- / post- / incr-smoothing:         " << preSmoothingSteps << " / " << postSmoothingSteps
-                                                                            << " / " << smoothingIncrement );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - min / max level:               " << minLevel << " / " << maxLevel );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - project pressure after restriction: " << ( projectPressureAfterRestriction ? "yes" : "no" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - calculate discretization error: " << ( calculateDiscretizationError ? "yes" : "no" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - L2 residual tolerance:                   " << L2residualTolerance );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - SOR relax:                               " << sorRelax );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - Uzawa velocity smoother:                 " << ( symmGSVelocity ? "symmetric" : "forward" )
+                                                                              << " GS, " << numGSVelocity << " iterations" );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - Uzawa pressure smoother:                 " << ( symmGSPressure ? "symmetric" : "forward" )
+                                                                              << " SOR, " << numGSPressure << " iterations" );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - pre- / post- / incr-smoothing:           " << preSmoothingSteps << " / " << postSmoothingSteps
+                                                                              << " / " << smoothingIncrement );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - min / max level:                         " << minLevel << " / " << maxLevel );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       "  - project pressure after restriction:      " << ( projectPressureAfterRestriction ? "yes" : "no" ) );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       "  - calculate discretization error:          " << ( calculateDiscretizationError ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid max itertions (stokes only): " << coarseGridMaxIterations );
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid residual tol  (stokes only): " << coarseGridResidualTolerance );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - output VTK:                    " << ( outputVTK ? "yes" : "no" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - output timing:                 " << ( outputTiming ? "yes" : "no" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - output timing JSON:            " << ( outputTimingJSON ? "yes" : "no" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - output SQL:                    " << ( outputSQL ? "yes" : "no" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - SQL tag:                       " << sqlTag );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - skip cycles for avg conv rate: " << skipCyclesForAvgConvRate );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - mesh layout:                   " << meshLayout );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - output VTK:                              " << ( outputVTK ? "yes" : "no" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - output timing:                           " << ( outputTiming ? "yes" : "no" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - output timing JSON:                      " << ( outputTimingJSON ? "yes" : "no" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - output timing JSON file:                 " << outputTimingJSONFile );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - output SQL:                              " << ( outputSQL ? "yes" : "no" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - SQL tag:                                 " << sqlTag );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - skip cycles for avg conv rate:           " << skipCyclesForAvgConvRate );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - mesh layout:                             " << meshLayout );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - symmetric cuboid mesh:                   " << symmetricCuboidMesh );
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    /////////
@@ -1016,22 +1074,22 @@ void setup( int argc, char** argv )
    sqlStringProperties["tag"]      = sqlTag;
    sqlStringProperties["equation"] = equation;
 
-   sqlIntegerProperties["num_processes"]              = int64_c( numProcesses );
-   sqlIntegerProperties["dim"]                        = int64_c( dim );
-   sqlIntegerProperties["num_faces_per_side"]         = int64_c( numFacesPerSide );
-   sqlStringProperties["discretization"]              = discretization;
-   sqlIntegerProperties["num_cycles"]                 = int64_c( numCycles );
-   sqlStringProperties["cycle_type"]                  = cycleTypeString;
-   sqlIntegerProperties["fmgInnerCycles"]             = int64_c( fmgInnerCycles );
-   sqlRealProperties["sor_relax"]                     = sorRelax;
-   sqlIntegerProperties["pre_smoothing"]              = int64_c( preSmoothingSteps );
-   sqlIntegerProperties["post_smoothing"]             = int64_c( postSmoothingSteps );
-   sqlIntegerProperties["incr_smoothing"]             = int64_c( smoothingIncrement );
-   sqlIntegerProperties["min_level"]                  = int64_c( minLevel );
-   sqlIntegerProperties["max_level"]                  = int64_c( maxLevel );
-   sqlIntegerProperties["coarse_grid_max_iterations"] = int64_c( coarseGridMaxIterations );
+   sqlIntegerProperties["num_processes"]               = int64_c( numProcesses );
+   sqlIntegerProperties["dim"]                         = int64_c( dim );
+   sqlIntegerProperties["num_faces_per_side"]          = int64_c( numFacesPerSide );
+   sqlStringProperties["discretization"]               = discretization;
+   sqlIntegerProperties["num_cycles"]                  = int64_c( numCycles );
+   sqlStringProperties["cycle_type"]                   = cycleTypeString;
+   sqlIntegerProperties["fmgInnerCycles"]              = int64_c( fmgInnerCycles );
+   sqlRealProperties["sor_relax"]                      = sorRelax;
+   sqlIntegerProperties["pre_smoothing"]               = int64_c( preSmoothingSteps );
+   sqlIntegerProperties["post_smoothing"]              = int64_c( postSmoothingSteps );
+   sqlIntegerProperties["incr_smoothing"]              = int64_c( smoothingIncrement );
+   sqlIntegerProperties["min_level"]                   = int64_c( minLevel );
+   sqlIntegerProperties["max_level"]                   = int64_c( maxLevel );
+   sqlIntegerProperties["coarse_grid_max_iterations"]  = int64_c( coarseGridMaxIterations );
    sqlRealProperties["coarse_grid_residual_tolerance"] = coarseGridResidualTolerance;
-   sqlIntegerProperties["project_after_restriction"]  = int64_c( projectPressureAfterRestriction );
+   sqlIntegerProperties["project_after_restriction"]   = int64_c( projectPressureAfterRestriction );
 
    ////////////
    // Domain //
@@ -1041,7 +1099,7 @@ void setup( int argc, char** argv )
    Point3D leftBottom3D( {0, 0, 0} );
    if ( equation == "stokes" && ( NEUMANN_PROBLEM || COLLIDING_FLOW ) )
    {
-      leftBottom = Point2D( {-1, -1} );
+      leftBottom   = Point2D( {-1, -1} );
       leftBottom3D = Point3D( {-1, -1, -1} );
    }
 
@@ -1056,8 +1114,15 @@ void setup( int argc, char** argv )
    auto meshInfo = MeshInfo::meshRectangle( leftBottom, Point2D( {1, 1} ), meshFlavour, numFacesPerSide, numFacesPerSide );
    if ( dim == 3 )
    {
-     // meshInfo = MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( {1, 1, 1} ) , numFacesPerSide, numFacesPerSide, numFacesPerSide );
-     meshInfo = MeshInfo::meshCuboid( leftBottom3D, Point3D( {1, 1, 1} ) , numFacesPerSide, numFacesPerSide, numFacesPerSide );
+      if ( symmetricCuboidMesh )
+      {
+         meshInfo = MeshInfo::meshSymmetricCuboid(
+             leftBottom3D, Point3D( {1, 1, 1} ), numFacesPerSide, numFacesPerSide, numFacesPerSide );
+      }
+      else
+      {
+         meshInfo = MeshInfo::meshCuboid( leftBottom3D, Point3D( {1, 1, 1} ), numFacesPerSide, numFacesPerSide, numFacesPerSide );
+      }
    }
    SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -1079,6 +1144,19 @@ void setup( int argc, char** argv )
    setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, topBoundary, true );
    setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, bottomBoundary, true );
    setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, leftBoundary, true );
+#endif
+
+#if CONSTANTA_POISSON
+   if ( dim == 2 )
+   {
+      exact = exactConstanta2D;
+      rhs   = rhsConstanta2D;
+   }
+   else
+   {
+      exact = exactConstanta3D;
+      rhs   = rhsConstanta3D;
+   }
 #endif
 
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -1167,6 +1245,10 @@ void setup( int argc, char** argv )
                                                                 fmgInnerCycles,
                                                                 L2residualTolerance,
                                                                 sorRelax,
+                                                                symmGSVelocity,
+                                                                numGSVelocity,
+                                                                symmGSPressure,
+                                                                numGSPressure,
                                                                 preSmoothingSteps,
                                                                 postSmoothingSteps,
                                                                 smoothingIncrement,
@@ -1197,6 +1279,10 @@ void setup( int argc, char** argv )
                                                                 fmgInnerCycles,
                                                                 L2residualTolerance,
                                                                 sorRelax,
+                                                                symmGSVelocity,
+                                                                numGSVelocity,
+                                                                symmGSPressure,
+                                                                numGSPressure,
                                                                 preSmoothingSteps,
                                                                 postSmoothingSteps,
                                                                 smoothingIncrement,
@@ -1221,15 +1307,15 @@ void setup( int argc, char** argv )
 
    WALBERLA_ROOT_SECTION()
    {
-     if ( outputTimingJSON )
-     {
-       nlohmann::json ttJson;
-       walberla::timing::to_json( ttJson, tt );
-       std::ofstream jsonOutput;
-       jsonOutput.open( "MultigridStudies.json" );
-       jsonOutput << ttJson.dump( 4 );
-       jsonOutput.close();
-     }
+      if ( outputTimingJSON )
+      {
+         nlohmann::json ttJson;
+         walberla::timing::to_json( ttJson, tt );
+         std::ofstream jsonOutput;
+         jsonOutput.open( outputTimingJSONFile );
+         jsonOutput << ttJson.dump( 4 );
+         jsonOutput.close();
+      }
    }
 
    if ( outputSQL )
