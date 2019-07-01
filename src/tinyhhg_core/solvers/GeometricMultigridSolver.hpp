@@ -14,7 +14,6 @@ namespace hhg {
 using walberla::real_t;
 using walberla::uint_t;
 
-
 template < class OperatorType >
 class GeometricMultigridSolver : public Solver< OperatorType >
 {
@@ -49,21 +48,14 @@ class GeometricMultigridSolver : public Solver< OperatorType >
    , flag_( hhg::Inner | hhg::NeumannBoundary )
    , cycleType_( cycleType )
    , timingTree_( storage->getTimingTree() )
-   {
-      uint_t inc = 0;
-      for ( uint_t level = maxLevel; level >= minLevel; level-- )
-      {
-         preSmoothingPerLevel_[level]  = preSmoothSteps + inc * smoothIncrementOnCoarserGrids;
-         postSmoothingPerLevel_[level] = postSmoothSteps + inc * smoothIncrementOnCoarserGrids;
-         inc++;
-      }
-   }
+   {}
 
    ~GeometricMultigridSolver() = default;
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
       timingTree_->start( "Geometric Multigrid Solver" );
+      invokedLevel_ = level;
       solveRecursively( A, x, b, level );
       timingTree_->stop( "Geometric Multigrid Solver" );
    }
@@ -79,7 +71,8 @@ class GeometricMultigridSolver : public Solver< OperatorType >
       else
       {
          // pre-smooth
-         for ( size_t i = 0; i < preSmoothingPerLevel_.at( level ); ++i )
+         const uint_t preSmoothingSteps = preSmoothSteps_ + smoothIncrement_ * ( invokedLevel_ - level );
+         for ( uint_t i = 0; i < preSmoothingSteps; ++i )
          {
             timingTree_->start( "Smoother" );
             smoother_->solve( A, x, b, level );
@@ -113,7 +106,8 @@ class GeometricMultigridSolver : public Solver< OperatorType >
          x.add( {1.0}, {tmp_}, level, flag_ );
 
          // post-smooth
-         for ( size_t i = 0; i < postSmoothingPerLevel_.at( level ); ++i )
+         const uint_t postSmoothingSteps = postSmoothSteps_ + smoothIncrement_ * ( invokedLevel_ - level );
+         for ( uint_t i = 0; i < postSmoothingSteps; ++i )
          {
             timingTree_->start( "Smoother" );
             smoother_->solve( A, x, b, level );
@@ -128,6 +122,7 @@ class GeometricMultigridSolver : public Solver< OperatorType >
    uint_t preSmoothSteps_;
    uint_t postSmoothSteps_;
    uint_t smoothIncrement_;
+   uint_t invokedLevel_;
 
    hhg::DoFType flag_;
    CycleType    cycleType_;
@@ -141,9 +136,6 @@ class GeometricMultigridSolver : public Solver< OperatorType >
    FunctionType tmp_;
 
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
-
-   std::map< uint_t, uint_t > preSmoothingPerLevel_;
-   std::map< uint_t, uint_t > postSmoothingPerLevel_;
 };
 
 } // namespace hhg
