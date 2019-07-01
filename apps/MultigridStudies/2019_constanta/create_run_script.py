@@ -47,7 +47,7 @@ dims = ["2D", "3D"]
 max_levels = {"2D": list(range(10,14)), "3D": list(range(7,10))}
 faces_per_side = {"2D": [2], "3D": [1]}
 discretizations = ["P1", "P2"]
-num_processes = [1, 2, 4]
+num_processes = [1, 2, 4, 8]
 
 with open("base_config.prm", "w") as f:
 	f.write(base_config)
