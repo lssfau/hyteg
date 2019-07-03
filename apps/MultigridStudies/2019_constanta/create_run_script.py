@@ -59,7 +59,7 @@ with open("run_all_configs.sh", "w") as f:
 				for max_level in max_levels[dim]:
 					for np in num_processes:
 						timing_file = "timing_np{}_dim{}_discr{}_fps{}_level{}.json".format(np, dim, discretization, fps, max_level)
-						cmd = "mpirun --allow-run-as-root -np {} --map-by core --bind-to core --report-bindings ./MultigridStudies 2019_constanta/base_config.prm " \
+						cmd = "mpirun --allow-run-as-root -np {} --map-by core --bind-to core --report-bindings --oversubscribe ./MultigridStudies 2019_constanta/base_config.prm " \
 							  "-Parameters.dim={} " \
 							  "-Parameters.discretization={} " \
 							  "-Parameters.numFacesPerSide={} " \
