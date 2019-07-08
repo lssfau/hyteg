@@ -10,3 +10,4 @@ waLBerla_add_executable( NAME MultigridStudies
         DEPENDS tinyhhg_core core postprocessing)
 
 add_subdirectory(2019_constanta)
+add_subdirectory(2019_tme)
