@@ -181,10 +181,8 @@ void calculateErrorAndResidualStokes( const uint_t&         level,
                                       const Function&       residual,
                                       const Function&       tmp,
                                       long double&          l2ErrorU,
-                                      long double&          l2ErrorV,
                                       long double&          l2ErrorP,
                                       long double&          l2ResidualU,
-                                      long double&          l2ResidualV,
                                       long double&          l2ResidualP )
 {
    error.assign( {1.0, -1.0}, {uExact, u}, level, All );
@@ -196,14 +194,37 @@ void calculateErrorAndResidualStokes( const uint_t&         level,
    vertexdof::projectMean( error.p, level );
 
    auto numU = numberOfGlobalDoFs< typename Function::VelocityFunction_T::Tag >( *u.u.getStorage(), level );
-   auto numV = numberOfGlobalDoFs< typename Function::VelocityFunction_T::Tag >( *u.v.getStorage(), level );
    auto numP = numberOfGlobalDoFs< typename Function::PressureFunction_T::Tag >( *u.p.getStorage(), level );
 
-   l2ErrorU    = std::sqrt( error.u.dotGlobal( error.u, level, Inner | NeumannBoundary ) / (long double) ( numU ) );
-   l2ErrorV    = std::sqrt( error.v.dotGlobal( error.v, level, Inner | NeumannBoundary ) / (long double) ( numV ) );
+   real_t sumVelocityErrorDot = 0.0;
+   sumVelocityErrorDot += error.u.dotGlobal( error.u, level, Inner | NeumannBoundary );
+   sumVelocityErrorDot += error.v.dotGlobal( error.u, level, Inner | NeumannBoundary );
+   if ( error.w.getStorage()->hasGlobalCells() )
+   {
+     sumVelocityErrorDot += error.w.dotGlobal( error.u, level, Inner | NeumannBoundary );
+     sumVelocityErrorDot /= real_c((long double) ( 3 * numU ));
+   }
+   else
+   {
+     sumVelocityErrorDot /= real_c((long double) ( 2 * numU ));
+   }
+
+   real_t sumVelocityResidualDot = 0.0;
+   sumVelocityResidualDot += residual.u.dotGlobal( residual.u, level, Inner | NeumannBoundary );
+   sumVelocityResidualDot += residual.v.dotGlobal( residual.u, level, Inner | NeumannBoundary );
+   if ( residual.w.getStorage()->hasGlobalCells() )
+   {
+      sumVelocityResidualDot += residual.w.dotGlobal( residual.u, level, Inner | NeumannBoundary );
+      sumVelocityResidualDot /= real_c( (long double) ( 3 * numU ) );
+   }
+   else
+   {
+      sumVelocityResidualDot /= real_c( (long double) ( 2 * numU ) );
+   }
+
+   l2ErrorU    = std::sqrt( sumVelocityErrorDot );
    l2ErrorP    = std::sqrt( error.p.dotGlobal( error.p, level, Inner | NeumannBoundary ) / (long double) ( numP ) );
-   l2ResidualU = std::sqrt( residual.u.dotGlobal( residual.u, level, Inner | NeumannBoundary ) );
-   l2ResidualV = std::sqrt( residual.v.dotGlobal( residual.v, level, Inner | NeumannBoundary ) );
+   l2ResidualU = std::sqrt( sumVelocityResidualDot );
    l2ResidualP = std::sqrt( residual.p.dotGlobal( residual.p, level, Inner | NeumannBoundary ) );
 }
 
@@ -247,7 +268,6 @@ template < typename StokesFunction, typename StokesOperator, typename MassOperat
 void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage >& storage,
                                          const uint_t&                              level,
                                          long double&                               l2DiscretizationErrorU,
-                                         long double&                               l2DiscretizationErrorV,
                                          long double&                               l2DiscretizationErrorP )
 {
    StokesFunction u( "u", storage, level, level );
@@ -289,7 +309,6 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
    vertexdof::projectMean( u.p, level );
 
    long double l2ResidualU;
-   long double l2ResidualV;
    long double l2ResidualP;
 
    calculateErrorAndResidualStokes( level,
@@ -301,10 +320,8 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
                                     residual,
                                     tmp,
                                     l2DiscretizationErrorU,
-                                    l2DiscretizationErrorV,
                                     l2DiscretizationErrorP,
                                     l2ResidualU,
-                                    l2ResidualV,
                                     l2ResidualP );
 }
 
@@ -633,10 +650,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    MassOperator   M( storage, minLevel, maxLevel );
 
    long double l2ErrorU;
-   long double l2ErrorV;
    long double l2ErrorP;
    long double l2ResidualU;
-   long double l2ResidualV;
    long double l2ResidualP;
 
    ////////////////////
@@ -675,19 +690,17 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    /////////////////////////
 
    long double discretizationErrorU = 0;
-   long double discretizationErrorV = 0;
    long double discretizationErrorP = 0;
    if ( calcDiscretizationError )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "l2 discretization error ( u | v | p ) per level:" );
+      WALBERLA_LOG_INFO_ON_ROOT( "l2 discretization error ( u | p ) per level:" );
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
          calculateDiscretizationErrorStokes< StokesFunction, StokesOperator, MassOperator >(
-             storage, level, discretizationErrorU, discretizationErrorV, discretizationErrorP );
+             storage, level, discretizationErrorU, discretizationErrorP );
          WALBERLA_LOG_INFO_ON_ROOT( "  level " << std::setw( 2 ) << level << ": " << std::scientific << discretizationErrorU
-                                               << " | " << discretizationErrorV << " | " << discretizationErrorP );
+                                               << " | " << discretizationErrorP );
          sqlRealProperties["l2_discr_error_u_level_" + std::to_string( level )] = real_c( discretizationErrorU );
-         sqlRealProperties["l2_discr_error_v_level_" + std::to_string( level )] = real_c( discretizationErrorV );
          sqlRealProperties["l2_discr_error_p_level_" + std::to_string( level )] = real_c( discretizationErrorP );
       }
       WALBERLA_LOG_DEVEL_ON_ROOT( "" );
@@ -716,7 +729,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
    timer.reset();
    calculateErrorAndResidualStokes(
-       maxLevel, A, u, f, uExact, error, residual, tmp, l2ErrorU, l2ErrorV, l2ErrorP, l2ResidualU, l2ResidualV, l2ResidualP );
+       maxLevel, A, u, f, uExact, error, residual, tmp, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
    timer.end();
    timeError = timer.last();
 
@@ -811,7 +824,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    auto fmgProlongation = std::make_shared< FMGProlongation >();
 
    auto postCycle = [&]( uint_t currentLevel ) {
-      long double _l2ErrorU, _l2ErrorV, _l2ErrorP, _l2ResidualU, _l2ResidualV, _l2ResidualP;
+      long double _l2ErrorU, _l2ErrorP, _l2ResidualU, _l2ResidualP;
       calculateErrorAndResidualStokes( currentLevel,
                                        A,
                                        u,
@@ -821,10 +834,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                        residual,
                                        tmp,
                                        _l2ErrorU,
-                                       _l2ErrorV,
                                        _l2ErrorP,
                                        _l2ResidualU,
-                                       _l2ResidualV,
                                        _l2ResidualP );
       sqlRealProperties["fmg_l2_error_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorU );
       WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error: " << std::scientific << _l2ErrorU );
@@ -845,7 +856,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       timeCycle = timer.last();
       vertexdof::projectMean( u.p, maxLevel );
       calculateErrorAndResidualStokes(
-          maxLevel, A, u, f, uExact, error, residual, tmp, l2ErrorU, l2ErrorV, l2ErrorP, l2ResidualU, l2ResidualV, l2ResidualP );
+          maxLevel, A, u, f, uExact, error, residual, tmp, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
       vtkOutput.write( maxLevel, 1 );
       WALBERLA_LOG_INFO_ON_ROOT( std::setw( 15 ) << 1 << " || " << std::scientific << l2ErrorU << " | " << l2ErrorP << " | "
                                                  << "      " << l2ErrorReductionU << " || " << l2ResidualU << " | " << l2ResidualP
@@ -882,7 +893,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
       timer.reset();
       calculateErrorAndResidualStokes(
-          maxLevel, A, u, f, uExact, error, residual, tmp, l2ErrorU, l2ErrorV, l2ErrorP, l2ResidualU, l2ResidualV, l2ResidualP );
+          maxLevel, A, u, f, uExact, error, residual, tmp, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
       timer.end();
       timeError = timer.last();
 
