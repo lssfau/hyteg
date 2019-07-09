@@ -166,7 +166,7 @@ Parameters
     symmetricCuboidMesh true;
     numCycles 20;
     cycleType V;
-    fmgInnerCycles 0; // 0 == no fmg
+    fmgInnerCycles 1; // 0 == no fmg
 
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
