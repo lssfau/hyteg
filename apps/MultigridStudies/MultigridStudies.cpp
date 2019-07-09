@@ -799,8 +799,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
        storage, minLevel, coarseGridMaxLevel, coarseGridMaxIterations, coarseResidualTolerance, preconditioner );
 
 #ifdef HHG_BUILD_WITH_PETSC
-   auto petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >(
-       storage, coarseGridMaxLevel, coarseResidualTolerance, coarseGridMaxIterations );
+//   auto petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >(
+//       storage, coarseGridMaxLevel, coarseResidualTolerance, coarseGridMaxIterations );
+  auto petscSolver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, coarseGridMaxLevel );
 #endif
 
    auto prolongationOperator = std::make_shared< Prolongation >();
