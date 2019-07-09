@@ -201,10 +201,11 @@ Parameters
     with open("discretization_error_base_config.prm", "w") as f:
         f.write(base_config)
 
-    max_levels = list(range(2, 9))
+    max_levels = list(range(3, 9))
     discretizations = ["P1", "P2"]
     num_processes = 8
     sor_omega = {"P1": 0.3, "P2": 0.3}
+    prepost = {"P1": 3, "P2": 6}
 
     with open("run_discretization_error.sh", "w") as f:
         f.write("echo\n")
@@ -215,7 +216,9 @@ Parameters
                 cmd = "mpirun --allow-run-as-root -np {} --map-by core --bind-to core --report-bindings ./MultigridStudies 2019_tme/discretization_error_base_config.prm " \
                       "-Parameters.maxLevel={} " \
                       "-Parameters.sorRelax={} " \
-                      "-Parameters.discretization={} ".format(num_processes, level, sor_omega[discretization], discretization)
+                      "-Parameters.preSmoothingSteps={} " \
+                      "-Parameters.postSmoothingSteps={} " \
+                      "-Parameters.discretization={} ".format(num_processes, level, sor_omega[discretization], prepost[discretization], prepost[discretization], discretization)
                 f.write("echo \"{}\"\n".format(cmd))
                 f.write(cmd + "\n")
 
