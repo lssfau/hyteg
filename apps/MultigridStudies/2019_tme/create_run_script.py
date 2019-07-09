@@ -111,7 +111,7 @@ Parameters
     L2residualTolerance 1e-16;
     projectPressureAfterRestriction true;
     calculateDiscretizationError false;
-    coarseGridMaxIterations 100000;
+    coarseGridMaxIterations 500;
     coarseGridResidualTolerance 1e-14;
 
     outputVTK false;
