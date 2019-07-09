@@ -153,6 +153,74 @@ Parameters
                             f.write(cmd + "\n")
 
 
+def discretization_error():
+
+    base_config = """
+Parameters
+{
+    equation stokes;
+    dim 3;
+    numFacesPerSide 1;
+    discretization P1;
+    meshLayout CRISSCROSS;
+    symmetricCuboidMesh true;
+    numCycles 20;
+    cycleType V;
+    fmgInnerCycles 0; // 0 == no fmg
+
+    // CRISSCROSS: ~0.4
+    // CRISS:    : P1: ? , P2: ~0.72
+    sorRelax 0.3;
+
+    symmGSVelocity true;
+    numGSVelocity 1;
+    symmGSPressure false;
+    numGSPressure 1;
+
+    preSmoothingSteps 2;
+    postSmoothingSteps 2;
+    smoothingIncrement 2;
+    minLevel 2;
+    maxLevel 8; // P1 level, P2 level is automatically reduced by 1
+    skipCyclesForAvgConvRate 0;
+    L2residualTolerance 1e-16;
+    projectPressureAfterRestriction true;
+    calculateDiscretizationError false;
+    coarseGridMaxIterations 500;
+    coarseGridResidualTolerance 1e-14;
+
+    outputVTK false;
+    outputTiming false;
+    outputTimingJSON true;
+    outputTimingJSONFile timing.json;
+    outputSQL true;
+    outputSQLFile discretization_error.db;
+}
+"""
+
+    with open("discretization_error_base_config.prm", "w") as f:
+        f.write(base_config)
+
+    max_levels = list(range(2, 9))
+    discretizations = ["P1", "P2"]
+    num_processes = 8
+    sor_omega = {"P1": 0.3, "P2": 0.3}
+
+    with open("run_discretization_error.sh", "w") as f:
+        f.write("echo\n")
+        f.write("echo DISCRETIZATION ERROR\n")
+        f.write("echo\n")
+        for discretization in discretizations:
+            for level in max_levels:
+                cmd = "mpirun --allow-run-as-root -np {} --map-by core --bind-to core --report-bindings ./MultigridStudies 2019_tme/discretization_error_base_config.prm " \
+                      "-Parameters.maxLevel={} " \
+                      "-Parameters.sorRelax={} " \
+                      "-Parameters.discretization={} ".format(num_processes, level, sor_omega[discretization], discretization)
+                f.write("echo \"{}\"\n".format(cmd))
+                f.write(cmd + "\n")
+
+
 if __name__ == "__main__":
     omega_sampling()
     fmg_tests()
+    discretization_error()
