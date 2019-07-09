@@ -712,6 +712,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    {
       const uint_t dofsThisLevel = numberOfGlobalDoFs< typename StokesFunction::Tag >( *storage, level );
       WALBERLA_LOG_INFO_ON_ROOT( "  level " << std::setw( 2 ) << level << ": " << std::setw( 15 ) << dofsThisLevel );
+      sqlIntegerProperties["total_dofs_level_" + std::to_string( level )] = int64_c( dofsThisLevel );
       totalDoFs += dofsThisLevel;
    }
    WALBERLA_LOG_INFO_ON_ROOT( " ----------------------------- " );
@@ -761,15 +762,15 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    long double l2ErrorReductionP    = 0;
    long double l2ResidualReductionP = 0;
 
-   sqlRealPropertiesMG[0]["lowercase_l2_error_u"]              = real_c( l2ErrorU );
-   sqlRealPropertiesMG[0]["lowercase_l2_error_reduction_u"]    = real_c( l2ErrorReductionU );
-   sqlRealPropertiesMG[0]["lowercase_l2_residual_u"]           = real_c( l2ResidualU );
-   sqlRealPropertiesMG[0]["lowercase_l2_residual_reduction_u"] = real_c( l2ResidualReductionU );
+   sqlRealPropertiesMG[0]["l2_error_u"]              = real_c( l2ErrorU );
+   sqlRealPropertiesMG[0]["l2_error_reduction_u"]    = real_c( l2ErrorReductionU );
+   sqlRealPropertiesMG[0]["l2_residual_u"]           = real_c( l2ResidualU );
+   sqlRealPropertiesMG[0]["l2_residual_reduction_u"] = real_c( l2ResidualReductionU );
 
-   sqlRealPropertiesMG[0]["lowercase_l2_error_p"]              = real_c( l2ErrorP );
-   sqlRealPropertiesMG[0]["lowercase_l2_error_reduction_p"]    = real_c( l2ErrorReductionP );
-   sqlRealPropertiesMG[0]["lowercase_l2_residual_p"]           = real_c( l2ResidualP );
-   sqlRealPropertiesMG[0]["lowercase_l2_residual_reduction_p"] = real_c( l2ResidualReductionP );
+   sqlRealPropertiesMG[0]["l2_error_p"]              = real_c( l2ErrorP );
+   sqlRealPropertiesMG[0]["l2_error_reduction_p"]    = real_c( l2ErrorReductionP );
+   sqlRealPropertiesMG[0]["l2_residual_p"]           = real_c( l2ResidualP );
+   sqlRealPropertiesMG[0]["l2_residual_reduction_p"] = real_c( l2ResidualReductionP );
 
    ///////////
    // Solve //
@@ -837,8 +838,11 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                        _l2ErrorP,
                                        _l2ResidualU,
                                        _l2ResidualP );
-      sqlRealProperties["fmg_l2_error_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorU );
-      WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error: " << std::scientific << _l2ErrorU );
+      sqlRealProperties["fmg_l2_error_u_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorU );
+      sqlRealProperties["fmg_l2_error_p_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorP );
+      sqlRealProperties["fmg_l2_residual_u_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorU );
+      sqlRealProperties["fmg_l2_residual_p_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorP );
+      WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error u: " << std::scientific << _l2ErrorU );
    };
 
    FullMultigridSolver< StokesOperator > fullMultigridSolver(
@@ -925,15 +929,15 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
          avgl2ResidualConvergenceRateP += l2ResidualReductionP;
       }
 
-      sqlRealPropertiesMG[cycle]["lowercase_l2_error_u"]              = real_c( l2ErrorU );
-      sqlRealPropertiesMG[cycle]["lowercase_l2_error_reduction_u"]    = real_c( l2ErrorReductionU );
-      sqlRealPropertiesMG[cycle]["lowercase_l2_residual_u"]           = real_c( l2ResidualU );
-      sqlRealPropertiesMG[cycle]["lowercase_l2_residual_reduction_u"] = real_c( l2ResidualReductionU );
+      sqlRealPropertiesMG[cycle]["l2_error_u"]              = real_c( l2ErrorU );
+      sqlRealPropertiesMG[cycle]["l2_error_reduction_u"]    = real_c( l2ErrorReductionU );
+      sqlRealPropertiesMG[cycle]["l2_residual_u"]           = real_c( l2ResidualU );
+      sqlRealPropertiesMG[cycle]["l2_residual_reduction_u"] = real_c( l2ResidualReductionU );
 
-      sqlRealPropertiesMG[cycle]["lowercase_l2_error_p"]              = real_c( l2ErrorP );
-      sqlRealPropertiesMG[cycle]["lowercase_l2_error_reduction_p"]    = real_c( l2ErrorReductionP );
-      sqlRealPropertiesMG[cycle]["lowercase_l2_residual_p"]           = real_c( l2ResidualP );
-      sqlRealPropertiesMG[cycle]["lowercase_l2_residual_reduction_p"] = real_c( l2ResidualReductionP );
+      sqlRealPropertiesMG[cycle]["l2_error_p"]              = real_c( l2ErrorP );
+      sqlRealPropertiesMG[cycle]["l2_error_reduction_p"]    = real_c( l2ErrorReductionP );
+      sqlRealPropertiesMG[cycle]["l2_residual_p"]           = real_c( l2ResidualP );
+      sqlRealPropertiesMG[cycle]["l2_residual_reduction_p"] = real_c( l2ResidualReductionP );
 
       if ( l2ResidualU < L2residualTolerance )
       {
@@ -948,11 +952,11 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    avgl2ErrorConvergenceRateP /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
    avgl2ResidualConvergenceRateP /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
 
-   sqlRealProperties["avg_lowercase_l2_error_conv_rate_u"]    = real_c( avgl2ErrorConvergenceRateU );
-   sqlRealProperties["avg_lowercase_l2_residual_conv_rate_u"] = real_c( avgl2ResidualConvergenceRateU );
+   sqlRealProperties["avg_l2_error_conv_rate_u"]    = real_c( avgl2ErrorConvergenceRateU );
+   sqlRealProperties["avg_l2_residual_conv_rate_u"] = real_c( avgl2ResidualConvergenceRateU );
 
-   sqlRealProperties["avg_lowercase_l2_error_conv_rate_p"]    = real_c( avgl2ErrorConvergenceRateP );
-   sqlRealProperties["avg_lowercase_l2_residual_conv_rate_p"] = real_c( avgl2ResidualConvergenceRateP );
+   sqlRealProperties["avg_l2_error_conv_rate_p"]    = real_c( avgl2ErrorConvergenceRateP );
+   sqlRealProperties["avg_l2_residual_conv_rate_p"] = real_c( avgl2ResidualConvergenceRateP );
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    WALBERLA_LOG_INFO_ON_ROOT( "Average convergence rates:" );
@@ -1024,6 +1028,7 @@ void setup( int argc, char** argv )
    const bool        outputTimingJSON                = mainConf.getParameter< bool >( "outputTimingJSON" );
    const std::string outputTimingJSONFile            = mainConf.getParameter< std::string >( "outputTimingJSONFile" );
    const bool        outputSQL                       = mainConf.getParameter< bool >( "outputSQL" );
+   const std::string outputSQLFile                   = mainConf.getParameter< std::string >( "outputSQLFile" );
    const std::string sqlTag                          = mainConf.getParameter< std::string >( "sqlTag", "default" );
    const uint_t      skipCyclesForAvgConvRate        = mainConf.getParameter< uint_t >( "skipCyclesForAvgConvRate" );
    const std::string meshLayout                      = mainConf.getParameter< std::string >( "meshLayout" );
@@ -1067,6 +1072,7 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing JSON:                      " << ( outputTimingJSON ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing JSON file:                 " << outputTimingJSONFile );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output SQL:                              " << ( outputSQL ? "yes" : "no" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - output SQL file:                         " << outputSQLFile );
    WALBERLA_LOG_INFO_ON_ROOT( "  - SQL tag:                                 " << sqlTag );
    WALBERLA_LOG_INFO_ON_ROOT( "  - skip cycles for avg conv rate:           " << skipCyclesForAvgConvRate );
    WALBERLA_LOG_INFO_ON_ROOT( "  - mesh layout:                             " << meshLayout );
@@ -1101,6 +1107,10 @@ void setup( int argc, char** argv )
    sqlIntegerProperties["coarse_grid_max_iterations"]  = int64_c( coarseGridMaxIterations );
    sqlRealProperties["coarse_grid_residual_tolerance"] = coarseGridResidualTolerance;
    sqlIntegerProperties["project_after_restriction"]   = int64_c( projectPressureAfterRestriction );
+   sqlIntegerProperties["symm_gs_velocity"]            = int64_c( symmGSVelocity );
+   sqlIntegerProperties["symm_gs_pressure"]            = int64_c( symmGSPressure );
+   sqlIntegerProperties["num_gs_velocity"]             = int64_c( numGSVelocity );
+   sqlIntegerProperties["num_gs_pressure"]             = int64_c( numGSPressure );
 
    ////////////
    // Domain //
@@ -1333,7 +1343,7 @@ void setup( int argc, char** argv )
    {
       WALBERLA_ROOT_SECTION()
       {
-         const std::string                  dbFile = "MultigridStudies.db";
+         const std::string                  dbFile = outputSQLFile;
          walberla::postprocessing::SQLiteDB db( dbFile );
          sqlIntegerProperties["conv_table_for_run"] = -1;
          auto runId                                 = db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
