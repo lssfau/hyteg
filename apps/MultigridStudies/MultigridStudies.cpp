@@ -198,10 +198,10 @@ void calculateErrorAndResidualStokes( const uint_t&         level,
 
    real_t sumVelocityErrorDot = 0.0;
    sumVelocityErrorDot += error.u.dotGlobal( error.u, level, Inner | NeumannBoundary );
-   sumVelocityErrorDot += error.v.dotGlobal( error.u, level, Inner | NeumannBoundary );
+   sumVelocityErrorDot += error.v.dotGlobal( error.v, level, Inner | NeumannBoundary );
    if ( error.w.getStorage()->hasGlobalCells() )
    {
-     sumVelocityErrorDot += error.w.dotGlobal( error.u, level, Inner | NeumannBoundary );
+     sumVelocityErrorDot += error.w.dotGlobal( error.w, level, Inner | NeumannBoundary );
      sumVelocityErrorDot /= real_c((long double) ( 3 * numU ));
    }
    else
@@ -211,10 +211,10 @@ void calculateErrorAndResidualStokes( const uint_t&         level,
 
    real_t sumVelocityResidualDot = 0.0;
    sumVelocityResidualDot += residual.u.dotGlobal( residual.u, level, Inner | NeumannBoundary );
-   sumVelocityResidualDot += residual.v.dotGlobal( residual.u, level, Inner | NeumannBoundary );
+   sumVelocityResidualDot += residual.v.dotGlobal( residual.v, level, Inner | NeumannBoundary );
    if ( residual.w.getStorage()->hasGlobalCells() )
    {
-      sumVelocityResidualDot += residual.w.dotGlobal( residual.u, level, Inner | NeumannBoundary );
+      sumVelocityResidualDot += residual.w.dotGlobal( residual.w, level, Inner | NeumannBoundary );
       sumVelocityResidualDot /= real_c( (long double) ( 3 * numU ) );
    }
    else
@@ -225,7 +225,7 @@ void calculateErrorAndResidualStokes( const uint_t&         level,
    l2ErrorU    = std::sqrt( sumVelocityErrorDot );
    l2ErrorP    = std::sqrt( error.p.dotGlobal( error.p, level, Inner | NeumannBoundary ) / (long double) ( numP ) );
    l2ResidualU = std::sqrt( sumVelocityResidualDot );
-   l2ResidualP = std::sqrt( residual.p.dotGlobal( residual.p, level, Inner | NeumannBoundary ) );
+   l2ResidualP = std::sqrt( residual.p.dotGlobal( residual.p, level, Inner | NeumannBoundary ) / (long double) ( numP ) );
 }
 
 template < typename Function, typename LaplaceOperator, typename MassOperator >
@@ -843,7 +843,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       sqlRealProperties["fmg_l2_error_p_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorP );
       sqlRealProperties["fmg_l2_residual_u_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorU );
       sqlRealProperties["fmg_l2_residual_p_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorP );
-      WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error u: " << std::scientific << _l2ErrorU );
+      WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error u: " << std::scientific << _l2ErrorU << " / l2 error p: " << std::scientific << _l2ErrorP );
    };
 
    FullMultigridSolver< StokesOperator > fullMultigridSolver(
