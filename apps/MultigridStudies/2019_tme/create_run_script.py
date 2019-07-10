@@ -132,6 +132,7 @@ Parameters
     symm_gs = ["true", "false"]
     num_pre_post_inc = [(1, 1, 2), (2, 2, 2), (3, 3, 2)]
     inner_cycles = [1, 2]
+    num_gs = [1, 2]
 
     with open("run_fmg.sh", "w") as f:
         f.write("echo\n")
@@ -139,6 +140,9 @@ Parameters
         f.write("echo\n")
         for discretization in discretizations:
             for symm in symm_gs:
+                for num in num_gs:
+                    if symm == "true" and num == 2:
+                        continue
                     for smooth in num_pre_post_inc:
                         for r in inner_cycles:
                             cmd = "mpirun --allow-run-as-root -np {} --map-by core --bind-to core --report-bindings ./MultigridStudies 2019_tme/fmg_tests_base_config.prm " \
@@ -146,9 +150,10 @@ Parameters
                                   "-Parameters.postSmoothingSteps={} " \
                                   "-Parameters.smoothingIncrement={} " \
                                   "-Parameters.sorRelax={} " \
+                                  "-Parameters.numGSVelocity={} " \
                                   "-Parameters.symmGSVelocity={} " \
                                   "-Parameters.fmgInnerCycles={} " \
-                                  "-Parameters.discretization={} ".format(num_processes, smooth[0], smooth[1], smooth[2], sor_omega[discretization], symm, r, discretization)
+                                  "-Parameters.discretization={} ".format(num_processes, smooth[0], smooth[1], smooth[2], sor_omega[discretization], num, symm, r, discretization)
                             f.write("echo \"{}\"\n".format(cmd))
                             f.write(cmd + "\n")
 
