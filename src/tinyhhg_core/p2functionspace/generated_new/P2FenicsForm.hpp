@@ -138,7 +138,7 @@ class P2FenicsForm : public P2Form
     uint_t rowIdx = dofMap[ cntrPos[0] ][ cntrPos[1] ];
     uint_t colIdx = dofMap[ leafPos[0] ][ leafPos[1] ];
 
-    return elMat( rowIdx, colIdx );
+    return real_c( elMat( rowIdx, colIdx ) );
   }
 
   /// \brief Compute local element matrix and return selected entries from a row
@@ -168,7 +168,7 @@ class P2FenicsForm : public P2Form
 
     for( uint k = 0; k < leafPos.size(); ++k ) {
       colIdx = dofMap[ leafPos[0] ][ leafPos[1] ];
-      matRow[k] = elMat( rowIdx, colIdx );
+      matRow[k] = real_c( elMat( rowIdx, colIdx ) );
     }
 
     return matRow;
