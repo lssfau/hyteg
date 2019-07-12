@@ -63,7 +63,11 @@ static void testEdgeDoFAdditiveCommunication2D( const communication::BufferedCom
       const auto idx = edgedof::macroedge::index( level, idxIt.x() );
       if ( x.getBoundaryCondition().getBoundaryType( it.second->getMeshBoundaryFlag() ) == DoFType::DirichletBoundary )
       {
-        WALBERLA_CHECK_FLOAT_EQUAL( edgePtr[idx], someConstant, "Face -> Edge additive comm failed (on Dirichlet boundary)" );
+//       this is always false but intel 2018 update 4 fails without
+         if ( idx > 8 ){
+            WALBERLA_LOG_DEVEL_VAR( idx );
+         }
+         WALBERLA_CHECK_FLOAT_EQUAL( edgePtr[idx], someConstant, "Face -> Edge additive comm failed (on Dirichlet boundary)" );
       }
       else
       {
