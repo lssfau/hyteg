@@ -91,7 +91,12 @@ class P2FenicsForm : public P2Form
    // ----------------------------
    void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const override
    {
-      WALBERLA_ABORT( "P2FenicsForm::integrate() not implemented for 3D!" );
+     Matrix10r localStiffnessMatrix;
+     computeLocalStiffnessMatrix( coords, localStiffnessMatrix );
+     out[0] = localStiffnessMatrix( 0, 0 );
+     out[1] = localStiffnessMatrix( 0, 1 );
+     out[2] = localStiffnessMatrix( 0, 2 );
+     out[3] = localStiffnessMatrix( 0, 3 );
    }
 
    void integrateEdgeToVertex( const std::array< Point3D, 4 >& coords, Point4D& out ) const
