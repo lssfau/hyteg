@@ -52,14 +52,14 @@ EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::EdgeDoFToVertexDoFOperator
   {
     if ( form.assemble3D() )
     {
-      WALBERLA_ABORT( "assembleEdgeToVertexStencils< UFCOperator3D > not implemented!" );
-      //      assembleEdgeToVertexStencils< UFCOperator3D >( this->getStorage(),
-      //                                                     this->minLevel_,
-      //                                                     this->maxLevel_,
-      //                                                     getVertexStencil3DID(),
-      //                                                     getEdgeStencil3DID(),
-      //                                                     getFaceStencil3DID(),
-      //                                                     getCellStencilID());
+      // WALBERLA_ABORT( "assembleEdgeToVertexStencils< UFCOperator3D > not implemented!" );
+      assembleEdgeToVertexStencils< EdgeDoFToVertexDoFForm >( this->getStorage(),
+                                                     this->minLevel_,
+                                                     this->maxLevel_,
+                                                     getVertexStencil3DID(),
+                                                     getEdgeStencil3DID(),
+                                                     getFaceStencil3DID(),
+                                                     getCellStencilID());
     }
   }
   else

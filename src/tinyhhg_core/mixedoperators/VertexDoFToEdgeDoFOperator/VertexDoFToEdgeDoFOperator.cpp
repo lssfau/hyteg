@@ -43,13 +43,13 @@ VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::VertexDoFToEdgeDoFOperator
   {
     if ( form.assemble3D() )
     {
-       WALBERLA_ABORT("Not implemented.");
-//      assembleVertexToEdgeStencils< UFCOperator3D >( this->getStorage(),
-//                                                     this->minLevel_,
-//                                                     this->maxLevel_,
-//                                                     getEdgeStencil3DID(),
-//                                                     getFaceStencil3DID(),
-//                                                     getCellStencilID() );
+      // WALBERLA_ABORT("Not implemented.");
+      assembleVertexToEdgeStencils< VertexDoFToEdgeDoFForm >( this->getStorage(),
+                                                              this->minLevel_,
+                                                              this->maxLevel_,
+                                                              getEdgeStencil3DID(),
+                                                              getFaceStencil3DID(),
+                                                              getCellStencilID() );
     }
   }
   else

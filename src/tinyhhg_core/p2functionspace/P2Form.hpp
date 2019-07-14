@@ -24,7 +24,7 @@ class P2Form : public Form
   /// (b) The two vertex indices are different, then this is the
   ///     index of the dof associated with the midpoint of the
   ///     tet's edge given by those two vertices.
-  typedef std::array<uint,2> dofPosByVertexPair3D;
+  typedef std::array<uint_t,2> dofPosByVertexPair3D;
 
 };
 

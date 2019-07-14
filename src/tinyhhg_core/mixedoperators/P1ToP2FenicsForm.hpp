@@ -2,6 +2,7 @@
 
 #include "tinyhhg_core/fenics/fenics.hpp"
 #include "tinyhhg_core/fenics/ufc_traits.hpp"
+#include "tinyhhg_core/p2functionspace/P2Form.hpp"
 
 // P1 to P2
 #include "tinyhhg_core/mixedoperators/generated/p1_to_p2_divt.h"
@@ -31,6 +32,9 @@ public:
   }
 
   void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const { WALBERLA_ABORT( "Not implemented." ); }
+
+  real_t integrate( const std::array< Point3D, 4 >& coords, const P2Form::dofPosByVertexPair3D &cntrPos,
+                    const P2Form::dofPosByVertexPair3D &leafPos ) const { WALBERLA_ABORT( "Not implemented." ); }
 
   bool assemble2D() const override { return !std::is_same< UFCOperator2D, hhg::fenics::NoAssemble >::value; }
 

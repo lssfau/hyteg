@@ -131,7 +131,7 @@ class P2FenicsForm : public P2Form
   ///
   /// \return a single entry of the local element matrix
   real_t integrate( const std::array< Point3D, 4 >& coords, const P2Form::dofPosByVertexPair3D &cntrPos,
-                    const P2Form::dofPosByVertexPair3D &leafPos ) {
+                    const P2Form::dofPosByVertexPair3D &leafPos ) const {
 
     Matrix10r elMat;
     computeLocalStiffnessMatrix( coords, elMat );
@@ -157,7 +157,7 @@ class P2FenicsForm : public P2Form
   template <long unsigned int size>
   std::array<real_t,size> integrate(  const std::array< Point3D, 4 >& coords,
                                       const P2Form::dofPosByVertexPair3D &cntrPos,
-                                      const std::array<P2Form::dofPosByVertexPair3D,size> &leafPos ) {
+                                      const std::array<P2Form::dofPosByVertexPair3D,size> &leafPos ) const {
 
     Matrix10r elMat;
     computeLocalStiffnessMatrix( coords, elMat );
@@ -210,7 +210,7 @@ class P2FenicsForm : public P2Form
       UFCOperator3D gen;
       gen.tabulate_tensor( localStiffnessMatrix.data(), nullptr, fenicsCoords, 0 );
    }
-  
+
   /// The dofMap maps a pair of vertex indices to a corresponding local
   /// index for a degree of freedom using the FEniCS indexing for a
   /// P2 element on a tetrahedron.
@@ -243,7 +243,9 @@ class P2FenicsForm : public P2Form
   /// dofMap[3][1] = 5;
   /// dofMap[3][2] = 4;
   /// dofMap[3][3] = 3;
-  constexpr static std::array< std::array<uint_t,4>, 4 > dofMap =
+  // wait for C++17
+  // constexpr static std::array< std::array<uint_t,4>, 4 > dofMap =
+  std::array< std::array<uint_t,4>, 4 > dofMap =
     { { { 0, 9, 8, 7 },
         { 9, 1, 6, 5 },
         { 8, 6, 2, 4 },
