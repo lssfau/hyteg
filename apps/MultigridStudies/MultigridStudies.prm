@@ -30,7 +30,11 @@ Parameters
     calculateDiscretizationError false;
     coarseGridMaxIterations 2000;
     coarseGridResidualTolerance 1e-14;
+
     cyclesBeforeDC 3;
+    postDCPreSmoothingSteps 3;
+    postDCPostSmoothingSteps 3;
+    postDCSmoothingIncrement 2;
 
     outputVTK false;
     outputTiming false;

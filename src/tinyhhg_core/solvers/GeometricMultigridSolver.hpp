@@ -52,6 +52,13 @@ class GeometricMultigridSolver : public Solver< OperatorType >
 
    ~GeometricMultigridSolver() = default;
 
+   void setSmoothingSteps( const uint_t& preSmoothingSteps, const uint_t& postSmoothingSteps, const uint_t smoothIncrement = 0 )
+   {
+      preSmoothSteps_  = preSmoothingSteps;
+      postSmoothSteps_ = postSmoothingSteps;
+      smoothIncrement_ = smoothIncrement;
+   }
+
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
       timingTree_->start( "Geometric Multigrid Solver" );

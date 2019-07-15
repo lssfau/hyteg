@@ -725,6 +725,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       const uint_t&                                        skipCyclesForAvgConvRate,
                       const bool&                                          calcDiscretizationError,
                       const uint_t&                                        cyclesBeforeDC,
+                      const uint_t&                                        postDCPreSmoothingSteps,
+                      const uint_t&                                        postDCPostSmoothingSteps,
+                      const uint_t&                                        postDCSmoothingIncrement,
                       std::map< std::string, walberla::int64_t >&          sqlIntegerProperties,
                       std::map< std::string, double >&                     sqlRealProperties,
                       std::map< std::string, std::string >&                sqlStringProperties,
@@ -992,6 +995,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
          timer.end();
          auto timeDCSetup                   = timer.last();
          sqlRealProperties["dc_setup_time"] = timeDCSetup;
+         multigridSolver->setSmoothingSteps( postDCPreSmoothingSteps, postDCPostSmoothingSteps, postDCSmoothingIncrement );
       }
 
       timer.reset();
@@ -1001,7 +1005,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       }
       else if ( cyclesBeforeDC > 0 && numExecutedCycles >= cyclesBeforeDC )
       {
-        DCStokesRunCycle( multigridSolver, A, u, f_dc, maxLevel );
+         DCStokesRunCycle( multigridSolver, A, u, f_dc, maxLevel );
       }
       else
       {
@@ -1154,6 +1158,9 @@ void setup( int argc, char** argv )
    const std::string meshLayout                      = mainConf.getParameter< std::string >( "meshLayout" );
    const bool        symmetricCuboidMesh             = mainConf.getParameter< bool >( "symmetricCuboidMesh" );
    const uint_t      cyclesBeforeDC                  = mainConf.getParameter< uint_t >( "cyclesBeforeDC" );
+   const uint_t      postDCPreSmoothingSteps         = mainConf.getParameter< uint_t >( "postDCPreSmoothingSteps" );
+   const uint_t      postDCPostSmoothingSteps        = mainConf.getParameter< uint_t >( "postDCPostSmoothingSteps" );
+   const uint_t      postDCSmoothingIncrement        = mainConf.getParameter< uint_t >( "postDCSmoothingIncrement" );
 
    // parameter checks
    WALBERLA_CHECK( equation == "stokes" || equation == "poisson" );
@@ -1198,7 +1205,13 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - skip cycles for avg conv rate:           " << skipCyclesForAvgConvRate );
    WALBERLA_LOG_INFO_ON_ROOT( "  - mesh layout:                             " << meshLayout );
    WALBERLA_LOG_INFO_ON_ROOT( "  - symmetric cuboid mesh:                   " << symmetricCuboidMesh );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - cycles before DC:                        " << (discretization == "P1" ? std::to_string(cyclesBeforeDC) : "disabled") );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - cycles before DC:                        "
+                              << ( discretization == "P1" ? std::to_string( cyclesBeforeDC ) : "disabled" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - DC pre- / post- / incr-smoothing:        "
+                              << ( discretization == "P1" ? std::to_string( postDCPreSmoothingSteps ) + " / " +
+                                                                std::to_string( postDCPostSmoothingSteps ) + " / " +
+                                                                std::to_string( postDCSmoothingIncrement ) :
+                                                            "disabled" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    /////////
@@ -1233,6 +1246,11 @@ void setup( int argc, char** argv )
    sqlIntegerProperties["symm_gs_pressure"]            = int64_c( symmGSPressure );
    sqlIntegerProperties["num_gs_velocity"]             = int64_c( numGSVelocity );
    sqlIntegerProperties["num_gs_pressure"]             = int64_c( numGSPressure );
+
+   sqlIntegerProperties["cycles_before_dc"]               = int64_c( cyclesBeforeDC );
+   sqlIntegerProperties["dc_pre_smoothing"]               = int64_c( preSmoothingSteps );
+   sqlIntegerProperties["dc_post_smoothing"]              = int64_c( postSmoothingSteps );
+   sqlIntegerProperties["dc_incr_smoothing"]              = int64_c( smoothingIncrement );
 
    ////////////
    // Domain //
@@ -1402,6 +1420,9 @@ void setup( int argc, char** argv )
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
                                                                 cyclesBeforeDC,
+                                                                postDCPreSmoothingSteps,
+                                                                postDCPostSmoothingSteps,
+                                                                postDCSmoothingIncrement,
                                                                 sqlIntegerProperties,
                                                                 sqlRealProperties,
                                                                 sqlStringProperties,
@@ -1437,6 +1458,9 @@ void setup( int argc, char** argv )
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
                                                                 0,
+                                                                preSmoothingSteps,
+                                                                postSmoothingSteps,
+                                                                smoothingIncrement,
                                                                 sqlIntegerProperties,
                                                                 sqlRealProperties,
                                                                 sqlStringProperties,
