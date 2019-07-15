@@ -28,12 +28,15 @@ Parameters
     L2residualTolerance 1e-16;
     projectPressureAfterRestriction true;
     calculateDiscretizationError false;
-    coarseGridMaxIterations 100000;
-    coarseGridResidualTolerance 1e-16;
+    coarseGridMaxIterations 2000;
+    coarseGridResidualTolerance 1e-14;
+    cyclesBeforeDC 3;
 
     outputVTK false;
     outputTiming false;
     outputTimingJSON true;
     outputTimingJSONFile timing.json;
     outputSQL true;
+    outputSQLFile database.db;
+
 }

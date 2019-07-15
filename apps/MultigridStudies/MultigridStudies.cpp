@@ -9,6 +9,8 @@
 #include "tinyhhg_core/composites/P1StokesOperator.hpp"
 #include "tinyhhg_core/composites/P2P1TaylorHoodFunction.hpp"
 #include "tinyhhg_core/composites/P2P1TaylorHoodStokesOperator.hpp"
+#include "tinyhhg_core/composites/P2P2StokesFunction.hpp"
+#include "tinyhhg_core/composites/P2P2UnstableStokesOperator.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
@@ -603,6 +605,97 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 }
 
+template < typename StokesOperator, typename StokesFunction >
+void DCStokesRHSSetup( const std::shared_ptr< PrimitiveStorage >&,
+                       const uint_t&,
+                       const StokesOperator&,
+                       const StokesFunction&,
+                       const P1StokesFunction< real_t >& )
+{
+   WALBERLA_ABORT( "Defect correction not implemented for this discretization." )
+}
+
+template <>
+void DCStokesRHSSetup< P1StokesOperator, P1StokesFunction< real_t > >( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                                       const uint_t&                              p1Level,
+                                                                       const P1StokesOperator&           p1StokesOperator,
+                                                                       const P1StokesFunction< real_t >& u,
+                                                                       const P1StokesFunction< real_t >& p1DefectCorrectionRHS )
+{
+   const uint_t p2Level = p1Level - 1;
+
+   walberla::WcTimer timer;
+   timer.reset();
+
+   P1StokesFunction< real_t > Au_P1( "Au_P1", storage, p1Level, p1Level );
+   P1StokesFunction< real_t > Au_P2_converted_to_P1( "Au_P1", storage, p1Level, p1Level );
+   P1StokesFunction< real_t > f_P2_on_P1_space( "f_P2_on_p1_space", storage, p1Level, p1Level );
+
+   P2P2StokesFunction< real_t > u_P2( "u_P2", storage, p2Level, p2Level );
+   P2P2StokesFunction< real_t > Au_P2( "Au_P2", storage, p2Level, p2Level );
+   P2P2StokesFunction< real_t > tmp_P2( "tmp_P2", storage, p2Level, p2Level );
+   P2P2StokesFunction< real_t > f_P2( "f_P2", storage, p2Level, p2Level );
+
+   P2P2UnstableStokesOperator A_P2( storage, p2Level, p2Level );
+   P2ConstantMassOperator     M_P2( storage, p2Level, p2Level );
+
+   timer.end();
+   WALBERLA_LOG_INFO_ON_ROOT( "-> time DC: function allocation: " << std::fixed << std::setprecision( 2 ) << std::setw(10) << timer.last() << "s" )
+
+   timer.reset();
+   // set up higher order RHS
+   tmp_P2.u.interpolate( rhsU, p2Level, All );
+   tmp_P2.v.interpolate( rhsV, p2Level, All );
+   M_P2.apply( tmp_P2.u, f_P2.u, p2Level, All );
+   M_P2.apply( tmp_P2.v, f_P2.v, p2Level, All );
+   f_P2_on_P1_space.u.assign( f_P2.u, p1Level, All );
+   f_P2_on_P1_space.v.assign( f_P2.v, p1Level, All );
+
+   // A * u (linear)
+   p1StokesOperator.apply( u, Au_P1, p1Level, Inner );
+
+   // A_higher_order * u (quadratic)
+   // u_quadratic is given by direct injection of the linear coefficients
+   u_P2.u.assign( u.u, p2Level, All );
+   u_P2.v.assign( u.v, p2Level, All );
+   u_P2.w.assign( u.w, p2Level, All );
+   u_P2.p.assign( u.p, p2Level, All );
+
+   A_P2.apply( u_P2, Au_P2, p2Level, Inner );
+
+   Au_P2_converted_to_P1.u.assign( Au_P2.u, p1Level, All );
+   Au_P2_converted_to_P1.v.assign( Au_P2.v, p1Level, All );
+   Au_P2_converted_to_P1.w.assign( Au_P2.w, p1Level, All );
+   Au_P2_converted_to_P1.p.assign( Au_P2.p, p1Level, All );
+
+   // defect correction
+   // f_correction = f - (A_higher_order * u^i-1) + (A * u^i-1)
+   p1DefectCorrectionRHS.assign( {1.0, -1.0, 1.0}, {f_P2_on_P1_space, Au_P2_converted_to_P1, Au_P1}, p1Level, All );
+   timer.end();
+   WALBERLA_LOG_INFO_ON_ROOT( "-> time DC: RHS calculation:     " << std::fixed << std::setprecision( 2 ) << std::setw(10) << timer.last() << "s" )
+}
+
+template < typename StokesOperator, typename StokesFunction >
+void DCStokesRunCycle( const std::shared_ptr< GeometricMultigridSolver< StokesOperator > >&,
+                       const StokesOperator&,
+                       const StokesFunction&,
+                       const P1StokesFunction< real_t >&,
+                       const uint_t& )
+{
+   WALBERLA_ABORT( "Defect correction not implemented for this discretization." )
+}
+
+template <>
+void DCStokesRunCycle< P1StokesOperator, P1StokesFunction< real_t > >(
+    const std::shared_ptr< GeometricMultigridSolver< P1StokesOperator > >& solver,
+    const P1StokesOperator&                                                p1StokesOperator,
+    const P1StokesFunction< real_t >&                                      u,
+    const P1StokesFunction< real_t >&                                      f_dc,
+    const uint_t&                                                          level )
+{
+   solver->solve( p1StokesOperator, u, f_dc, level );
+}
+
 template < typename StokesFunction,
            typename StokesFunctionNumerator,
            typename StokesOperator,
@@ -631,12 +724,21 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       const bool&                                          outputVTK,
                       const uint_t&                                        skipCyclesForAvgConvRate,
                       const bool&                                          calcDiscretizationError,
+                      const uint_t&                                        cyclesBeforeDC,
                       std::map< std::string, walberla::int64_t >&          sqlIntegerProperties,
                       std::map< std::string, double >&                     sqlRealProperties,
                       std::map< std::string, std::string >&                sqlStringProperties,
                       std::map< uint_t, std::map< std::string, double > >& sqlRealPropertiesMG )
 {
    WALBERLA_UNUSED( sqlStringProperties );
+
+   if ( cyclesBeforeDC > 0 )
+   {
+     if ( !std::is_same< typename StokesFunction::Tag, P1StokesFunctionTag >::value )
+     {
+        WALBERLA_LOG_WARNING_ON_ROOT( "DC enabled, but only works with P1-P1-stab discretization!" )
+     }
+   }
 
    StokesFunction u( "u", storage, minLevel, maxLevel );
    StokesFunction f( "f", storage, minLevel, maxLevel );
@@ -645,6 +747,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    StokesFunction residual( "residual", storage, minLevel, maxLevel );
    StokesFunction error( "error", storage, minLevel, maxLevel );
    StokesFunction tmp( "tmp", storage, minLevel, maxLevel );
+
+   P1StokesFunction< real_t > f_dc( "f_dc", storage, minLevel, maxLevel );
 
    StokesOperator A( storage, minLevel, maxLevel );
    MassOperator   M( storage, minLevel, maxLevel );
@@ -879,10 +983,25 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       const long double lastl2ErrorP    = l2ErrorP;
       const long double lastl2ResidualP = l2ResidualP;
 
+      if ( cyclesBeforeDC > 0 && numExecutedCycles == cyclesBeforeDC )
+      {
+         // set up DC RHS once right after the exact number of cycles are performed on the original RHS
+         WALBERLA_LOG_INFO_ON_ROOT( "Preparing RHS for DC..." )
+         timer.reset();
+         DCStokesRHSSetup( storage, maxLevel, A, u, f_dc );
+         timer.end();
+         auto timeDCSetup                   = timer.last();
+         sqlRealProperties["dc_setup_time"] = timeDCSetup;
+      }
+
       timer.reset();
       if ( cycle == 1 && fmgInnerCycles > 0 )
       {
          fullMultigridSolver.solve( A, u, f, maxLevel );
+      }
+      else if ( cyclesBeforeDC > 0 && numExecutedCycles >= cyclesBeforeDC )
+      {
+        DCStokesRunCycle( multigridSolver, A, u, f_dc, maxLevel );
       }
       else
       {
@@ -1034,6 +1153,7 @@ void setup( int argc, char** argv )
    const uint_t      skipCyclesForAvgConvRate        = mainConf.getParameter< uint_t >( "skipCyclesForAvgConvRate" );
    const std::string meshLayout                      = mainConf.getParameter< std::string >( "meshLayout" );
    const bool        symmetricCuboidMesh             = mainConf.getParameter< bool >( "symmetricCuboidMesh" );
+   const uint_t      cyclesBeforeDC                  = mainConf.getParameter< uint_t >( "cyclesBeforeDC" );
 
    // parameter checks
    WALBERLA_CHECK( equation == "stokes" || equation == "poisson" );
@@ -1078,6 +1198,7 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - skip cycles for avg conv rate:           " << skipCyclesForAvgConvRate );
    WALBERLA_LOG_INFO_ON_ROOT( "  - mesh layout:                             " << meshLayout );
    WALBERLA_LOG_INFO_ON_ROOT( "  - symmetric cuboid mesh:                   " << symmetricCuboidMesh );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - cycles before DC:                        " << (discretization == "P1" ? std::to_string(cyclesBeforeDC) : "disabled") );
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    /////////
@@ -1280,6 +1401,7 @@ void setup( int argc, char** argv )
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
+                                                                cyclesBeforeDC,
                                                                 sqlIntegerProperties,
                                                                 sqlRealProperties,
                                                                 sqlStringProperties,
@@ -1314,6 +1436,7 @@ void setup( int argc, char** argv )
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
+                                                                0,
                                                                 sqlIntegerProperties,
                                                                 sqlRealProperties,
                                                                 sqlStringProperties,
