@@ -1,5 +1,3 @@
-#include <boost/core/null_deleter.hpp>
-
 #include "core/Environment.h"
 #include "core/timing/Timer.h"
 #include "core/math/Constants.h"
