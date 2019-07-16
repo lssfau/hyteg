@@ -48,7 +48,7 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   hhg::P1StokesFunction< real_t >                      nullspace( "nullspace", storage, level, level );
 
   hhg::P1StokesOperator A( storage, level, level );
-  hhg::P1MassOperator   M( storage, level, level );
+  hhg::P1ConstantMassOperator   M( storage, level, level );
 
 #if 0
   std::function< real_t( const hhg::Point3D& ) > exactU = []( const hhg::Point3D& xx ) { return - real_c(4) * std::cos( real_c(4) * xx[2] ); };

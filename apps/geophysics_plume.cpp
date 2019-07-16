@@ -97,7 +97,7 @@ int main( int argc, char* argv[] )
    std::array< hhg::P1Function< real_t >, 2 >         velocity{u->u, u->v};
    hhg::DGUpwindOperator< hhg::P1Function< real_t > > N( storage, velocity, minLevel, maxLevel );
    hhg::P1StokesOperator                              L( storage, minLevel, maxLevel );
-   hhg::P1MassOperator                                M( storage, minLevel, maxLevel );
+   hhg::P1ConstantMassOperator                        M( storage, minLevel, maxLevel );
 
    real_t       estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( {{&u->u, &u->v}}, maxLevel );
    const real_t minimalEdgeLength    = hhg::MeshQuality::getMinimalEdgeLength( storage, maxLevel );

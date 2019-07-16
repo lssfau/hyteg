@@ -10,6 +10,8 @@
 #include <array>
 #include <iomanip>
 
+#include "tinyhhg_core/types/pointnd.hpp"
+
 namespace hhg {
 
 using walberla::real_t;
@@ -138,6 +140,19 @@ public:
     return out;
   }
 
+  PointND<T, M> mul(const PointND<T, N>& rhs)
+  {
+    PointND<T, M> out;
+    for (uint_t i = 0; i < M; ++i)
+    {
+      for (uint_t j = 0; j < N; ++j)
+      {
+        out[i] += (*this)(i, j) * rhs[j];
+      }
+    }
+    return out;
+  }
+
   Matrix<T, M, N> adj() const
   {
     if (N == M && N == 2) {
@@ -148,7 +163,7 @@ public:
       out(1,1) = (*this)(0,0);
       return out;
     }
-    WALBERLA_ABORT("Determinant computation not implemented for matrix dimensions " << M << " x " << N)
+    WALBERLA_ABORT("Adjugate computation not implemented for matrix dimensions " << M << " x " << N)
   }
 
   T det() const

@@ -13,13 +13,13 @@
 
 namespace hhg {
 namespace vertexdof {
-namespace blending {
+namespace variablestencil {
 
 template < class P1Form >
 inline void assembleLocalStencil( const P1Form&                            form,
                                   const std::array< Point3D, 3 >&          coords,
                                   const std::array< stencilDirection, 3 >& directions,
-                                  std::vector< real_t >&                   opr_data )
+                                  real_t*                                  opr_data )
 {
    Point3D matrixRow;
 
@@ -33,11 +33,11 @@ inline void assembleLocalStencil( const P1Form&                            form,
 namespace macroface {
 
 template < typename ValueType, class P1Form >
-inline void applyBlending( uint_t                                                      Level,
-                           const Face&                                                 face,
-                           const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId,
-                           const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId,
-                           UpdateType                                                  update )
+inline void applyVariableStencil(uint_t Level,
+                                 const Face &face,
+                                 const PrimitiveDataID<FunctionMemory<ValueType>, Face> &srcId,
+                                 const PrimitiveDataID<FunctionMemory<ValueType>, Face> &dstId,
+                                 UpdateType update)
 {
    typedef stencilDirection SD;
 
@@ -76,12 +76,12 @@ inline void applyBlending( uint_t                                               
       {
          std::fill( opr_data.begin(), opr_data.end(), 0.0 );
 
-         assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, opr_data.data() );
+         assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, opr_data.data() );
+         assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, opr_data.data() );
+         assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, opr_data.data() );
+         assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, opr_data.data() );
+         assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, opr_data.data() );
 
          //      PointND<real_t, 7> test(opr_data.data());
          //      WALBERLA_LOG_INFO("stencil = " << test);
@@ -118,10 +118,10 @@ inline void applyBlending( uint_t                                               
 }
 
 template < typename ValueType, class P1Form >
-inline void smoothGSBlending( uint_t                                                      Level,
-                              const Face&                                                 face,
-                              const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId,
-                              const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsId )
+inline void smoothGSVariableStencil(uint_t Level,
+                                    const Face &face,
+                                    const PrimitiveDataID<FunctionMemory<ValueType>, Face> &dstId,
+                                    const PrimitiveDataID<FunctionMemory<ValueType>, Face> &rhsId)
 {
    typedef stencilDirection SD;
 
@@ -161,12 +161,12 @@ inline void smoothGSBlending( uint_t                                            
       {
          std::fill( opr_data.begin(), opr_data.end(), 0.0 );
 
-         assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, opr_data.data() );
+         assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, opr_data.data() );
+         assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, opr_data.data() );
+         assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, opr_data.data() );
+         assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, opr_data.data() );
+         assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, opr_data.data() );
 
          //      PointND<real_t, 7> test(opr_data.data());
          //      WALBERLA_LOG_INFO("stencil = " << test);
@@ -194,12 +194,12 @@ inline void smoothGSBlending( uint_t                                            
 namespace macroedge {
 
 template < typename ValueType, class P1Form >
-inline void applyBlending( uint_t                                                      Level,
-                           const Edge&                                                 edge,
-                           const std::shared_ptr< PrimitiveStorage >&                  storage,
-                           const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId,
-                           const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstId,
-                           UpdateType                                                  update )
+inline void applyVariableStencil(uint_t Level,
+                                 const Edge &edge,
+                                 const std::shared_ptr<PrimitiveStorage> &storage,
+                                 const PrimitiveDataID<FunctionMemory<ValueType>, Edge> &srcId,
+                                 const PrimitiveDataID<FunctionMemory<ValueType>, Edge> &dstId,
+                                 UpdateType update)
 {
    size_t rowsize = levelinfo::num_microvertices_per_edge( Level );
 
@@ -256,16 +256,16 @@ inline void applyBlending( uint_t                                               
 
       // assemble south
       form.geometryMap = faceS->getGeometryMap();
-      assembleLocalStencil< P1Form >( form, {x, x + dir_W, x + dir_S}, P1Elements::P1Elements2D::elementSW, opr_data );
-      assembleLocalStencil< P1Form >( form, {x, x + dir_S, x + dir_SE}, P1Elements::P1Elements2D::elementS, opr_data );
-      assembleLocalStencil< P1Form >( form, {x, x + dir_SE, x + dir_E}, P1Elements::P1Elements2D::elementSE, opr_data );
+      assembleLocalStencil< P1Form >( form, {x, x + dir_W, x + dir_S}, P1Elements::P1Elements2D::elementSW, opr_data.data() );
+      assembleLocalStencil< P1Form >( form, {x, x + dir_S, x + dir_SE}, P1Elements::P1Elements2D::elementS, opr_data.data() );
+      assembleLocalStencil< P1Form >( form, {x, x + dir_SE, x + dir_E}, P1Elements::P1Elements2D::elementSE, opr_data.data() );
 
       if( edge.getNumNeighborFaces() == 2 )
       {
          form.geometryMap = faceN->getGeometryMap();
-         assembleLocalStencil< P1Form >( form, {x, x + dir_E, x + dir_N}, P1Elements::P1Elements2D::elementNE, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dir_N, x + dir_NW}, P1Elements::P1Elements2D::elementN, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dir_NW, x + dir_W}, P1Elements::P1Elements2D::elementNW, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dir_E, x + dir_N}, P1Elements::P1Elements2D::elementNE, opr_data.data() );
+         assembleLocalStencil< P1Form >( form, {x, x + dir_N, x + dir_NW}, P1Elements::P1Elements2D::elementN, opr_data.data() );
+         assembleLocalStencil< P1Form >( form, {x, x + dir_NW, x + dir_W}, P1Elements::P1Elements2D::elementNW, opr_data.data() );
       }
 
       tmp = opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] *
@@ -306,11 +306,11 @@ inline void applyBlending( uint_t                                               
 }
 
 template < typename ValueType, class P1Form >
-inline void smoothGSBlending( uint_t                                                      Level,
-                              const Edge&                                                 edge,
-                              const std::shared_ptr< PrimitiveStorage >&                  storage,
-                              const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstId,
-                              const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& rhsId )
+inline void smoothGSVariableStencil(uint_t Level,
+                                    const Edge &edge,
+                                    const std::shared_ptr<PrimitiveStorage> &storage,
+                                    const PrimitiveDataID<FunctionMemory<ValueType>, Edge> &dstId,
+                                    const PrimitiveDataID<FunctionMemory<ValueType>, Edge> &rhsId)
 {
    size_t rowsize = levelinfo::num_microvertices_per_edge( Level );
 
@@ -365,16 +365,16 @@ inline void smoothGSBlending( uint_t                                            
 
       // assemble south
       form.geometryMap = faceS->getGeometryMap();
-      assembleLocalStencil< P1Form >( form, {x, x + dir_W, x + dir_S}, P1Elements::P1Elements2D::elementSW, opr_data );
-      assembleLocalStencil< P1Form >( form, {x, x + dir_S, x + dir_SE}, P1Elements::P1Elements2D::elementS, opr_data );
-      assembleLocalStencil< P1Form >( form, {x, x + dir_SE, x + dir_E}, P1Elements::P1Elements2D::elementSE, opr_data );
+      assembleLocalStencil< P1Form >( form, {x, x + dir_W, x + dir_S}, P1Elements::P1Elements2D::elementSW, opr_data.data() );
+      assembleLocalStencil< P1Form >( form, {x, x + dir_S, x + dir_SE}, P1Elements::P1Elements2D::elementS, opr_data.data() );
+      assembleLocalStencil< P1Form >( form, {x, x + dir_SE, x + dir_E}, P1Elements::P1Elements2D::elementSE, opr_data.data() );
 
       if( edge.getNumNeighborFaces() == 2 )
       {
          form.geometryMap = faceN->getGeometryMap();
-         assembleLocalStencil< P1Form >( form, {x, x + dir_E, x + dir_N}, P1Elements::P1Elements2D::elementNE, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dir_N, x + dir_NW}, P1Elements::P1Elements2D::elementN, opr_data );
-         assembleLocalStencil< P1Form >( form, {x, x + dir_NW, x + dir_W}, P1Elements::P1Elements2D::elementNW, opr_data );
+         assembleLocalStencil< P1Form >( form, {x, x + dir_E, x + dir_N}, P1Elements::P1Elements2D::elementNE, opr_data.data() );
+         assembleLocalStencil< P1Form >( form, {x, x + dir_N, x + dir_NW}, P1Elements::P1Elements2D::elementN, opr_data.data() );
+         assembleLocalStencil< P1Form >( form, {x, x + dir_NW, x + dir_W}, P1Elements::P1Elements2D::elementNW, opr_data.data() );
       }
 
       dst[vertexdof::macroedge::indexFromVertex( Level, i, stencilDirection::VERTEX_C )] =
@@ -415,12 +415,12 @@ inline void smoothGSBlending( uint_t                                            
 namespace macrovertex {
 
 template < typename ValueType, class P1Form >
-inline void applyBlending( uint_t                                                        level,
-                           const Vertex&                                                 vertex,
-                           const std::shared_ptr< PrimitiveStorage >&                    storage,
-                           const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
-                           const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId,
-                           UpdateType                                                    update )
+inline void applyVariableStencil(uint_t level,
+                                 const Vertex &vertex,
+                                 const std::shared_ptr<PrimitiveStorage> &storage,
+                                 const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &srcId,
+                                 const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &dstId,
+                                 UpdateType update)
 {
    auto src = vertex.getData( srcId )->getPointer( level );
    auto dst = vertex.getData( dstId )->getPointer( level );
@@ -487,11 +487,11 @@ inline void applyBlending( uint_t                                               
 }
 
 template < typename ValueType, class P1Form >
-inline void smoothGSBlending( uint_t                                                        level,
-                              Vertex&                                                       vertex,
-                              const std::shared_ptr< PrimitiveStorage >&                    storage,
-                              const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId,
-                              const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& rhsId )
+inline void smoothGSVariableStencil(uint_t level,
+                                    Vertex &vertex,
+                                    const std::shared_ptr<PrimitiveStorage> &storage,
+                                    const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &dstId,
+                                    const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &rhsId)
 {
    auto rhs = vertex.getData( rhsId )->getPointer( level );
    auto dst = vertex.getData( dstId )->getPointer( level );
@@ -555,6 +555,6 @@ inline void smoothGSBlending( uint_t                                            
 
 } // namespace macrovertex
 
-} // namespace blending
+} // namespace variablestencil
 } // namespace vertexdof
 } // namespace hhg

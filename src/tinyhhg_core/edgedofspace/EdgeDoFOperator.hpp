@@ -10,9 +10,11 @@
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/p2functionspace/P2Elements3D.hpp"
+#include "tinyhhg_core/p2functionspace/generated_new/P2FenicsForm.hpp"
 
 namespace hhg{
 
+template< class EdgeDoFForm >
 class EdgeDoFOperator : public Operator<hhg::EdgeDoFFunction< real_t >, hhg::EdgeDoFFunction < real_t > >
 {
 public:
@@ -29,12 +31,16 @@ public:
   const PrimitiveDataID<LevelWiseMemory< edgedof::macrocell::StencilMap_T >, Cell  > &getCellStencilID() const;
 
 private:
+
+  void assembleStencils();
+
   PrimitiveDataID<StencilMemory< real_t >, Edge  > edgeStencilID_;
   PrimitiveDataID<LevelWiseMemory< edgedof::macroedge::StencilMap_T >, Edge  > edgeStencil3DID_;
   PrimitiveDataID<StencilMemory< real_t >, Face  > faceStencilID_;
   PrimitiveDataID<LevelWiseMemory< edgedof::macroface::StencilMap_T >, Face  > faceStencil3DID_;
   PrimitiveDataID<LevelWiseMemory< edgedof::macrocell::StencilMap_T >, Cell  > cellStencilID_;
 
+  EdgeDoFForm form;
 };
 
 /// on edges only one stencil is required since only the horizontal edge DoFs belong to the edge
@@ -168,5 +174,7 @@ void assembleEdgeToEdgeStencils( const std::shared_ptr< PrimitiveStorage > & sto
         }
     }
 }
+
+typedef EdgeDoFOperator< P2FenicsForm< hhg::fenics::NoAssemble, fenics::NoAssemble > > GenericEdgeDoFOperator;
 
 }
