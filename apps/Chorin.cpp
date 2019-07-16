@@ -1,4 +1,3 @@
-#include <boost/core/null_deleter.hpp>
 #include <core/math/Constants.h>
 
 #include "tinyhhg_core/dgfunctionspace/DGUpwindOperator.hpp"
@@ -121,9 +120,7 @@ int main( int argc, char* argv[] )
    hhg::P1DivTyOperator         divT_y( storage, minLevel, maxLevel );
    hhg::P1LumpedInvMassOperator invDiagMass( storage, minLevel, maxLevel );
 
-   std::array< std::shared_ptr< hhg::P1Function< real_t > >, 2 > velocity{
-       {std::shared_ptr< hhg::P1Function< real_t > >( &u, boost::null_deleter() ),
-        std::shared_ptr< hhg::P1Function< real_t > >( &v, boost::null_deleter() )}};
+   std::array< hhg::P1Function< real_t >, 2 > velocity{ u,v };
    hhg::DGUpwindOperator< hhg::P1Function< real_t > > N( storage, velocity, minLevel, maxLevel );
 
    typedef hhg::CGSolver< hhg::P1ConstantLaplaceOperator > CoarseSolver;

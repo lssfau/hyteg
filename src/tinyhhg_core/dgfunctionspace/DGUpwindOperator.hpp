@@ -11,7 +11,7 @@ namespace hhg {
 template < class VelocityBaseType >
 class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
 {
-   typedef std::array< std::shared_ptr< VelocityBaseType >, 2 > VelocityType;
+   typedef std::array< VelocityBaseType , 2 > VelocityType;
 
  public:
    DGUpwindOperator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -44,17 +44,17 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
 
       for( auto velocityComponent : velocity_ )
       {
-         velocityComponent->template startCommunication< Edge, Vertex >( level );
+         velocityComponent.template startCommunication< Edge, Vertex >( level );
       }
 
       for( auto velocityComponent : velocity_ )
       {
-         velocityComponent->template startCommunication< Face, Edge >( level );
+         velocityComponent.template startCommunication< Face, Edge >( level );
       }
 
       for( auto velocityComponent : velocity_ )
       {
-         velocityComponent->template endCommunication< Edge, Vertex >( level );
+         velocityComponent.template endCommunication< Edge, Vertex >( level );
       }
 
       for( auto& it : storage_->getVertices() )
@@ -70,7 +70,7 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
                                         src.getVertexDataID(),
                                         dst.getVertexDataID(),
                                         std::array< PrimitiveDataID< FunctionMemory< real_t >, Vertex >, 2 >{
-                                            {velocity_[0]->getVertexDataID(), velocity_[1]->getVertexDataID()}},
+                                            {velocity_[0].getVertexDataID(), velocity_[1].getVertexDataID()}},
                                         updateType );
          }
       }
@@ -79,7 +79,7 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
 
       for( auto velocityComponent : velocity_ )
       {
-         velocityComponent->template endCommunication< Face, Edge >( level );
+         velocityComponent.template endCommunication< Face, Edge >( level );
       }
 
       for( auto& it : storage_->getEdges() )
@@ -95,7 +95,7 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
                                       src.getEdgeDataID(),
                                       dst.getEdgeDataID(),
                                       std::array< PrimitiveDataID< FunctionMemory< real_t >, Edge >, 2 >{
-                                          {velocity_[0]->getEdgeDataID(), velocity_[1]->getEdgeDataID()}},
+                                          {velocity_[0].getEdgeDataID(), velocity_[1].getEdgeDataID()}},
                                       updateType );
          }
       }
@@ -117,7 +117,7 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
                                       src.getFaceDataID(),
                                       dst.getFaceDataID(),
                                       std::array< PrimitiveDataID< FunctionMemory< real_t >, Face >, 2 >{
-                                          {velocity_[0]->getFaceDataID(), velocity_[1]->getFaceDataID()}},
+                                          {velocity_[0].getFaceDataID(), velocity_[1].getFaceDataID()}},
                                       updateType );
          }
       }

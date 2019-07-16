@@ -1,6 +1,7 @@
 Parameters
 {
   level  11;
+  useGenKernel true;
   VTKOutput false;
   /// printTiming and write json
   printTiming false;
