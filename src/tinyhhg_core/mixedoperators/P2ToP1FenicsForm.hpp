@@ -31,10 +31,31 @@ public:
      out[2] = localStiffnessMatrix( 0, 5 );
   }
 
-  void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const { WALBERLA_ABORT( "Not implemented." ); }
+  // Method invoked by P1Elements3D (we return row of element matrix for vertex 0
+  // at the vertex columns), so actually this should be better called
+  // integrateVertexToVertex, but this would imply changing the P1 stuff, too.
+  void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const {
+    Matrixr<4,10> elMat;
+    computeLocalStiffnessMatrix( coords, elMat );
+    uint_t rowIdx = fenics::P2DoFMap[ 0 ][ 0 ];
+    out[0] = elMat( rowIdx, fenics::P2DoFMap[ 0 ][ 0 ] );
+    out[1] = elMat( rowIdx, fenics::P2DoFMap[ 1 ][ 1 ] );
+    out[2] = elMat( rowIdx, fenics::P2DoFMap[ 2 ][ 2 ] );
+    out[3] = elMat( rowIdx, fenics::P2DoFMap[ 3 ][ 3 ] );
+  }
 
   real_t integrate( const std::array< Point3D, 4 >& coords, const P2Form::dofPosByVertexPair3D &cntrPos,
-                    const P2Form::dofPosByVertexPair3D &leafPos ) const { WALBERLA_ABORT( "Not implemented." ); }
+                    const P2Form::dofPosByVertexPair3D &leafPos ) const {
+
+    Matrixr<4,10> elMat;
+    computeLocalStiffnessMatrix( coords, elMat );
+    WALBERLA_ASSERT_LESS( cntrPos[0], 4 );
+    WALBERLA_ASSERT_LESS( cntrPos[1], 4 );
+    uint_t rowIdx = fenics::P2DoFMap[ cntrPos[0] ][ cntrPos[1] ];
+    uint_t colIdx = fenics::P2DoFMap[ leafPos[0] ][ leafPos[1] ];
+
+    return real_c( elMat( rowIdx, colIdx ) );
+  }
 
   bool assemble2D() const override { return !std::is_same< UFCOperator2D, hhg::fenics::NoAssemble >::value; }
 
@@ -57,6 +78,19 @@ private:
      UFCOperator2D gen;
      gen.tabulate_tensor( localStiffnessMatrix.data(), nullptr, fenicsCoords, 0 );
   }
+
+  void computeLocalStiffnessMatrix( const std::array< Point3D, 4 >& coords, Matrixr<4, 10>& localStiffnessMatrix ) const
+  {
+    real_t fenicsCoords[12];
+    for( int node = 0; node < 4; ++node ) {
+      for( int dim = 0; dim < 3; ++dim ) {
+        fenicsCoords[node*3+dim] = coords[node][dim];
+      }
+    }
+    UFCOperator3D gen;
+    gen.tabulate_tensor( localStiffnessMatrix.data(), nullptr, fenicsCoords, 0 );
+   }
+
 };
 
 } // namespace hhg

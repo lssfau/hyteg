@@ -13,9 +13,8 @@
 namespace hhg {
 
 template< class EdgeDoFForm >
-EdgeDoFOperator< EdgeDoFForm >::EdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage,
-                                 size_t minLevel,
-                                 size_t maxLevel)
+EdgeDoFOperator< EdgeDoFForm >::EdgeDoFOperator( const std::shared_ptr<PrimitiveStorage> &storage,
+                                                 const uint_t minLevel, const uint_t maxLevel )
   : Operator(storage, minLevel, maxLevel)
 {
   auto edgeDataHandling   =
@@ -43,7 +42,8 @@ EdgeDoFOperator< EdgeDoFForm >::EdgeDoFOperator(const std::shared_ptr<PrimitiveS
    {
       if ( form.assemble3D() )
       {
-         WALBERLA_ABORT("Not implemented.");
+        // WALBERLA_ABORT("Not implemented.");
+        assembleEdgeToEdgeStencils< EdgeDoFForm >( storage, minLevel, maxLevel, edgeStencil3DID_, faceStencil3DID_, cellStencilID_ );
       }
    }
    else
