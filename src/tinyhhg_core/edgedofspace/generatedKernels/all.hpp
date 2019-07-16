@@ -6,6 +6,7 @@
 #include "add_2D_macroface_edgedof_3_rhsfunctions.hpp"
 #include "apply_2D_macroface_edgedof_to_edgedof_add.hpp"
 #include "apply_2D_macroface_edgedof_to_edgedof_replace.hpp"
+#include "apply_3D_macrocell_edgedof_to_edgedof_add.hpp"
 #include "apply_3D_macrocell_edgedof_to_edgedof_replace.hpp"
 #include "apply_3D_macroface_one_sided_edgedof_to_edgedof_add.hpp"
 #include "apply_3D_macroface_one_sided_edgedof_to_edgedof_add_impl_012.hpp"
