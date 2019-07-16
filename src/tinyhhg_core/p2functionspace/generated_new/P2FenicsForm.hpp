@@ -135,8 +135,8 @@ class P2FenicsForm : public P2Form
 
     Matrix10r elMat;
     computeLocalStiffnessMatrix( coords, elMat );
-    uint_t rowIdx = dofMap[ cntrPos[0] ][ cntrPos[1] ];
-    uint_t colIdx = dofMap[ leafPos[0] ][ leafPos[1] ];
+    uint_t rowIdx = fenics::P2DoFMap[ cntrPos[0] ][ cntrPos[1] ];
+    uint_t colIdx = fenics::P2DoFMap[ leafPos[0] ][ leafPos[1] ];
 
     return real_c( elMat( rowIdx, colIdx ) );
   }
@@ -163,11 +163,11 @@ class P2FenicsForm : public P2Form
     computeLocalStiffnessMatrix( coords, elMat );
     std::array<real_t,leafPos.size()> matRow;
 
-    uint_t rowIdx = dofMap[ cntrPos[0] ][ cntrPos[1] ];
+    uint_t rowIdx = fenics::P2DoFMap[ cntrPos[0] ][ cntrPos[1] ];
     uint_t colIdx = 0;
 
     for( uint k = 0; k < leafPos.size(); ++k ) {
-      colIdx = dofMap[ leafPos[0] ][ leafPos[1] ];
+      colIdx = fenics::P2DoFMap[ leafPos[0] ][ leafPos[1] ];
       matRow[k] = real_c( elMat( rowIdx, colIdx ) );
     }
 
@@ -210,47 +210,6 @@ class P2FenicsForm : public P2Form
       UFCOperator3D gen;
       gen.tabulate_tensor( localStiffnessMatrix.data(), nullptr, fenicsCoords, 0 );
    }
-
-  /// The dofMap maps a pair of vertex indices to a corresponding local
-  /// index for a degree of freedom using the FEniCS indexing for a
-  /// P2 element on a tetrahedron.
-  ///
-  /// There are two cases:
-  ///
-  /// (a) Both vertex indices are identical, then the map stores the
-  ///     index of the dof associated with this vertex.
-  ///
-  /// (b) The two vertex indices are different, then the map stores
-  ///     the index of the dof associated with the midpoint of the
-  ///     tet's edge given by those two vertices.
-  ///
-  /// dofMap[0][0] = 0;
-  /// dofMap[0][1] = 9;
-  /// dofMap[0][2] = 8;
-  /// dofMap[0][3] = 7;
-  ///
-  /// dofMap[1][0] = 9;
-  /// dofMap[1][1] = 1;
-  /// dofMap[1][2] = 6;
-  /// dofMap[1][3] = 5;
-  ///
-  /// dofMap[2][0] = 8;
-  /// dofMap[2][1] = 6;
-  /// dofMap[2][2] = 2;
-  /// dofMap[2][3] = 4;
-  ///
-  /// dofMap[3][0] = 7;
-  /// dofMap[3][1] = 5;
-  /// dofMap[3][2] = 4;
-  /// dofMap[3][3] = 3;
-  // wait for C++17
-  // constexpr static std::array< std::array<uint_t,4>, 4 > dofMap =
-  std::array< std::array<uint_t,4>, 4 > dofMap =
-    { { { 0, 9, 8, 7 },
-        { 9, 1, 6, 5 },
-        { 8, 6, 2, 4 },
-        { 7, 5, 4, 3 } } };
-
 };
 
 } // namespace hhg
