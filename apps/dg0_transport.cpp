@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
   std::shared_ptr<hhg::P1Function<real_t>> u = std::make_shared<hhg::P1Function<real_t>>("u", storage, minLevel, maxLevel);
   std::shared_ptr<hhg::P1Function<real_t>> v = std::make_shared<hhg::P1Function<real_t>>("v", storage, minLevel, maxLevel);
 
-  std::array<std::shared_ptr<hhg::P1Function<real_t>>, 2> velocity{{u,v}};
+  std::array< hhg::P1Function< real_t >, 2 > velocity{*u, *v};
 
   hhg::DGUpwindOperator<hhg::P1Function<real_t>> N(storage, velocity, minLevel, maxLevel);
 
