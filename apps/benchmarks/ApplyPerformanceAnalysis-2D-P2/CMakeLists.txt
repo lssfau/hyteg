@@ -6,5 +6,5 @@ waLBerla_link_files_to_builddir( *.prm )
 waLBerla_link_files_to_builddir( *.py )
 
 waLBerla_add_executable( NAME ApplyPerformanceAnalysis-2D-P2
-        FILES ApplyPerformanceAnalysis-2D-P2.cpp
+        FILES ApplyPerformanceAnalysis-2D-P2.cpp AbstractApply.cpp
         DEPENDS tinyhhg_core core)
