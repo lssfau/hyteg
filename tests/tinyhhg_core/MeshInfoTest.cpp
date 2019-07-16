@@ -1,4 +1,3 @@
-
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
@@ -10,7 +9,6 @@
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "core/Filesystem.h"
-#include "boost/algorithm/string/predicate.hpp"
 
 namespace hhg {
 
@@ -26,9 +24,9 @@ static void testMeshInfo()
   for ( ; dirIterator != dirIteratorEnd; dirIterator++ )
   {
     std::string dirOrFilePath = dirIterator->path().string();
-    if ( boost::algorithm::ends_with( dirOrFilePath, ".msh" ) )
+    if ( dirOrFilePath.compare( dirOrFilePath.size() - 4, 4, ".msh" ) == 0 )
     {
-      gmshFiles.push_back( dirOrFilePath );
+       gmshFiles.push_back( dirOrFilePath );
     }
   }
 

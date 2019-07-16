@@ -1,4 +1,3 @@
-#include <boost/core/null_deleter.hpp>
 #include <core/Environment.h>
 #include <core/timing/Timer.h>
 #include <tinyhhg_core/FunctionProperties.hpp>
@@ -95,9 +94,7 @@ int main( int argc, char* argv[] )
    auto tmp = std::make_shared< hhg::P1Function< real_t > >( "tmp", storage, minLevel, maxLevel );
 
    // Setting up Operators
-   std::array< std::shared_ptr< hhg::P1Function< real_t > >, 2 > velocity{
-       {std::shared_ptr< hhg::P1Function< real_t > >( &u->u, boost::null_deleter() ),
-        std::shared_ptr< hhg::P1Function< real_t > >( &u->v, boost::null_deleter() )}};
+   std::array< hhg::P1Function< real_t >, 2 >         velocity{u->u, u->v};
    hhg::DGUpwindOperator< hhg::P1Function< real_t > > N( storage, velocity, minLevel, maxLevel );
    hhg::P1StokesOperator                              L( storage, minLevel, maxLevel );
    hhg::P1MassOperator                                M( storage, minLevel, maxLevel );
@@ -109,7 +106,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "dt: " << dt );
    const real_t finalTime = 100000.0;
    //  const real_t plotEach = 2.0;
-   const uint_t timesteps = (uint_t) std::ceil( finalTime / dt );
+   const auto timesteps = (uint_t) std::ceil( finalTime / dt );
    //  const uint_t plotModulo = (uint_t) std::ceil(plotEach/dt);
    const uint_t plotModulo = 10;
    real_t       time       = 0.0;
