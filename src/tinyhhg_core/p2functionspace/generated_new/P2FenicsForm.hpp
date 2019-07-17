@@ -161,7 +161,8 @@ class P2FenicsForm : public P2Form
 
     Matrix10r elMat;
     computeLocalStiffnessMatrix( coords, elMat );
-    std::array<real_t,leafPos.size()> matRow;
+    std::array<real_t,size> matRow;
+    // std::array<real_t,leafPos.size()> matRow;
 
     uint_t rowIdx = fenics::P2DoFMap[ cntrPos[0] ][ cntrPos[1] ];
     uint_t colIdx = 0;
