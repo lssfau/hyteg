@@ -12,18 +12,6 @@
 
 #include <set>
 
-/// FENICS DoF ordering in 10x10 P2 stiffness matrix:
-/// 0: vertex 0
-/// 1: vertex 1
-/// 2: vertex 2
-/// 3: vertex 3
-/// 4: edge (2, 3)
-/// 5: edge (1, 3)
-/// 6: edge (1, 2)
-/// 7: edge (0, 3)
-/// 8: edge (0, 2)
-/// 9: edge (0, 1)
-
 namespace hhg {
 namespace P2Elements {
 namespace P2Elements3D {
@@ -254,36 +242,8 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToVertexStencil
         logicalOffsetsFromCenter[localID] = microVertexIndex + elementAsIndices.at( localID );
       }
 
-#ifdef OLD_SCHOOL
-      const auto localStiffnessMatrix = calculateLocalP2StiffnessMatrix( logicalOffsetsFromCenter, cell, level, ufcGen );
-
       // 5. Adding contribution to stencil
-      //    Since we enforced that the first entry in the local cell micro-vertex array is always the reference micro-vertex
-      //    we always only need the first row of the local stiffness matrix.
 
-      /// 4: edge (2, 3)
-      /// 5: edge (1, 3)
-      /// 6: edge (1, 2)
-      /// 7: edge (0, 3)
-      /// 8: edge (0, 2)
-      /// 9: edge (0, 1)
-
-      uint_t localEdgeIDInStiffnessMatrix = 10; // this should crash when accessing the matrix
-           if ( edge.at(0) == 2 && edge.at(1) == 3 ) localEdgeIDInStiffnessMatrix = 4;
-      else if ( edge.at(0) == 1 && edge.at(1) == 3 ) localEdgeIDInStiffnessMatrix = 5;
-      else if ( edge.at(0) == 1 && edge.at(1) == 2 ) localEdgeIDInStiffnessMatrix = 6;
-      else if ( edge.at(0) == 0 && edge.at(1) == 3 ) localEdgeIDInStiffnessMatrix = 7;
-      else if ( edge.at(0) == 0 && edge.at(1) == 2 ) localEdgeIDInStiffnessMatrix = 8;
-      else if ( edge.at(0) == 0 && edge.at(1) == 1 ) localEdgeIDInStiffnessMatrix = 9;
-      else
-      {
-        WALBERLA_ASSERT( "Inconsistent element / orientation." );
-      }
-
-      const auto edgeDoFIndex = edgedof::calcEdgeDoFIndex( elementAsIndices.at( edge.at(0) ), elementAsIndices.at( edge.at(1) ) );
-      macroCellStencilEntries[ edgeDoFIndex ] += real_c( localStiffnessMatrix( 0, localEdgeIDInStiffnessMatrix ) );
-
-#else
       // obtain micro cell coordinates
       std::array< Point3D, 4 > geometricCoordinates;
       for ( uint_t localID = 0; localID < 4; localID++ ) {
@@ -295,8 +255,6 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToVertexStencil
 
       // obtain entry of local element matrix and add to stencil weight
       macroCellStencilEntries[ edgeDoFIndex ] += ufcGen.integrate( geometricCoordinates, { 0, 0 }, edge );
-
-#endif
 
     }
   }
@@ -357,38 +315,8 @@ inline std::map< indexing::IndexIncrement, real_t > calculateVertexToEdgeStencil
       logicalOffsetsFromCenter[localID] = microEdgeIndex + neighboringVertex0 + elementAsIndices.at( localID );
     }
 
-#ifdef OLD_SCHOOL
-    const auto localStiffnessMatrix = calculateLocalP2StiffnessMatrix( logicalOffsetsFromCenter, cell, level, ufcGen );
-
     // 5. Adding contribution to stencil
-    //    We now need to read from the correct row of the stiffness matrix.
-    //    We know that the first vertex that defines the current edge is at position 0.
-    //    Therefore (due to the ordering of in the FENICS matrix) the row is either at idx 7, 8 or 9.
 
-    /// 4: edge (2, 3)
-    /// 5: edge (1, 3)
-    /// 6: edge (1, 2)
-    /// 7: edge (0, 3)
-    /// 8: edge (0, 2)
-    /// 9: edge (0, 1)
-
-    uint_t localEdgeIDInStiffnessMatrix = 10; // this should crash when accessing the matrix
-    WALBERLA_ASSERT_NOT_IDENTICAL( cellAtVertex.at(0), secondDirectionInElements );
-    if ( cellAtVertex.at(1) == secondDirectionInElements ) localEdgeIDInStiffnessMatrix = 9;
-    else if ( cellAtVertex.at(2) == secondDirectionInElements ) localEdgeIDInStiffnessMatrix = 8;
-    else if ( cellAtVertex.at(3) == secondDirectionInElements ) localEdgeIDInStiffnessMatrix = 7;
-    else
-    {
-      WALBERLA_ASSERT( "Inconsistent element / orientation." );
-    }
-
-    for ( uint_t localVertexID = 0; localVertexID < 4; localVertexID++ )
-    {
-      const auto vertexDoFIndex = neighboringVertex0 + elementAsIndices.at( localVertexID );
-      macroCellStencilEntries[ vertexDoFIndex ] += real_c( localStiffnessMatrix( localEdgeIDInStiffnessMatrix, localVertexID ) );
-    }
-
-#else
     // obtain micro cell coordinates
     std::array< Point3D, 4 > geometricCoordinates;
     for ( uint_t localID = 0; localID < 4; localID++ ) {
@@ -399,17 +327,14 @@ inline std::map< indexing::IndexIncrement, real_t > calculateVertexToEdgeStencil
     auto centerEdge = edgeWithOrientationFromElement( elementAsIndices, centerOrientation ).value();
 
     for ( uint_t localVertexID = 0; localVertexID < 4; localVertexID++ )
-    {
+      {
+        // find index into stencil
+        const auto vertexDoFIndex = neighboringVertex0 + elementAsIndices.at( localVertexID );
 
-      // find index into stencil
-      const auto vertexDoFIndex = neighboringVertex0 + elementAsIndices.at( localVertexID );
-
-      // obtain entry of local element matrix and add to stencil weight
-      macroCellStencilEntries[ vertexDoFIndex ] += ufcGen.integrate( geometricCoordinates, centerEdge,
-                                                                     { localVertexID, localVertexID } );
-    }
-
-#endif
+        // obtain entry of local element matrix and add to stencil weight
+        macroCellStencilEntries[ vertexDoFIndex ] += ufcGen.integrate( geometricCoordinates, centerEdge,
+                                                                       { localVertexID, localVertexID } );
+      }
   }
 
   return macroCellStencilEntries;
@@ -477,47 +402,7 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToEdgeStencilIn
         logicalOffsetsFromCenter[localID] = microEdgeIndex + neighboringVertex0 + elementAsIndices.at( localID );
       }
 
-#ifdef OLD_SCHOOL
-      const auto localStiffnessMatrix = calculateLocalP2StiffnessMatrix( logicalOffsetsFromCenter, cell, level, ufcGen );
-
       // 5. Adding contribution to stencil
-      //    We now need to read from the correct row of the stiffness matrix.
-      //    We know that the first vertex that defines the current edge is at position 0.
-      //    Therefore (due to the ordering of in the FENICS matrix) the row is either at idx 7, 8 or 9.
-
-      /// 4: edge (2, 3)
-      /// 5: edge (1, 3)
-      /// 6: edge (1, 2)
-      /// 7: edge (0, 3)
-      /// 8: edge (0, 2)
-      /// 9: edge (0, 1)
-
-      uint_t centerEdgeIDInStiffnessMatrix = 10; // this should crash when accessing the matrix
-      WALBERLA_ASSERT_NOT_IDENTICAL( cellAtVertex.at(0), secondDirectionInElements );
-      if ( cellAtVertex.at(1) == secondDirectionInElements ) centerEdgeIDInStiffnessMatrix = 9;
-      else if ( cellAtVertex.at(2) == secondDirectionInElements ) centerEdgeIDInStiffnessMatrix = 8;
-      else if ( cellAtVertex.at(3) == secondDirectionInElements ) centerEdgeIDInStiffnessMatrix = 7;
-      else
-      {
-        WALBERLA_ASSERT( "Inconsistent element / orientation." );
-      }
-
-      uint_t leafEdgeIDInStiffnessMatrix = 10; // this should crash when accessing the matrix
-      if ( leafEdge.at(0) == 2 && leafEdge.at(1) == 3 ) leafEdgeIDInStiffnessMatrix = 4;
-      else if ( leafEdge.at(0) == 1 && leafEdge.at(1) == 3 ) leafEdgeIDInStiffnessMatrix = 5;
-      else if ( leafEdge.at(0) == 1 && leafEdge.at(1) == 2 ) leafEdgeIDInStiffnessMatrix = 6;
-      else if ( leafEdge.at(0) == 0 && leafEdge.at(1) == 3 ) leafEdgeIDInStiffnessMatrix = 7;
-      else if ( leafEdge.at(0) == 0 && leafEdge.at(1) == 2 ) leafEdgeIDInStiffnessMatrix = 8;
-      else if ( leafEdge.at(0) == 0 && leafEdge.at(1) == 1 ) leafEdgeIDInStiffnessMatrix = 9;
-      else
-      {
-        WALBERLA_ASSERT( "Inconsistent element / orientation." );
-      }
-
-      const auto edgeDoFIndex = edgedof::calcEdgeDoFIndex( neighboringVertex0 + elementAsIndices.at( leafEdge.at(0) ), neighboringVertex0 + elementAsIndices.at( leafEdge.at(1) ) );
-      macroCellStencilEntries[ edgeDoFIndex ] += real_c( localStiffnessMatrix( centerEdgeIDInStiffnessMatrix, leafEdgeIDInStiffnessMatrix ) );
-
-#else
 
       // obtain micro cell coordinates
       std::array< Point3D, 4 > geometricCoordinates;
@@ -534,8 +419,6 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToEdgeStencilIn
 
       // obtain entry of local element matrix and add to stencil weight
       macroCellStencilEntries[ edgeDoFIndex ] += ufcGen.integrate( geometricCoordinates, centerEdge, leafEdge );
-
-#endif
 
     }
   }
