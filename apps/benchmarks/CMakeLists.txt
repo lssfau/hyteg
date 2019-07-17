@@ -9,6 +9,7 @@ waLBerla_add_executable( NAME IndexFunctionVSManualVersion
 add_subdirectory(KernelBench)
 add_subdirectory(P1Benchmark)
 add_subdirectory(P2Benchmark)
+add_subdirectory(P2OperatorBenchmarks)
 add_subdirectory(P2SolverBenchmark)
 add_subdirectory(P1CGBenchmark)
 add_subdirectory(ApplyPerformanceAnalysis-2D-P2)

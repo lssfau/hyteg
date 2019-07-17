@@ -1,0 +1,6 @@
+Parameters
+{
+    level 8;
+    iterationMinTime 1.0;
+    kernelType APPLY_E_TO_E_REPLACE;
+}
