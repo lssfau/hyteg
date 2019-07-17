@@ -57,6 +57,13 @@ public:
     return real_c( elMat( rowIdx, colIdx ) );
   }
 
+  template <long unsigned int size>
+  std::array<real_t,size> integrate(  const std::array< Point3D, 4 >& coords,
+                                      const P2Form::dofPosByVertexPair3D &cntrPos,
+                                      const std::array<P2Form::dofPosByVertexPair3D,size> &leafPos ) const {
+    WALBERLA_ABORT( "Missing implementation in P2ToP1FenicsForm" );
+  }
+
   bool assemble2D() const override { return !std::is_same< UFCOperator2D, hhg::fenics::NoAssemble >::value; }
 
   bool assemble3D() const override { return !std::is_same< UFCOperator3D, hhg::fenics::NoAssemble >::value; }

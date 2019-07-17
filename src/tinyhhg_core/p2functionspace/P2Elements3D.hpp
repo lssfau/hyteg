@@ -326,15 +326,33 @@ inline std::map< indexing::IndexIncrement, real_t > calculateVertexToEdgeStencil
     // find vertices of centerEdge
     auto centerEdge = edgeWithOrientationFromElement( elementAsIndices, centerOrientation ).value();
 
-    for ( uint_t localVertexID = 0; localVertexID < 4; localVertexID++ )
-      {
-        // find index into stencil
-        const auto vertexDoFIndex = neighboringVertex0 + elementAsIndices.at( localVertexID );
+    if( std::is_same<UFCOperator, P2Form >::value ) {
 
-        // obtain entry of local element matrix and add to stencil weight
-        macroCellStencilEntries[ vertexDoFIndex ] += ufcGen.integrate( geometricCoordinates, centerEdge,
-                                                                       { localVertexID, localVertexID } );
-      }
+      // obtain weights from local element matrix
+      std::array<P2Form::dofPosByVertexPair3D,4> leafPos = {{ {0,0}, {1,1}, {2,2}, {3,3} }};
+      std::array<real_t,4> weights = ufcGen.template integrate< 4 >( geometricCoordinates, centerEdge, leafPos );
+      
+      // add values at correct index position into stencil
+      for ( uint_t localVertexID = 0; localVertexID < 4; localVertexID++ )
+        {
+          const auto vertexDoFIndex = neighboringVertex0 + elementAsIndices.at( localVertexID );
+          macroCellStencilEntries[ vertexDoFIndex ] += weights[ localVertexID ];
+        }
+    }
+
+    else {
+      for ( uint_t localVertexID = 0; localVertexID < 4; localVertexID++ )
+        {
+
+          // find index into stencil
+          const auto vertexDoFIndex = neighboringVertex0 + elementAsIndices.at( localVertexID );
+
+          // obtain entry of local element matrix and add to stencil weight
+          macroCellStencilEntries[ vertexDoFIndex ] += ufcGen.integrate( geometricCoordinates, centerEdge,
+                                                                         { localVertexID, localVertexID } );
+        }
+    }
+
   }
 
   return macroCellStencilEntries;
