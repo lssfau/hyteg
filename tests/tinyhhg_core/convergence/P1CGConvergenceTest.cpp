@@ -3,8 +3,8 @@
 #include "core/timing/Timer.h"
 
 #include "tinyhhg_core/VTKWriter.hpp"
-#include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 
 using walberla::real_t;
@@ -19,8 +19,8 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   const uint_t      level     = 4;
-   const std::string meshFile  = "../../data/meshes/quad_8el.msh";
+   const uint_t      level    = 4;
+   const std::string meshFile = "../../data/meshes/quad_8el.msh";
 
    auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
 
@@ -31,7 +31,7 @@ int main( int argc, char* argv[] )
    hhg::P1Function< real_t > err( "err", storage, level, level );
    hhg::P1Function< real_t > npoints_helper( "npoints_helper", storage, level, level );
 
-   hhg::P1MassOperator    M( storage, level, level );
+   hhg::P1ConstantMassOperator    M( storage, level, level );
    hhg::P1ConstantLaplaceOperator L( storage, level, level );
 
    std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) {

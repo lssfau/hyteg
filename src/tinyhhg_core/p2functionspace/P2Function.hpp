@@ -6,6 +6,9 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFFunction.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
+// #include "tinyhhg_core/p2functionspace/P2Multigrid.hpp"
+// #include "tinyhhg_core/p2functionspace/P2TransferOperators.hpp"
+// #include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
 
 namespace hhg {
 
@@ -43,6 +46,10 @@ class P2Function : public Function< P2Function< ValueType > >
       vertexDoFFunction_.template communicate< SenderType, ReceiverType >( level );
       edgeDoFFunction_.template communicate< SenderType, ReceiverType >( level );
    }
+
+   inline ValueType evaluate( const Point3D& coordinates, uint_t level ) const;
+
+   inline void evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const;
 
    void interpolate( const ValueType& constant, uint_t level, DoFType flag = All ) const;
 

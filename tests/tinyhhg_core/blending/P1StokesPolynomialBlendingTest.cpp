@@ -3,7 +3,7 @@
 #include <tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp>
 
 #include "tinyhhg_core/VTKWriter.hpp"
-#include "tinyhhg_core/p1functionspace/P1BlendingOperator.hpp"
+#include "tinyhhg_core/p1functionspace/P1VariableOperator.hpp"
 #include "tinyhhg_core/composites/P1StokesOperator.hpp"
 #include "tinyhhg_core/composites/P1PolynomialBlendingStokesOperator.hpp"
 #include "tinyhhg_core/composites/P1CoefficientStokesOperator.hpp"

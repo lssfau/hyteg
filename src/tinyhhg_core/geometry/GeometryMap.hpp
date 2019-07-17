@@ -12,8 +12,9 @@ class GeometryMap
    enum class Type : uint_t
    {
       IDENTITY = 0,
-      AFFINE = 1,
-      CIRCULAR = 2
+      AFFINE   = 1,
+      CIRCULAR = 2,
+      POLAR_COORDS = 3
    };
 
    virtual ~GeometryMap(){};
@@ -35,7 +36,7 @@ class GeometryMap
 
    /// Evaluation of the determinant of the Jacobian matrix at reference position \p x
    /// \param x Reference input coordinates
-   real_t evalDetDF(const Point3D& x);
+   real_t evalDetDF( const Point3D& x );
 
    /// Serialization of a GeometryMap object
    static void serialize( const std::shared_ptr< GeometryMap >& map, walberla::mpi::SendBuffer& sendBuffer );

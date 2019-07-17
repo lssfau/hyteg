@@ -81,6 +81,45 @@ typedef std::function<void(real_t *,
                       const real_t *,
                       int cell_orientation)> TabulateTensor;
 
+  /// The P2DoFMap maps a pair of vertex indices to a corresponding local
+  /// index for a degree of freedom using the FEniCS indexing for a
+  /// P2 element on a tetrahedron.
+  ///
+  /// There are two cases:
+  ///
+  /// (a) Both vertex indices are identical, then the map stores the
+  ///     index of the dof associated with this vertex.
+  ///
+  /// (b) The two vertex indices are different, then the map stores
+  ///     the index of the dof associated with the midpoint of the
+  ///     tet's edge given by those two vertices.
+  ///
+  /// P2DoFMap[0][0] = 0;
+  /// P2DoFMap[0][1] = 9;
+  /// P2DoFMap[0][2] = 8;
+  /// P2DoFMap[0][3] = 7;
+  ///
+  /// P2DoFMap[1][0] = 9;
+  /// P2DoFMap[1][1] = 1;
+  /// P2DoFMap[1][2] = 6;
+  /// P2DoFMap[1][3] = 5;
+  ///
+  /// P2DoFMap[2][0] = 8;
+  /// P2DoFMap[2][1] = 6;
+  /// P2DoFMap[2][2] = 2;
+  /// P2DoFMap[2][3] = 4;
+  ///
+  /// P2DoFMap[3][0] = 7;
+  /// P2DoFMap[3][1] = 5;
+  /// P2DoFMap[3][2] = 4;
+  /// P2DoFMap[3][3] = 3;
+  // wait for C++17
+  // constexpr static std::array< std::array<uint_t,4>, 4 > P2DoFMap =
+  const std::array< std::array<uint_t,4>, 4 > P2DoFMap =
+    { { { 0, 9, 8, 7 },
+        { 9, 1, 6, 5 },
+        { 8, 6, 2, 4 },
+        { 7, 5, 4, 3 } } };
 
-}
-}
+} // namespace fenics
+} // namespace hhg

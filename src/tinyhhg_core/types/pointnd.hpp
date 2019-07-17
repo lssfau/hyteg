@@ -13,6 +13,7 @@ namespace hhg
 {
 
 using walberla::real_t;
+using walberla::uint_t;
 
 /// \brief  N-dimensional vector
 /// \author Daniel Drzisga (drzisga@ma.tum.de)
@@ -147,19 +148,28 @@ public:
     return *this;
   }
 
+  /// Return negated copy of \p this
+  /// \returns Copy of \p this with negated components
+  PointND operator-() const
+  {
+    return static_cast<T>(-1) * (*this);
+  }
+
   /// Reference to component of vector at position \p index
   /// \param index The index of the component to access
   /// \returns Reference to component at position \p index
-  T& operator[](const int index)
+  T& operator[](const uint_t index)
   {
+    WALBERLA_ASSERT(index < N, "PointND index out of bounds: index = " << index << " but N = " << N);
     return x_[index];
   }
 
   /// Value of component of vector at position \p index
   /// \param index The index of the component to access
   /// \returns Value of component at position \p index
-  T operator[](const int index) const
+  T operator[](const uint_t index) const
   {
+    WALBERLA_ASSERT(index < N, "PointND index out of bounds: index = " << index << " but N = " << N);
     return x_[index];
   }
 
@@ -238,6 +248,16 @@ inline std::ostream& operator<<(std::ostream &os, const PointND<T, N> &pointnd)
 
 typedef PointND<real_t, 2> Point2D;
 typedef PointND<real_t, 3> Point3D;
+typedef PointND<real_t, 4> Point4D;
+typedef PointND<real_t, 6> Point6D;
+
+template <size_t N>
+using PointNDr = PointND<real_t, N>;
+
+inline Point3D crossProduct( const Point3D & a, const Point3D & b )
+{
+  return Point3D({ a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0] });
+}
 
 }
 

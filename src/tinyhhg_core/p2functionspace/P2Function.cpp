@@ -14,6 +14,7 @@
 #include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
 #include "tinyhhg_core/p2functionspace/P2TransferOperators.hpp"
 #include "tinyhhg_core/p2functionspace/P2Multigrid.hpp"
+#include "tinyhhg_core/geometry/Intersection.hpp"
 
 namespace hhg {
 
@@ -59,6 +60,23 @@ P2Function< ValueType >::P2Function( const std::string&                         
       /// TODO: find better solution
       communicators_[level] = nullptr;
    }
+}
+
+template < typename ValueType >
+ValueType P2Function< ValueType >::evaluate( const Point3D& coordinates, uint_t level ) const
+{
+  WALBERLA_UNUSED( coordinates );
+  WALBERLA_UNUSED( level );
+  WALBERLA_ABORT( "P2Function< ValueType >::evaluate not implemented for requested template parameter" );
+}
+
+template < typename ValueType >
+void P2Function< ValueType >::evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const
+{
+  WALBERLA_UNUSED( coordinates );
+  WALBERLA_UNUSED( level );
+  WALBERLA_UNUSED( gradient );
+  WALBERLA_ABORT( "P2Function< ValueType >::evaluateGradient not implemented for requested template parameter" );
 }
 
 template < typename ValueType >
@@ -590,6 +608,86 @@ void P2Function< ValueType >::setLocalCommunicationMode(
    edgeDoFFunction_.setLocalCommunicationMode( localCommMode );
 }
 
+
+// =================
+//  Specialisations
+// =================
+template <>
+real_t P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level ) const
+{
+  // Check if 2D or 3D function
+  if ( !this->getStorage()->hasGlobalCells() )
+    {
+      for ( auto& it : this->getStorage()->getFaces() )
+        {
+          Face& face = *it.second;
+
+          if ( sphereTriangleIntersection( coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+            {
+              return P2::macroface::evaluate( level, face, coordinates, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
+            }
+        }
+    }
+  else
+    {
+      for ( auto& it : this->getStorage()->getCells() )
+        {
+          Cell& cell = *it.second;
+          
+          if ( isPointInTetrahedron( coordinates,
+                                     cell.getCoordinates()[0],
+                                     cell.getCoordinates()[1],
+                                     cell.getCoordinates()[2],
+                                     cell.getCoordinates()[3] ) )
+            {
+              WALBERLA_ABORT( " P2Function< real_t >::evaluate not implemented for 3D case" );
+            }
+        }
+    }
+
+  WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
+}
+
+template <>
+void P2Function< real_t >::evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const
+{
+  // Check if 2D or 3D function
+  if ( !this->getStorage()->hasGlobalCells() )
+    {
+      for ( auto& it : this->getStorage()->getFaces() )
+        {
+          Face& face = *it.second;
+
+          if ( sphereTriangleIntersection( coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+            {
+              P2::macroface::evaluateGradient( level, face, coordinates, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID(), gradient );
+              return;
+            }
+        }
+    }
+  else
+    {
+      for ( auto& it : this->getStorage()->getCells() )
+        {
+          Cell& cell = *it.second;
+          
+          if ( isPointInTetrahedron( coordinates,
+                                     cell.getCoordinates()[0],
+                                     cell.getCoordinates()[1],
+                                     cell.getCoordinates()[2],
+                                     cell.getCoordinates()[3] ) )
+            {
+              WALBERLA_ABORT( " P2Function< real_t >::evaluateGradient not implemented for 3D case" );
+            }
+        }
+    }
+
+  WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
+}
+
+// ========================
+//  explicit instantiation
+// ========================
 template class P2Function< double >;
 template class P2Function< int >;
 

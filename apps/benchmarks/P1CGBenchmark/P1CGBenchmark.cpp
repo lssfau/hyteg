@@ -49,7 +49,7 @@ int main( int argc, char* argv[] )
    hhg::P1Function< double > err( "err", storage, level, level );
    hhg::P1Function< double > npoints_helper( "npoints_helper", storage, level, level );
 
-   hhg::P1MassOperator    M( storage, level, level );
+   hhg::P1ConstantMassOperator    M( storage, level, level );
    hhg::P1ConstantLaplaceOperator L( storage, level, level );
 
    std::function< double( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) {

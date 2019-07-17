@@ -7,6 +7,8 @@
 #include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
 #include "tinyhhg_core/StencilDirections.hpp"
+#include "tinyhhg_core/p2functionspace/P2Form.hpp"
+#include "tinyhhg_core/p2functionspace/generated_new/P2FenicsForm.hpp"
 
 #include <set>
 
@@ -218,7 +220,8 @@ inline typename fenics::UFCTrait< UFCOperator >::LocalStiffnessMatrix_T calculat
 template< typename UFCOperator >
 inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToVertexStencilInMacroCell( const indexing::Index & microVertexIndex,
                                                                                              const edgedof::EdgeDoFOrientation & leafOrientation,
-                                                                                             const Cell & cell, const uint_t & level, const UFCOperator & ufcGen )
+                                                                                             const Cell & cell, const uint_t & level,
+                                                                                             const UFCOperator & ufcGen )
 {
   typedef stencilDirection sd;
   std::map< indexing::IndexIncrement, real_t > macroCellStencilEntries;
@@ -251,6 +254,7 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToVertexStencil
         logicalOffsetsFromCenter[localID] = microVertexIndex + elementAsIndices.at( localID );
       }
 
+#ifdef OLD_SCHOOL
       const auto localStiffnessMatrix = calculateLocalP2StiffnessMatrix( logicalOffsetsFromCenter, cell, level, ufcGen );
 
       // 5. Adding contribution to stencil
@@ -278,8 +282,25 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToVertexStencil
 
       const auto edgeDoFIndex = edgedof::calcEdgeDoFIndex( elementAsIndices.at( edge.at(0) ), elementAsIndices.at( edge.at(1) ) );
       macroCellStencilEntries[ edgeDoFIndex ] += real_c( localStiffnessMatrix( 0, localEdgeIDInStiffnessMatrix ) );
+
+#else
+      // obtain micro cell coordinates
+      std::array< Point3D, 4 > geometricCoordinates;
+      for ( uint_t localID = 0; localID < 4; localID++ ) {
+        geometricCoordinates[localID] = vertexdof::macrocell::coordinateFromIndex( level, cell, logicalOffsetsFromCenter[localID] );
+      }
+
+      // find index into stencil
+      const auto edgeDoFIndex = edgedof::calcEdgeDoFIndex( elementAsIndices.at( edge.at(0) ), elementAsIndices.at( edge.at(1) ) );
+
+      // obtain entry of local element matrix and add to stencil weight
+      macroCellStencilEntries[ edgeDoFIndex ] += ufcGen.integrate( geometricCoordinates, { 0, 0 }, edge );
+
+#endif
+
     }
   }
+
   return macroCellStencilEntries;
 }
 
@@ -336,6 +357,7 @@ inline std::map< indexing::IndexIncrement, real_t > calculateVertexToEdgeStencil
       logicalOffsetsFromCenter[localID] = microEdgeIndex + neighboringVertex0 + elementAsIndices.at( localID );
     }
 
+#ifdef OLD_SCHOOL
     const auto localStiffnessMatrix = calculateLocalP2StiffnessMatrix( logicalOffsetsFromCenter, cell, level, ufcGen );
 
     // 5. Adding contribution to stencil
@@ -365,7 +387,31 @@ inline std::map< indexing::IndexIncrement, real_t > calculateVertexToEdgeStencil
       const auto vertexDoFIndex = neighboringVertex0 + elementAsIndices.at( localVertexID );
       macroCellStencilEntries[ vertexDoFIndex ] += real_c( localStiffnessMatrix( localEdgeIDInStiffnessMatrix, localVertexID ) );
     }
+
+#else
+    // obtain micro cell coordinates
+    std::array< Point3D, 4 > geometricCoordinates;
+    for ( uint_t localID = 0; localID < 4; localID++ ) {
+      geometricCoordinates[localID] = vertexdof::macrocell::coordinateFromIndex( level, cell, logicalOffsetsFromCenter[localID] );
+    }
+
+    // find vertices of centerEdge
+    auto centerEdge = edgeWithOrientationFromElement( elementAsIndices, centerOrientation ).value();
+
+    for ( uint_t localVertexID = 0; localVertexID < 4; localVertexID++ )
+    {
+
+      // find index into stencil
+      const auto vertexDoFIndex = neighboringVertex0 + elementAsIndices.at( localVertexID );
+
+      // obtain entry of local element matrix and add to stencil weight
+      macroCellStencilEntries[ vertexDoFIndex ] += ufcGen.integrate( geometricCoordinates, centerEdge,
+                                                                     { localVertexID, localVertexID } );
+    }
+
+#endif
   }
+
   return macroCellStencilEntries;
 }
 
@@ -431,6 +477,7 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToEdgeStencilIn
         logicalOffsetsFromCenter[localID] = microEdgeIndex + neighboringVertex0 + elementAsIndices.at( localID );
       }
 
+#ifdef OLD_SCHOOL
       const auto localStiffnessMatrix = calculateLocalP2StiffnessMatrix( logicalOffsetsFromCenter, cell, level, ufcGen );
 
       // 5. Adding contribution to stencil
@@ -469,6 +516,27 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToEdgeStencilIn
 
       const auto edgeDoFIndex = edgedof::calcEdgeDoFIndex( neighboringVertex0 + elementAsIndices.at( leafEdge.at(0) ), neighboringVertex0 + elementAsIndices.at( leafEdge.at(1) ) );
       macroCellStencilEntries[ edgeDoFIndex ] += real_c( localStiffnessMatrix( centerEdgeIDInStiffnessMatrix, leafEdgeIDInStiffnessMatrix ) );
+
+#else
+
+      // obtain micro cell coordinates
+      std::array< Point3D, 4 > geometricCoordinates;
+      for ( uint_t localID = 0; localID < 4; localID++ ) {
+        geometricCoordinates[localID] = vertexdof::macrocell::coordinateFromIndex( level, cell, logicalOffsetsFromCenter[localID] );
+      }
+
+      // find index into stencil
+      const auto edgeDoFIndex = edgedof::calcEdgeDoFIndex( neighboringVertex0 + elementAsIndices.at( leafEdge.at(0) ),
+                                                           neighboringVertex0 + elementAsIndices.at( leafEdge.at(1) ) );
+
+      // find vertices of centerEdge
+      auto centerEdge = edgeWithOrientationFromElement( elementAsIndices, centerOrientation ).value();
+
+      // obtain entry of local element matrix and add to stencil weight
+      macroCellStencilEntries[ edgeDoFIndex ] += ufcGen.integrate( geometricCoordinates, centerEdge, leafEdge );
+
+#endif
+
     }
   }
 
