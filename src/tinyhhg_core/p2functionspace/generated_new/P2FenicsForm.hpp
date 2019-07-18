@@ -167,7 +167,7 @@ class P2FenicsForm : public P2Form
     uint_t rowIdx = fenics::P2DoFMap[ cntrPos[0] ][ cntrPos[1] ];
     uint_t colIdx = 0;
 
-    for( uint k = 0; k < leafPos.size(); ++k ) {
+    for( uint_t k = 0; k < leafPos.size(); ++k ) {
       colIdx = fenics::P2DoFMap[ leafPos[k][0] ][ leafPos[k][1] ];
       matRow[k] = real_c( elMat( rowIdx, colIdx ) );
     }
