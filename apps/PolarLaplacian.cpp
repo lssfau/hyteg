@@ -15,8 +15,8 @@
 #include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
 #include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
 
-#include "tinyhhg_core/p1functionspace/generated_new/P1FenicsForm.hpp"
-#include "tinyhhg_core/p1functionspace/generated/p1_polar_laplacian.h"
+#include "tinyhhg_core/forms/form_fenics_base/P1FenicsForm.hpp"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_polar_laplacian.h"
 
 using walberla::real_t;
 using walberla::uint_t;

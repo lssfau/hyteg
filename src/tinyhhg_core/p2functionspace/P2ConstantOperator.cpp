@@ -16,12 +16,12 @@
 #pragma GCC diagnostic ignored "-Wfloat-conversion"
 #endif
 
-#include "generated/p2_diffusion.h"
-#include "generated/p2_div.h"
-#include "generated/p2_divt.h"
-#include "generated/p2_mass.h"
-#include "generated/p2_tet_diffusion.h"
-#include "generated/p2_tet_mass.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_diffusion.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_div.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_divt.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_mass.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_diffusion.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_mass.h"
 
 #ifdef WALBERLA_CXX_COMPILER_IS_GNU
 #pragma GCC diagnostic pop

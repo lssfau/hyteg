@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tinyhhg_core/form/Form.hpp"
+#include "tinyhhg_core/forms/Form.hpp"
 
 namespace hhg {
 

@@ -5,18 +5,18 @@
 #endif
 
 #include "tinyhhg_core/fenics/fenics.hpp"
-#include "tinyhhg_core/p1functionspace/generated/p1_diffusion.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_div.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_divt.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_mass.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_pspg.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_stokes_epsilon.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_diffusion.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_div_tet.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_divt_tet.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_mass.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_pspg_tet.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_tet_diffusion.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_diffusion.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_div.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_divt.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_mass.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_pspg.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_stokes_epsilon.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_tet_diffusion.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_tet_div_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_tet_divt_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_tet_mass.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_tet_pspg_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_diffusion.h"
 
 #ifdef _MSC_VER
 #pragma warning( pop )

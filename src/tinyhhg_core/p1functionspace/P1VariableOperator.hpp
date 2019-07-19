@@ -7,12 +7,12 @@
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "P1DataHandling.hpp"
 
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormLaplace.hpp"
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormMass.hpp"
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormEpsilon.hpp"
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormDivT.hpp"
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormDiv.hpp"
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormPSPG.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormLaplace.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormMass.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormEpsilon.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormDivT.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormDiv.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormPSPG.hpp"
 
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 

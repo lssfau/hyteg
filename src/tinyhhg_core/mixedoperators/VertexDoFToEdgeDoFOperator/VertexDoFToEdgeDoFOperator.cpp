@@ -5,7 +5,7 @@
 #include "generatedKernels/GeneratedKernelsVertexToEdgeMacroFace2D.hpp"
 #include "generatedKernels/GeneratedKernelsVertexToEdgeMacroCell3D.hpp"
 
-#include "tinyhhg_core/mixedoperators/P1ToP2FenicsForm.hpp"
+#include "tinyhhg_core/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
 
 namespace hhg {
 

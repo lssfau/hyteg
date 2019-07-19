@@ -7,8 +7,8 @@
 #include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
 #include "tinyhhg_core/StencilDirections.hpp"
-#include "tinyhhg_core/p2functionspace/P2Form.hpp"
-#include "tinyhhg_core/p2functionspace/generated_new/P2FenicsForm.hpp"
+#include "tinyhhg_core/forms/P2Form.hpp"
+#include "tinyhhg_core/forms/form_fenics_base/P2FenicsForm.hpp"
 
 #include <set>
 

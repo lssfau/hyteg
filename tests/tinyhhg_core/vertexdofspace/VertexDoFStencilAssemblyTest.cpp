@@ -13,7 +13,7 @@
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 
-#include "tinyhhg_core/p1functionspace/generated_new/P1FenicsForm.hpp"
+#include "tinyhhg_core/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 
 namespace hhg {
