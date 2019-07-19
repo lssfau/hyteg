@@ -5,7 +5,7 @@
 #include "tinyhhg_core/Operator.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/generated_new/P1FenicsForm.hpp"
+#include "tinyhhg_core/forms/form_fenics_base/P1FenicsForm.hpp"
 
 namespace hhg {
 

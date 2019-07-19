@@ -6,20 +6,20 @@
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/LevelWiseMemory.hpp"
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
-#include "tinyhhg_core/p2functionspace/generated_new/P2FenicsForm.hpp"
+#include "tinyhhg_core/forms/form_fenics_base/P2FenicsForm.hpp"
 
 #ifdef _MSC_VER
 #  pragma warning(push, 0)
 #endif
 
 #include "tinyhhg_core/fenics/fenics.hpp"
-#include "tinyhhg_core/p2functionspace/generated/p2_div.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_tet_diffusion.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_tet_mass.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_tet_pspg_tet.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_tet_div_tet.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_tet_divt_tet.h"
-#include "tinyhhg_core/mixedoperators/generated/p2_to_p1_tet_div_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_div.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_diffusion.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_mass.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_pspg_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_div_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_divt_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_to_p1_tet_div_tet.h"
 
 #ifdef _MSC_VER
 #  pragma warning(pop)

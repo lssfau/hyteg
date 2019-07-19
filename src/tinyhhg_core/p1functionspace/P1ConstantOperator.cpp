@@ -5,7 +5,7 @@
 #endif
 
 #include "tinyhhg_core/fenics/fenics.hpp"
-#include "tinyhhg_core/p1functionspace/generated/p1_diffusion.h"
+// #include "tinyhhg_core/forms/form_fenics_generated/p1_diffusion.h"
 
 #ifdef _MSC_VER
 #pragma warning( pop )
@@ -17,9 +17,9 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "tinyhhg_core/p1functionspace/variablestencil/VertexDoFVariableStencil.hpp"
 
-#include "tinyhhg_core/mixedoperators/P2ToP1FenicsForm.hpp"
-#include "tinyhhg_core/mixedoperators/P1ToP2FenicsForm.hpp"
-#include "tinyhhg_core/p2functionspace/generated_new/P2FenicsForm.hpp"
+#include "tinyhhg_core/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
+#include "tinyhhg_core/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
+#include "tinyhhg_core/forms/form_fenics_base/P2FenicsForm.hpp"
 
 #include "P1Elements.hpp"
 #include "generatedKernels/GeneratedKernelsVertexToVertexMacroCell3D.hpp"

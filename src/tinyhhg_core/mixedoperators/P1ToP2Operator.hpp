@@ -7,8 +7,8 @@
 #  pragma warning(push, 0)
 #endif
 
-#include "tinyhhg_core/p2functionspace/generated_new/P2FenicsForm.hpp"
-#include "tinyhhg_core/mixedoperators/P1ToP2FenicsForm.hpp"
+#include "tinyhhg_core/forms/form_fenics_base/P2FenicsForm.hpp"
+#include "tinyhhg_core/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
 
 #ifdef _MSC_VER
 #  pragma warning(pop)

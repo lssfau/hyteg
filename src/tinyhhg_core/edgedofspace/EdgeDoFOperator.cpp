@@ -7,7 +7,7 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroEdge.hpp"
-#include "tinyhhg_core/p2functionspace/generated_new/P2FenicsForm.hpp"
+#include "tinyhhg_core/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "tinyhhg_core/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
 
 namespace hhg {

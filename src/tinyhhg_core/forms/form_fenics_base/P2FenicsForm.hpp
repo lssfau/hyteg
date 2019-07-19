@@ -2,43 +2,43 @@
 
 #include "tinyhhg_core/fenics/fenics.hpp"
 #include "tinyhhg_core/fenics/ufc_traits.hpp"
-#include "tinyhhg_core/p2functionspace/P2Form.hpp"
+#include "tinyhhg_core/forms/P2Form.hpp"
 
 // P1
-#include "tinyhhg_core/p1functionspace/generated/p1_diffusion.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_div.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_div_K_grad.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_divt.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_mass.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_polar_laplacian.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_polar_mass.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_pspg.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_stokes_epsilon.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_diffusion.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_div_tet.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_divt_tet.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_mass.h"
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_pspg_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_diffusion.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_div.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_div_K_grad.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_divt.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_mass.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_polar_laplacian.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_polar_mass.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_pspg.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_stokes_epsilon.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_tet_diffusion.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_tet_div_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_tet_divt_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_tet_mass.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_tet_pspg_tet.h"
 
 // P2
-#include "tinyhhg_core/p2functionspace/generated/p2_diffusion.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_div.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_divt.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_mass.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_pspg.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_tet_diffusion.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_tet_div_tet.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_tet_divt_tet.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_tet_mass.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_tet_pspg_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_diffusion.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_div.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_divt.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_mass.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_pspg.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_diffusion.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_div_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_divt_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_mass.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_pspg_tet.h"
 
 // P1 to P2
-#include "tinyhhg_core/mixedoperators/generated/p1_to_p2_divt.h"
-#include "tinyhhg_core/mixedoperators/generated/p1_to_p2_tet_divt_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_to_p2_divt.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_to_p2_tet_divt_tet.h"
 
 // P2 to P1
-#include "tinyhhg_core/mixedoperators/generated/p2_to_p1_div.h"
-#include "tinyhhg_core/mixedoperators/generated/p2_to_p1_tet_div_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_to_p1_div.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_to_p1_tet_div_tet.h"
 
 namespace hhg {
 
@@ -161,13 +161,14 @@ class P2FenicsForm : public P2Form
 
     Matrix10r elMat;
     computeLocalStiffnessMatrix( coords, elMat );
-    std::array<real_t,leafPos.size()> matRow;
+    std::array<real_t,size> matRow;
+    // std::array<real_t,leafPos.size()> matRow;
 
     uint_t rowIdx = fenics::P2DoFMap[ cntrPos[0] ][ cntrPos[1] ];
     uint_t colIdx = 0;
 
-    for( uint k = 0; k < leafPos.size(); ++k ) {
-      colIdx = fenics::P2DoFMap[ leafPos[0] ][ leafPos[1] ];
+    for( uint_t k = 0; k < leafPos.size(); ++k ) {
+      colIdx = fenics::P2DoFMap[ leafPos[k][0] ][ leafPos[k][1] ];
       matRow[k] = real_c( elMat( rowIdx, colIdx ) );
     }
 

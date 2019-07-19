@@ -6,7 +6,7 @@
 #include "tinyhhg_core/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
 #include "tinyhhg_core/p2functionspace/P2Elements.hpp"
 
-#include "tinyhhg_core/mixedoperators/P2ToP1FenicsForm.hpp"
+#include "tinyhhg_core/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
 
 namespace hhg{
 

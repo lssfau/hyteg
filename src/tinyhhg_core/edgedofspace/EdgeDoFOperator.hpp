@@ -10,7 +10,7 @@
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/p2functionspace/P2Elements3D.hpp"
-#include "tinyhhg_core/p2functionspace/generated_new/P2FenicsForm.hpp"
+#include "tinyhhg_core/forms/form_fenics_base/P2FenicsForm.hpp"
 
 namespace hhg{
 

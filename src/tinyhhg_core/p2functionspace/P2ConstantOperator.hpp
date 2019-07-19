@@ -5,7 +5,7 @@
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
-#include "tinyhhg_core/p2functionspace/generated_new/P2FenicsForm.hpp"
+#include "tinyhhg_core/forms/form_fenics_base/P2FenicsForm.hpp"
 
 namespace hhg {
 
