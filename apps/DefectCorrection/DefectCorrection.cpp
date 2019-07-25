@@ -44,7 +44,7 @@
 namespace hhg {
 
 using walberla::int64_c;
-using walberla::math::M_PI;
+using walberla::math::pi;
 
 /**
  * This application implements "defect correction" (DC) as described in Trottenberg et al (2001): Multigrid (sec. 5.4.1).

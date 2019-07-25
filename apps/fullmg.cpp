@@ -17,7 +17,7 @@
 #include "tinyhhg_core/solvers/CGSolver.hpp"
 
 using walberla::real_t;
-using walberla::math::M_PI;
+using walberla::math::pi;
 
 int main( int argc, char* argv[] )
 {
@@ -88,10 +88,10 @@ int main( int argc, char* argv[] )
    M.enableTiming( timingTree );
 
    std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) {
-      return sin( M_PI * xx[0] ) * sin( M_PI * xx[1] );
+      return sin( pi * xx[0] ) * sin( pi * xx[1] );
    };
    std::function< real_t( const hhg::Point3D& ) > rhs = []( const hhg::Point3D& xx ) {
-      return 2 * M_PI * M_PI * sin( M_PI * xx[0] ) * sin( M_PI * xx[1] );
+      return 2 * pi * pi * sin( pi * xx[0] ) * sin( pi * xx[1] );
    };
    std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };
    std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };

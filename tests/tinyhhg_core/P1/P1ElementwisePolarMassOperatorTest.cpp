@@ -8,7 +8,7 @@
 
 using walberla::real_t;
 using walberla::uint_t;
-using walberla::math::M_PI;
+using walberla::math::pi;
 
 using namespace hhg;
 
@@ -61,19 +61,19 @@ int main(int argc, char **argv)
 
   // Test with rectangle 1
   WALBERLA_LOG_INFO_ON_ROOT( "Testing with RECTANGLE 1 (full annulus)" );
-  MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {1.0, 0.0} ), Point2D( {3.0, 2*M_PI} ),
+  MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {1.0, 0.0} ), Point2D( {3.0, 2*pi} ),
                                                MeshInfo::CRISSCROSS, 1, 1 );
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
-  checkArea( storage, 8.0*M_PI );
+  checkArea( storage, 8.0*pi );
 
   // Test with rectangle 2
   WALBERLA_LOG_INFO_ON_ROOT( "Testing with RECTANGLE 2 (partial annulus)" );
-  meshInfo = MeshInfo::meshRectangle( Point2D( {1.0, 0.3*M_PI} ), Point2D( {3.0, 0.55*M_PI} ),
+  meshInfo = MeshInfo::meshRectangle( Point2D( {1.0, 0.3*pi} ), Point2D( {3.0, 0.55*pi} ),
                                                MeshInfo::CRISSCROSS, 1, 1 );
   SetupPrimitiveStorage setupStorage2(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage2 = std::make_shared<PrimitiveStorage>(setupStorage2);
-  checkArea( storage2, M_PI );
+  checkArea( storage2, pi );
 
   return EXIT_SUCCESS;
 }

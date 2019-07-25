@@ -800,7 +800,7 @@ int main( int argc, char* argv[] )
       {
         return []( const hhg::Point3D & x ) -> real_t
         {
-            return real_c( std::sin( walberla::math::M_PI * x[0] ) * std::sin( walberla::math::M_PI * x[1] ));
+            return real_c( std::sin( walberla::math::pi * x[0] ) * std::sin( walberla::math::pi * x[1] ));
         };
       }
     }
@@ -835,7 +835,7 @@ int main( int argc, char* argv[] )
         {
           return []( const hhg::Point3D & x ) -> real_t
           {
-              return real_c( std::cos( walberla::math::M_PI * x[0] ) * std::cos( walberla::math::M_PI * x[1] ));
+              return real_c( std::cos( walberla::math::pi * x[0] ) * std::cos( walberla::math::pi * x[1] ));
           };
         }
 
@@ -866,9 +866,9 @@ int main( int argc, char* argv[] )
         {
           return []( const hhg::Point3D & x ) -> real_t
           {
-              return real_c( 2 ) * std::pow( walberla::math::M_PI, 2 ) *
-                     std::sin( walberla::math::M_PI * x[0] ) * std::sin( walberla::math::M_PI * x[1] ) +
-                     std::cos( walberla::math::M_PI * x[0] ) * std::sin( walberla::math::M_PI * x[1] );
+              return real_c( 2 ) * std::pow( walberla::math::pi, 2 ) *
+                     std::sin( walberla::math::pi * x[0] ) * std::sin( walberla::math::pi * x[1] ) +
+                     std::cos( walberla::math::pi * x[0] ) * std::sin( walberla::math::pi * x[1] );
           };
         }
       }
@@ -896,9 +896,9 @@ int main( int argc, char* argv[] )
         {
           return []( const hhg::Point3D & x ) -> real_t
           {
-              return real_c( 2 ) * std::pow( walberla::math::M_PI, 2 ) *
-                     std::cos( walberla::math::M_PI * x[0] ) * std::cos( walberla::math::M_PI * x[1] ) +
-                     std::sin( walberla::math::M_PI * x[0] ) * std::cos( walberla::math::M_PI * x[1] );
+              return real_c( 2 ) * std::pow( walberla::math::pi, 2 ) *
+                     std::cos( walberla::math::pi * x[0] ) * std::cos( walberla::math::pi * x[1] ) +
+                     std::sin( walberla::math::pi * x[0] ) * std::cos( walberla::math::pi * x[1] );
           };
         }
       }
@@ -953,7 +953,7 @@ int main( int argc, char* argv[] )
         {
           return []( const hhg::Point3D & x ) -> real_t
           {
-             return real_c( std::sin( walberla::math::M_PI * x[0] ) * std::sin( walberla::math::M_PI * x[1] ));
+             return real_c( std::sin( walberla::math::pi * x[0] ) * std::sin( walberla::math::pi * x[1] ));
           };
         }
       }
