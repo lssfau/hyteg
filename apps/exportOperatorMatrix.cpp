@@ -31,7 +31,7 @@
 using walberla::real_t;
 using walberla::uint_t;
 using walberla::uint_c;
-using walberla::math::M_PI;
+using walberla::math::pi;
 
 using namespace hhg;
 

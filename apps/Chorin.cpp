@@ -74,7 +74,7 @@ int main( int argc, char* argv[] )
 
          if( time < inflowBuildupTime )
          {
-            damping = 0.5 * ( 1.0 + std::cos( walberla::math::M_PI * ( time / inflowBuildupTime - 1.0 ) ) );
+            damping = 0.5 * ( 1.0 + std::cos( walberla::math::pi * ( time / inflowBuildupTime - 1.0 ) ) );
          } else
          {
             damping = 1.0;

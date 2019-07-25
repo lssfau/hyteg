@@ -47,7 +47,7 @@
 namespace hhg {
 
 using walberla::int64_c;
-using walberla::math::M_PI;
+using walberla::math::pi;
 
 /**
  * This application implements "defect correction" (DC) as described in Trottenberg et al (2001): Multigrid (sec. 5.4.1).
@@ -107,21 +107,21 @@ static void defectCorrection( int argc, char** argv )
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
    std::function< real_t( const hhg::Point3D& ) > exactU = []( const hhg::Point3D& x ) {
-      return std::sin( 2 * M_PI * x[0] ) * std::cos( M_PI * x[1] );
+      return std::sin( 2 * pi * x[0] ) * std::cos( pi * x[1] );
    };
 
    std::function< real_t( const hhg::Point3D& ) > exactV = []( const hhg::Point3D& x ) {
-      return -2.0 * std::cos( 2 * M_PI * x[0] ) * std::sin( M_PI * x[1] );
+      return -2.0 * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] );
    };
 
    std::function< real_t( const hhg::Point3D& ) > exactP = []( const hhg::Point3D& x ) {
-      return 2.5 * M_PI * std::cos( 2 * M_PI * x[0] ) * std::cos( M_PI * x[1] );
+      return 2.5 * pi * std::cos( 2 * pi * x[0] ) * std::cos( pi * x[1] );
    };
 
    std::function< real_t( const hhg::Point3D& ) > rhsU = []( const hhg::Point3D& ) { return 0; };
 
    std::function< real_t( const hhg::Point3D& ) > rhsV = []( const hhg::Point3D& x ) {
-      return -12.5 * M_PI * M_PI * std::cos( 2 * M_PI * x[0] ) * std::sin( M_PI * x[1] );
+      return -12.5 * pi * pi * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] );
    };
 
    P1StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );

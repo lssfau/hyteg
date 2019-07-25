@@ -17,7 +17,7 @@
 using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
-using walberla::math::M_PI;
+using walberla::math::pi;
 
 using namespace hhg;
 
@@ -35,7 +35,7 @@ int main( int argc, char* argv[] )
   real_t rmax = 2.0;
 
   Point2D cornerLL( { rmin, 0.0 } );
-  Point2D cornerUR( { rmax, 2.0*M_PI } );
+  Point2D cornerUR( { rmax, 2.0*pi } );
 
   MeshInfo meshInfo = MeshInfo::meshRectangle( cornerLL, cornerUR, MeshInfo::CROSS, 1, 6 );
   WALBERLA_LOG_INFO_ON_ROOT( " *** Using Inline Mesher" );
@@ -78,7 +78,7 @@ int main( int argc, char* argv[] )
       massOp.apply( vecOfOnes, aux, lvl, All );
       real_t measure = vecOfOnes.dotGlobal( aux, lvl );
       WALBERLA_LOG_INFO_ON_ROOT( "annulus area = " << std::scientific << measure );
-      WALBERLA_CHECK_FLOAT_EQUAL( measure, 3.0*M_PI );
+      WALBERLA_CHECK_FLOAT_EQUAL( measure, 3.0*pi );
     }
 
   return 0;

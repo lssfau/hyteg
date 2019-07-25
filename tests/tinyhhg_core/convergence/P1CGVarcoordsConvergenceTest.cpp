@@ -72,7 +72,7 @@ int main( int argc, char* argv[] )
    L.enableTiming( timingTree );
 
    std::function< real_t( const hhg::Point3D& ) > map_x = []( const hhg::Point3D& x ) {
-      return x[0] + 0.1 * x[0] * std::sin( 3.0 * walberla::math::M_PI * x[1] );
+      return x[0] + 0.1 * x[0] * std::sin( 3.0 * walberla::math::pi * x[1] );
    };
 
    std::function< real_t( const hhg::Point3D& ) > map_y = []( const hhg::Point3D& x ) { return x[1]; };
