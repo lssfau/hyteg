@@ -9,6 +9,7 @@
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/misc/dummy.hpp"
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/all.hpp"
+#include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/all.hpp"
 #include "tinyhhg_core/p1functionspace/generatedKernels/all.hpp"
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
@@ -57,12 +58,139 @@ const std::map< std::string, KernelType > strToKernelType = {
     {"SOR_P2_E", SOR_P2_E},
 };
 
-void runBenchmark( uint_t level, real_t iterationMinTime, KernelType kernelType )
+const std::map< KernelType, std::string > kernelTypeToString = {
+{APPLY_V_TO_V_REPLACE, "APPLY_V_TO_V_REPLACE"},
+{APPLY_V_TO_V_ADD, "APPLY_V_TO_V_ADD"},
+
+{APPLY_V_TO_E_REPLACE, "APPLY_V_TO_E_REPLACE"},
+{APPLY_V_TO_E_ADD, "APPLY_V_TO_E_ADD"},
+
+{APPLY_E_TO_V_REPLACE, "APPLY_E_TO_V_REPLACE"},
+{APPLY_E_TO_V_ADD, "APPLY_E_TO_V_ADD"},
+
+{APPLY_E_TO_E_REPLACE, "APPLY_E_TO_E_REPLACE"},
+{APPLY_E_TO_E_ADD, "APPLY_E_TO_E_ADD"},
+
+{SOR_P1_V, "SOR_P1_V"},
+{SOR_P2_V, "SOR_P2_V"},
+{SOR_P2_E, "SOR_P2_E"},
+};
+
+void printArithmeticIntensity( KernelType kernelType )
 {
+  // loadsSrcAll: all loads from src vector (excluding write allocate / load+store of dst vector) if there was no caching
+  // loadsSrcMin: only the furthest entry must be loaded from each array (in regions where everything fits into the caches)
+  // loadsSrcMax: all fronts
+  uint_t adds(0), mults(0), loadsSrcAll(0), loadsSrcMin(0), loadsSrcMax(0), loadsDst(0), writesDst(0);
+  switch ( kernelType )
+  {
+    case APPLY_V_TO_V_REPLACE:
+      adds = 14;
+      mults = 15;
+      loadsSrcAll = 15;
+      loadsSrcMin = 1;
+      loadsSrcMax = 7;
+      loadsDst = 1;
+      writesDst = 1;
+      break;
+    case APPLY_V_TO_V_ADD:
+      adds = 15;
+      mults = 15;
+      loadsSrcAll = 15;
+      loadsSrcMin = 1;
+      loadsSrcMax = 7;
+      loadsDst = 1;
+      writesDst = 1;
+      break;
+
+    case APPLY_E_TO_V_REPLACE:
+      adds = 49;
+      mults = 50;
+      loadsSrcAll = 50;
+      loadsSrcMax = 31;
+      loadsSrcMin = 7;
+      loadsDst = 1;
+      writesDst = 1;
+      break;
+    case APPLY_E_TO_V_ADD:
+      adds = 49 + 1;
+      mults = 50;
+      loadsSrcAll = 50;
+      loadsSrcMax = 31;
+      loadsSrcMin = 7;
+      loadsDst = 1;
+      writesDst = 1;
+      break;
+
+    case APPLY_V_TO_E_REPLACE:
+      adds = 7 + 5 + 7 + 7 + 5 + 7 + 5;
+      mults = 8 + 6 + 8 + 8 + 6 + 8 + 6;
+      loadsSrcAll = mults;
+      loadsSrcMax = 7 + 4 + 4 + 4 + 4 + 4 + 4; // this is too pessimistic...
+      loadsSrcMin = 7;
+      loadsDst = 7;
+      writesDst = 7;
+      break;
+    case APPLY_V_TO_E_ADD:
+      adds = 7 + 5 + 7 + 7 + 5 + 7 + 5 + 7;
+      mults = 8 + 6 + 8 + 8 + 6 + 8 + 6;
+      loadsSrcAll = mults;
+      loadsSrcMax = 7 + 4 + 4 + 4 + 4 + 4 + 4;
+      loadsSrcMin = 7;
+      loadsDst = 7;
+      writesDst = 7;
+      break;
+
+    case APPLY_E_TO_E_REPLACE:
+      adds = 18 + 12 + 18 + 18 + 12 + 18 + 12;
+      mults = 19 + 13 + 19 + 19 + 13 + 19 + 13;
+      loadsSrcAll = mults;
+      loadsSrcMax = mults; // a little too pessimistic...
+      loadsSrcMin = 7;
+      loadsDst = 7;
+      writesDst = 7;
+      break;
+
+    case APPLY_E_TO_E_ADD:
+      adds = 18 + 12 + 18 + 18 + 12 + 18 + 12 + 7;
+      mults = 19 + 13 + 19 + 19 + 13 + 19 + 13;
+      loadsSrcAll = mults;
+      loadsSrcMax = mults; // a little too pessimistic...
+      loadsSrcMin = 7;
+      loadsDst = 7;
+      writesDst = 7;
+      break;
+
+  }
+
+  real_t allIntensity = real_c( adds + mults ) / real_c( 8 * ( loadsDst + writesDst + loadsSrcAll ) );
+  real_t minIntensity = real_c( adds + mults ) / real_c( 8 * ( loadsDst + writesDst + loadsSrcMax ) );
+  real_t maxIntensity = real_c( adds + mults ) / real_c( 8 * ( loadsDst + writesDst + loadsSrcMin ) );
+
+  WALBERLA_UNUSED( minIntensity );
+
+  WALBERLA_LOG_INFO_ON_ROOT("Arithmetic intensity:")
+  WALBERLA_LOG_INFO_ON_ROOT("  - adds:            " << adds )
+  WALBERLA_LOG_INFO_ON_ROOT("  - mults:           " << mults )
+  WALBERLA_LOG_INFO_ON_ROOT("  - FLOPs:           " << adds + mults )
+  WALBERLA_LOG_INFO_ON_ROOT("  - loads all (src): " << loadsSrcAll )
+  WALBERLA_LOG_INFO_ON_ROOT("  - loads min (src): " << loadsSrcMin )
+  WALBERLA_LOG_INFO_ON_ROOT("  - loads (dst):     " << loadsDst )
+  WALBERLA_LOG_INFO_ON_ROOT("  - writes (dst):    " << writesDst )
+  WALBERLA_LOG_INFO_ON_ROOT("  -----------------------------------")
+  WALBERLA_LOG_INFO_ON_ROOT("  - intensity no cache:                                            " << allIntensity )
+  WALBERLA_LOG_INFO_ON_ROOT("  - intensity large cache / perfect blocking / top of tetrahedron: " << maxIntensity )
+}
+
+void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, KernelType kernelType )
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "Running benchmark " << kernelTypeToString.at( kernelType ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "  - level: " << level )
+
+   printArithmeticIntensity( kernelType );
+
    walberla::WcTimer timer;
-
-   const uint_t chunkIterations = 100;
-
+   
    const MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
    const SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    const auto                  storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -77,8 +205,10 @@ void runBenchmark( uint_t level, real_t iterationMinTime, KernelType kernelType 
       return cos( M_PI * x[0] ) - sin( 2.0 * M_PI * x[1] ) + cos( 2.0 * M_PI * x[2] );
    };
 
+   WALBERLA_LOG_INFO_ON_ROOT( "alsdfkn" )
    p2Src.interpolate( someFunction, level );
    p2Dst.interpolate( someFunction, level );
+  WALBERLA_LOG_INFO_ON_ROOT( "sssss" )
 
    P2ConstantLaplaceOperator p2Operator( storage, level, level );
 
@@ -120,7 +250,7 @@ void runBenchmark( uint_t level, real_t iterationMinTime, KernelType kernelType 
       {
       case APPLY_V_TO_V_REPLACE:
 
-         for ( uint_t i = 0; i < chunkIterations; i++ )
+         for ( uint_t i = 0; i < chunkSize; i++ )
          {
             vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_replace(
                 v2v_dst_data, v2v_src_data, static_cast< int32_t >( level ), v2v_opr_data );
@@ -130,7 +260,7 @@ void runBenchmark( uint_t level, real_t iterationMinTime, KernelType kernelType 
          break;
 
       case APPLY_V_TO_V_ADD:
-         for ( uint_t i = 0; i < chunkIterations; i++ )
+         for ( uint_t i = 0; i < chunkSize; i++ )
          {
             vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_add(
                 v2v_dst_data, v2v_src_data, static_cast< int32_t >( level ), v2v_opr_data );
@@ -140,7 +270,7 @@ void runBenchmark( uint_t level, real_t iterationMinTime, KernelType kernelType 
          break;
 
       case APPLY_E_TO_V_REPLACE:
-         for ( uint_t i = 0; i < chunkIterations; i++ )
+         for ( uint_t i = 0; i < chunkSize; i++ )
          {
             EdgeDoFToVertexDoF::generated::apply_3D_macrocell_edgedof_to_vertexdof_replace( &e2v_src_data[firstEdgeIdx[eo::X]],
                                                                                             &e2v_src_data[firstEdgeIdx[eo::XY]],
@@ -157,8 +287,26 @@ void runBenchmark( uint_t level, real_t iterationMinTime, KernelType kernelType 
          }
          break;
 
+        case APPLY_E_TO_V_ADD:
+          for ( uint_t i = 0; i < chunkSize; i++ )
+          {
+            EdgeDoFToVertexDoF::generated::apply_3D_macrocell_edgedof_to_vertexdof_add( &e2v_src_data[firstEdgeIdx[eo::X]],
+                                                                                            &e2v_src_data[firstEdgeIdx[eo::XY]],
+                                                                                            &e2v_src_data[firstEdgeIdx[eo::XYZ]],
+                                                                                            &e2v_src_data[firstEdgeIdx[eo::XZ]],
+                                                                                            &e2v_src_data[firstEdgeIdx[eo::Y]],
+                                                                                            &e2v_src_data[firstEdgeIdx[eo::YZ]],
+                                                                                            &e2v_src_data[firstEdgeIdx[eo::Z]],
+                                                                                            e2v_dst_data,
+                                                                                            e2v_opr_data,
+                                                                                            static_cast< int32_t >( level ) );
+            hhg::misc::dummy( e2v_src_data );
+            hhg::misc::dummy( e2v_dst_data );
+          }
+          break;
+
       case APPLY_E_TO_E_REPLACE:
-         for ( uint_t i = 0; i < chunkIterations; i++ )
+         for ( uint_t i = 0; i < chunkSize; i++ )
          {
             edgedof::macrocell::generated::apply_3D_macrocell_edgedof_to_edgedof_replace( &e2e_dst_data[firstEdgeIdx[eo::X]],
                                                                                           &e2e_dst_data[firstEdgeIdx[eo::XY]],
@@ -180,7 +328,63 @@ void runBenchmark( uint_t level, real_t iterationMinTime, KernelType kernelType 
             hhg::misc::dummy( e2e_dst_data );
          }
          break;
-
+        case APPLY_E_TO_E_ADD:
+          for ( uint_t i = 0; i < chunkSize; i++ )
+          {
+            edgedof::macrocell::generated::apply_3D_macrocell_edgedof_to_edgedof_add( &e2e_dst_data[firstEdgeIdx[eo::X]],
+                                                                                          &e2e_dst_data[firstEdgeIdx[eo::XY]],
+                                                                                          &e2e_dst_data[firstEdgeIdx[eo::XYZ]],
+                                                                                          &e2e_dst_data[firstEdgeIdx[eo::XZ]],
+                                                                                          &e2e_dst_data[firstEdgeIdx[eo::Y]],
+                                                                                          &e2e_dst_data[firstEdgeIdx[eo::YZ]],
+                                                                                          &e2e_dst_data[firstEdgeIdx[eo::Z]],
+                                                                                          &e2e_src_data[firstEdgeIdx[eo::X]],
+                                                                                          &e2e_src_data[firstEdgeIdx[eo::XY]],
+                                                                                          &e2e_src_data[firstEdgeIdx[eo::XYZ]],
+                                                                                          &e2e_src_data[firstEdgeIdx[eo::XZ]],
+                                                                                          &e2e_src_data[firstEdgeIdx[eo::Y]],
+                                                                                          &e2e_src_data[firstEdgeIdx[eo::YZ]],
+                                                                                          &e2e_src_data[firstEdgeIdx[eo::Z]],
+                                                                                          e2e_opr_data,
+                                                                                          static_cast< int32_t >( level ) );
+            hhg::misc::dummy( e2e_src_data );
+            hhg::misc::dummy( e2e_dst_data );
+          }
+          break;
+        case APPLY_V_TO_E_REPLACE:
+          for ( uint_t i = 0; i < chunkSize; i++ )
+          {
+            VertexDoFToEdgeDoF::generated::apply_3D_macrocell_vertexdof_to_edgedof_replace( &v2e_dst_data[firstEdgeIdx[eo::X]],
+                                                                                          &v2e_dst_data[firstEdgeIdx[eo::XY]],
+                                                                                          &v2e_dst_data[firstEdgeIdx[eo::XYZ]],
+                                                                                          &v2e_dst_data[firstEdgeIdx[eo::XZ]],
+                                                                                          &v2e_dst_data[firstEdgeIdx[eo::Y]],
+                                                                                          &v2e_dst_data[firstEdgeIdx[eo::YZ]],
+                                                                                          &v2e_dst_data[firstEdgeIdx[eo::Z]],
+                                                                                          v2e_src_data,
+                                                                                          static_cast< int32_t >( level ),
+                                                                                            v2e_opr_data );
+            hhg::misc::dummy( v2e_src_data );
+            hhg::misc::dummy( v2e_dst_data );
+          }
+          break;
+        case APPLY_V_TO_E_ADD:
+          for ( uint_t i = 0; i < chunkSize; i++ )
+          {
+            VertexDoFToEdgeDoF::generated::apply_3D_macrocell_vertexdof_to_edgedof_add( &v2e_dst_data[firstEdgeIdx[eo::X]],
+                                                                                            &v2e_dst_data[firstEdgeIdx[eo::XY]],
+                                                                                            &v2e_dst_data[firstEdgeIdx[eo::XYZ]],
+                                                                                            &v2e_dst_data[firstEdgeIdx[eo::XZ]],
+                                                                                            &v2e_dst_data[firstEdgeIdx[eo::Y]],
+                                                                                            &v2e_dst_data[firstEdgeIdx[eo::YZ]],
+                                                                                            &v2e_dst_data[firstEdgeIdx[eo::Z]],
+                                                                                            v2e_src_data,
+                                                                                            static_cast< int32_t >( level ),
+                                                                                            v2e_opr_data );
+            hhg::misc::dummy( v2e_src_data );
+            hhg::misc::dummy( v2e_dst_data );
+          }
+          break;
       default:
          WALBERLA_ABORT( "Kernel type not implemented." );
          break;
@@ -189,12 +393,12 @@ void runBenchmark( uint_t level, real_t iterationMinTime, KernelType kernelType 
       timer.end();
 
       chunk++;
-      WALBERLA_LOG_INFO_ON_ROOT( "Iteration: " << chunk * chunkIterations << ": " << timer.last() << "sec" );
+      // WALBERLA_LOG_INFO_ON_ROOT( "Iteration: " << chunk * chunkSize << ": " << timer.last() << "sec" );
    }
 
    LIKWID_MARKER_CLOSE;
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Total number of iterations: " << chunk * chunkIterations << ", total time: " << timer.total()
+   WALBERLA_LOG_INFO_ON_ROOT( "Total number of iterations: " << chunk * chunkSize << ", total time: " << timer.total()
                                                              << "sec" );
 }
 } // namespace hhg
@@ -223,7 +427,8 @@ int main( int argc, char** argv )
    const walberla::Config::BlockHandle mainConf         = cfg->getBlock( "Parameters" );
    const uint_t                        level            = mainConf.getParameter< uint_t >( "level" );
    const real_t                        iterationMinTime = mainConf.getParameter< real_t >( "iterationMinTime" );
+   const uint_t                        chunkSize        = mainConf.getParameter< uint_t >( "chunkSize" );
    const std::string                   kernelType       = mainConf.getParameter< std::string >( "kernelType" );
 
-   hhg::runBenchmark( level, iterationMinTime, hhg::strToKernelType.at( kernelType ) );
+   hhg::runBenchmark( level, iterationMinTime, chunkSize, hhg::strToKernelType.at( kernelType ) );
 }

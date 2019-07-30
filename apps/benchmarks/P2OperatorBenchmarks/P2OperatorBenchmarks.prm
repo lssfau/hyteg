@@ -1,6 +1,7 @@
 Parameters
 {
     level 8;
-    iterationMinTime 1.0;
+    iterationMinTime 0.0001;
+    chunkSize 10;
     kernelType APPLY_E_TO_E_REPLACE;
 }
