@@ -23,7 +23,7 @@ Parameters
         f.write("echo BENCHMARK\n")
         f.write("echo\n")
         for kernel_type in kernel_types:
-            cmd = "likwid-mpirun -np {} -nperdomain S:4 -g FLOPS_DP -m ./P2OperatorBenchmarks 2019_tme/run_benchmark_base_config.prm " \
+            cmd = "likwid-mpirun -mpi openmpi -np {} -nperdomain S:4 -g FLOPS_DP -m ./P2OperatorBenchmarks 2019_tme/run_benchmark_base_config.prm " \
                   "-Parameters.kernelType={}".format(num_processes, kernel_type)
             f.write("echo \"{}\"\n".format(cmd))
             f.write(cmd + "\n")
