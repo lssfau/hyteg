@@ -18,7 +18,7 @@ Parameters
     kernel_types = ["APPLY_V_TO_V_REPLACE", "APPLY_V_TO_E_ADD", "APPLY_E_TO_V_ADD", "APPLY_E_TO_E_REPLACE",
                     "SOR_P1_V", "SOR_P2_V", "SOR_P2_E"]
 
-    with open("hostfile.txt") as f:
+    with open("hostfile.txt", "w") as f:
         for i in range(8):
             f.write("localhost\n")
 
