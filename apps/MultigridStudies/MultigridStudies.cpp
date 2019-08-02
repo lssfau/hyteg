@@ -181,17 +181,18 @@ void calculateErrorAndResidualStokes( const uint_t&         level,
                                       const Function&       uExact,
                                       const Function&       error,
                                       const Function&       residual,
-                                      const Function&       tmp,
                                       long double&          l2ErrorU,
                                       long double&          l2ErrorP,
                                       long double&          l2ResidualU,
                                       long double&          l2ResidualP )
 {
-   error.assign( {1.0, -1.0}, {uExact, u}, level, All );
 
-   tmp.interpolate( real_c( 0 ), level, All );
-   A.apply( u, tmp, level, Inner | NeumannBoundary );
-   residual.assign( {1.0, -1.0}, {f, tmp}, level, All );
+
+   error.interpolate( real_c( 0 ), level, All );
+   A.apply( u, error, level, Inner | NeumannBoundary );
+   residual.assign( {1.0, -1.0}, {f, error}, level, All );
+
+   error.assign( {1.0, -1.0}, {uExact, u}, level, All );
 
    vertexdof::projectMean( error.p, level );
 
@@ -320,7 +321,6 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
                                     uExact,
                                     error,
                                     residual,
-                                    tmp,
                                     l2DiscretizationErrorU,
                                     l2DiscretizationErrorP,
                                     l2ResidualU,
@@ -749,7 +749,6 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    StokesFunction uExact( "uExact", storage, minLevel, maxLevel );
    StokesFunction residual( "residual", storage, minLevel, maxLevel );
    StokesFunction error( "error", storage, minLevel, maxLevel );
-   StokesFunction tmp( "tmp", storage, minLevel, maxLevel );
 
    P1StokesFunction< real_t > f_dc( "f_dc", storage, minLevel, maxLevel );
 
@@ -786,10 +785,11 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       uExact.p.interpolate( exactP, level, All );
       vertexdof::projectMean( uExact.p, level );
 
-      tmp.u.interpolate( rhsU, level, All );
-      tmp.v.interpolate( rhsV, level, All );
-      M.apply( tmp.u, f.u, level, All );
-      M.apply( tmp.v, f.v, level, All );
+      // using error as tmp function here
+      error.u.interpolate( rhsU, level, All );
+      error.v.interpolate( rhsV, level, All );
+      M.apply( error.u, f.u, level, All );
+      M.apply( error.v, f.v, level, All );
    }
 
    /////////////////////////
@@ -835,9 +835,93 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    double            timeVTK;
    double            timeCycle;
 
+
+
+   ///////////
+   // Solve //
+   ///////////
+
+   const uint_t coarseGridMaxLevel = ( numCycles == 0 ? maxLevel : minLevel );
+
+   auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage,
+                                                                        minLevel,
+                                                                        maxLevel,
+                                                                        sorRelax,
+                                                                        Inner | NeumannBoundary,
+                                                                        symmGSVelocity,
+                                                                        numGSVelocity,
+                                                                        symmGSPressure,
+                                                                        numGSPressure );
+
+
+
+#ifdef HHG_BUILD_WITH_PETSC
+//   auto petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >(
+//       storage, coarseGridMaxLevel, coarseResidualTolerance, coarseGridMaxIterations );
+  auto petscSolver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, coarseGridMaxLevel );
+  WALBERLA_UNUSED( coarseGridMaxIterations );
+  WALBERLA_UNUSED( coarseResidualTolerance );
+#else
+  //   const uint_t preconditionerCGIterations = 0;
+   //
+   //   auto cgVelocity = std::make_shared< CGSolver< typename StokesOperator::VelocityOperator_T > >(
+   //       storage, minLevel, coarseGridMaxLevel, preconditionerCGIterations, 1e-14 );
+
+   auto preconditioner = std::make_shared< StokesPressureBlockPreconditioner< StokesOperator, P1LumpedInvMassOperator > >(
+       storage, minLevel, coarseGridMaxLevel ); //, 1, cgVelocity );
+   auto coarseGridSolver = std::make_shared< MinResSolver< StokesOperator > >(
+       storage, minLevel, coarseGridMaxLevel, coarseGridMaxIterations, coarseResidualTolerance, preconditioner );
+#endif
+
+   auto prolongationOperator = std::make_shared< Prolongation >();
+   auto restrictionOperator  = std::make_shared< Restriction >( projectPressureAfterRestriction );
+
+   auto multigridSolver = std::make_shared< GeometricMultigridSolver< StokesOperator > >( storage,
+                                                                                          smoother,
+#ifdef HHG_BUILD_WITH_PETSC
+                                                                                          petscSolver,
+#else
+                                                                                          coarseGridSolver,
+#endif
+                                                                                          restrictionOperator,
+                                                                                          prolongationOperator,
+                                                                                          minLevel,
+                                                                                          maxLevel,
+                                                                                          preSmoothingSteps,
+                                                                                          postSmoothingSteps,
+                                                                                          smoothingIncrement,
+                                                                                          cycleType );
+
+   auto fmgProlongation = std::make_shared< FMGProlongation >();
+
+   auto postCycle = [&]( uint_t currentLevel ) {
+      long double _l2ErrorU, _l2ErrorP, _l2ResidualU, _l2ResidualP;
+      calculateErrorAndResidualStokes( currentLevel,
+                                       A,
+                                       u,
+                                       f,
+                                       uExact,
+                                       error,
+                                       residual,
+                                       _l2ErrorU,
+                                       _l2ErrorP,
+                                       _l2ResidualU,
+                                       _l2ResidualP );
+      sqlRealProperties["fmg_l2_error_u_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorU );
+      sqlRealProperties["fmg_l2_error_p_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorP );
+      sqlRealProperties["fmg_l2_residual_u_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorU );
+      sqlRealProperties["fmg_l2_residual_p_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorP );
+      WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error u: " << std::scientific << _l2ErrorU << " / l2 error p: " << std::scientific << _l2ErrorP );
+   };
+
+   FullMultigridSolver< StokesOperator > fullMultigridSolver(
+       storage, multigridSolver, fmgProlongation, minLevel, maxLevel, fmgInnerCycles, postCycle );
+
+   printFunctionAllocationInfo( *storage, 2 );
+
    timer.reset();
    calculateErrorAndResidualStokes(
-       maxLevel, A, u, f, uExact, error, residual, tmp, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
+       maxLevel, A, u, f, uExact, error, residual, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
    timer.end();
    timeError = timer.last();
 
@@ -879,85 +963,6 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    sqlRealPropertiesMG[0]["l2_residual_p"]           = real_c( l2ResidualP );
    sqlRealPropertiesMG[0]["l2_residual_reduction_p"] = real_c( l2ResidualReductionP );
 
-   ///////////
-   // Solve //
-   ///////////
-
-   const uint_t coarseGridMaxLevel = ( numCycles == 0 ? maxLevel : minLevel );
-
-   auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage,
-                                                                        minLevel,
-                                                                        maxLevel,
-                                                                        sorRelax,
-                                                                        Inner | NeumannBoundary,
-                                                                        symmGSVelocity,
-                                                                        numGSVelocity,
-                                                                        symmGSPressure,
-                                                                        numGSPressure );
-
-   //   const uint_t preconditionerCGIterations = 0;
-   //
-   //   auto cgVelocity = std::make_shared< CGSolver< typename StokesOperator::VelocityOperator_T > >(
-   //       storage, minLevel, coarseGridMaxLevel, preconditionerCGIterations, 1e-14 );
-
-   auto preconditioner = std::make_shared< StokesPressureBlockPreconditioner< StokesOperator, P1LumpedInvMassOperator > >(
-       storage, minLevel, coarseGridMaxLevel ); //, 1, cgVelocity );
-   auto coarseGridSolver = std::make_shared< MinResSolver< StokesOperator > >(
-       storage, minLevel, coarseGridMaxLevel, coarseGridMaxIterations, coarseResidualTolerance, preconditioner );
-
-#ifdef HHG_BUILD_WITH_PETSC
-//   auto petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >(
-//       storage, coarseGridMaxLevel, coarseResidualTolerance, coarseGridMaxIterations );
-  auto petscSolver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, coarseGridMaxLevel );
-#endif
-
-   auto prolongationOperator = std::make_shared< Prolongation >();
-   auto restrictionOperator  = std::make_shared< Restriction >( projectPressureAfterRestriction );
-
-   auto multigridSolver = std::make_shared< GeometricMultigridSolver< StokesOperator > >( storage,
-                                                                                          smoother,
-#ifdef HHG_BUILD_WITH_PETSC
-                                                                                          petscSolver,
-#else
-                                                                                          coarseGridSolver,
-#endif
-                                                                                          restrictionOperator,
-                                                                                          prolongationOperator,
-                                                                                          minLevel,
-                                                                                          maxLevel,
-                                                                                          preSmoothingSteps,
-                                                                                          postSmoothingSteps,
-                                                                                          smoothingIncrement,
-                                                                                          cycleType );
-
-   auto fmgProlongation = std::make_shared< FMGProlongation >();
-
-   auto postCycle = [&]( uint_t currentLevel ) {
-      long double _l2ErrorU, _l2ErrorP, _l2ResidualU, _l2ResidualP;
-      calculateErrorAndResidualStokes( currentLevel,
-                                       A,
-                                       u,
-                                       f,
-                                       uExact,
-                                       error,
-                                       residual,
-                                       tmp,
-                                       _l2ErrorU,
-                                       _l2ErrorP,
-                                       _l2ResidualU,
-                                       _l2ResidualP );
-      sqlRealProperties["fmg_l2_error_u_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorU );
-      sqlRealProperties["fmg_l2_error_p_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorP );
-      sqlRealProperties["fmg_l2_residual_u_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorU );
-      sqlRealProperties["fmg_l2_residual_p_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorP );
-      WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error u: " << std::scientific << _l2ErrorU << " / l2 error p: " << std::scientific << _l2ErrorP );
-   };
-
-   FullMultigridSolver< StokesOperator > fullMultigridSolver(
-       storage, multigridSolver, fmgProlongation, minLevel, maxLevel, fmgInnerCycles, postCycle );
-
-   printFunctionAllocationInfo( *storage, 2 );
-
    if ( numCycles == 0 )
    {
       timer.reset();
@@ -970,7 +975,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       timeCycle = timer.last();
       vertexdof::projectMean( u.p, maxLevel );
       calculateErrorAndResidualStokes(
-          maxLevel, A, u, f, uExact, error, residual, tmp, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
+          maxLevel, A, u, f, uExact, error, residual, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
       vtkOutput.write( maxLevel, 1 );
       WALBERLA_LOG_INFO_ON_ROOT( std::setw( 15 ) << 1 << " || " << std::scientific << l2ErrorU << " | " << l2ErrorP << " | "
                                                  << "      " << l2ErrorReductionU << " || " << l2ResidualU << " | " << l2ResidualP
@@ -1023,7 +1028,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
       timer.reset();
       calculateErrorAndResidualStokes(
-          maxLevel, A, u, f, uExact, error, residual, tmp, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
+          maxLevel, A, u, f, uExact, error, residual, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
       timer.end();
       timeError = timer.last();
 
