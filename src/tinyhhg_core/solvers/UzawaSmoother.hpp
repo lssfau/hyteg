@@ -27,8 +27,8 @@ class UzawaSmoother : public Solver< OperatorType >
    , numGSIterationsVelocity_( numGSIterationsVelocity )
    , symmetricGSPressure_( symmetricGSPressure )
    , numGSIterationsPressure_( numGSIterationsPressure )
-   , r_( "r_", storage, minLevel, maxLevel )
-   , tmp_( "tmp_", storage, minLevel, maxLevel )
+   , r_( "uzawa_smoother_r", storage, minLevel, maxLevel )
+   , tmp_( "uzawa_smoother_tmp", storage, minLevel, maxLevel )
    {}
 
    void solve( const OperatorType&                   A,
