@@ -84,7 +84,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
          if ( useGeneratedKernels )
          {
             hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace(
-                dstPtr, srcPtr, stencilPtr, static_cast< int64_t >( level ) );
+                dstPtr, srcPtr, stencilPtr, static_cast< int32_t >( level ) );
          }
          else
          {
