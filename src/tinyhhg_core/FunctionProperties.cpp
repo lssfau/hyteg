@@ -73,9 +73,9 @@ void printFunctionAllocationInfo( const PrimitiveStorage& storage, const uint_t&
    if ( verbosityLevel == 0 )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "[Function] allocated memory (sum | min | max) in GB: "
-                                 << std::setw(12) << std::fixed << std::setprecision( 3 ) << globalActualAllocatedMemory << " | " << std::fixed
-                                 << std::setw(12) << std::setprecision( 3 ) << minActualAllocatedMemory << " | " << std::fixed
-                                 << std::setw(12) << std::setprecision( 3 ) << maxActualAllocatedMemory )
+                                 << std::setw( 12 ) << std::fixed << std::setprecision( 3 ) << globalActualAllocatedMemory
+                                 << " | " << std::fixed << std::setw( 12 ) << std::setprecision( 3 ) << minActualAllocatedMemory
+                                 << " | " << std::fixed << std::setw( 12 ) << std::setprecision( 3 ) << maxActualAllocatedMemory )
    }
 
    if ( verbosityLevel > 0 )
@@ -108,6 +108,10 @@ void printFunctionAllocationInfo( const PrimitiveStorage& storage, const uint_t&
                                                  << std::fixed << std::setprecision( 3 ) << vertexdofGB + edgedofGB << " |" );
       WALBERLA_LOG_INFO_ON_ROOT( " ----------+----------------------+----------------------+----------------------+" );
 
+      WALBERLA_LOG_INFO_ON_ROOT( "" )
+      WALBERLA_LOG_INFO_ON_ROOT( " - mixed and composites:" );
+      WALBERLA_LOG_INFO_ON_ROOT( "   + P2Function:       " << Function< P2Function< real_t > >::getNumFunctions() );
+
       if ( verbosityLevel > 1 )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "" )
@@ -117,6 +121,9 @@ void printFunctionAllocationInfo( const PrimitiveStorage& storage, const uint_t&
             WALBERLA_LOG_INFO_ON_ROOT( "      - " << name )
          WALBERLA_LOG_INFO_ON_ROOT( "   + EdgeDoF (" << numEdgeDoFFunctions << "):" )
          for ( auto name : Function< EdgeDoFFunction< real_t > >::getFunctionNames() )
+            WALBERLA_LOG_INFO_ON_ROOT( "      - " << name )
+         WALBERLA_LOG_INFO_ON_ROOT( "   + P2 (" << Function< P2Function< real_t > >::getNumFunctions() << "):" )
+         for ( auto name : Function< P2Function< real_t > >::getFunctionNames() )
             WALBERLA_LOG_INFO_ON_ROOT( "      - " << name )
       }
 
