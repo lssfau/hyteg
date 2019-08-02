@@ -225,7 +225,7 @@ int main( int argc, char* argv[] )
                               2,
                               2 );
 
-   auto count = hhg::Function< hhg::vertexdof::VertexDoFFunction< real_t > >::getFunctionCounter();
+   auto count = hhg::Function< hhg::vertexdof::VertexDoFFunction< real_t > >::getLevelWiseFunctionCounter();
    if( mainConf.getParameter< bool >( "printFunctionCount" ) )
    {
       for( uint_t i = minLevel; i <= maxLevel; ++i )

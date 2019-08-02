@@ -956,6 +956,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    FullMultigridSolver< StokesOperator > fullMultigridSolver(
        storage, multigridSolver, fmgProlongation, minLevel, maxLevel, fmgInnerCycles, postCycle );
 
+   printFunctionAllocationInfo( *storage, 2 );
+
    if ( numCycles == 0 )
    {
       timer.reset();
