@@ -9,7 +9,8 @@ option ( HHG_USE_GENERATED_KERNELS   "Use generated pystencil kernels if availab
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON CACHE BOOL "Enable compiler optimizations spcific to localhost")
+set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON  CACHE BOOL "Enable compiler optimizations spcific to localhost")
+set(WALBERLA_LOG_SKIPPED            OFF CACHE BOOL "Log skipped cmake targets"                         )
 set(WALBERLA_DIR ${tinyhhg_SOURCE_DIR}/walberla CACHE  PATH  "waLBerla path")
 
 
