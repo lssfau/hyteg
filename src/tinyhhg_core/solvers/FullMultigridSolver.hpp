@@ -24,7 +24,6 @@ class FullMultigridSolver : public Solver< OperatorType >
    , minLevel_( minLevel )
    , maxLevel_( maxLevel )
    , cyclesPerLevel_( cyclesPerLevel )
-   , Ax_( "Ax", storage, minLevel, maxLevel )
    , flag_( Inner | NeumannBoundary )
    , postCycleCallback_( postCycleCallback )
    {}
@@ -56,7 +55,6 @@ class FullMultigridSolver : public Solver< OperatorType >
 
    uint_t cyclesPerLevel_;
 
-   FunctionType Ax_;
    DoFType      flag_;
 
    std::function< void( uint_t currentLevel ) > postCycleCallback_;
