@@ -365,8 +365,8 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCell( const i
     // Flattening the offset array to be able to pass it to the fenics routines.
     double geometricOffsetsArray[12];
     for ( uint_t cellVertex = 0; cellVertex < 4; cellVertex++ ) {
-      for ( int coordinate = 0; coordinate < 3; coordinate++ ) {
-        geometricOffsetsArray[cellVertex * 3 + uint_c(coordinate)] = geometricOffsetsFromCenter[cellVertex][coordinate];
+      for ( uint_t coordinate = 0; coordinate < 3; coordinate++ ) {
+        geometricOffsetsArray[cellVertex * 3 + coordinate] = geometricOffsetsFromCenter[cellVertex][coordinate];
       }
     }
 
