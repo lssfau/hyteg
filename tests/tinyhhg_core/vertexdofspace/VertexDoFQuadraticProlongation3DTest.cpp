@@ -15,7 +15,6 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
-#include "tinyhhg_core/p1functionspace/generated/p1_tet_diffusion.h"
 #include "tinyhhg_core/VTKWriter.hpp"
 
 using walberla::real_t;

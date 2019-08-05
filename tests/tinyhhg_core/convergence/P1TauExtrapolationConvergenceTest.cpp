@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
   hhg::P2Function< real_t > quadraticTmp( "tmp_P2", storage, minLevel, maxLevel - 1 );
   hhg::P2Function< real_t > quadraticRhs( "f_P2", storage, minLevel, maxLevel - 1 );
 
-  hhg::P1MassOperator            M( storage, minLevel, maxLevel );
+  hhg::P1ConstantMassOperator    M( storage, minLevel, maxLevel );
   hhg::P2ConstantMassOperator    M_P2( storage, minLevel, maxLevel );
   hhg::P1ConstantLaplaceOperator L( storage, minLevel, maxLevel );
 

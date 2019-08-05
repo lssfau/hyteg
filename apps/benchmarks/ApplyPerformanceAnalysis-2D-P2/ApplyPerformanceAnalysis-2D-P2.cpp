@@ -307,7 +307,7 @@ int main( int argc, char* argv[] )
    std::shared_ptr< hhg::PrimitiveStorage >  storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
 
    std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) {
-      return std::sin( walberla::math::M_PI * xx[0] ) + std::cos( walberla::math::M_PI * xx[1] );
+      return std::sin( walberla::math::pi * xx[0] ) + std::cos( walberla::math::pi * xx[1] );
    };
 
    ///// Functions / operators / allocation /////

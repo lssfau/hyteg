@@ -26,7 +26,7 @@ static void testEdgeDoFToEdgeDoFOperator()
   auto edge_dst = std::make_shared< EdgeDoFFunction< real_t > >( "edge_dst", storage, maxLevel, maxLevel );
   auto edge_src = std::make_shared< EdgeDoFFunction< real_t > >( "edge_src", storage, maxLevel, maxLevel );
 
-  EdgeDoFOperator edgeToEdgeOperator( storage, maxLevel, maxLevel );
+  GenericEdgeDoFOperator edgeToEdgeOperator( storage, maxLevel, maxLevel );
 
   // Test setup:
   // Writing different values to different kind of Edge DoF types (horizontal, vertical, diagonal)

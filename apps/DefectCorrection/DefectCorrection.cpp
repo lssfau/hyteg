@@ -45,7 +45,7 @@
 namespace hhg {
 
 using walberla::int64_c;
-using walberla::math::M_PI;
+using walberla::math::pi;
 
 /**
  * This application implements "defect correction" (DC) as described in Trottenberg et al (2001): Multigrid (sec. 5.4.1).
@@ -134,7 +134,7 @@ static void defectCorrection( int argc, char** argv )
    P2Function< real_t > f_P2( "f_P2", storage, maxLevel - 1, maxLevel - 1 );
 
    P1ConstantLaplaceOperator A_P1( storage, minLevel, maxLevel );
-   P1MassOperator            M_P1( storage, minLevel, maxLevel );
+   P1ConstantMassOperator    M_P1( storage, minLevel, maxLevel );
    P2ConstantLaplaceOperator A_P2( storage, maxLevel - 1, maxLevel - 1 );
    P2ConstantMassOperator    M_P2( storage, maxLevel - 1, maxLevel - 1 );
 

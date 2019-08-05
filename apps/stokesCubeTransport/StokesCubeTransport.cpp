@@ -129,12 +129,12 @@ int main( int argc, char* argv[] )
    }
 
    hhg::P1StokesOperator L( storage, minLevel, maxLevel );
-   hhg::P1MassOperator   M( storage, minLevel, maxLevel );
+   hhg::P1ConstantMassOperator   M( storage, minLevel, maxLevel );
 
    std::function< real_t( const hhg::Point3D& ) > temperature = []( const hhg::Point3D& x )
    {
      real_t temp_ = 1.0 - std::pow(x[2], 0.5);
-     return temp_ + 0.1 * (1.0 - x[2]) * (std::sin(walberla::math::M_PI * x[0]) * std::sin(walberla::math::M_PI * x[1]));
+     return temp_ + 0.1 * (1.0 - x[2]) * (std::sin(walberla::math::pi * x[0]) * std::sin(walberla::math::pi * x[1]));
    };
 
    std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };

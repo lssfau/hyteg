@@ -9,6 +9,7 @@
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 
+#include "tinyhhg_core/forms/P1ZeroForm.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
@@ -150,13 +151,13 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
       auto & faceStencil = it.second->getData( op->getFaceStencil3DID() )->getData( level );
       for ( uint_t neighborCellID = 0; neighborCellID < it.second->getNumNeighborCells(); neighborCellID++ )
       {
-        fenics::NoAssemble ufcOperator;
+        P1ZeroForm zeroForm;
         auto face = it.second;
         auto neighborCell = storage->getCell( face->neighborCells().at( neighborCellID ) );
         auto vertexAssemblyIndexInCell =
         vertexdof::macroface::getIndexInNeighboringMacroCell( {1, 1, 0}, *face, neighborCellID, *storage, level );
         faceStencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
-           storage, *neighborCell, vertexAssemblyIndexInCell, level, ufcOperator );
+           storage, *neighborCell, vertexAssemblyIndexInCell, level, zeroForm );
 
         for ( auto & stencilIt : faceStencil[neighborCellID] )
         {

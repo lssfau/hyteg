@@ -2,12 +2,15 @@
 #include "EdgeDoFToVertexDoFApply.hpp"
 #include "generatedKernels/all.hpp"
 
+#include "tinyhhg_core/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
 #include "tinyhhg_core/p2functionspace/P2Elements.hpp"
+
+#include "tinyhhg_core/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
 
 namespace hhg{
 
-template< class UFCOperator2D, class UFCOperator3D >
-EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::EdgeDoFToVertexDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage,
+template< class EdgeDoFToVertexDoFForm >
+EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::EdgeDoFToVertexDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage,
                                                        const size_t & minLevel,
                                                        const size_t & maxLevel)
   :Operator(storage,minLevel,maxLevel)
@@ -46,9 +49,10 @@ EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::EdgeDoFToVertexDoFOp
 
   if ( this->getStorage()->hasGlobalCells() )
   {
-    if ( !std::is_same< UFCOperator3D, fenics::NoAssemble >::value )
+    if ( form.assemble3D() )
     {
-      assembleEdgeToVertexStencils< UFCOperator3D >( this->getStorage(),
+      // WALBERLA_ABORT( "assembleEdgeToVertexStencils< UFCOperator3D > not implemented!" );
+      assembleEdgeToVertexStencils< EdgeDoFToVertexDoFForm >( this->getStorage(),
                                                      this->minLevel_,
                                                      this->maxLevel_,
                                                      getVertexStencil3DID(),
@@ -60,7 +64,7 @@ EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::EdgeDoFToVertexDoFOp
   else
   {
     // Only assemble stencils if UFCOperator is specified
-    if ( !std::is_same< UFCOperator2D, fenics::NoAssemble >::value )
+    if ( form.assemble2D() )
     {
       assembleStencils();
     }
@@ -68,13 +72,9 @@ EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::EdgeDoFToVertexDoFOp
 
 }
 
-template< class UFCOperator2D, class UFCOperator3D >
-void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::assembleStencils() {
+template< class EdgeDoFToVertexDoFForm >
+void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils() {
   using namespace P2Elements;
-
-  // Initialize memory for local 6x6 matrices
-  Matrix6r local_stiffness_gray;
-  Matrix6r local_stiffness_blue;
 
   // Assemble stencils on all levels
   for (uint_t level = minLevel_; level <= maxLevel_; ++level)
@@ -84,35 +84,102 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::assembleStencil
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
 
-      // Compute both local stiffness matrices
-      compute_local_stiffness(face, level, local_stiffness_gray, fenics::GRAY);
-      compute_local_stiffness(face, level, local_stiffness_blue, fenics::BLUE);
+       uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
 
-      // Assemble edgeToVertex stencil
-      real_t* vStencil = storage_->getFace(face.getID())->getData(faceStencilID_)->getPointer(level);
-      P2Face::EdgeToVertex::assembleStencil(local_stiffness_gray, local_stiffness_blue, vStencil);
-//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToVertex/Face = {}", PointND<real_t, 12>(&vStencil[0])));
+       Point3D x( face.coords[0] );
+       real_t  h = 1.0 / ( walberla::real_c( rowsize - 1 ) );
+
+       Point3D d0 = h * ( face.coords[1] - face.coords[0] );
+       Point3D d2 = h * ( face.coords[2] - face.coords[0] );
+
+       form.geometryMap = face.getGeometryMap();
+
+       Point3D dirS  = -1.0 * d2;
+       Point3D dirSE = d0 - 1.0 * d2;
+       Point3D dirE  = d0;
+       Point3D dirW  = -1.0 * d0;
+       Point3D dirNW = -1.0 * d0 + d2;
+       Point3D dirN  = d2;
+
+       real_t* vStencil = storage_->getFace(face.getID())->getData(faceStencilID_)->getPointer(level);
+
+       P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
+           form, {x, x + dirW, x + dirS}, P2Elements::P2Face::elementSW_reord, vStencil );
+       P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
+           form, {x, x + dirS, x + dirSE}, P2Elements::P2Face::elementS_reord, vStencil );
+       P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
+           form, {x, x + dirSE, x + dirE}, P2Elements::P2Face::elementSE_reord, vStencil );
+       P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
+           form, {x, x + dirE, x + dirN}, P2Elements::P2Face::elementNE_reord, vStencil );
+       P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
+           form, {x, x + dirN, x + dirNW}, P2Elements::P2Face::elementN_reord, vStencil );
+       P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
+           form, {x, x + dirNW, x + dirW}, P2Elements::P2Face::elementNW_reord, vStencil );
     }
 
     // Assemble edge stencils
     for (auto& it : storage_->getEdges()) {
       Edge &edge = *it.second;
+      real_t *vStencil = storage_->getEdge(edge.getID())->getData(edgeStencilID_)->getPointer(level);
 
-      // Assemble edgeToVertex
-      Face* face = storage_->getFace(edge.neighborFaces()[0]);
-      real_t* vStencil = storage_->getEdge(edge.getID())->getData(edgeStencilID_)->getPointer(level);
-      compute_local_stiffness(*face, level, local_stiffness_gray, fenics::GRAY);
-      compute_local_stiffness(*face, level, local_stiffness_blue, fenics::BLUE);
-      P2Edge::EdgeToVertex::assembleStencil(edge, *face, local_stiffness_gray, local_stiffness_blue, vStencil, true);
+      size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+
+      Face *faceS = storage_->getFace(edge.neighborFaces()[0]);
+      Face *faceN = nullptr;
+      uint_t s_south = faceS->vertex_index(edge.neighborVertices()[0]);
+      uint_t e_south = faceS->vertex_index(edge.neighborVertices()[1]);
+      uint_t o_south = faceS->vertex_index(faceS->get_vertex_opposite_to_edge(edge.getID()));
+
+      real_t h = 1.0 / (walberla::real_c(rowsize - 1));
+
+      Point3D dS_se = h * (faceS->coords[e_south] - faceS->coords[s_south]);
+      Point3D dS_so = h * (faceS->coords[o_south] - faceS->coords[s_south]);
+      Point3D dS_oe = h * (faceS->coords[e_south] - faceS->coords[o_south]);
+
+      Point3D dir_S = -1.0 * dS_oe;
+      Point3D dir_E = dS_se;
+      Point3D dir_SE = dS_so;
+      Point3D dir_W = -1.0 * dS_se;
+
+      Point3D x = edge.getCoordinates()[0];
+      Point3D dx = h * edge.getDirection();
+      x += dx;
+
+      uint_t s_north, e_north, o_north;
+      Point3D dir_N;
+      Point3D dir_NW;
 
       if (edge.getNumNeighborFaces() == 2) {
-        face = storage_->getFace(edge.neighborFaces()[1]);
-        compute_local_stiffness(*face, level, local_stiffness_gray, fenics::GRAY);
-        compute_local_stiffness(*face, level, local_stiffness_blue, fenics::BLUE);
-        P2Edge::EdgeToVertex::assembleStencil(edge, *face, local_stiffness_gray, local_stiffness_blue, vStencil, false);
+        faceN = storage_->getFace(edge.neighborFaces()[1]);
+        s_north = faceN->vertex_index(edge.neighborVertices()[0]);
+        e_north = faceN->vertex_index(edge.neighborVertices()[1]);
+        o_north = faceN->vertex_index(faceN->get_vertex_opposite_to_edge(edge.getID()));
+
+        Point3D dN_so = h * (faceN->coords[o_north] - faceN->coords[s_north]);
+        Point3D dN_oe = h * (faceN->coords[e_north] - faceN->coords[o_north]);
+
+        dir_N = dN_so;
+        dir_NW = -1.0 * dN_oe;
       }
 
-//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToVertex/Edge = {}", PointND<real_t, 7>(&vStencil[0])));
+     // assemble south
+     form.geometryMap = faceS->getGeometryMap();
+     P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(form, {x, x + dir_W, x + dir_S},
+                                                         P2Elements::P2Face::elementSW_reord, vStencil);
+     P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(form, {x, x + dir_S, x + dir_SE},
+                                                         P2Elements::P2Face::elementS_reord, vStencil);
+     P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(
+         form, {x, x + dir_SE, x + dir_E}, P2Elements::P2Face::elementSE_reord, vStencil);
+
+     if (edge.getNumNeighborFaces() == 2) {
+       form.geometryMap = faceN->getGeometryMap();
+       P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(
+           form, {x, x + dir_E, x + dir_N}, P2Elements::P2Face::elementNE_reord, vStencil);
+       P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(
+           form, {x, x + dir_N, x + dir_NW}, P2Elements::P2Face::elementN_reord, vStencil);
+       P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(
+           form, {x, x + dir_NW, x + dir_W}, P2Elements::P2Face::elementNW_reord, vStencil);
+        }
     }
 
     for (auto& it : storage_->getVertices()) {
@@ -120,29 +187,53 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::assembleStencil
 
       // Assemble EdgeToVertex
       real_t* vStencil = storage_->getVertex(vertex.getID())->getData(vertexStencilID_)->getPointer(level);
-      for (auto& faceId : vertex.neighborFaces())
-      {
-        Face* face = storage_->getFace(faceId);
-        compute_local_stiffness(*face, level, local_stiffness_gray, fenics::GRAY);
-        P2Vertex::EdgeToVertex::assembleStencil(vertex, *face, local_stiffness_gray, vStencil, storage_);
-      }
 
-//        WALBERLA_LOG_DEVEL_ON_ROOT(fmt::format("edgeToVertex/Vertex = {}", PointND<real_t, 5>(&vStencil[0])));
+       uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
+
+       Point3D x;
+       Point3D d0;
+       Point3D d2;
+
+       real_t h = 1.0 / ( walberla::real_c( rowsize - 1 ) );
+
+       uint_t neighborId = 0;
+       for( auto& faceId : vertex.neighborFaces() )
+       {
+          Face* face       = storage_->getFace( faceId );
+          form.geometryMap = face->getGeometryMap();
+
+          uint_t                     v_i       = face->vertex_index( vertex.getID() );
+          std::vector< PrimitiveID > adj_edges = face->adjacent_edges( vertex.getID() );
+
+          x = face->coords[v_i];
+          d0 =
+              ( face->coords[face->vertex_index( storage_->getEdge( adj_edges[0] )->get_opposite_vertex( vertex.getID() ) )] - x ) * h;
+          d2 =
+              ( face->coords[face->vertex_index( storage_->getEdge( adj_edges[1] )->get_opposite_vertex( vertex.getID() ) )] - x ) * h;
+
+          Point3D matrixRow;
+          form.integrateEdgeToVertex( {{x, x + d0, x + d2}}, matrixRow );
+
+          uint_t i = 1;
+          // iterate over adjacent edges
+          for( auto& edgeId : adj_edges )
+          {
+             uint_t edge_idx = vertex.edge_index( edgeId );
+             vStencil[edge_idx] += matrixRow[3 - i];
+             i += 1;
+          }
+
+          walberla::uint_t face_idx = vertex.getNumNeighborEdges() + vertex.face_index( face->getID() );
+          vStencil[face_idx] += matrixRow[0];
+
+          ++neighborId;
+       }
     }
-
   }
 }
 
-template< class UFCOperator2D, class UFCOperator3D >
-void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type) {
-  real_t coords[6];
-  fenics::compute_micro_coords(face, level, coords, element_type);
-  UFCOperator2D gen;
-  gen.tabulate_tensor(local_stiffness.data(), NULL, coords, 0);
-}
-
-template< class UFCOperator2D, class UFCOperator3D >
-void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const EdgeDoFFunction <real_t> &src,
+template< class EdgeDoFToVertexDoFForm >
+void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply(const EdgeDoFFunction <real_t> &src,
                                                                        const P1Function<double> &dst,
                                                                        uint_t level,
                                                                        DoFType flag,
@@ -443,38 +534,38 @@ void EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::apply(const Edg
   this->stopTiming( "Apply" );
 }
 
-template< class UFCOperator2D, class UFCOperator3D >
-const PrimitiveDataID<StencilMemory< real_t >, Vertex > &EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::getVertexStencilID() const {
+template< class EdgeDoFToVertexDoFForm >
+const PrimitiveDataID<StencilMemory< real_t >, Vertex > &EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::getVertexStencilID() const {
   return vertexStencilID_;
 }
 
-template< class UFCOperator2D, class UFCOperator3D >
-const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroVertexStencilMap_T >, Vertex > &EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::getVertexStencil3DID() const {
+template< class EdgeDoFToVertexDoFForm >
+const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroVertexStencilMap_T >, Vertex > &EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::getVertexStencil3DID() const {
   return vertexStencil3DID_;
 }
 
-template< class UFCOperator2D, class UFCOperator3D >
-const PrimitiveDataID<StencilMemory< real_t >, Edge > &EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::getEdgeStencilID() const {
+template< class EdgeDoFToVertexDoFForm >
+const PrimitiveDataID<StencilMemory< real_t >, Edge > &EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::getEdgeStencilID() const {
   return edgeStencilID_;
 }
 
-template< class UFCOperator2D, class UFCOperator3D >
-const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge > &EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::getEdgeStencil3DID() const {
+template< class EdgeDoFToVertexDoFForm >
+const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge > &EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::getEdgeStencil3DID() const {
   return edgeStencil3DID_;
 }
 
-template< class UFCOperator2D, class UFCOperator3D >
-const PrimitiveDataID<StencilMemory< real_t >, Face > &EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::getFaceStencilID() const {
+template< class EdgeDoFToVertexDoFForm >
+const PrimitiveDataID<StencilMemory< real_t >, Face > &EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::getFaceStencilID() const {
   return faceStencilID_;
 }
 
-template< class UFCOperator2D, class UFCOperator3D >
-const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face > &EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::getFaceStencil3DID() const {
+template< class EdgeDoFToVertexDoFForm >
+const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face > &EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::getFaceStencil3DID() const {
   return faceStencil3DID_;
 }
 
-template< class UFCOperator2D, class UFCOperator3D >
-const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell > &EdgeDoFToVertexDoFOperator< UFCOperator2D, UFCOperator3D >::getCellStencilID() const {
+template< class EdgeDoFToVertexDoFForm >
+const PrimitiveDataID<LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell > &EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::getCellStencilID() const {
   return cellStencilID_;
 }
 
@@ -504,25 +595,21 @@ uint_t macroCellEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primiti
 
 }/// namespace EdgeDoFToVertexDoF
 
-template class EdgeDoFToVertexDoFOperator< hhg::fenics::NoAssemble, hhg::fenics::NoAssemble >;
-template class EdgeDoFToVertexDoFOperator< hhg::fenics::NoAssemble, hhg::fenics::UndefinedAssembly >;
-template class EdgeDoFToVertexDoFOperator<p2_div_cell_integral_0_otherwise>;
-template class EdgeDoFToVertexDoFOperator<p2_div_cell_integral_1_otherwise>;
+template class EdgeDoFToVertexDoFOperator< P2FenicsForm< hhg::fenics::NoAssemble, hhg::fenics::NoAssemble > >;
+template class EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >;
+template class EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >;
 
-template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >;
-template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >;
-template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_pspg_tet_cell_integral_0_otherwise >;
+template class EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_divt_cell_integral_0_otherwise, p2_tet_divt_tet_cell_integral_0_otherwise > >;
+template class EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_divt_cell_integral_1_otherwise, p2_tet_divt_tet_cell_integral_1_otherwise > >;
+template class EdgeDoFToVertexDoFOperator< P2FenicsForm< fenics::NoAssemble, p2_tet_divt_tet_cell_integral_2_otherwise > >;
+template class EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_div_cell_integral_0_otherwise, p2_tet_div_tet_cell_integral_0_otherwise > >;
+template class EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_div_cell_integral_1_otherwise, p2_tet_div_tet_cell_integral_1_otherwise > >;
+template class EdgeDoFToVertexDoFOperator< P2FenicsForm< fenics::NoAssemble, p2_tet_div_tet_cell_integral_2_otherwise > >;
 
-template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_div_tet_cell_integral_0_otherwise >;
-template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_div_tet_cell_integral_1_otherwise >;
-template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_div_tet_cell_integral_2_otherwise >;
+template class EdgeDoFToVertexDoFOperator< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, p2_to_p1_tet_div_tet_cell_integral_0_otherwise > >;
+template class EdgeDoFToVertexDoFOperator< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_1_otherwise, p2_to_p1_tet_div_tet_cell_integral_1_otherwise > >;
+template class EdgeDoFToVertexDoFOperator< P2ToP1FenicsForm< fenics::NoAssemble,                     p2_to_p1_tet_div_tet_cell_integral_2_otherwise > >;
 
-template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_divt_tet_cell_integral_0_otherwise >;
-template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_divt_tet_cell_integral_1_otherwise >;
-template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_tet_divt_tet_cell_integral_2_otherwise >;
-
-template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise >;
-template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise >;
-template class EdgeDoFToVertexDoFOperator< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise >;
+template class EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >;
 
 }/// namespace hhg

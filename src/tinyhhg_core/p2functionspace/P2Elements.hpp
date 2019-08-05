@@ -33,6 +33,12 @@ const P2Element elementNE = {{SD::VERTEX_C, SD::VERTEX_E, SD::VERTEX_N, SD::EDGE
 const P2Element elementN = {{SD::VERTEX_C, SD::VERTEX_N, SD::VERTEX_NW, SD::EDGE_VE_N, SD::EDGE_HO_NW, SD::EDGE_DI_NW}};
 const P2Element elementNW = {{SD::VERTEX_C, SD::VERTEX_NW, SD::VERTEX_W, SD::EDGE_DI_NW, SD::EDGE_VE_NW, SD::EDGE_HO_W}};
 
+const P2Element elementSW_reord = {{SD::VERTEX_C, SD::VERTEX_W, SD::VERTEX_S, SD::EDGE_DI_SW, SD::EDGE_VE_S, SD::EDGE_HO_W}};
+const P2Element elementS_reord = {{SD::VERTEX_C, SD::VERTEX_S, SD::VERTEX_SE, SD::EDGE_HO_SE, SD::EDGE_DI_SE, SD::EDGE_VE_S}};
+const P2Element elementSE_reord = {{SD::VERTEX_C, SD::VERTEX_SE, SD::VERTEX_E, SD::EDGE_VE_SE, SD::EDGE_HO_E, SD::EDGE_DI_SE}};
+const P2Element elementNE_reord = {{SD::VERTEX_C, SD::VERTEX_E, SD::VERTEX_N, SD::EDGE_DI_NE, SD::EDGE_VE_N, SD::EDGE_HO_E}};
+const P2Element elementN_reord = {{SD::VERTEX_C, SD::VERTEX_N, SD::VERTEX_NW, SD::EDGE_HO_NW, SD::EDGE_DI_NW, SD::EDGE_VE_N}};
+const P2Element elementNW_reord = {{SD::VERTEX_C, SD::VERTEX_NW, SD::VERTEX_W, SD::EDGE_VE_NW, SD::EDGE_HO_W, SD::EDGE_DI_NW}};
 
 static const std::array<P2Element, 3> P2GrayElements =
     {{

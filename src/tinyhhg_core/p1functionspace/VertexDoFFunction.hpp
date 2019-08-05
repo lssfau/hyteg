@@ -64,6 +64,10 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 
    void swap( const VertexDoFFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const;
 
+   real_t evaluate( const Point3D& coordinates, uint_t level ) const;
+
+   void evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const;
+
    void assign( const std::vector< ValueType >&                                                      scalars,
                 const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
                 uint_t                                                                               level,

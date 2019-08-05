@@ -4,19 +4,20 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFApply.hpp"
 #include "tinyhhg_core/LevelWiseMemory.hpp"
+#include "tinyhhg_core/forms/form_fenics_base/P2FenicsForm.hpp"
 
 #ifdef _MSC_VER
 #  pragma warning(push, 0)
 #endif
 
 #include "tinyhhg_core/fenics/fenics.hpp"
-#include "tinyhhg_core/p2functionspace/generated/p2_divt.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_tet_diffusion.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_tet_mass.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_tet_pspg_tet.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_tet_div_tet.h"
-#include "tinyhhg_core/p2functionspace/generated/p2_tet_divt_tet.h"
-#include "tinyhhg_core/mixedoperators/generated/p1_to_p2_tet_divt_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_divt.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_diffusion.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_mass.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_pspg_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_div_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p2_tet_divt_tet.h"
+#include "tinyhhg_core/forms/form_fenics_generated/p1_to_p2_tet_divt_tet.h"
 
 #ifdef _MSC_VER
 #  pragma warning(pop)
@@ -25,7 +26,7 @@
 
 namespace hhg {
 
-template< class UFCOperator2D, class UFCOperator3D = fenics::UndefinedAssembly >
+template< class VertexDoFToEdgeDoFForm >
 class VertexDoFToEdgeDoFOperator : public Operator<P1Function< real_t >, EdgeDoFFunction< real_t > >
 {
 public:
@@ -43,7 +44,6 @@ public:
 
 private:
   void assembleStencils();
-  void compute_local_stiffness(const Face &face, size_t level, Matrix6r& local_stiffness, fenics::ElementType element_type);
 
   PrimitiveDataID< StencilMemory< real_t >, Edge> edgeStencilID_;
   PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroEdgeStencilMap_T >, Edge> edgeStencil3DID_;
@@ -51,6 +51,7 @@ private:
   PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroFaceStencilMap_T >, Face> faceStencil3DID_;
   PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroCellStencilMap_T >, Cell> cellStencilID_;
 
+  VertexDoFToEdgeDoFForm form;
 };
 
 template< typename UFCOperator3D >
@@ -181,12 +182,12 @@ uint_t macroCellVertexDoFToEdgeDoFStencilSize(const uint_t &level, const Primiti
 
 }
 
-typedef VertexDoFToEdgeDoFOperator< hhg::fenics::NoAssemble, fenics::NoAssemble > GenericVertexDoFToEdgeDoFOperator;
-typedef VertexDoFToEdgeDoFOperator<p2_divt_cell_integral_0_otherwise> VertexToEdgeDivTxOperator;
-typedef VertexDoFToEdgeDoFOperator<p2_divt_cell_integral_1_otherwise> VertexToEdgeDivTyOperator;
+typedef VertexDoFToEdgeDoFOperator< P2FenicsForm< hhg::fenics::NoAssemble, fenics::NoAssemble > > GenericVertexDoFToEdgeDoFOperator;
+typedef VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_divt_cell_integral_0_otherwise > > VertexToEdgeDivTxOperator;
+typedef VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_divt_cell_integral_1_otherwise > > VertexToEdgeDivTyOperator;
 
-typedef VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise > P1ToP2DivTxVertexToEdgeOperator;
-typedef VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise > P1ToP2DivTyVertexToEdgeOperator;
-typedef VertexDoFToEdgeDoFOperator< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > P1ToP2DivTzVertexToEdgeOperator;
+typedef VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise > > P1ToP2DivTxVertexToEdgeOperator;
+typedef VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise > > P1ToP2DivTyVertexToEdgeOperator;
+typedef VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > > P1ToP2DivTzVertexToEdgeOperator;
 
 }/// namespace hhg

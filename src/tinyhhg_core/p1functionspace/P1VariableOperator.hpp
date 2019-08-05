@@ -7,35 +7,35 @@
 #include "tinyhhg_core/types/pointnd.hpp"
 #include "P1DataHandling.hpp"
 
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormLaplace.hpp"
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormMass.hpp"
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormEpsilon.hpp"
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormDivT.hpp"
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormDiv.hpp"
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormPSPG.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormLaplace.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormMass.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormEpsilon.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormDivT.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormDiv.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormPSPG.hpp"
 
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp>
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp>
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp>
-#include <tinyhhg_core/p1functionspace/blending/VertexDoFBlending.hpp>
+#include <tinyhhg_core/p1functionspace/variablestencil/VertexDoFVariableStencil.hpp>
 
 namespace hhg
 {
 
 template<class P1Form>
-class P1BlendingOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
+class P1VariableOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
 public:
-  P1BlendingOperator(const std::shared_ptr< PrimitiveStorage > & storage,
+  P1VariableOperator(const std::shared_ptr< PrimitiveStorage > & storage,
                         size_t minLevel,
                         size_t maxLevel)
     : Operator(storage, minLevel, maxLevel)
   {
   }
 
-  ~P1BlendingOperator() override = default;
+  ~P1VariableOperator() override = default;
 
 
   void apply( const P1Function< real_t >& src,
@@ -55,7 +55,9 @@ public:
       const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if (testFlag(vertexBC, flag))
       {
-        vertexdof::blending::macrovertex::applyBlending< real_t, P1Form >(level, vertex, storage_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
+        vertexdof::variablestencil::macrovertex::applyVariableStencil<real_t, P1Form>(level, vertex, storage_,
+                                                                               src.getVertexDataID(),
+                                                                               dst.getVertexDataID(), updateType);
       }
     }
 
@@ -65,7 +67,8 @@ public:
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if (testFlag(edgeBC, flag))
       {
-        vertexdof::blending::macroedge::applyBlending< real_t, P1Form >(level, edge, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+        vertexdof::variablestencil::macroedge::applyVariableStencil<real_t, P1Form>(level, edge, storage_, src.getEdgeDataID(),
+                                                                             dst.getEdgeDataID(), updateType);
       }
     }
 
@@ -75,7 +78,8 @@ public:
       const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if (testFlag(faceBC, flag))
       {
-        vertexdof::blending::macroface::applyBlending< real_t, P1Form >(level, face, src.getFaceDataID(), dst.getFaceDataID(), updateType);
+        vertexdof::variablestencil::macroface::applyVariableStencil<real_t, P1Form>(level, face, src.getFaceDataID(),
+                                                                             dst.getFaceDataID(), updateType);
       }
     }
 
@@ -98,7 +102,9 @@ public:
       const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if (testFlag(vertexBC, flag))
       {
-        vertexdof::blending::macrovertex::smoothGSBlending<real_t, P1Form>(level, vertex, storage_, dst.getVertexDataID(), rhs.getVertexDataID());
+        vertexdof::variablestencil::macrovertex::smoothGSVariableStencil<real_t, P1Form>(level, vertex, storage_,
+                                                                                  dst.getVertexDataID(),
+                                                                                  rhs.getVertexDataID());
       }
     }
 
@@ -113,7 +119,9 @@ public:
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if (testFlag(edgeBC, flag))
       {
-        vertexdof::blending::macroedge::smoothGSBlending<real_t, P1Form>(level, edge, storage_, dst.getEdgeDataID(), rhs.getEdgeDataID());
+        vertexdof::variablestencil::macroedge::smoothGSVariableStencil<real_t, P1Form>(level, edge, storage_,
+                                                                                dst.getEdgeDataID(),
+                                                                                rhs.getEdgeDataID());
       }
     }
 
@@ -127,7 +135,8 @@ public:
       const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if (testFlag(faceBC, flag))
       {
-        vertexdof::blending::macroface::smoothGSBlending<real_t, P1Form>(level, face, dst.getFaceDataID(), rhs.getFaceDataID());
+        vertexdof::variablestencil::macroface::smoothGSVariableStencil<real_t, P1Form>(level, face, dst.getFaceDataID(),
+                                                                                rhs.getFaceDataID());
       }
     }
 
@@ -233,21 +242,21 @@ public:
 #endif
 };
 
-typedef P1BlendingOperator<P1Form_laplace> P1BlendingLaplaceOperator;
-typedef P1BlendingOperator<P1Form_mass> P1BlendingMassOperator;
+typedef P1VariableOperator<P1Form_laplace> P1BlendingLaplaceOperator;
+typedef P1VariableOperator<P1Form_mass> P1BlendingMassOperator;
 
-typedef P1BlendingOperator<P1Form_epsilon_11> P1BlendingEpsilonOperator_11;
-typedef P1BlendingOperator<P1Form_epsilon_12> P1BlendingEpsilonOperator_12;
-typedef P1BlendingOperator<P1Form_epsilon_21> P1BlendingEpsilonOperator_21;
-typedef P1BlendingOperator<P1Form_epsilon_22> P1BlendingEpsilonOperator_22;
+typedef P1VariableOperator<P1Form_epsilon_11> P1BlendingEpsilonOperator_11;
+typedef P1VariableOperator<P1Form_epsilon_12> P1BlendingEpsilonOperator_12;
+typedef P1VariableOperator<P1Form_epsilon_21> P1BlendingEpsilonOperator_21;
+typedef P1VariableOperator<P1Form_epsilon_22> P1BlendingEpsilonOperator_22;
 
-typedef P1BlendingOperator<P1Form_divT_1> P1BlendingDivTOperator_1;
-typedef P1BlendingOperator<P1Form_divT_2> P1BlendingDivTOperator_2;
+typedef P1VariableOperator<P1Form_divT_1> P1BlendingDivTOperator_1;
+typedef P1VariableOperator<P1Form_divT_2> P1BlendingDivTOperator_2;
 
-typedef P1BlendingOperator<P1Form_div_1> P1BlendingDivOperator_1;
-typedef P1BlendingOperator<P1Form_div_2> P1BlendingDivOperator_2;
+typedef P1VariableOperator<P1Form_div_1> P1BlendingDivOperator_1;
+typedef P1VariableOperator<P1Form_div_2> P1BlendingDivOperator_2;
 
-typedef P1BlendingOperator<P1Form_pspg> P1BlendingPSPGOperator;
+typedef P1VariableOperator<P1Form_pspg> P1BlendingPSPGOperator;
 
 }
 

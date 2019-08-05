@@ -9,7 +9,7 @@
 #include <array>
 #include <vector>
 
-using walberla::math::M_PI;
+using walberla::math::pi;
 
 namespace hhg {
 
@@ -69,7 +69,7 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, uint_t
   std::array<real_t,3> node;
   node[2] = (real_t)0.0;
 
-  real_t deltaPhi = 2.0 * M_PI / (real_t)nTan;
+  real_t deltaPhi = 2.0 * pi / (real_t)nTan;
   real_t deltaRho = (rhoMax - rhoMin) / (real_t)nRad;
 
   for ( uint_t i = 0; i < nTan; ++i )

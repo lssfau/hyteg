@@ -12,19 +12,19 @@
 #pragma warning( push, 0 )
 #endif
 
-#include "blending/VertexDoFBlending.hpp"
+#include "variablestencil/VertexDoFVariableStencil.hpp"
 
 #ifdef _MSC_VER
 #pragma warning( pop )
 #endif
 
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormMass.hpp"
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormDiv.hpp"
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormDivT.hpp"
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormEpsilon.hpp"
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormLaplace.hpp"
-#include "tinyhhg_core/p1functionspace/generated_new/P1FormPSPG.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormMass.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormDiv.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormDivT.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormEpsilon.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormLaplace.hpp"
+#include "tinyhhg_core/forms/form_hyteg_generated/P1FormPSPG.hpp"
 #include "tinyhhg_core/polynomial/LSQPInterpolator.hpp"
 
 #include "VertexDoFMacroEdge.hpp"
@@ -130,12 +130,12 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
 
                   std::fill( faceStencil.begin(), faceStencil.end(), 0.0 );
 
-                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, faceStencil );
-                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, faceStencil );
-                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, faceStencil );
-                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, faceStencil );
-                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, faceStencil );
-                  vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, faceStencil );
+                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, faceStencil.data() );
+                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, faceStencil.data() );
+                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, faceStencil.data() );
+                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, faceStencil.data() );
+                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, faceStencil.data() );
+                  vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, faceStencil.data() );
 
                   //if (i == 1 && j == 1) {
                   //   PointND<real_t, 7> test(faceStencil.data());
@@ -244,12 +244,12 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
 
                  std::fill( faceStencil.begin(), faceStencil.end(), 0.0 );
 
-                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, faceStencil );
-                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, faceStencil );
-                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, faceStencil );
-                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, faceStencil );
-                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, faceStencil );
-                 vertexdof::blending::assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, faceStencil );
+                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, faceStencil.data() );
+                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, faceStencil.data() );
+                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, faceStencil.data() );
+                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, faceStencil.data() );
+                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, faceStencil.data() );
+                 vertexdof::variablestencil::assembleLocalStencil< P1Form >( form, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, faceStencil.data() );
 
                  //if (i == 1 && j == 1) {
                  //   PointND<real_t, 7> test(faceStencil.data());
@@ -302,7 +302,9 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
          const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
          if (testFlag(vertexBC, flag))
          {
-            vertexdof::blending::macrovertex::applyBlending< real_t, P1Form >(level, vertex, storage_, src.getVertexDataID(), dst.getVertexDataID(), updateType);
+            vertexdof::variablestencil::macrovertex::applyVariableStencil<real_t, P1Form>(level, vertex, storage_,
+                                                                                   src.getVertexDataID(),
+                                                                                   dst.getVertexDataID(), updateType);
          }
       }
 
@@ -312,7 +314,9 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
          const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
          if (testFlag(edgeBC, flag))
          {
-            vertexdof::blending::macroedge::applyBlending< real_t, P1Form >(level, edge, storage_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType);
+            vertexdof::variablestencil::macroedge::applyVariableStencil<real_t, P1Form>(level, edge, storage_,
+                                                                                 src.getEdgeDataID(),
+                                                                                 dst.getEdgeDataID(), updateType);
          }
       }
 
@@ -350,7 +354,9 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
          const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
          if (testFlag(vertexBC, flag))
          {
-            vertexdof::blending::macrovertex::smoothGSBlending< real_t, P1Form >(level, vertex, storage_, dst.getVertexDataID(), rhs.getVertexDataID());
+            vertexdof::variablestencil::macrovertex::smoothGSVariableStencil<real_t, P1Form>(level, vertex, storage_,
+                                                                                      dst.getVertexDataID(),
+                                                                                      rhs.getVertexDataID());
          }
       }
 
@@ -365,7 +371,9 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
          const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
          if (testFlag(edgeBC, flag))
          {
-            vertexdof::blending::macroedge::smoothGSBlending<real_t, P1Form >(level, edge, storage_, dst.getEdgeDataID(), rhs.getEdgeDataID());
+            vertexdof::variablestencil::macroedge::smoothGSVariableStencil<real_t, P1Form>(level, edge, storage_,
+                                                                                    dst.getEdgeDataID(),
+                                                                                    rhs.getEdgeDataID());
          }
       }
 

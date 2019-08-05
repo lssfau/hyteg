@@ -14,7 +14,7 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
-using walberla::math::M_PI;
+using walberla::math::pi;
 using walberla::uint_t;
 
 typedef enum { RECTANGLE, ANNULUS, PARTIAL_ANNULUS, SPHERICAL_SHELL, FACE_CHAIN } testDomainType;
@@ -35,7 +35,7 @@ static void testMeshGenerator( testDomainType testDomain, MeshInfo::meshFlavour 
       break;
 
     case PARTIAL_ANNULUS:
-      meshInfo = std::make_shared< MeshInfo >( MeshInfo::meshAnnulus( 1.0, 2.0, 0.25*M_PI, 0.75*M_PI, flavour, 4, 2 ) );
+      meshInfo = std::make_shared< MeshInfo >( MeshInfo::meshAnnulus( 1.0, 2.0, 0.25*pi, 0.75*pi, flavour, 4, 2 ) );
       break;
 
     case ANNULUS:

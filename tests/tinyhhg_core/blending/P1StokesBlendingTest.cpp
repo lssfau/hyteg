@@ -10,7 +10,7 @@
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
-#include "tinyhhg_core/p1functionspace/P1BlendingOperator.hpp"
+#include "tinyhhg_core/p1functionspace/P1VariableOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
