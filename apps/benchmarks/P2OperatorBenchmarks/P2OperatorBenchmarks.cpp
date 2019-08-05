@@ -3,6 +3,7 @@
 
 #include "core/Environment.h"
 #include "core/timing/Timer.h"
+#include "core/math/Constants.h"
 
 #include "tinyhhg_core/LikwidWrapper.hpp"
 #include "tinyhhg_core/edgedofspace/generatedKernels/all.hpp"
@@ -222,7 +223,7 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
    P2Function< real_t > p2Dst( "x", storage, level, level );
 
    std::function< real_t( const hhg::Point3D& ) > someFunction = []( const hhg::Point3D& x ) {
-      return cos( M_PI * x[0] ) - sin( 2.0 * M_PI * x[1] ) + cos( 2.0 * M_PI * x[2] );
+      return cos( walberla::math::pi * x[0] ) - sin( 2.0 * walberla::math::pi * x[1] ) + cos( 2.0 * walberla::math::pi * x[2] );
    };
 
    WALBERLA_LOG_INFO_ON_ROOT( "alsdfkn" )
