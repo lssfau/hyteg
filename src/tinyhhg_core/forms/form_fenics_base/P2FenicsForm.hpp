@@ -4,6 +4,10 @@
 #include "tinyhhg_core/fenics/ufc_traits.hpp"
 #include "tinyhhg_core/forms/P2Form.hpp"
 
+#ifdef _MSC_VER
+#  pragma warning(push, 0)
+#endif
+
 // P1
 #include "tinyhhg_core/forms/form_fenics_generated/p1_diffusion.h"
 #include "tinyhhg_core/forms/form_fenics_generated/p1_div.h"
@@ -39,6 +43,10 @@
 // P2 to P1
 #include "tinyhhg_core/forms/form_fenics_generated/p2_to_p1_div.h"
 #include "tinyhhg_core/forms/form_fenics_generated/p2_to_p1_tet_div_tet.h"
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 namespace hhg {
 
