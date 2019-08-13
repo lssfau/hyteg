@@ -40,7 +40,6 @@ class GeometricMultigridSolver : public Solver< OperatorType >
    , coarseSolver_( coarseSolver )
    , restrictionOperator_( restrictionOperator )
    , prolongationOperator_( prolongationOperator )
-   , ax_( "gmg_ax", storage, minLevel, maxLevel )
    , tmp_( "gmg_tmp", storage, minLevel, maxLevel )
    , preSmoothSteps_( preSmoothSteps )
    , postSmoothSteps_( postSmoothSteps )
@@ -86,8 +85,8 @@ class GeometricMultigridSolver : public Solver< OperatorType >
             timingTree_->stop( "Smoother" );
          }
 
-         A.apply( x, ax_, level, flag_ );
-         tmp_.assign( {1.0, -1.0}, {b, ax_}, level, flag_ );
+         A.apply( x, tmp_, level, flag_ );
+         tmp_.assign( {1.0, -1.0}, {b, tmp_}, level, flag_ );
 
          // restrict
          timingTree_->start( "Restriction" );
@@ -139,7 +138,6 @@ class GeometricMultigridSolver : public Solver< OperatorType >
    std::shared_ptr< hhg::RestrictionOperator< FunctionType > >  restrictionOperator_;
    std::shared_ptr< hhg::ProlongationOperator< FunctionType > > prolongationOperator_;
 
-   FunctionType ax_;
    FunctionType tmp_;
 
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
