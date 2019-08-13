@@ -4,6 +4,7 @@
 #include "core/math/Constants.h"
 #include "core/timing/TimingJSON.h"
 
+#include "tinyhhg_core/LikwidWrapper.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
 #include "tinyhhg_core/composites/P1StokesOperator.hpp"
@@ -1008,7 +1009,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       timer.reset();
       if ( cycle == 1 && fmgInnerCycles > 0 )
       {
+         LIKWID_MARKER_START( "FMG" );
          fullMultigridSolver.solve( A, u, f, maxLevel );
+         LIKWID_MARKER_STOP( "FMG" );
       }
       else if ( cyclesBeforeDC > 0 && numExecutedCycles >= cyclesBeforeDC )
       {
@@ -1016,7 +1019,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       }
       else
       {
+         LIKWID_MARKER_START( "VCYCLE" );
          multigridSolver->solve( A, u, f, maxLevel );
+         LIKWID_MARKER_STOP( "VCYCLE" );
       }
       timer.end();
       timeCycle = timer.last();
@@ -1100,8 +1105,14 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
 void setup( int argc, char** argv )
 {
+   LIKWID_MARKER_INIT;
+
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
+
+   LIKWID_MARKER_THREADINIT;
+   LIKWID_MARKER_REGISTER( "FMG" );
+   LIKWID_MARKER_REGISTER( "VCYCLE" );
 
 #ifdef HHG_BUILD_WITH_PETSC
    PETScManager petscManager;
@@ -1514,6 +1525,8 @@ void setup( int argc, char** argv )
          }
       }
    }
+
+  LIKWID_MARKER_CLOSE;
 }
 
 } // namespace hhg
