@@ -59,20 +59,20 @@ std::function< real_t( const hhg::Point3D& ) > exact;
 std::function< real_t( const hhg::Point3D& ) > rhs;
 
 std::function< real_t( const hhg::Point3D& ) > exactConstanta2D = []( const hhg::Point3D& x ) {
-    return cos( M_PI * x[0] ) - sin( 2.0 * M_PI * x[1] );
+    return cos( pi * x[0] ) - sin( 2.0 * pi * x[1] );
 };
 
 std::function< real_t( const hhg::Point3D& ) > rhsConstanta2D = []( const hhg::Point3D& x ) {
-    return M_PI * M_PI * cos( M_PI * x[0] ) - 4.0 * M_PI * M_PI * sin( 2.0 * M_PI * x[1] );
+    return pi * pi * cos( pi * x[0] ) - 4.0 * pi * pi * sin( 2.0 * pi * x[1] );
 };
 
 
 std::function< real_t( const hhg::Point3D& ) > exactConstanta3D = []( const hhg::Point3D& x ) {
-   return cos( M_PI * x[0] ) - sin( 2.0 * M_PI * x[1] ) + cos( 2.0 * M_PI * x[2] );
+   return cos( pi * x[0] ) - sin( 2.0 * pi * x[1] ) + cos( 2.0 * pi * x[2] );
 };
 
 std::function< real_t( const hhg::Point3D& ) > rhsConstanta3D = []( const hhg::Point3D& x ) {
-   return M_PI * M_PI * cos( M_PI * x[0] ) - 4.0 * M_PI * M_PI * sin( 2.0 * M_PI * x[1] ) + 4.0 * M_PI * M_PI * cos( 2.0 * M_PI * x[2] );
+   return pi * pi * cos( pi * x[0] ) - 4.0 * pi * pi * sin( 2.0 * pi * x[1] ) + 4.0 * pi * pi * cos( 2.0 * pi * x[2] );
 };
 
 #else // END IF CONSTANTA
