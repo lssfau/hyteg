@@ -26,24 +26,33 @@ class FullMultigridSolver : public Solver< OperatorType >
    , cyclesPerLevel_( cyclesPerLevel )
    , flag_( Inner | NeumannBoundary )
    , postCycleCallback_( postCycleCallback )
+   , timingTree_( storage->getTimingTree() )
    {}
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
+      timingTree_->start( "FMG Solver" );
       for ( uint_t currentLevel = minLevel_; currentLevel <= level; currentLevel++ )
       {
+         timingTree_->start( "GMG Solver" );
          for ( uint_t cycle = 0; cycle < cyclesPerLevel_; cycle++ )
          {
             gmgSolver_->solve( A, x, b, currentLevel );
          }
+         timingTree_->stop( "GMG Solver" );
 
+         timingTree_->start( "Post-cycle callback" );
          postCycleCallback_( currentLevel );
+         timingTree_->stop( "Post-cycle callback" );
 
+         timingTree_->start( "FMG Prolongation" );
          if ( currentLevel < maxLevel_ )
          {
             fmgProlongation_->prolongate( x, currentLevel, flag_ );
          }
+         timingTree_->stop( "FMG Prolongation" );
       }
+      timingTree_->stop( "FMG Solver" );
    }
 
  private:
@@ -58,6 +67,8 @@ class FullMultigridSolver : public Solver< OperatorType >
    DoFType      flag_;
 
    std::function< void( uint_t currentLevel ) > postCycleCallback_;
+
+   std::shared_ptr< walberla::WcTimingTree > timingTree_;
 };
 
 } // namespace hhg
