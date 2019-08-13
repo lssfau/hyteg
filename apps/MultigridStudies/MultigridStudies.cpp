@@ -814,11 +814,14 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       WALBERLA_LOG_DEVEL_ON_ROOT( "" );
    }
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Number of unknowns (including boundary):" )
+   WALBERLA_LOG_INFO_ON_ROOT( "Number of unknowns (excluding boundary for velocity):" )
    uint_t totalDoFs = 0;
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
-      const uint_t dofsThisLevel = numberOfGlobalDoFs< typename StokesFunction::Tag >( *storage, level );
+      const uint_t velocityDoFsThisLevel = storage->hasGlobalCells()
+        ? 3 * numberOfGlobalInnerDoFs< typename StokesFunction::VelocityFunction_T::Tag >( *storage, level )
+        : 2 * numberOfGlobalInnerDoFs< typename StokesFunction::VelocityFunction_T::Tag >( *storage, level );
+      const uint_t dofsThisLevel = numberOfGlobalDoFs< typename StokesFunction::PressureFunction_T::Tag >( *storage, level ) + velocityDoFsThisLevel;
       WALBERLA_LOG_INFO_ON_ROOT( "  level " << std::setw( 2 ) << level << ": " << std::setw( 15 ) << dofsThisLevel );
       sqlIntegerProperties["total_dofs_level_" + std::to_string( level )] = int64_c( dofsThisLevel );
       totalDoFs += dofsThisLevel;
