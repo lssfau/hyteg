@@ -1,5 +1,7 @@
 #pragma once
 
+#define UZAWA_OLD_VARIANT 0
+
 #include "tinyhhg_core/composites/StokesOperatorTraits.hpp"
 #include "tinyhhg_core/solvers/Solver.hpp"
 
@@ -28,7 +30,9 @@ class UzawaSmoother : public Solver< OperatorType >
    , symmetricGSPressure_( symmetricGSPressure )
    , numGSIterationsPressure_( numGSIterationsPressure )
    , r_( "uzawa_smoother_r", storage, minLevel, maxLevel )
+#if UZAWA_OLD_VARIANT
    , tmp_( "uzawa_smoother_tmp", storage, minLevel, maxLevel )
+#endif
    {}
 
    void solve( const OperatorType&                   A,
@@ -210,32 +214,43 @@ class UzawaSmoother : public Solver< OperatorType >
          }
       }
 
-      A.div_x.apply( x.u, r_.p, level, flag_ | DirichletBoundary, Replace );
-      A.div_y.apply( x.v, r_.p, level, flag_ | DirichletBoundary, Add );
+      A.div_x.apply( x.u, r_.p, level, flag_, Replace );
+      A.div_y.apply( x.v, r_.p, level, flag_, Add );
 
       if ( hasGlobalCells_ )
       {
-         A.div_z.apply( x.w, r_.p, level, flag_ | DirichletBoundary, Add );
+         A.div_z.apply( x.w, r_.p, level, flag_, Add );
       }
 
-      r_.p.assign( {1.0, -1.0}, {b.p, r_.p}, level, flag_ | DirichletBoundary );
+      r_.p.assign( {1.0, -1.0}, {b.p, r_.p}, level, flag_ );
 
+#if UZAWA_OLD_VARIANT
       tmp_.p.interpolate( 0.0, level );
 
       for ( uint_t i = 0; i < numGSIterationsPressure_; i++ )
       {
          if ( symmetricGSPressure_ )
          {
-            A.pspg_.smooth_sor( tmp_.p, r_.p, relaxParam_, level, flag_ | DirichletBoundary );
-            A.pspg_.smooth_sor_backwards( tmp_.p, r_.p, relaxParam_, level, flag_ | DirichletBoundary );
+            A.pspg_.smooth_sor( tmp_.p, r_.p, relaxParam_, level, flag_ );
+            A.pspg_.smooth_sor_backwards( tmp_.p, r_.p, relaxParam_, level, flag_ );
          }
          else
          {
-            A.pspg_.smooth_sor( tmp_.p, r_.p, relaxParam_, level, flag_ | DirichletBoundary );
+            A.pspg_.smooth_sor( tmp_.p, r_.p, relaxParam_, level, flag_ );
          }
       }
 
       x.p.add( {1.0}, {tmp_.p}, level, flag_ | DirichletBoundary );
+#else
+     // This variant is similar to the one published in
+     // Gaspar et al. (2014): A simple and efficient segregated smoother for the discrete stokes equations
+     // however, we additionally scale Bu with the inverse of the diagonal of the PSPG operator.
+     // This is similar to the old variant where we performed one SOR relaxation step on
+     // the zero vector and added the result to the solution.
+     r_.p.assign( {relaxParam_}, {r_.p}, level, flag_ );
+     A.pspg_inv_diag_.apply( r_.p, x.p, level, flag_, Add );
+#endif
+
    }
 
  private:
@@ -248,6 +263,9 @@ class UzawaSmoother : public Solver< OperatorType >
    uint_t  numGSIterationsPressure_;
 
    FunctionType r_;
+
+#if UZAWA_OLD_VARIANT
    FunctionType tmp_;
+#endif
 };
 } // namespace hhg

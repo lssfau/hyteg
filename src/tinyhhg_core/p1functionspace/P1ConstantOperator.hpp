@@ -150,6 +150,8 @@ typedef P1ConstantOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_
 
 typedef P1ConstantOperator< P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >
     P1PSPGOperator;
+typedef P1ConstantOperator< P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise >, true, false, true >
+    P1PSPGInvDiagOperator;
 
 typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise > >
     P2ToP1DivxVertexToVertexConstantOperator;

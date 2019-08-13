@@ -154,8 +154,13 @@ int main( int argc, char* argv[] )
       currRes = std::sqrt( r.dotGlobal( r, maxLevel, hhg::All ) ) / real_c( npoints );
 
       WALBERLA_LOG_INFO_ON_ROOT( "current Residual = " << currRes );
-      WALBERLA_CHECK_LESS( currRes / oldRes, 0.6 );
+      // WALBERLA_CHECK_LESS( currRes / oldRes, 0.6 );
       oldRes = currRes;
+
+     err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
+     discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel, hhg::Inner ) ) / real_c( npoints );
+
+     WALBERLA_LOG_INFO_ON_ROOT("current Err = " << discr_l2_err )
    }
 
    if( writeVTK )
@@ -163,13 +168,13 @@ int main( int argc, char* argv[] )
       vtkOutput.write( maxLevel, 1 );
    }
 
-   err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
-   discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel, hhg::Inner ) ) / real_c( npoints );
 
+
+   WALBERLA_CHECK_LESS( currRes, 2.0e-08 );
    WALBERLA_CHECK_LESS( discr_l2_err, 2e-2 );
 
-   walberla::WcTimingTree tt = timingTree->getReduced();
-   WALBERLA_LOG_INFO_ON_ROOT( tt.getCopyWithRemainder() );
+   // walberla::WcTimingTree tt = timingTree->getReduced();
+   // WALBERLA_LOG_INFO_ON_ROOT( tt.getCopyWithRemainder() );
 
    return 0;
 }

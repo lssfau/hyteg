@@ -23,6 +23,7 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
    , divT_y( storage, minLevel, maxLevel )
    , divT_z( storage, minLevel, maxLevel )
    , pspg_( storage, minLevel, maxLevel )
+   , pspg_inv_diag_( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
@@ -59,6 +60,7 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
 
    /// this operator is need in the uzawa smoother
    P1PSPGOperator pspg_;
+   P1PSPGInvDiagOperator pspg_inv_diag_;
    bool hasGlobalCells_;
 };
 
