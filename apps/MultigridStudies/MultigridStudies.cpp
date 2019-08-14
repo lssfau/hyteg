@@ -838,6 +838,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    const uint_t coarseGridMaxLevel = ( numCycles == 0 ? maxLevel : minLevel );
 
    auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage,
+                                                                        error,
                                                                         minLevel,
                                                                         maxLevel,
                                                                         sorRelax,
@@ -871,6 +872,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    auto restrictionOperator  = std::make_shared< Restriction >( projectPressureAfterRestriction );
 
    auto multigridSolver = std::make_shared< GeometricMultigridSolver< StokesOperator > >( storage,
+                                                                                          error,
                                                                                           smoother,
 #ifdef HHG_BUILD_WITH_PETSC
                                                                                           petscSolver,

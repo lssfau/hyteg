@@ -22,6 +22,28 @@ class UzawaSmoother : public Solver< OperatorType >
                   const uint_t                               numGSIterationsVelocity = 2,
                   const bool                                 symmetricGSPressure     = false,
                   const uint_t                               numGSIterationsPressure = 1 )
+   : UzawaSmoother( storage,
+                    FunctionType( "uzawa_smoother_r", storage, minLevel, maxLevel ),
+                    minLevel,
+                    maxLevel,
+                    relaxParam,
+                    flag,
+                    symmetricGSVelocity,
+                    numGSIterationsVelocity,
+                    symmetricGSPressure,
+                    numGSIterationsPressure )
+   {}
+
+   UzawaSmoother( const std::shared_ptr< PrimitiveStorage >& storage,
+                  const FunctionType&                        tmpFunction,
+                  const uint_t                               minLevel,
+                  const uint_t                               maxLevel,
+                  real_t                                     relaxParam,
+                  hhg::DoFType                               flag                    = hhg::Inner | hhg::NeumannBoundary,
+                  const bool                                 symmetricGSVelocity     = false,
+                  const uint_t                               numGSIterationsVelocity = 2,
+                  const bool                                 symmetricGSPressure     = false,
+                  const uint_t                               numGSIterationsPressure = 1 )
    : flag_( flag )
    , hasGlobalCells_( storage->hasGlobalCells() )
    , relaxParam_( relaxParam )
@@ -29,7 +51,7 @@ class UzawaSmoother : public Solver< OperatorType >
    , numGSIterationsVelocity_( numGSIterationsVelocity )
    , symmetricGSPressure_( symmetricGSPressure )
    , numGSIterationsPressure_( numGSIterationsPressure )
-   , r_( "uzawa_smoother_r", storage, minLevel, maxLevel )
+   , r_( tmpFunction )
 #if UZAWA_OLD_VARIANT
    , tmp_( "uzawa_smoother_tmp", storage, minLevel, maxLevel )
 #endif

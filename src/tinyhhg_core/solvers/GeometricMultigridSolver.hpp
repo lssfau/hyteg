@@ -34,13 +34,39 @@ class GeometricMultigridSolver : public Solver< OperatorType >
                              uint_t                                                  postSmoothSteps               = 3,
                              uint_t                                                  smoothIncrementOnCoarserGrids = 0,
                              CycleType                                               cycleType = CycleType::VCYCLE )
+   : GeometricMultigridSolver( storage,
+                               FunctionType( "gmg_tmp", storage, minLevel, maxLevel ),
+                               smoother,
+                               coarseSolver,
+                               restrictionOperator,
+                               prolongationOperator,
+                               minLevel,
+                               maxLevel,
+                               preSmoothSteps,
+                               postSmoothSteps,
+                               smoothIncrementOnCoarserGrids,
+                               cycleType )
+   {}
+
+   GeometricMultigridSolver( const std::shared_ptr< PrimitiveStorage >&              storage,
+                             const FunctionType&                                     tmpFunction,
+                             std::shared_ptr< Solver< OperatorType > >               smoother,
+                             std::shared_ptr< Solver< OperatorType > >               coarseSolver,
+                             std::shared_ptr< RestrictionOperator< FunctionType > >  restrictionOperator,
+                             std::shared_ptr< ProlongationOperator< FunctionType > > prolongationOperator,
+                             uint_t                                                  minLevel,
+                             uint_t                                                  maxLevel,
+                             uint_t                                                  preSmoothSteps                = 3,
+                             uint_t                                                  postSmoothSteps               = 3,
+                             uint_t                                                  smoothIncrementOnCoarserGrids = 0,
+                             CycleType                                               cycleType = CycleType::VCYCLE )
    : minLevel_( minLevel )
    , maxLevel_( maxLevel )
    , smoother_( smoother )
    , coarseSolver_( coarseSolver )
    , restrictionOperator_( restrictionOperator )
    , prolongationOperator_( prolongationOperator )
-   , tmp_( "gmg_tmp", storage, minLevel, maxLevel )
+   , tmp_( tmpFunction )
    , preSmoothSteps_( preSmoothSteps )
    , postSmoothSteps_( postSmoothSteps )
    , smoothIncrement_( smoothIncrementOnCoarserGrids )
