@@ -825,6 +825,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    storage->getTimingTree()->reset();
 
    walberla::WcTimer timer;
+   walberla::WcTimer timerFMGErrorCalculation;
    double            timeError;
    double            timeVTK;
    double            timeCycle;
@@ -890,7 +891,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
    auto fmgProlongation = std::make_shared< FMGProlongation >();
 
+
    auto postCycle = [&]( uint_t currentLevel ) {
+      timerFMGErrorCalculation.start();
       long double _l2ErrorU, _l2ErrorP, _l2ResidualU, _l2ResidualP;
       calculateErrorAndResidualStokes( currentLevel,
                                        A,
@@ -905,13 +908,16 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       sqlRealProperties["fmg_l2_error_p_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorP );
       sqlRealProperties["fmg_l2_residual_u_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorU );
       sqlRealProperties["fmg_l2_residual_p_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorP );
-      WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error u: " << std::scientific << _l2ErrorU << " / l2 error p: " << std::scientific << _l2ErrorP );
+      timerFMGErrorCalculation.end();
+      WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error u: " << std::scientific << _l2ErrorU << " / l2 error p: "
+      << std::scientific << _l2ErrorP << std::fixed << " - time error calc: " << timerFMGErrorCalculation.last() << " sec" );
+
    };
 
    FullMultigridSolver< StokesOperator > fullMultigridSolver(
        storage, multigridSolver, fmgProlongation, minLevel, maxLevel, fmgInnerCycles, postCycle );
 
-   printFunctionAllocationInfo( *storage, 2 );
+   printFunctionAllocationInfo( *storage,  1 );
 
    timer.reset();
    calculateErrorAndResidualStokes(
@@ -1018,6 +1024,10 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       }
       timer.end();
       timeCycle = timer.last();
+      if ( cycle == 1 && fmgInnerCycles > 0 )
+      {
+        timeCycle -= timerFMGErrorCalculation.total();
+      }
 
       numExecutedCycles++;
 
@@ -1029,6 +1039,10 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
           maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
       timer.end();
       timeError = timer.last();
+      if ( cycle == 1 && fmgInnerCycles > 0 )
+      {
+        timeError += timerFMGErrorCalculation.total();
+      }
 
       timer.reset();
       if ( outputVTK )
