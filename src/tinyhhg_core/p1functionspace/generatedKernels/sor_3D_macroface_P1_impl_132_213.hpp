@@ -5,7 +5,6 @@
 
 #pragma once
 #include "all.hpp"
-#include "core/DataTypes.h"
 #include "core/Macros.h"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include <map>

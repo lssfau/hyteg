@@ -36,15 +36,15 @@ static void apply_3D_macroface_one_sided_edgedof_to_edgedof_replace_impl_130_lev
    const double xi_174 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::X][hhg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, 0 }];
    const double xi_175 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::X][hhg::edgedof::EdgeDoFOrientation::Z][{ 0, 1, -1 }];
    const double xi_176 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::X][hhg::edgedof::EdgeDoFOrientation::Z][{ 1, 0, -1 }];
-   const double xi_251 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::XYZ][{ 0, 0, 0 }];
-   const double xi_252 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 0 }];
-   const double xi_253 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 0 }];
-   const double xi_254 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 0 }];
-   const double xi_255 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 1 }];
-   const double xi_256 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, 0 }];
-   const double xi_257 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, 0 }];
-   const double xi_258 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, 0 }];
-   const double xi_259 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::Z][{ 1, 0, 0 }];
+   const double xi_205 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::XYZ][{ 0, 0, 0 }];
+   const double xi_206 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 0 }];
+   const double xi_207 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 0 }];
+   const double xi_208 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 0 }];
+   const double xi_209 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 1 }];
+   const double xi_210 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, 0 }];
+   const double xi_211 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, 0 }];
+   const double xi_212 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, 0 }];
+   const double xi_213 = e2e_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][hhg::edgedof::EdgeDoFOrientation::Z][{ 1, 0, 0 }];
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
       {
@@ -118,42 +118,42 @@ static void apply_3D_macroface_one_sided_edgedof_to_edgedof_replace_impl_130_lev
          // left edge
          for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
          {
-            const double xi_274 = xi_251*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*(1 << (level)) - ((ctr_2*(ctr_2 - 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 6*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_275 = xi_252*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_276 = xi_253*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))];
-            const double xi_277 = xi_254*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_278 = xi_255*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2)) + 1];
-            const double xi_279 = xi_256*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 5*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_280 = xi_257*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 4*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_281 = xi_258*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_282 = xi_259*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_283 = xi_71*_data_edgeFaceSrc_X[ctr_1 + ctr_2*(1 << (level)) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 6*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_284 = xi_72*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 1) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_285 = xi_73*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_286 = xi_74*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 1) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2))];
-            const double xi_287 = xi_75*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))];
-            const double xi_288 = xi_76*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2)) + 1];
-            const double xi_289 = xi_77*_data_edgeFaceSrc_X[ctr_1 + ctr_2*(1 << (level)) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_290 = xi_78*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_291 = xi_79*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 1) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 5*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_292 = xi_80*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 5*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_293 = xi_81*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 4*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_294 = xi_82*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            _data_edgeFaceDst_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_274 + xi_275 + xi_276 + xi_277 + xi_278 + xi_279 + xi_280 + xi_281 + xi_282;
-            _data_edgeFaceDst_XY[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_283 + xi_284 + xi_285 + xi_286 + xi_287 + xi_288 + xi_289 + xi_290 + xi_291 + xi_292 + xi_293 + xi_294;
+            const double xi_228 = xi_205*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*(1 << (level)) - ((ctr_2*(ctr_2 - 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 6*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_229 = xi_206*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_230 = xi_207*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))];
+            const double xi_231 = xi_208*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_232 = xi_209*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2)) + 1];
+            const double xi_233 = xi_210*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 5*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_234 = xi_211*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 4*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_235 = xi_212*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_236 = xi_213*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_237 = xi_71*_data_edgeFaceSrc_X[ctr_1 + ctr_2*(1 << (level)) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 6*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_238 = xi_72*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 1) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_239 = xi_73*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_240 = xi_74*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 1) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2))];
+            const double xi_241 = xi_75*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))];
+            const double xi_242 = xi_76*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2)) + 1];
+            const double xi_243 = xi_77*_data_edgeFaceSrc_X[ctr_1 + ctr_2*(1 << (level)) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_244 = xi_78*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_245 = xi_79*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 1) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 5*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_246 = xi_80*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 5*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_247 = xi_81*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 4*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_248 = xi_82*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            _data_edgeFaceDst_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_228 + xi_229 + xi_230 + xi_231 + xi_232 + xi_233 + xi_234 + xi_235 + xi_236;
+            _data_edgeFaceDst_XY[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_237 + xi_238 + xi_239 + xi_240 + xi_241 + xi_242 + xi_243 + xi_244 + xi_245 + xi_246 + xi_247 + xi_248;
          }
          // inner triangle
          for (int ctr_1 = 1; ctr_1 < -ctr_2 + (1 << (level)) - 1; ctr_1 += 1)
          {
-            const double xi_36 = xi_251*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*(1 << (level)) - ((ctr_2*(ctr_2 - 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 6*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_37 = xi_252*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_38 = xi_253*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))];
-            const double xi_39 = xi_254*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_40 = xi_255*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2)) + 1];
-            const double xi_41 = xi_256*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 5*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_42 = xi_257*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 4*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_43 = xi_258*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_44 = xi_259*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_36 = xi_205*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*(1 << (level)) - ((ctr_2*(ctr_2 - 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 6*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_37 = xi_206*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_38 = xi_207*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))];
+            const double xi_39 = xi_208*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_40 = xi_209*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2)) + 1];
+            const double xi_41 = xi_210*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 5*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_42 = xi_211*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 4*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_43 = xi_212*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_44 = xi_213*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
             const double xi_45 = xi_71*_data_edgeFaceSrc_X[ctr_1 + ctr_2*(1 << (level)) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 6*((((1 << (level)) + 1)*(1 << (level))) / (2))];
             const double xi_46 = xi_72*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 1) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
             const double xi_47 = xi_73*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
@@ -185,29 +185,29 @@ static void apply_3D_macroface_one_sided_edgedof_to_edgedof_replace_impl_130_lev
          // diagonal edge
          for (int ctr_1 = -ctr_2 + (1 << (level)) - 1; ctr_1 < -ctr_2 + (1 << (level)); ctr_1 += 1)
          {
-            const double xi_228 = xi_251*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*(1 << (level)) - ((ctr_2*(ctr_2 - 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 6*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_229 = xi_252*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_230 = xi_253*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))];
-            const double xi_231 = xi_254*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_232 = xi_255*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2)) + 1];
-            const double xi_233 = xi_256*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 5*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_234 = xi_257*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 4*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_235 = xi_258*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_236 = xi_259*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_237 = xi_165*_data_edgeFaceSrc_X[ctr_1 + ctr_2*(1 << (level)) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 6*((((1 << (level)) + 1)*(1 << (level))) / (2)) - 1];
-            const double xi_238 = xi_166*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 1) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2)) - 1];
-            const double xi_239 = xi_167*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_240 = xi_168*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 1) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) - 1];
-            const double xi_241 = xi_169*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))];
-            const double xi_242 = xi_170*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_243 = xi_171*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 1) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 5*((((1 << (level)) + 1)*(1 << (level))) / (2)) - 1];
-            const double xi_244 = xi_172*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 5*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_245 = xi_173*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 4*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_246 = xi_174*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_247 = xi_175*_data_edgeFaceSrc_X[ctr_1 + ctr_2*(1 << (level)) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2)) - 1];
-            const double xi_248 = xi_176*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2)) - 1];
-            _data_edgeFaceDst_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_228 + xi_229 + xi_230 + xi_231 + xi_232 + xi_233 + xi_234 + xi_235 + xi_236;
-            _data_edgeFaceDst_Y[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_237 + xi_238 + xi_239 + xi_240 + xi_241 + xi_242 + xi_243 + xi_244 + xi_245 + xi_246 + xi_247 + xi_248;
+            const double xi_274 = xi_205*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*(1 << (level)) - ((ctr_2*(ctr_2 - 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 6*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_275 = xi_206*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_276 = xi_207*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))];
+            const double xi_277 = xi_208*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_278 = xi_209*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2)) + 1];
+            const double xi_279 = xi_210*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 5*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_280 = xi_211*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 4*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_281 = xi_212*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_282 = xi_213*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_283 = xi_165*_data_edgeFaceSrc_X[ctr_1 + ctr_2*(1 << (level)) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 6*((((1 << (level)) + 1)*(1 << (level))) / (2)) - 1];
+            const double xi_284 = xi_166*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 1) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2)) - 1];
+            const double xi_285 = xi_167*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_286 = xi_168*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 1) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) - 1];
+            const double xi_287 = xi_169*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))];
+            const double xi_288 = xi_170*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_289 = xi_171*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 + 1)*((1 << (level)) + 1) - (((ctr_2 + 1)*(ctr_2 + 2)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 5*((((1 << (level)) + 1)*(1 << (level))) / (2)) - 1];
+            const double xi_290 = xi_172*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 5*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_291 = xi_173*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 4*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_292 = xi_174*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_293 = xi_175*_data_edgeFaceSrc_X[ctr_1 + ctr_2*(1 << (level)) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2)) - 1];
+            const double xi_294 = xi_176*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2)) - 1];
+            _data_edgeFaceDst_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_274 + xi_275 + xi_276 + xi_277 + xi_278 + xi_279 + xi_280 + xi_281 + xi_282;
+            _data_edgeFaceDst_Y[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_283 + xi_284 + xi_285 + xi_286 + xi_287 + xi_288 + xi_289 + xi_290 + xi_291 + xi_292 + xi_293 + xi_294;
          }
       }
       for (int ctr_2 = (1 << (level)) - 1; ctr_2 < (1 << (level)); ctr_2 += 1)
@@ -215,15 +215,15 @@ static void apply_3D_macroface_one_sided_edgedof_to_edgedof_replace_impl_130_lev
          // top vertex
          for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
          {
-            const double xi_138 = xi_251*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*(1 << (level)) - ((ctr_2*(ctr_2 - 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 6*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_139 = xi_252*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_140 = xi_253*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))];
-            const double xi_141 = xi_254*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_142 = xi_255*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2)) + 1];
-            const double xi_143 = xi_256*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 5*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_144 = xi_257*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 4*((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_145 = xi_258*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
-            const double xi_146 = xi_259*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_138 = xi_205*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*(1 << (level)) - ((ctr_2*(ctr_2 - 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 6*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_139 = xi_206*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 3*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_140 = xi_207*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))];
+            const double xi_141 = xi_208*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_142 = xi_209*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2)) + 1];
+            const double xi_143 = xi_210*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 5*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_144 = xi_211*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 4*((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_145 = xi_212*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
+            const double xi_146 = xi_213*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
             _data_edgeFaceDst_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))] = xi_138 + xi_139 + xi_140 + xi_141 + xi_142 + xi_143 + xi_144 + xi_145 + xi_146;
          }
       }
