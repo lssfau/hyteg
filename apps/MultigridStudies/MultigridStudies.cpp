@@ -133,6 +133,15 @@ std::function< real_t( const hhg::Point3D& ) > bcU = []( const hhg::Point3D& x )
 std::function< real_t( const hhg::Point3D& ) > exactV = []( const hhg::Point3D& x ) {
    return -2.0 * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] );
 };
+std::function< real_t( const hhg::Point3D& ) > bcV = []( const hhg::Point3D& x ) {
+    return -2.0 * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] );
+};
+std::function< real_t( const hhg::Point3D& ) > exactW = []( const hhg::Point3D& ) {
+    return real_c(0);
+};
+std::function< real_t( const hhg::Point3D& ) > bcW = []( const hhg::Point3D& ) {
+    return real_c(0);
+};
 std::function< real_t( const hhg::Point3D& ) > exactP = []( const hhg::Point3D& x ) {
    return 2.5 * pi * std::cos( 2 * pi * x[0] ) * std::cos( pi * x[1] );
 };
@@ -140,8 +149,27 @@ std::function< real_t( const hhg::Point3D& ) > rhsU = []( const hhg::Point3D& ) 
 std::function< real_t( const hhg::Point3D& ) > rhsV = []( const hhg::Point3D& x ) {
    return -12.5 * pi * pi * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] );
 };
+std::function< real_t( const hhg::Point3D& ) > rhsW = []( const hhg::Point3D& ) {
+    return real_c(0);
+};
 #endif
 #endif
+
+std::function< real_t( const hhg::Point3D& ) > shellExactU = []( const hhg::Point3D& x ) { return -4 * std::cos( 4 * x[2] ); };
+std::function< real_t( const hhg::Point3D& ) > shellExactV = []( const hhg::Point3D& x ) { return 8 * std::cos( 8 * x[0] ); };
+std::function< real_t( const hhg::Point3D& ) > shellExactW = []( const hhg::Point3D& x ) { return -2 * std::cos( 2 * x[1] ); };
+std::function< real_t( const hhg::Point3D& ) > shellExactP = []( const hhg::Point3D& x ) {
+   return std::sin( 4 * x[0] ) * std::sin( 8 * x[1] ) * std::sin( 2 * x[2] );
+};
+std::function< real_t( const hhg::Point3D& ) > shellRhsU = []( const hhg::Point3D& x ) {
+   return 4 * std::sin( 8 * x[1] ) * std::sin( 2 * x[2] ) * std::cos( 4 * x[0] ) - 64 * std::cos( 4 * x[2] );
+};
+std::function< real_t( const hhg::Point3D& ) > shellRhsV = []( const hhg::Point3D& x ) {
+   return 8 * std::sin( 4 * x[0] ) * std::sin( 2 * x[2] ) * std::cos( 8 * x[1] ) + 512 * std::cos( 8 * x[0] );
+};
+std::function< real_t( const hhg::Point3D& ) > shellRhsW = []( const hhg::Point3D& x ) {
+   return 2 * std::sin( 4 * x[0] ) * std::sin( 8 * x[1] ) * std::cos( 2 * x[2] ) - 8 * std::cos( 2 * x[1] );
+};
 
 template < typename Function, typename LaplaceOperator, typename MassOperator >
 void calculateErrorAndResidual( const uint_t&          level,
@@ -213,7 +241,7 @@ void calculateErrorAndResidualStokes( const uint_t&         level,
 
    error.u.interpolate( exactU, level, All );
    error.v.interpolate( exactV, level, All );
-   error.w.interpolate( real_c( 0 ), level, All );
+   error.w.interpolate( exactW, level, All );
    error.p.interpolate( exactP, level, All );
    error.assign( {1.0, -1.0}, {error, u}, level, All );
 
@@ -288,12 +316,15 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
    MassOperator   M( storage, level, level );
 
    u.u.interpolate( bcU, level, DirichletBoundary );
-   u.v.interpolate( exactV, level, DirichletBoundary );
+   u.v.interpolate( bcV, level, DirichletBoundary );
+   u.w.interpolate( bcW, level, DirichletBoundary );
 
    tmp.u.interpolate( rhsU, level, All );
    tmp.v.interpolate( rhsV, level, All );
+   tmp.w.interpolate( rhsW, level, All );
    M.apply( tmp.u, f.u, level, All );
    M.apply( tmp.v, f.v, level, All );
+   M.apply( tmp.w, f.w, level, All );
 
 #ifdef HHG_BUILD_WITH_PETSC
    auto solver = std::make_shared< PETScMinResSolver< StokesOperator > >( storage, level, 1e-16 );
@@ -770,6 +801,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    {
       error.u.interpolate( exactU, maxLevel );
       error.v.interpolate( exactV, maxLevel );
+      error.w.interpolate( exactW, maxLevel );
       error.p.interpolate( exactP, maxLevel );
 
       VTKOutput exactSolutionVTKOutput( "vtk", "MultigridStudiesExact", storage );
@@ -784,13 +816,16 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
       u.u.interpolate( bcU, level, DirichletBoundary );
-      u.v.interpolate( exactV, level, DirichletBoundary );
+      u.v.interpolate( bcV, level, DirichletBoundary );
+      u.w.interpolate( bcW, level, DirichletBoundary );
 
       // using error as tmp function here
       error.u.interpolate( rhsU, level, All );
       error.v.interpolate( rhsV, level, All );
+      error.w.interpolate( rhsW, level, All );
       M.apply( error.u, f.u, level, All );
       M.apply( error.v, f.v, level, All );
+      M.apply( error.w, f.w, level, All );
    }
 
    /////////////////////////
@@ -1183,6 +1218,12 @@ void setup( int argc, char** argv )
    const uint_t      postDCPostSmoothingSteps        = mainConf.getParameter< uint_t >( "postDCPostSmoothingSteps" );
    const uint_t      postDCSmoothingIncrement        = mainConf.getParameter< uint_t >( "postDCSmoothingIncrement" );
 
+   const bool        meshSphericalShell              = mainConf.getParameter< bool >( "meshSphericalShell" );
+   const uint_t      shellNTan                       = mainConf.getParameter< uint_t >( "shellNTan" );
+   const uint_t      shellNRad                       = mainConf.getParameter< uint_t >( "shellNRad" );
+   const real_t      shellRMin                       = mainConf.getParameter< real_t >( "shellRMin" );
+   const real_t      shellRMax                       = mainConf.getParameter< real_t >( "shellRMax" );
+
    // parameter checks
    WALBERLA_CHECK( equation == "stokes" || equation == "poisson" );
    WALBERLA_CHECK( discretization == "P1" || discretization == "P2" );
@@ -1192,9 +1233,7 @@ void setup( int argc, char** argv )
 
    WALBERLA_LOG_INFO_ON_ROOT( "Parameters:" );
    WALBERLA_LOG_INFO_ON_ROOT( "  - equation:                                " << equation );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - dim:                                     " << dim );
    WALBERLA_LOG_INFO_ON_ROOT( "  - num processes:                           " << numProcesses );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - num faces per side:                      " << numFacesPerSide );
    WALBERLA_LOG_INFO_ON_ROOT( "  - discretization:                          " << discretization );
    WALBERLA_LOG_INFO_ON_ROOT( "  - num cycles:                              " << numCycles );
    WALBERLA_LOG_INFO_ON_ROOT( "  - cycle type:                              " << cycleTypeString );
@@ -1224,8 +1263,21 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - output SQL file:                         " << outputSQLFile );
    WALBERLA_LOG_INFO_ON_ROOT( "  - SQL tag:                                 " << sqlTag );
    WALBERLA_LOG_INFO_ON_ROOT( "  - skip cycles for avg conv rate:           " << skipCyclesForAvgConvRate );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - mesh layout:                             " << meshLayout );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - symmetric cuboid mesh:                   " << symmetricCuboidMesh );
+   if ( meshSphericalShell )
+   {
+     WALBERLA_LOG_INFO_ON_ROOT( "  - sphericalShell:                          " << "yes" );
+     WALBERLA_LOG_INFO_ON_ROOT( "  - nTan:                                    " << shellNTan );
+     WALBERLA_LOG_INFO_ON_ROOT( "  - nRad:                                    " << shellNRad );
+     WALBERLA_LOG_INFO_ON_ROOT( "  - rMin:                                    " << shellRMin );
+     WALBERLA_LOG_INFO_ON_ROOT( "  - rMax:                                    " << shellRMax );
+   }
+   else
+   {
+     WALBERLA_LOG_INFO_ON_ROOT( "  - dim:                                     " << dim );
+     WALBERLA_LOG_INFO_ON_ROOT( "  - num faces per side:                      " << numFacesPerSide );
+     WALBERLA_LOG_INFO_ON_ROOT( "  - mesh layout:                             " << meshLayout );
+     WALBERLA_LOG_INFO_ON_ROOT( "  - symmetric cuboid mesh:                   " << symmetricCuboidMesh );
+   }
    WALBERLA_LOG_INFO_ON_ROOT( "  - cycles before DC:                        "
                               << ( discretization == "P1" ? std::to_string( cyclesBeforeDC ) : "disabled" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - DC pre- / post- / incr-smoothing:        "
@@ -1287,69 +1339,98 @@ void setup( int argc, char** argv )
 
    std::shared_ptr< PrimitiveStorage > storage;
    {
-      MeshInfo::meshFlavour meshFlavour;
-      if ( meshLayout == "CRISS" )
-         meshFlavour = MeshInfo::CRISS;
-      else if ( meshLayout == "CRISSCROSS" )
-         meshFlavour = MeshInfo::CRISSCROSS;
-      else
-         WALBERLA_ABORT( "Invalid mesh layout." );
+     if ( meshSphericalShell )
+     {
+       auto meshInfo = MeshInfo::meshSphericalShell( shellNTan, shellNRad, shellRMin, shellRMax );
 
-      auto meshInfo = MeshInfo::meshRectangle( leftBottom, Point2D( {1, 1} ), meshFlavour, numFacesPerSide, numFacesPerSide );
-      if ( dim == 3 )
-      {
+       SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
+       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+
+       storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+       sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
+       sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
+       sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
+       sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
+
+       exactU = shellExactU;
+       exactV = shellExactV;
+       exactW = shellExactW;
+
+       exactP = shellExactP;
+
+       bcU = shellExactU;
+       bcV = shellExactV;
+       bcW = shellExactW;
+
+       rhsU = shellRhsU;
+       rhsV = shellRhsV;
+       rhsW = shellRhsW;
+     }
+     else
+     {
+       MeshInfo::meshFlavour meshFlavour;
+       if ( meshLayout == "CRISS" )
+         meshFlavour = MeshInfo::CRISS;
+       else if ( meshLayout == "CRISSCROSS" )
+         meshFlavour = MeshInfo::CRISSCROSS;
+       else
+       WALBERLA_ABORT( "Invalid mesh layout." );
+
+       auto meshInfo = MeshInfo::meshRectangle( leftBottom, Point2D( { 1, 1 } ), meshFlavour, numFacesPerSide, numFacesPerSide );
+       if ( dim == 3 )
+       {
          if ( symmetricCuboidMesh )
          {
-            meshInfo = MeshInfo::meshSymmetricCuboid(
-                leftBottom3D, Point3D( {1, 1, 1} ), numFacesPerSide, numFacesPerSide, numFacesPerSide );
-         }
-         else
+           meshInfo = MeshInfo::meshSymmetricCuboid(
+           leftBottom3D, Point3D( { 1, 1, 1 } ), numFacesPerSide, numFacesPerSide, numFacesPerSide );
+         } else
          {
-            meshInfo =
-                MeshInfo::meshCuboid( leftBottom3D, Point3D( {1, 1, 1} ), numFacesPerSide, numFacesPerSide, numFacesPerSide );
+           meshInfo =
+           MeshInfo::meshCuboid( leftBottom3D, Point3D( { 1, 1, 1 } ), numFacesPerSide, numFacesPerSide, numFacesPerSide );
          }
-      }
-      SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
-      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+       }
+       SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
+       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
 #if NEUMANN_PROBLEM
-      auto topBoundary = []( const Point3D& x ) {
-         const real_t eps = 1e-8;
-         return std::abs( x[1] - 1 ) < eps;
-      };
-      auto bottomBoundary = []( const Point3D& x ) {
-         const real_t eps = 1e-8;
-         return std::abs( x[1] + 1 ) < eps;
-      };
-      auto leftBoundary = []( const Point3D& x ) {
-         const real_t eps = 1e-8;
-         return std::abs( x[0] + 1 ) < eps;
-      };
-      setupStorage.setMeshBoundaryFlagsOnBoundary( 2, 0, true );
-      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, topBoundary, true );
-      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, bottomBoundary, true );
-      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, leftBoundary, true );
+       auto topBoundary = []( const Point3D& x ) {
+          const real_t eps = 1e-8;
+          return std::abs( x[1] - 1 ) < eps;
+       };
+       auto bottomBoundary = []( const Point3D& x ) {
+          const real_t eps = 1e-8;
+          return std::abs( x[1] + 1 ) < eps;
+       };
+       auto leftBoundary = []( const Point3D& x ) {
+          const real_t eps = 1e-8;
+          return std::abs( x[0] + 1 ) < eps;
+       };
+       setupStorage.setMeshBoundaryFlagsOnBoundary( 2, 0, true );
+       setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, topBoundary, true );
+       setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, bottomBoundary, true );
+       setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, leftBoundary, true );
 #endif
 
 #if CONSTANTA_POISSON
-      if ( dim == 2 )
-      {
+       if ( dim == 2 )
+       {
          exact = exactConstanta2D;
-         rhs   = rhsConstanta2D;
-      }
-      else
-      {
+         rhs = rhsConstanta2D;
+       } else
+       {
          exact = exactConstanta3D;
-         rhs   = rhsConstanta3D;
-      }
+         rhs = rhsConstanta3D;
+       }
 #endif
+       storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-      storage = std::make_shared< PrimitiveStorage >( setupStorage );
+       sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
+       sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
+       sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
+       sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
+     }
 
-      sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
-      sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
-      sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
-      sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
    }
 
    if ( outputVTK )

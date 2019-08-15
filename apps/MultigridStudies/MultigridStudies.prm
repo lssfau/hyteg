@@ -1,37 +1,44 @@
 Parameters
 {
-    equation poisson;
+    equation stokes;
     dim 3;
     numFacesPerSide 1;
     discretization P2;
+
+    meshSphericalShell true;
+    shellNTan 3;
+    shellNRad 2;
+    shellRMin 0.5;
+    shellRMax 1.0;
+
     meshLayout CRISSCROSS;
     symmetricCuboidMesh true;
-    numCycles 20;
+    numCycles 10;
     cycleType V;
     fmgInnerCycles 0; // 0 == no fmg
 
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
-    sorRelax 1.0;
+    sorRelax 0.15;
 
     symmGSVelocity true;
     numGSVelocity 1;
     symmGSPressure false;
     numGSPressure 1;
 
-    preSmoothingSteps 2;
-    postSmoothingSteps 1;
-    smoothingIncrement 0;
+    preSmoothingSteps 3;
+    postSmoothingSteps 3;
+    smoothingIncrement 2;
     minLevel 2;
-    maxLevel 8; // P1 level, P2 level is automatically reduced by 1
+    maxLevel 5; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-16;
     projectPressureAfterRestriction true;
     calculateDiscretizationError false;
     coarseGridMaxIterations 2000;
-    coarseGridResidualTolerance 1e-14;
+    coarseGridResidualTolerance 1e-05;
 
-    cyclesBeforeDC 3;
+    cyclesBeforeDC 0;
     postDCPreSmoothingSteps 3;
     postDCPostSmoothingSteps 3;
     postDCSmoothingIncrement 2;
