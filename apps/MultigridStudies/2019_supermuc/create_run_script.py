@@ -1,4 +1,3 @@
-import numpy as np
 from uuid import uuid4
 import time
 import datetime
@@ -143,7 +142,6 @@ def supermuc_scaling():
         prm_string_prm_dict.update(prms)
         prm_string_prm_dict["timing_file"] = timing_file
         prm_string_prm_dict["db_file"] = db_file
-        print(prm_string_prm_dict)
 
         prm_string = supermuc_scaling_prm_file_string(**prm_string_prm_dict)
         job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="1:00:00",
