@@ -1222,10 +1222,31 @@ benchmark_intel19:
    <<: *benchmark_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
 
-benchmark_gcc8:
+benchmark_gcc9:
    <<: *benchmark_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
 
 benchmark_clang8:
    <<: *benchmark_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
+
+benchmark_build_time:
+  script:
+    - cmake --version
+    - ccache --version
+    - mpirun --version
+    - export CC=/usr/bin/gcc
+    - export CXX=/usr/bin/g++
+    - $CXX --version
+    - mkdir $CI_PROJECT_DIR/build
+    - cd $CI_PROJECT_DIR/build
+    - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
+    - cmake .. -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS
+    - cmake . -LAH
+    - time make core -j20
+    - time make tinyhhg_core -j20
+    - cd $CI_PROJECT_DIR/build/tests
+    - time make -j20
+    - cd $CI_PROJECT_DIR/build/apps
+    - time make -j20
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
