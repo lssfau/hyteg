@@ -71,7 +71,10 @@ public:
 
     bVec.createVectorFromFunction(b,num,level,All);
 
-    if(Amat.createMatrixFromFunctionOnce(A, level, num, All))
+    x.getStorage()->getTimingTree()->start( "Matrix assembly and solver setup" );
+    const bool matrixAssembledForTheFirstTime = Amat.createMatrixFromFunctionOnce(A, level, num, All);
+
+    if( matrixAssembledForTheFirstTime )
     {
       Amat.applyDirichletBC(num,level);
       KSPSetOperators(ksp,Amat.get(),Amat.get());
@@ -82,8 +85,11 @@ public:
       //PCFactorSetUpMatSolverPackage(pc); /* call MatGetFactor() to create F */
       //PCFactorGetMatrix(pc,&F);
     }
+    x.getStorage()->getTimingTree()->stop( "Matrix assembly and solver setup" );
 
+    x.getStorage()->getTimingTree()->start( "Solver" );
     KSPSolve(ksp,bVec.get(),xVec.get());
+    x.getStorage()->getTimingTree()->stop( "Solver" );
 
     xVec.createFunctionFromVector(x,num,level,flag_);
 
