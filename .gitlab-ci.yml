@@ -1250,3 +1250,5 @@ benchmark_build_time:
     - cd $CI_PROJECT_DIR/build/apps
     - time make -j20
   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
+  tags:
+    - docker-benchmark
