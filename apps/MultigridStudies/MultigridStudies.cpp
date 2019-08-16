@@ -1584,12 +1584,14 @@ void setup( int argc, char** argv )
    {
       if ( outputTimingJSON )
       {
+         WALBERLA_LOG_INFO_ON_ROOT( "Writing JSON timing to " << outputJSONFile )
          nlohmann::json ttJson;
          walberla::timing::to_json( ttJson, tt );
          std::ofstream jsonOutput;
          jsonOutput.open( outputTimingJSONFile );
          jsonOutput << ttJson.dump( 4 );
          jsonOutput.close();
+         WALBERLA_LOG_INFO_ON_ROOT( "Done writing JSON timing." )
       }
    }
 
@@ -1597,6 +1599,7 @@ void setup( int argc, char** argv )
    {
       WALBERLA_ROOT_SECTION()
       {
+         WALBERLA_LOG_INFO_ON_ROOT( "Writing SQL database to " << outputSQLFile )
          const std::string                  dbFile = outputSQLFile;
          walberla::postprocessing::SQLiteDB db( dbFile );
          sqlIntegerProperties["conv_table_for_run"] = -1;
@@ -1611,6 +1614,7 @@ void setup( int argc, char** argv )
                db.storeRun( runIdMap, std::map< std::string, std::string >(), sqlRealPropertiesMG[cycle] );
             }
          }
+         WALBERLA_LOG_INFO_ON_ROOT( "Done writing SQL database." )
       }
    }
 
