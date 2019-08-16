@@ -1584,7 +1584,7 @@ void setup( int argc, char** argv )
    {
       if ( outputTimingJSON )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( "Writing JSON timing to " << outputJSONFile )
+         WALBERLA_LOG_INFO_ON_ROOT( "Writing JSON timing to " << outputTimingJSONFile )
          nlohmann::json ttJson;
          walberla::timing::to_json( ttJson, tt );
          std::ofstream jsonOutput;
