@@ -54,7 +54,7 @@ Parameters
     postDCSmoothingIncrement 2;
 
     outputVTK false;
-    outputTiming false;
+    outputTiming true;
     outputTimingJSON true;
     outputTimingJSONFile {timing_file};
     outputSQL true;
@@ -69,8 +69,7 @@ Parameters
 
 def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", prm_file="parameter_file.prm", num_nodes=1):
 
-    base_config = """
-#!/bin/bash
+    base_config = """#!/bin/bash
 # Job Name and Files (also --job-name)
 #SBATCH -J {job_name}
 #Output and error (also --output, --error):
@@ -117,8 +116,8 @@ mpiexec -n $SLURM_NTASKS ./MultigridStudies 2019_supermuc/{prm_file}
 
 def supermuc_scaling(): 
 
-    base_config = {"discretization": "P2", "fmg_r": 1, "max_level": 7, 
-                   "num_cycles": 2, "pre": 4, "post": 4} 
+    base_config = {"discretization": "P2", "fmg_r": 1, "max_level": 6, 
+                   "num_cycles": 2, "pre": 6, "post": 6} 
 
     ppn = 48
 
