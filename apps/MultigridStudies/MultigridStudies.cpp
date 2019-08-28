@@ -42,7 +42,7 @@
 #include "tinyhhg_core/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
 
-#include "postprocessing/sqlite/SQLite.h"
+#include "sqlite/SQLite.h"
 
 namespace hhg {
 
@@ -1601,7 +1601,7 @@ void setup( int argc, char** argv )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "Writing SQL database to " << outputSQLFile )
          const std::string                  dbFile = outputSQLFile;
-         walberla::postprocessing::SQLiteDB db( dbFile );
+         walberla::sqlite::SQLiteDB db( dbFile );
          sqlIntegerProperties["conv_table_for_run"] = -1;
          auto runId                                 = db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
          for ( uint_t cycle = 0; cycle <= numCycles; cycle++ )

@@ -57,7 +57,7 @@ inline edgedof::EdgeDoFOrientation getOrientattionInNeighboringMacroCell( const 
 }
 
 template < typename ValueType >
-inline void getLocalElementDoFIndicesFromCoordinates( const uint_t & level, Face & face, const Point3D coordinates,
+inline void getLocalElementDoFIndicesFromCoordinates( const uint_t & level, Face & face, const Point3D & coordinates,
                                                       const PrimitiveDataID< FunctionMemory< ValueType >, Face > & srcID,
                                                       Point2D& localCoordinates, Matrix2r& transform, Point3D& dofs)
 {
@@ -87,8 +87,8 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t & level, Face
   real_t hInv = walberla::real_c(rowsize - 1);
   real_t h = walberla::real_c(1.0 / hInv);
 
-  uint_t col = walberla::uint_c(std::floor(xRelMacro[0] * (rowsize-1)));
-  uint_t row = walberla::uint_c(std::floor(xRelMacro[1] * (rowsize-1)));
+  uint_t col = walberla::uint_c( std::floor( xRelMacro[0] * real_c( rowsize - 1 ) ) );
+  uint_t row = walberla::uint_c( std::floor( xRelMacro[1] * real_c( rowsize - 1 ) ) );
 
   if (col == rowsize-1) {
     --col;
@@ -173,27 +173,33 @@ inline void interpolate(const uint_t & Level, Face & face,
   const Point3D faceBottomRightCoords = face.coords[1];
   const Point3D faceTopLeftCoords     = face.coords[2];
 
-  const Point3D horizontalMicroEdgeOffset = ( ( faceBottomRightCoords - faceBottomLeftCoords ) / levelinfo::num_microedges_per_edge( Level ) ) * 0.5;
-  const Point3D verticalMicroEdgeOffset   = ( ( faceTopLeftCoords     - faceBottomLeftCoords ) / levelinfo::num_microedges_per_edge( Level ) ) * 0.5;
+  const Point3D horizontalMicroEdgeOffset =
+      ( ( faceBottomRightCoords - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( Level ) ) ) * 0.5;
+  const Point3D verticalMicroEdgeOffset =
+      ( ( faceTopLeftCoords - faceBottomLeftCoords ) / real_c( levelinfo::num_microedges_per_edge( Level ) ) ) * 0.5;
 
   Point3D xBlend;
 
   for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
   {
-    const Point3D horizontalMicroEdgePosition = faceBottomLeftCoords + ( ( it.col() * 2 + 1 ) * horizontalMicroEdgeOffset + ( it.row() * 2     ) * verticalMicroEdgeOffset );
-    const Point3D verticalMicroEdgePosition   = faceBottomLeftCoords + ( ( it.col() * 2     ) * horizontalMicroEdgeOffset + ( it.row() * 2 + 1 ) * verticalMicroEdgeOffset );
-    const Point3D diagonalMicroEdgePosition   = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
+     const Point3D horizontalMicroEdgePosition =
+         faceBottomLeftCoords +
+         ( ( real_c( it.col() ) * 2 + 1 ) * horizontalMicroEdgeOffset + ( real_c( it.row() ) * 2 ) * verticalMicroEdgeOffset );
+     const Point3D verticalMicroEdgePosition =
+         faceBottomLeftCoords +
+         ( ( real_c( it.col() ) * 2 ) * horizontalMicroEdgeOffset + ( real_c( it.row() ) * 2 + 1 ) * verticalMicroEdgeOffset );
+     const Point3D diagonalMicroEdgePosition = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
 
-    // Do not update horizontal DoFs at bottom
-    if ( it.row() != 0 )
-    {
-      for ( uint_t k = 0; k < srcPtr.size(); ++k )
-      {
-        srcVectorHorizontal[k] = srcPtr[k][edgedof::macroface::horizontalIndex( Level, it.col(), it.row())];
-      }
+     // Do not update horizontal DoFs at bottom
+     if ( it.row() != 0 )
+     {
+        for ( uint_t k = 0; k < srcPtr.size(); ++k )
+        {
+           srcVectorHorizontal[k] = srcPtr[k][edgedof::macroface::horizontalIndex( Level, it.col(), it.row() )];
+        }
 
-      face.getGeometryMap()->evalF(horizontalMicroEdgePosition, xBlend);
-      faceData[edgedof::macroface::horizontalIndex( Level, it.col(), it.row())] = expr( xBlend, srcVectorHorizontal );
+        face.getGeometryMap()->evalF( horizontalMicroEdgePosition, xBlend );
+        faceData[edgedof::macroface::horizontalIndex( Level, it.col(), it.row() )] = expr( xBlend, srcVectorHorizontal );
     }
 
     // Do not update vertical DoFs at left border
@@ -236,7 +242,7 @@ inline void swap( const uint_t & level, Face & face,
 template < typename ValueType >
 inline void add( const uint_t&                                               Level,
                  Face&                                                       face,
-                 const real_t&                                               scalar,
+                 const ValueType&                                            scalar,
                  const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId )
 {
    auto dstData = face.getData( dstId )->getPointer( Level );
@@ -272,16 +278,16 @@ inline void add( const uint_t & Level, Face & face, const std::vector< ValueType
                  const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcIds,
                  const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstId )
 {
-  WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
-  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
+  WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" )
+  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" )
 
   auto dstData = face.getData( dstId )->getPointer( Level );
 
   for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
   {
-    ValueType tmpHorizontal = static_cast< ValueType >( 0.0 );
-    ValueType tmpVertical   = static_cast< ValueType >( 0.0 );
-    ValueType tmpDiagonal   = static_cast< ValueType >( 0.0 );
+    auto tmpHorizontal = static_cast< ValueType >( 0.0 );
+    auto tmpVertical   = static_cast< ValueType >( 0.0 );
+    auto tmpDiagonal   = static_cast< ValueType >( 0.0 );
 
     const uint_t idxHorizontal = edgedof::macroface::horizontalIndex( Level, it.col(), it.row());
     const uint_t idxVertical   = edgedof::macroface::verticalIndex( Level, it.col(), it.row());
@@ -289,7 +295,7 @@ inline void add( const uint_t & Level, Face & face, const std::vector< ValueType
 
     for ( uint_t i = 0; i < scalars.size(); i++ )
     {
-      const real_t scalar  = scalars[i];
+      const ValueType scalar  = scalars[i];
       const auto   srcData = face.getData( srcIds[i] )->getPointer( Level );
 
       // Do not update horizontal DoFs at bottom
@@ -338,16 +344,16 @@ inline void assign( const uint_t & Level, Face & face, const std::vector< ValueT
                     const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcIds,
                     const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstId )
 {
-  WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
-  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
+  WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" )
+  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" )
 
   auto dstData = face.getData( dstId )->getPointer( Level );
 
   for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
   {
-    ValueType tmpHorizontal = static_cast< ValueType >( 0.0 );
-    ValueType tmpVertical   = static_cast< ValueType >( 0.0 );
-    ValueType tmpDiagonal   = static_cast< ValueType >( 0.0 );
+    auto tmpHorizontal = static_cast< ValueType >( 0.0 );
+    auto tmpVertical   = static_cast< ValueType >( 0.0 );
+    auto tmpDiagonal   = static_cast< ValueType >( 0.0 );
 
     const uint_t idxHorizontal = edgedof::macroface::horizontalIndex( Level, it.col(), it.row());
     const uint_t idxVertical   = edgedof::macroface::verticalIndex( Level, it.col(), it.row());
@@ -355,7 +361,7 @@ inline void assign( const uint_t & Level, Face & face, const std::vector< ValueT
 
     for ( uint_t i = 0; i < scalars.size(); i++ )
     {
-      const real_t scalar  = scalars[i];
+      const ValueType scalar  = scalars[i];
       const auto   srcData = face.getData( srcIds[i] )->getPointer( Level );
 
       // Do not update horizontal DoFs at bottom
@@ -487,11 +493,11 @@ inline void enumerate(const uint_t & Level, Face &face,
                       ValueType& num)
 {
   ValueType *dst = face.getData(dstId)->getPointer(Level);
-  size_t horizontal_num = static_cast< size_t >( num );
-  size_t diagonal_num = static_cast< size_t >( num ) +
+  auto horizontal_num = static_cast< size_t >( num );
+  auto diagonal_num = static_cast< size_t >( num ) +
                         hhg::edgedof::levelToFaceSizeAnyEdgeDoF( Level ) -
                         hhg::levelinfo::num_microedges_per_edge( Level ) ;
-  size_t vertical_num = static_cast< size_t >( num ) +
+  auto vertical_num = static_cast< size_t >( num ) +
                         (hhg::edgedof::levelToFaceSizeAnyEdgeDoF( Level ) -
                         hhg::levelinfo::num_microedges_per_edge( Level ))  *
                         2;
@@ -499,17 +505,17 @@ inline void enumerate(const uint_t & Level, Face &face,
   {
     /// the border edge DoFs belong to the corresponding edges
     if( it.row() != 0) {
-      dst[hhg::edgedof::macroface::horizontalIndex( Level, it.col(), it.row())] = horizontal_num;
+      dst[hhg::edgedof::macroface::horizontalIndex( Level, it.col(), it.row())] = ValueType( horizontal_num );
       ++horizontal_num;
       ++num;
     }
     if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
-      dst[hhg::edgedof::macroface::diagonalIndex( Level, it.col(), it.row())] = diagonal_num;
+      dst[hhg::edgedof::macroface::diagonalIndex( Level, it.col(), it.row())] = ValueType( diagonal_num );
       ++diagonal_num;
       ++num;
     }
     if( it.col() != 0) {
-      dst[hhg::edgedof::macroface::verticalIndex( Level, it.col(), it.row())] = vertical_num;
+      dst[hhg::edgedof::macroface::verticalIndex( Level, it.col(), it.row())] = ValueType( vertical_num );
       ++vertical_num;
       ++num;
     }
@@ -626,7 +632,7 @@ inline void apply3D( const uint_t & level, Face &face,
                                          macrocell::getIndexInNeighboringMacroFaceXYZ( leafIndexInCell, neighborCell, localFaceID, storage, level ) :
                                          macrocell::getIndexInNeighboringMacroFace( leafIndexInCell, neighborCell, localFaceID, storage, level );
 
-            WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 );
+            WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 )
 
             uint_t leafArrayIndexInFace;
             if ( algorithms::contains( edgedof::faceLocalEdgeDoFOrientations, leafOrientationInFace ) && leafIndexInFace.z() == 0 )

@@ -63,7 +63,7 @@ public:
                uint_t                                                                             level,
                DoFType                                                                            flag = All ) const;
 
-  void add( const real_t& scalar, uint_t level, DoFType flag = All ) const;
+  void add( const ValueType& scalar, uint_t level, DoFType flag = All ) const;
 
   void add( const std::vector< ValueType >&                                                    scalars,
             const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,

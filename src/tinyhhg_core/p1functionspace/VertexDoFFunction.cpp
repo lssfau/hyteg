@@ -1152,7 +1152,7 @@ ValueType VertexDoFFunction< ValueType >::dotLocal(const VertexDoFFunction< Valu
       return ValueType( 0 );
    }
    this->startTiming( "Dot (local)" );
-   ValueType scalarProduct = 0.0;
+   auto scalarProduct = ValueType( 0 );
 
    for( const auto& it : this->getStorage()->getVertices() )
    {
@@ -1214,7 +1214,7 @@ ValueType VertexDoFFunction< ValueType >::sumLocal( const uint_t & level, const 
       return ValueType( 0 );
    }
    this->startTiming( "Sum (local)" );
-   ValueType sum = 0.0;
+   auto sum = ValueType( 0 );
 
    for( const auto& it : this->getStorage()->getVertices() )
    {
@@ -1272,7 +1272,7 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level ) const
 
    std::vector< uint_t > dofs_per_rank = walberla::mpi::allGather( counter );
 
-   ValueType startOnRank = 0;
+   auto startOnRank = ValueType( 0 );
 
    for( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
    {

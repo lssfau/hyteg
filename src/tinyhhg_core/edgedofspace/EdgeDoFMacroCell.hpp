@@ -54,6 +54,7 @@ inline edgedof::EdgeDoFOrientation getOrientationInNeighboringMacroEdge( const E
                                                                           const uint_t             & neighborEdgeID,
                                                                           const PrimitiveStorage   & storage )
 {
+
   const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 2, 4 >(
   { cell.getEdgeLocalVertexToCellLocalVertexMaps().at(neighborEdgeID).at(0),
     cell.getEdgeLocalVertexToCellLocalVertexMaps().at(neighborEdgeID).at(1) } );
@@ -235,19 +236,19 @@ inline void assign(const uint_t & Level, Cell & cell, const std::vector< ValueTy
                    const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcIds,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstId )
 {
-  WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
-  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
+  WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" )
+  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" )
 
   auto dstData = cell.getData( dstId )->getPointer( Level );
 
   for ( const auto & it : edgedof::macrocell::Iterator( Level, 0 ) )
   {
-    ValueType tmpX  = static_cast< ValueType >( 0.0 );
-    ValueType tmpY  = static_cast< ValueType >( 0.0 );
-    ValueType tmpZ  = static_cast< ValueType >( 0.0 );
-    ValueType tmpXY = static_cast< ValueType >( 0.0 );
-    ValueType tmpXZ = static_cast< ValueType >( 0.0 );
-    ValueType tmpYZ = static_cast< ValueType >( 0.0 );
+    auto tmpX  = static_cast< ValueType >( 0.0 );
+    auto tmpY  = static_cast< ValueType >( 0.0 );
+    auto tmpZ  = static_cast< ValueType >( 0.0 );
+    auto tmpXY = static_cast< ValueType >( 0.0 );
+    auto tmpXZ = static_cast< ValueType >( 0.0 );
+    auto tmpYZ = static_cast< ValueType >( 0.0 );
 
     const uint_t idxX  = edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() );
     const uint_t idxY  = edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() );
@@ -258,7 +259,7 @@ inline void assign(const uint_t & Level, Cell & cell, const std::vector< ValueTy
 
     for ( uint_t i = 0; i < scalars.size(); i++ )
     {
-      const real_t scalar  = scalars[i];
+      const ValueType scalar  = scalars[i];
       const auto   srcData = cell.getData( srcIds[i] )->getPointer( Level );
 
       tmpX  += scalar * srcData[ idxX ];
@@ -279,12 +280,12 @@ inline void assign(const uint_t & Level, Cell & cell, const std::vector< ValueTy
 
   for ( const auto & it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
   {
-    ValueType tmpXYZ = static_cast< ValueType >( 0.0 );
+    auto tmpXYZ = static_cast< ValueType >( 0.0 );
     const uint_t idxXYZ = edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() );
 
     for ( uint_t i = 0; i < scalars.size(); i++ )
     {
-      const real_t scalar  = scalars[i];
+      const ValueType scalar  = scalars[i];
       const auto   srcData = cell.getData( srcIds[i] )->getPointer( Level );
 
       tmpXYZ += scalar * srcData[ idxXYZ ];
@@ -300,19 +301,19 @@ inline void add(const uint_t & Level, Cell & cell, const std::vector< ValueType 
                    const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcIds,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstId )
 {
-  WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
-  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
+  WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" )
+  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" )
 
   auto dstData = cell.getData( dstId )->getPointer( Level );
 
   for ( const auto & it : edgedof::macrocell::Iterator( Level, 0 ) )
   {
-    ValueType tmpX  = static_cast< ValueType >( 0.0 );
-    ValueType tmpY  = static_cast< ValueType >( 0.0 );
-    ValueType tmpZ  = static_cast< ValueType >( 0.0 );
-    ValueType tmpXY = static_cast< ValueType >( 0.0 );
-    ValueType tmpXZ = static_cast< ValueType >( 0.0 );
-    ValueType tmpYZ = static_cast< ValueType >( 0.0 );
+    auto tmpX  = static_cast< ValueType >( 0.0 );
+    auto tmpY  = static_cast< ValueType >( 0.0 );
+    auto tmpZ  = static_cast< ValueType >( 0.0 );
+    auto tmpXY = static_cast< ValueType >( 0.0 );
+    auto tmpXZ = static_cast< ValueType >( 0.0 );
+    auto tmpYZ = static_cast< ValueType >( 0.0 );
 
     const uint_t idxX  = edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() );
     const uint_t idxY  = edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() );
@@ -323,7 +324,7 @@ inline void add(const uint_t & Level, Cell & cell, const std::vector< ValueType 
 
     for ( uint_t i = 0; i < scalars.size(); i++ )
     {
-      const real_t scalar  = scalars[i];
+      const ValueType scalar  = scalars[i];
       const auto   srcData = cell.getData( srcIds[i] )->getPointer( Level );
 
       tmpX  += scalar * srcData[ idxX ];
@@ -344,12 +345,12 @@ inline void add(const uint_t & Level, Cell & cell, const std::vector< ValueType 
 
   for ( const auto & it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
   {
-    ValueType tmpXYZ = static_cast< ValueType >( 0.0 );
+    auto tmpXYZ = static_cast< ValueType >( 0.0 );
     const uint_t idxXYZ = edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() );
 
     for ( uint_t i = 0; i < scalars.size(); i++ )
     {
-      const real_t scalar  = scalars[i];
+      const ValueType scalar  = scalars[i];
       const auto   srcData = cell.getData( srcIds[i] )->getPointer( Level );
 
       tmpXYZ += scalar * srcData[ idxXYZ ];
@@ -362,7 +363,7 @@ inline void add(const uint_t & Level, Cell & cell, const std::vector< ValueType 
 template < typename ValueType >
 inline void add( const uint_t&                                               Level,
                  Cell&                                                       cell,
-                 const real_t&                                               scalar,
+                 const ValueType&                                            scalar,
                  const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& dstId )
 {
    auto dstData = cell.getData( dstId )->getPointer( Level );
@@ -773,7 +774,7 @@ inline void enumerate(const uint_t & Level, Cell &cell,
     if ( isInnerXEdgeDoF( Level, it ) )
     {
       const uint_t idx = edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() );
-      dst[ idx ] = xNum;
+      dst[ idx ] = ValueType( xNum );
       xNum++;
       num++;
     }
@@ -781,35 +782,35 @@ inline void enumerate(const uint_t & Level, Cell &cell,
     if ( isInnerYEdgeDoF( Level, it ) )
     {
       const uint_t idx = edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() );
-      dst[ idx ] = yNum;
+      dst[ idx ] = ValueType( yNum );
       yNum++;
       num++;    }
 
     if ( isInnerZEdgeDoF( Level, it ) )
     {
       const uint_t idx = edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() );
-      dst[ idx ] = zNum;
+      dst[ idx ] = ValueType( zNum );
       zNum++;
       num++;    }
 
     if ( isInnerXYEdgeDoF( Level, it ) )
     {
       const uint_t idx = edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() );
-      dst[ idx ] = xyNum;
+      dst[ idx ] = ValueType( xyNum );
       xyNum++;
       num++;    }
 
     if ( isInnerXZEdgeDoF( Level, it ) )
     {
       const uint_t idx = edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() );
-      dst[ idx ] = xzNum;
+      dst[ idx ] = ValueType( xzNum );
       xzNum++;
       num++;    }
 
     if ( isInnerYZEdgeDoF( Level, it ) )
     {
       const uint_t idx = edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() );
-      dst[ idx ] = yzNum;
+      dst[ idx ] = ValueType( yzNum );
       yzNum++;
       num++;    }
   }
@@ -817,7 +818,7 @@ inline void enumerate(const uint_t & Level, Cell &cell,
   for ( const auto & it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
   {
     const uint_t idx = edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() );
-    dst[ idx ] = xyzNum;
+    dst[ idx ] = ValueType( xyzNum );
     xyzNum++;
     num++;
   }

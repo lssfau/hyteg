@@ -83,7 +83,7 @@ inline void add(Vertex &vertex,
                 const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> &srcIds,
                 const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &dstId,
                 size_t level) {
-  ValueType tmp = 0.0;
+  auto tmp = ValueType( 0 );
 
   for (size_t i = 0; i < srcIds.size(); ++i) {
     tmp += scalars[i]*vertex.getData(srcIds[i])->getPointer( level )[0];
@@ -244,9 +244,9 @@ inline void integrateDG(Vertex &vertex,
   auto rhsP1 = vertex.getData(rhsP1Id)->getPointer( level );
   auto dst = vertex.getData(dstId)->getPointer( level );
 
-  ValueType tmp = 0.0;
+  auto tmp = real_t( 0 );
 
-  for(auto faceIt : vertex.neighborFaces()) {
+  for(const auto& faceIt : vertex.neighborFaces()) {
     Face *face = storage->getFace(faceIt.getID());
 
     real_t weightedFaceArea = std::pow(4.0, -walberla::real_c(level))*face->area / 3.0;
@@ -261,7 +261,7 @@ inline void integrateDG(Vertex &vertex,
     tmp += weightedFaceArea * rhs[faceMemoryIndex] * (0.5 * 0.5 * (rhsP1[0] + rhsP1[edge_idx[0]]) + 0.5 * 0.5 * (rhsP1[0] + rhsP1[edge_idx[1]]));
   }
 
-  dst[0] = tmp;
+  dst[0] = ValueType( tmp );
 }
 
 

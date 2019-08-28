@@ -64,9 +64,12 @@ if(WALBERLA_CXX_COMPILER_IS_CLANG)
     add_flag( CMAKE_CXX_FLAGS "-Wno-parentheses-equality" )
 endif()
 
-# MSVC generates so many warnings that the CI log gets too large to complete the job successfully - therefore we suppress a prominent one.
+# MSVC generates so many warnings that the CI log gets too large to complete the job successfully
+# Therefore we suppress some warnings. This should be fixed at some point
 if(WALBERLA_CXX_COMPILER_IS_MSVC)
     add_flag( CMAKE_CXX_FLAGS "/wd4100" )
+    #suppress warning about missing case labels which are not present in generated kernels
+    add_flag( CMAKE_CXX_FLAGS "/wd4065" )
 endif()
 
 configure_file ( ${tinyhhg_SOURCE_DIR}/src/tinyhhg_core/HHGDefinitions.in.hpp

@@ -221,7 +221,7 @@ inline ValueType dot( const uint_t & level,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & lhsId,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & rhsId)
 {
-   ValueType sp = 0.0;
+   auto sp = ValueType( 0 );
 
   const ValueType * lhsPtr = cell.getData( lhsId )->getPointer( level );
   const ValueType * rhsPtr = cell.getData( rhsId )->getPointer( level );
@@ -241,7 +241,7 @@ inline ValueType sum( const uint_t&                                             
                       const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& dataID,
                       const bool&                                                 absolute )
 {
-   ValueType sum = 0.0;
+   auto sum = ValueType( 0 );
 
    const ValueType* data = cell.getData( dataID )->getPointer( level );
 

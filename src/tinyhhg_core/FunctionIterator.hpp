@@ -92,6 +92,7 @@ inline Point3D FunctionIteratorDoF< FunctionType >::coordinates() const
    {
       WALBERLA_ABORT( "coordinates() not yet implemented for edgedofs" );
    }
+   WALBERLA_ABORT("not implemented")
 }
 
 template < typename FunctionType >
@@ -132,6 +133,7 @@ inline uint_t FunctionIteratorDoF< FunctionType >::arrayIndex() const
          return edgedof::macrocell::index( level(), index().x(), index().y(), index().z(), edgeDoFOrientation() );
       }
    }
+   WALBERLA_ABORT("not implemented")
 }
 
 template < typename FunctionType >
@@ -157,6 +159,7 @@ inline const typename FunctionType::valueType& FunctionIteratorDoF< FunctionType
           ->getCell( primitiveID() )
           ->getData( function_.getCellDataID() )
           ->getPointer( level() )[arrayIndex()];
+   WALBERLA_ABORT("not implemented")
 }
 
 template < typename FunctionType >
@@ -182,6 +185,7 @@ inline typename FunctionType::valueType& FunctionIteratorDoF< FunctionType >::va
           ->getCell( primitiveID() )
           ->getData( function_.getCellDataID() )
           ->getPointer( level() )[arrayIndex()];
+   WALBERLA_ABORT("not implemented")
 }
 
 template < typename FunctionType >

@@ -481,7 +481,7 @@ void restrictInjection(const uint_t sourceLevel,
     using hhg::edgedof::macroface::indexFromVertex;
 
     tmp = vertexDofFineData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel,fineCol, fineRow, sD::VERTEX_C)];
-    vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel - 1,it.col(),it.row(),sD::VERTEX_C)] = tmp;
+    vertexDofCoarseData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel - 1,it.col(),it.row(),sD::VERTEX_C)] = ValueType( tmp );
   }
 
   /// update edge dof entries
@@ -494,17 +494,17 @@ void restrictInjection(const uint_t sourceLevel,
     /// horizontal
     if( it.row() != 0) {
       tmp  = vertexDofFineData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel,fineCol +1, fineRow, sD::VERTEX_C)];
-      edgeDofCoarseData[indexFromVertex(sourceLevel - 1,it.col(),it.row(),sD::EDGE_HO_E)] = tmp;
+      edgeDofCoarseData[indexFromVertex(sourceLevel - 1,it.col(),it.row(),sD::EDGE_HO_E)] = ValueType( tmp );
     }
     /// diagonal
     if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( sourceLevel - 1 ) - 1)) {
       tmp  = vertexDofFineData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel,fineCol + 1, fineRow + 1, sD::VERTEX_C)];
-      edgeDofCoarseData[indexFromVertex(sourceLevel - 1,it.col(),it.row(),sD::EDGE_DI_NE)] = tmp;
+      edgeDofCoarseData[indexFromVertex(sourceLevel - 1,it.col(),it.row(),sD::EDGE_DI_NE)] = ValueType( tmp );
     }
     /// vertical
     if( it.col() != 0) {
       tmp  = vertexDofFineData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel,fineCol, fineRow + 1, sD::VERTEX_C)];
-      edgeDofCoarseData[indexFromVertex(sourceLevel - 1,it.col(),it.row(),sD::EDGE_VE_N)] = tmp;
+      edgeDofCoarseData[indexFromVertex(sourceLevel - 1,it.col(),it.row(),sD::EDGE_VE_N)] = ValueType( tmp );
     }
   }
 
@@ -653,7 +653,7 @@ void restrictInjection(const uint_t sourceLevel,
     uint_t targetIndex = hhg::vertexdof::macroedge::indexFromVertex(sourceLevel - 1,it.col(), sD::VERTEX_C);
     tmp = vertexDofFineData[hhg::vertexdof::macroedge::indexFromVertex(sourceLevel,it.col() * 2, sD::VERTEX_C)];
 
-    vertexDofCoarseData[targetIndex] = tmp;
+    vertexDofCoarseData[targetIndex] = ValueType( tmp );
   }
 
   for( const auto& it : hhg::edgedof::macroedge::Iterator(sourceLevel -1,0 )){
@@ -661,7 +661,7 @@ void restrictInjection(const uint_t sourceLevel,
 
     tmp  = vertexDofFineData[hhg::vertexdof::macroedge::indexFromVertex(sourceLevel ,it.col() * 2 + 1, sD::VERTEX_C)];
 
-    edgeDofCoarseData[indexFromVertex(sourceLevel - 1,it.col(),sD::EDGE_HO_E)] = tmp;
+    edgeDofCoarseData[indexFromVertex(sourceLevel - 1,it.col(),sD::EDGE_HO_E)] = ValueType( tmp );
   }
 }
 
