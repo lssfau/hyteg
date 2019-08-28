@@ -398,8 +398,8 @@ uint_t index( const uint_t& level, const uint_t& x, const uint_t& y, const uint_
     const uint_t sub_idx_y = (y - (y % 2)) / 2;
     const uint_t sub_idx_z = (z - (z % 2)) / 2;
     const uint_t width = (1 << (level-1)) - 1 + (group == 0 ? 2 : (group == 7 ? 0 : 1));
-    const uint_t offset = group == 0 ? 0 : levelinfo::num_microvertices_per_cell_from_width( (1 << (level-1)) + 1 ) +
-                          (group - 1) * levelinfo::num_microvertices_per_cell_from_width( (1 << (level-1)) );
+    const uint_t offset = group == 0 ? 0 : levelinfo::num_microvertices_per_cell_from_width( (uint_t(1) << (level-1)) + 1 ) +
+                          (group - 1) * levelinfo::num_microvertices_per_cell_from_width( (uint_t(1) << (level-1)) );
 
     return offset + hhg::indexing::macroCellIndex( width, sub_idx_x, sub_idx_y, sub_idx_z );
   }

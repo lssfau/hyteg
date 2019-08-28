@@ -548,7 +548,7 @@ void EdgeDoFFunction< ValueType >::assign(
 }
 
 template < typename ValueType >
-void EdgeDoFFunction< ValueType >::add( const real_t& scalar, uint_t level, DoFType flag ) const
+void EdgeDoFFunction< ValueType >::add( const ValueType& scalar, uint_t level, DoFType flag ) const
 {
    if( isDummy() )
    {
@@ -738,7 +738,7 @@ ValueType EdgeDoFFunction< ValueType >::dotLocal(const EdgeDoFFunction <ValueTyp
       return ValueType( 0 );
    }
    this->startTiming( "Dot (local)" );
-   ValueType scalarProduct = 0.0;
+   auto scalarProduct = ValueType( 0 );
 
    for( auto& it : this->getStorage()->getEdges() )
    {
@@ -794,7 +794,7 @@ ValueType EdgeDoFFunction< ValueType >::sumLocal( const uint_t & level, const Do
       return ValueType( 0 );
    }
    this->startTiming( "Sum (local)" );
-   ValueType sum = 0.0;
+   auto sum = ValueType( 0 );
 
    for( const auto& it : this->getStorage()->getEdges() )
    {
@@ -841,7 +841,7 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level ) const
 
    std::vector< ValueType > dofs_per_rank = walberla::mpi::allGather( counter );
 
-   ValueType startOnRank = 0;
+   auto startOnRank = ValueType( 0 );
 
    for( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
    {

@@ -344,7 +344,7 @@ inline void add( const uint_t&                                                  
    {
       for( uint_t i = 1; i < inner_rowsize - 2; ++i )
       {
-         ValueType tmp = 0.0;
+         auto tmp = ValueType( 0 );
 
          for( uint_t k = 0; k < srcIds.size(); ++k )
          {
@@ -421,7 +421,7 @@ template < typename ValueType >
 inline ValueType sum( const uint_t& level, const Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dataID, const bool & absolute )
 {
    ValueType* faceData = face.getData( dataID )->getPointer( level );
-   real_t     sum      = real_c( 0 );
+   auto       sum      = ValueType( 0 );
    for ( const auto& it : vertexdof::macroface::Iterator( level, 1 ) )
    {
       const uint_t idx = vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C );
@@ -904,7 +904,7 @@ inline void integrateDG( const uint_t&                                          
    real_t faceArea         = std::pow( 4.0, -walberla::real_c( Level ) ) * face.area;
    real_t weightedFaceArea = faceArea / 3.0;
 
-   ValueType tmp;
+   real_t tmp;
 
    for( uint_t j = 1; j < rowsize - 2; ++j )
    {
@@ -954,7 +954,7 @@ inline void integrateDG( const uint_t&                                          
                    ( rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_C )] +
                      rhsP1[indexFromVertex( Level, i, j, SD::VERTEX_E )] ) );
 
-         dst[indexFromVertex( Level, i, j, SD::VERTEX_C )] = weightedFaceArea * tmp;
+         dst[indexFromVertex( Level, i, j, SD::VERTEX_C )] = ValueType( weightedFaceArea * tmp );
       }
       --inner_rowsize;
    }

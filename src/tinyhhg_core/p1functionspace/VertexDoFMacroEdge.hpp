@@ -169,7 +169,7 @@ inline void add( const uint_t & level, Edge &edge,
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
-    ValueType tmp = 0.0;
+    auto tmp = ValueType( 0 );
 
     for (size_t k = 0; k < srcIds.size(); ++k) {
       tmp += scalars[k]*edge.getData(srcIds[k])->getPointer( level )[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
@@ -221,7 +221,7 @@ inline ValueType dot( const uint_t & level, Edge &edge, const PrimitiveDataID<Fu
 template< typename ValueType >
 inline ValueType sum( const uint_t & level, const Edge & edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dataID, const bool & absolute)
 {
-  real_t sum = real_c(0);
+  auto sum = ValueType(0);
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
   auto data = edge.getData( dataID )->getPointer( level );
@@ -534,7 +534,7 @@ inline void integrateDG(const uint_t & level, Edge &edge,
   auto rhsP1 = edge.getData(rhsP1Id)->getPointer( level );
   auto dst = edge.getData(dstId)->getPointer( level );
 
-  ValueType tmp;
+  real_t tmp;
 
   Face* face = storage->getFace(edge.neighborFaces()[0]);
 
@@ -543,7 +543,7 @@ inline void integrateDG(const uint_t & level, Edge &edge,
 
   if (edge.getNumNeighborFaces() == 2) {
     face = storage->getFace(edge.neighborFaces()[1]);
-    weightedFaceArea1 = std::pow(4.0, -walberla::real_c(level)) * face->area / 3.0;
+     weightedFaceArea1 = std::pow(4.0, -walberla::real_c(level)) * face->area / 3.0;
   }
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
@@ -577,7 +577,7 @@ inline void integrateDG(const uint_t & level, Edge &edge,
                                                                                                                                 + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_E )]));
     }
 
-    dst[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] = tmp;
+    dst[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] = ValueType( tmp );
   }
 }
 
