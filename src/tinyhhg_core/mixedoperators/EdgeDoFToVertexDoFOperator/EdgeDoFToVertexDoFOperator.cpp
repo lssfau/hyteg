@@ -593,7 +593,7 @@ uint_t macroCellEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primiti
   return 7 * 27;
 }
 
-}/// namespace EdgeDoFToVertexDoF
+}// namespace EdgeDoFToVertexDoF
 
 template class EdgeDoFToVertexDoFOperator< P2FenicsForm< hhg::fenics::NoAssemble, hhg::fenics::NoAssemble > >;
 template class EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >;
@@ -612,4 +612,4 @@ template class EdgeDoFToVertexDoFOperator< P2ToP1FenicsForm< fenics::NoAssemble,
 
 template class EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >;
 
-}/// namespace hhg
+}// namespace hhg

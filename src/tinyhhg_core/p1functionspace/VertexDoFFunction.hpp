@@ -10,7 +10,7 @@
 #include "tinyhhg_core/FunctionProperties.hpp"
 #include "tinyhhg_core/boundary/BoundaryConditions.hpp"
 #include "tinyhhg_core/types/flags.hpp"
-/// TODO this should be improved but we need the enum which cant be forward declared
+//TODO this should be improved but we need the enum which cant be forward declared
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
 
 namespace hhg {

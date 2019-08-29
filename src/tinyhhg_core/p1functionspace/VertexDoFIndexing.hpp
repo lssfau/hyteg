@@ -220,10 +220,10 @@ public:
 bool isVertexOnBoundary(const uint_t &level, const hhg::indexing::Index &idx);
 
 
-/// map[neighborCellID][indexOffset] = weight
+// map[neighborCellID][indexOffset] = weight
 typedef std::map< uint_t, std::map< indexing::IndexIncrement, real_t > > StencilMap_T;
 
-} /// namespace macroface
+} // namespace macroface
 
 
 // ##################
@@ -355,7 +355,7 @@ const std::vector< stencilDirection > neighborsOnVertex3WithoutCenter = {{
                                                                             hhg::stencilDirection::VERTEX_BE
                                                                             }};
 
-const std::array< std::vector< stencilDirection >, 4 > neighborsOnFaceWithoutCenter = {{ 
+const std::array< std::vector< stencilDirection >, 4 > neighborsOnFaceWithoutCenter = {{
   neighborsOnFace0WithoutCenter, neighborsOnFace1WithoutCenter, neighborsOnFace2WithoutCenter, neighborsOnFace3WithoutCenter
 }};
 
@@ -426,5 +426,5 @@ uint_t stencilIndexFromGrayFace( const stencilDirection & dir );
 
 uint_t stencilIndexFromBlueFace( const stencilDirection & dir );
 
-} /// namespace vertexdof
-} /// namespace hhg
+} // namespace vertexdof
+} // namespace hhg

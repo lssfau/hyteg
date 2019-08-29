@@ -190,4 +190,4 @@ typedef VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble, p1_to_p2_t
 typedef VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise > > P1ToP2DivTyVertexToEdgeOperator;
 typedef VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > > P1ToP2DivTzVertexToEdgeOperator;
 
-}/// namespace hhg
+}// namespace hhg

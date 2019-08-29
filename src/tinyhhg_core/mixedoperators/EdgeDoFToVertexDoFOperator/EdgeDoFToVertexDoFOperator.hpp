@@ -214,7 +214,7 @@ uint_t macroFaceEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primiti
 /// \return number of entries in the stencil on a macro cell
 uint_t macroCellEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primitive & primitive );
 
-}/// namespace EdgeDoFToVertexDoF
+}// namespace EdgeDoFToVertexDoF
 
 typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< hhg::fenics::NoAssemble, hhg::fenics::NoAssemble > > GenericEdgeDoFToVertexDoFOperator;
 typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_div_cell_integral_0_otherwise > > EdgeToVertexDivxOperator;
@@ -224,4 +224,4 @@ typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< fenics::NoAssemble, p2_to_p1_t
 typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise > > P2ToP1DivyEdgeToVertexOperator;
 typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise > > P2ToP1DivzEdgeToVertexOperator;
 
-}/// namespace hhg
+}// namespace hhg

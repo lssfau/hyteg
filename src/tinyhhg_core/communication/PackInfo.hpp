@@ -6,7 +6,7 @@
 #include "core/Abort.h"
 
 namespace hhg {
-/// namespace containing function for communication between primitives
+// namespace containing function for communication between primitives
 namespace communication {
 
 /// /brief Abstract class for pack and unpack functions of primitives

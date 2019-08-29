@@ -65,5 +65,5 @@ public:
 };
 
 
-}/// namespace stencilWeights
-}/// namespace hhg
+}// namespace stencilWeights
+}// namespace hhg

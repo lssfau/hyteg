@@ -543,4 +543,4 @@ template class VertexDoFToEdgeDoFOperator< P1ToP2FenicsForm< fenics::NoAssemble,
 
 template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >;
 
-}/// namespace hhg
+}// namespace hhg

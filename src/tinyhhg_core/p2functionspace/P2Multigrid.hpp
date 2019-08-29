@@ -511,7 +511,7 @@ void restrictInjection(const uint_t sourceLevel,
 }
 
 
-}/// namespace macroface
+}// namespace macroface
 
 namespace macroedge {
 
@@ -666,7 +666,7 @@ void restrictInjection(const uint_t sourceLevel,
 }
 
 
-}/// namespace macroedge
+}// namespace macroedge
 
 namespace macrovertex {
 
@@ -695,8 +695,8 @@ void restrictInjection(const uint_t sourceLevel,
 
 }
 
-}/// namespace macrovertex
+}// namespace macrovertex
 
 
-}/// namespace P2
-}/// namespace hhg
+}// namespace P2
+}// namespace hhg

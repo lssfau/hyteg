@@ -443,4 +443,4 @@ inline void applyCell(const uint_t & Level, Cell & cell,
 
 
 } /// EdgeDoFToVertexDoF
-} /// namespace hhg
+} // namespace hhg
