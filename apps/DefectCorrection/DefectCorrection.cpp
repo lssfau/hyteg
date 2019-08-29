@@ -5,41 +5,21 @@
 #include "core/math/Constants.h"
 
 #include "tinyhhg_core/VTKWriter.hpp"
-#include "tinyhhg_core/composites/P1StokesFunction.hpp"
-#include "tinyhhg_core/composites/P1StokesOperator.hpp"
-#include "tinyhhg_core/composites/P2P1TaylorHoodFunction.hpp"
-#include "tinyhhg_core/composites/P2P1TaylorHoodStokesOperator.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1toP1QuadraticProlongation.hpp"
-#include "tinyhhg_core/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
-#include "tinyhhg_core/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
-#include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
-#include "tinyhhg_core/petsc/PETScLUSolver.hpp"
+#include "tinyhhg_core/petsc/PETScMinResSolver.hpp"
 #include "tinyhhg_core/petsc/PETScManager.hpp"
-#include "tinyhhg_core/petsc/PETScWrapper.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/Visualization.hpp"
-#include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/FullMultigridSolver.hpp"
 #include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
 #include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
-#include "tinyhhg_core/solvers/SORSmoother.hpp"
-#include "tinyhhg_core/solvers/UzawaSmoother.hpp"
-#include "tinyhhg_core/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
-#include "tinyhhg_core/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
-
-#include "postprocessing/sqlite/SQLite.h"
 
 namespace hhg {
 
@@ -86,12 +66,13 @@ static void defectCorrection( int argc, char** argv )
    const bool   withDC          = mainConf.getParameter< bool >( "withDC" );
 
    const uint_t minLevel        = 2;
-   const uint_t numFacesPerSide = 4;
+   // const uint_t numFacesPerSide = 4;
 
    // domain
 
    auto meshInfo =
-       MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, numFacesPerSide, numFacesPerSide );
+       // MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, numFacesPerSide, numFacesPerSide );
+       MeshInfo::meshSymmetricCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, 1 );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -159,8 +140,8 @@ static void defectCorrection( int argc, char** argv )
 
 
    // solver
-   auto petscSolver           = std::make_shared< PETScLUSolver< P1ConstantLaplaceOperator > >( storage, maxLevel );
-   auto petscCoarseGridSolver = std::make_shared< PETScLUSolver< P1ConstantLaplaceOperator > >( storage, minLevel );
+   // auto petscSolver           = std::make_shared< PETScMinResSolver< P1ConstantLaplaceOperator > >( storage, maxLevel );
+   auto petscCoarseGridSolver = std::make_shared< PETScMinResSolver< P1ConstantLaplaceOperator > >( storage, minLevel );
    auto smoother              = std::make_shared< GaussSeidelSmoother< P1ConstantLaplaceOperator > >();
    auto restriction           = std::make_shared< P1toP1LinearRestriction >();
    auto prolongation          = std::make_shared< P1toP1LinearProlongation >();
@@ -172,10 +153,18 @@ static void defectCorrection( int argc, char** argv )
    if ( useGMG )
    {
       gmgSolver->solve( A_P1, u, f, maxLevel );
+     gmgSolver->solve( A_P1, u, f, maxLevel );
+     gmgSolver->solve( A_P1, u, f, maxLevel );
+     gmgSolver->solve( A_P1, u, f, maxLevel );
+     gmgSolver->solve( A_P1, u, f, maxLevel );
+     gmgSolver->solve( A_P1, u, f, maxLevel );
+     gmgSolver->solve( A_P1, u, f, maxLevel );
+     gmgSolver->solve( A_P1, u, f, maxLevel );
+     gmgSolver->solve( A_P1, u, f, maxLevel );
    }
    else
    {
-      petscSolver->solve( A_P1, u, f, maxLevel );
+      // petscSolver->solve( A_P1, u, f, maxLevel );
    }
 
    // calculate error (= discretization error)
@@ -207,13 +196,24 @@ static void defectCorrection( int argc, char** argv )
       if ( useGMG )
       {
          if ( withDC )
-            gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+         {
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+           gmgSolver->solve( A_P1, u, fCorrection, maxLevel );
+         }
+
          else
             gmgSolver->solve( A_P1, u, f, maxLevel );
       }
       else
       {
-         petscSolver->solve( A_P1, u, fCorrection, maxLevel );
+         // petscSolver->solve( A_P1, u, fCorrection, maxLevel );
       }
 
       // calculate error (should be lower than linear discretization error!)

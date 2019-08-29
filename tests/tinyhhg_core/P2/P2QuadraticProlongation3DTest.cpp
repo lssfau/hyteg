@@ -148,7 +148,7 @@ void testGridTransfer3D( const std::string& meshFile, const uint_t& lowerLevel )
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   WALBERLA_CHECK( storage->hasGlobalCells() );
+   // WALBERLA_CHECK( storage->hasGlobalCells() );
 
    if ( writeVTK )
       writeDomainPartitioningVTK( storage, "../../output", "P1LaplaceOperatorTest3D_partitioning" );
@@ -254,6 +254,7 @@ int main( int argc, char* argv[] )
    testWeightsInCellVertexDoF();
    testWeightsInCellEdgeDoF();
 
+   testGridTransfer3D( "../../data/meshes/quad_8el.msh", 3 );
    testGridTransfer3D( "../../data/meshes/3D/tet_1el.msh", 3 );
    testGridTransfer3D( "../../data/meshes/3D/pyramid_2el.msh", 3 );
    testGridTransfer3D( "../../data/meshes/3D/pyramid_4el.msh", 3 );

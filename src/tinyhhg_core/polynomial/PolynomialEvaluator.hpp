@@ -29,12 +29,12 @@ public:
       poly1_.setCoefficient(degree, 0.0);
     }
 
-    int start = 0;
+    uint_t start = 0;
     real_t y_;
 
     for (uint_t coeff = 0; coeff <= degree_; ++coeff) {
 
-      int idx = start;
+      uint_t idx = start;
       y_ = walberla::real_c(1.0);
 
       for(uint_t degree = 0; degree <= degree_-coeff; ++degree) {

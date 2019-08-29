@@ -212,7 +212,7 @@ int main( int argc, char* argv[] )
    auto stokesRestriction  = std::make_shared< hhg::P1P1StokesToP1P1StokesRestriction >();
    auto stokesProlongation = std::make_shared< hhg::P1P1StokesToP1P1StokesProlongation >();
    auto uzawaSmoother =
-       std::make_shared< hhg::UzawaSmoother< hhg::P1StokesOperator > >( storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.3 );
+       std::make_shared< hhg::UzawaSmoother< hhg::P1StokesOperator > >( storage, minLevel, maxLevel, 0.3 );
 
    UzawaSolver_T uzawaSolver( storage,
                               uzawaSmoother,
@@ -225,7 +225,7 @@ int main( int argc, char* argv[] )
                               2,
                               2 );
 
-   auto count = hhg::Function< hhg::vertexdof::VertexDoFFunction< real_t > >::getFunctionCounter();
+   auto count = hhg::Function< hhg::vertexdof::VertexDoFFunction< real_t > >::getLevelWiseFunctionCounter();
    if( mainConf.getParameter< bool >( "printFunctionCount" ) )
    {
       for( uint_t i = minLevel; i <= maxLevel; ++i )

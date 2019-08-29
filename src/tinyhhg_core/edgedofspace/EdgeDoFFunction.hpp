@@ -63,7 +63,7 @@ public:
                uint_t                                                                             level,
                DoFType                                                                            flag = All ) const;
 
-  void add( const real_t& scalar, uint_t level, DoFType flag = All ) const;
+  void add( const ValueType& scalar, uint_t level, DoFType flag = All ) const;
 
   void add( const std::vector< ValueType >&                                                    scalars,
             const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
@@ -91,8 +91,8 @@ public:
 
   ValueType dotLocal(const EdgeDoFFunction <ValueType> &rhs, const uint_t level, const DoFType flag = All) const;
 
-  ValueType sumLocal( const uint_t& level, const DoFType& flag = All ) const;
-  ValueType sumGlobal( const uint_t& level, const DoFType& flag = All ) const;
+  ValueType sumLocal( const uint_t& level, const DoFType& flag = All, const bool & absolute = false ) const;
+  ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool & absolute = false ) const;
 
   void enumerate( uint_t level ) const;
 

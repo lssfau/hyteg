@@ -169,7 +169,7 @@ inline void add( const uint_t & level, Edge &edge,
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
-    ValueType tmp = 0.0;
+    auto tmp = ValueType( 0 );
 
     for (size_t k = 0; k < srcIds.size(); ++k) {
       tmp += scalars[k]*edge.getData(srcIds[k])->getPointer( level )[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
@@ -219,17 +219,23 @@ inline ValueType dot( const uint_t & level, Edge &edge, const PrimitiveDataID<Fu
 }
 
 template< typename ValueType >
-inline ValueType sum( const uint_t & level, const Edge & edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dataID)
+inline ValueType sum( const uint_t & level, const Edge & edge, const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dataID, const bool & absolute)
 {
-  real_t sum = real_c(0);
+  auto sum = ValueType(0);
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
 
   auto data = edge.getData( dataID )->getPointer( level );
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
-    sum += data[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+    if ( absolute )
+    {
+      sum += std::abs( data[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] );
+    }
+    else
+    {
+      sum += data[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+    }
   }
-
   return sum;
 }
 
@@ -403,7 +409,9 @@ template< typename ValueType >
 inline void smooth_sor(const uint_t & level, Edge &edge, const PrimitiveDataID< StencilMemory< ValueType >, Edge> &operatorId,
                           const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId,
                           const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &rhsId,
-                          ValueType relax) {
+                          ValueType relax,
+                          const bool & backwards = false )
+{
 
   typedef stencilDirection sD;
   size_t rowsize = levelinfo::num_microvertices_per_edge(level);
@@ -420,8 +428,13 @@ inline void smooth_sor(const uint_t & level, Edge &edge, const PrimitiveDataID< 
 
   ValueType tmp;
 
-  for (size_t i = 1; i < rowsize - 1; ++i)
+  const int start = backwards ? (int)rowsize - 2 : 1;
+  const int stop = backwards ? 0 : (int)rowsize - 1;
+  const int incr = backwards ? -1 : 1;
+
+  for (int ii = start; ii != stop; ii += incr)
   {
+    const uint_t i = uint_c(ii);
     const auto dofIdxW = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_W );
     const auto dofIdxC = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C );
     const auto dofIdxE = vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_E );
@@ -521,7 +534,7 @@ inline void integrateDG(const uint_t & level, Edge &edge,
   auto rhsP1 = edge.getData(rhsP1Id)->getPointer( level );
   auto dst = edge.getData(dstId)->getPointer( level );
 
-  ValueType tmp;
+  real_t tmp;
 
   Face* face = storage->getFace(edge.neighborFaces()[0]);
 
@@ -530,7 +543,7 @@ inline void integrateDG(const uint_t & level, Edge &edge,
 
   if (edge.getNumNeighborFaces() == 2) {
     face = storage->getFace(edge.neighborFaces()[1]);
-    weightedFaceArea1 = std::pow(4.0, -walberla::real_c(level)) * face->area / 3.0;
+     weightedFaceArea1 = std::pow(4.0, -walberla::real_c(level)) * face->area / 3.0;
   }
 
   for (size_t i = 1; i < rowsize - 1; ++i) {
@@ -564,7 +577,7 @@ inline void integrateDG(const uint_t & level, Edge &edge,
                                                                                                                                 + rhsP1[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_E )]));
     }
 
-    dst[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] = tmp;
+    dst[vertexdof::macroedge::indexFromVertex( level, i, sD::VERTEX_C )] = ValueType( tmp );
   }
 }
 

@@ -1,9 +1,11 @@
 #include "VertexDoFIndexing.hpp"
 
 #include "core/debug/Debug.h"
+#include "core/logging/Logging.h"
 
 #include "tinyhhg_core/indexing/MacroEdgeIndexing.hpp"
 #include "tinyhhg_core/Levelinfo.hpp"
+#include "tinyhhg_core/HHGDefinitions.hpp"
 
 namespace hhg {
 namespace vertexdof {
@@ -168,8 +170,8 @@ uint_t indexFromHorizontalEdge( const uint_t& level, const uint_t& x, const sten
    }
 }
 
-Iterator::Iterator( const uint_t& level, const uint_t& offsetToCenter )
-: EdgeIterator( levelinfo::num_microvertices_per_edge( level ), offsetToCenter )
+Iterator::Iterator( const uint_t& level, const uint_t& offsetToCenter, const bool & backwards )
+: EdgeIterator( levelinfo::num_microvertices_per_edge( level ), offsetToCenter, backwards )
 {}
 } // namespace macroedge
 
@@ -382,7 +384,29 @@ namespace macrocell {
 
 uint_t index( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z )
 {
-   return hhg::indexing::macroCellIndex( levelinfo::num_microvertices_per_edge( level ), x, y, z );
+  if ( globalDefines::useP1Coloring )
+  {
+    /// We define an 8-color ordering of the vertex DoFs in a tet.
+    ///
+    /// group | width
+    ///     0 | 2**(l-1) + 1
+    ///   1-6 | 2**(l-1)
+    ///     7 | 2**(l-1) - 1
+
+    const uint_t group = (z % 2 << 2) + (y % 2 << 1) + (x % 2 << 0);
+    const uint_t sub_idx_x = (x - (x % 2)) / 2;
+    const uint_t sub_idx_y = (y - (y % 2)) / 2;
+    const uint_t sub_idx_z = (z - (z % 2)) / 2;
+    const uint_t width = (1 << (level-1)) - 1 + (group == 0 ? 2 : (group == 7 ? 0 : 1));
+    const uint_t offset = group == 0 ? 0 : levelinfo::num_microvertices_per_cell_from_width( (uint_t(1) << (level-1)) + 1 ) +
+                          (group - 1) * levelinfo::num_microvertices_per_cell_from_width( (uint_t(1) << (level-1)) );
+
+    return offset + hhg::indexing::macroCellIndex( width, sub_idx_x, sub_idx_y, sub_idx_z );
+  }
+  else
+  {
+    return hhg::indexing::macroCellIndex( levelinfo::num_microvertices_per_edge( level ), x, y, z );
+  }
 }
 
 uint_t indexFromVertex( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z, const stencilDirection& dir )

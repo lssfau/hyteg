@@ -26,7 +26,7 @@ using namespace hhg;
 void testGridTransfer3D( const std::string & meshFile, const uint_t & lowerLevel )
 {
 
-  const bool   writeVTK   = false;
+  const bool   writeVTK   = true;
   const real_t errorLimit = 1e-15;
 
   const auto meshInfo = MeshInfo::fromGmshFile( meshFile );
@@ -34,7 +34,7 @@ void testGridTransfer3D( const std::string & meshFile, const uint_t & lowerLevel
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
   const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-  WALBERLA_CHECK( storage->hasGlobalCells() );
+  // WALBERLA_CHECK( storage->hasGlobalCells() );
 
   if ( writeVTK )
     writeDomainPartitioningVTK( storage, "../../output", "P1LaplaceOperatorTest3D_partitioning" );
@@ -63,7 +63,7 @@ void testGridTransfer3D( const std::string & meshFile, const uint_t & lowerLevel
 
   std::function< real_t( const hhg::Point3D& ) > linearInXYZ = []( const hhg::Point3D & p ) -> real_t
   {
-      return real_c(42) * p[0] + p[1] + real_c(1337) * p[2];
+      return real_c(42) * p[0] + p[1] ; // + real_c(1337) * p[2];
   };
 
   hhg::vertexdof::VertexDoFFunction< real_t > u          ( "u",           storage, lowerLevel, lowerLevel + 1 );
@@ -139,6 +139,10 @@ int main( int argc, char* argv[] )
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
+  testGridTransfer3D( "../../data/meshes/tri_1el.msh", 2 );
+  testGridTransfer3D( "../../data/meshes/quad_8el.msh", 2 );
+  testGridTransfer3D( "../../data/meshes/tri_1el.msh", 3 );
+  testGridTransfer3D( "../../data/meshes/quad_8el.msh", 3 );
   testGridTransfer3D( "../../data/meshes/3D/tet_1el.msh", 3 );
   testGridTransfer3D( "../../data/meshes/3D/pyramid_2el.msh", 3 );
   testGridTransfer3D( "../../data/meshes/3D/pyramid_4el.msh", 3 );

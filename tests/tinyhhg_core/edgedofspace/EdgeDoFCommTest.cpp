@@ -451,7 +451,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
       numberOfChecks++;
     }
 /////////// SECOND EDGE ////////////
-    localEdgeIdOnFace = 1;
+    localEdgeIdOnFace = 2;
     Edge *secondEdge = storage->getEdge(nbrEdges[localEdgeIdOnFace].getID());
     edgeData = secondEdge->getData(x.getEdgeDataID())->getPointer(level);
     /// horizontal Dof on edge 1
@@ -498,7 +498,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
         numberOfChecks++;
       }
 /////////// THIRD EDGE ////////////
-    localEdgeIdOnFace = 2;
+    localEdgeIdOnFace = 1;
     Edge *thirdEdge = storage->getEdge(nbrEdges[localEdgeIdOnFace].getID());
     edgeData = thirdEdge->getData(x.getEdgeDataID())->getPointer(level);
     /// horizontal Dof on edge 2

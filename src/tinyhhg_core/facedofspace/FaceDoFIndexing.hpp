@@ -267,7 +267,7 @@ namespace hhg {
                 offsetOffset_ = 0;
               }
             break;
-          case 1:
+          case 2:
             if( edge_orientation_ == 1 )
               {
                 idx_ += num_perEdge_ - 1;
@@ -280,8 +280,8 @@ namespace hhg {
                 offsetOffset_ = -1;
               }
             break;
-          case 2:
-            if( edge_orientation_ == 1 )
+          case 1:
+            if( edge_orientation_ == -1 )
               {
                 idx_ += maximum;
                 offset_       = -2;

@@ -62,7 +62,7 @@ void smoothSOR3D(
     const PrimitiveStorage & storage,
     Face&                                                                                        face,
     const real_t&                                                                                relax,
-    const PrimitiveDataID< StencilMemory< real_t >, Face >&                                      vertexToVertexOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face >&        vertexToVertexOperatorId,
     const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face >& edgeToVertexOperatorId,
     const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroFaceStencilMap_T >, Face >& vertexToEdgeOperatorId,
     const PrimitiveDataID< LevelWiseMemory< edgedof::macroface::StencilMap_T >, Face >&          edgeToEdgeOperatorId,

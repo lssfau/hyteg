@@ -33,11 +33,26 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
 
    void smooth_gs( const P2Function< real_t >& dst, const P2Function< real_t >& rhs, size_t level, DoFType flag ) const;
 
+   void smooth_gs_backwards( const P2Function< real_t >& dst, const P2Function< real_t >& rhs, size_t level, DoFType flag ) const
+   {
+      smooth_sor_backwards( dst, rhs, 1.0, level, flag );
+   }
+
    void smooth_sor( const P2Function< real_t >& dst,
                     const P2Function< real_t >& rhs,
                     const real_t&               relax,
                     size_t                      level,
-                    DoFType                     flag ) const;
+                    DoFType                     flag,
+                    const bool &                backwards = false ) const;
+
+   void smooth_sor_backwards( const P2Function< real_t >& dst,
+                     const P2Function< real_t >& rhs,
+                     const real_t &              relax,
+                     size_t                      level,
+                     DoFType                     flag ) const
+   {
+     smooth_sor( dst, rhs, relax, level, flag, true );
+   }
 
    void smooth_jac( const P2Function< real_t >& dst,
                     const P2Function< real_t >& rhs,

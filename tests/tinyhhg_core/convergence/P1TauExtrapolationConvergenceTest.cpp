@@ -163,7 +163,7 @@ int main( int argc, char* argv[] )
                                ", conv rate = " << convRate )
   }
 
-  WALBERLA_CHECK_LESS( discr_l2_err, 3.1e-09 );
+  WALBERLA_CHECK_LESS( discr_l2_err, 3.3e-09 );
 
 
   return 0;

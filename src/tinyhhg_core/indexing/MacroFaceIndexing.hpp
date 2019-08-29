@@ -152,16 +152,16 @@ inline FaceBoundaryDirection getFaceBorderDirection(uint_t localEdgeId, int orie
       return FaceBoundaryDirection::BOTTOM_LEFT_TO_RIGHT;
     } else if(orientation == -1)
       return FaceBoundaryDirection::BOTTOM_RIGHT_TO_LEFT;
-  } else if(localEdgeId == 1){
+  } else if(localEdgeId == 2){
     if (orientation == 1) {
       return FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP;
     } else if(orientation == -1)
       return FaceBoundaryDirection::DIAGONAL_TOP_TO_BOTTOM;
-  } else if(localEdgeId == 2){
+  } else if(localEdgeId == 1){
     if (orientation == 1) {
-      return FaceBoundaryDirection::LEFT_TOP_TO_BOTTOM;
-    } else if(orientation == -1)
       return FaceBoundaryDirection::LEFT_BOTTOM_TO_TOP;
+    } else if(orientation == -1)
+      return FaceBoundaryDirection::LEFT_TOP_TO_BOTTOM;
   } else {
     WALBERLA_ABORT("wrong EdgeId or orientation");
   }

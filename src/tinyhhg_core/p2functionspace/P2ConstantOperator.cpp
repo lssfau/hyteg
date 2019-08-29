@@ -41,7 +41,7 @@
 #include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
 #include "tinyhhg_core/p2functionspace/P2MacroVertex.hpp"
 #include "tinyhhg_core/communication/Syncing.hpp"
-#include "tinyhhg_core/p2functionspace/generatedKernels/GeneratedKernelsP2MacroFace2D.hpp"
+#include "tinyhhg_core/p2functionspace/generatedKernels/all.hpp"
 
 namespace hhg {
 
@@ -55,6 +55,10 @@ P2ConstantOperator< P2Form >::P2ConstantOperator( const std::shared_ptr< Primiti
 , vertexToEdge( storage, minLevel, maxLevel )
 , edgeToEdge( storage, minLevel, maxLevel )
 {
+   if ( globalDefines::useP1Coloring )
+   {
+     WALBERLA_ABORT( "The colored P1 memory layout is not supported for mixed operators." );
+   }
 }
 
 template < class P2Form >
@@ -82,21 +86,33 @@ void P2ConstantOperator< P2Form >::smooth_gs(const P2Function <real_t> &dst,
 
 template < class P2Form >
 void P2ConstantOperator< P2Form >::smooth_sor(const P2Function <real_t> &dst,
-                                                                    const P2Function <real_t> &rhs,
-                                                                    const real_t& relax,
-                                                                    const size_t level,
-                                                                    const DoFType flag) const
+                                                                     const P2Function< real_t >& rhs,
+                                                                     const real_t&               relax,
+                                                                     const size_t                level,
+                                                                     const DoFType               flag,
+                                                                     const bool &                backwards ) const
 {
-   this->startTiming( "SOR" );
+  if ( backwards )
+  {
+    WALBERLA_CHECK( globalDefines::useGeneratedKernels, "Backward SOR only implemented in generated kernels." )
+    WALBERLA_CHECK( storage_->hasGlobalCells(), "Backward SOR currently only implemented for 3D for P2." )
+    this->startTiming( "SOR backwards" );
+  }
+  else
+  {
+    this->startTiming( "SOR" );
+  }
 
    communication::syncP2FunctionBetweenPrimitives( dst, level );
 
-   for( auto& it : storage_->getVertices() )
+   this->timingTree_->start( "Macro-Vertex" );
+
+   for ( auto& it : storage_->getVertices() )
    {
       Vertex& vertex = *it.second;
 
       const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-      if( testFlag( vertexBC, flag ) )
+      if ( testFlag( vertexBC, flag ) )
       {
          if ( storage_->hasGlobalCells() )
          {
@@ -119,20 +135,24 @@ void P2ConstantOperator< P2Form >::smooth_sor(const P2Function <real_t> &dst,
                                                  dst.getVertexDoFFunction().getVertexDataID(),
                                                  edgeToVertex.getVertexStencilID(),
                                                  dst.getEdgeDoFFunction().getVertexDataID(),
-                                                 rhs.getVertexDoFFunction().getVertexDataID());
+                                                 rhs.getVertexDoFFunction().getVertexDataID() );
          }
       }
    }
 
+   this->timingTree_->stop( "Macro-Vertex" );
+
    dst.getVertexDoFFunction().communicate< Vertex, Edge >( level );
    dst.getEdgeDoFFunction().communicate< Vertex, Edge >( level );
 
-   for( auto& it : storage_->getEdges() )
+   this->timingTree_->start( "Macro-Edge" );
+
+   for ( auto& it : storage_->getEdges() )
    {
       Edge& edge = *it.second;
 
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if( testFlag( edgeBC, flag ) )
+      if ( testFlag( edgeBC, flag ) )
       {
          if ( storage_->hasGlobalCells() )
          {
@@ -147,7 +167,8 @@ void P2ConstantOperator< P2Form >::smooth_sor(const P2Function <real_t> &dst,
                                         dst.getVertexDoFFunction().getEdgeDataID(),
                                         rhs.getVertexDoFFunction().getEdgeDataID(),
                                         dst.getEdgeDoFFunction().getEdgeDataID(),
-                                        rhs.getEdgeDoFFunction().getEdgeDataID() );
+                                        rhs.getEdgeDoFFunction().getEdgeDataID(),
+                                        backwards );
          }
          else
          {
@@ -161,13 +182,17 @@ void P2ConstantOperator< P2Form >::smooth_sor(const P2Function <real_t> &dst,
                                       edgeToEdge.getEdgeStencilID(),
                                       dst.getEdgeDoFFunction().getEdgeDataID(),
                                       rhs.getVertexDoFFunction().getEdgeDataID(),
-                                      rhs.getEdgeDoFFunction().getEdgeDataID());
+                                      rhs.getEdgeDoFFunction().getEdgeDataID() );
          }
       }
    }
 
+   this->timingTree_->stop( "Macro-Edge" );
+
    dst.getVertexDoFFunction().communicate< Edge, Face >( level );
    dst.getEdgeDoFFunction().communicate< Edge, Face >( level );
+
+   this->timingTree_->start( "Macro-Face" );
 
    for ( auto& it : storage_->getFaces() )
    {
@@ -178,63 +203,420 @@ void P2ConstantOperator< P2Form >::smooth_sor(const P2Function <real_t> &dst,
       {
          if ( storage_->hasGlobalCells() )
          {
-            P2::macroface::smoothSOR3D( level,
-                                        *storage_,
-                                        face,
-                                        relax,
-                                        vertexToVertex.getFaceStencilID(),
-                                        edgeToVertex.getFaceStencil3DID(),
-                                        vertexToEdge.getFaceStencil3DID(),
-                                        edgeToEdge.getFaceStencil3DID(),
-                                        dst.getVertexDoFFunction().getFaceDataID(),
-                                        rhs.getVertexDoFFunction().getFaceDataID(),
-                                        dst.getEdgeDoFFunction().getFaceDataID(),
-                                        rhs.getEdgeDoFFunction().getFaceDataID() );
+           if ( globalDefines::useGeneratedKernels )
+           {
+             WALBERLA_CHECK_EQUAL( face.getNumNeighborCells(), 2, "P2 3D SOR only implemented for inner macro-faces." )
+
+             using edgedof::EdgeDoFOrientation;
+             using indexing::IndexIncrement;
+
+             auto v2v_operator = face.getData( vertexToVertex.getFaceStencil3DID() )->getData( level );
+             auto v2e_operator = face.getData( vertexToEdge.getFaceStencil3DID() )->getData( level );
+             auto e2v_operator = face.getData( edgeToVertex.getFaceStencil3DID() )->getData( level );
+             auto e2e_operator = face.getData( edgeToEdge.getFaceStencil3DID() )->getData( level );
+
+             real_t* v_dst_data = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+             real_t* v_rhs_data = face.getData( rhs.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+
+             real_t* e_dst_data = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+             real_t* e_rhs_data = face.getData( rhs.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+
+             const uint_t offset_x = edgedof::macroface::index( level, 0, 0, edgedof::EdgeDoFOrientation::X );
+             const uint_t offset_xy = edgedof::macroface::index( level, 0, 0, edgedof::EdgeDoFOrientation::XY );
+             const uint_t offset_y = edgedof::macroface::index( level, 0, 0, edgedof::EdgeDoFOrientation::Y );
+
+             std::map< uint_t, std::map< edgedof::EdgeDoFOrientation, uint_t > > offset_gl_orientation;
+             for ( uint_t gl = 0; gl < 2; gl++ )
+             {
+               for ( const auto & eo : edgedof::allEdgeDoFOrientations )
+               {
+                 offset_gl_orientation[gl][eo] = edgedof::macroface::index( level, 0, 0, eo, gl );
+               }
+             }
+
+             auto neighborCell0 = storage_->getCell( face.neighborCells()[0] );
+             auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
+
+             auto neighbor_cell_0_local_vertex_id_0 = static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(0) );
+             auto neighbor_cell_0_local_vertex_id_1 = static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(1) );
+             auto neighbor_cell_0_local_vertex_id_2 = static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(2) );
+
+             auto neighbor_cell_1_local_vertex_id_0 = static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(0) );
+             auto neighbor_cell_1_local_vertex_id_1 = static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(1) );
+             auto neighbor_cell_1_local_vertex_id_2 = static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(2) );
+             
+
+             const uint_t vertex_offset_gl_0 = levelinfo::num_microvertices_per_face( level );
+             const uint_t vertex_offset_gl_1 = vertex_offset_gl_0 + levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge(level) - 1 );
+
+             if ( neighbor_cell_0_local_vertex_id_0 > neighbor_cell_1_local_vertex_id_0 ||
+                  ( neighbor_cell_0_local_vertex_id_0 == neighbor_cell_1_local_vertex_id_0 &&
+                    neighbor_cell_0_local_vertex_id_1 > neighbor_cell_1_local_vertex_id_1 ) ||
+                  ( neighbor_cell_0_local_vertex_id_0 == neighbor_cell_1_local_vertex_id_0 &&
+                    neighbor_cell_0_local_vertex_id_1 == neighbor_cell_1_local_vertex_id_1 &&
+                    neighbor_cell_0_local_vertex_id_2 > neighbor_cell_1_local_vertex_id_2 ) )
+             {
+                if ( backwards )
+                {
+                   P2::macroface::generated::sor_3D_macroface_P2_update_edgedofs_backwards(
+                       &e_dst_data[offset_x],
+                       &e_dst_data[offset_xy],
+                       &e_dst_data[offset_y],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                       &e_rhs_data[offset_x],
+                       &e_rhs_data[offset_xy],
+                       &e_rhs_data[offset_y],
+                       v_dst_data,
+                       &v_dst_data[vertex_offset_gl_1],
+                       &v_dst_data[vertex_offset_gl_0],
+                       e2e_operator[1],
+                       e2e_operator[0],
+                       static_cast< int32_t >( level ),
+                       neighbor_cell_1_local_vertex_id_0,
+                       neighbor_cell_1_local_vertex_id_1,
+                       neighbor_cell_1_local_vertex_id_2,
+                       neighbor_cell_0_local_vertex_id_0,
+                       neighbor_cell_0_local_vertex_id_1,
+                       neighbor_cell_0_local_vertex_id_2,
+                       relax,
+                       v2e_operator[1],
+                       v2e_operator[0] );
+
+                   P2::macroface::generated::sor_3D_macroface_P2_update_vertexdofs_backwards(
+                       &e_dst_data[offset_x],
+                       &e_dst_data[offset_xy],
+                       &e_dst_data[offset_y],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                       v_dst_data,
+                       &v_dst_data[vertex_offset_gl_1],
+                       &v_dst_data[vertex_offset_gl_0],
+                       v_rhs_data,
+                       e2v_operator[1],
+                       e2v_operator[0],
+                       static_cast< int32_t >( level ),
+                       neighbor_cell_1_local_vertex_id_0,
+                       neighbor_cell_1_local_vertex_id_1,
+                       neighbor_cell_1_local_vertex_id_2,
+                       neighbor_cell_0_local_vertex_id_0,
+                       neighbor_cell_0_local_vertex_id_1,
+                       neighbor_cell_0_local_vertex_id_2,
+                       relax,
+                       v2v_operator[1],
+                       v2v_operator[0] );
+                }
+                else
+                {
+                   P2::macroface::generated::sor_3D_macroface_P2_update_vertexdofs(
+                       &e_dst_data[offset_x],
+                       &e_dst_data[offset_xy],
+                       &e_dst_data[offset_y],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                       v_dst_data,
+                       &v_dst_data[vertex_offset_gl_1],
+                       &v_dst_data[vertex_offset_gl_0],
+                       v_rhs_data,
+                       e2v_operator[1],
+                       e2v_operator[0],
+                       static_cast< int32_t >( level ),
+                       neighbor_cell_1_local_vertex_id_0,
+                       neighbor_cell_1_local_vertex_id_1,
+                       neighbor_cell_1_local_vertex_id_2,
+                       neighbor_cell_0_local_vertex_id_0,
+                       neighbor_cell_0_local_vertex_id_1,
+                       neighbor_cell_0_local_vertex_id_2,
+                       relax,
+                       v2v_operator[1],
+                       v2v_operator[0] );
+
+                   P2::macroface::generated::sor_3D_macroface_P2_update_edgedofs(
+                       &e_dst_data[offset_x],
+                       &e_dst_data[offset_xy],
+                       &e_dst_data[offset_y],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                       &e_rhs_data[offset_x],
+                       &e_rhs_data[offset_xy],
+                       &e_rhs_data[offset_y],
+                       v_dst_data,
+                       &v_dst_data[vertex_offset_gl_1],
+                       &v_dst_data[vertex_offset_gl_0],
+                       e2e_operator[1],
+                       e2e_operator[0],
+                       static_cast< int32_t >( level ),
+                       neighbor_cell_1_local_vertex_id_0,
+                       neighbor_cell_1_local_vertex_id_1,
+                       neighbor_cell_1_local_vertex_id_2,
+                       neighbor_cell_0_local_vertex_id_0,
+                       neighbor_cell_0_local_vertex_id_1,
+                       neighbor_cell_0_local_vertex_id_2,
+                       relax,
+                       v2e_operator[1],
+                       v2e_operator[0] );
+                }
+             }
+             else
+             {
+                if ( backwards )
+                {
+                   P2::macroface::generated::sor_3D_macroface_P2_update_edgedofs_backwards(
+                       &e_dst_data[offset_x],
+                       &e_dst_data[offset_xy],
+                       &e_dst_data[offset_y],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
+                       &e_rhs_data[offset_x],
+                       &e_rhs_data[offset_xy],
+                       &e_rhs_data[offset_y],
+                       v_dst_data,
+                       &v_dst_data[vertex_offset_gl_0],
+                       &v_dst_data[vertex_offset_gl_1],
+                       e2e_operator[0],
+                       e2e_operator[1],
+                       static_cast< int32_t >( level ),
+                       neighbor_cell_0_local_vertex_id_0,
+                       neighbor_cell_0_local_vertex_id_1,
+                       neighbor_cell_0_local_vertex_id_2,
+                       neighbor_cell_1_local_vertex_id_0,
+                       neighbor_cell_1_local_vertex_id_1,
+                       neighbor_cell_1_local_vertex_id_2,
+                       relax,
+                       v2e_operator[0],
+                       v2e_operator[1] );
+
+                   P2::macroface::generated::sor_3D_macroface_P2_update_vertexdofs_backwards(
+                       &e_dst_data[offset_x],
+                       &e_dst_data[offset_xy],
+                       &e_dst_data[offset_y],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
+                       v_dst_data,
+                       &v_dst_data[vertex_offset_gl_0],
+                       &v_dst_data[vertex_offset_gl_1],
+                       v_rhs_data,
+                       e2v_operator[0],
+                       e2v_operator[1],
+                       static_cast< int32_t >( level ),
+                       neighbor_cell_0_local_vertex_id_0,
+                       neighbor_cell_0_local_vertex_id_1,
+                       neighbor_cell_0_local_vertex_id_2,
+                       neighbor_cell_1_local_vertex_id_0,
+                       neighbor_cell_1_local_vertex_id_1,
+                       neighbor_cell_1_local_vertex_id_2,
+                       relax,
+                       v2v_operator[0],
+                       v2v_operator[1] );
+                }
+                else
+                {
+                   P2::macroface::generated::sor_3D_macroface_P2_update_vertexdofs(
+                       &e_dst_data[offset_x],
+                       &e_dst_data[offset_xy],
+                       &e_dst_data[offset_y],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
+                       v_dst_data,
+                       &v_dst_data[vertex_offset_gl_0],
+                       &v_dst_data[vertex_offset_gl_1],
+                       v_rhs_data,
+                       e2v_operator[0],
+                       e2v_operator[1],
+                       static_cast< int32_t >( level ),
+                       neighbor_cell_0_local_vertex_id_0,
+                       neighbor_cell_0_local_vertex_id_1,
+                       neighbor_cell_0_local_vertex_id_2,
+                       neighbor_cell_1_local_vertex_id_0,
+                       neighbor_cell_1_local_vertex_id_1,
+                       neighbor_cell_1_local_vertex_id_2,
+                       relax,
+                       v2v_operator[0],
+                       v2v_operator[1] );
+
+                   P2::macroface::generated::sor_3D_macroface_P2_update_edgedofs(
+                       &e_dst_data[offset_x],
+                       &e_dst_data[offset_xy],
+                       &e_dst_data[offset_y],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
+                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
+                       &e_rhs_data[offset_x],
+                       &e_rhs_data[offset_xy],
+                       &e_rhs_data[offset_y],
+                       v_dst_data,
+                       &v_dst_data[vertex_offset_gl_0],
+                       &v_dst_data[vertex_offset_gl_1],
+                       e2e_operator[0],
+                       e2e_operator[1],
+                       static_cast< int32_t >( level ),
+                       neighbor_cell_0_local_vertex_id_0,
+                       neighbor_cell_0_local_vertex_id_1,
+                       neighbor_cell_0_local_vertex_id_2,
+                       neighbor_cell_1_local_vertex_id_0,
+                       neighbor_cell_1_local_vertex_id_1,
+                       neighbor_cell_1_local_vertex_id_2,
+                       relax,
+                       v2e_operator[0],
+                       v2e_operator[1] );
+                }
+             }
+           }
+           else
+           {
+             P2::macroface::smoothSOR3D( level,
+                                         *storage_,
+                                         face,
+                                         relax,
+                                         vertexToVertex.getFaceStencil3DID(),
+                                         edgeToVertex.getFaceStencil3DID(),
+                                         vertexToEdge.getFaceStencil3DID(),
+                                         edgeToEdge.getFaceStencil3DID(),
+                                         dst.getVertexDoFFunction().getFaceDataID(),
+                                         rhs.getVertexDoFFunction().getFaceDataID(),
+                                         dst.getEdgeDoFFunction().getFaceDataID(),
+                                         rhs.getEdgeDoFFunction().getFaceDataID());
+           }
          }
          else
          {
             if ( globalDefines::useGeneratedKernels )
             {
-              real_t* v_dst_data = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-              real_t* v_rhs_data = face.getData( rhs.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* v_dst_data = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* v_rhs_data = face.getData( rhs.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
 
-              real_t* e_dst_data = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-              real_t* e_rhs_data = face.getData( rhs.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* e_dst_data = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* e_rhs_data = face.getData( rhs.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
 
-              real_t* v2v_opr_data = face.getData( vertexToVertex.getFaceStencilID() )->getPointer( level );
-              real_t* v2e_opr_data = face.getData( vertexToEdge.getFaceStencilID() )->getPointer( level );
-              real_t* e2v_opr_data = face.getData( edgeToVertex.getFaceStencilID() )->getPointer( level );
-              real_t* e2e_opr_data = face.getData( edgeToEdge.getFaceStencilID() )->getPointer( level );
+               real_t* v2v_opr_data = face.getData( vertexToVertex.getFaceStencilID() )->getPointer( level );
+               real_t* v2e_opr_data = face.getData( vertexToEdge.getFaceStencilID() )->getPointer( level );
+               real_t* e2v_opr_data = face.getData( edgeToVertex.getFaceStencilID() )->getPointer( level );
+               real_t* e2e_opr_data = face.getData( edgeToEdge.getFaceStencilID() )->getPointer( level );
 
-              typedef edgedof::EdgeDoFOrientation eo;
-              std::map< eo, uint_t >              firstIdx;
-              for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
-                firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
+               typedef edgedof::EdgeDoFOrientation eo;
+               std::map< eo, uint_t >              firstIdx;
+               for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
+                  firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
 
-              P2::macroface::generated::sor_2D_macroface_P2_update_vertexdofs( &e_dst_data[firstIdx[eo::X]],
-                                                                               &e_dst_data[firstIdx[eo::XY]],
-                                                                               &e_dst_data[firstIdx[eo::Y]],
-                                                                               e2v_opr_data,
-                                                                               v_dst_data,
-                                                                               v_rhs_data,
-                                                                               v2v_opr_data,
-                                                                               static_cast< int64_t >( level ),
-                                                                               relax );
-              P2::macroface::generated::sor_2D_macroface_P2_update_edgedofs( &e_dst_data[firstIdx[eo::X]],
-                                                                             &e_dst_data[firstIdx[eo::XY]],
-                                                                             &e_dst_data[firstIdx[eo::Y]],
-                                                                             &e_rhs_data[firstIdx[eo::X]],
-                                                                             &e_rhs_data[firstIdx[eo::XY]],
-                                                                             &e_rhs_data[firstIdx[eo::Y]],
-                                                                             &e2e_opr_data[0],
-                                                                             &e2e_opr_data[5],
-                                                                             &e2e_opr_data[10],
-                                                                             v_dst_data,
-                                                                             &v2e_opr_data[0],
-                                                                             &v2e_opr_data[4],
-                                                                             &v2e_opr_data[8],
-                                                                             static_cast< int64_t >( level ),
-                                                                             relax );
+               P2::macroface::generated::sor_2D_macroface_P2_update_vertexdofs( &e_dst_data[firstIdx[eo::X]],
+                                                                                &e_dst_data[firstIdx[eo::XY]],
+                                                                                &e_dst_data[firstIdx[eo::Y]],
+                                                                                e2v_opr_data,
+                                                                                v_dst_data,
+                                                                                v_rhs_data,
+                                                                                v2v_opr_data,
+                                                                                static_cast< int32_t >( level ),
+                                                                                relax );
+               P2::macroface::generated::sor_2D_macroface_P2_update_edgedofs( &e_dst_data[firstIdx[eo::X]],
+                                                                              &e_dst_data[firstIdx[eo::XY]],
+                                                                              &e_dst_data[firstIdx[eo::Y]],
+                                                                              &e_rhs_data[firstIdx[eo::X]],
+                                                                              &e_rhs_data[firstIdx[eo::XY]],
+                                                                              &e_rhs_data[firstIdx[eo::Y]],
+                                                                              &e2e_opr_data[0],
+                                                                              &e2e_opr_data[5],
+                                                                              &e2e_opr_data[10],
+                                                                              v_dst_data,
+                                                                              &v2e_opr_data[0],
+                                                                              &v2e_opr_data[4],
+                                                                              &v2e_opr_data[8],
+                                                                              static_cast< int32_t >( level ),
+                                                                              relax );
             }
             else
             {
@@ -254,31 +636,310 @@ void P2ConstantOperator< P2Form >::smooth_sor(const P2Function <real_t> &dst,
       }
    }
 
+   this->timingTree_->stop( "Macro-Face" );
+
    dst.getVertexDoFFunction().communicate< Face, Cell >( level );
    dst.getEdgeDoFFunction().communicate< Face, Cell >( level );
 
-  for( auto& it : storage_->getCells() )
-  {
-    Cell& cell = *it.second;
+   this->timingTree_->start( "Macro-Cell" );
 
-    const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-    if( testFlag( cellBC, flag ) )
-    {
-      P2::macrocell::smoothSOR( level,
-                                cell,
-                                relax,
-                                vertexToVertex.getCellStencilID(),
-                                edgeToVertex.getCellStencilID(),
-                                vertexToEdge.getCellStencilID(),
-                                edgeToEdge.getCellStencilID(),
-                                dst.getVertexDoFFunction().getCellDataID(),
-                                rhs.getVertexDoFFunction().getCellDataID(),
-                                dst.getEdgeDoFFunction().getCellDataID(),
-                                rhs.getEdgeDoFFunction().getCellDataID() );
-    }
-  }
+   for ( auto& it : storage_->getCells() )
+   {
+      Cell& cell = *it.second;
 
-   this->stopTiming( "SOR" );
+      const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+      if ( testFlag( cellBC, flag ) )
+      {
+         if ( globalDefines::useGeneratedKernels )
+         {
+            real_t* v_dst_data = cell.getData( dst.getVertexDoFFunction().getCellDataID() )->getPointer( level );
+            real_t* v_rhs_data = cell.getData( rhs.getVertexDoFFunction().getCellDataID() )->getPointer( level );
+
+            real_t* e_dst_data = cell.getData( dst.getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+            real_t* e_rhs_data = cell.getData( rhs.getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+
+            auto v2v_opr_data = cell.getData( vertexToVertex.getCellStencilID() )->getData( level );
+            auto v2e_opr_data = cell.getData( vertexToEdge.getCellStencilID() )->getData( level );
+            auto e2v_opr_data = cell.getData( edgeToVertex.getCellStencilID() )->getData( level );
+            auto e2e_opr_data = cell.getData( edgeToEdge.getCellStencilID() )->getData( level );
+
+            typedef edgedof::EdgeDoFOrientation eo;
+            std::map< eo, uint_t >              firstIdx;
+            for ( auto e : edgedof::allEdgeDoFOrientations )
+               firstIdx[e] = edgedof::macrocell::index( level, 0, 0, 0, e );
+
+            if ( backwards )
+            {
+               this->timingTree_->start( "Updating EdgeDoFs" );
+
+               // Splitting the SOR into multiple sweeps: one per edge type.
+               // This has severe performance advantages.
+               // Due to the memory layout of the edge DoFs and the coincidence that there are
+               // never two (or more) edges per type in one element, this split is a natural
+               // coloring of the edge DoFs.
+               // Therefore each of the split-kernels can be vectorized!
+               // However it is not clear how the smoothing property suffers from this splitting.
+               // In first tests it is marginally worse - but the performance gain is huge.
+
+               P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_XYZ( &e_dst_data[firstIdx[eo::X]],
+                                                                                          &e_dst_data[firstIdx[eo::XY]],
+                                                                                          &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                          &e_dst_data[firstIdx[eo::XZ]],
+                                                                                          &e_dst_data[firstIdx[eo::Y]],
+                                                                                          &e_dst_data[firstIdx[eo::YZ]],
+                                                                                          &e_dst_data[firstIdx[eo::Z]],
+                                                                                          &e_rhs_data[firstIdx[eo::XYZ]],
+                                                                                          v_dst_data,
+                                                                                          e2e_opr_data,
+                                                                                          static_cast< int32_t >( level ),
+                                                                                          relax,
+                                                                                          v2e_opr_data );
+               P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_YZ( &e_dst_data[firstIdx[eo::X]],
+                                                                                         &e_dst_data[firstIdx[eo::XY]],
+                                                                                         &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                         &e_dst_data[firstIdx[eo::XZ]],
+                                                                                         &e_dst_data[firstIdx[eo::Y]],
+                                                                                         &e_dst_data[firstIdx[eo::YZ]],
+                                                                                         &e_dst_data[firstIdx[eo::Z]],
+                                                                                         &e_rhs_data[firstIdx[eo::YZ]],
+                                                                                         v_dst_data,
+                                                                                         e2e_opr_data,
+                                                                                         static_cast< int32_t >( level ),
+                                                                                         relax,
+                                                                                         v2e_opr_data );
+               P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_XZ( &e_dst_data[firstIdx[eo::X]],
+                                                                                         &e_dst_data[firstIdx[eo::XY]],
+                                                                                         &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                         &e_dst_data[firstIdx[eo::XZ]],
+                                                                                         &e_dst_data[firstIdx[eo::Y]],
+                                                                                         &e_dst_data[firstIdx[eo::YZ]],
+                                                                                         &e_dst_data[firstIdx[eo::Z]],
+                                                                                         &e_rhs_data[firstIdx[eo::XZ]],
+                                                                                         v_dst_data,
+                                                                                         e2e_opr_data,
+                                                                                         static_cast< int32_t >( level ),
+                                                                                         relax,
+                                                                                         v2e_opr_data );
+               P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_XY( &e_dst_data[firstIdx[eo::X]],
+                                                                                         &e_dst_data[firstIdx[eo::XY]],
+                                                                                         &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                         &e_dst_data[firstIdx[eo::XZ]],
+                                                                                         &e_dst_data[firstIdx[eo::Y]],
+                                                                                         &e_dst_data[firstIdx[eo::YZ]],
+                                                                                         &e_dst_data[firstIdx[eo::Z]],
+                                                                                         &e_rhs_data[firstIdx[eo::XY]],
+                                                                                         v_dst_data,
+                                                                                         e2e_opr_data,
+                                                                                         static_cast< int32_t >( level ),
+                                                                                         relax,
+                                                                                         v2e_opr_data );
+               P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_Z( &e_dst_data[firstIdx[eo::X]],
+                                                                                        &e_dst_data[firstIdx[eo::XY]],
+                                                                                        &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                        &e_dst_data[firstIdx[eo::XZ]],
+                                                                                        &e_dst_data[firstIdx[eo::Y]],
+                                                                                        &e_dst_data[firstIdx[eo::YZ]],
+                                                                                        &e_dst_data[firstIdx[eo::Z]],
+                                                                                        &e_rhs_data[firstIdx[eo::Z]],
+                                                                                        v_dst_data,
+                                                                                        e2e_opr_data,
+                                                                                        static_cast< int32_t >( level ),
+                                                                                        relax,
+                                                                                        v2e_opr_data );
+               P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_Y( &e_dst_data[firstIdx[eo::X]],
+                                                                                        &e_dst_data[firstIdx[eo::XY]],
+                                                                                        &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                        &e_dst_data[firstIdx[eo::XZ]],
+                                                                                        &e_dst_data[firstIdx[eo::Y]],
+                                                                                        &e_dst_data[firstIdx[eo::YZ]],
+                                                                                        &e_dst_data[firstIdx[eo::Z]],
+                                                                                        &e_rhs_data[firstIdx[eo::Y]],
+                                                                                        v_dst_data,
+                                                                                        e2e_opr_data,
+                                                                                        static_cast< int32_t >( level ),
+                                                                                        relax,
+                                                                                        v2e_opr_data );
+               P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_X( &e_dst_data[firstIdx[eo::X]],
+                                                                                        &e_dst_data[firstIdx[eo::XY]],
+                                                                                        &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                        &e_dst_data[firstIdx[eo::XZ]],
+                                                                                        &e_dst_data[firstIdx[eo::Y]],
+                                                                                        &e_dst_data[firstIdx[eo::YZ]],
+                                                                                        &e_dst_data[firstIdx[eo::Z]],
+                                                                                        &e_rhs_data[firstIdx[eo::X]],
+                                                                                        v_dst_data,
+                                                                                        e2e_opr_data,
+                                                                                        static_cast< int32_t >( level ),
+                                                                                        relax,
+                                                                                        v2e_opr_data );
+
+               this->timingTree_->start( "Updating VertexDoFs" );
+
+               P2::macrocell::generated::sor_3D_macrocell_P2_update_vertexdofs_backwards( &e_dst_data[firstIdx[eo::X]],
+                                                                                          &e_dst_data[firstIdx[eo::XY]],
+                                                                                          &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                          &e_dst_data[firstIdx[eo::XZ]],
+                                                                                          &e_dst_data[firstIdx[eo::Y]],
+                                                                                          &e_dst_data[firstIdx[eo::YZ]],
+                                                                                          &e_dst_data[firstIdx[eo::Z]],
+                                                                                          v_dst_data,
+                                                                                          v_rhs_data,
+                                                                                          e2v_opr_data,
+                                                                                          static_cast< int32_t >( level ),
+                                                                                          relax,
+                                                                                          v2v_opr_data );
+
+               this->timingTree_->stop( "Updating VertexDoFs" );
+            }
+            else
+            {
+               this->timingTree_->start( "Updating VertexDoFs" );
+
+               P2::macrocell::generated::sor_3D_macrocell_P2_update_vertexdofs( &e_dst_data[firstIdx[eo::X]],
+                                                                                &e_dst_data[firstIdx[eo::XY]],
+                                                                                &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                &e_dst_data[firstIdx[eo::XZ]],
+                                                                                &e_dst_data[firstIdx[eo::Y]],
+                                                                                &e_dst_data[firstIdx[eo::YZ]],
+                                                                                &e_dst_data[firstIdx[eo::Z]],
+                                                                                v_dst_data,
+                                                                                v_rhs_data,
+                                                                                e2v_opr_data,
+                                                                                static_cast< int32_t >( level ),
+                                                                                relax,
+                                                                                v2v_opr_data );
+
+               this->timingTree_->stop( "Updating VertexDoFs" );
+
+               this->timingTree_->start( "Updating EdgeDoFs" );
+
+               // Splitting the SOR into multiple sweeps: one per edge type.
+               // This has severe performance advantages.
+               // Due to the memory layout of the edge DoFs and the coincidence that there are
+               // never two (or more) edges per type in one element, this split is a natural
+               // coloring of the edge DoFs.
+               // Therefore each of the split-kernels can be vectorized!
+               // However it is not clear how the smoothing property suffers from this splitting.
+               // In first tests it is marginally worse - but the performance gain is huge.
+
+               P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_X( &e_dst_data[firstIdx[eo::X]],
+                                                                                        &e_dst_data[firstIdx[eo::XY]],
+                                                                                        &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                        &e_dst_data[firstIdx[eo::XZ]],
+                                                                                        &e_dst_data[firstIdx[eo::Y]],
+                                                                                        &e_dst_data[firstIdx[eo::YZ]],
+                                                                                        &e_dst_data[firstIdx[eo::Z]],
+                                                                                        &e_rhs_data[firstIdx[eo::X]],
+                                                                                        v_dst_data,
+                                                                                        e2e_opr_data,
+                                                                                        static_cast< int32_t >( level ),
+                                                                                        relax,
+                                                                                        v2e_opr_data );
+               P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_Y( &e_dst_data[firstIdx[eo::X]],
+                                                                                        &e_dst_data[firstIdx[eo::XY]],
+                                                                                        &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                        &e_dst_data[firstIdx[eo::XZ]],
+                                                                                        &e_dst_data[firstIdx[eo::Y]],
+                                                                                        &e_dst_data[firstIdx[eo::YZ]],
+                                                                                        &e_dst_data[firstIdx[eo::Z]],
+                                                                                        &e_rhs_data[firstIdx[eo::Y]],
+                                                                                        v_dst_data,
+                                                                                        e2e_opr_data,
+                                                                                        static_cast< int32_t >( level ),
+                                                                                        relax,
+                                                                                        v2e_opr_data );
+               P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_Z( &e_dst_data[firstIdx[eo::X]],
+                                                                                        &e_dst_data[firstIdx[eo::XY]],
+                                                                                        &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                        &e_dst_data[firstIdx[eo::XZ]],
+                                                                                        &e_dst_data[firstIdx[eo::Y]],
+                                                                                        &e_dst_data[firstIdx[eo::YZ]],
+                                                                                        &e_dst_data[firstIdx[eo::Z]],
+                                                                                        &e_rhs_data[firstIdx[eo::Z]],
+                                                                                        v_dst_data,
+                                                                                        e2e_opr_data,
+                                                                                        static_cast< int32_t >( level ),
+                                                                                        relax,
+                                                                                        v2e_opr_data );
+               P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_XY( &e_dst_data[firstIdx[eo::X]],
+                                                                                         &e_dst_data[firstIdx[eo::XY]],
+                                                                                         &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                         &e_dst_data[firstIdx[eo::XZ]],
+                                                                                         &e_dst_data[firstIdx[eo::Y]],
+                                                                                         &e_dst_data[firstIdx[eo::YZ]],
+                                                                                         &e_dst_data[firstIdx[eo::Z]],
+                                                                                         &e_rhs_data[firstIdx[eo::XY]],
+                                                                                         v_dst_data,
+                                                                                         e2e_opr_data,
+                                                                                         static_cast< int32_t >( level ),
+                                                                                         relax,
+                                                                                         v2e_opr_data );
+               P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_XZ( &e_dst_data[firstIdx[eo::X]],
+                                                                                         &e_dst_data[firstIdx[eo::XY]],
+                                                                                         &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                         &e_dst_data[firstIdx[eo::XZ]],
+                                                                                         &e_dst_data[firstIdx[eo::Y]],
+                                                                                         &e_dst_data[firstIdx[eo::YZ]],
+                                                                                         &e_dst_data[firstIdx[eo::Z]],
+                                                                                         &e_rhs_data[firstIdx[eo::XZ]],
+                                                                                         v_dst_data,
+                                                                                         e2e_opr_data,
+                                                                                         static_cast< int32_t >( level ),
+                                                                                         relax,
+                                                                                         v2e_opr_data );
+               P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_YZ( &e_dst_data[firstIdx[eo::X]],
+                                                                                         &e_dst_data[firstIdx[eo::XY]],
+                                                                                         &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                         &e_dst_data[firstIdx[eo::XZ]],
+                                                                                         &e_dst_data[firstIdx[eo::Y]],
+                                                                                         &e_dst_data[firstIdx[eo::YZ]],
+                                                                                         &e_dst_data[firstIdx[eo::Z]],
+                                                                                         &e_rhs_data[firstIdx[eo::YZ]],
+                                                                                         v_dst_data,
+                                                                                         e2e_opr_data,
+                                                                                         static_cast< int32_t >( level ),
+                                                                                         relax,
+                                                                                         v2e_opr_data );
+               P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_XYZ( &e_dst_data[firstIdx[eo::X]],
+                                                                                          &e_dst_data[firstIdx[eo::XY]],
+                                                                                          &e_dst_data[firstIdx[eo::XYZ]],
+                                                                                          &e_dst_data[firstIdx[eo::XZ]],
+                                                                                          &e_dst_data[firstIdx[eo::Y]],
+                                                                                          &e_dst_data[firstIdx[eo::YZ]],
+                                                                                          &e_dst_data[firstIdx[eo::Z]],
+                                                                                          &e_rhs_data[firstIdx[eo::XYZ]],
+                                                                                          v_dst_data,
+                                                                                          e2e_opr_data,
+                                                                                          static_cast< int32_t >( level ),
+                                                                                          relax,
+                                                                                          v2e_opr_data );
+            }
+
+            this->timingTree_->stop( "Updating EdgeDoFs" );
+         }
+         else
+         {
+            P2::macrocell::smoothSOR( level,
+                                      cell,
+                                      relax,
+                                      vertexToVertex.getCellStencilID(),
+                                      edgeToVertex.getCellStencilID(),
+                                      vertexToEdge.getCellStencilID(),
+                                      edgeToEdge.getCellStencilID(),
+                                      dst.getVertexDoFFunction().getCellDataID(),
+                                      rhs.getVertexDoFFunction().getCellDataID(),
+                                      dst.getEdgeDoFFunction().getCellDataID(),
+                                      rhs.getEdgeDoFFunction().getCellDataID() );
+         }
+      }
+   }
+
+   this->timingTree_->stop( "Macro-Cell" );
+
+  if ( backwards )
+    this->stopTiming( "SOR backwards" );
+  else
+    this->stopTiming( "SOR" );
 }
 
 template < class P2Form >

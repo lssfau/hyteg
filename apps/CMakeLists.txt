@@ -59,6 +59,7 @@ waLBerla_add_executable( NAME exportOperatorMatrix
 endif()
 
 add_subdirectory(benchmarks)
+add_subdirectory(scaling)
 add_subdirectory(stokesSphere)
 add_subdirectory(stokesCubeTransport)
 add_subdirectory(stokesSphereTransport)

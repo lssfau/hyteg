@@ -29,13 +29,15 @@ void showUsage()
              << " 4) by generating a strip of chained triangles\n"
              << " 5) by meshing a thick spherical shell\n"
              << " 6) by meshing a rectangular cuboid\n\n"
+             << " 7) by meshing a symmetric rectangular cuboid\n\n"
              << " This is steered by choosing one of the options below:\n\n"
              << "  --file <name of Gmsh file>\n"
              << "  --rect [criss|cross|crisscross|diamond]\n"
              << "  --annulus [full|partial]\n"
              << "  --face-chain [numFaces]\n"
              << "  --spherical-shell [ntan]\n"
-             << "  --cuboid [nHint]\n\n"
+             << "  --cuboid [nHint]\n"
+             << "  --symm-cuboid [nSubCubes]\n\n"
              << " The generated base mesh will be tested be doing two levels of refinement.\n"
              << " Then it will be exported to a VTU file for visualisation.\n\n"
              << " Also visualization of the domain partitioning, mesh boundary flags and MPI rank assignment will be output.\n"
@@ -57,7 +59,8 @@ int main( int argc, char* argv[] )
       PARTIAL_ANNULUS,
       FACE_CHAIN,
       SPHERICAL_SHELL,
-      CUBOID
+      CUBOID,
+      SYMM_CUBOID
    } meshDomainType;
    meshDomainType        meshDomain;
    MeshInfo::meshFlavour rectMeshType = MeshInfo::CROSS;
@@ -140,6 +143,11 @@ int main( int argc, char* argv[] )
       nHint       = uint_c( std::stoi( argv[2] ) );
       meshDomain  = CUBOID;
       vtkFileName = std::string( "cuboidMesh" );
+   } else if( strcmp( argv[1], "--symm-cuboid" ) == 0 )
+   {
+     nHint       = uint_c( std::stoi( argv[2] ) );
+     meshDomain  = SYMM_CUBOID;
+     vtkFileName = std::string( "symmCuboidMesh" );
    } else
    {
       WALBERLA_ABORT( "Could not understand command-line args!" );
@@ -213,6 +221,13 @@ int main( int argc, char* argv[] )
                                                      Point3D( {  2.0,  0.0, 2.0 } ),
                                                      nHint + 1, nHint + 1, nHint ) );
       break;
+
+     case SYMM_CUBOID:
+      meshInfo = new MeshInfo( MeshInfo::meshSymmetricCuboid( Point3D( { -1.0, -1.0, -1.0 } ),
+                                                              Point3D( {  1.0,  1.0,  1.0 } ),
+                                                              nHint, nHint, nHint ) );
+      break;
+
    }
 
    // ----------------

@@ -8,14 +8,14 @@
 #include "tinyhhg_core/Format.hpp"
 #include "tinyhhg_core/LikwidWrapper.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
-#include "tinyhhg_core/edgedofspace/generatedKernels/GeneratedKernelsEdgeToEdgeMacroFace2D.hpp"
+#include "tinyhhg_core/edgedofspace/generatedKernels/all.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/misc/dummy.hpp"
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
-#include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/GeneratedKernelsEdgeToVertexMacroFace2D.hpp"
-#include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/GeneratedKernelsVertexToEdgeMacroFace2D.hpp"
+#include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/all.hpp"
+#include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/all.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
-#include "tinyhhg_core/p1functionspace/generatedKernels/GeneratedKernelsVertexToVertexMacroFace2D.hpp"
+#include "tinyhhg_core/p1functionspace/generatedKernels/all.hpp"
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -84,7 +84,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
          if ( useGeneratedKernels )
          {
             hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace(
-                dstPtr, srcPtr, stencilPtr, static_cast< int64_t >( level ) );
+                dstPtr, srcPtr, stencilPtr, static_cast< int32_t >( level ) );
          }
          else
          {
@@ -137,7 +137,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
                                                                                               &srcPtr[firstIdx[eo::Y]],
                                                                                               stencilPtr,
                                                                                               dstPtr,
-                                                                                              static_cast< int64_t >( level ) );
+                                                                                              static_cast< int32_t >( level ) );
          hhg::misc::dummy( srcPtr, dstPtr );
       }
       LIKWID_MARKER_STOP( evname.c_str() );
@@ -189,7 +189,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
                                                                                             &stencilPtr[5],
                                                                                             &stencilPtr[0],
                                                                                             &stencilPtr[10],
-                                                                                            static_cast< int64_t >( level ) );
+                                                                                            static_cast< int32_t >( level ) );
          hhg::misc::dummy( srcPtr, dstPtr );
       }
 
@@ -243,7 +243,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
                                                                                               vertexToDiagonalEdgeStencil,
                                                                                               vertexToHorizontalEdgeStencil,
                                                                                               vertexToVerticalEdgeStencil,
-                                                                                              static_cast< int64_t >( level ) );
+                                                                                              static_cast< int32_t >( level ) );
          hhg::misc::dummy( srcPtr, dstPtr );
       }
       LIKWID_MARKER_STOP( vename.c_str() );

@@ -136,7 +136,7 @@ inline indexing::IndexIncrement calcEdgeDoFIndex( const indexing::IndexIncrement
     return (vertexIndex0.x() < vertexIndex1.x() ? vertexIndex0 : vertexIndex1) + indexing::IndexIncrement( 0, -1,  0 );
   default:
     WALBERLA_ASSERT( false, "Invaild index offset." );
-    return indexing::IndexIncrement( std::numeric_limits< uint_t >::max(), std::numeric_limits< uint_t >::max(), std::numeric_limits< uint_t >::max() );
+    return indexing::IndexIncrement( std::numeric_limits< int >::max(), std::numeric_limits< int >::max(), std::numeric_limits< int >::max() );
   }
 }
 
@@ -146,8 +146,8 @@ inline indexing::IndexIncrement calcEdgeDoFIndex( const indexing::IndexIncrement
 inline std::array< indexing::IndexIncrement, 2 > calcNeighboringVertexDoFIndices( const edgedof::EdgeDoFOrientation & orientation )
 {
   std::array< indexing::IndexIncrement, 2 > vertexIndices = {
-    indexing::IndexIncrement( std::numeric_limits< uint_t >::max(), std::numeric_limits< uint_t >::max(), std::numeric_limits< uint_t >::max() ),
-    indexing::IndexIncrement( std::numeric_limits< uint_t >::max(), std::numeric_limits< uint_t >::max(), std::numeric_limits< uint_t >::max() )
+    indexing::IndexIncrement( std::numeric_limits< int >::max(), std::numeric_limits< int >::max(), std::numeric_limits< int >::max() ),
+    indexing::IndexIncrement( std::numeric_limits< int >::max(), std::numeric_limits< int >::max(), std::numeric_limits< int >::max() )
   };
   vertexIndices[0] = indexing::IndexIncrement( 0, 0, 0 );
 
@@ -506,8 +506,8 @@ constexpr std::array<stencilDirection ,2> neighborsOnNorthFaceFromHorizontalEdge
 class Iterator : public indexing::EdgeIterator
 {
 public:
-  Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 ) :
-    EdgeIterator( levelinfo::num_microedges_per_edge( level ), offsetToCenter )
+  Iterator( const uint_t & level, const uint_t & offsetToCenter = 0, const bool & backwards = false ) :
+    EdgeIterator( levelinfo::num_microedges_per_edge( level ), offsetToCenter, backwards )
   {}
 };
 

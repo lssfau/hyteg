@@ -63,7 +63,7 @@ inline void interpolate(const uint_t & Level, Edge & edge,
 
   for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
   {
-    const Point3D currentCoordinates = leftCoords + microEdgeOffset + 2 * it.col() * microEdgeOffset;
+    const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c(2) * it.col() * microEdgeOffset;
 
     for (uint_t k = 0; k < srcPtr.size(); ++k) {
       srcVector[k] = srcPtr[k][edgedof::macroedge::horizontalIndex( Level, it.col())];
@@ -91,20 +91,20 @@ inline void add( const uint_t & Level, Edge & edge, const std::vector< ValueType
                  const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > > & srcIds,
                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & dstId )
 {
-  WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
-  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
+  WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" )
+  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" )
 
   auto dstData = edge.getData( dstId )->getPointer( Level );
 
   for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
   {
-    ValueType tmp = static_cast< ValueType >( 0.0 );
+    auto tmp = static_cast< ValueType >( 0.0 );
 
     const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
 
     for ( uint_t i = 0; i < scalars.size(); i++ )
     {
-      const real_t scalar  = scalars[i];
+      const ValueType scalar  = scalars[i];
       const auto   srcData = edge.getData( srcIds[i] )->getPointer( Level );
 
       tmp += scalar * srcData[ idx ];
@@ -117,7 +117,7 @@ inline void add( const uint_t & Level, Edge & edge, const std::vector< ValueType
 template < typename ValueType >
 inline void add( const uint_t&                                               Level,
                  Edge&                                                       edge,
-                 const real_t&                                               scalar,
+                 const ValueType&                                            scalar,
                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstId )
 {
    auto dstData = edge.getData( dstId )->getPointer( Level );
@@ -134,20 +134,20 @@ inline void assign( const uint_t & Level, Edge & edge, const std::vector< ValueT
                     const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > > & srcIds,
                     const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & dstId )
 {
-  WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" );
-  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" );
+  WALBERLA_ASSERT_EQUAL( scalars.size(), srcIds.size(), "Number of scalars must match number of src functions!" )
+  WALBERLA_ASSERT_GREATER( scalars.size(), 0, "At least one src function and scalar must be given!" )
 
   auto dstData = edge.getData( dstId )->getPointer( Level );
 
   for ( const auto & it : edgedof::macroedge::Iterator( Level ) )
   {
-    ValueType tmp = static_cast< ValueType >( 0.0 );
+    auto tmp = static_cast< ValueType >( 0.0 );
 
     const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
 
     for ( uint_t i = 0; i < scalars.size(); i++ )
     {
-      const real_t scalar  = scalars[i];
+      const ValueType scalar  = scalars[i];
       const auto   srcData = edge.getData( srcIds[i] )->getPointer( Level );
 
       tmp += scalar * srcData[ idx ];
@@ -178,7 +178,10 @@ inline ValueType dot( const uint_t & Level, Edge & edge,
 }
 
 template < typename ValueType >
-inline ValueType sum( const uint_t& Level, Edge& edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dataId )
+inline ValueType sum( const uint_t&                                               Level,
+                      Edge&                                                       edge,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dataId,
+                      const bool&                                                 absolute )
 {
    auto data = edge.getData( dataId )->getPointer( Level );
 
@@ -187,7 +190,14 @@ inline ValueType sum( const uint_t& Level, Edge& edge, const PrimitiveDataID< Fu
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
       const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
-      scalarProduct += data[idx];
+      if ( absolute )
+      {
+         scalarProduct += std::abs( data[idx] );
+      }
+      else
+      {
+         scalarProduct += data[idx];
+      }
    }
 
    return scalarProduct.get();
@@ -293,7 +303,7 @@ inline void apply3D( const uint_t & level, const Edge & edge,
           const auto onCellFacesSet = edgedof::macrocell::isOnCellFaces( level, leafIndexInCell, leafOrientationInCell );
           const auto onCellFacesSetOnEdge = edgedof::macrocell::isOnCellFaces( level, leafIndexOnEdge, leafOrientationOnEdge );
 
-          WALBERLA_ASSERT_EQUAL( onCellFacesSet.size(), onCellFacesSetOnEdge.size() );
+          WALBERLA_ASSERT_EQUAL( onCellFacesSet.size(), onCellFacesSetOnEdge.size() )
 
           uint_t leafArrayIndexOnEdge = std::numeric_limits< uint_t >::max();
 
@@ -310,11 +320,11 @@ inline void apply3D( const uint_t & level, const Edge & edge,
           else if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 1 )
           {
             // leaf on macro-face
-            WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ) );
+            WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ) )
 
             const auto cellLocalFaceID = *cellLocalIDsOfNeighborFacesWithLeafOnThem.begin();
             const auto facePrimitiveID = neighborCell.neighborFaces().at( cellLocalFaceID );
-            WALBERLA_ASSERT( std::find( edge.neighborFaces().begin(), edge.neighborFaces().end(), facePrimitiveID ) != edge.neighborFaces().end() );
+            WALBERLA_ASSERT( std::find( edge.neighborFaces().begin(), edge.neighborFaces().end(), facePrimitiveID ) != edge.neighborFaces().end() )
 
 
             // The leaf orientation on the edge must be X, Y or XY since it is located on a neighboring face.
@@ -342,9 +352,9 @@ inline void apply3D( const uint_t & level, const Edge & edge,
           else
           {
             // leaf on macro-edge
-            WALBERLA_ASSERT_EQUAL( cellLocalIDsOfNeighborFacesWithLeafOnThem.size(), 2 );
-            WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ) );
-            WALBERLA_ASSERT_EQUAL( leafOrientationOnEdge, EdgeDoFOrientation::X );
+            WALBERLA_ASSERT_EQUAL( cellLocalIDsOfNeighborFacesWithLeafOnThem.size(), 2 )
+            WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ) )
+            WALBERLA_ASSERT_EQUAL( leafOrientationOnEdge, EdgeDoFOrientation::X )
             leafArrayIndexOnEdge = edgedof::macroedge::index( level, leafIndexOnEdge.x() );
           }
 

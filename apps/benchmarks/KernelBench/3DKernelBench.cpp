@@ -7,6 +7,7 @@
 #include "tinyhhg_core/LikwidWrapper.hpp"
 #include "tinyhhg_core/misc/dummy.hpp"
 #include "tinyhhg_core/p1functionspace/generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_add.cpp"
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 
 int main( int argc, char** argv )
 {
@@ -30,8 +31,10 @@ int main( int argc, char** argv )
       std::generate( src.begin(), src.end(), std::rand );
       std::vector< double > dst( tetSize );
       std::generate( dst.begin(), dst.end(), std::rand );
-      std::vector< double > stencil( 25 );
-      std::generate( stencil.begin(), stencil.end(), std::rand );
+
+      hhg::vertexdof::macrocell::StencilMap_T stencil;
+      for ( const auto & neighbor : hhg::vertexdof::macrocell::neighborsWithCenter )
+        stencil[ hhg::vertexdof::logicalIndexOffsetFromVertex( neighbor ) ] = walberla::real_c( std::rand() );
 
       double time(0.0);
 
@@ -44,7 +47,7 @@ int main( int argc, char** argv )
          {
 
             hhg::vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_add(
-                dst.data(), src.data(), stencil.data(), (int64_t) level );
+                dst.data(), src.data(), (int32_t) level, stencil );
             hhg::misc::dummy( dst.data(), src.data() );
          }
          timer.end();

@@ -4,6 +4,10 @@
 #include "tinyhhg_core/fenics/ufc_traits.hpp"
 #include "tinyhhg_core/forms/P2Form.hpp"
 
+#ifdef _MSC_VER
+#  pragma warning(push, 0)
+#endif
+
 // P1
 #include "tinyhhg_core/forms/form_fenics_generated/p1_diffusion.h"
 #include "tinyhhg_core/forms/form_fenics_generated/p1_div.h"
@@ -39,6 +43,10 @@
 // P2 to P1
 #include "tinyhhg_core/forms/form_fenics_generated/p2_to_p1_div.h"
 #include "tinyhhg_core/forms/form_fenics_generated/p2_to_p1_tet_div_tet.h"
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 namespace hhg {
 
@@ -162,6 +170,7 @@ class P2FenicsForm : public P2Form
     Matrix10r elMat;
     computeLocalStiffnessMatrix( coords, elMat );
     std::array<real_t,size> matRow;
+    matRow.fill( real_t( 0 ) );
     // std::array<real_t,leafPos.size()> matRow;
 
     uint_t rowIdx = fenics::P2DoFMap[ cntrPos[0] ][ cntrPos[1] ];

@@ -39,15 +39,15 @@ inline void prolongateP1ToP2( const uint_t & Level, const Face & face,
   for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) )
   {
     p2Edges[edgedof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )] =
-        0.5 * (   p1Vertices[vertexdof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::VERTEX_W )]
+        ValueType( 0.5 ) * (   p1Vertices[vertexdof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::VERTEX_W )]
                 + p1Vertices[vertexdof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::VERTEX_E )] );
 
     p2Edges[edgedof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )] =
-        0.5 * (   p1Vertices[vertexdof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::VERTEX_NW )]
+        ValueType( 0.5 ) * (   p1Vertices[vertexdof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::VERTEX_NW )]
                 + p1Vertices[vertexdof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::VERTEX_SE )] );
 
     p2Edges[edgedof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )] =
-        0.5 * (   p1Vertices[vertexdof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::VERTEX_N )]
+        ValueType( 0.5 ) * (   p1Vertices[vertexdof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::VERTEX_N )]
                 + p1Vertices[vertexdof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::VERTEX_S )] );
   }
 
@@ -83,7 +83,7 @@ inline void restrictP2ToP1( const uint_t & Level, const Face & face,
     for ( const auto & neighbor : directVertexDoFNeighbors )
     {
       const uint_t neighborEdgeIdx = edgedof::macroface::indexFromVertex( Level, it.col(), it.row(), neighbor );
-      tmp += 0.5 * p2Edges[ neighborEdgeIdx ];
+      tmp += ValueType( 0.5 ) * p2Edges[ neighborEdgeIdx ];
     }
 
     p1Vertices[ idx ] = tmp;
@@ -115,7 +115,7 @@ inline void prolongateP1ToP2( const uint_t & Level, const Edge & edge,
   {
     const uint_t idx = vertexdof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::VERTEX_C );
     const ValueType p1VertexValue     = p1Vertices[ idx ];
-    const ValueType p1VertexValueHalf = 0.5 * p1VertexValue;
+    const ValueType p1VertexValueHalf = ValueType( 0.5 ) * p1VertexValue;
 
     p2Vertices[ idx ] = p1VertexValue;
 
@@ -145,16 +145,16 @@ inline void restrictP2ToP1( const uint_t & Level, const Edge & edge,
     const uint_t idx = vertexdof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::VERTEX_C );
     tmp = p2Vertices[ idx ];
 
-    tmp += 0.5 * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_HO_W )];
-    tmp += 0.5 * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_HO_E )];
+    tmp += ValueType( 0.5 ) * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_HO_W )];
+    tmp += ValueType( 0.5 ) * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_HO_E )];
 
-    tmp += 0.5 * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_VE_S )];
-    tmp += 0.5 * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_DI_SE )];
+    tmp += ValueType( 0.5 ) * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_VE_S )];
+    tmp += ValueType( 0.5 ) * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_DI_SE )];
 
     if ( edge.getNumNeighborFaces() == 2 )
     {
-      tmp += 0.5 * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_VE_N )];
-      tmp += 0.5 * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_DI_NW )];
+      tmp += ValueType( 0.5 ) * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_VE_N )];
+      tmp += ValueType( 0.5 ) * p2Edges[edgedof::macroedge::indexFromVertex( Level, it.col(), stencilDirection::EDGE_DI_NW )];
     }
 
     p1Vertices[ idx ] = tmp;
@@ -198,7 +198,7 @@ inline void restrictP2ToP1( const uint_t & Level, const Vertex & vertex,
 
   for ( uint_t i = 0; i < numNeighborEdges; i++ )
   {
-    p1Vertices[ 0 ] += 0.5 * p2Edges[ i ];
+    p1Vertices[ 0 ] += ValueType( 0.5 ) * p2Edges[ i ];
   }
 }
 

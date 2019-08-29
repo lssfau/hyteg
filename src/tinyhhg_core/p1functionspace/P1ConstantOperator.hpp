@@ -4,6 +4,40 @@
 
 #include "tinyhhg_core/Operator.hpp"
 #include "tinyhhg_core/StencilMemory.hpp"
+//<<<<<<< HEAD
+#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
+#include "tinyhhg_core/LevelWiseMemory.hpp"
+//
+//class p1_diffusion_cell_integral_0_otherwise;
+//class p1_tet_diffusion_cell_integral_0_otherwise;
+//class p1_stokes_epsilon_cell_integral_0_otherwise;
+//class p1_stokes_epsilon_cell_integral_1_otherwise;
+//class p1_stokes_epsilon_cell_integral_2_otherwise;
+//class p1_stokes_epsilon_cell_integral_3_otherwise;
+//class p1_div_cell_integral_0_otherwise;
+//class p1_tet_div_tet_cell_integral_0_otherwise;
+//class p1_div_cell_integral_1_otherwise;
+//class p1_tet_div_tet_cell_integral_1_otherwise;
+//class p1_tet_div_tet_cell_integral_2_otherwise;
+//class p1_divt_cell_integral_0_otherwise;
+//class p1_tet_divt_tet_cell_integral_0_otherwise;
+//class p1_divt_cell_integral_1_otherwise;
+//class p1_tet_divt_tet_cell_integral_1_otherwise;
+//class p1_tet_divt_tet_cell_integral_2_otherwise;
+//class p1_mass_cell_integral_0_otherwise;
+//class p1_tet_mass_cell_integral_0_otherwise;
+//class p1_pspg_cell_integral_0_otherwise;
+//class p1_tet_pspg_tet_cell_integral_0_otherwise;
+//
+//class p2_to_p1_tet_div_tet_cell_integral_0_otherwise;
+//class p2_to_p1_tet_div_tet_cell_integral_1_otherwise;
+//class p2_to_p1_tet_div_tet_cell_integral_2_otherwise;
+//
+//class p1_to_p2_tet_divt_tet_cell_integral_0_otherwise;
+//class p1_to_p2_tet_divt_tet_cell_integral_1_otherwise;
+//class p1_to_p2_tet_divt_tet_cell_integral_2_otherwise;
+//
+//=======
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/forms/form_fenics_base/P1FenicsForm.hpp"
 
@@ -29,11 +63,27 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
    void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const;
 
+   void smooth_gs_backwards( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const
+   {
+      smooth_sor_backwards( dst, rhs, 1.0, level, flag );
+   }
+
    void smooth_sor( const P1Function< real_t >& dst,
-                    const P1Function< real_t >& rhs,
-                    real_t                      relax,
-                    size_t                      level,
-                    DoFType                     flag ) const;
+                         const P1Function< real_t >& rhs,
+                         real_t                      relax,
+                         size_t                      level,
+                         DoFType                     flag,
+                         const bool &                backwards = false ) const;
+
+    void smooth_sor_backwards( const P1Function< real_t >& dst,
+                               const P1Function< real_t >& rhs,
+                               real_t                      relax,
+                               size_t                      level,
+                               DoFType                     flag ) const
+    {
+      smooth_sor( dst, rhs, relax, level, flag, true );
+    }
+
 
    void smooth_jac( const P1Function< real_t >& dst,
                     const P1Function< real_t >& rhs,
@@ -47,7 +97,9 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 
    const PrimitiveDataID< StencilMemory< real_t >, Face >& getFaceStencilID() const { return faceStencilID_; }
 
-   const PrimitiveDataID< StencilMemory< real_t >, Cell >& getCellStencilID() const { return cellStencilID_; }
+   const PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face >& getFaceStencil3DID() const { return faceStencil3DID_; }
+
+   const PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell >& getCellStencilID() const { return cellStencilID_; }
 
  private:
    void assembleStencils();
@@ -58,7 +110,8 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    PrimitiveDataID< StencilMemory< real_t >, Vertex > vertexStencilID_;
    PrimitiveDataID< StencilMemory< real_t >, Edge >   edgeStencilID_;
    PrimitiveDataID< StencilMemory< real_t >, Face >   faceStencilID_;
-   PrimitiveDataID< StencilMemory< real_t >, Cell >   cellStencilID_;
+   PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face > faceStencil3DID_;
+   PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell > cellStencilID_;
 
    P1Form form;
 };
@@ -97,6 +150,8 @@ typedef P1ConstantOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_
 
 typedef P1ConstantOperator< P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >
     P1PSPGOperator;
+typedef P1ConstantOperator< P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise >, true, false, true >
+    P1PSPGInvDiagOperator;
 
 typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise > >
     P2ToP1DivxVertexToVertexConstantOperator;

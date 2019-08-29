@@ -80,8 +80,11 @@ constexpr std::array<stencilDirection, 1> neighborsOnNorthFaceFromHorizontalEdge
 class Iterator : public hhg::indexing::EdgeIterator
 {
 public:
-  explicit Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 );
+  explicit Iterator( const uint_t & level, const uint_t & offsetToCenter = 0, const bool & backwards = false );
 };
+
+/// map[neighborCellID][indexOffset] = weight
+typedef std::map< uint_t, std::map< indexing::IndexIncrement, real_t > > StencilMap_T;
 
 }
 
@@ -215,6 +218,10 @@ public:
 };
 
 bool isVertexOnBoundary(const uint_t &level, const hhg::indexing::Index &idx);
+
+
+/// map[neighborCellID][indexOffset] = weight
+typedef std::map< uint_t, std::map< indexing::IndexIncrement, real_t > > StencilMap_T;
 
 } /// namespace macroface
 
@@ -389,6 +396,10 @@ std::set< uint_t > isOnCellEdge( const indexing::Index & index, const uint_t & l
 
 /// See \ref indexing::isOnCellVertex
 std::set< uint_t > isOnCellVertex( const indexing::Index & index, const uint_t & level );
+
+
+/// map[indexOffset] = weight
+typedef std::map< indexing::IndexIncrement, real_t > StencilMap_T;
 
 } // namespace macrocell
 

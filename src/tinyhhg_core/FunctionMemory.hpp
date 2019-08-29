@@ -9,6 +9,7 @@
 #include <core/mpi/SendBuffer.h>
 #include <core/mpi/RecvBuffer.h>
 #include <core/mpi/BufferSizeTrait.h>
+#include <core/mpi/Reduce.h>
 #include <core/debug/CheckFunctions.h>
 
 #include <map>
@@ -59,6 +60,23 @@ public:
     WALBERLA_ASSERT( other.hasLevel( level ), "Requested level not allocated." );
     WALBERLA_ASSERT_EQUAL( getSize( level ), other.getSize( level ), "Cannot swap FunctionMemory of different sizes." );
     data_.at( level )->swap( *(other.data_.at( level )) );
+  }
+
+  inline static unsigned long long getLocalAllocatedMemoryInBytes() { return totalAllocatedMemoryInBytes_; }
+  inline static unsigned long long getMinLocalAllocatedMemoryInBytes()
+  {
+     return walberla::mpi::allReduce(
+         totalAllocatedMemoryInBytes_, walberla::mpi::MIN, walberla::mpi::MPIManager::instance()->comm() );
+  }
+  inline static unsigned long long getMaxLocalAllocatedMemoryInBytes()
+  {
+     return walberla::mpi::allReduce(
+         totalAllocatedMemoryInBytes_, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
+  }
+  inline static unsigned long long getGlobalAllocatedMemoryInBytes()
+  {
+     return walberla::mpi::allReduce(
+         totalAllocatedMemoryInBytes_, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
   }
 
   /// Serializes the allocated data to a send buffer
@@ -112,15 +130,22 @@ private:
   {
     WALBERLA_ASSERT( !hasLevel( level ), "Attempting to overwrite already existing level (level == " << level << ") in function memory!");
     data_[level] = std::unique_ptr< std::vector< ValueType > >( new std::vector< ValueType >( size, fillValue ) );
+    totalAllocatedMemoryInBytes_ += size * sizeof( ValueType );
   }
 
   /// Maps a level to the respective allocated data
   std::map< uint_t, std::unique_ptr< std::vector< ValueType > > > data_;
 
   const ValueType fillValue_;
+
+  static unsigned long long totalAllocatedMemoryInBytes_;
 };
 
+template< typename ValueType >
+unsigned long long FunctionMemory< ValueType >::totalAllocatedMemoryInBytes_ = 0;
+
 }
+
 
 namespace walberla {
 namespace mpi {

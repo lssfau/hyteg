@@ -1,8 +1,7 @@
 #include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 
+#include "tinyhhg_core/gridtransferoperators/generatedKernels/all.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
-#include "tinyhhg_core/gridtransferoperators/generatedKernels/GeneratedKernelsP2MacroCell3D.hpp"
-#include "tinyhhg_core/gridtransferoperators/generatedKernels/GeneratedKernelsP2MacroFace2D.hpp"
 #include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
 #include "tinyhhg_core/p2functionspace/P2Multigrid.hpp"
 
@@ -60,7 +59,7 @@ void P2toP2QuadraticRestriction::restrictAdditively( const P2Function< real_t >&
                                                                             &edgeFineData[firstIdxFine[eo::Y]],
                                                                             vertexCoarseData,
                                                                             vertexFineData,
-                                                                            static_cast< int64_t >( coarseLevel ),
+                                                                            static_cast< int32_t >( coarseLevel ),
                                                                             numNeighborFacesEdge0,
                                                                             numNeighborFacesEdge1,
                                                                             numNeighborFacesEdge2,
@@ -75,7 +74,7 @@ void P2toP2QuadraticRestriction::restrictAdditively( const P2Function< real_t >&
                                                                           &edgeFineData[firstIdxFine[eo::XY]],
                                                                           &edgeFineData[firstIdxFine[eo::Y]],
                                                                           vertexFineData,
-                                                                          static_cast< int64_t >( coarseLevel ),
+                                                                          static_cast< int32_t >( coarseLevel ),
                                                                           numNeighborFacesEdge0,
                                                                           numNeighborFacesEdge1,
                                                                           numNeighborFacesEdge2 );
@@ -159,7 +158,7 @@ void P2toP2QuadraticRestriction::restrictAdditively3D( const P2Function< real_t 
                                                                             &edgeFineData[firstIdxFine[eo::Z]],
                                                                             vertexCoarseData,
                                                                             vertexFineData,
-                                                                            static_cast< int64_t >( coarseLevel ),
+                                                                            static_cast< int32_t >( coarseLevel ),
                                                                             numNeighborCellsEdge0,
                                                                             numNeighborCellsEdge1,
                                                                             numNeighborCellsEdge2,
@@ -190,7 +189,7 @@ void P2toP2QuadraticRestriction::restrictAdditively3D( const P2Function< real_t 
                                                                           &edgeFineData[firstIdxFine[eo::YZ]],
                                                                           &edgeFineData[firstIdxFine[eo::Z]],
                                                                           vertexFineData,
-                                                                          static_cast< int64_t >( coarseLevel ),
+                                                                          static_cast< int32_t >( coarseLevel ),
                                                                           numNeighborCellsEdge0,
                                                                           numNeighborCellsEdge1,
                                                                           numNeighborCellsEdge2,

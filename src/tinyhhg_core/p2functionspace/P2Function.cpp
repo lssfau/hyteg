@@ -321,9 +321,9 @@ ValueType P2Function< ValueType >::dotLocal( const P2Function< ValueType >& rhs,
 }
 
 template < typename ValueType >
-ValueType P2Function< ValueType >::sumGlobal( const uint_t level, const DoFType& flag ) const
+ValueType P2Function< ValueType >::sumGlobal( const uint_t level, const DoFType& flag, const bool & absolute ) const
 {
-   ValueType sum = sumLocal( level, flag );
+   ValueType sum = sumLocal( level, flag, absolute );
    this->startTiming( "Sum (reduce)" );
    walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
    this->stopTiming( "Sum (reduce)" );
@@ -331,11 +331,11 @@ ValueType P2Function< ValueType >::sumGlobal( const uint_t level, const DoFType&
 }
 
 template < typename ValueType >
-ValueType P2Function< ValueType >::sumLocal( const uint_t level, const DoFType& flag ) const
+ValueType P2Function< ValueType >::sumLocal( const uint_t level, const DoFType& flag, const bool & absolute ) const
 {
    auto sum = ValueType( 0 );
-   sum += vertexDoFFunction_.sumLocal( level, flag );
-   sum += edgeDoFFunction_.sumLocal( level, flag );
+   sum += vertexDoFFunction_.sumLocal( level, flag, absolute );
+   sum += edgeDoFFunction_.sumLocal( level, flag, absolute );
    return sum;
 }
 

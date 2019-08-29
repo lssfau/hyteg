@@ -9,6 +9,7 @@
 #include "core/mpi/Gather.h"
 
 #include "tinyhhg_core/FunctionTraits.hpp"
+#include "tinyhhg_core/FunctionProperties.hpp"
 #include "tinyhhg_core/Operator.hpp"
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
 #include "tinyhhg_core/types/flags.hpp"
@@ -27,7 +28,7 @@ public:
   Function( std::string name, const std::shared_ptr<PrimitiveStorage> & storage ) : functionName_(std::move(name)), storage_( storage ), minLevel_( 0 ), maxLevel_( 0 ), isDummy_( true ) {}
 
   Function(std::string name, const std::shared_ptr<PrimitiveStorage> & storage, uint_t minLevel, uint_t maxLevel)
-      : functionName_(std::move(name))
+      : functionName_(name)
       , storage_(storage)
       , minLevel_(minLevel)
       , maxLevel_(maxLevel)
@@ -42,11 +43,13 @@ public:
     {
       enableTiming(storage->getTimingTree());
     }
+
+    functionNames_.push_back( name );
+
     for( uint_t i = minLevel; i <= maxLevel; ++i )
     {
-      functionCounter_[i]++;
+      levelWiseFunctionCounter_[i]++;
     }
-
   }
 
   virtual ~Function() = default;
@@ -74,7 +77,9 @@ public:
 
   bool isDummy() const { return isDummy_; }
 
-  static std::map< uint_t, uint_t > getFunctionCounter() { return functionCounter_; }
+  static uint_t getNumFunctions() { return functionNames_.size(); }
+  static std::vector< std::string > getFunctionNames() { return functionNames_; }
+  static std::map< uint_t, uint_t > getLevelWiseFunctionCounter() { return levelWiseFunctionCounter_; }
 
 protected:
 
@@ -108,12 +113,16 @@ protected:
   }
 
 private:
-  static std::map< uint_t, uint_t > functionCounter_;
+  static std::vector< std::string > functionNames_;
+  static std::map< uint_t, uint_t > levelWiseFunctionCounter_;
 
 };
 
 template < typename FunctionType >
-std::map< uint_t, uint_t > Function< FunctionType >::functionCounter_ = {};
+std::vector< std::string > Function< FunctionType >::functionNames_ = {};
+
+template < typename FunctionType >
+std::map< uint_t, uint_t > Function< FunctionType >::levelWiseFunctionCounter_ = {};
 
 }
 

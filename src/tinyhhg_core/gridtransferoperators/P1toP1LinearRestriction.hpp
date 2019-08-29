@@ -20,13 +20,14 @@ class P1toP1LinearRestriction : public RestrictionOperator< P1Function< real_t >
      }
      else
      {
-       restrict2D( function, sourceLevel, flag );
+       restrict2DAdditively( function, sourceLevel, flag );
      }
    }
 
  private:
 
    void restrict2D( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const;
+   void restrict2DAdditively( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const;
 
    void restrict3D( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const;
 

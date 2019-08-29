@@ -9,7 +9,9 @@
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 
+#include "tinyhhg_core/forms/P1ZeroForm.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
@@ -83,8 +85,8 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
   // Simple check if apply is working at all on macro-cells.
   // The apply test II below probably also covers this case but we want to keep old tests anyway right? :)
   {
-    auto operatorHandling  = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Cell > >( level, level, vertexDoFMacroCellStencilMemorySize );
-    PrimitiveDataID< StencilMemory< real_t >, Cell > cellOperatorID;
+    auto operatorHandling  = std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell > >( level, level );
+    PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell > cellOperatorID;
     storage->addCellData( cellOperatorID, operatorHandling, "cell operator" );
 
     auto src = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "src", storage, level, level );
@@ -95,9 +97,13 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
 
     for ( const auto & cellIt : storage->getCells() )
     {
-      auto operatorData = cellIt.second->getData( cellOperatorID )->getPointer( level );
-      operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ]  = 1.0;
-      operatorData[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_TC ) ] = 2.0;
+      auto & operatorData = cellIt.second->getData( cellOperatorID )->getData( level );
+      for ( const auto & neighbor : vertexdof::macrocell::neighborsWithCenter )
+      {
+        operatorData[ vertexdof::logicalIndexOffsetFromVertex( neighbor ) ] = 0.0;
+      }
+      operatorData[ vertexdof::logicalIndexOffsetFromVertex( stencilDirection::VERTEX_C ) ]  = 1.0;
+      operatorData[ vertexdof::logicalIndexOffsetFromVertex( stencilDirection::VERTEX_TC ) ] = 2.0;
     }
 
     src->interpolate( ones, level );
@@ -142,15 +148,33 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
     }
     for ( const auto & it : storage->getFaces() )
     {
-      StencilMemory< real_t > * faceStencil = it.second->getData( op->getFaceStencilID() );
-      WALBERLA_CHECK_EQUAL( faceStencil->getSize( level ), 27 );
-      for ( uint_t i = 0; i < 27; i++ ) faceStencil->getPointer( level )[ i ] = 1.0;
+      auto & faceStencil = it.second->getData( op->getFaceStencil3DID() )->getData( level );
+      for ( uint_t neighborCellID = 0; neighborCellID < it.second->getNumNeighborCells(); neighborCellID++ )
+      {
+        P1ZeroForm zeroForm;
+        auto face = it.second;
+        auto neighborCell = storage->getCell( face->neighborCells().at( neighborCellID ) );
+        auto vertexAssemblyIndexInCell =
+        vertexdof::macroface::getIndexInNeighboringMacroCell( {1, 1, 0}, *face, neighborCellID, *storage, level );
+        faceStencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
+           storage, *neighborCell, vertexAssemblyIndexInCell, level, zeroForm );
+
+        for ( auto & stencilIt : faceStencil[neighborCellID] )
+        {
+          auto leafIndexInMacroFace = vertexdof::macrocell::getIndexInNeighboringMacroFace(
+          vertexAssemblyIndexInCell + stencilIt.first, *neighborCell, neighborCell->getLocalFaceID( face->getID() ), *storage, level );
+          if ( leafIndexInMacroFace.z() == 0 )
+            stencilIt.second = 0.5;
+          else
+            stencilIt.second = 1.0;
+        }
+      }
     }
     for ( const auto & it : storage->getCells() )
     {
-      StencilMemory< real_t > * cellStencil = it.second->getData( op->getCellStencilID() );
-      WALBERLA_CHECK_EQUAL( cellStencil->getSize( level ), 27 );
-      for ( uint_t i = 0; i < 27; i++ ) cellStencil->getPointer( level )[ i ] = 1.0;
+      auto & cellStencil = it.second->getData( op->getCellStencilID() )->getData( level );
+      for ( const auto & neighbor : vertexdof::macrocell::neighborsWithCenter )
+        cellStencil[ vertexdof::logicalIndexOffsetFromVertex( neighbor ) ] = 1.0;
     }
 
     auto src = std::make_shared< vertexdof::VertexDoFFunction< real_t > >( "src", storage, level, level );
@@ -186,7 +210,7 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
       {
         WALBERLA_CHECK_FLOAT_EQUAL( faceDst[vertexdof::macroface::indexFromVertex( level, idxIt.x(),
                                                                                    idxIt.y(),
-                                                                                   stencilDirection::VERTEX_C )], real_c( 7 + 6 * it.second->getNumNeighborCells() ) );
+                                                                                   stencilDirection::VERTEX_C )], 7.5 * real_c( it.second->getNumNeighborCells() ) );
       }
     }
     for ( const auto & it : storage->getCells() )

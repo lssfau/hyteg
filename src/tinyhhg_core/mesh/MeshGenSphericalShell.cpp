@@ -386,7 +386,7 @@ namespace hhg
         power /= 2;
       }
       --lvl;
-      if( 1u << lvl != ntan - 1 ) {
+      if( uint_t(1) << lvl != ntan - 1 ) {
         WALBERLA_ABORT( "ERROR: For SHELLMESH_CLASSIC (ntan-1) must be a power of 2, but ntan is " << ntan );
       }
 

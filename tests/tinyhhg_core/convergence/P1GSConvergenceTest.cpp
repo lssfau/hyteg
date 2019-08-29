@@ -17,8 +17,11 @@ using walberla::uint_c;
 
 using namespace hhg;
 
-static void test( const std::string & meshFile, const uint_t & level, const uint_t & maxiter )
+/// smoother == 0: SOR, w == 1.0
+/// smoother == 1: SOR_BW, w == 1.0
+static void test( const std::string & meshFile, const uint_t & level, const uint_t & maxiter, const uint_t & smoother )
 {
+  WALBERLA_LOG_INFO_ON_ROOT( "Mesh: " << meshFile << ", level: " << level << ", smoother: " << (smoother == 0 ? "forward SOR" : "backward SOR") )
   const bool writeVTK = false;
   const bool printTiming = true;
 
@@ -74,7 +77,11 @@ static void test( const std::string & meshFile, const uint_t & level, const uint
     {
       vtkOutput.write( level, i );
     }
-    L.smooth_gs(p2function, rhs, level, hhg::Inner);
+    if ( smoother == 0 )
+      L.smooth_sor(p2function, rhs, 1.0, level, hhg::Inner);
+    else if ( smoother == 1 )
+      L.smooth_sor_backwards(p2function, rhs, 1.0, level, hhg::Inner);
+
     L.apply(p2function, Lu, level, hhg::Inner);
     residuum.assign({1.0, -1.0}, { rhs, Lu }, level, hhg::Inner);
     abs_res = std::sqrt(residuum.dotGlobal(residuum, level, hhg::Inner));
@@ -107,9 +114,12 @@ int main(int argc, char* argv[])
   walberla::Environment walberlaEnv(argc, argv);
   walberla::MPIManager::instance()->useWorldComm();
 
-  test( "../../data/meshes/quad_8el.msh", 4, 20 );
-  test( "../../data/meshes/3D/tet_1el.msh", 4, 20 );
-  test( "../../data/meshes/3D/regular_octahedron_8el.msh", 4, 20 );
+  test( "../../data/meshes/quad_8el.msh", 4, 20, 0 );
+  test( "../../data/meshes/quad_8el.msh", 4, 20, 1 );
+  test( "../../data/meshes/3D/tet_1el.msh", 4, 20, 0 );
+  test( "../../data/meshes/3D/tet_1el.msh", 4, 20, 1 );
+  test( "../../data/meshes/3D/regular_octahedron_8el.msh", 4, 20, 0 );
+  test( "../../data/meshes/3D/regular_octahedron_8el.msh", 4, 20, 1 );
 
 
   return 0;

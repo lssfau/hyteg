@@ -5,7 +5,11 @@
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 
+
 namespace hhg {
+
+using walberla::real_c;
+using walberla::real_t;
 
 template < typename FunctionTag_T, typename PrimitiveType >
 inline uint_t numberOfInnerDoFs( const uint_t& level );
@@ -182,5 +186,19 @@ inline uint_t numberOfGlobalInnerDoFs( const PrimitiveStorage& primitiveStorage,
    }
    return numberOfGlobalDoFs< FunctionTag_T >( primitiveStorage, level ) - boundaryPoints;
 }
+
+/// \brief Prints infos about the memory consumption of all functions.
+///
+/// Note 1: this function may be expensive since it performs global reduction (multiple times)
+/// Note 2: must be called collectively by all threads
+/// Note 3: currently restricted to functions of type real_t
+/// Note 4: might partly include memory allocated for stencils
+///
+/// \param verbosityLevel
+///     0: only print memory consumption
+///     1: additionally number of functions and DoFs of each type
+///     2: additionally list names of allocated functions
+void printFunctionAllocationInfo( const PrimitiveStorage & storage, const uint_t & verbosityLevel = 1 );
+
 
 } // namespace hhg

@@ -101,9 +101,9 @@ int main( int argc, char* argv[] )
 
    real_t       estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( {{&u->u, &u->v}}, maxLevel );
    const real_t minimalEdgeLength    = hhg::MeshQuality::getMinimalEdgeLength( storage, maxLevel );
-   WALBERLA_LOG_INFO_ON_ROOT( "minimalEdgeLength: " << minimalEdgeLength );
+   WALBERLA_LOG_INFO_ON_ROOT( "minimalEdgeLength: " << minimalEdgeLength )
    real_t dt = std::min( 1.0, 0.25 * minimalEdgeLength / estimatedMaxVelocity );
-   WALBERLA_LOG_INFO_ON_ROOT( "dt: " << dt );
+   WALBERLA_LOG_INFO_ON_ROOT( "dt: " << dt )
    const real_t finalTime = 100000.0;
    //  const real_t plotEach = 2.0;
    const auto timesteps = (uint_t) std::ceil( finalTime / dt );
@@ -120,7 +120,7 @@ int main( int argc, char* argv[] )
    c->assign( {1.0}, {c_old.get()}, maxLevel );
 
    auto pressurePreconditioner = std::make_shared< hhg::StokesPressureBlockPreconditioner< hhg::P1StokesOperator, hhg::P1LumpedInvMassOperator > >(storage, minLevel, maxLevel);
-   auto smoother = std::make_shared< hhg::UzawaSmoother<hhg::P1StokesOperator>  >(storage, minLevel, maxLevel, storage->hasGlobalCells(), 0.37);
+   auto smoother = std::make_shared< hhg::UzawaSmoother<hhg::P1StokesOperator>  >(storage, minLevel, maxLevel, 0.37);
    auto coarseGridSolver = std::make_shared< hhg::MinResSolver< hhg::P1StokesOperator > >( storage, minLevel, minLevel, solverMaxiter, 1e-16, pressurePreconditioner );
    auto restrictionOperator = std::make_shared< hhg::P1P1StokesToP1P1StokesRestriction>();
    auto prolongationOperator = std::make_shared< hhg::P1P1StokesToP1P1StokesProlongation >();
@@ -150,11 +150,12 @@ int main( int argc, char* argv[] )
    vtkOutput.add( u->p );
    vtkOutput.add( f->u );
    vtkOutput.add( f->v );
+   vtkOutput.add( *c );
 
    uint_t plotIter = 0;
    for( uint_t t = 0; t <= timesteps; ++t )
    {
-      WALBERLA_LOG_PROGRESS_ON_ROOT( "Current timestep: " << time );
+      WALBERLA_LOG_PROGRESS_ON_ROOT( "Current timestep: " << time )
 
       if( t % 3 == 0 )
       {
@@ -175,7 +176,7 @@ int main( int argc, char* argv[] )
 
             r->assign( {1.0, -1.0}, { *f, *r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
             real_t residuum = std::sqrt( r->dotGlobal( *r, maxLevel, hhg::Inner | hhg::NeumannBoundary ) );
-            WALBERLA_LOG_PROGRESS_ON_ROOT( "[Uzawa] residuum: " << std::scientific << residuum );
+            WALBERLA_LOG_PROGRESS_ON_ROOT( "[Uzawa] residuum: " << std::scientific << residuum )
          }
       }
 
@@ -201,7 +202,7 @@ int main( int argc, char* argv[] )
 
    timingTree->stop( "Global" );
    auto reduced_tt = timingTree->getReduced();
-   WALBERLA_LOG_INFO_ON_ROOT( reduced_tt );
+   WALBERLA_LOG_INFO_ON_ROOT( reduced_tt )
 
    return EXIT_SUCCESS;
 }

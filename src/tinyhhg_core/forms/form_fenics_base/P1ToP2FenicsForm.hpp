@@ -5,7 +5,16 @@
 #include "tinyhhg_core/forms/P2Form.hpp"
 
 // P1 to P2
+
+#ifdef _MSC_VER
+#  pragma warning(push, 0)
+#endif
+
 #include "tinyhhg_core/forms/form_fenics_generated/p1_to_p2_divt.h"
+
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 namespace hhg {
 

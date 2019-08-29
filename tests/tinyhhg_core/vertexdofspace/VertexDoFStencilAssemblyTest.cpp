@@ -16,6 +16,8 @@
 #include "tinyhhg_core/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "tinyhhg_core/p1functionspace/P1Elements.hpp"
 
+#include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
+
 namespace hhg {
 
 using walberla::uint_t;
@@ -144,33 +146,39 @@ static void testVertexDoFStencilAssembly()
     const auto face = *it.second;
     if ( face.getNumNeighborCells() == 2 )
     {
-      std::array< std::map< stencilDirection, real_t >, maxLevel + 1 > macroFaceStencilOnLevel;
+      std::array< vertexdof::macroface::StencilMap_T, maxLevel + 1 > macroFaceStencilOnLevel;
 
       for ( uint_t level = minLevel; level <= maxLevel; level++ ) {
-        std::map< stencilDirection, real_t > stencil = P1Elements::P1Elements3D::assembleP1LocalStencil< P1TestForm >( storage, face, indexing::Index( 1, 1, 0 ),
-                                                                                                                                                        level, form );
-        macroFaceStencilOnLevel[level] = stencil;
-        real_t rowSum = real_c( 0 );
 
-        for ( const auto itStencil : stencil ) {
-          const auto direction = itStencil.first;
-          const auto weight = itStencil.second;
-          rowSum += weight;
-          WALBERLA_LOG_INFO( "Stencil entry on level " << level << ", direction " << stencilDirectionToStr.at( direction ) << ": " << weight );
-
-          if ( level > minLevel ) {
-            // Checking if stencil weight scale with h
-            WALBERLA_CHECK_FLOAT_EQUAL( 2.0 * weight, macroFaceStencilOnLevel[level - 1][direction] )
-          }
+        for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++ )
+        {
+          auto neighborCell = storage->getCell( face.neighborCells().at( neighborCellID ) );
+          auto vertexAssemblyIndexInCell =
+          vertexdof::macroface::getIndexInNeighboringMacroCell( {1, 1, 0}, face, neighborCellID, *storage, level );
+          macroFaceStencilOnLevel[level][neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
+          storage, *neighborCell, vertexAssemblyIndexInCell, level, form );
         }
 
+        real_t rowSum = real_c( 0 );
+
+        for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++ )
+        {
+          for ( const auto itStencil : macroFaceStencilOnLevel[level][neighborCellID] )
+          {
+            const auto direction = itStencil.first;
+            const auto weight = itStencil.second;
+            rowSum += weight;
+            WALBERLA_LOG_INFO( "Stencil entry on level " << level << ", direction " << direction << ": " << weight );
+
+            if ( level > minLevel )
+            {
+              // Checking if stencil weight scale with h
+              WALBERLA_CHECK_FLOAT_EQUAL( 2.0 * weight, macroFaceStencilOnLevel[level - 1][neighborCellID][direction] )
+            }
+          }
+        }
         // Checking system matrix row sum
         WALBERLA_CHECK_FLOAT_EQUAL( rowSum, 0.0 );
-
-        // Checking stencil weight symmetry
-        WALBERLA_CHECK_FLOAT_EQUAL( stencil[sd::VERTEX_W], stencil[sd::VERTEX_E] );
-        WALBERLA_CHECK_FLOAT_EQUAL( stencil[sd::VERTEX_N], stencil[sd::VERTEX_S] );
-        WALBERLA_CHECK_FLOAT_EQUAL( stencil[sd::VERTEX_NW], stencil[sd::VERTEX_SE] );
       }
     }
   }
