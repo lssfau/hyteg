@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "tinyhhg_core/edgedofspace/EdgeDoFOrientation.hpp"
 #include "tinyhhg_core/indexing/Common.hpp"
 #include "tinyhhg_core/indexing/MacroEdgeIndexing.hpp"
 #include "tinyhhg_core/indexing/MacroFaceIndexing.hpp"
@@ -22,18 +23,6 @@ constexpr uint_t levelToFaceSizeAnyEdgeDoF( const uint_t & level )
 {
   return levelinfo::num_microedges_per_face( level ) / 3;
 }
-
-enum class EdgeDoFOrientation : walberla::uint_t
-{
-  X,
-  Y,
-  Z,
-  XY,
-  XZ,
-  YZ,
-  XYZ,
-  INVALID,
-};
 
 const std::array< EdgeDoFOrientation, 7 > allEdgeDoFOrientations = { EdgeDoFOrientation::X, EdgeDoFOrientation::Y, EdgeDoFOrientation::Z,
                                                                      EdgeDoFOrientation::XY, EdgeDoFOrientation::XZ, EdgeDoFOrientation::YZ,

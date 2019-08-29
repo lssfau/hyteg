@@ -6,7 +6,8 @@
 #pragma once
 #include "all.hpp"
 #include "core/Macros.h"
-#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFOrientation.hpp"
+#include "tinyhhg_core/indexing/Common.hpp"
 #include <map>
 #define RESTRICT WALBERLA_RESTRICT
 
