@@ -1252,11 +1252,11 @@ benchmark_build_time:
     - cmake .. -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS
     - cmake . -LAH
     - time make core -j20
-    - (/usr/bin/time -f "hyteg buildtime: %e" make hyteg -j20) 2>> BuildTiming.txt
+    - (/usr/bin/time -f "hyteg buildtime %e" make hyteg -j20) 2>> BuildTiming.txt
     - cd $CI_PROJECT_DIR/build/tests
-    - (/usr/bin/time -f "tests buildtime: %e" make -j20) 2>> BuildTiming.txt
+    - (/usr/bin/time -f "tests buildtime %e" make -j20) 2>> BuildTiming.txt
     - cd $CI_PROJECT_DIR/build/apps
-    - (/usr/bin/time -f "apps buildtime: %e" make -j20) 2>> BuildTiming.txt
+    - (/usr/bin/time -f "apps buildtime %e" make -j20) 2>> BuildTiming.txt
     - python3 $CI_PROJECT_DIR/data/scripts/upload.py
   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
   tags:
