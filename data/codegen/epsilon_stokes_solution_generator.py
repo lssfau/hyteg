@@ -53,7 +53,7 @@ x.name = 'x[0]'
 y.name = 'x[1]'
 
 def function_template(name, body):
-    return 'std::function<real_t(const hhg::Point3D&)> %s = [](const hhg::Point3D& x) { return %s; };' % (name, body)
+    return 'std::function<real_t(const hyteg::Point3D&)> %s = [](const hyteg::Point3D& x) { return %s; };' % (name, body)
 
 print(function_template('exact_u', ccode(simplify(u))))
 print(function_template('exact_v', ccode(simplify(v))))

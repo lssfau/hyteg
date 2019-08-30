@@ -41,23 +41,23 @@ int main( int argc, char* argv[] )
    const uint_t      maxIterations = 3;
    const bool        writeVTK      = false;
 
-   hhg::MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
-   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
 
-   hhg::writeDomainPartitioningVTK( storage, "../../output", "P2P1_Stokes_3D_Uzawa_convergence_partitioning" );
+   hyteg::writeDomainPartitioningVTK( storage, "../../output", "P2P1_Stokes_3D_Uzawa_convergence_partitioning" );
 
-   hhg::P2P1TaylorHoodFunction< real_t > r( "r", storage, minLevel, maxLevel );
-   hhg::P2P1TaylorHoodFunction< real_t > f( "f", storage, minLevel, maxLevel );
-   hhg::P2P1TaylorHoodFunction< real_t > u( "u", storage, minLevel, maxLevel );
-   hhg::P2P1TaylorHoodFunction< real_t > uExact( "uExact", storage, minLevel, maxLevel );
-   hhg::P2P1TaylorHoodFunction< real_t > err( "err", storage, minLevel, maxLevel );
-   hhg::P2P1TaylorHoodFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
+   hyteg::P2P1TaylorHoodFunction< real_t > r( "r", storage, minLevel, maxLevel );
+   hyteg::P2P1TaylorHoodFunction< real_t > f( "f", storage, minLevel, maxLevel );
+   hyteg::P2P1TaylorHoodFunction< real_t > u( "u", storage, minLevel, maxLevel );
+   hyteg::P2P1TaylorHoodFunction< real_t > uExact( "uExact", storage, minLevel, maxLevel );
+   hyteg::P2P1TaylorHoodFunction< real_t > err( "err", storage, minLevel, maxLevel );
+   hyteg::P2P1TaylorHoodFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
-   hhg::VTKOutput vtkOutput( "../../output", "P2P1_Stokes_3D_Uzawa_convergence", storage );
+   hyteg::VTKOutput vtkOutput( "../../output", "P2P1_Stokes_3D_Uzawa_convergence", storage );
    vtkOutput.add( u.u );
    vtkOutput.add( u.v );
    vtkOutput.add( u.w );
@@ -71,9 +71,9 @@ int main( int argc, char* argv[] )
    vtkOutput.add( err.w );
    vtkOutput.add( err.p );
 
-   hhg::P2P1TaylorHoodStokesOperator L( storage, minLevel, maxLevel );
+   hyteg::P2P1TaylorHoodStokesOperator L( storage, minLevel, maxLevel );
 
-   std::function< real_t( const hhg::Point3D& ) > inflowPoiseuille = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > inflowPoiseuille = []( const hyteg::Point3D& x ) {
       if ( x[2] < 1e-8 )
       {
          return ( 1.0 / 16.0 ) * x[0] * ( 1 - x[0] ) * x[1] * ( 1.0 - x[1] );
@@ -84,28 +84,28 @@ int main( int argc, char* argv[] )
       }
    };
 
-   std::function< real_t( const hhg::Point3D& ) > solutionPoiseuille = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > solutionPoiseuille = []( const hyteg::Point3D& x ) {
       return ( 1.0 / 16.0 ) * x[0] * ( 1 - x[0] ) * x[1] * ( 1.0 - x[1] );
    };
 
-   std::function< real_t( const hhg::Point3D& ) > collidingFlow_x = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > collidingFlow_x = []( const hyteg::Point3D& x ) {
       return real_c( 20 ) * x[0] * x[1] * x[1] * x[1];
    };
 
-   std::function< real_t( const hhg::Point3D& ) > collidingFlow_y = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > collidingFlow_y = []( const hyteg::Point3D& x ) {
       return real_c( 5 ) * x[0] * x[0] * x[0] * x[0] - real_c( 5 ) * x[1] * x[1] * x[1] * x[1];
    };
 
-   std::function< real_t( const hhg::Point3D& ) > collidingFlow_p = []( const hhg::Point3D& xx ) {
+   std::function< real_t( const hyteg::Point3D& ) > collidingFlow_p = []( const hyteg::Point3D& xx ) {
       return real_c( 60 ) * std::pow( xx[0], 2.0 ) * xx[1] - real_c( 20 ) * std::pow( xx[1], 3.0 );
    };
 
-   std::function< real_t( const hhg::Point3D& ) > rhs  = []( const hhg::Point3D& ) { return 0.0; };
-   std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };
-   std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > rhs  = []( const hyteg::Point3D& ) { return 0.0; };
+   std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
+   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   u.u.interpolate( collidingFlow_x, maxLevel, hhg::DirichletBoundary );
-   u.v.interpolate( collidingFlow_y, maxLevel, hhg::DirichletBoundary );
+   u.u.interpolate( collidingFlow_x, maxLevel, hyteg::DirichletBoundary );
+   u.v.interpolate( collidingFlow_y, maxLevel, hyteg::DirichletBoundary );
 
    uExact.u.interpolate( collidingFlow_x, maxLevel );
    uExact.v.interpolate( collidingFlow_y, maxLevel );
@@ -114,22 +114,22 @@ int main( int argc, char* argv[] )
    if ( writeVTK )
       vtkOutput.write( maxLevel, 0 );
 
-   typedef hhg::StokesPressureBlockPreconditioner< hhg::P2P1TaylorHoodStokesOperator, hhg::P1LumpedInvMassOperator >
+   typedef hyteg::StokesPressureBlockPreconditioner< hyteg::P2P1TaylorHoodStokesOperator, hyteg::P1LumpedInvMassOperator >
         PressurePreconditioner_T;
    auto pressurePrec = std::make_shared< PressurePreconditioner_T >( storage, minLevel, maxLevel );
 
    auto smoother =
-       std::make_shared< hhg::UzawaSmoother< hhg::P2P1TaylorHoodStokesOperator > >( storage, minLevel, maxLevel, 0.4 );
-   auto restriction      = std::make_shared< hhg::P2P1StokesToP2P1StokesRestriction >( true );
-   auto prolongation     = std::make_shared< hhg::P2P1StokesToP2P1StokesProlongation >();
-   auto coarseGridSolver = std::make_shared< hhg::PETScLUSolver< hhg::P2P1TaylorHoodStokesOperator > >( storage, minLevel );
-   hhg::GeometricMultigridSolver< hhg::P2P1TaylorHoodStokesOperator > solver(
+       std::make_shared< hyteg::UzawaSmoother< hyteg::P2P1TaylorHoodStokesOperator > >( storage, minLevel, maxLevel, 0.4 );
+   auto restriction      = std::make_shared< hyteg::P2P1StokesToP2P1StokesRestriction >( true );
+   auto prolongation     = std::make_shared< hyteg::P2P1StokesToP2P1StokesProlongation >();
+   auto coarseGridSolver = std::make_shared< hyteg::PETScLUSolver< hyteg::P2P1TaylorHoodStokesOperator > >( storage, minLevel );
+   hyteg::GeometricMultigridSolver< hyteg::P2P1TaylorHoodStokesOperator > solver(
        storage, smoother, coarseGridSolver, restriction, prolongation, minLevel, maxLevel, 3, 3, 0 );
 
-   const uint_t globalDoFsVelocity = hhg::numberOfGlobalDoFs< hhg::P2FunctionTag >( *storage, maxLevel );
-   const uint_t globalDoFsPressure = hhg::numberOfGlobalDoFs< hhg::P1FunctionTag >( *storage, maxLevel );
+   const uint_t globalDoFsVelocity = hyteg::numberOfGlobalDoFs< hyteg::P2FunctionTag >( *storage, maxLevel );
+   const uint_t globalDoFsPressure = hyteg::numberOfGlobalDoFs< hyteg::P1FunctionTag >( *storage, maxLevel );
 
-   L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+   L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
    err.assign( {1.0, -1.0}, {u, uExact}, maxLevel );
    real_t lastResidual =
        std::sqrt( r.dotGlobal( r, maxLevel ) / ( 3 * (real_t) globalDoFsVelocity + real_c( globalDoFsPressure ) ) );
@@ -144,10 +144,10 @@ int main( int argc, char* argv[] )
    {
       solver.solve( L, u, f, maxLevel );
 
-      hhg::vertexdof::projectMean( u.p, maxLevel );
-      hhg::vertexdof::projectMean( uExact.p, maxLevel );
+      hyteg::vertexdof::projectMean( u.p, maxLevel );
+      hyteg::vertexdof::projectMean( uExact.p, maxLevel );
 
-      L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+      L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
       err.assign( {1.0, -1.0}, {u, uExact}, maxLevel );
 

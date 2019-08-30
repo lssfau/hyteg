@@ -53,7 +53,7 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv(argc, argv);
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
-  hhg::testIntersection();
+  hyteg::testIntersection();
 
   return EXIT_SUCCESS;
 }

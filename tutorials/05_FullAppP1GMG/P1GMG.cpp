@@ -75,7 +75,7 @@ using walberla::uint_t;
  * \section boundaries Create functions for boundary conditions
  *
  * To set the boundary conditions we create a function using a lamba function. The functions needs to return
- * a real_t and take and hhg::Point3D as an argument.
+ * a real_t and take and hyteg::Point3D as an argument.
  *
  * In this case we transfer the Cartesian to polar coordinates and use the angle to apply some sine pattern.
  *
@@ -87,7 +87,7 @@ using walberla::uint_t;
  * - on which points the function should be evaluated
  *
  * In our case we only evaluate the function on Dirichlet boundary conditions. Other options would be
- * for example hhg::Inner for all points no on a boundary or hhg::NeumannBondary for points which are
+ * for example hyteg::Inner for all points no on a boundary or hyteg::NeumannBondary for points which are
  * specified as Neumann boundaries
  *
  * \snippet tutorials/05_FullAppP1GMG/P1GMG.cpp Boundary Conditions

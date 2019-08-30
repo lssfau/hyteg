@@ -63,7 +63,7 @@ x.name = 'x[0]'
 y.name = 'x[1]'
 
 def function_template(name, body):
-    return 'std::function<real_t(const hhg::Point3D&)> %s = [](const hhg::Point3D& x) { return %s; };' % (name, body)
+    return 'std::function<real_t(const hyteg::Point3D&)> %s = [](const hyteg::Point3D& x) { return %s; };' % (name, body)
 
 print(function_template('coeff', ccode(simplify(k))))
 print(function_template('exact', ccode(simplify(u))))

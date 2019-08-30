@@ -52,7 +52,7 @@ int main( int argc, char* argv[] )
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
   walberla::debug::enterTestMode();
-  hhg::testParMetis();
+  hyteg::testParMetis();
 
   return EXIT_SUCCESS;
 }

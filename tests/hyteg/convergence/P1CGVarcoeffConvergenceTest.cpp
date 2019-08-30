@@ -27,24 +27,24 @@ int main( int argc, char* argv[] )
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-   hhg::loadbalancing::roundRobin( setupStorage );
+   hyteg::loadbalancing::roundRobin( setupStorage );
 
    size_t minLevel = 2;
    size_t maxLevel = 4;
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   hhg::P1Function< real_t >               r( "r", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t >               f( "f", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t >               u( "u", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t >               u_exact( "u_exact", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t >               err( "err", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t >               npoints_helper( "npoints_helper", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t >               r( "r", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t >               f( "f", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t >               u( "u", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t >               u_exact( "u_exact", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t >               err( "err", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t >               npoints_helper( "npoints_helper", storage, minLevel, maxLevel );
    std::shared_ptr< P1Function< real_t > > coefficient =
        std::make_shared< P1Function< real_t > >( "coeff", storage, minLevel, maxLevel );
 
-   hhg::P1MassOperator                     M( storage, minLevel, maxLevel );
-   hhg::P1ScalarCoefficientLaplaceOperator L( storage, coefficient, minLevel, maxLevel );
+   hyteg::P1MassOperator                     M( storage, minLevel, maxLevel );
+   hyteg::P1ScalarCoefficientLaplaceOperator L( storage, coefficient, minLevel, maxLevel );
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
    r.enableTiming( timingTree );
@@ -56,7 +56,7 @@ int main( int argc, char* argv[] )
 
    L.enableTiming( timingTree );
 
-   std::function< real_t( const hhg::Point3D& ) > coeff = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > coeff = []( const hyteg::Point3D& x ) {
       return ( ( 0.000112225535684453 * exp( 17 * x[1] ) + 1 ) *
                    ( 0.89 * exp( -10 * pow( x[0] - 0.5, 2 ) - 30 * pow( x[1] -
                                                                             ( -sqrt( pow( x[0] - 0.5, 2 ) ) + 0.5 ) *
@@ -68,8 +68,8 @@ int main( int argc, char* argv[] )
                0.98 ) *
              exp( -100 * pow( -x[0] + 0.5, 2 ) ) / ( 0.000112225535684453 * exp( 17 * x[1] ) + 1 );
    };
-   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
-   std::function< real_t( const hhg::Point3D& ) > rhs   = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
+   std::function< real_t( const hyteg::Point3D& ) > rhs   = []( const hyteg::Point3D& x ) {
       return ( ( pow( 0.000112225535684453 * exp( 17 * x[1] ) + 1, 2 ) *
                      ( 53.4 * x[1] +
                        53.4 * ( sqrt( pow( -x[0] + 0.5, 2 ) ) - 0.5 ) * ( 1.5 * sqrt( pow( -x[0] + 0.5, 2 ) ) + 0.75 ) - 16.02 ) *
@@ -98,19 +98,19 @@ int main( int argc, char* argv[] )
                    cos( x[0] ) * sinh( x[1] ) ) *
              exp( -100 * pow( -x[0] + 0.5, 2 ) ) / pow( 0.000112225535684453 * exp( 17 * x[1] ) + 1, 2 );
    };
-   std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   u.interpolate( exact, maxLevel, hhg::DirichletBoundary );
+   u.interpolate( exact, maxLevel, hyteg::DirichletBoundary );
    coefficient->interpolate( coeff, maxLevel );
    u_exact.interpolate( exact, maxLevel );
    npoints_helper.interpolate( rhs, maxLevel );
-   M.apply( npoints_helper, f, maxLevel, hhg::All );
+   M.apply( npoints_helper, f, maxLevel, hyteg::All );
 
-   //  typedef hhg::GaussSeidelPreconditioner<hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator> PreconditionerType;
+   //  typedef hyteg::GaussSeidelPreconditioner<hyteg::P1Function< real_t >, hyteg::P1ConstantLaplaceOperator> PreconditionerType;
    //  auto prec = std::make_shared<PreconditionerType>(L, 30);
 
    auto solver =
-       hhg::CGSolver< hhg::P1ScalarCoefficientLaplaceOperator >( storage, minLevel, maxLevel );
+       hyteg::CGSolver< hyteg::P1ScalarCoefficientLaplaceOperator >( storage, minLevel, maxLevel );
    walberla::WcTimer timer;
    solver.solve( L, u, f, maxLevel);
    timer.end();
@@ -124,7 +124,7 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
 
-   //hhg::VTKWriter< P1Function< real_t > >({ u, u_exact, &f, &r, &err, coefficient.get() }, maxLevel, "../output", "cg_P1_varcoeff");
+   //hyteg::VTKWriter< P1Function< real_t > >({ u, u_exact, &f, &r, &err, coefficient.get() }, maxLevel, "../output", "cg_P1_varcoeff");
 
    walberla::WcTimingTree tt = timingTree->getReduced();
    WALBERLA_LOG_INFO_ON_ROOT( tt );

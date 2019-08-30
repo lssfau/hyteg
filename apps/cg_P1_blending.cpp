@@ -60,37 +60,37 @@ int main( int argc, char* argv[] )
       }
    }
 
-   hhg::loadbalancing::roundRobin( setupStorage );
+   hyteg::loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   typedef hhg::P1BlendingLaplaceOperator SolveOperator;
+   typedef hyteg::P1BlendingLaplaceOperator SolveOperator;
    SolveOperator                          L( storage, level, level );
 
    P1BlendingMassOperator M( storage, level, level );
 
-   auto x       = std::make_shared< hhg::P1Function< real_t > >( "x", storage, level, level );
-   auto y       = std::make_shared< hhg::P1Function< real_t > >( "y", storage, level, level );
-   auto u       = std::make_shared< hhg::P1Function< real_t > >( "u", storage, level, level );
-   auto u_exact = std::make_shared< hhg::P1Function< real_t > >( "u_exact", storage, level, level );
-   auto f       = std::make_shared< hhg::P1Function< real_t > >( "f", storage, level, level );
-   auto r       = std::make_shared< hhg::P1Function< real_t > >( "r", storage, level, level );
-   auto err     = std::make_shared< hhg::P1Function< real_t > >( "err", storage, level, level );
-   auto helper  = std::make_shared< hhg::P1Function< real_t > >( "helper", storage, level, level );
+   auto x       = std::make_shared< hyteg::P1Function< real_t > >( "x", storage, level, level );
+   auto y       = std::make_shared< hyteg::P1Function< real_t > >( "y", storage, level, level );
+   auto u       = std::make_shared< hyteg::P1Function< real_t > >( "u", storage, level, level );
+   auto u_exact = std::make_shared< hyteg::P1Function< real_t > >( "u_exact", storage, level, level );
+   auto f       = std::make_shared< hyteg::P1Function< real_t > >( "f", storage, level, level );
+   auto r       = std::make_shared< hyteg::P1Function< real_t > >( "r", storage, level, level );
+   auto err     = std::make_shared< hyteg::P1Function< real_t > >( "err", storage, level, level );
+   auto helper  = std::make_shared< hyteg::P1Function< real_t > >( "helper", storage, level, level );
 
-   std::function< real_t( const hhg::Point3D& ) > ones  = []( const hhg::Point3D& ) { return 1.0; };
-   std::function< real_t( const hhg::Point3D& ) > zeros = []( const hhg::Point3D& ) { return 0.0; };
+   std::function< real_t( const hyteg::Point3D& ) > ones  = []( const hyteg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > zeros = []( const hyteg::Point3D& ) { return 0.0; };
 
    helper->interpolate( ones, level );
    real_t npoints = helper->dotGlobal( *helper, level );
 
-   std::function< real_t( const hhg::Point3D& ) > tmp_x = [&]( const hhg::Point3D& x_ ) { return x_[0]; };
+   std::function< real_t( const hyteg::Point3D& ) > tmp_x = [&]( const hyteg::Point3D& x_ ) { return x_[0]; };
 
-   std::function< real_t( const hhg::Point3D& ) > tmp_y = [&]( const hhg::Point3D& x_ ) { return x_[1]; };
+   std::function< real_t( const hyteg::Point3D& ) > tmp_y = [&]( const hyteg::Point3D& x_ ) { return x_[1]; };
 
-   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x_ ) {
+   std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& x_ ) {
       return sin( x_[0] ) * cos( x_[1] ) / ( x_[0] * x_[1] + 1 );
    };
-   std::function< real_t( const hhg::Point3D& ) > rhs = []( const hhg::Point3D& x_ ) {
+   std::function< real_t( const hyteg::Point3D& ) > rhs = []( const hyteg::Point3D& x_ ) {
       return 2 *
              ( -( pow( x_[0], 2 ) + pow( x_[1], 2 ) ) * sin( x_[0] ) * cos( x_[1] ) +
                pow( x_[0] * x_[1] + 1, 2 ) * sin( x_[0] ) * cos( x_[1] ) +
@@ -98,18 +98,18 @@ int main( int argc, char* argv[] )
              pow( x_[0] * x_[1] + 1, 3 );
    };
 
-   x->interpolate( tmp_x, level, hhg::All );
-   y->interpolate( tmp_y, level, hhg::All );
+   x->interpolate( tmp_x, level, hyteg::All );
+   y->interpolate( tmp_y, level, hyteg::All );
 
-   u->interpolate( exact, level, hhg::DirichletBoundary );
+   u->interpolate( exact, level, hyteg::DirichletBoundary );
    u_exact->interpolate( exact, level );
-   helper->interpolate( rhs, level, hhg::All );
-   M.apply( *helper, *f, level, hhg::All );
+   helper->interpolate( rhs, level, hyteg::All );
+   M.apply( *helper, *f, level, hyteg::All );
 
-   auto solver = hhg::CGSolver< SolveOperator >( storage, level, level, maxiter, 1e-10 );
+   auto solver = hyteg::CGSolver< SolveOperator >( storage, level, level, maxiter, 1e-10 );
    solver.solve( L, *u, *f, level );
 
-   err->assign( {1.0, -1.0}, {*u, *u_exact}, level, hhg::All );
+   err->assign( {1.0, -1.0}, {*u, *u_exact}, level, hyteg::All );
 
    real_t discr_l2_err = std::sqrt( err->dotGlobal( *err, level ) / npoints );
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );

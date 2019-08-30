@@ -39,12 +39,12 @@ int main(int argc, char **argv)
   const size_t maxLevel = 4;
 
   // prepare micro-coordinates for elementwise operator
-  hhg::P1Function< real_t > microCoordX( "microCoordX", storage, minLevel, maxLevel );
-  hhg::P1Function< real_t > microCoordY( "microCoordY", storage, minLevel, maxLevel );
+  hyteg::P1Function< real_t > microCoordX( "microCoordX", storage, minLevel, maxLevel );
+  hyteg::P1Function< real_t > microCoordY( "microCoordY", storage, minLevel, maxLevel );
 
-  std::function< real_t( const hhg::Point3D& ) > compX = []( const hhg::Point3D& pp )
+  std::function< real_t( const hyteg::Point3D& ) > compX = []( const hyteg::Point3D& pp )
     { return pp[0]; };
-  std::function< real_t( const hhg::Point3D& ) > compY = []( const hhg::Point3D& pp )
+  std::function< real_t( const hyteg::Point3D& ) > compY = []( const hyteg::Point3D& pp )
     { return pp[1]; };
 
   for( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )

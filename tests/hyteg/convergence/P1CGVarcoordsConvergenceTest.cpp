@@ -29,7 +29,7 @@ int main( int argc, char* argv[] )
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-   hhg::loadbalancing::roundRobin( setupStorage );
+   hyteg::loadbalancing::roundRobin( setupStorage );
 
    size_t minLevel = 2;
    size_t maxLevel = 4;
@@ -40,24 +40,24 @@ int main( int argc, char* argv[] )
    loadbalancing::distributed::parmetis( *storage );
 #endif
 
-   hhg::P1Function< real_t > r( "r", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t > f( "f", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t > u( "u", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t > u_exact( "u_exact", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t > err( "err", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t > npoints_helper( "npoints_helper", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > r( "r", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > f( "f", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > u( "u", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > u_exact( "u_exact", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > err( "err", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > npoints_helper( "npoints_helper", storage, minLevel, maxLevel );
 
-   auto coordX = std::make_shared< hhg::P1Function< real_t > >( "x", storage, minLevel, maxLevel );
-   auto coordY = std::make_shared< hhg::P1Function< real_t > >( "y", storage, minLevel, maxLevel );
+   auto coordX = std::make_shared< hyteg::P1Function< real_t > >( "x", storage, minLevel, maxLevel );
+   auto coordY = std::make_shared< hyteg::P1Function< real_t > >( "y", storage, minLevel, maxLevel );
 
-   auto coords    = std::make_shared< std::array< const hhg::P1Function< real_t >*, 2 > >();
+   auto coords    = std::make_shared< std::array< const hyteg::P1Function< real_t >*, 2 > >();
    ( *coords )[0] = coordX.get();
    ( *coords )[1] = coordY.get();
 
-   //  hhg::P1MassOperator M(storage, minLevel, maxLevel);
-   hhg::P1ConstantLaplaceOperator    Ltest( storage, minLevel, maxLevel );
-   hhg::P1ElementwiseLaplaceOperator L( storage, *coords, minLevel, maxLevel );
-   hhg::P1ElementwiseMassOperator    M( storage, *coords, minLevel, maxLevel );
+   //  hyteg::P1MassOperator M(storage, minLevel, maxLevel);
+   hyteg::P1ConstantLaplaceOperator    Ltest( storage, minLevel, maxLevel );
+   hyteg::P1ElementwiseLaplaceOperator L( storage, *coords, minLevel, maxLevel );
+   hyteg::P1ElementwiseMassOperator    M( storage, *coords, minLevel, maxLevel );
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
    r.enableTiming( timingTree );
@@ -71,21 +71,21 @@ int main( int argc, char* argv[] )
 
    L.enableTiming( timingTree );
 
-   std::function< real_t( const hhg::Point3D& ) > map_x = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > map_x = []( const hyteg::Point3D& x ) {
       return x[0] + 0.1 * x[0] * std::sin( 3.0 * walberla::math::pi * x[1] );
    };
 
-   std::function< real_t( const hhg::Point3D& ) > map_y = []( const hhg::Point3D& x ) { return x[1]; };
+   std::function< real_t( const hyteg::Point3D& ) > map_y = []( const hyteg::Point3D& x ) { return x[1]; };
 
-   std::function< real_t( const hhg::Point3D& ) > exact = [&map_x, &map_y]( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > exact = [&map_x, &map_y]( const hyteg::Point3D& x ) {
       Point3D xt{{{map_x( x ), map_y( x ), 0.0}}};
       return ( 1.0 / 2.0 ) * sin( 2 * xt[0] ) * sinh( xt[1] );
    };
-   std::function< real_t( const hhg::Point3D& ) > rhs = [&map_x, &map_y]( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > rhs = [&map_x, &map_y]( const hyteg::Point3D& x ) {
       Point3D xt{{{map_x( x ), map_y( x ), 0.0}}};
       return ( 3.0 / 2.0 ) * sin( 2 * xt[0] ) * sinh( xt[1] );
    };
-   std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
    for( uint_t level = minLevel; level <= maxLevel; ++level )
    {
@@ -107,12 +107,12 @@ int main( int argc, char* argv[] )
       coordY->communicate< Edge, Vertex >( level );
    }
 
-   u.interpolate( exact, maxLevel, hhg::DirichletBoundary );
+   u.interpolate( exact, maxLevel, hyteg::DirichletBoundary );
    u_exact.interpolate( exact, maxLevel );
    npoints_helper.interpolate( rhs, maxLevel );
-   M.apply( npoints_helper, f, maxLevel, hhg::All );
+   M.apply( npoints_helper, f, maxLevel, hyteg::All );
 
-   auto solver = hhg::CGSolver< hhg::P1ElementwiseLaplaceOperator >( storage, minLevel, maxLevel );
+   auto solver = hyteg::CGSolver< hyteg::P1ElementwiseLaplaceOperator >( storage, minLevel, maxLevel );
    walberla::WcTimer timer;
    solver.solve( L, u, f, maxLevel);
    timer.end();
@@ -126,7 +126,7 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
 
-   //  hhg::VTKWriter<hhg::P1Function<real_t>, hhg::DGFunction<real_t >>({ u, u_exact, &f, &r, &err }, {}, maxLevel,
+   //  hyteg::VTKWriter<hyteg::P1Function<real_t>, hyteg::DGFunction<real_t >>({ u, u_exact, &f, &r, &err }, {}, maxLevel,
    //                                                                    "../output", "varcoords", coords);
 
    walberla::WcTimingTree tt = timingTree->getReduced();

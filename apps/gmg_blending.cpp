@@ -89,7 +89,7 @@ int main(int argc, char* argv[])
      }
   }
 
-  hhg::loadbalancing::roundRobin( setupStorage );
+  hyteg::loadbalancing::roundRobin( setupStorage );
 
   if (polynomialOperator) {
     WALBERLA_LOG_INFO_ON_ROOT("Polynomial Operator enabled");
@@ -103,42 +103,42 @@ int main(int argc, char* argv[])
 //  loadbalancing::distributed::parmetis( *storage );
 #endif
 
-  hhg::P1Function< real_t > r("r", storage, minLevel, maxMemoryLevel);
-//  hhg::P1Function< real_t > r_fe("r_fe", storage, minLevel, maxMemoryLevel);
-  hhg::P1Function< real_t > f("f", storage, minLevel, maxMemoryLevel);
-  hhg::P1Function< real_t > u("u", storage, minLevel, maxMemoryLevel);
-//  hhg::P1Function< real_t > u_fe("u_fe", storage, minLevel, maxMemoryLevel);
-  hhg::P1Function< real_t > Lu("Lu", storage, minLevel, maxMemoryLevel);
-  hhg::P1Function< real_t > u_exact("u_exact", storage, minLevel, maxMemoryLevel);
-  hhg::P1Function< real_t > err("err", storage, minLevel, maxMemoryLevel);
-//  hhg::P1Function< real_t > err_est("err_est", storage, minLevel, maxMemoryLevel);
-  hhg::P1Function< real_t > npoints_helper("npoints_helper", storage, minLevel, maxMemoryLevel);
-  hhg::P1Function< real_t > tmp("tmp", storage, minLevel, maxMemoryLevel);
-//  hhg::P1Function< real_t > tmp_fe("tmp_fe", storage, minLevel, maxMemoryLevel);
-  auto coordX = std::make_shared<hhg::P1Function<real_t>>("x", storage, minLevel, maxMemoryLevel);
-  auto coordY = std::make_shared<hhg::P1Function<real_t>>("y", storage, minLevel, maxMemoryLevel);
+  hyteg::P1Function< real_t > r("r", storage, minLevel, maxMemoryLevel);
+//  hyteg::P1Function< real_t > r_fe("r_fe", storage, minLevel, maxMemoryLevel);
+  hyteg::P1Function< real_t > f("f", storage, minLevel, maxMemoryLevel);
+  hyteg::P1Function< real_t > u("u", storage, minLevel, maxMemoryLevel);
+//  hyteg::P1Function< real_t > u_fe("u_fe", storage, minLevel, maxMemoryLevel);
+  hyteg::P1Function< real_t > Lu("Lu", storage, minLevel, maxMemoryLevel);
+  hyteg::P1Function< real_t > u_exact("u_exact", storage, minLevel, maxMemoryLevel);
+  hyteg::P1Function< real_t > err("err", storage, minLevel, maxMemoryLevel);
+//  hyteg::P1Function< real_t > err_est("err_est", storage, minLevel, maxMemoryLevel);
+  hyteg::P1Function< real_t > npoints_helper("npoints_helper", storage, minLevel, maxMemoryLevel);
+  hyteg::P1Function< real_t > tmp("tmp", storage, minLevel, maxMemoryLevel);
+//  hyteg::P1Function< real_t > tmp_fe("tmp_fe", storage, minLevel, maxMemoryLevel);
+  auto coordX = std::make_shared<hyteg::P1Function<real_t>>("x", storage, minLevel, maxMemoryLevel);
+  auto coordY = std::make_shared<hyteg::P1Function<real_t>>("y", storage, minLevel, maxMemoryLevel);
 
-  typedef hhg::P1BlendingMassOperator MassOperator;
-  typedef hhg::P1BlendingLaplaceOperator SolveOperatorNodal;
-  typedef hhg::P1PolynomialBlendingLaplaceOperator SolveOperatorPoly;
+  typedef hyteg::P1BlendingMassOperator MassOperator;
+  typedef hyteg::P1BlendingLaplaceOperator SolveOperatorNodal;
+  typedef hyteg::P1PolynomialBlendingLaplaceOperator SolveOperatorPoly;
 
-  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
-  std::function<real_t(const hhg::Point3D&)> rhs = [](const hhg::Point3D& x) { return -2*(x[0] + 1)*cos(x[0])*sinh(x[1]) - 3*sin(x[0])*cosh(x[1]); };
-  std::function<real_t(const hhg::Point3D&)> zeros = [](const hhg::Point3D&) { return 0.0; };
-  std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
+  std::function<real_t(const hyteg::Point3D&)> exact = [](const hyteg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
+  std::function<real_t(const hyteg::Point3D&)> rhs = [](const hyteg::Point3D& x) { return -2*(x[0] + 1)*cos(x[0])*sinh(x[1]) - 3*sin(x[0])*cosh(x[1]); };
+  std::function<real_t(const hyteg::Point3D&)> zeros = [](const hyteg::Point3D&) { return 0.0; };
+  std::function<real_t(const hyteg::Point3D&)> ones  = [](const hyteg::Point3D&) { return 1.0; };
 
-  std::function<real_t(const hhg::Point3D&)> xExpr = [](const hhg::Point3D& x) { return x[0]; };
-  std::function<real_t(const hhg::Point3D&)> yExpr = [](const hhg::Point3D& x) { return x[1]; };
+  std::function<real_t(const hyteg::Point3D&)> xExpr = [](const hyteg::Point3D& x) { return x[0]; };
+  std::function<real_t(const hyteg::Point3D&)> yExpr = [](const hyteg::Point3D& x) { return x[1]; };
 
-  coordX->interpolate(xExpr, maxLevel, hhg::All);
-  coordY->interpolate(yExpr, maxLevel, hhg::All);
+  coordX->interpolate(xExpr, maxLevel, hyteg::All);
+  coordY->interpolate(yExpr, maxLevel, hyteg::All);
 
   WALBERLA_LOG_INFO_ON_ROOT("Interpolating u");
-  u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
-  u.interpolate(exact, maxMemoryLevel, hhg::DirichletBoundary);
+  u.interpolate(exact, maxLevel, hyteg::DirichletBoundary);
+  u.interpolate(exact, maxMemoryLevel, hyteg::DirichletBoundary);
 
-//  u_fe.interpolate(exact, maxLevel, hhg::DirichletBoundary);
-//  u_fe.interpolate(exact, maxMemoryLevel, hhg::DirichletBoundary);
+//  u_fe.interpolate(exact, maxLevel, hyteg::DirichletBoundary);
+//  u_fe.interpolate(exact, maxMemoryLevel, hyteg::DirichletBoundary);
 
   WALBERLA_LOG_INFO_ON_ROOT("Setting up operators");
   MassOperator M(storage, minLevel, maxMemoryLevel);
@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
   u_exact.interpolate(exact, maxLevel);
   WALBERLA_LOG_INFO_ON_ROOT("Integrating rhs");
   tmp.interpolate(rhs, maxLevel);
-  M.apply(tmp, f, maxLevel, hhg::All);
+  M.apply(tmp, f, maxLevel, hyteg::All);
 
   npoints_helper.interpolate(ones, maxLevel);
   real_t npoints = npoints_helper.dotGlobal(npoints_helper, maxLevel);
@@ -193,50 +193,50 @@ int main(int argc, char* argv[])
 //  real_t npointsCoarse = npoints_helper.dotGlobal(npoints_helper, interpolationLevel);
 
 
-  auto coarseLaplaceSolverPoly = std::make_shared<hhg::CGSolver< SolveOperatorPoly>>(storage, minLevel, minLevel, max_cg_iter, coarse_tolerance);
-  auto coarseLaplaceSolverNodal = std::make_shared<hhg::CGSolver< SolveOperatorNodal>>(storage, minLevel, minLevel, max_cg_iter, coarse_tolerance);
+  auto coarseLaplaceSolverPoly = std::make_shared<hyteg::CGSolver< SolveOperatorPoly>>(storage, minLevel, minLevel, max_cg_iter, coarse_tolerance);
+  auto coarseLaplaceSolverNodal = std::make_shared<hyteg::CGSolver< SolveOperatorNodal>>(storage, minLevel, minLevel, max_cg_iter, coarse_tolerance);
 
-  auto restrictionOperator = std::make_shared< hhg::P1toP1LinearRestriction>();
-  auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
-  auto quadraticProlongationOperator = std::make_shared< hhg::P1toP1QuadraticProlongation >();
+  auto restrictionOperator = std::make_shared< hyteg::P1toP1LinearRestriction>();
+  auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
+  auto quadraticProlongationOperator = std::make_shared< hyteg::P1toP1QuadraticProlongation >();
 
 
-  auto smootherPoly = std::make_shared< hhg::GaussSeidelSmoother< SolveOperatorPoly >  >();
-  auto smootherNodal = std::make_shared< hhg::GaussSeidelSmoother< SolveOperatorNodal >  >();
+  auto smootherPoly = std::make_shared< hyteg::GaussSeidelSmoother< SolveOperatorPoly >  >();
+  auto smootherNodal = std::make_shared< hyteg::GaussSeidelSmoother< SolveOperatorNodal >  >();
 
   GeometricMultigridSolver< SolveOperatorPoly > laplaceSolverPoly(storage, smootherPoly, coarseLaplaceSolverPoly, restrictionOperator, prolongationOperator, minLevel, maxMemoryLevel, 2, 2);
   GeometricMultigridSolver< SolveOperatorNodal > laplaceSolverNodal(storage, smootherNodal, coarseLaplaceSolverNodal, restrictionOperator, prolongationOperator, minLevel, maxMemoryLevel, 2, 2);
 
 
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
-  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","L2-error","est. L2", "Cycle-Time", "Est-Time"));
+  WALBERLA_LOG_INFO_ON_ROOT(hyteg::format("%6s|%10s|%10s|%10s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","L2-error","est. L2", "Cycle-Time", "Est-Time"));
 
   real_t rel_res = 1.0;
 
   if (polynomialOperator) {
-    Lpoly->apply(u, Lu, maxLevel, hhg::Inner);
+    Lpoly->apply(u, Lu, maxLevel, hyteg::Inner);
   } else {
-    L->apply(u, Lu, maxLevel, hhg::Inner);
+    L->apply(u, Lu, maxLevel, hyteg::Inner);
   }
-  r.assign({1.0, -1.0}, {f, Lu}, maxLevel, hhg::Inner);
+  r.assign({1.0, -1.0}, {f, Lu}, maxLevel, hyteg::Inner);
 
-  real_t begin_res = std::sqrt(r.dotGlobal(r, maxLevel, hhg::Inner));
+  real_t begin_res = std::sqrt(r.dotGlobal(r, maxLevel, hyteg::Inner));
   real_t abs_res_old = begin_res;
 
   err.assign({1.0, -1.0}, {u, u_exact}, maxLevel);
   real_t discr_l2_err = std::sqrt(err.dotGlobal(err, maxLevel) / npoints);
 
   // Estimating discretization error
-  quadraticProlongationOperator->prolongate( u, maxLevel, hhg::Inner);
-  r.interpolate(zeros, maxMemoryLevel, hhg::All);
-//  L->applyPartial(u, r, maxMemoryLevel, interpolationLevel, hhg::Inner);
-//  tmp.interpolate(zeros, maxMemoryLevel, hhg::All);
-//  L->smooth_gs(tmp, r, maxMemoryLevel, hhg::Inner);
+  quadraticProlongationOperator->prolongate( u, maxLevel, hyteg::Inner);
+  r.interpolate(zeros, maxMemoryLevel, hyteg::All);
+//  L->applyPartial(u, r, maxMemoryLevel, interpolationLevel, hyteg::Inner);
+//  tmp.interpolate(zeros, maxMemoryLevel, hyteg::All);
+//  L->smooth_gs(tmp, r, maxMemoryLevel, hyteg::Inner);
 //  real_t estL2Error = std::sqrt(r.dotGlobal(r, maxMemoryLevel) / npointsCoarse);
 //  real_t estL2ErrorOld = estL2Error;
   real_t estL2Error = 0;
 
-  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,estL2Error,0.0));
+  WALBERLA_LOG_INFO_ON_ROOT(hyteg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,estL2Error,0.0));
 
   real_t solveTime = real_c(0.0);
   real_t averageConvergenceRate = real_c(0.0);
@@ -256,26 +256,26 @@ int main(int argc, char* argv[])
 
     start = walberla::timing::getWcTime();
     // Estimating discretization error
-    quadraticProlongationOperator->prolongate( u, maxLevel, hhg::Inner);
-    r.interpolate(zeros, maxMemoryLevel, hhg::All);
-//    L->applyPartial(u, r, maxMemoryLevel, interpolationLevel, hhg::Inner);
-//    tmp.interpolate(zeros, maxMemoryLevel, hhg::All);
-//    L->smooth_gs(tmp, r, maxMemoryLevel, hhg::Inner);
+    quadraticProlongationOperator->prolongate( u, maxLevel, hyteg::Inner);
+    r.interpolate(zeros, maxMemoryLevel, hyteg::All);
+//    L->applyPartial(u, r, maxMemoryLevel, interpolationLevel, hyteg::Inner);
+//    tmp.interpolate(zeros, maxMemoryLevel, hyteg::All);
+//    L->smooth_gs(tmp, r, maxMemoryLevel, hyteg::Inner);
 //    estL2Error = std::sqrt(r.dotGlobal(r, maxMemoryLevel) / npointsCoarse);
     end = walberla::timing::getWcTime();
     real_t estimatorTime = end - start;
     if (polynomialOperator) {
-      Lpoly->apply(u, Lu, maxLevel, hhg::Inner);
+      Lpoly->apply(u, Lu, maxLevel, hyteg::Inner);
     } else {
-      L->apply(u, Lu, maxLevel, hhg::Inner);
+      L->apply(u, Lu, maxLevel, hyteg::Inner);
     }
-    r.assign({1.0, -1.0}, { f, Lu }, maxLevel, hhg::Inner);
-    real_t abs_res = std::sqrt(r.dotGlobal(r, maxLevel, hhg::Inner));
+    r.assign({1.0, -1.0}, { f, Lu }, maxLevel, hyteg::Inner);
+    real_t abs_res = std::sqrt(r.dotGlobal(r, maxLevel, hyteg::Inner));
     rel_res = abs_res / begin_res;
     err.assign({1.0, -1.0}, { u, u_exact }, maxLevel);
     discr_l2_err = std::sqrt(err.dotGlobal(err, maxLevel) / npoints);
 
-    WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, estL2Error, vCycleTime, estimatorTime));
+    WALBERLA_LOG_INFO_ON_ROOT(hyteg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, estL2Error, vCycleTime, estimatorTime));
 
 #if 0
     if (polynomialOperator) {
@@ -331,7 +331,7 @@ int main(int argc, char* argv[])
   WALBERLA_LOG_INFO_ON_ROOT("DoFs: " << (uint_t) npoints);
 
   if (parameters.getParameter<bool>("vtkOutput")) {
-    hhg::VTKOutput vtkOutput("../output", "gmg_blending", storage);
+    hyteg::VTKOutput vtkOutput("../output", "gmg_blending", storage);
     vtkOutput.add(u);
 //    vtkOutput.add(&u_fe);
     vtkOutput.add(err);

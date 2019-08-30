@@ -41,7 +41,7 @@ namespace hyteg {
  * \section packinfo (Un-)Packing data
  *
  * For packing and unpacking data into and from MPI buffers, the framework provides the
- * interface hhg::communication::PackInfo.
+ * interface hyteg::communication::PackInfo.
  *
  * All virtual methods must be implemented for a specific data item that shall be
  * transferred among different primitive types.
@@ -57,7 +57,7 @@ namespace hyteg {
  *
  * \snippet tutorials/03_Communication.cpp TestData
  *
- * Now let us implement the three virtual functions of the abstract class hhg::communication::PackInfo that are needed to
+ * Now let us implement the three virtual functions of the abstract class hyteg::communication::PackInfo that are needed to
  * send data from vertices to edges:
  *
  * \snippet tutorials/03_Communication.cpp PackInfo
@@ -67,11 +67,11 @@ namespace hyteg {
  *
  * \section Communication
  *
- * To communicate the data, we need a hhg::PrimitiveStorage and primitives that carry our struct:
+ * To communicate the data, we need a hyteg::PrimitiveStorage and primitives that carry our struct:
  *
  * \snippet tutorials/03_Communication.cpp Setup
  *
- * Then we create an instance of our PackInfo implementation and an instance of hhg::communication::BufferedCommunicator
+ * Then we create an instance of our PackInfo implementation and an instance of hyteg::communication::BufferedCommunicator
  * which will carry out the communication.
  *
  * \snippet tutorials/03_Communication.cpp Communicator
@@ -86,7 +86,7 @@ namespace hyteg {
  *
  * \snippet tutorials/03_Communication.cpp LocalMode
  *
- * See hhg::communication::BufferedCommunicator for more details on the local communication modes.
+ * See hyteg::communication::BufferedCommunicator for more details on the local communication modes.
  *
  * Now we perform the buffered, non-blocking communication:
  *
