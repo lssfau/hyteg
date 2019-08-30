@@ -11,7 +11,7 @@
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 
 static void testParMetis()
@@ -41,7 +41,7 @@ static void testParMetis()
 
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )

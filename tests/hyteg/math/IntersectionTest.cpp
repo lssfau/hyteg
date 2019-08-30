@@ -7,7 +7,7 @@
 
 #include "hyteg/geometry/Intersection.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 static void testIntersection()
 {
@@ -43,7 +43,7 @@ static void testIntersection()
 
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )

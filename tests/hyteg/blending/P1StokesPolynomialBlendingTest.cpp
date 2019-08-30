@@ -23,7 +23,7 @@
 #include "hyteg/Format.hpp"
 
 using walberla::real_t;
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {

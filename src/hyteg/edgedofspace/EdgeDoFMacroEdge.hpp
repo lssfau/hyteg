@@ -520,4 +520,4 @@ inline void applyDirichletBC( const uint_t & Level, Edge &edge,std::vector<Petsc
 
 } ///namespace macroedge
 } ///namespace edgedof
-} ///namespace hhg
+} ///namespace hyteg

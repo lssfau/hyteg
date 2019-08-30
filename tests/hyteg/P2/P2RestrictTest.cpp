@@ -244,7 +244,7 @@ static void testP2InterpolateAndRestrict() {
   WALBERLA_CHECK_FLOAT_EQUAL(error.dotGlobal(error,sourceLevel - 3, hyteg::All),0.);
 }
 
-}/// namespace hhg
+}/// namespace hyteg
 
 int main( int argc, char* argv[] )
 {

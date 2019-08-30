@@ -3,7 +3,7 @@
 #include "hyteg/facedofspace/FaceDoFIndexing.hpp"
 
 typedef size_t uint_t;
-using namespace hhg;
+using namespace hyteg;
 
 constexpr size_t sumIndicesFace(const uint_t x, const uint_t y){
   uint_t sum = 0;

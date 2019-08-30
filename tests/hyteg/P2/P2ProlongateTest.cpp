@@ -325,7 +325,7 @@ static void testP2InterpolateAndProlongate() {
   WALBERLA_CHECK_FLOAT_EQUAL(error.dotGlobal(error,targetLevel, hyteg::All),0.);
 }
 
-}/// namespace hhg
+}/// namespace hyteg
 
 int main( int argc, char* argv[] )
 {

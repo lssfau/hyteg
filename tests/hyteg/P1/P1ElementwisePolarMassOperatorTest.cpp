@@ -10,7 +10,7 @@ using walberla::real_t;
 using walberla::uint_t;
 using walberla::math::pi;
 
-using namespace hhg;
+using namespace hyteg;
 
 void checkArea( std::shared_ptr<PrimitiveStorage> storage, real_t area )
 {
