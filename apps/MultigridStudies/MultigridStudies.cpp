@@ -286,7 +286,7 @@ void calculateDiscretizationError( const std::shared_ptr< PrimitiveStorage >& st
    tmp.interpolate( rhs, level, All );
    M.apply( tmp, f, level, All );
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
    auto solver = std::make_shared< PETScLUSolver< LaplaceOperator > >( storage, level );
 #else
    auto solver = std::make_shared< CGSolver< LaplaceOperator > >( storage, level, level );
@@ -326,7 +326,7 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
    M.apply( tmp.v, f.v, level, All );
    M.apply( tmp.w, f.w, level, All );
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
    auto solver = std::make_shared< PETScMinResSolver< StokesOperator > >( storage, level, 1e-16 );
    // auto solver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, level );
 #else
@@ -498,7 +498,7 @@ void MultigridLaplace( const std::shared_ptr< PrimitiveStorage >&           stor
    ///////////
 
    auto smoother = std::make_shared< SORSmoother< LaplaceOperator > >( sorRelax );
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
    auto coarseGridSolver = std::make_shared< PETScLUSolver< LaplaceOperator > >( storage, minLevel );
 #else
    auto coarseGridSolver = std::make_shared< CGSolver< LaplaceOperator > >( storage, minLevel, minLevel );
@@ -894,7 +894,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                                                         symmGSPressure,
                                                                         numGSPressure );
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
    //   auto petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >(
    //       storage, coarseGridMaxLevel, coarseResidualTolerance, coarseGridMaxIterations );
    auto petscSolver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, coarseGridMaxLevel );
@@ -918,7 +918,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    auto multigridSolver = std::make_shared< GeometricMultigridSolver< StokesOperator > >( storage,
                                                                                           error,
                                                                                           smoother,
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
                                                                                           petscSolver,
 #else
                                                                                           coarseGridSolver,
@@ -999,7 +999,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    if ( numCycles == 0 )
    {
       timer.reset();
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
       petscSolver->solve( A, u, f, maxLevel );
 #else
       coarseGridSolver->solve( A, u, f, maxLevel );
@@ -1152,7 +1152,7 @@ void setup( int argc, char** argv )
    LIKWID_MARKER_REGISTER( "FMG" );
    LIKWID_MARKER_REGISTER( "VCYCLE" );
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
    PETScManager petscManager;
 #endif
 

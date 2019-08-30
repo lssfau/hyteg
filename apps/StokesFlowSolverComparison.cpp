@@ -73,7 +73,7 @@ const static std::map< std::string, SolverType > strToSolverType =
 template< template< typename ValueType > class Function_T, typename Operator_T  >
 class PetscSolver : public Solver< Operator_T >
 {
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
 public:
     PetscSolver( const std::shared_ptr< hyteg::PrimitiveStorage >         & storage,
                  const uint_t                                           & minLevel,
@@ -371,7 +371,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
       break;
     case PETSC:
     {
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
       vtkOutput.write( maxLevel, 0 );
       WALBERLA_LOG_INFO_ON_ROOT( "[StokesFlowSolverComparison] Solving with PETSc..." );
       petscSolver->solve( L, u, f, maxLevel);
@@ -389,7 +389,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
       vtkOutput.write( maxLevel, 1 );
 #else
-      WALBERLA_ABORT( "[StokesFlowSolverComparison] HHG was not built with PETSc. Cannot invoke PETSC solver" );
+      WALBERLA_ABORT( "[StokesFlowSolverComparison] hyteg was not built with PETSc. Cannot invoke PETSC solver" );
 #endif
       break;
     }

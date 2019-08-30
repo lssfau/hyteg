@@ -8,7 +8,7 @@
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
 #include "hyteg/indexing/LocalIDMappings.hpp"
-#include "hyteg/HHGDefinitions.hpp"
+#include "hyteg/HytegDefinitions.hpp"
 #include "hyteg/edgedofspace/generatedKernels/all.hpp"
 
 namespace hyteg {

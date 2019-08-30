@@ -3,7 +3,7 @@
 #include "PETScWrapper.hpp"
 #include "hyteg/types/flags.hpp"
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
 
 #include "hyteg/p1functionspace/P1Petsc.hpp"
 

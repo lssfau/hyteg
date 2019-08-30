@@ -4,7 +4,7 @@
 #include "hyteg/FunctionMemory.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/Levelinfo.hpp"
-#include "hyteg/HHGDefinitions.hpp"
+#include "hyteg/HytegDefinitions.hpp"
 
 namespace hyteg {
 

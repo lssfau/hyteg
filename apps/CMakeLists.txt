@@ -42,7 +42,7 @@ waLBerla_add_executable( NAME PrimitiveSizes
         FILES PrimitiveSizes.cpp
         DEPENDS hyteg)
 
-if( HHG_BUILD_WITH_EIGEN )
+if( HYTEG_BUILD_WITH_EIGEN )
     waLBerla_add_executable( NAME cg_P1_blending
             FILES cg_P1_blending.cpp
             DEPENDS hyteg)
@@ -52,7 +52,7 @@ if( HHG_BUILD_WITH_EIGEN )
             DEPENDS hyteg)
 endif()
 
-if( HHG_BUILD_WITH_PETSC )
+if( HYTEG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME exportOperatorMatrix
         FILES exportOperatorMatrix.cpp
         DEPENDS hyteg)

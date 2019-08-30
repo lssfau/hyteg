@@ -21,7 +21,7 @@
 #define LIKWID_MARKER_CLOSE
 #define LIKWID_MARKER_GET(regionTag, nevents, events, time, count)
 #define LIKWID_MARKER_RESET(regionTag)
-#endif // HHG_LIKWID
+#endif // LIKWID_PERFMON
 
 
 #endif //PROJECT_LIKWIDWRAPPER_HPP_H

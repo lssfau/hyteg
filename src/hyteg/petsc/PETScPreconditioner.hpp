@@ -4,7 +4,7 @@
 
 #include "PETScLUSolver.hpp"
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
 
 namespace hyteg {
 

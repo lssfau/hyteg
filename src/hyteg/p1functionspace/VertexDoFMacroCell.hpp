@@ -457,7 +457,7 @@ inline ValueType getMaxMagnitude( const uint_t & level, Cell &cell, const Primit
 }
 
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
 
 inline void saveOperator(const uint_t & Level, Cell & cell, const PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T > , Cell>& operatorId,
                               const PrimitiveDataID<FunctionMemory< PetscInt >, Cell> &srcId,

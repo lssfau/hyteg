@@ -3,10 +3,10 @@ cmake_minimum_required (VERSION 2.8)
 PROJECT ( hyteg )
 enable_testing()
 
-option ( HHG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
-option ( HHG_BUILD_WITH_EIGEN       "Build with Eigen"                             OFF)
-option ( HHG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if available" ON)
-option ( HHG_P1_COLORING            "Use multicolored P1 layout EXPERIMENTAL (tets only) - only toggle when using only P1 elements" OFF)
+option ( HYTEG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
+option ( HYTEG_BUILD_WITH_EIGEN       "Build with Eigen"                             OFF)
+option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if available" ON)
+option ( HYTEG_P1_COLORING            "Use multicolored P1 layout EXPERIMENTAL (tets only) - only toggle when using only P1 elements" OFF)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -20,17 +20,17 @@ include_directories ( src )
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
 set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules )
 
-if ( HHG_P1_COLORING )
+if ( HYTEG_P1_COLORING )
     message(STATUS "Using multicolor layout for P1 elements! Do not use other discretizations at all.")
 endif()
 
-if ( HHG_USE_GENERATED_KERNELS )
+if ( HYTEG_USE_GENERATED_KERNELS )
     message(STATUS "Using generated HyTeG kernels.")
 else()
     message(STATUS "Generated HyTeG kernels DISABLED! - Performance might not be optimal and some features might not be working correctly.")
 endif()
 
-if ( HHG_BUILD_WITH_PETSC )
+if ( HYTEG_BUILD_WITH_PETSC )
     find_package( PETSc )
     include_directories ( ${PETSC_INCLUDES} )
     link_directories    ( ${PETSC_LIBRARIES} )
@@ -39,7 +39,7 @@ if ( HHG_BUILD_WITH_PETSC )
     message(STATUS "WALBERLA_BUILD_WITH_MPI was force set to ON")
 endif()
 
-if ( HHG_BUILD_WITH_EIGEN )
+if ( HYTEG_BUILD_WITH_EIGEN )
     find_package( Eigen3 REQUIRED )
     include_directories ( ${EIGEN3_INCLUDE_DIRS} )
     link_directories    ( ${EIGEN3_LIBRARY_DIR} )
@@ -72,8 +72,8 @@ if(WALBERLA_CXX_COMPILER_IS_MSVC)
     add_flag( CMAKE_CXX_FLAGS "/wd4065" )
 endif()
 
-configure_file ( ${hyteg_SOURCE_DIR}/src/hyteg/HHGDefinitions.in.hpp
-                 src/hyteg/HHGDefinitions.hpp )
+configure_file ( ${hyteg_SOURCE_DIR}/src/hyteg/HytegDefinitions.in.hpp
+                 src/hyteg/HytegDefinitions.hpp )
 
 include_directories( ${hyteg_BINARY_DIR}/src )
 

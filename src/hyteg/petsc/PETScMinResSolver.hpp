@@ -7,7 +7,7 @@
 #include "PETScSparseMatrix.hpp"
 #include "PETScVector.hpp"
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
 
 namespace hyteg {
 

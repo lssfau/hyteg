@@ -82,7 +82,7 @@ int main( int argc, char* argv[] )
 
   vtkOutput.write( level, 0 );
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
   if ( usePetsc )
   {
     PETScManager petscManager;
@@ -94,7 +94,7 @@ int main( int argc, char* argv[] )
 #else
   if ( usePetsc )
   {
-    WALBERLA_LOG_INFO_ON_ROOT( "HHG was not built with PETSc - solving with default solver now..." );
+    WALBERLA_LOG_INFO_ON_ROOT( "hyteg was not built with PETSc - solving with default solver now..." );
   }
 #endif
   {

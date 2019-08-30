@@ -655,7 +655,7 @@ inline ValueType getMinValue( const uint_t & level, Edge &edge, const PrimitiveD
 
 
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
 inline void saveOperator( const uint_t & level, Edge &edge,
                           const PrimitiveStorage & storage,
                           const PrimitiveDataID< StencilMemory< real_t >, Edge> &operatorId,
