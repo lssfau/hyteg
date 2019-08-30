@@ -14,8 +14,8 @@
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/FunctionProperties.hpp"
 
-#ifndef HHG_BUILD_WITH_PETSC
-WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHHG_BUILD_WITH_PETSC=ON" )
+#ifndef HYTEG_BUILD_WITH_PETSC
+WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )
 #endif
 
 using walberla::real_t;

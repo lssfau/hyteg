@@ -2,7 +2,7 @@
 
 #include "PETScWrapper.hpp"
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
 
 class PETScManager
 {

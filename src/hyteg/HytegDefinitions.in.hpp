@@ -1,11 +1,11 @@
 #pragma once
 
-#cmakedefine HHG_BUILD_WITH_PETSC
-#cmakedefine HHG_BUILD_WITH_EIGEN
-#cmakedefine HHG_USE_GENERATED_KERNELS
-#cmakedefine HHG_P1_COLORING
+#cmakedefine HYTEG_BUILD_WITH_PETSC
+#cmakedefine HYTEG_BUILD_WITH_EIGEN
+#cmakedefine HYTEG_USE_GENERATED_KERNELS
+#cmakedefine HYTEG_P1_COLORING
 
-#ifdef HHG_USE_GENERATED_KERNELS
+#ifdef HYTEG_USE_GENERATED_KERNELS
 namespace hyteg {
 namespace globalDefines {
 constexpr bool useGeneratedKernels = true;
@@ -19,7 +19,7 @@ constexpr bool useGeneratedKernels = false;
 } // namespace hyteg
 #endif
 
-#ifdef HHG_P1_COLORING
+#ifdef HYTEG_P1_COLORING
 namespace hyteg {
 namespace globalDefines {
 constexpr bool useP1Coloring = true;

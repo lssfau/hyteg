@@ -1,7 +1,7 @@
 
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/indexing/Common.hpp"
-#include "hyteg/HHGDefinitions.hpp"
+#include "hyteg/HytegDefinitions.hpp"
 
 #include "core/mpi/all.h"
 #include "core/debug/CheckFunctions.h"

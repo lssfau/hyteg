@@ -5,7 +5,7 @@
 
 #include "hyteg/indexing/MacroEdgeIndexing.hpp"
 #include "hyteg/Levelinfo.hpp"
-#include "hyteg/HHGDefinitions.hpp"
+#include "hyteg/HytegDefinitions.hpp"
 
 namespace hyteg {
 namespace vertexdof {

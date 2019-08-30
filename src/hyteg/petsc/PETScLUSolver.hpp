@@ -6,12 +6,12 @@
 #include "PETScSparseMatrix.hpp"
 #include "hyteg/solvers/Solver.hpp"
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
 
 #if (PETSC_VERSION_MAJOR > 3) || (PETSC_VERSION_MAJOR == 3 && PETSC_VERSION_MINOR >= 9)
-#define HHG_PCFactorSetMatSolverType PCFactorSetMatSolverType
+#define HYTEG_PCFactorSetMatSolverType PCFactorSetMatSolverType
 #else
-#define HHG_PCFactorSetMatSolverType PCFactorSetMatSolverPackage
+#define HYTEG_PCFactorSetMatSolverType PCFactorSetMatSolverPackage
 #endif
 
 namespace hyteg {
@@ -81,7 +81,7 @@ public:
 
       KSPGetPC(ksp,&pc);
       PCSetType(pc,PCLU);
-      HHG_PCFactorSetMatSolverType(pc,MATSOLVERMUMPS);
+      HYTEG_PCFactorSetMatSolverType(pc,MATSOLVERMUMPS);
       //PCFactorSetUpMatSolverPackage(pc); /* call MatGetFactor() to create F */
       //PCFactorGetMatrix(pc,&F);
     }

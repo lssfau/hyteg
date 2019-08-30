@@ -7,7 +7,7 @@
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
 
 namespace hyteg {
 

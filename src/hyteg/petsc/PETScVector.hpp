@@ -4,7 +4,7 @@
 #include "hyteg/FunctionProperties.hpp"
 #include "PETScWrapper.hpp"
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
 
 #include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/composites/petsc/P1StokesPetsc.hpp"

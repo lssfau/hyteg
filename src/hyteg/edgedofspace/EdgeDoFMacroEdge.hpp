@@ -469,7 +469,7 @@ inline ValueType getMaxMagnitude( const uint_t &level, Edge &edge, const Primiti
 }
 
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
 template< typename ValueType >
 inline void createVectorFromFunction(const uint_t & Level, Edge &edge,
                                          const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,

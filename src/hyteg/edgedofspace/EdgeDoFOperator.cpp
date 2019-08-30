@@ -1,6 +1,6 @@
 #include "EdgeDoFOperator.hpp"
 
-#include "hyteg/HHGDefinitions.hpp"
+#include "hyteg/HytegDefinitions.hpp"
 #include "hyteg/FunctionMemory.hpp"
 #include "hyteg/edgedofspace/generatedKernels/all.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"

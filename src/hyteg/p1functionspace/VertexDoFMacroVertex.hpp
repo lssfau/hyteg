@@ -285,7 +285,7 @@ inline ValueType getMinValue( const uint_t &level, Vertex &vertex, const Primiti
 }
 
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
 inline void saveOperator(Vertex &vertex,
                          const PrimitiveDataID<StencilMemory< real_t >, Vertex> &operatorId,
                          const PrimitiveDataID<FunctionMemory< PetscInt >, Vertex> &srcId,

@@ -469,7 +469,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       dst.endCommunication< Edge, Face >( level );
    }
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
    void createMatrix_impl( P1Function< real_t >& src, P1Function< real_t >& dst, Mat& mat, size_t level, DoFType flag )
    {
       checkForMissingPolynomial(level, polyDegree_);

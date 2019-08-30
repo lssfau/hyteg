@@ -2,7 +2,7 @@
 
 #include "hyteg/eigen/EigenWrapper.hpp"
 
-#ifdef HHG_BUILD_WITH_EIGEN
+#ifdef HYTEG_BUILD_WITH_EIGEN
 
 #include "Polynomial2D.hpp"
 

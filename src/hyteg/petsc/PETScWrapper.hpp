@@ -1,8 +1,8 @@
 #pragma once
 
-#include "hyteg/HHGDefinitions.hpp"
+#include "hyteg/HytegDefinitions.hpp"
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
 
 #include <petscsys.h>
 #include <petscmat.h>

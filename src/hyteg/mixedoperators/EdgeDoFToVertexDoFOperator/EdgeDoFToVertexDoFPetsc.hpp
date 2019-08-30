@@ -10,7 +10,7 @@ namespace EdgeDoFToVertexDoF {
 using walberla::real_t;
 using walberla::uint_t;
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
 
 inline void saveVertexOperator( const uint_t & level,
                                 const Vertex & vertex,

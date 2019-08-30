@@ -1025,7 +1025,7 @@ inline ValueType getMinValue( const uint_t& level, Face& face, const PrimitiveDa
    return localMin;
 }
 
-#ifdef HHG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
 
 
 inline void saveOperator( const uint_t&                                              Level,
