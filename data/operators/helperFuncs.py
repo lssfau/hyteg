@@ -4,7 +4,7 @@ areWeVerbose = False
 
 # ----------------------------------------------------------------------------
 
-def makeOperators( elemList, forms, outDir, tinyHHGsrc, beVerbose, ffcOpts,
+def makeOperators( elemList, forms, outDir, hytegsrc, beVerbose, ffcOpts,
                    cleanTemporaries, dimension ):
 
     global areWeVerbose
@@ -35,7 +35,7 @@ def makeOperators( elemList, forms, outDir, tinyHHGsrc, beVerbose, ffcOpts,
             ffcFileName = genFFCFile( elem, form, geometricObject, dimPrefix )
             command = [ "ffc" ] + ffcOpts.split() + [ ffcFileName ]
             sproc.run( command )
-            fixIncludeAndWriteOperatorFile( elem, form, tinyHHGsrc, outDir,
+            fixIncludeAndWriteOperatorFile( elem, form, hytegsrc, outDir,
                                             dimPrefix )
 
             if cleanTemporaries:
@@ -113,7 +113,7 @@ def genFFCFile( eDescr, form, geometricObject, dimPrefix ):
 
 # ----------------------------------------------------------------------------
     
-def fixIncludeAndWriteOperatorFile( eDescr, form, tinyHHGsrc, outDir,
+def fixIncludeAndWriteOperatorFile( eDescr, form, hytegsrc, outDir,
                                     dimPrefix ):
 
     # Disassemble element description
@@ -122,9 +122,9 @@ def fixIncludeAndWriteOperatorFile( eDescr, form, tinyHHGsrc, outDir,
     # Determine name of operator file (input)
     # and destination for operator file (output)
     inFileName  = getHeaderFileName( eName, form, dimPrefix )
-    # outFileName = tinyHHGsrc + "/" + eName + "functionspace/generated/"
+    # outFileName = hytegsrc + "/" + eName + "functionspace/generated/"
     # outFileName += inFileName
-    outFileName = tinyHHGsrc + "/" + outDir[ eName ][0] + "/" + inFileName
+    outFileName = hytegsrc + "/" + outDir[ eName ][0] + "/" + inFileName
 
     # Read in header file
     with open( inFileName, "r" ) as inFile :
@@ -132,7 +132,7 @@ def fixIncludeAndWriteOperatorFile( eDescr, form, tinyHHGsrc, outDir,
 
     # Adapt include directive
     sourceCode = sourceCode.replace( "#include <ufc.h>",
-                                     "#include \"tinyhhg_core/fenics/ufc.h\"" )
+                                     "#include \"hyteg/fenics/ufc.h\"" )
 
     # Write header file
     with open( outFileName, "w" ) as outFile :

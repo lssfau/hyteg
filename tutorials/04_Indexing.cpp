@@ -1,9 +1,9 @@
-#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
+#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
 #include "core/logging/Logging.h"
-#include "tinyhhg_core/Levelinfo.hpp"
+#include "hyteg/Levelinfo.hpp"
 
 namespace hyteg {
 

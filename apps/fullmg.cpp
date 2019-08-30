@@ -3,18 +3,18 @@
 #include "core/Environment.h"
 #include "core/math/Constants.h"
 
-#include "tinyhhg_core/Format.hpp"
-#include "tinyhhg_core/LikwidWrapper.hpp"
-#include "tinyhhg_core/mesh/MeshInfo.hpp"
-#include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1toP1QuadraticProlongation.hpp"
-#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "tinyhhg_core/solvers/CGSolver.hpp"
+#include "hyteg/Format.hpp"
+#include "hyteg/LikwidWrapper.hpp"
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "hyteg/gridtransferoperators/P1toP1QuadraticProlongation.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
 
 using walberla::real_t;
 using walberla::math::pi;
@@ -42,7 +42,7 @@ int main( int argc, char* argv[] )
    }
 
    auto parameters = cfg->getOneBlock( "Parameters" );
-   WALBERLA_LOG_INFO_ON_ROOT( "TinyHHG FMG Test" );
+   WALBERLA_LOG_INFO_ON_ROOT( "HyTeG FMG Test" );
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( parameters.getParameter< std::string >( "mesh" ) );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

@@ -4,15 +4,15 @@
 #include "core/Environment.h"
 #include "core/mpi/MPIManager.h"
 
-#include "tinyhhg_core/VTKWriter.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
-#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
-#include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
-#include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
-#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
+#include "hyteg/VTKWriter.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

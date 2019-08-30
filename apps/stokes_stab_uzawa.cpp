@@ -1,21 +1,21 @@
 
-#include "tinyhhg_core/Format.hpp"
+#include "hyteg/Format.hpp"
 
 #include "core/Environment.h"
 #include "core/mpi/MPIManager.h"
 
-#include "tinyhhg_core/mesh/MeshInfo.hpp"
-#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "tinyhhg_core/composites/P1StokesFunction.hpp"
-#include "tinyhhg_core/composites/P1StokesOperator.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
-#include "tinyhhg_core/solvers/UzawaSmoother.hpp"
-#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
-#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
-#include "tinyhhg_core/solvers/MinresSolver.hpp"
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/composites/P1StokesFunction.hpp"
+#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
+#include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
+#include "hyteg/solvers/UzawaSmoother.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/solvers/MinresSolver.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

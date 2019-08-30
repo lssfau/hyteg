@@ -3,14 +3,14 @@
 
 #include "core/timing/Timer.h"
 
-#include "tinyhhg_core/VTKWriter.hpp"
-#include "tinyhhg_core/geometry/CircularMap.hpp"
-#include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/P1VariableOperator.hpp"
-#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "tinyhhg_core/solvers/CGSolver.hpp"
+#include "hyteg/VTKWriter.hpp"
+#include "hyteg/geometry/CircularMap.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/P1VariableOperator.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

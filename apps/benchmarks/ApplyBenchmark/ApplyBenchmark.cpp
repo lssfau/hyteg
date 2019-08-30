@@ -5,17 +5,17 @@
 #include "core/mpi/MPIManager.h"
 #include "core/timing/TimingJSON.h"
 
-#include "tinyhhg_core/FunctionProperties.hpp"
-#include "tinyhhg_core/LikwidWrapper.hpp"
-#include "tinyhhg_core/VTKWriter.hpp"
-#include "tinyhhg_core/communication/Syncing.hpp"
-#include "tinyhhg_core/mesh/MeshInfo.hpp"
-#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
-#include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
-#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/Visualization.hpp"
-#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/FunctionProperties.hpp"
+#include "hyteg/LikwidWrapper.hpp"
+#include "hyteg/VTKWriter.hpp"
+#include "hyteg/communication/Syncing.hpp"
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

@@ -1,9 +1,9 @@
 #include "core/mpi/Environment.h"
 
-#include "tinyhhg_core/mesh/MeshInfo.hpp"
-#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 namespace hyteg {
 

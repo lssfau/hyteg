@@ -1,13 +1,13 @@
-#include <tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp>
+#include <hyteg/primitivestorage/SetupPrimitiveStorage.hpp>
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
 #include "core/timing/Timer.h"
 #include "core/timing/TimingNode.h"
 #include "core/timing/TimingJSON.h"
 
-#include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
-#include "tinyhhg_core/solvers/CGSolver.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
 
 using walberla::uint_c;
 using walberla::uint_t;

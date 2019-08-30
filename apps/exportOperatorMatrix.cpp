@@ -5,28 +5,28 @@
 #include <core/math/Constants.h>
 
 // Primitive management
-#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
 // Function spaces
-#include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p2functionspace/P2Function.hpp"
-#include "tinyhhg_core/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 
 // P1 Operators
-#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 
 // P2 Operators
-#include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 
 // Mixed Operators
-#include "tinyhhg_core/composites/P2P1TaylorHoodStokesOperator.hpp"
+#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 
 // PETSc interface
-#include "tinyhhg_core/petsc/PETScManager.hpp"
-#include "tinyhhg_core/petsc/PETScSparseMatrix.hpp"
-#include "tinyhhg_core/petsc/PETScExportOperatorMatrix.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScSparseMatrix.hpp"
+#include "hyteg/petsc/PETScExportOperatorMatrix.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

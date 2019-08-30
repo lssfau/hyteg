@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# This script generates exact solutions for TinyHHG in order to analyze convergence of errors
+# This script generates exact solutions for HyTeG in order to analyze convergence of errors
 # The generated solutions are for following PDE:
 #     -div(k*grad(u)) = f
 

@@ -1,11 +1,11 @@
-# TinyHHG C++
+# HyTeG
 
-TinyHHG (HHG stands for hierarchical hybrid grids) is a C++ framework for large scale high performance finite element simulations based on (but not limited to) geometric multigrid.
+HyTeG (Hybrid Tetrahedral Grids) is a C++ framework for large scale high performance finite element simulations based on (but not limited to) geometric multigrid.
 
 
 ### Documentation
 
-Access the [main documentation](https://i10git.cs.fau.de/terraneo/hhg_doku "Main Documentation") (work in progress) or the [doxygen documentation](http://terraneo.pages.walberla.net/tinyhhg/index.html "TinyHHG Doxygen").
+[Doxygen documentation](http://terraneo.pages.walberla.net/hyteg/index.html "HyTeG Doxygen").
 
 
 ### Dependencies
@@ -29,26 +29,26 @@ Optional:
 
 ### Build instructions
 
-To build TinyHHG, clone the TinyHHG and the waLBerla source code:
+To build HyTeG, clone the HyTeG and the waLBerla source code:
 
-    $ git clone --recurse-submodules https://i10git.cs.fau.de/terraneo/tinyhhg.git
+    $ git clone --recurse-submodules https://i10git.cs.fau.de/hyteg/hyteg.git
 
 `--recurse-submodules` will automatically initialize and clone walberla as a submodule.
 
 
-    $ mkdir tinyhhg-build 
-    $ cd tinyhhg-build
-    $ cmake ../tinyhhg
+    $ mkdir hyteg-build 
+    $ cd hyteg-build
+    $ cmake ../hyteg
 
 CMake will then produce Makefiles for the included tests and applications. To build and run an application (e.g. a multigrid benchmark setting) invoke:
 
-    tinyhhg-build $ cd apps/MultigridStudies
-    tinyhhg-build/apps/MultigridStudies $ make
-    tinyhhg-build/apps/MultigridStudies $ ./MultigridStudies
+    hyteg-build $ cd apps/MultigridStudies
+    hyteg-build/apps/MultigridStudies $ make
+    hyteg-build/apps/MultigridStudies $ ./MultigridStudies
 
 ... or for a parallel run:
 
-    tinyhhg-build/apps/MultigridStudies $ mpirun -np 4 ./MultigridStudies
+    hyteg-build/apps/MultigridStudies $ mpirun -np 4 ./MultigridStudies
 
 
 ### Notes

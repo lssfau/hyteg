@@ -64,7 +64,7 @@ IncludeCategories:
     Priority:        1
   - Regex:           '^"core/'
     Priority:        2
-  - Regex:           '^"tinyhhg_core'
+  - Regex:           '^"hyteg'
     Priority:        3
   - Regex:           '.*'
     Priority:        4

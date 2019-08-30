@@ -1,14 +1,14 @@
 #include "core/Environment.h"
 
-#include "tinyhhg_core/LikwidWrapper.hpp"
-#include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
-#include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
-#include "tinyhhg_core/p1functionspace/generatedKernels/all.hpp"
-#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/LikwidWrapper.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
+#include "hyteg/p1functionspace/generatedKernels/all.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

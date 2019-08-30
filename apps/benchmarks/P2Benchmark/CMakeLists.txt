@@ -3,4 +3,4 @@ waLBerla_link_files_to_builddir( *.py )
 
 waLBerla_add_executable( NAME P2Benchmark
         FILES P2Benchmark.cpp
-        DEPENDS tinyhhg_core core)
+        DEPENDS hyteg core)

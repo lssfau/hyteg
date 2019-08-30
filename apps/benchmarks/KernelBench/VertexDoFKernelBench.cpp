@@ -4,10 +4,10 @@
 #include "core/Environment.h"
 #include "core/timing/Timer.h"
 
-#include "tinyhhg_core/LikwidWrapper.hpp"
-#include "tinyhhg_core/misc/dummy.hpp"
-#include "tinyhhg_core/p1functionspace/generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_add.cpp"
-//#include "tinyhhg_core/p1functionspace/generatedKernels/GeneratedKernels.hpp"
+#include "hyteg/LikwidWrapper.hpp"
+#include "hyteg/misc/dummy.hpp"
+#include "hyteg/p1functionspace/generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_add.cpp"
+//#include "hyteg/p1functionspace/generatedKernels/GeneratedKernels.hpp"
 
 int main( int argc, char** argv )
 {

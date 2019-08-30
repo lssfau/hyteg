@@ -2,21 +2,21 @@
 #include <core/Environment.h>
 #include <core/math/Constants.h>
 
-#include "tinyhhg_core/VTKWriter.hpp"
-#include "tinyhhg_core/geometry/PolarCoordsMap.hpp"
-#include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/p1functionspace/P1VariableOperator.hpp"
-#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
-#include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
-#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
-#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/VTKWriter.hpp"
+#include "hyteg/geometry/PolarCoordsMap.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/P1VariableOperator.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
 
-#include "tinyhhg_core/forms/form_fenics_base/P1FenicsForm.hpp"
-#include "tinyhhg_core/forms/form_fenics_generated/p1_polar_laplacian.h"
+#include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
+#include "hyteg/forms/form_fenics_generated/p1_polar_laplacian.h"
 
 using walberla::real_t;
 using walberla::uint_t;

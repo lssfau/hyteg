@@ -1,7 +1,7 @@
 #include "AbstractApply.hpp"
 
-#include "tinyhhg_core/Levelinfo.hpp"
-#include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
+#include "hyteg/Levelinfo.hpp"
+#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 
 /// these are copies of the abstract apply function found in HyTeG
 /// adjusted a little for better comparison

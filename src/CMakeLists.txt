@@ -1,1 +1,1 @@
-add_subdirectory( tinyhhg_core )
+add_subdirectory( hyteg )

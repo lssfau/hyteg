@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.8)
 
-PROJECT ( tinyhhg )
+PROJECT ( hyteg )
 enable_testing()
 
 option ( HHG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
@@ -12,13 +12,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON  CACHE BOOL "Enable compiler optimizations spcific to localhost")
 set(WALBERLA_LOG_SKIPPED            OFF CACHE BOOL "Log skipped cmake targets"                         )
-set(WALBERLA_DIR ${tinyhhg_SOURCE_DIR}/walberla CACHE  PATH  "waLBerla path")
+set(WALBERLA_DIR ${hyteg_SOURCE_DIR}/walberla CACHE  PATH  "waLBerla path")
 
 
 include_directories ( src )
 
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
-set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${tinyhhg_SOURCE_DIR}/cmake/modules )
+set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules )
 
 if ( HHG_P1_COLORING )
     message(STATUS "Using multicolor layout for P1 elements! Do not use other discretizations at all.")
@@ -72,10 +72,10 @@ if(WALBERLA_CXX_COMPILER_IS_MSVC)
     add_flag( CMAKE_CXX_FLAGS "/wd4065" )
 endif()
 
-configure_file ( ${tinyhhg_SOURCE_DIR}/src/tinyhhg_core/HHGDefinitions.in.hpp
-                 src/tinyhhg_core/HHGDefinitions.hpp )
+configure_file ( ${hyteg_SOURCE_DIR}/src/hyteg/HHGDefinitions.in.hpp
+                 src/hyteg/HHGDefinitions.hpp )
 
-include_directories( ${tinyhhg_BINARY_DIR}/src )
+include_directories( ${hyteg_BINARY_DIR}/src )
 
 
 if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/meshes)
@@ -124,13 +124,13 @@ else ( )
 endif ( )
 
 if ( DOXYGEN_FOUND )
-   set ( DOXYGEN_HTML_HEADER ${tinyhhg_SOURCE_DIR}/doc/header.html )
-   set ( DOXYGEN_HTML_FOOTER ${tinyhhg_SOURCE_DIR}/doc/footer.html )
+   set ( DOXYGEN_HTML_HEADER ${hyteg_SOURCE_DIR}/doc/header.html )
+   set ( DOXYGEN_HTML_FOOTER ${hyteg_SOURCE_DIR}/doc/footer.html )
    set ( DOXYGEN_HTML_OUTPUT "html" )
 
-   configure_file ( ${tinyhhg_SOURCE_DIR}/doc/doxygen.config ${tinyhhg_BINARY_DIR}/doc/doxygen.cfg @ONLY )
+   configure_file ( ${hyteg_SOURCE_DIR}/doc/doxygen.config ${hyteg_BINARY_DIR}/doc/doxygen.cfg @ONLY )
 
-   add_custom_target ( doc_tinyhhg   ${DOXYGEN_EXECUTABLE} ${tinyhhg_BINARY_DIR}/doc/doxygen.cfg
+   add_custom_target ( doc_hyteg   ${DOXYGEN_EXECUTABLE} ${hyteg_BINARY_DIR}/doc/doxygen.cfg
                        COMMENT "Generating API documentation with Doxygen" VERBATIM )
 
 endif ( )

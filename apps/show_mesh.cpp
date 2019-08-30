@@ -3,14 +3,14 @@
 #include "core/math/Constants.h"
 #include "core/timing/Timer.h"
 
-#include "tinyhhg_core/VTKWriter.hpp"
-#include "tinyhhg_core/mesh/MeshInfo.hpp"
-#include "tinyhhg_core/p1functionspace/P1Function.hpp"
-#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/Visualization.hpp"
-#include "tinyhhg_core/primitivestorage/loadbalancing/DistributedBalancer.hpp"
-#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/VTKWriter.hpp"
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
+#include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -188,7 +188,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   WALBERLA_LOG_INFO_ON_ROOT( "TinyHHG Show Mesh Test\n" );
+   WALBERLA_LOG_INFO_ON_ROOT( "HyTeG Show Mesh Test\n" );
 
    switch( meshDomain )
    {

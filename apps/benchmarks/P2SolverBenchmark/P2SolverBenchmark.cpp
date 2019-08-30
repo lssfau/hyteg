@@ -1,17 +1,17 @@
 #include "core/Environment.h"
 #include "core/timing/TimingJSON.h"
 
-#include "tinyhhg_core/LikwidWrapper.hpp"
-#include "tinyhhg_core/VTKWriter.hpp"
-#include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
-#include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
-#include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
-#include "tinyhhg_core/p2functionspace/P2Function.hpp"
-#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/solvers/CGSolver.hpp"
-#include "tinyhhg_core/solvers/GaussSeidelSmoother.hpp"
-#include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
-#include "tinyhhg_core/solvers/MinresSolver.hpp"
+#include "hyteg/LikwidWrapper.hpp"
+#include "hyteg/VTKWriter.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
+#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
+#include "hyteg/solvers/MinresSolver.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

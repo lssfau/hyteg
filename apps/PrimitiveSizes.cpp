@@ -2,8 +2,8 @@
 #include "core/Environment.h"
 #include "core/DataTypes.h"
 
-#include "tinyhhg_core/FunctionProperties.hpp"
-#include "tinyhhg_core/FunctionTraits.hpp"
+#include "hyteg/FunctionProperties.hpp"
+#include "hyteg/FunctionTraits.hpp"
 
 using walberla::uint_t;
 

@@ -1,21 +1,21 @@
-#include <tinyhhg_core/composites/P2P1TaylorHoodFunction.hpp>
-#include <tinyhhg_core/composites/P2P1TaylorHoodStokesOperator.hpp>
-#include <tinyhhg_core/VTKWriter.hpp>
+#include <hyteg/composites/P2P1TaylorHoodFunction.hpp>
+#include <hyteg/composites/P2P1TaylorHoodStokesOperator.hpp>
+#include <hyteg/VTKWriter.hpp>
 #include "core/mpi/MPIManager.h"
 
-#include "tinyhhg_core/composites/P1StokesFunction.hpp"
-#include "tinyhhg_core/composites/P1StokesOperator.hpp"
-#include "tinyhhg_core/mesh/MeshInfo.hpp"
-#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "tinyhhg_core/primitivestorage/loadbalancing/DistributedBalancer.hpp"
-#include "tinyhhg_core/solvers/MinresSolver.hpp"
+#include "hyteg/composites/P1StokesFunction.hpp"
+#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
+#include "hyteg/solvers/MinresSolver.hpp"
 
-#include "tinyhhg_core/petsc/PETScManager.hpp"
-#include "tinyhhg_core/petsc/PETScLUSolver.hpp"
-#include "tinyhhg_core/petsc/PETScVector.hpp"
-#include "tinyhhg_core/petsc/PETScWrapper.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScLUSolver.hpp"
+#include "hyteg/petsc/PETScVector.hpp"
+#include "hyteg/petsc/PETScWrapper.hpp"
 
 using walberla::real_t;
 using namespace hyteg;

@@ -6,4 +6,4 @@ waLBerla_link_files_to_builddir( *.prm )
 
 waLBerla_add_executable( NAME StokesSphereTransport
         FILES  StokesSphereTransport.cpp
-        DEPENDS tinyhhg_core)
+        DEPENDS hyteg)

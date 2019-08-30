@@ -23,7 +23,7 @@ forms[ "p1_to_p2" ] = [ "divt" ]
 forms[ "p2_to_p1" ] = [ "div" ]
 
 # For each element and pair set the directory into which we place the
-# generated C++ header files (relative to tinyHHGsrc below)
+# generated C++ header files (relative to hytegsrc below)
 outDir = {}
 outDir[ "p1" ] = [ "p1functionspace/generated" ]
 outDir[ "p2" ] = [ "p2functionspace/generated" ]
@@ -31,7 +31,7 @@ outDir[ "p1_to_p2" ] = [ "mixedoperators/generated" ]
 outDir[ "p2_to_p1" ] = [ "mixedoperators/generated" ]
 
 # Set output directory
-tinyHHGsrc = "../../src/tinyhhg_core"
+hytegsrc = "../../src/hyteg"
 
 # Decide whether script should be talkative
 beVerbose = True
@@ -44,7 +44,7 @@ cleanTemporaries = True
 
 # ----------------------------------------------------------------------------
 
-makeOperators( elemList, forms, outDir, tinyHHGsrc, beVerbose, ffcOpts,
+makeOperators( elemList, forms, outDir, hytegsrc, beVerbose, ffcOpts,
                cleanTemporaries, "2D" )
 
 # ----------------------------------------------------------------------------

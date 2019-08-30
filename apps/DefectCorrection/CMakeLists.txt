@@ -8,9 +8,9 @@ waLBerla_link_files_to_builddir( *.prm )
 if ( HHG_BUILD_WITH_PETSC )
     waLBerla_add_executable( NAME DefectCorrection
             FILES DefectCorrection.cpp
-            DEPENDS tinyhhg_core core )
+            DEPENDS hyteg core )
 
     waLBerla_add_executable( NAME DefectCorrectionStokes
             FILES DefectCorrectionStokes.cpp
-            DEPENDS tinyhhg_core core )
+            DEPENDS hyteg core )
 endif()
