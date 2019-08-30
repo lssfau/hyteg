@@ -1119,7 +1119,7 @@ coverage:
       - mkdir build
       - cd build
       - cmake -LAH -DWALBERLA_BUILD_BENCHMARKS=OFF -DWALBERLA_BUILD_TUTORIALS=OFF -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DWALBERLA_DOUBLE_ACCURACY=$WALBERLA_DOUBLE_ACCURACY -DWARNING_ERROR=OFF -G "$CMAKE_GENERATOR" ..
-      - cmake --build . --config $BUILD_CONFIGURATION --target tinyhhg_core -- /maxcpucount:4
+      - cmake --build . --config $BUILD_CONFIGURATION --target hyteg -- /maxcpucount:4
       #- cd tests
       #- ctest -LE $CTEST_EXCLUDE_LABELS -C $BUILD_CONFIGURATION --output-on-failure -j 4
 
@@ -1238,6 +1238,8 @@ benchmark_clang8:
 
 benchmark_build_time:
   script:
+    - apt-get update --fix-missing
+    - apt-get install -y python3-influxdb
     - cmake --version
     - ccache --version
     - mpirun --version
@@ -1250,11 +1252,12 @@ benchmark_build_time:
     - cmake .. -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS
     - cmake . -LAH
     - time make core -j20
-    - time make tinyhhg_core -j20
+    - (/usr/bin/time -f "hyteg buildtime: %e" make hyteg -j20) 2>> BuildTiming.txt
     - cd $CI_PROJECT_DIR/build/tests
-    - time make -j20
+    - (/usr/bin/time -f "tests buildtime: %e" make -j20) 2>> BuildTiming.txt
     - cd $CI_PROJECT_DIR/build/apps
-    - time make -j20
+    - (/usr/bin/time -f "apps buildtime: %e" make -j20) 2>> BuildTiming.txt
+    - python3 $CI_PROJECT_DIR/data/scripts/upload.py
   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
   tags:
     - docker-benchmark
