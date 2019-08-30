@@ -13,17 +13,17 @@ def main():
                             'terraneo', write_user_pw, 'terraneo')
 
 
-    with open("BuildTiming.txt") as f:
+    with open("./BuildTiming.txt") as f:
         s = f.read()
-    hyteg = re.search('hyteg buildtime: (\d*.\d*)', s)
-    tests = re.search('tests buildtime: (\d*.\d*)', s)
-    apps = re.search('apps buildtime: (\d*.\d*)', s)
+    hyteg = re.search('hyteg buildtime (\d*.\d*)', s)
+    tests = re.search('tests buildtime (\d*.\d*)', s)
+    apps = re.search('apps buildtime (\d*.\d*)', s)
 
     print(hyteg)
 
     json_body = [
         {
-            'measurement': 'P1_Benchmark',
+            'measurement': 'Build Timing',
             'tags': {
                 'host'     : os.uname()[1],
                 'project'  : 'terraneo',

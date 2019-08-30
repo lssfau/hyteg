@@ -1239,7 +1239,7 @@ benchmark_clang8:
 benchmark_build_time:
   script:
     - apt-get update --fix-missing
-    - apt-get install -y python3-influxdb
+    - apt-get install -y python3-influxdb time
     - cmake --version
     - ccache --version
     - mpirun --version
@@ -1252,11 +1252,13 @@ benchmark_build_time:
     - cmake .. -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS
     - cmake . -LAH
     - time make core -j20
-    - (/usr/bin/time -f "hyteg buildtime %e" make hyteg -j20) 2>> BuildTiming.txt
-    - cd $CI_PROJECT_DIR/build/tests
-    - (/usr/bin/time -f "tests buildtime %e" make -j20) 2>> BuildTiming.txt
-    - cd $CI_PROJECT_DIR/build/apps
-    - (/usr/bin/time -f "apps buildtime %e" make -j20) 2>> BuildTiming.txt
+    - /usr/bin/time -o $CI_PROJECT_DIR/BuildTiming.txt -f "hyteg buildtime %e" make hyteg -j20
+    - cd $CI_PROJECT_DIR/build/tests && \
+    - /usr/bin/time -o $CI_PROJECT_DIR/BuildTiming.txt -a -f "tests buildtime %e" make -j20
+    - cd $CI_PROJECT_DIR/build/apps && \
+    - /usr/bin/time -o $CI_PROJECT_DIR/BuildTiming.txt -a -f "apps buildtime %e" make -j20
+    - cd $CI_PROJECT_DIR/
+    - cat BuildTiming.txt
     - python3 $CI_PROJECT_DIR/data/scripts/upload.py
   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
   tags:
