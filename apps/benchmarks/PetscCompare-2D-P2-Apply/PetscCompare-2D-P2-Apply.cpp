@@ -20,7 +20,7 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 using walberla::real_t;
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
@@ -50,79 +50,79 @@ int main( int argc, char* argv[] )
 
    wcTimingTreeApp.start( "Mesh setup + load balancing" );
 
-   std::shared_ptr< hhg::MeshInfo > meshInfo;
+   std::shared_ptr< hyteg::MeshInfo > meshInfo;
    if( mainConf.getParameter< bool >( "useMeshFile" ) )
    {
       std::string meshFileName = mainConf.getParameter< std::string >( "mesh" );
-      meshInfo                 = std::make_shared< hhg::MeshInfo >( hhg::MeshInfo::fromGmshFile( meshFileName ) );
+      meshInfo                 = std::make_shared< hyteg::MeshInfo >( hyteg::MeshInfo::fromGmshFile( meshFileName ) );
    } else
    {
       uint_t numberOfFaces = mainConf.getParameter< uint_t >( "numberOfFaces" );
       if( mainConf.getParameter< bool >( "facesTimesProcs" ) )
       {
-         meshInfo = std::make_shared< hhg::MeshInfo >(
-             hhg::MeshInfo::meshFaceChain( numberOfFaces * uint_c( walberla::MPIManager::instance()->numProcesses() ) ) );
+         meshInfo = std::make_shared< hyteg::MeshInfo >(
+             hyteg::MeshInfo::meshFaceChain( numberOfFaces * uint_c( walberla::MPIManager::instance()->numProcesses() ) ) );
       }
    }
 
-   hhg::SetupPrimitiveStorage setupStorage( *meshInfo,
+   hyteg::SetupPrimitiveStorage setupStorage( *meshInfo,
                                             walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    uint_t numberOfFaces = setupStorage.getNumberOfFaces();
 
-   hhg::loadbalancing::roundRobin( setupStorage );
+   hyteg::loadbalancing::roundRobin( setupStorage );
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
 
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
    wcTimingTreeApp.stop( "Mesh setup + load balancing" );
 
-   std::function< real_t( const hhg::Point3D& ) > ones  = []( const hhg::Point3D& ) { return 1.0; };
-   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) {
+   std::function< real_t( const hyteg::Point3D& ) > ones  = []( const hyteg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& xx ) {
       //return 5.0;
       return std::sin( walberla::math::pi * xx[0] ) + std::cos( walberla::math::pi * xx[1] );
       //return ( real_c(std::rand()) / real_c(RAND_MAX));
    };
 
    wcTimingTreeApp.start( "Function allocation" );
-   hhg::P2Function< double >   oneFunc( "x", storage, level, level );
-   hhg::P2Function< double >   x( "x", storage, level, level );
-   hhg::P2Function< double >   y( "y", storage, level, level );
-   hhg::P2Function< double >   z( "z", storage, level, level );
-   hhg::P2Function< double >   diff( "diff", storage, level, level );
-   hhg::P2Function< PetscInt > numerator( "numerator", storage, level, level );
+   hyteg::P2Function< double >   oneFunc( "x", storage, level, level );
+   hyteg::P2Function< double >   x( "x", storage, level, level );
+   hyteg::P2Function< double >   y( "y", storage, level, level );
+   hyteg::P2Function< double >   z( "z", storage, level, level );
+   hyteg::P2Function< double >   diff( "diff", storage, level, level );
+   hyteg::P2Function< PetscInt > numerator( "numerator", storage, level, level );
    wcTimingTreeApp.stop( "Function allocation" );
 
-   const uint_t totalDoFs = numberOfGlobalDoFs< hhg::P2FunctionTag >( *storage, level );
+   const uint_t totalDoFs = numberOfGlobalDoFs< hyteg::P2FunctionTag >( *storage, level );
 
    wcTimingTreeApp.start( "Operator assembly" );
-   hhg::P2ConstantLaplaceOperator mass( storage, level, level );
+   hyteg::P2ConstantLaplaceOperator mass( storage, level, level );
    wcTimingTreeApp.stop( "Operator assembly" );
 
    wcTimingTreeApp.start( "Interpolation" );
-   x.interpolate( exact, level, hhg::Inner );
+   x.interpolate( exact, level, hyteg::Inner );
    oneFunc.interpolate( ones, level );
    wcTimingTreeApp.stop( "Interpolation" );
 
    wcTimingTreeApp.start( "Enumeration" );
-   const uint_t globalDoFs = hhg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
-   const uint_t localDoFs  = hhg::numberOfLocalDoFs< P2FunctionTag >( *storage, level );
+   const uint_t globalDoFs = hyteg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
+   const uint_t localDoFs  = hyteg::numberOfLocalDoFs< P2FunctionTag >( *storage, level );
    numerator.enumerate( level );
    wcTimingTreeApp.stop( "Enumeration" );
 
    LIKWID_MARKER_START( "PETSc-setup" );
    wcTimingTreeApp.start( "Petsc setup" );
-   hhg::PETScSparseMatrix< hhg::P2ConstantLaplaceOperator, hhg::P2Function > matPetsc( localDoFs, globalDoFs );
-   matPetsc.createMatrixFromFunction( mass, level, numerator, hhg::Inner );
-   hhg::PETScVector< real_t, hhg::P2Function > vecPetsc( localDoFs );
-   vecPetsc.createVectorFromFunction( x, numerator, level, hhg::Inner );
-   hhg::PETScVector< real_t, hhg::P2Function > dstvecPetsc( localDoFs );
+   hyteg::PETScSparseMatrix< hyteg::P2ConstantLaplaceOperator, hyteg::P2Function > matPetsc( localDoFs, globalDoFs );
+   matPetsc.createMatrixFromFunction( mass, level, numerator, hyteg::Inner );
+   hyteg::PETScVector< real_t, hyteg::P2Function > vecPetsc( localDoFs );
+   vecPetsc.createVectorFromFunction( x, numerator, level, hyteg::Inner );
+   hyteg::PETScVector< real_t, hyteg::P2Function > dstvecPetsc( localDoFs );
    wcTimingTreeApp.stop( "Petsc setup" );
    LIKWID_MARKER_STOP( "PETSc-setup" );
 
    wcTimingTreeApp.start( "HyTeG apply" );
    LIKWID_MARKER_START( "HyTeG-apply" );
-   mass.apply( x, y, level, hhg::Inner );
+   mass.apply( x, y, level, hyteg::Inner );
    LIKWID_MARKER_STOP( "HyTeG-apply" );
    wcTimingTreeApp.stop( "HyTeG apply" );
 
@@ -137,10 +137,10 @@ int main( int argc, char* argv[] )
 
    CHKERRQ( ierr );
 
-   dstvecPetsc.createFunctionFromVector( z, numerator, level, hhg::Inner );
+   dstvecPetsc.createFunctionFromVector( z, numerator, level, hyteg::Inner );
 
-   // WALBERLA_LOG_INFO_ON_ROOT( y.dotGlobal( oneFunc, level, hhg::Inner ) );
-   // WALBERLA_LOG_INFO_ON_ROOT( z.dotGlobal( oneFunc, level, hhg::Inner ) );
+   // WALBERLA_LOG_INFO_ON_ROOT( y.dotGlobal( oneFunc, level, hyteg::Inner ) );
+   // WALBERLA_LOG_INFO_ON_ROOT( z.dotGlobal( oneFunc, level, hyteg::Inner ) );
 
    //dstvecPetsc.print("../output/vector1.vec");
 
@@ -161,12 +161,12 @@ int main( int argc, char* argv[] )
       jsonOutput.close();
    }
 
-   diff.assign( {1.0, -1.0}, {z, y}, level, hhg::All );
+   diff.assign( {1.0, -1.0}, {z, y}, level, hyteg::All );
 
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "writing VTK output" );
-      hhg::VTKOutput vtkOutput("./output", "PetscCompare-2D-P2-Apply", storage);
+      hyteg::VTKOutput vtkOutput("./output", "PetscCompare-2D-P2-Apply", storage);
       vtkOutput.add( x );
       vtkOutput.add( z );
       vtkOutput.add( y );
@@ -174,7 +174,7 @@ int main( int argc, char* argv[] )
       vtkOutput.write( level );
    }
 
-   WALBERLA_CHECK_FLOAT_EQUAL( y.dotGlobal( oneFunc, level, hhg::Inner ), z.dotGlobal( oneFunc, level, hhg::Inner ) )
+   WALBERLA_CHECK_FLOAT_EQUAL( y.dotGlobal( oneFunc, level, hyteg::Inner ), z.dotGlobal( oneFunc, level, hyteg::Inner ) )
 
    WALBERLA_LOG_INFO_ON_ROOT( std::scientific << " | " << numberOfFaces << " | " << level << " | " << totalDoFs << " | "
                                               << walberla::MPIManager::instance()->numProcesses() << " | "

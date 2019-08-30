@@ -5,31 +5,31 @@
 
 #include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_130.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace EdgeDoFToVertexDoF {
 namespace generated {
 
-static void apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_130_level_any(double const * RESTRICT const _data_edgeEdgeSrc, double * RESTRICT _data_vertexEdgeDst, int64_t cell_id, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t face_id_0, int64_t face_id_1, int32_t level, int64_t num_neighbor_faces)
+static void apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_130_level_any(double const * RESTRICT const _data_edgeEdgeSrc, double * RESTRICT _data_vertexEdgeDst, int64_t cell_id, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t face_id_0, int64_t face_id_1, int32_t level, int64_t num_neighbor_faces)
 {
-   const double xi_1 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
-   const double xi_2 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, -1 }];
-   const double xi_3 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, 0 }];
-   const double xi_4 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, -1 }];
-   const double xi_5 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][{ -1, 0, -1 }];
-   const double xi_6 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][{ -1, 0, 0 }];
-   const double xi_7 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][{ -1, 1, -1 }];
-   const double xi_8 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, -1 }];
-   const double xi_9 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::X][{ -1, 0, 0 }];
-   const double xi_10 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::X][{ -1, 1, -1 }];
-   const double xi_11 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::X][{ 0, 0, -1 }];
-   const double xi_12 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::YZ][{ -1, 0, -1 }];
-   const double xi_13 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::YZ][{ -1, 0, 0 }];
-   const double xi_14 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, -1 }];
-   const double xi_15 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::Y][{ -1, 0, 0 }];
-   const double xi_16 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, -1 }];
-   const double xi_17 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::Z][{ -1, 0, 0 }];
-   const double xi_18 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::Z][{ -1, 1, -1 }];
-   const double xi_19 = e2v_cell_stencil[hhg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, -1 }];
+   const double xi_1 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
+   const double xi_2 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, -1 }];
+   const double xi_3 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, 0 }];
+   const double xi_4 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, -1 }];
+   const double xi_5 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XZ][{ -1, 0, -1 }];
+   const double xi_6 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XZ][{ -1, 0, 0 }];
+   const double xi_7 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XZ][{ -1, 1, -1 }];
+   const double xi_8 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, -1 }];
+   const double xi_9 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::X][{ -1, 0, 0 }];
+   const double xi_10 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::X][{ -1, 1, -1 }];
+   const double xi_11 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 0, -1 }];
+   const double xi_12 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::YZ][{ -1, 0, -1 }];
+   const double xi_13 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::YZ][{ -1, 0, 0 }];
+   const double xi_14 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, -1 }];
+   const double xi_15 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Y][{ -1, 0, 0 }];
+   const double xi_16 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, -1 }];
+   const double xi_17 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Z][{ -1, 0, 0 }];
+   const double xi_18 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Z][{ -1, 1, -1 }];
+   const double xi_19 = e2v_cell_stencil[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, -1 }];
    // inner edge
    for (int ctr_1 = 1; ctr_1 < (1 << (level)); ctr_1 += 1)
    {
@@ -58,7 +58,7 @@ static void apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_130_level_
 }
 
 
-void apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_130(double const * RESTRICT const _data_edgeEdgeSrc, double * RESTRICT _data_vertexEdgeDst, int64_t cell_id, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t face_id_0, int64_t face_id_1, int32_t level, int64_t num_neighbor_faces)
+void apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_130(double const * RESTRICT const _data_edgeEdgeSrc, double * RESTRICT _data_vertexEdgeDst, int64_t cell_id, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t face_id_0, int64_t face_id_1, int32_t level, int64_t num_neighbor_faces)
 {
     switch( level )
     {
@@ -72,4 +72,4 @@ void apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_130(double const 
 
 } // namespace generated
 } // namespace EdgeDoFToVertexDoF
-} // namespace hhg
+} // namespace hyteg

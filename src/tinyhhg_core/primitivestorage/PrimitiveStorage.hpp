@@ -12,7 +12,7 @@
 #include <map>
 #include <vector>
 
-namespace hhg {
+namespace hyteg {
 
 class SetupPrimitiveStorage;
 class Vertex;
@@ -526,6 +526,6 @@ inline void PrimitiveStorage::addPrimitiveData( const std::shared_ptr< DataHandl
 
 
 
-} // namespace hhg
+} // namespace hyteg
 
 

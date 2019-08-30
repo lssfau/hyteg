@@ -19,7 +19,7 @@ using walberla::uint_c;
 using walberla::uint_t;
 using walberla::math::pi;
 
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
@@ -58,11 +58,11 @@ int main( int argc, char* argv[] )
       setupStorage.setGeometryMap( it.second->getID(), std::make_shared< PolarCoordsMap >() );
     }
 
-  hhg::loadbalancing::roundRobin( setupStorage );
+    hyteg::loadbalancing::roundRobin( setupStorage );
   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
   // Check surface area of annulus
-  std::function< real_t( const hhg::Point3D& ) > one = []( const hhg::Point3D& ) { return 1.0; };
+  std::function< real_t( const hyteg::Point3D& ) > one = []( const hyteg::Point3D& ) { return 1.0; };
 
   uint_t minLevel = level;
   uint_t maxLevel = level;

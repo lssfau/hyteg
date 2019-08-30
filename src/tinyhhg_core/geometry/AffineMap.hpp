@@ -4,7 +4,7 @@
 
 #include "GeometryMap.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class AffineMap : public GeometryMap
 {
@@ -92,4 +92,4 @@ class AffineMap : public GeometryMap
    Point3D xb3_;
 };
 
-} // namespace hhg
+} // namespace hyteg

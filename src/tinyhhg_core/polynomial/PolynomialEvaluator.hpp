@@ -3,7 +3,7 @@
 #include "Polynomial1D.hpp"
 #include "Polynomial2D.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class Polynomial2DEvaluator {
 public:

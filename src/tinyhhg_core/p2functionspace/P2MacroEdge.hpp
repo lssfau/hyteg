@@ -5,7 +5,7 @@
 #include "tinyhhg_core/StencilMemory.hpp"
 #include "tinyhhg_core/primitives/Edge.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace P2 {
 namespace macroedge {
 
@@ -62,4 +62,4 @@ void smoothSOR3D(
 
 } // namespace macroedge
 } // namespace P2
-} // namespace hhg
+} // namespace hyteg

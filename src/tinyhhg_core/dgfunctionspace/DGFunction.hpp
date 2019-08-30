@@ -12,7 +12,7 @@
 #include "tinyhhg_core/boundary/BoundaryConditions.hpp"
 #include "tinyhhg_core/FunctionProperties.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template<typename ValueType>
 class DGFunction : public Function<DGFunction<ValueType> >
@@ -142,7 +142,7 @@ template< typename ValueType >
 inline void DGFunction< ValueType >::interpolate(std::function< ValueType( const Point3D& ) >& expr,
                                                  uint_t level, DoFType flag)
 {
-  std::function< ValueType(const Point3D&,const std::vector<ValueType>&)> exprExtended = [&expr](const hhg::Point3D& x, const std::vector<ValueType>&) {
+  std::function< ValueType(const Point3D&,const std::vector<ValueType>&)> exprExtended = [&expr](const hyteg::Point3D& x, const std::vector<ValueType>&) {
       return expr(x);
   };
   interpolateExtended( exprExtended, {}, level, flag );
@@ -268,7 +268,7 @@ void DGFunction< ValueType >::enumerate(uint_t level, ValueType offset)
 {
   this->startTiming( "Enumerate" );
 
-  uint_t counter = hhg::numberOfLocalDoFs< VertexDoFFunctionTag >( *( this->getStorage() ), level );
+  uint_t counter = hyteg::numberOfLocalDoFs< VertexDoFFunctionTag >( *( this->getStorage() ), level );
 
   std::vector< uint_t > dofs_per_rank = walberla::mpi::allGather( counter );
 

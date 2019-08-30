@@ -1,6 +1,6 @@
 #pragma once
 
-namespace hhg {
+namespace hyteg {
 
 template<class F, class O1, class O2 >
 class StokesBlockDiagonalApplyPreconditioner {

@@ -13,7 +13,7 @@
 
 using walberla::real_c;
 
-namespace hhg {
+namespace hyteg {
 
 static void testEdgeDoFToVertexDoFOperator()
 {
@@ -190,7 +190,7 @@ static void testEdgeDoFToVertexDoFOperator()
   }
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -200,7 +200,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testEdgeDoFToVertexDoFOperator();
+   hyteg::testEdgeDoFToVertexDoFOperator();
 
    return EXIT_SUCCESS;
 }

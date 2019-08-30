@@ -4,7 +4,7 @@
 #include "core/DataTypes.h"
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFApply.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace VertexDoFToEdgeDoF {
 
 using walberla::real_t;
@@ -65,7 +65,7 @@ inline void saveEdgeOperator3D( const uint_t & level, const Edge & edge,
   auto src  = edge.getData(srcId)->getPointer( level );
   auto dst  = edge.getData(dstId)->getPointer( level );
 
-  for ( const auto & centerIndexOnEdge : hhg::edgedof::macroedge::Iterator( level, 0 ) )
+  for ( const auto & centerIndexOnEdge : hyteg::edgedof::macroedge::Iterator( level, 0 ) )
   {
     const edgedof::EdgeDoFOrientation edgeCenterOrientation = edgedof::EdgeDoFOrientation::X;
 
@@ -169,7 +169,7 @@ inline void saveFaceOperator( const uint_t & Level, const Face & face,
       }
     }
 
-    if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1) )
+    if( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1) )
     {
       dstInt = dst[edgedof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )];
       for ( const auto & neighbor : vertexdof::macroface::neighborsFromDiagonalEdge )
@@ -194,7 +194,7 @@ inline void saveFaceOperator3D( const uint_t & level, const Face & face,
   auto src  = face.getData(srcId)->getPointer( level );
   auto dst  = face.getData(dstId)->getPointer( level );
 
-  for ( const auto & centerIndexInFace : hhg::edgedof::macroface::Iterator( level, 0 ) )
+  for ( const auto & centerIndexInFace : hyteg::edgedof::macroface::Iterator( level, 0 ) )
   {
      for ( const auto & faceCenterOrientation : edgedof::faceLocalEdgeDoFOrientations )
     {
@@ -255,7 +255,7 @@ inline void saveCellOperator( const uint_t & Level, const Cell & cell,
   const PetscInt *src = cell.getData( srcId )->getPointer( Level );
   const PetscInt *dst = cell.getData( dstId )->getPointer( Level );
 
-  for ( const auto & it : hhg::edgedof::macrocell::Iterator( Level, 0 ) )
+  for ( const auto & it : hyteg::edgedof::macrocell::Iterator( Level, 0 ) )
   {
     std::vector< edgedof::EdgeDoFOrientation > innerOrientations;
 

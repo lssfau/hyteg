@@ -5,7 +5,7 @@
 
 #include "core/Abort.h"
 
-namespace hhg {
+namespace hyteg {
 
 /// format uses the printf syntax to format a given formatString and return an std::string
 ///\param formatString the format string
@@ -24,4 +24,4 @@ std::string format( const char* formatString, Args&&... args )
    return std::string( buffer );
 }
 
-} // namespace hhg
+} // namespace hyteg

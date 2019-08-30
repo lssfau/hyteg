@@ -3,7 +3,7 @@
 #include "tinyhhg_core/composites/P2P2StokesFunction.hpp"
 #include "tinyhhg_core/p2functionspace/P2Petsc.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace petsc {
 
 inline void createVectorFromFunction( const P2P2StokesFunction< PetscScalar >& function,
@@ -77,4 +77,4 @@ inline void createMatrix( const OperatorType&                   opr,
 }
 
 } // namespace petsc
-} // namespace hhg
+} // namespace hyteg

@@ -4,7 +4,7 @@
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/ProlongationOperator.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class P1P1StokesToP1P1StokesProlongation : public ProlongationOperator< P1StokesFunction< real_t > >
 {
@@ -23,4 +23,4 @@ class P1P1StokesToP1P1StokesProlongation : public ProlongationOperator< P1Stokes
  private:
    P1toP1LinearProlongation prolongationOperator_;
 };
-} // namespace hhg
+} // namespace hyteg

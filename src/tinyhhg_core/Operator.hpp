@@ -8,8 +8,7 @@
 
 #include <memory>
 
-namespace hhg
-{
+namespace hyteg {
 
 template< typename SourceFunction, typename DestinationFunction >
 class Operator

@@ -5,7 +5,7 @@
 
 #include "sor_2D_macroface_P2_update_vertexdofs.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace P2 {
 namespace macroface {
 namespace generated {
@@ -79,4 +79,4 @@ void sor_2D_macroface_P2_update_vertexdofs(double * RESTRICT _data_edgeFaceDst_X
 } // namespace generated
 } // namespace macroface
 } // namespace P2
-} // namespace hhg
+} // namespace hyteg

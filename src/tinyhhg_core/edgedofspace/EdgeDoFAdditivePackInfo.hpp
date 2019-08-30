@@ -7,7 +7,7 @@
 #include "tinyhhg_core/communication/DoFSpacePackInfo.hpp"
 #include "tinyhhg_core/boundary/BoundaryConditions.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::uint_t;
 
@@ -105,4 +105,4 @@ class EdgeDoFAdditivePackInfo : public communication::DoFSpacePackInfo< ValueTyp
    DoFType           boundaryTypeToSkip_;
 };
 
-} //namespace hhg
+} //namespace hyteg

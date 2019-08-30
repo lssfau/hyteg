@@ -6,7 +6,7 @@
 
 #include "tinyhhg_core/communication/DoFSpacePackInfo.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::uint_t;
 
@@ -78,4 +78,4 @@ class EdgeDoFPackInfo : public communication::DoFSpacePackInfo< ValueType >
    using communication::DoFSpacePackInfo< ValueType >::storage_;
 };
 
-} //namespace hhg
+} //namespace hyteg

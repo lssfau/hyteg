@@ -8,7 +8,7 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 /// brief basic check for the indexing function
 /// ATTENTION: this will break with a different layout
@@ -16,8 +16,8 @@ static void testEdgeDoFIndexing()
 {
    const uint_t level = 2;
 
-   typedef hhg::edgedof::EdgeDoFOrientation EO;
-   using hhg::edgedof::macroface::index;
+   typedef hyteg::edgedof::EdgeDoFOrientation EO;
+   using hyteg::edgedof::macroface::index;
 
    std::set< uint_t >    indexSet;
    std::set< uint_t >    refIndexSet;
@@ -28,7 +28,7 @@ static void testEdgeDoFIndexing()
 
    uint_t sizeOnFace = levelinfo::num_microedges_per_face( level );
    uint_t sizeOnParallelFace =
-       hhg::levelinfo::num_microedges_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - 1 );
+       hyteg::levelinfo::num_microedges_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - 1 );
    uint_t totalSize = 2 * sizeOnFace + sizeOnParallelFace + ( sizeOnParallelFace / 3 );
 
    for( uint_t i = 0; i < totalSize; ++i )
@@ -61,7 +61,7 @@ static void testEdgeDoFIndexing()
       uint_t startGhostXZ  = sizeOnFace + sizeOnParallelFace + ( sizeOnFace / 3 ) * 2 + offset;
       uint_t startGhostXYZ = sizeOnFace * 2 + sizeOnParallelFace + offset;
 
-      for( const auto& it : indexing::FaceIterator( hhg::levelinfo::num_microedges_per_edge( level ), 0 ) )
+      for( const auto& it : indexing::FaceIterator( hyteg::levelinfo::num_microedges_per_edge( level ), 0 ) )
       {
          for( const auto& eo : onFace )
          {
@@ -117,7 +117,7 @@ static void testEdgeDoFIndexing()
          startGhostXZ++;
       }
       for( const auto& it : indexing::FaceIterator(
-               hhg::levelinfo::num_microedges_per_edge_from_width( levelinfo::num_microvertices_per_edge( level ) - 1 ), 0 ) )
+                hyteg::levelinfo::num_microedges_per_edge_from_width( levelinfo::num_microvertices_per_edge( level ) - 1 ), 0 ) )
       {
          for( const auto& eo : onFace )
          {
@@ -913,7 +913,7 @@ static void testEdgeDoFsOnMacroFace()
    WALBERLA_LOG_INFO_ON_ROOT( "Edge DoFs on macro face indexing (from diagonal edge): EDGE_VE_E correct!" );
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 int main( int argc, char* argv[] )
 {
@@ -922,8 +922,8 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testEdgeDoFsOnMacroFace();
-   hhg::testEdgeDoFIndexing();
+   hyteg::testEdgeDoFsOnMacroFace();
+   hyteg::testEdgeDoFIndexing();
 
    return EXIT_SUCCESS;
 }

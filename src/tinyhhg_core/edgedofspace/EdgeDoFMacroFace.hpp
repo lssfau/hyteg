@@ -15,7 +15,7 @@
 #include "tinyhhg_core/Algorithms.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace edgedof {
 namespace macroface {
 
@@ -144,7 +144,7 @@ inline void interpolate(const uint_t & Level, Face & face,
     }
 
     // Do not update diagonal DoFs at diagonal border
-    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+    if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
     {
       faceData[edgedof::macroface::diagonalIndex( Level, it.col(), it.row())] = constant;
     }
@@ -156,7 +156,7 @@ template< typename ValueType >
 inline void interpolate(const uint_t & Level, Face & face,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Face > & faceMemoryId,
                         const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>> &srcIds,
-                        const std::function< ValueType( const hhg::Point3D &, const std::vector<ValueType>& ) > & expr)
+                        const std::function< ValueType( const hyteg::Point3D &, const std::vector<ValueType>& ) > & expr)
 {
   auto faceData = face.getData( faceMemoryId )->getPointer( Level );
 
@@ -215,7 +215,7 @@ inline void interpolate(const uint_t & Level, Face & face,
     }
 
     // Do not update diagonal DoFs at diagonal border
-    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+    if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
     {
       for ( uint_t k = 0; k < srcPtr.size(); ++k )
       {
@@ -266,7 +266,7 @@ inline void add( const uint_t&                                               Lev
       }
 
       // Do not update diagonal DoFs at diagonal border
-      if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+      if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
       {
          dstData[idxDiagonal] += scalar;
       }
@@ -311,7 +311,7 @@ inline void add( const uint_t & Level, Face & face, const std::vector< ValueType
       }
 
       // Do not update diagonal DoFs at diagonal border
-      if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+      if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
       {
         tmpDiagonal += scalar * srcData[ idxDiagonal ];
       }
@@ -330,7 +330,7 @@ inline void add( const uint_t & Level, Face & face, const std::vector< ValueType
     }
 
     // Do not update diagonal DoFs at diagonal border
-    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+    if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
     {
       dstData[ idxDiagonal ] += tmpDiagonal;
     }
@@ -377,7 +377,7 @@ inline void assign( const uint_t & Level, Face & face, const std::vector< ValueT
       }
 
       // Do not update diagonal DoFs at diagonal border
-      if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+      if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
       {
         tmpDiagonal += scalar * srcData[ idxDiagonal ];
       }
@@ -396,7 +396,7 @@ inline void assign( const uint_t & Level, Face & face, const std::vector< ValueT
     }
 
     // Do not update diagonal DoFs at diagonal border
-    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+    if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
     {
       dstData[ idxDiagonal ] = tmpDiagonal;
     }
@@ -431,7 +431,7 @@ inline ValueType dot( const uint_t & Level, Face & face,
     }
 
     // Do not read diagonal DoFs at diagonal border
-    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+    if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
     {
       const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row());
       scalarProduct += lhsData[ idx ] * rhsData[ idx ];
@@ -474,7 +474,7 @@ inline ValueType sum( const uint_t&                                             
       }
 
       // Do not read diagonal DoFs at diagonal border
-      if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+      if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
       {
          const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row() );
          if ( absolute )
@@ -494,28 +494,26 @@ inline void enumerate(const uint_t & Level, Face &face,
 {
   ValueType *dst = face.getData(dstId)->getPointer(Level);
   auto horizontal_num = static_cast< size_t >( num );
-  auto diagonal_num = static_cast< size_t >( num ) +
-                        hhg::edgedof::levelToFaceSizeAnyEdgeDoF( Level ) -
-                        hhg::levelinfo::num_microedges_per_edge( Level ) ;
+  auto diagonal_num = static_cast< size_t >( num ) + hyteg::edgedof::levelToFaceSizeAnyEdgeDoF( Level ) -
+                      hyteg::levelinfo::num_microedges_per_edge( Level ) ;
   auto vertical_num = static_cast< size_t >( num ) +
-                        (hhg::edgedof::levelToFaceSizeAnyEdgeDoF( Level ) -
-                        hhg::levelinfo::num_microedges_per_edge( Level ))  *
+                        ( hyteg::edgedof::levelToFaceSizeAnyEdgeDoF( Level ) - hyteg::levelinfo::num_microedges_per_edge( Level ))  *
                         2;
-  for ( const auto & it : hhg::edgedof::macroface::Iterator( Level, 0 ) )
+  for ( const auto & it : hyteg::edgedof::macroface::Iterator( Level, 0 ) )
   {
     /// the border edge DoFs belong to the corresponding edges
     if( it.row() != 0) {
-      dst[hhg::edgedof::macroface::horizontalIndex( Level, it.col(), it.row())] = ValueType( horizontal_num );
+      dst[hyteg::edgedof::macroface::horizontalIndex( Level, it.col(), it.row())] = ValueType( horizontal_num );
       ++horizontal_num;
       ++num;
     }
-    if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
-      dst[hhg::edgedof::macroface::diagonalIndex( Level, it.col(), it.row())] = ValueType( diagonal_num );
+    if( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
+      dst[hyteg::edgedof::macroface::diagonalIndex( Level, it.col(), it.row())] = ValueType( diagonal_num );
       ++diagonal_num;
       ++num;
     }
     if( it.col() != 0) {
-      dst[hhg::edgedof::macroface::verticalIndex( Level, it.col(), it.row())] = ValueType( vertical_num );
+      dst[hyteg::edgedof::macroface::verticalIndex( Level, it.col(), it.row())] = ValueType( vertical_num );
       ++vertical_num;
       ++num;
     }
@@ -539,7 +537,7 @@ inline void apply( const uint_t & Level, Face &face,
 
   using namespace edgedof::macroface;
 
-  for ( const auto & it : hhg::edgedof::macroface::Iterator( Level, 0 ) )
+  for ( const auto & it : hyteg::edgedof::macroface::Iterator( Level, 0 ) )
   {
     if( it.row() != 0) {
       tmp = 0.0;
@@ -553,7 +551,7 @@ inline void apply( const uint_t & Level, Face &face,
         dst[indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )] += tmp;
       }
     }
-    if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
+    if( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
       tmp = 0.0;
       for(uint_t k = 0; k < neighborsFromDiagonalEdge.size(); ++k){
         tmp += opr_data[edgedof::stencilIndexFromDiagonalEdge(neighborsFromDiagonalEdge[k])] *
@@ -593,7 +591,7 @@ inline void apply3D( const uint_t & level, Face &face,
   real_t * src  = face.getData(srcId)->getPointer( level );
   real_t * dst  = face.getData(dstId)->getPointer( level );
 
-  for ( const auto & centerIndexInFace : hhg::edgedof::macroface::Iterator( level, 0 ) )
+  for ( const auto & centerIndexInFace : hyteg::edgedof::macroface::Iterator( level, 0 ) )
   {
     std::map< edgedof::EdgeDoFOrientation, real_t > tmpResults = {
     { edgedof::EdgeDoFOrientation::X, real_c(0) },
@@ -672,17 +670,17 @@ inline void printFunctionMemory( const uint_t & Level, Face& face, const Primiti
   cout << "Horizontal Edge";
   for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) ){
     if(it.col() == 0) std::cout << std::endl;
-    cout << setw(5) << faceMemory[hhg::edgedof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )] << "|";
+    cout << setw(5) << faceMemory[hyteg::edgedof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )] << "|";
   }
   cout << endl << "Diagonal Edge";
   for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) ){
     if(it.col() == 0) std::cout << std::endl;
-    cout << setw(5) << faceMemory[hhg::edgedof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )] << "|";
+    cout << setw(5) << faceMemory[hyteg::edgedof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )] << "|";
   }
   cout << endl << "Vertical Edge";
   for ( const auto & it : edgedof::macroface::Iterator( Level, 0 ) ){
     if(it.col() == 0) std::cout << std::endl;
-    cout << setw(5) << faceMemory[hhg::edgedof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )] << "|";
+    cout << setw(5) << faceMemory[hyteg::edgedof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )] << "|";
   }
   cout << endl << setfill('=') << setw(100) << "" << endl << setfill(' ');
 
@@ -712,7 +710,7 @@ inline ValueType getMaxValue( const uint_t &level, Face &face, const PrimitiveDa
     }
 
     // Do not read diagonal DoFs at diagonal border
-    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+    if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
     {
       const uint_t idx = edgedof::macroface::diagonalIndex( level, it.col(), it.row() );
       localMax = std::max( localMax, src[idx] );
@@ -746,7 +744,7 @@ inline ValueType getMinValue( const uint_t &level, Face &face, const PrimitiveDa
     }
 
     // Do not read diagonal DoFs at diagonal border
-    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+    if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
     {
       const uint_t idx = edgedof::macroface::diagonalIndex( level, it.col(), it.row() );
       localMin = std::min( localMin, src[idx] );
@@ -780,7 +778,7 @@ inline ValueType getMaxMagnitude( const uint_t &level, Face &face, const Primiti
     }
 
     // Do not read diagonal DoFs at diagonal border
-    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+    if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
     {
       const uint_t idx = edgedof::macroface::diagonalIndex( level, it.col(), it.row() );
       localMax = std::max( localMax, std::abs( src[idx] ) );
@@ -819,7 +817,7 @@ inline void createVectorFromFunction( const uint_t & Level, Face &face,
     }
 
     // Do not read diagonal DoFs at diagonal border
-    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+    if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
     {
       const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row() );
       VecSetValues(vec,1,&numerator[idx],&src[idx],INSERT_VALUES);
@@ -856,7 +854,7 @@ inline void createFunctionFromVector( const uint_t & Level, Face &face,
     }
 
     // Do not read diagonal DoFs at diagonal border
-    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+    if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
     {
       const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row() );
       VecGetValues(vec,1,&numerator[idx],&src[idx]);
@@ -887,7 +885,7 @@ inline void applyDirichletBC( const uint_t & Level, Face &face,std::vector<Petsc
     }
 
     // Do not read diagonal DoFs at diagonal border
-    if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+    if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
     {
       const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row() );
       mat.push_back(numerator[idx]);

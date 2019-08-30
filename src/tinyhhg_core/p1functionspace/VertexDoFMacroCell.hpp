@@ -16,7 +16,7 @@
 #include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
 #include "tinyhhg_core/LevelWiseMemory.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace macrocell {
 
@@ -72,7 +72,7 @@ inline void interpolate( const uint_t & level,
                          const Cell & cell,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& cellMemoryId,
                          const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcIds,
-                         const std::function< ValueType( const hhg::Point3D &, const std::vector< ValueType > & )> & expr)
+                         const std::function< ValueType( const hyteg::Point3D &, const std::vector< ValueType > & )> & expr)
 {
   ValueType * cellData = cell.getData( cellMemoryId )->getPointer( level );
 
@@ -524,4 +524,4 @@ inline void createFunctionFromVector(const uint_t & Level, Cell & cell,
 
 } // namespace macrocell
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

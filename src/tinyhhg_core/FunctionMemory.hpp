@@ -16,7 +16,7 @@
 #include <memory>
 
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::uint_t;
 using walberla::real_t;
@@ -153,7 +153,7 @@ namespace mpi {
 template< typename T,  // Element type of SendBuffer
           typename G,  // Growth policy of SendBuffer
           typename ValueType>
-inline mpi::GenericSendBuffer<T,G> & operator<<( mpi::GenericSendBuffer<T,G> & buffer, const hhg::FunctionMemory< ValueType > & functionMemory )
+inline mpi::GenericSendBuffer<T,G> & operator<<( mpi::GenericSendBuffer<T,G> & buffer, const hyteg::FunctionMemory< ValueType > & functionMemory )
 {
    functionMemory.serialize( buffer );
    return buffer;
@@ -161,20 +161,21 @@ inline mpi::GenericSendBuffer<T,G> & operator<<( mpi::GenericSendBuffer<T,G> & b
 
 template< typename T, // Element type  of RecvBuffer
           typename ValueType >
-inline mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buffer, hhg::FunctionMemory< ValueType > & functionMemory )
+inline mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buffer,
+                                                hyteg::FunctionMemory< ValueType > & functionMemory )
 {
    functionMemory.deserialize( buffer );
    return buffer;
 }
 
 template< typename ValueType >
-struct BufferSizeTrait< hhg::FunctionMemory< ValueType > > { static const bool constantSize = false; };
+struct BufferSizeTrait< hyteg::FunctionMemory< ValueType > > { static const bool constantSize = false; };
 
 } // namespace mpi
 } // namespace walberla
 
 
-namespace hhg {
+namespace hyteg {
 
 
 template< typename DataType, typename PrimitiveType >

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace hhg{
+namespace hyteg {
 namespace stencilWeights{
 
 class tri_1el {
@@ -66,4 +66,4 @@ public:
 
 
 }// namespace stencilWeights
-}// namespace hhg
+}// namespace hyteg

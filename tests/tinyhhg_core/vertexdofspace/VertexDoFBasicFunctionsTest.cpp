@@ -11,7 +11,7 @@
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/Levelinfo.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_c;
 
@@ -38,7 +38,7 @@ static void testVertexDoFBasicFunctions()
 
    // Interpolate
 
-   std::function< real_t( const hhg::Point3D& ) > expr = []( const Point3D& ) -> real_t { return real_c( 2 ); };
+   std::function< real_t( const hyteg::Point3D& ) > expr = []( const Point3D& ) -> real_t { return real_c( 2 ); };
 
    walberla::WcTimingPool timer;
 
@@ -47,8 +47,8 @@ static void testVertexDoFBasicFunctions()
    y.interpolate( expr, maxLevel, DoFType::All );
    timer["Interpolate"].end();
 
-   hhg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
-   hhg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
@@ -64,7 +64,7 @@ static void testVertexDoFBasicFunctions()
    y.assign( {{3.0, 2.0}}, {{x, y}}, maxLevel, DoFType::All );
    timer["Assign"].end();
 
-   hhg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
@@ -77,7 +77,7 @@ static void testVertexDoFBasicFunctions()
    y.add( {{4.0, 3.0}}, {{x, y}}, maxLevel, DoFType::All );
    timer["Add"].end();
 
-   hhg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
@@ -95,7 +95,7 @@ static void testVertexDoFBasicFunctions()
    timer["MultElementWise"].start();
    y.multElementwise( {{x, y}}, maxLevel, DoFType::All );
    timer["MultElementWise"].end();
-   hhg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
+   hyteg::communication::syncFunctionBetweenPrimitives( y, maxLevel );
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
@@ -105,7 +105,7 @@ static void testVertexDoFBasicFunctions()
    WALBERLA_LOG_INFO_ON_ROOT( timer );
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 int main( int argc, char* argv[] )
 {
@@ -114,7 +114,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testVertexDoFBasicFunctions();
+   hyteg::testVertexDoFBasicFunctions();
 
    return EXIT_SUCCESS;
 }

@@ -5,7 +5,7 @@
 
 #include "communicate_directly_vertexdof_face_to_cell_impl_321.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace comm {
 namespace generated {
@@ -76,4 +76,4 @@ void communicate_directly_vertexdof_face_to_cell_impl_321(double * RESTRICT _dat
 } // namespace generated
 } // namespace comm
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

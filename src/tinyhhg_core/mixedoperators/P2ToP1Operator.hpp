@@ -17,7 +17,7 @@
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_t;
 

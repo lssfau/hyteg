@@ -3,7 +3,7 @@
 #include "core/DataTypes.h"
 #include "tinyhhg_core/types/flags.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template < typename FunctionType >
 class RestrictionOperator
@@ -14,4 +14,4 @@ public:
   virtual ~RestrictionOperator() = default;
 };
 
-} // namespace hhg
+} // namespace hyteg

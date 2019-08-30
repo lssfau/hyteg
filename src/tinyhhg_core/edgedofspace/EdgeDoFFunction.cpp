@@ -11,7 +11,7 @@
 #include "tinyhhg_core/primitives/all.hpp"
 
 
-namespace hhg {
+namespace hyteg {
 
 /// dummy function
 template < typename ValueType >
@@ -103,7 +103,7 @@ void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( 
       return;
    }
    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
-       [&expr]( const hhg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
+       [&expr]( const hyteg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
    interpolateExtended( exprExtended, {}, level, flag );
 }
 
@@ -117,7 +117,7 @@ void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( 
       return;
    }
    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
-   [&expr]( const hhg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
+   [&expr]( const hyteg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
    interpolateExtended( exprExtended, {}, level, boundaryUID );
 }
 
@@ -837,7 +837,7 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level ) const
    }
    this->startTiming( "Enumerate" );
 
-   auto counter = static_cast< ValueType >( hhg::numberOfLocalDoFs< EdgeDoFFunctionTag >( *( this->getStorage() ), level ) );
+   auto counter = static_cast< ValueType >( hyteg::numberOfLocalDoFs< EdgeDoFFunctionTag >( *( this->getStorage() ), level ) );
 
    std::vector< ValueType > dofs_per_rank = walberla::mpi::allGather( counter );
 
@@ -1064,19 +1064,19 @@ void EdgeDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType& 
 template class EdgeDoFFunction< double >;
 template class EdgeDoFFunction< int >;
 
-template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hhg::Vertex >( const double& constant,
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Vertex >( const double& constant,
                                                                                     uint_t        level,
                                                                                     DoFType       flag ) const;
 
-template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hhg::Edge >( const double& constant,
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Edge >( const double& constant,
                                                                                   uint_t        level,
                                                                                   DoFType       flag ) const;
 
-template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hhg::Face >( const double& constant,
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Face >( const double& constant,
                                                                                   uint_t        level,
                                                                                   DoFType       flag ) const;
 
-template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hhg::Cell >( const double& constant,
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Cell >( const double& constant,
                                                                                   uint_t        level,
                                                                                   DoFType       flag ) const;
 
@@ -1125,4 +1125,4 @@ uint_t edgedof::edgeDoFMacroCellFunctionMemorySize( const uint_t& level, const P
    return 6 * ( levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) ) ) +
           ( levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) - 1 ) );
 }
-} // namespace hhg
+} // namespace hyteg

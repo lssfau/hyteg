@@ -9,7 +9,7 @@
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_c;
 using walberla::real_t;
@@ -244,4 +244,4 @@ MeshInfo MeshInfo::meshSymmetricCuboid( const Point3D lowerLeftFront,
    return meshInfo;
 }
 
-} // namespace hhg
+} // namespace hyteg

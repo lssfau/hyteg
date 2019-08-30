@@ -19,7 +19,7 @@ using walberla::uint_t;
 using walberla::real_t;
 
 
-namespace hhg {
+namespace hyteg {
 namespace P2 {
 
 namespace macrovertex {
@@ -47,4 +47,4 @@ void smoothSOR3D(
 } // namespace vertex
 
 } // namespace P2
-} // namespace hhg
+} // namespace hyteg

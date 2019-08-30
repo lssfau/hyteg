@@ -7,7 +7,7 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
 
-using namespace hhg;
+using namespace hyteg;
 
 using walberla::real_t;
 
@@ -25,13 +25,13 @@ int main (int argc, char ** argv )
   const uint_t minLevel = 2;
   const uint_t maxLevel = 4;
 
-  hhg::DGFunction< uint_t > x("x", storage, minLevel, maxLevel);
+  hyteg::DGFunction< uint_t > x("x", storage, minLevel, maxLevel);
 
   uint_t check = 1;
   uint_t sum = 0;
   x.enumerate(maxLevel,1);
 
-  uint_t totalDoFs = (hhg::levelinfo::num_microfaces_per_face(maxLevel) * storage->getNumberOfLocalFaces());
+  uint_t totalDoFs = ( hyteg::levelinfo::num_microfaces_per_face(maxLevel) * storage->getNumberOfLocalFaces());
   uint_t expectedSum = (totalDoFs * (totalDoFs + 1))/2;
 
   for (auto &vertexIt : storage->getVertices()){
@@ -49,11 +49,11 @@ int main (int argc, char ** argv )
   for (auto &edgeIt : storage->getEdges()) {
     Edge &edge = *edgeIt.second;
     uint_t *edgeData = edge.getData(x.getEdgeDataID())->getPointer(maxLevel);
-    uint_t FaceDoFonFace = hhg::levelinfo::num_microvertices_per_edge(maxLevel) * 2 - 3 ;
+    uint_t FaceDoFonFace = hyteg::levelinfo::num_microvertices_per_edge(maxLevel) * 2 - 3 ;
     //this only works with the linear default layout; can be changed to use index function
     for(uint_t i = 0; i < edge.getNumHigherDimNeighbors(); ++i){
       uint_t start = FaceDoFonFace * i;
-      for(uint_t j = 2; j < hhg::levelinfo::num_microvertices_per_edge(maxLevel) * 2 - 5; j += 2){
+      for(uint_t j = 2; j < hyteg::levelinfo::num_microvertices_per_edge(maxLevel) * 2 - 5; j += 2){
         WALBERLA_CHECK_EQUAL(edgeData[start + j],check);
         sum += check;
         check++;

@@ -3,7 +3,7 @@
 
 #include "tinyhhg_core/types/pointnd.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace indexing {
 
 using walberla::uint_t;
@@ -197,7 +197,7 @@ namespace mpi {
 template< typename T,    // Element type of SendBuffer
 typename G    // Growth policy of SendBuffer
 >
-GenericSendBuffer<T,G>& operator<<( GenericSendBuffer<T,G> & buf, const hhg::indexing::IndexIncrement & indexIncrement )
+GenericSendBuffer<T,G>& operator<<( GenericSendBuffer<T,G> & buf, const hyteg::indexing::IndexIncrement & indexIncrement )
 {
   indexIncrement.serialize( buf );
   return buf;
@@ -205,7 +205,7 @@ GenericSendBuffer<T,G>& operator<<( GenericSendBuffer<T,G> & buf, const hhg::ind
 
 template< typename T // Element type  of RecvBuffer
 >
-GenericRecvBuffer<T>& operator>>( GenericRecvBuffer<T> & buf, hhg::indexing::IndexIncrement & indexIncrement )
+GenericRecvBuffer<T>& operator>>( GenericRecvBuffer<T> & buf, hyteg::indexing::IndexIncrement & indexIncrement )
 {
   indexIncrement.deserialize( buf );
   return buf;

@@ -15,7 +15,7 @@ using walberla::real_t;
 using walberla::uint_t;
 using walberla::uint_c;
 
-using namespace hhg;
+using namespace hyteg;
 
 /// smoother == 0: SOR, w == 1.0
 /// smoother == 1: SOR_BW, w == 1.0
@@ -32,15 +32,15 @@ static void test( const std::string & meshFile, const uint_t & level, const uint
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
   auto storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
 
-  hhg::P2ConstantLaplaceOperator L(storage, level, level);
+  hyteg::P2ConstantLaplaceOperator L(storage, level, level);
 
-  hhg::P2Function< real_t > residuum  ("residuum",  storage, level, level);
-  hhg::P2Function< real_t > rhs       ("rhs",       storage, level, level);
-  hhg::P2Function< real_t > p2function("p1Function",storage, level, level);
-  hhg::P2Function< real_t > Lu        ("Lu",        storage, level, level);
-  hhg::P2Function< real_t > p2Exact   ("p1Exact",   storage, level, level);
-  hhg::P2Function< real_t > error     ("error",     storage, level, level);
-  hhg::P2Function< real_t > helperFun ("helperFun", storage, level, level);
+  hyteg::P2Function< real_t > residuum  ("residuum",  storage, level, level);
+  hyteg::P2Function< real_t > rhs       ("rhs",       storage, level, level);
+  hyteg::P2Function< real_t > p2function("p1Function",storage, level, level);
+  hyteg::P2Function< real_t > Lu        ("Lu",        storage, level, level);
+  hyteg::P2Function< real_t > p2Exact   ("p1Exact",   storage, level, level);
+  hyteg::P2Function< real_t > error     ("error",     storage, level, level);
+  hyteg::P2Function< real_t > helperFun ("helperFun", storage, level, level);
 
   VTKOutput vtkOutput("../../output", "gs_P2", storage);
   vtkOutput.add( p2function );
@@ -50,25 +50,25 @@ static void test( const std::string & meshFile, const uint_t & level, const uint
   vtkOutput.add( error );
   vtkOutput.add( helperFun );
 
-  std::function<real_t(const hhg::Point3D&)> exactFunction = [](const hhg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
-  std::function<real_t(const hhg::Point3D&)> ones  = [](const hhg::Point3D&) { return 1.0; };
+  std::function<real_t(const hyteg::Point3D&)> exactFunction = [](const hyteg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
+  std::function<real_t(const hyteg::Point3D&)> ones  = [](const hyteg::Point3D&) { return 1.0; };
   walberla::math::seedRandomGenerator(0);
   std::function<real_t(const Point3D &)> rand = [](const Point3D &) { return walberla::math::realRandom(0.0, 1.0); };
 
-  p2function.interpolate(exactFunction, level, hhg::DirichletBoundary);
-  p2function.interpolate(rand, level, hhg::Inner);
+  p2function.interpolate(exactFunction, level, hyteg::DirichletBoundary);
+  p2function.interpolate(rand, level, hyteg::Inner);
   p2Exact.interpolate(exactFunction, level);
 
   real_t begin_res, abs_res_old, rel_res, abs_res = 0;
 
-  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6s|%10s|%10s|%10s","iter","abs_res","rel_res","conv"));
+  WALBERLA_LOG_INFO_ON_ROOT( hyteg::format("%6s|%10s|%10s|%10s","iter","abs_res","rel_res","conv"));
 
-  L.apply(p2function, Lu, level, hhg::Inner);
-  residuum.assign({1.0, -1.0}, { rhs, Lu }, level, hhg::Inner);
-  begin_res = std::sqrt(residuum.dotGlobal(residuum, level, hhg::Inner));
+  L.apply(p2function, Lu, level, hyteg::Inner);
+  residuum.assign({1.0, -1.0}, { rhs, Lu }, level, hyteg::Inner);
+  begin_res = std::sqrt(residuum.dotGlobal(residuum, level, hyteg::Inner));
   abs_res_old = begin_res;
 
-  WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old))
+  WALBERLA_LOG_INFO_ON_ROOT( hyteg::format("%6d|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old))
   walberla::WcTimer timer;
 
   for(uint_t i = 0; i < maxiter; ++i)
@@ -78,15 +78,15 @@ static void test( const std::string & meshFile, const uint_t & level, const uint
       vtkOutput.write( level, i );
     }
     if ( smoother == 0 )
-      L.smooth_sor(p2function, rhs, 1.0, level, hhg::Inner);
+      L.smooth_sor(p2function, rhs, 1.0, level, hyteg::Inner);
     else if ( smoother == 1 )
-      L.smooth_sor_backwards(p2function, rhs, 1.0, level, hhg::Inner);
+      L.smooth_sor_backwards(p2function, rhs, 1.0, level, hyteg::Inner);
 
-    L.apply(p2function, Lu, level, hhg::Inner);
-    residuum.assign({1.0, -1.0}, { rhs, Lu }, level, hhg::Inner);
-    abs_res = std::sqrt(residuum.dotGlobal(residuum, level, hhg::Inner));
+    L.apply(p2function, Lu, level, hyteg::Inner);
+    residuum.assign({1.0, -1.0}, { rhs, Lu }, level, hyteg::Inner);
+    abs_res = std::sqrt(residuum.dotGlobal(residuum, level, hyteg::Inner));
     rel_res = abs_res / begin_res;
-    WALBERLA_LOG_INFO_ON_ROOT(hhg::format("%6d|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old))
+    WALBERLA_LOG_INFO_ON_ROOT( hyteg::format("%6d|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old))
     WALBERLA_CHECK_LESS(abs_res,abs_res_old);
     abs_res_old = abs_res;
   }

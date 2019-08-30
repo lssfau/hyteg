@@ -32,7 +32,7 @@
 
 using walberla::real_c;
 using walberla::real_t;
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
@@ -84,19 +84,19 @@ int main( int argc, char* argv[] )
 
    //////////////////////////////////////////
 
-   hhg::MeshInfo              meshInfo = hhg::MeshInfo::meshSphericalShell( ntan, layers );
-   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   hhg::loadbalancing::roundRobin( setupStorage );
+   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::meshSphericalShell( ntan, layers );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::loadbalancing::roundRobin( setupStorage );
 
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
 
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
 
    if( mainConf.getParameter< bool >( "useParMETIS" ) )
    {
-      hhg::loadbalancing::distributed::parmetis( *storage );
+      hyteg::loadbalancing::distributed::parmetis( *storage );
    }
 
    if( mainConf.getParameter< bool >( "printGlobalStorageInfo" ) )
@@ -107,26 +107,26 @@ int main( int argc, char* argv[] )
 
    if( mainConf.getParameter< bool >( "writeDomainVTK" ) )
    {
-      hhg::writeDomainPartitioningVTK( storage, "./output", "StokesSphere_domain" );
+      hyteg::writeDomainPartitioningVTK( storage, "./output", "StokesSphere_domain" );
    }
 
-   hhg::P1StokesFunction< real_t > r( "r", storage, minLevel, maxLevel );
-   hhg::P1StokesFunction< real_t > f( "f", storage, minLevel, maxLevel );
-   hhg::P1StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );
+   hyteg::P1StokesFunction< real_t > r( "r", storage, minLevel, maxLevel );
+   hyteg::P1StokesFunction< real_t > f( "f", storage, minLevel, maxLevel );
+   hyteg::P1StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );
 
    if( mainConf.getParameter< bool >( "printDoFCount" ) )
    {
       uint_t totalGlobalDofsStokes = 0;
       for( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
       {
-         uint_t tmpDofStokes = numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, lvl );
+         uint_t tmpDofStokes = numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, lvl );
          WALBERLA_LOG_INFO_ON_ROOT( "Stokes DoFs on level " << lvl << " : " << tmpDofStokes );
          totalGlobalDofsStokes += tmpDofStokes;
       }
       WALBERLA_LOG_INFO_ON_ROOT( "Total Stokes DoFs on all level :" << totalGlobalDofsStokes );
    }
 
-   hhg::VTKOutput vtkOutput("./output", "StokesSphere", storage);
+   hyteg::VTKOutput vtkOutput("./output", "StokesSphere", storage);
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       vtkOutput.add( u.u );
@@ -139,9 +139,9 @@ int main( int argc, char* argv[] )
       vtkOutput.add( f.p );
    }
 
-   hhg::P1StokesOperator L( storage, minLevel, maxLevel );
+   hyteg::P1StokesOperator L( storage, minLevel, maxLevel );
 
-   std::function< real_t( const hhg::Point3D& ) > rhsPlumeX = [sourcePoint, sourceRadius]( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > rhsPlumeX = [sourcePoint, sourceRadius]( const hyteg::Point3D& x ) {
       const real_t distToSourcePoint = ( x - sourcePoint ).norm();
       if( distToSourcePoint < sourceRadius )
          return x[0] * ( sourceRadius - distToSourcePoint );
@@ -149,7 +149,7 @@ int main( int argc, char* argv[] )
          return 0.0;
    };
 
-   std::function< real_t( const hhg::Point3D& ) > rhsPlumeY = [sourcePoint, sourceRadius]( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > rhsPlumeY = [sourcePoint, sourceRadius]( const hyteg::Point3D& x ) {
       const real_t distToSourcePoint = ( x - sourcePoint ).norm();
       if( distToSourcePoint < sourceRadius )
          return x[1] * ( sourceRadius - distToSourcePoint );
@@ -157,7 +157,7 @@ int main( int argc, char* argv[] )
          return 0.0;
    };
 
-   std::function< real_t( const hhg::Point3D& ) > rhsPlumeZ = [sourcePoint, sourceRadius]( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > rhsPlumeZ = [sourcePoint, sourceRadius]( const hyteg::Point3D& x ) {
       const real_t distToSourcePoint = ( x - sourcePoint ).norm();
       if( distToSourcePoint < sourceRadius )
          return x[2] * ( sourceRadius - distToSourcePoint );
@@ -165,8 +165,8 @@ int main( int argc, char* argv[] )
          return 0.0;
    };
 
-   std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };
-   std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
+   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
    f.u.interpolate( rhsPlumeX, maxLevel );
    f.v.interpolate( rhsPlumeY, maxLevel );
@@ -182,61 +182,61 @@ int main( int argc, char* argv[] )
    if( solverType == "minres" )
    {
       ///// Coarse Grid solver for the A block GMG preconditioner in MinRes /////
-      typedef CGSolver< hhg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
+      typedef CGSolver< hyteg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
       auto coarseGridSolver = std::make_shared< CoarseGridSolver_T >( storage, minLevel, maxLevel );
 
       ///// Geometric Multigrid A block preconditioner for MinRes /////
-      typedef GeometricMultigridSolver< hhg::P1ConstantLaplaceOperator >GMGSolver_T;
+      typedef GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator >GMGSolver_T;
 
-      auto smoother = std::make_shared< hhg::GaussSeidelSmoother< hhg::P1ConstantLaplaceOperator > >();
-      //auto coarseGridSolver = std::make_shared< hhg::MinResSolver< hhg::P1StokesOperator > >( storage, minLevel, minLevel, coarseMaxiter );
-      auto restrictionOperator = std::make_shared< hhg::P1toP1LinearRestriction>();
-      auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
+      auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator > >();
+      //auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P1StokesOperator > >( storage, minLevel, minLevel, coarseMaxiter );
+      auto restrictionOperator = std::make_shared< hyteg::P1toP1LinearRestriction>();
+      auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
 
 
       auto gmgSolver = std::make_shared< GMGSolver_T >( storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
 
       /// A block Preconditioner for MinRes /////
-      typedef StokesBlockDiagonalPreconditioner< hhg::P1StokesOperator, hhg::P1LumpedInvMassOperator >Preconditioner_T;
+      typedef StokesBlockDiagonalPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator >Preconditioner_T;
 
       auto prec = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 2 );
 
       /// MinResSolver
-      typedef hhg::MinResSolver< hhg::P1StokesOperator  >PreconditionedMinRes_T;
+      typedef hyteg::MinResSolver< hyteg::P1StokesOperator  >PreconditionedMinRes_T;
       auto preconditionedMinResSolver = PreconditionedMinRes_T( storage, minLevel, maxLevel, maxMinResIterations, uzawaTolerance, prec );
       preconditionedMinResSolver.solve( L, u, f, maxLevel );
 
    } else if( solverType == "uzawa" )
    {
       ///// MinRes coarse grid solver for UZAWA /////
-      typedef StokesPressureBlockPreconditioner< hhg::P1StokesOperator, hhg::P1LumpedInvMassOperator >PressurePreconditioner_T;
+      typedef StokesPressureBlockPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator >PressurePreconditioner_T;
 
       auto pressurePrec = std::make_shared< PressurePreconditioner_T>( storage, minLevel, minLevel );
 
-      typedef hhg::MinResSolver< hhg::P1StokesOperator >PressurePreconditionedMinRes_T;
+      typedef hyteg::MinResSolver< hyteg::P1StokesOperator >PressurePreconditionedMinRes_T;
 
       auto pressurePreconditionedMinResSolver = std::make_shared< PressurePreconditionedMinRes_T >( storage, minLevel, minLevel, maxMinResIterations, uzawaTolerance, pressurePrec );
 
       ///// UZAWA solver /////
-      typedef GeometricMultigridSolver< hhg::P1StokesOperator >UzawaSolver_T;
+      typedef GeometricMultigridSolver< hyteg::P1StokesOperator >UzawaSolver_T;
 
-      auto stokesRestriction = std::make_shared< hhg::P1P1StokesToP1P1StokesRestriction>();
-      auto stokesProlongation = std::make_shared< hhg::P1P1StokesToP1P1StokesProlongation >();
-      auto uzawaSmoother = std::make_shared< hhg::UzawaSmoother< P1StokesOperator > >(storage, minLevel, maxLevel, 0.3);
+      auto stokesRestriction = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction>();
+      auto stokesProlongation = std::make_shared< hyteg::P1P1StokesToP1P1StokesProlongation >();
+      auto uzawaSmoother = std::make_shared< hyteg::UzawaSmoother< P1StokesOperator > >(storage, minLevel, maxLevel, 0.3);
 
       UzawaSolver_T uzawaSolver(
           storage, uzawaSmoother, pressurePreconditionedMinResSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 2, 2, 2 );
 
-      auto count = hhg::Function< hhg::vertexdof::VertexDoFFunction< real_t > >::getLevelWiseFunctionCounter();
+      auto count = hyteg::Function< hyteg::vertexdof::VertexDoFFunction< real_t > >::getLevelWiseFunctionCounter();
       if( mainConf.getParameter< bool >( "printFunctionCount" ) ) {
          for (uint_t i = minLevel; i <= maxLevel; ++i) {
             WALBERLA_LOG_INFO_ON_ROOT("Total number of P1 Functions on " << i << " : " << count[i]);
          }
       }
-      L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      r.assign( {1.0, -1.0}, {f, r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      real_t currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) ) /
-                                 real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
+      L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      r.assign( {1.0, -1.0}, {f, r}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      real_t currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner ) ) /
+                                 real_c( hyteg::numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, maxLevel ) );
       real_t lastResidualL2 = currentResidualL2;
       WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] iteration | residual (L2) | convergence rate " );
       WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] ----------+---------------+------------------" );
@@ -248,10 +248,10 @@ int main( int argc, char* argv[] )
          uzawaSolver.solve( L, u, f, maxLevel );
 
          lastResidualL2 = currentResidualL2;
-         L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-         r.assign( {1.0, -1.0}, {f, r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-         currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) ) /
-                             real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
+         L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+         r.assign( {1.0, -1.0}, {f, r}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+         currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner ) ) /
+                             real_c( hyteg::numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, maxLevel ) );
          WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] "
                                     << std::setw( 9 ) << i + 1 << " | " << std::setw( 13 ) << std::scientific << currentResidualL2
                                     << " | " << std::setw( 16 ) << std::scientific << currentResidualL2 / lastResidualL2 )
@@ -264,11 +264,11 @@ int main( int argc, char* argv[] )
    }
 
 #if 0
-  auto numerator = std::make_shared< hhg::P1StokesFunction< PetscInt > >( "numerator", storage, level, level );
+  auto numerator = std::make_shared< hyteg::P1StokesFunction< PetscInt > >( "numerator", storage, level, level );
    uint_t globalSize = 0;
    const uint_t localSize = numerator->enumerate(level, globalSize);
    PETScManager petscManager;
-   PETScLUSolver< real_t, hhg::P1StokesFunction, hhg::P1StokesOperator > petScLUSolver( numerator, localSize, globalSize );
+   PETScLUSolver< real_t, hyteg::P1StokesFunction, hyteg::P1StokesOperator > petScLUSolver( numerator, localSize, globalSize );
    f.u.assign( {1.0}, {&u.u}, level, DirichletBoundary );
    f.v.assign( {1.0}, {&u.v}, level, DirichletBoundary );
    f.w.assign( {1.0}, {&u.w}, level, DirichletBoundary );

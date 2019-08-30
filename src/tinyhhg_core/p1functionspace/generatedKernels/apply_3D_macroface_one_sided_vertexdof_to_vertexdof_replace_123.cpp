@@ -5,12 +5,12 @@
 
 #include "apply_3D_macroface_one_sided_vertexdof_to_vertexdof_replace_123.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-static void apply_3D_macroface_one_sided_vertexdof_to_vertexdof_replace_123_level_any(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * RESTRICT const _data_p1FaceSrc_gl0, int32_t level, std::map< hhg::indexing::IndexIncrement, double > p1FaceStencil)
+static void apply_3D_macroface_one_sided_vertexdof_to_vertexdof_replace_123_level_any(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * RESTRICT const _data_p1FaceSrc_gl0, int32_t level, std::map< hyteg::indexing::IndexIncrement, double > p1FaceStencil)
 {
    const double xi_1 = p1FaceStencil[{ 0, -1, 0 }];
    const double xi_2 = p1FaceStencil[{ 0, 0, -1 }];
@@ -45,7 +45,7 @@ static void apply_3D_macroface_one_sided_vertexdof_to_vertexdof_replace_123_leve
 }
 
 
-void apply_3D_macroface_one_sided_vertexdof_to_vertexdof_replace_123(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * RESTRICT const _data_p1FaceSrc_gl0, int32_t level, std::map< hhg::indexing::IndexIncrement, double > p1FaceStencil)
+void apply_3D_macroface_one_sided_vertexdof_to_vertexdof_replace_123(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * RESTRICT const _data_p1FaceSrc_gl0, int32_t level, std::map< hyteg::indexing::IndexIncrement, double > p1FaceStencil)
 {
     switch( level )
     {
@@ -60,4 +60,4 @@ void apply_3D_macroface_one_sided_vertexdof_to_vertexdof_replace_123(double * RE
 } // namespace generated
 } // namespace macroface
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

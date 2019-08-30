@@ -23,12 +23,12 @@ using walberla::uint_t;
 using walberla::uint_c;
 using walberla::math::pi;
 
-using namespace hhg;
+using namespace hyteg;
 
 void solve_using_geometry_map( MeshInfo&, walberla::Config::BlockHandle& );
 void solve_using_pimped_form( MeshInfo&, walberla::Config::BlockHandle& );
 
-// template class hhg::P1VariableOperator< P1FenicsForm< p1_polar_laplacian_cell_integral_0_otherwise > >;
+// template class hyteg::P1VariableOperator< P1FenicsForm< p1_polar_laplacian_cell_integral_0_otherwise > >;
 typedef P1VariableOperator< P1FenicsForm< p1_polar_laplacian_cell_integral_0_otherwise > > myPolarLapOp;
 
 int main(int argc, char* argv[])
@@ -114,7 +114,7 @@ void solve_using_geometry_map( MeshInfo& meshInfo, walberla::Config::BlockHandle
   for( auto it : setupStorage.getVertices() ) {
     setupStorage.setGeometryMap( it.second->getID(), std::make_shared< PolarCoordsMap >() );
   }
-  hhg::loadbalancing::roundRobin( setupStorage );
+  hyteg::loadbalancing::roundRobin( setupStorage );
   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
   // WALBERLA_LOG_INFO_ON_ROOT( "" << setupStorage );
@@ -126,54 +126,54 @@ void solve_using_geometry_map( MeshInfo& meshInfo, walberla::Config::BlockHandle
   // Describe and generate exact solution
 
   // This is in polar coordinates
-  // std::function<real_t(const hhg::Point3D&)> solFunc =
-  //   [](const hhg::Point3D& x) { real_t m = 5.0; return pow(2,m)/(pow(2,2*m)+1)*(pow(x[0],m)+pow(x[0],-m))*sin(m*x[1]); };
-  // hhg::P1Function< real_t > u_exact( "u_analytic", storage, maxLevel, maxLevel );
+  // std::function<real_t(const hyteg::Point3D&)> solFunc =
+  //   [](const hyteg::Point3D& x) { real_t m = 5.0; return pow(2,m)/(pow(2,2*m)+1)*(pow(x[0],m)+pow(x[0],-m))*sin(m*x[1]); };
+  // hyteg::P1Function< real_t > u_exact( "u_analytic", storage, maxLevel, maxLevel );
   // u_exact.interpolate( solFunc, maxLevel );
 
   // This is in cartesian coordinates
-  std::function<real_t(const hhg::Point3D&)> solFunc =
-    [](const hhg::Point3D& x) {
+  std::function<real_t(const hyteg::Point3D&)> solFunc =
+    [](const hyteg::Point3D& x) {
     real_t m = 5.0;
     real_t rho = std::sqrt( x[0] * x[0] + x[1] * x[1] );
     real_t phi = std::atan2( x[1], x[0] ) + pi;
     return std::pow(2,m)/(std::pow(2,2*m)+1)*(std::pow(rho,m)+std::pow(rho,-m))*std::sin(m*phi);
   };
-  hhg::P1Function< real_t > u_exact( "u_analytic", storage, maxLevel, maxLevel );
+  hyteg::P1Function< real_t > u_exact( "u_analytic", storage, maxLevel, maxLevel );
   u_exact.interpolate( solFunc, maxLevel );
 
   // Create function for numeric solution and set Dirichlet boundary conditions
-  std::function<real_t(const hhg::Point3D&)> zeros = [](const hhg::Point3D&) { return 0.0; };
-  hhg::P1Function< real_t > u( "u_numeric", storage, minLevel, maxLevel );
-  u.interpolate( zeros, maxLevel, hhg::Inner );
-  u.interpolate( solFunc, maxLevel, hhg::DirichletBoundary );
+  std::function<real_t(const hyteg::Point3D&)> zeros = [](const hyteg::Point3D&) { return 0.0; };
+  hyteg::P1Function< real_t > u( "u_numeric", storage, minLevel, maxLevel );
+  u.interpolate( zeros, maxLevel, hyteg::Inner );
+  u.interpolate( solFunc, maxLevel, hyteg::DirichletBoundary );
 
   // Specify right-hand side of problem
-  hhg::P1Function< real_t > rhs( "rhs", storage, minLevel, maxLevel );
-  rhs.interpolate( zeros, maxLevel, hhg::All );
+  hyteg::P1Function< real_t > rhs( "rhs", storage, minLevel, maxLevel );
+  rhs.interpolate( zeros, maxLevel, hyteg::All );
 
   // Operator for weak-form
   P1BlendingLaplaceOperator lap( storage, minLevel, maxLevel );
 
   // Setup geometric MG as solver
-  auto smoother = std::make_shared< hhg::GaussSeidelSmoother<hhg::P1BlendingLaplaceOperator>  >();
-  auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P1BlendingLaplaceOperator > >( storage, minLevel, minLevel );
-  auto restrictionOperator = std::make_shared< hhg::P1toP1LinearRestriction>();
-  auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
+  auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1BlendingLaplaceOperator>  >();
+  auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P1BlendingLaplaceOperator > >( storage, minLevel, minLevel );
+  auto restrictionOperator = std::make_shared< hyteg::P1toP1LinearRestriction>();
+  auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
 
-  auto solver = hhg::GeometricMultigridSolver< hhg::P1BlendingLaplaceOperator >(
+  auto solver = hyteg::GeometricMultigridSolver< hyteg::P1BlendingLaplaceOperator >(
        storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
   // Prep residual
-  hhg::P1Function< real_t > res( "residual", storage, minLevel, maxLevel );
+  hyteg::P1Function< real_t > res( "residual", storage, minLevel, maxLevel );
 
   // ================
   //  Solution phase
   // ================
 
   // compute initial residual and its norm
-  lap.apply( u, res, maxLevel, hhg::Inner );
-  real_t res0 = std::sqrt( res.dotGlobal( res, maxLevel, hhg::Inner ) );
+  lap.apply( u, res, maxLevel, hyteg::Inner );
+  real_t res0 = std::sqrt( res.dotGlobal( res, maxLevel, hyteg::Inner ) );
   real_t resCycle = 0.0;
   bool mgConverged = false;
 
@@ -183,9 +183,9 @@ void solve_using_geometry_map( MeshInfo& meshInfo, walberla::Config::BlockHandle
 
   for( cycle = 1; cycle <= maxCycles; ++cycle ) {
     solver.solve( lap, u, rhs, maxLevel );
-    lap.apply( u, res, maxLevel, hhg::Inner );
-    // res.assign( {1.0,-1.0}, {&rhs, &res}, maxLevel, hhg::Inner );
-    resCycle = std::sqrt( res.dotGlobal( res, maxLevel, hhg::Inner ) );
+    lap.apply( u, res, maxLevel, hyteg::Inner );
+    // res.assign( {1.0,-1.0}, {&rhs, &res}, maxLevel, hyteg::Inner );
+    resCycle = std::sqrt( res.dotGlobal( res, maxLevel, hyteg::Inner ) );
     if( resCycle < mgTol ) {
       mgConverged = true;
       break;
@@ -203,29 +203,29 @@ void solve_using_geometry_map( MeshInfo& meshInfo, walberla::Config::BlockHandle
   // =============
 
   // compute error norm
-  hhg::P1Function< real_t > error( "error", storage, maxLevel, maxLevel );
-  // hhg::P1Function< real_t > tmp( "error", storage, maxLevel, maxLevel );
-  // hhg::P1MassOperator mass( storage, maxLevel, maxLevel );
+  hyteg::P1Function< real_t > error( "error", storage, maxLevel, maxLevel );
+  // hyteg::P1Function< real_t > tmp( "error", storage, maxLevel, maxLevel );
+  // hyteg::P1MassOperator mass( storage, maxLevel, maxLevel );
 
   // das sollte simpler gehen (query num_dofs?)
-  hhg::P1Function< real_t > npoints_helper( "npoints_helper", storage, maxLevel, maxLevel );
-  std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1.0; };
+  hyteg::P1Function< real_t > npoints_helper( "npoints_helper", storage, maxLevel, maxLevel );
+  std::function<real_t(const hyteg::Point3D&)> ones = [](const hyteg::Point3D&) { return 1.0; };
   npoints_helper.interpolate( ones, maxLevel );
-  real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel, hhg::All );
+  real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel, hyteg::All );
 
-  error.assign( {1.0, -1.0}, { u_exact, u }, maxLevel, hhg::All );
-  // // mass.apply( error, tmp, maxLevel, hhg::All );
-  // // real_t errNorm = std::sqrt( error.dotGlobal( tmp, maxLevel, hhg::All ) );
-  real_t errNorm = std::sqrt( error.dotGlobal( error, maxLevel, hhg::All ) / npoints );
+  error.assign( {1.0, -1.0}, { u_exact, u }, maxLevel, hyteg::All );
+  // // mass.apply( error, tmp, maxLevel, hyteg::All );
+  // // real_t errNorm = std::sqrt( error.dotGlobal( tmp, maxLevel, hyteg::All ) );
+  real_t errNorm = std::sqrt( error.dotGlobal( error, maxLevel, hyteg::All ) / npoints );
   real_t maxNorm = error.getMaxMagnitude( maxLevel );
   WALBERLA_LOG_INFO_ON_ROOT( " *** MG: L_2 norm of error = " << std::scientific << errNorm );
   WALBERLA_LOG_INFO_ON_ROOT( " *** MG: max norm of error = " << std::scientific << maxNorm );
   WALBERLA_LOG_INFO_ON_ROOT( " *** MG: maxLevel = " << maxLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( " *** MG: #DoFs = " << (uint_t)npoints_helper.dotGlobal( npoints_helper, maxLevel, hhg::Inner ) );
+  WALBERLA_LOG_INFO_ON_ROOT( " *** MG: #DoFs = " << (uint_t)npoints_helper.dotGlobal( npoints_helper, maxLevel, hyteg::Inner ) );
 
   // output data for visualisation
   if( outputVTK ) {
-    hhg::VTKOutput vtkOutput("../output", "polar", storage);
+     hyteg::VTKOutput vtkOutput("../output", "polar", storage);
     vtkOutput.add( u );
     vtkOutput.add( u_exact );
     vtkOutput.add( res );
@@ -249,7 +249,7 @@ void solve_using_pimped_form( MeshInfo& meshInfo, walberla::Config::BlockHandle&
 
   // Prepare storage
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-  hhg::loadbalancing::roundRobin( setupStorage );
+  hyteg::loadbalancing::roundRobin( setupStorage );
   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
   // -----------------------
@@ -257,43 +257,43 @@ void solve_using_pimped_form( MeshInfo& meshInfo, walberla::Config::BlockHandle&
   // -----------------------
 
   // Describe and generate exact solution (in polar coordinates)
-  std::function<real_t(const hhg::Point3D&)> solFunc =
-    [](const hhg::Point3D& x) { real_t m = 5.0; return pow(2,m)/(pow(2,2*m)+1)*(pow(x[0],m)+pow(x[0],-m))*sin(m*x[1]); };
-  hhg::P1Function< real_t > u_exact( "u_analytic", storage, maxLevel, maxLevel );
+  std::function<real_t(const hyteg::Point3D&)> solFunc =
+    [](const hyteg::Point3D& x) { real_t m = 5.0; return pow(2,m)/(pow(2,2*m)+1)*(pow(x[0],m)+pow(x[0],-m))*sin(m*x[1]); };
+  hyteg::P1Function< real_t > u_exact( "u_analytic", storage, maxLevel, maxLevel );
   u_exact.interpolate( solFunc, maxLevel );
 
   // Create function for numeric solution and set Dirichlet boundary conditions
-  std::function<real_t(const hhg::Point3D&)> zeros = [](const hhg::Point3D&) { return 0.0; };
-  hhg::P1Function< real_t > u( "u_numeric", storage, minLevel, maxLevel );
-  u.interpolate( zeros, maxLevel, hhg::Inner );
-  u.interpolate( solFunc, maxLevel, hhg::DirichletBoundary );
+  std::function<real_t(const hyteg::Point3D&)> zeros = [](const hyteg::Point3D&) { return 0.0; };
+  hyteg::P1Function< real_t > u( "u_numeric", storage, minLevel, maxLevel );
+  u.interpolate( zeros, maxLevel, hyteg::Inner );
+  u.interpolate( solFunc, maxLevel, hyteg::DirichletBoundary );
 
   // Specify right-hand side of problem
-  hhg::P1Function< real_t > rhs( "rhs", storage, minLevel, maxLevel );
-  rhs.interpolate( zeros, maxLevel, hhg::All );
+  hyteg::P1Function< real_t > rhs( "rhs", storage, minLevel, maxLevel );
+  rhs.interpolate( zeros, maxLevel, hyteg::All );
 
   // Operator for weak-form
   myPolarLapOp lap( storage, minLevel, maxLevel );
 
   // Setup geometric MG as solver
-  auto smoother = std::make_shared< hhg::GaussSeidelSmoother< myPolarLapOp >  >();
-  auto coarseGridSolver = std::make_shared< hhg::CGSolver< myPolarLapOp > >( storage, minLevel, minLevel );
-  auto restrictionOperator = std::make_shared< hhg::P1toP1LinearRestriction>();
-  auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
+  auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< myPolarLapOp >  >();
+  auto coarseGridSolver = std::make_shared< hyteg::CGSolver< myPolarLapOp > >( storage, minLevel, minLevel );
+  auto restrictionOperator = std::make_shared< hyteg::P1toP1LinearRestriction>();
+  auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
 
-  auto solver = hhg::GeometricMultigridSolver< myPolarLapOp >(
+  auto solver = hyteg::GeometricMultigridSolver< myPolarLapOp >(
        storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
   // Prep residual
-  hhg::P1Function< real_t > res( "residual", storage, minLevel, maxLevel );
+  hyteg::P1Function< real_t > res( "residual", storage, minLevel, maxLevel );
 
   // ================
   //  Solution phase
   // ================
 
   // compute initial residual and its norm
-  lap.apply( u, res, maxLevel, hhg::Inner );
-  real_t res0 = std::sqrt( res.dotGlobal( res, maxLevel, hhg::Inner ) );
+  lap.apply( u, res, maxLevel, hyteg::Inner );
+  real_t res0 = std::sqrt( res.dotGlobal( res, maxLevel, hyteg::Inner ) );
   real_t resCycle = 0.0;
   bool mgConverged = false;
 
@@ -303,9 +303,9 @@ void solve_using_pimped_form( MeshInfo& meshInfo, walberla::Config::BlockHandle&
 
   for( cycle = 1; cycle <= maxCycles; ++cycle ) {
     solver.solve( lap, u, rhs, maxLevel );
-    lap.apply( u, res, maxLevel, hhg::Inner );
-    // res.assign( {1.0,-1.0}, {&rhs, &res}, maxLevel, hhg::Inner );
-    resCycle = std::sqrt( res.dotGlobal( res, maxLevel, hhg::Inner ) );
+    lap.apply( u, res, maxLevel, hyteg::Inner );
+    // res.assign( {1.0,-1.0}, {&rhs, &res}, maxLevel, hyteg::Inner );
+    resCycle = std::sqrt( res.dotGlobal( res, maxLevel, hyteg::Inner ) );
     if( resCycle < mgTol ) {
       mgConverged = true;
       break;
@@ -323,29 +323,29 @@ void solve_using_pimped_form( MeshInfo& meshInfo, walberla::Config::BlockHandle&
   // =============
 
   // compute error norm
-  hhg::P1Function< real_t > error( "error", storage, maxLevel, maxLevel );
-  // hhg::P1Function< real_t > tmp( "error", storage, maxLevel, maxLevel );
-  // hhg::P1MassOperator mass( storage, maxLevel, maxLevel );
+  hyteg::P1Function< real_t > error( "error", storage, maxLevel, maxLevel );
+  // hyteg::P1Function< real_t > tmp( "error", storage, maxLevel, maxLevel );
+  // hyteg::P1MassOperator mass( storage, maxLevel, maxLevel );
 
   // das sollte simpler gehen (query num_dofs?)
-  hhg::P1Function< real_t > npoints_helper( "npoints_helper", storage, maxLevel, maxLevel );
-  std::function<real_t(const hhg::Point3D&)> ones = [](const hhg::Point3D&) { return 1.0; };
+  hyteg::P1Function< real_t > npoints_helper( "npoints_helper", storage, maxLevel, maxLevel );
+  std::function<real_t(const hyteg::Point3D&)> ones = [](const hyteg::Point3D&) { return 1.0; };
   npoints_helper.interpolate( ones, maxLevel );
-  real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel, hhg::All );
+  real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel, hyteg::All );
 
-  error.assign( {1.0, -1.0}, { u_exact, u }, maxLevel, hhg::All );
-  // // mass.apply( error, tmp, maxLevel, hhg::All );
-  // // real_t errNorm = std::sqrt( error.dotGlobal( tmp, maxLevel, hhg::All ) );
-  real_t errNorm = std::sqrt( error.dotGlobal( error, maxLevel, hhg::All ) / npoints );
+  error.assign( {1.0, -1.0}, { u_exact, u }, maxLevel, hyteg::All );
+  // // mass.apply( error, tmp, maxLevel, hyteg::All );
+  // // real_t errNorm = std::sqrt( error.dotGlobal( tmp, maxLevel, hyteg::All ) );
+  real_t errNorm = std::sqrt( error.dotGlobal( error, maxLevel, hyteg::All ) / npoints );
   real_t maxNorm = error.getMaxMagnitude( maxLevel );
   WALBERLA_LOG_INFO_ON_ROOT( " *** MG: L_2 norm of error = " << std::scientific << errNorm );
   WALBERLA_LOG_INFO_ON_ROOT( " *** MG: max norm of error = " << std::scientific << maxNorm );
   WALBERLA_LOG_INFO_ON_ROOT( " *** MG: maxLevel = " << maxLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( " *** MG: #DoFs = " << (uint_t)npoints_helper.dotGlobal( npoints_helper, maxLevel, hhg::Inner ) );
+  WALBERLA_LOG_INFO_ON_ROOT( " *** MG: #DoFs = " << (uint_t)npoints_helper.dotGlobal( npoints_helper, maxLevel, hyteg::Inner ) );
 
   // output data for visualisation
   if( outputVTK ) {
-    hhg::VTKOutput vtkOutput("../output", "polar", storage);
+     hyteg::VTKOutput vtkOutput("../output", "polar", storage);
     vtkOutput.add( u );
     vtkOutput.add( u_exact );
     vtkOutput.add( res );

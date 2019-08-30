@@ -5,7 +5,7 @@
 
 #include "prolongate_2D_macroface_P1_push_additive.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace macroface {
 namespace generated {
@@ -143,4 +143,4 @@ void prolongate_2D_macroface_P1_push_additive(double const * RESTRICT const _dat
 } // namespace generated
 } // namespace macroface
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

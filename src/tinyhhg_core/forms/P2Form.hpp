@@ -2,7 +2,7 @@
 
 #include "tinyhhg_core/forms/Form.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class P2Form : public Form
 {
@@ -28,4 +28,4 @@ class P2Form : public Form
 
 };
 
-} // namespace hhg
+} // namespace hyteg

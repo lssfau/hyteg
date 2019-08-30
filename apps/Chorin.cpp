@@ -19,7 +19,7 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
@@ -44,18 +44,18 @@ int main( int argc, char* argv[] )
    uint_t max_cg_iter       = 50;
    uint_t outerIterations   = 2;
 
-   hhg::MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
-   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-   hhg::loadbalancing::roundRobin( setupStorage );
+   hyteg::loadbalancing::roundRobin( setupStorage );
 
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
 
 #ifdef WALBERLA_BUILD_WITH_PARMETIS
    loadbalancing::distributed::parmetis( *storage );
 #endif
 
-   //  const real_t minimalEdgeLength = hhg::MeshQuality::getMinimalEdgeLength(storage, maxLevel);
+   //  const real_t minimalEdgeLength = hyteg::MeshQuality::getMinimalEdgeLength(storage, maxLevel);
    //  real_t dt = 0.025 * minimalEdgeLength;
    real_t dt      = 5e-6;
    real_t dt_plot = 0.005;
@@ -64,7 +64,7 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "dt = " << dt );
 
-   std::function< real_t( const hhg::Point3D& ) > bc_x = [&time, &inflowBuildupTime]( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > bc_x = [&time, &inflowBuildupTime]( const hyteg::Point3D& x ) {
       const real_t U_m = 5.0;
 
       if( x[0] < 1e-8 )
@@ -87,60 +87,60 @@ int main( int argc, char* argv[] )
       }
    };
 
-   std::function< real_t( const hhg::Point3D& ) > bc_y = []( const hhg::Point3D& ) { return 0.0; };
+   std::function< real_t( const hyteg::Point3D& ) > bc_y = []( const hyteg::Point3D& ) { return 0.0; };
 
-   std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };
-   std::function< real_t( const hhg::Point3D& ) > one  = []( const hhg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
+   std::function< real_t( const hyteg::Point3D& ) > one  = []( const hyteg::Point3D& ) { return 1.0; };
 
-   hhg::P1Function< real_t > u( "u", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t > v( "v", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t > p( "p", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t > p_rhs( "p_rhs", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t > p_res( "p_res", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t > tmp( "tmp", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t > tmp2( "tmp2", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t > res( "res", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t > ones( "ones", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > u( "u", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > v( "v", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > p( "p", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > p_rhs( "p_rhs", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > p_res( "p_res", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > tmp( "tmp", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > tmp2( "tmp2", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > res( "res", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > ones( "ones", storage, minLevel, maxLevel );
 
-   auto u_dg = std::make_shared< hhg::DGFunction< real_t > >( "u_dg", storage, minLevel, maxLevel );
-   auto v_dg = std::make_shared< hhg::DGFunction< real_t > >( "v_dg", storage, minLevel, maxLevel );
+   auto u_dg = std::make_shared< hyteg::DGFunction< real_t > >( "u_dg", storage, minLevel, maxLevel );
+   auto v_dg = std::make_shared< hyteg::DGFunction< real_t > >( "v_dg", storage, minLevel, maxLevel );
 
-   auto u_dg_old = std::make_shared< hhg::DGFunction< real_t > >( "u_dg", storage, minLevel, maxLevel );
-   auto v_dg_old = std::make_shared< hhg::DGFunction< real_t > >( "v_dg", storage, minLevel, maxLevel );
+   auto u_dg_old = std::make_shared< hyteg::DGFunction< real_t > >( "u_dg", storage, minLevel, maxLevel );
+   auto v_dg_old = std::make_shared< hyteg::DGFunction< real_t > >( "v_dg", storage, minLevel, maxLevel );
 
-   hhg::P1ConstantLaplaceOperator A( storage, minLevel, maxLevel );
-   hhg::P1ConstantLaplaceOperator Ascaled( storage, minLevel, maxLevel );
+   hyteg::P1ConstantLaplaceOperator A( storage, minLevel, maxLevel );
+   hyteg::P1ConstantLaplaceOperator Ascaled( storage, minLevel, maxLevel );
 
    // Scale Laplace operator with viscosity
    Ascaled.scale( viscosity );
 
-   hhg::P1DivxOperator          div_x( storage, minLevel, maxLevel );
-   hhg::P1DivyOperator          div_y( storage, minLevel, maxLevel );
-   hhg::P1DivTxOperator         divT_x( storage, minLevel, maxLevel );
-   hhg::P1DivTyOperator         divT_y( storage, minLevel, maxLevel );
-   hhg::P1LumpedInvMassOperator invDiagMass( storage, minLevel, maxLevel );
+   hyteg::P1DivxOperator          div_x( storage, minLevel, maxLevel );
+   hyteg::P1DivyOperator          div_y( storage, minLevel, maxLevel );
+   hyteg::P1DivTxOperator         divT_x( storage, minLevel, maxLevel );
+   hyteg::P1DivTyOperator         divT_y( storage, minLevel, maxLevel );
+   hyteg::P1LumpedInvMassOperator invDiagMass( storage, minLevel, maxLevel );
 
-   std::array< hhg::P1Function< real_t >, 2 > velocity{ u,v };
-   hhg::DGUpwindOperator< hhg::P1Function< real_t > > N( storage, velocity, minLevel, maxLevel );
+   std::array< hyteg::P1Function< real_t >, 2 > velocity{ u,v };
+   hyteg::DGUpwindOperator< hyteg::P1Function< real_t > > N( storage, velocity, minLevel, maxLevel );
 
-   typedef hhg::CGSolver< hhg::P1ConstantLaplaceOperator > CoarseSolver;
+   typedef hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > CoarseSolver;
    auto coarseLaplaceSolver = std::make_shared< CoarseSolver >( storage, minLevel, minLevel, max_cg_iter );
-   auto smoother = std::make_shared<hhg::GaussSeidelSmoother< P1ConstantLaplaceOperator >>();
+   auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< P1ConstantLaplaceOperator >>();
    auto restrictionOperator = std::make_shared< P1toP1LinearRestriction >();
    auto prolongationOperator = std::make_shared< P1toP1LinearProlongation >();
 
-   typedef GeometricMultigridSolver< hhg::P1ConstantLaplaceOperator > LaplaceSover;
+   typedef GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator > LaplaceSover;
    LaplaceSover laplaceSolver( storage, smoother, coarseLaplaceSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
 
-   u.interpolate( bc_x, maxLevel, hhg::DirichletBoundary );
-   v.interpolate( bc_y, maxLevel, hhg::DirichletBoundary );
-   p.interpolate( zero, maxLevel - 1, hhg::NeumannBoundary );
-   ones.interpolate( one, maxLevel, hhg::All );
+   u.interpolate( bc_x, maxLevel, hyteg::DirichletBoundary );
+   v.interpolate( bc_y, maxLevel, hyteg::DirichletBoundary );
+   p.interpolate( zero, maxLevel - 1, hyteg::NeumannBoundary );
+   ones.interpolate( one, maxLevel, hyteg::All );
 
-   u_dg->projectP1( u, maxLevel, hhg::All );
-   v_dg->projectP1( v, maxLevel, hhg::All );
+   u_dg->projectP1( u, maxLevel, hyteg::All );
+   v_dg->projectP1( v, maxLevel, hyteg::All );
 
-   hhg::VTKOutput vtkOutput("../output", "test", storage, plotModulo);
+   hyteg::VTKOutput vtkOutput("../output", "test", storage, plotModulo);
    vtkOutput.add( u );
    vtkOutput.add( v );
    vtkOutput.add( p );
@@ -151,36 +151,36 @@ int main( int argc, char* argv[] )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "time = " << time );
       time += dt;
-      u.interpolate( bc_x, maxLevel, hhg::DirichletBoundary );
+      u.interpolate( bc_x, maxLevel, hyteg::DirichletBoundary );
 
-      u_dg_old->projectP1( u, maxLevel, hhg::All );
-      v_dg_old->projectP1( v, maxLevel, hhg::All );
+      u_dg_old->projectP1( u, maxLevel, hyteg::All );
+      v_dg_old->projectP1( v, maxLevel, hyteg::All );
 
-      N.apply( *u_dg_old, *u_dg, maxLevel, hhg::All, Replace );
-      N.apply( *v_dg_old, *v_dg, maxLevel, hhg::All, Replace );
+      N.apply( *u_dg_old, *u_dg, maxLevel, hyteg::All, Replace );
+      N.apply( *v_dg_old, *v_dg, maxLevel, hyteg::All, Replace );
 
       // Predict u
-      tmp.integrateDG( *u_dg, ones, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      Ascaled.apply( u, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary, Add );
-      invDiagMass.apply( tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      u.add( {-dt}, {tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+      tmp.integrateDG( *u_dg, ones, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      Ascaled.apply( u, tmp, maxLevel, hyteg::Inner | hyteg::NeumannBoundary, Add );
+      invDiagMass.apply( tmp, tmp2, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      u.add( {-dt}, {tmp2}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
       // Predict v
-      tmp.integrateDG( *v_dg, ones, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      Ascaled.apply( v, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary, Add );
-      invDiagMass.apply( tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      v.add( {-dt}, {tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+      tmp.integrateDG( *v_dg, ones, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      Ascaled.apply( v, tmp, maxLevel, hyteg::Inner | hyteg::NeumannBoundary, Add );
+      invDiagMass.apply( tmp, tmp2, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      v.add( {-dt}, {tmp2}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
       // Solve p
-      p.interpolate( zero, maxLevel - 1, hhg::NeumannBoundary );
-      div_x.apply( u, p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary, Replace );
-      div_y.apply( v, p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary, Add );
+      p.interpolate( zero, maxLevel - 1, hyteg::NeumannBoundary );
+      div_x.apply( u, p_rhs, maxLevel, hyteg::Inner | hyteg::DirichletBoundary, Replace );
+      div_y.apply( v, p_rhs, maxLevel, hyteg::Inner | hyteg::DirichletBoundary, Add );
 
-      restrictionOperator->restrict( p_rhs, maxLevel, hhg::Inner | hhg::DirichletBoundary );
+      restrictionOperator->restrict( p_rhs, maxLevel, hyteg::Inner | hyteg::DirichletBoundary );
 
       if( !neumann )
       {
-         hhg::vertexdof::projectMean( p_rhs, maxLevel - 1 );
+         hyteg::vertexdof::projectMean( p_rhs, maxLevel - 1 );
       }
 
       for( uint_t outer = 0; outer < outerIterations; ++outer )
@@ -193,20 +193,20 @@ int main( int argc, char* argv[] )
 
       if( !neumann )
       {
-         hhg::vertexdof::projectMean( p, maxLevel - 1 );
+         hyteg::vertexdof::projectMean( p, maxLevel - 1 );
       }
 
-      prolongationOperator->prolongate( p, maxLevel - 1, hhg::Inner | hhg::DirichletBoundary );
+      prolongationOperator->prolongate( p, maxLevel - 1, hyteg::Inner | hyteg::DirichletBoundary );
 
       // Correct u
-      divT_x.apply( p, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      invDiagMass.apply( tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      u.add( {-1.0}, {tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+      divT_x.apply( p, tmp, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      invDiagMass.apply( tmp, tmp2, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      u.add( {-1.0}, {tmp2}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
       // Correct v
-      divT_y.apply( p, tmp, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      invDiagMass.apply( tmp, tmp2, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      v.add( {-1.0}, {tmp2}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+      divT_y.apply( p, tmp, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      invDiagMass.apply( tmp, tmp2, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      v.add( {-1.0}, {tmp2}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
       vtkOutput.write( maxLevel, iter );
       ++iter;

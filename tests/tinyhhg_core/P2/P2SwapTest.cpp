@@ -16,7 +16,7 @@
 
 using walberla::real_t;
 
-namespace hhg {
+namespace hyteg {
 
 static void testP2Swap()
 {
@@ -40,10 +40,10 @@ static void testP2Swap()
 
    // Interpolate
 
-   std::function< real_t( const hhg::Point3D& ) > funcX  = []( const Point3D& xx ) -> real_t {
+   std::function< real_t( const hyteg::Point3D& ) > funcX  = []( const Point3D& xx ) -> real_t {
       return real_c( ( 1.0 + std::sin( xx[0] ) ) * ( 2.0 + xx[1] ) );
    };
-   std::function< real_t( const hhg::Point3D& ) > funcY = []( const Point3D& xx ) -> real_t {
+   std::function< real_t( const hyteg::Point3D& ) > funcY = []( const Point3D& xx ) -> real_t {
       return real_c( ( 1.0 + ( xx[0] / 5.0 ) ) * ( 42.0 + xx[1] ) );
    };
 
@@ -79,7 +79,7 @@ static void testP2Swap()
 
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 int main( int argc, char* argv[] )
 {
@@ -88,7 +88,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testP2Swap();
+   hyteg::testP2Swap();
 
    return EXIT_SUCCESS;
 }

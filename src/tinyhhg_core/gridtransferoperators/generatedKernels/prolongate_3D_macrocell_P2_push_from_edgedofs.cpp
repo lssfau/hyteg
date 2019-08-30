@@ -5,7 +5,7 @@
 
 #include "prolongate_3D_macrocell_P2_push_from_edgedofs.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace P2 {
 namespace macrocell {
 namespace generated {
@@ -1838,4 +1838,4 @@ void prolongate_3D_macrocell_P2_push_from_edgedofs(double const * RESTRICT const
 } // namespace generated
 } // namespace macrocell
 } // namespace P2
-} // namespace hhg
+} // namespace hyteg

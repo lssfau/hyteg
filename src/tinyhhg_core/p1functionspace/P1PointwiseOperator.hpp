@@ -9,7 +9,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class P1PointwiseOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
@@ -90,4 +90,4 @@ class P1PointwiseOperator : public Operator< P1Function< real_t >, P1Function< r
    PrimitiveDataID< StencilMemory< real_t >, Cell >   cellStencilID_;
 };
 
-} // namespace hhg
+} // namespace hyteg

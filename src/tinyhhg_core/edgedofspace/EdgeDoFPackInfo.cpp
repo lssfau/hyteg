@@ -11,7 +11,7 @@
 #include "tinyhhg_core/HHGDefinitions.hpp"
 #include "tinyhhg_core/edgedofspace/generatedKernels/all.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template < typename ValueType >
 EdgeDoFPackInfo< ValueType >::EdgeDoFPackInfo( uint_t                                                 level,
@@ -145,7 +145,7 @@ void EdgeDoFPackInfo< ValueType >::unpackFaceFromEdge( Face*                    
                                                        walberla::mpi::RecvBuffer& buffer ) const
 {
    using edgedof::macroface::indexFromHorizontalEdge;
-   using hhg::edgedof::macroface::BoundaryIterator;
+   using hyteg::edgedof::macroface::BoundaryIterator;
    ValueType*                    faceData        = receiver->getData( dataIDFace_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = receiver->edge_index( sender );
    indexing::FaceBoundaryDirection faceDir =
@@ -176,7 +176,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalEdgeToFace( const Edge* sende
 {
    this->storage_.lock()->getTimingTree()->start( "EdgeDoF - Edge to Face" );
    using edgedof::macroface::indexFromHorizontalEdge;
-   using hhg::edgedof::macroface::BoundaryIterator;
+   using hyteg::edgedof::macroface::BoundaryIterator;
    ValueType*                    faceData        = receiver->getData( dataIDFace_ )->getPointer( level_ );
    ValueType*                    edgeData        = sender->getData( dataIDEdge_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = receiver->edge_index( sender->getID() );
@@ -211,7 +211,7 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge( const Face*                s
                                                     const PrimitiveID&         receiver,
                                                     walberla::mpi::SendBuffer& buffer ) const
 {
-   using hhg::edgedof::macroface::BoundaryIterator;
+   using hyteg::edgedof::macroface::BoundaryIterator;
    ValueType*                    faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = sender->edge_index( receiver );
    indexing::FaceBoundaryDirection faceBorderDir =
@@ -294,7 +294,7 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge( const Face*                s
 
       for( const auto edgeOrientationOnReferenceEdge : edgedof::allEdgeDoFOrientations )
       {
-         for( const auto& indexOnEdge : hhg::edgedof::macroedge::Iterator( level_, 0 ) )
+         for( const auto& indexOnEdge : hyteg::edgedof::macroedge::Iterator( level_, 0 ) )
          {
             auto indexOnEdgeCopy = indexOnEdge;
 
@@ -371,7 +371,7 @@ void EdgeDoFPackInfo< ValueType >::unpackEdgeFromFace( Edge*                    
    /////////// DoFs on Face ///////////
    for( const auto edgeOrienation : edgedof::faceLocalEdgeDoFOrientations )
    {
-      for( const auto& indexOnEdge : hhg::edgedof::macroedge::Iterator( level_, 0 ) )
+      for( const auto& indexOnEdge : hyteg::edgedof::macroedge::Iterator( level_, 0 ) )
       {
          if( edgeOrienation == edgedof::EdgeDoFOrientation::X &&
              indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
@@ -390,7 +390,7 @@ void EdgeDoFPackInfo< ValueType >::unpackEdgeFromFace( Edge*                    
 
       for( const auto edgeOrientation : edgedof::allEdgeDoFOrientations )
       {
-         for( const auto& indexOnEdge : hhg::edgedof::macroedge::Iterator( level_, 0 ) )
+         for( const auto& indexOnEdge : hyteg::edgedof::macroedge::Iterator( level_, 0 ) )
          {
             switch( edgeOrientation )
             {
@@ -431,7 +431,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
        indexing::getFaceBorderDirection( faceLocalEdgeID, sender->edge_orientation[faceLocalEdgeID] );
 
    /////////// DoFs on Face ///////////
-   for( const auto edgeOriOnReferenceEdge : {hhg::edgedof::EdgeDoFOrientation::Y, hhg::edgedof::EdgeDoFOrientation::XY} )
+   for( const auto edgeOriOnReferenceEdge : {hyteg::edgedof::EdgeDoFOrientation::Y, hyteg::edgedof::EdgeDoFOrientation::XY} )
    {
       edgeIndexCounter = 0;
 
@@ -447,7 +447,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
          ++edgeIndexCounter;
       }
    }
-   for( const auto edgeOriOnReferenceEdge : {hhg::edgedof::EdgeDoFOrientation::X} )
+   for( const auto edgeOriOnReferenceEdge : {hyteg::edgedof::EdgeDoFOrientation::X} )
    {
       edgeIndexCounter                 = 0;
       const auto edgeOrientationOnFace = edgedof::convertEdgeDoFOrientationEdgeToFace(
@@ -486,7 +486,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
 
       for( const auto edgeOrientationOnReferenceEdge : edgedof::allEdgeDoFOrientations )
       {
-         for( const auto& indexOnEdge : hhg::edgedof::macroedge::Iterator( level_, 0 ) )
+         for( const auto& indexOnEdge : hyteg::edgedof::macroedge::Iterator( level_, 0 ) )
          {
             auto indexOnEdgeCopy = indexOnEdge;
 
@@ -993,4 +993,4 @@ void EdgeDoFPackInfo< real_t >::communicateLocalCellToFace( const Cell* sender, 
 template class EdgeDoFPackInfo< double >;
 template class EdgeDoFPackInfo< int >;
 
-} // namespace hhg
+} // namespace hyteg

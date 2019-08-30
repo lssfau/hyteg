@@ -5,14 +5,14 @@
 
 
 
-namespace hhg {
+namespace hyteg {
 
 template < class OperatorType >
 class GaussSeidelSmoother : public Solver< OperatorType >
 {
  public:
    GaussSeidelSmoother()
-   : flag_( hhg::Inner | hhg::NeumannBoundary )
+   : flag_( hyteg::Inner | hyteg::NeumannBoundary )
    {}
 
    void solve( const OperatorType&                   A,
@@ -27,4 +27,4 @@ class GaussSeidelSmoother : public Solver< OperatorType >
    DoFType flag_;
 };
 
-} // namespace hhg
+} // namespace hyteg

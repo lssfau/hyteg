@@ -5,7 +5,7 @@
 #include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
 #include "tinyhhg_core/solvers/EmptySolver.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template < class OperatorType, class pressureBlockPreconditionerType >
 class StokesBlockDiagonalPreconditioner : public Solver< OperatorType >
@@ -17,10 +17,10 @@ class StokesBlockDiagonalPreconditioner : public Solver< OperatorType >
                                       uint_t                                     minLevel,
                                       uint_t                                     maxLevel,
                                       uint_t                                     velocityPreconditionSteps,
-                                      std::shared_ptr< hhg::Solver< typename OperatorType::VelocityOperator_T > >
-                                          velocityBlockPreconditioner = std::make_shared< hhg::EmptySolver< typename OperatorType::VelocityOperator_T > >() )
+                                      std::shared_ptr< hyteg::Solver< typename OperatorType::VelocityOperator_T > >
+                                          velocityBlockPreconditioner = std::make_shared< hyteg::EmptySolver< typename OperatorType::VelocityOperator_T > >() )
    : velocityPreconditionSteps_( velocityPreconditionSteps )
-   , flag_( hhg::Inner | hhg::NeumannBoundary )
+   , flag_( hyteg::Inner | hyteg::NeumannBoundary )
    , velocityBlockPreconditioner_( velocityBlockPreconditioner )
    , pressureBlockPreconditioner_( std::make_shared< pressureBlockPreconditionerType >( storage, minLevel, maxLevel ) )
    {}
@@ -42,9 +42,9 @@ class StokesBlockDiagonalPreconditioner : public Solver< OperatorType >
 
  private:
    uint_t                                                                      velocityPreconditionSteps_;
-   hhg::DoFType                                                                flag_;
-   std::shared_ptr< hhg::Solver< typename OperatorType::VelocityOperator_T > > velocityBlockPreconditioner_;
+   hyteg::DoFType                                                                flag_;
+   std::shared_ptr< hyteg::Solver< typename OperatorType::VelocityOperator_T > > velocityBlockPreconditioner_;
    std::shared_ptr< pressureBlockPreconditionerType >                          pressureBlockPreconditioner_;
 };
 
-} // namespace hhg
+} // namespace hyteg

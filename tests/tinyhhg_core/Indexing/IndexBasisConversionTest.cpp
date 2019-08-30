@@ -8,7 +8,7 @@
 #include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
 #include "tinyhhg_core/indexing/MacroCellIndexing.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::uint_t;
 
@@ -47,11 +47,11 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv(argc, argv);
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
-  hhg::testBasisConversion( {{1, 0, 2, 3}}, {{0, 1, 3, 2}}, 5, 0 );
-  hhg::testBasisConversion( {{1, 0, 2, 3}}, {{0, 1, 3, 2}}, 6, 0 );
-  hhg::testBasisConversion( {{1, 3, 2, 0}}, {{1, 3, 2, 0}}, 9, 1 );
-  hhg::testBasisConversion( {{0, 1, 2, 3}}, {{1, 3, 2, 0}}, 35, 1 );
-  hhg::testBasisConversion( {{3, 2, 1, 0}}, {{0, 1, 2, 3}}, 37, 2 );
+  hyteg::testBasisConversion( {{1, 0, 2, 3}}, {{0, 1, 3, 2}}, 5, 0 );
+  hyteg::testBasisConversion( {{1, 0, 2, 3}}, {{0, 1, 3, 2}}, 6, 0 );
+  hyteg::testBasisConversion( {{1, 3, 2, 0}}, {{1, 3, 2, 0}}, 9, 1 );
+  hyteg::testBasisConversion( {{0, 1, 2, 3}}, {{1, 3, 2, 0}}, 35, 1 );
+  hyteg::testBasisConversion( {{3, 2, 1, 0}}, {{0, 1, 2, 3}}, 37, 2 );
 
   return EXIT_SUCCESS;
 }

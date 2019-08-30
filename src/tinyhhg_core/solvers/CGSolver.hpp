@@ -6,7 +6,7 @@
 #include "tinyhhg_core/solvers/Solver.hpp"
 #include "tinyhhg_core/solvers/preconditioners/IdentityPreconditioner.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -33,7 +33,7 @@ class CGSolver : public Solver< OperatorType >
    , ap_( "ap", storage, minLevel, maxLevel )
    , r_( "r", storage, minLevel, maxLevel )
    , preconditioner_( preconditioner )
-   , flag_( hhg::Inner | hhg::NeumannBoundary )
+   , flag_( hyteg::Inner | hyteg::NeumannBoundary )
    , printInfo_( false )
    , tolerance_( tolerance )
    , restartFrequency_( std::numeric_limits< uint_t >::max() )
@@ -130,7 +130,7 @@ class CGSolver : public Solver< OperatorType >
    FunctionType                          r_;
    std::shared_ptr< Solver< OperatorType > > preconditioner_;
 
-   hhg::DoFType flag_;
+   hyteg::DoFType flag_;
    bool         printInfo_;
    real_t       tolerance_;
    uint_t       restartFrequency_;
@@ -139,4 +139,4 @@ class CGSolver : public Solver< OperatorType >
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
 };
 
-} // namespace hhg
+} // namespace hyteg

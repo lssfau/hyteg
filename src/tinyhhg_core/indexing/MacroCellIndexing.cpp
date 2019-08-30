@@ -9,7 +9,7 @@
 
 #include <cassert>
 
-namespace hhg {
+namespace hyteg {
 namespace indexing {
 
 using walberla::uint_t;

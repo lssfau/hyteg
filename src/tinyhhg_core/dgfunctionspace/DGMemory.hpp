@@ -3,8 +3,7 @@
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "core/debug/CheckFunctions.h"
 
-namespace hhg
-{
+namespace hyteg {
 
 using walberla::uint_t;
 

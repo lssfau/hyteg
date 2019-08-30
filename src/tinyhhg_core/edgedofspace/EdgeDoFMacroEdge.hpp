@@ -19,7 +19,7 @@
 
 #include "core/math/KahanSummation.h"
 
-namespace hhg {
+namespace hyteg {
 namespace edgedof {
 namespace macroedge {
 
@@ -43,7 +43,7 @@ template< typename ValueType >
 inline void interpolate(const uint_t & Level, Edge & edge,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Edge > & edgeMemoryId,
                         const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,
-                        const std::function< ValueType( const hhg::Point3D &, const std::vector<ValueType>& ) > & expr)
+                        const std::function< ValueType( const hyteg::Point3D &, const std::vector<ValueType>& ) > & expr)
 {
   auto edgeData = edge.getData( edgeMemoryId )->getPointer( Level );
 
@@ -211,7 +211,7 @@ inline void enumerate(const uint_t & Level, Edge &edge,
   ValueType *dst = edge.getData(dstId)->getPointer(Level);
 
   for(uint_t i = 0 ; i < levelinfo::num_microedges_per_edge( Level ) ; ++i){
-    dst[hhg::edgedof::macroedge::horizontalIndex( Level, i )] = num;
+    dst[hyteg::edgedof::macroedge::horizontalIndex( Level, i )] = num;
     ++num;
   }
 }
@@ -224,7 +224,7 @@ inline void apply(const uint_t & Level, Edge &edge,
                   const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstId,
                   UpdateType update)
 {
-  using namespace hhg::edgedof::macroedge;
+  using namespace hyteg::edgedof::macroedge;
   size_t rowsize = levelinfo::num_microedges_per_edge(Level);
 
   real_t * opr_data = edge.getData(operatorId)->getPointer( Level );
@@ -236,16 +236,16 @@ inline void apply(const uint_t & Level, Edge &edge,
   for(uint_t i = 0; i < rowsize; ++i){
     tmp = 0.0;
     for(uint_t k = 0; k < neighborsOnEdgeFromHorizontalEdge.size(); ++k){
-      tmp += opr_data[hhg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnEdgeFromHorizontalEdge[k])] *
+      tmp += opr_data[hyteg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnEdgeFromHorizontalEdge[k])] *
              src[indexFromHorizontalEdge( Level, i, neighborsOnEdgeFromHorizontalEdge[k] )];
     }
     for(uint_t k = 0; k < neighborsOnSouthFaceFromHorizontalEdge.size(); ++k){
-      tmp += opr_data[hhg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnSouthFaceFromHorizontalEdge[k])] *
+      tmp += opr_data[hyteg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnSouthFaceFromHorizontalEdge[k])] *
              src[indexFromHorizontalEdge( Level, i, neighborsOnSouthFaceFromHorizontalEdge[k] )];
     }
     if(edge.getNumNeighborFaces() == 2){
       for(uint_t k = 0; k < neighborsOnNorthFaceFromHorizontalEdge.size(); ++k){
-        tmp += opr_data[hhg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnNorthFaceFromHorizontalEdge[k])] *
+        tmp += opr_data[hyteg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnNorthFaceFromHorizontalEdge[k])] *
                src[indexFromHorizontalEdge( Level, i, neighborsOnNorthFaceFromHorizontalEdge[k] )];
       }
     }
@@ -270,7 +270,7 @@ inline void apply3D( const uint_t & level, const Edge & edge,
   real_t * src  = edge.getData(srcId)->getPointer( level );
   real_t * dst  = edge.getData(dstId)->getPointer( level );
 
-  for ( const auto & centerIndexOnEdge : hhg::edgedof::macroedge::Iterator( level, 0 ) )
+  for ( const auto & centerIndexOnEdge : hyteg::edgedof::macroedge::Iterator( level, 0 ) )
   {
     const EdgeDoFOrientation edgeCenterOrientation = EdgeDoFOrientation::X;
 
@@ -385,36 +385,36 @@ inline void printFunctionMemory(const uint_t & Level, const Edge& edge, const Pr
   cout << "Horizontal Edge" << endl;
   if(edge.getNumNeighborFaces() == 2) {
     for (uint_t i = 1; i < rowsize-1; ++i) {
-      cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_HO_NW )] << "|";
+      cout << setw(5) << edgeMemory[hyteg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_HO_NW )] << "|";
     }
     cout << endl;
   }
   for(uint_t i = 1; i < rowsize; ++i){
-    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_HO_W )] << "|";
+    cout << setw(5) << edgeMemory[hyteg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_HO_W )] << "|";
   }
   cout << endl << "     |";
   for(uint_t i = 1; i < rowsize-1; ++i){
-    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_HO_SE )] << "|";
+    cout << setw(5) << edgeMemory[hyteg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_HO_SE )] << "|";
   }
   cout << endl << "Diagonal Edge" << endl;
   if(edge.getNumNeighborFaces() == 2) {
     for (uint_t i = 1; i < rowsize; ++i) {
-      cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_DI_NW )] << "|";
+      cout << setw(5) << edgeMemory[hyteg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_DI_NW )] << "|";
     }
     cout << endl;
   }
   for(uint_t i = 0; i < rowsize-1; ++i){
-    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_DI_SE )] << "|";
+    cout << setw(5) << edgeMemory[hyteg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_DI_SE )] << "|";
   }
   cout << endl << "Vertical Edge" << endl;
   if(edge.getNumNeighborFaces() == 2) {
     for (uint_t i = 0; i < rowsize -1; ++i) {
-      cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_VE_N )] << "|";
+      cout << setw(5) << edgeMemory[hyteg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_VE_N )] << "|";
     }
     cout << endl;
   }
   for(uint_t i = 1; i < rowsize; ++i){
-    cout << setw(5) << edgeMemory[hhg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_VE_S )] << "|";
+    cout << setw(5) << edgeMemory[hyteg::edgedof::macroedge::indexFromVertex( Level, i, stencilDirection::EDGE_VE_S )] << "|";
   }
   cout << endl << setfill('=') << setw(100) << "" << endl << setfill(' ');
 

@@ -12,10 +12,10 @@
 #include "tinyhhg_core/p2functionspace/P2Elements3D.hpp"
 #include "tinyhhg_core/forms/form_fenics_base/P2FenicsForm.hpp"
 
-namespace hhg{
+namespace hyteg {
 
 template< class EdgeDoFForm >
-class EdgeDoFOperator : public Operator<hhg::EdgeDoFFunction< real_t >, hhg::EdgeDoFFunction < real_t > >
+class EdgeDoFOperator : public Operator< hyteg::EdgeDoFFunction< real_t >, hyteg::EdgeDoFFunction < real_t > >
 {
 public:
 
@@ -175,6 +175,6 @@ void assembleEdgeToEdgeStencils( const std::shared_ptr< PrimitiveStorage > & sto
     }
 }
 
-typedef EdgeDoFOperator< P2FenicsForm< hhg::fenics::NoAssemble, fenics::NoAssemble > > GenericEdgeDoFOperator;
+typedef EdgeDoFOperator< P2FenicsForm< hyteg::fenics::NoAssemble, fenics::NoAssemble > > GenericEdgeDoFOperator;
 
 }

@@ -5,7 +5,7 @@
 #include "tinyhhg_core/Function.hpp"
 #include "tinyhhg_core/boundary/BoundaryConditions.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_c;
 
@@ -203,4 +203,4 @@ private:
 };
 
 
-}// namespace hhg
+}// namespace hyteg

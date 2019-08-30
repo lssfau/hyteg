@@ -6,7 +6,7 @@
 
 #include "tinyhhg_core/facedofspace/FaceDoFIndexing.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace DGFace {
 
 template< typename ValueType >
@@ -43,7 +43,7 @@ template< typename ValueType >
 inline void interpolate(const uint_t & Level, Face &face,
                         const PrimitiveDataID<FunctionMemory< ValueType >, Face>& faceMemoryId,
                         const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Face>>& srcMemoryIds,
-                        std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>& f)> &expr) {
+                        std::function<ValueType(const hyteg::Point3D &, const std::vector<ValueType>& f)> &expr) {
 
   auto faceMemory = face.getData(faceMemoryId)->getPointer( Level );
 
@@ -543,4 +543,4 @@ inline real_t getMaxMagnitude( const uint_t &level, Face &face, const PrimitiveD
 
 
 }//namespace DGFace
-}//namespace hhg
+}//namespace hyteg

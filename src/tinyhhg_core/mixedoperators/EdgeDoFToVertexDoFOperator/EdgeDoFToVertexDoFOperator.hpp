@@ -25,10 +25,10 @@
 #  pragma warning(pop)
 #endif
 
-namespace hhg {
+namespace hyteg {
 
 template< class EdgeDoFToVertexDoFForm >
-class EdgeDoFToVertexDoFOperator : public Operator<hhg::EdgeDoFFunction< real_t >, hhg::P1Function < real_t > >
+class EdgeDoFToVertexDoFOperator : public Operator< hyteg::EdgeDoFFunction< real_t >, hyteg::P1Function < real_t > >
 {
 public:
 
@@ -216,7 +216,7 @@ uint_t macroCellEdgeDoFToVertexDoFStencilSize(const uint_t &level, const Primiti
 
 }// namespace EdgeDoFToVertexDoF
 
-typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< hhg::fenics::NoAssemble, hhg::fenics::NoAssemble > > GenericEdgeDoFToVertexDoFOperator;
+typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< hyteg::fenics::NoAssemble, hyteg::fenics::NoAssemble > > GenericEdgeDoFToVertexDoFOperator;
 typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_div_cell_integral_0_otherwise > > EdgeToVertexDivxOperator;
 typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_div_cell_integral_1_otherwise > > EdgeToVertexDivyOperator;
 
@@ -224,4 +224,4 @@ typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< fenics::NoAssemble, p2_to_p1_t
 typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise > > P2ToP1DivyEdgeToVertexOperator;
 typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise > > P2ToP1DivzEdgeToVertexOperator;
 
-}// namespace hhg
+}// namespace hyteg

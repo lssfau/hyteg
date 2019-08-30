@@ -18,7 +18,7 @@
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
 using walberla::real_t;
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
@@ -27,8 +27,8 @@ int main( int argc, char* argv[] )
 
   std::string meshFileName = "../data/meshes/porous_fine.msh";
 
-  hhg::MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
-  hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+  hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
+  hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   const uint_t level           = 2;
   const uint_t maxIterations   = 1000;
@@ -36,19 +36,19 @@ int main( int argc, char* argv[] )
   const bool   usePetsc        = true;
 
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-  std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
+  std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
 
 #ifdef WALBERLA_BUILD_WITH_PARMETIS
-  hhg::loadbalancing::distributed::parmetis( *storage );
+  hyteg::loadbalancing::distributed::parmetis( *storage );
 #endif
 
-  hhg::P2P1TaylorHoodFunction< real_t > r( "r", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t > f( "f", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t > u( "u", storage, level, level );
+  hyteg::P2P1TaylorHoodFunction< real_t > r( "r", storage, level, level );
+  hyteg::P2P1TaylorHoodFunction< real_t > f( "f", storage, level, level );
+  hyteg::P2P1TaylorHoodFunction< real_t > u( "u", storage, level, level );
 
-  hhg::P2P1TaylorHoodStokesOperator L( storage, level, level );
+  hyteg::P2P1TaylorHoodStokesOperator L( storage, level, level );
 
-  std::function< real_t( const hhg::Point3D& ) > bc_x = []( const hhg::Point3D& x ) {
+  std::function< real_t( const hyteg::Point3D& ) > bc_x = []( const hyteg::Point3D& x ) {
       if( x[0] < 1e-8 )
       {
         return 4.0 * x[1] * (1.0 - x[1]);
@@ -57,14 +57,14 @@ int main( int argc, char* argv[] )
         return 0.0;
       }
   };
-  std::function< real_t( const hhg::Point3D& ) > rhs  = []( const hhg::Point3D& ) { return 0.0; };
-  std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };
-  std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
+  std::function< real_t( const hyteg::Point3D& ) > rhs  = []( const hyteg::Point3D& ) { return 0.0; };
+  std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
+  std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-  u.u.interpolate( bc_x, level, hhg::DirichletBoundary );
-  u.v.interpolate( zero, level, hhg::DirichletBoundary );
+  u.u.interpolate( bc_x, level, hyteg::DirichletBoundary );
+  u.v.interpolate( zero, level, hyteg::DirichletBoundary );
 
-  hhg::VTKOutput vtkOutput("../output", "stokes_porous_taylor_hood", storage);
+  hyteg::VTKOutput vtkOutput("../output", "stokes_porous_taylor_hood", storage);
 
   vtkOutput.add( r.u );
   vtkOutput.add( r.v );
@@ -86,8 +86,8 @@ int main( int argc, char* argv[] )
   if ( usePetsc )
   {
     PETScManager petscManager;
-    f.u.interpolate(bc_x, level, hhg::DirichletBoundary);
-    PETScLUSolver< hhg::P2P1TaylorHoodStokesOperator> solver( storage, level );
+    f.u.interpolate(bc_x, level, hyteg::DirichletBoundary);
+    PETScLUSolver< hyteg::P2P1TaylorHoodStokesOperator> solver( storage, level );
     solver.solve( L, u, f, level );
   }
   else
@@ -98,7 +98,8 @@ int main( int argc, char* argv[] )
   }
 #endif
   {
-    auto solver = hhg::MinResSolver< hhg::P2P1TaylorHoodStokesOperator >( storage, level, level, maxIterations, targetResidual );
+    auto solver =
+         hyteg::MinResSolver< hyteg::P2P1TaylorHoodStokesOperator >( storage, level, level, maxIterations, targetResidual );
 
     solver.solve( L, u, f, level );
   }

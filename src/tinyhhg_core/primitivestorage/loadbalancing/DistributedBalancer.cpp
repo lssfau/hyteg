@@ -11,7 +11,7 @@
 
 #include <algorithm>
 
-namespace hhg {
+namespace hyteg {
 namespace loadbalancing {
 namespace distributed {
 

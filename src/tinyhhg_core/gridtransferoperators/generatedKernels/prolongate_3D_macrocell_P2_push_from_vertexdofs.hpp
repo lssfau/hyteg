@@ -6,11 +6,12 @@
 #pragma once
 #include "all.hpp"
 #include "core/Macros.h"
-#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFOrientation.hpp"
+#include "tinyhhg_core/indexing/Common.hpp"
 #include <map>
 #define RESTRICT WALBERLA_RESTRICT
 
-namespace hhg {
+namespace hyteg {
 namespace P2 {
 namespace macrocell {
 namespace generated {
@@ -20,4 +21,4 @@ void prolongate_3D_macrocell_P2_push_from_vertexdofs(double * RESTRICT _data_edg
 } // namespace generated
 } // namespace macrocell
 } // namespace P2
-} // namespace hhg
+} // namespace hyteg

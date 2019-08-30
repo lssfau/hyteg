@@ -6,7 +6,7 @@
 
 #include "tinyhhg_core/types/pointnd.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_c;
 using walberla::real_t;
@@ -267,4 +267,4 @@ inline bool sphereTetrahedronIntersection( const Point3D& sphereCenter,
           sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex1, tetVertex2, tetVertex3 );
 }
 
-} // namespace hhg
+} // namespace hyteg

@@ -44,7 +44,7 @@
 
 #include "sqlite/SQLite.h"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::int64_c;
 using walberla::math::pi;
@@ -55,43 +55,43 @@ using walberla::math::pi;
 
 #if CONSTANTA_POISSON
 
-std::function< real_t( const hhg::Point3D& ) > exact;
-std::function< real_t( const hhg::Point3D& ) > rhs;
+std::function< real_t( const hyteg::Point3D& ) > exact;
+std::function< real_t( const hyteg::Point3D& ) > rhs;
 
-std::function< real_t( const hhg::Point3D& ) > exactConstanta2D = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > exactConstanta2D = []( const hyteg::Point3D& x ) {
    return cos( pi * x[0] ) - sin( 2.0 * pi * x[1] );
 };
 
-std::function< real_t( const hhg::Point3D& ) > rhsConstanta2D = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > rhsConstanta2D = []( const hyteg::Point3D& x ) {
    return pi * pi * cos( pi * x[0] ) - 4.0 * pi * pi * sin( 2.0 * pi * x[1] );
 };
 
-std::function< real_t( const hhg::Point3D& ) > exactConstanta3D = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > exactConstanta3D = []( const hyteg::Point3D& x ) {
    return cos( pi * x[0] ) - sin( 2.0 * pi * x[1] ) + cos( 2.0 * pi * x[2] );
 };
 
-std::function< real_t( const hhg::Point3D& ) > rhsConstanta3D = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > rhsConstanta3D = []( const hyteg::Point3D& x ) {
    return pi * pi * cos( pi * x[0] ) - 4.0 * pi * pi * sin( 2.0 * pi * x[1] ) + 4.0 * pi * pi * cos( 2.0 * pi * x[2] );
 };
 
 #else // END IF CONSTANTA
 #if 1
-std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& x ) {
    return ( 1.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
 };
 
-std::function< real_t( const hhg::Point3D& ) > rhs = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > rhs = []( const hyteg::Point3D& x ) {
    return ( 3.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
 };
 #else
-std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
+std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
 
-std::function< real_t( const hhg::Point3D& ) > rhs    = []( const hhg::Point3D& ) { return 0; };
+std::function< real_t( const hyteg::Point3D& ) > rhs    = []( const hyteg::Point3D& ) { return 0; };
 #endif
 #endif // END ELSE CONSTANTA
 
 #if NEUMANN_PROBLEM
-std::function< real_t( const hhg::Point3D& ) > bcU = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > bcU = []( const hyteg::Point3D& x ) {
    if ( std::abs( x[0] + 1 ) < 1e-8 )
    {
       return 1 - x[1] * x[1];
@@ -102,72 +102,72 @@ std::function< real_t( const hhg::Point3D& ) > bcU = []( const hhg::Point3D& x )
    }
 };
 
-std::function< real_t( const hhg::Point3D& ) > exactU = []( const hhg::Point3D& x ) { return 1 - x[1] * x[1]; };
+std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& x ) { return 1 - x[1] * x[1]; };
 
-std::function< real_t( const hhg::Point3D& ) > exactV = []( const hhg::Point3D& ) { return 0.0; };
-std::function< real_t( const hhg::Point3D& ) > exactP = []( const hhg::Point3D& x ) { return -2 * x[0]; };
-std::function< real_t( const hhg::Point3D& ) > rhsU   = []( const hhg::Point3D& ) { return 0; };
-std::function< real_t( const hhg::Point3D& ) > rhsV   = []( const hhg::Point3D& x ) { return 0; };
+std::function< real_t( const hyteg::Point3D& ) > exactV = []( const hyteg::Point3D& ) { return 0.0; };
+std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& x ) { return -2 * x[0]; };
+std::function< real_t( const hyteg::Point3D& ) > rhsU   = []( const hyteg::Point3D& ) { return 0; };
+std::function< real_t( const hyteg::Point3D& ) > rhsV   = []( const hyteg::Point3D& x ) { return 0; };
 
 #else
 
 #if COLLIDING_FLOW
-std::function< real_t( const hhg::Point3D& ) > exactU = []( const hhg::Point3D& x ) { return 20 * x[0] * std::pow( x[1], 3.0 ); };
-std::function< real_t( const hhg::Point3D& ) > bcU    = []( const hhg::Point3D& x ) { return 20 * x[0] * std::pow( x[1], 3.0 ); };
-std::function< real_t( const hhg::Point3D& ) > exactV = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& x ) { return 20 * x[0] * std::pow( x[1], 3.0 ); };
+std::function< real_t( const hyteg::Point3D& ) > bcU    = []( const hyteg::Point3D& x ) { return 20 * x[0] * std::pow( x[1], 3.0 ); };
+std::function< real_t( const hyteg::Point3D& ) > exactV = []( const hyteg::Point3D& x ) {
    return 5 * std::pow( x[0], 4.0 ) - 5 * std::pow( x[1], 4.0 );
 };
-std::function< real_t( const hhg::Point3D& ) > exactP = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& x ) {
    return 60 * std::pow( x[0], 2.0 ) * x[1] - 20 * std::pow( x[1], 3.0 );
 };
-std::function< real_t( const hhg::Point3D& ) > rhsU = []( const hhg::Point3D& ) { return 0; };
-std::function< real_t( const hhg::Point3D& ) > rhsV = []( const hhg::Point3D& ) { return 0; };
+std::function< real_t( const hyteg::Point3D& ) > rhsU = []( const hyteg::Point3D& ) { return 0; };
+std::function< real_t( const hyteg::Point3D& ) > rhsV = []( const hyteg::Point3D& ) { return 0; };
 
 #else
-std::function< real_t( const hhg::Point3D& ) > exactU = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& x ) {
    return std::sin( 2 * pi * x[0] ) * std::cos( pi * x[1] );
 };
-std::function< real_t( const hhg::Point3D& ) > bcU = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > bcU = []( const hyteg::Point3D& x ) {
    return std::sin( 2 * pi * x[0] ) * std::cos( pi * x[1] );
 };
-std::function< real_t( const hhg::Point3D& ) > exactV = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > exactV = []( const hyteg::Point3D& x ) {
    return -2.0 * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] );
 };
-std::function< real_t( const hhg::Point3D& ) > bcV = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > bcV = []( const hyteg::Point3D& x ) {
     return -2.0 * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] );
 };
-std::function< real_t( const hhg::Point3D& ) > exactW = []( const hhg::Point3D& ) {
+std::function< real_t( const hyteg::Point3D& ) > exactW = []( const hyteg::Point3D& ) {
     return real_c(0);
 };
-std::function< real_t( const hhg::Point3D& ) > bcW = []( const hhg::Point3D& ) {
+std::function< real_t( const hyteg::Point3D& ) > bcW = []( const hyteg::Point3D& ) {
     return real_c(0);
 };
-std::function< real_t( const hhg::Point3D& ) > exactP = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& x ) {
    return 2.5 * pi * std::cos( 2 * pi * x[0] ) * std::cos( pi * x[1] );
 };
-std::function< real_t( const hhg::Point3D& ) > rhsU = []( const hhg::Point3D& ) { return 0; };
-std::function< real_t( const hhg::Point3D& ) > rhsV = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > rhsU = []( const hyteg::Point3D& ) { return 0; };
+std::function< real_t( const hyteg::Point3D& ) > rhsV = []( const hyteg::Point3D& x ) {
    return -12.5 * pi * pi * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] );
 };
-std::function< real_t( const hhg::Point3D& ) > rhsW = []( const hhg::Point3D& ) {
+std::function< real_t( const hyteg::Point3D& ) > rhsW = []( const hyteg::Point3D& ) {
     return real_c(0);
 };
 #endif
 #endif
 
-std::function< real_t( const hhg::Point3D& ) > shellExactU = []( const hhg::Point3D& x ) { return -4 * std::cos( 4 * x[2] ); };
-std::function< real_t( const hhg::Point3D& ) > shellExactV = []( const hhg::Point3D& x ) { return 8 * std::cos( 8 * x[0] ); };
-std::function< real_t( const hhg::Point3D& ) > shellExactW = []( const hhg::Point3D& x ) { return -2 * std::cos( 2 * x[1] ); };
-std::function< real_t( const hhg::Point3D& ) > shellExactP = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > shellExactU = []( const hyteg::Point3D& x ) { return -4 * std::cos( 4 * x[2] ); };
+std::function< real_t( const hyteg::Point3D& ) > shellExactV = []( const hyteg::Point3D& x ) { return 8 * std::cos( 8 * x[0] ); };
+std::function< real_t( const hyteg::Point3D& ) > shellExactW = []( const hyteg::Point3D& x ) { return -2 * std::cos( 2 * x[1] ); };
+std::function< real_t( const hyteg::Point3D& ) > shellExactP = []( const hyteg::Point3D& x ) {
    return std::sin( 4 * x[0] ) * std::sin( 8 * x[1] ) * std::sin( 2 * x[2] );
 };
-std::function< real_t( const hhg::Point3D& ) > shellRhsU = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > shellRhsU = []( const hyteg::Point3D& x ) {
    return 4 * std::sin( 8 * x[1] ) * std::sin( 2 * x[2] ) * std::cos( 4 * x[0] ) - 64 * std::cos( 4 * x[2] );
 };
-std::function< real_t( const hhg::Point3D& ) > shellRhsV = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > shellRhsV = []( const hyteg::Point3D& x ) {
    return 8 * std::sin( 4 * x[0] ) * std::sin( 2 * x[2] ) * std::cos( 8 * x[1] ) + 512 * std::cos( 8 * x[0] );
 };
-std::function< real_t( const hhg::Point3D& ) > shellRhsW = []( const hhg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > shellRhsW = []( const hyteg::Point3D& x ) {
    return 2 * std::sin( 4 * x[0] ) * std::sin( 8 * x[1] ) * std::cos( 2 * x[2] ) - 8 * std::cos( 2 * x[1] );
 };
 
@@ -1621,9 +1621,9 @@ void setup( int argc, char** argv )
    LIKWID_MARKER_CLOSE;
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 int main( int argc, char** argv )
 {
-   hhg::setup( argc, argv );
+   hyteg::setup( argc, argv );
 }

@@ -1,7 +1,7 @@
 #include <core/debug/all.h>
 #include "tinyhhg_core/Levelinfo.hpp"
 
-using namespace hhg;
+using namespace hyteg;
 
 using walberla::uint_t;
 

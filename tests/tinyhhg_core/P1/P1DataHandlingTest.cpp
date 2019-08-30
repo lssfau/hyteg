@@ -12,7 +12,7 @@
 
 using walberla::uint_t;
 
-namespace hhg {
+namespace hyteg {
 
 static void testP1DataHandling()
 {
@@ -83,7 +83,7 @@ static void testP1DataHandling()
 
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -93,7 +93,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testP1DataHandling();
+   hyteg::testP1DataHandling();
 
    return EXIT_SUCCESS;
 }

@@ -7,7 +7,7 @@
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp>
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp>
 
-namespace hhg {
+namespace hyteg {
 namespace petsc {
 
 inline void createVectorFromFunction(const P1Function<PetscScalar> &function,

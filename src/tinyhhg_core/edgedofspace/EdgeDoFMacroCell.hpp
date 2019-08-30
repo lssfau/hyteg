@@ -12,7 +12,7 @@
 #include "tinyhhg_core/p2functionspace/P2Elements3D.hpp"
 #include "tinyhhg_core/Algorithms.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace edgedof {
 namespace macrocell {
 
@@ -159,7 +159,7 @@ template< typename ValueType >
 inline void interpolate(const uint_t & Level, Cell & cell,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & cellMemoryId,
                         const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Cell>> &srcIds,
-                        const std::function< ValueType( const hhg::Point3D &, const std::vector<ValueType>& ) > & expr)
+                        const std::function< ValueType( const hyteg::Point3D &, const std::vector<ValueType>& ) > & expr)
 {
 
   auto cellData = cell.getData( cellMemoryId )->getPointer( Level );

@@ -3,7 +3,7 @@
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
 #include "tinyhhg_core/p1functionspace/P1Petsc.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace petsc {
 
 inline void createVectorFromFunction(const P1StokesFunction<PetscScalar> &function,

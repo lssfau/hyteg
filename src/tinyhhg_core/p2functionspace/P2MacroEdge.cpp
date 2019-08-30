@@ -5,7 +5,7 @@
 
 #include "P2MacroFace.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace P2 {
 namespace macroedge {
 
@@ -35,32 +35,32 @@ void smoothSOR( const uint_t&                                            level,
    const real_t invVertexCenter = 1.0 / vertexToVertexStencil[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
    const real_t invEdgeXCenter  = 1.0 / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( stencilDirection::EDGE_HO_C )];
 
-   for( const auto& it : hhg::edgedof::macroedge::Iterator( level, 0 ) )
+   for( const auto& it : hyteg::edgedof::macroedge::Iterator( level, 0 ) )
    {
       ////////// VERTEX //////////
       if( it.col() != 0 )
       {
          tmpVertex = rhsVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), stencilDirection::VERTEX_C )];
          /// on edge vertex dof
-         for( const auto& dir : hhg::vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
+         for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
          {
             tmpVertex -= dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), dir )] *
                          vertexToVertexStencil[vertexdof::stencilIndexFromVertex( dir )];
          }
          /// on edge edge dof
-         for( const auto& dir : hhg::edgedof::macroedge::neighborsOnEdgeFromVertex )
+         for( const auto& dir : hyteg::edgedof::macroedge::neighborsOnEdgeFromVertex )
          {
             tmpVertex -= dstEdgeDoF[edgedof::macroedge::indexFromVertex( level, it.col(), dir )] *
                          edgeToVertexStencil[edgedof::stencilIndexFromVertex( dir )];
          }
          /// south face vertex dof
-         for( const auto& dir : hhg::vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
+         for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnSouthFaceFromVertexDoF )
          {
             tmpVertex -= dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), dir )] *
                          vertexToVertexStencil[vertexdof::stencilIndexFromVertex( dir )];
          }
          /// south face edge
-         for( const auto& dir : hhg::edgedof::macroedge::neighborsOnSouthFaceFromVertex )
+         for( const auto& dir : hyteg::edgedof::macroedge::neighborsOnSouthFaceFromVertex )
          {
             tmpVertex -= dstEdgeDoF[edgedof::macroedge::indexFromVertex( level, it.col(), dir )] *
                          edgeToVertexStencil[edgedof::stencilIndexFromVertex( dir )];
@@ -68,13 +68,13 @@ void smoothSOR( const uint_t&                                            level,
          if( edge.getNumNeighborFaces() == 2 )
          {
             /// north face vertex dof
-            for( const auto& dir : hhg::vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
+            for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnNorthFaceFromVertexDoF )
             {
                tmpVertex -= dstVertexDoF[vertexdof::macroedge::indexFromVertex( level, it.col(), dir )] *
                             vertexToVertexStencil[vertexdof::stencilIndexFromVertex( dir )];
             }
             /// north face edge
-            for( const auto& dir : hhg::edgedof::macroedge::neighborsOnNorthFaceFromVertex )
+            for( const auto& dir : hyteg::edgedof::macroedge::neighborsOnNorthFaceFromVertex )
             {
                tmpVertex -= dstEdgeDoF[edgedof::macroedge::indexFromVertex( level, it.col(), dir )] *
                             edgeToVertexStencil[edgedof::stencilIndexFromVertex( dir )];
@@ -87,19 +87,19 @@ void smoothSOR( const uint_t&                                            level,
       ////////// HORIZONTAL EDGE //////////
       tmpEdgeHO = rhsEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C )];
       /// on edge
-      for( const auto& dir : hhg::vertexdof::macroedge::neighborsOnEdgeFromHorizontalEdgeDoF )
+      for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnEdgeFromHorizontalEdgeDoF )
       {
          tmpEdgeHO -= dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
                       vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge( dir )];
       }
       /// on south face
-      for( const auto& dir : hhg::vertexdof::macroedge::neighborsOnSouthFaceFromHorizontalEdgeDoF )
+      for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnSouthFaceFromHorizontalEdgeDoF )
       {
          tmpEdgeHO -= dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
                       vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge( dir )];
       }
 
-      for( const auto& dir : hhg::edgedof::macroedge::neighborsOnSouthFaceFromHorizontalEdge )
+      for( const auto& dir : hyteg::edgedof::macroedge::neighborsOnSouthFaceFromHorizontalEdge )
       {
          tmpEdgeHO -= dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
                       edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( dir )];
@@ -107,12 +107,12 @@ void smoothSOR( const uint_t&                                            level,
       /// on north face
       if( edge.getNumNeighborFaces() == 2 )
       {
-         for( const auto& dir : hhg::vertexdof::macroedge::neighborsOnNorthFaceFromHorizontalEdgeDoF )
+         for( const auto& dir : hyteg::vertexdof::macroedge::neighborsOnNorthFaceFromHorizontalEdgeDoF )
          {
             tmpEdgeHO -= dstVertexDoF[vertexdof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
                          vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge( dir )];
          }
-         for( const auto& dir : hhg::edgedof::macroedge::neighborsOnNorthFaceFromHorizontalEdge )
+         for( const auto& dir : hyteg::edgedof::macroedge::neighborsOnNorthFaceFromHorizontalEdge )
          {
             tmpEdgeHO -= dstEdgeDoF[edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), dir )] *
                          edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge( dir )];
@@ -161,7 +161,7 @@ static void smoothSOR3DUpdateVertexDoFs(
   WALBERLA_UNUSED( edgeDoFRhs );
 
   // updating vertex unknowns
-  for ( const auto & centerIndexOnEdge : hhg::vertexdof::macroedge::Iterator( level, 1, backwards ))
+  for ( const auto & centerIndexOnEdge : hyteg::vertexdof::macroedge::Iterator( level, 1, backwards ))
   {
     const auto dstIdx = vertexdof::macroedge::index( level, centerIndexOnEdge.x() );
     tmp = vertexDoFRhs[ dstIdx ];
@@ -318,7 +318,7 @@ static void smoothSOR3DUpdateEdgeDoFs(
    WALBERLA_UNUSED( vertexDoFRelaxOverCenter );
 
    // updating edge unknowns
-   for ( const auto& centerIndexOnEdge : hhg::edgedof::macroedge::Iterator( level, 0, backwards ) )
+   for ( const auto& centerIndexOnEdge : hyteg::edgedof::macroedge::Iterator( level, 0, backwards ) )
    {
       const EdgeDoFOrientation edgeCenterOrientation = EdgeDoFOrientation::X;
 
@@ -569,4 +569,4 @@ void smoothSOR3D(
 
 } // namespace macroedge
 } // namespace P2
-} // namespace hhg
+} // namespace hyteg

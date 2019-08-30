@@ -6,7 +6,7 @@
 #include "core/mpi/RecvBuffer.h"
 
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::mpi::SendBuffer;
 using walberla::mpi::RecvBuffer;

@@ -5,7 +5,7 @@
 
 #include "apply_2D_macroface_vertexdof_to_edgedof_replace.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace VertexDoFToEdgeDoF {
 namespace generated {
 
@@ -139,4 +139,4 @@ void apply_2D_macroface_vertexdof_to_edgedof_replace(double * RESTRICT _data_edg
 
 } // namespace generated
 } // namespace VertexDoFToEdgeDoF
-} // namespace hhg
+} // namespace hyteg

@@ -20,7 +20,7 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-using namespace hhg;
+using namespace hyteg;
 
 static void testPointwiseOperator( const std::string& meshFile, const uint_t& minLevel, const uint_t& maxLevel )
 {

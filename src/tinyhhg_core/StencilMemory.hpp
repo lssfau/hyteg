@@ -3,7 +3,7 @@
 
 #include "tinyhhg_core/FunctionMemory.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template< typename ValueType >
 using StencilMemory = FunctionMemory< ValueType >;

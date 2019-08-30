@@ -12,7 +12,7 @@
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 ///this test check restrict on specific points on the grid
 static void testP2Restrict() {
@@ -26,27 +26,27 @@ static void testP2Restrict() {
 
   auto x = std::make_shared < P2Function < real_t > > ("x", storage, sourceLevel-1, sourceLevel, BoundaryCondition::create012BC(), DoFType::None );
   auto ident = P2Function < real_t >("ident", storage, sourceLevel-1, sourceLevel, BoundaryCondition::create012BC(), DoFType::None );
-  std::function< real_t( const hhg::Point3D& ) > one = []( const hhg::Point3D&  ) {
+  std::function< real_t( const hyteg::Point3D& ) > one = []( const hyteg::Point3D&  ) {
      return 1;
   };
-  ident.interpolate(one, sourceLevel, hhg::All );
+  ident.interpolate(one, sourceLevel, hyteg::All );
 
   x->enumerate( sourceLevel );
-  x->add({1.0},{ident},sourceLevel, hhg::All);
-  hhg::communication::syncP2FunctionBetweenPrimitives( *x, sourceLevel );
+  x->add({1.0},{ident},sourceLevel, hyteg::All);
+  hyteg::communication::syncP2FunctionBetweenPrimitives( *x, sourceLevel );
 
 //  for (auto &faceIT : storage->getFaces()) {
 //    auto face = faceIT.second;
-//    hhg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel>(*face, x->getVertexDoFFunction()->getFaceDataID());
+//    hyteg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel>(*face, x->getVertexDoFFunction()->getFaceDataID());
 //  }
 //
 //    for (auto &faceIT : storage->getFaces()) {
 //    auto face = faceIT.second;
-//    hhg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel>(*face, x->getEdgeDoFFunction()->getFaceDataID());
+//    hyteg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel>(*face, x->getEdgeDoFFunction()->getFaceDataID());
 //  }
 //  for (auto &edgeIT : storage->getEdges()) {
 //    auto edge = edgeIT.second;
-//    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
+//    hyteg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
 //  }
 
   P2toP2QuadraticRestriction restrictionOperator;
@@ -56,12 +56,12 @@ static void testP2Restrict() {
 
 //  for (auto &faceIT : storage->getFaces()) {
 //    auto face = faceIT.second;
-//    hhg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel - 1>(*face, x->getVertexDoFFunction()->getFaceDataID());
+//    hyteg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel - 1>(*face, x->getVertexDoFFunction()->getFaceDataID());
 //  }
 //
 //  for (auto &edgeIT : storage->getEdges()) {
 //    auto edge = edgeIT.second;
-//    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel-1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
+//    hyteg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel-1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
 //  }
 
   ///calculate expected entry for idx = 1 on edge 0
@@ -111,7 +111,7 @@ static void testP2Restrict() {
   WALBERLA_CHECK_FLOAT_EQUAL(storage->
     getFace(PrimitiveID(6))->
     getData(x->getVertexDoFFunction().getFaceDataID())->
-    getPointer(sourceLevel - 1)[hhg::vertexdof::macroface::indexFromVertex(sourceLevel - 1,2,1,stencilDirection::VERTEX_C)], expected);
+    getPointer(sourceLevel - 1)[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel - 1,2,1,stencilDirection::VERTEX_C)], expected);
 
 
 }
@@ -126,7 +126,7 @@ static void testP2Restrict2() {
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(*setupStorage);
   auto x = std::make_shared<P2Function<real_t> >("x", storage, sourceLevel - 2, sourceLevel, BoundaryCondition::create012BC(), DoFType::None );
   typedef stencilDirection sD;
-  std::function<real_t(const hhg::Point3D &)> values = [](const hhg::Point3D &) { return 13; };
+  std::function<real_t(const hyteg::Point3D &)> values = [](const hyteg::Point3D &) { return 13; };
 
   x->interpolate(values, sourceLevel);
 
@@ -135,50 +135,50 @@ static void testP2Restrict2() {
 
 //  for (auto &faceIT : storage->getFaces()) {
 //    auto face = faceIT.second;
-//    hhg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel - 1>(*face, x->getVertexDoFFunction()->getFaceDataID());
+//    hyteg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel - 1>(*face, x->getVertexDoFFunction()->getFaceDataID());
 //  }
 //
 //  for (auto &edgeIT : storage->getEdges()) {
 //    auto edge = edgeIT.second;
-//    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel - 1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
+//    hyteg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel - 1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
 //  }
 //
 //  for (auto &faceIT : storage->getFaces()) {
 //    auto face = faceIT.second;
-//    hhg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel - 1>(*face, x->getEdgeDoFFunction()->getFaceDataID());
+//    hyteg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel - 1>(*face, x->getEdgeDoFFunction()->getFaceDataID());
 //  }
 //
 //  for (auto &edgeIT : storage->getEdges()) {
 //    auto edge = edgeIT.second;
-//    hhg::edgedof::macroedge::printFunctionMemory<real_t, sourceLevel - 1>(*edge, x->getEdgeDoFFunction()->getEdgeDataID());
+//    hyteg::edgedof::macroedge::printFunctionMemory<real_t, sourceLevel - 1>(*edge, x->getEdgeDoFFunction()->getEdgeDataID());
 //  }
 
   real_t* edgeDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel - 1);
   real_t* vertexDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel - 1);
 
-  for( const auto & it : hhg::vertexdof::macroface::Iterator( sourceLevel - 1, 1)) {
+  for( const auto & it : hyteg::vertexdof::macroface::Iterator( sourceLevel - 1, 1)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
-      vertexDoFCoarseData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel - 1,it.col(), it.row(), sD::VERTEX_C)],
+      vertexDoFCoarseData[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel - 1,it.col(), it.row(), sD::VERTEX_C)],
       13.,
       it.col() << " " << it.row());
   }
 
-  for( const auto & it : hhg::edgedof::macroface::Iterator( sourceLevel - 1, 0)) {
+  for( const auto & it : hyteg::edgedof::macroface::Iterator( sourceLevel - 1, 0)) {
     if(it.row() != 0) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFCoarseData[hhg::edgedof::macroface::indexFromVertex(sourceLevel - 1,it.col(), it.row(), sD::EDGE_HO_E)],
+        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 1,it.col(), it.row(), sD::EDGE_HO_E)],
         65.,
         it.col() << " " << it.row());
     }
-    if(it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( sourceLevel - 1 ) - 1)) {
+    if(it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( sourceLevel - 1 ) - 1)) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFCoarseData[hhg::edgedof::macroface::indexFromVertex(sourceLevel - 1,it.col(), it.row(), sD::EDGE_DI_NE)],
+        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 1,it.col(), it.row(), sD::EDGE_DI_NE)],
         65.,
         it.col() << " " << it.row());
     }
     if(it.col() != 0) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFCoarseData[hhg::edgedof::macroface::indexFromVertex(sourceLevel - 1,it.col(), it.row(), sD::EDGE_VE_N)],
+        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 1,it.col(), it.row(), sD::EDGE_VE_N)],
         65.,
         it.col() << " " << it.row());
     }
@@ -189,29 +189,29 @@ static void testP2Restrict2() {
   edgeDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel - 2);
   vertexDoFCoarseData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel - 2);
 
-  for( const auto & it : hhg::vertexdof::macroface::Iterator( sourceLevel - 2, 1)) {
+  for( const auto & it : hyteg::vertexdof::macroface::Iterator( sourceLevel - 2, 1)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
-      vertexDoFCoarseData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel - 2,it.col(), it.row(), sD::VERTEX_C)],
+      vertexDoFCoarseData[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel - 2,it.col(), it.row(), sD::VERTEX_C)],
       13.,
       it.col() << " " << it.row());
   }
 
-  for( const auto & it : hhg::edgedof::macroface::Iterator( sourceLevel - 2, 0)) {
+  for( const auto & it : hyteg::edgedof::macroface::Iterator( sourceLevel - 2, 0)) {
     if(it.row() != 0) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFCoarseData[hhg::edgedof::macroface::indexFromVertex(sourceLevel - 2,it.col(), it.row(), sD::EDGE_HO_E)],
+        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 2,it.col(), it.row(), sD::EDGE_HO_E)],
         273.,
         it.col() << " " << it.row());
     }
-    if(it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( sourceLevel - 2 ) - 1)) {
+    if(it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( sourceLevel - 2 ) - 1)) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFCoarseData[hhg::edgedof::macroface::indexFromVertex(sourceLevel - 2,it.col(), it.row(), sD::EDGE_DI_NE)],
+        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 2,it.col(), it.row(), sD::EDGE_DI_NE)],
         273.,
         it.col() << " " << it.row());
     }
     if(it.col() != 0) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFCoarseData[hhg::edgedof::macroface::indexFromVertex(sourceLevel - 2,it.col(), it.row(), sD::EDGE_VE_N)],
+        edgeDoFCoarseData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel - 2,it.col(), it.row(), sD::EDGE_VE_N)],
         273.,
         it.col() << " " << it.row());
     }
@@ -231,17 +231,17 @@ static void testP2InterpolateAndRestrict() {
   auto y = P2Function<real_t> ("y", storage, sourceLevel - 3, sourceLevel);
   auto error = P2Function<real_t> ("x", storage, sourceLevel - 3, sourceLevel);
 
-  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return 2. * xx[0] * xx[0] + 3. * xx[0] + 13. + 4. * xx[1] + 5. *  xx[1] * xx[1]; };
-  x.interpolate(exact,sourceLevel    ,hhg::All);
-  y.interpolate(exact,sourceLevel - 3,hhg::All);
+  std::function<real_t(const hyteg::Point3D&)> exact = [](const hyteg::Point3D& xx) { return 2. * xx[0] * xx[0] + 3. * xx[0] + 13. + 4. * xx[1] + 5. *  xx[1] * xx[1]; };
+  x.interpolate(exact,sourceLevel    , hyteg::All);
+  y.interpolate(exact,sourceLevel - 3, hyteg::All);
 
-  x.restrictInjection(sourceLevel    ,hhg::All);
-  x.restrictInjection(sourceLevel - 1,hhg::All);
-  x.restrictInjection(sourceLevel - 2,hhg::All);
+  x.restrictInjection(sourceLevel    , hyteg::All);
+  x.restrictInjection(sourceLevel - 1, hyteg::All);
+  x.restrictInjection(sourceLevel - 2, hyteg::All);
 
-  error.assign({1.0, -1.0}, {x, y}, sourceLevel - 3, hhg::All);
+  error.assign({1.0, -1.0}, {x, y}, sourceLevel - 3, hyteg::All);
 
-  WALBERLA_CHECK_FLOAT_EQUAL(error.dotGlobal(error,sourceLevel - 3,hhg::All),0.);
+  WALBERLA_CHECK_FLOAT_EQUAL(error.dotGlobal(error,sourceLevel - 3, hyteg::All),0.);
 }
 
 }/// namespace hhg
@@ -253,9 +253,9 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv(argc, argv);
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
-  hhg::testP2Restrict();
-  hhg::testP2Restrict2();
-  hhg::testP2InterpolateAndRestrict();
+  hyteg::testP2Restrict();
+  hyteg::testP2Restrict2();
+  hyteg::testP2InterpolateAndRestrict();
 
   return EXIT_SUCCESS;
 }

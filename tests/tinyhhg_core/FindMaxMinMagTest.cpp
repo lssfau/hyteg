@@ -16,7 +16,7 @@
 
 using walberla::uint_t;
 
-using namespace hhg;
+using namespace hyteg;
 
 static real_t xLocPos = 0.0;
 static real_t yLocPos = 0.0;
@@ -35,7 +35,7 @@ typedef enum{ FIND_MAX, FIND_MIN, FIND_MAG } findType;
 // --------------------------------------------------------------------------------------------------
 template<class funcType>
 void runFindTest( std::string mesg, findType testType, uint_t theLevel, funcType &dofFunc,
-                  std::function<real_t(const hhg::Point3D&)> &testFunc, real_t refVal,
+                  std::function<real_t(const hyteg::Point3D&)> &testFunc, real_t refVal,
                   DoFType flag = All ) {
 
   real_t measure = 0.0;
@@ -88,21 +88,21 @@ int main( int argc, char* argv[] )
 
   // Define expressions and functions used for testing
 
-  std::function<real_t(const hhg::Point3D&)> testFuncMax = []( const hhg::Point3D& x ) {
+  std::function<real_t(const hyteg::Point3D&)> testFuncMax = []( const hyteg::Point3D& x ) {
     real_t distance = std::sqrt( (xLocPos - x[0]) * (xLocPos - x[0]) +
                                  (yLocPos - x[1]) * (yLocPos - x[1]) +
                                  (zLocPos - x[2]) * (zLocPos - x[2]) );
     return distance > epsilon ? real_t(0.0) : TEST_MAX_VALUE;
   };
 
-  std::function<real_t(const hhg::Point3D&)> testFuncMin = []( const hhg::Point3D& x ) {
+  std::function<real_t(const hyteg::Point3D&)> testFuncMin = []( const hyteg::Point3D& x ) {
     real_t distance = std::sqrt( (xLocPos - x[0]) * (xLocPos - x[0]) +
                                  (yLocPos - x[1]) * (yLocPos - x[1]) +
                                  (zLocPos - x[2]) * (zLocPos - x[2]) );
     return distance > epsilon ? real_t(0.0) : TEST_MIN_VALUE;
   };
 
-  std::function<real_t(const hhg::Point3D&)> testFuncCombo = []( const hhg::Point3D& x ) {
+  std::function<real_t(const hyteg::Point3D&)> testFuncCombo = []( const hyteg::Point3D& x ) {
     WALBERLA_UNUSED(x);
     real_t retVal = 0.0;
     switch( counter%3 )
@@ -115,7 +115,7 @@ int main( int argc, char* argv[] )
     return retVal;
   };
 
-  std::function<real_t(const hhg::Point3D&)> testFuncInvDst = []( const hhg::Point3D& x ) {
+  std::function<real_t(const hyteg::Point3D&)> testFuncInvDst = []( const hyteg::Point3D& x ) {
     real_t distance = std::sqrt( (xLocPos - x[0]) * (xLocPos - x[0]) +
                                  (yLocPos - x[1]) * (yLocPos - x[1]) +
                                  (zLocPos - x[2]) * (zLocPos - x[2]) );
@@ -132,7 +132,7 @@ int main( int argc, char* argv[] )
   // =============
   //  P1Function 
   // =============
-  hhg::P1Function< real_t > p1Func2D( "", storage, theLevel, theLevel );
+  hyteg::P1Function< real_t > p1Func2D( "", storage, theLevel, theLevel );
 
   WALBERLA_LOG_INFO_ON_ROOT( "\n\nP1Function (DoFType=All)\n" );
 
@@ -206,7 +206,7 @@ int main( int argc, char* argv[] )
   WALBERLA_LOG_INFO_ON_ROOT( "\n\nP2Function (DoFType=All)\n" );
 
   theLevel = 2;
-  hhg::P2Function< real_t > p2func( "", storage, theLevel, theLevel );
+  hyteg::P2Function< real_t > p2func( "", storage, theLevel, theLevel );
 
   // Special value on macro edge (vertexdof)
   xLocPos = 0.25;
@@ -236,7 +236,7 @@ int main( int argc, char* argv[] )
   WALBERLA_LOG_INFO_ON_ROOT( "\n\nDGFunction (DoFType=All)\n" );
 
   theLevel = 2;
-  hhg::DGFunction< real_t > dgFunc( "", storage, theLevel, theLevel );
+  hyteg::DGFunction< real_t > dgFunc( "", storage, theLevel, theLevel );
   runFindTest( "Test #C (combo    ): maximum   = ", FIND_MAX, theLevel, dgFunc, testFuncCombo,  3.0 );
   runFindTest( "                     minimum   = ", FIND_MIN, theLevel, dgFunc, testFuncCombo, -5.0 );
   runFindTest( "                     magnitude = ", FIND_MAG, theLevel, dgFunc, testFuncCombo,  5.0 );
@@ -260,9 +260,9 @@ int main( int argc, char* argv[] )
   loadbalancing::roundRobin( setupStorage3D );
   std::shared_ptr<PrimitiveStorage> storage3D = std::make_shared<PrimitiveStorage>( setupStorage3D );
 
-  hhg::P1Function< real_t > p1Func3D( "", storage3D, theLevel, theLevel );
-  hhg::P2Function< real_t > p2Func3D( "", storage3D, theLevel, theLevel );
-  hhg::DGFunction< real_t > dgFunc3D( "", storage3D, theLevel, theLevel );
+  hyteg::P1Function< real_t > p1Func3D( "", storage3D, theLevel, theLevel );
+  hyteg::P2Function< real_t > p2Func3D( "", storage3D, theLevel, theLevel );
+  hyteg::DGFunction< real_t > dgFunc3D( "", storage3D, theLevel, theLevel );
 
 
   // --------------------------------------------------------------------------------------------------

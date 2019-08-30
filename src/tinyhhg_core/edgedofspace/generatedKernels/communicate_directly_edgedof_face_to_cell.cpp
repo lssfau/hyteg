@@ -5,7 +5,7 @@
 
 #include "communicate_directly_edgedof_face_to_cell.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace edgedof {
 namespace comm {
 namespace generated {
@@ -186,4 +186,4 @@ void communicate_directly_edgedof_face_to_cell(double * RESTRICT _data_edge_cell
 } // namespace generated
 } // namespace comm
 } // namespace edgedof
-} // namespace hhg
+} // namespace hyteg

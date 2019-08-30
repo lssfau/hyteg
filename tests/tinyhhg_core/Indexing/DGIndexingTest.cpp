@@ -3,7 +3,7 @@
 #include "tinyhhg_core/facedofspace/FaceDoFIndexing.hpp"
 #include "tinyhhg_core/primitives/all.hpp"
 
-using namespace hhg;
+using namespace hyteg;
 
 int main(int argc, char* argv[]) {
   //this test is written for level 3

@@ -7,7 +7,7 @@
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/forms/form_fenics_base/P2FenicsForm.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_t;
 
@@ -93,4 +93,4 @@ typedef P2ConstantOperator< P2FenicsForm< fenics::NoAssemble, p2_tet_div_tet_cel
 typedef P2ConstantOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >
     P2ConstantPSPGOperator;
 
-} // namespace hhg
+} // namespace hyteg

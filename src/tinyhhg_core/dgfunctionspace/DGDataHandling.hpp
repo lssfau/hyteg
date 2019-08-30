@@ -4,7 +4,7 @@
 #include "tinyhhg_core/primitives/all.hpp"
 #include "DGMemory.hpp"
 
-namespace hhg{
+namespace hyteg {
 
 template< typename ValueType >
 class VertexDGFunctionMemoryDataHandling : public FunctionMemoryDataHandling< FunctionMemory < ValueType >, Vertex >

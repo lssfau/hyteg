@@ -10,7 +10,7 @@
 #include <iomanip>
 #include <set>
 
-namespace hhg {
+namespace hyteg {
 
 SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const uint_t & numberOfProcesses ) :
     numberOfProcesses_( numberOfProcesses )

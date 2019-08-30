@@ -2,7 +2,7 @@
 
 #include "tinyhhg_core/composites/P2P1TaylorHoodFunction.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace petsc {
 
 inline void createVectorFromFunction(const P2P1TaylorHoodFunction<PetscScalar> &function,

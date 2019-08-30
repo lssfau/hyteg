@@ -5,7 +5,7 @@
 #include "core/logging/Logging.h"
 #include "tinyhhg_core/Levelinfo.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 /**
  * \page 04_Indexing Indexing functions and iterating over the domain
@@ -149,7 +149,7 @@ int main( int argc, char** argv )
 {
   walberla::mpi::Environment env( argc, argv );
   walberla::mpi::MPIManager::instance()->useWorldComm();
-  hhg::IndexingTutorial();
+  hyteg::IndexingTutorial();
   return 0;
 }
 

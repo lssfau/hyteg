@@ -5,7 +5,7 @@
 #include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
 #include "tinyhhg_core/p2functionspace/P2Multigrid.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using indexing::Index;
 using indexing::IndexIncrement;
@@ -210,9 +210,9 @@ void P2toP2QuadraticRestriction::restrictAdditively3D( const P2Function< real_t 
   function.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( coarseLevel );
 }
 
-void P2toP2QuadraticRestriction::restrictWithPostCommunication( const hhg::P2Function< walberla::real_t >& function,
+void P2toP2QuadraticRestriction::restrictWithPostCommunication( const hyteg::P2Function< walberla::real_t >& function,
                                                                 const uint_t&                              sourceLevel,
-                                                                const hhg::DoFType&                        flag ) const
+                                                                const hyteg::DoFType&                        flag ) const
 {
    const auto  storage           = function.getStorage();
    const auto& vertexDoFFunction = function.getVertexDoFFunction();
@@ -276,4 +276,4 @@ void P2toP2QuadraticRestriction::restrictWithPostCommunication( const hhg::P2Fun
    }
 }
 
-} // namespace hhg
+} // namespace hyteg

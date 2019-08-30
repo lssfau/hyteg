@@ -12,7 +12,7 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 static void testP2SmoothConvergence( const uint_t & level, const std::string & meshFile, const uint_t & numIterations, const real_t & expectedL2Error )
 {
@@ -54,7 +54,7 @@ static void testP2SmoothConvergence( const uint_t & level, const std::string & m
   WALBERLA_CHECK_LESS( discreteL2Norm, expectedL2Error );
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -63,10 +63,10 @@ int main( int argc, char* argv[] )
 
    walberla::Environment walberlaEnv(argc, argv);
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testP2SmoothConvergence( 3, "../../data/meshes/3D/tet_1el.msh", 50, 1.2e-02 );
-   hhg::testP2SmoothConvergence( 2, "../../data/meshes/3D/pyramid_2el.msh", 50, 9.3e-07 );
-   hhg::testP2SmoothConvergence( 2, "../../data/meshes/3D/pyramid_4el.msh", 50, 1.6e-03 );
-   hhg::testP2SmoothConvergence( 2, "../../data/meshes/3D/regular_octahedron_8el.msh", 50, 7.7e-02 );
+   hyteg::testP2SmoothConvergence( 3, "../../data/meshes/3D/tet_1el.msh", 50, 1.2e-02 );
+   hyteg::testP2SmoothConvergence( 2, "../../data/meshes/3D/pyramid_2el.msh", 50, 9.3e-07 );
+   hyteg::testP2SmoothConvergence( 2, "../../data/meshes/3D/pyramid_4el.msh", 50, 1.6e-03 );
+   hyteg::testP2SmoothConvergence( 2, "../../data/meshes/3D/regular_octahedron_8el.msh", 50, 7.7e-02 );
 
    return EXIT_SUCCESS;
 }

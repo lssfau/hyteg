@@ -9,7 +9,7 @@
 #include "tinyhhg_core/solvers/Solver.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -70,7 +70,7 @@ class GeometricMultigridSolver : public Solver< OperatorType >
    , preSmoothSteps_( preSmoothSteps )
    , postSmoothSteps_( postSmoothSteps )
    , smoothIncrement_( smoothIncrementOnCoarserGrids )
-   , flag_( hhg::Inner | hhg::NeumannBoundary )
+   , flag_( hyteg::Inner | hyteg::NeumannBoundary )
    , cycleType_( cycleType )
    , timingTree_( storage->getTimingTree() )
    {}
@@ -156,17 +156,17 @@ class GeometricMultigridSolver : public Solver< OperatorType >
    uint_t smoothIncrement_;
    uint_t invokedLevel_;
 
-   hhg::DoFType flag_;
+   hyteg::DoFType flag_;
    CycleType    cycleType_;
 
-   std::shared_ptr< hhg::Solver< OperatorType > >               smoother_;
-   std::shared_ptr< hhg::Solver< OperatorType > >               coarseSolver_;
-   std::shared_ptr< hhg::RestrictionOperator< FunctionType > >  restrictionOperator_;
-   std::shared_ptr< hhg::ProlongationOperator< FunctionType > > prolongationOperator_;
+   std::shared_ptr< hyteg::Solver< OperatorType > >               smoother_;
+   std::shared_ptr< hyteg::Solver< OperatorType > >               coarseSolver_;
+   std::shared_ptr< hyteg::RestrictionOperator< FunctionType > >  restrictionOperator_;
+   std::shared_ptr< hyteg::ProlongationOperator< FunctionType > > prolongationOperator_;
 
    FunctionType tmp_;
 
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
 };
 
-} // namespace hhg
+} // namespace hyteg

@@ -6,7 +6,7 @@
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/HHGDefinitions.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 void P1toP1LinearProlongation::prolongate2D( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const
 {

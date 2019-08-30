@@ -12,7 +12,7 @@
 #include "tinyhhg_core/composites/petsc/P2P1TaylorHoodPetsc.hpp"
 #include "tinyhhg_core/composites/petsc/P2P2StabilizedStokesPetsc.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template<typename ValueType, template <class> class FunctionType>
 class PETScVector {
@@ -41,16 +41,14 @@ public:
   ~PETScVector() { VecDestroy(&vec); }
 
   void createVectorFromFunction(const FunctionType<ValueType> &src,const FunctionType<PetscInt> &numerator, uint_t level, DoFType flag = All) {
-
-    hhg::petsc::createVectorFromFunction(src, numerator, vec, level, flag);
+     hyteg::petsc::createVectorFromFunction(src, numerator, vec, level, flag);
 
     VecAssemblyBegin(vec);
     VecAssemblyEnd(vec);
   }
 
   void createFunctionFromVector(const FunctionType<ValueType> &src,const FunctionType<PetscInt> &numerator, uint_t level, DoFType flag = All){
-
-    hhg::petsc::createFunctionFromVector(src, numerator, vec, level, flag);
+     hyteg::petsc::createFunctionFromVector(src, numerator, vec, level, flag);
 
   }
 

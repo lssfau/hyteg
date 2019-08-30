@@ -12,7 +12,7 @@
 
 #include <set>
 
-namespace hhg {
+namespace hyteg {
 namespace P2Elements {
 namespace P2Elements3D {
 

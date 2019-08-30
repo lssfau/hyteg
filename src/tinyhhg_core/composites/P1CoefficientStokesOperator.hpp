@@ -5,8 +5,7 @@
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1CoefficientOperator.hpp"
 
-namespace hhg
-{
+namespace hyteg {
 
 class P1CoefficientStokesOperator
 {

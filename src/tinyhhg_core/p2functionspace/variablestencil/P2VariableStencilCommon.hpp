@@ -2,7 +2,7 @@
 
 #include "tinyhhg_core/p2functionspace/P2Elements.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace P2 {
 namespace variablestencil {
 

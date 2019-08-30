@@ -21,7 +21,7 @@
 
 using walberla::real_t;
 
-namespace hhg {
+namespace hyteg {
 
 void p1PetscApplyTest( const uint_t & level, const std::string & meshFile, const DoFType & location, const real_t & eps )
 {
@@ -29,11 +29,11 @@ void p1PetscApplyTest( const uint_t & level, const std::string & meshFile, const
 
   PETScManager petscManager;
 
-  MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFile );
+  MeshInfo meshInfo = hyteg::MeshInfo::fromGmshFile( meshFile );
   SetupPrimitiveStorage setupStorage(meshInfo, walberla::uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
   loadbalancing::roundRobin( setupStorage );
-  std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
+  std::shared_ptr< hyteg::PrimitiveStorage> storage = std::make_shared< hyteg::PrimitiveStorage>(setupStorage);
 
   writeDomainPartitioningVTK( storage, "../../output", "P1PetscApplyTestDomain" );
 
@@ -44,12 +44,12 @@ void p1PetscApplyTest( const uint_t & level, const std::string & meshFile, const
   P1Function< real_t >   ones     ( "ones",      storage, level, level );
   P1Function< PetscInt > numerator( "numerator", storage, level, level );
 
-  std::function<real_t(const hhg::Point3D&)> zero  = [](const hhg::Point3D&) { return 0.0; };
-  std::function<real_t(const hhg::Point3D&)> one   = [](const hhg::Point3D&) { return 1.0; };
-  std::function<real_t(const hhg::Point3D&)> rand         = []( const hhg::Point3D &   ) { return walberla::math::realRandom<real_t>(); };
-  std::function<real_t(const hhg::Point3D&)> srcFunction  = []( const hhg::Point3D & x ) { return x[0] * x[0] * x[0] * x[0] * std::sinh( x[1] ) * std::cos( x[2] ); };
+  std::function<real_t(const hyteg::Point3D&)> zero  = [](const hyteg::Point3D&) { return 0.0; };
+  std::function<real_t(const hyteg::Point3D&)> one   = [](const hyteg::Point3D&) { return 1.0; };
+  std::function<real_t(const hyteg::Point3D&)> rand         = []( const hyteg::Point3D &   ) { return walberla::math::realRandom<real_t>(); };
+  std::function<real_t(const hyteg::Point3D&)> srcFunction  = []( const hyteg::Point3D & x ) { return x[0] * x[0] * x[0] * x[0] * std::sinh( x[1] ) * std::cos( x[2] ); };
 
-  src.interpolate( srcFunction, level, hhg::All );
+  src.interpolate( srcFunction, level, hyteg::All );
   hhgDst.interpolate( rand, level, location );
   petscDst.interpolate( rand, level, location );
   ones.interpolate( one, level, location );
@@ -58,8 +58,8 @@ void p1PetscApplyTest( const uint_t & level, const std::string & meshFile, const
 
   numerator.enumerate( level );
 
-  const uint_t globalDoFs = hhg::numberOfGlobalDoFs< hhg::P1FunctionTag >( *storage, level );
-  const uint_t localDoFs  = hhg::numberOfLocalDoFs< hhg::P1FunctionTag >( *storage, level );
+  const uint_t globalDoFs = hyteg::numberOfGlobalDoFs< hyteg::P1FunctionTag >( *storage, level );
+  const uint_t localDoFs  = hyteg::numberOfLocalDoFs< hyteg::P1FunctionTag >( *storage, level );
 
   WALBERLA_LOG_INFO_ON_ROOT( "Global DoFs: " << globalDoFs );
 
@@ -106,12 +106,12 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  hhg::p1PetscApplyTest( 3, "../../data/meshes/quad_4el.msh",       hhg::All,   1.0e-15 );
-  hhg::p1PetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh", hhg::All,   1.7e-13 );
-  hhg::p1PetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh",     hhg::Inner, 7.6e-18 );
-  hhg::p1PetscApplyTest( 3, "../../data/meshes/3D/pyramid_2el.msh", hhg::Inner, 2.0e-16 );
-  hhg::p1PetscApplyTest( 3, "../../data/meshes/3D/pyramid_4el.msh", hhg::Inner, 1.0e-15 );
-  hhg::p1PetscApplyTest( 3, "../../data/meshes/3D/regular_octahedron_8el.msh", hhg::Inner, 1.0e-15 );
+  hyteg::p1PetscApplyTest( 3, "../../data/meshes/quad_4el.msh", hyteg::All,   1.0e-15 );
+  hyteg::p1PetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh", hyteg::All,   1.7e-13 );
+  hyteg::p1PetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh", hyteg::Inner, 7.6e-18 );
+  hyteg::p1PetscApplyTest( 3, "../../data/meshes/3D/pyramid_2el.msh", hyteg::Inner, 2.0e-16 );
+  hyteg::p1PetscApplyTest( 3, "../../data/meshes/3D/pyramid_4el.msh", hyteg::Inner, 1.0e-15 );
+  hyteg::p1PetscApplyTest( 3, "../../data/meshes/3D/regular_octahedron_8el.msh", hyteg::Inner, 1.0e-15 );
 
 
   return EXIT_SUCCESS;

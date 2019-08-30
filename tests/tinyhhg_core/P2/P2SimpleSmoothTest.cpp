@@ -17,7 +17,7 @@
 #include "tinyhhg_core/primitives/all.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 /// this test uses stencil weights which results in all values being one after the smoothing step so we can check easily
 static void testP2Smooth()
@@ -30,8 +30,8 @@ static void testP2Smooth()
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   auto x   = std::make_shared< hhg::P2Function< real_t > >( "x", storage, level, level );
-   auto rhs = std::make_shared< hhg::P2Function< real_t > >( "rhs", storage, level, level );
+   auto x   = std::make_shared< hyteg::P2Function< real_t > >( "x", storage, level, level );
+   auto rhs = std::make_shared< hyteg::P2Function< real_t > >( "rhs", storage, level, level );
 
    P2ConstantLaplaceOperator p2operator( storage, level, level );
 
@@ -102,13 +102,13 @@ static void testP2Smooth()
          vertexToEdgeStencil[vertexdof::stencilIndexFromVerticalEdge( vertexdof::macroface::neighborsFromVerticalEdge[k] )] = 1;
       }
 
-      std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1; };
-      std::function< real_t( const hhg::Point3D& ) > two  = []( const hhg::Point3D& ) { return 2; };
+      std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1; };
+      std::function< real_t( const hyteg::Point3D& ) > two  = []( const hyteg::Point3D& ) { return 2; };
 
       x->interpolate( ones, level );
       rhs->interpolate( ones, level );
 
-      hhg::communication::syncP2FunctionBetweenPrimitives( ( *x ), level );
+      hyteg::communication::syncP2FunctionBetweenPrimitives( ( *x ), level );
 
       P2::macroface::smoothGaussSeidel( level,
                                         face,
@@ -135,28 +135,28 @@ static void testP2Smooth()
       real_t* edgeDoFData   = face.getData( x->getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
       real_t* vertexDoFData = face.getData( x->getVertexDoFFunction().getFaceDataID() )->getPointer( level );
 
-      for( const auto& it : hhg::vertexdof::macroface::Iterator( level, 0 ) )
+      for( const auto& it : hyteg::vertexdof::macroface::Iterator( level, 0 ) )
       {
          WALBERLA_CHECK_FLOAT_EQUAL(
-             vertexDoFData[hhg::vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )],
+             vertexDoFData[hyteg::vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )],
              1.,
              it.col() << " " << it.row() );
       }
 
-      for( const auto& it : hhg::edgedof::macroface::Iterator( level, 0 ) )
+      for( const auto& it : hyteg::edgedof::macroface::Iterator( level, 0 ) )
       {
          WALBERLA_CHECK_FLOAT_EQUAL(
-             edgeDoFData[hhg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_HO_E )],
+             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_HO_E )],
              1.,
              it.col() << " " << it.row() );
 
          WALBERLA_CHECK_FLOAT_EQUAL(
-             edgeDoFData[hhg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_DI_NE )],
+             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_DI_NE )],
              1.,
              it.col() << " " << it.row() );
 
          WALBERLA_CHECK_FLOAT_EQUAL(
-             edgeDoFData[hhg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_VE_N )],
+             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_VE_N )],
              1.,
              it.col() << " " << it.row() );
       }
@@ -227,16 +227,16 @@ static void testP2Smooth()
    real_t* edgeDoFData   = doubleEdge->getData( x->getEdgeDoFFunction().getEdgeDataID() )->getPointer( level );
    real_t* vertexDoFData = doubleEdge->getData( x->getVertexDoFFunction().getEdgeDataID() )->getPointer( level );
 
-   for( const auto& it : hhg::vertexdof::macroedge::Iterator( level, 0 ) )
+   for( const auto& it : hyteg::vertexdof::macroedge::Iterator( level, 0 ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( vertexDoFData[hhg::vertexdof::macroedge::indexFromVertex( level, it.col(), sD::VERTEX_C )],
+      WALBERLA_CHECK_FLOAT_EQUAL( vertexDoFData[hyteg::vertexdof::macroedge::indexFromVertex( level, it.col(), sD::VERTEX_C )],
                                   1.,
                                   it.col() << " " << it.row() );
    }
 
-   for( const auto& it : hhg::edgedof::macroedge::Iterator( level, 0 ) )
+   for( const auto& it : hyteg::edgedof::macroedge::Iterator( level, 0 ) )
    {
-      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFData[hhg::edgedof::macroedge::indexFromVertex( level, it.col(), sD::EDGE_HO_E )],
+      WALBERLA_CHECK_FLOAT_EQUAL( edgeDoFData[hyteg::edgedof::macroedge::indexFromVertex( level, it.col(), sD::EDGE_HO_E )],
                                   1.,
                                   it.col() << " " << it.row() );
    }
@@ -266,16 +266,16 @@ static void testP2JacobiSmooth()
    real_t* edgeToEdgeStencil;
    real_t* vertexToEdgeStencil;
 
-   std::function< real_t( const hhg::Point3D& ) >                          ones = []( const hhg::Point3D& ) { return 13; };
-   std::function< real_t( const hhg::Point3D& ) >                          two  = []( const hhg::Point3D& ) { return 2; };
+   std::function< real_t( const hyteg::Point3D& ) >                          ones = []( const hyteg::Point3D& ) { return 13; };
+   std::function< real_t( const hyteg::Point3D& ) >                          two  = []( const hyteg::Point3D& ) { return 2; };
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > onesExtended =
-       [&ones]( const hhg::Point3D& xx, const std::vector< real_t >& ) { return ones( xx ); };
+       [&ones]( const hyteg::Point3D& xx, const std::vector< real_t >& ) { return ones( xx ); };
 
    tmp->interpolate( ones, level );
    rhs->interpolate( ones, level );
 
-   hhg::communication::syncP2FunctionBetweenPrimitives( ( *tmp ), level );
-   hhg::communication::syncP2FunctionBetweenPrimitives( ( *rhs ), level );
+   hyteg::communication::syncP2FunctionBetweenPrimitives( ( *tmp ), level );
+   hyteg::communication::syncP2FunctionBetweenPrimitives( ( *rhs ), level );
 
    for( auto e : storage->getEdges() )
    {
@@ -289,7 +289,7 @@ static void testP2JacobiSmooth()
       vertexdof::macrovertex::interpolate( *vertex, x->getVertexDoFFunction().getVertexDataID(), {}, onesExtended, level );
    }
 
-   hhg::communication::syncP2FunctionBetweenPrimitives( ( *x ), level );
+   hyteg::communication::syncP2FunctionBetweenPrimitives( ( *x ), level );
 
    for( auto faceIt : storage->getFaces() )
    {
@@ -371,28 +371,28 @@ static void testP2JacobiSmooth()
       real_t* edgeDoFData   = face->getData( x->getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
       real_t* vertexDoFData = face->getData( x->getVertexDoFFunction().getFaceDataID() )->getPointer( level );
 
-      for( const auto& it : hhg::vertexdof::macroface::Iterator( level, 0 ) )
+      for( const auto& it : hyteg::vertexdof::macroface::Iterator( level, 0 ) )
       {
          WALBERLA_CHECK_FLOAT_EQUAL(
-             vertexDoFData[hhg::vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )],
+             vertexDoFData[hyteg::vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )],
              13.,
              it.col() << " " << it.row() );
       }
 
-      for( const auto& it : hhg::edgedof::macroface::Iterator( level, 0 ) )
+      for( const auto& it : hyteg::edgedof::macroface::Iterator( level, 0 ) )
       {
          WALBERLA_CHECK_FLOAT_EQUAL(
-             edgeDoFData[hhg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_HO_E )],
+             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_HO_E )],
              13.,
              it.col() << " " << it.row() );
 
          WALBERLA_CHECK_FLOAT_EQUAL(
-             edgeDoFData[hhg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_DI_NE )],
+             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_DI_NE )],
              13.,
              it.col() << " " << it.row() );
 
          WALBERLA_CHECK_FLOAT_EQUAL(
-             edgeDoFData[hhg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_VE_N )],
+             edgeDoFData[hyteg::edgedof::macroface::indexFromVertex( level, it.col(), it.row(), sD::EDGE_VE_N )],
              13.,
              it.col() << " " << it.row() );
       }
@@ -466,23 +466,23 @@ static void testP2JacobiSmooth()
   real_t *edgeDoFData = doubleEdge->getData(x->getEdgeDoFFunction().getEdgeDataID()).getPointer(level);
   real_t *vertexDoFData = doubleEdge->getData(x->getVertexDoFFunction().getEdgeDataID()).getPointer(level);
 
-  for (const auto &it : hhg::vertexdof::macroedge::Iterator(level, 0)) {
+  for (const auto &it : hyteg::vertexdof::macroedge::Iterator(level, 0)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
-      vertexDoFData[hhg::vertexdof::macroedge::indexFromVertex(level,it.col(), sD::VERTEX_C)],
+      vertexDoFData[hyteg::vertexdof::macroedge::indexFromVertex(level,it.col(), sD::VERTEX_C)],
       1.,
       it.col() << " " << it.row());
   }
 
-  for (const auto &it : hhg::edgedof::macroedge::Iterator(level, 0)) {
+  for (const auto &it : hyteg::edgedof::macroedge::Iterator(level, 0)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
-      edgeDoFData[hhg::edgedof::macroedge::indexFromVertex(level,it.col(), sD::EDGE_HO_E)],
+      edgeDoFData[hyteg::edgedof::macroedge::indexFromVertex(level,it.col(), sD::EDGE_HO_E)],
       1.,
       it.col() << " " << it.row());
   }
 #endif
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 int main( int argc, char* argv[] )
 {
@@ -491,8 +491,8 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testP2Smooth();
-   hhg::testP2JacobiSmooth();
+   hyteg::testP2Smooth();
+   hyteg::testP2JacobiSmooth();
 
    return EXIT_SUCCESS;
 }

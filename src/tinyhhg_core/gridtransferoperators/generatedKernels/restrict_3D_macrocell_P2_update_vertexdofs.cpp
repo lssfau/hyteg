@@ -5,7 +5,7 @@
 
 #include "restrict_3D_macrocell_P2_update_vertexdofs.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace P2 {
 namespace macrocell {
 namespace generated {
@@ -137,4 +137,4 @@ void restrict_3D_macrocell_P2_update_vertexdofs(double const * RESTRICT const _d
 } // namespace generated
 } // namespace macrocell
 } // namespace P2
-} // namespace hhg
+} // namespace hyteg

@@ -9,7 +9,7 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 using walberla::real_t;
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
@@ -18,18 +18,18 @@ int main( int argc, char* argv[] )
 
    std::string meshFileName = "../../data/meshes/tri_1el_neumann.msh";
 
-   hhg::MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
-   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-   hhg::loadbalancing::roundRobin( setupStorage );
+   hyteg::loadbalancing::roundRobin( setupStorage );
 
    size_t level = 2;
 
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
 
-   hhg::P2Function< real_t >                      u( "u", storage, level, level );
-   std::function< real_t( const hhg::Point3D& ) > testExpression = []( const hhg::Point3D& x ) { return x[1] + 1.0; };
-   u.interpolate( testExpression, level, hhg::All );
+   hyteg::P2Function< real_t >                      u( "u", storage, level, level );
+   std::function< real_t( const hyteg::Point3D& ) > testExpression = []( const hyteg::Point3D& x ) { return x[1] + 1.0; };
+   u.interpolate( testExpression, level, hyteg::All );
 
    // Sync interpolated function values
    u.getEdgeDoFFunction().communicate< Vertex, Edge >( level );

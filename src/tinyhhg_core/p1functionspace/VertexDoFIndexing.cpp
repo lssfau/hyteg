@@ -7,7 +7,7 @@
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/HHGDefinitions.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 
 // ##################
@@ -28,7 +28,7 @@ uint_t neighborCellGhostLayerSize( const uint_t& level )
 
 uint_t index( const uint_t& level, const uint_t& x )
 {
-   return hhg::indexing::macroEdgeIndex( levelinfo::num_microvertices_per_edge( level ), x );
+   return hyteg::indexing::macroEdgeIndex( levelinfo::num_microvertices_per_edge( level ), x );
 }
 
 uint_t innerIndex( const uint_t & level, const uint_t & x )
@@ -40,17 +40,17 @@ uint_t innerIndex( const uint_t & level, const uint_t & x )
 
 uint_t indexOnNeighborFace( const uint_t& level, const uint_t& x, const uint_t& neighbor )
 {
-   return hhg::indexing::macroEdgeSize( levelinfo::num_microvertices_per_edge( level ) ) +
-          neighbor * hhg::indexing::macroEdgeSize( neighborFaceGhostLayerSize( level ) ) +
-          hhg::indexing::macroEdgeIndex( neighborFaceGhostLayerSize( level ), x );
+   return hyteg::indexing::macroEdgeSize( levelinfo::num_microvertices_per_edge( level ) ) +
+          neighbor * hyteg::indexing::macroEdgeSize( neighborFaceGhostLayerSize( level ) ) +
+          hyteg::indexing::macroEdgeIndex( neighborFaceGhostLayerSize( level ), x );
 }
 
 uint_t indexOnNeighborCell( const uint_t& level, const uint_t& x, const uint_t& neighbor, const uint_t& numNeighborFaces )
 {
-   return hhg::indexing::macroEdgeSize( levelinfo::num_microvertices_per_edge( level ) ) +
-          numNeighborFaces * hhg::indexing::macroEdgeSize( neighborFaceGhostLayerSize( level ) ) +
-          neighbor * hhg::indexing::macroEdgeSize( neighborCellGhostLayerSize( level ) ) +
-          hhg::indexing::macroEdgeIndex( neighborCellGhostLayerSize( level ), x );
+   return hyteg::indexing::macroEdgeSize( levelinfo::num_microvertices_per_edge( level ) ) +
+          numNeighborFaces * hyteg::indexing::macroEdgeSize( neighborFaceGhostLayerSize( level ) ) +
+          neighbor * hyteg::indexing::macroEdgeSize( neighborCellGhostLayerSize( level ) ) +
+          hyteg::indexing::macroEdgeIndex( neighborCellGhostLayerSize( level ), x );
 }
 
 uint_t indexFromVertexOnNeighborFace( const uint_t& level, const uint_t& x, const uint_t& faceID, const stencilDirection& dir )
@@ -183,7 +183,7 @@ namespace macroface {
 
 uint_t index( const uint_t& level, const uint_t& x, const uint_t& y )
 {
-   return hhg::indexing::macroFaceIndex( levelinfo::num_microvertices_per_edge( level ), x, y );
+   return hyteg::indexing::macroFaceIndex( levelinfo::num_microvertices_per_edge( level ), x, y );
 }
 
 uint_t innerIndex( const uint_t & level, const uint_t & x, const uint_t & y )
@@ -198,9 +198,9 @@ uint_t index( const uint_t& level, const uint_t& x, const uint_t& y, const uint_
 {
    WALBERLA_ASSERT_LESS_EQUAL( neighbor, 1 );
 
-   return hhg::indexing::macroFaceSize( levelinfo::num_microvertices_per_edge( level ) ) +
-          neighbor * hhg::indexing::macroFaceSize( levelinfo::num_microvertices_per_edge( level ) - 1 ) +
-          hhg::indexing::macroFaceIndex( levelinfo::num_microvertices_per_edge( level ) - 1, x, y );
+   return hyteg::indexing::macroFaceSize( levelinfo::num_microvertices_per_edge( level ) ) +
+          neighbor * hyteg::indexing::macroFaceSize( levelinfo::num_microvertices_per_edge( level ) - 1 ) +
+          hyteg::indexing::macroFaceIndex( levelinfo::num_microvertices_per_edge( level ) - 1, x, y );
 }
 
 uint_t indexFromVertex( const uint_t& level, const uint_t& x, const uint_t& y, const stencilDirection& dir )
@@ -347,7 +347,7 @@ uint_t indexFromBlueFace( const uint_t& level, const uint_t& x, const uint_t& y,
    }
 }
 
-bool isVertexOnBoundary( const uint_t& level, const hhg::indexing::Index& idx )
+bool isVertexOnBoundary( const uint_t& level, const hyteg::indexing::Index& idx )
 {
    if( idx.row() == 0 )
    {
@@ -355,7 +355,7 @@ bool isVertexOnBoundary( const uint_t& level, const hhg::indexing::Index& idx )
    } else if( idx.col() == 0 )
    {
       return true;
-   } else if( ( idx.row() + idx.col() ) == ( hhg::levelinfo::num_microvertices_per_edge( level ) - 1 ) )
+   } else if( ( idx.row() + idx.col() ) == ( hyteg::levelinfo::num_microvertices_per_edge( level ) - 1 ) )
    {
       return true;
    } else
@@ -369,7 +369,7 @@ Iterator::Iterator( const uint_t& level, const uint_t& offsetToCenter )
 {}
 
 BoundaryIterator::BoundaryIterator( const uint_t&                             level,
-                                const hhg::indexing::FaceBoundaryDirection& direction,
+                                const hyteg::indexing::FaceBoundaryDirection& direction,
                                 const uint_t&                             offsetToCenter,
                                 const uint_t&                             offsetFromVertices )
 : FaceBoundaryIterator( levelinfo::num_microvertices_per_edge( level ), direction, offsetToCenter, offsetFromVertices )
@@ -401,11 +401,11 @@ uint_t index( const uint_t& level, const uint_t& x, const uint_t& y, const uint_
     const uint_t offset = group == 0 ? 0 : levelinfo::num_microvertices_per_cell_from_width( (uint_t(1) << (level-1)) + 1 ) +
                           (group - 1) * levelinfo::num_microvertices_per_cell_from_width( (uint_t(1) << (level-1)) );
 
-    return offset + hhg::indexing::macroCellIndex( width, sub_idx_x, sub_idx_y, sub_idx_z );
+    return offset + hyteg::indexing::macroCellIndex( width, sub_idx_x, sub_idx_y, sub_idx_z );
   }
   else
   {
-    return hhg::indexing::macroCellIndex( levelinfo::num_microvertices_per_edge( level ), x, y, z );
+    return hyteg::indexing::macroCellIndex( levelinfo::num_microvertices_per_edge( level ), x, y, z );
   }
 }
 
@@ -737,4 +737,4 @@ uint_t stencilIndexFromBlueFace( const stencilDirection& dir )
    }
 }
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

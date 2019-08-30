@@ -5,8 +5,7 @@
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1VariableOperator.hpp"
 
-namespace hhg
-{
+namespace hyteg {
 
 class P1BlendingStokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFunction< real_t > >
 {

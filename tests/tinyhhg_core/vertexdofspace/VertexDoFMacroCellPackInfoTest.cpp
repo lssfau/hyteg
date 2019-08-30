@@ -13,7 +13,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::uint_t;
 using walberla::uint_c;
@@ -71,7 +71,7 @@ static void testVertexDoFMacroCellPackInfo( const communication::BufferedCommuni
   }
 
   // Now we check the correct rotation during the unpacking process by interpolation of a function
-  std::function< real_t( const hhg::Point3D & ) > expr = []( const hhg::Point3D & xx ) -> real_t { return real_c( (1.0L/2.0L)*sin(2*xx[0])*sinh(xx[1]) ) * real_c( xx[2] ); };
+  std::function< real_t( const hyteg::Point3D & ) > expr = []( const hyteg::Point3D & xx ) -> real_t { return real_c( (1.0L/2.0L)*sin(2*xx[0])*sinh(xx[1]) ) * real_c( xx[2] ); };
   x->interpolate( expr, level );
 
   x->communicate< Vertex, Edge >( level );
@@ -90,7 +90,7 @@ static void testVertexDoFMacroCellPackInfo( const communication::BufferedCommuni
   }
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -100,8 +100,8 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testVertexDoFMacroCellPackInfo( hhg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
-   hhg::testVertexDoFMacroCellPackInfo( hhg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT );
+   hyteg::testVertexDoFMacroCellPackInfo( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
+   hyteg::testVertexDoFMacroCellPackInfo( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT );
 
    return EXIT_SUCCESS;
 }

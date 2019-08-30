@@ -23,7 +23,7 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 using walberla::real_t;
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
@@ -49,30 +49,30 @@ int main( int argc, char* argv[] )
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
    const uint_t                        level    = mainConf.getParameter< uint_t >( "level" );
 
-   std::shared_ptr< hhg::MeshInfo > meshInfo;
+   std::shared_ptr< hyteg::MeshInfo > meshInfo;
    if( mainConf.getParameter< bool >( "useMeshFile" ) )
    {
       std::string meshFileName = mainConf.getParameter< std::string >( "mesh" );
-      meshInfo                 = std::make_shared< hhg::MeshInfo >( hhg::MeshInfo::fromGmshFile( meshFileName ) );
+      meshInfo                 = std::make_shared< hyteg::MeshInfo >( hyteg::MeshInfo::fromGmshFile( meshFileName ) );
    } else
    {
       uint_t numberOfFaces = mainConf.getParameter< uint_t >( "numberOfFaces" );
       if( mainConf.getParameter< bool >( "facesTimesProcs" ) )
       {
-         meshInfo = std::make_shared< hhg::MeshInfo >(
-             hhg::MeshInfo::meshFaceChain( numberOfFaces * uint_c( walberla::MPIManager::instance()->numProcesses() ) ) );
+         meshInfo = std::make_shared< hyteg::MeshInfo >(
+             hyteg::MeshInfo::meshFaceChain( numberOfFaces * uint_c( walberla::MPIManager::instance()->numProcesses() ) ) );
       }
    }
 
-   hhg::SetupPrimitiveStorage setupStorage( *meshInfo,
+   hyteg::SetupPrimitiveStorage setupStorage( *meshInfo,
                                             walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    uint_t numberOfFaces = setupStorage.getNumberOfFaces();
 
-   hhg::loadbalancing::roundRobin( setupStorage );
+   hyteg::loadbalancing::roundRobin( setupStorage );
 
-   std::function< real_t( const hhg::Point3D& ) > ones  = []( const hhg::Point3D& ) { return 1.0; };
-   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) {
+   std::function< real_t( const hyteg::Point3D& ) > ones  = []( const hyteg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& xx ) {
       //return 5.0;
       return std::sin( walberla::math::pi * xx[0] ) + std::cos( walberla::math::pi * xx[1] );
       //return ( real_c(std::rand()) / real_c(RAND_MAX));
@@ -80,55 +80,55 @@ int main( int argc, char* argv[] )
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
 
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
 
    if( mainConf.getParameter< bool >( "writeDomain" ) )
    {
-      hhg::writeDomainPartitioningVTK( storage, "./output", "domain" );
+      hyteg::writeDomainPartitioningVTK( storage, "./output", "domain" );
    }
 
-   hhg::P1Function< double > oneFunc( "x", storage, level, level );
+   hyteg::P1Function< double > oneFunc( "x", storage, level, level );
    oneFunc.interpolate( ones, level );
-   hhg::P1Function< double > x( "x", storage, level, level );
-   hhg::P1Function< double > y( "y", storage, level, level );
-   hhg::P1Function< double > z( "z", storage, level, level );
-   hhg::P1Function< double > diff( "diff", storage, level, level );
-   x.interpolate( exact, level, hhg::Inner );
-   //hhg::communication::syncFunctionBetweenPrimitives(x,level);
-   hhg::P1Function< PetscInt >    numerator( "numerator", storage, level, level );
-   hhg::P1ConstantLaplaceOperator mass( storage, level, level );
+   hyteg::P1Function< double > x( "x", storage, level, level );
+   hyteg::P1Function< double > y( "y", storage, level, level );
+   hyteg::P1Function< double > z( "z", storage, level, level );
+   hyteg::P1Function< double > diff( "diff", storage, level, level );
+   x.interpolate( exact, level, hyteg::Inner );
+   //hyteg::communication::syncFunctionBetweenPrimitives(x,level);
+   hyteg::P1Function< PetscInt >    numerator( "numerator", storage, level, level );
+   hyteg::P1ConstantLaplaceOperator mass( storage, level, level );
 
    //  for (const auto & faceIT : storage->getFaces()) {
    //    auto facePtr = faceIT.second->getData( mass.getFaceStencilID() )->getPointer( level );
-   //    facePtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_C)] = 1.0;
-   //      facePtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_S)] = 0.0;
-   //      facePtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_SE)] = 0.0;
-   //      facePtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_E)] = 0.0;
-   //      facePtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_N)] = 0.0;
-   //      facePtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_NW)] = 0.0;
-   //      facePtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_W)] = 0.0;
+   //    facePtr[vertexdof::stencilIndexFromVertex(hyteg::stencilDirection::VERTEX_C)] = 1.0;
+   //      facePtr[vertexdof::stencilIndexFromVertex(hyteg::stencilDirection::VERTEX_S)] = 0.0;
+   //      facePtr[vertexdof::stencilIndexFromVertex(hyteg::stencilDirection::VERTEX_SE)] = 0.0;
+   //      facePtr[vertexdof::stencilIndexFromVertex(hyteg::stencilDirection::VERTEX_E)] = 0.0;
+   //      facePtr[vertexdof::stencilIndexFromVertex(hyteg::stencilDirection::VERTEX_N)] = 0.0;
+   //      facePtr[vertexdof::stencilIndexFromVertex(hyteg::stencilDirection::VERTEX_NW)] = 0.0;
+   //      facePtr[vertexdof::stencilIndexFromVertex(hyteg::stencilDirection::VERTEX_W)] = 0.0;
    //  }
 
    //  for (const auto & edgeIT : storage->getEdges()) {
    //    auto edgePtr = edgeIT.second->getData( mass.getEdgeStencilID() )->getPointer( level );
-   //    edgePtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_C)] = 1.0;
-   //      edgePtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_S)] = 0.0;
-   //      edgePtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_SE)] = 0.0;
-   //      edgePtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_E)] = 0.0;
-   //      edgePtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_W)] = 0.0;
+   //    edgePtr[vertexdof::stencilIndexFromVertex(hyteg::stencilDirection::VERTEX_C)] = 1.0;
+   //      edgePtr[vertexdof::stencilIndexFromVertex(hyteg::stencilDirection::VERTEX_S)] = 0.0;
+   //      edgePtr[vertexdof::stencilIndexFromVertex(hyteg::stencilDirection::VERTEX_SE)] = 0.0;
+   //      edgePtr[vertexdof::stencilIndexFromVertex(hyteg::stencilDirection::VERTEX_E)] = 0.0;
+   //      edgePtr[vertexdof::stencilIndexFromVertex(hyteg::stencilDirection::VERTEX_W)] = 0.0;
    //      if(edgeIT.second->getNumHigherDimNeighbors() == 2){
-   //         edgePtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_N)] = 0.0;
-   //         edgePtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_NW)] = 0.0;
+   //         edgePtr[vertexdof::stencilIndexFromVertex(hyteg::stencilDirection::VERTEX_N)] = 0.0;
+   //         edgePtr[vertexdof::stencilIndexFromVertex(hyteg::stencilDirection::VERTEX_NW)] = 0.0;
    //      }
    //  }
 
    //  for (const auto & vertexIT : storage->getVertices()) {
    //    auto vertexPtr = vertexIT.second->getData( mass.getVertexStencilID() )->getPointer( level );
-   //    vertexPtr[vertexdof::stencilIndexFromVertex(hhg::stencilDirection::VERTEX_C)] = 1.0;
+   //    vertexPtr[vertexdof::stencilIndexFromVertex(hyteg::stencilDirection::VERTEX_C)] = 1.0;
    //  }
 
-   const uint_t localDoFs = hhg::numberOfLocalDoFs< hhg::P1FunctionTag >( *storage, level );
-   const uint_t totalDoFs = numberOfGlobalDoFs< hhg::P1FunctionTag >( *storage, level );
+   const uint_t localDoFs = hyteg::numberOfLocalDoFs< hyteg::P1FunctionTag >( *storage, level );
+   const uint_t totalDoFs = numberOfGlobalDoFs< hyteg::P1FunctionTag >( *storage, level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "totalDoFs: " << totalDoFs );
    WALBERLA_LOG_INFO( "localDoFs: " << localDoFs << " totalDoFs: " << totalDoFs );
@@ -136,25 +136,25 @@ int main( int argc, char* argv[] )
    //   WALBERLA_CRITICAL_SECTION_START
    //  for (auto &edgeIT : storage->getEdges()) {
    //    auto edge = edgeIT.second;
-   //    hhg::vertexdof::macroedge::printFunctionMemory< PetscInt >(level, *edge, numerator.getEdgeDataID());
+   //    hyteg::vertexdof::macroedge::printFunctionMemory< PetscInt >(level, *edge, numerator.getEdgeDataID());
    //  }
    //   WALBERLA_CRITICAL_SECTION_END
 
    numerator.enumerate( level );
 
    LIKWID_MARKER_START( "PETSc-setup" );
-   hhg::PETScSparseMatrix< hhg::P1ConstantLaplaceOperator, hhg::P1Function > matPetsc( localDoFs, totalDoFs );
-   matPetsc.createMatrixFromFunction( mass, level, numerator, hhg::Inner );
-   hhg::PETScVector< real_t, hhg::P1Function > vecPetsc( localDoFs );
-   vecPetsc.createVectorFromFunction( x, numerator, level, hhg::Inner );
-   hhg::PETScVector< real_t, hhg::P1Function > dstvecPetsc( localDoFs );
+   hyteg::PETScSparseMatrix< hyteg::P1ConstantLaplaceOperator, hyteg::P1Function > matPetsc( localDoFs, totalDoFs );
+   matPetsc.createMatrixFromFunction( mass, level, numerator, hyteg::Inner );
+   hyteg::PETScVector< real_t, hyteg::P1Function > vecPetsc( localDoFs );
+   vecPetsc.createVectorFromFunction( x, numerator, level, hyteg::Inner );
+   hyteg::PETScVector< real_t, hyteg::P1Function > dstvecPetsc( localDoFs );
    LIKWID_MARKER_STOP( "PETSc-setup" );
 
    walberla::WcTimer timer;
 
    timer.reset();
    LIKWID_MARKER_START( "HyTeG-apply" );
-   mass.apply( x, y, level, hhg::Inner );
+   mass.apply( x, y, level, hyteg::Inner );
    LIKWID_MARKER_STOP( "HyTeG-apply" );
    timer.end();
    double hyteg_apply = timer.last();
@@ -173,16 +173,16 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "Petsc MatMult runtime: " << petsc_matmult );
    CHKERRQ( ierr );
 
-   dstvecPetsc.createFunctionFromVector( z, numerator, level, hhg::Inner );
+   dstvecPetsc.createFunctionFromVector( z, numerator, level, hyteg::Inner );
 
    //dstvecPetsc.print("../output/vector1.vec");
 
-   diff.assign( {1.0, -1.0}, {z, y}, level, hhg::All );
+   diff.assign( {1.0, -1.0}, {z, y}, level, hyteg::All );
 
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "writing VTK output" );
-      hhg::VTKOutput vtkOutput("./output", "petscCompare", storage);
+      hyteg::VTKOutput vtkOutput("./output", "petscCompare", storage);
       vtkOutput.add( x );
       vtkOutput.add( z );
       vtkOutput.add( y );
@@ -206,7 +206,7 @@ int main( int argc, char* argv[] )
       o.close();
    }
 
-   WALBERLA_CHECK_FLOAT_EQUAL( y.dotGlobal( oneFunc, level, hhg::Inner ), z.dotGlobal( oneFunc, level, hhg::Inner ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( y.dotGlobal( oneFunc, level, hyteg::Inner ), z.dotGlobal( oneFunc, level, hyteg::Inner ) );
    WALBERLA_LOG_INFO_ON_ROOT( std::scientific << " | " << numberOfFaces << " | " << level << " | " << totalDoFs << " | "
                                               << walberla::MPIManager::instance()->numProcesses() << " | " << hyteg_apply << " | "
                                               << petsc_matmult << " | " );

@@ -6,7 +6,7 @@
 
 using walberla::real_t;
 using walberla::real_c;
-using namespace hhg;
+using namespace hyteg;
 
 int main(int argc, char **argv) {
   walberla::debug::enterTestMode();
@@ -23,8 +23,8 @@ int main(int argc, char **argv) {
 
   size_t v_perEdge = levelinfo::num_microvertices_per_edge(maxLevel);
 
-  std::function<real_t(const hhg::Point3D&,const std::vector<real_t>&)> exact =
-    [&](const hhg::Point3D& xx,const std::vector<real_t>&) { return 2*xx[0] + xx[1]; };
+  std::function<real_t(const hyteg::Point3D&,const std::vector<real_t>&)> exact =
+    [&](const hyteg::Point3D& xx,const std::vector<real_t>&) { return 2*xx[0] + xx[1]; };
 
 
   std::shared_ptr<Edge> edgeWithTwoFaces;

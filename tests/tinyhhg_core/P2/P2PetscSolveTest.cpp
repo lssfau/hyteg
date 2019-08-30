@@ -22,7 +22,7 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-namespace hhg {
+namespace hyteg {
 
 void petscSolveTest( const uint_t & level, const std::string & meshFileName, const real_t & errEps )
 {
@@ -35,42 +35,42 @@ void petscSolveTest( const uint_t & level, const std::string & meshFileName, con
 
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-   hhg::loadbalancing::roundRobin( setupStorage );
+   hyteg::loadbalancing::roundRobin( setupStorage );
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   hhg::P2Function< real_t >                      x( "x", storage, level, level + 1 );
-   hhg::P2Function< real_t >                      x_exact( "x_exact", storage, level, level + 1 );
-   hhg::P2Function< real_t >                      b( "x", storage, level, level + 1 );
-   hhg::P2Function< real_t >                      err( "err", storage, level, level + 1 );
-   hhg::P2Function< real_t >                      residuum( "err", storage, level, level + 1 );
+   hyteg::P2Function< real_t >                      x( "x", storage, level, level + 1 );
+   hyteg::P2Function< real_t >                      x_exact( "x_exact", storage, level, level + 1 );
+   hyteg::P2Function< real_t >                      b( "x", storage, level, level + 1 );
+   hyteg::P2Function< real_t >                      err( "err", storage, level, level + 1 );
+   hyteg::P2Function< real_t >                      residuum( "err", storage, level, level + 1 );
 
-   hhg::P2ConstantLaplaceOperator A( storage, level, level + 1 );
+   hyteg::P2ConstantLaplaceOperator A( storage, level, level + 1 );
 
-   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) { return sin( xx[0] ) * sinh( xx[1] ); };
+   std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& xx ) { return sin( xx[0] ) * sinh( xx[1] ); };
    walberla::math::seedRandomGenerator( 0 );
    std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) { return walberla::math::realRandom( 0.0, 1.0 ); };
 
-   x.interpolate( exact, level, hhg::DirichletBoundary );
-   x.interpolate( rand, level, hhg::Inner );
-   b.interpolate( exact, level, hhg::DirichletBoundary );
+   x.interpolate( exact, level, hyteg::DirichletBoundary );
+   x.interpolate( rand, level, hyteg::Inner );
+   b.interpolate( exact, level, hyteg::DirichletBoundary );
    x_exact.interpolate( exact, level );
 
-//   x.interpolate( exact, level + 1, hhg::DirichletBoundary );
-//   x.interpolate( rand, level + 1, hhg::Inner );
-//   b.interpolate( exact, level + 1, hhg::DirichletBoundary );
+//   x.interpolate( exact, level + 1, hyteg::DirichletBoundary );
+//   x.interpolate( rand, level + 1, hyteg::Inner );
+//   b.interpolate( exact, level + 1, hyteg::DirichletBoundary );
 //   x_exact.interpolate( exact, level + 1 );
 
-   uint_t localDoFs1 = hhg::numberOfLocalDoFs< P2FunctionTag >( *storage, level );
-//   uint_t localDoFs2 = hhg::numberOfLocalDoFs< P2FunctionTag >( *storage, level + 1 );
-   uint_t globalDoFs1 = hhg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
-//   uint_t globalDoFs2 = hhg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level + 1 );
+   uint_t localDoFs1 = hyteg::numberOfLocalDoFs< P2FunctionTag >( *storage, level );
+//   uint_t localDoFs2 = hyteg::numberOfLocalDoFs< P2FunctionTag >( *storage, level + 1 );
+   uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
+//   uint_t globalDoFs2 = hyteg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level + 1 );
 
    WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 //   WALBERLA_LOG_INFO( "localDoFs2: " << localDoFs2 << " globalDoFs2: " << globalDoFs2 );
 
-   PETScLUSolver< hhg::P2ConstantLaplaceOperator > solver_1( storage, level );
-//   PETScLUSolver< real_t, hhg::P2Function, hhg::P2ConstantLaplaceOperator > solver_2( numerator, localDoFs2, globalDoFs2 );
+   PETScLUSolver< hyteg::P2ConstantLaplaceOperator > solver_1( storage, level );
+//   PETScLUSolver< real_t, hyteg::P2Function, hyteg::P2ConstantLaplaceOperator > solver_2( numerator, localDoFs2, globalDoFs2 );
 
    walberla::WcTimer timer;
    solver_1.solve( A, x, b, level );
@@ -78,8 +78,8 @@ void petscSolveTest( const uint_t & level, const std::string & meshFileName, con
    timer.end();
 
    WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
-   A.apply( x, residuum, level, hhg::Inner );
-//   A.apply( x, residuum, level + 1, hhg::Inner );
+   A.apply( x, residuum, level, hyteg::Inner );
+//   A.apply( x, residuum, level + 1, hyteg::Inner );
 
    err.assign( {1.0, -1.0}, {x, x_exact}, level );
 //   err.assign( {1.0, -1.0}, {x, x_exact}, level + 1 );
@@ -112,7 +112,7 @@ void petscSolveTest( const uint_t & level, const std::string & meshFileName, con
 
 }
 
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {

@@ -22,7 +22,7 @@
 #pragma warning( pop )
 #endif
 
-namespace hhg {
+namespace hyteg {
 namespace fenics {
 
 //template struct UFCTrait< p1_tet_mass_cell_integral_0_otherwise >;
@@ -42,4 +42,4 @@ namespace fenics {
 //template struct UFCTrait< Dummy10x10Assembly >;
 
 } // namespace fenics
-} // namespace hhg
+} // namespace hyteg

@@ -21,7 +21,7 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
@@ -36,31 +36,31 @@ int main( int argc, char* argv[] )
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-   hhg::loadbalancing::roundRobin( setupStorage );
+   hyteg::loadbalancing::roundRobin( setupStorage );
 
    const size_t level = 2;
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   hhg::P1Function< real_t > x( "x", storage, level, level );
-   hhg::P1Function< real_t > x_exact( "x_exact", storage, level, level );
-   hhg::P1Function< real_t > err( "err", storage, level, level );
+   hyteg::P1Function< real_t > x( "x", storage, level, level );
+   hyteg::P1Function< real_t > x_exact( "x_exact", storage, level, level );
+   hyteg::P1Function< real_t > err( "err", storage, level, level );
 
-   hhg::P1ConstantLaplaceOperator A( storage, level, level );
+   hyteg::P1ConstantLaplaceOperator A( storage, level, level );
 
-   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) {
+   std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& xx ) {
       return xx[0] * xx[0] - xx[1] * xx[1] + 10;
    };
-   std::function< real_t( const hhg::Point3D& ) > rhs  = []( const hhg::Point3D& ) { return 0.0; };
-   std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > rhs  = []( const hyteg::Point3D& ) { return 0.0; };
+   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   x.interpolate( exact, level, hhg::DirichletBoundary );
+   x.interpolate( exact, level, hyteg::DirichletBoundary );
    x_exact.interpolate( exact, level );
 
-   uint_t globalDoFs = hhg::numberOfGlobalDoFs< P1FunctionTag >( *storage, level );
+   uint_t globalDoFs = hyteg::numberOfGlobalDoFs< P1FunctionTag >( *storage, level );
    WALBERLA_LOG_INFO_ON_ROOT( "Num dofs = " << uint_c( globalDoFs ) )
 
-   PETScLUSolver< hhg::P1ConstantLaplaceOperator > solver( storage, level );
+   PETScLUSolver< hyteg::P1ConstantLaplaceOperator > solver( storage, level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Solving System" )
    walberla::WcTimer timer;
@@ -76,7 +76,7 @@ int main( int argc, char* argv[] )
    WALBERLA_CHECK_LESS( discr_l2_err, 1e-14 );
 
    //  WALBERLA_LOG_INFO_ON_ROOT("Printing Solution")
-   //  hhg::VTKWriter< P1Function >({ x, x_exact, &err }, level, "../output", "exact_solver");
+   //  hyteg::VTKWriter< P1Function >({ x, x_exact, &err }, level, "../output", "exact_solver");
 
    return EXIT_SUCCESS;
 }

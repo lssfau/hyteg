@@ -3,7 +3,7 @@
 
 #include "core/DataTypes.h"
 
-namespace hhg {
+namespace hyteg {
 namespace indexing {
 namespace optimization {
 

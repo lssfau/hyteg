@@ -4,7 +4,7 @@
 
 #include "tinyhhg_core/communication/PackInfo.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class Vertex;
 class Edge;
@@ -44,8 +44,8 @@ class DoFSpacePackInfo : public communication::PackInfo
    PrimitiveDataID< FunctionMemory< ValueType >, Edge >   dataIDEdge_;
    PrimitiveDataID< FunctionMemory< ValueType >, Face >   dataIDFace_;
    PrimitiveDataID< FunctionMemory< ValueType >, Cell >   dataIDCell_;
-   std::weak_ptr< hhg::PrimitiveStorage >                 storage_;
+   std::weak_ptr< hyteg::PrimitiveStorage >                 storage_;
 };
 
 } // namespace communication
-} // namespace hhg
+} // namespace hyteg

@@ -22,7 +22,7 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-namespace hhg {
+namespace hyteg {
 
 void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo )
 {
@@ -32,27 +32,27 @@ void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo
 
   const uint_t minLevel = 2;
 
-  hhg::loadbalancing::roundRobin( setupStorage );
+  hyteg::loadbalancing::roundRobin( setupStorage );
 
   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
   writeDomainPartitioningVTK( storage, "../../output", "P2P1Stokes2DSchurCGConvergence_Domain" );
 
-  hhg::P2P1TaylorHoodFunction< real_t >                      x( "x", storage, minLevel, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      x_exact( "x_exact", storage, minLevel, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      btmp( "btmp", storage, minLevel, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      b( "b", storage, minLevel, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      err( "err", storage, minLevel, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      residuum( "res", storage, minLevel, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      x( "x", storage, minLevel, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      x_exact( "x_exact", storage, minLevel, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      btmp( "btmp", storage, minLevel, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      b( "b", storage, minLevel, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      err( "err", storage, minLevel, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      residuum( "res", storage, minLevel, level );
 
-  hhg::P2P1TaylorHoodStokesOperator A( storage, minLevel, level );
+  hyteg::P2P1TaylorHoodStokesOperator A( storage, minLevel, level );
 
-  std::function< real_t( const hhg::Point3D& ) > exactU = []( const hhg::Point3D& xx ) { return real_c(20) * xx[0] * xx[1] * xx[1] * xx[1]; };
-  std::function< real_t( const hhg::Point3D& ) > exactV = []( const hhg::Point3D& xx ) { return real_c(5) * xx[0] * xx[0] * xx[0] * xx[0] - real_c(5) * xx[1] * xx[1] * xx[1] * xx[1]; };
-  std::function< real_t( const hhg::Point3D& ) > exactP = []( const hhg::Point3D& xx ) { return real_c(60) * std::pow( xx[0], 2.0 ) * xx[1] - real_c(20) * std::pow( xx[1], 3.0 ); };
-  std::function< real_t( const hhg::Point3D& ) > zero =   []( const hhg::Point3D&    ) { return real_c(0); };
+  std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& xx ) { return real_c(20) * xx[0] * xx[1] * xx[1] * xx[1]; };
+  std::function< real_t( const hyteg::Point3D& ) > exactV = []( const hyteg::Point3D& xx ) { return real_c(5) * xx[0] * xx[0] * xx[0] * xx[0] - real_c(5) * xx[1] * xx[1] * xx[1] * xx[1]; };
+  std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& xx ) { return real_c(60) * std::pow( xx[0], 2.0 ) * xx[1] - real_c(20) * std::pow( xx[1], 3.0 ); };
+  std::function< real_t( const hyteg::Point3D& ) > zero =   []( const hyteg::Point3D&    ) { return real_c(0); };
 
-  x.u.interpolate( exactU, level, hhg::DirichletBoundary );
-  x.v.interpolate( exactV, level, hhg::DirichletBoundary );
+  x.u.interpolate( exactU, level, hyteg::DirichletBoundary );
+  x.v.interpolate( exactV, level, hyteg::DirichletBoundary );
 
   x_exact.u.interpolate( exactU, level );
   x_exact.v.interpolate( exactV, level );
@@ -73,10 +73,10 @@ void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo
   vtkOutput.add( b.p );
   vtkOutput.write( level, 0 );
 
-  uint_t localDoFs1 = hhg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
-  uint_t globalDoFs1 = hhg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
-  uint_t globalDoFsPerVelocityComponent = hhg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
-  uint_t globalDoFsPressure = hhg::numberOfGlobalDoFs< P1FunctionTag >( *storage, level );
+  uint_t localDoFs1 = hyteg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
+  uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
+  uint_t globalDoFsPerVelocityComponent = hyteg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
+  uint_t globalDoFsPressure = hyteg::numberOfGlobalDoFs< P1FunctionTag >( *storage, level );
 
   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
@@ -92,11 +92,11 @@ void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo
   solver.solve( A, x, b, level );
   timer.end();
 
-  // hhg::vertexdof::projectMean( x.p, err.p, level );
-  // hhg::vertexdof::projectMean( x_exact.p, err.p, level );
+  // hyteg::vertexdof::projectMean( x.p, err.p, level );
+  // hyteg::vertexdof::projectMean( x_exact.p, err.p, level );
 
   WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
-  A.apply( x, residuum, level, hhg::Inner | hhg::NeumannBoundary );
+  A.apply( x, residuum, level, hyteg::Inner | hyteg::NeumannBoundary );
 
   err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
@@ -120,14 +120,14 @@ void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo
 
 }
 
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
   walberla::Environment walberlaEnv( argc, argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  P2P1SchurCGConvergenceTest( 3, hhg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ) );
+  P2P1SchurCGConvergenceTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ) );
 
   return EXIT_SUCCESS;
 }

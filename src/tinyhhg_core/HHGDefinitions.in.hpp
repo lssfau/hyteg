@@ -6,29 +6,29 @@
 #cmakedefine HHG_P1_COLORING
 
 #ifdef HHG_USE_GENERATED_KERNELS
-namespace hhg {
+namespace hyteg {
 namespace globalDefines {
 constexpr bool useGeneratedKernels = true;
 } // namespace globalDefines
-} // namespace hhg
+} // namespace hyteg
 #else
-namespace hhg {
+namespace hyteg {
 namespace globalDefines {
 constexpr bool useGeneratedKernels = false;
 } // namesapce globalDefines
-} // namespace hhg
+} // namespace hyteg
 #endif
 
 #ifdef HHG_P1_COLORING
-namespace hhg {
+namespace hyteg {
 namespace globalDefines {
 constexpr bool useP1Coloring = true;
 } // namespace globalDefines
-} // namespace hhg
+} // namespace hyteg
 #else
-namespace hhg {
+namespace hyteg {
 namespace globalDefines {
 constexpr bool useP1Coloring = false;
 } // namesapce globalDefines
-} // namespace hhg
+} // namespace hyteg
 #endif

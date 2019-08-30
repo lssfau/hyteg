@@ -12,7 +12,7 @@
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 /// this test checks if a constant value is prolongated correctly to all points on the finer level
 static void testP2Prolongate() {
@@ -24,8 +24,8 @@ static void testP2Prolongate() {
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(*setupStorage);
   auto x = std::make_shared<P2Function<real_t> >("x", storage, sourceLevel, sourceLevel + 2, BoundaryCondition::create012BC(), None);
   typedef stencilDirection sD;
-  std::function<real_t(const hhg::Point3D &)> values = [](const hhg::Point3D &) { return 13; };
-  x->interpolate(values, sourceLevel, hhg::All);
+  std::function<real_t(const hyteg::Point3D &)> values = [](const hyteg::Point3D &) { return 13; };
+  x->interpolate(values, sourceLevel, hyteg::All);
 
   P2toP2QuadraticProlongation prolongationOperator;
   prolongationOperator.prolongate( *x, sourceLevel, All );
@@ -33,29 +33,29 @@ static void testP2Prolongate() {
   real_t* edgeDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
   real_t* vertexDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
 
-  for( const auto & it : hhg::vertexdof::macroface::Iterator( sourceLevel + 1, 1)) {
+  for( const auto & it : hyteg::vertexdof::macroface::Iterator( sourceLevel + 1, 1)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
-      vertexDoFFineData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel + 1,it.col(), it.row(), sD::VERTEX_C)],
+      vertexDoFFineData[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel + 1,it.col(), it.row(), sD::VERTEX_C)],
       13.,
       it.col() << " " << it.row());
   }
 
-  for( const auto & it : hhg::edgedof::macroface::Iterator( sourceLevel + 1, 0)) {
+  for( const auto & it : hyteg::edgedof::macroface::Iterator( sourceLevel + 1, 0)) {
     if(it.row() != 0) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,it.col(), it.row(), sD::EDGE_HO_E)],
+        edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,it.col(), it.row(), sD::EDGE_HO_E)],
         13.,
         it.col() << " " << it.row());
     }
-    if(it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( sourceLevel + 1 ) - 1)) {
+    if(it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( sourceLevel + 1 ) - 1)) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,it.col(), it.row(), sD::EDGE_DI_NE)],
+        edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,it.col(), it.row(), sD::EDGE_DI_NE)],
         13.,
         it.col() << " " << it.row());
     }
     if(it.col() != 0) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,it.col(), it.row(), sD::EDGE_VE_N)],
+        edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,it.col(), it.row(), sD::EDGE_VE_N)],
         13.,
         it.col() << " " << it.row());
     }
@@ -69,16 +69,16 @@ static void testP2Prolongate() {
     vertexDoFFineData = edge->getData(x->getVertexDoFFunction().getEdgeDataID())->getPointer(
       sourceLevel + 1);
 
-    for (const auto &it : hhg::vertexdof::macroedge::Iterator(sourceLevel + 1, 1)) {
+    for (const auto &it : hyteg::vertexdof::macroedge::Iterator(sourceLevel + 1, 1)) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        vertexDoFFineData[hhg::vertexdof::macroedge::indexFromVertex(sourceLevel + 1,it.col(), sD::VERTEX_C)],
+        vertexDoFFineData[hyteg::vertexdof::macroedge::indexFromVertex(sourceLevel + 1,it.col(), sD::VERTEX_C)],
         13.,
         it.col() << " " << it.row());
     }
 
-    for (const auto &it : hhg::edgedof::macroedge::Iterator(sourceLevel + 1, 0)) {
+    for (const auto &it : hyteg::edgedof::macroedge::Iterator(sourceLevel + 1, 0)) {
         WALBERLA_CHECK_FLOAT_EQUAL(
-          edgeDoFFineData[hhg::edgedof::macroedge::indexFromVertex(sourceLevel + 1,it.col(), sD::EDGE_HO_E)],
+          edgeDoFFineData[hyteg::edgedof::macroedge::indexFromVertex(sourceLevel + 1,it.col(), sD::EDGE_HO_E)],
           13.,
           it.col() << " " << it.row());
     }
@@ -89,29 +89,29 @@ static void testP2Prolongate() {
   edgeDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel + 2);
   vertexDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(sourceLevel + 2);
 
-  for( const auto & it : hhg::vertexdof::macroface::Iterator( sourceLevel + 2, 1)) {
+  for( const auto & it : hyteg::vertexdof::macroface::Iterator( sourceLevel + 2, 1)) {
     WALBERLA_CHECK_FLOAT_EQUAL(
-      vertexDoFFineData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel + 2,it.col(), it.row(), sD::VERTEX_C)],
+      vertexDoFFineData[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel + 2,it.col(), it.row(), sD::VERTEX_C)],
       13.,
       it.col() << " " << it.row());
   }
 
-  for( const auto & it : hhg::edgedof::macroface::Iterator( sourceLevel + 2, 0)) {
+  for( const auto & it : hyteg::edgedof::macroface::Iterator( sourceLevel + 2, 0)) {
     if(it.row() != 0) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 2,it.col(), it.row(), sD::EDGE_HO_E)],
+        edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 2,it.col(), it.row(), sD::EDGE_HO_E)],
         13.,
         it.col() << " " << it.row());
     }
-    if(it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( sourceLevel + 2 ) - 1)) {
+    if(it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( sourceLevel + 2 ) - 1)) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 2,it.col(), it.row(), sD::EDGE_DI_NE)],
+        edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 2,it.col(), it.row(), sD::EDGE_DI_NE)],
         13.,
         it.col() << " " << it.row());
     }
     if(it.col() != 0) {
       WALBERLA_CHECK_FLOAT_EQUAL(
-        edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 2,it.col(), it.row(), sD::EDGE_VE_N)],
+        edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 2,it.col(), it.row(), sD::EDGE_VE_N)],
         13.,
         it.col() << " " << it.row());
     }
@@ -120,22 +120,22 @@ static void testP2Prolongate() {
 
 //  for (auto &faceIT : storage->getFaces()) {
 //    auto face = faceIT.second;
-//    hhg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel + 1>(*face, x->getVertexDoFFunction()->getFaceDataID());
+//    hyteg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel + 1>(*face, x->getVertexDoFFunction()->getFaceDataID());
 //  }
 
 //  for (auto &edgeIT : storage->getEdges()) {
 //    auto edge = edgeIT.second;
-//    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel + 1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
+//    hyteg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel + 1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
 //  }
 
 //  for (auto &faceIT : storage->getFaces()) {
 //    auto face = faceIT.second;
-//    hhg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel + 1>(*face, x->getEdgeDoFFunction()->getFaceDataID());
+//    hyteg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel + 1>(*face, x->getEdgeDoFFunction()->getFaceDataID());
 //  }
 
 //  for (auto &edgeIT : storage->getEdges()) {
 //    auto edge = edgeIT.second;
-//    hhg::edgedof::macroedge::printFunctionMemory<real_t, sourceLevel + 1>(*edge, x->getEdgeDoFFunction()->getEdgeDataID());
+//    hyteg::edgedof::macroedge::printFunctionMemory<real_t, sourceLevel + 1>(*edge, x->getEdgeDoFFunction()->getEdgeDataID());
 //  }
 
 }
@@ -156,7 +156,7 @@ static void testP2Prolongate2() {
   P2toP2QuadraticProlongation prolongationOperator;
 
   /// this should not be necessary but just to be save
-  std::function<real_t(const hhg::Point3D &)> zeros = [](const hhg::Point3D &) { return 0; };
+  std::function<real_t(const hyteg::Point3D &)> zeros = [](const hyteg::Point3D &) { return 0; };
   x->interpolate(zeros, sourceLevel);
 
   real_t* edgeDoFFineData = storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(sourceLevel + 1);
@@ -177,26 +177,26 @@ static void testP2Prolongate2() {
   for(auto p : vertical) {
 
     storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
-      sourceLevel)[hhg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_VE_N)] = 16.0;
+      sourceLevel)[hyteg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_VE_N)] = 16.0;
 
     prolongationOperator.prolongate( *x, sourceLevel, All );
 
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_VE_N)], 12.);
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_VE_S)], 12.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_VE_N)], 12.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_VE_S)], 12.);
 
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_HO_E)], 8.);
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_HO_W)], 8.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_HO_E)], 8.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_HO_W)], 8.);
 
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_DI_NW)], 8.);
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_DI_SE)], 8.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_DI_NW)], 8.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_DI_SE)], 8.);
 
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_VE_SE)], 4.);
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_VE_NW)], 4.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_VE_SE)], 4.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::EDGE_VE_NW)], 4.);
 
-    WALBERLA_CHECK_FLOAT_EQUAL(vertexDoFFineData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::VERTEX_C)], 16.);
+    WALBERLA_CHECK_FLOAT_EQUAL(vertexDoFFineData[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2, p.second *2 + 1, sD::VERTEX_C)], 16.);
 
     storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
-      sourceLevel)[hhg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_VE_N)] = 0.0;
+      sourceLevel)[hyteg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_VE_N)] = 0.0;
 
   }
 /////////////////////////////
@@ -205,26 +205,26 @@ static void testP2Prolongate2() {
   for(auto p : horizontal) {
 
     storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
-      sourceLevel)[hhg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_HO_E)] = 16.0;
+      sourceLevel)[hyteg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_HO_E)] = 16.0;
 
     prolongationOperator.prolongate( *x, sourceLevel, All );
 
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_VE_N)], 8.);
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_VE_S)], 8.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_VE_N)], 8.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_VE_S)], 8.);
 
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_HO_E)], 12.);
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_HO_W)], 12.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_HO_E)], 12.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_HO_W)], 12.);
 
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_DI_NW)], 8.);
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_DI_SE)], 8.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_DI_NW)], 8.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_DI_SE)], 8.);
 
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_HO_SE)], 4.);
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_HO_NW)], 4.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_HO_SE)], 4.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::EDGE_HO_NW)], 4.);
 
-    WALBERLA_CHECK_FLOAT_EQUAL(vertexDoFFineData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::VERTEX_C)], 16.);
+    WALBERLA_CHECK_FLOAT_EQUAL(vertexDoFFineData[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2, sD::VERTEX_C)], 16.);
 
     storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
-      sourceLevel)[hhg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_HO_E)] = 0.0;
+      sourceLevel)[hyteg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_HO_E)] = 0.0;
 
   }
 ///////////////////////////
@@ -233,26 +233,26 @@ static void testP2Prolongate2() {
   for(auto p : diagonal) {
 
     storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
-      sourceLevel)[hhg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_DI_NE)] = 16.0;
+      sourceLevel)[hyteg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_DI_NE)] = 16.0;
 
     prolongationOperator.prolongate( *x, sourceLevel, All );
 
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_VE_N)], 8.);
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_VE_S)], 8.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_VE_N)], 8.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_VE_S)], 8.);
 
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_HO_E)], 8.);
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_HO_W)], 8.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_HO_E)], 8.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_HO_W)], 8.);
 
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_DI_NW)], 12.);
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_DI_SE)], 12.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_DI_NW)], 12.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_DI_SE)], 12.);
 
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_DI_SW)], 4.);
-    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hhg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_DI_NE)], 4.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_DI_SW)], 4.);
+    WALBERLA_CHECK_FLOAT_EQUAL(edgeDoFFineData[hyteg::edgedof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::EDGE_DI_NE)], 4.);
 
-    WALBERLA_CHECK_FLOAT_EQUAL(vertexDoFFineData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::VERTEX_C)], 16.);
+    WALBERLA_CHECK_FLOAT_EQUAL(vertexDoFFineData[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 + 1, p.second * 2 + 1, sD::VERTEX_C)], 16.);
 
     storage->getFace(PrimitiveID(6))->getData(x->getEdgeDoFFunction().getFaceDataID())->getPointer(
-      sourceLevel)[hhg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_DI_NE)] = 0.0;
+      sourceLevel)[hyteg::edgedof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::EDGE_DI_NE)] = 0.0;
 
   }
 ////////////////////
@@ -260,16 +260,16 @@ static void testP2Prolongate2() {
 ////////////////////
   for( auto p : vertex ){
     storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(
-      sourceLevel)[hhg::vertexdof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::VERTEX_C)] = 16.0;
+      sourceLevel)[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::VERTEX_C)] = 16.0;
 
     prolongationOperator.prolongate( *x, sourceLevel, All );
 
-    WALBERLA_CHECK_FLOAT_EQUAL(vertexDoFFineData[hhg::vertexdof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 , p.second * 2 , sD::VERTEX_C)],
+    WALBERLA_CHECK_FLOAT_EQUAL(vertexDoFFineData[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel + 1,p.first * 2 , p.second * 2 , sD::VERTEX_C)],
                                16.,
                                p.first << " " << p.second);
 
     storage->getFace(PrimitiveID(6))->getData(x->getVertexDoFFunction().getFaceDataID())->getPointer(
-      sourceLevel)[hhg::vertexdof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::VERTEX_C)] = 0.0;
+      sourceLevel)[hyteg::vertexdof::macroface::indexFromVertex(sourceLevel,p.first, p.second, stencilDirection::VERTEX_C)] = 0.0;
 
   }
 ///////////////////////////
@@ -278,22 +278,22 @@ static void testP2Prolongate2() {
 
 //  for (auto &faceIT : storage->getFaces()) {
 //    auto face = faceIT.second;
-//    hhg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel + 1>(*face, x->getVertexDoFFunction()->getFaceDataID());
+//    hyteg::vertexdof::macroface::printFunctionMemory<real_t, sourceLevel + 1>(*face, x->getVertexDoFFunction()->getFaceDataID());
 //  }
 
 //  for (auto &edgeIT : storage->getEdges()) {
 //    auto edge = edgeIT.second;
-//    hhg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel + 1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
+//    hyteg::vertexdof::macroedge::printFunctionMemory<real_t, sourceLevel + 1>(*edge, x->getVertexDoFFunction()->getEdgeDataID());
 //  }
 
 //  for (auto &faceIT : storage->getFaces()) {
 //    auto face = faceIT.second;
-//    hhg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel + 1>(*face, x->getEdgeDoFFunction()->getFaceDataID());
+//    hyteg::edgedof::macroface::printFunctionMemory<real_t, sourceLevel + 1>(*face, x->getEdgeDoFFunction()->getFaceDataID());
 //  }
 
 //  for (auto &edgeIT : storage->getEdges()) {
 //    auto edge = edgeIT.second;
-//    hhg::edgedof::macroedge::printFunctionMemory<real_t, sourceLevel + 1>(*edge, x->getEdgeDoFFunction()->getEdgeDataID());
+//    hyteg::edgedof::macroedge::printFunctionMemory<real_t, sourceLevel + 1>(*edge, x->getEdgeDoFFunction()->getEdgeDataID());
 //  }
 
 }
@@ -310,9 +310,9 @@ static void testP2InterpolateAndProlongate() {
   auto y = P2Function<real_t> ("y", storage, sourceLevel, targetLevel, BoundaryCondition::create012BC(), None);
   auto error = P2Function<real_t> ("x", storage, sourceLevel, targetLevel, BoundaryCondition::create012BC(), None);
 
-  std::function<real_t(const hhg::Point3D&)> exact = [](const hhg::Point3D& xx) { return 2. * xx[0] * xx[0] + 3. * xx[0] + 13. + 4. * xx[1] + 5. *  xx[1] * xx[1]; };
-  x.interpolate(exact,sourceLevel    ,hhg::All);
-  y.interpolate(exact,targetLevel,hhg::All);
+  std::function<real_t(const hyteg::Point3D&)> exact = [](const hyteg::Point3D& xx) { return 2. * xx[0] * xx[0] + 3. * xx[0] + 13. + 4. * xx[1] + 5. *  xx[1] * xx[1]; };
+  x.interpolate(exact,sourceLevel    , hyteg::All);
+  y.interpolate(exact,targetLevel, hyteg::All);
 
   P2toP2QuadraticProlongation prolongationOperator;
 
@@ -320,9 +320,9 @@ static void testP2InterpolateAndProlongate() {
   prolongationOperator.prolongate( x, sourceLevel + 1, All );
   prolongationOperator.prolongate( x, sourceLevel + 2, All );
 
-  error.assign({1.0, -1.0}, {x, y}, targetLevel, hhg::All);
+  error.assign({1.0, -1.0}, {x, y}, targetLevel, hyteg::All);
 
-  WALBERLA_CHECK_FLOAT_EQUAL(error.dotGlobal(error,targetLevel,hhg::All),0.);
+  WALBERLA_CHECK_FLOAT_EQUAL(error.dotGlobal(error,targetLevel, hyteg::All),0.);
 }
 
 }/// namespace hhg
@@ -334,9 +334,9 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv(argc, argv);
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
-  hhg::testP2Prolongate();
-  hhg::testP2Prolongate2();
-  hhg::testP2InterpolateAndProlongate();
+  hyteg::testP2Prolongate();
+  hyteg::testP2Prolongate2();
+  hyteg::testP2InterpolateAndProlongate();
 
   return EXIT_SUCCESS;
 }

@@ -36,8 +36,8 @@ int main( int argc, char* argv[] )
   const uint_t maxIterations    =  20;
   const real_t tolerance = 1e-13;
 
-  hhg::MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
-  hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+  hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
+  hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
@@ -86,18 +86,18 @@ int main( int argc, char* argv[] )
   }
 #endif
 
-  std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
+  std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
 
-  hhg::writeDomainPartitioningVTK( storage, "../../output", "P2P1_Stokes_3D_MinRes_convergence_partitioning" );
+  hyteg::writeDomainPartitioningVTK( storage, "../../output", "P2P1_Stokes_3D_MinRes_convergence_partitioning" );
 
-  hhg::P2P1TaylorHoodFunction< real_t > r( "r", storage, minLevel, maxLevel );
-  hhg::P2P1TaylorHoodFunction< real_t > f( "f", storage, minLevel, maxLevel );
-  hhg::P2P1TaylorHoodFunction< real_t > u( "u", storage, minLevel, maxLevel );
-  hhg::P2P1TaylorHoodFunction< real_t > uExact( "uExact", storage, minLevel, maxLevel );
-  hhg::P2P1TaylorHoodFunction< real_t > err( "err", storage, minLevel, maxLevel );
-  hhg::P2P1TaylorHoodFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
+  hyteg::P2P1TaylorHoodFunction< real_t > r( "r", storage, minLevel, maxLevel );
+  hyteg::P2P1TaylorHoodFunction< real_t > f( "f", storage, minLevel, maxLevel );
+  hyteg::P2P1TaylorHoodFunction< real_t > u( "u", storage, minLevel, maxLevel );
+  hyteg::P2P1TaylorHoodFunction< real_t > uExact( "uExact", storage, minLevel, maxLevel );
+  hyteg::P2P1TaylorHoodFunction< real_t > err( "err", storage, minLevel, maxLevel );
+  hyteg::P2P1TaylorHoodFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
-  hhg::VTKOutput vtkOutput( "../../output", "P2P1_Stokes_3D_MinRes_convergence", storage );
+  hyteg::VTKOutput vtkOutput( "../../output", "P2P1_Stokes_3D_MinRes_convergence", storage );
   vtkOutput.add( u.u );
   vtkOutput.add( u.v );
   // vtkOutput.add( u.w );
@@ -111,10 +111,9 @@ int main( int argc, char* argv[] )
   // vtkOutput.add( err.w );
   vtkOutput.add( err.p );
 
+  hyteg::P2P1TaylorHoodStokesOperator L( storage, minLevel, maxLevel );
 
-  hhg::P2P1TaylorHoodStokesOperator L( storage, minLevel, maxLevel );
-
-  std::function< real_t( const hhg::Point3D& ) > inflowPoiseuille = []( const hhg::Point3D& x )
+  std::function< real_t( const hyteg::Point3D& ) > inflowPoiseuille = []( const hyteg::Point3D& x )
   {
       if( x[2] < 1e-8 )
       {
@@ -127,35 +126,35 @@ int main( int argc, char* argv[] )
   };
 
 
-  std::function< real_t( const hhg::Point3D& ) > solutionPoiseuille = []( const hhg::Point3D& x )
+  std::function< real_t( const hyteg::Point3D& ) > solutionPoiseuille = []( const hyteg::Point3D& x )
   {
       return ( 1.0 / 16.0 ) * x[0] * ( 1 - x[0] ) * x[1] * ( 1.0 - x[1] );
   };
 
-  std::function< real_t( const hhg::Point3D& ) > collidingFlow_x = []( const hhg::Point3D& x )
+  std::function< real_t( const hyteg::Point3D& ) > collidingFlow_x = []( const hyteg::Point3D& x )
   {
       return real_c(20) * x[0] * x[1] * x[1] * x[1];
   };
 
-  std::function< real_t( const hhg::Point3D& ) > collidingFlow_y = []( const hhg::Point3D& x )
+  std::function< real_t( const hyteg::Point3D& ) > collidingFlow_y = []( const hyteg::Point3D& x )
   {
       return real_c(5) * x[0] * x[0] * x[0] * x[0] - real_c(5) * x[1] * x[1] * x[1] * x[1];
   };
 
-  std::function< real_t( const hhg::Point3D& ) > collidingFlow_p = []( const hhg::Point3D& xx )
+  std::function< real_t( const hyteg::Point3D& ) > collidingFlow_p = []( const hyteg::Point3D& xx )
   {
       return real_c(60) * std::pow( xx[0], 2.0 ) * xx[1] - real_c(20) * std::pow( xx[1], 3.0 );
   };
 
-  std::function< real_t( const hhg::Point3D& ) > rhs  = []( const hhg::Point3D& ) { return 0.0; };
-  std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };
-  std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
+  std::function< real_t( const hyteg::Point3D& ) > rhs  = []( const hyteg::Point3D& ) { return 0.0; };
+  std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
+  std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
 #if 0
-  u.w.interpolate( inflowPoiseuille, maxLevel, hhg::DirichletBoundary );
+  u.w.interpolate( inflowPoiseuille, maxLevel, hyteg::DirichletBoundary );
 #else
-  u.u.interpolate( collidingFlow_x, maxLevel, hhg::DirichletBoundary );
-  u.v.interpolate( collidingFlow_y, maxLevel, hhg::DirichletBoundary );
+  u.u.interpolate( collidingFlow_x, maxLevel, hyteg::DirichletBoundary );
+  u.v.interpolate( collidingFlow_y, maxLevel, hyteg::DirichletBoundary );
 
   uExact.u.interpolate( collidingFlow_x, maxLevel );
   uExact.v.interpolate( collidingFlow_y, maxLevel );
@@ -164,21 +163,21 @@ int main( int argc, char* argv[] )
 
   vtkOutput.write( maxLevel, 0 );
 
-  typedef hhg::StokesPressureBlockPreconditioner< hhg::P2P1TaylorHoodStokesOperator, hhg::P1LumpedInvMassOperator > PressurePreconditioner_T;
+  typedef hyteg::StokesPressureBlockPreconditioner< hyteg::P2P1TaylorHoodStokesOperator, hyteg::P1LumpedInvMassOperator > PressurePreconditioner_T;
   auto pressurePrec = std::make_shared< PressurePreconditioner_T >( storage, minLevel, maxLevel );
 
-  auto solver = hhg::MinResSolver<  hhg::P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance, pressurePrec );
+  auto solver = hyteg::MinResSolver< hyteg::P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance, pressurePrec );
 
   solver.solve( L, u, f, maxLevel );
 
-  hhg::vertexdof::projectMean( u.p, maxLevel );
-  hhg::vertexdof::projectMean( uExact.p, maxLevel );
+  hyteg::vertexdof::projectMean( u.p, maxLevel );
+  hyteg::vertexdof::projectMean( uExact.p, maxLevel );
 
-  L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
+  L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
 
   err.assign( {1.0, -1.0}, {u, uExact}, maxLevel );
 
-  uint_t globalDoFs1 = hhg::numberOfGlobalDoFs< hhg::P2P1TaylorHoodFunctionTag >( *storage, maxLevel );
+  uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< hyteg::P2P1TaylorHoodFunctionTag >( *storage, maxLevel );
 
   real_t discr_l2_err_1_u = std::sqrt( err.u.dotGlobal( err.u, maxLevel ) / (real_t) globalDoFs1 );
   real_t discr_l2_err_1_v = std::sqrt( err.v.dotGlobal( err.v, maxLevel ) / (real_t) globalDoFs1 );

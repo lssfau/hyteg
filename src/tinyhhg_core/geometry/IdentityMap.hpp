@@ -2,7 +2,7 @@
 
 #include "GeometryMap.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class IdentityMap : public GeometryMap
 {
@@ -30,4 +30,4 @@ class IdentityMap : public GeometryMap
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const { sendBuffer << Type::IDENTITY; }
 };
 
-} // namespace hhg
+} // namespace hyteg

@@ -21,7 +21,7 @@
 using walberla::real_t;
 using walberla::uint_t;
 
-namespace hhg {
+namespace hyteg {
 
 enum KernelType
 {
@@ -222,7 +222,7 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
    P2Function< real_t > p2Src( "x", storage, level, level );
    P2Function< real_t > p2Dst( "x", storage, level, level );
 
-   std::function< real_t( const hhg::Point3D& ) > someFunction = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > someFunction = []( const hyteg::Point3D& x ) {
       return cos( walberla::math::pi * x[0] ) - sin( 2.0 * walberla::math::pi * x[1] ) + cos( 2.0 * walberla::math::pi * x[2] );
    };
 
@@ -281,8 +281,8 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
          {
             vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_replace(
                 v2v_dst_data, v2v_src_data, static_cast< int32_t >( level ), v2v_opr_data );
-            hhg::misc::dummy( v2v_src_data );
-            hhg::misc::dummy( v2v_dst_data );
+            hyteg::misc::dummy( v2v_src_data );
+            hyteg::misc::dummy( v2v_dst_data );
          }
          break;
 
@@ -291,8 +291,8 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
          {
             vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_add(
                 v2v_dst_data, v2v_src_data, static_cast< int32_t >( level ), v2v_opr_data );
-            hhg::misc::dummy( v2v_src_data );
-            hhg::misc::dummy( v2v_dst_data );
+            hyteg::misc::dummy( v2v_src_data );
+            hyteg::misc::dummy( v2v_dst_data );
          }
          break;
 
@@ -309,8 +309,8 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
                                                                                             e2v_dst_data,
                                                                                             e2v_opr_data,
                                                                                             static_cast< int32_t >( level ) );
-            hhg::misc::dummy( e2v_src_data );
-            hhg::misc::dummy( e2v_dst_data );
+            hyteg::misc::dummy( e2v_src_data );
+            hyteg::misc::dummy( e2v_dst_data );
          }
          break;
 
@@ -327,8 +327,8 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
                                                                                         e2v_dst_data,
                                                                                         e2v_opr_data,
                                                                                         static_cast< int32_t >( level ) );
-            hhg::misc::dummy( e2v_src_data );
-            hhg::misc::dummy( e2v_dst_data );
+            hyteg::misc::dummy( e2v_src_data );
+            hyteg::misc::dummy( e2v_dst_data );
          }
          break;
 
@@ -351,8 +351,8 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
                                                                                           &e2e_src_data[firstEdgeIdx[eo::Z]],
                                                                                           e2e_opr_data,
                                                                                           static_cast< int32_t >( level ) );
-            hhg::misc::dummy( e2e_src_data );
-            hhg::misc::dummy( e2e_dst_data );
+            hyteg::misc::dummy( e2e_src_data );
+            hyteg::misc::dummy( e2e_dst_data );
          }
          break;
       case APPLY_E_TO_E_ADD:
@@ -374,8 +374,8 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
                                                                                       &e2e_src_data[firstEdgeIdx[eo::Z]],
                                                                                       e2e_opr_data,
                                                                                       static_cast< int32_t >( level ) );
-            hhg::misc::dummy( e2e_src_data );
-            hhg::misc::dummy( e2e_dst_data );
+            hyteg::misc::dummy( e2e_src_data );
+            hyteg::misc::dummy( e2e_dst_data );
          }
          break;
       case APPLY_V_TO_E_REPLACE:
@@ -391,8 +391,8 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
                                                                                             v2e_src_data,
                                                                                             static_cast< int32_t >( level ),
                                                                                             v2e_opr_data );
-            hhg::misc::dummy( v2e_src_data );
-            hhg::misc::dummy( v2e_dst_data );
+            hyteg::misc::dummy( v2e_src_data );
+            hyteg::misc::dummy( v2e_dst_data );
          }
          break;
       case APPLY_V_TO_E_ADD:
@@ -408,8 +408,8 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
                                                                                         v2e_src_data,
                                                                                         static_cast< int32_t >( level ),
                                                                                         v2e_opr_data );
-            hhg::misc::dummy( v2e_src_data );
-            hhg::misc::dummy( v2e_dst_data );
+            hyteg::misc::dummy( v2e_src_data );
+            hyteg::misc::dummy( v2e_dst_data );
          }
          break;
 
@@ -418,8 +418,8 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
          {
             vertexdof::macrocell::generated::sor_3D_macrocell_P1(
                 v_dst_data, v_rhs_data, static_cast< int32_t >( level ), v2v_opr_data, 1.1 );
-            hhg::misc::dummy( v_rhs_data );
-            hhg::misc::dummy( v_dst_data );
+            hyteg::misc::dummy( v_rhs_data );
+            hyteg::misc::dummy( v_dst_data );
          }
          break;
 
@@ -439,9 +439,9 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
                                                                              static_cast< int32_t >( level ),
                                                                              1.1,
                                                                              v2v_opr_data );
-            hhg::misc::dummy( e_dst_data );
-            hhg::misc::dummy( v_dst_data );
-            hhg::misc::dummy( v_rhs_data );
+            hyteg::misc::dummy( e_dst_data );
+            hyteg::misc::dummy( v_dst_data );
+            hyteg::misc::dummy( v_rhs_data );
          }
          break;
 
@@ -540,9 +540,9 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
                                                                                       static_cast< int32_t >( level ),
                                                                                       relax,
                                                                                       v2e_opr_data );
-            hhg::misc::dummy( e_dst_data );
-            hhg::misc::dummy( v_dst_data );
-            hhg::misc::dummy( e_rhs_data );
+           hyteg::misc::dummy( e_dst_data );
+           hyteg::misc::dummy( v_dst_data );
+           hyteg::misc::dummy( e_rhs_data );
          }
          break;
 
@@ -561,7 +561,7 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
 
    WALBERLA_LOG_INFO_ON_ROOT( "Total number of iterations: " << chunk * chunkSize << ", total time: " << timer.total() << "sec" );
 }
-} // namespace hhg
+} // namespace hyteg
 int main( int argc, char** argv )
 {
    LIKWID_MARKER_INIT;
@@ -590,5 +590,5 @@ int main( int argc, char** argv )
    const uint_t                        chunkSize        = mainConf.getParameter< uint_t >( "chunkSize" );
    const std::string                   kernelType       = mainConf.getParameter< std::string >( "kernelType" );
 
-   hhg::runBenchmark( level, iterationMinTime, chunkSize, hhg::strToKernelType.at( kernelType ) );
+   hyteg::runBenchmark( level, iterationMinTime, chunkSize, hyteg::strToKernelType.at( kernelType ) );
 }

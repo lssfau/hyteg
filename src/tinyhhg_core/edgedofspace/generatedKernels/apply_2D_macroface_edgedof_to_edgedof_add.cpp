@@ -5,7 +5,7 @@
 
 #include "apply_2D_macroface_edgedof_to_edgedof_add.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace edgedof {
 namespace macroface {
 namespace generated {
@@ -168,4 +168,4 @@ void apply_2D_macroface_edgedof_to_edgedof_add(double * RESTRICT _data_edgeFaceD
 } // namespace generated
 } // namespace macroface
 } // namespace edgedof
-} // namespace hhg
+} // namespace hyteg

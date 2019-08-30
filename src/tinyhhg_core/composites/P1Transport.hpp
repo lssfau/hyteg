@@ -5,7 +5,7 @@
 #include "tinyhhg_core/composites/transport/VertexDoFMacroFaceTransport.hpp"
 #include "tinyhhg_core/composites/transport/VertexDoFMacroVertexTransport.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class P1Transport
 {
@@ -203,4 +203,4 @@ class P1Transport
    P1Function< real_t >                      cOld_;
 };
 
-} // namespace hhg
+} // namespace hyteg

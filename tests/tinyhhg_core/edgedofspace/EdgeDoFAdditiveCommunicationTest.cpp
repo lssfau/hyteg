@@ -13,7 +13,7 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::uint_t;
 using walberla::uint_c;
@@ -165,7 +165,7 @@ static void testEdgeDoFAdditiveCommunication3D( const communication::BufferedCom
 
 
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -176,24 +176,24 @@ int main( int argc, char* argv[] )
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
 
-  hhg::testEdgeDoFAdditiveCommunication2D( hhg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/tri_1el.msh" );
-  hhg::testEdgeDoFAdditiveCommunication2D( hhg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../data/meshes/tri_1el.msh" );
-  hhg::testEdgeDoFAdditiveCommunication2D( hhg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/tri_2el.msh" );
-  hhg::testEdgeDoFAdditiveCommunication2D( hhg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../data/meshes/tri_2el.msh" );
-  hhg::testEdgeDoFAdditiveCommunication2D( hhg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/quad_8el.msh" );
-  hhg::testEdgeDoFAdditiveCommunication2D( hhg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../data/meshes/quad_8el.msh" );
-  hhg::testEdgeDoFAdditiveCommunication2D( hhg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/annulus_coarse.msh" );
-  hhg::testEdgeDoFAdditiveCommunication2D( hhg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../data/meshes/annulus_coarse.msh" );
+  hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/tri_1el.msh" );
+  hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../data/meshes/tri_1el.msh" );
+  hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/tri_2el.msh" );
+  hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../data/meshes/tri_2el.msh" );
+  hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/quad_8el.msh" );
+  hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../data/meshes/quad_8el.msh" );
+  hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/annulus_coarse.msh" );
+  hyteg::testEdgeDoFAdditiveCommunication2D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../data/meshes/annulus_coarse.msh" );
 
-  hhg::testEdgeDoFAdditiveCommunication3D( hhg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/tet_1el.msh" );
-  hhg::testEdgeDoFAdditiveCommunication3D( hhg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../data/meshes/3D/tet_1el.msh" );
-  hhg::testEdgeDoFAdditiveCommunication3D( hhg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/pyramid_2el.msh" );
-  hhg::testEdgeDoFAdditiveCommunication3D( hhg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../data/meshes/3D/pyramid_2el.msh" );
+  hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/tet_1el.msh" );
+  hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../data/meshes/3D/tet_1el.msh" );
+  hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/pyramid_2el.msh" );
+  hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../data/meshes/3D/pyramid_2el.msh" );
 
-  hhg::testEdgeDoFAdditiveCommunication3D( hhg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/pyramid_4el.msh" );
-  hhg::testEdgeDoFAdditiveCommunication3D( hhg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../data/meshes/3D/pyramid_4el.msh" );
-  hhg::testEdgeDoFAdditiveCommunication3D( hhg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/regular_octahedron_8el.msh" );
-  hhg::testEdgeDoFAdditiveCommunication3D( hhg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../data/meshes/3D/regular_octahedron_8el.msh" );
+  hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/pyramid_4el.msh" );
+  hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../data/meshes/3D/pyramid_4el.msh" );
+  hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/regular_octahedron_8el.msh" );
+  hyteg::testEdgeDoFAdditiveCommunication3D( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT,       "../../data/meshes/3D/regular_octahedron_8el.msh" );
 
 
   return EXIT_SUCCESS;

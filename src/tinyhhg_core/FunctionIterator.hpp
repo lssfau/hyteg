@@ -14,7 +14,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using indexing::Index;
 using walberla::uint_t;
@@ -530,4 +530,4 @@ inline void FunctionIterator< FunctionType >::skipEdgeDoFBoundaryCoordinates()
    }
 }
 
-} // namespace hhg
+} // namespace hyteg

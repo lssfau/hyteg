@@ -2,7 +2,7 @@
 
 #include "core/DataTypes.h"
 
-namespace hhg {
+namespace hyteg {
 namespace edgedof {
 
 /// Mapping of X,Y,Z coordinates to uint_t
@@ -19,4 +19,4 @@ enum class EdgeDoFOrientation : walberla::uint_t
    INVALID,
 };
 }// namespace edgedof
-}// namespace hhg
+}// namespace hyteg

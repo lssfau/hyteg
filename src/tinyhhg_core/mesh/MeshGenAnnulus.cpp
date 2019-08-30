@@ -11,7 +11,7 @@
 
 using walberla::math::pi;
 
-namespace hhg {
+namespace hyteg {
 
 MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax,
                                 const real_t phiLeft, const real_t phiRight,
@@ -205,4 +205,4 @@ void MeshInfo:: deriveEdgesForFullAnnulus( real_t minTol, real_t maxTol )
     }
 }
 
-} // namespace hhg
+} // namespace hyteg

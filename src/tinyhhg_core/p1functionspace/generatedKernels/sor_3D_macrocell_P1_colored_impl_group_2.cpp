@@ -5,12 +5,12 @@
 
 #include "sor_3D_macrocell_P1_colored_impl_group_2.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace macrocell {
 namespace generated {
 
-static void sor_3D_macrocell_P1_colored_impl_group_2_level_any(double const * RESTRICT const _data_p1CellDst_group_0_const, double const * RESTRICT const _data_p1CellDst_group_1_const, double * RESTRICT _data_p1CellDst_group_2, double const * RESTRICT const _data_p1CellDst_group_3_const, double const * RESTRICT const _data_p1CellDst_group_4_const, double const * RESTRICT const _data_p1CellDst_group_5_const, double const * RESTRICT const _data_p1CellDst_group_6_const, double const * RESTRICT const _data_p1CellDst_group_7_const, double const * RESTRICT const _data_p1CellRhs_group_2_const, int32_t level, std::map< hhg::indexing::IndexIncrement, double > p1CellStencil, double relax)
+static void sor_3D_macrocell_P1_colored_impl_group_2_level_any(double const * RESTRICT const _data_p1CellDst_group_0_const, double const * RESTRICT const _data_p1CellDst_group_1_const, double * RESTRICT _data_p1CellDst_group_2, double const * RESTRICT const _data_p1CellDst_group_3_const, double const * RESTRICT const _data_p1CellDst_group_4_const, double const * RESTRICT const _data_p1CellDst_group_5_const, double const * RESTRICT const _data_p1CellDst_group_6_const, double const * RESTRICT const _data_p1CellDst_group_7_const, double const * RESTRICT const _data_p1CellRhs_group_2_const, int32_t level, std::map< hyteg::indexing::IndexIncrement, double > p1CellStencil, double relax)
 {
    const double xi_133 = 1.0;
    const double xi_134 = -relax;
@@ -122,7 +122,7 @@ static void sor_3D_macrocell_P1_colored_impl_group_2_level_any(double const * RE
 }
 
 
-void sor_3D_macrocell_P1_colored_impl_group_2(double const * RESTRICT const _data_p1CellDst_group_0_const, double const * RESTRICT const _data_p1CellDst_group_1_const, double * RESTRICT _data_p1CellDst_group_2, double const * RESTRICT const _data_p1CellDst_group_3_const, double const * RESTRICT const _data_p1CellDst_group_4_const, double const * RESTRICT const _data_p1CellDst_group_5_const, double const * RESTRICT const _data_p1CellDst_group_6_const, double const * RESTRICT const _data_p1CellDst_group_7_const, double const * RESTRICT const _data_p1CellRhs_group_2_const, int32_t level, std::map< hhg::indexing::IndexIncrement, double > p1CellStencil, double relax)
+void sor_3D_macrocell_P1_colored_impl_group_2(double const * RESTRICT const _data_p1CellDst_group_0_const, double const * RESTRICT const _data_p1CellDst_group_1_const, double * RESTRICT _data_p1CellDst_group_2, double const * RESTRICT const _data_p1CellDst_group_3_const, double const * RESTRICT const _data_p1CellDst_group_4_const, double const * RESTRICT const _data_p1CellDst_group_5_const, double const * RESTRICT const _data_p1CellDst_group_6_const, double const * RESTRICT const _data_p1CellDst_group_7_const, double const * RESTRICT const _data_p1CellRhs_group_2_const, int32_t level, std::map< hyteg::indexing::IndexIncrement, double > p1CellStencil, double relax)
 {
     switch( level )
     {
@@ -137,4 +137,4 @@ void sor_3D_macrocell_P1_colored_impl_group_2(double const * RESTRICT const _dat
 } // namespace generated
 } // namespace macrocell
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

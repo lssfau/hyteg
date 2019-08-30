@@ -9,7 +9,7 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/primitivestorage/Visualization.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 static void testPrimitiveStorage()
 {
@@ -152,7 +152,7 @@ static void testPrimitiveStorage()
   writeDomainPartitioningVTK( storage, "../../output/", "domain_decomposition" );
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -162,7 +162,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testPrimitiveStorage();
+   hyteg::testPrimitiveStorage();
 
    return EXIT_SUCCESS;
 }

@@ -15,7 +15,7 @@
 #include "tinyhhg_core/types/flags.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 
 template< typename FunctionType >

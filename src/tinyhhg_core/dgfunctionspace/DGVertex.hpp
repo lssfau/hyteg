@@ -1,6 +1,6 @@
 #pragma once
 
-namespace hhg {
+namespace hyteg {
 namespace DGVertex {
 
 template< typename ValueType >
@@ -20,7 +20,7 @@ template< typename ValueType >
 inline void interpolate(const uint_t & Level, Vertex &vertex,
                         const PrimitiveDataID<FunctionMemory< ValueType >, Vertex>& vertexMemoryId,
                         const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>>& srcMemoryIds,
-                        std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>& f)> &expr,
+                        std::function<ValueType(const hyteg::Point3D &, const std::vector<ValueType>& f)> &expr,
                         const std::shared_ptr< PrimitiveStorage >& storage ) {
 
   auto vertexMemory = vertex.getData(vertexMemoryId)->getPointer( Level );
@@ -245,4 +245,4 @@ inline void projectP1(const uint_t & Level, Vertex &vertex,
 
 
 }//namespace DGVertex
-}//namespace hhg
+}//namespace hyteg

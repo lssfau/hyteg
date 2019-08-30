@@ -14,7 +14,7 @@
 
 #include "core/DataTypes.h"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_c;
 using walberla::real_t;
@@ -127,4 +127,4 @@ class VTKOutput
    std::vector< P2Function< real_t > > p2Functions_;
 };
 
-} // namespace hhg
+} // namespace hyteg

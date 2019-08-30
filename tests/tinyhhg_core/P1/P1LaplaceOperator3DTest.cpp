@@ -16,7 +16,7 @@ using walberla::real_c;
 using walberla::uint_c;
 using walberla::uint_t;
 
-using namespace hhg;
+using namespace hyteg;
 
 void testLaplace3D( const std::string & meshFile, const uint_t & level )
 {
@@ -39,31 +39,31 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
 
   P1ConstantLaplaceOperator laplaceOperator3D( storage, level, level );
 
-  std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D & ) -> real_t
+  std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D & ) -> real_t
   {
       return 0.0;
   };
 
-  std::function< real_t( const hhg::Point3D& ) > one = []( const hhg::Point3D & ) -> real_t
+  std::function< real_t( const hyteg::Point3D& ) > one = []( const hyteg::Point3D & ) -> real_t
   {
       return 1.0;
   };
 
-  std::function< real_t( const hhg::Point3D& ) > linearInX = []( const hhg::Point3D & p ) -> real_t
+  std::function< real_t( const hyteg::Point3D& ) > linearInX = []( const hyteg::Point3D & p ) -> real_t
   {
       return real_c(42) * p[0];
   };
 
-  std::function< real_t( const hhg::Point3D& ) > linearInXYZ = []( const hhg::Point3D & p ) -> real_t
+  std::function< real_t( const hyteg::Point3D& ) > linearInXYZ = []( const hyteg::Point3D & p ) -> real_t
   {
       return real_c(42) * p[0] + p[1] + real_c(1337) * p[2];
   };
 
-  hhg::P1Function< real_t > u          ( "u",           storage, level, level );
-  hhg::P1Function< real_t > resultExact( "u_exact",     storage, level, level );
-  hhg::P1Function< real_t > result     ( "result",      storage, level, level );
-  hhg::P1Function< real_t > err        ( "err",         storage, level, level );
-  hhg::P1Function< real_t > oneFunction( "oneFunction", storage, level, level );
+  hyteg::P1Function< real_t > u          ( "u",           storage, level, level );
+  hyteg::P1Function< real_t > resultExact( "u_exact",     storage, level, level );
+  hyteg::P1Function< real_t > result     ( "result",      storage, level, level );
+  hyteg::P1Function< real_t > err        ( "err",         storage, level, level );
+  hyteg::P1Function< real_t > oneFunction( "oneFunction", storage, level, level );
 
   oneFunction.interpolate( one, level, DoFType::All );
   const real_t numPoints  = oneFunction.dotGlobal( oneFunction, level, DoFType::Inner );
@@ -74,8 +74,8 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   vtkOutput.add( resultExact );
   vtkOutput.add( err );
 
-  auto testLaplaceResult = [&]( std::function< real_t( const hhg::Point3D& ) > uFunction,
-                                std::function< real_t( const hhg::Point3D& ) > resultExactFunction ) -> real_t
+  auto testLaplaceResult = [&]( std::function< real_t( const hyteg::Point3D& ) > uFunction,
+                                std::function< real_t( const hyteg::Point3D& ) > resultExactFunction ) -> real_t
   {
     u.interpolate( uFunction, level, DoFType::All );
     result.interpolate( resultExactFunction, level, DoFType::DirichletBoundary );

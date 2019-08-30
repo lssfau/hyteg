@@ -8,7 +8,7 @@
 #include "core/logging/Logging.h"
 
 
-namespace hhg {
+namespace hyteg {
 
 using indexing::Index;
 
@@ -160,6 +160,6 @@ int main(int argc, char* argv[])
 {
   walberla::mpi::Environment walberlaEnv(argc, argv);
   walberla::MPIManager::instance()->useWorldComm();
-  hhg::testVertexDofMacroCellIndexing();
+  hyteg::testVertexDofMacroCellIndexing();
 }
 

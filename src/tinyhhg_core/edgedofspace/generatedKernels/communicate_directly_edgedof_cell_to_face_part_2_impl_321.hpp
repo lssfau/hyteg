@@ -11,7 +11,7 @@
 #include <map>
 #define RESTRICT WALBERLA_RESTRICT
 
-namespace hhg {
+namespace hyteg {
 namespace edgedof {
 namespace comm {
 namespace generated {
@@ -21,4 +21,4 @@ void communicate_directly_edgedof_cell_to_face_part_2_impl_321(double const * RE
 } // namespace generated
 } // namespace comm
 } // namespace edgedof
-} // namespace hhg
+} // namespace hyteg

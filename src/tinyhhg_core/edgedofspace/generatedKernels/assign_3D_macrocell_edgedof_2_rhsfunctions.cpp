@@ -5,7 +5,7 @@
 
 #include "assign_3D_macrocell_edgedof_2_rhsfunctions.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace edgedof {
 namespace macrocell {
 namespace generated {
@@ -416,4 +416,4 @@ void assign_3D_macrocell_edgedof_2_rhs_functions(double * RESTRICT _data_edgeCel
 } // namespace generated
 } // namespace macrocell
 } // namespace edgedof
-} // namespace hhg
+} // namespace hyteg

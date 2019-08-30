@@ -18,7 +18,7 @@
 
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::uint_t;
 using walberla::uint_c;
@@ -224,7 +224,7 @@ static void testVertexDoFStencilAssembly()
 
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -234,7 +234,7 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv(argc, argv);
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
-  hhg::testVertexDoFStencilAssembly();
+  hyteg::testVertexDoFStencilAssembly();
 
   return EXIT_SUCCESS;
 }

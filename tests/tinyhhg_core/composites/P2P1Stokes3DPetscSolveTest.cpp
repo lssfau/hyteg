@@ -25,7 +25,7 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-namespace hhg {
+namespace hyteg {
 
 void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo,  const real_t & resEps, const real_t & errEpsUSum, const real_t & errEpsP )
 {
@@ -35,40 +35,40 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo,  const rea
 
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-  hhg::loadbalancing::roundRobin( setupStorage );
+  hyteg::loadbalancing::roundRobin( setupStorage );
 
   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
   writeDomainPartitioningVTK( storage, "../../output", "P2P1Stokes3DPetscSolve_Domain" );
 
-  hhg::P2P1TaylorHoodFunction< real_t >                      x( "x", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      x_exact( "x_exact", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      b( "b", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      btmp( "btmp", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      err( "err", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      residuum( "res", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      nullspace( "nullspace", storage, level, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      x( "x", storage, level, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      x_exact( "x_exact", storage, level, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      b( "b", storage, level, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      btmp( "btmp", storage, level, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      err( "err", storage, level, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      residuum( "res", storage, level, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      nullspace( "nullspace", storage, level, level );
 
-  hhg::P2P1TaylorHoodStokesOperator A( storage, level, level );
-  // hhg::P1MassOperator   M( storage, level, level );
+  hyteg::P2P1TaylorHoodStokesOperator A( storage, level, level );
+  // hyteg::P1MassOperator   M( storage, level, level );
 
 #if 0
-  std::function< real_t( const hhg::Point3D& ) > exactU = []( const hhg::Point3D& xx ) { return - real_c(4) * std::cos( real_c(4) * xx[2] ); };
-  std::function< real_t( const hhg::Point3D& ) > exactV = []( const hhg::Point3D& xx ) { return   real_c(8) * std::cos( real_c(8) * xx[0] ); };
-  std::function< real_t( const hhg::Point3D& ) > exactW = []( const hhg::Point3D& xx ) { return - real_c(2) * std::cos( real_c(2) * xx[1] ); };
+  std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& xx ) { return - real_c(4) * std::cos( real_c(4) * xx[2] ); };
+  std::function< real_t( const hyteg::Point3D& ) > exactV = []( const hyteg::Point3D& xx ) { return   real_c(8) * std::cos( real_c(8) * xx[0] ); };
+  std::function< real_t( const hyteg::Point3D& ) > exactW = []( const hyteg::Point3D& xx ) { return - real_c(2) * std::cos( real_c(2) * xx[1] ); };
 
-  std::function< real_t( const hhg::Point3D& ) > exactP = []( const hhg::Point3D& xx ) { return std::sin( 4 * xx[0] ) * std::sin( 8 * xx[1] ) * std::sin( 2 * xx[2] ); };
+  std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& xx ) { return std::sin( 4 * xx[0] ) * std::sin( 8 * xx[1] ) * std::sin( 2 * xx[2] ); };
 
-  std::function< real_t( const hhg::Point3D& ) > forceU = []( const hhg::Point3D& xx ) { return 4*std::sin(8*xx[1])*std::sin(2*xx[2])*std::cos(4*xx[0])-64*std::cos(4*xx[2]); };
-  std::function< real_t( const hhg::Point3D& ) > forceV = []( const hhg::Point3D& xx ) { return 8*std::sin(4*xx[0])*std::sin(2*xx[2])*std::cos(8*xx[1])+512*std::cos(8*xx[0]); };
-  std::function< real_t( const hhg::Point3D& ) > forceW = []( const hhg::Point3D& xx ) { return 2*std::sin(4*xx[0])*std::sin(8*xx[1])*std::cos(2*xx[2])-8*std::cos(2*xx[1]); };
+  std::function< real_t( const hyteg::Point3D& ) > forceU = []( const hyteg::Point3D& xx ) { return 4*std::sin(8*xx[1])*std::sin(2*xx[2])*std::cos(4*xx[0])-64*std::cos(4*xx[2]); };
+  std::function< real_t( const hyteg::Point3D& ) > forceV = []( const hyteg::Point3D& xx ) { return 8*std::sin(4*xx[0])*std::sin(2*xx[2])*std::cos(8*xx[1])+512*std::cos(8*xx[0]); };
+  std::function< real_t( const hyteg::Point3D& ) > forceW = []( const hyteg::Point3D& xx ) { return 2*std::sin(4*xx[0])*std::sin(8*xx[1])*std::cos(2*xx[2])-8*std::cos(2*xx[1]); };
 #endif
 
-  std::function< real_t( const hhg::Point3D& ) > exactU = []( const hhg::Point3D& xx ) { return real_c(20) * xx[0] * xx[1] * xx[1] * xx[1]; };
-  std::function< real_t( const hhg::Point3D& ) > exactV = []( const hhg::Point3D& xx ) { return real_c(5) * xx[0] * xx[0] * xx[0] * xx[0] - real_c(5) * xx[1] * xx[1] * xx[1] * xx[1]; };
-  std::function< real_t( const hhg::Point3D& ) > exactW = []( const hhg::Point3D&    ) { return real_c(0); };
-  std::function< real_t( const hhg::Point3D& ) > exactP = []( const hhg::Point3D& xx ) { return real_c(60) * std::pow( xx[0], 2.0 ) * xx[1] - real_c(20) * std::pow( xx[1], 3.0 ); };
-  std::function< real_t( const hhg::Point3D& ) > zero =   []( const hhg::Point3D&    ) { return real_c(0); };
-  std::function< real_t( const hhg::Point3D& ) > ones =   []( const hhg::Point3D&    ) { return real_c(1); };
+  std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& xx ) { return real_c(20) * xx[0] * xx[1] * xx[1] * xx[1]; };
+  std::function< real_t( const hyteg::Point3D& ) > exactV = []( const hyteg::Point3D& xx ) { return real_c(5) * xx[0] * xx[0] * xx[0] * xx[0] - real_c(5) * xx[1] * xx[1] * xx[1] * xx[1]; };
+  std::function< real_t( const hyteg::Point3D& ) > exactW = []( const hyteg::Point3D&    ) { return real_c(0); };
+  std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& xx ) { return real_c(60) * std::pow( xx[0], 2.0 ) * xx[1] - real_c(20) * std::pow( xx[1], 3.0 ); };
+  std::function< real_t( const hyteg::Point3D& ) > zero =   []( const hyteg::Point3D&    ) { return real_c(0); };
+  std::function< real_t( const hyteg::Point3D& ) > ones =   []( const hyteg::Point3D&    ) { return real_c(1); };
 
 #if 0
   btmp.u.interpolate( forceU, level, Inner );
@@ -115,8 +115,8 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo,  const rea
   vtkOutput.add( b.p );
   vtkOutput.write( level, 0 );
 
-  uint_t localDoFs1 = hhg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
-  uint_t globalDoFs1 = hhg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
+  uint_t localDoFs1 = hyteg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
+  uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
 
   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
@@ -126,11 +126,11 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo,  const rea
   solver_1.solve( A, x, b, level );
   timer.end();
 
-  hhg::vertexdof::projectMean( x.p, level );
-  hhg::vertexdof::projectMean( x_exact.p, level );
+  hyteg::vertexdof::projectMean( x.p, level );
+  hyteg::vertexdof::projectMean( x_exact.p, level );
 
   WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
-  A.apply( x, residuum, level, hhg::Inner );
+  A.apply( x, residuum, level, hyteg::Inner );
 
   err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
@@ -155,14 +155,14 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo,  const rea
 
 }
 
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
   walberla::Environment walberlaEnv( argc, argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  petscSolveTest( 2, hhg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
+  petscSolveTest( 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
 
   return EXIT_SUCCESS;
 }

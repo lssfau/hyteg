@@ -23,7 +23,7 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-namespace hhg {
+namespace hyteg {
 
 std::shared_ptr< PrimitiveStorage >
     createDomain( std::shared_ptr< walberla::WcTimingTree > timingTree, uint_t nx, uint_t ny, uint_t nz )
@@ -54,7 +54,7 @@ class ErrorAnalysis
    ErrorAnalysis( const std::shared_ptr< PrimitiveStorage >&     storage,
                   uint_t                                         minLevel,
                   uint_t                                         maxLevel,
-                  std::function< real_t( const hhg::Point3D& ) > analyticalSolution )
+                  std::function< real_t( const hyteg::Point3D& ) > analyticalSolution )
    : storage_( storage )
    , active_( true )
    , r( "r", storage, minLevel, maxLevel )
@@ -77,8 +77,8 @@ class ErrorAnalysis
 
       const real_t numDoFs = real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage_, level ) );
 
-      A.apply( u, error, level, hhg::Inner );
-      r.assign( {1.0, -1.0}, {f, error}, level, hhg::Inner );
+      A.apply( u, error, level, hyteg::Inner );
+      r.assign( {1.0, -1.0}, {f, error}, level, hyteg::Inner );
       error.assign( {1.0, -1.0}, {u, uExact}, level );
 
       discreteL2Error_    = std::sqrt( error.dotGlobal( error, level, DoFType::All ) / numDoFs );
@@ -167,11 +167,11 @@ void run( uint_t                                    nx,
 
    timingTree->start( "02_Problem_Setup" );
 
-   std::function< real_t( const hhg::Point3D& ) > analyticalSolution = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > analyticalSolution = []( const hyteg::Point3D& x ) {
       return ( 1.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
    };
 
-   std::function< real_t( const hhg::Point3D& ) > analyticalRHS = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > analyticalRHS = []( const hyteg::Point3D& x ) {
       return ( 3.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
    };
 
@@ -241,7 +241,7 @@ void run( uint_t                                    nx,
    timingTree->stop( "03_Solver" );
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 int main( int argc, char** argv )
 {
@@ -280,7 +280,7 @@ int main( int argc, char** argv )
 
    auto timingTree = std::make_shared< walberla::WcTimingTree >();
 
-   hhg::run( nx, ny, nz, minLevel, maxLevel, sorOmega, preSmoothing, postSmoothing, numCycles, calcError, timingTree, writeVTK );
+   hyteg::run( nx, ny, nz, minLevel, maxLevel, sorOmega, preSmoothing, postSmoothing, numCycles, calcError, timingTree, writeVTK );
 
    auto ttReduced = timingTree->getReduced().getCopyWithRemainder();
    if ( printTiming )

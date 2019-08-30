@@ -19,7 +19,7 @@ using walberla::uint_t;
 
 typedef enum { RECTANGLE, ANNULUS, PARTIAL_ANNULUS, SPHERICAL_SHELL, FACE_CHAIN } testDomainType;
 
-namespace hhg {
+namespace hyteg {
 
 static void testMeshGenerator( testDomainType testDomain, MeshInfo::meshFlavour flavour )
 {
@@ -61,16 +61,16 @@ static void testMeshGenerator( testDomainType testDomain, MeshInfo::meshFlavour 
     {
       switch( flavour )
        {
-       case hhg::MeshInfo::CRISS :
-       case hhg::MeshInfo::CROSS :
+       case hyteg::MeshInfo::CRISS :
+       case hyteg::MeshInfo::CROSS :
          WALBERLA_CHECK_EQUAL( numVerts, 12 );
          WALBERLA_CHECK_EQUAL( numFaces, 12 );
          WALBERLA_CHECK_EQUAL( numEdges, 23 );
          WALBERLA_CHECK_EQUAL( numCells,  0 );
          break;
 
-       case hhg::MeshInfo::CRISSCROSS :
-       case hhg::MeshInfo::DIAMOND :
+       case hyteg::MeshInfo::CRISSCROSS :
+       case hyteg::MeshInfo::DIAMOND :
          WALBERLA_CHECK_EQUAL( numVerts, 18 );
          WALBERLA_CHECK_EQUAL( numFaces, 24 );
          WALBERLA_CHECK_EQUAL( numEdges, 41 );
@@ -100,7 +100,7 @@ static void testMeshGenerator( testDomainType testDomain, MeshInfo::meshFlavour 
 
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -112,25 +112,25 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    // Check mesh generator for rectangles
-   hhg::testMeshGenerator( RECTANGLE, hhg::MeshInfo::CRISS );
-   hhg::testMeshGenerator( RECTANGLE, hhg::MeshInfo::CROSS );
-   hhg::testMeshGenerator( RECTANGLE, hhg::MeshInfo::CRISSCROSS );
-   hhg::testMeshGenerator( RECTANGLE, hhg::MeshInfo::DIAMOND );
+   hyteg::testMeshGenerator( RECTANGLE, hyteg::MeshInfo::CRISS );
+   hyteg::testMeshGenerator( RECTANGLE, hyteg::MeshInfo::CROSS );
+   hyteg::testMeshGenerator( RECTANGLE, hyteg::MeshInfo::CRISSCROSS );
+   hyteg::testMeshGenerator( RECTANGLE, hyteg::MeshInfo::DIAMOND );
 
    // Check mesh generator for annuli
-   hhg::testMeshGenerator( ANNULUS, hhg::MeshInfo::CROSS );
-   hhg::testMeshGenerator( PARTIAL_ANNULUS, hhg::MeshInfo::CRISS );
-   hhg::testMeshGenerator( PARTIAL_ANNULUS, hhg::MeshInfo::CROSS );
-   hhg::testMeshGenerator( PARTIAL_ANNULUS, hhg::MeshInfo::CRISSCROSS );
-   hhg::testMeshGenerator( PARTIAL_ANNULUS, hhg::MeshInfo::DIAMOND );
+   hyteg::testMeshGenerator( ANNULUS, hyteg::MeshInfo::CROSS );
+   hyteg::testMeshGenerator( PARTIAL_ANNULUS, hyteg::MeshInfo::CRISS );
+   hyteg::testMeshGenerator( PARTIAL_ANNULUS, hyteg::MeshInfo::CROSS );
+   hyteg::testMeshGenerator( PARTIAL_ANNULUS, hyteg::MeshInfo::CRISSCROSS );
+   hyteg::testMeshGenerator( PARTIAL_ANNULUS, hyteg::MeshInfo::DIAMOND );
 
    // Check mesh generator for face chains
    // (note that flavour argument is meaningless here)
-   hhg::testMeshGenerator( FACE_CHAIN, hhg::MeshInfo::DIAMOND );
+   hyteg::testMeshGenerator( FACE_CHAIN, hyteg::MeshInfo::DIAMOND );
 
    // Check mesh generator for thick spherical shell
    // (note that flavour argument is meaningless here)
-   hhg::testMeshGenerator( SPHERICAL_SHELL, hhg::MeshInfo::DIAMOND );
+   hyteg::testMeshGenerator( SPHERICAL_SHELL, hyteg::MeshInfo::DIAMOND );
 
    return EXIT_SUCCESS;
 }

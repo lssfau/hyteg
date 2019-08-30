@@ -2,7 +2,7 @@
 
 #include "core/debug/all.h"
 
-namespace hhg {
+namespace hyteg {
 enum class OperatorType {
   MASS,
   EVEN,
@@ -18,7 +18,7 @@ enum class OperatorType {
 #include "tinyhhg_core/indexing/Common.hpp"
 #include "tinyhhg_core/polynomial/PolynomialEvaluator.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace macroface {
 
@@ -308,5 +308,5 @@ SPECIALIZE_POLYNOMIAL(void, smooth_gs_polynomial_even_tmpl, smooth_gs_polynomial
 
 }// namespace macroface
 }// namespace vertexdof
-}// namespace hhg
+}// namespace hyteg
 

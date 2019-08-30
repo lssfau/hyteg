@@ -6,7 +6,7 @@
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "tinyhhg_core/gridtransferoperators/ProlongationOperator.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class P2P1StokesToP2P1StokesProlongation : public ProlongationOperator< P2P1TaylorHoodFunction< real_t > >
 {

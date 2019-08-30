@@ -21,7 +21,7 @@
 #include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
 #include "tinyhhg_core/solvers/MinresSolver.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::int64_c;
 using walberla::math::pi;
@@ -78,23 +78,23 @@ static void defectCorrection( int argc, char** argv )
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
 
-//   std::function< real_t( const hhg::Point3D& ) > exactAnalytical = []( const hhg::Point3D& x ) {
+//   std::function< real_t( const hyteg::Point3D& ) > exactAnalytical = []( const hyteg::Point3D& x ) {
 //      return sin( x[0] ) * sinh( x[1] );
 //   };
-//   std::function< real_t( const hhg::Point3D& ) > rhsAnalytical = []( const hhg::Point3D& ) { return 0; };
+//   std::function< real_t( const hyteg::Point3D& ) > rhsAnalytical = []( const hyteg::Point3D& ) { return 0; };
 
-   std::function< real_t( const hhg::Point3D& ) > exactAnalytical = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > exactAnalytical = []( const hyteg::Point3D& x ) {
       return ( 1.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
    };
 
-   std::function< real_t( const hhg::Point3D& ) > rhsAnalytical = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > rhsAnalytical = []( const hyteg::Point3D& x ) {
       return ( 3.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
    };
 
-//   std::function< real_t( const hhg::Point3D& ) > exactAnalytical = []( const hhg::Point3D& x ) {
+//   std::function< real_t( const hyteg::Point3D& ) > exactAnalytical = []( const hyteg::Point3D& x ) {
 //      return sin( x[0] ) * sinh( x[1] ) + 1.0 + x[0] * x[0] + 2.0 * x[1] * x[1];
 //   };
-//   std::function< real_t( const hhg::Point3D& ) > rhsAnalytical = []( const hhg::Point3D& ) { return -6.0; };
+//   std::function< real_t( const hyteg::Point3D& ) > rhsAnalytical = []( const hyteg::Point3D& ) { return -6.0; };
 
 
    P1Function< real_t > u( "u", storage, minLevel, maxLevel );
@@ -223,9 +223,9 @@ static void defectCorrection( int argc, char** argv )
    }
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 int main( int argc, char** argv )
 {
-   hhg::defectCorrection( argc, argv );
+   hyteg::defectCorrection( argc, argv );
 }

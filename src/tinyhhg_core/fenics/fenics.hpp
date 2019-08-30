@@ -6,7 +6,7 @@
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/types/matrix.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace fenics {
 
 using walberla::real_c;
@@ -122,4 +122,4 @@ typedef std::function<void(real_t *,
         { 7, 5, 4, 3 } } };
 
 } // namespace fenics
-} // namespace hhg
+} // namespace hyteg

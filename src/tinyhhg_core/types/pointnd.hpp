@@ -9,8 +9,7 @@
 #include <array>
 #include <iostream>
 
-namespace hhg
-{
+namespace hyteg {
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -268,7 +267,7 @@ template< typename T,    // Element type of SendBuffer
           typename G,    // Growth policy of SendBuffer
           typename PointNDDataType,
           size_t   PointNDDimension >
-GenericSendBuffer<T,G>& operator<<( GenericSendBuffer<T,G> & buf, const hhg::PointND< PointNDDataType, PointNDDimension > & pointND )
+GenericSendBuffer<T,G>& operator<<( GenericSendBuffer<T,G> & buf, const hyteg::PointND< PointNDDataType, PointNDDimension > & pointND )
 {
   pointND.serialize( buf );
   return buf;
@@ -277,7 +276,7 @@ GenericSendBuffer<T,G>& operator<<( GenericSendBuffer<T,G> & buf, const hhg::Poi
 template< typename T, // Element type  of RecvBuffer
           typename PointNDDataType,
           size_t   PointNDDimension >
-GenericRecvBuffer<T>& operator>>( GenericRecvBuffer<T> & buf, hhg::PointND< PointNDDataType, PointNDDimension > & pointND )
+GenericRecvBuffer<T>& operator>>( GenericRecvBuffer<T> & buf, hyteg::PointND< PointNDDataType, PointNDDimension > & pointND )
 {
   pointND.deserialize( buf );
   return buf;

@@ -4,7 +4,7 @@
 #include "core/uid/all.h"
 #include "tinyhhg_core/types/flags.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::uint_t;
 
@@ -82,4 +82,4 @@ private:
 
 
 
-} // namespace hhg
+} // namespace hyteg

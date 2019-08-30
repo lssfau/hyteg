@@ -5,7 +5,7 @@
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 /**
  * \page 02_PrimitiveData Adding data to primitives
@@ -143,13 +143,13 @@ void PrimitiveStorageTutorial()
 
   uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
-  hhg::MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_2el.msh" );
-  hhg::SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
+  hyteg::MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_2el.msh" );
+  hyteg::SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
 
   // Let's have a debug print
   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
 
-  hhg::PrimitiveStorage storage( setupStorage );
+  hyteg::PrimitiveStorage storage( setupStorage );
 
   //-----------------//
   // New stuff below //
@@ -199,13 +199,13 @@ void PrimitiveStorageTutorial()
 
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 int main( int argc, char** argv )
 {
   walberla::mpi::Environment env( argc, argv );
   walberla::mpi::MPIManager::instance()->useWorldComm();
-  hhg::PrimitiveStorageTutorial();
+  hyteg::PrimitiveStorageTutorial();
   return 0;
 }
 

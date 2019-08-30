@@ -5,8 +5,7 @@
 #include "tinyhhg_core/solvers/preconditioners/IdentityPreconditioner.hpp"
 #include "tinyhhg_core/solvers/Solver.hpp"
 
-namespace hhg
-{
+namespace hyteg {
 
 template<class OperatorType >
 class MinResSolver : public Solver< OperatorType >
@@ -25,7 +24,7 @@ public:
   : maxIter_( maxIter )
   , tolerance_( tolerance )
   , printInfo_( false )
-  , flag_( hhg::Inner | hhg::NeumannBoundary )
+  , flag_( hyteg::Inner | hyteg::NeumannBoundary )
   , preconditioner_( preconditioner )
   , p_vm( "minres_vm", storage, minLevel, maxLevel )
   , p_v( "minres_v", storage, minLevel, maxLevel )
@@ -43,7 +42,7 @@ public:
   void solve( const OperatorType& A,const FunctionType& x, const FunctionType& b, const uint_t level ) override
   {
     timingTree_->start( "MinRes Solver" );
-    std::function<real_t(const hhg::Point3D&)> zero = [](const hhg::Point3D&) { return 0.0; };
+    std::function<real_t(const hyteg::Point3D&)> zero = [](const hyteg::Point3D&) { return 0.0; };
     p_vm.interpolate(zero, level, flag_);
     p_wm.interpolate(zero, level, flag_);
     p_w.interpolate(zero, level, flag_);
@@ -141,7 +140,7 @@ private:
   uint_t       maxIter_;
   real_t       tolerance_;
   bool         printInfo_;
-  hhg::DoFType flag_;
+  hyteg::DoFType flag_;
 
   std::shared_ptr< Solver< OperatorType > > preconditioner_;
 

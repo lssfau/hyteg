@@ -8,7 +8,7 @@
 #include "core/debug/all.h"
 
 using walberla::real_t;
-using namespace hhg;
+using namespace hyteg;
 
 int main(int argc, char **argv)
 {
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 
   for(auto edgeIter : storage->getEdges()){
     auto edge = edgeIter.second;
-    hhg::edgedof::macroedge::interpolate< real_t >(level, *edge,x.getEdgeDataID(),emptyEdgeIds,exact);
+    hyteg::edgedof::macroedge::interpolate< real_t >(level, *edge,x.getEdgeDataID(),emptyEdgeIds,exact);
     value = 2 * edge->getCoordinates()[0][0] + edge->getCoordinates()[0][1];
     xStepSize = edge->getDirection()[0] / walberla::real_c((mEperEdge));
     yStepSize = edge->getDirection()[1] / walberla::real_c((mEperEdge));

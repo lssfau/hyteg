@@ -1,6 +1,6 @@
 #pragma once
 
-namespace hhg {
+namespace hyteg {
 
 template < class OperatorType >
 class JacobiPreconditioner : public Solver< OperatorType >
@@ -10,7 +10,7 @@ class JacobiPreconditioner : public Solver< OperatorType >
    JacobiPreconditioner( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, uint_t iterations )
    : iterations_( iterations )
    , tmp_( "jac_tmp", storage, minLevel, maxLevel )
-   , flag_( hhg::Inner | hhg::NeumannBoundary )
+   , flag_( hyteg::Inner | hyteg::NeumannBoundary )
    {}
 
    // y = M^{-1} * x
@@ -28,7 +28,7 @@ class JacobiPreconditioner : public Solver< OperatorType >
  private:
    uint_t       iterations_;
    FunctionType tmp_;
-   hhg::DoFType flag_;
+   hyteg::DoFType flag_;
 };
 
-} // namespace hhg
+} // namespace hyteg

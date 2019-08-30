@@ -19,7 +19,7 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
 
-namespace hhg{
+namespace hyteg {
 namespace EdgeDoFToVertexDoF {
 
 /// map[neighborCellID][leafOrientation][indexOffset] = weight
@@ -137,7 +137,7 @@ inline void applyEdge(const uint_t & Level, Edge &edge,
                   const PrimitiveDataID<FunctionMemory< real_t >, Edge> &dstId,
                   UpdateType update)
 {
-  using namespace hhg::edgedof;
+  using namespace hyteg::edgedof;
   size_t rowsize = levelinfo::num_microvertices_per_edge(Level);
 
   real_t * opr_data = edge.getData(operatorId)->getPointer( Level );
@@ -182,7 +182,7 @@ inline void applyEdge3D( const uint_t & level, const Edge & edge,
   real_t * src  = edge.getData(srcId)->getPointer( level );
   real_t * dst  = edge.getData(dstId)->getPointer( level );
 
-  for ( const auto & centerIndexOnEdge : hhg::vertexdof::macroedge::Iterator( level, 1 ) )
+  for ( const auto & centerIndexOnEdge : hyteg::vertexdof::macroedge::Iterator( level, 1 ) )
   {
     real_t tmp = real_c( 0 );
 
@@ -332,7 +332,7 @@ inline void applyFace3D( const uint_t & level, Face &face,
   real_t * src  = face.getData(srcId)->getPointer( level );
   real_t * dst  = face.getData(dstId)->getPointer( level );
 
-  for ( const auto & centerIndexInFace : hhg::vertexdof::macroface::Iterator( level, 1 ) )
+  for ( const auto & centerIndexInFace : hyteg::vertexdof::macroface::Iterator( level, 1 ) )
   {
     std::map< uint_t, real_t > contributionPerCell;
 
@@ -443,4 +443,4 @@ inline void applyCell(const uint_t & Level, Cell & cell,
 
 
 } /// EdgeDoFToVertexDoF
-} // namespace hhg
+} // namespace hyteg

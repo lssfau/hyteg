@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace hhg {
+namespace hyteg {
 
 // To define correct method signatures in the Function base class, we
 // need to know the value type of the derived classes.

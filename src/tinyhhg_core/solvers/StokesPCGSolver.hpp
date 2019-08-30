@@ -7,7 +7,7 @@
 #include "tinyhhg_core/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "core/debug/CheckFunctions.h"
 
-namespace hhg {
+namespace hyteg {
 
 ///  \brief Preconditioned CG solver for the Stokes system
 ///         compare w/ Peters 2005, Fast iterative solvers for discrete Stokes equations (sec. 3.1)

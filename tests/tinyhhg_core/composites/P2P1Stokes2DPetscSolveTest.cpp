@@ -27,7 +27,7 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-namespace hhg {
+namespace hyteg {
 
 void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real_t & resEps, const real_t & errEpsUSum, const real_t & errEpsP )
 {
@@ -37,27 +37,27 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
 
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-  hhg::loadbalancing::roundRobin( setupStorage );
+  hyteg::loadbalancing::roundRobin( setupStorage );
 
   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
   writeDomainPartitioningVTK( storage, "../../output", "P2P1Stokes2DPetscSolve_Domain" );
 
-  hhg::P2P1TaylorHoodFunction< real_t >                      x( "x", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      x_exact( "x_exact", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      btmp( "btmp", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      b( "b", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      err( "err", storage, level, level );
-  hhg::P2P1TaylorHoodFunction< real_t >                      residuum( "res", storage, level, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      x( "x", storage, level, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      x_exact( "x_exact", storage, level, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      btmp( "btmp", storage, level, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      b( "b", storage, level, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      err( "err", storage, level, level );
+  hyteg::P2P1TaylorHoodFunction< real_t >                      residuum( "res", storage, level, level );
 
-  hhg::P2P1TaylorHoodStokesOperator A( storage, level, level );
+  hyteg::P2P1TaylorHoodStokesOperator A( storage, level, level );
 
-  std::function< real_t( const hhg::Point3D& ) > exactU = []( const hhg::Point3D& xx ) { return real_c(20) * xx[0] * xx[1] * xx[1] * xx[1]; };
-  std::function< real_t( const hhg::Point3D& ) > exactV = []( const hhg::Point3D& xx ) { return real_c(5) * xx[0] * xx[0] * xx[0] * xx[0] - real_c(5) * xx[1] * xx[1] * xx[1] * xx[1]; };
-  std::function< real_t( const hhg::Point3D& ) > exactP = []( const hhg::Point3D& xx ) { return real_c(60) * std::pow( xx[0], 2.0 ) * xx[1] - real_c(20) * std::pow( xx[1], 3.0 ); };
-  std::function< real_t( const hhg::Point3D& ) > zero =   []( const hhg::Point3D&    ) { return real_c(0); };
+  std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& xx ) { return real_c(20) * xx[0] * xx[1] * xx[1] * xx[1]; };
+  std::function< real_t( const hyteg::Point3D& ) > exactV = []( const hyteg::Point3D& xx ) { return real_c(5) * xx[0] * xx[0] * xx[0] * xx[0] - real_c(5) * xx[1] * xx[1] * xx[1] * xx[1]; };
+  std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& xx ) { return real_c(60) * std::pow( xx[0], 2.0 ) * xx[1] - real_c(20) * std::pow( xx[1], 3.0 ); };
+  std::function< real_t( const hyteg::Point3D& ) > zero =   []( const hyteg::Point3D&    ) { return real_c(0); };
 
-  x.u.interpolate( exactU, level, hhg::DirichletBoundary );
-  x.v.interpolate( exactV, level, hhg::DirichletBoundary );
+  x.u.interpolate( exactU, level, hyteg::DirichletBoundary );
+  x.v.interpolate( exactV, level, hyteg::DirichletBoundary );
 
   x_exact.u.interpolate( exactU, level );
   x_exact.v.interpolate( exactV, level );
@@ -81,8 +81,8 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   vtkOutput.add( b.p );
   vtkOutput.write( level, 0 );
 
-  uint_t localDoFs1 = hhg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
-  uint_t globalDoFs1 = hhg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
+  uint_t localDoFs1 = hyteg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
+  uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
 
   WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
 
@@ -92,11 +92,11 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   solver_1.solve( A, x, b, level );
   timer.end();
 
-  hhg::vertexdof::projectMean( x.p, level );
-  hhg::vertexdof::projectMean( x_exact.p, level );
+  hyteg::vertexdof::projectMean( x.p, level );
+  hyteg::vertexdof::projectMean( x_exact.p, level );
 
   WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
-  A.apply( x, residuum, level, hhg::Inner | hhg::NeumannBoundary );
+  A.apply( x, residuum, level, hyteg::Inner | hyteg::NeumannBoundary );
 
   err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
@@ -119,14 +119,14 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
 
 }
 
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
   walberla::Environment walberlaEnv( argc, argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  petscSolveTest( 4, hhg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 2.2e-09, 0.00033, 0.0184 );
+  petscSolveTest( 4, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 2.2e-09, 0.00033, 0.0184 );
 
   return EXIT_SUCCESS;
 }

@@ -6,7 +6,7 @@
 #include "tinyhhg_core/types/flags.hpp"
 #include "core/logging/Logging.h"
 
-namespace hhg {
+namespace hyteg {
 
 class Cell : public Primitive
 {

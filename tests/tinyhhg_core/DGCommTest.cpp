@@ -8,7 +8,7 @@
 #include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
 
 
-using namespace hhg;
+using namespace hyteg;
 
 using walberla::real_t;
 
@@ -22,7 +22,7 @@ void checkComm(const std::string& meshfile,const uint_t maxLevel, bool bufferCom
 
   const uint_t minLevel = 2;
   //const uint_t maxLevel = 4;
-  hhg::DGFunction< uint_t > x("x", storage, minLevel, maxLevel);
+  hyteg::DGFunction< uint_t > x("x", storage, minLevel, maxLevel);
   if(bufferComm) {
     x.setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
   }
@@ -95,7 +95,7 @@ void checkComm(const std::string& meshfile,const uint_t maxLevel, bool bufferCom
 
   /// check face edge comms ///
   numberOfChecks = 0;
-  totalExpectedChecks = (2 * hhg::levelinfo::num_microvertices_per_edge(maxLevel) - 3) * 3 * storage->getNumberOfLocalFaces();
+  totalExpectedChecks = (2 * hyteg::levelinfo::num_microvertices_per_edge(maxLevel) - 3) * 3 * storage->getNumberOfLocalFaces();
 
   for (auto &faceIt : storage->getFaces()) {
     Face &face = *faceIt.second;

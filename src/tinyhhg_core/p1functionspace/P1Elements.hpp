@@ -14,7 +14,7 @@
 #include "tinyhhg_core/fenics/fenics.hpp"
 
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_t;
 using walberla::real_c;

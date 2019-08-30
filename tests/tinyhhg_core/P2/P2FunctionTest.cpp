@@ -11,7 +11,7 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 static void testP2Function()
 {
@@ -41,7 +41,7 @@ static void testP2Function()
 
    // Interpolate
 
-   std::function< real_t( const hhg::Point3D& ) > expr = []( const Point3D& ) -> real_t { return real_c( 2 ); };
+   std::function< real_t( const hyteg::Point3D& ) > expr = []( const Point3D& ) -> real_t { return real_c( 2 ); };
 
    walberla::WcTimingPool timer;
 
@@ -49,7 +49,7 @@ static void testP2Function()
    x.interpolate( expr, maxLevel, DoFType::All );
    timer["Interpolate"].end();
 
-   hhg::communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
+   hyteg::communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
@@ -74,7 +74,7 @@ static void testP2Function()
    y.assign( {3.0}, {x}, maxLevel, DoFType::All );
    timer["Assign"].end();
 
-   hhg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
+   hyteg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
@@ -98,7 +98,7 @@ static void testP2Function()
    timer["Add"].start();
    y.add( {{4.0, 3.0}}, {{x, x}}, maxLevel, DoFType::All );
    timer["Add"].end();
-   hhg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
+   hyteg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
@@ -133,7 +133,7 @@ static void testP2Function()
    // Output interpolate VTK
 
    auto p2 = std::make_shared< P2Function< real_t > >( "p2", storage2, minLevel, maxLevel );
-   std::function< real_t( const hhg::Point3D& ) > linearX = []( const Point3D& xx ) -> real_t { return xx[0] + xx[1]; };
+   std::function< real_t( const hyteg::Point3D& ) > linearX = []( const Point3D& xx ) -> real_t { return xx[0] + xx[1]; };
    p2->interpolate( linearX, maxLevel, DoFType::All );
 
    VTKOutput vtkOutput("../../output", "p2_interpolate_test", storage);
@@ -141,7 +141,7 @@ static void testP2Function()
    vtkOutput.write( maxLevel );
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 int main( int argc, char* argv[] )
 {
@@ -150,7 +150,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testP2Function();
+   hyteg::testP2Function();
 
    return EXIT_SUCCESS;
 }

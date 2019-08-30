@@ -5,7 +5,7 @@
 
 #include "prolongate_3D_macrocell_P2_push_from_vertexdofs.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace P2 {
 namespace macrocell {
 namespace generated {
@@ -833,4 +833,4 @@ void prolongate_3D_macrocell_P2_push_from_vertexdofs(double * RESTRICT _data_edg
 } // namespace generated
 } // namespace macrocell
 } // namespace P2
-} // namespace hhg
+} // namespace hyteg

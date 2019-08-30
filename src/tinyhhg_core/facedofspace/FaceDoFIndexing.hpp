@@ -7,13 +7,13 @@
 #include "tinyhhg_core/StencilDirections.hpp"
 #include "tinyhhg_core/Levelinfo.hpp"
 
-namespace hhg {
+namespace hyteg {
   namespace facedof {
 
     namespace macroedge {
 
       constexpr inline uint_t indexEdgeStencil( const stencilDirection dir ) {
-        typedef hhg::stencilDirection sD;
+        typedef hyteg::stencilDirection sD;
         switch( dir ) {
         case sD::CELL_GRAY_SW:
           return 0;
@@ -86,7 +86,7 @@ namespace hhg {
       // -- /// they are randomly chosen but need to be kept this way
       // -- constexpr inline uint_t indexFaceStencil( const stencilDirection dir )
       // -- {
-      // --   typedef hhg::stencilDirection sD;
+      // --   typedef hyteg::stencilDirection sD;
       // --   switch( dir )
       // --     {
       // --     case sD::CELL_GRAY_SE:
@@ -107,22 +107,22 @@ namespace hhg {
       // -- }
 
       /// all possible Face DoF neighbors of a vertex
-      constexpr std::array< hhg::stencilDirection, 6 > neighbors = {{stencilDirection::CELL_GRAY_SE,
+      constexpr std::array< hyteg::stencilDirection, 6 > neighbors = {{stencilDirection::CELL_GRAY_SE,
                                                                      stencilDirection::CELL_GRAY_NE,
                                                                      stencilDirection::CELL_GRAY_NW,
                                                                      stencilDirection::CELL_BLUE_SE,
                                                                      stencilDirection::CELL_BLUE_NW,
                                                                      stencilDirection::CELL_BLUE_SW}};
 
-      constexpr std::array<hhg::stencilDirection ,3> grayFaceNeighbors =
+      constexpr std::array< hyteg::stencilDirection ,3> grayFaceNeighbors =
         {{stencilDirection::CELL_BLUE_S, stencilDirection::CELL_BLUE_E, stencilDirection::CELL_BLUE_W}};
 
-      constexpr std::array<hhg::stencilDirection ,3> blueFaceNeighbors =
+      constexpr std::array< hyteg::stencilDirection ,3> blueFaceNeighbors =
         {{stencilDirection::CELL_GRAY_E, stencilDirection::CELL_GRAY_N, stencilDirection::CELL_GRAY_W}};
 
       constexpr inline uint_t indexFaceFromVertex( const uint_t & level, const uint_t col, const uint_t row, const stencilDirection dir ) {
       // inline uint_t indexFaceFromVertex( const uint_t & level, const uint_t col, const uint_t row, const stencilDirection dir ) {
-        typedef hhg::stencilDirection sD;
+        typedef hyteg::stencilDirection sD;
         const size_t vertexBaseLength = levelinfo::num_microvertices_per_edge( level );
 
         const size_t grayBaseLength = vertexBaseLength - 1;
@@ -152,7 +152,7 @@ namespace hhg {
       }
 
       constexpr inline uint_t indexFaceFromGrayFace( const uint_t & level, const uint_t col, const uint_t row, const stencilDirection dir ) {
-        typedef hhg::stencilDirection sD;
+        typedef hyteg::stencilDirection sD;
         switch( dir ) {
         case sD::CELL_GRAY_C:
           return indexFaceFromVertex( level, col, row, sD::CELL_GRAY_NE );
@@ -167,7 +167,7 @@ namespace hhg {
       }
 
       constexpr inline uint_t indexFaceFromBlueFace( const uint_t & level, const uint_t col, const uint_t row, const stencilDirection dir ) {
-        typedef hhg::stencilDirection sD;
+        typedef hyteg::stencilDirection sD;
         switch( dir ) {
         case sD::CELL_BLUE_C:
           return indexFaceFromVertex( level, col + 1, row + 1, sD::CELL_BLUE_SW );
@@ -234,7 +234,7 @@ namespace hhg {
       {
         WALBERLA_ASSERT( edge_orientation_ == -1 || edge_orientation_ == 1, "Invalid edge Orientation: " << edge_orientation_ );
 
-        num_perEdge_ = walberla::int_c( hhg::levelinfo::num_microvertices_per_edge( level ) );
+        num_perEdge_ = walberla::int_c( hyteg::levelinfo::num_microvertices_per_edge( level ) );
         int maximum  = 0;
         switch( type )
           {
@@ -345,4 +345,4 @@ namespace hhg {
 
     } // namespace macroface
   } // namespace facedof
-} // namespace hhg
+} // namespace hyteg

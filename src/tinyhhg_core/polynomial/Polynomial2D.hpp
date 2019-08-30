@@ -2,7 +2,7 @@
 
 #include "MonomialBasis2D.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template<typename Basis>
 class Polynomial2D {

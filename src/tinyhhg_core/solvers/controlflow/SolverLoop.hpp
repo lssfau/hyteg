@@ -3,7 +3,7 @@
 
 #include "tinyhhg_core/solvers/Solver.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template < typename OperatorType >
 class SolverLoop : public Solver< OperatorType >

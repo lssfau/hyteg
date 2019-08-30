@@ -6,11 +6,12 @@
 #pragma once
 #include "all.hpp"
 #include "core/Macros.h"
-#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFOrientation.hpp"
+#include "tinyhhg_core/indexing/Common.hpp"
 #include <map>
 #define RESTRICT WALBERLA_RESTRICT
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace macrocell {
 namespace generated {
@@ -20,4 +21,4 @@ void restrict_3D_macrocell_P1_pull_additive_colored(double * RESTRICT _data_vert
 } // namespace generated
 } // namespace macrocell
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

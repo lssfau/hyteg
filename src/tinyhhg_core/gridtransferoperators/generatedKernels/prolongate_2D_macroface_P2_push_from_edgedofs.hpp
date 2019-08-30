@@ -11,7 +11,7 @@
 #include <map>
 #define RESTRICT WALBERLA_RESTRICT
 
-namespace hhg {
+namespace hyteg {
 namespace P2 {
 namespace macroface {
 namespace generated {
@@ -21,4 +21,4 @@ void prolongate_2D_macroface_P2_push_from_edgedofs(double * RESTRICT _data_edgeC
 } // namespace generated
 } // namespace macroface
 } // namespace P2
-} // namespace hhg
+} // namespace hyteg

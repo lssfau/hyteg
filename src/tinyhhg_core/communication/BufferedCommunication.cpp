@@ -4,7 +4,7 @@
 
 #include <functional>
 
-namespace hhg {
+namespace hyteg {
 namespace communication {
 
 std::atomic_uint BufferedCommunicator::bufferSystemTag_( 0 );

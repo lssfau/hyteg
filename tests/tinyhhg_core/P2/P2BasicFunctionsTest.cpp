@@ -18,7 +18,7 @@
 
 using walberla::real_t;
 
-namespace hhg {
+namespace hyteg {
 
 static void testP2BasicFunctions()
 {
@@ -49,12 +49,12 @@ static void testP2BasicFunctions()
 
    // Interpolate
 
-   std::function< real_t( const hhg::Point3D& ) > expr  = []( const Point3D& ) -> real_t { return real_c( 2 ); };
-   std::function< real_t( const hhg::Point3D& ) > zeros = []( const Point3D& ) -> real_t { return real_c( 0 ); };
-   std::function< real_t( const hhg::Point3D& ) > func  = []( const Point3D& xx ) -> real_t {
+   std::function< real_t( const hyteg::Point3D& ) > expr  = []( const Point3D& ) -> real_t { return real_c( 2 ); };
+   std::function< real_t( const hyteg::Point3D& ) > zeros = []( const Point3D& ) -> real_t { return real_c( 0 ); };
+   std::function< real_t( const hyteg::Point3D& ) > func  = []( const Point3D& xx ) -> real_t {
       return real_c( ( 1.0 + xx[0] ) * ( 2.0 + xx[1] ) );
    };
-   std::function< real_t( const hhg::Point3D& ) > func2 = []( const Point3D& xx ) -> real_t {
+   std::function< real_t( const hyteg::Point3D& ) > func2 = []( const Point3D& xx ) -> real_t {
       return real_c( ( 1.0 + ( xx[0] / 5.0 ) ) * ( 2.0 + xx[1] ) );
    };
 
@@ -66,8 +66,8 @@ static void testP2BasicFunctions()
    z.interpolate( func, maxLevel, DoFType::All );
    timer["Interpolate"].end();
 
-   hhg::communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
-   hhg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
+   hyteg::communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
+   hyteg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
@@ -82,8 +82,8 @@ static void testP2BasicFunctions()
       WALBERLA_CHECK_FLOAT_EQUAL( faceEdgeDataY[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row() )], real_c( 2 ) );
    }
 
-   hhg::communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
-   hhg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
+   hyteg::communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
+   hyteg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
 
    for( const auto& it : vertexdof::macroface::Iterator( maxLevel ) )
    {
@@ -99,8 +99,8 @@ static void testP2BasicFunctions()
    z.assign( {1.0, -1.0}, {z, z}, maxLevel, DoFType::All );
    timer["Assign"].end();
 
-   hhg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
-   hhg::communication::syncP2FunctionBetweenPrimitives( z, maxLevel );
+   hyteg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
+   hyteg::communication::syncP2FunctionBetweenPrimitives( z, maxLevel );
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
@@ -136,8 +136,8 @@ static void testP2BasicFunctions()
    y.add( {4.0, 3.0}, {x, y}, maxLevel, DoFType::All );
    timer["Add"].end();
 
-   hhg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
-   hhg::communication::syncP2FunctionBetweenPrimitives( z, maxLevel );
+   hyteg::communication::syncP2FunctionBetweenPrimitives( y, maxLevel );
+   hyteg::communication::syncP2FunctionBetweenPrimitives( z, maxLevel );
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
@@ -167,9 +167,9 @@ static void testP2BasicFunctions()
    z.interpolate( zeros, maxLevel, DoFType::All );
 
    z.assign( {1.0, -1.0}, {x, y}, maxLevel );
-   hhg::communication::syncP2FunctionBetweenPrimitives( z, maxLevel );
+   hyteg::communication::syncP2FunctionBetweenPrimitives( z, maxLevel );
    x.add( {-1.0}, {y}, maxLevel );
-   hhg::communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
+   hyteg::communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
 
    for( const auto& it : edgedof::macroface::Iterator( maxLevel ) )
    {
@@ -188,7 +188,7 @@ static void testP2BasicFunctions()
    }
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 int main( int argc, char* argv[] )
 {
@@ -197,7 +197,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testP2BasicFunctions();
+   hyteg::testP2BasicFunctions();
 
    return EXIT_SUCCESS;
 }

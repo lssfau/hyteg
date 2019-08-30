@@ -43,7 +43,7 @@
 #include "tinyhhg_core/communication/Syncing.hpp"
 #include "tinyhhg_core/p2functionspace/generatedKernels/all.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template < class P2Form >
 P2ConstantOperator< P2Form >::P2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -1007,4 +1007,4 @@ template class P2ConstantOperator< P2FenicsForm< fenics::NoAssemble, p2_tet_div_
 
 template class P2ConstantOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >;
 
-} // namespace hhg
+} // namespace hyteg

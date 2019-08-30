@@ -13,7 +13,7 @@
 
 using walberla::uint_t;
 
-namespace hhg {
+namespace hyteg {
 
 struct Data
 {
@@ -95,7 +95,7 @@ static void testPrimitiveMigration()
    writeDomainPartitioningVTK( storage, "../../output/", "domain_decomposition_after_migration" );
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 int main( int argc, char* argv[] )
 {
@@ -105,7 +105,7 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
    walberla::debug::enterTestMode();
-   hhg::testPrimitiveMigration();
+   hyteg::testPrimitiveMigration();
 
    return EXIT_SUCCESS;
 }

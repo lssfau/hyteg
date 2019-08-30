@@ -35,7 +35,7 @@
 using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
@@ -71,19 +71,19 @@ int main( int argc, char* argv[] )
 
    //////////////////////////////////////////
 
-   hhg::MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFile );
-   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   hhg::loadbalancing::roundRobin( setupStorage );
+   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFile );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::loadbalancing::roundRobin( setupStorage );
 
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
 
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
 
    if( mainConf.getParameter< bool >( "useParMETIS" ) )
    {
-      hhg::loadbalancing::distributed::parmetis( *storage );
+      hyteg::loadbalancing::distributed::parmetis( *storage );
    }
 
    if( mainConf.getParameter< bool >( "printGlobalStorageInfo" ) )
@@ -94,27 +94,27 @@ int main( int argc, char* argv[] )
 
    if( mainConf.getParameter< bool >( "writeDomainVTK" ) )
    {
-      hhg::writeDomainPartitioningVTK( storage, "./output", "StokesCubeTransport_domain" );
+      hyteg::writeDomainPartitioningVTK( storage, "./output", "StokesCubeTransport_domain" );
    }
 
-   hhg::P1StokesFunction< real_t > r( "r", storage, minLevel, maxLevel );
-   hhg::P1StokesFunction< real_t > f( "f", storage, minLevel, maxLevel );
-   hhg::P1StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t >       temp( "temperature", storage, minLevel, maxLevel );
+   hyteg::P1StokesFunction< real_t > r( "r", storage, minLevel, maxLevel );
+   hyteg::P1StokesFunction< real_t > f( "f", storage, minLevel, maxLevel );
+   hyteg::P1StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t >       temp( "temperature", storage, minLevel, maxLevel );
 
    if( mainConf.getParameter< bool >( "printDoFCount" ) )
    {
       uint_t totalGlobalDofsStokes = 0;
       for( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
       {
-         uint_t tmpDofStokes = numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, lvl );
+         uint_t tmpDofStokes = numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, lvl );
          WALBERLA_LOG_INFO_ON_ROOT( "Stokes DoFs on level " << lvl << " : " << tmpDofStokes );
          totalGlobalDofsStokes += tmpDofStokes;
       }
       WALBERLA_LOG_INFO_ON_ROOT( "Total Stokes DoFs on all level :" << totalGlobalDofsStokes );
    }
 
-   hhg::VTKOutput vtkOutput("./output", "StokesCubeTransport", storage);
+   hyteg::VTKOutput vtkOutput("./output", "StokesCubeTransport", storage);
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       vtkOutput.add( u.u );
@@ -128,17 +128,17 @@ int main( int argc, char* argv[] )
       vtkOutput.add( temp );
    }
 
-   hhg::P1StokesOperator L( storage, minLevel, maxLevel );
-   hhg::P1ConstantMassOperator   M( storage, minLevel, maxLevel );
+   hyteg::P1StokesOperator L( storage, minLevel, maxLevel );
+   hyteg::P1ConstantMassOperator   M( storage, minLevel, maxLevel );
 
-   std::function< real_t( const hhg::Point3D& ) > temperature = []( const hhg::Point3D& x )
+   std::function< real_t( const hyteg::Point3D& ) > temperature = []( const hyteg::Point3D& x )
    {
      real_t temp_ = 1.0 - std::pow(x[2], 0.5);
      return temp_ + 0.1 * (1.0 - x[2]) * (std::sin(walberla::math::pi * x[0]) * std::sin(walberla::math::pi * x[1]));
    };
 
-   std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };
-   std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
+   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
    temp.interpolate( temperature, maxLevel );
 
@@ -150,19 +150,19 @@ int main( int argc, char* argv[] )
    std::string solverType = mainConf.getParameter< std::string >( "solver" );
 
    ///// MinRes coarse grid solver for UZAWA /////
-   typedef StokesPressureBlockPreconditioner< hhg::P1StokesOperator, hhg::P1LumpedInvMassOperator >
+   typedef StokesPressureBlockPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator >
         PressurePreconditioner_T;
    auto pressurePrec = std::make_shared< PressurePreconditioner_T >( storage, minLevel, minLevel );
-   typedef hhg::MinResSolver< hhg::P1StokesOperator > PressurePreconditionedMinRes_T;
+   typedef hyteg::MinResSolver< hyteg::P1StokesOperator > PressurePreconditionedMinRes_T;
    auto pressurePreconditionedMinResSolver = std::make_shared< PressurePreconditionedMinRes_T >(
        storage, minLevel, minLevel, uzawaMaxIter, uzawaTolerance, pressurePrec );
 
    ///// UZAWA solver /////
-   typedef GeometricMultigridSolver< hhg::P1StokesOperator > UzawaSolver_T;
-   auto stokesRestriction  = std::make_shared< hhg::P1P1StokesToP1P1StokesRestriction >();
-   auto stokesProlongation = std::make_shared< hhg::P1P1StokesToP1P1StokesProlongation >();
+   typedef GeometricMultigridSolver< hyteg::P1StokesOperator > UzawaSolver_T;
+   auto stokesRestriction  = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction >();
+   auto stokesProlongation = std::make_shared< hyteg::P1P1StokesToP1P1StokesProlongation >();
    auto uzawaSmoother =
-       std::make_shared< hhg::UzawaSmoother< P1StokesOperator > >( storage, minLevel, maxLevel, 0.3 );
+       std::make_shared< hyteg::UzawaSmoother< P1StokesOperator > >( storage, minLevel, maxLevel, 0.3 );
 
    UzawaSolver_T uzawaSolver( storage,
                               uzawaSmoother,
@@ -175,7 +175,7 @@ int main( int argc, char* argv[] )
                               2,
                               2 );
 
-   auto count = hhg::Function< hhg::vertexdof::VertexDoFFunction< real_t > >::getLevelWiseFunctionCounter();
+   auto count = hyteg::Function< hyteg::vertexdof::VertexDoFFunction< real_t > >::getLevelWiseFunctionCounter();
    if( mainConf.getParameter< bool >( "printFunctionCount" ) ) {
       for (uint_t i = minLevel; i <= maxLevel; ++i) {
          WALBERLA_LOG_INFO_ON_ROOT("Total number of P1 Functions on " << i << " : " << count[i]);
@@ -197,10 +197,10 @@ int main( int argc, char* argv[] )
       M.apply( temp, f.w, maxLevel, All );
       f.w.assign({mainConf.getParameter< real_t >( "convectivity" )}, {f.w}, maxLevel, All);
 
-      L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      r.assign( {1.0, -1.0}, {f, r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-      real_t currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) ) /
-                                 real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
+      L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      r.assign( {1.0, -1.0}, {f, r}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      real_t currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner ) ) /
+                                 real_c( hyteg::numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, maxLevel ) );
       real_t lastResidualL2 = currentResidualL2;
       WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] iteration | residual (L2) | convergence rate " );
       WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] ----------+---------------+------------------" );
@@ -212,10 +212,10 @@ int main( int argc, char* argv[] )
          uzawaSolver.solve( L, u, f, maxLevel );
 
          lastResidualL2 = currentResidualL2;
-         L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-         r.assign( {1.0, -1.0}, {f, r}, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-         currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) ) /
-                             real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
+         L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+         r.assign( {1.0, -1.0}, {f, r}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+         currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner ) ) /
+                             real_c( hyteg::numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, maxLevel ) );
          WALBERLA_LOG_INFO_ON_ROOT( "[StokesSphere] "
                                     << std::setw( 9 ) << i + 1 << " | " << std::setw( 13 ) << std::scientific << currentResidualL2
                                     << " | " << std::setw( 16 ) << std::scientific << currentResidualL2 / lastResidualL2 )

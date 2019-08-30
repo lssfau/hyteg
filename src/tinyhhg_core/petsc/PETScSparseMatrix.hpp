@@ -14,7 +14,7 @@
 
 #include "tinyhhg_core/petsc/PETScVector.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template <class OperatorType, template <class> class FunctionType>
 class PETScSparseMatrix {
@@ -45,7 +45,7 @@ public:
 
   inline void createMatrixFromFunction(const OperatorType& op, uint_t level,const FunctionType<PetscInt>& numerator,DoFType flag = All){
     //WALBERLA_LOG_INFO_ON_ROOT("Creating PETSc Matrix")
-    hhg::petsc::createMatrix<OperatorType>(op, numerator, numerator, mat, level, flag);
+    hyteg::petsc::createMatrix<OperatorType>(op, numerator, numerator, mat, level, flag);
 
     MatAssemblyBegin(mat,MAT_FINAL_ASSEMBLY);
     MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
@@ -71,7 +71,7 @@ public:
   void applyDirichletBC(const FunctionType<PetscInt>& numerator, uint_t level){
     //WALBERLA_LOG_INFO_ON_ROOT("")
     std::vector<PetscInt> ind;
-    hhg::petsc::applyDirichletBC(numerator,ind,level);
+    hyteg::petsc::applyDirichletBC(numerator,ind,level);
 
     MatZeroRows(mat,ind.size(),ind.data(),1.0,0,0);
 
@@ -104,7 +104,7 @@ public:
                                         const uint_t&                        level )
     {
        std::vector< PetscInt > bcIndices;
-       hhg::petsc::applyDirichletBC( numerator, bcIndices, level );
+       hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );
 
        PETScVector< real_t, FunctionType > dirichletSolutionVec( dirichletSolution, numerator, level );
 
@@ -129,7 +129,7 @@ public:
                                                           const uint_t&                   level )
     {
        std::vector< PetscInt > bcIndices;
-       hhg::petsc::applyDirichletBC( numerator, bcIndices, level );
+       hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );
 
        WALBERLA_ASSERT(
            isSymmetric(),

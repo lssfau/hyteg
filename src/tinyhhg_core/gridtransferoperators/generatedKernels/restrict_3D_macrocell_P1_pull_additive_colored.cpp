@@ -5,7 +5,7 @@
 
 #include "restrict_3D_macrocell_P1_pull_additive_colored.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace macrocell {
 namespace generated {
@@ -270,4 +270,4 @@ void restrict_3D_macrocell_P1_pull_additive_colored(double * RESTRICT _data_vert
 } // namespace generated
 } // namespace macrocell
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

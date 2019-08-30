@@ -11,8 +11,7 @@
 #include <core/DataTypes.h>
 #include <core/Deprecated.h>
 
-namespace hhg
-{
+namespace hyteg {
 
 class Vertex;
 class Face;

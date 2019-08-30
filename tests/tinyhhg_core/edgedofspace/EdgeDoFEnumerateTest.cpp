@@ -8,7 +8,7 @@
 #include "core/mpi/all.h"
 #include "core/debug/all.h"
 
-using namespace hhg;
+using namespace hyteg;
 
 using walberla::real_t;
 
@@ -19,7 +19,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
-  hhg::EdgeDoFFunction< int > x("x", storage, Level, Level);
+  hyteg::EdgeDoFFunction< int > x("x", storage, Level, Level);
   if(bufferComm) {
     x.setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
   }
@@ -29,10 +29,10 @@ void checkComm(std::string meshfile, bool bufferComm = false){
 
   //x.enumerate(Level,num);
 
-  uint_t totalDoFs = hhg::levelinfo::num_microedges_per_face( Level ) * storage->getNumberOfLocalFaces();
+  uint_t totalDoFs = hyteg::levelinfo::num_microedges_per_face( Level ) * storage->getNumberOfLocalFaces();
 
   for (auto &edgeIt : storage->getEdges()) {
-    hhg::edgedof::macroedge::enumerate< int >(Level,*edgeIt.second,x.getEdgeDataID(),num);
+     hyteg::edgedof::macroedge::enumerate< int >(Level,*edgeIt.second,x.getEdgeDataID(),num);
     Edge &edge = *edgeIt.second;
     int *edgeData = edge.getData(x.getEdgeDataID())->getPointer(Level);
 
@@ -57,7 +57,7 @@ void checkComm(std::string meshfile, bool bufferComm = false){
   }
 
   for ( auto &faceIt : storage->getFaces() ) {
-    hhg::edgedof::macroface::enumerate< int >(Level,*faceIt.second,x.getFaceDataID(),num);
+     hyteg::edgedof::macroface::enumerate< int >(Level,*faceIt.second,x.getFaceDataID(),num);
     size_t idxCounter = 0;
     Face &face = *faceIt.second;
     int *faceData = face.getData(x.getFaceDataID())->getPointer(Level);

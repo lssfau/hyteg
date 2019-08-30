@@ -13,8 +13,7 @@
 #include <array>
 #include <vector>
 
-namespace hhg
-{
+namespace hyteg {
 
 class Vertex;
 class Edge;

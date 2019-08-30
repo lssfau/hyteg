@@ -10,8 +10,7 @@
 #include <vector>
 
 
-namespace hhg
-{
+namespace hyteg {
 
 class Edge;
 class Face;

@@ -5,7 +5,7 @@
 
 #include "core/Abort.h"
 
-namespace hhg {
+namespace hyteg {
 // namespace containing function for communication between primitives
 namespace communication {
 
@@ -304,4 +304,4 @@ inline void PackInfo::communicateLocal< Cell, Vertex >( const Cell * sender, Ver
 
 
 } // namespace communication
-} // namespace hhg
+} // namespace hyteg

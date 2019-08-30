@@ -5,7 +5,7 @@
 
 #include "sor_2D_macroface_vertexdof_to_vertexdof.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace macroface {
 namespace generated {
@@ -55,4 +55,4 @@ void sor_2D_macroface_vertexdof_to_vertexdof(double * RESTRICT _data_p1FaceDst, 
 } // namespace generated
 } // namespace macroface
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

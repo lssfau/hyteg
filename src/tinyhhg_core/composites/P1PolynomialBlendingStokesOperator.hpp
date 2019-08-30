@@ -5,7 +5,7 @@
 #include "tinyhhg_core/p1functionspace/P1PolynomialBlendingOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class P1PolynomialBlendingStokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFunction< real_t > >
 {
@@ -86,4 +86,4 @@ struct tensor_variant< P1PolynomialBlendingStokesOperator > {
   static const bool value = true;
 };
 
-} // namespace hhg
+} // namespace hyteg

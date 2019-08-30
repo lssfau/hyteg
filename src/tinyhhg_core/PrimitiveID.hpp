@@ -8,7 +8,7 @@
 #include <core/mpi/RecvBuffer.h>
 #include <domain_decomposition/IBlockID.h>
 
-namespace hhg {
+namespace hyteg {
 
 // to be removed when moving to walberla namespace
 using walberla::uint8_c;
@@ -109,7 +109,7 @@ void PrimitiveID::fromBuffer( Buffer_T& buffer ) {
 }
 
 
-} // namespace hhg
+} // namespace hyteg
 
 
 //======================================================================================================================
@@ -123,7 +123,7 @@ namespace mpi {
 
 template< typename T,  // Element type of SendBuffer
           typename G > // Growth policy of SendBuffer
-inline mpi::GenericSendBuffer<T,G> & operator<<( mpi::GenericSendBuffer<T,G> & buffer, const hhg::PrimitiveID & id )
+inline mpi::GenericSendBuffer<T,G> & operator<<( mpi::GenericSendBuffer<T,G> & buffer, const hyteg::PrimitiveID & id )
 {
    buffer.addDebugMarker( "bi" );
    id.toBuffer( buffer );
@@ -131,7 +131,7 @@ inline mpi::GenericSendBuffer<T,G> & operator<<( mpi::GenericSendBuffer<T,G> & b
 }
 
 template< typename T > // Element type  of RecvBuffer
-inline mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buffer, hhg::PrimitiveID & id )
+inline mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buffer, hyteg::PrimitiveID & id )
 {
    buffer.readDebugMarker( "bi" );
    id.fromBuffer( buffer );
@@ -139,7 +139,7 @@ inline mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buffer
 }
 
 template<>
-struct BufferSizeTrait< hhg::PrimitiveID > { static const bool constantSize = false; };
+struct BufferSizeTrait< hyteg::PrimitiveID > { static const bool constantSize = false; };
 
 } // namespace mpi
 } // namespace walberla

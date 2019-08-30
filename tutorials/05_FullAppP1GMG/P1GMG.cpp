@@ -188,18 +188,18 @@ int main( int argc, char** argv )
    /// [Get Parameters]
 
    /// [Primitive Storage]
-   std::shared_ptr< hhg::PrimitiveStorage > storage = hhg::PrimitiveStorage::createFromGmshFile( meshFile );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = hyteg::PrimitiveStorage::createFromGmshFile( meshFile );
    /// [Primitive Storage]
 
    /// [Function Spaces]
-   hhg::P1Function< real_t > residual( "residual", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t > rightHandSide( "rightHandSide", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t > function( "function", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t > laplaceTimesFunction( "laplaceTimesFunction", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > residual( "residual", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > rightHandSide( "rightHandSide", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > function( "function", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t > laplaceTimesFunction( "laplaceTimesFunction", storage, minLevel, maxLevel );
    /// [Function Spaces]
 
    /// [Boundary Conditions]
-   std::function< real_t( const hhg::Point3D& ) > boundaryConditions = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > boundaryConditions = []( const hyteg::Point3D& x ) {
       real_t radius = sqrt( x[0] * x[0] + x[1] * x[1] );
       real_t angle  = std::atan2( x[1], x[0] );
       if( radius < 1.1 )
@@ -212,20 +212,20 @@ int main( int argc, char** argv )
       WALBERLA_ABORT( "point is not on the boundary" );
    };
 
-   function.interpolate( boundaryConditions, maxLevel, hhg::DirichletBoundary );
+   function.interpolate( boundaryConditions, maxLevel, hyteg::DirichletBoundary );
    /// [Boundary Conditions]
 
    /// [Solvers]
-   auto smoother         = std::make_shared< hhg::GaussSeidelSmoother< hhg::P1ConstantLaplaceOperator > >();
-   auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P1ConstantLaplaceOperator > >(
+   auto smoother         = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator > >();
+   auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > >(
        storage, minLevel, minLevel, max_coarse_iter, coarse_tolerance );
-   auto restrictionOperator  = std::make_shared< hhg::P1toP1LinearRestriction >();
-   auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
+   auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction >();
+   auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
 
-   auto multiGridSolver = hhg::GeometricMultigridSolver< hhg::P1ConstantLaplaceOperator >(
+   auto multiGridSolver = hyteg::GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator >(
        storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
 
-   hhg::P1ConstantLaplaceOperator laplaceOperator( storage, minLevel, maxLevel );
+   hyteg::P1ConstantLaplaceOperator laplaceOperator( storage, minLevel, maxLevel );
    /// [Solvers]
 
    /// [Multigrid]
@@ -236,16 +236,16 @@ int main( int argc, char** argv )
    /// [Multigrid]
 
    /// [Residual]
-   laplaceOperator.apply( function, laplaceTimesFunction, maxLevel, hhg::Inner );
-   residual.assign( {1.0, -1.0}, {&rightHandSide, &laplaceTimesFunction}, maxLevel, hhg::Inner );
-   real_t residualEuclideanNorm = std::sqrt( residual.dotGlobal( residual, maxLevel, hhg::Inner ) );
+   laplaceOperator.apply( function, laplaceTimesFunction, maxLevel, hyteg::Inner );
+   residual.assign( {1.0, -1.0}, {&rightHandSide, &laplaceTimesFunction}, maxLevel, hyteg::Inner );
+   real_t residualEuclideanNorm = std::sqrt( residual.dotGlobal( residual, maxLevel, hyteg::Inner ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Euclidean norm of residual: " << residualEuclideanNorm )
    /// [Residual]
 
    /// [Output]
    if( parameters.getParameter< bool >( "vtkOutput" ) )
    {
-      hhg::VTKOutput vtkOutput( ".", "FullAppP1GMG", storage );
+      hyteg::VTKOutput vtkOutput( ".", "FullAppP1GMG", storage );
       vtkOutput.add( function );
       vtkOutput.add( residual );
       vtkOutput.add( rightHandSide );

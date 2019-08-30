@@ -2,7 +2,7 @@
 
 #include "core/DataTypes.h"
 
-namespace hhg {
+namespace hyteg {
 
 template < typename funcType >
 class P2Function;
@@ -18,4 +18,4 @@ template < typename ValueType >
 void syncP2FunctionBetweenPrimitives( const P2Function< ValueType >& function, const uint_t& level );
 
 } // namespace communication
-} // namespace hhg
+} // namespace hyteg

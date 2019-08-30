@@ -40,8 +40,8 @@ int main( int argc, char* argv[] )
    const uint_t maxIterations    =  5;
    const real_t tolerance = 1e-16;
 
-   hhg::MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
-   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
@@ -90,17 +90,17 @@ int main( int argc, char* argv[] )
   }
 #endif
 
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
 
-   hhg::writeDomainPartitioningVTK( storage, "../../output", "P1_Stokes_3D_MinRes_convergence_partitioning" );
+   hyteg::writeDomainPartitioningVTK( storage, "../../output", "P1_Stokes_3D_MinRes_convergence_partitioning" );
 
-   hhg::P1StokesFunction< real_t > r( "r", storage, minLevel, maxLevel );
-   hhg::P1StokesFunction< real_t > f( "f", storage, minLevel, maxLevel );
-   hhg::P1StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );
-   hhg::P1StokesFunction< real_t > uExact( "uExact", storage, minLevel, maxLevel );
-   hhg::P1StokesFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
+   hyteg::P1StokesFunction< real_t > r( "r", storage, minLevel, maxLevel );
+   hyteg::P1StokesFunction< real_t > f( "f", storage, minLevel, maxLevel );
+   hyteg::P1StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );
+   hyteg::P1StokesFunction< real_t > uExact( "uExact", storage, minLevel, maxLevel );
+   hyteg::P1StokesFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
-   hhg::VTKOutput vtkOutput( "../../output", "P1_Stokes_3D_MinRes_convergence", storage );
+   hyteg::VTKOutput vtkOutput( "../../output", "P1_Stokes_3D_MinRes_convergence", storage );
    vtkOutput.add( u.u );
    vtkOutput.add( u.v );
    vtkOutput.add( u.w );
@@ -110,9 +110,9 @@ int main( int argc, char* argv[] )
    vtkOutput.add( uExact.w );
    vtkOutput.add( uExact.p );
 
-   hhg::P1StokesOperator L( storage, minLevel, maxLevel );
+   hyteg::P1StokesOperator L( storage, minLevel, maxLevel );
 
-   std::function< real_t( const hhg::Point3D& ) > inflowPoiseuille = []( const hhg::Point3D& x )
+   std::function< real_t( const hyteg::Point3D& ) > inflowPoiseuille = []( const hyteg::Point3D& x )
    {
       if( x[2] < 1e-8 )
       {
@@ -125,30 +125,30 @@ int main( int argc, char* argv[] )
    };
 
 
-  std::function< real_t( const hhg::Point3D& ) > solutionPoiseuille = []( const hhg::Point3D& x )
+  std::function< real_t( const hyteg::Point3D& ) > solutionPoiseuille = []( const hyteg::Point3D& x )
   {
       return ( 1.0 / 16.0 ) * x[0] * ( 1 - x[0] ) * x[1] * ( 1.0 - x[1] );
   };
 
-  std::function< real_t( const hhg::Point3D& ) > collidingFlow_x = []( const hhg::Point3D& x )
+  std::function< real_t( const hyteg::Point3D& ) > collidingFlow_x = []( const hyteg::Point3D& x )
   {
     return real_c(20) * x[0] * x[1] * x[1] * x[1];
   };
 
-  std::function< real_t( const hhg::Point3D& ) > collidingFlow_y = []( const hhg::Point3D& x )
+  std::function< real_t( const hyteg::Point3D& ) > collidingFlow_y = []( const hyteg::Point3D& x )
   {
       return real_c(5) * x[0] * x[0] * x[0] * x[0] - real_c(5) * x[1] * x[1] * x[1] * x[1];
   };
 
-   std::function< real_t( const hhg::Point3D& ) > rhs  = []( const hhg::Point3D& ) { return 0.0; };
-   std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };
-   std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > rhs  = []( const hyteg::Point3D& ) { return 0.0; };
+   std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
+   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
 #if 1
-   u.w.interpolate( inflowPoiseuille, maxLevel, hhg::DirichletBoundary );
+   u.w.interpolate( inflowPoiseuille, maxLevel, hyteg::DirichletBoundary );
 #else
-   u.u.interpolate( collidingFlow_x, maxLevel, hhg::DirichletBoundary );
-   u.v.interpolate( collidingFlow_y, maxLevel, hhg::DirichletBoundary );
+   u.u.interpolate( collidingFlow_x, maxLevel, hyteg::DirichletBoundary );
+   u.v.interpolate( collidingFlow_y, maxLevel, hyteg::DirichletBoundary );
 
    uExact.u.interpolate( collidingFlow_x, maxLevel );
    uExact.v.interpolate( collidingFlow_y, maxLevel );
@@ -157,30 +157,30 @@ int main( int argc, char* argv[] )
    vtkOutput.write( maxLevel, 0 );
 #if 1
 
-   typedef hhg::CGSolver< hhg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
-   typedef hhg::GeometricMultigridSolver< hhg::P1ConstantLaplaceOperator  > GMGSolver_T;
-   typedef hhg::StokesBlockDiagonalPreconditioner< hhg::P1StokesOperator, hhg::P1LumpedInvMassOperator > Preconditioner_T;
+   typedef hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
+   typedef hyteg::GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator  > GMGSolver_T;
+   typedef hyteg::StokesBlockDiagonalPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator > Preconditioner_T;
 
    auto coarseGridSolver = std::make_shared< CoarseGridSolver_T  >( storage, minLevel, maxLevel );
-   auto smoother = std::make_shared< hhg::GaussSeidelSmoother<hhg::P1ConstantLaplaceOperator>  >();
-   auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
-   auto restrictionOperator = std::make_shared< hhg::P1toP1LinearRestriction >();
+   auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator>  >();
+   auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
+   auto restrictionOperator = std::make_shared< hyteg::P1toP1LinearRestriction >();
    auto gmgSolver = std::make_shared< GMGSolver_T >( storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
-   //hhg::P1LumpedInvMassOperator massOperator( storage, minLevel, maxLevel );
+   //hyteg::P1LumpedInvMassOperator massOperator( storage, minLevel, maxLevel );
    //Preconditioner_T prec( storage, minLevel, maxLevel, 2, gmgSolver );
    auto prec = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 2, gmgSolver );
 
-   auto solver = hhg::MinResSolver< hhg::P1StokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance, prec );
-   // auto solver = hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator, PressurePreconditioner_T >( storage, minLevel, maxLevel, pressurePrec );
-   // auto solver = hhg::MinResSolver< hhg::P1StokesFunction< real_t >, hhg::P1StokesOperator >( storage, minLevel, maxLevel );
+   auto solver = hyteg::MinResSolver< hyteg::P1StokesOperator >( storage, minLevel, maxLevel, maxIterations, tolerance, prec );
+   // auto solver = hyteg::MinResSolver< hyteg::P1StokesFunction< real_t >, hyteg::P1StokesOperator, PressurePreconditioner_T >( storage, minLevel, maxLevel, pressurePrec );
+   // auto solver = hyteg::MinResSolver< hyteg::P1StokesFunction< real_t >, hyteg::P1StokesOperator >( storage, minLevel, maxLevel );
 
    solver.solve( L, u, f, maxLevel );
 #else
-   auto numerator = std::make_shared< hhg::P1StokesFunction< PetscInt > >( "numerator", storage, level, level );
+   auto numerator = std::make_shared< hyteg::P1StokesFunction< PetscInt > >( "numerator", storage, level, level );
    uint_t globalSize = 0;
    const uint_t localSize = numerator->enumerate(level, globalSize);
    PETScManager petscManager;
-   PETScLUSolver< real_t, hhg::P1StokesFunction, hhg::P1StokesOperator > petScLUSolver( numerator, localSize, globalSize );
+   PETScLUSolver< real_t, hyteg::P1StokesFunction, hyteg::P1StokesOperator > petScLUSolver( numerator, localSize, globalSize );
    f.u.assign( {1.0}, {u.u}, level, DirichletBoundary );
    f.v.assign( {1.0}, {u.v}, level, DirichletBoundary );
    f.w.assign( {1.0}, {u.w}, level, DirichletBoundary );
@@ -188,8 +188,8 @@ int main( int argc, char* argv[] )
 #endif
    vtkOutput.write( maxLevel, 1 );
 
-   L.apply( u, r, maxLevel, hhg::Inner | hhg::NeumannBoundary );
-   real_t final_residual = r.dotGlobal( r, maxLevel, hhg::Inner ) / real_c( hhg::numberOfGlobalDoFs< hhg::P1StokesFunctionTag >( *storage, maxLevel ) );
+   L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+   real_t final_residual = r.dotGlobal( r, maxLevel, hyteg::Inner ) / real_c( hyteg::numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, maxLevel ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Residual: " << final_residual )
    WALBERLA_CHECK_LESS( final_residual, 3.1e-12 );

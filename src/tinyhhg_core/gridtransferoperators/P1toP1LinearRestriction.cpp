@@ -6,7 +6,7 @@
 #include "tinyhhg_core/HHGDefinitions.hpp"
 #include "tinyhhg_core/gridtransferoperators/generatedKernels/all.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 void P1toP1LinearRestriction::restrict2D( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const
 {

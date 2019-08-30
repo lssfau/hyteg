@@ -8,7 +8,7 @@
 #include <array>
 #include <vector>
 
-namespace hhg {
+namespace hyteg {
 
 
 void MeshInfo::addEdge( const Edge & edge )
@@ -70,4 +70,4 @@ void MeshInfo::addCellAndAllEdgesAndFaces( const Cell & cell )
   addFace( Face( std::vector< IDType >( {{ cellCoordinates[1], cellCoordinates[2], cellCoordinates[3] }} ), 0 ) );
 }
 
-} // namespace hhg
+} // namespace hyteg

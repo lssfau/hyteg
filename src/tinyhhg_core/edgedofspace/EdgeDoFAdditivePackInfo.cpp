@@ -9,7 +9,7 @@
 #include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
 #include "tinyhhg_core/indexing/LocalIDMappings.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 /// @name Vertex to Edge
 ///@{
@@ -86,7 +86,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::packFaceForEdge( const Face*         
                                                             walberla::mpi::SendBuffer& buffer ) const
 {
    WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Edge only meaningful in 2D." );
-   using hhg::edgedof::macroface::BoundaryIterator;
+   using hyteg::edgedof::macroface::BoundaryIterator;
    ValueType*                    faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = sender->edge_index( receiver );
    indexing::FaceBoundaryDirection faceBorderDir =
@@ -143,7 +143,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalFaceToEdge( const Fac
    if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
       return;
 
-   using hhg::edgedof::macroface::BoundaryIterator;
+   using hyteg::edgedof::macroface::BoundaryIterator;
    ValueType*                    edgeData        = receiver->getData( dataIDEdge_ )->getPointer( level_ );
    ValueType*                    faceData        = sender->getData( dataIDFace_ )->getPointer( level_ );
    uint_t                        edgeIndexOnFace = sender->edge_index( receiver->getID() );
@@ -457,4 +457,4 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalCellToVertex(const Ce
 template class EdgeDoFAdditivePackInfo< double >;
 template class EdgeDoFAdditivePackInfo< int >;
 
-} // namespace hhg
+} // namespace hyteg

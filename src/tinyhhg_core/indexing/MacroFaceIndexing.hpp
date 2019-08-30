@@ -5,7 +5,7 @@
 #include "core/Abort.h"
 #include "tinyhhg_core/indexing/Common.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace indexing {
 
 using walberla::uint_t;

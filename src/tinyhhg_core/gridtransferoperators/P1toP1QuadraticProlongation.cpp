@@ -3,7 +3,7 @@
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 void P1toP1QuadraticProlongation::prolongateMacroVertex( const real_t *src, real_t *dst, const uint_t & ) const
 {

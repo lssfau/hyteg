@@ -45,9 +45,9 @@ int main( int argc, char** argv )
          timerSpecial.reset();
          for( size_t i = 0; i < iter; ++i )
          {
-            hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_add(
+            hyteg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_add(
                 dst.data(), src.data(), stencil.data(), (int32_t) level );
-            hhg::misc::dummy( dst.data(), src.data() );
+            hyteg::misc::dummy( dst.data(), src.data() );
          }
          timerSpecial.end();
          LIKWID_MARKER_STOP( "apply_special" );
@@ -56,9 +56,9 @@ int main( int argc, char** argv )
          timerAny.reset();
          for( size_t i = 0; i < iter; ++i )
          {
-            hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_add_level_any(
+            hyteg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_add_level_any(
                 dst.data(), src.data(), stencil.data(), (int32_t) level );
-            hhg::misc::dummy( dst.data(), src.data() );
+            hyteg::misc::dummy( dst.data(), src.data() );
          }
          timerAny.end();
          LIKWID_MARKER_STOP( "apply_any" );

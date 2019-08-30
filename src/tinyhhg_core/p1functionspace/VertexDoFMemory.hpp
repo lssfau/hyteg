@@ -16,7 +16,7 @@
 #include <string>
 
 
-namespace hhg {
+namespace hyteg {
 
 /////////////////////
 // Function memory //
@@ -260,4 +260,4 @@ public:
 };
 
 
-} // namespace hhg
+} // namespace hyteg

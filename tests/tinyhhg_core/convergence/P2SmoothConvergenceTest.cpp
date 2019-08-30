@@ -12,7 +12,7 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 static void testP2SmoothConvergence()
 {
@@ -58,7 +58,7 @@ static void testP2SmoothConvergence()
   WALBERLA_CHECK_LESS( discreteL2Norm, 7e-13 );
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -68,7 +68,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    // walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testP2SmoothConvergence();
+   hyteg::testP2SmoothConvergence();
 
    return EXIT_SUCCESS;
 }

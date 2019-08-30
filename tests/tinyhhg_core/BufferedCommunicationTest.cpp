@@ -11,7 +11,7 @@
 #include "tinyhhg_core/communication/PackInfo.hpp"
 
 
-namespace hhg {
+namespace hyteg {
 
 struct VertexTestData
 {
@@ -255,7 +255,7 @@ static void testBufferedCommunication()
 
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -265,7 +265,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testBufferedCommunication();
+   hyteg::testBufferedCommunication();
 
    return EXIT_SUCCESS;
 }

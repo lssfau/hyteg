@@ -6,7 +6,7 @@
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_c;
 using walberla::real_t;
@@ -201,4 +201,4 @@ inline uint_t numberOfGlobalInnerDoFs( const PrimitiveStorage& primitiveStorage,
 void printFunctionAllocationInfo( const PrimitiveStorage & storage, const uint_t & verbosityLevel = 1 );
 
 
-} // namespace hhg
+} // namespace hyteg

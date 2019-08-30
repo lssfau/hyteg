@@ -11,7 +11,7 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
@@ -24,30 +24,30 @@ int main( int argc, char* argv[] )
 
    auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
 
-   hhg::P1Function< real_t > r( "r", storage, level, level );
-   hhg::P1Function< real_t > f( "f", storage, level, level );
-   hhg::P1Function< real_t > u( "u", storage, level, level );
-   hhg::P1Function< real_t > u_exact( "u_exact", storage, level, level );
-   hhg::P1Function< real_t > err( "err", storage, level, level );
-   hhg::P1Function< real_t > npoints_helper( "npoints_helper", storage, level, level );
+   hyteg::P1Function< real_t > r( "r", storage, level, level );
+   hyteg::P1Function< real_t > f( "f", storage, level, level );
+   hyteg::P1Function< real_t > u( "u", storage, level, level );
+   hyteg::P1Function< real_t > u_exact( "u_exact", storage, level, level );
+   hyteg::P1Function< real_t > err( "err", storage, level, level );
+   hyteg::P1Function< real_t > npoints_helper( "npoints_helper", storage, level, level );
 
-   hhg::P1ConstantMassOperator    M( storage, level, level );
-   hhg::P1ConstantLaplaceOperator L( storage, level, level );
+   hyteg::P1ConstantMassOperator    M( storage, level, level );
+   hyteg::P1ConstantLaplaceOperator L( storage, level, level );
 
-   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& x ) {
       return ( 1.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
    };
-   std::function< real_t( const hhg::Point3D& ) > rhs = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > rhs = []( const hyteg::Point3D& x ) {
       return ( 3.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
    };
-   std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   u.interpolate( exact, level, hhg::DirichletBoundary );
+   u.interpolate( exact, level, hyteg::DirichletBoundary );
    u_exact.interpolate( exact, level );
    npoints_helper.interpolate( rhs, level );
-   M.apply( npoints_helper, f, level, hhg::All );
+   M.apply( npoints_helper, f, level, hyteg::All );
 
-   auto solver = hhg::CGSolver< hhg::P1ConstantLaplaceOperator >( storage, level, level );
+   auto solver = hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator >( storage, level, level );
 
    solver.solve( L, u, f, level );
 
@@ -60,7 +60,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
    WALBERLA_CHECK_LESS( discr_l2_err, 1.2e-5 );
 
-   hhg::VTKOutput vtkOutput( "../../output", "P2CGConvergenceTest", storage );
+   hyteg::VTKOutput vtkOutput( "../../output", "P2CGConvergenceTest", storage );
    vtkOutput.add( u );
    vtkOutput.write( level );
 

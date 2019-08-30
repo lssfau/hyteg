@@ -13,7 +13,7 @@
 #include "tinyhhg_core/primitives/Face.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFMacroFace.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace P2 {
 namespace macroface {
 
@@ -113,7 +113,7 @@ void smoothJacobiVertexDoF( const uint_t&                                       
 
    real_t tmp;
 
-   for ( const auto& it : hhg::vertexdof::macroface::Iterator( level, 1 ) )
+   for ( const auto& it : hyteg::vertexdof::macroface::Iterator( level, 1 ) )
    {
       tmp = rhs[vertexdof::macroface::indexFromVertex( level, it.col(), it.row(), sD::VERTEX_C )];
 
@@ -156,7 +156,7 @@ void smoothJacobiEdgeDoF( const uint_t&                                         
    real_t* rhs              = face.getData( rhsEdgeDoFID )->getPointer( Level );
 
    real_t tmp;
-   for ( const auto& it : hhg::edgedof::macroface::Iterator( Level, 0 ) )
+   for ( const auto& it : hyteg::edgedof::macroface::Iterator( Level, 0 ) )
    {
       if ( it.row() != 0 )
       {
@@ -181,7 +181,7 @@ void smoothJacobiEdgeDoF( const uint_t&                                         
              ( 1 - dampingFactor ) *
                  srcEdgeDoF[edgedof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), sD::EDGE_HO_C )];
       }
-      if ( it.col() + it.row() != ( hhg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+      if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
       {
          tmp = rhs[edgedof::stencilIndexFromDiagonalEdge( sD::EDGE_DI_C )];
          for ( uint_t k = 1; k < edgedof::macroface::neighborsFromDiagonalEdge.size(); ++k )
@@ -262,7 +262,7 @@ void smoothSOR( const uint_t&                                            level,
    const real_t invEdgeYCenter  = 1.0 / edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge( sD::EDGE_VE_C )];
 
    /// sum up weighted values first for vertex and edges and write to corresponding dof
-   for ( const auto& it : hhg::edgedof::macroface::Iterator( level, 0 ) )
+   for ( const auto& it : hyteg::edgedof::macroface::Iterator( level, 0 ) )
    {
       ////////// VERTEX //////////
       if ( !vertexdof::macroface::isVertexOnBoundary( level, it ) )
@@ -387,7 +387,7 @@ void smoothSOR3D(
    real_t tmp;
 
    // updating vertex unknowns
-   for ( const auto& centerIndexInFace : hhg::vertexdof::macroface::Iterator( level, 1 ) )
+   for ( const auto& centerIndexInFace : hyteg::vertexdof::macroface::Iterator( level, 1 ) )
    {
       const auto dstIdx = vertexdof::macroface::index( level, centerIndexInFace.x(), centerIndexInFace.y() );
       tmp               = vertexDoFRhs[dstIdx];
@@ -476,7 +476,7 @@ void smoothSOR3D(
    }
 
    // updating edge unknowns
-   for ( const auto& centerIndexInFace : hhg::edgedof::macroface::Iterator( level, 0 ) )
+   for ( const auto& centerIndexInFace : hyteg::edgedof::macroface::Iterator( level, 0 ) )
    {
       for ( const auto& faceCenterOrientation : edgedof::faceLocalEdgeDoFOrientations )
       {
@@ -607,4 +607,4 @@ void smoothGaussSeidel(const uint_t &level,
 
 } // namespace macroface
 } // namespace P2
-} // namespace hhg
+} // namespace hyteg

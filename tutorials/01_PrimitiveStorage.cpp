@@ -5,7 +5,7 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 /**
  * \page 01_PrimitiveStorage Setting up a PrimitiveStorage
@@ -83,22 +83,22 @@ void PrimitiveStorageTutorial()
   uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
   /// [MeshInfo]
-  hhg::MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_2el.msh" );
+  hyteg::MeshInfo meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_2el.msh" );
   /// [MeshInfo]
 
   /// [SetupPrimitiveStorage]
-  hhg::SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
+  hyteg::SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
   /// [SetupPrimitiveStorage]
 
   /// [Loadbalancing]
-  hhg::loadbalancing::roundRobin( setupStorage );
+  hyteg::loadbalancing::roundRobin( setupStorage );
   /// [Loadbalancing]
 
   // Let's have a debug print
   WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
 
   /// [PrimitiveStorage]
-  hhg::PrimitiveStorage storage( setupStorage );
+  hyteg::PrimitiveStorage storage( setupStorage );
   /// [PrimitiveStorage]
 
   // For nicer output
@@ -110,13 +110,13 @@ void PrimitiveStorageTutorial()
 
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 int main( int argc, char** argv )
 {
   walberla::mpi::Environment env( argc, argv );
   walberla::mpi::MPIManager::instance()->useWorldComm();
-  hhg::PrimitiveStorageTutorial();
+  hyteg::PrimitiveStorageTutorial();
   return 0;
 }
 

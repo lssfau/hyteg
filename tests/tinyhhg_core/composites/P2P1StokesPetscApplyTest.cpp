@@ -21,7 +21,7 @@
 
 using walberla::real_t;
 
-namespace hhg {
+namespace hyteg {
 
 bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile, const DoFType& location, const real_t& eps )
 {
@@ -31,11 +31,11 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
 
    PETScManager petscManager;
 
-   MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFile );
+   MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    loadbalancing::roundRobin( setupStorage );
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
 
    writeDomainPartitioningVTK( storage, "../../output", "P2P1StokesPetscApplyTestDomain" );
 
@@ -46,16 +46,16 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
    P2P1TaylorHoodFunction< real_t >   ones( "ones", storage, level, level );
    P2P1TaylorHoodFunction< PetscInt > numerator( "numerator", storage, level, level );
 
-   std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D& ) { return 0.0; };
-   std::function< real_t( const hhg::Point3D& ) > one  = []( const hhg::Point3D& ) { return 1.0; };
-   std::function< real_t( const hhg::Point3D& ) > rand = []( const hhg::Point3D& ) {
+   std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
+   std::function< real_t( const hyteg::Point3D& ) > one  = []( const hyteg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > rand = []( const hyteg::Point3D& ) {
       return walberla::math::realRandom< real_t >();
    };
-   std::function< real_t( const hhg::Point3D& ) > srcFunction = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > srcFunction = []( const hyteg::Point3D& x ) {
       return x[0] * x[0] * x[0] * x[0] * std::sinh( x[1] ) * std::cos( x[2] );
    };
 
-   src.interpolate( srcFunction, level, hhg::All );
+   src.interpolate( srcFunction, level, hyteg::All );
    hhgDst.interpolate( rand, level, location );
    petscDst.interpolate( rand, level, location );
    ones.interpolate( one, level, location );
@@ -64,8 +64,8 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
 
    numerator.enumerate( level );
 
-   const uint_t globalDoFs = hhg::numberOfGlobalDoFs< hhg::P2P1TaylorHoodFunctionTag >( *storage, level );
-   const uint_t localDoFs  = hhg::numberOfLocalDoFs< hhg::P2P1TaylorHoodFunctionTag >( *storage, level );
+   const uint_t globalDoFs = hyteg::numberOfGlobalDoFs< hyteg::P2P1TaylorHoodFunctionTag >( *storage, level );
+   const uint_t localDoFs  = hyteg::numberOfLocalDoFs< hyteg::P2P1TaylorHoodFunctionTag >( *storage, level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Global DoFs: " << globalDoFs );
 
@@ -132,7 +132,7 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
    }
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 int main( int argc, char* argv[] )
 {
@@ -141,13 +141,13 @@ int main( int argc, char* argv[] )
 
    bool succeeded = true;
 
-   succeeded &= hhg::p2p1StokesPetscApplyTest( 3, "../../data/meshes/quad_4el.msh", hhg::All, 8.7e-15 );
-   succeeded &= hhg::p2p1StokesPetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh", hhg::All, 2.6e-13 );
-   succeeded &= hhg::p2p1StokesPetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh", hhg::All, 1.0e-16 );
-   succeeded &= hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/pyramid_2el.msh", hhg::All, 7.3e-16 );
-   succeeded &= hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/pyramid_4el.msh", hhg::All, 1.4e-15 );
-   succeeded &= hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/regular_octahedron_8el.msh", hhg::All, 4.0e-15 );
-   succeeded &= hhg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/cube_24el.msh", hhg::All, 3.5e-15 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, "../../data/meshes/quad_4el.msh", hyteg::All, 8.7e-15 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh", hyteg::All, 2.6e-13 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh", hyteg::All, 1.0e-16 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/pyramid_2el.msh", hyteg::All, 7.3e-16 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/pyramid_4el.msh", hyteg::All, 1.4e-15 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/regular_octahedron_8el.msh", hyteg::All, 4.0e-15 );
+   succeeded &= hyteg::p2p1StokesPetscApplyTest( 2, "../../data/meshes/3D/cube_24el.msh", hyteg::All, 3.5e-15 );
 
    WALBERLA_CHECK( succeeded, "One of the tests failed" )
 

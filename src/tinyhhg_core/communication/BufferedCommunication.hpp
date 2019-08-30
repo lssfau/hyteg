@@ -14,7 +14,7 @@
 
 #include <atomic>
 
-namespace hhg {
+namespace hyteg {
 namespace communication {
 
 using walberla::int_c;
@@ -417,4 +417,4 @@ void BufferedCommunicator::staticAssertCommunicationDirections() const
 
 
 } // namespace communication
-} // namespace hhg
+} // namespace hyteg

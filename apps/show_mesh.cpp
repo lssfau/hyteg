@@ -17,7 +17,7 @@ using walberla::uint_c;
 using walberla::uint_t;
 using walberla::math::pi;
 
-using namespace hhg;
+using namespace hyteg;
 
 void showUsage()
 {
@@ -277,15 +277,15 @@ int main( int argc, char* argv[] )
    {
    case ALL_ROOT:
       WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: all on root" );
-      hhg::loadbalancing::allPrimitivesOnRoot( *setupStorage );
+      hyteg::loadbalancing::allPrimitivesOnRoot( *setupStorage );
       break;
    case ROUND_ROBIN:
       WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: round robin" );
-      hhg::loadbalancing::roundRobin( *setupStorage );
+      hyteg::loadbalancing::roundRobin( *setupStorage );
       break;
    case GREEDY:
       WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: greedy" );
-      hhg::loadbalancing::greedy( *setupStorage );
+      hyteg::loadbalancing::greedy( *setupStorage );
       break;
    default:
       break;
@@ -313,18 +313,18 @@ int main( int argc, char* argv[] )
    if( loadBalancingType == PARMETIS )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: parmetis" );
-      hhg::loadbalancing::distributed::parmetis( *storage );
+      hyteg::loadbalancing::distributed::parmetis( *storage );
    }
 #endif
 
-   hhg::writeDomainPartitioningVTK( storage, "../output", vtkFileName + "_domain_partitioning" );
+   hyteg::writeDomainPartitioningVTK( storage, "../output", vtkFileName + "_domain_partitioning" );
    WALBERLA_LOG_INFO_ON_ROOT(
        "Wrote domain partitioning (incl. rank assignment) and mesh boundary flags to files with base name: "
        << vtkFileName + "_domain_partitioning" );
 
-   hhg::VTKOutput                                 vtkOutput( "../output", vtkFileName, storage );
-   hhg::P1Function< real_t >                      someData( "test data", storage, minLevel, maxLevel );
-   std::function< real_t( const hhg::Point3D& ) > myFunc = []( const hhg::Point3D& xx ) { return xx[0] * xx[0] - xx[1] * xx[1]; };
+   hyteg::VTKOutput                                 vtkOutput( "../output", vtkFileName, storage );
+   hyteg::P1Function< real_t >                      someData( "test data", storage, minLevel, maxLevel );
+   std::function< real_t( const hyteg::Point3D& ) > myFunc = []( const hyteg::Point3D& xx ) { return xx[0] * xx[0] - xx[1] * xx[1]; };
    someData.interpolate( myFunc, maxLevel );
    vtkOutput.add( someData );
    WALBERLA_LOG_INFO_ON_ROOT( "Output goes to file with basename: " << vtkFileName );

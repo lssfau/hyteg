@@ -12,7 +12,7 @@
 
 #include "tinyhhg_core/types/pointnd.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_t;
 using walberla::uint_t;

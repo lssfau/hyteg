@@ -3,7 +3,7 @@
 #include "IdentityMap.hpp"
 #include "PolarCoordsMap.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 real_t GeometryMap::evalDetDF( const Point3D& x )
 {
@@ -37,4 +37,4 @@ std::shared_ptr< GeometryMap > GeometryMap::deserialize( walberla::mpi::RecvBuff
    }
 }
 
-} // namespace hhg
+} // namespace hyteg

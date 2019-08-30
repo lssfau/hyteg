@@ -30,7 +30,7 @@ class p1_to_p2_tet_divt_tet_cell_integral_0_otherwise;
 class p1_to_p2_tet_divt_tet_cell_integral_1_otherwise;
 class p1_to_p2_tet_divt_tet_cell_integral_2_otherwise;
 
-namespace hhg {
+namespace hyteg {
 namespace fenics {
 
 class UndefinedAssembly;

@@ -2,7 +2,7 @@
 #include "BoundaryConditions.hpp"
 #include "core/debug/CheckFunctions.h"
 
-namespace hhg {
+namespace hyteg {
 
 BoundaryCondition BoundaryCondition::create012BC()
 {
@@ -14,7 +14,7 @@ BoundaryCondition BoundaryCondition::create012BC()
 
 BoundaryCondition BoundaryCondition::createAllInnerBC()
 {
-  BoundaryCondition bc( hhg::Inner );
+  BoundaryCondition bc( hyteg::Inner );
   return bc;
 }
 
@@ -69,7 +69,7 @@ DoFType BoundaryCondition::getBoundaryType( const uint_t & meshBoundaryFlag ) co
   return boundaryUIDToType_.at( boundaryUID );
 }
 
-bool BoundaryCondition::operator==( const hhg::BoundaryCondition & other ) const
+bool BoundaryCondition::operator==( const hyteg::BoundaryCondition & other ) const
 {
   return    defaultBC_         == other.defaultBC_
          && meshFlagToID_      == other.meshFlagToID_

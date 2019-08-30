@@ -4,7 +4,7 @@
 #include "tinyhhg_core/gridtransferoperators/RestrictionOperator.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class P2toP2QuadraticRestriction : public RestrictionOperator< P2Function< real_t > >
 {
@@ -32,4 +32,4 @@ class P2toP2QuadraticRestriction : public RestrictionOperator< P2Function< real_
    void restrictAdditively3D( const P2Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const;
 };
 
-} // namespace hhg
+} // namespace hyteg

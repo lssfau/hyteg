@@ -4,7 +4,7 @@
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/Debug.h"
 
-namespace hhg {
+namespace hyteg {
 
 MeshInfo MeshInfo::meshUnitSquare(uint_t level) {
   MeshInfo meshInfo;

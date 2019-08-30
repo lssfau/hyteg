@@ -9,7 +9,7 @@
 #include <array>
 #include <vector>
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_t;
 using walberla::real_c;

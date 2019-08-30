@@ -11,7 +11,7 @@
 
 #include <cassert>
 
-namespace hhg {
+namespace hyteg {
 namespace edgedof {
 
 constexpr uint_t levelToWidthAnyEdgeDoF( const uint_t & level )
@@ -320,7 +320,7 @@ typedef stencilDirection sD;
 /// Index of a horizontal edge DoF on a macro edge (only access to owned DoFs, no ghost layers).
 inline constexpr uint_t index( const uint_t & level, const uint_t & x )
 {
-  return ::hhg::indexing::macroEdgeIndex( levelToWidthAnyEdgeDoF( level ), x );
+  return ::hyteg::indexing::macroEdgeIndex( levelToWidthAnyEdgeDoF( level ), x );
 }
 
 
@@ -330,9 +330,9 @@ inline uint_t indexOnNeighborFace( const uint_t & level, const uint_t & x, const
 {
   WALBERLA_ASSERT_EQUAL( std::count( faceLocalEdgeDoFOrientations.begin(), faceLocalEdgeDoFOrientations.end(), orientation ), 1, "Invalid orientation." );
 
-  const uint_t numHorizontalDoFsOnEdge       = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
-  const uint_t numHorizontalDoFsOnGhostLayer = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) - 1 );
-  const uint_t numOtherTypeDoFsOnGhostLayer  = ::hhg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
+  const uint_t numHorizontalDoFsOnEdge       = ::hyteg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
+  const uint_t numHorizontalDoFsOnGhostLayer = ::hyteg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) - 1 );
+  const uint_t numOtherTypeDoFsOnGhostLayer  = ::hyteg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
 
   switch ( orientation )
   {
@@ -798,20 +798,20 @@ public:
   {}
 };
 
-inline bool isHorizontalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
+inline bool isHorizontalEdgeOnBoundary(const uint_t level, const hyteg::indexing::Index& idx){
   /// level is only needed in the diagonal case
   WALBERLA_UNUSED( level );
   return ( idx.row() == 0 );
 }
 
-inline bool isVerticalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
+inline bool isVerticalEdgeOnBoundary(const uint_t level, const hyteg::indexing::Index& idx){
   /// level is only needed in the diagonal case
   WALBERLA_UNUSED( level );
   return ( idx.col() == 0 );
 }
 
-inline bool isDiagonalEdgeOnBoundary(const uint_t level, const hhg::indexing::Index& idx){
-  return ( (idx.col() + idx.row()) == (hhg::levelinfo::num_microedges_per_edge( level ) - 1) );
+inline bool isDiagonalEdgeOnBoundary(const uint_t level, const hyteg::indexing::Index& idx){
+  return ( (idx.col() + idx.row()) == ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1) );
 }
 
 inline bool isInnerEdgeDoF( const uint_t & level, const indexing::Index & idx, const EdgeDoFOrientation & orientation )
@@ -1096,7 +1096,7 @@ public:
     {}
 };
 
-class BoundaryIterator : public hhg::indexing::CellBoundaryIterator
+class BoundaryIterator : public hyteg::indexing::CellBoundaryIterator
 {
 public:
   BoundaryIterator( const uint_t & level, const uint_t & vertex0, const uint_t & vertex1,
@@ -1105,7 +1105,7 @@ public:
   {}
 };
 
-class BoundaryIteratorXYZ : public hhg::indexing::CellBoundaryIterator
+class BoundaryIteratorXYZ : public hyteg::indexing::CellBoundaryIterator
 {
 public:
   BoundaryIteratorXYZ( const uint_t & level, const uint_t & vertex0, const uint_t & vertex1,
@@ -1211,4 +1211,4 @@ constexpr inline uint_t stencilIndexFromVerticalEdge(const stencilDirection dir)
 
 
 } // namespace edgedof
-} // namespace hhg
+} // namespace hyteg

@@ -10,7 +10,7 @@
 // #include "tinyhhg_core/p2functionspace/P2TransferOperators.hpp"
 // #include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_c;
 
@@ -86,7 +86,7 @@ class P2Function : public Function< P2Function< ValueType > >
 
    ValueType sumLocal( uint_t level, const DoFType& flag = All, const bool & absolute = false ) const;
 
-   void prolongateP1ToP2( const hhg::P1Function< ValueType >& p1Function, const uint_t& level, const DoFType& flag = All ) const;
+   void prolongateP1ToP2( const hyteg::P1Function< ValueType >& p1Function, const uint_t& level, const DoFType& flag = All ) const;
 
    void restrictP2ToP1( const P1Function< ValueType >& p1Function, const uint_t& level, const DoFType& flag = All ) const;
 
@@ -124,4 +124,4 @@ void projectMean( const P2Function< real_t >& pressure, const uint_t& level );
 
 } // namespace p2function
 
-} //namespace hhg
+} //namespace hyteg

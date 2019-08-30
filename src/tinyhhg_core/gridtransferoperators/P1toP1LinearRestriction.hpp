@@ -4,7 +4,7 @@
 #include "tinyhhg_core/gridtransferoperators/RestrictionOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class P1toP1LinearRestriction : public RestrictionOperator< P1Function< real_t > >
 {
@@ -38,4 +38,4 @@ class P1toP1LinearRestriction : public RestrictionOperator< P1Function< real_t >
    void restrictMacroFace( const real_t* src, real_t* dst, const uint_t& sourceLevel, const uint_t& numNeighborCells ) const;
 };
 
-} // namespace hhg
+} // namespace hyteg

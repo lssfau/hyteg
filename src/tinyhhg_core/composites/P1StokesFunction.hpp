@@ -4,8 +4,7 @@
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/FunctionProperties.hpp"
 
-namespace hhg
-{
+namespace hyteg {
 
 template <typename ValueType>
 class P1StokesFunction
@@ -33,7 +32,7 @@ public:
 
   bool isDummy() const { return false; }
 
-  void interpolate(const std::function<real_t(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All) const
+  void interpolate(const std::function<real_t(const hyteg::Point3D&)>& expr, size_t level, DoFType flag = All) const
   {
     u.interpolate(expr, level, flag);
     v.interpolate(expr, level, flag);
@@ -127,7 +126,7 @@ public:
 
   void enumerate( uint_t level )
   {
-    uint_t counterVertexDoFs = hhg::numberOfLocalDoFs< Tag >( *( u.getStorage() ), level );
+    uint_t counterVertexDoFs = hyteg::numberOfLocalDoFs< Tag >( *( u.getStorage() ), level );
 
     std::vector< uint_t > vertexDoFsPerRank = walberla::mpi::allGather( counterVertexDoFs );
 

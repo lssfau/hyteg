@@ -6,7 +6,7 @@
 
 #ifdef HHG_BUILD_WITH_PETSC
 
-namespace hhg {
+namespace hyteg {
 
 template<typename ValueType, template <class> class F, class O>
 class PETScPreconditioner {

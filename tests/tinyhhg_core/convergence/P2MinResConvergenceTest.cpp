@@ -18,34 +18,34 @@ int main(int argc, char* argv[]) {
 
   std::string meshFileName = "../../data/meshes/quad_4el.msh";
 
-  hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile(meshFileName);
-  hhg::SetupPrimitiveStorage setupStorage(meshInfo, walberla::uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
+  hyteg::MeshInfo meshInfo = hyteg::MeshInfo::fromGmshFile(meshFileName);
+  hyteg::SetupPrimitiveStorage setupStorage(meshInfo, walberla::uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
 
-  hhg::loadbalancing::roundRobin(setupStorage);
+  hyteg::loadbalancing::roundRobin(setupStorage);
 
   size_t minLevel = 2;
   size_t maxLevel = 3;
   //size_t maxiter = 1000;
 
-  std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
+  std::shared_ptr< hyteg::PrimitiveStorage> storage = std::make_shared< hyteg::PrimitiveStorage>(setupStorage);
 
-  hhg::P2Function<real_t> r("r", storage, minLevel, maxLevel);
-  hhg::P2Function<real_t> f("f", storage, minLevel, maxLevel);
-  hhg::P2Function<real_t> u("u", storage, minLevel, maxLevel);
-  hhg::P2Function<real_t> u_exact("u_exact", storage, minLevel, maxLevel);
-  hhg::P2Function<real_t> err("err", storage, minLevel, maxLevel);
-  hhg::P2Function<real_t> npoints_helper("npoints_helper", storage, minLevel, maxLevel);
+  hyteg::P2Function<real_t> r("r", storage, minLevel, maxLevel);
+  hyteg::P2Function<real_t> f("f", storage, minLevel, maxLevel);
+  hyteg::P2Function<real_t> u("u", storage, minLevel, maxLevel);
+  hyteg::P2Function<real_t> u_exact("u_exact", storage, minLevel, maxLevel);
+  hyteg::P2Function<real_t> err("err", storage, minLevel, maxLevel);
+  hyteg::P2Function<real_t> npoints_helper("npoints_helper", storage, minLevel, maxLevel);
 
-  hhg::P2ConstantLaplaceOperator L(storage, minLevel, maxLevel);
+  hyteg::P2ConstantLaplaceOperator L(storage, minLevel, maxLevel);
 
-  std::function<real_t(const hhg::Point3D &)> exact = [](const hhg::Point3D x) -> real_t { return x[0] * x[0] - x[1] * x[1]; };
-  std::function<real_t(const hhg::Point3D &)> rhs = [](const hhg::Point3D &) { return 0.0; };
-  std::function<real_t(const hhg::Point3D &)> ones = [](const hhg::Point3D &) { return 1.0; };
+  std::function<real_t(const hyteg::Point3D &)> exact = [](const hyteg::Point3D x) -> real_t { return x[0] * x[0] - x[1] * x[1]; };
+  std::function<real_t(const hyteg::Point3D &)> rhs = [](const hyteg::Point3D &) { return 0.0; };
+  std::function<real_t(const hyteg::Point3D &)> ones = [](const hyteg::Point3D &) { return 1.0; };
 
-  u.interpolate(exact, maxLevel, hhg::DirichletBoundary);
+  u.interpolate(exact, maxLevel, hyteg::DirichletBoundary);
   u_exact.interpolate(exact, maxLevel);
 
-  auto solver = hhg::MinResSolver< hhg::P2ConstantLaplaceOperator >(storage, minLevel, maxLevel);
+  auto solver = hyteg::MinResSolver< hyteg::P2ConstantLaplaceOperator >(storage, minLevel, maxLevel);
   solver.solve(L, u, f, maxLevel);
 
   err.assign({1.0, -1.0}, {u, u_exact}, maxLevel);

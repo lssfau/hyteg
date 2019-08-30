@@ -3,7 +3,7 @@
 
 #include "tinyhhg_core/solvers/Solver.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template < class OperatorType >
 class EmptySolver : public Solver< OperatorType >
@@ -17,4 +17,4 @@ class EmptySolver : public Solver< OperatorType >
    }
 };
 
-} // namespace hhg
+} // namespace hyteg

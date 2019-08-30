@@ -8,7 +8,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/p1functionspace/generatedKernels/all.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template< typename ValueType >
 class VertexDoFPackInfo : public communication::DoFSpacePackInfo<ValueType>
@@ -582,4 +582,4 @@ inline void VertexDoFPackInfo< ValueType >::communicateLocalCellToFace(const Cel
 
 
 
-} //namespace hhg
+} //namespace hyteg

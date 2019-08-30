@@ -2,7 +2,7 @@
 
 #include "tinyhhg_core/forms/P1Form.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class P1ZeroForm : public P1Form
 {
@@ -23,4 +23,4 @@ public:
     inline bool assembly3DDefined() const override { return true; }
 };
 
-} // namespace hhg
+} // namespace hyteg

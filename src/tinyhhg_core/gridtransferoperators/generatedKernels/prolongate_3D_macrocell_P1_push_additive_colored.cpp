@@ -5,7 +5,7 @@
 
 #include "prolongate_3D_macrocell_P1_push_additive_colored.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace macrocell {
 namespace generated {
@@ -400,4 +400,4 @@ void prolongate_3D_macrocell_P1_push_additive_colored(double const * RESTRICT co
 } // namespace generated
 } // namespace macrocell
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

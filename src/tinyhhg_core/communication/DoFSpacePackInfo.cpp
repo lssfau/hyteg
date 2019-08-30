@@ -4,7 +4,7 @@
 #include "tinyhhg_core/communication/PackInfo.hpp"
 #include "tinyhhg_core/primitivedata/PrimitiveDataID.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace communication {
 
 template < typename ValueType >
@@ -41,4 +41,4 @@ template class DoFSpacePackInfo< int >;
 template class DoFSpacePackInfo< uint_t >;
 
 } // namespace communication
-} // namespace hhg
+} // namespace hyteg

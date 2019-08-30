@@ -10,8 +10,7 @@
 
 #include <cstddef>
 
-namespace hhg
-{
+namespace hyteg {
 using walberla::uint_c;
 
 uint_t Face::vertex_index(const PrimitiveID& vertex) const
@@ -123,7 +122,7 @@ PrimitiveID Face::get_edge_between_vertices(const PrimitiveID& v0, const Primiti
   WALBERLA_ABORT("Face::get_edge_between_vertices: Vertex v1 does not belong to face")
 }
 
-std::ostream& operator<<(std::ostream &os, const hhg::Face &face)
+std::ostream& operator<<(std::ostream &os, const hyteg::Face &face)
 {
   return os << "Face { id = " << face.getID().getID() << "; "
             << "neighborEdges_[0] = " << face.neighborEdges_[0].getID() << "; "

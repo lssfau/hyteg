@@ -6,7 +6,7 @@
 #include "core/mpi/all.h"
 #include "core/debug/all.h"
 
-using namespace hhg;
+using namespace hyteg;
 using walberla::real_t;
 using walberla::uint_t;
 
@@ -24,14 +24,14 @@ int main (int argc, char ** argv )
   const uint_t minLevel = 2;
   const uint_t maxLevel = 4;
 
-  hhg::P1Function< real_t > x("x", storage, minLevel, maxLevel);
+  hyteg::P1Function< real_t > x("x", storage, minLevel, maxLevel);
 
   x.enumerate(maxLevel);
-  hhg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
+  hyteg::communication::syncFunctionBetweenPrimitives( x, maxLevel );
 
   uint_t numberOfChecks = 0;
-  uint_t totalExpectedChecks = (3 * hhg::levelinfo::num_microvertices_per_edge(maxLevel)
-                                + 3 * (hhg::levelinfo::num_microvertices_per_edge(maxLevel) - 1))
+  uint_t totalExpectedChecks = (3 * hyteg::levelinfo::num_microvertices_per_edge(maxLevel)
+                                + 3 * ( hyteg::levelinfo::num_microvertices_per_edge(maxLevel) - 1))
                                * storage->getNumberOfLocalFaces();
 
   for (auto &faceIt : storage->getFaces()) {

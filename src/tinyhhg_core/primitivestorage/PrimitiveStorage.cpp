@@ -19,7 +19,7 @@
 #include <map>
 #include <vector>
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::uint_t;
 
@@ -1372,5 +1372,5 @@ void PrimitiveStorage::checkConsistency()
 }
 
 
-} // namespace hhg
+} // namespace hyteg
 

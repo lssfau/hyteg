@@ -25,7 +25,7 @@
 #include "tinyhhg_core/solvers/UzawaSmoother.hpp"
 #include "tinyhhg_core/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::int64_c;
 using walberla::math::pi;
@@ -87,21 +87,21 @@ static void defectCorrection( int argc, char** argv )
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   std::function< real_t( const hhg::Point3D& ) > exactU = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& x ) {
       return std::sin( 2 * pi * x[0] ) * std::cos( pi * x[1] );
    };
 
-   std::function< real_t( const hhg::Point3D& ) > exactV = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > exactV = []( const hyteg::Point3D& x ) {
       return -2.0 * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] );
    };
 
-   std::function< real_t( const hhg::Point3D& ) > exactP = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& x ) {
       return 2.5 * pi * std::cos( 2 * pi * x[0] ) * std::cos( pi * x[1] );
    };
 
-   std::function< real_t( const hhg::Point3D& ) > rhsU = []( const hhg::Point3D& ) { return 0; };
+   std::function< real_t( const hyteg::Point3D& ) > rhsU = []( const hyteg::Point3D& ) { return 0; };
 
-   std::function< real_t( const hhg::Point3D& ) > rhsV = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > rhsV = []( const hyteg::Point3D& x ) {
       return -12.5 * pi * pi * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] );
    };
 
@@ -298,9 +298,9 @@ static void defectCorrection( int argc, char** argv )
    }
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 int main( int argc, char** argv )
 {
-   hhg::defectCorrection( argc, argv );
+   hyteg::defectCorrection( argc, argv );
 }

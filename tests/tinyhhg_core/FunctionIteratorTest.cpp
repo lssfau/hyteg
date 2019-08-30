@@ -8,7 +8,7 @@
 
 using walberla::uint_t;
 
-namespace hhg {
+namespace hyteg {
 
 static void testFunctionIterator( const std::string & meshFileName, const uint_t & level )
 {
@@ -68,17 +68,17 @@ static void testFunctionIterator( const std::string & meshFileName, const uint_t
 
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
 {
   walberla::Environment walberlaEnv(argc, argv);
   walberla::MPIManager::instance()->useWorldComm();
-  hhg::testFunctionIterator( "../../data/meshes/annulus_coarse.msh", 2 );
-  hhg::testFunctionIterator( "../../data/meshes/annulus_coarse.msh", 3 );
-  hhg::testFunctionIterator( "../../data/meshes/3D/cube_24el.msh", 2 );
-  hhg::testFunctionIterator( "../../data/meshes/3D/cube_24el.msh", 3 );
+  hyteg::testFunctionIterator( "../../data/meshes/annulus_coarse.msh", 2 );
+  hyteg::testFunctionIterator( "../../data/meshes/annulus_coarse.msh", 3 );
+  hyteg::testFunctionIterator( "../../data/meshes/3D/cube_24el.msh", 2 );
+  hyteg::testFunctionIterator( "../../data/meshes/3D/cube_24el.msh", 3 );
 
   return EXIT_SUCCESS;
 }

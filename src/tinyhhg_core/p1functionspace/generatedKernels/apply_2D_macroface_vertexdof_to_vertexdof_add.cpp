@@ -5,7 +5,7 @@
 
 #include "apply_2D_macroface_vertexdof_to_vertexdof_add.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace macroface {
 namespace generated {
@@ -53,4 +53,4 @@ void apply_2D_macroface_vertexdof_to_vertexdof_add(double * RESTRICT _data_p1Fac
 } // namespace generated
 } // namespace macroface
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

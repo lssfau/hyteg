@@ -13,7 +13,7 @@
 //TODO this should be improved but we need the enum which cant be forward declared
 #include "tinyhhg_core/communication/BufferedCommunication.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_c;
 using walberla::real_t;
@@ -232,4 +232,4 @@ inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint
 }
 
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

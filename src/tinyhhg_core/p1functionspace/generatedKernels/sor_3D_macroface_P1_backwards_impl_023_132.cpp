@@ -5,12 +5,12 @@
 
 #include "sor_3D_macroface_P1_backwards_impl_023_132.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-static void sor_3D_macroface_P1_backwards_impl_023_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int32_t level, double relax, std::map< hhg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hhg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P1_backwards_impl_023_132_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int32_t level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
@@ -46,7 +46,7 @@ static void sor_3D_macroface_P1_backwards_impl_023_132_level_any(double * RESTRI
 }
 
 
-void sor_3D_macroface_P1_backwards_impl_023_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int32_t level, double relax, std::map< hhg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hhg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P1_backwards_impl_023_132(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, int32_t level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -61,4 +61,4 @@ void sor_3D_macroface_P1_backwards_impl_023_132(double * RESTRICT _data_vertexFa
 } // namespace generated
 } // namespace macroface
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

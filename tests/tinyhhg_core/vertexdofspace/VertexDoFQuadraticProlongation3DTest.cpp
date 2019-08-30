@@ -22,7 +22,7 @@ using walberla::real_c;
 using walberla::uint_c;
 using walberla::uint_t;
 
-using namespace hhg;
+using namespace hyteg;
 
 void testGridTransfer3D( const std::string & meshFile, const uint_t & lowerLevel )
 {
@@ -41,47 +41,47 @@ void testGridTransfer3D( const std::string & meshFile, const uint_t & lowerLevel
     writeDomainPartitioningVTK( storage, "../../output", "P1LaplaceOperatorTest3D_partitioning" );
 
 
-  std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D & ) -> real_t
+  std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D & ) -> real_t
   {
       return 0.0;
   };
 
-  std::function< real_t( const hhg::Point3D& ) > one = []( const hhg::Point3D & ) -> real_t
+  std::function< real_t( const hyteg::Point3D& ) > one = []( const hyteg::Point3D & ) -> real_t
   {
       return 1.0;
   };
 
-  std::function< real_t( const hhg::Point3D& ) > constant = []( const hhg::Point3D & ) -> real_t
+  std::function< real_t( const hyteg::Point3D& ) > constant = []( const hyteg::Point3D & ) -> real_t
   {
       return 42.0;
   };
 
 
-  std::function< real_t( const hhg::Point3D& ) > linearInX = []( const hhg::Point3D & p ) -> real_t
+  std::function< real_t( const hyteg::Point3D& ) > linearInX = []( const hyteg::Point3D & p ) -> real_t
   {
       return real_c(42) * p[0];
   };
 
-  std::function< real_t( const hhg::Point3D& ) > linearInXYZ = []( const hhg::Point3D & p ) -> real_t
+  std::function< real_t( const hyteg::Point3D& ) > linearInXYZ = []( const hyteg::Point3D & p ) -> real_t
   {
       return real_c(42) * p[0] + p[1] ; // + real_c(1337) * p[2];
   };
 
-  std::function< real_t( const hhg::Point3D& ) > quadraticInXYZ = []( const hhg::Point3D& p ) -> real_t {
+  std::function< real_t( const hyteg::Point3D& ) > quadraticInXYZ = []( const hyteg::Point3D& p ) -> real_t {
       return 2. * p[0] * p[0] + 3. * p[0] + 13. + 4. * p[1] + 5. * p[1] * p[1] + p[2] * p[2] + 6.;
   };
 
-  hhg::vertexdof::VertexDoFFunction< real_t > u          ( "u",           storage, lowerLevel, lowerLevel + 1 );
-  hhg::vertexdof::VertexDoFFunction< real_t > resultExact( "u_exact",     storage, lowerLevel, lowerLevel + 1 );
-  hhg::vertexdof::VertexDoFFunction< real_t > err        ( "err",         storage, lowerLevel, lowerLevel + 1 );
-  hhg::vertexdof::VertexDoFFunction< real_t > oneFunction( "oneFunction", storage, lowerLevel, lowerLevel + 1 );
+  hyteg::vertexdof::VertexDoFFunction< real_t > u          ( "u",           storage, lowerLevel, lowerLevel + 1 );
+  hyteg::vertexdof::VertexDoFFunction< real_t > resultExact( "u_exact",     storage, lowerLevel, lowerLevel + 1 );
+  hyteg::vertexdof::VertexDoFFunction< real_t > err        ( "err",         storage, lowerLevel, lowerLevel + 1 );
+  hyteg::vertexdof::VertexDoFFunction< real_t > oneFunction( "oneFunction", storage, lowerLevel, lowerLevel + 1 );
 
   VTKOutput vtkOutput("../../output", "P1LaplaceOperatorTest3D", storage);
   vtkOutput.add( u );
   vtkOutput.add( resultExact );
   vtkOutput.add( err );
 
-  auto testProlongationResult = [&]( std::function< real_t( const hhg::Point3D& ) > uFunction ) -> real_t
+  auto testProlongationResult = [&]( std::function< real_t( const hyteg::Point3D& ) > uFunction ) -> real_t
   {
       u.interpolate( uFunction, lowerLevel, All );
       resultExact.interpolate( uFunction, lowerLevel + 1, Inner | NeumannBoundary );

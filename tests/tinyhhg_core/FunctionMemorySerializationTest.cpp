@@ -16,7 +16,7 @@
 
 using walberla::uint_t;
 
-namespace hhg {
+namespace hyteg {
 
 
 static void testFunctionMemorySerialization()
@@ -45,7 +45,7 @@ static void testFunctionMemorySerialization()
   VTKOutput vtkOutputAfter("../../output/", "function_memory_serialization_test_data_after_migration", storage);
   vtkOutputAfter.add( x );
 
-  std::function<real_t(const hhg::Point3D&)> gradient = [](const hhg::Point3D& xx) { return xx[0]; };
+  std::function<real_t(const hyteg::Point3D&)> gradient = [](const hyteg::Point3D& xx) { return xx[0]; };
 
   for ( uint_t level = minLevel; level <= maxLevel; level++ )
   {
@@ -57,7 +57,7 @@ static void testFunctionMemorySerialization()
 
   WALBERLA_LOG_INFO( "Number of local primitives (before migration): " << storage->getNumberOfLocalPrimitives() );
 
-  std::map< hhg::PrimitiveID::IDType, uint_t > primitivesToMigrate;
+  std::map< hyteg::PrimitiveID::IDType, uint_t > primitivesToMigrate;
   std::vector< PrimitiveID > localPrimitiveIDs;
   storage->getPrimitiveIDs( localPrimitiveIDs );
   for ( const auto & id : localPrimitiveIDs )
@@ -73,7 +73,7 @@ static void testFunctionMemorySerialization()
 
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -84,7 +84,7 @@ int main( int argc, char* argv[] )
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
   walberla::debug::enterTestMode();
-  hhg::testFunctionMemorySerialization();
+  hyteg::testFunctionMemorySerialization();
 
   return EXIT_SUCCESS;
 }

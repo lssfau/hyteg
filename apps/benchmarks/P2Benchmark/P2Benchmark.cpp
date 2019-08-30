@@ -17,7 +17,7 @@
 
 using walberla::real_c;
 using walberla::real_t;
-using namespace hhg;
+using namespace hyteg;
 
 /*
  * This benchmark meassures the time for several P2 functions on a macro face
@@ -76,9 +76,9 @@ int main( int argc, char** argv )
    P2Function< real_t > src( "src", storage, level, level );
    P2Function< real_t > dst( "dst", storage, level, level );
 
-   hhg::P2ConstantLaplaceOperator M( storage, level, level );
+   hyteg::P2ConstantLaplaceOperator M( storage, level, level );
 
-   std::function< real_t( const hhg::Point3D& ) > someFunction = [&]( const hhg::Point3D& point )
+   std::function< real_t( const hyteg::Point3D& ) > someFunction = [&]( const hyteg::Point3D& point )
    {
       return point[0] + point[1];
    };

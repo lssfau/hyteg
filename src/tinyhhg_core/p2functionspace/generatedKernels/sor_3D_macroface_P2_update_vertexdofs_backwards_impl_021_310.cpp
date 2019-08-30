@@ -5,78 +5,78 @@
 
 #include "sor_3D_macroface_P2_update_vertexdofs_backwards_impl_021_310.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace P2 {
 namespace macroface {
 namespace generated {
 
-static void sor_3D_macroface_P2_update_vertexdofs_backwards_impl_021_310_level_any(double const * RESTRICT const _data_edgeFaceDst_X, double const * RESTRICT const _data_edgeFaceDst_XY, double const * RESTRICT const _data_edgeFaceDst_Y, double const * RESTRICT const _data_edgeFaceDst_gl0_X, double const * RESTRICT const _data_edgeFaceDst_gl0_XY, double const * RESTRICT const _data_edgeFaceDst_gl0_XYZ, double const * RESTRICT const _data_edgeFaceDst_gl0_XZ, double const * RESTRICT const _data_edgeFaceDst_gl0_Y, double const * RESTRICT const _data_edgeFaceDst_gl0_YZ, double const * RESTRICT const _data_edgeFaceDst_gl0_Z, double const * RESTRICT const _data_edgeFaceDst_gl1_X, double const * RESTRICT const _data_edgeFaceDst_gl1_XY, double const * RESTRICT const _data_edgeFaceDst_gl1_XYZ, double const * RESTRICT const _data_edgeFaceDst_gl1_XZ, double const * RESTRICT const _data_edgeFaceDst_gl1_Y, double const * RESTRICT const _data_edgeFaceDst_gl1_YZ, double const * RESTRICT const _data_edgeFaceDst_gl1_Z, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2v_cell_stencil_fused_face_0, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2v_cell_stencil_fused_face_1, int32_t level, double relax, std::map< hhg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hhg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P2_update_vertexdofs_backwards_impl_021_310_level_any(double const * RESTRICT const _data_edgeFaceDst_X, double const * RESTRICT const _data_edgeFaceDst_XY, double const * RESTRICT const _data_edgeFaceDst_Y, double const * RESTRICT const _data_edgeFaceDst_gl0_X, double const * RESTRICT const _data_edgeFaceDst_gl0_XY, double const * RESTRICT const _data_edgeFaceDst_gl0_XYZ, double const * RESTRICT const _data_edgeFaceDst_gl0_XZ, double const * RESTRICT const _data_edgeFaceDst_gl0_Y, double const * RESTRICT const _data_edgeFaceDst_gl0_YZ, double const * RESTRICT const _data_edgeFaceDst_gl0_Z, double const * RESTRICT const _data_edgeFaceDst_gl1_X, double const * RESTRICT const _data_edgeFaceDst_gl1_XY, double const * RESTRICT const _data_edgeFaceDst_gl1_XYZ, double const * RESTRICT const _data_edgeFaceDst_gl1_XZ, double const * RESTRICT const _data_edgeFaceDst_gl1_Y, double const * RESTRICT const _data_edgeFaceDst_gl1_YZ, double const * RESTRICT const _data_edgeFaceDst_gl1_Z, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil_fused_face_0, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil_fused_face_1, int32_t level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
    const double xi_86 = 1 / (xi_1 + xi_2);
-   const double xi_3 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
-   const double xi_4 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, 0 }];
-   const double xi_5 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::XYZ][{ 0, -1, 0 }];
-   const double xi_6 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::XY][{ -1, -1, 0 }];
-   const double xi_7 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::XY][{ -1, -1, 1 }];
-   const double xi_8 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, 0 }];
-   const double xi_9 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::XY][{ 0, -1, 0 }];
-   const double xi_10 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::XY][{ 0, -1, 1 }];
-   const double xi_11 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 0 }];
-   const double xi_12 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::XZ][{ -1, 0, 0 }];
-   const double xi_13 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::XZ][{ 0, -1, 0 }];
-   const double xi_14 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 0 }];
-   const double xi_15 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::X][{ -1, 0, 0 }];
-   const double xi_16 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::X][{ -1, 0, 1 }];
-   const double xi_17 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::X][{ -1, 1, 0 }];
-   const double xi_18 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::X][{ 0, -1, 0 }];
-   const double xi_19 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::X][{ 0, -1, 1 }];
-   const double xi_20 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 0 }];
-   const double xi_21 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::YZ][{ -1, 0, 0 }];
-   const double xi_22 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::YZ][{ 0, -1, 0 }];
-   const double xi_23 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, 0 }];
-   const double xi_24 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::YZ][{ 1, -1, 0 }];
-   const double xi_25 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::Y][{ -1, 0, 0 }];
-   const double xi_26 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::Y][{ 0, -1, 0 }];
-   const double xi_27 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::Y][{ 0, -1, 1 }];
-   const double xi_28 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, 0 }];
-   const double xi_29 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::Y][{ 1, -1, 0 }];
-   const double xi_30 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::Z][{ -1, 0, 0 }];
-   const double xi_31 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::Z][{ 0, -1, 0 }];
-   const double xi_32 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, 0 }];
-   const double xi_33 = e2v_cell_stencil_fused_face_0[hhg::edgedof::EdgeDoFOrientation::Z][{ 1, -1, 0 }];
-   const double xi_34 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
-   const double xi_35 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, 0 }];
-   const double xi_36 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::XYZ][{ 0, 0, -1 }];
-   const double xi_37 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, -1 }];
-   const double xi_38 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, 0 }];
-   const double xi_39 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, -1 }];
-   const double xi_40 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 0 }];
-   const double xi_41 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::XZ][{ -1, 0, -1 }];
-   const double xi_42 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::XZ][{ -1, 0, 0 }];
-   const double xi_43 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::XZ][{ -1, 1, -1 }];
-   const double xi_44 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, -1 }];
-   const double xi_45 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 0 }];
-   const double xi_46 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::X][{ -1, 0, 0 }];
-   const double xi_47 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::X][{ -1, 0, 1 }];
-   const double xi_48 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::X][{ -1, 1, -1 }];
-   const double xi_49 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::X][{ -1, 1, 0 }];
-   const double xi_50 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::X][{ 0, 0, -1 }];
-   const double xi_51 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 0 }];
-   const double xi_52 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::YZ][{ -1, 0, -1 }];
-   const double xi_53 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::YZ][{ -1, 0, 0 }];
-   const double xi_54 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, -1 }];
-   const double xi_55 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, 0 }];
-   const double xi_56 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::Y][{ -1, 0, 0 }];
-   const double xi_57 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, -1 }];
-   const double xi_58 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, 0 }];
-   const double xi_59 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::Z][{ -1, 0, 0 }];
-   const double xi_60 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::Z][{ -1, 1, -1 }];
-   const double xi_61 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, -1 }];
-   const double xi_62 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, 0 }];
-   const double xi_63 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::Z][{ 0, 1, -1 }];
-   const double xi_64 = e2v_cell_stencil_fused_face_1[hhg::edgedof::EdgeDoFOrientation::Z][{ 1, 0, -1 }];
+   const double xi_3 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
+   const double xi_4 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, 0 }];
+   const double xi_5 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, -1, 0 }];
+   const double xi_6 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, -1, 0 }];
+   const double xi_7 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, -1, 1 }];
+   const double xi_8 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, 0 }];
+   const double xi_9 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, -1, 0 }];
+   const double xi_10 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, -1, 1 }];
+   const double xi_11 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 0 }];
+   const double xi_12 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XZ][{ -1, 0, 0 }];
+   const double xi_13 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, -1, 0 }];
+   const double xi_14 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 0 }];
+   const double xi_15 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::X][{ -1, 0, 0 }];
+   const double xi_16 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::X][{ -1, 0, 1 }];
+   const double xi_17 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::X][{ -1, 1, 0 }];
+   const double xi_18 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, -1, 0 }];
+   const double xi_19 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, -1, 1 }];
+   const double xi_20 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 0 }];
+   const double xi_21 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::YZ][{ -1, 0, 0 }];
+   const double xi_22 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, -1, 0 }];
+   const double xi_23 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, 0 }];
+   const double xi_24 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 1, -1, 0 }];
+   const double xi_25 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Y][{ -1, 0, 0 }];
+   const double xi_26 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, -1, 0 }];
+   const double xi_27 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, -1, 1 }];
+   const double xi_28 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, 0 }];
+   const double xi_29 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Y][{ 1, -1, 0 }];
+   const double xi_30 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Z][{ -1, 0, 0 }];
+   const double xi_31 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, -1, 0 }];
+   const double xi_32 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, 0 }];
+   const double xi_33 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Z][{ 1, -1, 0 }];
+   const double xi_34 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
+   const double xi_35 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, 0 }];
+   const double xi_36 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, 0, -1 }];
+   const double xi_37 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, -1 }];
+   const double xi_38 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, 0 }];
+   const double xi_39 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, -1 }];
+   const double xi_40 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 0 }];
+   const double xi_41 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XZ][{ -1, 0, -1 }];
+   const double xi_42 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XZ][{ -1, 0, 0 }];
+   const double xi_43 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XZ][{ -1, 1, -1 }];
+   const double xi_44 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, -1 }];
+   const double xi_45 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 0 }];
+   const double xi_46 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::X][{ -1, 0, 0 }];
+   const double xi_47 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::X][{ -1, 0, 1 }];
+   const double xi_48 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::X][{ -1, 1, -1 }];
+   const double xi_49 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::X][{ -1, 1, 0 }];
+   const double xi_50 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 0, -1 }];
+   const double xi_51 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 0 }];
+   const double xi_52 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::YZ][{ -1, 0, -1 }];
+   const double xi_53 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::YZ][{ -1, 0, 0 }];
+   const double xi_54 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, -1 }];
+   const double xi_55 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, 0 }];
+   const double xi_56 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::Y][{ -1, 0, 0 }];
+   const double xi_57 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, -1 }];
+   const double xi_58 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, 0 }];
+   const double xi_59 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::Z][{ -1, 0, 0 }];
+   const double xi_60 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::Z][{ -1, 1, -1 }];
+   const double xi_61 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, -1 }];
+   const double xi_62 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, 0 }];
+   const double xi_63 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, 1, -1 }];
+   const double xi_64 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::Z][{ 1, 0, -1 }];
    const double xi_65 = v2v_cell_stencil_fused_face_0[{ -1, 0, 0 }];
    const double xi_66 = v2v_cell_stencil_fused_face_0[{ -1, 0, 1 }];
    const double xi_67 = v2v_cell_stencil_fused_face_0[{ -1, 1, 0 }];
@@ -108,7 +108,7 @@ static void sor_3D_macroface_P2_update_vertexdofs_backwards_impl_021_310_level_a
 }
 
 
-void sor_3D_macroface_P2_update_vertexdofs_backwards_impl_021_310(double const * RESTRICT const _data_edgeFaceDst_X, double const * RESTRICT const _data_edgeFaceDst_XY, double const * RESTRICT const _data_edgeFaceDst_Y, double const * RESTRICT const _data_edgeFaceDst_gl0_X, double const * RESTRICT const _data_edgeFaceDst_gl0_XY, double const * RESTRICT const _data_edgeFaceDst_gl0_XYZ, double const * RESTRICT const _data_edgeFaceDst_gl0_XZ, double const * RESTRICT const _data_edgeFaceDst_gl0_Y, double const * RESTRICT const _data_edgeFaceDst_gl0_YZ, double const * RESTRICT const _data_edgeFaceDst_gl0_Z, double const * RESTRICT const _data_edgeFaceDst_gl1_X, double const * RESTRICT const _data_edgeFaceDst_gl1_XY, double const * RESTRICT const _data_edgeFaceDst_gl1_XYZ, double const * RESTRICT const _data_edgeFaceDst_gl1_XZ, double const * RESTRICT const _data_edgeFaceDst_gl1_Y, double const * RESTRICT const _data_edgeFaceDst_gl1_YZ, double const * RESTRICT const _data_edgeFaceDst_gl1_Z, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2v_cell_stencil_fused_face_0, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2v_cell_stencil_fused_face_1, int32_t level, double relax, std::map< hhg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hhg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P2_update_vertexdofs_backwards_impl_021_310(double const * RESTRICT const _data_edgeFaceDst_X, double const * RESTRICT const _data_edgeFaceDst_XY, double const * RESTRICT const _data_edgeFaceDst_Y, double const * RESTRICT const _data_edgeFaceDst_gl0_X, double const * RESTRICT const _data_edgeFaceDst_gl0_XY, double const * RESTRICT const _data_edgeFaceDst_gl0_XYZ, double const * RESTRICT const _data_edgeFaceDst_gl0_XZ, double const * RESTRICT const _data_edgeFaceDst_gl0_Y, double const * RESTRICT const _data_edgeFaceDst_gl0_YZ, double const * RESTRICT const _data_edgeFaceDst_gl0_Z, double const * RESTRICT const _data_edgeFaceDst_gl1_X, double const * RESTRICT const _data_edgeFaceDst_gl1_XY, double const * RESTRICT const _data_edgeFaceDst_gl1_XYZ, double const * RESTRICT const _data_edgeFaceDst_gl1_XZ, double const * RESTRICT const _data_edgeFaceDst_gl1_Y, double const * RESTRICT const _data_edgeFaceDst_gl1_YZ, double const * RESTRICT const _data_edgeFaceDst_gl1_Z, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil_fused_face_0, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil_fused_face_1, int32_t level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {
@@ -123,4 +123,4 @@ void sor_3D_macroface_P2_update_vertexdofs_backwards_impl_021_310(double const *
 } // namespace generated
 } // namespace macroface
 } // namespace P2
-} // namespace hhg
+} // namespace hyteg

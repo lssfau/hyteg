@@ -14,7 +14,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_c;
 
@@ -269,7 +269,7 @@ const std::map< VTKOutput::DoFType, std::string > VTKOutput::DoFTypeToString_ = 
 
 std::string VTKOutput::fileNameExtension( const VTKOutput::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const
 {
-   return hhg::format( "_%s_level%u_ts%u", DoFTypeToString_.at( dofType ).c_str(), level, timestep );
+   return hyteg::format( "_%s_level%u_ts%u", DoFTypeToString_.at( dofType ).c_str(), level, timestep );
 }
 
 void VTKOutput::writePointsForMicroVertices( std::ostream&                              output,
@@ -1044,7 +1044,7 @@ void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
       {
          if( getNumRegisteredFunctions( dofType ) > 0 )
          {
-            const std::string completeFilePath = hhg::format(
+            const std::string completeFilePath = hyteg::format(
                 "%s/%s%s.vtu", dir_.c_str(), filename_.c_str(), fileNameExtension( dofType, level, timestep ).c_str() );
             //( fmt::format( "{}/{}{}.vtu", dir_, filename_, fileNameExtension( dofType, level, timestep ) ) );
 
@@ -1100,12 +1100,12 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
 {
   for ( const auto & function : p1Functions_ )
   {
-     hhg::communication::syncFunctionBetweenPrimitives<hhg::P1Function<real_t> >( function, level);
+     hyteg::communication::syncFunctionBetweenPrimitives< hyteg::P1Function<real_t> >( function, level);
   }
 
   for ( const auto & function : edgeDoFFunctions_ )
   {
-     hhg::communication::syncFunctionBetweenPrimitives<hhg::EdgeDoFFunction<real_t>>( function, level);
+     hyteg::communication::syncFunctionBetweenPrimitives< hyteg::EdgeDoFFunction<real_t>>( function, level);
   }
 
   for ( const auto & function : dgFunctions_ )
@@ -1115,4 +1115,4 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
   }
 }
 
-} // namespace hhg
+} // namespace hyteg

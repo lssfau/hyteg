@@ -6,7 +6,7 @@
 
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 static void testVertexDoFFunctionMemorySize()
 {
@@ -68,7 +68,7 @@ static void testVertexDoFFunctionMemorySize()
 
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -78,7 +78,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testVertexDoFFunctionMemorySize();
+   hyteg::testVertexDoFFunctionMemorySize();
 
    return EXIT_SUCCESS;
 }

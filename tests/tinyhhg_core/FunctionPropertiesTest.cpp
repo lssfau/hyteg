@@ -7,7 +7,7 @@
 
 using walberla::uint_t;
 
-namespace hhg {
+namespace hyteg {
 
 template < typename FunctionTag_T >
 void testFunctionProperties( const std::string& meshFileName,
@@ -29,18 +29,18 @@ void testFunctionProperties( const std::string& meshFileName,
    WALBERLA_CHECK_EQUAL( expectedInnerDoFs, numInnerDoFs )
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 int main( int argc, char* argv[] )
 {
    walberla::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testFunctionProperties< hhg::P1FunctionTag >( "../../data/meshes/tri_1el.msh", 2, 15, 3 );
-   hhg::testFunctionProperties< hhg::P1FunctionTag >( "../../data/meshes/tri_1el.msh", 3, 45, 21 );
-   hhg::testFunctionProperties< hhg::P1FunctionTag >( "../../data/meshes/tri_2el.msh", 2, 25, 9 );
-   hhg::testFunctionProperties< hhg::P1FunctionTag >( "../../data/meshes/tri_2el.msh", 3, 81, 49 );
-   hhg::testFunctionProperties< hhg::P1FunctionTag >( "../../data/meshes/3D/tet_1el.msh", 2, 35, 1 );
-   hhg::testFunctionProperties< hhg::P1FunctionTag >( "../../data/meshes/3D/tet_1el.msh", 3, 165, 35 );
+   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( "../../data/meshes/tri_1el.msh", 2, 15, 3 );
+   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( "../../data/meshes/tri_1el.msh", 3, 45, 21 );
+   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( "../../data/meshes/tri_2el.msh", 2, 25, 9 );
+   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( "../../data/meshes/tri_2el.msh", 3, 81, 49 );
+   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( "../../data/meshes/3D/tet_1el.msh", 2, 35, 1 );
+   hyteg::testFunctionProperties< hyteg::P1FunctionTag >( "../../data/meshes/3D/tet_1el.msh", 3, 165, 35 );
 
    return EXIT_SUCCESS;
 }

@@ -4,7 +4,7 @@
 #include "tinyhhg_core/solvers/GeometricMultigridSolver.hpp"
 #include "tinyhhg_core/solvers/Solver.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template < class OperatorType >
 class FullMultigridSolver : public Solver< OperatorType >
@@ -71,4 +71,4 @@ class FullMultigridSolver : public Solver< OperatorType >
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
 };
 
-} // namespace hhg
+} // namespace hyteg

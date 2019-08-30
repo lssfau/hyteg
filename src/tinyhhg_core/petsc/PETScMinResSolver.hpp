@@ -9,7 +9,7 @@
 
 #ifdef HHG_BUILD_WITH_PETSC
 
-namespace hhg {
+namespace hyteg {
 
 template < class OperatorType >
 class PETScMinResSolver : public Solver< OperatorType >
@@ -30,7 +30,7 @@ class PETScMinResSolver : public Solver< OperatorType >
    , xVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
    , bVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
    , nullspaceVec_( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
-   , flag_( hhg::All )
+   , flag_( hyteg::All )
    , nullSpaceSet_( false )
    {
       num.enumerate( level );
@@ -95,11 +95,11 @@ class PETScMinResSolver : public Solver< OperatorType >
    KSP          ksp;
    PC           pc;
    MatNullSpace nullspace_;
-   hhg::DoFType flag_;
+   hyteg::DoFType flag_;
    //Mat F; //factored Matrix
    bool nullSpaceSet_;
 };
 
-} // namespace hhg
+} // namespace hyteg
 
 #endif

@@ -32,7 +32,7 @@
 #include "VertexDoFMacroVertex.hpp"
 #include "polynomial/VertexDoFMacroFacePolynomial.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template< class P1Form, OperatorType OprType >
 class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
@@ -541,4 +541,4 @@ typedef P1PolynomialBlendingOperator< P1Form_div_2, OperatorType::ODD > P1Polyno
 
 typedef P1PolynomialBlendingOperator< P1Form_pspg, OperatorType::EVEN > P1PolynomialBlendingPSPGOperator;
 
-} // namespace hhg
+} // namespace hyteg

@@ -10,7 +10,7 @@ using walberla::real_c;
 using walberla::real_t;
 using walberla::uint_t;
 
-using namespace hhg;
+using namespace hyteg;
 
 void apply_2d_vertex_to_vertex( double* WALBERLA_RESTRICT dstPtr,
                                 double const* WALBERLA_RESTRICT const srcPtr,

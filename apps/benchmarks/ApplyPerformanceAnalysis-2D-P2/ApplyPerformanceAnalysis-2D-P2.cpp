@@ -24,11 +24,11 @@
 #include "AbstractApply.hpp"
 
 using walberla::real_t;
-using namespace hhg;
+using namespace hyteg;
 
-static void performBenchmark( hhg::P2Function< double >&      src,
-                              hhg::P2Function< double >&      dst,
-                              hhg::P2ConstantLaplaceOperator& laplace,
+static void performBenchmark( hyteg::P2Function< double >&      src,
+                              hyteg::P2Function< double >&      dst,
+                              hyteg::P2ConstantLaplaceOperator& laplace,
                               const uint_t&                   level,
                               Face&                           face,
                               walberla::WcTimingTree&         timingTree,
@@ -59,7 +59,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
    uint_t innerIterationsVertex =
        levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - 3 );
    WALBERLA_LOG_INFO_ON_ROOT(
-       hhg::format( "%18s|%10s|%10s|%10s|%6s|%5s", "kernel", "Time (s)", "MLUPs", "MFLOPs", " Iter", " Level" ) );
+       hyteg::format( "%18s|%10s|%10s|%10s|%6s|%5s", "kernel", "Time (s)", "MLUPs", "MFLOPs", " Iter", " Level" ) );
 
    typedef edgedof::EdgeDoFOrientation eo;
    std::map< eo, uint_t >              firstIdx;
@@ -83,7 +83,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
       {
          if ( useGeneratedKernels )
          {
-            hhg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace(
+            hyteg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace(
                 dstPtr, srcPtr, stencilPtr, static_cast< int32_t >( level ) );
          }
          else
@@ -113,7 +113,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
    mflops = real_t( innerIterationsVertex * iterations * 13 ) / time / 1e6;
 
    WALBERLA_LOG_INFO_ON_ROOT(
-       hhg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "vertex to vertex", time, mlups, mflops, iterations, level ) );
+       hyteg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "vertex to vertex", time, mlups, mflops, iterations, level ) );
 
    /// Edge to Vertex
 
@@ -132,13 +132,13 @@ static void performBenchmark( hhg::P2Function< double >&      src,
 
       for ( uint_t i = 0; i < iterations; i++ )
       {
-         hhg::EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_replace( &srcPtr[firstIdx[eo::X]],
+         hyteg::EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_replace( &srcPtr[firstIdx[eo::X]],
                                                                                               &srcPtr[firstIdx[eo::XY]],
                                                                                               &srcPtr[firstIdx[eo::Y]],
                                                                                               stencilPtr,
                                                                                               dstPtr,
                                                                                               static_cast< int32_t >( level ) );
-         hhg::misc::dummy( srcPtr, dstPtr );
+         hyteg::misc::dummy( srcPtr, dstPtr );
       }
       LIKWID_MARKER_STOP( evname.c_str() );
       timingTree.stop( evname );
@@ -161,7 +161,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
    mflops = real_t( innerIterationsVertex * iterations * 23 ) / time / 1e6;
 
    WALBERLA_LOG_INFO_ON_ROOT(
-       hhg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "edge to vertex", time, mlups, mflops, iterations, level ) );
+       hyteg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "edge to vertex", time, mlups, mflops, iterations, level ) );
 
    /// Edge to Edge
 
@@ -180,7 +180,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
 
       for ( uint_t i = 0; i < iterations; i++ )
       {
-         hhg::edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace( &dstPtr[firstIdx[eo::X]],
+         hyteg::edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace( &dstPtr[firstIdx[eo::X]],
                                                                                             &dstPtr[firstIdx[eo::XY]],
                                                                                             &dstPtr[firstIdx[eo::Y]],
                                                                                             &srcPtr[firstIdx[eo::X]],
@@ -190,7 +190,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
                                                                                             &stencilPtr[0],
                                                                                             &stencilPtr[10],
                                                                                             static_cast< int32_t >( level ) );
-         hhg::misc::dummy( srcPtr, dstPtr );
+         hyteg::misc::dummy( srcPtr, dstPtr );
       }
 
       LIKWID_MARKER_STOP( eename.c_str() );
@@ -214,7 +214,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
    mflops = real_t( innerIterationsVertex * iterations * 27 ) / time / 1e6;
 
    WALBERLA_LOG_INFO_ON_ROOT(
-       hhg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "edge to edge", time, mlups, mflops, iterations, level ) );
+       hyteg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "edge to edge", time, mlups, mflops, iterations, level ) );
 
    /// Vertex to Edge
 
@@ -236,7 +236,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
 
       for ( uint_t i = 0; i < iterations; i++ )
       {
-         hhg::VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace( &dstPtr[firstIdx[eo::X]],
+         hyteg::VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace( &dstPtr[firstIdx[eo::X]],
                                                                                               &dstPtr[firstIdx[eo::XY]],
                                                                                               &dstPtr[firstIdx[eo::Y]],
                                                                                               srcPtr,
@@ -244,7 +244,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
                                                                                               vertexToHorizontalEdgeStencil,
                                                                                               vertexToVerticalEdgeStencil,
                                                                                               static_cast< int32_t >( level ) );
-         hhg::misc::dummy( srcPtr, dstPtr );
+         hyteg::misc::dummy( srcPtr, dstPtr );
       }
       LIKWID_MARKER_STOP( vename.c_str() );
       timingTree.stop( vename );
@@ -267,7 +267,7 @@ static void performBenchmark( hhg::P2Function< double >&      src,
    mflops = real_t( innerIterationsVertex * iterations * 21 ) / time / 1e6;
 
    WALBERLA_LOG_INFO_ON_ROOT(
-       hhg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "vertex to edge", time, mlups, mflops, iterations, level ) );
+       hyteg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "vertex to edge", time, mlups, mflops, iterations, level ) );
 }
 
 int main( int argc, char* argv[] )
@@ -299,25 +299,25 @@ int main( int argc, char* argv[] )
    const uint_t level               = mainConf.getParameter< uint_t >( "level" );
    const bool   useGeneratedKernels = mainConf.getParameter< bool >( "useGenKernel" );
 
-   hhg::MeshInfo meshInfo = hhg::MeshInfo::meshFaceChain( uint_c( walberla::MPIManager::instance()->numProcesses() ) );
-   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   hhg::loadbalancing::roundRobin( setupStorage );
+   hyteg::MeshInfo meshInfo = hyteg::MeshInfo::meshFaceChain( uint_c( walberla::MPIManager::instance()->numProcesses() ) );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::loadbalancing::roundRobin( setupStorage );
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   std::shared_ptr< hhg::PrimitiveStorage >  storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
+   std::shared_ptr< hyteg::PrimitiveStorage >  storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
 
-   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) {
+   std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& xx ) {
       return std::sin( walberla::math::pi * xx[0] ) + std::cos( walberla::math::pi * xx[1] );
    };
 
    ///// Functions / operators / allocation /////
 
-   hhg::P2Function< double > src( "src", storage, level, level );
-   hhg::P2Function< double > dst( "dst", storage, level, level );
+   hyteg::P2Function< double > src( "src", storage, level, level );
+   hyteg::P2Function< double > dst( "dst", storage, level, level );
 
-   hhg::P2ConstantLaplaceOperator laplace( storage, level, level );
+   hyteg::P2ConstantLaplaceOperator laplace( storage, level, level );
 
-   src.interpolate( exact, level, hhg::Inner );
+   src.interpolate( exact, level, hyteg::Inner );
 
    ///// Apply benchmarks /////
 
@@ -347,7 +347,7 @@ int main( int argc, char* argv[] )
    if ( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Writing VTK output" );
-      hhg::VTKOutput vtkOutput( "./output", "ApplyPerformanceAnalysis-2D-P2.cpp", storage );
+      hyteg::VTKOutput vtkOutput( "./output", "ApplyPerformanceAnalysis-2D-P2.cpp", storage );
       vtkOutput.add( src );
       vtkOutput.add( dst );
       vtkOutput.write( level );

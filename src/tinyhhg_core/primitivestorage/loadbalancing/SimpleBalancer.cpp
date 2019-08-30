@@ -6,7 +6,7 @@
 
 #include <queue>
 
-namespace hhg {
+namespace hyteg {
 namespace loadbalancing {
 
 void allPrimitivesOnOneRank( SetupPrimitiveStorage & storage, const uint_t & targetRank )
@@ -153,4 +153,4 @@ void greedy( SetupPrimitiveStorage & storage )
 
 
 } // namespace loadbalancing
-} // namespace hhg
+} // namespace hyteg

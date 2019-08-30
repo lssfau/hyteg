@@ -5,62 +5,62 @@
 
 #include "apply_3D_macrocell_vertexdof_to_edgedof_add.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace VertexDoFToEdgeDoF {
 namespace generated {
 
-static void apply_3D_macrocell_vertexdof_to_edgedof_add_level_any(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double const * RESTRICT const _data_vertexCellSrc, int32_t level, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > v2eStencilMap)
+static void apply_3D_macrocell_vertexdof_to_edgedof_add_level_any(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double const * RESTRICT const _data_vertexCellSrc, int32_t level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2eStencilMap)
 {
-   const double xi_112 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ 0, 0, 1 }];
-   const double xi_113 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ 0, 1, 0 }];
-   const double xi_114 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ 0, 1, 1 }];
-   const double xi_115 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ 1, 0, 0 }];
-   const double xi_116 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ 1, 0, 1 }];
-   const double xi_117 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XYZ][{ 1, 1, 0 }];
-   const double xi_141 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::YZ][{ -1, 1, 0 }];
-   const double xi_142 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::YZ][{ -1, 1, 1 }];
-   const double xi_143 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, 0 }];
-   const double xi_144 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, 1 }];
-   const double xi_145 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::YZ][{ 0, 1, 0 }];
-   const double xi_146 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::YZ][{ 0, 1, 1 }];
-   const double xi_147 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::YZ][{ 1, 0, 0 }];
-   const double xi_148 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::YZ][{ 1, 0, 1 }];
-   const double xi_175 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 0 }];
-   const double xi_176 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 1 }];
-   const double xi_177 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XZ][{ 0, 1, 0 }];
-   const double xi_178 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XZ][{ 1, -1, 1 }];
-   const double xi_179 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XZ][{ 1, 0, 0 }];
-   const double xi_180 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XZ][{ 1, 0, 1 }];
-   const double xi_298 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::Z][{ -1, 0, 1 }];
-   const double xi_299 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::Z][{ -1, 1, 0 }];
-   const double xi_300 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::Z][{ 0, -1, 1 }];
-   const double xi_301 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, 0 }];
-   const double xi_302 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, 1 }];
-   const double xi_303 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::Z][{ 0, 1, 0 }];
-   const double xi_304 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::Z][{ 1, -1, 1 }];
-   const double xi_305 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::Z][{ 1, 0, 0 }];
-   const double xi_226 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 0 }];
-   const double xi_227 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 1 }];
-   const double xi_228 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XY][{ 0, 1, -1 }];
-   const double xi_229 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XY][{ 0, 1, 0 }];
-   const double xi_230 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XY][{ 1, 0, 0 }];
-   const double xi_231 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XY][{ 1, 0, 1 }];
-   const double xi_232 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XY][{ 1, 1, -1 }];
-   const double xi_233 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::XY][{ 1, 1, 0 }];
-   const double xi_362 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::Y][{ -1, 1, 0 }];
-   const double xi_363 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, 0 }];
-   const double xi_364 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, 1 }];
-   const double xi_365 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::Y][{ 0, 1, -1 }];
-   const double xi_366 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::Y][{ 0, 1, 0 }];
-   const double xi_367 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::Y][{ 1, 0, 0 }];
-   const double xi_426 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 0 }];
-   const double xi_427 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 1 }];
-   const double xi_428 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::X][{ 0, 1, -1 }];
-   const double xi_429 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::X][{ 0, 1, 0 }];
-   const double xi_430 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::X][{ 1, -1, 0 }];
-   const double xi_431 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::X][{ 1, -1, 1 }];
-   const double xi_432 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::X][{ 1, 0, -1 }];
-   const double xi_433 = v2eStencilMap[hhg::edgedof::EdgeDoFOrientation::X][{ 1, 0, 0 }];
+   const double xi_112 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, 0, 1 }];
+   const double xi_113 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, 1, 0 }];
+   const double xi_114 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, 1, 1 }];
+   const double xi_115 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 1, 0, 0 }];
+   const double xi_116 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 1, 0, 1 }];
+   const double xi_117 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 1, 1, 0 }];
+   const double xi_141 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::YZ][{ -1, 1, 0 }];
+   const double xi_142 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::YZ][{ -1, 1, 1 }];
+   const double xi_143 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, 0 }];
+   const double xi_144 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, 1 }];
+   const double xi_145 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, 1, 0 }];
+   const double xi_146 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, 1, 1 }];
+   const double xi_147 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 1, 0, 0 }];
+   const double xi_148 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 1, 0, 1 }];
+   const double xi_175 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 0 }];
+   const double xi_176 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 1 }];
+   const double xi_177 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 1, 0 }];
+   const double xi_178 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 1, -1, 1 }];
+   const double xi_179 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 1, 0, 0 }];
+   const double xi_180 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 1, 0, 1 }];
+   const double xi_298 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::Z][{ -1, 0, 1 }];
+   const double xi_299 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::Z][{ -1, 1, 0 }];
+   const double xi_300 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, -1, 1 }];
+   const double xi_301 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, 0 }];
+   const double xi_302 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, 1 }];
+   const double xi_303 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, 1, 0 }];
+   const double xi_304 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::Z][{ 1, -1, 1 }];
+   const double xi_305 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::Z][{ 1, 0, 0 }];
+   const double xi_226 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 0 }];
+   const double xi_227 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 1 }];
+   const double xi_228 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 1, -1 }];
+   const double xi_229 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 1, 0 }];
+   const double xi_230 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XY][{ 1, 0, 0 }];
+   const double xi_231 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XY][{ 1, 0, 1 }];
+   const double xi_232 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XY][{ 1, 1, -1 }];
+   const double xi_233 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::XY][{ 1, 1, 0 }];
+   const double xi_362 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::Y][{ -1, 1, 0 }];
+   const double xi_363 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, 0 }];
+   const double xi_364 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, 1 }];
+   const double xi_365 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, 1, -1 }];
+   const double xi_366 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, 1, 0 }];
+   const double xi_367 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::Y][{ 1, 0, 0 }];
+   const double xi_426 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 0 }];
+   const double xi_427 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 1 }];
+   const double xi_428 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 1, -1 }];
+   const double xi_429 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 1, 0 }];
+   const double xi_430 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::X][{ 1, -1, 0 }];
+   const double xi_431 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::X][{ 1, -1, 1 }];
+   const double xi_432 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::X][{ 1, 0, -1 }];
+   const double xi_433 = v2eStencilMap[hyteg::edgedof::EdgeDoFOrientation::X][{ 1, 0, 0 }];
    {
       for (int ctr_3 = 0; ctr_3 < 1; ctr_3 += 1)
       {
@@ -423,7 +423,7 @@ static void apply_3D_macrocell_vertexdof_to_edgedof_add_level_any(double * RESTR
 }
 
 
-void apply_3D_macrocell_vertexdof_to_edgedof_add(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double const * RESTRICT const _data_vertexCellSrc, int32_t level, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > v2eStencilMap)
+void apply_3D_macrocell_vertexdof_to_edgedof_add(double * RESTRICT _data_edgeCellDst_X, double * RESTRICT _data_edgeCellDst_XY, double * RESTRICT _data_edgeCellDst_XYZ, double * RESTRICT _data_edgeCellDst_XZ, double * RESTRICT _data_edgeCellDst_Y, double * RESTRICT _data_edgeCellDst_YZ, double * RESTRICT _data_edgeCellDst_Z, double const * RESTRICT const _data_vertexCellSrc, int32_t level, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > v2eStencilMap)
 {
     switch( level )
     {
@@ -437,4 +437,4 @@ void apply_3D_macrocell_vertexdof_to_edgedof_add(double * RESTRICT _data_edgeCel
 
 } // namespace generated
 } // namespace VertexDoFToEdgeDoF
-} // namespace hhg
+} // namespace hyteg

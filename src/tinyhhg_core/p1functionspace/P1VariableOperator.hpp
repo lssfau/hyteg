@@ -21,8 +21,7 @@
 #include <tinyhhg_core/p1functionspace/VertexDoFMacroFace.hpp>
 #include <tinyhhg_core/p1functionspace/variablestencil/VertexDoFVariableStencil.hpp>
 
-namespace hhg
-{
+namespace hyteg {
 
 template<class P1Form>
 class P1VariableOperator : public Operator< P1Function< real_t >, P1Function< real_t > >

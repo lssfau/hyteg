@@ -12,7 +12,7 @@
 #include "tinyhhg_core/primitives/Edge.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace transport {
 namespace macroedge {
@@ -174,4 +174,4 @@ inline void apply( const uint_t&                                               l
 } // namespace macroedge
 } // namespace transport
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

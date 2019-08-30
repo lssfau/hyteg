@@ -9,7 +9,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_t;
 
@@ -27,8 +27,8 @@ static void testOperator() {
 
   GenericVertexDoFToEdgeDoFOperator vertexToEdgeOperator(storage, level, level);
 
-  std::function<real_t(const hhg::Point3D &)> ones = [](const hhg::Point3D &) { return 1; };
-  std::function<real_t(const hhg::Point3D &,const std::vector<real_t> &)> onesVec = [](const hhg::Point3D &,const std::vector<real_t> &) { return 1; };
+  std::function<real_t(const hyteg::Point3D &)> ones = [](const hyteg::Point3D &) { return 1; };
+  std::function<real_t(const hyteg::Point3D &,const std::vector<real_t> &)> onesVec = [](const hyteg::Point3D &,const std::vector<real_t> &) { return 1; };
 
   for (auto &faceIT : storage->getFaces()) {
     auto face = faceIT.second;
@@ -37,7 +37,7 @@ static void testOperator() {
     for (uint_t i = 0; i < faceStencilSize; ++i) {
       faceStencilData[i] = 1;
     }
-    hhg::vertexdof::macroface::interpolate< real_t >(level, *face,vertexDof->getFaceDataID(),{},onesVec);
+    hyteg::vertexdof::macroface::interpolate< real_t >(level, *face,vertexDof->getFaceDataID(),{},onesVec);
   }
 
   for (auto &edgeIT : storage->getEdges()) {
@@ -47,15 +47,15 @@ static void testOperator() {
     for (uint_t i = 0; i < edgeStencilSize; ++i) {
       edgeStencilData[i] = 1;
     }
-    hhg::vertexdof::macroedge::interpolate< real_t >( level, *edge,vertexDof->getEdgeDataID(),{},onesVec);
+    hyteg::vertexdof::macroedge::interpolate< real_t >( level, *edge,vertexDof->getEdgeDataID(),{},onesVec);
   }
 
   for (auto &vertexIT : storage->getVertices()) {
     auto vertex = vertexIT.second;
-    hhg::vertexdof::macrovertex::interpolate< real_t >(*vertex,vertexDof->getVertexDataID(),{},onesVec,level);
+    hyteg::vertexdof::macrovertex::interpolate< real_t >(*vertex,vertexDof->getVertexDataID(),{},onesVec,level);
   }
 
-  vertexToEdgeOperator.apply(*vertexDof, *edgeDof, level, hhg::All);
+  vertexToEdgeOperator.apply(*vertexDof, *edgeDof, level, hyteg::All);
 
   // Pull all halos
   edgeDof->communicate< Edge, Face >( level );
@@ -67,12 +67,12 @@ static void testOperator() {
 
 //  for (auto &faceIT : storage->getFaces()) {
 //    auto face = faceIT.second;
-//    hhg::edgedof::macroface::printFunctionMemory<real_t, level>(*face, edgeDof->getFaceDataID());
+//    hyteg::edgedof::macroface::printFunctionMemory<real_t, level>(*face, edgeDof->getFaceDataID());
 //  }
 //
 //  for (auto &edgeIT : storage->getEdges()) {
 //    auto edge = edgeIT.second;
-//    hhg::edgedof::macroedge::printFunctionMemory<real_t, level>(*edge, edgeDof->getEdgeDataID());
+//    hyteg::edgedof::macroedge::printFunctionMemory<real_t, level>(*edge, edgeDof->getEdgeDataID());
 //  }
 
 
@@ -95,12 +95,12 @@ static void testOperator() {
       ///this check could also be imporoved
       WALBERLA_CHECK(walberla::floatIsEqual(data[i],4.0) || walberla::floatIsEqual(data[i],3.0));
     }
-    hhg::vertexdof::macroedge::interpolate< real_t >( level, *edge,vertexDof->getEdgeDataID(),{},onesVec);
+    hyteg::vertexdof::macroedge::interpolate< real_t >( level, *edge,vertexDof->getEdgeDataID(),{},onesVec);
   }
 
 }
 
-}// namespace hhg
+}// namespace hyteg
 
 int main( int argc, char* argv[] ) {
   walberla::debug::enterTestMode();
@@ -108,7 +108,7 @@ int main( int argc, char* argv[] ) {
   walberla::Environment walberlaEnv(argc, argv);
   walberla::logging::Logging::instance()->setLogLevel(walberla::logging::Logging::PROGRESS);
   walberla::MPIManager::instance()->useWorldComm();
-  hhg::testOperator();
+  hyteg::testOperator();
 
   return EXIT_SUCCESS;
 }

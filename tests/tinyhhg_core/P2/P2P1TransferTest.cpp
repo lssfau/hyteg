@@ -9,7 +9,7 @@
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 static void testP2P1Transfer()
 {
@@ -100,7 +100,7 @@ static void testP2P1Transfer()
 
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -110,7 +110,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testP2P1Transfer();
+   hyteg::testP2P1Transfer();
 
    return EXIT_SUCCESS;
 }

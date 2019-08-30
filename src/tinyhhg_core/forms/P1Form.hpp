@@ -2,7 +2,7 @@
 
 #include "tinyhhg_core/forms/Form.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class P1Form : public Form
 {
@@ -16,4 +16,4 @@ class P1Form : public Form
    virtual void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const { WALBERLA_ABORT( "Not implemented." ); }
 };
 
-} // namespace hhg
+} // namespace hyteg

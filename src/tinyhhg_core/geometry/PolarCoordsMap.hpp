@@ -3,7 +3,7 @@
 #include <cmath>
 #include "GeometryMap.hpp"
 
-namespace hhg {
+namespace hyteg {
 
   /// Class providing geometry mapping based on polar coordinates; convention is x[0] = $\rho$, x[1] = $\varphi$
   class PolarCoordsMap : public GeometryMap
@@ -39,4 +39,4 @@ namespace hhg {
 
   };
 
-} // namespace hhg
+} // namespace hyteg

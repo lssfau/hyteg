@@ -8,7 +8,7 @@
 #include <array>
 #include <vector>
 
-namespace hhg {
+namespace hyteg {
 
 
 MeshInfo MeshInfo::meshRectangle( const Point2D lowerLeft, const Point2D upperRight,
@@ -412,4 +412,4 @@ void MeshInfo:: deriveEdgesForRectangles( const Point2D lowerLeft, const Point2D
     }
 }
 
-} // namespace hhg
+} // namespace hyteg

@@ -12,7 +12,7 @@
 #include "tinyhhg_core/primitives/Vertex.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace transport {
 namespace macrovertex {
@@ -78,4 +78,4 @@ inline void apply( const uint_t&                                                
 } // namespace macrovertex
 } // namespace transport
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

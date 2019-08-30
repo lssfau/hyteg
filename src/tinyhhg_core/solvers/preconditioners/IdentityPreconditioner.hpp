@@ -3,7 +3,7 @@
 
 #include "tinyhhg_core/solvers/Solver.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template < class OperatorType >
 class IdentityPreconditioner : public Solver< OperatorType >
@@ -11,7 +11,7 @@ class IdentityPreconditioner : public Solver< OperatorType >
  public:
    IdentityPreconditioner()
    : updateType_( Replace )
-   , flag_( hhg::Inner | hhg::NeumannBoundary )
+   , flag_( hyteg::Inner | hyteg::NeumannBoundary )
    {}
 
    void solve( const OperatorType&,
@@ -27,4 +27,4 @@ class IdentityPreconditioner : public Solver< OperatorType >
    DoFType    flag_;
 };
 
-} // namespace hhg
+} // namespace hyteg

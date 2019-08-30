@@ -3,7 +3,7 @@
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class P1StokesBlockLaplaceOperator : public Operator< P1StokesFunction< real_t >, P1StokesFunction< real_t > >
 {
@@ -27,4 +27,4 @@ class P1StokesBlockLaplaceOperator : public Operator< P1StokesFunction< real_t >
    P1ConstantLaplaceOperator A;
 };
 
-} // namespace hhg
+} // namespace hyteg

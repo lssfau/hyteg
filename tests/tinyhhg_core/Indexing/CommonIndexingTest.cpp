@@ -16,7 +16,7 @@
 #include "tinyhhg_core/indexing/MacroCellIndexing.hpp"
 #include "tinyhhg_core/indexing/Optimization.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 static void testFaceBorderIterator( const std::vector< std::array< uint_t, 2 > > & expectedValues, const indexing::FaceBoundaryDirection & faceBorderDirection,
                                     const uint_t & width, const uint_t & offsetToCenter, const uint_t & offsetFromVertices )
@@ -229,7 +229,7 @@ static void testCommonIndexing()
   }} ), 5, std::array< uint_t, 3 >( {{ 0, 3, 2 }} ), 1 );
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -239,7 +239,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testCommonIndexing();
+   hyteg::testCommonIndexing();
 
    return EXIT_SUCCESS;
 }

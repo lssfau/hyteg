@@ -8,7 +8,7 @@
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
 #include "tinyhhg_core/primitives/Face.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace P2 {
 namespace macroface {
 
@@ -84,4 +84,4 @@ void smoothGaussSeidel( const uint_t&                                           
 
 } // namespace macroface
 } // namespace P2
-} // namespace hhg
+} // namespace hyteg

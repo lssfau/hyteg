@@ -3,7 +3,7 @@
 
 #include "core/DataTypes.h"
 
-namespace hhg {
+namespace hyteg {
 namespace loadbalancing {
 
 using walberla::uint_t;
@@ -26,4 +26,4 @@ void greedy( SetupPrimitiveStorage & storage );
 
 
 } // namespace loadbalancing
-} // namespace hhg
+} // namespace hyteg

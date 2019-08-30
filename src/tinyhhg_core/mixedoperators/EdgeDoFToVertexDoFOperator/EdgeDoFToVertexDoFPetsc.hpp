@@ -4,7 +4,7 @@
 #include "core/DataTypes.h"
 #include "tinyhhg_core/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace EdgeDoFToVertexDoF {
 
 using walberla::real_t;
@@ -145,7 +145,7 @@ inline void saveEdgeOperator3D( const uint_t & level,  const Edge & edge,
   auto src  = edge.getData(srcId)->getPointer( level );
   auto dst  = edge.getData(dstId)->getPointer( level );
 
-  for ( const auto & centerIndexOnEdge : hhg::vertexdof::macroedge::Iterator( level, 1 ) )
+  for ( const auto & centerIndexOnEdge : hyteg::vertexdof::macroedge::Iterator( level, 1 ) )
   {
     const auto dstInt = dst[ vertexdof::macroedge::index( level, centerIndexOnEdge.x() ) ];
 
@@ -275,7 +275,7 @@ inline void saveFaceOperator3D( const uint_t & level, const Face & face,
   auto src  = face.getData(srcId)->getPointer( level );
   auto dst  = face.getData(dstId)->getPointer( level );
 
-  for ( const auto & centerIndexInFace : hhg::vertexdof::macroface::Iterator( level, 1 ) )
+  for ( const auto & centerIndexInFace : hyteg::vertexdof::macroface::Iterator( level, 1 ) )
   {
     const auto dstIdx = vertexdof::macroface::index( level, centerIndexInFace.x(), centerIndexInFace.y() );
     const auto dstInt = dst[ dstIdx ];

@@ -3,8 +3,7 @@
 #include <cstddef>
 #include <iostream>
 
-namespace hhg
-{
+namespace hyteg {
 
 enum UpdateType
 {
@@ -65,5 +64,5 @@ enum class CycleType
    WCYCLE
 };
 
-} // namespace hhg
+} // namespace hyteg
 

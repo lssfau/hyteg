@@ -3,7 +3,7 @@
 #include "tinyhhg_core/types/matrix.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 /// Class describing a geometrical mapping from reference to physical space
 class GeometryMap
@@ -48,4 +48,4 @@ class GeometryMap
    virtual void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const = 0;
 };
 
-} // namespace hhg
+} // namespace hyteg

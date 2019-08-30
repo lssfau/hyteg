@@ -6,7 +6,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 #include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace P2Elements {
 
 // Fenics P2 DoF ordering
@@ -538,4 +538,4 @@ inline void assembleStencil(const Vertex& vertex, const Face& face, const Matrix
 
 } // P2Elements
 
-} // hhg
+} // hyteg

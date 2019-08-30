@@ -15,7 +15,7 @@
 #  pragma warning(pop)
 #endif
 
-namespace hhg {
+namespace hyteg {
 
 template < class UFCOperator2D, class UFCOperator3D = fenics::UndefinedAssembly >
 class P2ToP1FenicsForm : public Form
@@ -72,13 +72,13 @@ public:
     WALBERLA_ABORT( "Missing implementation in P2ToP1FenicsForm" );
   }
 
-  bool assemble2D() const override { return !std::is_same< UFCOperator2D, hhg::fenics::NoAssemble >::value; }
+  bool assemble2D() const override { return !std::is_same< UFCOperator2D, hyteg::fenics::NoAssemble >::value; }
 
-  bool assemble3D() const override { return !std::is_same< UFCOperator3D, hhg::fenics::NoAssemble >::value; }
+  bool assemble3D() const override { return !std::is_same< UFCOperator3D, hyteg::fenics::NoAssemble >::value; }
 
-  bool assembly2DDefined() const override { return !std::is_same< UFCOperator2D, hhg::fenics::UndefinedAssembly >::value; }
+  bool assembly2DDefined() const override { return !std::is_same< UFCOperator2D, hyteg::fenics::UndefinedAssembly >::value; }
 
-  bool assembly3DDefined() const override { return !std::is_same< UFCOperator3D, hhg::fenics::UndefinedAssembly >::value; }
+  bool assembly3DDefined() const override { return !std::is_same< UFCOperator3D, hyteg::fenics::UndefinedAssembly >::value; }
 
 private:
   void computeLocalStiffnessMatrix( const std::array< Point3D, 3 >& coords, Matrixr<3, 6>& localStiffnessMatrix ) const
@@ -108,4 +108,4 @@ private:
 
 };
 
-} // namespace hhg
+} // namespace hyteg

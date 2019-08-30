@@ -1,4 +1,4 @@
 #include "dummy.hpp"
 
-void hhg::misc::dummy( double* ) {}
-void hhg::misc::dummy( double*, double* ) {}
+void hyteg::misc::dummy( double* ) {}
+void hyteg::misc::dummy( double*, double* ) {}

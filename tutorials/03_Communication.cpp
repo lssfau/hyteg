@@ -10,7 +10,7 @@
 
 using walberla::uint_t;
 
-namespace hhg {
+namespace hyteg {
 
 /**
  * \page 03_Communication Communicating data between primitives
@@ -210,7 +210,7 @@ void CommunicationTutorial()
 
   /// [Setup]
   // As seen in previous tutorials...
-  auto storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
+  auto storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
 
   PrimitiveDataID< TestData, Primitive > dataID;
   auto testDataHandling = std::make_shared< TestDataHandling >();
@@ -263,7 +263,7 @@ int main( int argc, char** argv )
 {
   walberla::mpi::Environment env( argc, argv );
   walberla::mpi::MPIManager::instance()->useWorldComm();
-  hhg::CommunicationTutorial();
+  hyteg::CommunicationTutorial();
   return 0;
 }
 

@@ -10,7 +10,7 @@
 #include "tinyhhg_core/indexing/MacroCellIndexing.hpp"
 
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::uint_t;
 namespace vertexdof {
@@ -60,24 +60,27 @@ uint_t stencilIndexOnNeighborCell( const uint_t & cellID, const uint_t & numNeig
 uint_t indexFromHorizontalEdge( const uint_t & level, const uint_t & x, const stencilDirection & dir );
 
 /// neighbor arrays from vertex dof
-constexpr std::array<stencilDirection, 7> neighborsWithCenter               = {{ hhg::stencilDirection::VERTEX_C,
-                                                                                 hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
-                                                                                 hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
-                                                                                 hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W
+constexpr std::array<stencilDirection, 7> neighborsWithCenter               = {{hyteg::stencilDirection::VERTEX_C,
+                                                                    hyteg::stencilDirection::VERTEX_S,
+                                                                    hyteg::stencilDirection::VERTEX_SE,
+                                                                    hyteg::stencilDirection::VERTEX_E,
+                                                                    hyteg::stencilDirection::VERTEX_N,
+                                                                    hyteg::stencilDirection::VERTEX_NW,
+                                                                    hyteg::stencilDirection::VERTEX_W
                                                                               }};
-constexpr std::array<stencilDirection, 2> neighborsOnEdgeFromVertexDoF      = {{ hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_W }};
-constexpr std::array<stencilDirection, 2> neighborsOnSouthFaceFromVertexDoF = {{ hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE }};
-constexpr std::array<stencilDirection, 2> neighborsOnNorthFaceFromVertexDoF = {{ hhg::stencilDirection::VERTEX_N, hhg::stencilDirection::VERTEX_NW }};
+constexpr std::array<stencilDirection, 2> neighborsOnEdgeFromVertexDoF      = {{hyteg::stencilDirection::VERTEX_E, hyteg::stencilDirection::VERTEX_W }};
+constexpr std::array<stencilDirection, 2> neighborsOnSouthFaceFromVertexDoF = {{hyteg::stencilDirection::VERTEX_S, hyteg::stencilDirection::VERTEX_SE }};
+constexpr std::array<stencilDirection, 2> neighborsOnNorthFaceFromVertexDoF = {{hyteg::stencilDirection::VERTEX_N, hyteg::stencilDirection::VERTEX_NW }};
 
 /// neighbor arrays need to connect vertex dof and edge dof
-constexpr std::array<stencilDirection, 2> neighborsOnEdgeFromHorizontalEdgeDoF      = {{ hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_W}};
-constexpr std::array<stencilDirection, 1> neighborsOnSouthFaceFromHorizontalEdgeDoF = {{ hhg::stencilDirection::VERTEX_SE}};
-constexpr std::array<stencilDirection, 1> neighborsOnNorthFaceFromHorizontalEdgeDoF = {{ hhg::stencilDirection::VERTEX_NW}};
+constexpr std::array<stencilDirection, 2> neighborsOnEdgeFromHorizontalEdgeDoF      = {{hyteg::stencilDirection::VERTEX_E, hyteg::stencilDirection::VERTEX_W}};
+constexpr std::array<stencilDirection, 1> neighborsOnSouthFaceFromHorizontalEdgeDoF = {{hyteg::stencilDirection::VERTEX_SE}};
+constexpr std::array<stencilDirection, 1> neighborsOnNorthFaceFromHorizontalEdgeDoF = {{hyteg::stencilDirection::VERTEX_NW}};
 
 
 /// Iterator over a vertex DoF macro edge.
 /// See \ref EdgeIterator for more information.
-class Iterator : public hhg::indexing::EdgeIterator
+class Iterator : public hyteg::indexing::EdgeIterator
 {
 public:
   explicit Iterator( const uint_t & level, const uint_t & offsetToCenter = 0, const bool & backwards = false );
@@ -138,57 +141,79 @@ uint_t indexFromGrayFace( const uint_t & level, const uint_t & x, const uint_t &
 uint_t indexFromBlueFace( const uint_t & level, const uint_t & x, const uint_t & y, const stencilDirection & dir );
 
 constexpr std::array<stencilDirection, 13> neighborsWithOneNeighborCellWithCenter = {{
-  hhg::stencilDirection::VERTEX_C,
-  hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
-  hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
-  hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
-  hhg::stencilDirection::VERTEX_TC, hhg::stencilDirection::VERTEX_TW,
-  hhg::stencilDirection::VERTEX_TS, hhg::stencilDirection::VERTEX_TSE,
-  hhg::stencilDirection::VERTEX_TSW, hhg::stencilDirection::VERTEX_TNW,
+    hyteg::stencilDirection::VERTEX_C,
+    hyteg::stencilDirection::VERTEX_S,
+    hyteg::stencilDirection::VERTEX_SE,
+    hyteg::stencilDirection::VERTEX_E,
+    hyteg::stencilDirection::VERTEX_N,
+    hyteg::stencilDirection::VERTEX_NW,
+    hyteg::stencilDirection::VERTEX_W,
+    hyteg::stencilDirection::VERTEX_TC,
+    hyteg::stencilDirection::VERTEX_TW,
+    hyteg::stencilDirection::VERTEX_TS,
+    hyteg::stencilDirection::VERTEX_TSE,
+    hyteg::stencilDirection::VERTEX_TSW,
+    hyteg::stencilDirection::VERTEX_TNW,
 }};
 
 constexpr std::array<stencilDirection, 19> neighborsWithTwoNeighborCellsWithCenter = {{
-  hhg::stencilDirection::VERTEX_C,
-  hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
-  hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
-  hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
-  hhg::stencilDirection::VERTEX_TC, hhg::stencilDirection::VERTEX_TW,
-  hhg::stencilDirection::VERTEX_TS, hhg::stencilDirection::VERTEX_TSE,
-  hhg::stencilDirection::VERTEX_TSW, hhg::stencilDirection::VERTEX_TNW,
-  hhg::stencilDirection::VERTEX_BC, hhg::stencilDirection::VERTEX_BW,
-  hhg::stencilDirection::VERTEX_BS, hhg::stencilDirection::VERTEX_BSE,
-  hhg::stencilDirection::VERTEX_BSW, hhg::stencilDirection::VERTEX_BNW,
+    hyteg::stencilDirection::VERTEX_C,   hyteg::stencilDirection::VERTEX_S,   hyteg::stencilDirection::VERTEX_SE,
+    hyteg::stencilDirection::VERTEX_E,   hyteg::stencilDirection::VERTEX_N,   hyteg::stencilDirection::VERTEX_NW,
+    hyteg::stencilDirection::VERTEX_W,   hyteg::stencilDirection::VERTEX_TC,  hyteg::stencilDirection::VERTEX_TW,
+    hyteg::stencilDirection::VERTEX_TS,  hyteg::stencilDirection::VERTEX_TSE, hyteg::stencilDirection::VERTEX_TSW,
+    hyteg::stencilDirection::VERTEX_TNW, hyteg::stencilDirection::VERTEX_BC,  hyteg::stencilDirection::VERTEX_BW,
+    hyteg::stencilDirection::VERTEX_BS,  hyteg::stencilDirection::VERTEX_BSE, hyteg::stencilDirection::VERTEX_BSW,
+    hyteg::stencilDirection::VERTEX_BNW,
 }};
 
-constexpr std::array<stencilDirection, 12> neighborsWithOneNeighborCellWithoutCenter = {{
-                                                                                     hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
-                                                                                     hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
-                                                                                     hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
-                                                                                     hhg::stencilDirection::VERTEX_TC, hhg::stencilDirection::VERTEX_TW,
-                                                                                     hhg::stencilDirection::VERTEX_TS, hhg::stencilDirection::VERTEX_TSE,
-                                                                                     hhg::stencilDirection::VERTEX_TSW, hhg::stencilDirection::VERTEX_TNW
+constexpr std::array<stencilDirection, 12> neighborsWithOneNeighborCellWithoutCenter = {{hyteg::stencilDirection::VERTEX_S,
+                                                                                           hyteg::stencilDirection::VERTEX_SE,
+                                                                                           hyteg::stencilDirection::VERTEX_E,
+                                                                                           hyteg::stencilDirection::VERTEX_N,
+                                                                                           hyteg::stencilDirection::VERTEX_NW,
+                                                                                           hyteg::stencilDirection::VERTEX_W,
+                                                                                           hyteg::stencilDirection::VERTEX_TC,
+                                                                                           hyteg::stencilDirection::VERTEX_TW,
+                                                                                           hyteg::stencilDirection::VERTEX_TS,
+                                                                                           hyteg::stencilDirection::VERTEX_TSE,
+                                                                                           hyteg::stencilDirection::VERTEX_TSW,
+                                                                                           hyteg::stencilDirection::VERTEX_TNW
                                                                                      }};
 
-constexpr std::array<stencilDirection, 18> neighborsWithTwoNeighborCellsWithoutCenter = {{
-                                                                                      hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
-                                                                                      hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
-                                                                                      hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
-                                                                                      hhg::stencilDirection::VERTEX_TC, hhg::stencilDirection::VERTEX_TW,
-                                                                                      hhg::stencilDirection::VERTEX_TS, hhg::stencilDirection::VERTEX_TSE,
-                                                                                      hhg::stencilDirection::VERTEX_TSW, hhg::stencilDirection::VERTEX_TNW,
-                                                                                      hhg::stencilDirection::VERTEX_BC, hhg::stencilDirection::VERTEX_BW,
-                                                                                      hhg::stencilDirection::VERTEX_BS, hhg::stencilDirection::VERTEX_BSE,
-                                                                                      hhg::stencilDirection::VERTEX_BSW, hhg::stencilDirection::VERTEX_BNW
+constexpr std::array<stencilDirection, 18> neighborsWithTwoNeighborCellsWithoutCenter = {{hyteg::stencilDirection::VERTEX_S,
+                                                                                            hyteg::stencilDirection::VERTEX_SE,
+                                                                                            hyteg::stencilDirection::VERTEX_E,
+                                                                                            hyteg::stencilDirection::VERTEX_N,
+                                                                                            hyteg::stencilDirection::VERTEX_NW,
+                                                                                            hyteg::stencilDirection::VERTEX_W,
+                                                                                            hyteg::stencilDirection::VERTEX_TC,
+                                                                                            hyteg::stencilDirection::VERTEX_TW,
+                                                                                            hyteg::stencilDirection::VERTEX_TS,
+                                                                                            hyteg::stencilDirection::VERTEX_TSE,
+                                                                                            hyteg::stencilDirection::VERTEX_TSW,
+                                                                                            hyteg::stencilDirection::VERTEX_TNW,
+                                                                                            hyteg::stencilDirection::VERTEX_BC,
+                                                                                            hyteg::stencilDirection::VERTEX_BW,
+                                                                                            hyteg::stencilDirection::VERTEX_BS,
+                                                                                            hyteg::stencilDirection::VERTEX_BSE,
+                                                                                            hyteg::stencilDirection::VERTEX_BSW,
+                                                                                            hyteg::stencilDirection::VERTEX_BNW
                                                                                       }};
 
-constexpr std::array<stencilDirection, 7> neighborsWithCenter     = {{ hhg::stencilDirection::VERTEX_C,
-                                                                       hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
-                                                                       hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
-                                                                       hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W
+constexpr std::array<stencilDirection, 7> neighborsWithCenter     = {{hyteg::stencilDirection::VERTEX_C,
+                                                                    hyteg::stencilDirection::VERTEX_S,
+                                                                    hyteg::stencilDirection::VERTEX_SE,
+                                                                    hyteg::stencilDirection::VERTEX_E,
+                                                                    hyteg::stencilDirection::VERTEX_N,
+                                                                    hyteg::stencilDirection::VERTEX_NW,
+                                                                    hyteg::stencilDirection::VERTEX_W
                                                                      }};
-constexpr std::array< stencilDirection, 6 > neighborsWithoutCenter = {{ hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
-                                                                        hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
-                                                                        hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W
+constexpr std::array< stencilDirection, 6 > neighborsWithoutCenter = {{hyteg::stencilDirection::VERTEX_S,
+                                                                       hyteg::stencilDirection::VERTEX_SE,
+                                                                       hyteg::stencilDirection::VERTEX_E,
+                                                                       hyteg::stencilDirection::VERTEX_N,
+                                                                       hyteg::stencilDirection::VERTEX_NW,
+                                                                       hyteg::stencilDirection::VERTEX_W
                                                                       }};
 
 constexpr std::array<stencilDirection ,4> neighborsFromVerticalEdge =
@@ -203,7 +228,7 @@ constexpr std::array< stencilDirection, 3 > neighborsFromBlueFace = {{ stencilDi
 
 /// Iterator over a vertex DoF macro face.
 /// See \ref FaceIterator for more information.
-class Iterator : public hhg::indexing::FaceIterator
+class Iterator : public hyteg::indexing::FaceIterator
 {
 public:
   explicit Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 );
@@ -211,13 +236,13 @@ public:
 
 /// Iterator over the border of a vertex DoF macro face.
 /// See \ref FaceBorderIterator for more information.
-class BoundaryIterator : public hhg::indexing::FaceBoundaryIterator
+class BoundaryIterator : public hyteg::indexing::FaceBoundaryIterator
 {
 public:
-  BoundaryIterator( const uint_t & level, const hhg::indexing::FaceBoundaryDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0);
+  BoundaryIterator( const uint_t & level, const hyteg::indexing::FaceBoundaryDirection & direction, const uint_t & offsetToCenter = 0, const uint_t & offsetFromVertices = 0);
 };
 
-bool isVertexOnBoundary(const uint_t &level, const hhg::indexing::Index &idx);
+bool isVertexOnBoundary(const uint_t &level, const hyteg::indexing::Index &idx);
 
 
 // map[neighborCellID][indexOffset] = weight
@@ -240,119 +265,159 @@ uint_t indexFromVertex( const uint_t & level, const uint_t & x, const uint_t & y
 
 
 /// neighbor arrays from vertex dof
-constexpr std::array< stencilDirection, 15 > neighborsWithCenter = {{ hhg::stencilDirection::VERTEX_C,
-                                                                    hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
-                                                                    hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
-                                                                    hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
-                                                                    hhg::stencilDirection::VERTEX_TC, hhg::stencilDirection::VERTEX_TW,
-                                                                    hhg::stencilDirection::VERTEX_TS, hhg::stencilDirection::VERTEX_TSE,
-                                                                    hhg::stencilDirection::VERTEX_BC, hhg::stencilDirection::VERTEX_BN,
-                                                                    hhg::stencilDirection::VERTEX_BE, hhg::stencilDirection::VERTEX_BNW,
+constexpr std::array< stencilDirection, 15 > neighborsWithCenter = {{
+    hyteg::stencilDirection::VERTEX_C,
+    hyteg::stencilDirection::VERTEX_S,
+    hyteg::stencilDirection::VERTEX_SE,
+    hyteg::stencilDirection::VERTEX_E,
+    hyteg::stencilDirection::VERTEX_N,
+    hyteg::stencilDirection::VERTEX_NW,
+    hyteg::stencilDirection::VERTEX_W,
+    hyteg::stencilDirection::VERTEX_TC,
+    hyteg::stencilDirection::VERTEX_TW,
+    hyteg::stencilDirection::VERTEX_TS,
+    hyteg::stencilDirection::VERTEX_TSE,
+    hyteg::stencilDirection::VERTEX_BC,
+    hyteg::stencilDirection::VERTEX_BN,
+    hyteg::stencilDirection::VERTEX_BE,
+    hyteg::stencilDirection::VERTEX_BNW,
                                                                     }};
 
 constexpr std::array< stencilDirection, 14 > neighborsWithoutCenter = {{
-                                                                       hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
-                                                                       hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
-                                                                       hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
-                                                                       hhg::stencilDirection::VERTEX_TC, hhg::stencilDirection::VERTEX_TW,
-                                                                       hhg::stencilDirection::VERTEX_TS, hhg::stencilDirection::VERTEX_TSE,
-                                                                       hhg::stencilDirection::VERTEX_BC, hhg::stencilDirection::VERTEX_BN,
-                                                                       hhg::stencilDirection::VERTEX_BE, hhg::stencilDirection::VERTEX_BNW,
+    hyteg::stencilDirection::VERTEX_S,
+    hyteg::stencilDirection::VERTEX_SE,
+    hyteg::stencilDirection::VERTEX_E,
+    hyteg::stencilDirection::VERTEX_N,
+    hyteg::stencilDirection::VERTEX_NW,
+    hyteg::stencilDirection::VERTEX_W,
+    hyteg::stencilDirection::VERTEX_TC,
+    hyteg::stencilDirection::VERTEX_TW,
+    hyteg::stencilDirection::VERTEX_TS,
+    hyteg::stencilDirection::VERTEX_TSE,
+    hyteg::stencilDirection::VERTEX_BC,
+    hyteg::stencilDirection::VERTEX_BN,
+    hyteg::stencilDirection::VERTEX_BE,
+    hyteg::stencilDirection::VERTEX_BNW,
                                                                        }};
 
 const std::vector< stencilDirection > neighborsOnFace0WithoutCenter = {{
-                                                                           hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
-                                                                           hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
-                                                                           hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
-                                                                           hhg::stencilDirection::VERTEX_TC, hhg::stencilDirection::VERTEX_TW,
-                                                                           hhg::stencilDirection::VERTEX_TS, hhg::stencilDirection::VERTEX_TSE,
+    hyteg::stencilDirection::VERTEX_S,
+    hyteg::stencilDirection::VERTEX_SE,
+    hyteg::stencilDirection::VERTEX_E,
+    hyteg::stencilDirection::VERTEX_N,
+    hyteg::stencilDirection::VERTEX_NW,
+    hyteg::stencilDirection::VERTEX_W,
+    hyteg::stencilDirection::VERTEX_TC,
+    hyteg::stencilDirection::VERTEX_TW,
+    hyteg::stencilDirection::VERTEX_TS,
+    hyteg::stencilDirection::VERTEX_TSE,
                                                                            }};
 
 const std::vector< stencilDirection > neighborsOnFace1WithoutCenter = {{
-                                                                           hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
-                                                                           hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
-                                                                           hhg::stencilDirection::VERTEX_TC, hhg::stencilDirection::VERTEX_TW,
-                                                                           hhg::stencilDirection::VERTEX_BC, hhg::stencilDirection::VERTEX_BN,
-                                                                           hhg::stencilDirection::VERTEX_BE, hhg::stencilDirection::VERTEX_BNW,
+    hyteg::stencilDirection::VERTEX_E,
+    hyteg::stencilDirection::VERTEX_N,
+    hyteg::stencilDirection::VERTEX_NW,
+    hyteg::stencilDirection::VERTEX_W,
+    hyteg::stencilDirection::VERTEX_TC,
+    hyteg::stencilDirection::VERTEX_TW,
+    hyteg::stencilDirection::VERTEX_BC,
+    hyteg::stencilDirection::VERTEX_BN,
+    hyteg::stencilDirection::VERTEX_BE,
+    hyteg::stencilDirection::VERTEX_BNW,
                                                                            }};
 
 const std::vector< stencilDirection > neighborsOnFace2WithoutCenter = {{
-                                                                           hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
-                                                                           hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
-                                                                           hhg::stencilDirection::VERTEX_TC,
-                                                                           hhg::stencilDirection::VERTEX_TS, hhg::stencilDirection::VERTEX_TSE,
-                                                                           hhg::stencilDirection::VERTEX_BC, hhg::stencilDirection::VERTEX_BN,
-                                                                           hhg::stencilDirection::VERTEX_BE,
+    hyteg::stencilDirection::VERTEX_S,
+    hyteg::stencilDirection::VERTEX_SE,
+    hyteg::stencilDirection::VERTEX_E,
+    hyteg::stencilDirection::VERTEX_N,
+    hyteg::stencilDirection::VERTEX_TC,
+    hyteg::stencilDirection::VERTEX_TS,
+    hyteg::stencilDirection::VERTEX_TSE,
+    hyteg::stencilDirection::VERTEX_BC,
+    hyteg::stencilDirection::VERTEX_BN,
+    hyteg::stencilDirection::VERTEX_BE,
                                                                            }};
 
 const std::vector< stencilDirection > neighborsOnFace3WithoutCenter = {{
-                                                                           hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
-                                                                           hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
-                                                                           hhg::stencilDirection::VERTEX_TW,
-                                                                           hhg::stencilDirection::VERTEX_TS,
-                                                                           hhg::stencilDirection::VERTEX_BC, hhg::stencilDirection::VERTEX_BN,
-                                                                           hhg::stencilDirection::VERTEX_BE, hhg::stencilDirection::VERTEX_BNW,
+    hyteg::stencilDirection::VERTEX_S,
+    hyteg::stencilDirection::VERTEX_SE,
+    hyteg::stencilDirection::VERTEX_NW,
+    hyteg::stencilDirection::VERTEX_W,
+    hyteg::stencilDirection::VERTEX_TW,
+    hyteg::stencilDirection::VERTEX_TS,
+    hyteg::stencilDirection::VERTEX_BC,
+    hyteg::stencilDirection::VERTEX_BN,
+    hyteg::stencilDirection::VERTEX_BE,
+    hyteg::stencilDirection::VERTEX_BNW,
                                                                            }};
 
 const std::vector< stencilDirection > neighborsOnEdge0WithoutCenter = {{
-                                                                          hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
-                                                                          hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
-                                                                          hhg::stencilDirection::VERTEX_TC, hhg::stencilDirection::VERTEX_TW,
+    hyteg::stencilDirection::VERTEX_E,
+    hyteg::stencilDirection::VERTEX_N,
+    hyteg::stencilDirection::VERTEX_NW,
+    hyteg::stencilDirection::VERTEX_W,
+    hyteg::stencilDirection::VERTEX_TC,
+    hyteg::stencilDirection::VERTEX_TW,
                                                                           }};
 
 const std::vector< stencilDirection > neighborsOnEdge1WithoutCenter = {{
-                                                                          hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
-                                                                          hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
-                                                                          hhg::stencilDirection::VERTEX_TC,
-                                                                          hhg::stencilDirection::VERTEX_TS, hhg::stencilDirection::VERTEX_TSE,
+    hyteg::stencilDirection::VERTEX_S,
+    hyteg::stencilDirection::VERTEX_SE,
+    hyteg::stencilDirection::VERTEX_E,
+    hyteg::stencilDirection::VERTEX_N,
+    hyteg::stencilDirection::VERTEX_TC,
+    hyteg::stencilDirection::VERTEX_TS,
+    hyteg::stencilDirection::VERTEX_TSE,
                                                                           }};
 
 const std::vector< stencilDirection > neighborsOnEdge2WithoutCenter = {{
-                                                                          hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
-                                                                          hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
-                                                                          hhg::stencilDirection::VERTEX_TW,
-                                                                          hhg::stencilDirection::VERTEX_TS,
+    hyteg::stencilDirection::VERTEX_S,
+    hyteg::stencilDirection::VERTEX_SE,
+    hyteg::stencilDirection::VERTEX_NW,
+    hyteg::stencilDirection::VERTEX_W,
+    hyteg::stencilDirection::VERTEX_TW,
+    hyteg::stencilDirection::VERTEX_TS,
                                                                           }};
 
 const std::vector< stencilDirection > neighborsOnEdge3WithoutCenter = {{
-                                                                          hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
-                                                                          hhg::stencilDirection::VERTEX_TC,
-                                                                          hhg::stencilDirection::VERTEX_BC, hhg::stencilDirection::VERTEX_BN,
-                                                                          hhg::stencilDirection::VERTEX_BE,
+    hyteg::stencilDirection::VERTEX_E,
+    hyteg::stencilDirection::VERTEX_N,
+    hyteg::stencilDirection::VERTEX_TC,
+    hyteg::stencilDirection::VERTEX_BC,
+    hyteg::stencilDirection::VERTEX_BN,
+    hyteg::stencilDirection::VERTEX_BE,
                                                                           }};
 
 const std::vector< stencilDirection > neighborsOnEdge4WithoutCenter = {{
-                                                                          hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
-                                                                          hhg::stencilDirection::VERTEX_TW,
-                                                                          hhg::stencilDirection::VERTEX_BC, hhg::stencilDirection::VERTEX_BN,
-                                                                          hhg::stencilDirection::VERTEX_BE, hhg::stencilDirection::VERTEX_BNW,
+    hyteg::stencilDirection::VERTEX_NW,
+    hyteg::stencilDirection::VERTEX_W,
+    hyteg::stencilDirection::VERTEX_TW,
+    hyteg::stencilDirection::VERTEX_BC,
+    hyteg::stencilDirection::VERTEX_BN,
+    hyteg::stencilDirection::VERTEX_BE,
+    hyteg::stencilDirection::VERTEX_BNW,
                                                                           }};
 
 const std::vector< stencilDirection > neighborsOnEdge5WithoutCenter = {{
-                                                                          hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
-                                                                          hhg::stencilDirection::VERTEX_TS,
-                                                                          hhg::stencilDirection::VERTEX_BC, hhg::stencilDirection::VERTEX_BN,
-                                                                          hhg::stencilDirection::VERTEX_BE,
+    hyteg::stencilDirection::VERTEX_S,
+    hyteg::stencilDirection::VERTEX_SE,
+    hyteg::stencilDirection::VERTEX_TS,
+    hyteg::stencilDirection::VERTEX_BC,
+    hyteg::stencilDirection::VERTEX_BN,
+    hyteg::stencilDirection::VERTEX_BE,
                                                                           }};
 
-const std::vector< stencilDirection > neighborsOnVertex0WithoutCenter = {{
-                                                                            hhg::stencilDirection::VERTEX_E, hhg::stencilDirection::VERTEX_N,
-                                                                            hhg::stencilDirection::VERTEX_TC
+const std::vector< stencilDirection > neighborsOnVertex0WithoutCenter = {{hyteg::stencilDirection::VERTEX_E, hyteg::stencilDirection::VERTEX_N, hyteg::stencilDirection::VERTEX_TC
                                                                             }};
 
-const std::vector< stencilDirection > neighborsOnVertex1WithoutCenter = {{
-                                                                            hhg::stencilDirection::VERTEX_NW, hhg::stencilDirection::VERTEX_W,
-                                                                            hhg::stencilDirection::VERTEX_TW
+const std::vector< stencilDirection > neighborsOnVertex1WithoutCenter = {{hyteg::stencilDirection::VERTEX_NW, hyteg::stencilDirection::VERTEX_W, hyteg::stencilDirection::VERTEX_TW
                                                                             }};
 
-const std::vector< stencilDirection > neighborsOnVertex2WithoutCenter = {{
-                                                                            hhg::stencilDirection::VERTEX_S, hhg::stencilDirection::VERTEX_SE,
-                                                                            hhg::stencilDirection::VERTEX_TS
+const std::vector< stencilDirection > neighborsOnVertex2WithoutCenter = {{hyteg::stencilDirection::VERTEX_S, hyteg::stencilDirection::VERTEX_SE, hyteg::stencilDirection::VERTEX_TS
                                                                             }};
 
-const std::vector< stencilDirection > neighborsOnVertex3WithoutCenter = {{
-                                                                            hhg::stencilDirection::VERTEX_BC, hhg::stencilDirection::VERTEX_BN,
-                                                                            hhg::stencilDirection::VERTEX_BE
+const std::vector< stencilDirection > neighborsOnVertex3WithoutCenter = {{hyteg::stencilDirection::VERTEX_BC, hyteg::stencilDirection::VERTEX_BN, hyteg::stencilDirection::VERTEX_BE
                                                                             }};
 
 const std::array< std::vector< stencilDirection >, 4 > neighborsOnFaceWithoutCenter = {{
@@ -372,7 +437,7 @@ const std::array< std::vector< stencilDirection >, 4 > neighborsOnVertexWithoutC
 
 /// Iterator over a vertex DoF macro cell.
 /// See \ref CellIterator for more information.
-class Iterator : public hhg::indexing::CellIterator
+class Iterator : public hyteg::indexing::CellIterator
 {
 public:
   explicit Iterator( const uint_t & level, const uint_t & offsetToCenter = 0 );
@@ -380,7 +445,7 @@ public:
 
 /// Iterator over the borders (faces) of a macro-cell.
 /// See \ref CellBorderIterator for more information.
-class BoundaryIterator : public hhg::indexing::CellBoundaryIterator
+class BoundaryIterator : public hyteg::indexing::CellBoundaryIterator
 {
 public:
   BoundaryIterator( const uint_t & level, const uint_t & vertex0, const uint_t & vertex1,
@@ -427,4 +492,4 @@ uint_t stencilIndexFromGrayFace( const stencilDirection & dir );
 uint_t stencilIndexFromBlueFace( const stencilDirection & dir );
 
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

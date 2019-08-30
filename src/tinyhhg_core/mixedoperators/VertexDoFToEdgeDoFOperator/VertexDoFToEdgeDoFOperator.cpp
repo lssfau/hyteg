@@ -9,7 +9,7 @@
 
 #include "tinyhhg_core/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template< class VertexDoFToEdgeDoFForm >
 VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::VertexDoFToEdgeDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage, size_t minLevel, size_t maxLevel)
@@ -111,7 +111,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils() {
        auto edgeIt = edgedof::macroface::Iterator( level, 0 );
 
        // Loop until first interior DoF is reached
-       while ( edgeIt->row() == 0 || edgeIt->col() == 0 || edgeIt->col() + edgeIt->row() == ( hhg::levelinfo::num_microedges_per_edge( level ) - 1 ))
+       while ( edgeIt->row() == 0 || edgeIt->col() == 0 || edgeIt->col() + edgeIt->row() == ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ))
        {
           edgeIt++;
        }
@@ -175,7 +175,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils() {
       Edge &edge = *it.second;
       real_t* vStencil = storage_->getEdge(edge.getID())->getData(edgeStencilID_)->getPointer(level);
 
-       using namespace hhg::edgedof::macroedge;
+       using namespace hyteg::edgedof::macroedge;
        size_t rowsize = levelinfo::num_microedges_per_edge( level );
 
        Face*  faceS = storage_->getFace( edge.neighborFaces()[0] );
@@ -270,7 +270,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
     const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
     if ( testFlag( cellBC, flag ) )
     {
-       if ( hhg::globalDefines::useGeneratedKernels )
+       if ( hyteg::globalDefines::useGeneratedKernels )
        {
           typedef edgedof::EdgeDoFOrientation eo;
           auto                                dstData     = cell.getData( dst.getCellDataID() )->getPointer( level );
@@ -327,7 +327,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
      {
         if ( storage_->hasGlobalCells() )
         {
-           if ( hhg::globalDefines::useGeneratedKernels )
+           if ( hyteg::globalDefines::useGeneratedKernels )
            {
               auto dstData     = face.getData( dst.getFaceDataID() )->getPointer( level );
               auto srcData     = face.getData( src.getFaceDataID() )->getPointer( level );
@@ -426,7 +426,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
         }
         else
         {
-           if ( hhg::globalDefines::useGeneratedKernels )
+           if ( hyteg::globalDefines::useGeneratedKernels )
            {
               real_t* opr_data                      = face.getData( faceStencilID_ )->getPointer( level );
               real_t* vertexToDiagonalEdgeStencil   = &opr_data[4];
@@ -440,7 +440,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
               for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
                  firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
 
-              if ( updateType == hhg::Replace )
+              if ( updateType == hyteg::Replace )
               {
                  VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace(
                      &dst_data[firstIdx[eo::X]],
@@ -452,7 +452,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
                      vertexToVerticalEdgeStencil,
                      static_cast< int32_t >( level ) );
               }
-              else if ( updateType == hhg::Add )
+              else if ( updateType == hyteg::Add )
               {
                  VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_add( &dst_data[firstIdx[eo::X]],
                                                                                              &dst_data[firstIdx[eo::XY]],
@@ -526,7 +526,7 @@ uint_t macroCellVertexDoFToEdgeDoFStencilSize(const uint_t &level, const Primiti
 }
 }
 
-template class VertexDoFToEdgeDoFOperator< P2FenicsForm< hhg::fenics::NoAssemble, hhg::fenics::NoAssemble > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< hyteg::fenics::NoAssemble, hyteg::fenics::NoAssemble > >;
 template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >;
 template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >;
 
@@ -543,4 +543,4 @@ template class VertexDoFToEdgeDoFOperator< P1ToP2FenicsForm< fenics::NoAssemble,
 
 template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >;
 
-}// namespace hhg
+}// namespace hyteg

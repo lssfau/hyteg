@@ -21,7 +21,7 @@
 #include "tinyhhg_core/FunctionTraits.hpp"
 #include "tinyhhg_core/VTKWriter.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::uint_t;
 using walberla::uint_c;
@@ -41,8 +41,8 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
   x->setLocalCommunicationMode( localCommunicationMode );
   y->setLocalCommunicationMode( localCommunicationMode );
 
-  std::function< real_t( const hhg::Point3D & ) > expr = []( const hhg::Point3D & xx ) -> real_t { return real_c( (1.0L/2.0L)*sin(2*xx[0])*sinh(xx[1]) ) * real_c( xx[2] ); };
-  std::function< real_t( const hhg::Point3D & ) > ones = []( const hhg::Point3D &    ) -> real_t { return 1.0; };
+  std::function< real_t( const hyteg::Point3D & ) > expr = []( const hyteg::Point3D & xx ) -> real_t { return real_c( (1.0L/2.0L)*sin(2*xx[0])*sinh(xx[1]) ) * real_c( xx[2] ); };
+  std::function< real_t( const hyteg::Point3D & ) > ones = []( const hyteg::Point3D &    ) -> real_t { return 1.0; };
 
   x->interpolate( expr, level );
 
@@ -224,7 +224,7 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
   }
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -234,8 +234,8 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv(argc, argv);
   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
   walberla::MPIManager::instance()->useWorldComm();
-  hhg::testVertexDoFFunction( hhg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/tet_1el.msh" );
-  hhg::testVertexDoFFunction( hhg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT      , "../../data/meshes/3D/tet_1el.msh" );
+  hyteg::testVertexDoFFunction( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/tet_1el.msh" );
+  hyteg::testVertexDoFFunction( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT      , "../../data/meshes/3D/tet_1el.msh" );
 
   return EXIT_SUCCESS;
 }

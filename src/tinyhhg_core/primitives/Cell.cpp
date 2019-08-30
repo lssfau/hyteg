@@ -2,7 +2,7 @@
 #include "tinyhhg_core/primitives/Cell.hpp"
 #include "core/mpi/BufferDataTypeExtensions.h"
 
-namespace hhg {
+namespace hyteg {
 
 Cell::Cell( const PrimitiveID & primitiveID,
             const std::vector< PrimitiveID > & vertexIDs,

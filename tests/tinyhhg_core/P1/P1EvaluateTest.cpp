@@ -9,7 +9,7 @@
 #include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
 
 using walberla::real_t;
-using namespace hhg;
+using namespace hyteg;
 
 void test2D( int argc, char** argv )
 {

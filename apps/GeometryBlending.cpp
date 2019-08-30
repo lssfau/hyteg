@@ -16,7 +16,7 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
@@ -56,18 +56,18 @@ int main( int argc, char* argv[] )
       }
    }
 
-   hhg::loadbalancing::roundRobin( setupStorage );
+   hyteg::loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   auto x = std::make_shared< hhg::P2Function< real_t > >( "x", storage, level, level );
-   auto y = std::make_shared< hhg::P2Function< real_t > >( "y", storage, level, level );
+   auto x = std::make_shared< hyteg::P2Function< real_t > >( "x", storage, level, level );
+   auto y = std::make_shared< hyteg::P2Function< real_t > >( "y", storage, level, level );
 
-   std::function< real_t( const hhg::Point3D& ) > tmp_x = [&]( const hhg::Point3D& x_ ) { return x_[0]; };
+   std::function< real_t( const hyteg::Point3D& ) > tmp_x = [&]( const hyteg::Point3D& x_ ) { return x_[0]; };
 
-   std::function< real_t( const hhg::Point3D& ) > tmp_y = [&]( const hhg::Point3D& x_ ) { return x_[1]; };
+   std::function< real_t( const hyteg::Point3D& ) > tmp_y = [&]( const hyteg::Point3D& x_ ) { return x_[1]; };
 
-   x->interpolate( tmp_x, level, hhg::All );
-   y->interpolate( tmp_y, level, hhg::All );
+   x->interpolate( tmp_x, level, hyteg::All );
+   y->interpolate( tmp_y, level, hyteg::All );
 
    VTKOutput vtkOutput("../output", "GeometryBlending", storage);
    vtkOutput.add( *x );

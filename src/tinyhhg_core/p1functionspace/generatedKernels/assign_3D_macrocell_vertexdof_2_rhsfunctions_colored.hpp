@@ -11,7 +11,7 @@
 #include <map>
 #define RESTRICT WALBERLA_RESTRICT
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace macrocell {
 namespace generated {
@@ -21,4 +21,4 @@ void assign_3D_macrocell_vertexdof_2_rhs_functions_colored(double * RESTRICT _da
 } // namespace generated
 } // namespace macrocell
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

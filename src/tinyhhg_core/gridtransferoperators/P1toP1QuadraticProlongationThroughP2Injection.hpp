@@ -7,7 +7,7 @@
 #include "tinyhhg_core/gridtransferoperators/ProlongationOperator.hpp"
 #include "tinyhhg_core/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class P1toP1QuadraticProlongationThroughP2Injection : public ProlongationOperator< P1Function< real_t > >
 {

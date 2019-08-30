@@ -3,8 +3,7 @@
 
 #include <core/mpi/MPIManager.h>
 
-namespace hhg
-{
+namespace hyteg {
 
 using walberla::uint_c;
 
@@ -30,7 +29,7 @@ uint_t Vertex::cell_index(const PrimitiveID& cell) const
   return uint_c((it - neighborCells().begin()));
 }
 
-std::ostream& operator<<(std::ostream &os, const hhg::Vertex &vertex)
+std::ostream& operator<<(std::ostream &os, const hyteg::Vertex &vertex)
 {
   return os << "Vertex { id = " << vertex.getID().getID() << "; "
             << "coords = [" << vertex.coordinates_[0] << ", " << vertex.coordinates_[1] << ", " << vertex.coordinates_[2] << "]; "

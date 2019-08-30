@@ -7,7 +7,7 @@
 
 #include "GeometryMap.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class CircularMap : public GeometryMap
 {
@@ -163,4 +163,4 @@ class CircularMap : public GeometryMap
    real_t invDet_;
 };
 
-} // namespace hhg
+} // namespace hyteg

@@ -11,7 +11,7 @@
 
 using walberla::real_c;
 using walberla::real_t;
-using namespace hhg;
+using namespace hyteg;
 
 std::shared_ptr< PrimitiveStorage > globalStorage;
 
@@ -61,14 +61,14 @@ int main( int argc, char** argv )
 
    const size_t level = 14;
 
-   auto                   src  = std::make_shared< hhg::P1Function< real_t > >( "src", storage, level, level );
-   auto                   dst1 = std::make_shared< hhg::P1Function< real_t > >( "dst", storage, level, level );
-   auto                   dst2 = std::make_shared< hhg::P1Function< real_t > >( "dst", storage, level, level );
-   hhg::P1ConstantLaplaceOperator M( storage, level, level );
+   auto                   src  = std::make_shared< hyteg::P1Function< real_t > >( "src", storage, level, level );
+   auto                   dst1 = std::make_shared< hyteg::P1Function< real_t > >( "dst", storage, level, level );
+   auto                   dst2 = std::make_shared< hyteg::P1Function< real_t > >( "dst", storage, level, level );
+   hyteg::P1ConstantLaplaceOperator M( storage, level, level );
 
    std::shared_ptr< Face > face = storage->getFaces().begin().operator*().second;
 
-   std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& x ) { return x[0] * 4; };
+   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& x ) { return x[0] * 4; };
    src->interpolate( ones, level );
 
    real_t* oprPtr = face->getData( M.getFaceStencilID() )->getPointer( level );
@@ -83,7 +83,7 @@ int main( int argc, char** argv )
    walberla::WcTimer timer;
    timer.reset();
    LIKWID_MARKER_START( "IndexApply" );
-   hhg::vertexdof::macroface::apply< real_t >(
+   hyteg::vertexdof::macroface::apply< real_t >(
        level, *face, M.getFaceStencilID(), src->getFaceDataID(), dst1->getFaceDataID(), Replace );
    LIKWID_MARKER_STOP( "IndexApply" );
    timer.end();

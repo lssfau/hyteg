@@ -5,7 +5,7 @@
 #include "core/Environment.h"
 
 using walberla::real_t;
-using namespace hhg;
+using namespace hyteg;
 
 int main(int argc, char **argv)
 {
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
   value = 0;
   for(auto edgeIter : storage->getEdges()){
     auto edge = edgeIter.second;
-    hhg::vertexdof::macroedge::interpolate< real_t >(maxLevel, *edge,x.getEdgeDataID(),emptyEdgeIds,exact);
+    hyteg::vertexdof::macroedge::interpolate< real_t >(maxLevel, *edge,x.getEdgeDataID(),emptyEdgeIds,exact);
     value = 2 * edge->getCoordinates()[0][0] + edge->getCoordinates()[0][1];
     xStepSize = edge->getDirection()[0] / walberla::real_c((v_perEdge-1));
     yStepSize = edge->getDirection()[1] / walberla::real_c((v_perEdge-1));

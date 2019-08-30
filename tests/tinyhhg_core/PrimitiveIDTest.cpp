@@ -5,7 +5,7 @@
 #include "core/mpi/RecvBuffer.h"
 #include "tinyhhg_core/PrimitiveID.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 // to be removed when moving to walberla namespace
 using walberla::mpi::SendBuffer;
@@ -47,14 +47,14 @@ static void testPrimitiveID()
   WALBERLA_CHECK_EQUAL( id6.getUsedBytes(), 2 );
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main()
 {
    walberla::debug::enterTestMode();
 
-   hhg::testPrimitiveID();
+   hyteg::testPrimitiveID();
 
    return EXIT_SUCCESS;
 }

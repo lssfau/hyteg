@@ -4,7 +4,7 @@
 
 #include "core/DataTypes.h"
 
-namespace hhg {
+namespace hyteg {
 namespace P1 {
 
 template<uint_t N>

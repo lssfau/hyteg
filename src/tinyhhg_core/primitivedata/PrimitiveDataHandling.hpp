@@ -6,7 +6,7 @@
 
 #include <memory>
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::mpi::SendBuffer;
 using walberla::mpi::RecvBuffer;
@@ -78,5 +78,5 @@ public:
 
 
 
-} // namespace hhg
+} // namespace hyteg
 

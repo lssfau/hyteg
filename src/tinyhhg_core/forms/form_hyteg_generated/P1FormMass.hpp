@@ -2,7 +2,7 @@
 
 #include "tinyhhg_core/geometry/GeometryMap.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class P1Form_mass {
 public:

@@ -10,7 +10,7 @@
 #include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "core/Filesystem.h"
 
-namespace hhg {
+namespace hyteg {
 
 static void testMeshInfo()
 {
@@ -40,7 +40,7 @@ static void testMeshInfo()
   }
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -50,7 +50,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testMeshInfo();
+   hyteg::testMeshInfo();
 
    return EXIT_SUCCESS;
 }

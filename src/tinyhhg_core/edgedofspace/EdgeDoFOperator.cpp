@@ -9,7 +9,7 @@
 #include "tinyhhg_core/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "tinyhhg_core/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template< class EdgeDoFForm >
 EdgeDoFOperator< EdgeDoFForm >::EdgeDoFOperator( const std::shared_ptr<PrimitiveStorage> &storage,
@@ -98,7 +98,7 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils() {
          auto edgeIt = edgedof::macroface::Iterator( level, 0 );
 
          // Loop until first interior DoF is reached
-         while ( edgeIt->row() == 0 || edgeIt->col() == 0 || edgeIt->col() + edgeIt->row() == ( hhg::levelinfo::num_microedges_per_edge( level ) - 1 ))
+         while ( edgeIt->row() == 0 || edgeIt->col() == 0 || edgeIt->col() + edgeIt->row() == ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ))
          {
             edgeIt++;
          }
@@ -162,7 +162,7 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils() {
          Edge &edge = *it.second;
          real_t* vStencil = storage_->getEdge(edge.getID())->getData(edgeStencilID_)->getPointer(level);
 
-         using namespace hhg::edgedof::macroedge;
+         using namespace hyteg::edgedof::macroedge;
          size_t rowsize = levelinfo::num_microedges_per_edge( level );
 
          Face*  faceS = storage_->getFace( edge.neighborFaces()[0] );
@@ -252,7 +252,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply(const EdgeDoFFunction<real_t> &src,co
     const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
     if ( testFlag( cellBC, flag ) )
     {
-      if( hhg::globalDefines::useGeneratedKernels )
+      if( hyteg::globalDefines::useGeneratedKernels )
       {
         typedef edgedof::EdgeDoFOrientation eo;
         auto dstData = cell.getData( dst.getCellDataID() )->getPointer( level );
@@ -321,7 +321,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply(const EdgeDoFFunction<real_t> &src,co
      {
         if ( storage_->hasGlobalCells() )
         {
-           if ( hhg::globalDefines::useGeneratedKernels && face.getNumNeighborCells() == 2 )
+           if ( hyteg::globalDefines::useGeneratedKernels && face.getNumNeighborCells() == 2 )
            {
               auto opr_data = face.getData( faceStencil3DID_ )->getData( level );
               auto src_data = face.getData( src.getFaceDataID() )->getPointer( level );
@@ -433,7 +433,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply(const EdgeDoFFunction<real_t> &src,co
         }
         else
         {
-           if ( hhg::globalDefines::useGeneratedKernels )
+           if ( hyteg::globalDefines::useGeneratedKernels )
            {
               typedef edgedof::EdgeDoFOrientation eo;
               real_t*                             opr_data = face.getData( faceStencilID_ )->getPointer( level );
@@ -443,7 +443,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply(const EdgeDoFFunction<real_t> &src,co
               for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
                  firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
 
-              if ( updateType == hhg::Replace )
+              if ( updateType == hyteg::Replace )
               {
                  edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace( &dst_data[firstIdx[eo::X]],
                                                                                                &dst_data[firstIdx[eo::XY]],
@@ -456,7 +456,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply(const EdgeDoFFunction<real_t> &src,co
                                                                                                &opr_data[10],
                                                                                                static_cast< int32_t >( level ) );
               }
-              else if ( updateType == hhg::Add )
+              else if ( updateType == hyteg::Add )
               {
                  edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_add( &dst_data[firstIdx[eo::X]],
                                                                                            &dst_data[firstIdx[eo::XY]],
@@ -555,7 +555,7 @@ uint_t macroCellEdgeDoFToEdgeDoFStencilSize( const uint_t & level, const Primiti
   return 7 * 7 * 27;
 }
 
-template class EdgeDoFOperator< P2FenicsForm< hhg::fenics::NoAssemble, hhg::fenics::NoAssemble > >;
+template class EdgeDoFOperator< P2FenicsForm< hyteg::fenics::NoAssemble, hyteg::fenics::NoAssemble > >;
 template class EdgeDoFOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >;
 template class EdgeDoFOperator< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >;
 

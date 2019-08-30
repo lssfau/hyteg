@@ -14,7 +14,7 @@
 #define HHG_PCFactorSetMatSolverType PCFactorSetMatSolverPackage
 #endif
 
-namespace hhg{
+namespace hyteg {
 
 
 template < class OperatorType >
@@ -33,7 +33,7 @@ public:
 #if 0
   , inKernel( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
 #endif
-  , flag_( hhg::All )
+  , flag_( hyteg::All )
   {
     num.enumerate( level );
     KSPCreate( walberla::MPIManager::instance()->comm(), &ksp );
@@ -111,7 +111,7 @@ private:
 
   KSP ksp;
   PC pc;
-  hhg::DoFType flag_;
+  hyteg::DoFType flag_;
   //Mat F; //factored Matrix
 
 

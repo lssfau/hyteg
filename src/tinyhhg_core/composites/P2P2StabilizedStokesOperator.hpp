@@ -4,7 +4,7 @@
 #include "tinyhhg_core/composites/StokesOperatorTraits.hpp"
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class P2P2StabilizedStokesOperator : public Operator< P2P2StokesFunction< real_t >, P2P2StokesFunction< real_t > >
 {
@@ -70,4 +70,4 @@ struct has_pspg_block< P2P2StabilizedStokesOperator >
    static const bool value = true;
 };
 
-} // namespace hhg
+} // namespace hyteg

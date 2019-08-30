@@ -10,18 +10,18 @@
 
 using walberla::real_c;
 using walberla::real_t;
-using namespace hhg;
+using namespace hyteg;
 
 class exactFunctor
 {
  public:
-   virtual real_t operator()( const hhg::Point3D& x ) const = 0;
+   virtual real_t operator()( const hyteg::Point3D& x ) const = 0;
 };
 
 template < typename ValueType, uint_t Level >
 inline void interpolateStdFunction( Face&                                                       face,
                                     const PrimitiveDataID< FunctionMemory< ValueType >, Face >& faceMemoryId,
-                                    std::function< ValueType( const hhg::Point3D& ) >&          expr )
+                                    std::function< ValueType( const hyteg::Point3D& ) >&          expr )
 {
    FunctionMemory< ValueType >* faceMemory = face.getData( faceMemoryId );
    uint_t                       rowsize    = levelinfo::num_microvertices_per_edge( Level );
@@ -136,10 +136,10 @@ inline void interpolateWithoutFunction( Face& face, const PrimitiveDataID< Funct
 class derivedFunctor : public exactFunctor
 {
  public:
-   real_t operator()( const hhg::Point3D& x ) const { return sqrt( x[0] * x[0] + x[1] * x[1] ); }
+   real_t operator()( const hyteg::Point3D& x ) const { return sqrt( x[0] * x[0] + x[1] * x[1] ); }
 };
 
-real_t exact( const hhg::Point3D& x )
+real_t exact( const hyteg::Point3D& x )
 {
    return sqrt( x[0] * x[0] + x[1] * x[1] );
 }
@@ -160,10 +160,10 @@ int main( int argc, char** argv )
 
    const size_t level = 14;
 
-   auto                    x    = std::make_shared< hhg::P1Function< real_t > >( "x", storage, level, level );
+   auto                    x    = std::make_shared< hyteg::P1Function< real_t > >( "x", storage, level, level );
    std::shared_ptr< Face > face = storage->getFaces().begin().operator*().second;
 
-   std::function< real_t( const hhg::Point3D& ) > exactFunc = [&]( const hhg::Point3D& point ) {
+   std::function< real_t( const hyteg::Point3D& ) > exactFunc = [&]( const hyteg::Point3D& point ) {
       return sqrt( point[0] * point[0] + point[1] * point[1] );
    };
 
@@ -176,28 +176,28 @@ int main( int argc, char** argv )
    interpolateStdFunction< real_t, level >( *face, x->getFaceDataID(), exactFunc );
    timer.end();
    LIKWID_MARKER_STOP( "std::function" );
-   WALBERLA_LOG_INFO_ON_ROOT( std::setw( 20 ) << "std::function: " << timer.last() << " " << x->dotGlobal( *x, level, hhg::Inner ) );
+   WALBERLA_LOG_INFO_ON_ROOT( std::setw( 20 ) << "std::function: " << timer.last() << " " << x->dotGlobal( *x, level, hyteg::Inner ) );
 
    LIKWID_MARKER_START( "Template" );
    timer.reset();
    interpolateTemplate< real_t, level >( *face, x->getFaceDataID(), exact );
    timer.end();
    LIKWID_MARKER_STOP( "Template" );
-   WALBERLA_LOG_INFO_ON_ROOT( std::setw( 20 ) << "Template: " << timer.last() << " " << x->dotGlobal( *x, level, hhg::Inner ) );
+   WALBERLA_LOG_INFO_ON_ROOT( std::setw( 20 ) << "Template: " << timer.last() << " " << x->dotGlobal( *x, level, hyteg::Inner ) );
 
    LIKWID_MARKER_START( "without Function" );
    timer.reset();
    interpolateWithoutFunction< real_t, level >( *face, x->getFaceDataID() );
    timer.end();
    LIKWID_MARKER_STOP( "without Function" );
-   WALBERLA_LOG_INFO_ON_ROOT( std::setw( 20 ) << "Without Function: " << timer.last() << " " << x->dotGlobal( *x, level, hhg::Inner ) );
+   WALBERLA_LOG_INFO_ON_ROOT( std::setw( 20 ) << "Without Function: " << timer.last() << " " << x->dotGlobal( *x, level, hyteg::Inner ) );
 
    LIKWID_MARKER_START( "Functor" );
    timer.reset();
    interpolateFunctor< real_t, level >( *face, x->getFaceDataID(), derivedFunctor() );
    timer.end();
    LIKWID_MARKER_STOP( "Functor" );
-   WALBERLA_LOG_INFO_ON_ROOT( std::setw( 20 ) << "Functor: " << timer.last() << " " << x->dotGlobal( *x, level, hhg::Inner ) );
+   WALBERLA_LOG_INFO_ON_ROOT( std::setw( 20 ) << "Functor: " << timer.last() << " " << x->dotGlobal( *x, level, hyteg::Inner ) );
 
    LIKWID_MARKER_CLOSE;
 }

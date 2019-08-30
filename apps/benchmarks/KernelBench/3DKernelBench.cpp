@@ -32,9 +32,9 @@ int main( int argc, char** argv )
       std::vector< double > dst( tetSize );
       std::generate( dst.begin(), dst.end(), std::rand );
 
-      hhg::vertexdof::macrocell::StencilMap_T stencil;
-      for ( const auto & neighbor : hhg::vertexdof::macrocell::neighborsWithCenter )
-        stencil[ hhg::vertexdof::logicalIndexOffsetFromVertex( neighbor ) ] = walberla::real_c( std::rand() );
+      hyteg::vertexdof::macrocell::StencilMap_T stencil;
+      for ( const auto & neighbor : hyteg::vertexdof::macrocell::neighborsWithCenter )
+        stencil[hyteg::vertexdof::logicalIndexOffsetFromVertex( neighbor ) ] = walberla::real_c( std::rand() );
 
       double time(0.0);
 
@@ -45,10 +45,9 @@ int main( int argc, char** argv )
          timer.reset();
          for( size_t i = 0; i < iter; ++i )
          {
-
-            hhg::vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_add(
+            hyteg::vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_add(
                 dst.data(), src.data(), (int32_t) level, stencil );
-            hhg::misc::dummy( dst.data(), src.data() );
+            hyteg::misc::dummy( dst.data(), src.data() );
          }
          timer.end();
          LIKWID_MARKER_STOP( "apply" );

@@ -13,7 +13,7 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
@@ -30,23 +30,23 @@ int main( int argc, char* argv[] )
    /// read mesh file and create storage
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/quad_4el.msh" );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   hhg::loadbalancing::roundRobin( setupStorage );
+   hyteg::loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
 
    /// create operator and functions
-   hhg::P2ConstantLaplaceOperator L( storage, level, level );
+   hyteg::P2ConstantLaplaceOperator L( storage, level, level );
 
-   hhg::P2Function< real_t > residuumFunction( "residuumFunction", storage, level, level );
-   hhg::P2Function< real_t > rightHandSide( "rightHandSide", storage, level, level );
-   hhg::P2Function< real_t > u( "u", storage, level, level );
-   hhg::P2Function< real_t > u_exact( "u_exact", storage, level, level );
-   hhg::P2Function< real_t > error( "error", storage, level, level );
-   hhg::P2Function< real_t > npoints_helper( "npoints_helper", storage, level, level );
+   hyteg::P2Function< real_t > residuumFunction( "residuumFunction", storage, level, level );
+   hyteg::P2Function< real_t > rightHandSide( "rightHandSide", storage, level, level );
+   hyteg::P2Function< real_t > u( "u", storage, level, level );
+   hyteg::P2Function< real_t > u_exact( "u_exact", storage, level, level );
+   hyteg::P2Function< real_t > error( "error", storage, level, level );
+   hyteg::P2Function< real_t > npoints_helper( "npoints_helper", storage, level, level );
 
-   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
-   std::function< real_t( const hhg::Point3D& ) > ones  = []( const hhg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
+   std::function< real_t( const hyteg::Point3D& ) > ones  = []( const hyteg::Point3D& ) { return 1.0; };
 
-   u.interpolate( exact, level, hhg::DirichletBoundary );
+   u.interpolate( exact, level, hyteg::DirichletBoundary );
    u_exact.interpolate( exact, level );
 
    real_t residuum = 100;
@@ -59,13 +59,13 @@ int main( int argc, char* argv[] )
    /// apply Gauss Seidl smoother i times
    for( uint_t i = 0; i < iterations; ++i )
    {
-      L.smooth_gs( u, rightHandSide, level, hhg::Inner );
+      L.smooth_gs( u, rightHandSide, level, hyteg::Inner );
    }
 
    /// calculate residuum and check
-   L.apply( u, residuumFunction, level, hhg::Inner );
-   residuumFunction.add( {-1}, {rightHandSide}, level, hhg::Inner );
-   residuum = std::sqrt( residuumFunction.dotGlobal( residuumFunction, level, hhg::Inner ) );
+   L.apply( u, residuumFunction, level, hyteg::Inner );
+   residuumFunction.add( {-1}, {rightHandSide}, level, hyteg::Inner );
+   residuum = std::sqrt( residuumFunction.dotGlobal( residuumFunction, level, hyteg::Inner ) );
    WALBERLA_LOG_INFO_ON_ROOT( "residual: = " << residuum );
    WALBERLA_DEBUG_SECTION() { WALBERLA_CHECK_GREATER( 0.2, residuum ); }
    else { WALBERLA_CHECK_GREATER( 1e-14, residuum ); }

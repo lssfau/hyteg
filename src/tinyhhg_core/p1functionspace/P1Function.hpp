@@ -2,7 +2,7 @@
 
 #include <tinyhhg_core/p1functionspace/VertexDoFFunction.hpp>
 
-namespace hhg {
+namespace hyteg {
 
 template< typename ValueType >
 using P1Function = vertexdof::VertexDoFFunction< ValueType >;

@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <set>
 
-namespace hhg {
+namespace hyteg {
 namespace algorithms {
 
 using walberla::uint_t;

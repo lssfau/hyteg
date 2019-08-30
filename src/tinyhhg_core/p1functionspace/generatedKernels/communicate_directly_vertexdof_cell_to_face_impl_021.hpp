@@ -11,7 +11,7 @@
 #include <map>
 #define RESTRICT WALBERLA_RESTRICT
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace comm {
 namespace generated {
@@ -21,4 +21,4 @@ void communicate_directly_vertexdof_cell_to_face_impl_021(double const * RESTRIC
 } // namespace generated
 } // namespace comm
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

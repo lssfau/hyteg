@@ -14,7 +14,7 @@
 
 #include <map>
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::uint_t;
 
@@ -109,7 +109,7 @@ namespace mpi {
 template< typename T,  // Element type of SendBuffer
 typename G,  // Growth policy of SendBuffer
 typename ValueType>
-inline mpi::GenericSendBuffer<T,G> & operator<<( mpi::GenericSendBuffer<T,G> & buffer, const hhg::LevelWiseMemory< ValueType > & levelWiseMemory )
+inline mpi::GenericSendBuffer<T,G> & operator<<( mpi::GenericSendBuffer<T,G> & buffer, const hyteg::LevelWiseMemory< ValueType > & levelWiseMemory )
 {
   levelWiseMemory.serialize( buffer );
   return buffer;
@@ -117,14 +117,15 @@ inline mpi::GenericSendBuffer<T,G> & operator<<( mpi::GenericSendBuffer<T,G> & b
 
 template< typename T, // Element type  of RecvBuffer
 typename ValueType >
-inline mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buffer, hhg::LevelWiseMemory< ValueType > & levelWiseMemory )
+inline mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buffer,
+                                                hyteg::LevelWiseMemory< ValueType > & levelWiseMemory )
 {
   levelWiseMemory.deserialize( buffer );
   return buffer;
 }
 
 template< typename ValueType >
-struct BufferSizeTrait< hhg::LevelWiseMemory< ValueType > > { static const bool constantSize = false; };
+struct BufferSizeTrait< hyteg::LevelWiseMemory< ValueType > > { static const bool constantSize = false; };
 
 } // namespace mpi
 } // namespace walberla

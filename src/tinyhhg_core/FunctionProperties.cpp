@@ -7,7 +7,7 @@
 #include "Function.hpp"
 #include "FunctionMemory.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 void printFunctionAllocationInfo( const PrimitiveStorage& storage, const uint_t& verbosityLevel )
 {
@@ -131,4 +131,4 @@ void printFunctionAllocationInfo( const PrimitiveStorage& storage, const uint_t&
    }
 }
 
-} // namespace hhg
+} // namespace hyteg

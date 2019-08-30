@@ -5,12 +5,12 @@
 
 #include "sor_3D_macroface_P1_one_sided_impl_301.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-static void sor_3D_macroface_P1_one_sided_impl_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double const * RESTRICT const _data_vertexFaceRhs, int32_t level, double relax, std::map< hhg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0)
+static void sor_3D_macroface_P1_one_sided_impl_301_level_any(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double const * RESTRICT const _data_vertexFaceRhs, int32_t level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0)
 {
    const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
    const double xi_13 = 1 / (xi_1);
@@ -35,7 +35,7 @@ static void sor_3D_macroface_P1_one_sided_impl_301_level_any(double * RESTRICT _
 }
 
 
-void sor_3D_macroface_P1_one_sided_impl_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double const * RESTRICT const _data_vertexFaceRhs, int32_t level, double relax, std::map< hhg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0)
+void sor_3D_macroface_P1_one_sided_impl_301(double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double const * RESTRICT const _data_vertexFaceRhs, int32_t level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0)
 {
     switch( level )
     {
@@ -50,4 +50,4 @@ void sor_3D_macroface_P1_one_sided_impl_301(double * RESTRICT _data_vertexFaceDs
 } // namespace generated
 } // namespace macroface
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

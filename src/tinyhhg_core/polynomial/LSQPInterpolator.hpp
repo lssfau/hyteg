@@ -6,7 +6,7 @@
 
 #include "Polynomial2D.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 enum class LSQPType
 {

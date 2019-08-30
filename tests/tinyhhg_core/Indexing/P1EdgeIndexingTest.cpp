@@ -32,18 +32,18 @@ int main(int argc, char* argv[])
   std::vector<uint_t> refOne = {1,9,10,2,18,17,0};
   std::vector<uint_t> refFive = {5,13,14,6,22,21,4};
   std::vector<uint_t> result;
-  for( const auto & n : hhg::vertexdof::macroedge::neighborsWithCenter )
+  for( const auto & n : hyteg::vertexdof::macroedge::neighborsWithCenter )
   {
-    size_t idx = hhg::vertexdof::macroedge::indexFromVertex( 3, 1, n );
+    size_t idx = hyteg::vertexdof::macroedge::indexFromVertex( 3, 1, n );
     result.push_back(idx);
   }
   for(size_t i = 0; i < refOne.size(); ++i){
     WALBERLA_CHECK_EQUAL(refOne[i],result[i],"i: " << i);
   }
   result.clear();
-  for( const auto & n : hhg::vertexdof::macroedge::neighborsWithCenter )
+  for( const auto & n : hyteg::vertexdof::macroedge::neighborsWithCenter )
   {
-    size_t idx = hhg::vertexdof::macroedge::indexFromVertex( 3, 5, n );
+    size_t idx = hyteg::vertexdof::macroedge::indexFromVertex( 3, 5, n );
     result.push_back(idx);
     //WALBERLA_LOG_INFO_ON_ROOT(enumStrings[n] << " " << idx);
   }
@@ -57,21 +57,21 @@ int main(int argc, char* argv[])
     WALBERLA_CHECK_EQUAL(counter,*it);
     counter++;
   }
-  WALBERLA_CHECK_EQUAL(counter,hhg::levelinfo::num_microvertices_per_edge(3));
+  WALBERLA_CHECK_EQUAL(counter,hyteg::levelinfo::num_microvertices_per_edge(3));
 
-  //counter = hhg::levelinfo::num_microvertices_per_edge(4);
+  //counter = hyteg::levelinfo::num_microvertices_per_edge(4);
 
   for(auto it = edgeIndexIterator(0,3);it != edgeIndexIterator(); ++it){
     WALBERLA_CHECK_EQUAL(counter,*it);
     counter++;
   }
-  WALBERLA_CHECK_EQUAL(counter,hhg::levelinfo::num_microvertices_per_edge(3) * 2 -1);
+  WALBERLA_CHECK_EQUAL(counter,hyteg::levelinfo::num_microvertices_per_edge(3) * 2 -1);
 
-  counter = hhg::levelinfo::num_microvertices_per_edge(4) * 2 - 1;
+  counter = hyteg::levelinfo::num_microvertices_per_edge(4) * 2 - 1;
   for(auto it = edgeIndexIterator(1,4);it != edgeIndexIterator(); ++it){
     WALBERLA_CHECK_EQUAL(counter,*it);
     counter++;
   }
-  WALBERLA_CHECK_EQUAL(counter,hhg::levelinfo::num_microvertices_per_edge(4) * 3 - 2);
+  WALBERLA_CHECK_EQUAL(counter,hyteg::levelinfo::num_microvertices_per_edge(4) * 3 - 2);
 #endif
 }

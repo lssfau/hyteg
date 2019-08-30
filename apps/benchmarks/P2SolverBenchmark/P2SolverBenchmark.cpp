@@ -15,7 +15,7 @@
 
 using walberla::real_c;
 using walberla::real_t;
-using namespace hhg;
+using namespace hyteg;
 
 /*
  * This benchmark meassures the time for several P2 functions on a macro face
@@ -95,8 +95,8 @@ int main( int argc, char** argv )
    P2Function< real_t > exact( "exact", storage, minLevel, level );
    P2Function< real_t > tmp( "tmp", storage, minLevel, level );
 
-   hhg::P2ConstantLaplaceOperator A( storage, minLevel, level );
-   hhg::P2ConstantMassOperator    M( storage, level, level );
+   hyteg::P2ConstantLaplaceOperator A( storage, minLevel, level );
+   hyteg::P2ConstantMassOperator    M( storage, level, level );
 
    VTKOutput vtkOutput( ".", "P2SolverBenchmark", storage );
    vtkOutput.add( u );
@@ -105,18 +105,18 @@ int main( int argc, char** argv )
    vtkOutput.add( error );
    vtkOutput.add( exact );
 
-   std::function< real_t( const hhg::Point3D& ) > exactSolution = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > exactSolution = []( const hyteg::Point3D& x ) {
       return ( 1.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
    };
-   std::function< real_t( const hhg::Point3D& ) > rhsFunction = []( const hhg::Point3D& x ) {
+   std::function< real_t( const hyteg::Point3D& ) > rhsFunction = []( const hyteg::Point3D& x ) {
       return ( 3.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
    };
-   std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
    u.interpolate( exactSolution, level, DirichletBoundary );
    exact.interpolate( exactSolution, level );
    tmp.interpolate( rhsFunction, level );
-   M.apply( tmp, f, level, hhg::All );
+   M.apply( tmp, f, level, hyteg::All );
 
    if( checkError )
    {

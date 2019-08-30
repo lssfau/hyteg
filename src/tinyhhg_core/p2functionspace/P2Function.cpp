@@ -16,7 +16,7 @@
 #include "tinyhhg_core/p2functionspace/P2Multigrid.hpp"
 #include "tinyhhg_core/geometry/Intersection.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template < typename ValueType >
 P2Function< ValueType >::P2Function( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage )
@@ -340,7 +340,7 @@ ValueType P2Function< ValueType >::sumLocal( const uint_t level, const DoFType& 
 }
 
 template < typename ValueType >
-void P2Function< ValueType >::prolongateP1ToP2( const hhg::P1Function< ValueType >& p1Function,
+void P2Function< ValueType >::prolongateP1ToP2( const hyteg::P1Function< ValueType >& p1Function,
                                                 const uint_t&                       level,
                                                 const DoFType&                      flag ) const
 {
@@ -577,8 +577,8 @@ void P2Function< ValueType >::enumerate( uint_t level ) const
 {
    this->startTiming( "Enumerate" );
 
-   uint_t counterVertexDoFs = hhg::numberOfLocalDoFs< VertexDoFFunctionTag >( *( this->getStorage() ), level );
-   uint_t counterEdgeDoFs   = hhg::numberOfLocalDoFs< EdgeDoFFunctionTag >( *( this->getStorage() ), level );
+   uint_t counterVertexDoFs = hyteg::numberOfLocalDoFs< VertexDoFFunctionTag >( *( this->getStorage() ), level );
+   uint_t counterEdgeDoFs   = hyteg::numberOfLocalDoFs< EdgeDoFFunctionTag >( *( this->getStorage() ), level );
 
    std::vector< uint_t > vertexDoFsPerRank = walberla::mpi::allGather( counterVertexDoFs );
    std::vector< uint_t > edgeDoFsPerRank   = walberla::mpi::allGather( counterEdgeDoFs );
@@ -706,4 +706,4 @@ void projectMean( const P2Function< real_t >& pressure, const uint_t& level )
 
 } // namespace p2function
 
-} //namespace hhg
+} //namespace hyteg

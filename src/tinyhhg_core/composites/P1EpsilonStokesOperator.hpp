@@ -3,8 +3,7 @@
 #include "tinyhhg_core/composites/P1StokesFunction.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 
-namespace hhg
-{
+namespace hyteg {
 
 class P1EpsilonStokesOperator
 {

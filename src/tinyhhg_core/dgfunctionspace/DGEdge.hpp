@@ -1,7 +1,7 @@
 #pragma once
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace DGEdge {
 
 template< typename ValueType >
@@ -16,7 +16,7 @@ inline void enumerate(const uint_t & Level, Edge &edge,
     dirs.push_back(stencilDirection::CELL_GRAY_NE);
   }
   for(auto dir : dirs) {
-    for (uint_t i = 1; i < (hhg::levelinfo::num_microvertices_per_edge( Level ) - 2); ++i) {
+    for (uint_t i = 1; i < ( hyteg::levelinfo::num_microvertices_per_edge( Level ) - 2); ++i) {
       dst[facedof::macroedge::indexFaceFromVertex( Level, i, dir )] = num;
       ++num;
     }
@@ -223,7 +223,7 @@ template< typename ValueType >
 inline void interpolate(const uint_t & Level, Edge &edge,
                         const PrimitiveDataID<FunctionMemory< ValueType >, Edge>& edgeMemoryId,
                         const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>& srcMemoryIds,
-                        std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>& f)> &expr,
+                        std::function<ValueType(const hyteg::Point3D &, const std::vector<ValueType>& f)> &expr,
                         const std::shared_ptr< PrimitiveStorage >& storage ) {
 
   auto edgeMemory = edge.getData(edgeMemoryId)->getPointer( Level );
@@ -375,7 +375,7 @@ inline void printFunctionMemory( Edge& edge, const PrimitiveDataID< FunctionMemo
    using namespace facedof::macroedge;
    typedef stencilDirection sD;
 
-   uint_t  v_perEdge = hhg::levelinfo::num_microvertices_per_edge( level );
+   uint_t  v_perEdge = hyteg::levelinfo::num_microvertices_per_edge( level );
    real_t* edgeData  = edge.getData( memoryId )->getPointer( level );
    cout << setfill( '=' ) << setw( 100 ) << std::left << "" << endl;
    cout << edge << " South Face ID: " << edge.neighborFaces()[0].getID(); // edge->neighborFaces()[0]->getID().getID();
@@ -471,4 +471,4 @@ inline void
 
 
 }//namespace DGEdge
-}//namespace hhg
+}//namespace hyteg

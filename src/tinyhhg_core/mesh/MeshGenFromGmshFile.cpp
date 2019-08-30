@@ -8,7 +8,7 @@
 #include <array>
 #include <vector>
 
-namespace hhg {
+namespace hyteg {
 
 MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
 {
@@ -188,4 +188,4 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
   return meshInfo;
 }
 
-} // namespace hhg
+} // namespace hyteg

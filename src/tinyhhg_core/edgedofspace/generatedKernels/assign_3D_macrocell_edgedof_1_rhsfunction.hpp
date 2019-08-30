@@ -11,7 +11,7 @@
 #include <map>
 #define RESTRICT WALBERLA_RESTRICT
 
-namespace hhg {
+namespace hyteg {
 namespace edgedof {
 namespace macrocell {
 namespace generated {
@@ -21,4 +21,4 @@ void assign_3D_macrocell_edgedof_1_rhs_function(double * RESTRICT _data_edgeCell
 } // namespace generated
 } // namespace macrocell
 } // namespace edgedof
-} // namespace hhg
+} // namespace hyteg

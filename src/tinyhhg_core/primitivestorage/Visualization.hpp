@@ -9,7 +9,7 @@
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 #include "tinyhhg_core/primitives/Vertex.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 enum VTK_CELL_TYPE
 {
@@ -59,13 +59,13 @@ static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage 
    }
 
    auto getFilenameOfRank = []( const std::string& filename, const uint_t& rank ) -> std::string {
-      return hhg::format( "%s-rank-%04d.vtu", filename.c_str(), rank );
+      return hyteg::format( "%s-rank-%04d.vtu", filename.c_str(), rank );
       //return fmt::format("{}-rank-{:0>4}.vtu", filename, rank);
    };
 
    WALBERLA_ROOT_SECTION()
    {
-      std::string pvtu_filename( hhg::format( "%s/%s.pvtu", dir.c_str(), filename.c_str() ) );
+      std::string pvtu_filename( hyteg::format( "%s/%s.pvtu", dir.c_str(), filename.c_str() ) );
       //std::string pvtu_filename(fmt::format("{}/{}.pvtu", dir, filename));
       std::ofstream pvtu_file;
       pvtu_file.open( pvtu_filename.c_str() );
@@ -107,7 +107,7 @@ static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage 
       pvtu_file.close();
    }
 
-   std::string vtu_filename( hhg::format( "%s/%s", dir.c_str(), getFilenameOfRank( filename, rank ).c_str() ) );
+   std::string vtu_filename( hyteg::format( "%s/%s", dir.c_str(), getFilenameOfRank( filename, rank ).c_str() ) );
    //std::string vtu_filename(fmt::format("{}/{}", dir, getFilenameOfRank( filename, rank )));
    std::ofstream vtu_file;
    vtu_file.open( vtu_filename.c_str() );
@@ -307,4 +307,4 @@ void writePrimitiveStorageDistributionCSV( const std::shared_ptr< PrimitiveStora
    walberla::mpi::writeMPITextFile( filename, output.str(), walberla::mpi::MPIManager::instance()->comm() );
 }
 
-} // namespace hhg
+} // namespace hyteg

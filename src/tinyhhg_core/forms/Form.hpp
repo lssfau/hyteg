@@ -2,7 +2,7 @@
 
 #include "tinyhhg_core/geometry/GeometryMap.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class Form
 {
@@ -20,4 +20,4 @@ class Form
    std::shared_ptr< GeometryMap > geometryMap;
 };
 
-} // namespace hhg
+} // namespace hyteg

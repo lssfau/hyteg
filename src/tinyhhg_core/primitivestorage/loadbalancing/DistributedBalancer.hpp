@@ -3,7 +3,7 @@
 
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace loadbalancing {
 namespace distributed {
 

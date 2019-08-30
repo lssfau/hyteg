@@ -11,12 +11,12 @@
 #include <map>
 #define RESTRICT WALBERLA_RESTRICT
 
-namespace hhg {
+namespace hyteg {
 namespace EdgeDoFToVertexDoF {
 namespace generated {
 
-void apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_120(double const * RESTRICT const _data_edgeEdgeSrc, double * RESTRICT _data_vertexEdgeDst, int64_t cell_id, std::map< hhg::edgedof::EdgeDoFOrientation, std::map< hhg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t face_id_0, int64_t face_id_1, int32_t level, int64_t num_neighbor_faces);
+void apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_120(double const * RESTRICT const _data_edgeEdgeSrc, double * RESTRICT _data_vertexEdgeDst, int64_t cell_id, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t face_id_0, int64_t face_id_1, int32_t level, int64_t num_neighbor_faces);
 
 } // namespace generated
 } // namespace EdgeDoFToVertexDoF
-} // namespace hhg
+} // namespace hyteg

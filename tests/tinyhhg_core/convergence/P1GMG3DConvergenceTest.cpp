@@ -20,7 +20,7 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
@@ -51,32 +51,32 @@ int main( int argc, char* argv[] )
 
   P1ConstantLaplaceOperator laplaceOperator3D( storage, minLevel, maxLevel );
 
-  std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D & p ) -> real_t
+  std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D & p ) -> real_t
   {
       return sin(p[0]) * sinh(p[1]) * p[2];
   };
 
-  std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D & ) -> real_t
+  std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D & ) -> real_t
   {
       return 0.0;
   };
 
-  std::function< real_t( const hhg::Point3D& ) > one = []( const hhg::Point3D & ) -> real_t
+  std::function< real_t( const hyteg::Point3D& ) > one = []( const hyteg::Point3D & ) -> real_t
   {
       return 1.0;
   };
 
-  std::function< real_t( const hhg::Point3D& ) > rand = []( const hhg::Point3D & ) -> real_t
+  std::function< real_t( const hyteg::Point3D& ) > rand = []( const hyteg::Point3D & ) -> real_t
   {
       return walberla::math::realRandom( 0.0, 1.0 );
   };
 
-  hhg::P1Function< real_t > res( "r", storage, minLevel, maxLevel );
-  hhg::P1Function< real_t > f( "f", storage, minLevel, maxLevel );
-  hhg::P1Function< real_t > u( "u", storage, minLevel, maxLevel );
-  hhg::P1Function< real_t > uExact( "u_exact", storage, minLevel, maxLevel );
-  hhg::P1Function< real_t > err( "err", storage, minLevel, maxLevel );
-  hhg::P1Function< real_t > oneFunction( "oneFunction", storage, minLevel, maxLevel );
+  hyteg::P1Function< real_t > res( "r", storage, minLevel, maxLevel );
+  hyteg::P1Function< real_t > f( "f", storage, minLevel, maxLevel );
+  hyteg::P1Function< real_t > u( "u", storage, minLevel, maxLevel );
+  hyteg::P1Function< real_t > uExact( "u_exact", storage, minLevel, maxLevel );
+  hyteg::P1Function< real_t > err( "err", storage, minLevel, maxLevel );
+  hyteg::P1Function< real_t > oneFunction( "oneFunction", storage, minLevel, maxLevel );
 
   u.interpolate( rand, maxLevel, DoFType::Inner );
   u.interpolate( exact, maxLevel, DoFType::DirichletBoundary );
@@ -85,12 +85,12 @@ int main( int argc, char* argv[] )
   uExact.interpolate( exact, maxLevel, DoFType::All );
   oneFunction.interpolate( one, maxLevel, DoFType::All );
 
-  auto smoother = std::make_shared< hhg::GaussSeidelSmoother<hhg::P1ConstantLaplaceOperator>  >();
-  auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P1ConstantLaplaceOperator > >( storage, minLevel, minLevel );
-  auto restrictionOperator = std::make_shared< hhg::P1toP1LinearRestriction>();
-  auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
+  auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator>  >();
+  auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > >( storage, minLevel, minLevel );
+  auto restrictionOperator = std::make_shared< hyteg::P1toP1LinearRestriction>();
+  auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
 
-  auto gmgSolver = hhg::GeometricMultigridSolver< hhg::P1ConstantLaplaceOperator >(
+  auto gmgSolver = hyteg::GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator >(
      storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
   const real_t numPointsHigherLevel = oneFunction.dotGlobal( oneFunction, maxLevel, DoFType::Inner );

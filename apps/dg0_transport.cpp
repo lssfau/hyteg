@@ -15,7 +15,7 @@ using walberla::real_t;
 using walberla::uint_t;
 using walberla::uint_c;
 
-using namespace hhg;
+using namespace hyteg;
 
 int main(int argc, char* argv[])
 {
@@ -24,10 +24,10 @@ int main(int argc, char* argv[])
 
   std::string meshFileName = "../data/meshes/quad_4el.msh";
 
-  hhg::MeshInfo meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
-  hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+  hyteg::MeshInfo meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
+  hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-  hhg::loadbalancing::roundRobin( setupStorage );
+  hyteg::loadbalancing::roundRobin( setupStorage );
 
   const uint_t minLevel = 2;
   const uint_t maxLevel = 7;
@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
   real_t dt = 0.25 * std::pow(2.0, -walberla::real_c(maxLevel+1));
   WALBERLA_LOG_DEVEL("dt = " << dt)
 
-  std::function<real_t(const hhg::Point3D&)> initialConcentration = [](const hhg::Point3D& x) {
+  std::function<real_t(const hyteg::Point3D&)> initialConcentration = [](const hyteg::Point3D& x) {
     if ((x - Point3D{{{0.5, 0.5, 0.0}}}).norm() < 0.1) {
       return 1.0;
     } else {
@@ -44,32 +44,32 @@ int main(int argc, char* argv[])
 //    return 1.0;
   };
 
-  std::function<real_t(const hhg::Point3D&)> vel_x = [](const hhg::Point3D&) {
+  std::function<real_t(const hyteg::Point3D&)> vel_x = [](const hyteg::Point3D&) {
 //    return std::pow(x[1], 4.0) * (1.0 - x[0]) - x[0] * std::pow(1.0-x[1], 4.0);
     return 1.0;
   };
 
-  std::function<real_t(const hhg::Point3D&)> vel_y = [](const hhg::Point3D&) {
+  std::function<real_t(const hyteg::Point3D&)> vel_y = [](const hyteg::Point3D&) {
 //    return -std::pow(x[0], 4.0) * x[1] + std::pow(1.0-x[0], 4.0) * (1.0-x[1]);
     return 0.0;
   };
 
-  std::shared_ptr<hhg::PrimitiveStorage> storage = std::make_shared<hhg::PrimitiveStorage>(setupStorage);
+  std::shared_ptr< hyteg::PrimitiveStorage> storage = std::make_shared< hyteg::PrimitiveStorage>(setupStorage);
 
-  std::shared_ptr<hhg::DGFunction<real_t>> c_old = std::make_shared<hhg::DGFunction<real_t>>("c_old", storage, minLevel, maxLevel);
-  std::shared_ptr<hhg::DGFunction<real_t>> c = std::make_shared<hhg::DGFunction<real_t>>("c", storage, minLevel, maxLevel);
-  std::shared_ptr<hhg::P1Function<real_t>> u = std::make_shared<hhg::P1Function<real_t>>("u", storage, minLevel, maxLevel);
-  std::shared_ptr<hhg::P1Function<real_t>> v = std::make_shared<hhg::P1Function<real_t>>("v", storage, minLevel, maxLevel);
+  std::shared_ptr< hyteg::DGFunction<real_t>> c_old = std::make_shared< hyteg::DGFunction<real_t>>("c_old", storage, minLevel, maxLevel);
+  std::shared_ptr< hyteg::DGFunction<real_t>> c = std::make_shared< hyteg::DGFunction<real_t>>("c", storage, minLevel, maxLevel);
+  std::shared_ptr< hyteg::P1Function<real_t>> u = std::make_shared< hyteg::P1Function<real_t>>("u", storage, minLevel, maxLevel);
+  std::shared_ptr< hyteg::P1Function<real_t>> v = std::make_shared< hyteg::P1Function<real_t>>("v", storage, minLevel, maxLevel);
 
-  std::array< hhg::P1Function< real_t >, 2 > velocity{*u, *v};
+  std::array< hyteg::P1Function< real_t >, 2 > velocity{*u, *v};
 
-  hhg::DGUpwindOperator<hhg::P1Function<real_t>> N(storage, velocity, minLevel, maxLevel);
+  hyteg::DGUpwindOperator< hyteg::P1Function<real_t>> N(storage, velocity, minLevel, maxLevel);
 
   u->interpolate(vel_x, maxLevel);
   v->interpolate(vel_y, maxLevel);
   c_old->interpolate(initialConcentration, maxLevel);
 
-  hhg::VTKOutput vtkOutput("../output", "dg0_transport", storage);
+  hyteg::VTKOutput vtkOutput("../output", "dg0_transport", storage);
 
   vtkOutput.add( *u );
   vtkOutput.add( *v );
@@ -79,8 +79,8 @@ int main(int argc, char* argv[])
   vtkOutput.write( maxLevel );
 
   for(uint_t i = 1; i <= timesteps; i++) {
-    N.apply(*c_old, *c, maxLevel, hhg::Inner, Replace);
-    c->assign({1.0, -dt}, {c_old.get(), c.get()}, maxLevel, hhg::Inner);
+    N.apply(*c_old, *c, maxLevel, hyteg::Inner, Replace);
+    c->assign({1.0, -dt}, {c_old.get(), c.get()}, maxLevel, hyteg::Inner);
 
     vtkOutput.write( maxLevel, i );
 

@@ -23,7 +23,7 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
@@ -45,58 +45,58 @@ int main( int argc, char* argv[] )
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( parameters.getParameter< std::string >( "mesh" ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-   hhg::loadbalancing::roundRobin( setupStorage );
+   hyteg::loadbalancing::roundRobin( setupStorage );
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
    std::shared_ptr< PrimitiveStorage >       storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
 
-   hhg::P2Function< real_t > r( "r", storage, minLevel, maxLevel );
-   hhg::P2Function< real_t > f( "f", storage, minLevel, maxLevel );
-   hhg::P2Function< real_t > u( "u", storage, minLevel, maxLevel );
-   hhg::P2Function< real_t > Lu( "Lu", storage, minLevel, maxLevel );
-   hhg::P2Function< real_t > tmp( "tmp", storage, minLevel, maxLevel );
-   hhg::P2Function< real_t > u_exact( "u_exact", storage, minLevel, maxLevel );
-   hhg::P2Function< real_t > err( "err", storage, minLevel, maxLevel );
-   hhg::P2Function< real_t > npoints_helper( "npoints_helper", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > r( "r", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > f( "f", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > u( "u", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > Lu( "Lu", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > tmp( "tmp", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > u_exact( "u_exact", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > err( "err", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > npoints_helper( "npoints_helper", storage, minLevel, maxLevel );
 
-   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
-   std::function< real_t( const hhg::Point3D& ) > rhs   = []( const hhg::Point3D& ) { return 0; };
-   std::function< real_t( const hhg::Point3D& ) > zero  = []( const hhg::Point3D& ) { return 0.0; };
-   std::function< real_t( const hhg::Point3D& ) > ones  = []( const hhg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
+   std::function< real_t( const hyteg::Point3D& ) > rhs   = []( const hyteg::Point3D& ) { return 0; };
+   std::function< real_t( const hyteg::Point3D& ) > zero  = []( const hyteg::Point3D& ) { return 0.0; };
+   std::function< real_t( const hyteg::Point3D& ) > ones  = []( const hyteg::Point3D& ) { return 1.0; };
    walberla::math::seedRandomGenerator( 0 );
    std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) { return walberla::math::realRandom( 0.0, 20.0 ); };
 
    WALBERLA_LOG_INFO_ON_ROOT( "Interpolating u" );
-   u.interpolate( rand, maxLevel, hhg::Inner );
-   u.interpolate( exact, maxLevel, hhg::DirichletBoundary );
+   u.interpolate( rand, maxLevel, hyteg::Inner );
+   u.interpolate( exact, maxLevel, hyteg::DirichletBoundary );
    u_exact.interpolate( exact, maxLevel );
 
    //  WALBERLA_LOG_INFO_ON_ROOT("Interpolating and integrating rhs");
    //  npoints_helper.interpolate(rhs, maxLevel);
-   //  M.apply(npoints_helper, f, maxLevel, hhg::All);
+   //  M.apply(npoints_helper, f, maxLevel, hyteg::All);
 
    WALBERLA_LOG_INFO_ON_ROOT( "Setting up stiffness operator" );
    auto                           start = walberla::timing::getWcTime();
-   hhg::P2ConstantLaplaceOperator L( storage, minLevel, maxLevel );
+   hyteg::P2ConstantLaplaceOperator L( storage, minLevel, maxLevel );
    auto                           end       = walberla::timing::getWcTime();
    real_t                         setupTime = end - start;
 
    npoints_helper.interpolate( ones, maxLevel );
    real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel );
 
-   auto smoother = std::make_shared< hhg::GaussSeidelSmoother<hhg::P2ConstantLaplaceOperator>  >();
-   auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P2ConstantLaplaceOperator > >(
+   auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P2ConstantLaplaceOperator>  >();
+   auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P2ConstantLaplaceOperator > >(
        storage, minLevel, minLevel, max_cg_iter, coarse_tolerance );
-   auto restrictionOperator = std::make_shared< hhg::P2toP2QuadraticRestriction>();
-   auto prolongationOperator = std::make_shared< hhg::P2toP2QuadraticProlongation >();
+   auto restrictionOperator = std::make_shared< hyteg::P2toP2QuadraticRestriction>();
+   auto prolongationOperator = std::make_shared< hyteg::P2toP2QuadraticProlongation >();
 
-   auto gmgSolver = hhg::GeometricMultigridSolver< hhg::P2ConstantLaplaceOperator >(
+   auto gmgSolver = hyteg::GeometricMultigridSolver< hyteg::P2ConstantLaplaceOperator >(
       storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
    if( parameters.getParameter< bool >( "useExactWeights" ) )
    {
       WALBERLA_LOG_INFO( "WARNING: works only on tri_1el mesh" );
-      auto weights = hhg::stencilWeights::tri_1el();
+      auto weights = hyteg::stencilWeights::tri_1el();
 
       for( uint_t i = minLevel; i <= maxLevel; ++i )
       {
@@ -131,22 +131,21 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "Starting V cycles" );
    WALBERLA_LOG_INFO_ON_ROOT(
-       hhg::format( "%6s|%10s|%10s|%10s|%10s|%10s", "iter", "abs_res", "rel_res", "conv", "L2-error", "Time" ) );
+       hyteg::format( "%6s|%10s|%10s|%10s|%10s|%10s", "iter", "abs_res", "rel_res", "conv", "L2-error", "Time" ) );
 
    real_t rel_res = 1.0;
 
-   L.apply( u, Lu, maxLevel, hhg::Inner );
-   r.assign( {1.0, -1.0}, {f, Lu}, maxLevel, hhg::Inner );
+   L.apply( u, Lu, maxLevel, hyteg::Inner );
+   r.assign( {1.0, -1.0}, {f, Lu}, maxLevel, hyteg::Inner );
 
-   real_t begin_res   = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) );
+   real_t begin_res   = std::sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner ) );
    real_t abs_res_old = begin_res;
 
    err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
    real_t discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
    //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  -", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
-   WALBERLA_LOG_INFO_ON_ROOT(
-       hhg::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, discr_l2_err, 0 ) )
+   WALBERLA_LOG_INFO_ON_ROOT( hyteg::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, discr_l2_err, 0 ) )
 
    real_t       solveTime              = real_c( 0.0 );
    real_t       averageConvergenceRate = real_c( 0.0 );
@@ -162,15 +161,15 @@ int main( int argc, char* argv[] )
 
       end = walberla::timing::getWcTime();
 
-      L.apply( u, Lu, maxLevel, hhg::Inner );
-      r.assign( {1.0, -1.0}, {f, Lu}, maxLevel, hhg::Inner );
-      real_t abs_res = std::sqrt( r.dotGlobal( r, maxLevel, hhg::Inner ) );
+      L.apply( u, Lu, maxLevel, hyteg::Inner );
+      r.assign( {1.0, -1.0}, {f, Lu}, maxLevel, hyteg::Inner );
+      real_t abs_res = std::sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner ) );
       rel_res        = abs_res / begin_res;
       err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
       discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
       //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, end-start));
-      WALBERLA_LOG_INFO_ON_ROOT( hhg::format(
+      WALBERLA_LOG_INFO_ON_ROOT( hyteg::format(
           "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i + 1, abs_res, rel_res, abs_res / abs_res_old, discr_l2_err, end - start ) )
       solveTime += end - start;
 

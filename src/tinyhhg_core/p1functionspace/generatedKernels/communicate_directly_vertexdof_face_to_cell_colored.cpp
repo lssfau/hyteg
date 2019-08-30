@@ -5,7 +5,7 @@
 
 #include "communicate_directly_vertexdof_face_to_cell_colored.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace comm {
 namespace generated {
@@ -186,4 +186,4 @@ void communicate_directly_vertexdof_face_to_cell_colored(double * RESTRICT _data
 } // namespace generated
 } // namespace comm
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

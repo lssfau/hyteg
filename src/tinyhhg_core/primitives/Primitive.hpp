@@ -18,7 +18,7 @@
 #include <vector>
 #include <map>
 
-namespace hhg {
+namespace hyteg {
 
 // to removed when moving to walberla namespace
 using walberla::NonCopyable;
@@ -232,21 +232,21 @@ DataType* Primitive::getData( const PrimitiveDataID< DataType, Primitive > & ind
 }
 
 
-} // namespace hhg
+} // namespace hyteg
 
 namespace walberla {
 namespace mpi {
 
 template< typename T,    // Element type of SendBuffer
           typename G >   // Growth policy of SendBuffer
-GenericSendBuffer<T,G>& operator<<( GenericSendBuffer<T,G> & buf, const hhg::Primitive & primitive )
+GenericSendBuffer<T,G>& operator<<( GenericSendBuffer<T,G> & buf, const hyteg::Primitive & primitive )
 {
   primitive.serialize( buf );
   return buf;
 }
 
 template< typename T >   // Element type  of RecvBuffer
-GenericRecvBuffer<T>& operator>>( GenericRecvBuffer<T> & buf, hhg::Primitive & primitive )
+GenericRecvBuffer<T>& operator>>( GenericRecvBuffer<T> & buf, hyteg::Primitive & primitive )
 {
   primitive.deserialize( buf );
   return buf;

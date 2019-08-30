@@ -9,7 +9,7 @@
 
 #ifdef HHG_BUILD_WITH_PETSC
 
-namespace hhg {
+namespace hyteg {
 
   /// \brief Exports matrix associated wit given operator to an ASCII file
   ///
@@ -36,8 +36,8 @@ namespace hhg {
                        bool beVerbose = false ) {
 
     // Get dimension of function space
-    uint_t localDoFs  = hhg::numberOfLocalDoFs < FunctionTag >( *storage, level );
-    uint_t globalDoFs = hhg::numberOfGlobalDoFs< FunctionTag >( *storage, level );
+    uint_t localDoFs  = hyteg::numberOfLocalDoFs < FunctionTag >( *storage, level );
+    uint_t globalDoFs = hyteg::numberOfGlobalDoFs< FunctionTag >( *storage, level );
     if(  localDoFs != globalDoFs ) {
       WALBERLA_ABORT( "localDoFs and globalDoFs must agree for this app!" );
     }
@@ -80,7 +80,7 @@ namespace hhg {
     // Export indices of DoFs fixed by Dirichlet boundary conditions and add
     // code to Matlab script to truly eliminate them from the final matrix
     if( elimDirichletBC ) {
-      hhg::petsc::applyDirichletBC( numerator, indices, level );
+       hyteg::petsc::applyDirichletBC( numerator, indices, level );
       ofs << "DirichletDoFs = [" << indices[0] + 1;
       for( auto k = indices.begin() + 1; k != indices.end(); ++k ) {
         ofs << ", " << *k + 1;
@@ -96,6 +96,6 @@ namespace hhg {
     ofs.close();
   }
 
-} // hhg
+} // hyteg
 
 #endif

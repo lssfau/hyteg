@@ -20,7 +20,7 @@
 #include "tinyhhg_core/Algorithms.hpp"
 #include "tinyhhg_core/LevelWiseMemory.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace macroface {
 
@@ -200,7 +200,7 @@ inline void interpolate( const uint_t&                                          
                          Face&                                                                                     face,
                          const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                               faceMemoryId,
                          const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >&                srcIds,
-                         const std::function< ValueType( const hhg::Point3D&, const std::vector< ValueType >& ) >& expr )
+                         const std::function< ValueType( const hyteg::Point3D&, const std::vector< ValueType >& ) >& expr )
 {
    ValueType* faceData = face.getData( faceMemoryId )->getPointer( Level );
 
@@ -1208,7 +1208,7 @@ inline void
       if( it.col() == 0 )
          std::cout << std::endl;
       cout << setw( 5 )
-           << faceMemory[hhg::vertexdof::macroface::indexFromVertex( Level, it.col(), it.row(), stencilDirection::VERTEX_C )]
+           << faceMemory[hyteg::vertexdof::macroface::indexFromVertex( Level, it.col(), it.row(), stencilDirection::VERTEX_C )]
            << "|";
    }
    cout << endl << setfill( '=' ) << setw( 100 ) << "" << endl << setfill( ' ' );
@@ -1216,4 +1216,4 @@ inline void
 
 } // namespace macroface
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

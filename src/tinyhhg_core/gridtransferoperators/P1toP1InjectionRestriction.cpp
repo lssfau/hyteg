@@ -5,7 +5,7 @@
 #include "tinyhhg_core/Levelinfo.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFIndexing.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 void P1toP1InjectionRestriction::restrict3D( const P1Function< real_t >& function,
                                              const uint_t&               sourceLevel,
@@ -116,4 +116,4 @@ void P1toP1InjectionRestriction::restrictMacroCell( const real_t* src, real_t* d
    }
 }
 
-} // namespace hhg
+} // namespace hyteg

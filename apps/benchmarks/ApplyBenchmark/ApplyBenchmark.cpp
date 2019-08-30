@@ -26,15 +26,15 @@ template < typename Discretization, typename Operator >
 static walberla::WcTimingTree runbenchmark( const uint_t& level, const uint_t& facesPerProcess, const uint_t& flopsPerIter )
 {
    const uint_t  numProc  = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
-   hhg::MeshInfo meshInfo = hhg::MeshInfo::meshFaceChain( numProc * facesPerProcess );
+   hyteg::MeshInfo meshInfo = hyteg::MeshInfo::meshFaceChain( numProc * facesPerProcess );
 
-   hhg::SetupPrimitiveStorage setupStorage( meshInfo, numProc );
-   hhg::loadbalancing::roundRobin( setupStorage );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, numProc );
+   hyteg::loadbalancing::roundRobin( setupStorage );
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   std::shared_ptr< hhg::PrimitiveStorage >  storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage, timingTree );
+   std::shared_ptr< hyteg::PrimitiveStorage >  storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
 
-   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) {
+   std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& xx ) {
       return std::sin( walberla::math::pi * xx[0] ) + std::cos( walberla::math::pi * xx[1] );
    };
 
@@ -48,10 +48,10 @@ static walberla::WcTimingTree runbenchmark( const uint_t& level, const uint_t& f
 
    Operator laplace( storage, level, level );
 
-   const uint_t localDoFs = hhg::numberOfLocalDoFs< typename Discretization::Tag >( *storage, level );
-   const uint_t totalDoFs = hhg::numberOfGlobalDoFs< typename Discretization::Tag >( *storage, level );
+   const uint_t localDoFs = hyteg::numberOfLocalDoFs< typename Discretization::Tag >( *storage, level );
+   const uint_t totalDoFs = hyteg::numberOfGlobalDoFs< typename Discretization::Tag >( *storage, level );
 
-   src.interpolate( exact, level, hhg::Inner );
+   src.interpolate( exact, level, hyteg::Inner );
 
    WALBERLA_LOG_PROGRESS( "localDoFs: " << localDoFs << " totalDoFs: " << totalDoFs )
 
@@ -64,7 +64,7 @@ static walberla::WcTimingTree runbenchmark( const uint_t& level, const uint_t& f
       timer.reset();
       for ( uint_t i = 0; i < iterations; ++i )
       {
-         laplace.apply( src, dst, level, hhg::Inner );
+         laplace.apply( src, dst, level, hyteg::Inner );
       }
       timer.end();
       LIKWID_MARKER_STOP( "HyTeG-apply" );
@@ -80,11 +80,11 @@ static walberla::WcTimingTree runbenchmark( const uint_t& level, const uint_t& f
    walberla::WcTimingTree tt  = timingTree->getReduced();
    auto                   tt2 = tt.getCopyWithRemainder();
 
-   const uint_t globalInnerDoFs = hhg::numberOfGlobalInnerDoFs< typename Discretization::Tag >( *storage, level );
+   const uint_t globalInnerDoFs = hyteg::numberOfGlobalInnerDoFs< typename Discretization::Tag >( *storage, level );
    const real_t glups           = real_c( globalInnerDoFs * iterations ) / 1e9 / hyteg_apply;
    const real_t gflops          = real_c( globalInnerDoFs * iterations * flopsPerIter ) / 1e9 / hyteg_apply;
 
-   WALBERLA_LOG_INFO_ON_ROOT( hhg::format( "%10.3e|%10.3e|%10.3e|%10.3e|%5u|%5u|%7u",
+   WALBERLA_LOG_INFO_ON_ROOT( hyteg::format( "%10.3e|%10.3e|%10.3e|%10.3e|%5u|%5u|%7u",
                                            hyteg_apply,
                                            glups,
                                            gflops,
@@ -123,7 +123,7 @@ int main( int argc, char* argv[] )
 
    walberla::WcTimingTree tt2;
 
-   WALBERLA_LOG_INFO_ON_ROOT( hhg::format( "%10s|%10s|%10s|%10s|%5s|%5s|%7s| Discr.: %s",
+   WALBERLA_LOG_INFO_ON_ROOT( hyteg::format( "%10s|%10s|%10s|%10s|%5s|%5s|%7s| Discr.: %s",
                                            "Time (s)",
                                            "GDoF/s",
                                            "GFLOP/s",
@@ -135,12 +135,12 @@ int main( int argc, char* argv[] )
 
    if ( discretization == "P1" )
    {
-      tt2 = runbenchmark< hhg::P1Function< real_t >, hhg::P1ConstantLaplaceOperator >( level, facesPerProcess, 13 );
+      tt2 = runbenchmark< hyteg::P1Function< real_t >, hyteg::P1ConstantLaplaceOperator >( level, facesPerProcess, 13 );
    }
    else if ( discretization == "P2" )
    {
       const uint_t flops           = 13 + 21 + 23 + 27;
-      tt2 = runbenchmark< hhg::P2Function< real_t >, hhg::P2ConstantLaplaceOperator >( level, facesPerProcess, flops );
+      tt2 = runbenchmark< hyteg::P2Function< real_t >, hyteg::P2ConstantLaplaceOperator >( level, facesPerProcess, flops );
    }
    else
    {

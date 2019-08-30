@@ -8,8 +8,7 @@
 #include <array>
 #include <vector>
 
-namespace hhg
-{
+namespace hyteg {
 
   namespace meshGenSphShell
   {
@@ -730,4 +729,4 @@ namespace hhg
     return meshInfo;
   }
 
-} // namespace hhg
+} // namespace hyteg

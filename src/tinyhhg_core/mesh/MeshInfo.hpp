@@ -11,7 +11,7 @@
 #include <set>
 #include <vector>
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::uint_t;
 using walberla::real_t;

@@ -1,7 +1,7 @@
 
 #include "tinyhhg_core/p1functionspace/P1DataHandling.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 
 std::shared_ptr< VertexP1LocalMatrixMemory > VertexP1LocalMatrixMemoryDataHandling::initialize( const Vertex * const vertex) const

@@ -41,7 +41,7 @@
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 #include "tinyhhg_core/forms/form_fenics_base/P1FenicsForm.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_t;
 
@@ -167,4 +167,4 @@ typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_
 typedef P1ConstantOperator< P1FenicsForm< fenics::UndefinedAssembly, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >
     P1ToP1DivTzVertexToVertexConstantOperator;
 
-} // namespace hhg
+} // namespace hyteg

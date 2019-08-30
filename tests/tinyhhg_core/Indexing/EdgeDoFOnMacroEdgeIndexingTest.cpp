@@ -6,7 +6,7 @@
 
 #include "tinyhhg_core/StencilDirections.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 static void testEdgeDoFsOnMacroEdge()
 {
@@ -269,7 +269,7 @@ static void testEdgeDoFsOnMacroEdge()
 
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -279,7 +279,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testEdgeDoFsOnMacroEdge();
+   hyteg::testEdgeDoFsOnMacroEdge();
 
    return EXIT_SUCCESS;
 }

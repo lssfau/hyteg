@@ -6,8 +6,7 @@
 #include "tinyhhg_core/mesh/MeshInfo.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 
-namespace hhg
-{
+namespace hyteg {
 
 using walberla::uint_c;
 
@@ -111,7 +110,7 @@ PrimitiveID Edge::get_opposite_face(const PrimitiveID& face) const
 }
 
 
-std::ostream& operator<<(std::ostream &os, const hhg::Edge &edge)
+std::ostream& operator<<(std::ostream &os, const hyteg::Edge &edge)
 {
   return os << "Edge { id = " << edge.getID().getID() << "; "
             << "neighborVertices_[0] = " << edge.neighborVertices_[0].getID() << "; "

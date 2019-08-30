@@ -8,7 +8,7 @@
 #include "tinyhhg_core/indexing/Common.hpp"
 #include "tinyhhg_core/indexing/MacroCellIndexing.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace celldof {
 
 using walberla::uint_t;

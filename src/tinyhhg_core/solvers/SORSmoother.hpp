@@ -3,7 +3,7 @@
 #include "tinyhhg_core/solvers/Solver.hpp"
 #include "core/DataTypes.h"
 
-namespace hhg {
+namespace hyteg {
 
 template < class OperatorType >
 class SORSmoother : public Solver< OperatorType >
@@ -11,7 +11,7 @@ class SORSmoother : public Solver< OperatorType >
  public:
    SORSmoother( const real_t & relax )
    : relax_( relax )
-   , flag_( hhg::Inner | hhg::NeumannBoundary )
+   , flag_( hyteg::Inner | hyteg::NeumannBoundary )
    {}
 
    void solve( const OperatorType&                   A,
@@ -27,4 +27,4 @@ class SORSmoother : public Solver< OperatorType >
    DoFType flag_;
 };
 
-} // namespace hhg
+} // namespace hyteg

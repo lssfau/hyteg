@@ -11,7 +11,7 @@
 #include "core/DataTypes.h"
 
 
-namespace hhg {
+namespace hyteg {
 namespace P2 {
 
 using walberla::uint_t;

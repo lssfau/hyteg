@@ -5,7 +5,7 @@
 
 #include "assign_3D_macrocell_vertexdof_3_rhsfunctions.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace macrocell {
 namespace generated {
@@ -44,4 +44,4 @@ void assign_3D_macrocell_vertexdof_3_rhs_functions(double * RESTRICT _data_p1Fac
 } // namespace generated
 } // namespace macrocell
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

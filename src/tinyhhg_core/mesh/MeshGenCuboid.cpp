@@ -8,7 +8,7 @@
 #include <array>
 #include <vector>
 
-namespace hhg {
+namespace hyteg {
 
 MeshInfo MeshInfo::meshCuboid( const Point3D lowerLeftFront,
                                const Point3D upperRightBack,

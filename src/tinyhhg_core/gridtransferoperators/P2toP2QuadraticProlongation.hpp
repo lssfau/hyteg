@@ -4,7 +4,7 @@
 
 #include "tinyhhg_core/gridtransferoperators/ProlongationOperator.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template < typename VType >
 class P2Function;
@@ -30,4 +30,4 @@ class P2toP2QuadraticProlongation : public ProlongationOperator< P2Function< wal
                             const DoFType&                        flag ) const;
 };
 
-} // namespace hhg
+} // namespace hyteg

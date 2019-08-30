@@ -15,7 +15,7 @@
 #include <tuple>
 #include <vector>
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::real_t;
 using walberla::memory_t;
@@ -141,4 +141,4 @@ inline std::ostream & operator<<( std::ostream & os, const SetupPrimitiveStorage
   return os;
 }
 
-} // namespace hhg
+} // namespace hyteg

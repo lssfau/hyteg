@@ -9,7 +9,7 @@
 #include "tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
 #include "tinyhhg_core/primitives/Cell.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace P2 {
 namespace macrocell {
 
@@ -31,4 +31,4 @@ void smoothSOR(
 
 } // namespace macrocell
 } // namespace P2
-} // namespace hhg
+} // namespace hyteg

@@ -17,7 +17,7 @@
 #include "tinyhhg_core/format.hpp"
 #endif
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace macroedge {
 
@@ -85,7 +85,7 @@ template< typename ValueType >
 inline void interpolate(const uint_t & level, Edge &edge,
                             const PrimitiveDataID< FunctionMemory< ValueType >, Edge> &edgeMemoryId,
                             const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,
-                            const std::function<ValueType(const hhg::Point3D &, const std::vector<ValueType>&)> &expr)
+                            const std::function<ValueType(const hyteg::Point3D &, const std::vector<ValueType>&)> &expr)
 {
   ValueType * edgeData = edge.getData( edgeMemoryId )->getPointer( level );
 
@@ -591,16 +591,16 @@ inline void printFunctionMemory( const uint_t & level, const Edge& edge, const P
 
   if(edge.getNumNeighborFaces() == 2) {
     for (uint_t i = 0; i < (rowsize - 1); ++i) {
-      cout << setw(5) << edgeMemory[hhg::vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_N )] << "|";
+      cout << setw(5) << edgeMemory[hyteg::vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_N )] << "|";
     }
     cout << endl;
   }
   for(uint_t i = 0; i < rowsize; ++i){
-    cout << setw(5) << edgeMemory[hhg::vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] << "|";
+    cout << setw(5) << edgeMemory[hyteg::vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )] << "|";
   }
   cout << endl << "     |";
   for(uint_t i = 1; i < rowsize; ++i){
-    cout << setw(5) << edgeMemory[hhg::vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_S )] << "|";
+    cout << setw(5) << edgeMemory[hyteg::vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_S )] << "|";
   }
   cout << endl << setfill('=') << setw(100) << "" << endl << setfill(' ');
 
@@ -750,4 +750,4 @@ inline void applyDirichletBC(const uint_t & level, Edge &edge,std::vector<PetscI
 
 } // namespace macroedge
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

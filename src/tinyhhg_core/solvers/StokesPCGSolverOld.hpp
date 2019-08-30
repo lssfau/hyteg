@@ -7,7 +7,7 @@
 #include "tinyhhg_core/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "core/debug/CheckFunctions.h"
 
-namespace hhg {
+namespace hyteg {
 
 ///  \brief Preconditioned CG solver for the Stokes system
 ///         compare w/ Elman (1996): Multigrid and Krylov subspace methods, sect. 2.2

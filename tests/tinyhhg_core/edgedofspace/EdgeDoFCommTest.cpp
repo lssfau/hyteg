@@ -9,7 +9,7 @@
 #include "core/mpi/all.h"
 #include "core/debug/all.h"
 
-using namespace hhg;
+using namespace hyteg;
 
 using walberla::real_t;
 
@@ -60,7 +60,7 @@ void check1tet( bool bufferComm = false )
 
    const uint_t level = 2;
 
-   hhg::EdgeDoFFunction< int > x( "x", storage, level, level );
+   hyteg::EdgeDoFFunction< int > x( "x", storage, level, level );
    if( bufferComm )
    {
       x.setLocalCommunicationMode(communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI);
@@ -245,9 +245,9 @@ void checkComm3d( const uint_t level )
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   hhg::EdgeDoFFunction< int > x( "x", storage, level, level );
+   hyteg::EdgeDoFFunction< int > x( "x", storage, level, level );
    /// for y we set the local comm to mpi; default would be direct
-   hhg::EdgeDoFFunction< int > y( "x", storage, level, level );
+   hyteg::EdgeDoFFunction< int > y( "x", storage, level, level );
    y.setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
 
    ////////// check cell to face comm //////////
@@ -272,7 +272,7 @@ void checkComm3d( const uint_t level )
       int*  faceData  = face.getData( x.getFaceDataID() )->getPointer( level );
       int*  faceDataY = face.getData( y.getFaceDataID() )->getPointer( level );
       /// all non inner DoFs should be set to 13/26 so we start after the inner DoFs
-      for( uint_t i = hhg::levelinfo::num_microedges_per_face( level ); i < face.getData( x.getFaceDataID() )->getSize( level );
+      for( uint_t i = hyteg::levelinfo::num_microedges_per_face( level ); i < face.getData( x.getFaceDataID() )->getSize( level );
            ++i )
       {
          WALBERLA_CHECK_EQUAL( faceData[i], 13, i );
@@ -297,7 +297,7 @@ void checkComm3d( const uint_t level )
    x.communicate< Edge, Face >( level );
    y.communicate< Edge, Face >( level );
 
-   using hhg::edgedof::macroface::BoundaryIterator;
+   using hyteg::edgedof::macroface::BoundaryIterator;
 
    for( auto& faceIt : storage->getFaces() )
    {
@@ -370,7 +370,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
-  hhg::EdgeDoFFunction< int > x("x", storage, level, level);
+  hyteg::EdgeDoFFunction< int > x("x", storage, level, level);
   if(bufferComm) {
     x.setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
   }
@@ -394,7 +394,7 @@ void checkComm(const std::string &meshfile, bool bufferComm = false){
     totalExpectedChecks += vertexIt.second->getNumNeighborEdges();
   }
 
-  using hhg::edgedof::macroface::BoundaryIterator;
+  using hyteg::edgedof::macroface::BoundaryIterator;
   for (auto &faceIt : storage->getFaces()) {
     Face &face = *faceIt.second;
     int *faceData = face.getData(x.getFaceDataID())->getPointer(level);

@@ -6,7 +6,10 @@
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/FunctionProperties.hpp"
 #include "tinyhhg_core/boundary/BoundaryConditions.hpp"
+#include "tinyhhg_core/communication/Syncing.hpp"
 #include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
+#include "tinyhhg_core/edgedofspace/EdgeDoFIndexing.hpp"
+#include "tinyhhg_core/geometry/Intersection.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFAdditivePackInfo.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroCell.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroEdge.hpp"
@@ -14,11 +17,9 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "tinyhhg_core/p1functionspace/VertexDoFPackInfo.hpp"
 #include "tinyhhg_core/p1functionspace/generatedKernels/all.hpp"
-#include "tinyhhg_core/communication/Syncing.hpp"
-#include "tinyhhg_core/geometry/Intersection.hpp"
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 
 template < typename ValueType >
@@ -112,7 +113,7 @@ void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType
       return;
    }
    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
-       [&expr]( const hhg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
+       [&expr]( const hyteg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
    interpolateExtended( exprExtended, {}, level, flag );
 }
 
@@ -126,7 +127,7 @@ void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType
       return;
    }
    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
-       [&expr]( const hhg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
+       [&expr]( const hyteg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
    interpolateExtended( exprExtended, {}, level, boundaryUID );
 }
 
@@ -412,7 +413,7 @@ void macroFaceAssign< double >( const uint_t & level, Face & face, const std::ve
                                 const PrimitiveDataID< FunctionMemory< double >, Face > & dstFaceID,
                                 const PrimitiveStorage & storage )
 {
-  if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
+  if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
   {
      storage.getTimingTree()->start( "1 RHS function" );
      auto dstData = face.getData( dstFaceID )->getPointer( level );
@@ -421,7 +422,7 @@ void macroFaceAssign< double >( const uint_t & level, Face & face, const std::ve
      vertexdof::macroface::generated::assign_2D_macroface_vertexdof_1_rhs_function( dstData, srcData, scalar, static_cast< int32_t >( level ) );
      storage.getTimingTree()->stop( "1 RHS function" );
   }
-  else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
+  else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
   {
      storage.getTimingTree()->start( "2 RHS functions" );
      auto dstData  = face.getData( dstFaceID )->getPointer( level );
@@ -432,7 +433,7 @@ void macroFaceAssign< double >( const uint_t & level, Face & face, const std::ve
      vertexdof::macroface::generated::assign_2D_macroface_vertexdof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
     storage.getTimingTree()->stop( "2 RHS functions" );
   }
-  else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
+  else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
   {
      storage.getTimingTree()->start( "3 RHS functions" );
      auto dstData  = face.getData( dstFaceID )->getPointer( level );
@@ -465,12 +466,12 @@ void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::ve
                                 const std::vector< PrimitiveDataID< FunctionMemory< double >, Cell > > & srcCellIDs,
                                 const PrimitiveDataID< FunctionMemory< double >, Cell > & dstCellID )
 {
-   if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
+   if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
    {
       auto dstData = cell.getData( dstCellID )->getPointer( level );
       auto srcData = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
       auto scalar  = scalars.at( 0 );
-      if ( hhg::globalDefines::useP1Coloring )
+      if ( hyteg::globalDefines::useP1Coloring )
       {
          std::map< uint_t, uint_t > groupFirstIdx;
          groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
@@ -507,14 +508,14 @@ void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::ve
              dstData, srcData, scalar, static_cast< int32_t >( level ) );
       }
    }
-   else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
+   else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
    {
       auto dstData  = cell.getData( dstCellID )->getPointer( level );
       auto srcData0 = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
       auto srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
       auto scalar0  = scalars.at( 0 );
       auto scalar1  = scalars.at( 1 );
-      if ( hhg::globalDefines::useP1Coloring )
+      if ( hyteg::globalDefines::useP1Coloring )
       {
          std::map< uint_t, uint_t > groupFirstIdx;
          groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
@@ -561,7 +562,7 @@ void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::ve
              dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
       }
    }
-   else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
+   else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
    {
       auto dstData  = cell.getData( dstCellID )->getPointer( level );
       auto srcData0 = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
@@ -570,7 +571,7 @@ void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::ve
       auto scalar0  = scalars.at( 0 );
       auto scalar1  = scalars.at( 1 );
       auto scalar2  = scalars.at( 2 );
-      if ( hhg::globalDefines::useP1Coloring )
+      if ( hyteg::globalDefines::useP1Coloring )
       {
          std::map< uint_t, uint_t > groupFirstIdx;
          groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
@@ -751,10 +752,10 @@ void VertexDoFFunction< ValueType >::assign( const P2Function< ValueType >& src,
             P1Data[vertexdof::macroedge::index( P1Level, itIdx.x() * 2 )] =
                 P2Data_v[vertexdof::macroedge::index( P2Level, itIdx.x() )];
          }
-         for ( auto itIdx : edgedof::macroedge::Iterator( P2Level ) )
+         for ( auto itIdx : hyteg::edgedof::macroedge::Iterator( P2Level ) )
          {
             P1Data[vertexdof::macroedge::index( P1Level, itIdx.x() * 2 + 1 )] =
-                P2Data_e[edgedof::macroedge::index( P2Level, itIdx.x() )];
+                P2Data_e[hyteg::edgedof::macroedge::index( P2Level, itIdx.x() )];
          }
       }
    }
@@ -900,7 +901,7 @@ void macroFaceAdd< double >( const uint_t & level, Face & face, const std::vecto
                                 const PrimitiveDataID< FunctionMemory< double >, Face > & dstFaceID,
                                 const PrimitiveStorage & storage )
 {
-  if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
+  if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
   {
     storage.getTimingTree()->start( "1 RHS function" );
     auto dstData = face.getData( dstFaceID )->getPointer( level );
@@ -909,7 +910,7 @@ void macroFaceAdd< double >( const uint_t & level, Face & face, const std::vecto
     vertexdof::macroface::generated::add_2D_macroface_vertexdof_1_rhs_function( dstData, srcData, scalar, static_cast< int32_t >( level ) );
     storage.getTimingTree()->stop( "1 RHS function" );
   }
-  else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
+  else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
   {
     storage.getTimingTree()->start( "2 RHS functions" );
     auto dstData  = face.getData( dstFaceID )->getPointer( level );
@@ -920,7 +921,7 @@ void macroFaceAdd< double >( const uint_t & level, Face & face, const std::vecto
     vertexdof::macroface::generated::add_2D_macroface_vertexdof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
     storage.getTimingTree()->stop( "2 RHS functions" );
   }
-  else if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
+  else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
   {
     storage.getTimingTree()->start( "3 RHS functions" );
     auto dstData  = face.getData( dstFaceID )->getPointer( level );
@@ -953,12 +954,12 @@ void macroCellAdd< double >( const uint_t & level, Cell & cell, const std::vecto
                                 const std::vector< PrimitiveDataID< FunctionMemory< double >, Cell > > & srcCellIDs,
                                 const PrimitiveDataID< FunctionMemory< double >, Cell > & dstCellID )
 {
-  if ( hhg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
+  if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
   {
     auto dstData = cell.getData( dstCellID )->getPointer( level );
     auto srcData = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
     auto scalar  = scalars.at( 0 );
-    if ( hhg::globalDefines::useP1Coloring )
+    if ( hyteg::globalDefines::useP1Coloring )
     {
       std::map< uint_t, uint_t > groupFirstIdx;
       groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
@@ -1268,7 +1269,7 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level ) const
 
    this->startTiming( "Enumerate" );
 
-   uint_t counter = hhg::numberOfLocalDoFs< VertexDoFFunctionTag >( *( this->getStorage() ), level );
+   uint_t counter = hyteg::numberOfLocalDoFs< VertexDoFFunctionTag >( *( this->getStorage() ), level );
 
    std::vector< uint_t > dofs_per_rank = walberla::mpi::allGather( counter );
 
@@ -1626,21 +1627,21 @@ void VertexDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType
 template class VertexDoFFunction< double >;
 template class VertexDoFFunction< int >;
 
-template void VertexDoFFunction< double >::interpolateByPrimitiveType< hhg::Vertex >( const double& constant,
+template void VertexDoFFunction< double >::interpolateByPrimitiveType< hyteg::Vertex >( const double& constant,
                                                                                       uint_t        level,
                                                                                       DoFType       flag ) const;
 
-template void VertexDoFFunction< double >::interpolateByPrimitiveType< hhg::Edge >( const double& constant,
+template void VertexDoFFunction< double >::interpolateByPrimitiveType< hyteg::Edge >( const double& constant,
                                                                                     uint_t        level,
                                                                                     DoFType       flag ) const;
 
-template void VertexDoFFunction< double >::interpolateByPrimitiveType< hhg::Face >( const double& constant,
+template void VertexDoFFunction< double >::interpolateByPrimitiveType< hyteg::Face >( const double& constant,
                                                                                     uint_t        level,
                                                                                     DoFType       flag ) const;
 
-template void VertexDoFFunction< double >::interpolateByPrimitiveType< hhg::Cell >( const double& constant,
+template void VertexDoFFunction< double >::interpolateByPrimitiveType< hyteg::Cell >( const double& constant,
                                                                                     uint_t        level,
                                                                                     DoFType       flag ) const;
 
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

@@ -6,7 +6,7 @@
 #include "tinyhhg_core/dgfunctionspace/DGFunction.hpp"
 #include "tinyhhg_core/types/pointnd.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template < class VelocityBaseType >
 class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
@@ -129,4 +129,4 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
    VelocityType velocity_;
 };
 
-} // namespace hhg
+} // namespace hyteg

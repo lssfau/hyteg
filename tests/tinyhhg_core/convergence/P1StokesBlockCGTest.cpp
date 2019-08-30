@@ -18,38 +18,37 @@ int main( int argc, char* argv[] )
 
    std::string meshFileName = "../../data/meshes/quad_4el.msh";
 
-   hhg::MeshInfo              meshInfo = hhg::MeshInfo::fromGmshFile( meshFileName );
-   hhg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-   hhg::loadbalancing::roundRobin( setupStorage );
+   hyteg::loadbalancing::roundRobin( setupStorage );
 
    size_t minLevel = 2;
    size_t maxLevel = 2;
    //size_t maxiter  = 10000;
 
-   std::shared_ptr< hhg::PrimitiveStorage > storage = std::make_shared< hhg::PrimitiveStorage >( setupStorage );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
 
-   hhg::P1StokesFunction< real_t > r( "r", storage, minLevel, maxLevel );
-   hhg::P1StokesFunction< real_t > f( "f", storage, minLevel, maxLevel );
-   hhg::P1StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );
-   hhg::P1StokesFunction< real_t > u_exact( "u_exact", storage, minLevel, maxLevel );
-   hhg::P1StokesFunction< real_t > err( "err", storage, minLevel, maxLevel );
-   hhg::P1Function< real_t >       npoints_helper( "npoints_helper", storage, minLevel, maxLevel );
+   hyteg::P1StokesFunction< real_t > r( "r", storage, minLevel, maxLevel );
+   hyteg::P1StokesFunction< real_t > f( "f", storage, minLevel, maxLevel );
+   hyteg::P1StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );
+   hyteg::P1StokesFunction< real_t > u_exact( "u_exact", storage, minLevel, maxLevel );
+   hyteg::P1StokesFunction< real_t > err( "err", storage, minLevel, maxLevel );
+   hyteg::P1Function< real_t >       npoints_helper( "npoints_helper", storage, minLevel, maxLevel );
 
-   hhg::P1StokesBlockLaplaceOperator L( storage, minLevel, maxLevel );
+   hyteg::P1StokesBlockLaplaceOperator L( storage, minLevel, maxLevel );
 
-   std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& xx ) { return xx[0] * xx[0] - xx[1] * xx[1]; };
-   std::function< real_t( const hhg::Point3D& ) > rhs   = []( const hhg::Point3D& ) { return 0.0; };
-   std::function< real_t( const hhg::Point3D& ) > ones  = []( const hhg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& xx ) { return xx[0] * xx[0] - xx[1] * xx[1]; };
+   std::function< real_t( const hyteg::Point3D& ) > rhs   = []( const hyteg::Point3D& ) { return 0.0; };
+   std::function< real_t( const hyteg::Point3D& ) > ones  = []( const hyteg::Point3D& ) { return 1.0; };
 
-   u.u.interpolate( exact, maxLevel, hhg::DirichletBoundary );
-   u.v.interpolate( exact, maxLevel, hhg::DirichletBoundary );
+   u.u.interpolate( exact, maxLevel, hyteg::DirichletBoundary );
+   u.v.interpolate( exact, maxLevel, hyteg::DirichletBoundary );
 
    u_exact.u.interpolate( exact, maxLevel );
    u_exact.v.interpolate( exact, maxLevel );
 
-   auto solver =
-       hhg::CGSolver< hhg::P1StokesBlockLaplaceOperator >( storage, minLevel, maxLevel );
+   auto solver = hyteg::CGSolver< hyteg::P1StokesBlockLaplaceOperator >( storage, minLevel, maxLevel );
    walberla::WcTimer timer;
    solver.solve( L, u, f, maxLevel );
    timer.end();
@@ -66,6 +65,6 @@ int main( int argc, char* argv[] )
 
    WALBERLA_CHECK_LESS( discr_l2_err, 5e-17)
 
-   //  hhg::VTKWriter({ u, u_exact, &f, &r, &err }, maxLevel, "../output", "test");
+   //  hyteg::VTKWriter({ u, u_exact, &f, &r, &err }, maxLevel, "../output", "test");
    return 0;
 }

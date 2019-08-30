@@ -12,7 +12,7 @@
 
 using walberla::real_c;
 using walberla::real_t;
-using namespace hhg;
+using namespace hyteg;
 
 void kernel( double* fd_p1FaceDst, double* fd_p1FaceSrc, double* fd_p1FaceStencil, uint_t level )
 {
@@ -57,7 +57,8 @@ int main( int argc, char** argv )
    const uint_t level = mainConf.getParameter< uint_t >( "level" );
 
    WALBERLA_LOG_INFO("level: " << level);
-   const uint_t totalInnerPoints =  hhg::indexing::layout::linearMacroFaceSize( levelinfo::num_microvertices_per_edge( level ) - 3 );
+   const uint_t totalInnerPoints =
+       hyteg::indexing::layout::linearMacroFaceSize( levelinfo::num_microvertices_per_edge( level ) - 3 );
    WALBERLA_LOG_INFO_ON_ROOT("Total inner points: " << totalInnerPoints);
 
    LIKWID_MARKER_THREADINIT;
@@ -66,10 +67,10 @@ int main( int argc, char** argv )
    SetupPrimitiveStorage               setupStorage( meshInfo, 1 );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   auto src = std::make_shared< hhg::P1Function< real_t > >( "src", storage, level, level );
-   auto dst = std::make_shared< hhg::P1Function< real_t > >( "dst", storage, level, level );
+   auto src = std::make_shared< hyteg::P1Function< real_t > >( "src", storage, level, level );
+   auto dst = std::make_shared< hyteg::P1Function< real_t > >( "dst", storage, level, level );
 
-   hhg::P1ConstantLaplaceOperator M( storage, level, level );
+   hyteg::P1ConstantLaplaceOperator M( storage, level, level );
 
    std::shared_ptr< Face > face = storage->getFaces().begin().operator*().second;
 
@@ -85,11 +86,11 @@ int main( int argc, char** argv )
       WALBERLA_LOG_DETAIL_ON_ROOT( i << ": " << stencilPtr[i] );
    }
 
-   std::function< real_t( const hhg::Point3D& ) > exactFunc = [&]( const hhg::Point3D& point ) {
+   std::function< real_t( const hyteg::Point3D& ) > exactFunc = [&]( const hyteg::Point3D& point ) {
       return sqrt( point[0] * point[0] + point[1] * point[1] );
    };
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > exactExtended =
-         [&exactFunc]( const hhg::Point3D& x, const std::vector< real_t >& ) { return exactFunc( x ); };
+         [&exactFunc]( const hyteg::Point3D& x, const std::vector< real_t >& ) { return exactFunc( x ); };
 
    //P1Function< real_t > x("x", storage, level, level);
    src->interpolate( exactFunc, level );
@@ -105,7 +106,7 @@ int main( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "interpolate runtime: " << timer.last() );
 
    LIKWID_MARKER_START( "apply" );
-   if( hhg::globalDefines::useGeneratedKernels ){
+   if( hyteg::globalDefines::useGeneratedKernels ){
       WALBERLA_LOG_INFO_ON_ROOT("Using generated 2D apply kernel");
       real_t* opr_data = face->getData( M.getFaceStencilID() )->getPointer( level );
       real_t* src_data      = face->getData( src->getFaceDataID() )->getPointer( level );

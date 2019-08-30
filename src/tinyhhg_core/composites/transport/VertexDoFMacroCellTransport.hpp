@@ -12,7 +12,7 @@
 #include "tinyhhg_core/primitives/Cell.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace transport {
 namespace macrocell {
@@ -104,4 +104,4 @@ inline void apply( const uint_t&                                               l
 } // namespace macrocell
 } // namespace transport
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

@@ -11,7 +11,7 @@
 #include "tinyhhg_core/polynomial/PolynomialEvaluator.hpp"
 #include "tinyhhg_core/primitives/Face.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace variablestencil {
 
@@ -557,4 +557,4 @@ inline void smoothGSVariableStencil(uint_t level,
 
 } // namespace variablestencil
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

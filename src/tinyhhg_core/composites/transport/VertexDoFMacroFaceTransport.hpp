@@ -12,7 +12,7 @@
 #include "tinyhhg_core/primitives/Face.hpp"
 #include "tinyhhg_core/types/flags.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace vertexdof {
 namespace transport {
 namespace macroface {
@@ -66,8 +66,8 @@ inline void apply( const uint_t&                                               L
          // fill stencil
          if( face.getNumNeighborCells() == 1 )
          {
-            auto centerIdx        = vertexdof::macroface::indexFromVertex( Level, i, j, hhg::stencilDirection::VERTEX_C );
-            auto centerStencilIdx = vertexdof::stencilIndexFromVertex( hhg::stencilDirection::VERTEX_C );
+            auto centerIdx        = vertexdof::macroface::indexFromVertex( Level, i, j, hyteg::stencilDirection::VERTEX_C );
+            auto centerStencilIdx = vertexdof::stencilIndexFromVertex( hyteg::stencilDirection::VERTEX_C );
 
             stencil[centerStencilIdx] = 0.0;
             for( const auto direction : vertexdof::macroface::neighborsWithOneNeighborCellWithoutCenter )
@@ -95,8 +95,8 @@ inline void apply( const uint_t&                                               L
 
          } else if( face.getNumNeighborCells() == 2 )
          {
-            auto centerIdx        = vertexdof::macroface::indexFromVertex( Level, i, j, hhg::stencilDirection::VERTEX_C );
-            auto centerStencilIdx = vertexdof::stencilIndexFromVertex( hhg::stencilDirection::VERTEX_C );
+            auto centerIdx        = vertexdof::macroface::indexFromVertex( Level, i, j, hyteg::stencilDirection::VERTEX_C );
+            auto centerStencilIdx = vertexdof::stencilIndexFromVertex( hyteg::stencilDirection::VERTEX_C );
 
             stencil[centerStencilIdx] = 0.0;
             for( const auto direction : vertexdof::macroface::neighborsWithTwoNeighborCellsWithoutCenter )
@@ -153,4 +153,4 @@ inline void apply( const uint_t&                                               L
 } // namespace macroface
 } // namespace transport
 } // namespace vertexdof
-} // namespace hhg
+} // namespace hyteg

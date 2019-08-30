@@ -5,7 +5,7 @@
 #include "tinyhhg_core/composites/StokesOperatorTraits.hpp"
 #include "tinyhhg_core/solvers/Solver.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 template < class OperatorType >
 class UzawaSmoother : public Solver< OperatorType >
@@ -17,7 +17,7 @@ class UzawaSmoother : public Solver< OperatorType >
                   const uint_t                               minLevel,
                   const uint_t                               maxLevel,
                   real_t                                     relaxParam,
-                  hhg::DoFType                               flag                    = hhg::Inner | hhg::NeumannBoundary,
+                  hyteg::DoFType                               flag                    = hyteg::Inner | hyteg::NeumannBoundary,
                   const bool                                 symmetricGSVelocity     = false,
                   const uint_t                               numGSIterationsVelocity = 2,
                   const bool                                 symmetricGSPressure     = false,
@@ -39,7 +39,7 @@ class UzawaSmoother : public Solver< OperatorType >
                   const uint_t                               minLevel,
                   const uint_t                               maxLevel,
                   real_t                                     relaxParam,
-                  hhg::DoFType                               flag                    = hhg::Inner | hhg::NeumannBoundary,
+                  hyteg::DoFType                               flag                    = hyteg::Inner | hyteg::NeumannBoundary,
                   const bool                                 symmetricGSVelocity     = false,
                   const uint_t                               numGSIterationsVelocity = 2,
                   const bool                                 symmetricGSPressure     = false,
@@ -290,4 +290,4 @@ class UzawaSmoother : public Solver< OperatorType >
    FunctionType tmp_;
 #endif
 };
-} // namespace hhg
+} // namespace hyteg

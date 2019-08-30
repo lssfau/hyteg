@@ -8,7 +8,7 @@
 #include "tinyhhg_core/edgedofspace/EdgeDoFFunction.hpp"
 #include "tinyhhg_core/petsc/PETScWrapper.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace edgedof {
 
 using walberla::real_t;
@@ -119,7 +119,7 @@ inline void saveEdgeOperator( const uint_t & Level, const Edge & edge,
                               const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & dstId,
                               Mat & mat )
 {
-  using namespace hhg::edgedof::macroedge;
+  using namespace hyteg::edgedof::macroedge;
   size_t rowsize = levelinfo::num_microedges_per_edge(Level);
 
   real_t * opr_data = edge.getData(operatorId)->getPointer( Level );
@@ -134,16 +134,16 @@ inline void saveEdgeOperator( const uint_t & Level, const Edge & edge,
 
     for(uint_t k = 0; k < neighborsOnEdgeFromHorizontalEdge.size(); ++k){
       srcInt = src[indexFromHorizontalEdge( Level, i, neighborsOnEdgeFromHorizontalEdge[k] )];
-      MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[hhg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnEdgeFromHorizontalEdge[k])], ADD_VALUES);
+      MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[hyteg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnEdgeFromHorizontalEdge[k])], ADD_VALUES);
     }
     for(uint_t k = 0; k < neighborsOnSouthFaceFromHorizontalEdge.size(); ++k){
       srcInt = src[indexFromHorizontalEdge( Level, i, neighborsOnSouthFaceFromHorizontalEdge[k] )];
-      MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[hhg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnSouthFaceFromHorizontalEdge[k])], ADD_VALUES);
+      MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[hyteg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnSouthFaceFromHorizontalEdge[k])], ADD_VALUES);
     }
     if(edge.getNumNeighborFaces() == 2){
       for(uint_t k = 0; k < neighborsOnNorthFaceFromHorizontalEdge.size(); ++k){
         srcInt = src[indexFromHorizontalEdge( Level, i, neighborsOnNorthFaceFromHorizontalEdge[k] )];
-        MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[hhg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnNorthFaceFromHorizontalEdge[k])], ADD_VALUES);
+        MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[hyteg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnNorthFaceFromHorizontalEdge[k])], ADD_VALUES);
       }
     }
   }
@@ -161,7 +161,7 @@ inline void saveEdgeOperator3D( const uint_t & level, const Edge & edge,
   auto src  = edge.getData(srcId)->getPointer( level );
   auto dst  = edge.getData(dstId)->getPointer( level );
 
-  for ( const auto & centerIndexOnEdge : hhg::edgedof::macroedge::Iterator( level, 0 ) )
+  for ( const auto & centerIndexOnEdge : hyteg::edgedof::macroedge::Iterator( level, 0 ) )
   {
     const EdgeDoFOrientation edgeCenterOrientation = EdgeDoFOrientation::X;
 
@@ -273,7 +273,7 @@ inline void saveFaceOperator( const uint_t & Level, const Face & face,
 
   using namespace edgedof::macroface;
 
-  for ( const auto & it : hhg::edgedof::macroface::Iterator( Level, 0 ) )
+  for ( const auto & it : hyteg::edgedof::macroface::Iterator( Level, 0 ) )
   {
     if( it.row() != 0) {
       dstInt = dst[indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )];
@@ -282,7 +282,7 @@ inline void saveFaceOperator( const uint_t & Level, const Face & face,
         MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[edgedof::stencilIndexFromHorizontalEdge(neighborsFromHorizontalEdge[k])], ADD_VALUES);
       }
     }
-    if( it.col() + it.row() != (hhg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
+    if( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
       dstInt = dst[indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )];
       for(uint_t k = 0; k < neighborsFromDiagonalEdge.size(); ++k){
         srcInt = src[indexFromDiagonalEdge( Level, it.col(), it.row(), neighborsFromDiagonalEdge[k] )];
@@ -310,7 +310,7 @@ inline void saveFaceOperator3D( const uint_t & level, const Face & face,
   auto src      = face.getData(srcId)->getPointer( level );
   auto dst      = face.getData(dstId)->getPointer( level );
 
-  for ( const auto & centerIndexInFace : hhg::edgedof::macroface::Iterator( level, 0 ) )
+  for ( const auto & centerIndexInFace : hyteg::edgedof::macroface::Iterator( level, 0 ) )
   {
     for ( const auto & faceCenterOrientation : edgedof::faceLocalEdgeDoFOrientations )
     {

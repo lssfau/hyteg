@@ -7,7 +7,7 @@
 #include "tinyhhg_core/p2functionspace/P2MacroFace.hpp"
 #include "tinyhhg_core/p2functionspace/P2Multigrid.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::uint_t;
 using walberla::real_t;
@@ -323,4 +323,4 @@ void P2toP2QuadraticProlongation::prolongateStandard( const P2Function< real_t >
       }
    }
 }
-} // namespace hhg
+} // namespace hyteg

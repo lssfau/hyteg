@@ -11,7 +11,7 @@
 #include <map>
 #define RESTRICT WALBERLA_RESTRICT
 
-namespace hhg {
+namespace hyteg {
 namespace VertexDoFToEdgeDoF {
 namespace generated {
 
@@ -19,4 +19,4 @@ void apply_2D_macroface_vertexdof_to_edgedof_add(double * RESTRICT _data_edgeFac
 
 } // namespace generated
 } // namespace VertexDoFToEdgeDoF
-} // namespace hhg
+} // namespace hyteg

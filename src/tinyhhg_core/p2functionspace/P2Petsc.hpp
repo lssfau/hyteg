@@ -7,7 +7,7 @@
 #include <tinyhhg_core/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFPetsc.hpp>
 #include <tinyhhg_core/edgedofspace/EdgeDoFPetsc.hpp>
 
-namespace hhg {
+namespace hyteg {
 namespace petsc {
 
 inline void createVectorFromFunction(const P2Function<PetscScalar> &function,

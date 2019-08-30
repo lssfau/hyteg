@@ -5,7 +5,7 @@
 #include "tinyhhg_core/p1functionspace/VertexDoFMemory.hpp"
 #include "tinyhhg_core/FunctionMemory.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class VertexP1LocalMatrixMemoryDataHandling : public OnlyInitializeDataHandling< VertexP1LocalMatrixMemory, Vertex >
 {

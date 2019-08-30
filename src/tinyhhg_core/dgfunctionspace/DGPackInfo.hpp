@@ -4,7 +4,7 @@
 #include "tinyhhg_core/FunctionMemory.hpp"
 #include "tinyhhg_core/facedofspace/FaceDoFIndexing.hpp"
 
-namespace hhg{
+namespace hyteg {
 
 using walberla::uint_t;
 using facedof::macroface::CELL_BLUE;
@@ -277,4 +277,4 @@ void DGPackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edg
 }
 
 
-}//namespace hhg
+}//namespace hyteg

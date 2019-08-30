@@ -6,7 +6,7 @@
 
 #include <set>
 
-namespace hhg {
+namespace hyteg {
 namespace indexing {
 
 using walberla::uint_t;
@@ -191,4 +191,4 @@ private:
 
 
 } // namespace indexing
-} // namespace hhg
+} // namespace hyteg

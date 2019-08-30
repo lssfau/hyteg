@@ -2,8 +2,7 @@
 
 #include "core/DataTypes.h"
 
-namespace hhg
-{
+namespace hyteg {
 namespace levelinfo
 {
 

@@ -16,7 +16,7 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
@@ -41,32 +41,32 @@ int main( int argc, char* argv[] )
 
   P1ConstantLaplaceOperator laplaceOperator3D( storage, lowerLevel, higherLevel );
 
-  std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D & p ) -> real_t
+  std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D & p ) -> real_t
   {
     return sin(p[0]) * sinh(p[1]) * p[2];
   };
 
-  std::function< real_t( const hhg::Point3D& ) > zero = []( const hhg::Point3D & ) -> real_t
+  std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D & ) -> real_t
   {
     return 0.0;
   };
 
-  std::function< real_t( const hhg::Point3D& ) > one = []( const hhg::Point3D & ) -> real_t
+  std::function< real_t( const hyteg::Point3D& ) > one = []( const hyteg::Point3D & ) -> real_t
   {
       return 1.0;
   };
 
-  std::function< real_t( const hhg::Point3D& ) > rand = []( const hhg::Point3D & ) -> real_t
+  std::function< real_t( const hyteg::Point3D& ) > rand = []( const hyteg::Point3D & ) -> real_t
   {
     return walberla::math::realRandom( 0.0, 1.0 );
   };
 
-  hhg::P1Function< real_t > res( "r", storage, lowerLevel, higherLevel );
-  hhg::P1Function< real_t > f( "f", storage, lowerLevel, higherLevel );
-  hhg::P1Function< real_t > u( "u", storage, lowerLevel, higherLevel );
-  hhg::P1Function< real_t > uExact( "u_exact", storage, lowerLevel, higherLevel );
-  hhg::P1Function< real_t > err( "err", storage, lowerLevel, higherLevel );
-  hhg::P1Function< real_t > oneFunction( "oneFunction", storage, lowerLevel, higherLevel );
+  hyteg::P1Function< real_t > res( "r", storage, lowerLevel, higherLevel );
+  hyteg::P1Function< real_t > f( "f", storage, lowerLevel, higherLevel );
+  hyteg::P1Function< real_t > u( "u", storage, lowerLevel, higherLevel );
+  hyteg::P1Function< real_t > uExact( "u_exact", storage, lowerLevel, higherLevel );
+  hyteg::P1Function< real_t > err( "err", storage, lowerLevel, higherLevel );
+  hyteg::P1Function< real_t > oneFunction( "oneFunction", storage, lowerLevel, higherLevel );
 
   u.interpolate( rand, lowerLevel, DoFType::Inner );
   u.interpolate( exact, lowerLevel, DoFType::DirichletBoundary );
@@ -82,7 +82,7 @@ int main( int argc, char* argv[] )
   uExact.interpolate( exact, higherLevel, DoFType::All );
   oneFunction.interpolate( one, higherLevel, DoFType::All );
 
-  auto solver = hhg::CGSolver< P1ConstantLaplaceOperator >( storage, lowerLevel, higherLevel );
+  auto solver = hyteg::CGSolver< P1ConstantLaplaceOperator >( storage, lowerLevel, higherLevel );
 
   WALBERLA_CHECK_LESS( lowerLevel, higherLevel );
 

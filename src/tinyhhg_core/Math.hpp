@@ -7,7 +7,7 @@
 
 #include "types/pointnd.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace math {
 
 using walberla::real_t;
@@ -68,6 +68,6 @@ inline Point3D toCartesian( const Point3D & pointInSphericalCoordinates )
 }
 
 } // namespace math
-} // namespace hhg
+} // namespace hyteg
 
 #endif /* MATH_HPP */

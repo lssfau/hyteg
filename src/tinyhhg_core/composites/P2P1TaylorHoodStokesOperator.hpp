@@ -5,7 +5,7 @@
 #include "tinyhhg_core/mixedoperators/P2ToP1Operator.hpp"
 #include "tinyhhg_core/p2functionspace/P2ConstantOperator.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
@@ -64,4 +64,4 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
    bool hasGlobalCells_;
 };
 
-} // namespace hhg
+} // namespace hyteg

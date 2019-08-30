@@ -4,7 +4,7 @@
 #include "tinyhhg_core/gridtransferoperators/ProlongationOperator.hpp"
 #include "tinyhhg_core/p1functionspace/P1Function.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class P1toP1LinearProlongation : public ProlongationOperator< P1Function< real_t > >
 {
@@ -39,4 +39,4 @@ void prolongate ( const P1Function< real_t > & function, const uint_t & sourceLe
 
 };
 
-} // namespace hhg
+} // namespace hyteg

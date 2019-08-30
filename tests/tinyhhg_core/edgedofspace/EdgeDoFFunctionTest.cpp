@@ -17,7 +17,7 @@
 using walberla::uint_t;
 using walberla::real_c;
 
-namespace hhg {
+namespace hyteg {
 
 static void testEdgeDoFFunction()
 {
@@ -45,7 +45,7 @@ static void testEdgeDoFFunction()
 
   // Interpolate
 
-  std::function<real_t(const hhg::Point3D&)> expr = []( const Point3D & ) -> real_t { return real_c( 2 ); };
+  std::function<real_t(const hyteg::Point3D&)> expr = []( const Point3D & ) -> real_t { return real_c( 2 ); };
 
   walberla::WcTimingPool timer;
 
@@ -54,8 +54,8 @@ static void testEdgeDoFFunction()
   y->interpolate( expr, maxLevel, DoFType::All );
   timer["Interpolate"].end();
 
-   hhg::communication::syncFunctionBetweenPrimitives( *x, maxLevel );
-   hhg::communication::syncFunctionBetweenPrimitives( *y, maxLevel );
+  hyteg::communication::syncFunctionBetweenPrimitives( *x, maxLevel );
+  hyteg::communication::syncFunctionBetweenPrimitives( *y, maxLevel );
 
   for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )
   {
@@ -74,8 +74,8 @@ static void testEdgeDoFFunction()
   y->assign( { 3.0, 2.0 }, { *x, *y }, maxLevel, DoFType::All );
   timer["Assign"].end();
 
-   hhg::communication::syncFunctionBetweenPrimitives( *x, maxLevel );
-   hhg::communication::syncFunctionBetweenPrimitives( *y, maxLevel );
+  hyteg::communication::syncFunctionBetweenPrimitives( *x, maxLevel );
+  hyteg::communication::syncFunctionBetweenPrimitives( *y, maxLevel );
 
   for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )
   {
@@ -90,8 +90,8 @@ static void testEdgeDoFFunction()
   y->add( {{ 4.0, 3.0 }}, {{ *x, *y }}, maxLevel, DoFType::All );
   timer["Add"].end();
 
-   hhg::communication::syncFunctionBetweenPrimitives( *x, maxLevel );
-   hhg::communication::syncFunctionBetweenPrimitives( *y, maxLevel );
+  hyteg::communication::syncFunctionBetweenPrimitives( *x, maxLevel );
+  hyteg::communication::syncFunctionBetweenPrimitives( *y, maxLevel );
 
   for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )
   {
@@ -113,7 +113,7 @@ static void testEdgeDoFFunction()
   // Output interpolate VTK
 
   auto p1 = std::make_shared< P1Function< real_t > >( "p1", storage2, minLevel, maxLevel );
-  std::function<real_t(const hhg::Point3D&)> linearX = []( const Point3D & xx ) -> real_t { return xx[0] + xx[1]; };
+  std::function<real_t(const hyteg::Point3D&)> linearX = []( const Point3D & xx ) -> real_t { return xx[0] + xx[1]; };
   p1->interpolate( linearX, maxLevel, DoFType::All );
 
   auto z = std::make_shared< EdgeDoFFunction< real_t > >( "z", storage2, minLevel, maxLevel );
@@ -128,7 +128,7 @@ static void testEdgeDoFFunction()
   vtkOutput.write( maxLevel );
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 
 int main( int argc, char* argv[] )
@@ -138,7 +138,7 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv(argc, argv);
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hhg::testEdgeDoFFunction();
+   hyteg::testEdgeDoFFunction();
 
    return EXIT_SUCCESS;
 }

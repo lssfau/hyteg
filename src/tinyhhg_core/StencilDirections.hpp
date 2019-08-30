@@ -6,7 +6,7 @@
 
 using walberla::uint_t;
 
-namespace hhg {
+namespace hyteg {
 
 enum class stencilDirection : uint_t {
   VERTEX_C = 0,
@@ -344,4 +344,4 @@ inline stencilDirection makeVertexDirectionBottom( const stencilDirection & dir 
   }
 }
 
-}//namespace hhg
+}//namespace hyteg

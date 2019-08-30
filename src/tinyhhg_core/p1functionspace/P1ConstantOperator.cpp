@@ -26,7 +26,7 @@
 #include "generatedKernels/all.hpp"
 
 
-namespace hhg {
+namespace hyteg {
 
 template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
 P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::P1ConstantOperator(
@@ -593,7 +593,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
      {
         if ( storage_->hasGlobalCells() )
         {
-           if ( hhg::globalDefines::useGeneratedKernels )
+           if ( hyteg::globalDefines::useGeneratedKernels )
            {
              if ( face.getNumNeighborCells() == 2 )
              {
@@ -680,17 +680,17 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
         }
         else
         {
-           if ( hhg::globalDefines::useGeneratedKernels )
+           if ( hyteg::globalDefines::useGeneratedKernels )
            {
               real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
               real_t* src_data = face.getData( src.getFaceDataID() )->getPointer( level );
               real_t* dst_data = face.getData( dst.getFaceDataID() )->getPointer( level );
-              if ( updateType == hhg::Replace )
+              if ( updateType == hyteg::Replace )
               {
                  vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace(
                      dst_data, src_data, opr_data, static_cast< int32_t >( level ) );
               }
-              else if ( updateType == hhg::Add )
+              else if ( updateType == hyteg::Add )
               {
                  vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_add(
                      dst_data, src_data, opr_data, static_cast< int32_t >( level ) );
@@ -716,9 +716,9 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
       const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
       if ( testFlag( cellBC, flag ) )
       {
-         if ( hhg::globalDefines::useGeneratedKernels )
+         if ( hyteg::globalDefines::useGeneratedKernels )
          {
-            if ( hhg::globalDefines::useP1Coloring )
+            if ( hyteg::globalDefines::useP1Coloring )
             {
                auto    opr_data = cell.getData( cellStencilID_ )->getData( level );
                real_t* src_data = cell.getData( src.getCellDataID() )->getPointer( level );
@@ -971,7 +971,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_gs(
         auto rhs_data = cell.getData( rhs.getCellDataID())->getPointer( level );
         auto dst_data = cell.getData( dst.getCellDataID())->getPointer( level );
         auto stencil = cell.getData( cellStencilID_ )->getData( level );
-        if ( hhg::globalDefines::useP1Coloring )
+        if ( hyteg::globalDefines::useP1Coloring )
         {
           std::map< uint_t, uint_t > groupFirstIdx;
           groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
@@ -1290,7 +1290,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor(
       {
          if ( globalDefines::useGeneratedKernels )
          {
-            if ( hhg::globalDefines::useP1Coloring )
+            if ( hyteg::globalDefines::useP1Coloring )
             {
                auto    opr_data = cell.getData( cellStencilID_ )->getData( level );
                real_t* rhs_data = cell.getData( rhs.getCellDataID() )->getPointer( level );
@@ -1539,4 +1539,4 @@ template class P1ConstantOperator< P2ToP1FenicsForm< fenics::NoAssemble,        
 
 template class P1ConstantOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >;
 
-} // namespace hhg
+} // namespace hyteg

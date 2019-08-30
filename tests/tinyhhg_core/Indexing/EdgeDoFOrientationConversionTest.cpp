@@ -8,7 +8,7 @@
 #include "tinyhhg_core/indexing/DistanceCoordinateSystem.hpp"
 #include "tinyhhg_core/indexing/MacroCellIndexing.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 using walberla::uint_t;
 
@@ -44,7 +44,7 @@ static void testEdgeOrientationConversion()
    convertAndTest( edgedof::EdgeDoFOrientation::XZ, 1, 2, 3, edgedof::EdgeDoFOrientation::Y );
 }
 
-} // namespace hhg
+} // namespace hyteg
 
 int main( int argc, char* argv[] )
 {
@@ -54,7 +54,7 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hhg::testEdgeOrientationConversion();
+   hyteg::testEdgeOrientationConversion();
 
    return EXIT_SUCCESS;
 }

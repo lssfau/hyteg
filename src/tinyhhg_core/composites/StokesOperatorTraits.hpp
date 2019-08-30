@@ -1,7 +1,7 @@
 
 #pragma once
 
-namespace hhg {
+namespace hyteg {
 
 template< typename StokesOperator >
 struct has_pspg_block {

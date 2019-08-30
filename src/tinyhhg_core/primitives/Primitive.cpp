@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace hhg {
+namespace hyteg {
 
 bool Primitive::neighborPrimitiveExists( const PrimitiveID & primitiveID ) const
 {
@@ -69,5 +69,5 @@ const std::shared_ptr<GeometryMap>& Primitive::getGeometryMap() const {
   return geometryMap_;
 }
 
-} // namespace hhg
+} // namespace hyteg
 

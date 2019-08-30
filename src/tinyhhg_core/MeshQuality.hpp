@@ -5,10 +5,10 @@
 #include "tinyhhg_core/primitives/Edge.hpp"
 #include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
 
-namespace hhg {
+namespace hyteg {
 namespace MeshQuality {
 
-real_t getMinimalEdgeLength( const std::shared_ptr< hhg::PrimitiveStorage >& storage, uint_t level )
+real_t getMinimalEdgeLength( const std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t level )
 {
    real_t localMin = std::numeric_limits< real_t >::max();
 
@@ -24,4 +24,4 @@ real_t getMinimalEdgeLength( const std::shared_ptr< hhg::PrimitiveStorage >& sto
 }
 
 } // namespace MeshQuality
-} // namespace hhg
+} // namespace hyteg

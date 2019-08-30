@@ -5,7 +5,7 @@
 #include "tinyhhg_core/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "tinyhhg_core/gridtransferoperators/RestrictionOperator.hpp"
 
-namespace hhg {
+namespace hyteg {
 
 class P1P1StokesToP1P1StokesRestriction : public RestrictionOperator< P1StokesFunction< real_t > >
 {
@@ -38,4 +38,4 @@ class P1P1StokesToP1P1StokesRestriction : public RestrictionOperator< P1StokesFu
 
    bool projectMeanAfterRestriction_;
 };
-} // namespace hhg
+} // namespace hyteg

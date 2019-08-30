@@ -15,7 +15,7 @@
 using walberla::real_t;
 using walberla::uint_t;
 
-namespace hhg {
+namespace hyteg {
 
 static void test( const std::string & meshFile, const uint_t & level )
 {
@@ -26,13 +26,13 @@ static void test( const std::string & meshFile, const uint_t & level )
   P2Function< PetscInt > numerator( "numerator", storage, level, level );
   P2ConstantLaplaceOperator L( storage, level, level );
 
-  const uint_t globalDoFs = numberOfGlobalDoFs< hhg::P2FunctionTag >( *storage, level );
-  const uint_t localDoFs  = numberOfLocalDoFs< hhg::P2FunctionTag >( *storage, level );
+  const uint_t globalDoFs = numberOfGlobalDoFs< hyteg::P2FunctionTag >( *storage, level );
+  const uint_t localDoFs  = numberOfLocalDoFs< hyteg::P2FunctionTag >( *storage, level );
 
   numerator.enumerate( level );
 
-  hhg::PETScSparseMatrix< hhg::P2ConstantLaplaceOperator, hhg::P2Function > Lpetsc( localDoFs, globalDoFs );
-  Lpetsc.createMatrixFromFunction( L, level, numerator, hhg::All );
+  hyteg::PETScSparseMatrix< hyteg::P2ConstantLaplaceOperator, hyteg::P2Function > Lpetsc( localDoFs, globalDoFs );
+  Lpetsc.createMatrixFromFunction( L, level, numerator, hyteg::All );
 
   WALBERLA_CHECK( Lpetsc.isSymmetric(), "P2 Laplacian _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );
   WALBERLA_LOG_INFO_ON_ROOT( "P2 Laplacian symmetric for: level = " << level << ", mesh: " << meshFile );
@@ -47,13 +47,13 @@ int main(int argc, char* argv[])
 
   for ( uint_t level = 2; level <= 3; level++ )
   {
-    hhg::test( "../../data/meshes/annulus_coarse.msh",            level );
+     hyteg::test( "../../data/meshes/annulus_coarse.msh",            level );
 
-    hhg::test( "../../data/meshes/3D/tet_1el.msh",                level );
-    hhg::test( "../../data/meshes/3D/pyramid_2el.msh",            level );
-    hhg::test( "../../data/meshes/3D/pyramid_4el.msh",            level );
-    hhg::test( "../../data/meshes/3D/regular_octahedron_8el.msh", level );
-    hhg::test( "../../data/meshes/3D/cube_24el.msh",              level );
+     hyteg::test( "../../data/meshes/3D/tet_1el.msh",                level );
+     hyteg::test( "../../data/meshes/3D/pyramid_2el.msh",            level );
+     hyteg::test( "../../data/meshes/3D/pyramid_4el.msh",            level );
+     hyteg::test( "../../data/meshes/3D/regular_octahedron_8el.msh", level );
+     hyteg::test( "../../data/meshes/3D/cube_24el.msh",              level );
   }
 
 

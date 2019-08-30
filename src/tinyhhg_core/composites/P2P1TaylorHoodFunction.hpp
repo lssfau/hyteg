@@ -4,8 +4,7 @@
 #include "tinyhhg_core/p2functionspace/P2Function.hpp"
 #include "tinyhhg_core/FunctionTraits.hpp"
 
-namespace hhg
-{
+namespace hyteg {
 
 template <typename ValueType>
 class P2P1TaylorHoodFunction 
@@ -43,7 +42,7 @@ public:
 
   bool isDummy() const { return false; }
 
-  void interpolate(const std::function<real_t(const hhg::Point3D&)>& expr, size_t level, DoFType flag = All) const
+  void interpolate(const std::function<real_t(const hyteg::Point3D&)>& expr, size_t level, DoFType flag = All) const
   {
     u.interpolate(expr, level, flag);
     v.interpolate(expr, level, flag);
@@ -153,7 +152,7 @@ public:
 
   void enumerate( uint_t level ) const
   {
-    uint_t counterDoFs = hhg::numberOfLocalDoFs< Tag >( *( u.getStorage() ), level );
+    uint_t counterDoFs = hyteg::numberOfLocalDoFs< Tag >( *( u.getStorage() ), level );
 
     std::vector< uint_t > doFsPerRank = walberla::mpi::allGather( counterDoFs );
 

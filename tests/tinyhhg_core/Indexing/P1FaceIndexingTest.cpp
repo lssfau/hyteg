@@ -4,7 +4,7 @@
 
 #include "core/mpi/all.h"
 
-namespace hhg {
+namespace hyteg {
 
 using indexing::Index;
 
@@ -13,21 +13,21 @@ void checkIndices(uint_t col, uint_t row, std::vector<uint_t> ref, uint_t type){
   switch(type){
     //vertex
     case 0:
-      for( const auto & n : hhg::vertexdof::macroface::neighborsWithCenter )
+      for( const auto & n : hyteg::vertexdof::macroface::neighborsWithCenter )
       {
-        result.push_back( hhg::vertexdof::macroface::indexFromVertex( 3, col, row, n ));
+        result.push_back( hyteg::vertexdof::macroface::indexFromVertex( 3, col, row, n ));
       }
       break;
     case 1:
-      for( const auto & n : hhg::vertexdof::macroface::neighborsFromGrayFace )
+      for( const auto & n : hyteg::vertexdof::macroface::neighborsFromGrayFace )
       {
-        result.push_back( hhg::vertexdof::macroface::indexFromGrayFace( 3, col, row, n ));
+        result.push_back( hyteg::vertexdof::macroface::indexFromGrayFace( 3, col, row, n ));
       }
       break;
     case 2:
-      for( const auto & n : hhg::vertexdof::macroface::neighborsFromBlueFace )
+      for( const auto & n : hyteg::vertexdof::macroface::neighborsFromBlueFace )
       {
-        result.push_back( hhg::vertexdof::macroface::indexFromBlueFace( 3, col, row, n ));
+        result.push_back( hyteg::vertexdof::macroface::indexFromBlueFace( 3, col, row, n ));
       }
       break;
     default:
@@ -66,7 +66,7 @@ void testNeighborhood3( const Index & index, const std::map< stencilDirection, u
 //const Dir neighbors_with_center[] = {S, SE, W, C, E, NW, N};
 int main(int argc, char* argv[])
 {
-  typedef hhg::stencilDirection sd;
+  typedef hyteg::stencilDirection sd;
 
   //this test is written for level 3
   walberla::mpi::Environment walberlaEnv(argc, argv);
@@ -74,17 +74,17 @@ int main(int argc, char* argv[])
 
   /// CHECK VERTEX INDEXING ///
   std::vector<size_t> refOneOne = {10,1,2,11,18,17,9};
-  hhg::checkIndices(1,1,refOneOne,0);
+  hyteg::checkIndices(1,1,refOneOne,0);
   std::vector<size_t> refFiveTwo = {22,14,15,23,29,28,21};
-  hhg::checkIndices(5,2,refFiveTwo,0);
+  hyteg::checkIndices(5,2,refFiveTwo,0);
 
   /// CHECK CELL GRAY INDEXING ///
-  hhg::checkIndices(2,2,{19,20,26},1);
-  hhg::checkIndices(2,4,{32,33,37},1);
+  hyteg::checkIndices(2,2,{19,20,26},1);
+  hyteg::checkIndices(2,4,{32,33,37},1);
 
   /// CHECK CELL BLUE INDEXING ///
-  hhg::checkIndices(3,3,{28,33,34},2);
-  hhg::checkIndices(4,1,{14,21,22},2);
+  hyteg::checkIndices(3,3,{28,33,34},2);
+  hyteg::checkIndices(4,1,{14,21,22},2);
 
   std::map< sd, uint_t > level2FirstInner;
 
@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
   level2FirstInner[ sd::VERTEX_BN ]  = 33;
   level2FirstInner[ sd::VERTEX_BNW ] = 32;
 
-  hhg::testNeighborhood2( hhg::indexing::Index( 1, 1, 1 ), level2FirstInner );
+  hyteg::testNeighborhood2( hyteg::indexing::Index( 1, 1, 1 ), level2FirstInner );
 
   std::map< sd, uint_t > level2SecondInner;
 
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
   level2SecondInner[ sd::VERTEX_BN ]  = 34;
   level2SecondInner[ sd::VERTEX_BNW ] = 33;
 
-  hhg::testNeighborhood2( hhg::indexing::Index( 2, 1, 1 ), level2SecondInner );
+  hyteg::testNeighborhood2( hyteg::indexing::Index( 2, 1, 1 ), level2SecondInner );
 
   std::map< sd, uint_t > level3FirstInner;
 
@@ -153,6 +153,6 @@ int main(int argc, char* argv[])
   level3FirstInner[ sd::VERTEX_BN ]  = 97;
   level3FirstInner[ sd::VERTEX_BNW ] = 96;
 
-  hhg::testNeighborhood3( hhg::indexing::Index( 1, 1, 1 ), level3FirstInner );
+  hyteg::testNeighborhood3( hyteg::indexing::Index( 1, 1, 1 ), level3FirstInner );
 
 }

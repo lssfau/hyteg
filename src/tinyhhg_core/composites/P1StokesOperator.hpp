@@ -4,8 +4,7 @@
 #include "tinyhhg_core/composites/StokesOperatorTraits.hpp"
 #include "tinyhhg_core/p1functionspace/P1ConstantOperator.hpp"
 
-namespace hhg
-{
+namespace hyteg {
 
 class P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFunction< real_t > >
 {

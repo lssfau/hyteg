@@ -16,7 +16,7 @@ using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
 
-using namespace hhg;
+using namespace hyteg;
 
 int main( int argc, char* argv[] )
 {
@@ -33,46 +33,46 @@ int main( int argc, char* argv[] )
 
   auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
 
-  hhg::P1Function< real_t > r( "r", storage, minLevel, maxLevel );
-  hhg::P1Function< real_t > f( "f", storage, minLevel, maxLevel );
-  hhg::P1Function< real_t > u( "u", storage, minLevel, maxLevel );
-  hhg::P1Function< real_t > Au( "Au", storage, minLevel, maxLevel );
-  hhg::P1Function< real_t > u_exact( "u_exact", storage, minLevel, maxLevel );
-  hhg::P1Function< real_t > err( "err", storage, minLevel, maxLevel );
-  hhg::P1Function< real_t > npoints_helper( "npoints_helper", storage, minLevel, maxLevel );
+  hyteg::P1Function< real_t > r( "r", storage, minLevel, maxLevel );
+  hyteg::P1Function< real_t > f( "f", storage, minLevel, maxLevel );
+  hyteg::P1Function< real_t > u( "u", storage, minLevel, maxLevel );
+  hyteg::P1Function< real_t > Au( "Au", storage, minLevel, maxLevel );
+  hyteg::P1Function< real_t > u_exact( "u_exact", storage, minLevel, maxLevel );
+  hyteg::P1Function< real_t > err( "err", storage, minLevel, maxLevel );
+  hyteg::P1Function< real_t > npoints_helper( "npoints_helper", storage, minLevel, maxLevel );
 
-  hhg::P1ConstantMassOperator    M( storage, minLevel, maxLevel );
-  hhg::P1ConstantLaplaceOperator L( storage, minLevel, maxLevel );
+  hyteg::P1ConstantMassOperator    M( storage, minLevel, maxLevel );
+  hyteg::P1ConstantLaplaceOperator L( storage, minLevel, maxLevel );
 
-  std::function< real_t( const hhg::Point3D& ) > exact = []( const hhg::Point3D& x ) {
+  std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& x ) {
       return ( 1.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
   };
-  std::function< real_t( const hhg::Point3D& ) > rhs = []( const hhg::Point3D& x ) {
+  std::function< real_t( const hyteg::Point3D& ) > rhs = []( const hyteg::Point3D& x ) {
       return ( 3.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
   };
-  std::function< real_t( const hhg::Point3D& ) > ones = []( const hhg::Point3D& ) { return 1.0; };
+  std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-  u.interpolate( exact, maxLevel, hhg::DirichletBoundary );
+  u.interpolate( exact, maxLevel, hyteg::DirichletBoundary );
   u_exact.interpolate( exact, maxLevel );
   npoints_helper.interpolate( rhs, maxLevel );
-  M.apply( npoints_helper, f, maxLevel, hhg::All );
+  M.apply( npoints_helper, f, maxLevel, hyteg::All );
 
-  auto smoother = std::make_shared< hhg::GaussSeidelSmoother<hhg::P1ConstantLaplaceOperator>  >();
-  auto coarseGridSolver = std::make_shared< hhg::CGSolver< hhg::P1ConstantLaplaceOperator > >(
+  auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator>  >();
+  auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > >(
       storage, minLevel, minLevel, maxCoarseGridSolverIter, coarseGridSolverTolerance );
-  auto restrictionOperator = std::make_shared< hhg::P1toP1LinearRestriction>();
-  auto solutionRestrictionOperator = std::make_shared< hhg::P1toP1InjectionRestriction>();
-  auto prolongationOperator = std::make_shared< hhg::P1toP1LinearProlongation >();
+  auto restrictionOperator = std::make_shared< hyteg::P1toP1LinearRestriction>();
+  auto solutionRestrictionOperator = std::make_shared< hyteg::P1toP1InjectionRestriction>();
+  auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
 
-  auto gmgSolver = hhg::FASSolver< hhg::P1ConstantLaplaceOperator >(
+  auto gmgSolver = hyteg::FASSolver< hyteg::P1ConstantLaplaceOperator >(
     storage, smoother, coarseGridSolver, restrictionOperator, solutionRestrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
   npoints_helper.interpolate( ones, maxLevel );
   const real_t npoints = npoints_helper.dotGlobal( npoints_helper, maxLevel );
 
   // init residual once
-  L.apply(u, Au, maxLevel, hhg::Inner);
-  r.assign({1.0, -1.0}, { f, Au }, maxLevel, hhg::Inner);
+  L.apply(u, Au, maxLevel, hyteg::Inner);
+  r.assign({1.0, -1.0}, { f, Au }, maxLevel, hyteg::Inner);
 
   real_t discr_l2_err;
   real_t discr_l2_res = std::sqrt( r.dotGlobal( r, maxLevel, DoFType::Inner ) / npoints );
@@ -84,8 +84,8 @@ int main( int argc, char* argv[] )
 
     err.assign( { 1.0, -1.0 }, { u, u_exact }, maxLevel );
 
-    L.apply(u, Au, maxLevel, hhg::Inner);
-    r.assign({1.0, -1.0}, { f, Au }, maxLevel, hhg::Inner);
+    L.apply(u, Au, maxLevel, hyteg::Inner);
+    r.assign({1.0, -1.0}, { f, Au }, maxLevel, hyteg::Inner);
 
     discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel, DoFType::All ) / npoints );
     discr_l2_res_last_step = discr_l2_res;

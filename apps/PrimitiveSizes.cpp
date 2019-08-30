@@ -7,7 +7,7 @@
 
 using walberla::uint_t;
 
-namespace hhg {
+namespace hyteg {
 
 template< typename FunctionTag_T >
 void printPrimitiveSizes()
@@ -35,9 +35,9 @@ int main( int argc, char* argv[] )
   WALBERLA_LOG_INFO_ON_ROOT( " --- Primitive Sizes (number of INNER DoFs) --- " );
   WALBERLA_LOG_INFO_ON_ROOT( "P1:" );
   WALBERLA_LOG_INFO_ON_ROOT( "" );
-  hhg::printPrimitiveSizes< hhg::P1FunctionTag >();
+  hyteg::printPrimitiveSizes< hyteg::P1FunctionTag >();
   WALBERLA_LOG_INFO_ON_ROOT( "" );
   WALBERLA_LOG_INFO_ON_ROOT( "P2:" );
   WALBERLA_LOG_INFO_ON_ROOT( "" );
-  hhg::printPrimitiveSizes< hhg::P2FunctionTag >();
+  hyteg::printPrimitiveSizes< hyteg::P2FunctionTag >();
 }
