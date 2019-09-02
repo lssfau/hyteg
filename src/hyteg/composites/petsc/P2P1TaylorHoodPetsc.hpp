@@ -20,6 +20,7 @@
 #pragma once
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 
 namespace hyteg {
 namespace petsc {
@@ -96,5 +97,23 @@ inline void createMatrix( const OperatorType&                       opr,
   }
 }
 
+template <>
+inline void createMatrix< P2P1TaylorHoodStokesBlockPreconditioner >( const P2P1TaylorHoodStokesBlockPreconditioner& opr,
+                                                                     const P2P1TaylorHoodFunction< PetscInt >&      src,
+                                                                     const P2P1TaylorHoodFunction< PetscInt >&      dst,
+                                                                     Mat&                                           mat,
+                                                                     size_t                                         level,
+                                                                     DoFType                                        flag )
+{
+   createMatrix( opr.A, src.u, dst.u, mat, level, flag );
+   createMatrix( opr.A, src.v, dst.v, mat, level, flag );
+
+   if ( src.u.getStorage()->hasGlobalCells() )
+   {
+      createMatrix( opr.A, src.w, dst.w, mat, level, flag );
+   }
+
+   createMatrix( opr.P, src.p, dst.p, mat, level, flag );
+}
 }
 }
