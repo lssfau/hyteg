@@ -20,6 +20,7 @@
 #pragma once
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 #include "hyteg/mixedoperators/P1ToP2Operator.hpp"
 #include "hyteg/mixedoperators/P2ToP1Operator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
@@ -29,8 +30,8 @@ namespace hyteg {
 class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
  public:
-
-   typedef P2ConstantLaplaceOperator VelocityOperator_T;
+   typedef P2ConstantLaplaceOperator               VelocityOperator_T;
+   typedef P2P1TaylorHoodStokesBlockPreconditioner BlockPreconditioner_T;
 
    P2P1TaylorHoodStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
@@ -46,7 +47,10 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
-   void apply(const P2P1TaylorHoodFunction< real_t >& src,const P2P1TaylorHoodFunction< real_t >& dst,const uint_t level,const DoFType flag ) const
+   void apply( const P2P1TaylorHoodFunction< real_t >& src,
+               const P2P1TaylorHoodFunction< real_t >& dst,
+               const uint_t                            level,
+               const DoFType                           flag ) const
    {
       A.apply( src.u, dst.u, level, flag, Replace );
       divT_x.apply( src.p, dst.u, level, flag, Add );
@@ -56,8 +60,8 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
 
       if ( hasGlobalCells_ )
       {
-        A.apply( src.w, dst.w, level, flag, Replace );
-        divT_z.apply( src.p, dst.w, level, flag, Add );
+         A.apply( src.w, dst.w, level, flag, Replace );
+         divT_z.apply( src.p, dst.w, level, flag, Add );
       }
 
       div_x.apply( src.u, dst.p, level, flag, Replace );
@@ -78,9 +82,9 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
    P1ToP2ConstantDivTzOperator divT_z;
 
    /// this operator is need in the uzawa smoother
-   P1PSPGOperator pspg_;
+   P1PSPGOperator        pspg_;
    P1PSPGInvDiagOperator pspg_inv_diag_;
-   bool hasGlobalCells_;
+   bool                  hasGlobalCells_;
 };
 
 } // namespace hyteg

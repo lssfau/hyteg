@@ -93,5 +93,23 @@ inline void createMatrix( const OperatorType&                 opr,
 
 }
 
+template <>
+inline void createMatrix< P1StokesBlockPreconditioner >( const P1StokesBlockPreconditioner&  opr,
+                                                         const P1StokesFunction< PetscInt >& src,
+                                                         const P1StokesFunction< PetscInt >& dst,
+                                                         Mat&                                mat,
+                                                         size_t                              level,
+                                                         DoFType                             flag )
+{
+   createMatrix( opr.A, src.u, dst.u, mat, level, flag );
+   createMatrix( opr.A, src.v, dst.v, mat, level, flag );
+
+   if ( src.u.getStorage()->hasGlobalCells() )
+   {
+      createMatrix( opr.A, src.w, dst.w, mat, level, flag );
+   }
+
+   createMatrix( opr.P, src.p, dst.p, mat, level, flag );
+}
 }
 }
