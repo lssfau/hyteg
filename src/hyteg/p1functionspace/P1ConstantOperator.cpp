@@ -1501,6 +1501,10 @@ template class P1ConstantOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwi
 template class P1ConstantOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >,
                                    false,
                                    true,
+                                   false >;
+template class P1ConstantOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >,
+                                   false,
+                                   true,
                                    true >;
 
 template class P1ConstantOperator< P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >;
