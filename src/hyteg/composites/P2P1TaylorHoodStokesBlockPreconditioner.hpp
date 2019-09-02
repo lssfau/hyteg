@@ -6,13 +6,13 @@
 
 namespace hyteg {
 
-class P2P1TaylorHoodStokesBlockPreconditioner : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
+class P2P1TaylorHoodStokesBlockPreconditioner
+: public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
  public:
-
    typedef P2ConstantLaplaceOperator VelocityOperator_T;
 
-    P2P1TaylorHoodStokesBlockPreconditioner( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   P2P1TaylorHoodStokesBlockPreconditioner( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , A( storage, minLevel, maxLevel )
    , P( storage, minLevel, maxLevel )
