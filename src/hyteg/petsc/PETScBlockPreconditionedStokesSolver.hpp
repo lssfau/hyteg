@@ -12,11 +12,12 @@
 
 namespace hyteg {
 
-template < class OperatorType, class BlockPreconditioner = P2P1TaylorHoodStokesBlockPreconditioner >
+template < class OperatorType >
 class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 {
  public:
    typedef typename OperatorType::srcType FunctionType;
+   typedef typename OperatorType::BlockPreconditioner_T BlockPreconditioner_T;
 
    PETScBlockPreconditionedStokesSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                                          const uint_t&                              level,
@@ -43,37 +44,9 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       // therefore we need the row indices of the velocity and pressure
       std::vector< PetscInt > velocityIndices;
       std::vector< PetscInt > pressureIndices;
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( num.u.getVertexDoFFunction(), level ) )
-      {
-         velocityIndices.push_back( dof.value() );
-      }
-      for ( auto dof : FunctionIterator< EdgeDoFFunction< PetscInt > >( num.u.getEdgeDoFFunction(), level ) )
-      {
-         velocityIndices.push_back( dof.value() );
-      }
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( num.v.getVertexDoFFunction(), level ) )
-      {
-         velocityIndices.push_back( dof.value() );
-      }
-      for ( auto dof : FunctionIterator< EdgeDoFFunction< PetscInt > >( num.v.getEdgeDoFFunction(), level ) )
-      {
-         velocityIndices.push_back( dof.value() );
-      }
-      if ( storage->hasGlobalCells() )
-      {
-         for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( num.w.getVertexDoFFunction(), level ) )
-         {
-            velocityIndices.push_back( dof.value() );
-         }
-         for ( auto dof : FunctionIterator< EdgeDoFFunction< PetscInt > >( num.w.getEdgeDoFFunction(), level ) )
-         {
-            velocityIndices.push_back( dof.value() );
-         }
-      }
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( num.p, level ) )
-      {
-         pressureIndices.push_back( dof.value() );
-      }
+
+      gatherIndices( velocityIndices, pressureIndices, *storage, level, num );
+
       std::sort( velocityIndices.begin(), velocityIndices.end() );
       std::sort( pressureIndices.begin(), pressureIndices.end() );
       ISCreateGeneral( walberla::mpi::MPIManager::instance()->comm(),
@@ -134,6 +107,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
       Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
       Pmat.applyDirichletBCSymmetrically( num, level );
+
       if ( nullSpaceSet_ )
       {
          MatSetNullSpace( Amat.get(), nullspace_ );
@@ -153,7 +127,24 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       KSPGetPC( sub_ksps_[0], &pc_u );
       KSPGetPC( sub_ksps_[1], &pc_p );
 
-      PCSetType( pc_u, PCNONE );
+      // CG with AMG prec.
+//      KSPSetType( sub_ksps_[0], KSPCG );
+//      KSPSetTolerances( sub_ksps_[0], 1e-03, 1e-03, PETSC_DEFAULT, 10000 );
+//      PC pc_pc_u;
+//      KSPGetPC( sub_ksps_[0], &pc_pc_u );
+//
+//      PCSetType( pc_pc_u, PCGAMG );
+//      PCGAMGSetType( pc_pc_u, PCGAMGAGG );
+//      PCGAMGSetNSmooths( pc_pc_u, 1 );
+
+      // direct AMG
+      PCSetType( pc_u, PCGAMG );
+      PCGAMGSetType( pc_u, PCGAMGAGG );
+      PCGAMGSetNSmooths( pc_u, 1 );
+
+      // None
+//      PCSetType( pc_u, PCNONE );
+
       PCSetType( pc_p, PCJACOBI );
 
       x.getStorage()->getTimingTree()->stop( "Setup" );
@@ -172,16 +163,85 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    }
 
  private:
+   void gatherIndices( std::vector< PetscInt >&            velocityIndices,
+                       std::vector< PetscInt >&            pressureIndices,
+                       const PrimitiveStorage&             storage,
+                       uint_t                              level,
+                       const P1StokesFunction< PetscInt >& numerator )
+   {
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.u, level ) )
+      {
+         velocityIndices.push_back( dof.value() );
+      }
+
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.v, level ) )
+      {
+         velocityIndices.push_back( dof.value() );
+      }
+
+      if ( storage.hasGlobalCells() )
+      {
+         for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.w, level ) )
+         {
+            velocityIndices.push_back( dof.value() );
+         }
+      }
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.p, level ) )
+      {
+         pressureIndices.push_back( dof.value() );
+      }
+   }
+
+   void gatherIndices( std::vector< PetscInt >&                  velocityIndices,
+                       std::vector< PetscInt >&                  pressureIndices,
+                       const PrimitiveStorage&                   storage,
+                       uint_t                                    level,
+                       const P2P1TaylorHoodFunction< PetscInt >& numerator )
+   {
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.u.getVertexDoFFunction(), level ) )
+      {
+         velocityIndices.push_back( dof.value() );
+      }
+      for ( auto dof : FunctionIterator< EdgeDoFFunction< PetscInt > >( numerator.u.getEdgeDoFFunction(), level ) )
+      {
+         velocityIndices.push_back( dof.value() );
+      }
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.v.getVertexDoFFunction(), level ) )
+      {
+         velocityIndices.push_back( dof.value() );
+      }
+      for ( auto dof : FunctionIterator< EdgeDoFFunction< PetscInt > >( numerator.v.getEdgeDoFFunction(), level ) )
+      {
+         velocityIndices.push_back( dof.value() );
+      }
+      if ( storage.hasGlobalCells() )
+      {
+         for ( auto dof :
+               FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.w.getVertexDoFFunction(), level ) )
+         {
+            velocityIndices.push_back( dof.value() );
+         }
+         for ( auto dof : FunctionIterator< EdgeDoFFunction< PetscInt > >( numerator.w.getEdgeDoFFunction(), level ) )
+         {
+            velocityIndices.push_back( dof.value() );
+         }
+      }
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.p, level ) )
+      {
+         pressureIndices.push_back( dof.value() );
+      }
+   }
+
    uint_t                                                                                        allocatedLevel_;
    typename OperatorType::srcType::template FunctionType< PetscInt >                             num;
    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               Amat;
    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               AmatNonEliminatedBC;
-   PETScSparseMatrix< BlockPreconditioner, BlockPreconditioner::srcType::template FunctionType > Pmat;
+   PETScSparseMatrix< BlockPreconditioner_T, BlockPreconditioner_T::srcType::template FunctionType > Pmat;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > bVec;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > nullspaceVec_;
 
-   BlockPreconditioner blockPreconditioner_;
+   BlockPreconditioner_T blockPreconditioner_;
 
    KSP          ksp;
    KSP*         sub_ksps_;
