@@ -48,6 +48,7 @@
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScMinResSolver.hpp"
+#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -914,9 +915,11 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                                                         numGSPressure );
 
 #ifdef HYTEG_BUILD_WITH_PETSC
-   //   auto petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >(
-   //       storage, coarseGridMaxLevel, coarseResidualTolerance, coarseGridMaxIterations );
-   auto petscSolver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, coarseGridMaxLevel );
+   // auto petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >(
+   //     storage, coarseGridMaxLevel, coarseResidualTolerance, coarseGridMaxIterations );
+   // auto petscSolver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, coarseGridMaxLevel );
+   auto petscSolver = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >( storage, coarseGridMaxLevel,
+           coarseResidualTolerance, coarseGridMaxIterations );
    WALBERLA_UNUSED( coarseGridMaxIterations );
    WALBERLA_UNUSED( coarseResidualTolerance );
 #else
@@ -1139,25 +1142,28 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       }
    }
 
-   avgl2ErrorConvergenceRateU /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
-   avgl2ResidualConvergenceRateU /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
-
-   avgl2ErrorConvergenceRateP /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
-   avgl2ResidualConvergenceRateP /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
-
-   sqlRealProperties["avg_l2_error_conv_rate_u"]    = real_c( avgl2ErrorConvergenceRateU );
-   sqlRealProperties["avg_l2_residual_conv_rate_u"] = real_c( avgl2ResidualConvergenceRateU );
-
-   sqlRealProperties["avg_l2_error_conv_rate_p"]    = real_c( avgl2ErrorConvergenceRateP );
-   sqlRealProperties["avg_l2_residual_conv_rate_p"] = real_c( avgl2ResidualConvergenceRateP );
-
    WALBERLA_LOG_INFO_ON_ROOT( "" );
-   WALBERLA_LOG_INFO_ON_ROOT( "Average convergence rates:" );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - l2 error u:    " << std::scientific << avgl2ErrorConvergenceRateU );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - l2 residual u: " << std::scientific << avgl2ResidualConvergenceRateU );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - l2 error p:    " << std::scientific << avgl2ErrorConvergenceRateP );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - l2 residual p: " << std::scientific << avgl2ResidualConvergenceRateP );
-   WALBERLA_LOG_INFO_ON_ROOT( "" );
+   if ( numExecutedCycles > 0 )
+   {
+     avgl2ErrorConvergenceRateU /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
+     avgl2ResidualConvergenceRateU /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
+
+     avgl2ErrorConvergenceRateP /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
+     avgl2ResidualConvergenceRateP /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
+
+     sqlRealProperties["avg_l2_error_conv_rate_u"] = real_c( avgl2ErrorConvergenceRateU );
+     sqlRealProperties["avg_l2_residual_conv_rate_u"] = real_c( avgl2ResidualConvergenceRateU );
+
+     sqlRealProperties["avg_l2_error_conv_rate_p"] = real_c( avgl2ErrorConvergenceRateP );
+     sqlRealProperties["avg_l2_residual_conv_rate_p"] = real_c( avgl2ResidualConvergenceRateP );
+
+     WALBERLA_LOG_INFO_ON_ROOT( "Average convergence rates:" );
+     WALBERLA_LOG_INFO_ON_ROOT( "  - l2 error u:    " << std::scientific << avgl2ErrorConvergenceRateU );
+     WALBERLA_LOG_INFO_ON_ROOT( "  - l2 residual u: " << std::scientific << avgl2ResidualConvergenceRateU );
+     WALBERLA_LOG_INFO_ON_ROOT( "  - l2 error p:    " << std::scientific << avgl2ErrorConvergenceRateP );
+     WALBERLA_LOG_INFO_ON_ROOT( "  - l2 residual p: " << std::scientific << avgl2ResidualConvergenceRateP );
+     WALBERLA_LOG_INFO_ON_ROOT( "" );
+   }
 }
 
 void setup( int argc, char** argv )
@@ -1170,10 +1176,6 @@ void setup( int argc, char** argv )
    LIKWID_MARKER_THREADINIT;
    LIKWID_MARKER_REGISTER( "FMG" );
    LIKWID_MARKER_REGISTER( "VCYCLE" );
-
-#ifdef HYTEG_BUILD_WITH_PETSC
-   PETScManager petscManager;
-#endif
 
    WALBERLA_LOG_INFO_ON_ROOT( "///////////////////////" );
    WALBERLA_LOG_INFO_ON_ROOT( "// Multigrid Studies //" );
@@ -1242,6 +1244,12 @@ void setup( int argc, char** argv )
    const uint_t      shellNRad                       = mainConf.getParameter< uint_t >( "shellNRad" );
    const real_t      shellRMin                       = mainConf.getParameter< real_t >( "shellRMin" );
    const real_t      shellRMax                       = mainConf.getParameter< real_t >( "shellRMax" );
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+   PETScManager petscManager( &argc, &argv );
+#else
+   WALBERLA_UNUSED( petscArguments );
+#endif
 
    // parameter checks
    WALBERLA_CHECK( equation == "stokes" || equation == "poisson" );
