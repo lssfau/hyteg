@@ -20,6 +20,7 @@
 #pragma once
 
 #include "hyteg/composites/P1StokesFunction.hpp"
+#include "hyteg/composites/P1StokesBlockPreconditioner.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
 
 namespace hyteg {
