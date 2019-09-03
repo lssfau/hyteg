@@ -1228,8 +1228,6 @@ void setup( int argc, char** argv )
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    PETScManager petscManager( &argc, &argv );
-#else
-   WALBERLA_UNUSED( petscArguments );
 #endif
 
    // parameter checks
