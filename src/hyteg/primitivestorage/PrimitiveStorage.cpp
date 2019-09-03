@@ -518,66 +518,70 @@ void PrimitiveStorage::getCellIDs ( std::vector< PrimitiveID > & cellIDs ) const
 
 bool PrimitiveStorage::onBoundary( const PrimitiveID & primitiveID, const bool & highestDimensionAlwaysInner ) const
 {
-  WALBERLA_ASSERT( primitiveExistsLocally( primitiveID ) );
+   WALBERLA_CHECK( primitiveExistsLocally( primitiveID ) || primitiveExistsInNeighborhood( primitiveID ),
+                   "Cannot check if primitive (ID: " << primitiveID
+                                                     << ") "
+                                                        "is on boundary since it is not located on this process (rank: "
+                                                     << walberla::mpi::MPIManager::instance()->rank() << ")." );
 
-  if ( !hasGlobalCells() )
-  {
-    // 2D
-    if ( highestDimensionAlwaysInner && faceExistsLocally( primitiveID ) )
-    {
-      return false;
-    }
-    if ( edgeExistsLocally( primitiveID ) )
-    {
-      const auto edge = getEdge( primitiveID );
-      WALBERLA_ASSERT_GREATER( edge->getNumNeighborFaces(), 0 );
-      WALBERLA_ASSERT_LESS_EQUAL( edge->getNumNeighborFaces(), 2 );
-      return edge->getNumNeighborFaces() == 1;
-    }
-    else
-    {
-      const auto primitive = getPrimitive( primitiveID );
-      std::vector< PrimitiveID > neighborEdges;
-      primitive->getNeighborEdges( neighborEdges );
-      for ( auto it : neighborEdges )
+   if ( !hasGlobalCells() )
+   {
+      // 2D
+      if ( highestDimensionAlwaysInner && faceExistsLocally( primitiveID ) )
       {
-        if ( onBoundary( it ) )
-        {
-          return true;
-        }
+         return false;
       }
-      return false;
-    }
-  }
-  else
-  {
-    // 3D
-    if ( highestDimensionAlwaysInner && cellExistsLocally( primitiveID ) )
-    {
-      return false;
-    }
-    if ( faceExistsLocally( primitiveID ) )
-    {
-      const auto face = getFace( primitiveID );
-      WALBERLA_ASSERT_GREATER( face->getNumNeighborCells(), 0 );
-      WALBERLA_ASSERT_LESS_EQUAL( face->getNumNeighborCells(), 2 );
-      return face->getNumNeighborCells() == 1;
-    }
-    else
-    {
-      const auto primitive = getPrimitive( primitiveID );
-      std::vector< PrimitiveID > neighborFaces;
-      primitive->getNeighborFaces( neighborFaces );
-      for ( auto it : neighborFaces )
+      if ( edgeExistsLocally( primitiveID ) || edgeExistsInNeighborhood( primitiveID ) )
       {
-        if ( onBoundary( it ) )
-        {
-          return true;
-        }
+         const auto edge = getEdge( primitiveID );
+         WALBERLA_ASSERT_GREATER( edge->getNumNeighborFaces(), 0 );
+         WALBERLA_ASSERT_LESS_EQUAL( edge->getNumNeighborFaces(), 2 );
+         return edge->getNumNeighborFaces() == 1;
       }
-      return false;
-    }
-  }
+      else
+      {
+         const auto                 primitive = getPrimitive( primitiveID );
+         std::vector< PrimitiveID > neighborEdges;
+         primitive->getNeighborEdges( neighborEdges );
+         for ( auto it : neighborEdges )
+         {
+            if ( onBoundary( it ) )
+            {
+               return true;
+            }
+         }
+         return false;
+      }
+   }
+   else
+   {
+      // 3D
+      if ( highestDimensionAlwaysInner && cellExistsLocally( primitiveID ) )
+      {
+         return false;
+      }
+      if ( faceExistsLocally( primitiveID ) || faceExistsInNeighborhood( primitiveID ) )
+      {
+         const auto face = getFace( primitiveID );
+         WALBERLA_ASSERT_GREATER( face->getNumNeighborCells(), 0 );
+         WALBERLA_ASSERT_LESS_EQUAL( face->getNumNeighborCells(), 2 );
+         return face->getNumNeighborCells() == 1;
+      }
+      else
+      {
+         const auto                 primitive = getPrimitive( primitiveID );
+         std::vector< PrimitiveID > neighborFaces;
+         primitive->getNeighborFaces( neighborFaces );
+         for ( auto it : neighborFaces )
+         {
+            if ( onBoundary( it ) )
+            {
+               return true;
+            }
+         }
+         return false;
+      }
+   }
 }
 
 uint_t PrimitiveStorage::getPrimitiveRank ( const PrimitiveID & id ) const
