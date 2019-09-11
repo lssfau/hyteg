@@ -243,9 +243,9 @@ int main( int argc, char* argv[] )
       M.apply( temp, f.v, maxLevel, hyteg::All );
       M.apply( temp, f.w, maxLevel, hyteg::All );
 
-      f.u.multElementwise( {&f.u, &normalX}, maxLevel, hyteg::All );
-      f.v.multElementwise( {&f.v, &normalY}, maxLevel, hyteg::All );
-      f.w.multElementwise( {&f.w, &normalZ}, maxLevel, hyteg::All );
+      f.u.multElementwise( {f.u, normalX}, maxLevel, hyteg::All );
+      f.v.multElementwise( {f.v, normalY}, maxLevel, hyteg::All );
+      f.w.multElementwise( {f.w, normalZ}, maxLevel, hyteg::All );
 
       f.u.assign( {rhsScaleFactor}, {f.u}, maxLevel, hyteg::All );
       f.v.assign( {rhsScaleFactor}, {f.v}, maxLevel, hyteg::All );
