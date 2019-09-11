@@ -5,7 +5,7 @@ HyTeG (Hybrid Tetrahedral Grids) is a C++ framework for large scale high perform
 
 ### Documentation
 
-[Doxygen documentation](http://terraneo.pages.walberla.net/hyteg/index.html "HyTeG Doxygen").
+[Doxygen documentation](http://hyteg.pages.walberla.net/hyteg/index.html "HyTeG Doxygen").
 
 
 ### Dependencies
