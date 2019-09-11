@@ -7,6 +7,8 @@
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
+#include "hyteg/petsc/PETScSparseMatrix.hpp"
+
 #ifdef HYTEG_BUILD_WITH_PETSC
 
 namespace hyteg {
@@ -14,7 +16,7 @@ namespace hyteg {
   /// \brief Exports matrix associated wit given operator to an ASCII file
   ///
   /// Uses PETSc functionality to generate the matrix associated with the given operator
-  /// and export if to a file in ASCII forma which can be executed as a Matlab function.
+  /// and export if to a file in ASCII format which can be executed as a Matlab function.
   ///
   /// \param op               the operator to export
   /// \param fName            name of file to write matrix to
@@ -28,6 +30,36 @@ namespace hyteg {
   ///
   template <class OperatorType, template <class> class FunctionType, class FunctionTag>
   void exportOperator( OperatorType op,
+                       std::string fName,
+                       std::string matrixName,
+                       std::shared_ptr< PrimitiveStorage > storage,
+                       uint_t level,
+                       bool elimDirichletBC,
+                       bool beVerbose = false ) {
+    FunctionType< PetscInt > numerator( "numerator", storage, level, level );
+    numerator.enumerate( level );
+    exportOperator( op, numerator, fName, matrixName, storage, level, elimDirichletBC, beVerbose );
+  }
+
+  /// \brief Exports matrix associated wit given operator to an ASCII file
+  ///
+  /// Uses PETSc functionality to generate the matrix associated with the given operator
+  /// and export if to a file in ASCII format which can be executed as a Matlab function.
+  ///
+  /// \param op               the operator to export
+  /// \param numerator        an enumerated function - useful to define custom enumerations
+  /// \param fName            name of file to write matrix to
+  /// \param mName            name of matrix, must be different from base part of fName;
+  ///                         when the script is executed in Matlab this will be the final
+  ///                         name of the sparse matrix
+  /// \param storage          primitive storage
+  /// \param level            refinement level on which the operator matrix should be generated
+  /// \param elimDirichletBC  whether to zero row/columns for Dirichlet boundary values
+  /// \param beVerbose        should function be talkative or not
+  ///
+  template <class OperatorType, template <class> class FunctionType, class FunctionTag>
+  void exportOperator( OperatorType op,
+                       FunctionType< PetscInt > numerator,
                        std::string fName,
                        std::string matrixName,
                        std::shared_ptr< PrimitiveStorage > storage,
@@ -56,8 +88,6 @@ namespace hyteg {
       WALBERLA_LOG_INFO_ON_ROOT( " * Converting Operator to PETSc matrix" );
     }
     PETScSparseMatrix< OperatorType, FunctionType > petscMatrix( localDoFs, globalDoFs, matrixName.c_str() );
-    FunctionType< PetscInt > numerator( "numerator", storage, level, level );
-    numerator.enumerate( level );
     petscMatrix.createMatrixFromFunction( op, level, numerator );
 
     // Zero rows and columns of "Dirichlet DoFs"
