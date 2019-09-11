@@ -4,13 +4,28 @@
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
+bool isPetscInitialized()
+{
+  PetscBool isInitialized;
+  PetscInitialized( &isInitialized );
+  return isInitialized == PETSC_TRUE;
+}
+
 class PETScManager
 {
  public:
-   PETScManager() { PetscInitializeNoArguments(); }
-   PETScManager( int* argc, char*** argv ) { PetscInitialize( argc, argv, NULL, NULL ); }
+   PETScManager()
+   {
+     if ( !isPetscInitialized() )
+       PetscInitializeNoArguments();
+   }
+   PETScManager( int* argc, char*** argv )
+   {
+     if ( !isPetscInitialized() )
+      PetscInitialize( argc, argv, NULL, NULL );
+   }
 
-   ~PETScManager() { PetscFinalize(); }
+   ~PETScManager() { if ( isPetscInitialized() ) PetscFinalize(); }
 };
 
 #endif
