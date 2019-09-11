@@ -831,6 +831,12 @@ ValueType EdgeDoFFunction< ValueType >::sumLocal( const uint_t & level, const Do
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::enumerate( uint_t level ) const
 {
+  enumerate( level, { 0, 1, 2, 3 } );
+}
+
+template < typename ValueType >
+void EdgeDoFFunction< ValueType >::enumerate( uint_t level, std::array< uint_t, 4 > cellEnumerationDirection ) const
+{
    if( isDummy() )
    {
       return;
@@ -848,12 +854,12 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level ) const
       startOnRank += dofs_per_rank[i];
    }
 
-   enumerate( level, startOnRank );
+   enumerate( level, startOnRank, cellEnumerationDirection );
    this->stopTiming( "Enumerate" );
 }
 
 template < typename ValueType >
-void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) const
+void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset, std::array< uint_t, 4 > cellEnumerationDirection ) const
 {
    if( isDummy() )
    {
@@ -875,7 +881,7 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) 
    for( auto& it : this->getStorage()->getCells() )
    {
       Cell & cell = *it.second;
-      edgedof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset );
+      edgedof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset, cellEnumerationDirection );
    }
 
    communication::syncFunctionBetweenPrimitives( *this, level );

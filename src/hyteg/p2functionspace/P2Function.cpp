@@ -575,6 +575,12 @@ BoundaryCondition P2Function< ValueType >::getBoundaryCondition() const
 template < typename ValueType >
 void P2Function< ValueType >::enumerate( uint_t level ) const
 {
+  enumerate( level, {0, 1, 2, 3});
+}
+
+template < typename ValueType >
+void P2Function< ValueType >::enumerate( uint_t level, std::array< uint_t, 4 > cellEnumerationDirection ) const
+{
    this->startTiming( "Enumerate" );
 
    uint_t counterVertexDoFs = hyteg::numberOfLocalDoFs< VertexDoFFunctionTag >( *( this->getStorage() ), level );
@@ -589,15 +595,15 @@ void P2Function< ValueType >::enumerate( uint_t level ) const
    {
       offset += static_cast< ValueType >( vertexDoFsPerRank[i] + edgeDoFsPerRank[i] );
    }
-   enumerate( level, offset );
+   enumerate( level, offset, cellEnumerationDirection );
    this->stopTiming( "Enumerate" );
 }
 
 template < typename ValueType >
-void P2Function< ValueType >::enumerate( uint_t level, ValueType& offset ) const
+void P2Function< ValueType >::enumerate( uint_t level, ValueType& offset, std::array< uint_t, 4 > cellEnumerationDirection ) const
 {
-   vertexDoFFunction_.enumerate( level, offset );
-   edgeDoFFunction_.enumerate( level, offset );
+   vertexDoFFunction_.enumerate( level, offset, cellEnumerationDirection );
+   edgeDoFFunction_.enumerate( level, offset, cellEnumerationDirection );
 }
 
 template < typename ValueType >

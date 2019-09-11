@@ -95,6 +95,7 @@ public:
   ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool & absolute = false ) const;
 
   void enumerate( uint_t level ) const;
+  void enumerate( uint_t level, std::array< uint_t, 4 > cellEnumerationDirection ) const;
 
   const PrimitiveDataID< FunctionMemory< ValueType >, Vertex>   & getVertexDataID() const { return vertexDataID_; }
   const PrimitiveDataID< FunctionMemory< ValueType >,   Edge>   & getEdgeDataID()   const { return edgeDataID_; }
@@ -184,7 +185,7 @@ private:
    template < typename PrimitiveType >
    void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
 
-   void enumerate( uint_t level, ValueType& offset ) const;
+   void enumerate( uint_t level, ValueType& offset, std::array< uint_t, 4 > cellEnumerationDirection ) const;
 
    using Function< EdgeDoFFunction< ValueType > >::communicators_;
    using Function< EdgeDoFFunction< ValueType > >::additiveCommunicators_;

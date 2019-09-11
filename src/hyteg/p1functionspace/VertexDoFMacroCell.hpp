@@ -400,15 +400,15 @@ inline void smooth_sor( const uint_t & level,
 }
 
 
-
 template< typename ValueType >
-inline void enumerate(const uint_t & Level, Cell & cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &dstId, ValueType& num) {
+inline void enumerate(const uint_t & Level, Cell & cell, const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &dstId, ValueType& num, std::array< uint_t, 4 > enumerationDirection ) {
 
   ValueType* dstPtr = cell.getData(dstId)->getPointer( Level );
 
   for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
   {
-    const uint_t idx = vertexdof::macrocell::index( Level, it.x(), it.y(), it.z() );
+    auto convertedIndex = indexing::basisConversion( it, enumerationDirection, {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( Level ) );
+    const uint_t idx = vertexdof::macrocell::index( Level, convertedIndex.x(), convertedIndex.y(), convertedIndex.z() );
     dstPtr[idx] = num;
     num++;
   }

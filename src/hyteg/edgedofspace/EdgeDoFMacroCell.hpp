@@ -758,7 +758,8 @@ inline ValueType
 template< typename ValueType >
 inline void enumerate(const uint_t & Level, Cell &cell,
                       const PrimitiveDataID < FunctionMemory< ValueType >, Cell > & dstId,
-                      ValueType& num)
+                      ValueType& num,
+                      const std::array< uint_t, 4 > & enumerationDirection )
 {
   ValueType *dst = cell.getData(dstId)->getPointer(Level);
   uint_t xNum   = uint_c( num );
@@ -771,45 +772,46 @@ inline void enumerate(const uint_t & Level, Cell &cell,
 
   for ( const auto & it : edgedof::macrocell::Iterator( Level, 0 ) )
   {
-    if ( isInnerXEdgeDoF( Level, it ) )
+    auto convertedIndex = indexing::basisConversion( it, enumerationDirection, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( Level ) );
+    if ( isInnerXEdgeDoF( Level, convertedIndex ) )
     {
-      const uint_t idx = edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() );
+      const uint_t idx = edgedof::macrocell::xIndex( Level, convertedIndex.x(), convertedIndex.y(), convertedIndex.z() );
       dst[ idx ] = ValueType( xNum );
       xNum++;
       num++;
     }
 
-    if ( isInnerYEdgeDoF( Level, it ) )
+    if ( isInnerYEdgeDoF( Level, convertedIndex ) )
     {
-      const uint_t idx = edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() );
+      const uint_t idx = edgedof::macrocell::yIndex( Level, convertedIndex.x(), convertedIndex.y(), convertedIndex.z() );
       dst[ idx ] = ValueType( yNum );
       yNum++;
       num++;    }
 
-    if ( isInnerZEdgeDoF( Level, it ) )
+    if ( isInnerZEdgeDoF( Level, convertedIndex ) )
     {
-      const uint_t idx = edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() );
+      const uint_t idx = edgedof::macrocell::zIndex( Level, convertedIndex.x(), convertedIndex.y(), convertedIndex.z() );
       dst[ idx ] = ValueType( zNum );
       zNum++;
       num++;    }
 
-    if ( isInnerXYEdgeDoF( Level, it ) )
+    if ( isInnerXYEdgeDoF( Level, convertedIndex ) )
     {
-      const uint_t idx = edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() );
+      const uint_t idx = edgedof::macrocell::xyIndex( Level, convertedIndex.x(), convertedIndex.y(), convertedIndex.z() );
       dst[ idx ] = ValueType( xyNum );
       xyNum++;
       num++;    }
 
-    if ( isInnerXZEdgeDoF( Level, it ) )
+    if ( isInnerXZEdgeDoF( Level, convertedIndex ) )
     {
-      const uint_t idx = edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() );
+      const uint_t idx = edgedof::macrocell::xzIndex( Level, convertedIndex.x(), convertedIndex.y(), convertedIndex.z() );
       dst[ idx ] = ValueType( xzNum );
       xzNum++;
       num++;    }
 
-    if ( isInnerYZEdgeDoF( Level, it ) )
+    if ( isInnerYZEdgeDoF( Level, convertedIndex ) )
     {
-      const uint_t idx = edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() );
+      const uint_t idx = edgedof::macrocell::yzIndex( Level, convertedIndex.x(), convertedIndex.y(), convertedIndex.z() );
       dst[ idx ] = ValueType( yzNum );
       yzNum++;
       num++;    }
@@ -817,7 +819,8 @@ inline void enumerate(const uint_t & Level, Cell &cell,
 
   for ( const auto & it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
   {
-    const uint_t idx = edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() );
+    auto convertedIndex = indexing::basisConversion( it, enumerationDirection, {0, 1, 2, 3}, levelinfo::num_microedges_per_edge( Level ) - 1 );
+    const uint_t idx = edgedof::macrocell::xyzIndex( Level, convertedIndex.x(), convertedIndex.y(), convertedIndex.z() );
     dst[ idx ] = ValueType( xyzNum );
     xyzNum++;
     num++;

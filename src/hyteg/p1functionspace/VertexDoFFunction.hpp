@@ -116,6 +116,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    /// \tparam ValueType
    /// \param level
    void enumerate( uint_t level ) const;
+   void enumerate( uint_t level, std::array< uint_t, 4 > cellEnumerationDirection ) const;
 
    // TODO: write more general version(s)
    ValueType getMaxValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
@@ -200,7 +201,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    template < typename PrimitiveType >
    void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
 
-   void enumerate( uint_t level, ValueType& offset ) const;
+   void enumerate( uint_t level, ValueType& offset, std::array< uint_t, 4 > cellEnumerationDirection ) const;
 
    using Function< VertexDoFFunction< ValueType > >::communicators_;
    using Function< VertexDoFFunction< ValueType > >::additiveCommunicators_;

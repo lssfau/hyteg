@@ -1262,29 +1262,35 @@ ValueType VertexDoFFunction< ValueType >::sumLocal( const uint_t & level, const 
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::enumerate( uint_t level ) const
 {
-   if( isDummy() )
-   {
-      return;
-   }
-
-   this->startTiming( "Enumerate" );
-
-   uint_t counter = hyteg::numberOfLocalDoFs< VertexDoFFunctionTag >( *( this->getStorage() ), level );
-
-   std::vector< uint_t > dofs_per_rank = walberla::mpi::allGather( counter );
-
-   auto startOnRank = ValueType( 0 );
-
-   for( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
-   {
-      startOnRank += static_cast< ValueType >( dofs_per_rank[i] );
-   }
-   enumerate( level, startOnRank );
-   this->stopTiming( "Enumerate" );
+  enumerate( level, {0, 1, 2, 3} );
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) const
+void VertexDoFFunction< ValueType >::enumerate( uint_t level, std::array< uint_t, 4 > cellEnumerationDirection ) const
+{
+  if( isDummy() )
+  {
+    return;
+  }
+
+  this->startTiming( "Enumerate" );
+
+  uint_t counter = hyteg::numberOfLocalDoFs< VertexDoFFunctionTag >( *( this->getStorage() ), level );
+
+  std::vector< uint_t > dofs_per_rank = walberla::mpi::allGather( counter );
+
+  auto startOnRank = ValueType( 0 );
+
+  for( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
+  {
+    startOnRank += static_cast< ValueType >( dofs_per_rank[i] );
+  }
+  enumerate( level, startOnRank, cellEnumerationDirection );
+  this->stopTiming( "Enumerate" );
+}
+
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset, std::array< uint_t, 4 > cellEnumerationDirection ) const
 {
    if( isDummy() )
    {
@@ -1312,7 +1318,7 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset 
    for( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
-      vertexdof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset );
+      vertexdof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset, cellEnumerationDirection );
    }
 
    /// in contrast to other methods in the function class enumerate needs to communicate due to its usage in the PETSc solvers

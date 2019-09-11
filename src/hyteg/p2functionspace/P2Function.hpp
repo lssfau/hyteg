@@ -106,8 +106,9 @@ class P2Function : public Function< P2Function< ValueType > >
    BoundaryCondition getBoundaryCondition() const;
 
    void enumerate( uint_t level ) const;
+   void enumerate( uint_t level, std::array< uint_t, 4 > cellEnumerationDirection ) const;
 
-   void enumerate( uint_t level, ValueType& offset ) const;
+   void enumerate( uint_t level, ValueType& offset, std::array< uint_t, 4 > cellEnumerationDirection ) const;
 
    void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommMode );
 
