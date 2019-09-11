@@ -20,6 +20,19 @@ namespace hyteg {
 using walberla::real_t;
 using walberla::memory_t;
 
+/// \brief Defines the orientation of the inner xyz-edge.
+///
+/// SHORTEST: chooses for each tetrahedron the shortest edge as xyz-edge
+/// ALWAYS_x_y_z: always chooses the edge that has the respective orientation (n1 is negative one)
+///               example: ALWAYS_1_n1_1 creates an edge from (0, 1, 0) to (1, 0, 1)
+///                        ALWAYS_n1_n1_1 creates an edge from (1, 1, 0) to (0, 0, 1) etc.
+enum class InnerEdgeType {
+    SHORTEST,
+    ALWAYS_1_n1_1,
+    ALWAYS_n1_1_1,
+    ALWAYS_n1_n1_1
+};
+
 class SetupPrimitiveStorage
 {
 public:
@@ -31,6 +44,7 @@ public:
   typedef std::map< PrimitiveID::IDType, std::shared_ptr< Cell > >      CellMap;
 
   SetupPrimitiveStorage( const MeshInfo & meshInfo, const uint_t & numberOfProcesses );
+  SetupPrimitiveStorage( const MeshInfo & meshInfo, const uint_t & numberOfProcesses, const InnerEdgeType & innerEdgeType );
 
   void toStream( std::ostream & os, bool verbose = false ) const;
 

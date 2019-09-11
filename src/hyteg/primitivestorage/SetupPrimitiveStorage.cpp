@@ -12,7 +12,11 @@
 
 namespace hyteg {
 
-SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const uint_t & numberOfProcesses ) :
+SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const uint_t & numberOfProcesses )
+  : SetupPrimitiveStorage( meshInfo, numberOfProcesses, InnerEdgeType::ALWAYS_1_n1_1 )
+{}
+
+SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const uint_t & numberOfProcesses, const InnerEdgeType & innerEdgeType ) :
     numberOfProcesses_( numberOfProcesses )
 {
   WALBERLA_ASSERT_GREATER( numberOfProcesses_, 0, "Number of processes must be positive" );
@@ -280,10 +284,33 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
 
     WALBERLA_ASSERT_EQUAL( meshInfoCell.getVertices().size(), 4, "Only supporting tetrahedron cells." );
 
-    PrimitiveID vertexID0 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 0 ) ];
-    PrimitiveID vertexID1 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 1 ) ];
-    PrimitiveID vertexID2 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 2 ) ];
-    PrimitiveID vertexID3 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 3 ) ];
+    PrimitiveID vertexID0, vertexID1, vertexID2, vertexID3;
+
+    switch ( innerEdgeType )
+    {
+      case InnerEdgeType::ALWAYS_1_n1_1:
+        vertexID0 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 0 ) ];
+        vertexID1 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 1 ) ];
+        vertexID2 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 2 ) ];
+        vertexID3 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 3 ) ];
+        break;
+      case InnerEdgeType::ALWAYS_n1_n1_1:
+        vertexID0 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 1 ) ];
+        vertexID1 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 0 ) ];
+        vertexID2 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 2 ) ];
+        vertexID3 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 3 ) ];
+        break;
+      case InnerEdgeType::ALWAYS_n1_1_1:
+        vertexID0 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 0 ) ];
+        vertexID1 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 2 ) ];
+        vertexID2 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 1 ) ];
+        vertexID3 = meshVertexIDToPrimitiveID[ meshInfoCell.getVertices().at( 3 ) ];
+        break;
+      default:
+        WALBERLA_ABORT( "Inner edge orientation not implemented." )
+        break;
+    }
+
 
     PrimitiveID edgeID0 = findCachedPrimitiveID( {{ vertexID0, vertexID1 }}, vertexIDsToEdgeIDs );
     PrimitiveID edgeID1 = findCachedPrimitiveID( {{ vertexID0, vertexID2 }}, vertexIDsToEdgeIDs );
