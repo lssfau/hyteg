@@ -3,6 +3,7 @@
 #include "core/math/Constants.h"
 #include "core/timing/Timer.h"
 
+#include "hyteg/ArgumentParser.hpp"
 #include "hyteg/VTKWriter.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -28,7 +29,7 @@ void showUsage()
              << " 3) by meshing a full or partial annulus\n"
              << " 4) by generating a strip of chained triangles\n"
              << " 5) by meshing a thick spherical shell\n"
-             << " 6) by meshing a rectangular cuboid\n\n"
+             << " 6) by meshing a rectangular cuboid\n"
              << " 7) by meshing a symmetric rectangular cuboid\n\n"
              << " This is steered by choosing one of the options below:\n\n"
              << "  --file <name of Gmsh file>\n"
@@ -43,6 +44,8 @@ void showUsage()
              << " Also visualization of the domain partitioning, mesh boundary flags and MPI rank assignment will be output.\n"
              << " The desired load balancing approach can be steered by:\n\n"
              << "  --load-balancing [allroot|roundrobin|greedy|parmetis] (default: roundrobin)\n\n"
+             << " To test different orientations of the inner xyz-edge use:\n\n"
+             << "  --inner-edge-type [shortest|always_1_n1_1|always_n1_1_1|always_n1_n1_1] (default: always_1_n1_1)\n\n"
              << " Use  -v  to print info on mesh to console.\n\n"
              << std::endl;
 }
@@ -80,104 +83,156 @@ int main( int argc, char* argv[] )
    } LoadBalancingType;
    LoadBalancingType loadBalancingType = ROUND_ROBIN;
 
-   if( argc < 3 || argc > 6 )
+   InnerEdgeType innerEdgeType = InnerEdgeType::ALWAYS_1_n1_1;
+
+   auto abortParsing = [](){
+       showUsage();
+       WALBERLA_ABORT( "Please provide command-line parameters!" );
+   };
+
+   ArgumentParser arguments( argc, argv );
+
+   if ( argc < 3 || arguments.flagExists( "-h" ) || arguments.flagExists( "-help" ) || arguments.flagExists( "--help" ) )
    {
-      showUsage();
-      WALBERLA_ABORT( "Please provide command-line parameters!" );
-   } else if( strcmp( argv[1], "--file" ) == 0 )
+     abortParsing();
+   }
+
+   if ( arguments.flagExists( "--file" ) )
    {
       meshDomain                     = FROM_FILE;
-      meshFileName                   = std::string( argv[2] );
+      meshFileName                   = std::string( arguments.flagParameter( "--file" ) );
       auto pos                       = meshFileName.find_last_of( '/' );
       pos == meshFileName.npos ? pos = 0 : ++pos;
       vtkFileName                    = meshFileName.substr( pos, meshFileName.length() - 4 );
-   } else if( strcmp( argv[1], "--rect" ) == 0 )
+   }
+   else if ( arguments.flagExists( "--rect" ) )
    {
-      meshDomain = RECTANGLE;
-      if( strcmp( argv[2], "criss" ) == 0 )
+      auto rectMeshTypeString = arguments.flagParameter( "--rect" );
+      meshDomain              = RECTANGLE;
+      if ( rectMeshTypeString == "criss" )
       {
          rectMeshType = MeshInfo::CRISS;
          vtkFileName  = std::string( "rectMeshCriss" );
-      } else if( strcmp( argv[2], "cross" ) == 0 )
+      }
+      else if ( rectMeshTypeString == "cross" )
       {
          rectMeshType = MeshInfo::CROSS;
          vtkFileName  = std::string( "rectMeshCross" );
-      } else if( strcmp( argv[2], "crisscross" ) == 0 )
+      }
+      else if ( rectMeshTypeString == "crisscross" )
       {
          rectMeshType = MeshInfo::CRISSCROSS;
          vtkFileName  = std::string( "rectMeshCrissCross" );
-      } else if( strcmp( argv[2], "diamond" ) == 0 )
+      }
+      else if ( rectMeshTypeString == "diamond" )
       {
          rectMeshType = MeshInfo::DIAMOND;
          vtkFileName  = std::string( "rectMeshDiamond" );
-      } else
+      }
+      else
       {
          WALBERLA_ABORT( "Flavour for rect mesh not recognised!" );
       }
-   } else if( strcmp( argv[1], "--annulus" ) == 0 )
+   }
+   else if ( arguments.flagExists( "--annulus" ) )
    {
-      if( strcmp( argv[2], "full" ) == 0 )
+      auto meshDomainString = arguments.flagParameter( "--annulus" );
+      if ( meshDomainString == "full" )
       {
          meshDomain  = ANNULUS;
          vtkFileName = std::string( "annulusMesh" );
-      } else if( strcmp( argv[2], "partial" ) == 0 )
+      }
+      else if ( meshDomainString == "partial" )
       {
          meshDomain  = PARTIAL_ANNULUS;
          vtkFileName = std::string( "partialAnnulusMesh" );
-      } else
+      }
+      else
       {
          WALBERLA_ABORT( "Subtype of --annulus not recognised!" );
       }
-   } else if( strcmp( argv[1], "--face-chain" ) == 0 )
+   }
+   else if ( arguments.flagExists( "--face-chain" ) )
    {
-      numFaces    = uint_c( std::stoi( argv[2] ) );
+      numFaces    = uint_c( std::stoi( arguments.flagParameter( "--face-chain" ) ) );
       meshDomain  = FACE_CHAIN;
       vtkFileName = std::string( "faceChain" );
-   } else if( strcmp( argv[1], "--spherical-shell" ) == 0 )
+   }
+   else if ( arguments.flagExists( "--spherical-shell" ) )
    {
-      ntan        = uint_c( std::stoi( argv[2] ) );
+      ntan        = uint_c( std::stoi( arguments.flagParameter( "--spherical-shell" ) ) );
       meshDomain  = SPHERICAL_SHELL;
       vtkFileName = std::string( "sphericalShell" );
-   } else if( strcmp( argv[1], "--cuboid" ) == 0 )
+   }
+   else if ( arguments.flagExists( "--cuboid" ) )
    {
-      nHint       = uint_c( std::stoi( argv[2] ) );
+      nHint       = uint_c( std::stoi( arguments.flagParameter( "--cuboid" ) ) );
       meshDomain  = CUBOID;
       vtkFileName = std::string( "cuboidMesh" );
-   } else if( strcmp( argv[1], "--symm-cuboid" ) == 0 )
+   }
+   else if ( arguments.flagExists( "--symm-cuboid" ) )
    {
-     nHint       = uint_c( std::stoi( argv[2] ) );
-     meshDomain  = SYMM_CUBOID;
-     vtkFileName = std::string( "symmCuboidMesh" );
-   } else
+      nHint       = uint_c( std::stoi( arguments.flagParameter( "--symm-cuboid" ) ) );
+      meshDomain  = SYMM_CUBOID;
+      vtkFileName = std::string( "symmCuboidMesh" );
+   }
+   else
    {
       WALBERLA_ABORT( "Could not understand command-line args!" );
    }
 
-   if( argc > 4 && argc < 7 && strcmp( argv[3], "--load-balancing" ) == 0 )
+   if ( arguments.flagExists( "--load-balancing" ) )
    {
-      if( strcmp( argv[4], "allroot" ) == 0 )
+      auto loadBalancingTypeString = arguments.flagParameter( "--load-balancing" );
+      if ( loadBalancingTypeString == "allroot" )
       {
          loadBalancingType = ALL_ROOT;
-      } else if( strcmp( argv[4], "roundrobin" ) == 0 )
+      }
+      else if ( loadBalancingTypeString == "roundrobin" )
       {
          loadBalancingType = ROUND_ROBIN;
-      } else if( strcmp( argv[4], "greedy" ) == 0 )
+      }
+      else if ( loadBalancingTypeString == "greedy" )
       {
          loadBalancingType = GREEDY;
-      } else if( strcmp( argv[4], "parmetis" ) == 0 )
+      }
+      else if ( loadBalancingTypeString == "parmetis" )
       {
 #ifdef WALBERLA_BUILD_WITH_PARMETIS
          loadBalancingType = PARMETIS;
 #else
          WALBERLA_ABORT( "Framework was not built with ParMetis." );
 #endif
-      } else
+      }
+      else
       {
          WALBERLA_ABORT( "Could not understand command-line args. Possibly invalid load balancing approach." );
       }
    }
 
-   if( ( argc == 4 || argc == 6 ) && ( strcmp( argv[3], "-v" ) == 0 || strcmp( argv[5], "-v" ) == 0 ) )
+   if ( arguments.flagExists( "--inner-edge-type" ) )
+   {
+      auto innerEdgeTypeString = arguments.flagParameter( "--inner-edge-type" );
+      if ( innerEdgeTypeString == "always_1_n1_1" )
+      {
+         innerEdgeType = InnerEdgeType::ALWAYS_1_n1_1;
+      }
+      else if ( innerEdgeTypeString == "always_n1_1_1" )
+      {
+         innerEdgeType = InnerEdgeType::ALWAYS_n1_1_1;
+      }
+      else if ( innerEdgeTypeString == "always_n1_n1_1" )
+      {
+         innerEdgeType = InnerEdgeType::ALWAYS_n1_n1_1;
+      }
+      else
+      {
+         WALBERLA_ABORT( "Could not understand command-line args!" );
+      }
+      vtkFileName = vtkFileName + "_" + innerEdgeTypeString;
+   }
+
+   if( arguments.flagExists( "-v" ) )
    {
       beVerbose = true;
    }
@@ -271,7 +326,7 @@ int main( int argc, char* argv[] )
    }
 
    SetupPrimitiveStorage* setupStorage = nullptr;
-   setupStorage = new SetupPrimitiveStorage( *meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage = new SetupPrimitiveStorage( *meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ), innerEdgeType );
 
    switch( loadBalancingType )
    {
@@ -291,10 +346,7 @@ int main( int argc, char* argv[] )
       break;
    }
 
-   if( beVerbose )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "" << *setupStorage );
-   }
+   WALBERLA_LOG_INFO_ON_ROOT( "" << *setupStorage );
 
    const size_t minLevel = 2;
    const size_t maxLevel = std::max( minLevel, (size_t) 2 );
@@ -302,12 +354,8 @@ int main( int argc, char* argv[] )
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
-
-   if( beVerbose )
-   {
-     std::string pInfo = storage->getGlobalInfo();
-     WALBERLA_LOG_INFO_ON_ROOT( "" << pInfo );
-   }
+   std::string pInfo = storage->getGlobalInfo();
+   WALBERLA_LOG_INFO_ON_ROOT( "" << pInfo );
 
 #ifdef WALBERLA_BUILD_WITH_PARMETIS
    if( loadBalancingType == PARMETIS )
