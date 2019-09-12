@@ -14,6 +14,5 @@ waLBerla_add_executable( NAME 04_Indexing
         FILES 04_Indexing.cpp
         DEPENDS hyteg )
 
-waLBerla_add_executable( NAME FullAppP1GMG
-        FILES 05_FullAppP1GMG/P1GMG.cpp
-        DEPENDS hyteg core)
+add_subdirectory(05_FullAppP1GMG)
+add_subdirectory(06_FullAppPlumeInCube)
