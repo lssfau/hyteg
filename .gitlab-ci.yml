@@ -38,8 +38,8 @@ variables:
       - cd $CI_PROJECT_DIR/build/apps
       - make -j $NUM_BUILD_CORES -l $NUM_CORES
       - ctest -C $CMAKE_BUILD_TYPE --output-on-failure -j $NUM_CORES
+      - cd $CI_PROJECT_DIR/build/tests
       - make -j $NUM_BUILD_CORES -l $NUM_CORES
-      - make -j $(nproc) -l $(nproc)
       - ctest -LE $CTEST_EXCLUDE_LABELS -C $CMAKE_BUILD_TYPE --output-on-failure -j NUM_CORES
    tags:
       - docker
