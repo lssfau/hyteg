@@ -1,4 +1,4 @@
-# HyTeG
+# ![HyTeG](doc/logos/HYTEG_large.png)
 
 HyTeG (Hybrid Tetrahedral Grids) is a C++ framework for large scale high performance finite element simulations based on (but not limited to) geometric multigrid.
 
