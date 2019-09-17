@@ -1,9 +1,9 @@
-# HyTeG
+# ![HyTeG](doc/logos/HYTEG_large.png)
 
 HyTeG (Hybrid Tetrahedral Grids) is a C++ framework for large scale high performance finite element simulations based on (but not limited to) geometric multigrid.
 
 
-### Build instructions
+## Build instructions
 
 To build HyTeG, clone the HyTeG and the waLBerla source code:
 
@@ -27,7 +27,7 @@ CMake will then produce Makefiles for the included tests and applications. To bu
     hyteg-build/apps/MultigridStudies $ mpirun -np 4 ./MultigridStudies
 
 
-### Documentation
+## Documentation
 
 The [Doxygen documentation](http://hyteg.pages.walberla.net/hyteg/index.html "HyTeG Doxygen") provides some basic tutorials for example applications.
 
@@ -54,7 +54,7 @@ a look at
 * the [TerraNeo web page](http://terraneo.fau.de) providing information and publications regarding the related research project
 
 
-### Dependencies
+## Dependencies
 
 The framework is built on top of the core of the [waLBerla framework](http://walberla.net "waLBerla homepage") and therefore requires the its source code to be cloned.
 
@@ -73,9 +73,9 @@ Optional:
 * VTK visualization software (e.g. [ParaView](https://www.paraview.org/ "ParaView homepage"))
 
 
-### Notes
+## Notes
 
-#### CCache
+### CCache
 
 Due to the large amount of generated files it is advisable to activate ccache.
 To do so use the CMake setting
@@ -83,3 +83,7 @@ To do so use the CMake setting
     -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
 See also [this StackOverflow answer](https://stackoverflow.com/a/37828605).
+
+## Acknowledgements
+
+Artwork by Manuel Weimann.
