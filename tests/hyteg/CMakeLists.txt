@@ -466,8 +466,8 @@ waLBerla_execute_test(NAME FunctionMemorySerializationTest8 COMMAND $<TARGET_FIL
 
 # Geometry map tests
 waLBerla_compile_test(FILES GeometryMaps/PolarCoordsMapTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME PolarCoordsMapTestSerial )
-waLBerla_execute_test(NAME PolarCoordsMapTestParallel COMMAND $<TARGET_FILE:PolarCoordsMapTest> PROCESSES 3 )
+waLBerla_execute_test(NAME PolarCoordsMapTest )
+waLBerla_execute_test(NAME PolarCoordsMapTestMPI COMMAND $<TARGET_FILE:PolarCoordsMapTest> PROCESSES 3 )
 
 # Test some basic auxiliary stuff for application layer
 waLBerla_compile_test(FILES FindMaxMinMagTest.cpp DEPENDS hyteg core)
@@ -476,3 +476,10 @@ waLBerla_execute_test(NAME FindMaxMinMagTest2 COMMAND $<TARGET_FILE:FindMaxMinMa
 
 waLBerla_compile_test(FILES FunctionPropertiesTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionPropertiesTest)
+
+## numeric tools ##
+if( HYTEG_BUILD_WITH_EIGEN )
+waLBerla_compile_test(FILES numerictools/SpectrumEstimationTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME SpectrumEstimationTest )
+waLBerla_execute_test(NAME SpectrumEstimationTestMPI COMMAND $<TARGET_FILE:SpectrumEstimationTest> PROCESSES 3 )
+endif()
