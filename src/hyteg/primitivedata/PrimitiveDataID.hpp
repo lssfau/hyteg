@@ -42,7 +42,7 @@ using walberla::uint_t;
 /// retrieving the data from primitives is more type-safe and checked via static casts
 /// during compile-time.
 ///
-/// \ref PrimitiveDataIDs are generated when data is added to primitives via a storage instance
+/// PrimitiveDataIDs are generated when data is added to primitives via a storage instance
 /// like \ref PrimitiveStorage.
 template< typename DataType, typename PrimitiveType >
 class PrimitiveDataID

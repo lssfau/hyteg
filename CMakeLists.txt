@@ -94,14 +94,14 @@ if(NOT EXISTS ${CMAKE_BINARY_DIR}/output)
     file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/output")
 endif()
 
-if(NOT EXISTS ${CMAKE_BINARY_DIR}/doc/ExtraPics)
-    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/doc/ExtraPics")
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/doc/images)
+    file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/doc/images")
 endif()
 
 waLBerla_link_files_to_builddir(data/meshes/*.msh)
 waLBerla_link_files_to_builddir(data/meshes/3D/*.msh)
 waLBerla_link_files_to_builddir(data/param/*.prm)
-waLBerla_link_files_to_builddir(doc/ExtraPics/*.png)
+waLBerla_link_files_to_builddir(doc/images/*.png)
 
 add_subdirectory( src )
 add_subdirectory( apps )

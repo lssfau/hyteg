@@ -38,7 +38,7 @@ namespace hyteg {
  *
  * \brief In this tutorial we will communicate data between primitives
  *
- * \section intro Introduction
+ * \section Communication-intro Introduction
  *
  * During typical simulations, the simulation domain is partitioned and distributed
  * among processes. In hhg, the primitives define the topology of the domain.
@@ -57,7 +57,7 @@ namespace hyteg {
  *
  * We will in this tutorial show how to implement these steps.
  *
- * \section packinfo (Un-)Packing data
+ * \section Communication-packinfo (Un-)Packing data
  *
  * For packing and unpacking data into and from MPI buffers, the framework provides the
  * interface hyteg::communication::PackInfo.
@@ -84,7 +84,7 @@ namespace hyteg {
  * Note that we implement the method communicateLocalVertexToEdge. It can be used automatically (we will see that later)
  * if both primitives reside on the same process to optimize the communication step.
  *
- * \section Communication
+ * \section Communication-Communication
  *
  * To communicate the data, we need a hyteg::PrimitiveStorage and primitives that carry our struct:
  *
@@ -123,7 +123,7 @@ namespace hyteg {
  *
  * \snippet tutorials/03_Communication.cpp Check
  *
- * \section code Complete Program
+ * \section Communication-code Complete Program
  *
  * \include tutorials/03_Communication.cpp
  *

@@ -24,7 +24,7 @@
 
 namespace hyteg {
 
-  /// Class providing geometry mapping based on polar coordinates; convention is x[0] = $\rho$, x[1] = $\varphi$
+  /// Class providing geometry mapping based on polar coordinates; convention is x[0] = \f$\rho\f$, x[1] = \f$\varphi\f$
   class PolarCoordsMap : public GeometryMap
   {
   public:

@@ -240,7 +240,7 @@ inline EdgeDoFOrientation getEdgeDoFOrientationFromLocalIDs( const uint_t & vert
 
 /// \brief Converts the orientation of an edge DoF in a macro-edge to the respective orientation in a neighboring macro-face.
 ///
-/// \param orientationInCell the edgedof orientation from the edge-local point of view
+/// \param orientationInEdge the edgedof orientation from the edge-local point of view
 /// \param faceLocalID0 the first index of the edge from face-local point of view (face-local == 0)
 /// \param faceLocalID1 the second index of the edge from face-local point of view (face-local == 1)
 /// \return the edge DoF orientation from the face-local point of view
@@ -344,7 +344,10 @@ inline constexpr uint_t index( const uint_t & level, const uint_t & x )
 
 
 /// Index of an edge DoF on a ghost layer that is located on a neighbor-face of a macro edge.
+/// \param level Refinement level
+/// \param x Index on the macro-edge
 /// \param neighbor 0 to access the first neighbor's data, 1 to access second neighbor, ...
+/// \param orientation of the desired micro-edge
 inline uint_t indexOnNeighborFace( const uint_t & level, const uint_t & x, const uint_t & neighbor, const EdgeDoFOrientation & orientation )
 {
   WALBERLA_ASSERT_EQUAL( std::count( faceLocalEdgeDoFOrientations.begin(), faceLocalEdgeDoFOrientations.end(), orientation ), 1, "Invalid orientation." );
@@ -380,7 +383,11 @@ inline uint_t indexOnNeighborFace( const uint_t & level, const uint_t & x, const
 /// X: num_microvertices_per_edge - 2
 /// XY: num_microvertices_per_edge
 /// others: num_microvertices_per_edge - 1
+/// \param level Refinement level
+/// \param x Index on the macro-edge
 /// \param neighbor 0 to access the first neighbor's data, 1 to access second neighbor, ...
+/// \param numNeighborFaces Number of neighboring faces
+/// \param orientation of the desired micro-edge
 inline uint_t indexOnNeighborCell( const uint_t&             level,
                                    const uint_t&             x,
                                    const uint_t&             neighbor,
@@ -561,6 +568,10 @@ inline uint_t index( const uint_t & level, const uint_t & x, const uint_t & y, c
 /// - XZ on ghost: start 58; size 10; last 67
 /// - YZ on ghost: start 68; size 10; last 77
 /// - XYZon ghost: start 78; size 6;  last 83
+/// \param level Refinement level
+/// \param x x-index on the macro-face
+/// \param y y-Index on the macro-face
+/// \param orientation of the desired micro-edge
 /// \param neighbor 0 or 1 for the respective cell neighbor
 inline constexpr uint_t index( const uint_t & level, const uint_t & x, const uint_t & y, const EdgeDoFOrientation & orientation, const uint_t & neighbor )
 {

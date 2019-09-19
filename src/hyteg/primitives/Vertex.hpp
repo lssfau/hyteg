@@ -49,25 +49,25 @@ public:
   friend class PrimitiveStorage;
 
   /// Constructs a vertex with given id and coordinates
-  /// \param id Id of vertex
-  /// \param coords Spatial coordinates of vertex
+  /// \param primitiveID Id of vertex
+  /// \param coordinates Spatial coordinates of vertex
   Vertex( const PrimitiveID & primitiveID, const Point3D & coordinates );
 
   Vertex( walberla::mpi::RecvBuffer & recvBuffer ) : Primitive( recvBuffer ) { deserializeSubclass( recvBuffer ); }
 
-  /// Returns the index of \p edge within \ref edges
+  /// Returns the Vertex-local index of \p edge
   /// \param edge Edge
-  /// \returns Index of \p edge within \ref edges
+  /// \returns Vertex-local index of \p edge
   uint_t edge_index(const PrimitiveID& edge) const;
 
-  /// Returns the index of \p face within \ref faces
+  /// Returns the Vertex-local index of \p face
   /// \param face Face
-  /// \returns Index of \p face within \ref faces
+  /// \returns Vertex-local index of \p face
   uint_t face_index(const PrimitiveID& face) const;
 
-  /// Returns the index of \p cell within \ref cells
-  /// \param cells Cell
-  /// \returns Index of \p cell within \ref cells
+  /// Returns the Vertex-local index of \p cell
+  /// \param cell Cell
+  /// \returns Vertex-local index of \p cell
   uint_t cell_index(const PrimitiveID& cell) const;
 
   /// Method overload for string formatting

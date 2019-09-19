@@ -67,7 +67,7 @@ using walberla::uint_t;
 ///   }
 /// }
 ///
-/// \code
+/// \endcode
 ///@{
 template< uint_t width >
 inline constexpr uint_t unwrapNumCols()

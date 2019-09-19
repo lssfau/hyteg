@@ -51,6 +51,8 @@ uint_t index( const uint_t & level, const uint_t & x );
 uint_t innerIndex( const uint_t & level, const uint_t & x );
 
 /// Index of a vertex DoF on a ghost layer of a macro edge.
+/// \param level Refinement level
+/// \param x index on the macro-edge
 /// \param neighbor 0 to access the first neighbor data, 1 to access second neighbor, ...
 uint_t indexOnNeighborFace( const uint_t & level, const uint_t & x, const uint_t & neighbor );
 
@@ -125,6 +127,9 @@ uint_t index( const uint_t & level, const uint_t & x, const uint_t & y );
 uint_t innerIndex( const uint_t & level, const uint_t & x, const uint_t & y );
 
 /// Index of a vertex DoF on a ghost layer of a macro face.
+/// \param level Refinement level
+/// \param x x-index on the macro-face
+/// \param y y-index on the macro-face
 /// \param neighbor 0 or 1 for the respective neighbor
 uint_t index( const uint_t & level, const uint_t & x, const uint_t & y, const uint_t & neighbor );
 
@@ -254,7 +259,7 @@ public:
 };
 
 /// Iterator over the border of a vertex DoF macro face.
-/// See \ref FaceBorderIterator for more information.
+/// See FaceBorderIterator for more information.
 class BoundaryIterator : public hyteg::indexing::FaceBoundaryIterator
 {
 public:
@@ -463,7 +468,7 @@ public:
 };
 
 /// Iterator over the borders (faces) of a macro-cell.
-/// See \ref CellBorderIterator for more information.
+/// See CellBorderIterator for more information.
 class BoundaryIterator : public hyteg::indexing::CellBoundaryIterator
 {
 public:
