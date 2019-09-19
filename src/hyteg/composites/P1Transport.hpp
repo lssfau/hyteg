@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ *
+ * This file is part of HyTeG
+ * (see https://i10git.cs.fau.de/hyteg/hyteg).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 #pragma once
 
 #include "hyteg/composites/transport/VertexDoFMacroCellTransport.hpp"
@@ -83,9 +102,9 @@ class P1Transport
       divT_x_.apply( in, tmp1_, level, flag, Replace );
       divT_y_.apply( in, tmp2_, level, flag, Replace );
       divT_z_.apply( in, tmp3_, level, flag, Replace );
-      tmp1_.multElementwise( {&ux, &tmp1_}, level, flag );
-      tmp2_.multElementwise( {&uy, &tmp2_}, level, flag );
-      tmp3_.multElementwise( {&uz, &tmp3_}, level, flag );
+      tmp1_.multElementwise( {ux, tmp1_}, level, flag );
+      tmp2_.multElementwise( {uy, tmp2_}, level, flag );
+      tmp3_.multElementwise( {uz, tmp3_}, level, flag );
 
       out.assign( {1.0, 1.0, 1.0}, {tmp1_, tmp2_, tmp3_}, level, flag );
    }
@@ -156,14 +175,15 @@ class P1Transport
          {
             vertexdof::transport::macroface::apply< real_t, AlgebraicUpwind >( level,
                                                                                face,
+                                                                               *src.getStorage(),
                                                                                src.getFaceDataID(),
                                                                                dst.getFaceDataID(),
                                                                                ux.getFaceDataID(),
                                                                                uy.getFaceDataID(),
                                                                                uz.getFaceDataID(),
-                                                                               divT_x_.getFaceStencilID(),
-                                                                               divT_y_.getFaceStencilID(),
-                                                                               divT_z_.getFaceStencilID() );
+                                                                               divT_x_.getFaceStencil3DID(),
+                                                                               divT_y_.getFaceStencil3DID(),
+                                                                               divT_z_.getFaceStencil3DID() );
          }
       }
 

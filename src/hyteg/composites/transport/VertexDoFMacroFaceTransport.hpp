@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ *
+ * This file is part of HyTeG
+ * (see https://i10git.cs.fau.de/hyteg/hyteg).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 #pragma once
 
 #include "core/DataTypes.h"
@@ -8,6 +27,8 @@
 #include "hyteg/StencilMemory.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/primitives/Face.hpp"
 #include "hyteg/types/flags.hpp"
@@ -24,20 +45,18 @@ using walberla::uint_t;
 using indexing::Index;
 
 template < typename ValueType, bool AlgebraicUpwind >
-inline void apply( const uint_t&                                               Level,
-                   Face&                                                       face,
-                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId,
-                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId,
-                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >& uxId,
-                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >& uyId,
-                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >& uzId,
-                   const PrimitiveDataID< StencilMemory< ValueType >, Face >&  xOprId,
-                   const PrimitiveDataID< StencilMemory< ValueType >, Face >&  yOprId,
-                   const PrimitiveDataID< StencilMemory< ValueType >, Face >&  zOprId )
+inline void apply( const uint_t&                                                                         Level,
+                   Face&                                                                                 face,
+                   const PrimitiveStorage&                                                               storage,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                           srcId,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                           dstId,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                           uxId,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                           uyId,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                           uzId,
+                   const PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face >& xOprId,
+                   const PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face >& yOprId,
+                   const PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face >& zOprId )
 {
-   uint_t rowsize       = levelinfo::num_microvertices_per_edge( Level );
-   uint_t inner_rowsize = rowsize;
-
    const ValueType* src = face.getData( srcId )->getPointer( Level );
    ValueType*       dst = face.getData( dstId )->getPointer( Level );
 
@@ -45,108 +64,95 @@ inline void apply( const uint_t&                                               L
    const ValueType* uy = face.getData( uyId )->getPointer( Level );
    const ValueType* uz = face.getData( uzId )->getPointer( Level );
 
-   const ValueType* xOperatorData = face.getData( xOprId )->getPointer( Level );
-   const ValueType* yOperatorData = face.getData( yOprId )->getPointer( Level );
-   const ValueType* zOperatorData = face.getData( zOprId )->getPointer( Level );
+   auto xOperatorData = face.getData( xOprId )->getData( Level );
+   auto yOperatorData = face.getData( yOprId )->getData( Level );
+   auto zOperatorData = face.getData( zOprId )->getData( Level );
 
-   std::vector< ValueType > stencil( 27 );
-   real_t                   dTmp;
+   std::map< uint_t, ValueType > stencil;
 
-   ValueType tmp = ValueType(0);
-
-   if( face.getNumNeighborCells() == 0 )
+   if ( face.getNumNeighborCells() == 0 )
    {
       WALBERLA_ABORT( "Not implemented" )
    }
 
-   for( uint_t j = 1; j < rowsize - 2; ++j )
+   for ( const auto& idxIt : vertexdof::macroface::Iterator( Level, 1 ) )
    {
-      for( uint_t i = 1; i < inner_rowsize - 2; ++i )
+      const auto centerArrayIndexOnFace = vertexdof::macroface::index( Level, idxIt.x(), idxIt.y() );
+
+      stencil.clear();
+
+      stencil[centerArrayIndexOnFace] = 0;
+
+      // fill stencil
+      for ( uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++ )
       {
-         // fill stencil
-         if( face.getNumNeighborCells() == 1 )
+         auto neighborCell = storage.getCell( face.neighborCells().at( neighborCellIdx ) );
+         auto centerIndexInCell =
+             vertexdof::macroface::getIndexInNeighboringMacroCell( idxIt, face, neighborCellIdx, storage, Level );
+
+         for ( const auto& stencilIt : xOperatorData[neighborCellIdx] )
          {
-            auto centerIdx        = vertexdof::macroface::indexFromVertex( Level, i, j, hyteg::stencilDirection::VERTEX_C );
-            auto centerStencilIdx = vertexdof::stencilIndexFromVertex( hyteg::stencilDirection::VERTEX_C );
+            auto direction = stencilIt.first;
 
-            stencil[centerStencilIdx] = 0.0;
-            for( const auto direction : vertexdof::macroface::neighborsWithOneNeighborCellWithoutCenter )
+            if ( direction == indexing::IndexIncrement( {0, 0, 0} ) )
+               continue;
+
+            auto weightX = xOperatorData[neighborCellIdx][direction];
+            auto weightY = yOperatorData[neighborCellIdx][direction];
+            auto weightZ = zOperatorData[neighborCellIdx][direction];
+
+            auto leafIndexInMacroCell = centerIndexInCell + direction;
+            auto leafIndexInMacroFace = vertexdof::macrocell::getIndexInNeighboringMacroFace(
+                leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID( face.getID() ), storage, Level );
+
+            uint_t leafArrayIndexInMacroFace;
+            if ( leafIndexInMacroFace.z() == 0 )
             {
-               const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( direction );
-               const uint_t idx        = vertexdof::macroface::indexFromVertex( Level, i, j, direction );
-               stencil[stencilIdx]     = 0.5 * ( ux[centerIdx] + ux[idx] ) * xOperatorData[stencilIdx];
-               stencil[stencilIdx] += 0.5 * ( uy[centerIdx] + uy[idx] ) * yOperatorData[stencilIdx];
-               stencil[stencilIdx] += 0.5 * ( uz[centerIdx] + uz[idx] ) * zOperatorData[stencilIdx];
-               stencil[centerStencilIdx] -= stencil[stencilIdx];
+               leafArrayIndexInMacroFace =
+                   vertexdof::macroface::index( Level, leafIndexInMacroFace.x(), leafIndexInMacroFace.y() );
+            }
+            else
+            {
+               WALBERLA_ASSERT_EQUAL( leafIndexInMacroFace.z(), 1 );
+               leafArrayIndexInMacroFace =
+                   vertexdof::macroface::index( Level, leafIndexInMacroFace.x(), leafIndexInMacroFace.y(), neighborCellIdx );
             }
 
-            // algebraic upwind
-            if( AlgebraicUpwind )
+            if ( stencil.count( leafArrayIndexInMacroFace ) == 0 )
             {
-               for( const auto direction : vertexdof::macroface::neighborsWithOneNeighborCellWithoutCenter )
-               {
-                  const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( direction );
-
-                  dTmp = std::abs( stencil[stencilIdx] );
-                  stencil[centerStencilIdx] += dTmp;
-                  stencil[stencilIdx] -= dTmp;
-               }
+               stencil[leafArrayIndexInMacroFace] = 0;
             }
-
-         } else if( face.getNumNeighborCells() == 2 )
-         {
-            auto centerIdx        = vertexdof::macroface::indexFromVertex( Level, i, j, hyteg::stencilDirection::VERTEX_C );
-            auto centerStencilIdx = vertexdof::stencilIndexFromVertex( hyteg::stencilDirection::VERTEX_C );
-
-            stencil[centerStencilIdx] = 0.0;
-            for( const auto direction : vertexdof::macroface::neighborsWithTwoNeighborCellsWithoutCenter )
-            {
-               const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( direction );
-               const uint_t idx        = vertexdof::macroface::indexFromVertex( Level, i, j, direction );
-               stencil[stencilIdx]     = 0.5 * ( ux[centerIdx] + ux[idx] ) * xOperatorData[stencilIdx];
-               stencil[stencilIdx] += 0.5 * ( uy[centerIdx] + uy[idx] ) * yOperatorData[stencilIdx];
-               stencil[stencilIdx] += 0.5 * ( uz[centerIdx] + uz[idx] ) * zOperatorData[stencilIdx];
-               stencil[centerStencilIdx] -= stencil[stencilIdx];
-            }
-
-            // algebraic upwind
-            if( AlgebraicUpwind )
-            {
-               for( const auto direction : vertexdof::macroface::neighborsWithOneNeighborCellWithoutCenter )
-               {
-                  const uint_t stencilIdx = vertexdof::stencilIndexFromVertex( direction );
-
-                  dTmp = std::abs( stencil[stencilIdx] );
-                  stencil[centerStencilIdx] += dTmp;
-                  stencil[stencilIdx] -= dTmp;
-               }
-            }
+            stencil[leafArrayIndexInMacroFace] += 0.5 * ( ux[centerArrayIndexOnFace] + ux[leafArrayIndexInMacroFace] ) * weightX;
+            stencil[leafArrayIndexInMacroFace] += 0.5 * ( uy[centerArrayIndexOnFace] + uy[leafArrayIndexInMacroFace] ) * weightY;
+            stencil[leafArrayIndexInMacroFace] += 0.5 * ( uz[centerArrayIndexOnFace] + uz[leafArrayIndexInMacroFace] ) * weightZ;
+            stencil[centerArrayIndexOnFace] -= 0.5 * ( ux[centerArrayIndexOnFace] + ux[leafArrayIndexInMacroFace] ) * weightX;
+            stencil[centerArrayIndexOnFace] -= 0.5 * ( uy[centerArrayIndexOnFace] + uy[leafArrayIndexInMacroFace] ) * weightY;
+            stencil[centerArrayIndexOnFace] -= 0.5 * ( uz[centerArrayIndexOnFace] + uz[leafArrayIndexInMacroFace] ) * weightZ;
          }
-
-         // apply stencil
-         if( face.getNumNeighborCells() == 1 )
-         {
-            tmp = real_c( 0 );
-            for( const auto direction : vertexdof::macroface::neighborsWithOneNeighborCellWithCenter )
-            {
-               tmp += stencil[vertexdof::stencilIndexFromVertex( direction )] *
-                      src[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
-            }
-         } else if( face.getNumNeighborCells() == 2 )
-         {
-            tmp = real_c( 0 );
-            for( const auto direction : vertexdof::macroface::neighborsWithTwoNeighborCellsWithCenter )
-            {
-               tmp += stencil[vertexdof::stencilIndexFromVertex( direction )] *
-                      src[vertexdof::macroface::indexFromVertex( Level, i, j, direction )];
-            }
-         }
-
-         WALBERLA_ASSERT_LESS( face.getNumNeighborCells(), 3 );
-
-         dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] = tmp;
       }
-      --inner_rowsize;
+
+      if ( AlgebraicUpwind )
+      {
+         for ( auto& it : stencil )
+         {
+            if ( it.first == centerArrayIndexOnFace )
+               continue;
+
+            const auto dTmp = std::abs( it.second );
+            stencil[centerArrayIndexOnFace] += dTmp;
+            stencil[it.first] -= dTmp;
+         }
+      }
+
+      real_t tmp = 0;
+
+      // apply stencil
+      for ( const auto& it : stencil )
+      {
+         tmp += src[it.first] * it.second;
+      }
+
+      dst[centerArrayIndexOnFace] = tmp;
    }
 }
 
