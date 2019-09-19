@@ -26,14 +26,14 @@
  * \brief In this tutorial we will set up a complete app that will solve a coupled system
  * of the Stokes equations and the convection-diffusion equation.
  *
- * \section param Parameter file reader
+ * \section FullAppPlumeInCube-param Parameter file reader
  *
  * As in all applications, we first setup the MPI environment.
  * We also load a parameter file to change parameters without having to rebuild the application.
  *
  * \snippet tutorials/06_FullAppPlumeInCube/Plume.cpp Setup environment
  *
- * \section domain Domain
+ * \section FullAppPlumeInCube-domain Domain
  *
  * Next, we define our domain. In this tutorial, we will use one of the internal
  * mesh generators to create a cuboid mesh.
@@ -57,7 +57,7 @@
  * all flags as inner domain. This makes sense since we do not really have boundary conditions for
  * the pressure in theory.
  *
- * \section discretization Discretization, function spaces and operators
+ * \section FullAppPlumeInCube-discretization Discretization, function spaces and operators
  *
  * Now we define the function spaces and respective variables as well as our discrete operators.
  * Alternately, we solve the Stokes equation to obtain a velocity and pressure field from an
@@ -72,7 +72,7 @@
  *
  * \snippet tutorials/06_FullAppPlumeInCube/Plume.cpp Discretization
  *
- * \section bc Initial and boundary conditions
+ * \section FullAppPlumeInCube-bc Initial and boundary conditions
  *
  * Now we interpolate the initial conditions. Boundary conditions for the velocity are no-slip
  * (== Dirichlet, u = 0) everywhere. Since this is the default, we do not need do anything here.
@@ -83,13 +83,13 @@
  *
  * \snippet tutorials/06_FullAppPlumeInCube/Plume.cpp BC
  *
- * \section info Simulation info
+ * \section FullAppPlumeInCube-info Simulation info
  *
  * We add some code to print information of our setup like the number of DoFs and the coarse grid structure.
  *
  * \snippet tutorials/06_FullAppPlumeInCube/Plume.cpp Info
  *
- * \section VTK VTK
+ * \section FullAppPlumeInCube-VTK VTK
  *
  * To visualize our results, we add the relevant function variables to our VTK output instance.
  * The output interval can directly be set in the constructor. Therefore it is not necessary
@@ -99,7 +99,7 @@
  *
  * \snippet tutorials/06_FullAppPlumeInCube/Plume.cpp VTK
  *
- * \section solvers Solvers
+ * \section FullAppPlumeInCube-solvers Solvers
  *
  * To solve the Stokes equation we setup our geometric multigrid solver.
  * We need to define
@@ -126,7 +126,7 @@
  *
  * \snippet tutorials/06_FullAppPlumeInCube/Plume.cpp Solvers
  *
- * \section simulation Simulation loop
+ * \section FullAppPlumeInCube-simulation Simulation loop
  *
  * Now we start the actual simulation. We define a short lambda to calculate the current residual
  * in the L2 norm.
@@ -153,16 +153,16 @@
      <center>
      <table>
      <tr>
-     <td align="center"><img src="../ExtraPics/plume.0000.png" width="80%"/></td>
-     <td align="center"><img src="../ExtraPics/plume.0004.png" width="80%"/></td>
+     <td align="center"><img src="plume.0000.png" width="80%"/></td>
+     <td align="center"><img src="plume.0004.png" width="80%"/></td>
      </tr>
      <tr>
      <td align="center">initial state</td>
      <td align="center">after 400 time steps</td>
      </tr>
      <tr>
-     <td align="center"><img src="../ExtraPics/plume.0007.png" width="80%"/></td>
-     <td align="center"><img src="../ExtraPics/plume.0010.png" width="80%"/></td>
+     <td align="center"><img src="plume.0007.png" width="80%"/></td>
+     <td align="center"><img src="plume.0010.png" width="80%"/></td>
      </tr>
      <tr>
      <td align="center">after 700 time steps</td>
@@ -173,7 +173,7 @@
      \endhtmlonly
  *
  *
- * \section fullApp Full Application
+ * \section FullAppPlumeInCube-fullApp Full Application
  * \include tutorials/06_FullAppPlumeInCube/Plume.cpp
  *
  */

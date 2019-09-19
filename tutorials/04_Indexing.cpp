@@ -33,7 +33,7 @@ namespace hyteg {
  *
  * \brief In this tutorial we will iterate over simulation data
  *
- * \section intro Introduction
+ * \section Indexing-intro Introduction
  *
  * To allow for convenient iteration over the degrees of freedom of a macro-primitive in a FEM simulation
  * we introduce the indexing functions that translate logical coordinates of the DoFs to array indices.
@@ -44,7 +44,7 @@ namespace hyteg {
  *
  * In this tutorial we will show different approaches to iterate over the vertex DoFs of a macro face.
  *
- * \section forloop A Simple Loop
+ * \section Indexing-forloop A Simple Loop
  *
  * First we need to determine the refinement level, which defines the number of DoFs in the macro primitive.
  *
@@ -82,7 +82,7 @@ namespace hyteg {
  *
  * \snippet tutorials/04_Indexing.cpp IndexFunction
  *
- * \section iterators Iterators
+ * \section Indexing-iterators Iterators
  *
  * However, often we do not want to iterate over the complete macro-face but rather over the
  * inner DoFs or over the borders of the macro-face in order to collect data that shall be communicated
@@ -103,7 +103,7 @@ namespace hyteg {
  *
  * \snippet tutorials/04_Indexing.cpp Stencil
  *
- * \section code Complete Program
+ * \section Indexing-code Complete Program
  *
  * \include tutorials/04_Indexing.cpp
  *

@@ -46,7 +46,11 @@ class PrimitiveStorage;
 class VTKOutput
 {
  public:
-   /// \param writeFrequency outputs VTK in the specified frequency
+   ///
+   /// \param dir             Directory where the files are stored
+   /// \param filename        Basename of the vtk files
+   /// \param storage         PrimitiveStorage containing the functions
+   /// \param writeFrequency  Specifies the frequency of the VTK output see write()
    VTKOutput( std::string                                dir,
               std::string                                filename,
               const std::shared_ptr< PrimitiveStorage >& storage,

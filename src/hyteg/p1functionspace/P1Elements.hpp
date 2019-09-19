@@ -419,7 +419,7 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCell( const i
 /// \param microVertexIndex the logical index of the micro-vertex in a macro-cell (can also be located on the macro-cell's boundary)
 /// \param cell the surrounding macro-cell
 /// \param level the hierarchy level
-/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \param form the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
 /// \return a (variable sized) map from stencil directions to stencil weights
 ///
 template< class P1Form >
@@ -483,7 +483,7 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCellForm( con
 /// \param vertex the macro-vertex
 /// \param microVertexIndex the micro-vertex index on the macro-vertex (currently this must be (0, 0, 0))
 /// \param level the multigrid level
-/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \param form the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
 /// \return a vector containing the stencil weights for the micro-vertex on that macro-vertex,
 ///         stencil[0] is the center weight, stencil[neighborID + 1] is the weight for the neighbor with neighborID
 ///
@@ -564,7 +564,7 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
 /// \param edge the macro-edge
 /// \param microVertexIndex the micro-vertex index on the macro-edge (the y and z coordinate must be 0)
 /// \param level the multigrid level
-/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \param form the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
 /// \return a vector containing the stencil weights for the micro-vertex on that macro-edge,
 ///         weights are sorted according to the vertexdof-macro-edge stencil index function
 ///
@@ -691,7 +691,7 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
 /// \param face the macro-face
 /// \param microVertexIndex the micro-vertex index on the macro-face (z coordinate must be 0)
 /// \param level the multigrid level
-/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \param form the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
 /// \return a map containing the stencil weights for the micro-vertex on that macro-face,
 ///         it maps the 13 or 19 (== 7 on face + 6 on ghost face 0 + 6 on ghost face 1) stencil directions to the stencil weights
 ///         refer to the documentation to better understand that mapping
@@ -813,10 +813,10 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
 /// \brief Assembles the local P1 operator stencil on a macro-cell
 ///
 /// \param storage the governing \ref PrimitiveStorage
-/// \param face the macro-cell
+/// \param cell the macro-cell
 /// \param microVertexIndex the micro-vertex index on the macro-cell (must lie in the interior of the macro-cell)
 /// \param level the multigrid level
-/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \param form the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
 /// \return a map containing the stencil weights for the micro-vertex on that macro-cell,
 ///
 template< class P1Form >
@@ -839,10 +839,10 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
 /// \brief Assembles the local P1 operator stencil on a macro-cell
 ///
 /// \param storage the governing \ref PrimitiveStorage
-/// \param face the macro-cell
+/// \param cell the macro-cell
 /// \param microVertexIndex the micro-vertex index on the macro-cell (must lie in the interior of the macro-cell)
 /// \param level the multigrid level
-/// \param ufcGen the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \param form the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
 /// \return a map containing the stencil weights for the micro-vertex on that macro-cell,
 ///
 template< class P1Form >

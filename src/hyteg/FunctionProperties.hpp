@@ -213,6 +213,7 @@ inline uint_t numberOfGlobalInnerDoFs( const PrimitiveStorage& primitiveStorage,
 /// Note 3: currently restricted to functions of type real_t
 /// Note 4: might partly include memory allocated for stencils
 ///
+/// \param storage Primitive Storage containing the functions
 /// \param verbosityLevel
 ///     0: only print memory consumption
 ///     1: additionally number of functions and DoFs of each type

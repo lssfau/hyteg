@@ -75,23 +75,23 @@ public:
 
   /// Performs blocking communication between two \ref Primitive types.
   /// The data of the sender AND the receiver can be modified after this method returns.
-  /// \param SenderType type of the sending \ref Primitive (e.g. \ref Vertex or \ref Edge)
-  /// \param ReceiverType type of the receiving \ref Primitive (e.g. \ref Vertex or \ref Edge)
+  /// \tparam SenderType type of the sending \ref Primitive (e.g. \ref Vertex or \ref Edge)
+  /// \tparam ReceiverType type of the receiving \ref Primitive (e.g. \ref Vertex or \ref Edge)
   template< typename SenderType, typename ReceiverType >
   inline void communicate() { startCommunication< SenderType, ReceiverType >(); endCommunication< SenderType, ReceiverType >(); }
 
   /// Starts the non-blocking communication between two \ref Primitive types.
   /// The data of the sender can be modified after this method returns.
-  /// \param SenderType type of the sending \ref Primitive (e.g. \ref Vertex or \ref Edge)
-  /// \param ReceiverType type of the receiving \ref Primitive (e.g. \ref Vertex or \ref Edge)
+  /// \tparam SenderType type of the sending \ref Primitive (e.g. \ref Vertex or \ref Edge)
+  /// \tparam ReceiverType type of the receiving \ref Primitive (e.g. \ref Vertex or \ref Edge)
   template< typename SenderType, typename ReceiverType >
   inline void startCommunication();
 
   /// Ends the non-blocking communication between two \ref Primitive types
   /// Waits for the started communication to be completed. It is only safe to modify the
   /// data of the receiver after this call returned.
-  /// \param SenderType type of the sending \ref Primitive (e.g. \ref Vertex or \ref Edge)
-  /// \param ReceiverType type of the receiving \ref Primitive (e.g. \ref Vertex or \ref Edge)
+  /// \tparam SenderType type of the sending \ref Primitive (e.g. \ref Vertex or \ref Edge)
+  /// \tparam ReceiverType type of the receiving \ref Primitive (e.g. \ref Vertex or \ref Edge)
   template< typename SenderType, typename ReceiverType >
   inline void endCommunication();
 
@@ -105,7 +105,7 @@ public:
   void setLocalCommunicationMode( const LocalCommunicationMode & localCommunicationMode );
   ///@}
 
-  /// Writes timing data for the setup and for the wait phase to the passed \ref walberla::WcTimingTree
+  /// Writes timing data for the setup and for the wait phase to \p timingTree
   void enableTiming( const std::shared_ptr< walberla::WcTimingTree > & timingTree ) { timingTree_ = timingTree; }
 
 private:

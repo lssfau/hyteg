@@ -37,10 +37,10 @@ class Primitive;
 /// \brief Base interface for data handling classes
 /// \author Nils Kohl (nils.kohl@fau.de)
 ///
-/// The \ref PrimitiveDataHandling class shall be used as a base class for data handling classes.
+/// The PrimitiveDataHandling class shall be used as a base class for data handling classes.
 ///
-/// When adding data to a \ref Primitive, it is necessary that the data structure has a corresponding
-/// implementation of \ref PrimitiveDataHandling. This way it is assured, that the \ref Primitive is
+/// When adding data to a Primitive, it is necessary that the data structure has a corresponding
+/// implementation of PrimitiveDataHandling. This way it is assured, that the Primitive is
 /// able to initialize the data structure and to serialize and deserialize the data.
 ///
 template< typename DataType, typename PrimitiveType >
@@ -52,19 +52,19 @@ public:
 
   virtual ~PrimitiveDataHandling() {}
 
-  /// Initializes the data of type \ref DataType and returns a pointer to the initialized data
+  /// Initializes the data of type DataType and returns a pointer to the initialized data
   /// Must be thread-safe !
   /// \param primitive the primitive the data is initialized on
   virtual std::shared_ptr< DataType > initialize( const PrimitiveType * const primitive ) const = 0;
 
-  /// Serializes the data of type \ref DataType to a \ref SendBuffer
+  /// Serializes the data of type DataType to a SendBuffer
   /// Must be thread-safe !
   /// \param primitive the primitive the data is taken from
   /// \param id the data index of the data that shall be serialized
   /// \param buffer the buffer it is serialized to
   virtual void serialize( const PrimitiveType * const primitive, const PrimitiveDataID< DataType, PrimitiveType > & id, SendBuffer & buffer ) const = 0;
 
-  /// Deserializes the data of type \ref DataType from a \ref RecvBuffer
+  /// Deserializes the data of type DataType from a RecvBuffer
   /// Must be thread-safe !
   /// \param primitive the primitive the data shall be written to
   /// \param id the data index of the data that shall be deserialized

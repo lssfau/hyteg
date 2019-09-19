@@ -60,7 +60,7 @@ using walberla::real_t;
 /// - For DIAMOND we use the same number and position of vertices as for CRISSCROSS, but
 ///   these are connected in a layered fashion from the outside in.
 ///
-/// | flavour    |       #vertices       | #triangles |
+/// | flavour    |      \#vertices       |\#triangles |
 /// |:-----------|:---------------------:|:----------:|
 /// | CRISS      | (nx+1)*(ny+1)         | 2*nx*ny    |
 /// | CROSS      | (nx+1)*(ny+1)         | 2*nx*ny    |
@@ -74,10 +74,10 @@ using walberla::real_t;
   <td colspan="4" align="center">Sample mesh generated for a rectangle using (nx=3, ny=2)</td>
   </tr>
   <tr>
-  <td><img src="../ExtraPics/Mesh_RectangleCriss.png" width="100%"/></td>
-  <td><img src="../ExtraPics/Mesh_RectangleCross.png" width="100%"/></td>
-  <td><img src="../ExtraPics/Mesh_RectangleCrissCross.png" width="100%"/></td>
-  <td><img src="../ExtraPics/Mesh_RectangleDiamond.png" width="100%"/></td>
+  <td><img src="Mesh_RectangleCriss.png" width="100%"/></td>
+  <td><img src="Mesh_RectangleCross.png" width="100%"/></td>
+  <td><img src="Mesh_RectangleCrissCross.png" width="100%"/></td>
+  <td><img src="Mesh_RectangleDiamond.png" width="100%"/></td>
   </tr>
   <tr>
   <td align="center">CRISS</td>
@@ -97,7 +97,7 @@ using walberla::real_t;
 /// - For a partial annulus the same four flavours as for rectangles can be specified.
 /// - A full annulus is meshed using a CRISSCROSS pattern resulting in
 ///
-/// |              |     #vertices    | #triangles  |
+/// |              |    \#vertices    |\#triangles  |
 /// |:-------------|:----------------:|:-----------:|
 /// | full annulus |  nTan*(2*nRad+1) | 4*nTan*nRad |
 ///
@@ -105,8 +105,8 @@ using walberla::real_t;
   <center>
   <table>
   <tr>
-  <td align="center"><img src="../ExtraPics/Mesh_AnnulusPartial.png" width="50%"/></td>
-  <td align="center"><img src="../ExtraPics/Mesh_AnnulusFull.png" width="50%"/></td>
+  <td align="center"><img src="Mesh_AnnulusPartial.png" width="50%"/></td>
+  <td align="center"><img src="Mesh_AnnulusFull.png" width="50%"/></td>
   </tr>
   <tr>
   <td align="center">partial annulus (nTan=4, nRad=2)</td>
@@ -147,7 +147,7 @@ using walberla::real_t;
 ///
 /*! \htmlonly
      <center>
-       <img src="../ExtraPics/ShellMesh-ntan4-nrad3.png"
+       <img src="ShellMesh-ntan4-nrad3.png"
        width="50%"/><br/>
      Mesh resulting from parameter choice (ntan,nrad,rmin,rmax)=(5,3,1.0,2.0)
      </center>
@@ -169,7 +169,7 @@ using walberla::real_t;
 ///
 /*! \htmlonly
      <center>
-       <img src="../ExtraPics/Diamonds-and-SphericalIndices.png"
+       <img src="Diamonds-and-SphericalIndices.png"
        width="50%"/><br/>
      Numbering of diamonds and direction of tangential indices depending on
      hemisphere
@@ -179,7 +179,7 @@ using walberla::real_t;
 ///
 /*! \htmlonly
      <center>
-       <img src="../ExtraPics/Tets-per-local-Cell.png" width="50%"/><br/>
+       <img src="Tets-per-local-Cell.png" width="50%"/><br/>
        Splitting a local cell into six tetrahedra
      </center>
      \endhtmlonly
@@ -252,7 +252,7 @@ using walberla::real_t;
 ///   this time, \f$i_s^{(1)}\f$ being the fastest running index.
 /*! \htmlonly
      <center>
-       <img src="../ExtraPics/tuple2VertIndex.png" width="50%"/><br/>
+       <img src="tuple2VertIndex.png" width="50%"/><br/>
      Visualisation of vertex ownership convention; vertices marked yellow and
      green are owned by neighbouring diamonds in the indicated direction
      </center>
@@ -351,7 +351,7 @@ public:
   /// Construct a MeshInfo object for a rectangular domain
 
   /// \param lowerLeft    coordinates of lower left corner of rectangle
-  /// \param upperRigth   coordinates of upper right corner of rectangle
+  /// \param upperRight   coordinates of upper right corner of rectangle
   /// \param flavour      meshing strategy (CRISS, CROSS, CRISSCROSS or DIAMOND)
   /// \param nx           (nx+1) gives the number of vertices along the top and bottom edge of the rectangle
   /// \param ny           (ny+1) gives the number of vertices along the left and right edge of the rectangle
@@ -362,8 +362,8 @@ public:
 
   /// \param rhoMin       radius of inner circle of partial annulus
   /// \param rhoMax       radius of outer circle of partial annulus
-  /// \param phiMin       smaller angle of radial boundary in polar coordinates
-  /// \param phiMax       larger angle of radial boundary in polar coordinates
+  /// \param phiLeft      smaller angle of radial boundary in polar coordinates
+  /// \param phiRight     larger angle of radial boundary in polar coordinates
   /// \param flavour      meshing strategy (CRISS, CROSS, CRISSCROSS or DIAMOND)
   /// \param nTan         number of tangential subdivisions (along inner and outer circle)
   /// \param nRad         number of radial subdivisions (along left and right radial boundary)

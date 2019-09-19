@@ -33,7 +33,7 @@ namespace hyteg {
  *
  * \brief In this tutorial we will add data to primitives
  *
- * \section intro Introduction
+ * \section PrimitiveData-intro Introduction
  *
  * To decouple the simulation from the domain decomposition and communication we implement a
  * generic mechanism to add data structures to primitives.
@@ -41,7 +41,7 @@ namespace hyteg {
  * With the approach we can add arbitrary data structures to vertices, edges etc. These could be
  * STL or custom classes.
  *
- * \section customclass A custom data structure
+ * \section PrimitiveData-customclass A custom data structure
  *
  * Typically, we want our primitives to carry simulation data in form of floating point arrays.
  * Therefore let's create a simple class that wraps such a structure.
@@ -70,7 +70,7 @@ namespace hyteg {
  * If you are sure you do not need them, it is possible to inherit from convenience classes like OnlyInitializeDataHandling
  * which implements empty serialize and deserialize methods.
  *
- * \section adding Adding the data to the primitives
+ * \section PrimitiveData-adding Adding the data to the primitives
  *
  * Now we will add and initialize the data. Since it is possible to add different types of data at the same primitives,
  * we need a mechanism to identify our data instance. Therefore we introduce the PrimitiveDataID. It is a templated identifier
@@ -82,13 +82,13 @@ namespace hyteg {
  *
  * In this step, each Primitive initializes one instance of SimulationData.
  *
- * \section retrieval Data retrieval
+ * \section PrimitiveData-retrieval Data retrieval
  *
  * To obtain the data from a Primitive, simply call its respective method using the PrimitiveDataID:
  *
  * \snippet tutorials/02_PrimitiveData.cpp DataRetrieval
  *
- * \section code Complete Program
+ * \section PrimitiveData-code Complete Program
  *
  * \include tutorials/02_PrimitiveData.cpp
  *

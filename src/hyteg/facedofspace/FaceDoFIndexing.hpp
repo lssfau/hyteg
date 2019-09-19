@@ -211,17 +211,9 @@ namespace hyteg {
       class indexIterator : public std::iterator< std::forward_iterator_tag, walberla::uint_t >
       {
       public:
-        /*!
-         * @brief begin iterator
-         * @param face
-         * @param edge corresponding edge
-         * @param type Doftype can be VERTEX,CELL_GRAY,CELL_BLUE, VERTEX_INNER
-         * @param level multigrid level
-         */
+
         inline indexIterator( uint_t edgeIndex, int edgeOrientation, DofType type, walberla::uint_t level );
-        /*!
-         * @brief end iterator
-         */
+
         inline indexIterator();
 
         inline indexIterator&   operator++();

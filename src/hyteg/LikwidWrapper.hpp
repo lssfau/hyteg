@@ -20,8 +20,6 @@
 ///
 /// \brief Wrapper for the likwid tools
 ///
-/// \file likwidwrapper.hpp
-///
 /// This file is used to include likwid if desired or take care of the macros if not
 ///
 
