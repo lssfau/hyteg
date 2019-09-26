@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 .
+ * Copyright (c) 2017-2019 Dominik Thoennes.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
