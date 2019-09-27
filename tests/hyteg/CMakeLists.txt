@@ -209,15 +209,6 @@ waLBerla_compile_test(FILES P1/P1MassOperatorTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1MassOperatorTest )
 waLBerla_execute_test(NAME P1MassOperatorTestMPI COMMAND $<TARGET_FILE:P1MassOperatorTest> PROCESSES 2 )
 
-#waLBerla_compile_test(FILES P1/P1ElementwiseMassOperatorTest.cpp DEPENDS hyteg core)
-#waLBerla_execute_test(NAME P1ElementwiseMassOperatorTest )
-
-#waLBerla_compile_test(FILES P1/P1ElementwisePolarMassOperatorTest.cpp DEPENDS hyteg core)
-#waLBerla_execute_test(NAME P1ElementwisePolarMassOperatorTest )
-
-#waLBerla_compile_test(FILES P1/P1SmoothingTest.cpp DEPENDS hyteg core)
-#waLBerla_execute_test(NAME P1SmoothingTest )
-
 waLBerla_compile_test(FILES P1/P1LaplaceOperator3DTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1LaplaceOperator3DTest)
 
