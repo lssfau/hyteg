@@ -105,14 +105,11 @@ public:
 
   void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const
   {
-    // start pulling vertex halos
-    dst.startCommunication<Edge, Vertex>( level );
+     dst.communicate< Vertex, Edge >( level );
+     dst.communicate< Edge, Face >( level );
 
-    // start pulling edge halos
-    dst.startCommunication<Face, Edge>( level );
-
-    // end pulling vertex halos
-    dst.endCommunication<Edge, Vertex>( level );
+     dst.communicate< Face, Edge >( level );
+     dst.communicate< Edge, Vertex >( level );
 
     for (auto& it : storage_->getVertices()) {
       Vertex& vertex = *it.second;
@@ -126,10 +123,7 @@ public:
       }
     }
 
-    dst.startCommunication<Vertex, Edge>( level );
-
-    // end pulling edge halos
-    dst.endCommunication<Face, Edge>( level );
+    dst.communicate< Vertex, Edge >( level );
 
     for (auto& it : storage_->getEdges()) {
       Edge& edge = *it.second;
@@ -143,9 +137,7 @@ public:
       }
     }
 
-    dst.endCommunication<Vertex, Edge>( level );
-
-    dst.startCommunication<Edge, Face>( level );
+    dst.communicate< Edge, Face >( level );
 
     for (auto& it : storage_->getFaces()) {
       Face& face = *it.second;
@@ -157,8 +149,10 @@ public:
                                                                                 rhs.getFaceDataID());
       }
     }
-
-    dst.endCommunication<Edge, Face>( level );
+     if ( storage_->hasGlobalCells() )
+     {
+        WALBERLA_ABORT( "P1VariableOperator not implemented for 3D" )
+     }
   }
 
   void smooth_jac( const P1Function< real_t >& dst,
