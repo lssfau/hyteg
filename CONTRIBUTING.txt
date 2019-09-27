@@ -1,4 +1,4 @@
-Contributing to waLBerla will require a signed copy of the Chair for System
+Contributing to HyTeG will require a signed copy of the Chair for System
 Simulation Contributor Agreement (LSSCA). The LSSCA is an adapted version of
 the Sun/Oracle Contributor Agreement.
 
