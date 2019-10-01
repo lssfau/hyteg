@@ -55,8 +55,17 @@ namespace hyteg {
  *
  * To parse a mesh file simple use the respective static method of the class. To parse a
  * file in the GMSH format, run:
- *
  * \snippet tutorials/01_PrimitiveStorage.cpp MeshInfo
+ *
+ * Alternatively you can use one of the inline mesh generators available in HyTeG. The
+ * code below e.g. will generate a regular criss-cross mesh composed of (3 x 2) sub-cells
+ * (each split into four triangles) on the 2D rectangle [-2,1] x [0,3]:
+ *
+ * \snippet tutorials/99_extraExamples.cpp MeshRectangle
+ *
+ * Inline generators are provided for a selection of standard geometries such as e.g.
+ * rectangle, annulus, thick spherical shell. See the MeshInfo class documentation for
+ * a complete list and their options.
  *
  * \section setupstorage Creating a SetupPrimitiveStorage
  *
@@ -80,7 +89,7 @@ namespace hyteg {
  * \section storage Creating a distributed PrimitiveStorage
  *
  * Finally we are able to create the distributed PrimitiveStorage instance. It requires us to specify
- * the rank it is located on.
+{Paraview/link_002_tomo_SEMUCB_T_angle_}{0}{35}}; * the rank it is located on.
  *
  * \snippet tutorials/01_PrimitiveStorage.cpp PrimitiveStorage
  *
@@ -138,5 +147,3 @@ int main( int argc, char** argv )
   hyteg::PrimitiveStorageTutorial();
   return 0;
 }
-
-
