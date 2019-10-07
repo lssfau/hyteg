@@ -80,9 +80,6 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
                     DoFType                     flag ) const;
 
  private:
-   void assembleStencils();
-
-   void assembleStencils3D();
 
    P1ConstantOperator< P2Form >         vertexToVertex;
    EdgeDoFToVertexDoFOperator< P2Form > edgeToVertex;

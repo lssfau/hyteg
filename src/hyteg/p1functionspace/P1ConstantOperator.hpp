@@ -23,40 +23,8 @@
 
 #include "hyteg/Operator.hpp"
 #include "hyteg/StencilMemory.hpp"
-//<<<<<<< HEAD
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/LevelWiseMemory.hpp"
-//
-//class p1_diffusion_cell_integral_0_otherwise;
-//class p1_tet_diffusion_cell_integral_0_otherwise;
-//class p1_stokes_epsilon_cell_integral_0_otherwise;
-//class p1_stokes_epsilon_cell_integral_1_otherwise;
-//class p1_stokes_epsilon_cell_integral_2_otherwise;
-//class p1_stokes_epsilon_cell_integral_3_otherwise;
-//class p1_div_cell_integral_0_otherwise;
-//class p1_tet_div_tet_cell_integral_0_otherwise;
-//class p1_div_cell_integral_1_otherwise;
-//class p1_tet_div_tet_cell_integral_1_otherwise;
-//class p1_tet_div_tet_cell_integral_2_otherwise;
-//class p1_divt_cell_integral_0_otherwise;
-//class p1_tet_divt_tet_cell_integral_0_otherwise;
-//class p1_divt_cell_integral_1_otherwise;
-//class p1_tet_divt_tet_cell_integral_1_otherwise;
-//class p1_tet_divt_tet_cell_integral_2_otherwise;
-//class p1_mass_cell_integral_0_otherwise;
-//class p1_tet_mass_cell_integral_0_otherwise;
-//class p1_pspg_cell_integral_0_otherwise;
-//class p1_tet_pspg_tet_cell_integral_0_otherwise;
-//
-//class p2_to_p1_tet_div_tet_cell_integral_0_otherwise;
-//class p2_to_p1_tet_div_tet_cell_integral_1_otherwise;
-//class p2_to_p1_tet_div_tet_cell_integral_2_otherwise;
-//
-//class p1_to_p2_tet_divt_tet_cell_integral_0_otherwise;
-//class p1_to_p2_tet_divt_tet_cell_integral_1_otherwise;
-//class p1_to_p2_tet_divt_tet_cell_integral_2_otherwise;
-//
-//=======
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 
