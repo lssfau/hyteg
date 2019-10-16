@@ -21,12 +21,15 @@
 
 #include <array>
 
+#include "hyteg/LevelWiseMemory.hpp"
 #include "hyteg/Operator.hpp"
 #include "hyteg/StencilMemory.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/LevelWiseMemory.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 
 namespace hyteg {
 
