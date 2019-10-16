@@ -1,4 +1,22 @@
-
+/*
+ * Copyright (c) 2019 Nils Kohl, Dominik Thoennes.
+ *
+ * This file is part of HyTeG
+ * (see https://i10git.cs.fau.de/hyteg/hyteg).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 #pragma once
 
 #include "apply_2D_macroface_edgedof_to_vertexdof_add.hpp"
@@ -6,52 +24,5 @@
 #include "apply_3D_macrocell_edgedof_to_vertexdof_add.hpp"
 #include "apply_3D_macrocell_edgedof_to_vertexdof_replace.hpp"
 #include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_012.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_013.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_021.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_023.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_031.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_032.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_102.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_103.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_120.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_123.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_130.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_132.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_201.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_203.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_210.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_213.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_230.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_231.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_301.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_302.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_310.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_312.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_320.hpp"
-#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl_321.hpp"
+#include "apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add_impl.hpp"
 #include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_012.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_013.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_021.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_023.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_031.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_032.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_102.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_103.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_120.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_123.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_130.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_132.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_201.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_203.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_210.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_213.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_230.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_231.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_301.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_302.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_310.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_312.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_320.hpp"
-#include "apply_3D_macroface_one_sided_edgedof_to_vertexdof_add_321.hpp"
