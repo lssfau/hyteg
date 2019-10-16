@@ -75,6 +75,14 @@ Optional:
 
 ## Notes
 
+### Code Style
+
+To keep our code consistently formatted, we use [ClangFormat](https://clang.llvm.org/docs/ClangFormat.html).
+There is a `.clang-format` file located in the root directory where all the formatting rules are documented.
+The rules can be automatically applied by using:
+
+    clang-format -i $FileName
+
 ### CCache
 
 Due to the large amount of generated files it is advisable to activate ccache.
