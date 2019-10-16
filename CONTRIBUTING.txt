@@ -21,4 +21,8 @@ https://i10git.cs.fau.de/ for you. GitLab Merge Requests are the only acceptable
 facility for code submission. Please do not use GitHub pull requests and do not
 send patches by email.
 
+If you would like to contribute, please make use of the provided .clang-format
+file to format your source code. This helps to keep the code consistently
+formatted and improves the readability.
+
 Thank you for contributing!
