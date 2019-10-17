@@ -98,6 +98,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
       x.getStorage()->getTimingTree()->start( "Matrix assembly" );
       AmatNonEliminatedBC.createMatrixFromFunctionOnce( A, level, num, All );
+      Amat.createMatrixFromFunctionOnce( A, level, num, All );
       Pmat.createMatrixFromFunctionOnce( blockPreconditioner_, level, num, All );
       x.getStorage()->getTimingTree()->stop( "Matrix assembly" );
 
