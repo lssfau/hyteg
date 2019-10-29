@@ -31,6 +31,7 @@
 #include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScVersion.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -209,6 +210,8 @@ int main( int argc, char* argv[] )
   walberla::MPIManager::instance()->useWorldComm();
 
   PETScManager petscManager( &argc, &argv );
+
+  printPETScVersionNumberString();
 
   petscSolveTest( 0, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
   petscSolveTest( 1, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
