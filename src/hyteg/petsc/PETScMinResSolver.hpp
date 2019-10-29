@@ -57,6 +57,7 @@ class PETScMinResSolver : public Solver< OperatorType >
       KSPSetType( ksp, KSPMINRES );
       KSPSetTolerances( ksp, tolerance, tolerance, PETSC_DEFAULT, maxIterations );
       KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
+      KSPSetFromOptions( ksp );
    }
 
    ~PETScMinResSolver()
