@@ -27,11 +27,12 @@ Parameters
         f.write("echo BENCHMARK\n")
         f.write("echo\n")
         for kernel_type in kernel_types:
-            cmd = "likwid-mpirun -mpi openmpi -np {} -nperdomain S:4 -g FLOPS_DP -m ./P2OperatorBenchmarks 2019_tme/run_benchmark_base_config.prm " \
-                  "-Parameters.kernelType={} " \
-                  "-- -allow-run-as-root".format(num_processes, kernel_type)
-            f.write("echo \"{}\"\n".format(cmd))
-            f.write(cmd + "\n")
+            for likwid_group in ["FLOPS_DP", "L3"]:
+                cmd = "likwid-mpirun -mpi openmpi -np {} -nperdomain S:4 -g {} -m ./P2OperatorBenchmarks 2019_tme/run_benchmark_base_config.prm " \
+                      "-Parameters.kernelType={} " \
+                      "-- -allow-run-as-root".format(num_processes, likwid_group, kernel_type)
+                f.write("echo \"{}\"\n".format(cmd))
+                f.write(cmd + "\n")
 
 
 if __name__ == "__main__":
