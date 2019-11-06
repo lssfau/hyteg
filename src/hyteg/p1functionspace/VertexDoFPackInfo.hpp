@@ -393,8 +393,12 @@ inline void VertexDoFPackInfo< real_t >::communicateLocalFaceToCell(const Face *
     }
     else
     {
-      vertexdof::comm::generated::communicate_directly_vertexdof_face_to_cell(
-      cellData, faceData, static_cast< int32_t >( level_ ), iterationVertex0, iterationVertex1, iterationVertex2 );
+       vertexdof::comm::generated::communicate_directly_vertexdof_face_to_cell( cellData,
+                                                                                faceData,
+                                                                                static_cast< int32_t >( level_ ),
+                                                                                static_cast< int64_t >( iterationVertex0 ),
+                                                                                static_cast< int64_t >( iterationVertex1 ),
+                                                                                static_cast< int64_t >( iterationVertex2 ) );
     }
   }
   else
@@ -473,8 +477,13 @@ inline void VertexDoFPackInfo< real_t >::packCellForFace(const Cell *sender, con
     const uint_t requiredBufferElements =
     levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level_ ) - 1 );
     auto buffer_ptr = (real_t*) ( buffer.forward( requiredBufferElements * sizeof(real_t) ) );
-    vertexdof::comm::generated::communicate_buffered_pack_vertexdof_cell_to_face(
-    cellData, buffer_ptr, static_cast< int32_t >( level_ ), iterationVertex0, iterationVertex1, iterationVertex2, 0 );
+    vertexdof::comm::generated::communicate_buffered_pack_vertexdof_cell_to_face( cellData,
+                                                                                  buffer_ptr,
+                                                                                  static_cast< int32_t >( level_ ),
+                                                                                  static_cast< int64_t >( iterationVertex0 ),
+                                                                                  static_cast< int64_t >( iterationVertex1 ),
+                                                                                  static_cast< int64_t >( iterationVertex2 ),
+                                                                                  0 );
   }
   else
   {
@@ -549,9 +558,9 @@ inline void VertexDoFPackInfo< real_t >::unpackFaceFromCell(Face *receiver, cons
     vertexdof::comm::generated::communicate_buffered_unpack_vertexdof_cell_to_face( &faceData[offsetToGhostLayer],
                                                                                     buffer_ptr,
                                                                                     static_cast< int32_t >( level_ ),
-                                                                                    iterationVertex0,
-                                                                                    iterationVertex1,
-                                                                                    iterationVertex2,
+                                                                                    static_cast< int64_t >( iterationVertex0 ),
+                                                                                    static_cast< int64_t >( iterationVertex1 ),
+                                                                                    static_cast< int64_t >( iterationVertex2 ),
                                                                                     0 );
   }
   else
@@ -607,9 +616,12 @@ inline void VertexDoFPackInfo< real_t >::communicateLocalCellToFace(const Cell *
     }
     else
     {
-      vertexdof::comm::generated::communicate_directly_vertexdof_cell_to_face(
-      cellData, &faceData[offsetToGhostLayer], static_cast< int32_t >( level_ ), iterationVertex0, iterationVertex1, iterationVertex2
-      );
+       vertexdof::comm::generated::communicate_directly_vertexdof_cell_to_face( cellData,
+                                                                                &faceData[offsetToGhostLayer],
+                                                                                static_cast< int32_t >( level_ ),
+                                                                                static_cast< int64_t >( iterationVertex0 ),
+                                                                                static_cast< int64_t >( iterationVertex1 ),
+                                                                                static_cast< int64_t >( iterationVertex2 ) );
     }
   }
   else

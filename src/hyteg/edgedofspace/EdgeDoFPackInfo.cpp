@@ -623,9 +623,9 @@ void EdgeDoFPackInfo< real_t >::packFaceForCell( const Face*                send
                                                                                 &faceData[firstIdx[eo::Y]],
                                                                                 buffer_ptr,
                                                                                 static_cast< int32_t >( level_ ),
-                                                                                iterationVertex0,
-                                                                                iterationVertex1,
-                                                                                iterationVertex2,
+                                                                                static_cast< int64_t >( iterationVertex0 ),
+                                                                                static_cast< int64_t >( iterationVertex1 ),
+                                                                                static_cast< int64_t >( iterationVertex2 ),
                                                                                 0 );
    }
    else
@@ -706,9 +706,9 @@ void EdgeDoFPackInfo< real_t >::unpackCellFromFace( Cell*                      r
           &cellData[firstIdxCell[edgedof::EdgeDoFOrientation::Z]],
           buffer_ptr,
           static_cast< int32_t >( level_ ),
-          iterationVertex0,
-          iterationVertex1,
-          iterationVertex2,
+          static_cast< int64_t >( iterationVertex0 ),
+          static_cast< int64_t >( iterationVertex1 ),
+          static_cast< int64_t >( iterationVertex2 ),
           0 );
    }
    else
