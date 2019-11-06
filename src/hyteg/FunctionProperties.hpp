@@ -170,6 +170,38 @@ inline uint_t numberOfGlobalDoFs( const PrimitiveStorage& primitiveStorage, cons
                                     walberla::mpi::MPIManager::instance()->comm() );
 }
 
+template < typename FunctionTag_T >
+inline uint_t numberOfLocalInnerDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
+{
+  uint_t boundaryPoints = 0;
+
+  for ( const auto& it : primitiveStorage.getFaceIDs() )
+  {
+    if ( primitiveStorage.onBoundary( it, true ) )
+    {
+      boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Face >( level );
+    }
+  }
+  for ( const auto& it : primitiveStorage.getEdgeIDs() )
+  {
+
+    if ( primitiveStorage.onBoundary( it, true ) )
+    {
+      boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Edge >( level );
+    }
+  }
+  for ( const auto& it : primitiveStorage.getVertexIDs() )
+  {
+
+    if ( primitiveStorage.onBoundary( it, true ) )
+    {
+      boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Vertex >( level );
+    }
+  }
+
+  return numberOfLocalDoFs< FunctionTag_T >( primitiveStorage, level ) - boundaryPoints;
+}
+
 /**
  * calculates the global number of DoFs that are not on the domain boundary
  * performs a mpi all Reduce
@@ -181,29 +213,9 @@ inline uint_t numberOfGlobalDoFs( const PrimitiveStorage& primitiveStorage, cons
 template < typename FunctionTag_T >
 inline uint_t numberOfGlobalInnerDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {
-   uint_t boundaryPoints = 0;
-   for ( const auto& it : primitiveStorage.getFaceIDs() )
-   {
-      if ( primitiveStorage.onBoundary( it, true ) )
-      {
-         boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Face >( level );
-      }
-   }
-   for ( const auto& it : primitiveStorage.getEdgeIDs() )
-   {
-      if ( primitiveStorage.onBoundary( it, true ) )
-      {
-         boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Edge >( level );
-      }
-   }
-   for ( const auto& it : primitiveStorage.getVertexIDs() )
-   {
-      if ( primitiveStorage.onBoundary( it, true ) )
-      {
-         boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Vertex >( level );
-      }
-   }
-   return numberOfGlobalDoFs< FunctionTag_T >( primitiveStorage, level ) - boundaryPoints;
+  return walberla::mpi::allReduce( numberOfLocalInnerDoFs< FunctionTag_T >( primitiveStorage, level ),
+                                   walberla::mpi::SUM,
+                                   walberla::mpi::MPIManager::instance()->comm() );
 }
 
 /// \brief Prints infos about the memory consumption of all functions.

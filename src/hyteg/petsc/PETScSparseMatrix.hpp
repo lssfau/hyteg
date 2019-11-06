@@ -168,6 +168,12 @@ public:
 
   inline void reset()  { assembled = false; }
 
+  /// \brief Sets all entries of the matrix to zero.
+  inline void zeroEntries()
+  {
+    MatZeroEntries( mat );
+  }
+
   inline void setName(const char name[]){ PetscObjectSetName((PetscObject)mat,name); }
 
   inline Mat& get() { return mat; }
