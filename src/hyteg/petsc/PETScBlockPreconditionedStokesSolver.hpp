@@ -16,7 +16,7 @@ template < class OperatorType >
 class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 {
  public:
-   typedef typename OperatorType::srcType FunctionType;
+   typedef typename OperatorType::srcType               FunctionType;
    typedef typename OperatorType::BlockPreconditioner_T BlockPreconditioner_T;
 
    PETScBlockPreconditionedStokesSolver( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -27,11 +27,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    , num( "numerator", storage, level, level )
    , Amat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
            numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level ) )
-   , AmatNonEliminatedBC( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-                          numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level ) )
    , Pmat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-           numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level ) )
-   , PmatNonEliminatedBC( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
            numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level ) )
    , xVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
    , bVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
@@ -42,14 +38,9 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    , flag_( hyteg::All )
    , nullSpaceSet_( false )
    , blockPreconditioner_( storage, level, level )
-   {
+   {}
 
-   }
-
-   ~PETScBlockPreconditionedStokesSolver()
-   {
-
-   }
+   ~PETScBlockPreconditionedStokesSolver() {}
 
    void setNullSpace( const FunctionType& nullspace )
    {
@@ -64,38 +55,38 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
       x.getStorage()->getTimingTree()->start( "PETSc block prec MinRes Solver" );
 
-     num.enumerate( level );
-
-
-     // TODO: CHECK if we should repeat this here...
-
-     // gather index sets to split matrix into block matrix
-     // therefore we need the row indices of the velocity and pressure
-     std::vector< PetscInt > velocityIndices;
-     std::vector< PetscInt > pressureIndices;
-
-     gatherIndices( velocityIndices, pressureIndices, *storage_, level, num );
-
-     std::sort( velocityIndices.begin(), velocityIndices.end() );
-     std::sort( pressureIndices.begin(), pressureIndices.end() );
-     ISCreateGeneral( walberla::mpi::MPIManager::instance()->comm(),
-                      velocityIndices.size(),
-                      velocityIndices.data(),
-                      PETSC_COPY_VALUES,
-                      &is_[0] );
-     ISCreateGeneral( walberla::mpi::MPIManager::instance()->comm(),
-                      pressureIndices.size(),
-                      pressureIndices.data(),
-                      PETSC_COPY_VALUES,
-                      &is_[1] );
-
-     KSPCreate( walberla::MPIManager::instance()->comm(), &ksp );
-     KSPSetType( ksp, KSPMINRES );
-     KSPSetTolerances( ksp, tolerance_, tolerance_, PETSC_DEFAULT, maxIterations_ );
-     // KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
-     KSPSetFromOptions( ksp );
-
       x.getStorage()->getTimingTree()->start( "Setup" );
+
+      x.getStorage()->getTimingTree()->start( "Index set setup" );
+      num.enumerate( level );
+
+      // gather index sets to split matrix into block matrix
+      // therefore we need the row indices of the velocity and pressure
+      std::vector< PetscInt > velocityIndices;
+      std::vector< PetscInt > pressureIndices;
+
+      gatherIndices( velocityIndices, pressureIndices, *storage_, level, num );
+
+      std::sort( velocityIndices.begin(), velocityIndices.end() );
+      std::sort( pressureIndices.begin(), pressureIndices.end() );
+      ISCreateGeneral( walberla::mpi::MPIManager::instance()->comm(),
+                       velocityIndices.size(),
+                       velocityIndices.data(),
+                       PETSC_COPY_VALUES,
+                       &is_[0] );
+      ISCreateGeneral( walberla::mpi::MPIManager::instance()->comm(),
+                       pressureIndices.size(),
+                       pressureIndices.data(),
+                       PETSC_COPY_VALUES,
+                       &is_[1] );
+
+      x.getStorage()->getTimingTree()->stop( "Index set setup" );
+
+      KSPCreate( walberla::MPIManager::instance()->comm(), &ksp );
+      KSPSetType( ksp, KSPMINRES );
+      KSPSetTolerances( ksp, tolerance_, tolerance_, PETSC_DEFAULT, maxIterations_ );
+      // KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
+      KSPSetFromOptions( ksp );
 
       x.getStorage()->getTimingTree()->start( "Vector copy" );
       xVec.createVectorFromFunction( x, num, level );
@@ -103,19 +94,14 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       x.getStorage()->getTimingTree()->stop( "Vector copy" );
 
       x.getStorage()->getTimingTree()->start( "Matrix assembly" );
-      AmatNonEliminatedBC.createMatrixFromFunctionOnce( A, level, num, All );
       Amat.createMatrixFromFunctionOnce( A, level, num, All );
-      PmatNonEliminatedBC.createMatrixFromFunctionOnce( blockPreconditioner_, level, num, All );
       Pmat.createMatrixFromFunctionOnce( blockPreconditioner_, level, num, All );
       x.getStorage()->getTimingTree()->stop( "Matrix assembly" );
 
-      x.getStorage()->getTimingTree()->start( "Matrix copy" );
-      MatCopy( AmatNonEliminatedBC.get(), Amat.get(), DIFFERENT_NONZERO_PATTERN );
-      MatCopy( PmatNonEliminatedBC.get(), Pmat.get(), DIFFERENT_NONZERO_PATTERN );
-      x.getStorage()->getTimingTree()->stop( "Matrix copy" );
-
+      x.getStorage()->getTimingTree()->start( "Dirichlet BCs" );
       Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
       Pmat.applyDirichletBCSymmetrically( num, level );
+      x.getStorage()->getTimingTree()->stop( "Dirichlet BCs" );
 
       if ( nullSpaceSet_ )
       {
@@ -136,24 +122,12 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       KSPGetPC( sub_ksps_[0], &pc_u );
       KSPGetPC( sub_ksps_[1], &pc_p );
 
-      // CG with AMG prec.
-//      KSPSetType( sub_ksps_[0], KSPCG );
-//      KSPSetTolerances( sub_ksps_[0], 1e-03, 1e-03, PETSC_DEFAULT, 10000 );
-//      PC pc_pc_u;
-//      KSPGetPC( sub_ksps_[0], &pc_pc_u );
-//
-//      PCSetType( pc_pc_u, PCGAMG );
-//      PCGAMGSetType( pc_pc_u, PCGAMGAGG );
-//      PCGAMGSetNSmooths( pc_pc_u, 1 );
-
-      // direct AMG
+      // AMG
       PCSetType( pc_u, PCGAMG );
       PCGAMGSetType( pc_u, PCGAMGAGG );
       PCGAMGSetNSmooths( pc_u, 1 );
 
-      // None
-      // PCSetType( pc_u, PCNONE );
-
+      // inv. lumped mass
       PCSetType( pc_p, PCJACOBI );
 
       x.getStorage()->getTimingTree()->stop( "Setup" );
@@ -170,11 +144,11 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
       PetscFree( sub_ksps_ );
 
-     ISDestroy( &is_[0] );
-     ISDestroy( &is_[1] );
-     KSPDestroy( &ksp );
-     if ( nullSpaceSet_ )
-       MatNullSpaceDestroy( &nullspace_ );
+      ISDestroy( &is_[0] );
+      ISDestroy( &is_[1] );
+      KSPDestroy( &ksp );
+      if ( nullSpaceSet_ )
+         MatNullSpaceDestroy( &nullspace_ );
    }
 
  private:
@@ -247,19 +221,17 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       }
    }
 
-   uint_t                                                                                        allocatedLevel_;
-   typename OperatorType::srcType::template FunctionType< PetscInt >                             num;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               Amat;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               AmatNonEliminatedBC;
+   uint_t                                                                          allocatedLevel_;
+   typename OperatorType::srcType::template FunctionType< PetscInt >               num;
+   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType > Amat;
    PETScSparseMatrix< BlockPreconditioner_T, BlockPreconditioner_T::srcType::template FunctionType > Pmat;
-   PETScSparseMatrix< BlockPreconditioner_T, BlockPreconditioner_T::srcType::template FunctionType > PmatNonEliminatedBC;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > bVec;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > nullspaceVec_;
 
    std::shared_ptr< PrimitiveStorage > storage_;
 
-   real_t tolerance_;
+   real_t   tolerance_;
    PetscInt maxIterations_;
 
    BlockPreconditioner_T blockPreconditioner_;
@@ -270,8 +242,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    IS           is_[2];
    MatNullSpace nullspace_;
    DoFType      flag_;
-   //Mat F; //factored Matrix
-   bool nullSpaceSet_;
+   bool         nullSpaceSet_;
 };
 
 } // namespace hyteg
