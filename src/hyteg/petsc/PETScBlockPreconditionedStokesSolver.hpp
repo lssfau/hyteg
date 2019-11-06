@@ -85,7 +85,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       KSPCreate( walberla::MPIManager::instance()->comm(), &ksp );
       KSPSetType( ksp, KSPMINRES );
       KSPSetTolerances( ksp, tolerance_, tolerance_, PETSC_DEFAULT, maxIterations_ );
-      // KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
+      KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
       KSPSetFromOptions( ksp );
 
       x.getStorage()->getTimingTree()->start( "Vector copy" );
@@ -94,8 +94,10 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       x.getStorage()->getTimingTree()->stop( "Vector copy" );
 
       x.getStorage()->getTimingTree()->start( "Matrix assembly" );
-      Amat.createMatrixFromFunctionOnce( A, level, num, All );
-      Pmat.createMatrixFromFunctionOnce( blockPreconditioner_, level, num, All );
+      Amat.zeroEntries();
+      Pmat.zeroEntries();
+      Amat.createMatrixFromFunction( A, level, num, All );
+      Pmat.createMatrixFromFunction( blockPreconditioner_, level, num, All );
       x.getStorage()->getTimingTree()->stop( "Matrix assembly" );
 
       x.getStorage()->getTimingTree()->start( "Dirichlet BCs" );
