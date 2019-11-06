@@ -31,49 +31,24 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
                           numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level ) )
    , Pmat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
            numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level ) )
+   , PmatNonEliminatedBC( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
+           numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level ) )
    , xVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
    , bVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
    , nullspaceVec_( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
+   , storage_( storage )
+   , tolerance_( tolerance )
+   , maxIterations_( maxIterations )
    , flag_( hyteg::All )
    , nullSpaceSet_( false )
    , blockPreconditioner_( storage, level, level )
    {
-      num.enumerate( level );
 
-      // gather index sets to split matrix into block matrix
-      // therefore we need the row indices of the velocity and pressure
-      std::vector< PetscInt > velocityIndices;
-      std::vector< PetscInt > pressureIndices;
-
-      gatherIndices( velocityIndices, pressureIndices, *storage, level, num );
-
-      std::sort( velocityIndices.begin(), velocityIndices.end() );
-      std::sort( pressureIndices.begin(), pressureIndices.end() );
-      ISCreateGeneral( walberla::mpi::MPIManager::instance()->comm(),
-                       velocityIndices.size(),
-                       velocityIndices.data(),
-                       PETSC_COPY_VALUES,
-                       &is_[0] );
-      ISCreateGeneral( walberla::mpi::MPIManager::instance()->comm(),
-                       pressureIndices.size(),
-                       pressureIndices.data(),
-                       PETSC_COPY_VALUES,
-                       &is_[1] );
-
-      KSPCreate( walberla::MPIManager::instance()->comm(), &ksp );
-      KSPSetType( ksp, KSPMINRES );
-      KSPSetTolerances( ksp, tolerance, tolerance, PETSC_DEFAULT, maxIterations );
-      // KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
-      KSPSetFromOptions( ksp );
    }
 
    ~PETScBlockPreconditionedStokesSolver()
    {
-      ISDestroy( &is_[0] );
-      ISDestroy( &is_[1] );
-      KSPDestroy( &ksp );
-      if ( nullSpaceSet_ )
-         MatNullSpaceDestroy( &nullspace_ );
+
    }
 
    void setNullSpace( const FunctionType& nullspace )
@@ -89,6 +64,37 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
       x.getStorage()->getTimingTree()->start( "PETSc block prec MinRes Solver" );
 
+     num.enumerate( level );
+
+
+     // TODO: CHECK if we should repeat this here...
+
+     // gather index sets to split matrix into block matrix
+     // therefore we need the row indices of the velocity and pressure
+     std::vector< PetscInt > velocityIndices;
+     std::vector< PetscInt > pressureIndices;
+
+     gatherIndices( velocityIndices, pressureIndices, *storage_, level, num );
+
+     std::sort( velocityIndices.begin(), velocityIndices.end() );
+     std::sort( pressureIndices.begin(), pressureIndices.end() );
+     ISCreateGeneral( walberla::mpi::MPIManager::instance()->comm(),
+                      velocityIndices.size(),
+                      velocityIndices.data(),
+                      PETSC_COPY_VALUES,
+                      &is_[0] );
+     ISCreateGeneral( walberla::mpi::MPIManager::instance()->comm(),
+                      pressureIndices.size(),
+                      pressureIndices.data(),
+                      PETSC_COPY_VALUES,
+                      &is_[1] );
+
+     KSPCreate( walberla::MPIManager::instance()->comm(), &ksp );
+     KSPSetType( ksp, KSPMINRES );
+     KSPSetTolerances( ksp, tolerance_, tolerance_, PETSC_DEFAULT, maxIterations_ );
+     // KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
+     KSPSetFromOptions( ksp );
+
       x.getStorage()->getTimingTree()->start( "Setup" );
 
       x.getStorage()->getTimingTree()->start( "Vector copy" );
@@ -99,11 +105,13 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       x.getStorage()->getTimingTree()->start( "Matrix assembly" );
       AmatNonEliminatedBC.createMatrixFromFunctionOnce( A, level, num, All );
       Amat.createMatrixFromFunctionOnce( A, level, num, All );
+      PmatNonEliminatedBC.createMatrixFromFunctionOnce( blockPreconditioner_, level, num, All );
       Pmat.createMatrixFromFunctionOnce( blockPreconditioner_, level, num, All );
       x.getStorage()->getTimingTree()->stop( "Matrix assembly" );
 
       x.getStorage()->getTimingTree()->start( "Matrix copy" );
       MatCopy( AmatNonEliminatedBC.get(), Amat.get(), DIFFERENT_NONZERO_PATTERN );
+      MatCopy( PmatNonEliminatedBC.get(), Pmat.get(), DIFFERENT_NONZERO_PATTERN );
       x.getStorage()->getTimingTree()->stop( "Matrix copy" );
 
       Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
@@ -144,7 +152,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       PCGAMGSetNSmooths( pc_u, 1 );
 
       // None
-//      PCSetType( pc_u, PCNONE );
+      // PCSetType( pc_u, PCNONE );
 
       PCSetType( pc_p, PCJACOBI );
 
@@ -161,6 +169,12 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       x.getStorage()->getTimingTree()->stop( "PETSc block prec MinRes Solver" );
 
       PetscFree( sub_ksps_ );
+
+     ISDestroy( &is_[0] );
+     ISDestroy( &is_[1] );
+     KSPDestroy( &ksp );
+     if ( nullSpaceSet_ )
+       MatNullSpaceDestroy( &nullspace_ );
    }
 
  private:
@@ -238,9 +252,15 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               Amat;
    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               AmatNonEliminatedBC;
    PETScSparseMatrix< BlockPreconditioner_T, BlockPreconditioner_T::srcType::template FunctionType > Pmat;
+   PETScSparseMatrix< BlockPreconditioner_T, BlockPreconditioner_T::srcType::template FunctionType > PmatNonEliminatedBC;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > bVec;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > nullspaceVec_;
+
+   std::shared_ptr< PrimitiveStorage > storage_;
+
+   real_t tolerance_;
+   PetscInt maxIterations_;
 
    BlockPreconditioner_T blockPreconditioner_;
 

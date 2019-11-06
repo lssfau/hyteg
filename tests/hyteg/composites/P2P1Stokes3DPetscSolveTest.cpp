@@ -162,6 +162,7 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
     case 2:
       WALBERLA_LOG_INFO_ON_ROOT( "Block precond. MinRes solver ..." )
       solver_2.solve( A, x, b, level );
+      solver_2.solve( A, x, b, level );
       break;
     default:
       WALBERLA_ABORT( "No solver selected" );
