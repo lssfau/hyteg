@@ -28,7 +28,10 @@
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
+#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScVersion.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -45,10 +48,12 @@ using walberla::uint_t;
 
 namespace hyteg {
 
-void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real_t & resEps, const real_t & errEpsUSum, const real_t & errEpsP )
+/// \param solverType
+///     0: LU,
+///     1: MinRes,
+///     2: block preconditioned MinRes
+void petscSolveTest( const uint_t & solverType, const uint_t & level, const MeshInfo & meshInfo, const real_t & resEps, const real_t & errEpsUSum, const real_t & errEpsP )
 {
-  PETScManager petscManager;
-
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -141,12 +146,40 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   uint_t localDoFs1 = hyteg::numberOfLocalDoFs< P1StokesFunctionTag >( *storage, level );
   uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< P1StokesFunctionTag >( *storage, level );
 
-  WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
+  WALBERLA_LOG_INFO( "localDoFs: " << localDoFs1 << " globalDoFs: " << globalDoFs1 );
 
-  PETScLUSolver< hyteg::P1StokesOperator > solver_1( storage, level );
+  PETScLUSolver< P1StokesOperator > solver_0( storage, level );
+  PETScMinResSolver< P1StokesOperator > solver_1( storage, level );
+  PETScBlockPreconditionedStokesSolver< P1StokesOperator > solver_2( storage, level );
 
   walberla::WcTimer timer;
-  solver_1.solve( A, x, b, level );
+  switch ( solverType )
+  {
+    case 0:
+    WALBERLA_LOG_INFO_ON_ROOT( "LU solver ..." )
+      solver_0.solve( A, x, b, level );
+      break;
+    case 1:
+    WALBERLA_LOG_INFO_ON_ROOT( "MinRes solver ..." )
+      solver_1.solve( A, x, b, level );
+      // The second solve() call is intended!
+      // The solvers / assembly procedures must be tested for repeated solves
+      // (there have already been numerous issues).
+      solver_1.solve( A, x, b, level );
+      break;
+    case 2:
+    WALBERLA_LOG_INFO_ON_ROOT( "Block precond. MinRes solver ..." )
+      solver_2.solve( A, x, b, level );
+      // The second solve() call is intended!
+      // The solvers / assembly procedures must be tested for repeated solves
+      // (there have already been numerous issues).
+      solver_2.solve( A, x, b, level );
+      break;
+    default:
+    WALBERLA_ABORT( "No solver selected" );
+      break;
+  }
+
   timer.end();
 
   hyteg::vertexdof::projectMean( x.p, level );
@@ -185,7 +218,13 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv( argc, argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  petscSolveTest( 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 8.0e-15, 0.118, 2.78653 );
+  PETScManager petscManager( &argc, &argv );
+
+  printPETScVersionNumberString();
+
+  petscSolveTest( 0, 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 8.0e-15, 0.118, 2.78653 );
+  petscSolveTest( 1, 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 8.0e-15, 0.118, 2.78653 );
+  petscSolveTest( 2, 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 8.0e-15, 0.118, 2.78653 );
 
   return EXIT_SUCCESS;
 }

@@ -142,7 +142,7 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
   uint_t localDoFs1 = hyteg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
   uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
 
-  WALBERLA_LOG_INFO( "localDoFs1: " << localDoFs1 << " globalDoFs1: " << globalDoFs1 );
+  WALBERLA_LOG_INFO( "localDoFs: " << localDoFs1 << " globalDoFs: " << globalDoFs1 );
 
   PETScLUSolver< P2P1TaylorHoodStokesOperator > solver_0( storage, level );
   PETScMinResSolver< P2P1TaylorHoodStokesOperator > solver_1( storage, level );
@@ -158,10 +158,17 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
     case 1:
       WALBERLA_LOG_INFO_ON_ROOT( "MinRes solver ..." )
       solver_1.solve( A, x, b, level );
+      // The second solve() call is intended!
+      // The solvers / assembly procedures must be tested for repeated solves
+      // (there have already been numerous issues).
+      solver_1.solve( A, x, b, level );
       break;
     case 2:
       WALBERLA_LOG_INFO_ON_ROOT( "Block precond. MinRes solver ..." )
       solver_2.solve( A, x, b, level );
+      // The second solve() call is intended!
+      // The solvers / assembly procedures must be tested for repeated solves
+      // (there have already been numerous issues).
       solver_2.solve( A, x, b, level );
       break;
     default:
