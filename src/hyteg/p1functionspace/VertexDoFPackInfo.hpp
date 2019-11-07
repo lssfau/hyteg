@@ -449,7 +449,7 @@ inline void VertexDoFPackInfo< ValueType >::communicateLocalFaceToCell(const Fac
 }
 
 template< typename ValueType >
-inline void VertexDoFPackInfo< ValueType >::packCellForFace(const Cell *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const
+void VertexDoFPackInfo< ValueType >::packCellForFace(const Cell *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const
 {
   const ValueType * cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
   const uint_t localFaceID = sender->getLocalFaceID( receiver );
@@ -463,41 +463,9 @@ inline void VertexDoFPackInfo< ValueType >::packCellForFace(const Cell *sender, 
   }
 }
 
-template<>
-inline void VertexDoFPackInfo< real_t >::packCellForFace(const Cell *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const
-{
-  const real_t * cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
-  const uint_t localFaceID = sender->getLocalFaceID( receiver );
-  const uint_t iterationVertex0 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 );
-  const uint_t iterationVertex1 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
-  const uint_t iterationVertex2 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
-
-  if ( globalDefines::useGeneratedKernels )
-  {
-    const uint_t requiredBufferElements =
-    levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level_ ) - 1 );
-    auto buffer_ptr = (real_t*) ( buffer.forward( requiredBufferElements * sizeof(real_t) ) );
-    vertexdof::comm::generated::communicate_buffered_pack_vertexdof_cell_to_face( cellData,
-                                                                                  buffer_ptr,
-                                                                                  static_cast< int32_t >( level_ ),
-                                                                                  static_cast< int64_t >( iterationVertex0 ),
-                                                                                  static_cast< int64_t >( iterationVertex1 ),
-                                                                                  static_cast< int64_t >( iterationVertex2 ),
-                                                                                  0 );
-  }
-  else
-  {
-
-    for ( const auto & it : vertexdof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 ))
-    {
-      buffer << cellData[vertexdof::macrocell::indexFromVertex( level_, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )];
-    }
-  }
-}
-
 
 template< typename ValueType >
-inline void VertexDoFPackInfo< ValueType >::unpackFaceFromCell(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const
+void VertexDoFPackInfo< ValueType >::unpackFaceFromCell(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const
 {
   ValueType * faceData = receiver->getData( dataIDFace_ )->getPointer( level_ );
 
@@ -521,67 +489,6 @@ inline void VertexDoFPackInfo< ValueType >::unpackFaceFromCell(Face *receiver, c
     if ( it.x() + it.y() < levelinfo::num_microvertices_per_edge( level_ ) - 1 )
     {
       buffer >> faceData[ vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), neighborDirection ) ];
-    }
-  }
-}
-
-template<>
-inline void VertexDoFPackInfo< real_t >::unpackFaceFromCell(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const
-{
-  real_t * faceData = receiver->getData( dataIDFace_ )->getPointer( level_ );
-
-  WALBERLA_ASSERT_GREATER( receiver->getNumNeighborCells(), 0 );
-  WALBERLA_ASSERT( receiver->neighborPrimitiveExists( sender ) );
-
-  if ( globalDefines::useGeneratedKernels )
-  {
-    auto         cell        = storage_.lock()->getCell( sender );
-    const uint_t localFaceID = cell->getLocalFaceID( receiver->getID() );
-
-    const uint_t iterationVertex0 = cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 );
-    const uint_t iterationVertex1 = cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
-    const uint_t iterationVertex2 = cell->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
-
-    const uint_t requiredBufferElements =
-    levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level_ ) - 1 );
-
-    const auto faceLocalCellID = receiver->cell_index( sender );
-
-    const auto offsetToGhostLayer =
-    faceLocalCellID == 0 ?
-    levelinfo::num_microvertices_per_face( level_ ) :
-    levelinfo::num_microvertices_per_face( level_ ) +
-    levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level_ ) - 1 );
-
-    auto buffer_ptr = (real_t*) ( buffer.skip( requiredBufferElements * sizeof(real_t) ) );
-
-    vertexdof::comm::generated::communicate_buffered_unpack_vertexdof_cell_to_face( &faceData[offsetToGhostLayer],
-                                                                                    buffer_ptr,
-                                                                                    static_cast< int32_t >( level_ ),
-                                                                                    static_cast< int64_t >( iterationVertex0 ),
-                                                                                    static_cast< int64_t >( iterationVertex1 ),
-                                                                                    static_cast< int64_t >( iterationVertex2 ),
-                                                                                    0 );
-  }
-  else
-  {
-    stencilDirection neighborDirection;
-
-    if ( receiver->cell_index( sender ) == 0 )
-    {
-      neighborDirection = stencilDirection::VERTEX_TC;
-    } else
-    {
-      WALBERLA_ASSERT_EQUAL( receiver->cell_index( sender ), 1 );
-      neighborDirection = stencilDirection::VERTEX_BC;
-    }
-
-    for ( const auto & it : vertexdof::macroface::Iterator( level_ ))
-    {
-      if ( it.x() + it.y() < levelinfo::num_microvertices_per_edge( level_ ) - 1 )
-      {
-        buffer >> faceData[vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), neighborDirection )];
-      }
     }
   }
 }
