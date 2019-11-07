@@ -347,7 +347,8 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
    M.apply( tmp.w, f.w, level, All );
 
 #ifdef HYTEG_BUILD_WITH_PETSC
-   auto solver = std::make_shared< PETScMinResSolver< StokesOperator > >( storage, level, 1e-16 );
+   // auto solver = std::make_shared< PETScMinResSolver< StokesOperator > >( storage, level, 1e-16 );
+   auto solver = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >( storage, level, 1e-16 );
    // auto solver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, level );
 #else
    auto cgVelocity =
@@ -1409,6 +1410,21 @@ void setup( int argc, char** argv )
          {
            meshInfo = MeshInfo::meshSymmetricCuboid(
            leftBottom3D, Point3D( { 1, 1, 1 } ), numFacesPerSide, numFacesPerSide, numFacesPerSide );
+
+           exactU = shellExactU;
+           exactV = shellExactV;
+           exactW = shellExactW;
+
+           exactP = shellExactP;
+
+           bcU = shellExactU;
+           bcV = shellExactV;
+           bcW = shellExactW;
+
+           rhsU = shellRhsU;
+           rhsV = shellRhsV;
+           rhsW = shellRhsW;
+
          } else
          {
            meshInfo =
