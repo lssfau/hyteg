@@ -393,8 +393,12 @@ inline void VertexDoFPackInfo< real_t >::communicateLocalFaceToCell(const Face *
     }
     else
     {
-      vertexdof::comm::generated::communicate_directly_vertexdof_face_to_cell(
-      cellData, faceData, static_cast< int32_t >( level_ ), iterationVertex0, iterationVertex1, iterationVertex2 );
+       vertexdof::comm::generated::communicate_directly_vertexdof_face_to_cell( cellData,
+                                                                                faceData,
+                                                                                static_cast< int32_t >( level_ ),
+                                                                                static_cast< int64_t >( iterationVertex0 ),
+                                                                                static_cast< int64_t >( iterationVertex1 ),
+                                                                                static_cast< int64_t >( iterationVertex2 ) );
     }
   }
   else
@@ -459,6 +463,7 @@ void VertexDoFPackInfo< ValueType >::packCellForFace(const Cell *sender, const P
   }
 }
 
+
 template< typename ValueType >
 void VertexDoFPackInfo< ValueType >::unpackFaceFromCell(Face *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const
 {
@@ -518,9 +523,12 @@ inline void VertexDoFPackInfo< real_t >::communicateLocalCellToFace(const Cell *
     }
     else
     {
-      vertexdof::comm::generated::communicate_directly_vertexdof_cell_to_face(
-      cellData, &faceData[offsetToGhostLayer], static_cast< int32_t >( level_ ), iterationVertex0, iterationVertex1, iterationVertex2
-      );
+       vertexdof::comm::generated::communicate_directly_vertexdof_cell_to_face( cellData,
+                                                                                &faceData[offsetToGhostLayer],
+                                                                                static_cast< int32_t >( level_ ),
+                                                                                static_cast< int64_t >( iterationVertex0 ),
+                                                                                static_cast< int64_t >( iterationVertex1 ),
+                                                                                static_cast< int64_t >( iterationVertex2 ) );
     }
   }
   else

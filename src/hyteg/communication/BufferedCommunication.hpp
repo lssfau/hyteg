@@ -290,7 +290,11 @@ void BufferedCommunicator::startCommunication()
 
           for ( auto & packInfo : packInfos_ )
           {
-            auto sendFunction = [ sender, neighborID, packInfo ]( SendBuffer & sendBuffer ) -> void { packInfo->pack< SenderType, ReceiverType >( sender, neighborID, sendBuffer ); };
+            auto sendFunction = [ this, sender, neighborID, packInfo ]( SendBuffer & sendBuffer ) -> void {
+              startTimer( "Packing" );
+              packInfo->pack< SenderType, ReceiverType >( sender, neighborID, sendBuffer );
+              stopTimer( "Packing" );
+            };
             sendFunctionsMap[ neighborRank ].push_back( sendFunction );
           }
         }
@@ -359,7 +363,9 @@ void BufferedCommunicator::startCommunication()
 
           for ( const auto & packInfo : packInfos_ )
           {
+            startTimer( "Unpacking" );
             packInfo->unpack< SenderType, ReceiverType >( receiver, senderID, recvBuffer);
+            stopTimer( "Unpacking" );
           }
         }
       };

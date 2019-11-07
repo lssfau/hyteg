@@ -3,19 +3,19 @@ import time
 import datetime
 
 
-def supermuc_scaling_prm_file_string(discretization="P2", ntan=2, nrad=2,
-  num_cycles=1, fmg_r=1, omega=0.2, pre=3, post=3, max_level=3, timing_file="timing.json", db_file="database.db"):
+def supermuc_scaling_prm_file_string(discretization="P2", mesh_spherical_shell=False, num_faces_per_side=1, ntan=2, nrad=2,
+                                     num_cycles=1, fmg_r=1, omega=0.2, pre=3, post=3, num_gs_velocity=1, max_level=3, timing_file="timing.json", db_file="database.db"):
 
     base_config = """
 Parameters
 {{
     equation stokes;
     dim 3;
-    numFacesPerSide 1;
+    numFacesPerSide {num_faces_per_side};
     discretization {discretization};
 
     // number of tets = 60 * (ntan-1) * (ntan-1) * (nrad-1)
-    meshSphericalShell true;
+    meshSphericalShell {mesh_spherical_shell};
     shellNTan {ntan};
     shellNRad {nrad};
     shellRMin 0.55;
@@ -30,9 +30,10 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax {omega};
+    velocitySorRelax 1.0;
 
-    symmGSVelocity true;
-    numGSVelocity 1;
+    symmGSVelocity false;
+    numGSVelocity {num_gs_velocity};
     symmGSPressure false;
     numGSPressure 1;
 
@@ -54,7 +55,7 @@ Parameters
     postDCSmoothingIncrement 2;
 
     outputVTK false;
-    outputTiming true;
+    outputTiming false;
     outputTimingJSON true;
     outputTimingJSONFile {timing_file};
     outputSQL true;
@@ -63,11 +64,20 @@ Parameters
 """.format(discretization=discretization, ntan=ntan, nrad=nrad,
            num_cycles=num_cycles, fmg_r=fmg_r, omega=omega, pre=pre,
            post=post, max_level=max_level, timing_file=timing_file,
-           db_file=db_file)
+           db_file=db_file, mesh_spherical_shell=mesh_spherical_shell,
+           num_faces_per_side=num_faces_per_side, num_gs_velocity=num_gs_velocity)
     return base_config
 
 
 def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", prm_file="parameter_file.prm", num_nodes=1):
+
+    def partition(num_nodes):
+        if num_nodes <= 16:
+            return "micro"
+        elif num_nodes <= 768:
+            return "general"
+        elif num_nodes <= 3072:
+            return "large"
 
     base_config = """#!/bin/bash
 # Job Name and Files (also --job-name)
@@ -89,7 +99,7 @@ def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", p
 #SBATCH --account=pr86ma
  
 #SBATCH --ear=off
-#SBATCH --partition=general
+#SBATCH --partition={partition}
 #Number of nodes and MPI tasks per node:
 #SBATCH --nodes={num_nodes}
 #SBATCH --ntasks-per-node=48
@@ -110,21 +120,51 @@ ls -lha
 #Run the program:
 mpiexec -n $SLURM_NTASKS ./MultigridStudies 2019_supermuc/{prm_file}
 
-""".format(job_name=job_name, wall_clock_limit=wall_clock_limit, num_nodes=num_nodes, prm_file=prm_file)
+""".format(job_name=job_name, wall_clock_limit=wall_clock_limit, num_nodes=num_nodes, prm_file=prm_file, partition=partition(num_nodes))
     return base_config
-  
 
-def supermuc_scaling(): 
 
-    base_config = {"discretization": "P2", "fmg_r": 1, "max_level": 6, 
-                   "num_cycles": 2, "pre": 6, "post": 6} 
+def supermuc_scaling(cube_scaling=True):
+
+    shell_base_config = {"discretization": "P2", "fmg_r": 1, "max_level": 6,
+                         "num_cycles": 2, "pre": 6, "post": 6}
 
     ppn = 48
 
-    node_dep_parameters = {
-      1: {"ntan": 3, "nrad":  7, "omega": 0.2},
-      2: {"ntan": 3, "nrad": 13, "omega": 0.2}
+    node_dep_parameters_shell = {
+        1: {"ntan": 3, "nrad":  7, "omega": 0.2},
+        2: {"ntan": 3, "nrad": 13, "omega": 0.2}
     }
+
+    cube_base_config = {
+        "discretization": "P2",
+        "fmg_r": 0,
+        "max_level": 8,
+        "num_cycles": 10,
+        "pre": 4,
+        "post": 4,
+        "num_gs_velocity": 2,
+        "omega": 0.55
+    }
+
+    node_dep_parameters_cube = {
+        1: {"num_faces_per_side": 2},
+        2: {"num_faces_per_side": 3},
+        6: {"num_faces_per_side": 4},
+        12: {"num_faces_per_side": 5},
+        24: {"num_faces_per_side": 7},
+        48: {"num_faces_per_side": 8},
+        96: {"num_faces_per_side": 11},
+        192: {"num_faces_per_side": 13},
+        384: {"num_faces_per_side": 17},
+        768: {"num_faces_per_side": 21},
+        1536: {"num_faces_per_side": 27},
+        3072: {"num_faces_per_side": 34},
+    }
+
+    if cube_scaling:
+        base_config = cube_base_config
+        node_dep_parameters = node_dep_parameters_cube
 
     for num_nodes, prms in node_dep_parameters.items():
         # some_id = str(uuid4())
@@ -152,4 +192,4 @@ def supermuc_scaling():
             f.write(job_string)
 
 if __name__ == "__main__":
-  supermuc_scaling()
+    supermuc_scaling()

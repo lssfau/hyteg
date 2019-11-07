@@ -791,6 +791,7 @@ void P2ConstantOperator< P2Form >::smooth_sor(const P2Function <real_t> &dst,
                                                                                         static_cast< int32_t >( level ),
                                                                                         relax,
                                                                                         v2e_opr_data );
+               this->timingTree_->stop( "Updating EdgeDoFs" );
 
                this->timingTree_->start( "Updating VertexDoFs" );
 
@@ -932,9 +933,8 @@ void P2ConstantOperator< P2Form >::smooth_sor(const P2Function <real_t> &dst,
                                                                                           static_cast< int32_t >( level ),
                                                                                           relax,
                                                                                           v2e_opr_data );
+               this->timingTree_->stop( "Updating EdgeDoFs" );
             }
-
-            this->timingTree_->stop( "Updating EdgeDoFs" );
          }
          else
          {

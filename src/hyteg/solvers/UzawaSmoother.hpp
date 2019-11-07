@@ -36,11 +36,12 @@ class UzawaSmoother : public Solver< OperatorType >
                   const uint_t                               minLevel,
                   const uint_t                               maxLevel,
                   real_t                                     relaxParam,
-                  hyteg::DoFType                               flag                    = hyteg::Inner | hyteg::NeumannBoundary,
+                  hyteg::DoFType                             flag                    = hyteg::Inner | hyteg::NeumannBoundary,
                   const bool                                 symmetricGSVelocity     = false,
                   const uint_t                               numGSIterationsVelocity = 2,
                   const bool                                 symmetricGSPressure     = false,
-                  const uint_t                               numGSIterationsPressure = 1 )
+                  const uint_t                               numGSIterationsPressure = 1,
+                  const real_t                               velocityRelaxParam      = 1.0 )
    : UzawaSmoother( storage,
                     FunctionType( "uzawa_smoother_r", storage, minLevel, maxLevel ),
                     minLevel,
@@ -62,7 +63,8 @@ class UzawaSmoother : public Solver< OperatorType >
                   const bool                                 symmetricGSVelocity     = false,
                   const uint_t                               numGSIterationsVelocity = 2,
                   const bool                                 symmetricGSPressure     = false,
-                  const uint_t                               numGSIterationsPressure = 1 )
+                  const uint_t                               numGSIterationsPressure = 1,
+                  const real_t                               velocityRelaxParam      = 1.0 )
    : flag_( flag )
    , hasGlobalCells_( storage->hasGlobalCells() )
    , relaxParam_( relaxParam )
@@ -70,6 +72,7 @@ class UzawaSmoother : public Solver< OperatorType >
    , numGSIterationsVelocity_( numGSIterationsVelocity )
    , symmetricGSPressure_( symmetricGSPressure )
    , numGSIterationsPressure_( numGSIterationsPressure )
+   , velocityRelaxParam_( velocityRelaxParam )
    , r_( tmpFunction )
 #if UZAWA_OLD_VARIANT
    , tmp_( "uzawa_smoother_tmp", storage, minLevel, maxLevel )
@@ -211,12 +214,12 @@ class UzawaSmoother : public Solver< OperatorType >
       {
          if ( symmetricGSVelocity_ )
          {
-            A.A.smooth_gs( x.u, r_.u, level, flag_ );
-            A.A.smooth_gs_backwards( x.u, r_.u, level, flag_ );
+            A.A.smooth_sor( x.u, r_.u, velocityRelaxParam_, level, flag_ );
+            A.A.smooth_sor_backwards( x.u, r_.u, velocityRelaxParam_, level, flag_ );
          }
          else
          {
-            A.A.smooth_gs( x.u, r_.u, level, flag_ );
+            A.A.smooth_sor( x.u, r_.u, velocityRelaxParam_, level, flag_ );
          }
       }
 
@@ -227,12 +230,12 @@ class UzawaSmoother : public Solver< OperatorType >
       {
          if ( symmetricGSVelocity_ )
          {
-            A.A.smooth_gs( x.v, r_.v, level, flag_ );
-            A.A.smooth_gs_backwards( x.v, r_.v, level, flag_ );
+            A.A.smooth_sor( x.v, r_.v, velocityRelaxParam_, level, flag_ );
+            A.A.smooth_sor_backwards( x.v, r_.v, velocityRelaxParam_, level, flag_ );
          }
          else
          {
-            A.A.smooth_gs( x.v, r_.v, level, flag_ );
+            A.A.smooth_sor( x.v, r_.v, velocityRelaxParam_, level, flag_ );
          }
       }
 
@@ -245,12 +248,12 @@ class UzawaSmoother : public Solver< OperatorType >
          {
             if ( symmetricGSVelocity_ )
             {
-               A.A.smooth_gs( x.w, r_.w, level, flag_ );
-               A.A.smooth_gs_backwards( x.w, r_.w, level, flag_ );
+               A.A.smooth_sor( x.w, r_.w, velocityRelaxParam_, level, flag_ );
+               A.A.smooth_sor_backwards( x.w, r_.w, velocityRelaxParam_, level, flag_ );
             }
             else
             {
-               A.A.smooth_gs( x.w, r_.w, level, flag_ );
+               A.A.smooth_sor( x.w, r_.w, velocityRelaxParam_, level, flag_ );
             }
          }
       }
@@ -298,6 +301,7 @@ class UzawaSmoother : public Solver< OperatorType >
    DoFType flag_;
    bool    hasGlobalCells_;
    real_t  relaxParam_;
+   real_t  velocityRelaxParam_;
    bool    symmetricGSVelocity_;
    uint_t  numGSIterationsVelocity_;
    bool    symmetricGSPressure_;
