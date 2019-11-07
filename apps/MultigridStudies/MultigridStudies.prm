@@ -20,6 +20,7 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax 0.15;
+    velocitySorRelax 1.0;
 
     symmGSVelocity true;
     numGSVelocity 1;
