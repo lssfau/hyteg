@@ -756,6 +756,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       const uint_t&                                        fmgInnerCycles,
                       const real_t&                                        L2residualTolerance,
                       const real_t&                                        sorRelax,
+                      const real_t&                                        velocitySorRelax,
                       const bool&                                          symmGSVelocity,
                       const uint_t&                                        numGSVelocity,
                       const bool&                                          symmGSPressure,
@@ -913,7 +914,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                                                         symmGSVelocity,
                                                                         numGSVelocity,
                                                                         symmGSPressure,
-                                                                        numGSPressure );
+                                                                        numGSPressure,
+                                                                        velocitySorRelax );
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    // auto petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >(
@@ -1211,6 +1213,7 @@ void setup( int argc, char** argv )
    const uint_t      fmgInnerCycles                  = mainConf.getParameter< uint_t >( "fmgInnerCycles" );
    const real_t      L2residualTolerance             = mainConf.getParameter< real_t >( "L2residualTolerance" );
    const real_t      sorRelax                        = mainConf.getParameter< real_t >( "sorRelax" );
+   const real_t      velocitySorRelax                = mainConf.getParameter< real_t >( "velocitySorRelax" );
    const bool        symmGSVelocity                  = mainConf.getParameter< bool >( "symmGSVelocity" );
    const bool        symmGSPressure                  = mainConf.getParameter< bool >( "symmGSPressure" );
    const uint_t      numGSVelocity                   = mainConf.getParameter< uint_t >( "numGSVelocity" );
@@ -1268,6 +1271,7 @@ void setup( int argc, char** argv )
        << ( fmgInnerCycles == 0 ? "no" : "yes, inner cycles per level: " + std::to_string( fmgInnerCycles ) ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - L2 residual tolerance:                   " << L2residualTolerance );
    WALBERLA_LOG_INFO_ON_ROOT( "  - SOR relax:                               " << sorRelax );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - Velocity SOR relax:                               " << velocitySorRelax );
    WALBERLA_LOG_INFO_ON_ROOT( "  - Uzawa velocity smoother:                 " << ( symmGSVelocity ? "symmetric" : "forward" )
                                                                               << " GS, " << numGSVelocity << " iterations" );
    WALBERLA_LOG_INFO_ON_ROOT( "  - Uzawa pressure smoother:                 " << ( symmGSPressure ? "symmetric" : "forward" )
@@ -1333,6 +1337,7 @@ void setup( int argc, char** argv )
    sqlStringProperties["cycle_type"]                   = cycleTypeString;
    sqlIntegerProperties["fmgInnerCycles"]              = int64_c( fmgInnerCycles );
    sqlRealProperties["sor_relax"]                      = sorRelax;
+   sqlRealProperties["velocity_sor_relax"]             = velocitySorRelax;
    sqlIntegerProperties["pre_smoothing"]               = int64_c( preSmoothingSteps );
    sqlIntegerProperties["post_smoothing"]              = int64_c( postSmoothingSteps );
    sqlIntegerProperties["incr_smoothing"]              = int64_c( smoothingIncrement );
@@ -1553,6 +1558,7 @@ void setup( int argc, char** argv )
                                                                 fmgInnerCycles,
                                                                 L2residualTolerance,
                                                                 sorRelax,
+                                                                velocitySorRelax,
                                                                 symmGSVelocity,
                                                                 numGSVelocity,
                                                                 symmGSPressure,
@@ -1591,6 +1597,7 @@ void setup( int argc, char** argv )
                                                                 fmgInnerCycles,
                                                                 L2residualTolerance,
                                                                 sorRelax,
+                                                                velocitySorRelax,
                                                                 symmGSVelocity,
                                                                 numGSVelocity,
                                                                 symmGSPressure,
