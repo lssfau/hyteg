@@ -20,6 +20,9 @@
 
 #pragma once
 
+#include "core/timing/TimingTree.h"
+#include "core/timing/TimingJSON.h"
+
 namespace hyteg {
 
 /// \brief Convenience function to synchronize and print a TimingTree.
