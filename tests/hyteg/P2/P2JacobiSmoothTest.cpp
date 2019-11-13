@@ -38,7 +38,6 @@ using namespace hyteg;
 //  polynomial and check that this does not alter the polynomial
 // ----------------------------------------------------------------
 
-
 // Coefficients of the test polynomial
 #define COEFF_A00 real_c( 2.0 )
 #define COEFF_A10 real_c( 0.0 )
@@ -46,7 +45,6 @@ using namespace hyteg;
 #define COEFF_A11 real_c( 1.0 )
 #define COEFF_A20 real_c( 0.0 )
 #define COEFF_A02 real_c( 0.0 )
-
 
 int main( int argc, char** argv )
 {
@@ -86,9 +84,8 @@ int main( int argc, char** argv )
 
    // Execute a single Jacobi smoothing step
    P2ConstantLaplaceOperator Lap( storage, level, level );
-   P2Function< real_t > smoothed( "after one Jacobi step", storage, level, level );
-   Lap.smooth_jac( smoothed, rhs, poly, level, Inner );
-   // Lap.smooth_jac( smoothed, rhs, poly, 1.0, level, Inner );
+   P2Function< real_t >      smoothed( "after one Jacobi step", storage, level, level );
+   Lap.smooth_jac( smoothed, rhs, poly, 1.0, level, Inner );
 
    // Compute difference to before and check its size
    P2Function< real_t > difference( "difference", storage, level, level );
