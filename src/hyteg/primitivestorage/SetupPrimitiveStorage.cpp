@@ -395,7 +395,7 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     setMeshBoundaryFlag( cellID.getID(), meshInfoCell.getBoundaryFlag() );
   }
 
-  loadbalancing::greedy( *this );
+  loadbalancing::roundRobin( *this );
 }
 
 Primitive * SetupPrimitiveStorage::getPrimitive( const PrimitiveID & id )
