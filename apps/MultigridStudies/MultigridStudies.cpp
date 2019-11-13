@@ -1622,7 +1622,9 @@ void setup( int argc, char** argv )
       }
    }
 
+   storage->getTimingTree()->synchronize();
    auto tt = storage->getTimingTree()->getReduced().getCopyWithRemainder();
+
    if ( outputTiming )
    {
       WALBERLA_LOG_INFO_ON_ROOT( tt );
