@@ -1,4 +1,3 @@
-from uuid import uuid4
 import time
 import datetime
 
@@ -106,10 +105,7 @@ def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", p
 
 module load slurm_setup
 
-module unload devEnv
-module load devEnv/GCC
-module load boost
-module load petsc
+source load_modules.sh
 
 module list
 
