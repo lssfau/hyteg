@@ -46,7 +46,7 @@ Parameters
     projectPressureAfterRestriction true;
     calculateDiscretizationError false;
     coarseGridMaxIterations 2000;
-    coarseGridResidualTolerance 1e-08;
+    coarseGridResidualTolerance 1e-04;
 
     cyclesBeforeDC 0;
     postDCPreSmoothingSteps 3;
