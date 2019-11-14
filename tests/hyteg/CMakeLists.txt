@@ -251,8 +251,8 @@ waLBerla_execute_test(NAME P2GSTest)
 waLBerla_compile_test(FILES P2/P2SimpleSmoothTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2SimpleSmoothTest)
 
-waLBerla_compile_test(FILES P2/P2JacobiSmoothTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME P2JacobiSmoothTest)
+waLBerla_compile_test(FILES P2/P2JacobiGSSmoothTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P2JacobiGSSmoothTest)
 
 waLBerla_compile_test(FILES P2/P2P1TransferTest.cpp DEPENDS hyteg core )
 waLBerla_execute_test(NAME P2P1TransferTest)

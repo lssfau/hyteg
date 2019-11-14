@@ -35,7 +35,8 @@ using namespace hyteg;
 
 // ----------------------------------------------------------------
 //  Perform a single undamped Jacobi smoothing step on a quadratic
-//  polynomial and check that this does not alter the polynomial
+//  polynomial and check that this does not alter the polynomial;
+//  do the same for Gauss-Seidel
 // ----------------------------------------------------------------
 
 // Coefficients of the test polynomial
@@ -58,7 +59,7 @@ int main( int argc, char** argv )
 
    // Generate a regular mesh of a square centered around the origin
    // with a cross pattern an 8 triangles
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {-1.0, -1.0} ), Point2D( {1.0, 1.0} ), MeshInfo::CROSS, 2, 2 );
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {-1.0, -1.0} ), Point2D( {1.0, 1.0} ), MeshInfo::CRISS, 3, 3 );
 
    // Prepare primitive storage
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -84,26 +85,47 @@ int main( int argc, char** argv )
 
    // Execute a single Jacobi smoothing step
    P2ConstantLaplaceOperator Lap( storage, level, level );
-   P2Function< real_t >      smoothed( "after one Jacobi step", storage, level, level );
-   Lap.smooth_jac( smoothed, rhs, poly, 1.0, level, Inner );
+   P2Function< real_t >      smoothedJac( "after one Jacobi step", storage, level, level );
+   Lap.smooth_jac( smoothedJac, rhs, poly, 1.0, level, Inner );
 
-   // Compute difference to before and check its size
-   P2Function< real_t > difference( "difference", storage, level, level );
-   difference.assign( {1.0, -1.0}, {poly, smoothed}, level, Inner );
-   real_t errorNorm = std::sqrt( difference.dotGlobal( difference, level ) );
-   WALBERLA_CHECK_LESS( errorNorm, 1e-14 );
-   errorNorm = difference.getMaxMagnitude( level );
-   WALBERLA_CHECK_LESS( errorNorm, 1e-14 );
+   // Execute a single Gauss-Seidel smoothing step
+   P2Function< real_t > smoothedGS( "after one GS step", storage, level, level );
+   smoothedGS.assign( {1.0}, {poly}, level, All );
+   Lap.smooth_gs( smoothedGS, rhs, level, Inner );
+
+   // Compute difference to before
+   P2Function< real_t > differenceJac( "difference Jacobi", storage, level, level );
+   P2Function< real_t > differenceGS( "difference Gauss-Seidel", storage, level, level );
+   differenceJac.assign( {1.0, -1.0}, {poly, smoothedJac}, level, Inner );
+   differenceGS.assign( {1.0, -1.0}, {poly, smoothedGS}, level, Inner );
 
    // output data for visualisation
    if ( outputVTK )
    {
-      VTKOutput vtkOutput( "../../output", "P2JacobiSmoothTest", storage );
+      VTKOutput vtkOutput( "../../output", "P2JacobiGSSmoothTest", storage );
       vtkOutput.add( poly );
-      vtkOutput.add( difference );
-      vtkOutput.add( smoothed );
+      vtkOutput.add( differenceGS );
+      vtkOutput.add( differenceJac );
+      vtkOutput.add( smoothedGS );
+      vtkOutput.add( smoothedJac );
       vtkOutput.write( level );
    }
+
+   real_t errorNorm = real_c( 0.0 );
+
+   // Check size of difference for Gauss-Seidel smoother
+   errorNorm = std::sqrt( differenceGS.dotGlobal( differenceGS, level ) );
+   WALBERLA_CHECK_LESS( errorNorm, 2e-13 );
+   errorNorm = differenceGS.getMaxMagnitude( level );
+   WALBERLA_CHECK_LESS( errorNorm, 1e-13 );
+   WALBERLA_LOG_INFO_ON_ROOT( "Check passed for Gaus-Seidel" );
+
+   // Check size of difference for Jacobi smoother
+   errorNorm = std::sqrt( differenceJac.dotGlobal( differenceJac, level ) );
+   WALBERLA_CHECK_LESS( errorNorm, 2e-13 );
+   errorNorm = differenceJac.getMaxMagnitude( level );
+   WALBERLA_CHECK_LESS( errorNorm, 1e-13 );
+   WALBERLA_LOG_INFO_ON_ROOT( "Check passed for Jacobi" );
 
    return EXIT_SUCCESS;
 }
