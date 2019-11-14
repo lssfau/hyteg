@@ -63,6 +63,16 @@ void smoothSOR3D(
     const PrimitiveDataID< FunctionMemory< real_t >, Vertex >&                                       vertexDoFRhsId,
     const PrimitiveDataID< FunctionMemory< real_t >, Vertex >&                                       edgeDoFDstId );
 
+void smoothJacobiVertexDoF( uint_t                                                     level,
+                            Vertex&                                                    vertex,
+                            const real_t&                                              relax,
+                            const PrimitiveDataID< StencilMemory < real_t >, Vertex >& vertexToVertexStencilID,
+                            const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& srcVertexDoFID,
+                            const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& dstVertexDoFID,
+                            const PrimitiveDataID< StencilMemory < real_t >, Vertex >& edgeToVertexStencilID,
+                            const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& srcEdgeDoFID,
+                            const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& rhsVertexDoFID );
+
 } // namespace vertex
 
 } // namespace P2

@@ -150,6 +150,39 @@ void smoothSOR3D(
    vertexDoFDst[0] = oneMinusRelax * vertexDoFDst[0] + vertexDoFRelaxOverCenter * tmp;
 }
 
+void smoothJacobiVertexDoF( uint_t                                                     level,
+                            Vertex&                                                    vertex,
+                            const real_t&                                              relax,
+                            const PrimitiveDataID< StencilMemory < real_t >, Vertex >& vertexToVertexStencilID,
+                            const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& srcVertexDoFID,
+                            const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& dstVertexDoFID,
+                            const PrimitiveDataID< StencilMemory < real_t >, Vertex >& edgeToVertexStencilID,
+                            const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& srcEdgeDoFID,
+                            const PrimitiveDataID< FunctionMemory< real_t >, Vertex >& rhsVertexDoFID )
+{
+   real_t* vertexDoFStencil = vertex.getData( vertexToVertexStencilID )->getPointer( level );
+   real_t* edgeDoFStencil   = vertex.getData( edgeToVertexStencilID   )->getPointer( level );
+
+   real_t* srcVertexDoF     = vertex.getData( srcVertexDoFID )->getPointer( level );
+   real_t* dstVertexDoF     = vertex.getData( dstVertexDoFID )->getPointer( level );
+   real_t* rhs              = vertex.getData( rhsVertexDoFID )->getPointer( level );
+
+   real_t* srcEdgeDoF       = vertex.getData( srcEdgeDoFID )->getPointer( level );
+
+   real_t tmp = 0;
+   tmp        = rhs[0];
+   for( uint_t i = 0; i < vertex.getData( edgeToVertexStencilID )->getSize( level ); ++i )
+   {
+      tmp -= srcEdgeDoF[i] * edgeDoFStencil[i];
+   }
+   for( uint_t i = 1; i < vertex.getData( vertexToVertexStencilID )->getSize( level ); ++i )
+   {
+      tmp -= srcVertexDoF[i] * vertexDoFStencil[i];
+   }
+
+   dstVertexDoF[0] = (1.0 - relax) * srcVertexDoF[0] + (relax * tmp) / vertexDoFStencil[0];
+}
+
 } // namespace vertex
 
 } // namespace P2

@@ -54,20 +54,20 @@
 #pragma warning( pop )
 #endif
 
+#include "hyteg/communication/Syncing.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2MacroCell.hpp"
 #include "hyteg/p2functionspace/P2MacroEdge.hpp"
 #include "hyteg/p2functionspace/P2MacroFace.hpp"
 #include "hyteg/p2functionspace/P2MacroVertex.hpp"
-#include "hyteg/communication/Syncing.hpp"
 #include "hyteg/p2functionspace/generatedKernels/all.hpp"
 
 namespace hyteg {
 
 template < class P2Form >
 P2ConstantOperator< P2Form >::P2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                                                                        size_t                                     minLevel,
-                                                                        size_t                                     maxLevel )
+                                                  size_t                                     minLevel,
+                                                  size_t                                     maxLevel )
 : Operator( storage, minLevel, maxLevel )
 , vertexToVertex( storage, minLevel, maxLevel )
 , edgeToVertex( storage, minLevel, maxLevel )
@@ -76,16 +76,16 @@ P2ConstantOperator< P2Form >::P2ConstantOperator( const std::shared_ptr< Primiti
 {
    if ( globalDefines::useP1Coloring )
    {
-     WALBERLA_ABORT( "The colored P1 memory layout is not supported for mixed operators." );
+      WALBERLA_ABORT( "The colored P1 memory layout is not supported for mixed operators." );
    }
 }
 
 template < class P2Form >
-void P2ConstantOperator< P2Form >::apply(const P2Function< real_t >& src,
-                                                               const P2Function< real_t >& dst,
-                                                               size_t                level,
-                                                               DoFType               flag,
-                                                               UpdateType            updateType ) const
+void P2ConstantOperator< P2Form >::apply( const P2Function< real_t >& src,
+                                          const P2Function< real_t >& dst,
+                                          size_t                      level,
+                                          DoFType                     flag,
+                                          UpdateType                  updateType ) const
 {
    vertexToVertex.apply( src.getVertexDoFFunction(), dst.getVertexDoFFunction(), level, flag, updateType );
    edgeToVertex.apply( src.getEdgeDoFFunction(), dst.getVertexDoFFunction(), level, flag, Add );
@@ -95,32 +95,32 @@ void P2ConstantOperator< P2Form >::apply(const P2Function< real_t >& src,
 }
 
 template < class P2Form >
-void P2ConstantOperator< P2Form >::smooth_gs(const P2Function <real_t> &dst,
-                                                                   const P2Function <real_t> &rhs,
-                                                                   const size_t level,
-                                                                   const DoFType flag) const
+void P2ConstantOperator< P2Form >::smooth_gs( const P2Function< real_t >& dst,
+                                              const P2Function< real_t >& rhs,
+                                              const size_t                level,
+                                              const DoFType               flag ) const
 {
-  smooth_sor( dst, rhs, 1.0, level, flag );
+   smooth_sor( dst, rhs, 1.0, level, flag );
 }
 
 template < class P2Form >
-void P2ConstantOperator< P2Form >::smooth_sor(const P2Function <real_t> &dst,
-                                                                     const P2Function< real_t >& rhs,
-                                                                     const real_t&               relax,
-                                                                     const size_t                level,
-                                                                     const DoFType               flag,
-                                                                     const bool &                backwards ) const
+void P2ConstantOperator< P2Form >::smooth_sor( const P2Function< real_t >& dst,
+                                               const P2Function< real_t >& rhs,
+                                               const real_t&               relax,
+                                               const size_t                level,
+                                               const DoFType               flag,
+                                               const bool&                 backwards ) const
 {
-  if ( backwards )
-  {
-    WALBERLA_CHECK( globalDefines::useGeneratedKernels, "Backward SOR only implemented in generated kernels." )
-    WALBERLA_CHECK( storage_->hasGlobalCells(), "Backward SOR currently only implemented for 3D for P2." )
-    this->startTiming( "SOR backwards" );
-  }
-  else
-  {
-    this->startTiming( "SOR" );
-  }
+   if ( backwards )
+   {
+      WALBERLA_CHECK( globalDefines::useGeneratedKernels, "Backward SOR only implemented in generated kernels." )
+      WALBERLA_CHECK( storage_->hasGlobalCells(), "Backward SOR currently only implemented for 3D for P2." )
+      this->startTiming( "SOR backwards" );
+   }
+   else
+   {
+      this->startTiming( "SOR" );
+   }
 
    communication::syncP2FunctionBetweenPrimitives( dst, level );
 
@@ -222,375 +222,393 @@ void P2ConstantOperator< P2Form >::smooth_sor(const P2Function <real_t> &dst,
       {
          if ( storage_->hasGlobalCells() )
          {
-           if ( globalDefines::useGeneratedKernels )
-           {
-             WALBERLA_CHECK_EQUAL( face.getNumNeighborCells(), 2, "P2 3D SOR only implemented for inner macro-faces." )
+            if ( globalDefines::useGeneratedKernels )
+            {
+               WALBERLA_CHECK_EQUAL( face.getNumNeighborCells(), 2, "P2 3D SOR only implemented for inner macro-faces." )
 
-             using edgedof::EdgeDoFOrientation;
-             using indexing::IndexIncrement;
+               using edgedof::EdgeDoFOrientation;
+               using indexing::IndexIncrement;
 
-             auto v2v_operator = face.getData( vertexToVertex.getFaceStencil3DID() )->getData( level );
-             auto v2e_operator = face.getData( vertexToEdge.getFaceStencil3DID() )->getData( level );
-             auto e2v_operator = face.getData( edgeToVertex.getFaceStencil3DID() )->getData( level );
-             auto e2e_operator = face.getData( edgeToEdge.getFaceStencil3DID() )->getData( level );
+               auto v2v_operator = face.getData( vertexToVertex.getFaceStencil3DID() )->getData( level );
+               auto v2e_operator = face.getData( vertexToEdge.getFaceStencil3DID() )->getData( level );
+               auto e2v_operator = face.getData( edgeToVertex.getFaceStencil3DID() )->getData( level );
+               auto e2e_operator = face.getData( edgeToEdge.getFaceStencil3DID() )->getData( level );
 
-             real_t* v_dst_data = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-             real_t* v_rhs_data = face.getData( rhs.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* v_dst_data = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* v_rhs_data = face.getData( rhs.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
 
-             real_t* e_dst_data = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-             real_t* e_rhs_data = face.getData( rhs.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* e_dst_data = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+               real_t* e_rhs_data = face.getData( rhs.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
 
-             const uint_t offset_x = edgedof::macroface::index( level, 0, 0, edgedof::EdgeDoFOrientation::X );
-             const uint_t offset_xy = edgedof::macroface::index( level, 0, 0, edgedof::EdgeDoFOrientation::XY );
-             const uint_t offset_y = edgedof::macroface::index( level, 0, 0, edgedof::EdgeDoFOrientation::Y );
+               const uint_t offset_x  = edgedof::macroface::index( level, 0, 0, edgedof::EdgeDoFOrientation::X );
+               const uint_t offset_xy = edgedof::macroface::index( level, 0, 0, edgedof::EdgeDoFOrientation::XY );
+               const uint_t offset_y  = edgedof::macroface::index( level, 0, 0, edgedof::EdgeDoFOrientation::Y );
 
-             std::map< uint_t, std::map< edgedof::EdgeDoFOrientation, uint_t > > offset_gl_orientation;
-             for ( uint_t gl = 0; gl < 2; gl++ )
-             {
-               for ( const auto & eo : edgedof::allEdgeDoFOrientations )
+               std::map< uint_t, std::map< edgedof::EdgeDoFOrientation, uint_t > > offset_gl_orientation;
+               for ( uint_t gl = 0; gl < 2; gl++ )
                {
-                 offset_gl_orientation[gl][eo] = edgedof::macroface::index( level, 0, 0, eo, gl );
+                  for ( const auto& eo : edgedof::allEdgeDoFOrientations )
+                  {
+                     offset_gl_orientation[gl][eo] = edgedof::macroface::index( level, 0, 0, eo, gl );
+                  }
                }
-             }
 
-             auto neighborCell0 = storage_->getCell( face.neighborCells()[0] );
-             auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
+               auto neighborCell0 = storage_->getCell( face.neighborCells()[0] );
+               auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
 
-             auto neighbor_cell_0_local_vertex_id_0 = static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(0) );
-             auto neighbor_cell_0_local_vertex_id_1 = static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(1) );
-             auto neighbor_cell_0_local_vertex_id_2 = static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell0->getLocalFaceID( face.getID() ) ).at(2) );
+               auto neighbor_cell_0_local_vertex_id_0 =
+                   static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
+                                               .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                               .at( 0 ) );
+               auto neighbor_cell_0_local_vertex_id_1 =
+                   static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
+                                               .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                               .at( 1 ) );
+               auto neighbor_cell_0_local_vertex_id_2 =
+                   static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
+                                               .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                               .at( 2 ) );
 
-             auto neighbor_cell_1_local_vertex_id_0 = static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(0) );
-             auto neighbor_cell_1_local_vertex_id_1 = static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(1) );
-             auto neighbor_cell_1_local_vertex_id_2 = static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps().at( neighborCell1->getLocalFaceID( face.getID() ) ).at(2) );
-             
+               auto neighbor_cell_1_local_vertex_id_0 =
+                   static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                                               .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                               .at( 0 ) );
+               auto neighbor_cell_1_local_vertex_id_1 =
+                   static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                                               .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                               .at( 1 ) );
+               auto neighbor_cell_1_local_vertex_id_2 =
+                   static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                                               .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                               .at( 2 ) );
 
-             const uint_t vertex_offset_gl_0 = levelinfo::num_microvertices_per_face( level );
-             const uint_t vertex_offset_gl_1 = vertex_offset_gl_0 + levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge(level) - 1 );
+               const uint_t vertex_offset_gl_0 = levelinfo::num_microvertices_per_face( level );
+               const uint_t vertex_offset_gl_1 = vertex_offset_gl_0 + levelinfo::num_microvertices_per_face_from_width(
+                                                                          levelinfo::num_microvertices_per_edge( level ) - 1 );
 
-             if ( neighbor_cell_0_local_vertex_id_0 > neighbor_cell_1_local_vertex_id_0 ||
-                  ( neighbor_cell_0_local_vertex_id_0 == neighbor_cell_1_local_vertex_id_0 &&
-                    neighbor_cell_0_local_vertex_id_1 > neighbor_cell_1_local_vertex_id_1 ) ||
-                  ( neighbor_cell_0_local_vertex_id_0 == neighbor_cell_1_local_vertex_id_0 &&
-                    neighbor_cell_0_local_vertex_id_1 == neighbor_cell_1_local_vertex_id_1 &&
-                    neighbor_cell_0_local_vertex_id_2 > neighbor_cell_1_local_vertex_id_2 ) )
-             {
-                if ( backwards )
-                {
-                   P2::macroface::generated::sor_3D_macroface_P2_update_edgedofs_backwards(
-                       &e_dst_data[offset_x],
-                       &e_dst_data[offset_xy],
-                       &e_dst_data[offset_y],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
-                       &e_rhs_data[offset_x],
-                       &e_rhs_data[offset_xy],
-                       &e_rhs_data[offset_y],
-                       v_dst_data,
-                       &v_dst_data[vertex_offset_gl_1],
-                       &v_dst_data[vertex_offset_gl_0],
-                       e2e_operator[1],
-                       e2e_operator[0],
-                       static_cast< int32_t >( level ),
-                       neighbor_cell_1_local_vertex_id_0,
-                       neighbor_cell_1_local_vertex_id_1,
-                       neighbor_cell_1_local_vertex_id_2,
-                       neighbor_cell_0_local_vertex_id_0,
-                       neighbor_cell_0_local_vertex_id_1,
-                       neighbor_cell_0_local_vertex_id_2,
-                       relax,
-                       v2e_operator[1],
-                       v2e_operator[0] );
+               if ( neighbor_cell_0_local_vertex_id_0 > neighbor_cell_1_local_vertex_id_0 ||
+                    ( neighbor_cell_0_local_vertex_id_0 == neighbor_cell_1_local_vertex_id_0 &&
+                      neighbor_cell_0_local_vertex_id_1 > neighbor_cell_1_local_vertex_id_1 ) ||
+                    ( neighbor_cell_0_local_vertex_id_0 == neighbor_cell_1_local_vertex_id_0 &&
+                      neighbor_cell_0_local_vertex_id_1 == neighbor_cell_1_local_vertex_id_1 &&
+                      neighbor_cell_0_local_vertex_id_2 > neighbor_cell_1_local_vertex_id_2 ) )
+               {
+                  if ( backwards )
+                  {
+                     P2::macroface::generated::sor_3D_macroface_P2_update_edgedofs_backwards(
+                         &e_dst_data[offset_x],
+                         &e_dst_data[offset_xy],
+                         &e_dst_data[offset_y],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                         &e_rhs_data[offset_x],
+                         &e_rhs_data[offset_xy],
+                         &e_rhs_data[offset_y],
+                         v_dst_data,
+                         &v_dst_data[vertex_offset_gl_1],
+                         &v_dst_data[vertex_offset_gl_0],
+                         e2e_operator[1],
+                         e2e_operator[0],
+                         static_cast< int32_t >( level ),
+                         neighbor_cell_1_local_vertex_id_0,
+                         neighbor_cell_1_local_vertex_id_1,
+                         neighbor_cell_1_local_vertex_id_2,
+                         neighbor_cell_0_local_vertex_id_0,
+                         neighbor_cell_0_local_vertex_id_1,
+                         neighbor_cell_0_local_vertex_id_2,
+                         relax,
+                         v2e_operator[1],
+                         v2e_operator[0] );
 
-                   P2::macroface::generated::sor_3D_macroface_P2_update_vertexdofs_backwards(
-                       &e_dst_data[offset_x],
-                       &e_dst_data[offset_xy],
-                       &e_dst_data[offset_y],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
-                       v_dst_data,
-                       &v_dst_data[vertex_offset_gl_1],
-                       &v_dst_data[vertex_offset_gl_0],
-                       v_rhs_data,
-                       e2v_operator[1],
-                       e2v_operator[0],
-                       static_cast< int32_t >( level ),
-                       neighbor_cell_1_local_vertex_id_0,
-                       neighbor_cell_1_local_vertex_id_1,
-                       neighbor_cell_1_local_vertex_id_2,
-                       neighbor_cell_0_local_vertex_id_0,
-                       neighbor_cell_0_local_vertex_id_1,
-                       neighbor_cell_0_local_vertex_id_2,
-                       relax,
-                       v2v_operator[1],
-                       v2v_operator[0] );
-                }
-                else
-                {
-                   P2::macroface::generated::sor_3D_macroface_P2_update_vertexdofs(
-                       &e_dst_data[offset_x],
-                       &e_dst_data[offset_xy],
-                       &e_dst_data[offset_y],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
-                       v_dst_data,
-                       &v_dst_data[vertex_offset_gl_1],
-                       &v_dst_data[vertex_offset_gl_0],
-                       v_rhs_data,
-                       e2v_operator[1],
-                       e2v_operator[0],
-                       static_cast< int32_t >( level ),
-                       neighbor_cell_1_local_vertex_id_0,
-                       neighbor_cell_1_local_vertex_id_1,
-                       neighbor_cell_1_local_vertex_id_2,
-                       neighbor_cell_0_local_vertex_id_0,
-                       neighbor_cell_0_local_vertex_id_1,
-                       neighbor_cell_0_local_vertex_id_2,
-                       relax,
-                       v2v_operator[1],
-                       v2v_operator[0] );
+                     P2::macroface::generated::sor_3D_macroface_P2_update_vertexdofs_backwards(
+                         &e_dst_data[offset_x],
+                         &e_dst_data[offset_xy],
+                         &e_dst_data[offset_y],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                         v_dst_data,
+                         &v_dst_data[vertex_offset_gl_1],
+                         &v_dst_data[vertex_offset_gl_0],
+                         v_rhs_data,
+                         e2v_operator[1],
+                         e2v_operator[0],
+                         static_cast< int32_t >( level ),
+                         neighbor_cell_1_local_vertex_id_0,
+                         neighbor_cell_1_local_vertex_id_1,
+                         neighbor_cell_1_local_vertex_id_2,
+                         neighbor_cell_0_local_vertex_id_0,
+                         neighbor_cell_0_local_vertex_id_1,
+                         neighbor_cell_0_local_vertex_id_2,
+                         relax,
+                         v2v_operator[1],
+                         v2v_operator[0] );
+                  }
+                  else
+                  {
+                     P2::macroface::generated::sor_3D_macroface_P2_update_vertexdofs(
+                         &e_dst_data[offset_x],
+                         &e_dst_data[offset_xy],
+                         &e_dst_data[offset_y],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                         v_dst_data,
+                         &v_dst_data[vertex_offset_gl_1],
+                         &v_dst_data[vertex_offset_gl_0],
+                         v_rhs_data,
+                         e2v_operator[1],
+                         e2v_operator[0],
+                         static_cast< int32_t >( level ),
+                         neighbor_cell_1_local_vertex_id_0,
+                         neighbor_cell_1_local_vertex_id_1,
+                         neighbor_cell_1_local_vertex_id_2,
+                         neighbor_cell_0_local_vertex_id_0,
+                         neighbor_cell_0_local_vertex_id_1,
+                         neighbor_cell_0_local_vertex_id_2,
+                         relax,
+                         v2v_operator[1],
+                         v2v_operator[0] );
 
-                   P2::macroface::generated::sor_3D_macroface_P2_update_edgedofs(
-                       &e_dst_data[offset_x],
-                       &e_dst_data[offset_xy],
-                       &e_dst_data[offset_y],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
-                       &e_rhs_data[offset_x],
-                       &e_rhs_data[offset_xy],
-                       &e_rhs_data[offset_y],
-                       v_dst_data,
-                       &v_dst_data[vertex_offset_gl_1],
-                       &v_dst_data[vertex_offset_gl_0],
-                       e2e_operator[1],
-                       e2e_operator[0],
-                       static_cast< int32_t >( level ),
-                       neighbor_cell_1_local_vertex_id_0,
-                       neighbor_cell_1_local_vertex_id_1,
-                       neighbor_cell_1_local_vertex_id_2,
-                       neighbor_cell_0_local_vertex_id_0,
-                       neighbor_cell_0_local_vertex_id_1,
-                       neighbor_cell_0_local_vertex_id_2,
-                       relax,
-                       v2e_operator[1],
-                       v2e_operator[0] );
-                }
-             }
-             else
-             {
-                if ( backwards )
-                {
-                   P2::macroface::generated::sor_3D_macroface_P2_update_edgedofs_backwards(
-                       &e_dst_data[offset_x],
-                       &e_dst_data[offset_xy],
-                       &e_dst_data[offset_y],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
-                       &e_rhs_data[offset_x],
-                       &e_rhs_data[offset_xy],
-                       &e_rhs_data[offset_y],
-                       v_dst_data,
-                       &v_dst_data[vertex_offset_gl_0],
-                       &v_dst_data[vertex_offset_gl_1],
-                       e2e_operator[0],
-                       e2e_operator[1],
-                       static_cast< int32_t >( level ),
-                       neighbor_cell_0_local_vertex_id_0,
-                       neighbor_cell_0_local_vertex_id_1,
-                       neighbor_cell_0_local_vertex_id_2,
-                       neighbor_cell_1_local_vertex_id_0,
-                       neighbor_cell_1_local_vertex_id_1,
-                       neighbor_cell_1_local_vertex_id_2,
-                       relax,
-                       v2e_operator[0],
-                       v2e_operator[1] );
+                     P2::macroface::generated::sor_3D_macroface_P2_update_edgedofs(
+                         &e_dst_data[offset_x],
+                         &e_dst_data[offset_xy],
+                         &e_dst_data[offset_y],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                         &e_rhs_data[offset_x],
+                         &e_rhs_data[offset_xy],
+                         &e_rhs_data[offset_y],
+                         v_dst_data,
+                         &v_dst_data[vertex_offset_gl_1],
+                         &v_dst_data[vertex_offset_gl_0],
+                         e2e_operator[1],
+                         e2e_operator[0],
+                         static_cast< int32_t >( level ),
+                         neighbor_cell_1_local_vertex_id_0,
+                         neighbor_cell_1_local_vertex_id_1,
+                         neighbor_cell_1_local_vertex_id_2,
+                         neighbor_cell_0_local_vertex_id_0,
+                         neighbor_cell_0_local_vertex_id_1,
+                         neighbor_cell_0_local_vertex_id_2,
+                         relax,
+                         v2e_operator[1],
+                         v2e_operator[0] );
+                  }
+               }
+               else
+               {
+                  if ( backwards )
+                  {
+                     P2::macroface::generated::sor_3D_macroface_P2_update_edgedofs_backwards(
+                         &e_dst_data[offset_x],
+                         &e_dst_data[offset_xy],
+                         &e_dst_data[offset_y],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
+                         &e_rhs_data[offset_x],
+                         &e_rhs_data[offset_xy],
+                         &e_rhs_data[offset_y],
+                         v_dst_data,
+                         &v_dst_data[vertex_offset_gl_0],
+                         &v_dst_data[vertex_offset_gl_1],
+                         e2e_operator[0],
+                         e2e_operator[1],
+                         static_cast< int32_t >( level ),
+                         neighbor_cell_0_local_vertex_id_0,
+                         neighbor_cell_0_local_vertex_id_1,
+                         neighbor_cell_0_local_vertex_id_2,
+                         neighbor_cell_1_local_vertex_id_0,
+                         neighbor_cell_1_local_vertex_id_1,
+                         neighbor_cell_1_local_vertex_id_2,
+                         relax,
+                         v2e_operator[0],
+                         v2e_operator[1] );
 
-                   P2::macroface::generated::sor_3D_macroface_P2_update_vertexdofs_backwards(
-                       &e_dst_data[offset_x],
-                       &e_dst_data[offset_xy],
-                       &e_dst_data[offset_y],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
-                       v_dst_data,
-                       &v_dst_data[vertex_offset_gl_0],
-                       &v_dst_data[vertex_offset_gl_1],
-                       v_rhs_data,
-                       e2v_operator[0],
-                       e2v_operator[1],
-                       static_cast< int32_t >( level ),
-                       neighbor_cell_0_local_vertex_id_0,
-                       neighbor_cell_0_local_vertex_id_1,
-                       neighbor_cell_0_local_vertex_id_2,
-                       neighbor_cell_1_local_vertex_id_0,
-                       neighbor_cell_1_local_vertex_id_1,
-                       neighbor_cell_1_local_vertex_id_2,
-                       relax,
-                       v2v_operator[0],
-                       v2v_operator[1] );
-                }
-                else
-                {
-                   P2::macroface::generated::sor_3D_macroface_P2_update_vertexdofs(
-                       &e_dst_data[offset_x],
-                       &e_dst_data[offset_xy],
-                       &e_dst_data[offset_y],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
-                       v_dst_data,
-                       &v_dst_data[vertex_offset_gl_0],
-                       &v_dst_data[vertex_offset_gl_1],
-                       v_rhs_data,
-                       e2v_operator[0],
-                       e2v_operator[1],
-                       static_cast< int32_t >( level ),
-                       neighbor_cell_0_local_vertex_id_0,
-                       neighbor_cell_0_local_vertex_id_1,
-                       neighbor_cell_0_local_vertex_id_2,
-                       neighbor_cell_1_local_vertex_id_0,
-                       neighbor_cell_1_local_vertex_id_1,
-                       neighbor_cell_1_local_vertex_id_2,
-                       relax,
-                       v2v_operator[0],
-                       v2v_operator[1] );
+                     P2::macroface::generated::sor_3D_macroface_P2_update_vertexdofs_backwards(
+                         &e_dst_data[offset_x],
+                         &e_dst_data[offset_xy],
+                         &e_dst_data[offset_y],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
+                         v_dst_data,
+                         &v_dst_data[vertex_offset_gl_0],
+                         &v_dst_data[vertex_offset_gl_1],
+                         v_rhs_data,
+                         e2v_operator[0],
+                         e2v_operator[1],
+                         static_cast< int32_t >( level ),
+                         neighbor_cell_0_local_vertex_id_0,
+                         neighbor_cell_0_local_vertex_id_1,
+                         neighbor_cell_0_local_vertex_id_2,
+                         neighbor_cell_1_local_vertex_id_0,
+                         neighbor_cell_1_local_vertex_id_1,
+                         neighbor_cell_1_local_vertex_id_2,
+                         relax,
+                         v2v_operator[0],
+                         v2v_operator[1] );
+                  }
+                  else
+                  {
+                     P2::macroface::generated::sor_3D_macroface_P2_update_vertexdofs(
+                         &e_dst_data[offset_x],
+                         &e_dst_data[offset_xy],
+                         &e_dst_data[offset_y],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
+                         v_dst_data,
+                         &v_dst_data[vertex_offset_gl_0],
+                         &v_dst_data[vertex_offset_gl_1],
+                         v_rhs_data,
+                         e2v_operator[0],
+                         e2v_operator[1],
+                         static_cast< int32_t >( level ),
+                         neighbor_cell_0_local_vertex_id_0,
+                         neighbor_cell_0_local_vertex_id_1,
+                         neighbor_cell_0_local_vertex_id_2,
+                         neighbor_cell_1_local_vertex_id_0,
+                         neighbor_cell_1_local_vertex_id_1,
+                         neighbor_cell_1_local_vertex_id_2,
+                         relax,
+                         v2v_operator[0],
+                         v2v_operator[1] );
 
-                   P2::macroface::generated::sor_3D_macroface_P2_update_edgedofs(
-                       &e_dst_data[offset_x],
-                       &e_dst_data[offset_xy],
-                       &e_dst_data[offset_y],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
-                       &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
-                       &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
-                       &e_rhs_data[offset_x],
-                       &e_rhs_data[offset_xy],
-                       &e_rhs_data[offset_y],
-                       v_dst_data,
-                       &v_dst_data[vertex_offset_gl_0],
-                       &v_dst_data[vertex_offset_gl_1],
-                       e2e_operator[0],
-                       e2e_operator[1],
-                       static_cast< int32_t >( level ),
-                       neighbor_cell_0_local_vertex_id_0,
-                       neighbor_cell_0_local_vertex_id_1,
-                       neighbor_cell_0_local_vertex_id_2,
-                       neighbor_cell_1_local_vertex_id_0,
-                       neighbor_cell_1_local_vertex_id_1,
-                       neighbor_cell_1_local_vertex_id_2,
-                       relax,
-                       v2e_operator[0],
-                       v2e_operator[1] );
-                }
-             }
-           }
-           else
-           {
-             P2::macroface::smoothSOR3D( level,
-                                         *storage_,
-                                         face,
-                                         relax,
-                                         vertexToVertex.getFaceStencil3DID(),
-                                         edgeToVertex.getFaceStencil3DID(),
-                                         vertexToEdge.getFaceStencil3DID(),
-                                         edgeToEdge.getFaceStencil3DID(),
-                                         dst.getVertexDoFFunction().getFaceDataID(),
-                                         rhs.getVertexDoFFunction().getFaceDataID(),
-                                         dst.getEdgeDoFFunction().getFaceDataID(),
-                                         rhs.getEdgeDoFFunction().getFaceDataID());
-           }
+                     P2::macroface::generated::sor_3D_macroface_P2_update_edgedofs(
+                         &e_dst_data[offset_x],
+                         &e_dst_data[offset_xy],
+                         &e_dst_data[offset_y],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[1][edgedof::EdgeDoFOrientation::Z]],
+                         &e_rhs_data[offset_x],
+                         &e_rhs_data[offset_xy],
+                         &e_rhs_data[offset_y],
+                         v_dst_data,
+                         &v_dst_data[vertex_offset_gl_0],
+                         &v_dst_data[vertex_offset_gl_1],
+                         e2e_operator[0],
+                         e2e_operator[1],
+                         static_cast< int32_t >( level ),
+                         neighbor_cell_0_local_vertex_id_0,
+                         neighbor_cell_0_local_vertex_id_1,
+                         neighbor_cell_0_local_vertex_id_2,
+                         neighbor_cell_1_local_vertex_id_0,
+                         neighbor_cell_1_local_vertex_id_1,
+                         neighbor_cell_1_local_vertex_id_2,
+                         relax,
+                         v2e_operator[0],
+                         v2e_operator[1] );
+                  }
+               }
+            }
+            else
+            {
+               P2::macroface::smoothSOR3D( level,
+                                           *storage_,
+                                           face,
+                                           relax,
+                                           vertexToVertex.getFaceStencil3DID(),
+                                           edgeToVertex.getFaceStencil3DID(),
+                                           vertexToEdge.getFaceStencil3DID(),
+                                           edgeToEdge.getFaceStencil3DID(),
+                                           dst.getVertexDoFFunction().getFaceDataID(),
+                                           rhs.getVertexDoFFunction().getFaceDataID(),
+                                           dst.getEdgeDoFFunction().getFaceDataID(),
+                                           rhs.getEdgeDoFFunction().getFaceDataID() );
+            }
          }
          else
          {
@@ -955,66 +973,120 @@ void P2ConstantOperator< P2Form >::smooth_sor(const P2Function <real_t> &dst,
 
    this->timingTree_->stop( "Macro-Cell" );
 
-  if ( backwards )
-    this->stopTiming( "SOR backwards" );
-  else
-    this->stopTiming( "SOR" );
+   if ( backwards )
+      this->stopTiming( "SOR backwards" );
+   else
+      this->stopTiming( "SOR" );
 }
 
 template < class P2Form >
 void P2ConstantOperator< P2Form >::smooth_jac( const P2Function< real_t >& dst,
-                                                                     const P2Function< real_t >& rhs,
-                                                                     const P2Function< real_t >& src,
-                                                                     size_t                      level,
-                                                                     DoFType                     flag ) const
+                                               const P2Function< real_t >& rhs,
+                                               const P2Function< real_t >& src,
+                                               const real_t&               relax,
+                                               size_t                      level,
+                                               DoFType                     flag ) const
 {
    ///TODO: remove unneccessary communication here
-   src.getVertexDoFFunction().communicate< Face, Edge >( level );
-   src.getVertexDoFFunction().communicate< Edge, Vertex >( level );
-   src.getVertexDoFFunction().communicate< Vertex, Edge >( level );
-   src.getVertexDoFFunction().communicate< Edge, Face >( level );
-   src.getEdgeDoFFunction().communicate< Face, Edge >( level );
-   src.getEdgeDoFFunction().communicate< Edge, Vertex >( level );
-   src.getEdgeDoFFunction().communicate< Vertex, Edge >( level );
-   src.getEdgeDoFFunction().communicate< Edge, Face >( level );
+   // src.getVertexDoFFunction().communicate< Face, Edge >( level );
+   // src.getVertexDoFFunction().communicate< Edge, Vertex >( level );
+   // src.getVertexDoFFunction().communicate< Vertex, Edge >( level );
+   // src.getVertexDoFFunction().communicate< Edge, Face >( level );
+   // src.getEdgeDoFFunction().communicate< Face, Edge >( level );
+   // src.getEdgeDoFFunction().communicate< Edge, Vertex >( level );
+   // src.getEdgeDoFFunction().communicate< Vertex, Edge >( level );
+   // src.getEdgeDoFFunction().communicate< Edge, Face >( level );
+   communication::syncP2FunctionBetweenPrimitives( src, level );
 
-   for( auto& it : storage_->getFaces() )
+   if ( storage_->hasGlobalCells() )
    {
-      Face& face = *it.second;
-
-      const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if( testFlag( faceBC, flag ) )
-      {
-         P2::macroface::smoothJacobiVertexDoF( level,
-                                               face,
-                                               vertexToVertex.getFaceStencilID(),
-                                               src.getVertexDoFFunction().getFaceDataID(),
-                                               dst.getVertexDoFFunction().getFaceDataID(),
-                                               edgeToVertex.getFaceStencilID(),
-                                               src.getEdgeDoFFunction().getFaceDataID(),
-                                               rhs.getVertexDoFFunction().getFaceDataID() );
-      }
+      WALBERLA_ABORT( "P2ConstantOperator::smooth_jac() not implemented for 3D, yet!" );
    }
-   for( auto& it : storage_->getFaces() )
+   else
    {
-      Face& face = *it.second;
-
-      const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if( testFlag( faceBC, flag ) )
+      for ( auto& it : storage_->getFaces() )
       {
-         P2::macroface::smoothJacobiEdgeDoF( level,
-                                             face,
-                                             vertexToEdge.getFaceStencilID(),
-                                             src.getVertexDoFFunction().getFaceDataID(),
-                                             edgeToEdge.getFaceStencilID(),
-                                             src.getEdgeDoFFunction().getFaceDataID(),
-                                             dst.getEdgeDoFFunction().getFaceDataID(),
-                                             rhs.getEdgeDoFFunction().getFaceDataID() );
+         Face& face = *it.second;
+
+         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            P2::macroface::smoothJacobiVertexDoF( level,
+                                                  face,
+                                                  vertexToVertex.getFaceStencilID(),
+                                                  src.getVertexDoFFunction().getFaceDataID(),
+                                                  dst.getVertexDoFFunction().getFaceDataID(),
+                                                  edgeToVertex.getFaceStencilID(),
+                                                  src.getEdgeDoFFunction().getFaceDataID(),
+                                                  rhs.getVertexDoFFunction().getFaceDataID(),
+                                                  relax );
+         }
+      }
+      for ( auto& it : storage_->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            P2::macroface::smoothJacobiEdgeDoF( level,
+                                                face,
+                                                vertexToEdge.getFaceStencilID(),
+                                                src.getVertexDoFFunction().getFaceDataID(),
+                                                edgeToEdge.getFaceStencilID(),
+                                                src.getEdgeDoFFunction().getFaceDataID(),
+                                                dst.getEdgeDoFFunction().getFaceDataID(),
+                                                rhs.getEdgeDoFFunction().getFaceDataID(),
+                                                relax );
+         }
+      }
+
+      for ( auto& it : storage_->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if ( testFlag( edgeBC, flag ) )
+         {
+            P2::macroedge::smoothJacobi( level,
+                                         edge,
+                                         relax,
+                                         vertexToVertex.getEdgeStencilID(),
+                                         edgeToVertex.getEdgeStencilID(),
+                                         src.getVertexDoFFunction().getEdgeDataID(),
+                                         dst.getVertexDoFFunction().getEdgeDataID(),
+                                         vertexToEdge.getEdgeStencilID(),
+                                         edgeToEdge.getEdgeStencilID(),
+                                         src.getEdgeDoFFunction().getEdgeDataID(),
+                                         dst.getEdgeDoFFunction().getEdgeDataID(),
+                                         rhs.getVertexDoFFunction().getEdgeDataID(),
+                                         rhs.getEdgeDoFFunction().getEdgeDataID() );
+         }
+      }
+
+      for ( auto& it : storage_->getVertices() )
+      {
+         Vertex& vertex = *it.second;
+
+         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if ( testFlag( vertexBC, flag ) )
+         {
+            P2::macrovertex::smoothJacobiVertexDoF( level,
+                                                    vertex,
+                                                    relax,
+                                                    vertexToVertex.getVertexStencilID(),
+                                                    src.getVertexDoFFunction().getVertexDataID(),
+                                                    dst.getVertexDoFFunction().getVertexDataID(),
+                                                    edgeToVertex.getVertexStencilID(),
+                                                    src.getEdgeDoFFunction().getVertexDataID(),
+                                                    rhs.getVertexDoFFunction().getVertexDataID() );
+         }
       }
    }
 }
 
-template class P2ConstantOperator< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >;
+template class P2ConstantOperator<
+    P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >;
 template class P2ConstantOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >;
 
 template class P2ConstantOperator< P2FenicsForm< p2_divt_cell_integral_0_otherwise, p2_tet_divt_tet_cell_integral_0_otherwise > >;

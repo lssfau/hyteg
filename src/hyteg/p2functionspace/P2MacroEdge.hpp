@@ -79,6 +79,20 @@ void smoothSOR3D(
     const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     edgeDoFRhsId,
     const bool&                                                                                  backwards = false );
 
+void smoothJacobi( const uint_t&                                            level,
+                   const Edge&                                              edge,
+                   const real_t&                                            relax,
+                   const PrimitiveDataID< StencilMemory < real_t >, Edge >& vertexToVertexStencilID,
+                   const PrimitiveDataID< StencilMemory < real_t >, Edge >& edgeToVertexStencilID,
+                   const PrimitiveDataID< FunctionMemory< real_t >, Edge >& srcVertexDoFID,
+                   const PrimitiveDataID< FunctionMemory< real_t >, Edge >& dstVertexDoFID,
+                   const PrimitiveDataID< StencilMemory < real_t >, Edge >& vertexToEdgeStencilID,
+                   const PrimitiveDataID< StencilMemory < real_t >, Edge >& edgeToEdgeStencilID,
+                   const PrimitiveDataID< FunctionMemory< real_t >, Edge >& srcEdgeDoFID,
+                   const PrimitiveDataID< FunctionMemory< real_t >, Edge >& dstEdgeDoFID,
+                   const PrimitiveDataID< FunctionMemory< real_t >, Edge >& rhsVertexDoFID,
+                   const PrimitiveDataID< FunctionMemory< real_t >, Edge >& rhsEdgeDoFID );
+
 } // namespace macroedge
 } // namespace P2
 } // namespace hyteg
