@@ -144,18 +144,18 @@ def supermuc_scaling(cube_scaling=True):
     }
 
     node_dep_parameters_cube = {
-        1: {"num_faces_per_side": 2},
-        2: {"num_faces_per_side": 3},
-        6: {"num_faces_per_side": 4},
-        12: {"num_faces_per_side": 5},
-        24: {"num_faces_per_side": 7},
-        48: {"num_faces_per_side": 8},
-        96: {"num_faces_per_side": 11},
-        192: {"num_faces_per_side": 13},
-        384: {"num_faces_per_side": 17},
-        768: {"num_faces_per_side": 21},
-        1536: {"num_faces_per_side": 27},
-        3072: {"num_faces_per_side": 34},
+        1: {"num_faces_per_side": 1},
+        2: {"num_faces_per_side": 2},
+        6: {"num_faces_per_side": 3},
+        12: {"num_faces_per_side": 4},
+        24: {"num_faces_per_side": 5},
+        48: {"num_faces_per_side": 6},
+        96: {"num_faces_per_side": 8},
+        192: {"num_faces_per_side": 10},
+        384: {"num_faces_per_side": 13},
+        768: {"num_faces_per_side": 16},
+        1536: {"num_faces_per_side": 20},
+        3072: {"num_faces_per_side": 26},
     }
 
     if cube_scaling:
