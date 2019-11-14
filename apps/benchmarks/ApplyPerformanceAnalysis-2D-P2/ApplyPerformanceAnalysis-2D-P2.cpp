@@ -110,6 +110,7 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
             apply_2d_vertex_to_vertex( dstPtr, srcPtr, stencilPtr, level );
          }
       }
+      WALBERLA_MPI_BARRIER()
       LIKWID_MARKER_STOP( vvname.c_str() );
       timingTree.stop( vvname );
       iterations *= 2;
@@ -159,6 +160,7 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
                                                                                               static_cast< int32_t >( level ) );
          hyteg::misc::dummy( srcPtr, dstPtr );
       }
+      WALBERLA_MPI_BARRIER()
       LIKWID_MARKER_STOP( evname.c_str() );
       timingTree.stop( evname );
       iterations *= 2;
@@ -211,7 +213,7 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
                                                                                             static_cast< int32_t >( level ) );
          hyteg::misc::dummy( srcPtr, dstPtr );
       }
-
+      WALBERLA_MPI_BARRIER()
       LIKWID_MARKER_STOP( eename.c_str() );
       timingTree.stop( eename );
       iterations *= 2;
@@ -265,6 +267,7 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
                                                                                               static_cast< int32_t >( level ) );
          hyteg::misc::dummy( srcPtr, dstPtr );
       }
+      WALBERLA_MPI_BARRIER()
       LIKWID_MARKER_STOP( vename.c_str() );
       timingTree.stop( vename );
       iterations *= 2;

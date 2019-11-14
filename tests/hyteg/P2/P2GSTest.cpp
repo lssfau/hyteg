@@ -96,8 +96,8 @@ int main( int argc, char* argv[] )
    real_t discr_l2_err = std::sqrt( error.dotGlobal( error, level ) / npoints );
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
 
-   //  walberla::WcTimingTree tt = timingTree->getReduced();
-   //  WALBERLA_LOG_INFO_ON_ROOT( tt );
+   walberla::WcTimingTree tt = timingTree->getReduced();
+   WALBERLA_LOG_INFO_ON_ROOT( tt );
 
    return 0;
 }
