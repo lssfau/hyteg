@@ -49,8 +49,10 @@
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScMinResSolver.hpp"
+#include "hyteg/petsc/PETScMemoryUsage.hpp"
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
+#include "hyteg/petsc/PETScVersion.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
@@ -978,6 +980,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
        storage, multigridSolver, fmgProlongation, minLevel, maxLevel, fmgInnerCycles, postCycle );
 
    printFunctionAllocationInfo( *storage, 1 );
+#ifdef HYTEG_BUILD_WITH_PETSC
+   printCurrentMemoryUsage();
+#endif
 
    timer.reset();
    calculateErrorAndResidualStokes( maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
@@ -1252,6 +1257,8 @@ void setup( int argc, char** argv )
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    PETScManager petscManager( &argc, &argv );
+   printPETScVersionNumberString();
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
 #endif
 
    // parameter checks
