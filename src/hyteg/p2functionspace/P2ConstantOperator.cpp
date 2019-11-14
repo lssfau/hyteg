@@ -988,49 +988,99 @@ void P2ConstantOperator< P2Form >::smooth_jac( const P2Function< real_t >& dst,
                                                DoFType                     flag ) const
 {
    ///TODO: remove unneccessary communication here
-   src.getVertexDoFFunction().communicate< Face, Edge >( level );
-   src.getVertexDoFFunction().communicate< Edge, Vertex >( level );
-   src.getVertexDoFFunction().communicate< Vertex, Edge >( level );
-   src.getVertexDoFFunction().communicate< Edge, Face >( level );
-   src.getEdgeDoFFunction().communicate< Face, Edge >( level );
-   src.getEdgeDoFFunction().communicate< Edge, Vertex >( level );
-   src.getEdgeDoFFunction().communicate< Vertex, Edge >( level );
-   src.getEdgeDoFFunction().communicate< Edge, Face >( level );
+   // src.getVertexDoFFunction().communicate< Face, Edge >( level );
+   // src.getVertexDoFFunction().communicate< Edge, Vertex >( level );
+   // src.getVertexDoFFunction().communicate< Vertex, Edge >( level );
+   // src.getVertexDoFFunction().communicate< Edge, Face >( level );
+   // src.getEdgeDoFFunction().communicate< Face, Edge >( level );
+   // src.getEdgeDoFFunction().communicate< Edge, Vertex >( level );
+   // src.getEdgeDoFFunction().communicate< Vertex, Edge >( level );
+   // src.getEdgeDoFFunction().communicate< Edge, Face >( level );
+   communication::syncP2FunctionBetweenPrimitives( src, level );
 
-   for ( auto& it : storage_->getFaces() )
+   if ( storage_->hasGlobalCells() )
    {
-      Face& face = *it.second;
-
-      const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, flag ) )
-      {
-         P2::macroface::smoothJacobiVertexDoF( level,
-                                               face,
-                                               vertexToVertex.getFaceStencilID(),
-                                               src.getVertexDoFFunction().getFaceDataID(),
-                                               dst.getVertexDoFFunction().getFaceDataID(),
-                                               edgeToVertex.getFaceStencilID(),
-                                               src.getEdgeDoFFunction().getFaceDataID(),
-                                               rhs.getVertexDoFFunction().getFaceDataID(),
-                                               relax );
-      }
+      WALBERLA_ABORT( "P2ConstantOperator::smooth_jac() not implemented for 3D, yet!" );
    }
-   for ( auto& it : storage_->getFaces() )
+   else
    {
-      Face& face = *it.second;
-
-      const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, flag ) )
+      for ( auto& it : storage_->getFaces() )
       {
-         P2::macroface::smoothJacobiEdgeDoF( level,
-                                             face,
-                                             vertexToEdge.getFaceStencilID(),
-                                             src.getVertexDoFFunction().getFaceDataID(),
-                                             edgeToEdge.getFaceStencilID(),
-                                             src.getEdgeDoFFunction().getFaceDataID(),
-                                             dst.getEdgeDoFFunction().getFaceDataID(),
-                                             rhs.getEdgeDoFFunction().getFaceDataID(),
-                                             relax );
+         Face& face = *it.second;
+
+         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            P2::macroface::smoothJacobiVertexDoF( level,
+                                                  face,
+                                                  vertexToVertex.getFaceStencilID(),
+                                                  src.getVertexDoFFunction().getFaceDataID(),
+                                                  dst.getVertexDoFFunction().getFaceDataID(),
+                                                  edgeToVertex.getFaceStencilID(),
+                                                  src.getEdgeDoFFunction().getFaceDataID(),
+                                                  rhs.getVertexDoFFunction().getFaceDataID(),
+                                                  relax );
+         }
+      }
+      for ( auto& it : storage_->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            P2::macroface::smoothJacobiEdgeDoF( level,
+                                                face,
+                                                vertexToEdge.getFaceStencilID(),
+                                                src.getVertexDoFFunction().getFaceDataID(),
+                                                edgeToEdge.getFaceStencilID(),
+                                                src.getEdgeDoFFunction().getFaceDataID(),
+                                                dst.getEdgeDoFFunction().getFaceDataID(),
+                                                rhs.getEdgeDoFFunction().getFaceDataID(),
+                                                relax );
+         }
+      }
+
+      for ( auto& it : storage_->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if ( testFlag( edgeBC, flag ) )
+         {
+            P2::macroedge::smoothJacobi( level,
+                                         edge,
+                                         relax,
+                                         vertexToVertex.getEdgeStencilID(),
+                                         edgeToVertex.getEdgeStencilID(),
+                                         src.getVertexDoFFunction().getEdgeDataID(),
+                                         dst.getVertexDoFFunction().getEdgeDataID(),
+                                         vertexToEdge.getEdgeStencilID(),
+                                         edgeToEdge.getEdgeStencilID(),
+                                         src.getEdgeDoFFunction().getEdgeDataID(),
+                                         dst.getEdgeDoFFunction().getEdgeDataID(),
+                                         rhs.getVertexDoFFunction().getEdgeDataID(),
+                                         rhs.getEdgeDoFFunction().getEdgeDataID() );
+         }
+      }
+
+      for ( auto& it : storage_->getVertices() )
+      {
+         Vertex& vertex = *it.second;
+
+         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if ( testFlag( vertexBC, flag ) )
+         {
+            P2::macrovertex::smoothJacobiVertexDoF( level,
+                                                    vertex,
+                                                    relax,
+                                                    vertexToVertex.getVertexStencilID(),
+                                                    src.getVertexDoFFunction().getVertexDataID(),
+                                                    dst.getVertexDoFFunction().getVertexDataID(),
+                                                    edgeToVertex.getVertexStencilID(),
+                                                    src.getEdgeDoFFunction().getVertexDataID(),
+                                                    rhs.getVertexDoFFunction().getVertexDataID() );
+         }
       }
    }
 }
