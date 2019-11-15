@@ -5,7 +5,7 @@ Parameters
     numFacesPerSide 1;
     discretization P2;
 
-    meshSphericalShell true;
+    meshSphericalShell false;
     shellNTan 3;
     shellNRad 2;
     shellRMin 0.5;
@@ -13,13 +13,13 @@ Parameters
 
     meshLayout CRISSCROSS;
     symmetricCuboidMesh true;
-    numCycles 10;
+    numCycles 5;
     cycleType V;
     fmgInnerCycles 0; // 0 == no fmg
 
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
-    sorRelax 0.15;
+    sorRelax 0.55;
     velocitySorRelax 1.0;
 
     symmGSVelocity true;
@@ -27,8 +27,8 @@ Parameters
     symmGSPressure false;
     numGSPressure 1;
 
-    preSmoothingSteps 3;
-    postSmoothingSteps 3;
+    preSmoothingSteps 4;
+    postSmoothingSteps 4;
     smoothingIncrement 2;
     minLevel 2;
     maxLevel 5; // P1 level, P2 level is automatically reduced by 1
@@ -37,7 +37,7 @@ Parameters
     projectPressureAfterRestriction true;
     calculateDiscretizationError false;
     coarseGridMaxIterations 2000;
-    coarseGridResidualTolerance 1e-05;
+    coarseGridResidualTolerance 1e-08;
 
     cyclesBeforeDC 0;
     postDCPreSmoothingSteps 3;

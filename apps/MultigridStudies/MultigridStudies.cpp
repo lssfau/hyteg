@@ -24,6 +24,7 @@
 #include "core/timing/TimingJSON.h"
 
 #include "hyteg/LikwidWrapper.hpp"
+#include "hyteg/TimingOutput.hpp"
 #include "hyteg/VTKWriter.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P1StokesOperator.hpp"
@@ -48,8 +49,10 @@
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScMinResSolver.hpp"
+#include "hyteg/petsc/PETScMemoryUsage.hpp"
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
+#include "hyteg/petsc/PETScVersion.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
@@ -977,6 +980,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
        storage, multigridSolver, fmgProlongation, minLevel, maxLevel, fmgInnerCycles, postCycle );
 
    printFunctionAllocationInfo( *storage, 1 );
+#ifdef HYTEG_BUILD_WITH_PETSC
+   printCurrentMemoryUsage();
+#endif
 
    timer.reset();
    calculateErrorAndResidualStokes( maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
@@ -1251,6 +1257,8 @@ void setup( int argc, char** argv )
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    PETScManager petscManager( &argc, &argv );
+   printPETScVersionNumberString();
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
 #endif
 
    // parameter checks
@@ -1622,25 +1630,16 @@ void setup( int argc, char** argv )
       }
    }
 
-   auto tt = storage->getTimingTree()->getReduced().getCopyWithRemainder();
    if ( outputTiming )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( tt );
+      printTimingTree( *storage->getTimingTree() );
    }
 
-   WALBERLA_ROOT_SECTION()
+   if ( outputTimingJSON )
    {
-      if ( outputTimingJSON )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT( "Writing JSON timing to " << outputTimingJSONFile )
-         nlohmann::json ttJson;
-         walberla::timing::to_json( ttJson, tt );
-         std::ofstream jsonOutput;
-         jsonOutput.open( outputTimingJSONFile );
-         jsonOutput << ttJson.dump( 4 );
-         jsonOutput.close();
-         WALBERLA_LOG_INFO_ON_ROOT( "Done writing JSON timing." )
-      }
+     WALBERLA_LOG_INFO_ON_ROOT( "Writing JSON timing to " << outputTimingJSONFile )
+     writeTimingTreeJSON( *storage->getTimingTree(), outputTimingJSONFile );
+     WALBERLA_LOG_INFO_ON_ROOT( "Done writing JSON timing." )
    }
 
    if ( outputSQL )

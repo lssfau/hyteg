@@ -526,6 +526,7 @@ void smoothSOR3D(
 {
    if ( backwards )
    {
+      storage.getTimingTree()->start( "EdgeDoFs" );
       smoothSOR3DUpdateEdgeDoFs( level,
                                  storage,
                                  edge,
@@ -539,7 +540,9 @@ void smoothSOR3D(
                                  edgeDoFDstId,
                                  edgeDoFRhsId,
                                  backwards );
+      storage.getTimingTree()->stop( "EdgeDoFs" );
 
+      storage.getTimingTree()->start( "VertexDoFs" );
       smoothSOR3DUpdateVertexDoFs( level,
                                    storage,
                                    edge,
@@ -553,9 +556,11 @@ void smoothSOR3D(
                                    edgeDoFDstId,
                                    edgeDoFRhsId,
                                    backwards );
+      storage.getTimingTree()->stop( "VertexDoFs" );
    }
    else
    {
+      storage.getTimingTree()->start( "VertexDoFs" );
       smoothSOR3DUpdateVertexDoFs( level,
                                    storage,
                                    edge,
@@ -569,7 +574,9 @@ void smoothSOR3D(
                                    edgeDoFDstId,
                                    edgeDoFRhsId,
                                    backwards );
+      storage.getTimingTree()->stop( "VertexDoFs" );
 
+      storage.getTimingTree()->start( "EdgeDoFs" );
       smoothSOR3DUpdateEdgeDoFs( level,
                                  storage,
                                  edge,
@@ -583,6 +590,7 @@ void smoothSOR3D(
                                  edgeDoFDstId,
                                  edgeDoFRhsId,
                                  backwards );
+      storage.getTimingTree()->stop( "EdgeDoFs" );
    }
 }
 
