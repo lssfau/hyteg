@@ -53,7 +53,7 @@ bool benchVertextoEdge   = true;
 
 static void registerLikwidRegion( std::string regionName )
 {
-   WALBERLA_UNUSED( regionName )
+   WALBERLA_UNUSED( regionName );
    /// register, start and stop to avoid warning in RESET
    LIKWID_MARKER_REGISTER( regionName.c_str() );
    LIKWID_MARKER_START( regionName.c_str() );
