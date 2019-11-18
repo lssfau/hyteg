@@ -56,6 +56,8 @@ class P1VariableOperator : public Operator< P1Function< real_t >, P1Function< re
                DoFType                     flag,
                UpdateType                  updateType = Replace ) const
    {
+      WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
+
       src.communicate< Vertex, Edge >( level );
       src.communicate< Edge, Face >( level );
       src.communicate< Face, Edge >( level );

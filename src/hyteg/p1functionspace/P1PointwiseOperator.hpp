@@ -56,6 +56,8 @@ class P1PointwiseOperator : public Operator< P1Function< real_t >, P1Function< r
                DoFType                     flag,
                UpdateType                  updateType = Replace ) const
    {
+      WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
+
       this->startTiming( "Apply" );
       communication::syncFunctionBetweenPrimitives( src, level );
 

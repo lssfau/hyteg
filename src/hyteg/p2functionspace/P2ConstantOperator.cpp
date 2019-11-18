@@ -87,6 +87,8 @@ void P2ConstantOperator< P2Form >::apply( const P2Function< real_t >& src,
                                           DoFType                     flag,
                                           UpdateType                  updateType ) const
 {
+   WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
+
    vertexToVertex.apply( src.getVertexDoFFunction(), dst.getVertexDoFFunction(), level, flag, updateType );
    edgeToVertex.apply( src.getEdgeDoFFunction(), dst.getVertexDoFFunction(), level, flag, Add );
 

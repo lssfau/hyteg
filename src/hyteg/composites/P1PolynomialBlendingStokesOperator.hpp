@@ -71,6 +71,8 @@ class P1PolynomialBlendingStokesOperator : public Operator< P1StokesFunction< re
 
    void apply( const P1StokesFunction< real_t >& src, const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const
    {
+      WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
+
       A_uu.apply( src.u, dst.u, level, flag, Replace );
       A_uv.apply( src.v, dst.u, level, flag, Add );
       divT_x.apply( src.p, dst.u, level, flag, Add );

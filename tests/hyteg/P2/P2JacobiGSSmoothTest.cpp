@@ -78,9 +78,10 @@ int main( int argc, char** argv )
 
    // Setup right-hand side
    P2ConstantMassOperator massOp( storage, level, level );
+   P2Function< real_t >   rhsStrong( "right-hand side", storage, level, level );
    P2Function< real_t >   rhs( "right-hand side", storage, level, level );
-   rhs.interpolate( -2.0 * ( COEFF_A20 + COEFF_A02 ), level );
-   massOp.apply( rhs, rhs, level, Inner );
+   rhsStrong.interpolate( -2.0 * ( COEFF_A20 + COEFF_A02 ), level );
+   massOp.apply( rhsStrong, rhs, level, Inner );
    rhs.interpolate( 0.0, level, DirichletBoundary );
 
    // Execute a single Jacobi smoothing step

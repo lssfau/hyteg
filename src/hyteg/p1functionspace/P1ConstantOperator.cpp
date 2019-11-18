@@ -558,6 +558,8 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
                                                                             DoFType                     flag,
                                                                             UpdateType                  updateType ) const
 {
+   WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
+
    this->startTiming( "Apply" );
    src.communicate< Vertex, Edge >( level );
    src.communicate< Edge, Face >( level );

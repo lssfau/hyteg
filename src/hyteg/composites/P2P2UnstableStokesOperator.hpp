@@ -48,6 +48,9 @@ class P2P2UnstableStokesOperator : public Operator< P2P2StokesFunction< real_t >
                const size_t                        level,
                DoFType                             flag ) const
    {
+
+      WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
+
       A.apply( src.u, dst.u, level, flag, Replace );
       divT_x.apply( src.p, dst.u, level, flag, Add );
 

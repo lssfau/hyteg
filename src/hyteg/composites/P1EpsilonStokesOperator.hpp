@@ -41,6 +41,8 @@ class P1EpsilonStokesOperator
 
    void apply( P1StokesFunction< real_t >& src, P1StokesFunction< real_t >& dst, size_t level, DoFType flag )
    {
+      WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
+
       A_uu.apply( src.u, dst.u, level, flag, Replace );
       A_uv.apply( src.v, dst.u, level, flag, Add );
       divT_x.apply( src.p, dst.u, level, flag, Add );

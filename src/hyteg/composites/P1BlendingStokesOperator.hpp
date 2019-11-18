@@ -47,6 +47,8 @@ class P1BlendingStokesOperator : public Operator< P1StokesFunction< real_t >, P1
                const uint_t                      level,
                const DoFType                     flag ) const
    {
+      WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
+
       A_uu.apply( src.u, dst.u, level, flag, Replace );
       A_uv.apply( src.v, dst.u, level, flag, Add );
       divT_x.apply( src.p, dst.u, level, flag, Add );
