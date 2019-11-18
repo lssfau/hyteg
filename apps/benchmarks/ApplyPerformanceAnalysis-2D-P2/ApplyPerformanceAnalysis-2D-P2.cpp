@@ -45,20 +45,22 @@
 using walberla::real_t;
 using namespace hyteg;
 
-static void registerLikwidRegion( std::string region_name ){
+static void registerLikwidRegion( std::string regionName )
+{
    /// register, start and stop to avoid warning in RESET
-   LIKWID_MARKER_REGISTER( region_name.c_str() );
-   LIKWID_MARKER_START(region_name.c_str() );
-   LIKWID_MARKER_STOP(region_name.c_str() );
+   LIKWID_MARKER_REGISTER( regionName.c_str() );
+   LIKWID_MARKER_START( regionName.c_str() );
+   LIKWID_MARKER_STOP( regionName.c_str() );
 }
 
 static void performBenchmark( hyteg::P2Function< double >&      src,
                               hyteg::P2Function< double >&      dst,
                               hyteg::P2ConstantLaplaceOperator& laplace,
-                              const uint_t&                   level,
-                              Face&                           face,
-                              walberla::WcTimingTree&         timingTree,
-                              const bool                      useGeneratedKernels )
+                              const uint_t&                     level,
+                              Face&                             face,
+                              walberla::WcTimingTree&           timingTree,
+                              const bool                        useGeneratedKernels,
+                              uint_t                            startIterations )
 {
    const std::string benchInfoString = "level" + ( level < 10 ? "0" + std::to_string( level ) : std::to_string( level ) ) +
                                        "-numProcs" + std::to_string( walberla::mpi::MPIManager::instance()->numProcesses() );
@@ -70,7 +72,7 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
    int    nevents = 0, count;
 #endif
 
-   uint_t      iterations = 1;
+   uint_t      iterations = startIterations;
    std::string vvname, vename, eename, evname;
    vvname = "Vertex-to-Vertex-Apply-" + benchInfoString;
    evname = "Edge-to-Vertex-Apply-" + benchInfoString;
@@ -144,7 +146,7 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
 
    /// Edge to Vertex
 
-   iterations = 1;
+   iterations = startIterations;
 
    do
    {
@@ -160,11 +162,11 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
       for ( uint_t i = 0; i < iterations; i++ )
       {
          hyteg::EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_replace( &srcPtr[firstIdx[eo::X]],
-                                                                                              &srcPtr[firstIdx[eo::XY]],
-                                                                                              &srcPtr[firstIdx[eo::Y]],
-                                                                                              stencilPtr,
-                                                                                              dstPtr,
-                                                                                              static_cast< int32_t >( level ) );
+                                                                                                &srcPtr[firstIdx[eo::XY]],
+                                                                                                &srcPtr[firstIdx[eo::Y]],
+                                                                                                stencilPtr,
+                                                                                                dstPtr,
+                                                                                                static_cast< int32_t >( level ) );
          hyteg::misc::dummy( srcPtr, dstPtr );
       }
       WALBERLA_MPI_BARRIER()
@@ -193,7 +195,7 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
 
    /// Edge to Edge
 
-   iterations = 1;
+   iterations = startIterations;
 
    do
    {
@@ -209,15 +211,15 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
       for ( uint_t i = 0; i < iterations; i++ )
       {
          hyteg::edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace( &dstPtr[firstIdx[eo::X]],
-                                                                                            &dstPtr[firstIdx[eo::XY]],
-                                                                                            &dstPtr[firstIdx[eo::Y]],
-                                                                                            &srcPtr[firstIdx[eo::X]],
-                                                                                            &srcPtr[firstIdx[eo::XY]],
-                                                                                            &srcPtr[firstIdx[eo::Y]],
-                                                                                            &stencilPtr[5],
-                                                                                            &stencilPtr[0],
-                                                                                            &stencilPtr[10],
-                                                                                            static_cast< int32_t >( level ) );
+                                                                                              &dstPtr[firstIdx[eo::XY]],
+                                                                                              &dstPtr[firstIdx[eo::Y]],
+                                                                                              &srcPtr[firstIdx[eo::X]],
+                                                                                              &srcPtr[firstIdx[eo::XY]],
+                                                                                              &srcPtr[firstIdx[eo::Y]],
+                                                                                              &stencilPtr[5],
+                                                                                              &stencilPtr[0],
+                                                                                              &stencilPtr[10],
+                                                                                              static_cast< int32_t >( level ) );
          hyteg::misc::dummy( srcPtr, dstPtr );
       }
       WALBERLA_MPI_BARRIER()
@@ -246,7 +248,7 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
 
    /// Vertex to Edge
 
-   iterations = 1;
+   iterations = startIterations;
 
    do
    {
@@ -265,13 +267,13 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
       for ( uint_t i = 0; i < iterations; i++ )
       {
          hyteg::VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace( &dstPtr[firstIdx[eo::X]],
-                                                                                              &dstPtr[firstIdx[eo::XY]],
-                                                                                              &dstPtr[firstIdx[eo::Y]],
-                                                                                              srcPtr,
-                                                                                              vertexToDiagonalEdgeStencil,
-                                                                                              vertexToHorizontalEdgeStencil,
-                                                                                              vertexToVerticalEdgeStencil,
-                                                                                              static_cast< int32_t >( level ) );
+                                                                                                &dstPtr[firstIdx[eo::XY]],
+                                                                                                &dstPtr[firstIdx[eo::Y]],
+                                                                                                srcPtr,
+                                                                                                vertexToDiagonalEdgeStencil,
+                                                                                                vertexToHorizontalEdgeStencil,
+                                                                                                vertexToVerticalEdgeStencil,
+                                                                                                static_cast< int32_t >( level ) );
          hyteg::misc::dummy( srcPtr, dstPtr );
       }
       WALBERLA_MPI_BARRIER()
@@ -327,13 +329,15 @@ int main( int argc, char* argv[] )
 
    const uint_t level               = mainConf.getParameter< uint_t >( "level" );
    const bool   useGeneratedKernels = mainConf.getParameter< bool >( "useGenKernel" );
+   const uint_t startIterations = mainConf.getParameter< uint_t >( "startIterations" );
 
    hyteg::MeshInfo meshInfo = hyteg::MeshInfo::meshFaceChain( uint_c( walberla::MPIManager::instance()->numProcesses() ) );
-   hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
+                                              walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    hyteg::loadbalancing::roundRobin( setupStorage );
 
-   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   std::shared_ptr< hyteg::PrimitiveStorage >  storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
+   std::shared_ptr< walberla::WcTimingTree >  timingTree( new walberla::WcTimingTree() );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
 
    std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& xx ) {
       return std::sin( walberla::math::pi * xx[0] ) + std::cos( walberla::math::pi * xx[1] );
@@ -354,7 +358,7 @@ int main( int argc, char* argv[] )
    WALBERLA_CHECK_EQUAL( macroFaces.size(), 1 );
    auto face = storage->getFace( macroFaces.front() );
 
-   performBenchmark( src, dst, laplace, level, *face, wcTimingTreeApp, useGeneratedKernels );
+   performBenchmark( src, dst, laplace, level, *face, wcTimingTreeApp, useGeneratedKernels, startIterations );
 
    if ( mainConf.getParameter< bool >( "printTiming" ) )
    {
