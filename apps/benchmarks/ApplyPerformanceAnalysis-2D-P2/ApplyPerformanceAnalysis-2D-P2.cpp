@@ -45,6 +45,13 @@
 using walberla::real_t;
 using namespace hyteg;
 
+static void registerLikwidRegion( std::string region_name ){
+   /// register, start and stop to avoid warning in RESET
+   LIKWID_MARKER_REGISTER( region_name.c_str() );
+   LIKWID_MARKER_START(region_name.c_str() );
+   LIKWID_MARKER_STOP(region_name.c_str() );
+}
+
 static void performBenchmark( hyteg::P2Function< double >&      src,
                               hyteg::P2Function< double >&      dst,
                               hyteg::P2ConstantLaplaceOperator& laplace,
@@ -70,10 +77,10 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
    eename = "Edge-to-Edge-Apply-" + benchInfoString;
    vename = "Vertex-to-Edge-Apply-" + benchInfoString;
 
-   LIKWID_MARKER_REGISTER( vvname.c_str() );
-   LIKWID_MARKER_REGISTER( evname.c_str() );
-   LIKWID_MARKER_REGISTER( eename.c_str() );
-   LIKWID_MARKER_REGISTER( vename.c_str() );
+   registerLikwidRegion( vvname );
+   registerLikwidRegion( evname );
+   registerLikwidRegion( eename );
+   registerLikwidRegion( vename );
 
    uint_t innerIterationsVertex =
        levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - 3 );
