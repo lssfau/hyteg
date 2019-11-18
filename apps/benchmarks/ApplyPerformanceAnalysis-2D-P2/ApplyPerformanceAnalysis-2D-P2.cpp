@@ -45,8 +45,15 @@
 using walberla::real_t;
 using namespace hyteg;
 
+///global varialbes controling which benchmarks to execute
+bool benchVertexToVertex = true;
+bool benchEdgeToVertex   = true;
+bool benchEdgeToEdge     = true;
+bool benchVertextoEdge   = true;
+
 static void registerLikwidRegion( std::string regionName )
 {
+   WALBERLA_UNUSED( regionName )
    /// register, start and stop to avoid warning in RESET
    LIKWID_MARKER_REGISTER( regionName.c_str() );
    LIKWID_MARKER_START( regionName.c_str() );
@@ -96,209 +103,218 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
 
    /// Vertex to Vertex
 
-   do
+   if ( benchVertexToVertex )
    {
-      timingTree.start( vvname );
-      ///only works with likwid 4.3.3 and higher
-      LIKWID_MARKER_RESET( vvname.c_str() );
-      LIKWID_MARKER_START( vvname.c_str() );
-
-      auto dstPtr     = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-      auto srcPtr     = face.getData( src.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-      auto stencilPtr = face.getData( laplace.getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
-
-      for ( uint_t iter = 0; iter < iterations; ++iter )
+      do
       {
-         if ( useGeneratedKernels )
-         {
-            hyteg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace(
-                dstPtr, srcPtr, stencilPtr, static_cast< int32_t >( level ) );
-         }
-         else
-         {
-            apply_2d_vertex_to_vertex( dstPtr, srcPtr, stencilPtr, level );
-         }
-      }
-      WALBERLA_MPI_BARRIER()
-      LIKWID_MARKER_STOP( vvname.c_str() );
-      timingTree.stop( vvname );
-      iterations *= 2;
-   } while ( timingTree[vvname].last() < 0.5 );
+         timingTree.start( vvname );
+         ///only works with likwid 4.3.3 and higher
+         LIKWID_MARKER_RESET( vvname.c_str() );
+         LIKWID_MARKER_START( vvname.c_str() );
 
-   iterations /= 2;
+         auto dstPtr     = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+         auto srcPtr     = face.getData( src.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+         auto stencilPtr = face.getData( laplace.getVertexToVertexOpr().getFaceStencilID() )->getPointer( level );
+
+         for ( uint_t iter = 0; iter < iterations; ++iter )
+         {
+            if ( useGeneratedKernels )
+            {
+               hyteg::vertexdof::macroface::generated::apply_2D_macroface_vertexdof_to_vertexdof_replace(
+                   dstPtr, srcPtr, stencilPtr, static_cast< int32_t >( level ) );
+            }
+            else
+            {
+               apply_2d_vertex_to_vertex( dstPtr, srcPtr, stencilPtr, level );
+            }
+         }
+         WALBERLA_MPI_BARRIER()
+         LIKWID_MARKER_STOP( vvname.c_str() );
+         timingTree.stop( vvname );
+         iterations *= 2;
+      } while ( timingTree[vvname].last() < 0.5 );
+
+      iterations /= 2;
 
 #ifdef LIKWID_PERFMON
-   LIKWID_MARKER_GET( vvname.c_str(), &nevents, &events, &time, &count );
-   if ( time < 1e-16 )
-   {
+      LIKWID_MARKER_GET( vvname.c_str(), &nevents, &events, &time, &count );
+      if ( time < 1e-16 )
+      {
+         time = timingTree[vvname].last();
+      }
+#else
       time = timingTree[vvname].last();
-   }
-#else
-   time = timingTree[vvname].last();
 #endif
 
-   mlups = real_t( innerIterationsVertex * iterations ) / time / 1e6;
-   /// 13 Flops: 7 Mults and 6 Adds
-   mflops = real_t( innerIterationsVertex * iterations * 13 ) / time / 1e6;
+      mlups = real_t( innerIterationsVertex * iterations ) / time / 1e6;
+      /// 13 Flops: 7 Mults and 6 Adds
+      mflops = real_t( innerIterationsVertex * iterations * 13 ) / time / 1e6;
 
-   WALBERLA_LOG_INFO_ON_ROOT(
-       hyteg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "vertex to vertex", time, mlups, mflops, iterations, level ) );
-
+      WALBERLA_LOG_INFO_ON_ROOT(
+          hyteg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "vertex to vertex", time, mlups, mflops, iterations, level ) );
+   }
    /// Edge to Vertex
-
-   iterations = startIterations;
-
-   do
+   if ( benchEdgeToVertex )
    {
-      timingTree.start( evname );
-      ///only works with likwid 4.3.3 and higher
-      LIKWID_MARKER_RESET( evname.c_str() );
-      LIKWID_MARKER_START( evname.c_str() );
+      iterations = startIterations;
 
-      auto dstPtr     = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-      auto srcPtr     = face.getData( src.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-      auto stencilPtr = face.getData( laplace.getEdgeToVertexOpr().getFaceStencilID() )->getPointer( level );
-
-      for ( uint_t i = 0; i < iterations; i++ )
+      do
       {
-         hyteg::EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_replace( &srcPtr[firstIdx[eo::X]],
-                                                                                                &srcPtr[firstIdx[eo::XY]],
-                                                                                                &srcPtr[firstIdx[eo::Y]],
-                                                                                                stencilPtr,
-                                                                                                dstPtr,
-                                                                                                static_cast< int32_t >( level ) );
-         hyteg::misc::dummy( srcPtr, dstPtr );
-      }
-      WALBERLA_MPI_BARRIER()
-      LIKWID_MARKER_STOP( evname.c_str() );
-      timingTree.stop( evname );
-      iterations *= 2;
-   } while ( timingTree[evname].last() < 0.5 );
+         timingTree.start( evname );
+         ///only works with likwid 4.3.3 and higher
+         LIKWID_MARKER_RESET( evname.c_str() );
+         LIKWID_MARKER_START( evname.c_str() );
 
-   iterations /= 2;
+         auto dstPtr     = face.getData( dst.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+         auto srcPtr     = face.getData( src.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+         auto stencilPtr = face.getData( laplace.getEdgeToVertexOpr().getFaceStencilID() )->getPointer( level );
+
+         for ( uint_t i = 0; i < iterations; i++ )
+         {
+            hyteg::EdgeDoFToVertexDoF::generated::apply_2D_macroface_edgedof_to_vertexdof_replace(
+                &srcPtr[firstIdx[eo::X]],
+                &srcPtr[firstIdx[eo::XY]],
+                &srcPtr[firstIdx[eo::Y]],
+                stencilPtr,
+                dstPtr,
+                static_cast< int32_t >( level ) );
+            hyteg::misc::dummy( srcPtr, dstPtr );
+         }
+         WALBERLA_MPI_BARRIER()
+         LIKWID_MARKER_STOP( evname.c_str() );
+         timingTree.stop( evname );
+         iterations *= 2;
+      } while ( timingTree[evname].last() < 0.5 );
+
+      iterations /= 2;
 
 #ifdef LIKWID_PERFMON
-   LIKWID_MARKER_GET( evname.c_str(), &nevents, &events, &time, &count );
-   if ( time < 1e-16 )
-   {
+      LIKWID_MARKER_GET( evname.c_str(), &nevents, &events, &time, &count );
+      if ( time < 1e-16 )
+      {
+         time = timingTree[evname].last();
+      }
+#else
       time = timingTree[evname].last();
-   }
-#else
-   time = timingTree[evname].last();
 #endif
-   mlups = real_t( innerIterationsVertex * iterations ) / time / 1e6;
-   /// 4 DoFs for each subgroup; 23 Flops: 12 Mults and 11 Adds
-   mflops = real_t( innerIterationsVertex * iterations * 23 ) / time / 1e6;
+      mlups = real_t( innerIterationsVertex * iterations ) / time / 1e6;
+      /// 4 DoFs for each subgroup; 23 Flops: 12 Mults and 11 Adds
+      mflops = real_t( innerIterationsVertex * iterations * 23 ) / time / 1e6;
 
-   WALBERLA_LOG_INFO_ON_ROOT(
-       hyteg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "edge to vertex", time, mlups, mflops, iterations, level ) );
-
+      WALBERLA_LOG_INFO_ON_ROOT(
+          hyteg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "edge to vertex", time, mlups, mflops, iterations, level ) );
+   }
    /// Edge to Edge
-
-   iterations = startIterations;
-
-   do
+   if ( benchEdgeToEdge )
    {
-      timingTree.start( eename );
-      ///only works with likwid 4.3.3 and higher
-      LIKWID_MARKER_RESET( eename.c_str() );
-      LIKWID_MARKER_START( eename.c_str() );
+      iterations = startIterations;
 
-      auto dstPtr     = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-      auto srcPtr     = face.getData( src.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-      auto stencilPtr = face.getData( laplace.getEdgeToEdgeOpr().getFaceStencilID() )->getPointer( level );
-
-      for ( uint_t i = 0; i < iterations; i++ )
+      do
       {
-         hyteg::edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace( &dstPtr[firstIdx[eo::X]],
-                                                                                              &dstPtr[firstIdx[eo::XY]],
-                                                                                              &dstPtr[firstIdx[eo::Y]],
-                                                                                              &srcPtr[firstIdx[eo::X]],
-                                                                                              &srcPtr[firstIdx[eo::XY]],
-                                                                                              &srcPtr[firstIdx[eo::Y]],
-                                                                                              &stencilPtr[5],
-                                                                                              &stencilPtr[0],
-                                                                                              &stencilPtr[10],
-                                                                                              static_cast< int32_t >( level ) );
-         hyteg::misc::dummy( srcPtr, dstPtr );
-      }
-      WALBERLA_MPI_BARRIER()
-      LIKWID_MARKER_STOP( eename.c_str() );
-      timingTree.stop( eename );
-      iterations *= 2;
-   } while ( timingTree[eename].last() < 0.5 );
+         timingTree.start( eename );
+         ///only works with likwid 4.3.3 and higher
+         LIKWID_MARKER_RESET( eename.c_str() );
+         LIKWID_MARKER_START( eename.c_str() );
 
-   iterations /= 2;
+         auto dstPtr     = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+         auto srcPtr     = face.getData( src.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+         auto stencilPtr = face.getData( laplace.getEdgeToEdgeOpr().getFaceStencilID() )->getPointer( level );
+
+         for ( uint_t i = 0; i < iterations; i++ )
+         {
+            hyteg::edgedof::macroface::generated::apply_2D_macroface_edgedof_to_edgedof_replace(
+                &dstPtr[firstIdx[eo::X]],
+                &dstPtr[firstIdx[eo::XY]],
+                &dstPtr[firstIdx[eo::Y]],
+                &srcPtr[firstIdx[eo::X]],
+                &srcPtr[firstIdx[eo::XY]],
+                &srcPtr[firstIdx[eo::Y]],
+                &stencilPtr[5],
+                &stencilPtr[0],
+                &stencilPtr[10],
+                static_cast< int32_t >( level ) );
+            hyteg::misc::dummy( srcPtr, dstPtr );
+         }
+         WALBERLA_MPI_BARRIER()
+         LIKWID_MARKER_STOP( eename.c_str() );
+         timingTree.stop( eename );
+         iterations *= 2;
+      } while ( timingTree[eename].last() < 0.5 );
+
+      iterations /= 2;
 
 #ifdef LIKWID_PERFMON
-   LIKWID_MARKER_GET( eename.c_str(), &nevents, &events, &time, &count );
-   if ( time < 1e-16 )
-   {
+      LIKWID_MARKER_GET( eename.c_str(), &nevents, &events, &time, &count );
+      if ( time < 1e-16 )
+      {
+         time = timingTree[eename].last();
+      }
+#else
       time = timingTree[eename].last();
-   }
-#else
-   time = timingTree[eename].last();
 #endif
-   mlups = real_t( innerIterationsVertex * iterations ) / time / 1e6;
-   /// 5 DoFs for each subgroup; 29 Flops: 15 Mults and 12 Adds
-   mflops = real_t( innerIterationsVertex * iterations * 27 ) / time / 1e6;
+      mlups = real_t( innerIterationsVertex * iterations ) / time / 1e6;
+      /// 5 DoFs for each subgroup; 29 Flops: 15 Mults and 12 Adds
+      mflops = real_t( innerIterationsVertex * iterations * 27 ) / time / 1e6;
 
-   WALBERLA_LOG_INFO_ON_ROOT(
-       hyteg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "edge to edge", time, mlups, mflops, iterations, level ) );
-
+      WALBERLA_LOG_INFO_ON_ROOT(
+          hyteg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "edge to edge", time, mlups, mflops, iterations, level ) );
+   }
    /// Vertex to Edge
-
-   iterations = startIterations;
-
-   do
+   if ( benchVertextoEdge )
    {
-      timingTree.start( vename );
-      ///only works with likwid 4.3.3 and higher
-      LIKWID_MARKER_RESET( vename.c_str() );
-      LIKWID_MARKER_START( vename.c_str() );
+      iterations = startIterations;
 
-      auto dstPtr                        = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-      auto srcPtr                        = face.getData( src.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-      auto stencilPtr                    = face.getData( laplace.getVertexToEdgeOpr().getFaceStencilID() )->getPointer( level );
-      auto vertexToDiagonalEdgeStencil   = &stencilPtr[4];
-      auto vertexToHorizontalEdgeStencil = &stencilPtr[0];
-      auto vertexToVerticalEdgeStencil   = &stencilPtr[8];
-
-      for ( uint_t i = 0; i < iterations; i++ )
+      do
       {
-         hyteg::VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace( &dstPtr[firstIdx[eo::X]],
-                                                                                                &dstPtr[firstIdx[eo::XY]],
-                                                                                                &dstPtr[firstIdx[eo::Y]],
-                                                                                                srcPtr,
-                                                                                                vertexToDiagonalEdgeStencil,
-                                                                                                vertexToHorizontalEdgeStencil,
-                                                                                                vertexToVerticalEdgeStencil,
-                                                                                                static_cast< int32_t >( level ) );
-         hyteg::misc::dummy( srcPtr, dstPtr );
-      }
-      WALBERLA_MPI_BARRIER()
-      LIKWID_MARKER_STOP( vename.c_str() );
-      timingTree.stop( vename );
-      iterations *= 2;
-   } while ( timingTree[vename].last() < 0.5 );
+         timingTree.start( vename );
+         ///only works with likwid 4.3.3 and higher
+         LIKWID_MARKER_RESET( vename.c_str() );
+         LIKWID_MARKER_START( vename.c_str() );
 
-   iterations /= 2;
+         auto dstPtr                      = face.getData( dst.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+         auto srcPtr                      = face.getData( src.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+         auto stencilPtr                  = face.getData( laplace.getVertexToEdgeOpr().getFaceStencilID() )->getPointer( level );
+         auto vertexToDiagonalEdgeStencil = &stencilPtr[4];
+         auto vertexToHorizontalEdgeStencil = &stencilPtr[0];
+         auto vertexToVerticalEdgeStencil   = &stencilPtr[8];
+
+         for ( uint_t i = 0; i < iterations; i++ )
+         {
+            hyteg::VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace(
+                &dstPtr[firstIdx[eo::X]],
+                &dstPtr[firstIdx[eo::XY]],
+                &dstPtr[firstIdx[eo::Y]],
+                srcPtr,
+                vertexToDiagonalEdgeStencil,
+                vertexToHorizontalEdgeStencil,
+                vertexToVerticalEdgeStencil,
+                static_cast< int32_t >( level ) );
+            hyteg::misc::dummy( srcPtr, dstPtr );
+         }
+         WALBERLA_MPI_BARRIER()
+         LIKWID_MARKER_STOP( vename.c_str() );
+         timingTree.stop( vename );
+         iterations *= 2;
+      } while ( timingTree[vename].last() < 0.5 );
+
+      iterations /= 2;
 
 #ifdef LIKWID_PERFMON
-   LIKWID_MARKER_GET( vename.c_str(), &nevents, &events, &time, &count );
-   if ( time < 1e-16 )
-   {
-      time = timingTree[vename].last();
-   }
+      LIKWID_MARKER_GET( vename.c_str(), &nevents, &events, &time, &count );
+      if ( time < 1e-16 )
+      {
+         time = timingTree[vename].last();
+      }
 #else
-   time = timingTree[vename].last();
+      time = timingTree[vename].last();
 #endif
-   mlups = real_t( innerIterationsVertex * iterations ) / time / 1e6;
-   /// 21 Flops: 12 Mults and 3 * 3 Adds
-   mflops = real_t( innerIterationsVertex * iterations * 21 ) / time / 1e6;
+      mlups = real_t( innerIterationsVertex * iterations ) / time / 1e6;
+      /// 21 Flops: 12 Mults and 3 * 3 Adds
+      mflops = real_t( innerIterationsVertex * iterations * 21 ) / time / 1e6;
 
-   WALBERLA_LOG_INFO_ON_ROOT(
-       hyteg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "vertex to edge", time, mlups, mflops, iterations, level ) );
+      WALBERLA_LOG_INFO_ON_ROOT(
+          hyteg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "vertex to edge", time, mlups, mflops, iterations, level ) );
+   }
 }
 
 int main( int argc, char* argv[] )
@@ -327,9 +343,13 @@ int main( int argc, char* argv[] )
    }
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
-   const uint_t level               = mainConf.getParameter< uint_t >( "level" );
-   const bool   useGeneratedKernels = mainConf.getParameter< bool >( "useGenKernel" );
-   const uint_t startIterations = mainConf.getParameter< uint_t >( "startIterations" );
+   const uint_t              level               = mainConf.getParameter< uint_t >( "level" );
+   const bool                useGeneratedKernels = mainConf.getParameter< bool >( "useGenKernel" );
+   const uint_t              startIterations     = mainConf.getParameter< uint_t >( "startIterations" );
+   benchVertexToVertex                           = mainConf.getParameter< bool >( "VertexToVertex" );
+   benchEdgeToVertex                             = mainConf.getParameter< bool >( "EdgeToVertex" );
+   benchEdgeToEdge                               = mainConf.getParameter< bool >( "EdgeToEdge" );
+   benchVertextoEdge                             = mainConf.getParameter< bool >( "VertextoEdge" );
 
    hyteg::MeshInfo meshInfo = hyteg::MeshInfo::meshFaceChain( uint_c( walberla::MPIManager::instance()->numProcesses() ) );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo,

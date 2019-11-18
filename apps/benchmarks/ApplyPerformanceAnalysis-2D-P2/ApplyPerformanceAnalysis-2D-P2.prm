@@ -10,6 +10,12 @@ Parameters
   /// might be increased to result in a runtime > 0.5s
   startIterations 1;
 
+  /// select benchmarks to execute
+  VertexToVertex true;
+  EdgeToVertex   true;
+  EdgeToEdge     true;
+  VertexToEdge   true;
+
   useMeshFile false;
   mesh ../../../data/meshes/quad_4el.msh;
 
