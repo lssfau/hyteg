@@ -149,7 +149,7 @@ static void smoothSOR3DUpdateVertexDoFsGenerated(
     const PrimitiveStorage&                                                                      storage,
     Edge&                                                                                        edge,
     const real_t&                                                                                relax,
-    const PrimitiveDataID< StencilMemory< real_t >, Edge >&                                      vertexToVertexOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< vertexdof::macroedge::StencilMap_T >, Edge >&        vertexToVertexOperatorId,
     const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge >& edgeToVertexOperatorId,
     const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroEdgeStencilMap_T >, Edge >& vertexToEdgeOperatorId,
     const PrimitiveDataID< LevelWiseMemory< edgedof::macroedge::StencilMap_T >, Edge >&          edgeToEdgeOperatorId,
@@ -158,81 +158,89 @@ static void smoothSOR3DUpdateVertexDoFsGenerated(
     const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     edgeDoFDstId,
     const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     edgeDoFRhsId,
     const bool&                                                                                  backwards )
-{ 
-  using edgedof::EdgeDoFOrientation;
-  using indexing::IndexIncrement;
-  typedef stencilDirection sD;
-  
-  auto v2v_operator = edge.getData( vertexToVertexOperatorId )->getPointer( level );
-  auto e2v_operator = edge.getData( edgeToVertexOperatorId )->getData( level );
-  auto v2e_operator = edge.getData( vertexToEdgeOperatorId )->getData( level );
-  auto e2e_operator = edge.getData( edgeToEdgeOperatorId )->getData( level );
-  
-  real_t *vertexDoFDst = edge.getData( vertexDoFDstId )->getPointer( level );
-  real_t *vertexDoFRhs = edge.getData( vertexDoFRhsId )->getPointer( level );
-  real_t *edgeDoFDst = edge.getData( edgeDoFDstId )->getPointer( level );
-  real_t *edgeDoFRhs = edge.getData( edgeDoFRhsId )->getPointer( level );
-  
-  const real_t vertexDoFRelaxOverCenter = relax / v2v_operator[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
-  const real_t oneMinusRelax = real_c( 1 ) - relax;
-  
-  WALBERLA_UNUSED( edgeDoFRhs );
-  
-  // pre-calculate for each neighbor cell:
-  std::vector< std::array< uint_t, 4 > > cellLocalVertexIDs;
-  std::vector< uint_t > edgeLocalFace0ID;
-  std::vector< uint_t > edgeLocalFace1ID;
-  for ( uint_t neighborCellID = 0; neighborCellID < edge.getNumNeighborCells(); neighborCellID++ )
-  {
-      const Cell & neighborCell = *( storage.getCell( edge.neighborCells().at( neighborCellID )));
-      auto cellLocalEdgeID = neighborCell.getLocalEdgeID( edge.getID());
+{
+   using edgedof::EdgeDoFOrientation;
+   using indexing::IndexIncrement;
 
-      // 1. the cell local vertex IDs as seen from the edge locally
-      cellLocalVertexIDs.push_back( algorithms::getMissingIntegersAscending< 2, 4 >( { neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
-                                                                                       neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 ) } ) );
+   auto v2v_operator = edge.getData( vertexToVertexOperatorId )->getData( level );
+   auto e2v_operator = edge.getData( edgeToVertexOperatorId )->getData( level );
+   auto v2e_operator = edge.getData( vertexToEdgeOperatorId )->getData( level );
+   auto e2e_operator = edge.getData( edgeToEdgeOperatorId )->getData( level );
+
+   real_t* vertexDoFDst = edge.getData( vertexDoFDstId )->getPointer( level );
+   real_t* vertexDoFRhs = edge.getData( vertexDoFRhsId )->getPointer( level );
+   real_t* edgeDoFDst   = edge.getData( edgeDoFDstId )->getPointer( level );
+   real_t* edgeDoFRhs   = edge.getData( edgeDoFRhsId )->getPointer( level );
+
+   real_t center = 0;
+   for ( uint_t neighborCellID = 0; neighborCellID < edge.getNumNeighborCells(); neighborCellID++ )
+   {
+      center += v2v_operator[neighborCellID][indexing::IndexIncrement( {0, 0, 0} )];
+   }
+
+   const real_t vertexDoFRelaxOverCenter = relax / center;
+   const real_t oneMinusRelax            = real_c( 1 ) - relax;
+
+   WALBERLA_UNUSED( edgeDoFRhs );
+
+   // pre-calculate for each neighbor cell:
+   std::vector< std::array< uint_t, 4 > > cellLocalVertexIDs;
+   std::vector< uint_t >                  edgeLocalFace0ID;
+   std::vector< uint_t >                  edgeLocalFace1ID;
+   for ( uint_t neighborCellID = 0; neighborCellID < edge.getNumNeighborCells(); neighborCellID++ )
+   {
+      const Cell& neighborCell    = *( storage.getCell( edge.neighborCells().at( neighborCellID ) ) );
+      auto        cellLocalEdgeID = neighborCell.getLocalEdgeID( edge.getID() );
+
+     // 1. the cell local vertex IDs as seen from the edge locally
+     auto cellLocalVertexIDsEntry = algorithms::getMissingIntegersAscending< 2, 4 >(
+      {neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
+       neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 )} );
+      cellLocalVertexIDs.push_back( cellLocalVertexIDsEntry );
+
       // 2. the edge local ID of the lower face
-      auto cellLocalIDLowerFace = indexing::getCellLocalFaceIDFromCellLocalVertexIDs( cellLocalVertexIDs.back()[0], cellLocalVertexIDs.back()[1], cellLocalVertexIDs.back()[2] );
+      auto cellLocalIDLowerFace = indexing::getCellLocalFaceIDFromCellLocalVertexIDs(
+      cellLocalVertexIDsEntry[0], cellLocalVertexIDsEntry[1], cellLocalVertexIDsEntry[2] );
       auto lowerFacePrimitiveID = neighborCell.neighborFaces().at( cellLocalIDLowerFace );
       edgeLocalFace0ID.push_back( edge.face_index( lowerFacePrimitiveID ) );
 
       // 3. the edge local ID of the upper face
-      auto cellLocalIDUpperFace = indexing::getCellLocalFaceIDFromCellLocalVertexIDs( cellLocalVertexIDs.back()[0], cellLocalVertexIDs.back()[1], cellLocalVertexIDs.back()[3] );
+      auto cellLocalIDUpperFace = indexing::getCellLocalFaceIDFromCellLocalVertexIDs(
+      cellLocalVertexIDsEntry[0], cellLocalVertexIDsEntry[1], cellLocalVertexIDsEntry[3] );
       auto upperFacePrimitiveID = neighborCell.neighborFaces().at( cellLocalIDUpperFace );
       edgeLocalFace1ID.push_back( edge.face_index( upperFacePrimitiveID ) );
-  }
-  
-  
-  for ( const auto & centerIndexOnEdge : hyteg::vertexdof::macroedge::Iterator( level, 1, backwards ))
-  { 
-    const auto dstIdx = vertexdof::macroedge::index( level, centerIndexOnEdge.x() );
-    real_t stencilSum = vertexDoFRhs[dstIdx];
-    
-    for ( uint_t neighborCellID = 0; neighborCellID < edge.getNumNeighborCells(); neighborCellID++ )
-    { 
-      real_t partialStencilSum = 0.0;
-      
-      P2::macroedge::generated::sor_3D_macroedge_P2_update_vertexdofs(
-        edgeDoFDst,
-        &partialStencilSum, 
-        vertexDoFDst, 
-        e2v_operator[neighborCellID], 
-        static_cast< int64_t >( neighborCellID ), 
-        static_cast< int64_t >( edgeLocalFace0ID[neighborCellID] ), 
-        static_cast< int64_t >( edgeLocalFace1ID[neighborCellID] ), 
-        static_cast< int32_t >( level ), 
-        static_cast< int64_t >( centerIndexOnEdge.x() ), 
-        static_cast< int64_t >( cellLocalVertexIDs[neighborCellID][0] ), 
-        static_cast< int64_t >( cellLocalVertexIDs[neighborCellID][1] ),  
-        static_cast< int64_t >( cellLocalVertexIDs[neighborCellID][2] ), 
-        static_cast< int64_t >( edge.getNumNeighborFaces() ), 
-        v2v_operator[neighborCellID]
-      );
+   }
 
-      stencilSum -= partialStencilSum;
-    }
+   for ( const auto& centerIndexOnEdge : hyteg::vertexdof::macroedge::Iterator( level, 1, backwards ) )
+   {
+      const auto dstIdx     = vertexdof::macroedge::index( level, centerIndexOnEdge.x() );
+      real_t     stencilSum = vertexDoFRhs[dstIdx];
 
-    vertexDoFDst[dstIdx] = oneMinusRelax * vertexDoFDst[dstIdx] + vertexDoFRelaxOverCenter * stencilSum;
-  }
+      for ( uint_t neighborCellID = 0; neighborCellID < edge.getNumNeighborCells(); neighborCellID++ )
+      {
+         real_t partialStencilSum = 0.0;
+
+         P2::macroedge::generated::sor_3D_macroedge_P2_update_vertexdofs(
+             edgeDoFDst,
+             &partialStencilSum,
+             vertexDoFDst,
+             e2v_operator[neighborCellID],
+             static_cast< int64_t >( neighborCellID ),
+             static_cast< int64_t >( edgeLocalFace0ID[neighborCellID] ),
+             static_cast< int64_t >( edgeLocalFace1ID[neighborCellID] ),
+             static_cast< int32_t >( level ),
+             static_cast< int64_t >( centerIndexOnEdge.x() ),
+             static_cast< int64_t >( cellLocalVertexIDs[neighborCellID][0] ),
+             static_cast< int64_t >( cellLocalVertexIDs[neighborCellID][1] ),
+             static_cast< int64_t >( cellLocalVertexIDs[neighborCellID][2] ),
+             static_cast< int64_t >( edge.getNumNeighborFaces() ),
+             v2v_operator[neighborCellID] );
+
+         stencilSum -= partialStencilSum;
+      }
+
+      vertexDoFDst[dstIdx] = oneMinusRelax * vertexDoFDst[dstIdx] + vertexDoFRelaxOverCenter * stencilSum;
+   }
 }
 
 static void smoothSOR3DUpdateVertexDoFs(
@@ -607,6 +615,7 @@ void smoothSOR3D(
     Edge&                                                                                        edge,
     const real_t&                                                                                relax,
     const PrimitiveDataID< StencilMemory< real_t >, Edge >&                                      vertexToVertexOperatorId,
+    const PrimitiveDataID< LevelWiseMemory< vertexdof::macroedge::StencilMap_T >, Edge >&        vertexToVertexOperatorMapId,
     const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge >& edgeToVertexOperatorId,
     const PrimitiveDataID< LevelWiseMemory< VertexDoFToEdgeDoF::MacroEdgeStencilMap_T >, Edge >& vertexToEdgeOperatorId,
     const PrimitiveDataID< LevelWiseMemory< edgedof::macroedge::StencilMap_T >, Edge >&          edgeToEdgeOperatorId,
@@ -637,35 +646,35 @@ void smoothSOR3D(
       storage.getTimingTree()->start( "VertexDoFs" );
       if ( globalDefines::useGeneratedKernels )
       {
-      smoothSOR3DUpdateVertexDoFsGenerated( level,
-                                   storage,
-                                   edge,
-                                   relax,
-                                   vertexToVertexOperatorId,
-                                   edgeToVertexOperatorId,
-                                   vertexToEdgeOperatorId,
-                                   edgeToEdgeOperatorId,
-                                   vertexDoFDstId,
-                                   vertexDoFRhsId,
-                                   edgeDoFDstId,
-                                   edgeDoFRhsId,
-                                   backwards );
+         smoothSOR3DUpdateVertexDoFsGenerated( level,
+                                               storage,
+                                               edge,
+                                               relax,
+                                               vertexToVertexOperatorMapId,
+                                               edgeToVertexOperatorId,
+                                               vertexToEdgeOperatorId,
+                                               edgeToEdgeOperatorId,
+                                               vertexDoFDstId,
+                                               vertexDoFRhsId,
+                                               edgeDoFDstId,
+                                               edgeDoFRhsId,
+                                               backwards );
       }
       else
       {
-      smoothSOR3DUpdateVertexDoFs( level,
-                                   storage,
-                                   edge,
-                                   relax,
-                                   vertexToVertexOperatorId,
-                                   edgeToVertexOperatorId,
-                                   vertexToEdgeOperatorId,
-                                   edgeToEdgeOperatorId,
-                                   vertexDoFDstId,
-                                   vertexDoFRhsId,
-                                   edgeDoFDstId,
-                                   edgeDoFRhsId,
-                                   backwards );
+         smoothSOR3DUpdateVertexDoFs( level,
+                                      storage,
+                                      edge,
+                                      relax,
+                                      vertexToVertexOperatorId,
+                                      edgeToVertexOperatorId,
+                                      vertexToEdgeOperatorId,
+                                      edgeToEdgeOperatorId,
+                                      vertexDoFDstId,
+                                      vertexDoFRhsId,
+                                      edgeDoFDstId,
+                                      edgeDoFRhsId,
+                                      backwards );
       }
       storage.getTimingTree()->stop( "VertexDoFs" );
    }
@@ -674,35 +683,35 @@ void smoothSOR3D(
       storage.getTimingTree()->start( "VertexDoFs" );
       if ( globalDefines::useGeneratedKernels )
       {
-      smoothSOR3DUpdateVertexDoFsGenerated( level,
-                                   storage,
-                                   edge,
-                                   relax,
-                                   vertexToVertexOperatorId,
-                                   edgeToVertexOperatorId,
-                                   vertexToEdgeOperatorId,
-                                   edgeToEdgeOperatorId,
-                                   vertexDoFDstId,
-                                   vertexDoFRhsId,
-                                   edgeDoFDstId,
-                                   edgeDoFRhsId,
-                                   backwards );
+         smoothSOR3DUpdateVertexDoFsGenerated( level,
+                                               storage,
+                                               edge,
+                                               relax,
+                                               vertexToVertexOperatorMapId,
+                                               edgeToVertexOperatorId,
+                                               vertexToEdgeOperatorId,
+                                               edgeToEdgeOperatorId,
+                                               vertexDoFDstId,
+                                               vertexDoFRhsId,
+                                               edgeDoFDstId,
+                                               edgeDoFRhsId,
+                                               backwards );
       }
       else
       {
-      smoothSOR3DUpdateVertexDoFs( level,
-                                   storage,
-                                   edge,
-                                   relax,
-                                   vertexToVertexOperatorId,
-                                   edgeToVertexOperatorId,
-                                   vertexToEdgeOperatorId,
-                                   edgeToEdgeOperatorId,
-                                   vertexDoFDstId,
-                                   vertexDoFRhsId,
-                                   edgeDoFDstId,
-                                   edgeDoFRhsId,
-                                   backwards );
+         smoothSOR3DUpdateVertexDoFs( level,
+                                      storage,
+                                      edge,
+                                      relax,
+                                      vertexToVertexOperatorId,
+                                      edgeToVertexOperatorId,
+                                      vertexToEdgeOperatorId,
+                                      edgeToEdgeOperatorId,
+                                      vertexDoFDstId,
+                                      vertexDoFRhsId,
+                                      edgeDoFDstId,
+                                      edgeDoFRhsId,
+                                      backwards );
       }
       storage.getTimingTree()->stop( "VertexDoFs" );
 
