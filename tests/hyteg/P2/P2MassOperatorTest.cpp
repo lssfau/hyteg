@@ -18,36 +18,44 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 // test that the product one^T*M*one with mass matrix M and vector of ones gives area of domain
+#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/VTKWriter.hpp"
 #include "core/Environment.h"
 
 using walberla::real_t;
 using walberla::uint_t;
 using namespace hyteg;
 
+typedef enum { P2CONSTANT, P2ELEMENTWISE } opType;
+
+template<typename OperatorType>
 void checkArea( std::shared_ptr<PrimitiveStorage> storage, real_t area )
 {
 
   const size_t minLevel = 2;
   const size_t maxLevel = 4;
 
-  P2ConstantMassOperator massOp( storage, minLevel, maxLevel );
+  OperatorType massOp( storage, minLevel, maxLevel );
 
-  P2Function< real_t > aux( "aux", storage, minLevel, maxLevel );
+  // Some overhead currently required to get the elementwise case correct due to the
+  // fact that boundaryTypeToSkipDuringAdditiveCommunication is property of P2Function
+  P2Function< real_t > aux( "aux", storage, minLevel, maxLevel, BoundaryCondition::create012BC(), DoFType::None );
+  // P2Function< real_t > aux( "aux", storage, minLevel, maxLevel );
   P2Function< real_t > vecOfOnes( "vecOfOnes", storage, minLevel, maxLevel );
-  std::function< real_t( const Point3D& ) > ones = []( const Point3D& ) { return 1.0; };
 
   for( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
     {
-      vecOfOnes.interpolate( ones, lvl, All );
+      vecOfOnes.interpolate( real_c(1.0), lvl, All );
       massOp.apply( vecOfOnes, aux, lvl, All );
       real_t measure = vecOfOnes.dotGlobal( aux, lvl );
       WALBERLA_LOG_INFO_ON_ROOT( "measure = " << std::scientific << measure );
       WALBERLA_CHECK_FLOAT_EQUAL( measure, area );
     }
 }
+
 
 int main(int argc, char **argv)
 {
@@ -63,7 +71,8 @@ int main(int argc, char **argv)
                                                MeshInfo::CRISSCROSS, 1, 2 );
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
-  checkArea( storage, 8.0 );
+  checkArea<P2ConstantMassOperator>( storage, 8.0 );
+  checkArea<P2ElementwiseMassOperator>( storage, 8.0 );
 
   // Test with backward facing step
   WALBERLA_LOG_INFO_ON_ROOT( "Testing with BFS" );
@@ -71,7 +80,8 @@ int main(int argc, char **argv)
   SetupPrimitiveStorage setupStorageBFS( meshInfo,
                                          uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
   std::shared_ptr<PrimitiveStorage> storageBFS = std::make_shared<PrimitiveStorage>( setupStorageBFS );
-  checkArea( storageBFS, 1.75 );
+  checkArea<P2ConstantMassOperator>( storageBFS, 1.75 );
+  checkArea<P2ElementwiseMassOperator>( storageBFS, 1.75 );
 
   return EXIT_SUCCESS;
 }
