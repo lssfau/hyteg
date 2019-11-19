@@ -50,6 +50,10 @@ public:
 
   const std::shared_ptr< PrimitiveStorage > getStorage() const { return storage_; }
 
+  uint_t getMinLevel() const { return minLevel_; }
+
+  uint_t getMaxLevel() const { return maxLevel_; }
+
  protected:
 
   const std::shared_ptr< PrimitiveStorage > storage_;
