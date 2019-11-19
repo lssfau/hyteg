@@ -28,6 +28,8 @@
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/primitives/Cell.hpp"
+#include "hyteg/Algorithms.hpp"
+#include "hyteg/indexing/DistanceCoordinateSystem.hpp"
 
 #include "core/math/KahanSummation.h"
 #include "core/DataTypes.h"
@@ -43,6 +45,23 @@ namespace macroedge {
 using walberla::real_c;
 using indexing::Index;
 
+inline indexing::Index getIndexInNeighboringMacroCell( const indexing::Index&  vertexDoFIndexInMacroEdge,
+                                                       const Edge&             edge,
+                                                       const uint_t&           neighborCellID,
+                                                       const PrimitiveStorage& storage,
+                                                       const uint_t&           level )
+{
+   const Cell&  neighborCell = *( storage.getCell( edge.neighborCells().at( neighborCellID ) ) );
+   const uint_t localEdgeID  = neighborCell.getLocalEdgeID( edge.getID() );
+
+   const std::array< uint_t, 4 > localVertexIDsAtCell = algorithms::getMissingIntegersAscending< 2, 4 >(
+       {neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeID ).at( 0 ),
+        neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeID ).at( 1 )} );
+
+   const auto indexInMacroCell = indexing::basisConversion(
+       vertexDoFIndexInMacroEdge, localVertexIDsAtCell, {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
+   return indexInMacroCell;
+}
 
 inline Point3D coordinateFromIndex( const uint_t & level, const Edge & edge, const Index & index )
 {
