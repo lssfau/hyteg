@@ -51,6 +51,8 @@ class P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFu
                const size_t                      level,
                DoFType                           flag ) const
    {
+      WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
+
       A.apply( src.u, dst.u, level, flag, Replace );
       divT_x.apply( src.p, dst.u, level, flag, Add );
 

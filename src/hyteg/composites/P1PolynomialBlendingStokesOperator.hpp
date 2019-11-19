@@ -21,8 +21,8 @@
 
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/StokesOperatorTraits.hpp"
-#include "hyteg/p1functionspace/P1PolynomialBlendingOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/p1functionspace/P1PolynomialBlendingOperator.hpp"
 
 namespace hyteg {
 
@@ -69,8 +69,10 @@ class P1PolynomialBlendingStokesOperator : public Operator< P1StokesFunction< re
       divT_y.useDegree( degree );
    }
 
-   void apply(const P1StokesFunction< real_t >& src, const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const
+   void apply( const P1StokesFunction< real_t >& src, const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const
    {
+      WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
+
       A_uu.apply( src.u, dst.u, level, flag, Replace );
       A_uv.apply( src.v, dst.u, level, flag, Add );
       divT_x.apply( src.p, dst.u, level, flag, Add );
@@ -95,14 +97,16 @@ class P1PolynomialBlendingStokesOperator : public Operator< P1StokesFunction< re
    P1PSPGOperator                         pspg;
 };
 
-template<>
-struct has_pspg_block< P1PolynomialBlendingStokesOperator > {
-    static const bool value = true;
+template <>
+struct has_pspg_block< P1PolynomialBlendingStokesOperator >
+{
+   static const bool value = true;
 };
 
-template<>
-struct tensor_variant< P1PolynomialBlendingStokesOperator > {
-  static const bool value = true;
+template <>
+struct tensor_variant< P1PolynomialBlendingStokesOperator >
+{
+   static const bool value = true;
 };
 
 } // namespace hyteg
