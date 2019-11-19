@@ -46,7 +46,7 @@ const std::map< uint_t, std::set< uint_t > > cellLocalFaceIDsToSpanningVertexIDs
   { 3, std::set< uint_t >( { 1, 2, 3 } ) }
 };
 
-uint_t getCellLocalFaceIDFromCellLocalVertexIDs( const uint_t v0, const uint_t v1, const uint_t v2 )
+inline uint_t getCellLocalFaceIDFromCellLocalVertexIDs( const uint_t v0, const uint_t v1, const uint_t v2 )
 {
 	const auto v3 = 6 - (v0 + v1 + v2);
 	return 3 - v3;
