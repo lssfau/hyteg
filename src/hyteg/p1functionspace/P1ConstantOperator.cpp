@@ -62,6 +62,10 @@ P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::P1ConstantOperat
        std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face > >(
            minLevel_, maxLevel_ );
 
+   auto edge3DP1StencilMemoryDataHandling =
+       std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< vertexdof::macroedge::StencilMap_T >, Edge > >(
+           minLevel_, maxLevel_ );
+
    auto faceP1StencilMemoryDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Face > >(
        minLevel_, maxLevel_, vertexDoFMacroFaceStencilMemorySize );
    auto edgeP1StencilMemoryDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Edge > >(
@@ -71,8 +75,9 @@ P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::P1ConstantOperat
 
    storage->addCellData( cellStencilID_, cellP1StencilMemoryDataHandling, "P1OperatorCellStencil" );
    storage->addFaceData( faceStencilID_, faceP1StencilMemoryDataHandling, "P1OperatorFaceStencil" );
-   storage->addFaceData( faceStencil3DID_, face3DP1StencilMemoryDataHandling, "P1OperatorFaceStencil" );
+   storage->addFaceData( faceStencil3DID_, face3DP1StencilMemoryDataHandling, "P1OperatorFace3DStencil" );
    storage->addEdgeData( edgeStencilID_, edgeP1StencilMemoryDataHandling, "P1OperatorEdgeStencil" );
+   storage->addEdgeData( edgeStencil3DID_, edge3DP1StencilMemoryDataHandling, "P1OperatorEdge3DStencil" );
    storage->addVertexData( vertexStencilID_, vertexP1StencilMemoryDataHandling, "P1OperatorVertexStencil" );
 
    if ( storage_->hasGlobalCells() )
@@ -142,8 +147,11 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
          auto edge          = it.second;
          auto stencilSize   = edge->getData( getEdgeStencilID() )->getSize( level );
          auto stencilMemory = edge->getData( getEdgeStencilID() )->getPointer( level );
+         auto & stencilMap    = edge->getData( getEdgeStencil3DID() )->getData( level );
 
          form.geometryMap = edge->getGeometryMap();
+
+         // old linear stencil memory
          auto stencil =
              P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, *edge, indexing::Index( 1, 0, 0 ), level, form );
 
@@ -152,6 +160,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
          {
             stencilMemory[i] = stencil[i];
          }
+
          if ( Lumped )
          {
             stencilMemory[vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C )] +=
@@ -198,6 +207,17 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
             stencilMemory[vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C )] =
                 1.0 / stencilMemory[vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C )];
          }
+
+        // new map
+        for ( uint_t neighborCellID = 0; neighborCellID < edge->getNumNeighborCells(); neighborCellID++ )
+        {
+          auto neighborCell = storage_->getCell( edge->neighborCells().at( neighborCellID ) );
+          auto vertexAssemblyIndexInCell =
+          vertexdof::macroedge::getIndexInNeighboringMacroCell( {1, 0, 0}, *edge, neighborCellID, *storage_, level );
+          stencilMap[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
+          storage_, *neighborCell, vertexAssemblyIndexInCell, level, form );
+        }
+
       }
 
       for ( const auto& it : storage_->getFaces() )
