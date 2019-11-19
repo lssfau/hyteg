@@ -140,5 +140,37 @@ typedef std::function<void(real_t *,
         { 8, 6, 2, 4 },
         { 7, 5, 4, 3 } } };
 
+  /// The P2DoFMapTriangle maps a pair of vertex indices to a corresponding
+  /// local index for a degree of freedom using the FEniCS indexing for a
+  /// P2 element on a triangle.
+  ///
+  /// There are two cases:
+  ///
+  /// (a) Both vertex indices are identical, then the map stores the
+  ///     index of the dof associated with this vertex.
+  ///
+  /// (b) The two vertex indices are different, then the map stores
+  ///     the index of the dof associated with the midpoint of the
+  ///     tet's edge given by those two vertices.
+  ///
+  /// P2DoFMapTriangle[0][0] = 0;
+  /// P2DoFMapTriangle[0][1] = 5;
+  /// P2DoFMapTriangle[0][2] = 4;
+  ///
+  /// P2DoFMapTriangle[1][0] = 5;
+  /// P2DoFMapTriangle[1][1] = 1;
+  /// P2DoFMapTriangle[1][2] = 3;
+  ///
+  /// P2DoFMapTriangle[2][0] = 4;
+  /// P2DoFMapTriangle[2][1] = 3;
+  /// P2DoFMapTriangle[2][2] = 2;
+  //
+  // wait for C++17
+  // constexpr static std::array< std::array<uint_t,3>, 3 > P2DoFMapTriangle =
+  const std::array< std::array<uint_t,3>, 3 > P2DoFMapTriangle =
+    { { { 0, 5, 4 },
+        { 5, 1, 3 },
+        { 4, 3, 2 } } };
+
 } // namespace fenics
 } // namespace hyteg

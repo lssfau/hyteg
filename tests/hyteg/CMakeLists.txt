@@ -293,6 +293,10 @@ waLBerla_compile_test(FILES P2/P2ConstantMassOperatorTest.cpp DEPENDS hyteg core
 waLBerla_execute_test(NAME P2ConstantMassOperatorTest )
 waLBerla_execute_test(NAME P2ConstantMassOperatorTestMPI COMMAND $<TARGET_FILE:P2ConstantMassOperatorTest> PROCESSES 2 )
 
+waLBerla_compile_test(FILES P2/P2MassOperatorTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P2MassOperatorTest )
+waLBerla_execute_test(NAME P2MassOperatorTestMPI COMMAND $<TARGET_FILE:P2MassOperatorTest> PROCESSES 2 )
+
 waLBerla_compile_test(FILES P2/P2EvaluateTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2EvaluateTest)
 
