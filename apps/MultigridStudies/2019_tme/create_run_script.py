@@ -160,6 +160,7 @@ Parameters
     inner_cycles = [1, 2]
     num_gs = [1, 2]
     dc_pre_post_inc = (2, 2, 2)
+    cycles_before_dc = 0
 
     with open("run_fmg.sh", "w") as f:
         f.write("echo\n")
@@ -172,7 +173,7 @@ Parameters
                         continue
                     for smooth in num_pre_post_inc:
                         for r in inner_cycles:
-                            cycles_before_dc = 1 if discretization == "P1" else 0
+                            # cycles_before_dc = 1 if discretization == "P1" else 0
                             cmd = "mpirun --allow-run-as-root -np {} --map-by core --bind-to core --report-bindings ./MultigridStudies 2019_tme/fmg_tests_base_config.prm " \
                                   "-Parameters.preSmoothingSteps={} " \
                                   "-Parameters.postSmoothingSteps={} " \
