@@ -13,6 +13,13 @@ Parameters
     dim 3;
     numFacesPerSide 1;
     discretization P1;
+
+    meshSphericalShell false;
+    shellNTan 3;
+    shellNRad 2;
+    shellRMin 0.5;
+    shellRMax 1.0;
+
     meshLayout CRISSCROSS;
     symmetricCuboidMesh true;
     numCycles 1;
@@ -22,6 +29,7 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax 0.3;
+    velocitySorRelax 1.0;
 
     symmGSVelocity true;
     numGSVelocity 1;
@@ -92,6 +100,13 @@ Parameters
     dim 3;
     numFacesPerSide 1;
     discretization P1;
+
+    meshSphericalShell false;
+    shellNTan 3;
+    shellNRad 2;
+    shellRMin 0.5;
+    shellRMax 1.0;
+
     meshLayout CRISSCROSS;
     symmetricCuboidMesh true;
     numCycles 5;
@@ -101,6 +116,7 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax 0.3;
+    velocitySorRelax 1.0;
 
     symmGSVelocity true;
     numGSVelocity 1;
@@ -184,6 +200,13 @@ Parameters
     dim 3;
     numFacesPerSide 1;
     discretization P1;
+
+    meshSphericalShell false;
+    shellNTan 3;
+    shellNRad 2;
+    shellRMin 0.5;
+    shellRMax 1.0;
+
     meshLayout CRISSCROSS;
     symmetricCuboidMesh true;
     numCycles 20;
@@ -193,6 +216,7 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax 0.3;
+    velocitySorRelax 1.0;
 
     symmGSVelocity true;
     numGSVelocity 1;
@@ -258,6 +282,13 @@ Parameters
     dim 3;
     numFacesPerSide 1;
     discretization P1;
+
+    meshSphericalShell false;
+    shellNTan 3;
+    shellNRad 2;
+    shellRMin 0.5;
+    shellRMax 1.0;
+
     meshLayout CRISSCROSS;
     symmetricCuboidMesh true;
     numCycles 20;
@@ -267,6 +298,7 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax 0.3;
+    velocitySorRelax 1.0;
 
     symmGSVelocity true;
     numGSVelocity 1;
@@ -323,6 +355,13 @@ Parameters
     dim 3;
     numFacesPerSide 1;
     discretization P1;
+
+    meshSphericalShell false;
+    shellNTan 3;
+    shellNRad 2;
+    shellRMin 0.5;
+    shellRMax 1.0;
+
     meshLayout CRISSCROSS;
     symmetricCuboidMesh true;
     numCycles 20;
@@ -332,6 +371,7 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax 0.3;
+    velocitySorRelax 1.0;
 
     symmGSVelocity true;
     numGSVelocity 1;
