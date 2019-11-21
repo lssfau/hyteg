@@ -25,16 +25,16 @@ def main(datafile, perfgroup):
         numberOfProcessors = []
         outputData = collections.defaultdict(list)
 
-
         print(likwidRegions.keys())
         for region in likwidRegions:
             if 'Region calls STAT' not in likwidRegions[region]:
                 procs = 1
             else:
-                procs = int(likwidRegions[region]['Region calls STAT'][1]) / int(likwidRegions[region]['Region calls STAT'][2])
+                procs = int(likwidRegions[region]['Region calls STAT'][1]) / \
+                    int(likwidRegions[region]['Region calls STAT'][2])
             numberOfProcessors.append(procs)
 
-            outputData[region.replace("Region ","").split("-level")[0]].append(
+            outputData[region.replace("Region ", "").split("-level")[0]].append(
                 float(likwidRegions[region][messure][0]))
 
         totalProcs = list(set(numberOfProcessors))
@@ -47,9 +47,10 @@ def main(datafile, perfgroup):
 
         plt.ylim(bottom=0)
         plt.xlim(left=0, right=totalProcs[-1] + 1)
-        plt.xticks(range(int(totalProcs[0]), int(totalProcs[-1] + 1)))
+        plt.xticks(range(int(totalProcs[0]+1), int(totalProcs[-1] + 1), 2))
         plt.grid(True)
-        plt.gca().get_yaxis().set_major_formatter(ticker.FuncFormatter(lambda x, p: format(int(x), ',')))
+        plt.gca().get_yaxis().set_major_formatter(
+            ticker.FuncFormatter(lambda x, p: format(int(x), ',')))
 
         plt.legend()
         namepart = messure.split('[')[0].replace(' ', '_').replace('/', '-')
