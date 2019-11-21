@@ -921,7 +921,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    double            timeError;
    double            timeVTK;
    double            timeCycle;
-   double            timeCoarseGrid;
+   double            timeCoarseGrid = 0.0;
 
    ///////////
    // Solve //
