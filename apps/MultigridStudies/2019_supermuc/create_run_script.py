@@ -3,7 +3,8 @@ import datetime
 
 
 def supermuc_scaling_prm_file_string(discretization="P2", mesh_spherical_shell=False, num_faces_per_side=1, ntan=2, nrad=2,
-                                     num_cycles=1, fmg_r=1, omega=0.2, pre=3, post=3, num_gs_velocity=1, max_level=3, timing_file="timing.json", db_file="database.db"):
+                                     num_cycles=1, fmg_r=1, omega=0.2, pre=3, post=3, num_gs_velocity=1, max_level=3,
+                                     timing_file="timing.json", db_file="database.db", coarse_grid_tol=1e-10):
 
     base_config = """
 Parameters
@@ -46,7 +47,7 @@ Parameters
     projectPressureAfterRestriction true;
     calculateDiscretizationError false;
     coarseGridMaxIterations 20000;
-    coarseGridResidualTolerance 1e-10;
+    coarseGridResidualTolerance {coarse_grid_tol};
 
     cyclesBeforeDC 0;
     postDCPreSmoothingSteps 3;
@@ -64,7 +65,8 @@ Parameters
            num_cycles=num_cycles, fmg_r=fmg_r, omega=omega, pre=pre,
            post=post, max_level=max_level, timing_file=timing_file,
            db_file=db_file, mesh_spherical_shell=mesh_spherical_shell,
-           num_faces_per_side=num_faces_per_side, num_gs_velocity=num_gs_velocity)
+           num_faces_per_side=num_faces_per_side, num_gs_velocity=num_gs_velocity,
+           coarse_grid_tol=coarse_grid_tol)
     return base_config
 
 
@@ -126,7 +128,7 @@ mpiexec -n $SLURM_NTASKS ./MultigridStudies 2019_supermuc/{prm_file}
     return base_config
 
 
-def supermuc_scaling(cube_scaling=True):
+def supermuc_scaling():
 
     cube_base_config_fmg = {
         "weak": {
@@ -135,10 +137,11 @@ def supermuc_scaling(cube_scaling=True):
                 "fmg_r": 1,
                 "max_level": 8,
                 "num_cycles": 3,
-                "pre": 2,
-                "post": 2,
+                "pre": 1,
+                "post": 1,
                 "num_gs_velocity": 2,
-                "omega": 0.3
+                "omega": 0.3,
+                "coarse_grid_tol": 1e-10
             },
             "P2": {
                 "discretization": "P2",
@@ -148,7 +151,8 @@ def supermuc_scaling(cube_scaling=True):
                 "pre": 3,
                 "post": 3,
                 "num_gs_velocity": 2,
-                "omega": 0.3
+                "omega": 0.3,
+                "coarse_grid_tol": 1e-10
             }
         },
         "strong": {
@@ -157,10 +161,11 @@ def supermuc_scaling(cube_scaling=True):
                 "fmg_r": 1,
                 "max_level": 6,
                 "num_cycles": 3,
-                "pre": 2,
-                "post": 2,
+                "pre": 1,
+                "post": 1,
                 "num_gs_velocity": 2,
-                "omega": 0.3
+                "omega": 0.3,
+                "coarse_grid_tol": 1e-10
             },
             "P2": {
                 "discretization": "P2",
@@ -170,7 +175,8 @@ def supermuc_scaling(cube_scaling=True):
                 "pre": 3,
                 "post": 3,
                 "num_gs_velocity": 2,
-                "omega": 0.3
+                "omega": 0.3,
+                "coarse_grid_tol": 1e-10
             }
         }
     }
