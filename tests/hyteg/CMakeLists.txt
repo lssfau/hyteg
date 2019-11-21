@@ -471,6 +471,9 @@ waLBerla_execute_test(NAME FindMaxMinMagTest2 COMMAND $<TARGET_FILE:FindMaxMinMa
 waLBerla_compile_test(FILES FunctionPropertiesTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionPropertiesTest)
 
+waLBerla_compile_test(FILES FunctionMultElementwiseTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME FunctionMultElementwiseTest)
+
 ## numeric tools ##
 if( HYTEG_BUILD_WITH_EIGEN )
 waLBerla_compile_test(FILES numerictools/SpectrumEstimationTest.cpp DEPENDS hyteg core)
