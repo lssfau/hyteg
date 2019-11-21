@@ -23,7 +23,7 @@
 #include "core/timing/TimingJSON.h"
 #include "core/math/Constants.h"
 
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"

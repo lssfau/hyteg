@@ -26,7 +26,7 @@
 #include "core/math/Constants.h"
 
 #include "hyteg/LikwidWrapper.hpp"
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"

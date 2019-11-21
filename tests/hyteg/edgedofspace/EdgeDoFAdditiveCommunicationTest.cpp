@@ -24,7 +24,7 @@
 
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/FunctionTraits.hpp"
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"

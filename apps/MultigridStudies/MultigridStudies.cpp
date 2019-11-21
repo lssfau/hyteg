@@ -25,7 +25,7 @@
 
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/TimingOutput.hpp"
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"

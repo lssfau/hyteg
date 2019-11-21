@@ -25,7 +25,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/FunctionTraits.hpp"
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"

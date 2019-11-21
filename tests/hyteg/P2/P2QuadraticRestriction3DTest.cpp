@@ -25,7 +25,7 @@
 
 #include "hyteg/FunctionIterator.hpp"
 #include "hyteg/FunctionProperties.hpp"
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"

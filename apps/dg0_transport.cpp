@@ -28,7 +28,7 @@
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/dgfunctionspace/DGUpwindOperator.hpp"
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
