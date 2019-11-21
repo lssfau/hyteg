@@ -1423,22 +1423,8 @@ void setup( int argc, char** argv )
          {
            meshInfo = MeshInfo::meshSymmetricCuboid(
            leftBottom3D, Point3D( { 1, 1, 1 } ), numFacesPerSide, numFacesPerSide, numFacesPerSide );
-
-           exactU = shellExactU;
-           exactV = shellExactV;
-           exactW = shellExactW;
-
-           exactP = shellExactP;
-
-           bcU = shellExactU;
-           bcV = shellExactV;
-           bcW = shellExactW;
-
-           rhsU = shellRhsU;
-           rhsV = shellRhsV;
-           rhsW = shellRhsW;
-
-         } else
+         }
+         else
          {
            meshInfo =
            MeshInfo::meshCuboid( leftBottom3D, Point3D( { 1, 1, 1 } ), numFacesPerSide, numFacesPerSide, numFacesPerSide );
