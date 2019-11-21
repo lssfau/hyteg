@@ -132,8 +132,8 @@ Parameters
     L2residualTolerance 1e-16;
     projectPressureAfterRestriction true;
     calculateDiscretizationError false;
-    coarseGridMaxIterations 2000;
-    coarseGridResidualTolerance 1e-04;
+    coarseGridMaxIterations 20000;
+    coarseGridResidualTolerance 1e-10;
 
     cyclesBeforeDC 0;
     postDCPreSmoothingSteps 3;
@@ -233,7 +233,7 @@ Parameters
     L2residualTolerance 1e-16;
     projectPressureAfterRestriction true;
     calculateDiscretizationError false;
-    coarseGridMaxIterations 2000;
+    coarseGridMaxIterations 20000;
     coarseGridResidualTolerance 1e-14;
 
     cyclesBeforeDC 0;
