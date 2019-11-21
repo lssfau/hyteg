@@ -57,6 +57,7 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/controlflow/TimedSolver.hpp"
 #include "hyteg/solvers/FullMultigridSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
@@ -920,6 +921,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    double            timeError;
    double            timeVTK;
    double            timeCycle;
+   double            timeCoarseGrid;
 
    ///////////
    // Solve //
@@ -943,8 +945,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    // auto petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >(
    //     storage, coarseGridMaxLevel, coarseResidualTolerance, coarseGridMaxIterations );
    // auto petscSolver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, coarseGridMaxLevel );
-   auto petscSolver = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >( storage, coarseGridMaxLevel,
+   auto petscSolverInternal = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >( storage, coarseGridMaxLevel,
            coarseResidualTolerance, coarseGridMaxIterations );
+   auto petscSolver = std::make_shared< TimedSolver< StokesOperator > >( petscSolverInternal );
    WALBERLA_UNUSED( coarseGridMaxIterations );
    WALBERLA_UNUSED( coarseResidualTolerance );
 #else
@@ -1017,14 +1020,14 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    timeVTK = timer.last();
 
    WALBERLA_LOG_INFO_ON_ROOT(
-       " After cycle... ||   l2 error u |   l2 error p |     l2 error u red || l2 residualU | l2 residualP |     l2 residual u red || time cycle [s] | time error calculation [s] | time VTK [s] |" );
+       " After cycle... ||   l2 error u |   l2 error p |     l2 error u red || l2 residualU | l2 residualP |     l2 residual u red || time cycle [s] | time error calculation [s] | time VTK [s] | time CG  [s] |" );
    WALBERLA_LOG_INFO_ON_ROOT(
-       " ---------------++--------------+--------------+--------------------++--------------+--------------+-----------------------++----------------+----------------------------+--------------|" );
+       " ---------------++--------------+--------------+--------------------++--------------+--------------+-----------------------++----------------+----------------------------+--------------+--------------|" );
    WALBERLA_LOG_INFO_ON_ROOT( "        initial || " << std::scientific << l2ErrorU << " | " << l2ErrorP << " | "
                                                     << "               --- || " << l2ResidualU << " | " << l2ResidualP
                                                     << " |                   --- ||            --- | " << std::fixed
                                                     << std::setprecision( 2 ) << std::setw( 26 ) << timeError << " | "
-                                                    << std::setw( 12 ) << timeVTK << " |" );
+                                                    << std::setw( 12 ) << timeVTK << " | " <<  std::setw( 12 ) << timeCoarseGrid << " |" );
 
    long double avgl2ErrorConvergenceRateU    = 0;
    long double avgl2ResidualConvergenceRateU = 0;
@@ -1051,6 +1054,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       timer.reset();
 #ifdef HYTEG_BUILD_WITH_PETSC
       petscSolver->solve( A, u, f, maxLevel );
+      timeCoarseGrid = petscSolver->getTimer().last();
 #else
       coarseGridSolver->solve( A, u, f, maxLevel );
 #endif
@@ -1063,7 +1067,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                                  << "      " << l2ErrorReductionU << " || " << l2ResidualU << " | " << l2ResidualP
                                                  << " |          " << l2ResidualReductionU << " || " << std::fixed
                                                  << std::setprecision( 2 ) << std::setw( 14 ) << timeCycle << " | "
-                                                 << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK << " |" );
+                                                 << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK
+                                                 << " | " <<  std::setw( 12 ) << timeCoarseGrid << " | " );
    }
 
    uint_t numExecutedCycles = 0;
@@ -1088,6 +1093,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       }
 
       timer.reset();
+#ifdef HYTEG_BUILD_WITH_PETSC
+      petscSolver->getTimer().reset();
+#endif
       if ( cycle == 1 && fmgInnerCycles > 0 )
       {
          LIKWID_MARKER_START( "FMG" );
@@ -1106,6 +1114,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       }
       timer.end();
       timeCycle = timer.last();
+#ifdef HYTEG_BUILD_WITH_PETSC
+      timeCoarseGrid = petscSolver->getTimer().total();
+#endif
       if ( cycle == 1 && fmgInnerCycles > 0 )
       {
          timeCycle -= timerFMGErrorCalculation.total();
@@ -1143,6 +1154,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                           << "      " << l2ErrorReductionU << " || " << l2ResidualU << " | " << l2ResidualP << " |          "
                           << l2ResidualReductionU << " || " << std::fixed << std::setprecision( 2 ) << std::setw( 14 )
                           << timeCycle << " | " << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK
+                          << " | " <<  std::setw( 12 ) << timeCoarseGrid
                           << " | ratio discr.err: " << ( calcDiscretizationError ? l2ErrorU / discretizationErrorU : 0.0 ) );
 
       if ( cycle > skipCyclesForAvgConvRate )
@@ -1165,6 +1177,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
       sqlRealPropertiesMG[cycle]["time_cycle"] = real_c( timeCycle );
       sqlRealPropertiesMG[cycle]["time_error"] = real_c( timeError );
+      sqlRealPropertiesMG[cycle]["time_coarse_grid"] = real_c( timeCoarseGrid );
 
       if ( l2ResidualU < L2residualTolerance )
       {
