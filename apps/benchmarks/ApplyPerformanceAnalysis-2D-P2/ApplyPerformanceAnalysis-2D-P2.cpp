@@ -26,7 +26,7 @@
 
 #include "hyteg/Format.hpp"
 #include "hyteg/LikwidWrapper.hpp"
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/edgedofspace/generatedKernels/all.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/misc/dummy.hpp"

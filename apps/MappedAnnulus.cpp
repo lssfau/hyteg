@@ -1,44 +1,24 @@
-/*
- * Copyright (c) 2017-2019 Dominik Thoennes.
- *
- * This file is part of HyTeG
- * (see https://i10git.cs.fau.de/hyteg/hyteg).
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
 #include <core/Environment.h>
 #include <core/config/Config.h>
-#include <core/math/Constants.h>
 
 #include "core/timing/Timer.h"
 
-#include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/geometry/PolarCoordsMap.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/P1VariableOperator.hpp"
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/solvers/CGSolver.hpp"
+#include "tinyhhg_core/p2functionspace/P2Function.hpp"
+#include "tinyhhg_core/VTKWriter.hpp"
+#include "tinyhhg_core/geometry/PolarCoordsMap.hpp"
+#include "tinyhhg_core/p1functionspace/P1Function.hpp"
+#include "tinyhhg_core/p1functionspace/P1VariableOperator.hpp"
+#include "tinyhhg_core/primitivestorage/PrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "tinyhhg_core/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "tinyhhg_core/solvers/CGSolver.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
-using walberla::math::pi;
+using walberla::math::PI;
 
-using namespace hyteg;
+using namespace hhg;
 
 int main( int argc, char* argv[] )
 {
@@ -49,12 +29,12 @@ int main( int argc, char* argv[] )
 
   const size_t level = 2;
 
-  // Generate annulus mesh in polar coordinates, so it's a rectangle
+  // Generate annulus mesh in polar coordinates
   real_t rmin = 1.0;
   real_t rmax = 2.0;
 
   Point2D cornerLL( { rmin, 0.0 } );
-  Point2D cornerUR( { rmax, 2.0*pi } );
+  Point2D cornerUR( { rmax, 2.0*PI } );
 
   MeshInfo meshInfo = MeshInfo::meshRectangle( cornerLL, cornerUR, MeshInfo::CROSS, 1, 6 );
   WALBERLA_LOG_INFO_ON_ROOT( " *** Using Inline Mesher" );
@@ -77,11 +57,27 @@ int main( int argc, char* argv[] )
       setupStorage.setGeometryMap( it.second->getID(), std::make_shared< PolarCoordsMap >() );
     }
 
-    hyteg::loadbalancing::roundRobin( setupStorage );
+  hhg::loadbalancing::roundRobin( setupStorage );
   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
+  // Do something
+  auto x = std::make_shared< hhg::P2Function< real_t > >( "x", storage, level, level );
+  auto y = std::make_shared< hhg::P2Function< real_t > >( "y", storage, level, level );
+
+  std::function< real_t( const hhg::Point3D& ) > tmp_x = [&]( const hhg::Point3D& x_ ) { return x_[0]; };
+
+  std::function< real_t( const hhg::Point3D& ) > tmp_y = [&]( const hhg::Point3D& x_ ) { return x_[1]; };
+
+  x->interpolate( tmp_x, level, hhg::All );
+  y->interpolate( tmp_y, level, hhg::All );
+
+  VTKOutput vtkOutput( "../output", "MappedAnnulus", storage );
+  vtkOutput.add( *x );
+  vtkOutput.add( *y );
+  vtkOutput.write( level );
+
   // Check surface area of annulus
-  std::function< real_t( const hyteg::Point3D& ) > one = []( const hyteg::Point3D& ) { return 1.0; };
+  std::function< real_t( const hhg::Point3D& ) > one = []( const hhg::Point3D& ) { return 1.0; };
 
   uint_t minLevel = level;
   uint_t maxLevel = level;
@@ -96,8 +92,8 @@ int main( int argc, char* argv[] )
       vecOfOnes.interpolate( one, lvl, All );
       massOp.apply( vecOfOnes, aux, lvl, All );
       real_t measure = vecOfOnes.dotGlobal( aux, lvl );
-      WALBERLA_LOG_INFO_ON_ROOT( "annulus area = " << std::scientific << measure );
-      WALBERLA_CHECK_FLOAT_EQUAL( measure, 3.0*pi );
+      WALBERLA_LOG_INFO_ON_ROOT( "measure = " << std::scientific << measure );
+      WALBERLA_CHECK_FLOAT_EQUAL( measure, 3.0*PI );
     }
 
   return 0;

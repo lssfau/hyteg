@@ -187,7 +187,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/FunctionProperties.hpp"
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P1StokesOperator.hpp"
 #include "hyteg/composites/P1Transport.hpp"

@@ -23,7 +23,7 @@
 #include "core/timing/TimingJSON.h"
 #include "core/math/Constants.h"
 
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P1StokesOperator.hpp"
 #include "hyteg/composites/P2P2StokesFunction.hpp"

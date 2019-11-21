@@ -25,7 +25,7 @@
 #include "core/timing/Timer.h"
 
 #include "hyteg/FunctionIterator.hpp"
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/forms/form_fenics_generated/p1_tet_diffusion.h"

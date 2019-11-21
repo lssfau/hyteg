@@ -33,7 +33,7 @@
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/petsc/PETScVector.hpp"
 #include "hyteg/FunctionTraits.hpp"
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/communication/Syncing.hpp"
 
 #include <numeric>

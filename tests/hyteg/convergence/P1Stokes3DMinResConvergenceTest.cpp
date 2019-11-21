@@ -38,7 +38,7 @@
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"

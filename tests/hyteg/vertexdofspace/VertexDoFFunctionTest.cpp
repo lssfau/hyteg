@@ -38,7 +38,7 @@
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/FunctionTraits.hpp"
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 
 namespace hyteg {
 

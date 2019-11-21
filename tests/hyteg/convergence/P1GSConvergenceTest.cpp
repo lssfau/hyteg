@@ -28,7 +28,7 @@
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/Format.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

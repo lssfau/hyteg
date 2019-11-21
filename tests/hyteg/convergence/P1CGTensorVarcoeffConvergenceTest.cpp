@@ -21,7 +21,7 @@
 #include <core/timing/Timer.h>
 
 #include "hyteg/Format.hpp"
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/p1functionspace/P1CoefficientOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"

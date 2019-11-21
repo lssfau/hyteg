@@ -21,7 +21,7 @@
 #include <core/config/Create.h>
 #include <hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp>
 
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/composites/P1StokesOperator.hpp"
 #include "hyteg/composites/P1PolynomialBlendingStokesOperator.hpp"
