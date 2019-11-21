@@ -1144,6 +1144,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       sqlRealPropertiesMG[cycle]["l2_residual_p"]           = real_c( l2ResidualP );
       sqlRealPropertiesMG[cycle]["l2_residual_reduction_p"] = real_c( l2ResidualReductionP );
 
+      sqlRealPropertiesMG[cycle]["time_cycle"] = real_c( timeCycle );
+      sqlRealPropertiesMG[cycle]["time_error"] = real_c( timeError );
+
       if ( l2ResidualU < L2residualTolerance )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "l2 residual (u) dropped below tolerance." )
