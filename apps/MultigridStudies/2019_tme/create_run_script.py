@@ -13,6 +13,13 @@ Parameters
     dim 3;
     numFacesPerSide 1;
     discretization P1;
+
+    meshSphericalShell false;
+    shellNTan 3;
+    shellNRad 2;
+    shellRMin 0.5;
+    shellRMax 1.0;
+
     meshLayout CRISSCROSS;
     symmetricCuboidMesh true;
     numCycles 1;
@@ -22,6 +29,7 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax 0.3;
+    velocitySorRelax 1.0;
 
     symmGSVelocity true;
     numGSVelocity 1;
@@ -92,6 +100,13 @@ Parameters
     dim 3;
     numFacesPerSide 1;
     discretization P1;
+
+    meshSphericalShell false;
+    shellNTan 3;
+    shellNRad 2;
+    shellRMin 0.5;
+    shellRMax 1.0;
+
     meshLayout CRISSCROSS;
     symmetricCuboidMesh true;
     numCycles 5;
@@ -101,6 +116,7 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax 0.3;
+    velocitySorRelax 1.0;
 
     symmGSVelocity true;
     numGSVelocity 1;
@@ -116,8 +132,8 @@ Parameters
     L2residualTolerance 1e-16;
     projectPressureAfterRestriction true;
     calculateDiscretizationError false;
-    coarseGridMaxIterations 500;
-    coarseGridResidualTolerance 1e-14;
+    coarseGridMaxIterations 20000;
+    coarseGridResidualTolerance 1e-10;
 
     cyclesBeforeDC 0;
     postDCPreSmoothingSteps 3;
@@ -144,6 +160,7 @@ Parameters
     inner_cycles = [1, 2]
     num_gs = [1, 2]
     dc_pre_post_inc = (2, 2, 2)
+    cycles_before_dc = 0
 
     with open("run_fmg.sh", "w") as f:
         f.write("echo\n")
@@ -156,7 +173,7 @@ Parameters
                         continue
                     for smooth in num_pre_post_inc:
                         for r in inner_cycles:
-                            cycles_before_dc = 1 if discretization == "P1" else 0
+                            # cycles_before_dc = 1 if discretization == "P1" else 0
                             cmd = "mpirun --allow-run-as-root -np {} --map-by core --bind-to core --report-bindings ./MultigridStudies 2019_tme/fmg_tests_base_config.prm " \
                                   "-Parameters.preSmoothingSteps={} " \
                                   "-Parameters.postSmoothingSteps={} " \
@@ -184,6 +201,13 @@ Parameters
     dim 3;
     numFacesPerSide 1;
     discretization P1;
+
+    meshSphericalShell false;
+    shellNTan 3;
+    shellNRad 2;
+    shellRMin 0.5;
+    shellRMax 1.0;
+
     meshLayout CRISSCROSS;
     symmetricCuboidMesh true;
     numCycles 20;
@@ -193,6 +217,7 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax 0.3;
+    velocitySorRelax 1.0;
 
     symmGSVelocity true;
     numGSVelocity 1;
@@ -208,7 +233,7 @@ Parameters
     L2residualTolerance 1e-16;
     projectPressureAfterRestriction true;
     calculateDiscretizationError false;
-    coarseGridMaxIterations 500;
+    coarseGridMaxIterations 20000;
     coarseGridResidualTolerance 1e-14;
 
     cyclesBeforeDC 0;
@@ -258,6 +283,13 @@ Parameters
     dim 3;
     numFacesPerSide 1;
     discretization P1;
+
+    meshSphericalShell false;
+    shellNTan 3;
+    shellNRad 2;
+    shellRMin 0.5;
+    shellRMax 1.0;
+
     meshLayout CRISSCROSS;
     symmetricCuboidMesh true;
     numCycles 20;
@@ -267,6 +299,7 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax 0.3;
+    velocitySorRelax 1.0;
 
     symmGSVelocity true;
     numGSVelocity 1;
@@ -323,6 +356,13 @@ Parameters
     dim 3;
     numFacesPerSide 1;
     discretization P1;
+
+    meshSphericalShell false;
+    shellNTan 3;
+    shellNRad 2;
+    shellRMin 0.5;
+    shellRMax 1.0;
+
     meshLayout CRISSCROSS;
     symmetricCuboidMesh true;
     numCycles 20;
@@ -332,6 +372,7 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax 0.3;
+    velocitySorRelax 1.0;
 
     symmGSVelocity true;
     numGSVelocity 1;

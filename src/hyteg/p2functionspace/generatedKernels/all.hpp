@@ -24,6 +24,8 @@
 #include "sor_3D_macrocell_P2_update_edgedofs_by_type.hpp"
 #include "sor_3D_macrocell_P2_update_vertexdofs.hpp"
 #include "sor_3D_macrocell_P2_update_vertexdofs_backwards.hpp"
+#include "sor_3D_macroedge_P2_update_vertexdofs.hpp"
+#include "sor_3D_macroedge_P2_update_vertexdofs_impl.hpp"
 #include "sor_3D_macroface_P2_update_edgedofs.hpp"
 #include "sor_3D_macroface_P2_update_edgedofs_backwards.hpp"
 #include "sor_3D_macroface_P2_update_edgedofs_backwards_impl.hpp"

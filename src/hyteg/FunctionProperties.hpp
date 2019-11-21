@@ -171,6 +171,23 @@ inline uint_t numberOfGlobalDoFs( const PrimitiveStorage& primitiveStorage, cons
 }
 
 template < typename FunctionTag_T >
+inline uint_t minNumberOfLocalDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
+{
+  return walberla::mpi::allReduce( numberOfLocalDoFs< FunctionTag_T >( primitiveStorage, level ),
+                                   walberla::mpi::MIN,
+                                   walberla::mpi::MPIManager::instance()->comm() );
+}
+
+
+template < typename FunctionTag_T >
+inline uint_t maxNumberOfLocalDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
+{
+  return walberla::mpi::allReduce( numberOfLocalDoFs< FunctionTag_T >( primitiveStorage, level ),
+                                   walberla::mpi::MAX,
+                                   walberla::mpi::MPIManager::instance()->comm() );
+}
+
+template < typename FunctionTag_T >
 inline uint_t numberOfLocalInnerDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {
   uint_t boundaryPoints = 0;
@@ -215,6 +232,38 @@ inline uint_t numberOfGlobalInnerDoFs( const PrimitiveStorage& primitiveStorage,
 {
   return walberla::mpi::allReduce( numberOfLocalInnerDoFs< FunctionTag_T >( primitiveStorage, level ),
                                    walberla::mpi::SUM,
+                                   walberla::mpi::MPIManager::instance()->comm() );
+}
+
+/**
+ * calculates the min number of process-local DoFs over all processes that are not on the domain boundary
+ * performs a mpi all Reduce
+ * @tparam FunctionTag_T type of Function (e.g. P1Function)
+ * @param primitiveStorage
+ * @param level refinement level
+ * @return process-local global minimum number of points that are not on the domain boundary
+ */
+template < typename FunctionTag_T >
+inline uint_t minNumberOfLocalInnerDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
+{
+  return walberla::mpi::allReduce( numberOfLocalInnerDoFs< FunctionTag_T >( primitiveStorage, level ),
+                                   walberla::mpi::MIN,
+                                   walberla::mpi::MPIManager::instance()->comm() );
+}
+
+/**
+ * calculates the max number of process-local DoFs over all processes that are not on the domain boundary
+ * performs a mpi all Reduce
+ * @tparam FunctionTag_T type of Function (e.g. P1Function)
+ * @param primitiveStorage
+ * @param level refinement level
+ * @return process-local global maximum number of points that are not on the domain boundary
+ */
+template < typename FunctionTag_T >
+inline uint_t maxNumberOfLocalInnerDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
+{
+  return walberla::mpi::allReduce( numberOfLocalInnerDoFs< FunctionTag_T >( primitiveStorage, level ),
+                                   walberla::mpi::MAX,
                                    walberla::mpi::MPIManager::instance()->comm() );
 }
 
