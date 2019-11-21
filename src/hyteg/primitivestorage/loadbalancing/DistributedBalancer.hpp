@@ -28,6 +28,20 @@ namespace distributed {
 
 void parmetis( PrimitiveStorage & storage );
 
+/// \brief Performs a round robin distribution  in parallel.
+///
+/// \param storage                 the PrimitiveStorage, the primitives are distributed on
+void roundRobin( PrimitiveStorage & storage );
+
+/// \brief Performs a round robin distribution to a subset of processes in parallel.
+///
+/// \param storage                 the PrimitiveStorage, the primitives are distributed on
+/// \param numberOfTargetProcesses if smaller than total number of processes, 
+///                                the round robin distributes
+///                                among the first numberOfTargetProcesses processes
+void roundRobin( PrimitiveStorage & storage, uint_t numberOfTargetProcesses );
+
+
 }
 }
 }
