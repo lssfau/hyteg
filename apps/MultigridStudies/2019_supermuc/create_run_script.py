@@ -211,32 +211,34 @@ def supermuc_scaling():
 
     for discretization in ["P1", "P2"]:
         for scaling_type in ["weak", "strong"]:
-            base_config = cube_base_config_fmg[scaling_type][discretization]
-            node_dep_parameters = node_dep_parameters_cube[scaling_type]
+            for coarse_grid_tol in [1e-04, 1e-10]:
+                base_config = cube_base_config_fmg[scaling_type][discretization]
+                base_config["coarse_grid_tol"] = coarse_grid_tol
+                node_dep_parameters = node_dep_parameters_cube[scaling_type]
 
-            for num_nodes, prms in node_dep_parameters.items():
-                # some_id = str(uuid4())
-                job_name = "mg_studies_{}_{}_{}nodes_{}".format(scaling_type, discretization, num_nodes, some_id)
-                prm_file_name = job_name + ".prm"
-                job_file_name = job_name + ".job"
+                for num_nodes, prms in node_dep_parameters.items():
+                    # some_id = str(uuid4())
+                    job_name = "mg_studies_{}_{}_cgtol_{:.2e}_{}nodes_{}".format(scaling_type, discretization, coarse_grid_tol, num_nodes, some_id)
+                    prm_file_name = job_name + ".prm"
+                    job_file_name = job_name + ".job"
 
-                timing_file = job_name + ".json"
-                db_file = job_name + ".db"
+                    timing_file = job_name + ".json"
+                    db_file = job_name + ".db"
 
-                prm_string_prm_dict = {}
-                prm_string_prm_dict.update(base_config)
-                prm_string_prm_dict.update(prms)
-                prm_string_prm_dict["timing_file"] = timing_file
-                prm_string_prm_dict["db_file"] = db_file
+                    prm_string_prm_dict = {}
+                    prm_string_prm_dict.update(base_config)
+                    prm_string_prm_dict.update(prms)
+                    prm_string_prm_dict["timing_file"] = timing_file
+                    prm_string_prm_dict["db_file"] = db_file
 
-                prm_string = supermuc_scaling_prm_file_string(**prm_string_prm_dict)
-                job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="1:00:00",
-                                                      num_nodes=num_nodes, prm_file=prm_file_name)
+                    prm_string = supermuc_scaling_prm_file_string(**prm_string_prm_dict)
+                    job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="1:00:00",
+                                                          num_nodes=num_nodes, prm_file=prm_file_name)
 
-                with open(prm_file_name, "w") as f:
-                    f.write(prm_string)
-                with open(job_file_name, "w") as f:
-                    f.write(job_string)
+                    with open(prm_file_name, "w") as f:
+                        f.write(prm_string)
+                    with open(job_file_name, "w") as f:
+                        f.write(job_string)
 
 if __name__ == "__main__":
     supermuc_scaling()
