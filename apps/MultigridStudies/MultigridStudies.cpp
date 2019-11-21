@@ -884,11 +884,30 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
               2 * numberOfGlobalInnerDoFs< typename StokesFunction::VelocityFunction_T::Tag >( *storage, level );
       const uint_t dofsThisLevel =
           numberOfGlobalDoFs< typename StokesFunction::PressureFunction_T::Tag >( *storage, level ) + velocityDoFsThisLevel;
-      WALBERLA_LOG_INFO_ON_ROOT( "  level " << std::setw( 2 ) << level << ": " << std::setw( 15 ) << dofsThisLevel );
+
+      const uint_t minVelocityDoFsThisLevel =
+          storage->hasGlobalCells() ?
+              3 * minNumberOfLocalInnerDoFs< typename StokesFunction::VelocityFunction_T::Tag >( *storage, level ) :
+              2 * minNumberOfLocalInnerDoFs< typename StokesFunction::VelocityFunction_T::Tag >( *storage, level );
+      const uint_t minDoFsThisLevel =
+          minNumberOfLocalDoFs< typename StokesFunction::PressureFunction_T::Tag >( *storage, level ) + minVelocityDoFsThisLevel;
+
+      const uint_t maxVelocityDoFsThisLevel =
+          storage->hasGlobalCells() ?
+              3 * maxNumberOfLocalInnerDoFs< typename StokesFunction::VelocityFunction_T::Tag >( *storage, level ) :
+              2 * maxNumberOfLocalInnerDoFs< typename StokesFunction::VelocityFunction_T::Tag >( *storage, level );
+      const uint_t maxDoFsThisLevel =
+          maxNumberOfLocalDoFs< typename StokesFunction::PressureFunction_T::Tag >( *storage, level ) + maxVelocityDoFsThisLevel;
+
+      WALBERLA_LOG_INFO_ON_ROOT( "  level " << std::setw( 2 ) << level << ": " << std::setw( 15 ) << dofsThisLevel
+                                            << "    (min: " << std::setw( 15 ) << minDoFsThisLevel << " | max: " << std::setw( 15 )
+                                            << maxDoFsThisLevel << ")" );
       sqlIntegerProperties["total_dofs_level_" + std::to_string( level )] = int64_c( dofsThisLevel );
+      sqlIntegerProperties["min_dofs_level_" + std::to_string( level )]   = int64_c( minDoFsThisLevel );
+      sqlIntegerProperties["max_dofs_level_" + std::to_string( level )]   = int64_c( maxDoFsThisLevel );
       totalDoFs += dofsThisLevel;
    }
-   WALBERLA_LOG_INFO_ON_ROOT( " ----------------------------- " );
+   WALBERLA_LOG_INFO_ON_ROOT( " --------------------------------------------------------------------------- " );
    WALBERLA_LOG_INFO_ON_ROOT( "  total:    " << std::setw( 15 ) << totalDoFs );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
