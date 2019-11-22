@@ -108,6 +108,21 @@ public:
                             uint_t                                                                               level,
                             BoundaryUID                                                                          boundaryUID ) const;
 
+   /// Compute the product of several functions in an elementwise fashion
+   ///
+   /// The method takes as input a collection of functions. These are multiplied together in an elementwise fashion.
+   /// The latter is to be understood not in a FE context, but in the sense of element-wise operators in matrix/array
+   /// oriented languages, i.e. the product is a function of the same type as the inputs and its DoFs are formed as
+   /// product of the corresponding DoFs of the input functions. The result is stored in the function object on which
+   /// the method is invoked, overwritting its contents. It is safe, if the destination function is part of the product.
+   ///
+   /// \param functions  the functions forming the product
+   /// \param level      level on which the multiplication should be computed
+   /// \param flag       marks those primitives which are partaking in the computation of the product
+   void multElementwise( const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
+                         uint_t                                                                               level,
+                         DoFType                                                                              flag = All ) const;
+
   ValueType dotLocal(const EdgeDoFFunction <ValueType> &rhs, const uint_t level, const DoFType flag = All) const;
 
   ValueType sumLocal( const uint_t& level, const DoFType& flag = All, const bool & absolute = false ) const;

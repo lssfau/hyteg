@@ -1144,4 +1144,60 @@ uint_t edgedof::edgeDoFMacroCellFunctionMemorySize( const uint_t& level, const P
    return 6 * ( levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) ) ) +
           ( levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) - 1 ) );
 }
+
+
+template < typename ValueType >
+void EdgeDoFFunction< ValueType >::multElementwise( const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
+                                                    const uint_t                                               level,
+                                                    const DoFType                                              flag ) const
+{
+   if( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "Multiply elementwise" );
+ 
+   // Collect all source IDs in a vector
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > >   srcEdgeIDs;
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >   srcCellIDs;
+
+   for( const EdgeDoFFunction& function : functions )
+   {
+      srcEdgeIDs.push_back( function.edgeDataID_ );
+      srcFaceIDs.push_back( function.faceDataID_ );
+      srcCellIDs.push_back( function.cellDataID_ );
+   }
+
+   for( const auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      {
+        edgedof::macroedge::multElementwise< ValueType >( level, edge, srcEdgeIDs, edgeDataID_ );
+      }
+   }
+
+   for( const auto& it : this->getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      {
+        edgedof::macroface::multElementwise< ValueType >( level, face, srcFaceIDs, faceDataID_ );
+      }
+   }
+
+   for( const auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      {
+        edgedof::macrocell::multElementwise< ValueType >( level, cell, srcCellIDs, cellDataID_ );
+      }
+   }
+   this->stopTiming( "Multiply elementwise" );
+}
+
 } // namespace hyteg
