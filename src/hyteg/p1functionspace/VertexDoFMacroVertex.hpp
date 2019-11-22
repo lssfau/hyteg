@@ -112,10 +112,11 @@ inline void add(Vertex &vertex,
 }
 
 template< typename ValueType >
-inline void multElementwise(Vertex &vertex,
-                            const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> &srcIds,
-                            const PrimitiveDataID<FunctionMemory< ValueType >, Vertex> &dstId,
-                            size_t level) {
+inline void multElementwise( const uint_t&                                                              level,
+                             Vertex&                                                                    vertex,
+                             const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > >& srcIds,
+                             const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >&                dstId ) {
+
   ValueType tmp = vertex.getData(srcIds[0])->getPointer( level )[0];
 
   for (size_t i = 1; i < srcIds.size(); ++i) {
