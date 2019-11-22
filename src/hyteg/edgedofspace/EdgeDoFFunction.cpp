@@ -1040,121 +1040,6 @@ ValueType EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType f
 }
 
 template < typename ValueType >
-template < typename PrimitiveType >
-void EdgeDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag ) const
-{
-   if ( isDummy() )
-   {
-      return;
-   }
-   this->startTiming( "Interpolate" );
-
-   if ( std::is_same< PrimitiveType, Edge >::value )
-   {
-      for ( const auto& it : this->getStorage()->getEdges() )
-      {
-         Edge& edge = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-         {
-            edgedof::macroedge::interpolate( level, edge, edgeDataID_, constant );
-         }
-      }
-   }
-   else if ( std::is_same< PrimitiveType, Face >::value )
-   {
-      for ( const auto& it : this->getStorage()->getFaces() )
-      {
-         Face& face = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
-         {
-            edgedof::macroface::interpolate( level, face, faceDataID_, constant );
-         }
-      }
-   }
-   else if ( std::is_same< PrimitiveType, Cell >::value )
-   {
-      for ( const auto& it : this->getStorage()->getCells() )
-      {
-         Cell& cell = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
-         {
-            edgedof::macrocell::interpolate( level, cell, cellDataID_, constant );
-         }
-      }
-   }
-
-   this->stopTiming( "Interpolate" );
-}
-
-template class EdgeDoFFunction< double >;
-template class EdgeDoFFunction< int >;
-
-template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Vertex >( const double& constant,
-                                                                                      uint_t        level,
-                                                                                      DoFType       flag ) const;
-
-template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Edge >( const double& constant,
-                                                                                    uint_t        level,
-                                                                                    DoFType       flag ) const;
-
-template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Face >( const double& constant,
-                                                                                    uint_t        level,
-                                                                                    DoFType       flag ) const;
-
-template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Cell >( const double& constant,
-                                                                                    uint_t        level,
-                                                                                    DoFType       flag ) const;
-
-uint_t edgedof::edgeDoFMacroVertexFunctionMemorySize( const uint_t& level, const Primitive& primitive )
-{
-   WALBERLA_UNUSED( level );
-   return primitive.getNumNeighborEdges() + primitive.getNumNeighborFaces();
-}
-
-uint_t edgedof::edgeDoFMacroEdgeFunctionMemorySize( const uint_t& level, const Primitive& primitive )
-{
-   /// memory is allocated on the ghost layer for each orientation (X,Y,Z,XY,XZ,XY,XYZ) and each cell
-   /// most of the direction exists (num_microedges_per_edge - 1) times
-   /// for the YZ orientation it is: num_microedges_per_edge
-   /// for the X orientation num_microedges_per_edge - 2
-   return levelinfo::num_microedges_per_edge( level ) +
-          primitive.getNumNeighborFaces() * ( 3 * ( levelinfo::num_microedges_per_edge( level ) ) - 1 ) +
-          primitive.getNumNeighborCells() * ( 7 * levelinfo::num_microedges_per_edge( level ) - 7 );
-}
-
-uint_t edgedof::edgeDoFMacroFaceFunctionMemorySize( const uint_t& level, const Primitive& primitive )
-{
-   WALBERLA_UNUSED( primitive );
-   ///"inner/own" points on the face
-   uint_t innerDofs =
-       3 * ( ( ( levelinfo::num_microedges_per_edge( level ) + 1 ) * levelinfo::num_microedges_per_edge( level ) ) / 2 );
-
-   ///ghost points on one adjacent tet
-   uint_t GhostDoFsOneSide = 0;
-   if ( primitive.getNumNeighborCells() != 0 )
-   {
-      /// points in the "white up" tets
-      GhostDoFsOneSide += 3 * levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microedges_per_edge( level ) );
-      /// points from the xyz edge
-      GhostDoFsOneSide += levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microedges_per_edge( level ) - 1 );
-      /// points on the parallel face inside the tet
-      GhostDoFsOneSide += 3 * levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microedges_per_edge( level ) - 1 );
-   }
-
-   return innerDofs + primitive.getNumNeighborCells() * GhostDoFsOneSide;
-}
-
-uint_t edgedof::edgeDoFMacroCellFunctionMemorySize( const uint_t& level, const Primitive& primitive )
-{
-   WALBERLA_UNUSED( primitive );
-   return 6 * ( levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) ) ) +
-          ( levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) - 1 ) );
-}
-
-template < typename ValueType >
 void EdgeDoFFunction< ValueType >::multElementwise(
     const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
     const uint_t                                                                       level,
@@ -1208,5 +1093,124 @@ void EdgeDoFFunction< ValueType >::multElementwise(
    }
    this->stopTiming( "Multiply elementwise" );
 }
+
+template < typename ValueType >
+template < typename PrimitiveType >
+void EdgeDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag ) const
+{
+   if ( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "Interpolate" );
+
+   if ( std::is_same< PrimitiveType, Edge >::value )
+   {
+      for ( const auto& it : this->getStorage()->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+         {
+            edgedof::macroedge::interpolate( level, edge, edgeDataID_, constant );
+         }
+      }
+   }
+   else if ( std::is_same< PrimitiveType, Face >::value )
+   {
+      for ( const auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+         {
+            edgedof::macroface::interpolate( level, face, faceDataID_, constant );
+         }
+      }
+   }
+   else if ( std::is_same< PrimitiveType, Cell >::value )
+   {
+      for ( const auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+            edgedof::macrocell::interpolate( level, cell, cellDataID_, constant );
+         }
+      }
+   }
+
+   this->stopTiming( "Interpolate" );
+}
+
+uint_t edgedof::edgeDoFMacroVertexFunctionMemorySize( const uint_t& level, const Primitive& primitive )
+{
+   WALBERLA_UNUSED( level );
+   return primitive.getNumNeighborEdges() + primitive.getNumNeighborFaces();
+}
+
+uint_t edgedof::edgeDoFMacroEdgeFunctionMemorySize( const uint_t& level, const Primitive& primitive )
+{
+   /// memory is allocated on the ghost layer for each orientation (X,Y,Z,XY,XZ,XY,XYZ) and each cell
+   /// most of the direction exists (num_microedges_per_edge - 1) times
+   /// for the YZ orientation it is: num_microedges_per_edge
+   /// for the X orientation num_microedges_per_edge - 2
+   return levelinfo::num_microedges_per_edge( level ) +
+          primitive.getNumNeighborFaces() * ( 3 * ( levelinfo::num_microedges_per_edge( level ) ) - 1 ) +
+          primitive.getNumNeighborCells() * ( 7 * levelinfo::num_microedges_per_edge( level ) - 7 );
+}
+
+uint_t edgedof::edgeDoFMacroFaceFunctionMemorySize( const uint_t& level, const Primitive& primitive )
+{
+   WALBERLA_UNUSED( primitive );
+   ///"inner/own" points on the face
+   uint_t innerDofs =
+       3 * ( ( ( levelinfo::num_microedges_per_edge( level ) + 1 ) * levelinfo::num_microedges_per_edge( level ) ) / 2 );
+
+   ///ghost points on one adjacent tet
+   uint_t GhostDoFsOneSide = 0;
+   if ( primitive.getNumNeighborCells() != 0 )
+   {
+      /// points in the "white up" tets
+      GhostDoFsOneSide += 3 * levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microedges_per_edge( level ) );
+      /// points from the xyz edge
+      GhostDoFsOneSide += levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microedges_per_edge( level ) - 1 );
+      /// points on the parallel face inside the tet
+      GhostDoFsOneSide += 3 * levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microedges_per_edge( level ) - 1 );
+   }
+
+   return innerDofs + primitive.getNumNeighborCells() * GhostDoFsOneSide;
+}
+
+uint_t edgedof::edgeDoFMacroCellFunctionMemorySize( const uint_t& level, const Primitive& primitive )
+{
+   WALBERLA_UNUSED( primitive );
+   return 6 * ( levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) ) ) +
+          ( levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) - 1 ) );
+}
+
+
+// ========================
+//  explicit instantiation
+// ========================
+template class EdgeDoFFunction< double >;
+template class EdgeDoFFunction< int >;
+
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Vertex >( const double& constant,
+                                                                                      uint_t        level,
+                                                                                      DoFType       flag ) const;
+
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Edge >( const double& constant,
+                                                                                    uint_t        level,
+                                                                                    DoFType       flag ) const;
+
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Face >( const double& constant,
+                                                                                    uint_t        level,
+                                                                                    DoFType       flag ) const;
+
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Cell >( const double& constant,
+                                                                                    uint_t        level,
+                                                                                    DoFType       flag ) const;
 
 } // namespace hyteg
