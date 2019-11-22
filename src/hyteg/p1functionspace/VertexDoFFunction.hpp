@@ -119,8 +119,8 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    ValueType dotLocal( const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
    ValueType dotGlobal( const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
 
-   ValueType sumLocal( const uint_t& level, const DoFType& flag = All, const bool & absolute = false ) const;
-   ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool & absolute = false ) const;
+   ValueType sumLocal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
+   ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
 
    void integrateDG( DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
 
