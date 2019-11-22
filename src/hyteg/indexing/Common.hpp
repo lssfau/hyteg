@@ -27,7 +27,7 @@ namespace indexing {
 
 using walberla::uint_t;
 
-class IndexIncrement : protected PointND< int, 3 >
+class IndexIncrement : public PointND< int, 3 >
 {
 public:
 
@@ -56,22 +56,6 @@ public:
     y() += increment.y();
     z() += increment.z();
     return *this;
-  }
-
-  void serialize( walberla::mpi::SendBuffer & sendBuffer ) const
-  {
-    for ( size_t index = 0; index < 2; index++ )
-    {
-      sendBuffer << x_[index];
-    }
-  }
-
-  void deserialize( walberla::mpi::RecvBuffer & recvBuffer )
-  {
-    for ( size_t index = 0; index < 2; index++ )
-    {
-      recvBuffer >> x_[index];
-    }
   }
 
 };
@@ -205,29 +189,6 @@ inline std::ostream & operator<<( std::ostream & os, const IndexIncrement & inde
 {
   os << "( " << indexIncrement.x() << ", " << indexIncrement.y() << ", " << indexIncrement.z() << " )";
   return os;
-}
-
-}
-}
-
-namespace walberla {
-namespace mpi {
-
-template< typename T,    // Element type of SendBuffer
-typename G    // Growth policy of SendBuffer
->
-GenericSendBuffer<T,G>& operator<<( GenericSendBuffer<T,G> & buf, const hyteg::indexing::IndexIncrement & indexIncrement )
-{
-  indexIncrement.serialize( buf );
-  return buf;
-}
-
-template< typename T // Element type  of RecvBuffer
->
-GenericRecvBuffer<T>& operator>>( GenericRecvBuffer<T> & buf, hyteg::indexing::IndexIncrement & indexIncrement )
-{
-  indexIncrement.deserialize( buf );
-  return buf;
 }
 
 }

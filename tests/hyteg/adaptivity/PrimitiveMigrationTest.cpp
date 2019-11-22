@@ -29,6 +29,8 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
+#include "hyteg/LevelWiseMemory.hpp"
+#include "hyteg/indexing/Common.hpp"
 
 using walberla::uint_t;
 
@@ -97,7 +99,7 @@ static void testPrimitiveMigration()
       for( const auto& id : primitiveIDs )
       {
          uint_t targetRank = ++lel % numProcesses;
-         WALBERLA_LOG_INFO( "Migrating " << id.getID() << " to rank " << targetRank );
+         // WALBERLA_LOG_INFO( "Migrating " << id.getID() << " to rank " << targetRank );
          migrationInfo[id.getID()] = targetRank;
       }
 
@@ -114,6 +116,72 @@ static void testPrimitiveMigration()
    writeDomainPartitioningVTK( storage, "../../output/", "domain_decomposition_after_migration" );
 }
 
+static void testPrimitiveMigrationMaps()
+{
+  uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
+
+  const std::string meshFileName = "../../data/meshes/3D/cube_24el.msh";
+
+  MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
+  SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+  loadbalancing::roundRobin( setupStorage );
+
+  WALBERLA_LOG_INFO_ON_ROOT( "Building PrimitiveStorage" );
+
+  std::shared_ptr< PrimitiveStorage > storage( new PrimitiveStorage( setupStorage ) );
+
+  writeDomainPartitioningVTK( storage, "../../output/", "domain_decomposition_before_migration" );
+
+  PrimitiveDataID< LevelWiseMemory< std::map< indexing::IndexIncrement, uint_t > >, Cell > dataID;
+  auto cellDataHandling =
+    std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< std::map< indexing::IndexIncrement, uint_t > >, Cell > >(2, 4 );
+  storage->addCellData( dataID, cellDataHandling, "test data" );
+
+  for ( auto it : storage->getCells() )
+  {
+     auto & cellData = it.second->getData( dataID )->getData( 2 );
+     cellData[ indexing::IndexIncrement( {0, 2, 3} ) ] = 3;
+     cellData[ indexing::IndexIncrement( {0, 2, 5} ) ] = 7;
+  }
+
+  for ( auto it : storage->getCells() )
+  {
+    auto cellData = it.second->getData( dataID )->getData( 2 );
+    WALBERLA_LOG_INFO( "Cell " << it.first << "(0, 2, 3): " << cellData.at( indexing::IndexIncrement( {0, 2, 3} ) ) << ", (0, 2, 5): " << cellData.at( indexing::IndexIncrement( {0, 2, 5} ) )  )
+  }
+
+  WALBERLA_MPI_BARRIER()
+  WALBERLA_LOG_INFO_ON_ROOT( "Migration..." )
+
+  WALBERLA_MPI_SECTION()
+  {
+    std::vector< PrimitiveID > primitiveIDs;
+    storage->getPrimitiveIDsGenerically< Primitive >( primitiveIDs );
+
+    std::map< PrimitiveID::IDType, uint_t > migrationInfo;
+    uint_t                                  lel = 0;
+    for( const auto& id : primitiveIDs )
+    {
+      uint_t targetRank = ++lel % numProcesses;
+      // WALBERLA_LOG_INFO( "Migrating " << id.getID() << " to rank " << targetRank );
+      migrationInfo[id.getID()] = targetRank;
+    }
+
+    storage->migratePrimitives( migrationInfo );
+
+    for ( auto it : storage->getCells() )
+    {
+      auto cellData = it.second->getData( dataID )->getData( 2 );
+      WALBERLA_CHECK_EQUAL( cellData.at( indexing::IndexIncrement( {0, 2, 3} ) ), 3 );
+      WALBERLA_CHECK_EQUAL( cellData.at( indexing::IndexIncrement( {0, 2, 5} ) ), 7 );
+      WALBERLA_LOG_INFO( "Cell " << it.first << "(0, 2, 3): " << cellData.at( indexing::IndexIncrement( {0, 2, 3} ) ) << ", (0, 2, 5): " << cellData.at( indexing::IndexIncrement( {0, 2, 5} ) )  )
+    }
+  }
+
+  writeDomainPartitioningVTK( storage, "../../output/", "domain_decomposition_after_migration" );
+}
+
 } // namespace hyteg
 
 int main( int argc, char* argv[] )
@@ -125,6 +193,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
    walberla::debug::enterTestMode();
    hyteg::testPrimitiveMigration();
+   hyteg::testPrimitiveMigrationMaps();
 
    return EXIT_SUCCESS;
 }

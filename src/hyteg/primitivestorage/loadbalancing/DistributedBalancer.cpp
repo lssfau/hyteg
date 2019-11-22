@@ -262,6 +262,26 @@ void parmetis( PrimitiveStorage & storage )
 
 }
 
+
+void roundRobin( PrimitiveStorage & storage )
+{
+  roundRobin( storage, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+}
+
+
+void roundRobin( PrimitiveStorage & storage, uint_t numberOfTargetProcesses )
+{  
+  std::map< PrimitiveID::IDType, uint_t > migrationMap;
+
+  for ( auto primitiveID : storage.getPrimitiveIDs() )
+  {
+     migrationMap[ primitiveID.getID() ] = uint_c( primitiveID.getID() % numberOfTargetProcesses );
+  }
+
+  storage.migratePrimitives( migrationMap );
+}
+
+
 }
 }
 }
