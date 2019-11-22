@@ -265,7 +265,7 @@ void parmetis( PrimitiveStorage & storage )
 
 void roundRobin( PrimitiveStorage & storage )
 {
-  roundRobin( storage, walberla::mpi::MPIManager::instance()->numProcesses() );
+  roundRobin( storage, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 }
 
 
