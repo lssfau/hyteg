@@ -170,15 +170,12 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    template < typename SenderType, typename ReceiverType >
    inline void communicate( const uint_t& level ) const
    {
-      if ( isDummy() )
-      {
-         return;
-      }
-      communicators_.at( level )->template communicate< SenderType, ReceiverType >();
+      startCommunication< SenderType, ReceiverType >( level );
+      endCommunication< SenderType, ReceiverType >( level );
    }
 
    template < typename SenderType, typename ReceiverType >
-   inline void startAdditiveCommunication( const uint_t& level ) const
+   inline void startAdditiveCommunication( const uint_t& level, const DoFType boundaryTypeToSkipDuringAdditiveCommunication ) const
    {
       if ( isDummy() )
       {
@@ -200,15 +197,10 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    }
 
    template < typename SenderType, typename ReceiverType >
-   inline void communicateAdditively( const uint_t& level ) const
+   inline void communicateAdditively( const uint_t& level, const DoFType boundaryTypeToSkipDuringAdditiveCommunication = None ) const
    {
-      if ( isDummy() )
-      {
-         return;
-      }
-      interpolateByPrimitiveType< ReceiverType >(
-          real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication_ );
-      additiveCommunicators_.at( level )->template communicate< SenderType, ReceiverType >();
+      startAdditiveCommunication< SenderType, ReceiverType >( level, boundaryTypeToSkipDuringAdditiveCommunication );
+      endAdditiveCommunication< SenderType, ReceiverType >( level );
    }
 
    void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode );

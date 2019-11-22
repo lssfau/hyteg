@@ -143,10 +143,10 @@ public:
   }
 
   template< typename SenderType, typename ReceiverType >
-  inline void communicate( const uint_t & level ) const
+  inline void communicate( const uint_t& level ) const
   {
-    if ( isDummy() ) { return; }
-    communicators_.at( level )->template communicate< SenderType, ReceiverType >();
+     startCommunication< SenderType, ReceiverType >( level );
+     endCommunication< SenderType, ReceiverType >( level );
   }
 
   template < typename SenderType, typename ReceiverType >
@@ -174,13 +174,8 @@ public:
   template < typename SenderType, typename ReceiverType >
   inline void communicateAdditively( const uint_t& level ) const
   {
-    if( isDummy() )
-    {
-      return;
-    }
-    interpolateByPrimitiveType< ReceiverType >(
-    real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication_ );
-    additiveCommunicators_.at( level )->template communicate< SenderType, ReceiverType >();
+     startAdditiveCommunication< SenderType, ReceiverType >( level );
+     endAdditiveCommunication< SenderType, ReceiverType >( level );
   }
 
   inline void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode & localCommunicationMode )
