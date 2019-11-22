@@ -1119,7 +1119,7 @@ void VertexDoFFunction< ValueType >::multElementwise( const std::vector< std::re
 
       if( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
-         vertexdof::macrovertex::multElementwise< ValueType >( vertex, srcVertexIDs, vertexDataID_, level );
+         vertexdof::macrovertex::multElementwise< ValueType >( level, vertex, srcVertexIDs, vertexDataID_ );
       }
    }
 
