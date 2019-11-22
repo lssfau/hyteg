@@ -33,8 +33,6 @@ MeshInfo MeshInfo::fromGmshFile( const std::string & meshFileName )
 {
   MeshInfo meshInfo;
 
-  WALBERLA_LOG_PROGRESS_ON_ROOT( "[Mesh] Opening mesh file: " << meshFileName );
-
   std::ifstream meshFile;
   meshFile.open( meshFileName.c_str() );
 
