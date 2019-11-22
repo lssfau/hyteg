@@ -175,7 +175,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    }
 
    template < typename SenderType, typename ReceiverType >
-   inline void startAdditiveCommunication( const uint_t& level, const DoFType boundaryTypeToSkipDuringAdditiveCommunication ) const
+   inline void startAdditiveCommunication( const uint_t& level ) const
    {
       if ( isDummy() )
       {
@@ -184,6 +184,31 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
       interpolateByPrimitiveType< ReceiverType >(
           real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication_ );
       additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
+   }
+
+   template < typename SenderType, typename ReceiverType >
+   inline void startAdditiveCommunication( const uint_t&           level,
+                                           const DoFType           boundaryTypeToSkipDuringAdditiveCommunication,
+                                           const PrimitiveStorage& primitiveStorage ) const
+   {
+      if ( isDummy() )
+      {
+         return;
+      }
+      std::vector< PrimitiveID > receiverIDs;
+      std::vector< PrimitiveID > excludeFromReceiving;
+      primitiveStorage.getPrimitiveIDsGenerically< ReceiverType >( receiverIDs );
+      for ( PrimitiveID id : receiverIDs )
+      {
+         if ( testFlag( boundaryCondition_.getBoundaryType( primitiveStorage.getPrimitive( id )->getMeshBoundaryFlag() ),
+                        boundaryTypeToSkipDuringAdditiveCommunication ) )
+         {
+            excludeFromReceiving.push_back( id );
+         }
+      }
+      interpolateByPrimitiveType< ReceiverType >(
+          real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication_ );
+      additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >( excludeFromReceiving );
    }
 
    template < typename SenderType, typename ReceiverType >
@@ -197,9 +222,18 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    }
 
    template < typename SenderType, typename ReceiverType >
-   inline void communicateAdditively( const uint_t& level, const DoFType boundaryTypeToSkipDuringAdditiveCommunication = None ) const
+   inline void communicateAdditively( const uint_t& level ) const
    {
-      startAdditiveCommunication< SenderType, ReceiverType >( level, boundaryTypeToSkipDuringAdditiveCommunication );
+      startAdditiveCommunication< SenderType, ReceiverType >( level );
+      endAdditiveCommunication< SenderType, ReceiverType >( level );
+   }
+
+   template < typename SenderType, typename ReceiverType >
+   inline void communicateAdditively( const uint_t&           level,
+                                      const DoFType           boundaryTypeToSkipDuringAdditiveCommunication,
+                                      const PrimitiveStorage& primitiveStorage ) const
+   {
+      startAdditiveCommunication< SenderType, ReceiverType >( level, boundaryTypeToSkipDuringAdditiveCommunication, primitiveStorage );
       endAdditiveCommunication< SenderType, ReceiverType >( level );
    }
 
