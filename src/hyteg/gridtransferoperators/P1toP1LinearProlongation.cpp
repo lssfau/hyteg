@@ -111,7 +111,8 @@ static real_t calculateInverseFactorToScaleNeighborhoodContribution(
 
 void P1toP1LinearProlongation::prolongate2DAdditively( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const
 {
-  WALBERLA_CHECK( flag == (function.getBoundaryTypeToSkipDuringAdditiveCommunication() ^ All) );
+  /// XOR flag with all to get the DoFTypes that should be excluded
+  const DoFType excludeFlag = (flag ^ All);
 
   const uint_t destinationLevel = sourceLevel + 1;
 
@@ -157,14 +158,17 @@ void P1toP1LinearProlongation::prolongate2DAdditively( const P1Function< real_t 
                                                                                numNeighborFacesVertex2 );
   }
 
-  function.communicateAdditively< Face, Edge >( destinationLevel );
-  function.communicateAdditively< Face, Vertex >( destinationLevel );
+  function.communicateAdditively< Face, Edge >( destinationLevel, excludeFlag, *storage );
+  function.communicateAdditively< Face, Vertex >( destinationLevel, excludeFlag, *storage );
 }
 
-
-
-void P1toP1LinearProlongation::prolongate3D( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& ) const
+void P1toP1LinearProlongation::prolongate3D( const P1Function< real_t >& function,
+                                             const uint_t&               sourceLevel,
+                                             const DoFType&              flag ) const
 {
+   /// XOR flag with all to get the DoFTypes that should be excluded
+   const DoFType excludeFlag = (flag ^ All);
+
   const uint_t destinationLevel = sourceLevel + 1;
 
   function.communicate< Vertex, Edge >  ( sourceLevel );
@@ -356,9 +360,9 @@ void P1toP1LinearProlongation::prolongate3D( const P1Function< real_t >& functio
     }
   }
 
-  function.communicateAdditively< Cell, Vertex >( destinationLevel );
-  function.communicateAdditively< Cell, Edge >( destinationLevel );
-  function.communicateAdditively< Cell, Face >( destinationLevel );
+  function.communicateAdditively< Cell, Vertex >( destinationLevel, excludeFlag, *function.getStorage() );
+  function.communicateAdditively< Cell, Edge >( destinationLevel, excludeFlag, *function.getStorage() );
+  function.communicateAdditively< Cell, Face >( destinationLevel, excludeFlag, *function.getStorage() );
 }
 
 

@@ -249,7 +249,7 @@ void BufferedCommunicator::startCommunication( std::vector< PrimitiveID > exclud
     storage->getPrimitiveIDsGenerically< ReceiverType >( receiverIDs );
 
     for ( const PrimitiveID & excludeID : excludeReceivingIDs ){
-       std::remove(receiverIDs.begin(),receiverIDs.end(),excludeID);
+       receiverIDs.erase(std::remove(receiverIDs.begin(),receiverIDs.end(),excludeID),receiverIDs.end());
     }
 
     // Send functions
@@ -261,9 +261,11 @@ void BufferedCommunicator::startCommunication( std::vector< PrimitiveID > exclud
       std::vector< PrimitiveID > receivingNeighborhood;
       sender->template getNeighborPrimitivesGenerically< ReceiverType >( receivingNeighborhood );
 
-       for ( const PrimitiveID & excludeID : excludeReceivingIDs ){
-          std::remove(receivingNeighborhood.begin(),receivingNeighborhood.end(),excludeID);
-       }
+      for ( const PrimitiveID& excludeID : excludeReceivingIDs )
+      {
+         receivingNeighborhood.erase( std::remove( receivingNeighborhood.begin(), receivingNeighborhood.end(), excludeID ),
+                                      receivingNeighborhood.end() );
+      }
 
       for ( const auto & neighborID : receivingNeighborhood )
       {
