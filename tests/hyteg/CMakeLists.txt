@@ -407,18 +407,18 @@ waLBerla_execute_test(NAME BufferedCommunicationTest1 COMMAND $<TARGET_FILE:Buff
 waLBerla_execute_test(NAME BufferedCommunicationTest3 COMMAND $<TARGET_FILE:BufferedCommunicationTest> PROCESSES 3 )
 waLBerla_execute_test(NAME BufferedCommunicationTest8 COMMAND $<TARGET_FILE:BufferedCommunicationTest> PROCESSES 8 )
 
-waLBerla_compile_test(FILES PrimitiveMigrationTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES adaptivity/PrimitiveMigrationTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PrimitiveMigrationTest1 COMMAND $<TARGET_FILE:PrimitiveMigrationTest> )
 waLBerla_execute_test(NAME PrimitiveMigrationTest3 COMMAND $<TARGET_FILE:PrimitiveMigrationTest> PROCESSES 3 )
 waLBerla_execute_test(NAME PrimitiveMigrationTest8 COMMAND $<TARGET_FILE:PrimitiveMigrationTest> PROCESSES 8 )
 
-waLBerla_compile_test(FILES ParallelRoundRobinTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES adaptivity/ParallelRoundRobinTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME ParallelRoundRobinTest1 COMMAND $<TARGET_FILE:ParallelRoundRobinTest> )
 waLBerla_execute_test(NAME ParallelRoundRobinTest3 COMMAND $<TARGET_FILE:ParallelRoundRobinTest> PROCESSES 3 )
 waLBerla_execute_test(NAME ParallelRoundRobinTest8 COMMAND $<TARGET_FILE:ParallelRoundRobinTest> PROCESSES 8 )
 
 if( WALBERLA_BUILD_WITH_PARMETIS )
-  waLBerla_compile_test(FILES ParMetisTestHyteg.cpp DEPENDS hyteg core)
+  waLBerla_compile_test(FILES adaptivity/ParMetisTestHyteg.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME ParMetisTestHyteg1 COMMAND $<TARGET_FILE:ParMetisTestHyteg> )
   waLBerla_execute_test(NAME ParMetisTestHyteg3 COMMAND $<TARGET_FILE:ParMetisTestHyteg> PROCESSES 3 )
   waLBerla_execute_test(NAME ParMetisTestHyteg8 COMMAND $<TARGET_FILE:ParMetisTestHyteg> PROCESSES 8 )
