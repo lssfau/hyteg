@@ -84,8 +84,16 @@ public:
   /// The data of the sender can be modified after this method returns.
   /// \tparam SenderType type of the sending \ref Primitive (e.g. \ref Vertex or \ref Edge)
   /// \tparam ReceiverType type of the receiving \ref Primitive (e.g. \ref Vertex or \ref Edge)
+  /// \param excludeReceivingIDs exclude primtives with theses IDs from receiving. The primitives will still send their data
   template< typename SenderType, typename ReceiverType >
-  inline void startCommunication();
+  inline void startCommunication( std::vector< PrimitiveID > excludeReceivingIDs );
+
+  /// Wrapper for startCommuncation( std::vector< PrimitiveID > excludeReceivingIDs ) without excluding primitives
+  template < typename SenderType, typename ReceiverType >
+  inline void startCommunication()
+  {
+     startCommunication< SenderType, ReceiverType >( {} );
+  }
 
   /// Ends the non-blocking communication between two \ref Primitive types
   /// Waits for the started communication to be completed. It is only safe to modify the
@@ -205,7 +213,7 @@ inline BufferedCommunicator::CommunicationDirection BufferedCommunicator::getCom
 }
 
 template< typename SenderType, typename ReceiverType >
-void BufferedCommunicator::startCommunication()
+void BufferedCommunicator::startCommunication( std::vector< PrimitiveID > excludeReceivingIDs )
 {
   staticAssertCommunicationDirections< SenderType, ReceiverType >();
 
