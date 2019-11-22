@@ -423,6 +423,67 @@ inline void assign( const uint_t & Level, Face & face, const std::vector< ValueT
 }
 
 
+template < typename ValueType >
+inline void multElementwise( const uint_t&                                                              level,
+                             Face&                                                                      face,
+                             const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >& srcIds,
+                             const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                dstId )
+{
+
+  auto dstData = face.getData( dstId )->getPointer( level );
+
+  for ( const auto & it : edgedof::macroface::Iterator( level, 0 ) )
+  {
+    const uint_t idxHorizontal = edgedof::macroface::horizontalIndex( level, it.col(), it.row());
+    const uint_t idxVertical   = edgedof::macroface::verticalIndex( level, it.col(), it.row());
+    const uint_t idxDiagonal   = edgedof::macroface::diagonalIndex( level, it.col(), it.row());
+
+    ValueType tmpHorizontal = face.getData( srcIds[0] )->getPointer( level )[ idxHorizontal ];
+    ValueType tmpVertical   = face.getData( srcIds[0] )->getPointer( level )[ idxVertical   ];
+    ValueType tmpDiagonal   = face.getData( srcIds[0] )->getPointer( level )[ idxDiagonal   ];
+
+    for ( uint_t i = 1; i < srcIds.size(); ++i )
+    {
+      // Do not update horizontal DoFs at bottom
+      if ( it.row() != 0 )
+      {
+        tmpHorizontal *= face.getData( srcIds[i] )->getPointer( level )[ idxHorizontal ];
+      }
+
+      // Do not update vertical DoFs at left border
+      if ( it.col() != 0 )
+      {
+        tmpVertical *= face.getData( srcIds[i] )->getPointer( level )[ idxVertical ];
+      }
+
+      // Do not update diagonal DoFs at diagonal border
+      if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+      {
+        tmpDiagonal *= face.getData( srcIds[i] )->getPointer( level )[ idxDiagonal ];
+      }
+    }
+
+    // Do not update horizontal DoFs at bottom
+    if ( it.row() != 0 )
+    {
+      dstData[ idxHorizontal ] = tmpHorizontal;
+    }
+
+    // Do not update vertical DoFs at left border
+    if ( it.col() != 0 )
+    {
+      dstData[ idxVertical ] = tmpVertical;
+    }
+
+    // Do not update diagonal DoFs at diagonal border
+    if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+    {
+      dstData[ idxDiagonal ] = tmpDiagonal;
+    }
+  }
+}
+
+
 template< typename ValueType >
 inline ValueType dot( const uint_t & Level, Face & face,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Face >& lhsId,

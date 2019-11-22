@@ -199,6 +199,10 @@ int main( int argc, char* argv[] )
    hyteg::run2DTest< P1Function< real_t > >( CONST_FUNCS, storage, "P1Function" );
    hyteg::run2DTest< P1Function< real_t > >( POLY_RAT, storage, "P1Function" );
 
+   // Run tests
+   hyteg::run2DTest< EdgeDoFFunction< real_t > >( CONST_FUNCS, storage, "EdgeDoFFunction" );
+   hyteg::run2DTest< EdgeDoFFunction< real_t > >( POLY_RAT, storage, "EdgeDoFFunction" );
+
    // ------------
    //  3D Testing
    // ------------
@@ -212,6 +216,9 @@ int main( int argc, char* argv[] )
    // Run tests
    hyteg::run3DTest< P1Function< real_t > >( CONST_FUNCS, storage3D, "P1Function" );
    hyteg::run3DTest< P1Function< real_t > >( POLY_RAT, storage3D, "P1Function" );
+
+   hyteg::run3DTest< EdgeDoFFunction< real_t > >( CONST_FUNCS, storage3D, "EdgeDoFFunction" );
+   hyteg::run3DTest< EdgeDoFFunction< real_t > >( POLY_RAT, storage3D, "EdgeDoFFunction" );
 
    // hyteg::run3DTest< P2Function<real_t> >( CONST_FUNCS, storage3D, "P2Function" );
    // hyteg::run3DTest< P2Function<real_t> >( POLY_RAT   , storage3D, "P2Function" );

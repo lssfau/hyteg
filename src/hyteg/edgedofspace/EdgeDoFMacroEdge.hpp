@@ -178,6 +178,29 @@ inline void assign( const uint_t & Level, Edge & edge, const std::vector< ValueT
 
 
 template< typename ValueType >
+inline void multElementwise( const uint_t & level, 
+                             Edge &edge,
+                             const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>> &srcIds,
+                             const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &dstId) {
+
+  auto dst = edge.getData( dstId )->getPointer( level );
+
+  for ( const auto & it : edgedof::macroedge::Iterator( level ) )
+  {
+    const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C );
+    ValueType tmp = edge.getData( srcIds[0] )->getPointer( level )[ idx ];
+
+    for ( uint_t i = 1; i < srcIds.size(); ++i )
+    {
+      tmp *= edge.getData( srcIds[i] )->getPointer( level )[ idx ];
+    }
+
+    dst[ idx ] = tmp;
+  }
+}
+
+
+template< typename ValueType >
 inline ValueType dot( const uint_t & Level, Edge & edge,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& lhsId,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& rhsId )

@@ -411,6 +411,71 @@ inline void add( const uint_t&                                               Lev
    }
 }
 
+
+template< typename ValueType >
+inline void multElementwise( const uint_t & level,
+                             const Cell & cell,
+                             const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcIds,
+                             const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstId )
+{
+  ValueType * dst = cell.getData( dstId )->getPointer( level );
+
+  std::vector< ValueType * > srcPtr;
+  for( const auto & src : srcIds )
+  {
+    srcPtr.push_back( cell.getData( src )->getPointer( level ));
+  }
+  for ( const auto & it : edgedof::macrocell::Iterator( level, 0 ) )
+  {
+    const uint_t idxX  = edgedof::macrocell::xIndex( level, it.x(), it.y(), it.z() );
+    const uint_t idxY  = edgedof::macrocell::yIndex( level, it.x(), it.y(), it.z() );
+    const uint_t idxZ  = edgedof::macrocell::zIndex( level, it.x(), it.y(), it.z() );
+    const uint_t idxXY = edgedof::macrocell::xyIndex( level, it.x(), it.y(), it.z() );
+    const uint_t idxXZ = edgedof::macrocell::xzIndex( level, it.x(), it.y(), it.z() );
+    const uint_t idxYZ = edgedof::macrocell::yzIndex( level, it.x(), it.y(), it.z() );
+
+    ValueType tmpX  = srcPtr[0][ idxX  ];
+    ValueType tmpY  = srcPtr[0][ idxY  ];
+    ValueType tmpZ  = srcPtr[0][ idxZ  ];
+    ValueType tmpXY = srcPtr[0][ idxXY ];
+    ValueType tmpXZ = srcPtr[0][ idxXZ ];
+    ValueType tmpYZ = srcPtr[0][ idxYZ ];
+
+    for ( uint_t i = 1; i < srcIds.size(); i++ )
+    {
+      const auto   srcData = cell.getData( srcIds[i] )->getPointer( level );
+
+      tmpX  *= srcPtr[ i ][ idxX  ];
+      tmpY  *= srcPtr[ i ][ idxY  ];
+      tmpZ  *= srcPtr[ i ][ idxZ  ];
+      tmpXY *= srcPtr[ i ][ idxXY ];
+      tmpXZ *= srcPtr[ i ][ idxXZ ];
+      tmpYZ *= srcPtr[ i ][ idxYZ ];
+    }
+
+    dst[ idxX  ] = tmpX;
+    dst[ idxY  ] = tmpY;
+    dst[ idxZ  ] = tmpZ;
+    dst[ idxXY ] = tmpXY;
+    dst[ idxXZ ] = tmpXZ;
+    dst[ idxYZ ] = tmpYZ;
+  }
+
+  for ( const auto & it : edgedof::macrocell::IteratorXYZ( level, 0 ) )
+  {
+    const uint_t idxXYZ = edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() );
+    ValueType tmpXYZ  = srcPtr[0][ idxXYZ ];
+
+    for ( uint_t i = 1; i < srcIds.size(); i++ )
+    {
+      tmpXYZ *= srcPtr[ i ][ idxXYZ ];
+    }
+    dst[ idxXYZ ] = tmpXYZ;
+  }
+
+}
+
+
 template< typename ValueType >
 inline ValueType dot( const uint_t & Level, Cell & cell,
                    const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& lhsId,
