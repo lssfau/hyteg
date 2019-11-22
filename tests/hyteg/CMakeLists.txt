@@ -420,12 +420,12 @@ waLBerla_execute_test(NAME ParallelRoundRobinTest8 COMMAND $<TARGET_FILE:Paralle
 waLBerla_compile_test(FILES adaptivity/PrimitiveMigrationMatMulTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PrimitiveMigrationMatMulTest1 COMMAND $<TARGET_FILE:PrimitiveMigrationMatMulTest> )
 waLBerla_execute_test(NAME PrimitiveMigrationMatMulTest3 COMMAND $<TARGET_FILE:PrimitiveMigrationMatMulTest> PROCESSES 3 )
-waLBerla_execute_test(NAME PrimitiveMigrationMatMulTest8 COMMAND $<TARGET_FILE:PrimitiveMigrationMatMulTest> PROCESSES 8 )
+waLBerla_execute_test(NAME PrimitiveMigrationMatMulTest4 COMMAND $<TARGET_FILE:PrimitiveMigrationMatMulTest> PROCESSES 4 )
 
 waLBerla_compile_test(FILES adaptivity/PrimitiveMigrationConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME PrimitiveMigrationConvergenceTest1 COMMAND $<TARGET_FILE:PrimitiveMigrationConvergenceTest> )
 waLBerla_execute_test(NAME PrimitiveMigrationConvergenceTest3 COMMAND $<TARGET_FILE:PrimitiveMigrationConvergenceTest> PROCESSES 3 )
-waLBerla_execute_test(NAME PrimitiveMigrationConvergenceTest8 COMMAND $<TARGET_FILE:PrimitiveMigrationConvergenceTest> PROCESSES 8 )
+waLBerla_execute_test(NAME PrimitiveMigrationConvergenceTest4 COMMAND $<TARGET_FILE:PrimitiveMigrationConvergenceTest> PROCESSES 4 )
 
 if( WALBERLA_BUILD_WITH_PARMETIS )
   waLBerla_compile_test(FILES adaptivity/ParMetisTestHyteg.cpp DEPENDS hyteg core)
