@@ -19,10 +19,16 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    typedef typename OperatorType::srcType               FunctionType;
    typedef typename OperatorType::BlockPreconditioner_T BlockPreconditioner_T;
 
+   /// \brief PETSc-based block preconditioned MinRes solver for the Stokes problem.
+   ///
+   /// \param velocityPreconditionerType choose from different velocity preconditioners:
+   ///                                   - 0: PCGAMG
+   ///                                   - 1: PCJACOBI
    PETScBlockPreconditionedStokesSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                                          const uint_t&                              level,
                                          const real_t                               tolerance = 1e-16,
-                                         const PetscInt maxIterations = std::numeric_limits< PetscInt >::max() )
+                                         const PetscInt maxIterations              = std::numeric_limits< PetscInt >::max(),
+                                         const uint_t&  velocityPreconditionerType = 0 )
    : allocatedLevel_( level )
    , num( "numerator", storage, level, level )
    , Amat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
@@ -38,6 +44,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    , flag_( hyteg::All )
    , nullSpaceSet_( false )
    , blockPreconditioner_( storage, level, level )
+   , velocityPreconditionerType_( velocityPreconditionerType )
    {}
 
    ~PETScBlockPreconditionedStokesSolver() {}
@@ -124,10 +131,20 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       KSPGetPC( sub_ksps_[0], &pc_u );
       KSPGetPC( sub_ksps_[1], &pc_p );
 
-      // AMG
-      PCSetType( pc_u, PCGAMG );
-      PCGAMGSetType( pc_u, PCGAMGAGG );
-      PCGAMGSetNSmooths( pc_u, 1 );
+      switch ( velocityPreconditionerType_ )
+      {
+      case 0:
+         PCSetType( pc_u, PCGAMG );
+         PCGAMGSetType( pc_u, PCGAMGAGG );
+         PCGAMGSetNSmooths( pc_u, 1 );
+         break;
+      case 1:
+         PCSetType( pc_u, PCJACOBI );
+         break;
+      default:
+         WALBERLA_ABORT( "Invalid velocity preconditioner for PETSc block prec MinRes solver." );
+         break;
+      }
 
       // inv. lumped mass
       PCSetType( pc_p, PCJACOBI );
@@ -223,13 +240,13 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       }
    }
 
-   uint_t                                                                          allocatedLevel_;
-   typename OperatorType::srcType::template FunctionType< PetscInt >               num;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType > Amat;
+   uint_t                                                                                            allocatedLevel_;
+   typename OperatorType::srcType::template FunctionType< PetscInt >                                 num;
+   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >                   Amat;
    PETScSparseMatrix< BlockPreconditioner_T, BlockPreconditioner_T::srcType::template FunctionType > Pmat;
-   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
-   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > bVec;
-   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > nullspaceVec_;
+   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType >     xVec;
+   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType >     bVec;
+   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType >     nullspaceVec_;
 
    std::shared_ptr< PrimitiveStorage > storage_;
 
@@ -245,6 +262,8 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    MatNullSpace nullspace_;
    DoFType      flag_;
    bool         nullSpaceSet_;
+
+   uint_t velocityPreconditionerType_;
 };
 
 } // namespace hyteg
