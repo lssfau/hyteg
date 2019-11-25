@@ -321,24 +321,6 @@ void P2Function< ValueType >::add( const std::vector< ValueType >&              
 }
 
 template < typename ValueType >
-void P2Function< ValueType >::multElementwise( const std::vector< std::reference_wrapper< const P2Function< ValueType > > >& functions,
-                                               uint_t                                                                        level,
-                                               DoFType                                                                       flag ) const {
-
-   std::vector< std::reference_wrapper< const vertexdof::VertexDoFFunction< ValueType > > > vertexDoFFunctions;
-   std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >              edgeDoFFunctions;
-
-   for ( const P2Function< ValueType >& function : functions )
-   {
-      vertexDoFFunctions.push_back( function.vertexDoFFunction_ );
-      edgeDoFFunctions.push_back( function.edgeDoFFunction_ );
-   }
-
-  vertexDoFFunction_.multElementwise( vertexDoFFunctions, level, flag );
-  edgeDoFFunction_.multElementwise( edgeDoFFunctions, level, flag );
-}
-
-template < typename ValueType >
 ValueType P2Function< ValueType >::dotGlobal( const P2Function< ValueType >& rhs, const uint_t level, const DoFType& flag ) const
 {
    ValueType sum = dotLocal( rhs, level, flag );
