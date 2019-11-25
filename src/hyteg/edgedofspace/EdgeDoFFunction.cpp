@@ -20,15 +20,14 @@
 #include "EdgeDoFFunction.hpp"
 
 #include "hyteg/FunctionProperties.hpp"
+#include "hyteg/communication/Syncing.hpp"
+#include "hyteg/edgedofspace/EdgeDoFAdditivePackInfo.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/edgedofspace/EdgeDoFPackInfo.hpp"
-#include "hyteg/edgedofspace/EdgeDoFAdditivePackInfo.hpp"
-#include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/generatedKernels/all.hpp"
 #include "hyteg/primitives/all.hpp"
-
 
 namespace hyteg {
 
@@ -55,7 +54,7 @@ EdgeDoFFunction< ValueType >::EdgeDoFFunction( const std::string&               
                                                const uint_t&                              minLevel,
                                                const uint_t&                              maxLevel,
                                                const BoundaryCondition&                   boundaryCondition,
-                                               const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication )
+                                               const DoFType& boundaryTypeToSkipDuringAdditiveCommunication )
 : Function< EdgeDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , boundaryCondition_( boundaryCondition )
 , boundaryTypeToSkipDuringAdditiveCommunication_( boundaryTypeToSkipDuringAdditiveCommunication )
@@ -81,7 +80,7 @@ EdgeDoFFunction< ValueType >::EdgeDoFFunction( const std::string&               
    storage->addFaceData( faceDataID_, faceDataHandling, name );
    storage->addCellData( cellDataID_, cellDataHandling, name );
 
-   for( uint_t level = minLevel; level <= maxLevel; ++level )
+   for ( uint_t level = minLevel; level <= maxLevel; ++level )
    {
       //communicators_[level]->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
       communicators_[level]->addPackInfo( std::make_shared< EdgeDoFPackInfo< ValueType > >(
@@ -101,7 +100,7 @@ EdgeDoFFunction< ValueType >::EdgeDoFFunction( const std::string&               
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
@@ -114,10 +113,10 @@ void EdgeDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_
 
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
-                                                       uint_t                                              level,
-                                                       DoFType                                             flag ) const
+                                                uint_t                                              level,
+                                                DoFType                                             flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
@@ -131,12 +130,12 @@ void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( 
                                                 uint_t                                              level,
                                                 BoundaryUID                                         boundaryUID ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
-   [&expr]( const hyteg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
+       [&expr]( const hyteg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
    interpolateExtended( exprExtended, {}, level, boundaryUID );
 }
 
@@ -147,7 +146,7 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
     uint_t                                                                               level,
     DoFType                                                                              flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
@@ -157,38 +156,38 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > srcCellIDs;
 
-   for( auto& function : srcFunctions )
+   for ( auto& function : srcFunctions )
    {
       srcEdgeIDs.push_back( function->edgeDataID_ );
       srcFaceIDs.push_back( function->faceDataID_ );
       srcCellIDs.push_back( function->cellDataID_ );
    }
 
-   for( auto& it : this->getStorage()->getEdges() )
+   for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
          edgedof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, srcEdgeIDs, expr );
       }
    }
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
          edgedof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
       }
    }
 
-   for( auto& it : this->getStorage()->getCells() )
+   for ( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          edgedof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
       }
@@ -203,7 +202,7 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
     uint_t                                                                               level,
     BoundaryUID                                                                          boundaryUID ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
@@ -213,38 +212,38 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > srcCellIDs;
 
-   for( auto& function : srcFunctions )
+   for ( auto& function : srcFunctions )
    {
       srcEdgeIDs.push_back( function->edgeDataID_ );
       srcFaceIDs.push_back( function->faceDataID_ );
       srcCellIDs.push_back( function->cellDataID_ );
    }
 
-   for( auto& it : this->getStorage()->getEdges() )
+   for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
 
-      if( boundaryCondition_.getBoundaryUIDFromMeshFlag( edge.getMeshBoundaryFlag() ) == boundaryUID )
+      if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( edge.getMeshBoundaryFlag() ) == boundaryUID )
       {
          edgedof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, srcEdgeIDs, expr );
       }
    }
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
 
-      if( boundaryCondition_.getBoundaryUIDFromMeshFlag( face.getMeshBoundaryFlag() ) == boundaryUID )
+      if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( face.getMeshBoundaryFlag() ) == boundaryUID )
       {
          edgedof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
       }
    }
 
-   for( auto& it : this->getStorage()->getCells() )
+   for ( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
 
-      if( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
+      if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
       {
          edgedof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
       }
@@ -252,64 +251,66 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
    this->stopTiming( "Interpolate" );
 }
 
-
-template< typename ValueType >
-void EdgeDoFFunction< ValueType >::swap( const EdgeDoFFunction< ValueType > & other,
-                                         const uint_t & level,
-                                         const DoFType & flag ) const
+template < typename ValueType >
+void EdgeDoFFunction< ValueType >::swap( const EdgeDoFFunction< ValueType >& other,
+                                         const uint_t&                       level,
+                                         const DoFType&                      flag ) const
 {
-  if( isDummy() )
-  {
-    return;
-  }
-  this->startTiming( "Swap" );
+   if ( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "Swap" );
 
-  for( auto& it : this->getStorage()->getEdges() )
-  {
-    Edge& edge = *it.second;
+   for ( auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
 
-    if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-    {
-      edgedof::macroedge::swap< ValueType >( level, edge, other.getEdgeDataID(), edgeDataID_ );
-    }
-  }
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      {
+         edgedof::macroedge::swap< ValueType >( level, edge, other.getEdgeDataID(), edgeDataID_ );
+      }
+   }
 
-  for( auto& it : this->getStorage()->getFaces() )
-  {
-    Face& face = *it.second;
+   for ( auto& it : this->getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
 
-    if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
-    {
-       edgedof::macroface::swap< ValueType >( level, face, other.getFaceDataID(), faceDataID_ );
-    }
-  }
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      {
+         edgedof::macroface::swap< ValueType >( level, face, other.getFaceDataID(), faceDataID_ );
+      }
+   }
 
-  for( auto& it : this->getStorage()->getCells() )
-  {
-    Cell& cell = *it.second;
+   for ( auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
 
-    if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
-    {
-       edgedof::macrocell::swap< ValueType >( level, cell, other.getCellDataID(), cellDataID_ );
-    }
-  }
+      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      {
+         edgedof::macrocell::swap< ValueType >( level, cell, other.getCellDataID(), cellDataID_ );
+      }
+   }
 
-  this->stopTiming( "Swap" );
+   this->stopTiming( "Swap" );
 }
 
-
-template< typename ValueType >
-void macroFaceAssign( const uint_t & level, Face & face, const std::vector< ValueType > & scalars,
-                     const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcFaceIDs,
-                     const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstFaceID )
+template < typename ValueType >
+void macroFaceAssign( const uint_t&                                                              level,
+                      Face&                                                                      face,
+                      const std::vector< ValueType >&                                            scalars,
+                      const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >& srcFaceIDs,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                dstFaceID )
 {
    edgedof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, dstFaceID );
 }
 
-template<>
-void macroFaceAssign< double >( const uint_t & level, Face & face, const std::vector< double > & scalars,
-                               const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > > & srcFaceIDs,
-                               const PrimitiveDataID< FunctionMemory< double >, Face > & dstFaceID )
+template <>
+void macroFaceAssign< double >( const uint_t&                                                           level,
+                                Face&                                                                   face,
+                                const std::vector< double >&                                            scalars,
+                                const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > >& srcFaceIDs,
+                                const PrimitiveDataID< FunctionMemory< double >, Face >&                dstFaceID )
 {
    typedef edgedof::EdgeDoFOrientation eo;
    std::map< eo, uint_t >              firstIdx;
@@ -382,28 +383,32 @@ void macroFaceAssign< double >( const uint_t & level, Face & face, const std::ve
    }
 }
 
-template< typename ValueType >
-void macroCellAssign( const uint_t & level, Cell & cell, const std::vector< ValueType > & scalars,
-                     const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcCellIDs,
-                     const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstCellID )
+template < typename ValueType >
+void macroCellAssign( const uint_t&                                                              level,
+                      Cell&                                                                      cell,
+                      const std::vector< ValueType >&                                            scalars,
+                      const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >& srcCellIDs,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&                dstCellID )
 {
    edgedof::macrocell::assign< ValueType >( level, cell, scalars, srcCellIDs, dstCellID );
 }
 
-template<>
-void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::vector< double > & scalars,
-                               const std::vector< PrimitiveDataID< FunctionMemory< double >, Cell > > & srcCellIDs,
-                               const PrimitiveDataID< FunctionMemory< double >, Cell > & dstCellID )
+template <>
+void macroCellAssign< double >( const uint_t&                                                           level,
+                                Cell&                                                                   cell,
+                                const std::vector< double >&                                            scalars,
+                                const std::vector< PrimitiveDataID< FunctionMemory< double >, Cell > >& srcCellIDs,
+                                const PrimitiveDataID< FunctionMemory< double >, Cell >&                dstCellID )
 {
    typedef edgedof::EdgeDoFOrientation eo;
    if ( globalDefines::useGeneratedKernels && scalars.size() == 1 )
    {
-      auto dstData = cell.getData( dstCellID )->getPointer( level );
-      auto srcData = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
-      auto scalar  = scalars.at( 0 );
+      auto                   dstData = cell.getData( dstCellID )->getPointer( level );
+      auto                   srcData = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
+      auto                   scalar  = scalars.at( 0 );
       std::map< eo, uint_t > firstIdx;
       for ( auto e : edgedof::allEdgeDoFOrientations )
-          firstIdx[e] = edgedof::macrocell::index( level, 0, 0, 0, e );
+         firstIdx[e] = edgedof::macrocell::index( level, 0, 0, 0, e );
       edgedof::macrocell::generated::assign_3D_macrocell_edgedof_1_rhs_function( &dstData[firstIdx[eo::X]],
                                                                                  &dstData[firstIdx[eo::XY]],
                                                                                  &dstData[firstIdx[eo::XYZ]],
@@ -459,56 +464,55 @@ void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::ve
    }
    else if ( globalDefines::useGeneratedKernels && scalars.size() == 3 )
    {
-     auto                   dstData  = cell.getData( dstCellID )->getPointer( level );
-     auto                   srcData0 = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
-     auto                   srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
-     auto                   srcData2 = cell.getData( srcCellIDs.at( 2 ) )->getPointer( level );
-     auto                   scalar0  = scalars.at( 0 );
-     auto                   scalar1  = scalars.at( 1 );
-     auto                   scalar2  = scalars.at( 2 );
-     std::map< eo, uint_t > firstIdx;
-     for ( auto e : edgedof::allEdgeDoFOrientations )
-       firstIdx[e] = edgedof::macrocell::index( level, 0, 0, 0, e );
+      auto                   dstData  = cell.getData( dstCellID )->getPointer( level );
+      auto                   srcData0 = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
+      auto                   srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
+      auto                   srcData2 = cell.getData( srcCellIDs.at( 2 ) )->getPointer( level );
+      auto                   scalar0  = scalars.at( 0 );
+      auto                   scalar1  = scalars.at( 1 );
+      auto                   scalar2  = scalars.at( 2 );
+      std::map< eo, uint_t > firstIdx;
+      for ( auto e : edgedof::allEdgeDoFOrientations )
+         firstIdx[e] = edgedof::macrocell::index( level, 0, 0, 0, e );
 
-     edgedof::macrocell::generated::assign_3D_macrocell_edgedof_3_rhs_functions( &dstData[firstIdx[eo::X]],
-                                                                                 &dstData[firstIdx[eo::XY]],
-                                                                                 &dstData[firstIdx[eo::XYZ]],
-                                                                                 &dstData[firstIdx[eo::XZ]],
-                                                                                 &dstData[firstIdx[eo::Y]],
-                                                                                 &dstData[firstIdx[eo::YZ]],
-                                                                                 &dstData[firstIdx[eo::Z]],
-                                                                                 &srcData0[firstIdx[eo::X]],
-                                                                                 &srcData0[firstIdx[eo::XY]],
-                                                                                 &srcData0[firstIdx[eo::XYZ]],
-                                                                                 &srcData0[firstIdx[eo::XZ]],
-                                                                                 &srcData0[firstIdx[eo::Y]],
-                                                                                 &srcData0[firstIdx[eo::YZ]],
-                                                                                 &srcData0[firstIdx[eo::Z]],
-                                                                                 &srcData1[firstIdx[eo::X]],
-                                                                                 &srcData1[firstIdx[eo::XY]],
-                                                                                 &srcData1[firstIdx[eo::XYZ]],
-                                                                                 &srcData1[firstIdx[eo::XZ]],
-                                                                                 &srcData1[firstIdx[eo::Y]],
-                                                                                 &srcData1[firstIdx[eo::YZ]],
-                                                                                 &srcData1[firstIdx[eo::Z]],
-                                                                                 &srcData2[firstIdx[eo::X]],
-                                                                                 &srcData2[firstIdx[eo::XY]],
-                                                                                 &srcData2[firstIdx[eo::XYZ]],
-                                                                                 &srcData2[firstIdx[eo::XZ]],
-                                                                                 &srcData2[firstIdx[eo::Y]],
-                                                                                 &srcData2[firstIdx[eo::YZ]],
-                                                                                 &srcData2[firstIdx[eo::Z]],
-                                                                                 scalar0,
-                                                                                 scalar1,
-                                                                                 scalar2,
-                                                                                 static_cast< int32_t >( level ) );
+      edgedof::macrocell::generated::assign_3D_macrocell_edgedof_3_rhs_functions( &dstData[firstIdx[eo::X]],
+                                                                                  &dstData[firstIdx[eo::XY]],
+                                                                                  &dstData[firstIdx[eo::XYZ]],
+                                                                                  &dstData[firstIdx[eo::XZ]],
+                                                                                  &dstData[firstIdx[eo::Y]],
+                                                                                  &dstData[firstIdx[eo::YZ]],
+                                                                                  &dstData[firstIdx[eo::Z]],
+                                                                                  &srcData0[firstIdx[eo::X]],
+                                                                                  &srcData0[firstIdx[eo::XY]],
+                                                                                  &srcData0[firstIdx[eo::XYZ]],
+                                                                                  &srcData0[firstIdx[eo::XZ]],
+                                                                                  &srcData0[firstIdx[eo::Y]],
+                                                                                  &srcData0[firstIdx[eo::YZ]],
+                                                                                  &srcData0[firstIdx[eo::Z]],
+                                                                                  &srcData1[firstIdx[eo::X]],
+                                                                                  &srcData1[firstIdx[eo::XY]],
+                                                                                  &srcData1[firstIdx[eo::XYZ]],
+                                                                                  &srcData1[firstIdx[eo::XZ]],
+                                                                                  &srcData1[firstIdx[eo::Y]],
+                                                                                  &srcData1[firstIdx[eo::YZ]],
+                                                                                  &srcData1[firstIdx[eo::Z]],
+                                                                                  &srcData2[firstIdx[eo::X]],
+                                                                                  &srcData2[firstIdx[eo::XY]],
+                                                                                  &srcData2[firstIdx[eo::XYZ]],
+                                                                                  &srcData2[firstIdx[eo::XZ]],
+                                                                                  &srcData2[firstIdx[eo::Y]],
+                                                                                  &srcData2[firstIdx[eo::YZ]],
+                                                                                  &srcData2[firstIdx[eo::Z]],
+                                                                                  scalar0,
+                                                                                  scalar1,
+                                                                                  scalar2,
+                                                                                  static_cast< int32_t >( level ) );
    }
    else
    {
       edgedof::macrocell::assign< double >( level, cell, scalars, srcCellIDs, dstCellID );
    }
 }
-
 
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::assign(
@@ -517,7 +521,7 @@ void EdgeDoFFunction< ValueType >::assign(
     size_t                                                                             level,
     DoFType                                                                            flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
@@ -526,38 +530,38 @@ void EdgeDoFFunction< ValueType >::assign(
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > srcCellIDs;
 
-   for( const EdgeDoFFunction< ValueType >& function : functions )
+   for ( const EdgeDoFFunction< ValueType >& function : functions )
    {
       srcEdgeIDs.push_back( function.edgeDataID_ );
       srcFaceIDs.push_back( function.faceDataID_ );
       srcCellIDs.push_back( function.cellDataID_ );
    }
 
-   for( auto& it : this->getStorage()->getEdges() )
+   for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
          edgedof::macroedge::assign< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
       }
    }
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
          macroFaceAssign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
       }
    }
 
-   for( auto& it : this->getStorage()->getCells() )
+   for ( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          macroCellAssign< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
       }
@@ -569,37 +573,37 @@ void EdgeDoFFunction< ValueType >::assign(
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::add( const ValueType& scalar, uint_t level, DoFType flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
    this->startTiming( "Add (scalar)" );
 
-   for( auto& it : this->getStorage()->getEdges() )
+   for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
          edgedof::macroedge::add< ValueType >( level, edge, scalar, edgeDataID_ );
       }
    }
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
          edgedof::macroface::add< ValueType >( level, face, scalar, faceDataID_ );
       }
    }
 
-   for( auto& it : this->getStorage()->getCells() )
+   for ( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          edgedof::macrocell::add< ValueType >( level, cell, scalar, cellDataID_ );
       }
@@ -608,99 +612,102 @@ void EdgeDoFFunction< ValueType >::add( const ValueType& scalar, uint_t level, D
    this->stopTiming( "Add (scalar)" );
 }
 
-
-template< typename ValueType >
-void macroFaceAdd( const uint_t & level, Face & face, const std::vector< ValueType > & scalars,
-                   const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcFaceIDs,
-                   const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstFaceID )
+template < typename ValueType >
+void macroFaceAdd( const uint_t&                                                              level,
+                   Face&                                                                      face,
+                   const std::vector< ValueType >&                                            scalars,
+                   const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >& srcFaceIDs,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                dstFaceID )
 {
-  edgedof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, dstFaceID );
+   edgedof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, dstFaceID );
 }
 
-template<>
-void macroFaceAdd< double >( const uint_t & level, Face & face, const std::vector< double > & scalars,
-                             const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > > & srcFaceIDs,
-                             const PrimitiveDataID< FunctionMemory< double >, Face > & dstFaceID )
+template <>
+void macroFaceAdd< double >( const uint_t&                                                           level,
+                             Face&                                                                   face,
+                             const std::vector< double >&                                            scalars,
+                             const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > >& srcFaceIDs,
+                             const PrimitiveDataID< FunctionMemory< double >, Face >&                dstFaceID )
 {
-  typedef edgedof::EdgeDoFOrientation eo;
-  std::map< eo, uint_t >              firstIdx;
-  for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
-    firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
+   typedef edgedof::EdgeDoFOrientation eo;
+   std::map< eo, uint_t >              firstIdx;
+   for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
+      firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
 
-  if ( globalDefines::useGeneratedKernels && scalars.size() == 1 )
-  {
-    auto dstData = face.getData( dstFaceID )->getPointer( level );
-    auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
-    auto scalar  = scalars.at( 0 );
-    edgedof::macroface::generated::add_2D_macroface_edgedof_1_rhs_function( &dstData[firstIdx[eo::X]],
+   if ( globalDefines::useGeneratedKernels && scalars.size() == 1 )
+   {
+      auto dstData = face.getData( dstFaceID )->getPointer( level );
+      auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+      auto scalar  = scalars.at( 0 );
+      edgedof::macroface::generated::add_2D_macroface_edgedof_1_rhs_function( &dstData[firstIdx[eo::X]],
+                                                                              &dstData[firstIdx[eo::XY]],
+                                                                              &dstData[firstIdx[eo::Y]],
+                                                                              &srcData[firstIdx[eo::X]],
+                                                                              &srcData[firstIdx[eo::XY]],
+                                                                              &srcData[firstIdx[eo::Y]],
+                                                                              scalar,
+                                                                              static_cast< int32_t >( level ) );
+   }
+   else if ( globalDefines::useGeneratedKernels && scalars.size() == 2 )
+   {
+      auto dstData  = face.getData( dstFaceID )->getPointer( level );
+      auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+      auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
+      auto scalar0  = scalars.at( 0 );
+      auto scalar1  = scalars.at( 1 );
+      edgedof::macroface::generated::add_2D_macroface_edgedof_2_rhs_functions( &dstData[firstIdx[eo::X]],
                                                                                &dstData[firstIdx[eo::XY]],
                                                                                &dstData[firstIdx[eo::Y]],
-                                                                               &srcData[firstIdx[eo::X]],
-                                                                               &srcData[firstIdx[eo::XY]],
-                                                                               &srcData[firstIdx[eo::Y]],
-                                                                               scalar,
+                                                                               &srcData0[firstIdx[eo::X]],
+                                                                               &srcData0[firstIdx[eo::XY]],
+                                                                               &srcData0[firstIdx[eo::Y]],
+                                                                               &srcData1[firstIdx[eo::X]],
+                                                                               &srcData1[firstIdx[eo::XY]],
+                                                                               &srcData1[firstIdx[eo::Y]],
+                                                                               scalar0,
+                                                                               scalar1,
                                                                                static_cast< int32_t >( level ) );
-  }
-  else if ( globalDefines::useGeneratedKernels && scalars.size() == 2 )
-  {
-    auto dstData  = face.getData( dstFaceID )->getPointer( level );
-    auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
-    auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
-    auto scalar0  = scalars.at( 0 );
-    auto scalar1  = scalars.at( 1 );
-    edgedof::macroface::generated::add_2D_macroface_edgedof_2_rhs_functions( &dstData[firstIdx[eo::X]],
-                                                                                &dstData[firstIdx[eo::XY]],
-                                                                                &dstData[firstIdx[eo::Y]],
-                                                                                &srcData0[firstIdx[eo::X]],
-                                                                                &srcData0[firstIdx[eo::XY]],
-                                                                                &srcData0[firstIdx[eo::Y]],
-                                                                                &srcData1[firstIdx[eo::X]],
-                                                                                &srcData1[firstIdx[eo::XY]],
-                                                                                &srcData1[firstIdx[eo::Y]],
-                                                                                scalar0,
-                                                                                scalar1,
-                                                                                static_cast< int32_t >( level ) );
-  }
-  else if ( globalDefines::useGeneratedKernels && scalars.size() == 3 )
-  {
-    auto dstData  = face.getData( dstFaceID )->getPointer( level );
-    auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
-    auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
-    auto srcData2 = face.getData( srcFaceIDs.at( 2 ) )->getPointer( level );
-    auto scalar0  = scalars.at( 0 );
-    auto scalar1  = scalars.at( 1 );
-    auto scalar2  = scalars.at( 2 );
-    edgedof::macroface::generated::add_2D_macroface_edgedof_3_rhs_functions( &dstData[firstIdx[eo::X]],
-                                                                                &dstData[firstIdx[eo::XY]],
-                                                                                &dstData[firstIdx[eo::Y]],
-                                                                                &srcData0[firstIdx[eo::X]],
-                                                                                &srcData0[firstIdx[eo::XY]],
-                                                                                &srcData0[firstIdx[eo::Y]],
-                                                                                &srcData1[firstIdx[eo::X]],
-                                                                                &srcData1[firstIdx[eo::XY]],
-                                                                                &srcData1[firstIdx[eo::Y]],
-                                                                                &srcData2[firstIdx[eo::X]],
-                                                                                &srcData2[firstIdx[eo::XY]],
-                                                                                &srcData2[firstIdx[eo::Y]],
-                                                                                scalar0,
-                                                                                scalar1,
-                                                                                scalar2,
-                                                                                static_cast< int32_t >( level ) );
-  }
-  else
-  {
-    edgedof::macroface::add< double >( level, face, scalars, srcFaceIDs, dstFaceID );
-  }
+   }
+   else if ( globalDefines::useGeneratedKernels && scalars.size() == 3 )
+   {
+      auto dstData  = face.getData( dstFaceID )->getPointer( level );
+      auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+      auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
+      auto srcData2 = face.getData( srcFaceIDs.at( 2 ) )->getPointer( level );
+      auto scalar0  = scalars.at( 0 );
+      auto scalar1  = scalars.at( 1 );
+      auto scalar2  = scalars.at( 2 );
+      edgedof::macroface::generated::add_2D_macroface_edgedof_3_rhs_functions( &dstData[firstIdx[eo::X]],
+                                                                               &dstData[firstIdx[eo::XY]],
+                                                                               &dstData[firstIdx[eo::Y]],
+                                                                               &srcData0[firstIdx[eo::X]],
+                                                                               &srcData0[firstIdx[eo::XY]],
+                                                                               &srcData0[firstIdx[eo::Y]],
+                                                                               &srcData1[firstIdx[eo::X]],
+                                                                               &srcData1[firstIdx[eo::XY]],
+                                                                               &srcData1[firstIdx[eo::Y]],
+                                                                               &srcData2[firstIdx[eo::X]],
+                                                                               &srcData2[firstIdx[eo::XY]],
+                                                                               &srcData2[firstIdx[eo::Y]],
+                                                                               scalar0,
+                                                                               scalar1,
+                                                                               scalar2,
+                                                                               static_cast< int32_t >( level ) );
+   }
+   else
+   {
+      edgedof::macroface::add< double >( level, face, scalars, srcFaceIDs, dstFaceID );
+   }
 }
 
-
 template < typename ValueType >
-void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >&                     scalars,
-                                        const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
-                                               size_t                                             level,
-                                               DoFType                                            flag ) const
+void EdgeDoFFunction< ValueType >::add(
+    const std::vector< ValueType >&                                                    scalars,
+    const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
+    size_t                                                                             level,
+    DoFType                                                                            flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
@@ -709,38 +716,38 @@ void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >&         
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > srcCellIDs;
 
-   for( const EdgeDoFFunction< ValueType >& function : functions )
+   for ( const EdgeDoFFunction< ValueType >& function : functions )
    {
       srcEdgeIDs.push_back( function.edgeDataID_ );
       srcFaceIDs.push_back( function.faceDataID_ );
       srcCellIDs.push_back( function.cellDataID_ );
    }
 
-   for( auto& it : this->getStorage()->getEdges() )
+   for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
          edgedof::macroedge::add< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
       }
    }
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
          macroFaceAdd< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
       }
    }
 
-   for( auto& it : this->getStorage()->getCells() )
+   for ( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          edgedof::macrocell::add< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
       }
@@ -750,40 +757,42 @@ void EdgeDoFFunction< ValueType >::add( const std::vector< ValueType >&         
 }
 
 template < typename ValueType >
-ValueType EdgeDoFFunction< ValueType >::dotLocal(const EdgeDoFFunction <ValueType> &rhs, const uint_t level, const DoFType flag) const
+ValueType EdgeDoFFunction< ValueType >::dotLocal( const EdgeDoFFunction< ValueType >& rhs,
+                                                  const uint_t                        level,
+                                                  const DoFType                       flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return ValueType( 0 );
    }
    this->startTiming( "Dot (local)" );
    auto scalarProduct = ValueType( 0 );
 
-   for( auto& it : this->getStorage()->getEdges() )
+   for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
          scalarProduct += edgedof::macroedge::dot< ValueType >( level, edge, edgeDataID_, rhs.edgeDataID_ );
       }
    }
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
          scalarProduct += edgedof::macroface::dot< ValueType >( level, face, faceDataID_, rhs.faceDataID_ );
       }
    }
 
-   for( auto& it : this->getStorage()->getCells() )
+   for ( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          scalarProduct += edgedof::macrocell::dot< ValueType >( level, cell, cellDataID_, rhs.cellDataID_ );
       }
@@ -794,9 +803,8 @@ ValueType EdgeDoFFunction< ValueType >::dotLocal(const EdgeDoFFunction <ValueTyp
    return scalarProduct;
 }
 
-
 template < typename ValueType >
-ValueType EdgeDoFFunction< ValueType >::sumGlobal( const uint_t & level, const DoFType & flag, const bool & absolute ) const
+ValueType EdgeDoFFunction< ValueType >::sumGlobal( const uint_t& level, const DoFType& flag, const bool& absolute ) const
 {
    ValueType sum = sumLocal( level, flag, absolute );
    this->startTiming( "Sum (reduce)" );
@@ -806,39 +814,39 @@ ValueType EdgeDoFFunction< ValueType >::sumGlobal( const uint_t & level, const D
 }
 
 template < typename ValueType >
-ValueType EdgeDoFFunction< ValueType >::sumLocal( const uint_t & level, const DoFType & flag, const bool & absolute ) const
+ValueType EdgeDoFFunction< ValueType >::sumLocal( const uint_t& level, const DoFType& flag, const bool& absolute ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return ValueType( 0 );
    }
    this->startTiming( "Sum (local)" );
    auto sum = ValueType( 0 );
 
-   for( const auto& it : this->getStorage()->getEdges() )
+   for ( const auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
          sum += edgedof::macroedge::sum< ValueType >( level, edge, edgeDataID_, absolute );
       }
    }
 
-   for( const auto& it : this->getStorage()->getFaces() )
+   for ( const auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
          sum += edgedof::macroface::sum< ValueType >( level, face, faceDataID_, absolute );
       }
    }
 
-   for( const auto& it : this->getStorage()->getCells() )
+   for ( const auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
-      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          sum += edgedof::macrocell::sum< ValueType >( level, cell, cellDataID_, absolute );
       }
@@ -850,7 +858,7 @@ ValueType EdgeDoFFunction< ValueType >::sumLocal( const uint_t & level, const Do
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::enumerate( uint_t level ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
@@ -862,7 +870,7 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level ) const
 
    auto startOnRank = ValueType( 0 );
 
-   for( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
+   for ( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
    {
       startOnRank += dofs_per_rank[i];
    }
@@ -874,26 +882,26 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level ) const
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
 
-   for( auto& it : this->getStorage()->getEdges() )
+   for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
       edgedof::macroedge::enumerate< ValueType >( level, edge, edgeDataID_, offset );
    }
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
       edgedof::macroface::enumerate< ValueType >( level, face, faceDataID_, offset );
    }
 
-   for( auto& it : this->getStorage()->getCells() )
+   for ( auto& it : this->getStorage()->getCells() )
    {
-      Cell & cell = *it.second;
+      Cell& cell = *it.second;
       edgedof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset );
    }
 
@@ -903,40 +911,40 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) 
 template < typename ValueType >
 ValueType EdgeDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return ValueType( 0 );
    }
 
    auto localMax = -std::numeric_limits< ValueType >::max();
 
-   for( auto& it : this->getStorage()->getEdges() )
+   for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge&         edge   = *it.second;
       const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if( testFlag( edgeBC, flag ) )
+      if ( testFlag( edgeBC, flag ) )
       {
          localMax = std::max( localMax, edgedof::macroedge::getMaxValue< ValueType >( level, edge, edgeDataID_ ) );
       }
    }
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face&         face   = *it.second;
       const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if( testFlag( faceBC, flag ) )
+      if ( testFlag( faceBC, flag ) )
       {
          localMax = std::max( localMax, edgedof::macroface::getMaxValue< ValueType >( level, face, faceDataID_ ) );
       }
    }
 
-   for( auto& it : this->getStorage()->getCells() )
+   for ( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
-      localMax = std::max( localMax, edgedof::macrocell::getMaxValue< ValueType >( level, cell, cellDataID_ ) );
+      localMax   = std::max( localMax, edgedof::macrocell::getMaxValue< ValueType >( level, cell, cellDataID_ ) );
    }
 
-   if( mpiReduce )
+   if ( mpiReduce )
    {
       walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
    }
@@ -947,40 +955,40 @@ ValueType EdgeDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag,
 template < typename ValueType >
 ValueType EdgeDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return ValueType( 0 );
    }
 
    auto localMin = std::numeric_limits< ValueType >::max();
 
-   for( auto& it : this->getStorage()->getEdges() )
+   for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge&         edge   = *it.second;
       const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if( testFlag( edgeBC, flag ) )
+      if ( testFlag( edgeBC, flag ) )
       {
          localMin = std::min( localMin, edgedof::macroedge::getMinValue< ValueType >( level, edge, edgeDataID_ ) );
       }
    }
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face&         face   = *it.second;
       const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if( testFlag( faceBC, flag ) )
+      if ( testFlag( faceBC, flag ) )
       {
          localMin = std::min( localMin, edgedof::macroface::getMinValue< ValueType >( level, face, faceDataID_ ) );
       }
    }
 
-   for( auto& it : this->getStorage()->getCells() )
+   for ( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
-      localMin = std::min( localMin, edgedof::macrocell::getMinValue< ValueType >( level, cell, cellDataID_ ) );
+      localMin   = std::min( localMin, edgedof::macrocell::getMinValue< ValueType >( level, cell, cellDataID_ ) );
    }
 
-   if( mpiReduce )
+   if ( mpiReduce )
    {
       walberla::mpi::allReduceInplace( localMin, walberla::mpi::MIN, walberla::mpi::MPIManager::instance()->comm() );
    }
@@ -991,39 +999,39 @@ ValueType EdgeDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag,
 template < typename ValueType >
 ValueType EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return ValueType( 0 );
    }
    auto localMax = ValueType( 0.0 );
 
-   for( auto& it : this->getStorage()->getEdges() )
+   for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge&         edge   = *it.second;
       const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if( testFlag( edgeBC, flag ) )
+      if ( testFlag( edgeBC, flag ) )
       {
          localMax = std::max( localMax, edgedof::macroedge::getMaxMagnitude< ValueType >( level, edge, edgeDataID_ ) );
       }
    }
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face&         face   = *it.second;
       const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if( testFlag( faceBC, flag ) )
+      if ( testFlag( faceBC, flag ) )
       {
          localMax = std::max( localMax, edgedof::macroface::getMaxMagnitude< ValueType >( level, face, faceDataID_ ) );
       }
    }
 
-   for( auto& it : this->getStorage()->getCells() )
+   for ( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
-      localMax = std::max( localMax, edgedof::macrocell::getMaxMagnitude< ValueType >( level, cell, cellDataID_ ) );
+      localMax   = std::max( localMax, edgedof::macrocell::getMaxMagnitude< ValueType >( level, cell, cellDataID_ ) );
    }
 
-   if( mpiReduce )
+   if ( mpiReduce )
    {
       walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
    }
@@ -1031,46 +1039,102 @@ ValueType EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType f
    return localMax;
 }
 
+template < typename ValueType >
+void EdgeDoFFunction< ValueType >::multElementwise(
+    const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
+    const uint_t                                                                       level,
+    const DoFType                                                                      flag ) const
+{
+   if ( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "Multiply elementwise" );
+
+   // Collect all source IDs in a vector
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > > srcEdgeIDs;
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcFaceIDs;
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > srcCellIDs;
+
+   for ( const EdgeDoFFunction& function : functions )
+   {
+      srcEdgeIDs.push_back( function.edgeDataID_ );
+      srcFaceIDs.push_back( function.faceDataID_ );
+      srcCellIDs.push_back( function.cellDataID_ );
+   }
+
+   for ( const auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      {
+         edgedof::macroedge::multElementwise< ValueType >( level, edge, srcEdgeIDs, edgeDataID_ );
+      }
+   }
+
+   for ( const auto& it : this->getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      {
+         edgedof::macroface::multElementwise< ValueType >( level, face, srcFaceIDs, faceDataID_ );
+      }
+   }
+
+   for ( const auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      {
+         edgedof::macrocell::multElementwise< ValueType >( level, cell, srcCellIDs, cellDataID_ );
+      }
+   }
+   this->stopTiming( "Multiply elementwise" );
+}
 
 template < typename ValueType >
 template < typename PrimitiveType >
 void EdgeDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
    this->startTiming( "Interpolate" );
 
-   if( std::is_same< PrimitiveType, Edge >::value )
+   if ( std::is_same< PrimitiveType, Edge >::value )
    {
-      for( const auto& it : this->getStorage()->getEdges() )
+      for ( const auto& it : this->getStorage()->getEdges() )
       {
          Edge& edge = *it.second;
 
-         if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+         if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
          {
             edgedof::macroedge::interpolate( level, edge, edgeDataID_, constant );
          }
       }
-   } else if( std::is_same< PrimitiveType, Face >::value )
+   }
+   else if ( std::is_same< PrimitiveType, Face >::value )
    {
-      for( const auto& it : this->getStorage()->getFaces() )
+      for ( const auto& it : this->getStorage()->getFaces() )
       {
          Face& face = *it.second;
 
-         if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+         if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
          {
             edgedof::macroface::interpolate( level, face, faceDataID_, constant );
          }
       }
-   } else if( std::is_same< PrimitiveType, Cell >::value )
+   }
+   else if ( std::is_same< PrimitiveType, Cell >::value )
    {
-      for( const auto& it : this->getStorage()->getCells() )
+      for ( const auto& it : this->getStorage()->getCells() )
       {
          Cell& cell = *it.second;
 
-         if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
          {
             edgedof::macrocell::interpolate( level, cell, cellDataID_, constant );
          }
@@ -1079,25 +1143,6 @@ void EdgeDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType& 
 
    this->stopTiming( "Interpolate" );
 }
-
-template class EdgeDoFFunction< double >;
-template class EdgeDoFFunction< int >;
-
-template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Vertex >( const double& constant,
-                                                                                    uint_t        level,
-                                                                                    DoFType       flag ) const;
-
-template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Edge >( const double& constant,
-                                                                                  uint_t        level,
-                                                                                  DoFType       flag ) const;
-
-template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Face >( const double& constant,
-                                                                                  uint_t        level,
-                                                                                  DoFType       flag ) const;
-
-template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Cell >( const double& constant,
-                                                                                  uint_t        level,
-                                                                                  DoFType       flag ) const;
 
 uint_t edgedof::edgeDoFMacroVertexFunctionMemorySize( const uint_t& level, const Primitive& primitive )
 {
@@ -1125,7 +1170,7 @@ uint_t edgedof::edgeDoFMacroFaceFunctionMemorySize( const uint_t& level, const P
 
    ///ghost points on one adjacent tet
    uint_t GhostDoFsOneSide = 0;
-   if( primitive.getNumNeighborCells() != 0 )
+   if ( primitive.getNumNeighborCells() != 0 )
    {
       /// points in the "white up" tets
       GhostDoFsOneSide += 3 * levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microedges_per_edge( level ) );
@@ -1144,4 +1189,28 @@ uint_t edgedof::edgeDoFMacroCellFunctionMemorySize( const uint_t& level, const P
    return 6 * ( levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) ) ) +
           ( levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) - 1 ) );
 }
+
+
+// ========================
+//  explicit instantiation
+// ========================
+template class EdgeDoFFunction< double >;
+template class EdgeDoFFunction< int >;
+
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Vertex >( const double& constant,
+                                                                                      uint_t        level,
+                                                                                      DoFType       flag ) const;
+
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Edge >( const double& constant,
+                                                                                    uint_t        level,
+                                                                                    DoFType       flag ) const;
+
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Face >( const double& constant,
+                                                                                    uint_t        level,
+                                                                                    DoFType       flag ) const;
+
+template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Cell >( const double& constant,
+                                                                                    uint_t        level,
+                                                                                    DoFType       flag ) const;
+
 } // namespace hyteg
