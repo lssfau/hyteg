@@ -21,9 +21,8 @@
 #include "core/Environment.h"
 #include "core/debug/all.h"
 #include "core/mpi/all.h"
-// #include "core/debug/CheckFunctions.h"
 
-#include "hyteg/VTKWriter.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
