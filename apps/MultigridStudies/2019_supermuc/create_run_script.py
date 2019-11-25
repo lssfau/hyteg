@@ -48,6 +48,7 @@ Parameters
     calculateDiscretizationError false;
     coarseGridMaxIterations 20000;
     coarseGridResidualTolerance {coarse_grid_tol};
+    coarseGridSolverVelocityPreconditionerType 1;
 
     cyclesBeforeDC 0;
     postDCPreSmoothingSteps 3;

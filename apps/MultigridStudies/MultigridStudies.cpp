@@ -771,6 +771,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       const bool&                                          projectPressureAfterRestriction,
                       const uint_t&                                        coarseGridMaxIterations,
                       const real_t&                                        coarseResidualTolerance,
+                      const uint_t&                                        coarseGridSolverVelocityPreconditionerType,
                       const bool&                                          outputVTK,
                       const uint_t&                                        skipCyclesForAvgConvRate,
                       const bool&                                          calcDiscretizationError,
@@ -946,10 +947,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    //     storage, coarseGridMaxLevel, coarseResidualTolerance, coarseGridMaxIterations );
    // auto petscSolver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, coarseGridMaxLevel );
    auto petscSolverInternal = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >( storage, coarseGridMaxLevel,
-           coarseResidualTolerance, coarseGridMaxIterations );
+           coarseResidualTolerance, coarseGridMaxIterations, coarseGridSolverVelocityPreconditionerType );
    auto petscSolver = std::make_shared< TimedSolver< StokesOperator > >( petscSolverInternal );
-   WALBERLA_UNUSED( coarseGridMaxIterations );
-   WALBERLA_UNUSED( coarseResidualTolerance );
 #else
    //   const uint_t preconditionerCGIterations = 0;
    //
@@ -960,6 +959,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
        storage, minLevel, coarseGridMaxLevel ); //, 1, cgVelocity );
    auto coarseGridSolver = std::make_shared< MinResSolver< StokesOperator > >(
        storage, minLevel, coarseGridMaxLevel, coarseGridMaxIterations, coarseResidualTolerance, preconditioner );
+   WALBERLA_UNUSED( coarseGridSolverVelocityPreconditionerType );
 #endif
 
    auto prolongationOperator = std::make_shared< Prolongation >();
@@ -1269,6 +1269,7 @@ void setup( int argc, char** argv )
    const bool        calculateDiscretizationError    = mainConf.getParameter< bool >( "calculateDiscretizationError" );
    const uint_t      coarseGridMaxIterations         = mainConf.getParameter< uint_t >( "coarseGridMaxIterations" );
    const real_t      coarseGridResidualTolerance     = mainConf.getParameter< real_t >( "coarseGridResidualTolerance" );
+   const uint_t      coarseGridSolverVelocityPreconditionerType = mainConf.getParameter< uint_t >( "coarseGridSolverVelocityPreconditionerType" );
    const bool        outputVTK                       = mainConf.getParameter< bool >( "outputVTK" );
    const bool        outputTiming                    = mainConf.getParameter< bool >( "outputTiming" );
    const bool        outputTimingJSON                = mainConf.getParameter< bool >( "outputTimingJSON" );
@@ -1328,6 +1329,7 @@ void setup( int argc, char** argv )
        "  - calculate discretization error:          " << ( calculateDiscretizationError ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid max itertions (stokes only): " << coarseGridMaxIterations );
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid residual tol  (stokes only): " << coarseGridResidualTolerance );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid u prec. type (stokes only):  " << coarseGridSolverVelocityPreconditionerType );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output VTK:                              " << ( outputVTK ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing:                           " << ( outputTiming ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing JSON:                      " << ( outputTimingJSON ? "yes" : "no" ) );
@@ -1598,6 +1600,7 @@ void setup( int argc, char** argv )
                                                                 projectPressureAfterRestriction,
                                                                 coarseGridMaxIterations,
                                                                 coarseGridResidualTolerance,
+                                                                coarseGridSolverVelocityPreconditionerType,
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
@@ -1637,6 +1640,7 @@ void setup( int argc, char** argv )
                                                                 projectPressureAfterRestriction,
                                                                 coarseGridMaxIterations,
                                                                 coarseGridResidualTolerance,
+                                                                coarseGridSolverVelocityPreconditionerType,
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
