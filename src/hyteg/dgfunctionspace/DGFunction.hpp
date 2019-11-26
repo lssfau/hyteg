@@ -69,15 +69,17 @@ class DGFunction : public Function< DGFunction< ValueType > >
 
    inline void interpolate( std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All );
 
+   inline void interpolate( const ValueType& constant, uint_t level, DoFType flag = All );
+
    inline void interpolateExtended( std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
                                     const std::vector< DGFunction< ValueType >* >                                  srcFunctions,
                                     uint_t                                                                         level,
                                     DoFType                                                                        flag = All );
 
-   inline void assign( const std::vector< ValueType >                scalars,
-                       const std::vector< DGFunction< ValueType >* > functions,
-                       uint_t                                        level,
-                       DoFType                                       flag = All );
+   inline void assign( const std::vector< ValueType >&                                               scalars,
+                       const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+                       uint_t                                                                        level,
+                       DoFType                                                                       flag = All );
 
    inline void add( const std::vector< ValueType >                scalars,
                     const std::vector< DGFunction< ValueType >* > functions,
@@ -128,6 +130,21 @@ class DGFunction : public Function< DGFunction< ValueType > >
       }
    }
 
+   /// Compute the product of several functions in an elementwise fashion
+   ///
+   /// The method takes as input a collection of functions. These are multiplied together in an elementwise fashion.
+   /// The latter is to be understood not in a FE context, but in the sense of element-wise operators in matrix/array
+   /// oriented languages, i.e. the product is a function of the same type as the inputs and its DoFs are formed as
+   /// product of the corresponding DoFs of the input functions. The result is stored in the function object on which
+   /// the method is invoked, overwritting its contents. It is safe, if the destination function is part of the product.
+   ///
+   /// \param functions  the functions forming the product
+   /// \param level      level on which the multiplication should be computed
+   /// \param flag       marks those primitives which are partaking in the computation of the product
+   inline void multElementwise( const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+                                uint_t                                                                        level,
+                                DoFType                                                                       flag = All ) const;
+
  private:
    using Function< DGFunction< ValueType > >::communicators_;
 
@@ -174,6 +191,13 @@ inline void DGFunction< ValueType >::interpolate( std::function< ValueType( cons
    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
        [&expr]( const hyteg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
    interpolateExtended( exprExtended, {}, level, flag );
+}
+
+template < typename ValueType >
+inline void DGFunction< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag )
+{
+   std::function< ValueType( const Point3D& ) > auxFunc = [constant]( const hyteg::Point3D& x ) { return constant; };
+   this->interpolate( {auxFunc}, level, flag );
 }
 
 template < typename ValueType >
@@ -239,22 +263,25 @@ void DGFunction< ValueType >::interpolateExtended(
 }
 
 template < typename ValueType >
-void DGFunction< ValueType >::assign( const std::vector< ValueType >                scalars,
-                                      const std::vector< DGFunction< ValueType >* > functions,
-                                      uint_t                                        level,
-                                      DoFType                                       flag )
+void DGFunction< ValueType >::assign( const std::vector< ValueType >&                                               scalars,
+                                      const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+                                      uint_t                                                                        level,
+                                      DoFType                                                                       flag )
 {
    this->startTiming( "Assign" );
+
+   WALBERLA_ASSERT_EQUAL( scalars.size(), functions.size() )
+
    // Collect all source IDs in a vector
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > >   srcEdgeIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
 
-   for ( auto& function : functions )
+   for ( const DGFunction< ValueType >& function : functions )
    {
-      srcVertexIDs.push_back( function->vertexDataID_ );
-      srcEdgeIDs.push_back( function->edgeDataID_ );
-      srcFaceIDs.push_back( function->faceDataID_ );
+      srcVertexIDs.push_back( function.vertexDataID_ );
+      srcEdgeIDs.push_back( function.edgeDataID_ );
+      srcFaceIDs.push_back( function.faceDataID_ );
    }
 
    for ( auto& it : this->getStorage()->getVertices() )
@@ -464,6 +491,65 @@ real_t DGFunction< ValueType >::getMaxMagnitude( const uint_t level, DoFType fla
 
    walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
    return localMax;
+}
+
+template < typename ValueType >
+void DGFunction< ValueType >::multElementwise(
+    const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+    uint_t                                                                        level,
+    DoFType                                                                       flag ) const
+{
+   this->startTiming( "Multiply elementwise" );
+
+   if ( this->getStorage()->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "DGFunction::multElementwise() not implemented for 3D!" );
+   }
+
+   for ( auto& it : this->getStorage()->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+
+      std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcIDs;
+      for ( const DGFunction& function : functions )
+      {
+         srcIDs.push_back( function.getVertexDataID() );
+      }
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      {
+         DGVertex::multElementwise( level, vertex, srcIDs, vertexDataID_ );
+      }
+   }
+   for ( auto& it : this->getStorage()->getEdges() )
+   {
+      std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > > srcIDs;
+      for ( const DGFunction& function : functions )
+      {
+         srcIDs.push_back( function.getEdgeDataID() );
+      }
+
+      Edge& edge = *it.second;
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      {
+         DGEdge::multElementwise( level, edge, srcIDs, edgeDataID_ );
+      }
+   }
+   for ( auto& it : this->getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcIDs;
+      for ( const DGFunction& function : functions )
+      {
+         srcIDs.push_back( function.getFaceDataID() );
+      }
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      {
+         DGFace::multElementwise( level, face, srcIDs, faceDataID_ );
+      }
+   }
+   this->stopTiming( "Multiply elementwise" );
 }
 
 } // namespace hyteg

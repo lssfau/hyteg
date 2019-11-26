@@ -602,5 +602,62 @@ inline real_t
    return localMax;
 }
 
+template < typename ValueType >
+inline void multElementwise( const uint_t&                                                              level,
+                             Face&                                                                      face,
+                             const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >& srcIds,
+                             const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                dstId )
+{
+   size_t rowsize       = levelinfo::num_microvertices_per_edge( level );
+   size_t inner_rowsize = rowsize;
+
+   ValueType*                dstPtr = face.getData( dstId )->getPointer( level );
+   std::vector< ValueType* > srcPtr;
+   for ( auto src : srcIds )
+   {
+      srcPtr.push_back( face.getData( src )->getPointer( level ) );
+   }
+
+   // gray cells
+   for ( size_t j = 1; j < rowsize - 2; ++j )
+   {
+      for ( size_t i = 1; i < inner_rowsize - 3; ++i )
+      {
+         auto cellIndex = facedof::macroface::indexFaceFromGrayFace( level, i, j, stencilDirection::CELL_GRAY_C );
+
+         ValueType tmp = srcPtr[0][cellIndex];
+
+         for ( uint_t k = 1; k < srcIds.size(); ++k )
+         {
+            tmp *= srcPtr[k][cellIndex];
+         }
+
+         dstPtr[cellIndex] = tmp;
+      }
+      --inner_rowsize;
+   }
+
+   inner_rowsize = rowsize;
+
+   // blue cells
+   for ( size_t j = 0; j < rowsize - 2; ++j )
+   {
+      for ( size_t i = 0; i < inner_rowsize - 2; ++i )
+      {
+         auto cellIndex = facedof::macroface::indexFaceFromBlueFace( level, i, j, stencilDirection::CELL_BLUE_C );
+
+         ValueType tmp = srcPtr[0][cellIndex];
+
+         for ( uint_t k = 1; k < srcIds.size(); ++k )
+         {
+            tmp *= srcPtr[k][cellIndex];
+         }
+
+         dstPtr[cellIndex] = tmp;
+      }
+      --inner_rowsize;
+   }
+}
+
 } //namespace DGFace
 } //namespace hyteg

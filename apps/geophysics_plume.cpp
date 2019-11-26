@@ -136,7 +136,7 @@ int main( int argc, char* argv[] )
 
    // Interpolate initial functions
    c_old->interpolate( initialConcentration, maxLevel );
-   c->assign( {1.0}, {c_old.get()}, maxLevel );
+   c->assign( {1.0}, {*c_old}, maxLevel );
 
    auto pressurePreconditioner = std::make_shared< hyteg::StokesPressureBlockPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator > >(storage, minLevel, maxLevel);
    auto smoother = std::make_shared< hyteg::UzawaSmoother< hyteg::P1StokesOperator>  >(storage, minLevel, maxLevel, 0.37);
@@ -209,7 +209,7 @@ int main( int argc, char* argv[] )
 
       WALBERLA_LOG_PROGRESS_ON_ROOT( "Advecting temperature..." )
       N.apply( *c_old, *c, maxLevel, hyteg::Inner, Replace );
-      c->assign( {1.0, -dt}, {c_old.get(), c.get()}, maxLevel, hyteg::Inner );
+      c->assign( {1.0, -dt}, {*c_old, *c}, maxLevel, hyteg::Inner );
 
       c_old.swap( c );
       time += dt;

@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
 
   for(uint_t i = 1; i <= timesteps; i++) {
     N.apply(*c_old, *c, maxLevel, hyteg::Inner, Replace);
-    c->assign({1.0, -dt}, {c_old.get(), c.get()}, maxLevel, hyteg::Inner);
+    c->assign({1.0, -dt}, {*c_old, *c}, maxLevel, hyteg::Inner);
 
     vtkOutput.write( maxLevel, i );
 
