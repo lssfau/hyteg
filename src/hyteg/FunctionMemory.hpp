@@ -70,8 +70,14 @@ public:
 
   inline uint_t getSize( const uint_t & level ) const { WALBERLA_CHECK( hasLevel( level ), "Requested level not allocated" ); return data_.at( level )->size(); }
 
-  // Returns a pointer to the first entry of the allocated array
+  /// Returns a pointer to the first entry of the allocated array
   inline ValueType * getPointer( const uint_t & level ) const { WALBERLA_CHECK( hasLevel( level ), "Requested level not allocated" ); return data_.at( level )->data(); }
+
+  /// Copies the data of one leve from the other FunctionMemory.
+  inline void copyFrom( const FunctionMemory & other, const uint_t & level )
+  {
+    *data_[level] = *other.data_.at( level );
+  }
 
   inline void swap( const FunctionMemory< ValueType > & other, const uint_t & level ) const
   {

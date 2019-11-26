@@ -75,6 +75,11 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
 
    void swap( const EdgeDoFFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const;
 
+   /// \brief Copies all values function data from other to this.
+   ///
+   /// This method can be used safely if the other function is located on a different PrimitiveStorage.
+   void copyFrom( const EdgeDoFFunction< ValueType >& other, const uint_t& level ) const;
+
    void assign( const std::vector< ValueType >&                                                    scalars,
                 const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
                 uint_t                                                                             level,
