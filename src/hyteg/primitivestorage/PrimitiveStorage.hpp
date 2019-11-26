@@ -55,6 +55,19 @@ public:
   /// Returns a shared pointer to a \ref PrimitiveStorage created from the passed Gmsh file.
   static std::shared_ptr< PrimitiveStorage > createFromGmshFile( const std::string & meshFilePath );
 
+  /// \brief Creates a shallow copy of the PrimitiveStorage.
+  ///
+  /// Shallow in this context means that only the primitive structure is deep-copied
+  /// but the attached data is not. The PrimitiveIDs of the copy are equal to those
+  /// in the original. But since explicit instances of the Primitives are created,
+  /// the new storage's primitives can be migrated without affecting the original one.
+  ///
+  /// One exemplary purpose of this functionality is to implement agglomeration.
+  /// After the copy is created, memory can be allocated on the copied primitives.
+  /// This memory is used to migrate the coarse grid primitives to a subset of processes.
+  ///
+  std::shared_ptr< PrimitiveStorage > createCopy() const;
+
   void checkConsistency();
 
   /// @name \ref Primitive access methods
@@ -257,6 +270,9 @@ public:
   /// Automatically refreshes the neighborhood information.
   /// \param primitivesToMigrate key: primitive to migrate, value: target process
   void migratePrimitives( const std::map< PrimitiveID::IDType, uint_t > & primitivesToMigrate );
+
+  /// \brief Returns the global Primitive rank assignment.
+  std::map< PrimitiveID, uint_t > getGlobalPrimitiveRanks() const;
 
   /// Returns a stamp that is always increased when the topology of the storage somehow changes -
   /// e.g. after migration of primitives to other processes.

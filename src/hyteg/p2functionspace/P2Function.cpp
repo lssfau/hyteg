@@ -151,6 +151,14 @@ void P2Function< ValueType >::swap( const P2Function< ValueType >& other, const 
 }
 
 template < typename ValueType >
+void P2Function< ValueType >::copyFrom( const P2Function< ValueType >& other, const uint_t& level ) const
+{
+  vertexDoFFunction_.copyFrom( other.getVertexDoFFunction(), level );
+  edgeDoFFunction_.copyFrom( other.getEdgeDoFFunction(), level );
+}
+
+
+template < typename ValueType >
 void P2Function< ValueType >::assign( const std::vector< ValueType >&                                               scalars,
                                       const std::vector< std::reference_wrapper< const P2Function< ValueType > > >& functions,
                                       uint_t                                                                        level,

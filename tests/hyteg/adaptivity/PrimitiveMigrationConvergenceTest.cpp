@@ -95,7 +95,9 @@ void P2CGTest( const std::string& meshFile, const uint_t level, const real_t tar
    u.interpolate( exact, level, hyteg::DirichletBoundary );
    u_exact.interpolate( exact, level );
 
-   // instead of solving directly, we now migrate the primitives in parallel now
+   auto solver = hyteg::CGSolver< hyteg::P2ConstantLaplaceOperator >( storage, level, level );
+
+   // instead of solving directly, we migrate the primitives in parallel
    loadbalancing::distributed::roundRobin( *storage );
    writeDomainPartitioningVTK( storage, "../../output", "P2CGConvergenceTest_domain_after_migration" );
    storage->getPrimitiveIDs( localPrimitiveIDs );
@@ -103,7 +105,6 @@ void P2CGTest( const std::string& meshFile, const uint_t level, const real_t tar
 
    vtkOutput.write( level );
 
-   auto solver = hyteg::CGSolver< hyteg::P2ConstantLaplaceOperator >( storage, level, level );
    solver.solve( L, u, f, level );
 
    err.assign( {1.0, -1.0}, {u, u_exact}, level );

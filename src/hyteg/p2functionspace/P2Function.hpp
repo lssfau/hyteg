@@ -83,6 +83,11 @@ class P2Function : public Function< P2Function< ValueType > >
 
    void swap( const P2Function< ValueType >& other, const uint_t& level, const DoFType& dofType = All ) const;
 
+   /// \brief Copies all values function data from other to this.
+   ///
+   /// This method can be used safely if the other function is located on a different PrimitiveStorage.
+   void copyFrom( const P2Function< ValueType >& other, const uint_t& level ) const;
+
    void assign( const std::vector< ValueType >&                                               scalars,
                 const std::vector< std::reference_wrapper< const P2Function< ValueType > > >& functions,
                 uint_t                                                                        level,
