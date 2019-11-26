@@ -284,6 +284,24 @@ void roundRobin( PrimitiveStorage & storage, uint_t numberOfTargetProcesses )
 }
 
 
+void copyDistribution( const PrimitiveStorage & targetDistributionStorage, PrimitiveStorage & storageToRedistribute )
+{
+  std::map< PrimitiveID::IDType, uint_t > migrationMap;
+  auto primitiveRanks = targetDistributionStorage.getGlobalPrimitiveRanks();
+
+  for ( const auto & it : primitiveRanks )
+  {
+    if ( storageToRedistribute.primitiveExistsLocally( it.first ) )
+    {
+      migrationMap[ it.first.getID() ] = it.second;
+    }
+  }
+
+  storageToRedistribute.migratePrimitives( migrationMap );
+}
+
+
+
 }
 }
 }

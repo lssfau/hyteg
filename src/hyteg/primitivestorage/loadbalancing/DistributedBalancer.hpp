@@ -41,6 +41,12 @@ void roundRobin( PrimitiveStorage & storage );
 ///                                among the first numberOfTargetProcesses processes
 void roundRobin( PrimitiveStorage & storage, uint_t numberOfTargetProcesses );
 
+/// \brief Distributes a second PrimitiveStorage equal to another one.
+///
+/// \param targetDistributionStorage this PrimitiveStorage specifies the desired distribution, it is not modified
+/// \param storageToRedistribute this PrimitiveStorage is redistributed
+void copyDistribution( const PrimitiveStorage & targetDistributionStorage, PrimitiveStorage & storageToRedistribute );
+
 
 }
 }
