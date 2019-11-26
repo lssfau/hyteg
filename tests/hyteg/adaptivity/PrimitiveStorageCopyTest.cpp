@@ -21,14 +21,8 @@
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
-#include "core/math/all.h"
-#include "core/timing/all.h"
 
-#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
-#include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -67,9 +61,11 @@ static void testPrimitiveStorageCopy( const MeshInfo& mesh )
       WALBERLA_CHECK_EQUAL( copiedStorage->getNumberOfLocalPrimitives(), 0 );
    }
 
-   loadbalancing::distributed::roundRobin( *copiedStorage );
+   loadbalancing::distributed::copyDistribution( *storage, *copiedStorage );
 
    WALBERLA_CHECK( storage->getPrimitiveIDs() == copiedStorage->getPrimitiveIDs() );
+
+
 }
 
 } // namespace hyteg
