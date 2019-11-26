@@ -427,6 +427,11 @@ waLBerla_execute_test(NAME PrimitiveMigrationConvergenceTest1 COMMAND $<TARGET_F
 waLBerla_execute_test(NAME PrimitiveMigrationConvergenceTest3 COMMAND $<TARGET_FILE:PrimitiveMigrationConvergenceTest> PROCESSES 3 )
 waLBerla_execute_test(NAME PrimitiveMigrationConvergenceTest4 COMMAND $<TARGET_FILE:PrimitiveMigrationConvergenceTest> PROCESSES 4 )
 
+waLBerla_compile_test(FILES adaptivity/PrimitiveStorageCopyTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME PrimitiveStorageCopyTest1 COMMAND $<TARGET_FILE:PrimitiveStorageCopyTest> )
+waLBerla_execute_test(NAME PrimitiveStorageCopyTest3 COMMAND $<TARGET_FILE:PrimitiveStorageCopyTest> PROCESSES 3 )
+waLBerla_execute_test(NAME PrimitiveStorageCopyTest8 COMMAND $<TARGET_FILE:PrimitiveStorageCopyTest> PROCESSES 8 )
+
 if( WALBERLA_BUILD_WITH_PARMETIS )
   waLBerla_compile_test(FILES adaptivity/ParMetisTestHyteg.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME ParMetisTestHyteg1 COMMAND $<TARGET_FILE:ParMetisTestHyteg> )

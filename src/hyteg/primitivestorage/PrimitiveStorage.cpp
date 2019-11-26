@@ -54,15 +54,6 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage,
                                     const std::shared_ptr< walberla::WcTimingTree > & timingTree ) :
 primitiveDataHandlers_( 0 ), modificationStamp_( 0 ), timingTree_( timingTree ), hasGlobalCells_( setupStorage.getNumberOfCells() > 0 )
 {
-  if ( setupStorage.getNumberOfPrimitives() < uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) )
-  {
-    WALBERLA_LOG_WARNING_ON_ROOT( "[PrimitiveStorage] The domain consists of less primitives than MPI processes!\n" <<
-                                  "                   This might waste resources and some features might not work properly.\n" <<
-                                  "                   Consider using a different mesh or more MPI processes!\n" <<
-                                  "                   - number of primitives: " << std::setw(10) << setupStorage.getNumberOfPrimitives() << "\n" <<
-                                  "                   - number of processes:  " << std::setw(10) << walberla::mpi::MPIManager::instance()->numProcesses() );
-  }
-
   for ( auto it : setupStorage.getVertices()  )
   {
     if ( uint_c( walberla::mpi::MPIManager::instance()->rank() ) == setupStorage.getTargetRank( it.first ) )
@@ -285,6 +276,57 @@ primitiveDataHandlers_( 0 ), modificationStamp_( 0 ), timingTree_( timingTree ),
 PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage & setupStorage ) :
   PrimitiveStorage( setupStorage, std::make_shared< walberla::WcTimingTree >() )
 {}
+
+std::shared_ptr< PrimitiveStorage > PrimitiveStorage::createCopy() const
+{
+   auto copiedStorage = std::make_shared< PrimitiveStorage >(
+       SetupPrimitiveStorage( MeshInfo::emptyMeshInfo(), uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) ) );
+
+   for ( const auto& it : getVertices() )
+   {
+      copiedStorage->vertices_[it.first] = std::make_shared< Vertex >( *it.second );
+   }
+
+   for ( const auto& it : getEdges() )
+   {
+      copiedStorage->edges_[it.first] = std::make_shared< Edge >( *it.second );
+   }
+
+   for ( const auto& it : getFaces() )
+   {
+      copiedStorage->faces_[it.first] = std::make_shared< Face >( *it.second );
+   }
+
+   for ( const auto& it : getCells() )
+   {
+      copiedStorage->cells_[it.first] = std::make_shared< Cell >( *it.second );
+   }
+
+   for ( const auto& it : neighborVertices_ )
+   {
+      copiedStorage->neighborVertices_[it.first] = std::make_shared< Vertex >( *it.second );
+   }
+
+   for ( const auto& it : neighborEdges_ )
+   {
+      copiedStorage->neighborEdges_[it.first] = std::make_shared< Edge >( *it.second );
+   }
+
+   for ( const auto& it : neighborFaces_ )
+   {
+      copiedStorage->neighborFaces_[it.first] = std::make_shared< Face >( *it.second );
+   }
+
+   for ( const auto& it : neighborCells_ )
+   {
+      copiedStorage->neighborCells_[it.first] = std::make_shared< Cell >( *it.second );
+   }
+
+   copiedStorage->neighborRanks_ = neighborRanks_;
+   copiedStorage->hasGlobalCells_ = hasGlobalCells_;
+
+   return copiedStorage;
+}
 
 void PrimitiveStorage::getPrimitives( PrimitiveMap & primitiveMap ) const
 {
