@@ -270,7 +270,9 @@ void roundRobin( PrimitiveStorage & storage )
 
 
 void roundRobin( PrimitiveStorage & storage, uint_t numberOfTargetProcesses )
-{  
+{
+  WALBERLA_CHECK( numberOfTargetProcesses <= uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ), "Cannot distribute to more than available processes." );
+
   std::map< PrimitiveID::IDType, uint_t > migrationMap;
 
   for ( auto primitiveID : storage.getPrimitiveIDs() )
