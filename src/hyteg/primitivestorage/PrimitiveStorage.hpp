@@ -271,6 +271,9 @@ public:
   /// \param primitivesToMigrate key: primitive to migrate, value: target process
   void migratePrimitives( const std::map< PrimitiveID::IDType, uint_t > & primitivesToMigrate );
 
+  /// \brief Returns the global Primitive rank assignment.
+  std::map< PrimitiveID, uint_t > getGlobalPrimitiveRanks() const;
+
   /// Returns a stamp that is always increased when the topology of the storage somehow changes -
   /// e.g. after migration of primitives to other processes.
   uint_t getModificationStamp() const { return modificationStamp_; }

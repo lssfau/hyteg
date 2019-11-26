@@ -658,6 +658,37 @@ uint_t PrimitiveStorage::getPrimitiveRank ( const PrimitiveID & id ) const
   }
 }
 
+std::map< PrimitiveID, uint_t > PrimitiveStorage::getGlobalPrimitiveRanks() const
+{
+  std::map< PrimitiveID, uint_t > primitiveRanks;
+
+  uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
+
+  SendBuffer migrationInfoSendBuffer;
+  RecvBuffer migrationInfoRecvBuffer;
+
+  for ( const auto & primitiveID : getPrimitiveIDs() )
+  {
+    migrationInfoSendBuffer << primitiveID;
+    migrationInfoSendBuffer << rank;
+  }
+
+  walberla::mpi::allGathervBuffer( migrationInfoSendBuffer, migrationInfoRecvBuffer, walberla::mpi::MPIManager::instance()->comm() );
+
+  while ( !migrationInfoRecvBuffer.isEmpty() )
+  {
+    PrimitiveID primitiveID;
+    uint_t      globalRank;
+
+    migrationInfoRecvBuffer >> primitiveID;
+    migrationInfoRecvBuffer >> globalRank;
+
+    primitiveRanks[ primitiveID ] = globalRank;
+  }
+
+  return primitiveRanks;
+}
+
 void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, uint_t > & primitivesToMigrate )
 {
 #ifndef NDEBUG
