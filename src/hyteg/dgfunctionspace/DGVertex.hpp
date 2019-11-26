@@ -95,6 +95,31 @@ inline void assign(const uint_t & Level, Vertex &vertex,
 }
 
 
+template < typename ValueType >
+inline void multElementwise( const uint_t&                                                                level,
+                             Vertex&                                                                      vertex,
+                             const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > >& srcIds,
+                             const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >&                dstId )
+{
+
+   ValueType*                dstPtr = vertex.getData( dstId )->getPointer( level );
+   std::vector< ValueType* > srcPtr;
+   for( auto src : srcIds )
+   {
+      srcPtr.push_back( vertex.getData( src )->getPointer( level ) );
+   }
+
+  for( uint_t i = 0; i < vertex.getNumNeighborFaces(); ++i ) {
+    uint_t index = i * 2;
+    ValueType tmp = srcPtr[0][index];
+    for( uint_t k = 1; k < srcIds.size(); ++k ){
+      tmp *= srcPtr[k][index];
+    }
+    dstPtr[index] = tmp;
+  }
+}
+
+
 
 template< typename ValueType >
 inline void upwind(const uint_t & Level, Vertex &vertex,

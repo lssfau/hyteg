@@ -64,7 +64,7 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
                                                    uint_t                                     minLevel,
                                                    uint_t                                     maxLevel,
                                                    BoundaryCondition                          boundaryCondition,
-                                                   const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication )
+                                                   const DoFType& boundaryTypeToSkipDuringAdditiveCommunication )
 : Function< VertexDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , boundaryCondition_( std::move( boundaryCondition ) )
 , boundaryTypeToSkipDuringAdditiveCommunication_( boundaryTypeToSkipDuringAdditiveCommunication )
@@ -83,7 +83,7 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
    storage->addEdgeData( edgeDataID_, edgeVertexDoFFunctionMemoryDataHandling, name );
    storage->addVertexData( vertexDataID_, vertexVertexDoFFunctionMemoryDataHandling, name );
 
-   for( uint_t level = minLevel; level <= maxLevel; ++level )
+   for ( uint_t level = minLevel; level <= maxLevel; ++level )
    {
       communicators_[level]->addPackInfo( std::make_shared< VertexDoFPackInfo< ValueType > >(
           level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
@@ -108,7 +108,7 @@ BoundaryCondition VertexDoFFunction< ValueType >::getBoundaryCondition() const
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
@@ -127,7 +127,7 @@ void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType
                                                   uint_t                                              level,
                                                   DoFType                                             flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
@@ -141,7 +141,7 @@ void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType
                                                   uint_t                                              level,
                                                   BoundaryUID                                         boundaryUID ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
@@ -157,7 +157,7 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
     uint_t                                                                               level,
     DoFType                                                                              flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
@@ -168,7 +168,7 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >   srcCellIDs;
 
-   for( const auto& function : srcFunctions )
+   for ( const auto& function : srcFunctions )
    {
       srcVertexIDs.push_back( function->vertexDataID_ );
       srcEdgeIDs.push_back( function->edgeDataID_ );
@@ -176,41 +176,41 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
       srcCellIDs.push_back( function->cellDataID_ );
    }
 
-   for( const auto& it : this->getStorage()->getVertices() )
+   for ( const auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macrovertex::interpolate( vertex, vertexDataID_, srcVertexIDs, expr, level );
       }
    }
 
-   for( const auto& it : this->getStorage()->getEdges() )
+   for ( const auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, srcEdgeIDs, expr );
       }
    }
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
       }
    }
 
-   for( const auto& it : this->getStorage()->getCells() )
+   for ( const auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
       }
@@ -225,7 +225,7 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
     uint_t                                                                               level,
     BoundaryUID                                                                          boundaryUID ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
@@ -236,7 +236,7 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >   srcCellIDs;
 
-   for( const auto& function : srcFunctions )
+   for ( const auto& function : srcFunctions )
    {
       srcVertexIDs.push_back( function->vertexDataID_ );
       srcEdgeIDs.push_back( function->edgeDataID_ );
@@ -244,41 +244,41 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
       srcCellIDs.push_back( function->cellDataID_ );
    }
 
-   for( const auto& it : this->getStorage()->getVertices() )
+   for ( const auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
 
-      if( boundaryCondition_.getBoundaryUIDFromMeshFlag( vertex.getMeshBoundaryFlag() ) == boundaryUID )
+      if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( vertex.getMeshBoundaryFlag() ) == boundaryUID )
       {
          vertexdof::macrovertex::interpolate( vertex, vertexDataID_, srcVertexIDs, expr, level );
       }
    }
 
-   for( const auto& it : this->getStorage()->getEdges() )
+   for ( const auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
 
-      if( boundaryCondition_.getBoundaryUIDFromMeshFlag( edge.getMeshBoundaryFlag() ) == boundaryUID )
+      if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( edge.getMeshBoundaryFlag() ) == boundaryUID )
       {
          vertexdof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, srcEdgeIDs, expr );
       }
    }
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
 
-      if( boundaryCondition_.getBoundaryUIDFromMeshFlag( face.getMeshBoundaryFlag() ) == boundaryUID )
+      if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( face.getMeshBoundaryFlag() ) == boundaryUID )
       {
          vertexdof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
       }
    }
 
-   for( const auto& it : this->getStorage()->getCells() )
+   for ( const auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
 
-      if( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
+      if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
       {
          vertexdof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
       }
@@ -289,125 +289,124 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
 template < typename ValueType >
 real_t VertexDoFFunction< ValueType >::evaluate( const Point3D& coordinates, uint_t level ) const
 {
-  // Check if 2D or 3D function
-  if ( !this->getStorage()->hasGlobalCells() )
-  {
-    for ( auto& it : this->getStorage()->getFaces() )
-    {
-      Face& face = *it.second;
-
-      if ( sphereTriangleIntersection(
-          coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+   // Check if 2D or 3D function
+   if ( !this->getStorage()->hasGlobalCells() )
+   {
+      for ( auto& it : this->getStorage()->getFaces() )
       {
-        return vertexdof::macroface::evaluate< ValueType >( level, face, coordinates, faceDataID_ );
-      }
-    }
-  }
-  else
-  {
-    for ( auto& it : this->getStorage()->getCells() )
-    {
-      Cell& cell = *it.second;
+         Face& face = *it.second;
 
-      if ( isPointInTetrahedron( coordinates,
-                                 cell.getCoordinates()[0],
-                                 cell.getCoordinates()[1],
-                                 cell.getCoordinates()[2],
-                                 cell.getCoordinates()[3] ) )
+         if ( sphereTriangleIntersection(
+                  coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+         {
+            return vertexdof::macroface::evaluate< ValueType >( level, face, coordinates, faceDataID_ );
+         }
+      }
+   }
+   else
+   {
+      for ( auto& it : this->getStorage()->getCells() )
       {
-        WALBERLA_ABORT("Not implemented.");
-      }
-    }
-  }
+         Cell& cell = *it.second;
 
-  WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
+         if ( isPointInTetrahedron( coordinates,
+                                    cell.getCoordinates()[0],
+                                    cell.getCoordinates()[1],
+                                    cell.getCoordinates()[2],
+                                    cell.getCoordinates()[3] ) )
+         {
+            WALBERLA_ABORT( "Not implemented." );
+         }
+      }
+   }
+
+   WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::evaluateGradient( const Point3D& coordinates, uint_t level,
-                                                       Point3D& gradient ) const
+void VertexDoFFunction< ValueType >::evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const
 {
-  // Check if 2D or 3D function
-  if ( !this->getStorage()->hasGlobalCells() )
-  {
-    for ( auto& it : this->getStorage()->getFaces() )
-    {
-      Face& face = *it.second;
-
-      if ( sphereTriangleIntersection(
-          coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+   // Check if 2D or 3D function
+   if ( !this->getStorage()->hasGlobalCells() )
+   {
+      for ( auto& it : this->getStorage()->getFaces() )
       {
-        vertexdof::macroface::evaluateGradient< ValueType >( level, face, coordinates, faceDataID_, gradient );
-        return;
-      }
-    }
-  }
-  else
-  {
-    for ( auto& it : this->getStorage()->getCells() )
-    {
-      Cell& cell = *it.second;
+         Face& face = *it.second;
 
-      if ( isPointInTetrahedron( coordinates,
-                                 cell.getCoordinates()[0],
-                                 cell.getCoordinates()[1],
-                                 cell.getCoordinates()[2],
-                                 cell.getCoordinates()[3] ) )
+         if ( sphereTriangleIntersection(
+                  coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+         {
+            vertexdof::macroface::evaluateGradient< ValueType >( level, face, coordinates, faceDataID_, gradient );
+            return;
+         }
+      }
+   }
+   else
+   {
+      for ( auto& it : this->getStorage()->getCells() )
       {
-        WALBERLA_ABORT("Not implemented.");
-      }
-    }
-  }
+         Cell& cell = *it.second;
 
-  WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
+         if ( isPointInTetrahedron( coordinates,
+                                    cell.getCoordinates()[0],
+                                    cell.getCoordinates()[1],
+                                    cell.getCoordinates()[2],
+                                    cell.getCoordinates()[3] ) )
+         {
+            WALBERLA_ABORT( "Not implemented." );
+         }
+      }
+   }
+
+   WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
 }
 
-template< typename ValueType >
-void VertexDoFFunction< ValueType >::swap( const VertexDoFFunction< ValueType > & other,
-                                           const uint_t & level,
-                                           const DoFType & flag ) const
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::swap( const VertexDoFFunction< ValueType >& other,
+                                           const uint_t&                         level,
+                                           const DoFType&                        flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
    this->startTiming( "Swap" );
 
-   for( auto& it : this->getStorage()->getVertices() )
+   for ( auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macrovertex::swap< ValueType >( level, vertex, other.getVertexDataID(), vertexDataID_ );
       }
    }
 
-   for( auto& it : this->getStorage()->getEdges() )
+   for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macroedge::swap< ValueType >( level, edge, other.getEdgeDataID(), edgeDataID_ );
       }
    }
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macroface::swap< ValueType >( level, face, other.getFaceDataID(), faceDataID_ );
       }
    }
 
-   for( auto& it : this->getStorage()->getCells() )
+   for ( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macrocell::swap< ValueType >( level, cell, other.getCellDataID(), cellDataID_ );
       }
@@ -416,74 +415,83 @@ void VertexDoFFunction< ValueType >::swap( const VertexDoFFunction< ValueType > 
    this->stopTiming( "Swap" );
 }
 
+template < typename ValueType >
+void macroFaceAssign( const uint_t&                                                              level,
+                      Face&                                                                      face,
+                      const std::vector< ValueType >&                                            scalars,
+                      const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >& srcFaceIDs,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                dstFaceID,
+                      const PrimitiveStorage& )
+{
+   vertexdof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, dstFaceID );
+}
+
+template <>
+void macroFaceAssign< double >( const uint_t&                                                           level,
+                                Face&                                                                   face,
+                                const std::vector< double >&                                            scalars,
+                                const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > >& srcFaceIDs,
+                                const PrimitiveDataID< FunctionMemory< double >, Face >&                dstFaceID,
+                                const PrimitiveStorage&                                                 storage )
+{
+   if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
+   {
+      storage.getTimingTree()->start( "1 RHS function" );
+      auto dstData = face.getData( dstFaceID )->getPointer( level );
+      auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+      auto scalar  = scalars.at( 0 );
+      vertexdof::macroface::generated::assign_2D_macroface_vertexdof_1_rhs_function(
+          dstData, srcData, scalar, static_cast< int32_t >( level ) );
+      storage.getTimingTree()->stop( "1 RHS function" );
+   }
+   else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
+   {
+      storage.getTimingTree()->start( "2 RHS functions" );
+      auto dstData  = face.getData( dstFaceID )->getPointer( level );
+      auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+      auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
+      auto scalar0  = scalars.at( 0 );
+      auto scalar1  = scalars.at( 1 );
+      vertexdof::macroface::generated::assign_2D_macroface_vertexdof_2_rhs_functions(
+          dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
+      storage.getTimingTree()->stop( "2 RHS functions" );
+   }
+   else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
+   {
+      storage.getTimingTree()->start( "3 RHS functions" );
+      auto dstData  = face.getData( dstFaceID )->getPointer( level );
+      auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+      auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
+      auto srcData2 = face.getData( srcFaceIDs.at( 2 ) )->getPointer( level );
+      auto scalar0  = scalars.at( 0 );
+      auto scalar1  = scalars.at( 1 );
+      auto scalar2  = scalars.at( 2 );
+      vertexdof::macroface::generated::assign_2D_macroface_vertexdof_3_rhs_functions(
+          dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
+      storage.getTimingTree()->stop( "3 RHS functions" );
+   }
+   else
+   {
+      vertexdof::macroface::assign< double >( level, face, scalars, srcFaceIDs, dstFaceID );
+   }
+}
 
 template < typename ValueType >
-void macroFaceAssign( const uint_t & level, Face & face, const std::vector< ValueType > & scalars,
-                      const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcFaceIDs,
-                      const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstFaceID,
-                      const PrimitiveStorage & )
+void macroCellAssign( const uint_t&                                                              level,
+                      Cell&                                                                      cell,
+                      const std::vector< ValueType >&                                            scalars,
+                      const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >& srcCellIDs,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&                dstCellID )
 {
-  vertexdof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, dstFaceID ); 
+   vertexdof::macrocell::assign< ValueType >( level, cell, scalars, srcCellIDs, dstCellID );
 }
 
-template<>
-void macroFaceAssign< double >( const uint_t & level, Face & face, const std::vector< double > & scalars,
-                                const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > > & srcFaceIDs,
-                                const PrimitiveDataID< FunctionMemory< double >, Face > & dstFaceID,
-                                const PrimitiveStorage & storage )
-{
-  if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
-  {
-     storage.getTimingTree()->start( "1 RHS function" );
-     auto dstData = face.getData( dstFaceID )->getPointer( level );
-     auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
-     auto scalar  = scalars.at( 0 );
-     vertexdof::macroface::generated::assign_2D_macroface_vertexdof_1_rhs_function( dstData, srcData, scalar, static_cast< int32_t >( level ) );
-     storage.getTimingTree()->stop( "1 RHS function" );
-  }
-  else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
-  {
-     storage.getTimingTree()->start( "2 RHS functions" );
-     auto dstData  = face.getData( dstFaceID )->getPointer( level );
-     auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
-     auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
-     auto scalar0  = scalars.at( 0 );
-     auto scalar1  = scalars.at( 1 );
-     vertexdof::macroface::generated::assign_2D_macroface_vertexdof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
-    storage.getTimingTree()->stop( "2 RHS functions" );
-  }
-  else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
-  {
-     storage.getTimingTree()->start( "3 RHS functions" );
-     auto dstData  = face.getData( dstFaceID )->getPointer( level );
-     auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
-     auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
-     auto srcData2 = face.getData( srcFaceIDs.at( 2 ) )->getPointer( level );
-     auto scalar0  = scalars.at( 0 );
-     auto scalar1  = scalars.at( 1 );
-     auto scalar2  = scalars.at( 2 );
-     vertexdof::macroface::generated::assign_2D_macroface_vertexdof_3_rhs_functions( dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
-     storage.getTimingTree()->stop( "3 RHS functions" );
-  }
-  else
-  {
-     vertexdof::macroface::assign< double >( level, face, scalars, srcFaceIDs, dstFaceID );
-  }
-}
-
-
-template < typename ValueType >
-void macroCellAssign( const uint_t & level, Cell & cell, const std::vector< ValueType > & scalars,
-                      const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcCellIDs,
-                      const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstCellID )
-{
-  vertexdof::macrocell::assign< ValueType >( level, cell, scalars, srcCellIDs, dstCellID );
-}
-
-template<>
-void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::vector< double > & scalars,
-                                const std::vector< PrimitiveDataID< FunctionMemory< double >, Cell > > & srcCellIDs,
-                                const PrimitiveDataID< FunctionMemory< double >, Cell > & dstCellID )
+template <>
+void macroCellAssign< double >( const uint_t&                                                           level,
+                                Cell&                                                                   cell,
+                                const std::vector< double >&                                            scalars,
+                                const std::vector< PrimitiveDataID< FunctionMemory< double >, Cell > >& srcCellIDs,
+                                const PrimitiveDataID< FunctionMemory< double >, Cell >&                dstCellID )
 {
    if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
    {
@@ -649,9 +657,8 @@ void macroCellAssign< double >( const uint_t & level, Cell & cell, const std::ve
    else
    {
       vertexdof::macrocell::assign< double >( level, cell, scalars, srcCellIDs, dstCellID );
-  }
+   }
 }
-
 
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::assign(
@@ -660,7 +667,7 @@ void VertexDoFFunction< ValueType >::assign(
     size_t                                                                               level,
     DoFType                                                                              flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
@@ -674,7 +681,7 @@ void VertexDoFFunction< ValueType >::assign(
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >   srcCellIDs;
 
-   for( const VertexDoFFunction< ValueType >& function : functions )
+   for ( const VertexDoFFunction< ValueType >& function : functions )
    {
       srcVertexIDs.push_back( function.vertexDataID_ );
       srcEdgeIDs.push_back( function.edgeDataID_ );
@@ -682,46 +689,46 @@ void VertexDoFFunction< ValueType >::assign(
       srcCellIDs.push_back( function.cellDataID_ );
    }
    this->getStorage()->getTimingTree()->start( "Vertex" );
-   for( const auto& it : this->getStorage()->getVertices() )
+   for ( const auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macrovertex::assign< ValueType >( vertex, scalars, srcVertexIDs, vertexDataID_, level );
       }
    }
    this->getStorage()->getTimingTree()->stop( "Vertex" );
    this->getStorage()->getTimingTree()->start( "Edge" );
-   for( const auto& it : this->getStorage()->getEdges() )
+   for ( const auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macroedge::assign< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
       }
    }
    this->getStorage()->getTimingTree()->stop( "Edge" );
    this->getStorage()->getTimingTree()->start( "Face" );
-   for( const auto& it : this->getStorage()->getFaces() )
+   for ( const auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
-        macroFaceAssign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_, *this->getStorage() );
+         macroFaceAssign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_, *this->getStorage() );
       }
-    }
+   }
 
    this->getStorage()->getTimingTree()->stop( "Face" );
    this->getStorage()->getTimingTree()->start( "Cell" );
-   for( const auto& it : this->getStorage()->getCells() )
+   for ( const auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
-      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
-        macroCellAssign< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
+         macroCellAssign< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
       }
    }
    this->getStorage()->getTimingTree()->stop( "Cell" );
@@ -819,33 +826,33 @@ void VertexDoFFunction< ValueType >::assign( const P2Function< ValueType >& src,
          for ( auto itIdx : vertexdof::macrocell::Iterator( P2Level ) )
          {
             P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2, itIdx.y() * 2, itIdx.z() * 2 )] =
-            P2Data_v[vertexdof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z() )];
+                P2Data_v[vertexdof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z() )];
          }
          for ( auto itIdx : edgedof::macrocell::Iterator( P2Level ) )
          {
             P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2 + 1, itIdx.y() * 2, itIdx.z() * 2 )] =
-            P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::X )];
+                P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::X )];
 
             P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2, itIdx.y() * 2 + 1, itIdx.z() * 2 )] =
-            P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::Y )];
+                P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::Y )];
 
             P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2, itIdx.y() * 2, itIdx.z() * 2 + 1 )] =
-            P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::Z )];
+                P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::Z )];
 
             P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2 + 1, itIdx.y() * 2 + 1, itIdx.z() * 2 )] =
-            P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::XY )];
+                P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::XY )];
 
-            P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2 + 1, itIdx.y() * 2, itIdx.z() * 2 + 1)] =
-            P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::XZ )];
+            P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2 + 1, itIdx.y() * 2, itIdx.z() * 2 + 1 )] =
+                P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::XZ )];
 
-            P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2, itIdx.y() * 2 + 1, itIdx.z() * 2 + 1)] =
-            P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::YZ )];
+            P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2, itIdx.y() * 2 + 1, itIdx.z() * 2 + 1 )] =
+                P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::YZ )];
          }
 
          for ( auto itIdx : edgedof::macrocell::IteratorXYZ( P2Level ) )
          {
             P1Data[vertexdof::macrocell::index( P1Level, itIdx.x() * 2 + 1, itIdx.y() * 2 + 1, itIdx.z() * 2 + 1 )] =
-            P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::XYZ )];
+                P2Data_e[edgedof::macrocell::index( P2Level, itIdx.x(), itIdx.y(), itIdx.z(), edgedof::EdgeDoFOrientation::XYZ )];
          }
       }
    }
@@ -856,46 +863,46 @@ void VertexDoFFunction< ValueType >::assign( const P2Function< ValueType >& src,
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t& level, DoFType flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
    this->startTiming( "Add" );
 
-   for( const auto& it : this->getStorage()->getVertices() )
+   for ( const auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macrovertex::add< ValueType >( vertex, scalar, vertexDataID_, level );
       }
    }
 
-   for( const auto& it : this->getStorage()->getEdges() )
+   for ( const auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macroedge::add< ValueType >( level, edge, scalar, edgeDataID_ );
       }
    }
 
-   for( const auto& it : this->getStorage()->getFaces() )
+   for ( const auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macroface::add< ValueType >( level, face, scalar, faceDataID_ );
       }
    }
 
-   for( const auto& it : this->getStorage()->getCells() )
+   for ( const auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
-      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macrocell::add< ValueType >( level, cell, scalar, cellDataID_ );
       }
@@ -904,93 +911,102 @@ void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t&
    this->stopTiming( "Add" );
 }
 
+template < typename ValueType >
+void macroFaceAdd( const uint_t&                                                              level,
+                   Face&                                                                      face,
+                   const std::vector< ValueType >&                                            scalars,
+                   const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >& srcFaceIDs,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                dstFaceID,
+                   const PrimitiveStorage& )
+{
+   vertexdof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, dstFaceID );
+}
+
+template <>
+void macroFaceAdd< double >( const uint_t&                                                           level,
+                             Face&                                                                   face,
+                             const std::vector< double >&                                            scalars,
+                             const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > >& srcFaceIDs,
+                             const PrimitiveDataID< FunctionMemory< double >, Face >&                dstFaceID,
+                             const PrimitiveStorage&                                                 storage )
+{
+   if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
+   {
+      storage.getTimingTree()->start( "1 RHS function" );
+      auto dstData = face.getData( dstFaceID )->getPointer( level );
+      auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+      auto scalar  = scalars.at( 0 );
+      vertexdof::macroface::generated::add_2D_macroface_vertexdof_1_rhs_function(
+          dstData, srcData, scalar, static_cast< int32_t >( level ) );
+      storage.getTimingTree()->stop( "1 RHS function" );
+   }
+   else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
+   {
+      storage.getTimingTree()->start( "2 RHS functions" );
+      auto dstData  = face.getData( dstFaceID )->getPointer( level );
+      auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+      auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
+      auto scalar0  = scalars.at( 0 );
+      auto scalar1  = scalars.at( 1 );
+      vertexdof::macroface::generated::add_2D_macroface_vertexdof_2_rhs_functions(
+          dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
+      storage.getTimingTree()->stop( "2 RHS functions" );
+   }
+   else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
+   {
+      storage.getTimingTree()->start( "3 RHS functions" );
+      auto dstData  = face.getData( dstFaceID )->getPointer( level );
+      auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
+      auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
+      auto srcData2 = face.getData( srcFaceIDs.at( 2 ) )->getPointer( level );
+      auto scalar0  = scalars.at( 0 );
+      auto scalar1  = scalars.at( 1 );
+      auto scalar2  = scalars.at( 2 );
+      vertexdof::macroface::generated::add_2D_macroface_vertexdof_3_rhs_functions(
+          dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
+      storage.getTimingTree()->stop( "3 RHS functions" );
+   }
+   else
+   {
+      vertexdof::macroface::add< double >( level, face, scalars, srcFaceIDs, dstFaceID );
+   }
+}
 
 template < typename ValueType >
-void macroFaceAdd( const uint_t & level, Face & face, const std::vector< ValueType > & scalars,
-                   const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > & srcFaceIDs,
-                   const PrimitiveDataID< FunctionMemory< ValueType >, Face > & dstFaceID,
-                   const PrimitiveStorage & )
+void macroCellAdd( const uint_t&                                                              level,
+                   Cell&                                                                      cell,
+                   const std::vector< ValueType >&                                            scalars,
+                   const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >& srcCellIDs,
+                   const PrimitiveDataID< FunctionMemory< ValueType >, Cell >&                dstCellID )
 {
-  vertexdof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, dstFaceID );
+   vertexdof::macrocell::add< ValueType >( level, cell, scalars, srcCellIDs, dstCellID );
 }
 
-template<>
-void macroFaceAdd< double >( const uint_t & level, Face & face, const std::vector< double > & scalars,
-                                const std::vector< PrimitiveDataID< FunctionMemory< double >, Face > > & srcFaceIDs,
-                                const PrimitiveDataID< FunctionMemory< double >, Face > & dstFaceID,
-                                const PrimitiveStorage & storage )
+template <>
+void macroCellAdd< double >( const uint_t&                                                           level,
+                             Cell&                                                                   cell,
+                             const std::vector< double >&                                            scalars,
+                             const std::vector< PrimitiveDataID< FunctionMemory< double >, Cell > >& srcCellIDs,
+                             const PrimitiveDataID< FunctionMemory< double >, Cell >&                dstCellID )
 {
-  if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
-  {
-    storage.getTimingTree()->start( "1 RHS function" );
-    auto dstData = face.getData( dstFaceID )->getPointer( level );
-    auto srcData = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
-    auto scalar  = scalars.at( 0 );
-    vertexdof::macroface::generated::add_2D_macroface_vertexdof_1_rhs_function( dstData, srcData, scalar, static_cast< int32_t >( level ) );
-    storage.getTimingTree()->stop( "1 RHS function" );
-  }
-  else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
-  {
-    storage.getTimingTree()->start( "2 RHS functions" );
-    auto dstData  = face.getData( dstFaceID )->getPointer( level );
-    auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
-    auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
-    auto scalar0  = scalars.at( 0 );
-    auto scalar1  = scalars.at( 1 );
-    vertexdof::macroface::generated::add_2D_macroface_vertexdof_2_rhs_functions( dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
-    storage.getTimingTree()->stop( "2 RHS functions" );
-  }
-  else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
-  {
-    storage.getTimingTree()->start( "3 RHS functions" );
-    auto dstData  = face.getData( dstFaceID )->getPointer( level );
-    auto srcData0 = face.getData( srcFaceIDs.at( 0 ) )->getPointer( level );
-    auto srcData1 = face.getData( srcFaceIDs.at( 1 ) )->getPointer( level );
-    auto srcData2 = face.getData( srcFaceIDs.at( 2 ) )->getPointer( level );
-    auto scalar0  = scalars.at( 0 );
-    auto scalar1  = scalars.at( 1 );
-    auto scalar2  = scalars.at( 2 );
-    vertexdof::macroface::generated::add_2D_macroface_vertexdof_3_rhs_functions( dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
-    storage.getTimingTree()->stop( "3 RHS functions" );
-  }
-  else
-  {
-    vertexdof::macroface::add< double >( level, face, scalars, srcFaceIDs, dstFaceID );
-  }
-}
+   if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
+   {
+      auto dstData = cell.getData( dstCellID )->getPointer( level );
+      auto srcData = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
+      auto scalar  = scalars.at( 0 );
+      if ( hyteg::globalDefines::useP1Coloring )
+      {
+         std::map< uint_t, uint_t > groupFirstIdx;
+         groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
+         groupFirstIdx[1] = vertexdof::macrocell::index( level, 1, 0, 0 );
+         groupFirstIdx[2] = vertexdof::macrocell::index( level, 0, 1, 0 );
+         groupFirstIdx[3] = vertexdof::macrocell::index( level, 1, 1, 0 );
+         groupFirstIdx[4] = vertexdof::macrocell::index( level, 0, 0, 1 );
+         groupFirstIdx[5] = vertexdof::macrocell::index( level, 1, 0, 1 );
+         groupFirstIdx[6] = vertexdof::macrocell::index( level, 0, 1, 1 );
+         groupFirstIdx[7] = vertexdof::macrocell::index( level, 1, 1, 1 );
 
-
-template < typename ValueType >
-void macroCellAdd( const uint_t & level, Cell & cell, const std::vector< ValueType > & scalars,
-                      const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > & srcCellIDs,
-                      const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dstCellID )
-{
-  vertexdof::macrocell::add< ValueType >( level, cell, scalars, srcCellIDs, dstCellID );
-}
-
-template<>
-void macroCellAdd< double >( const uint_t & level, Cell & cell, const std::vector< double > & scalars,
-                                const std::vector< PrimitiveDataID< FunctionMemory< double >, Cell > > & srcCellIDs,
-                                const PrimitiveDataID< FunctionMemory< double >, Cell > & dstCellID )
-{
-  if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 1 )
-  {
-    auto dstData = cell.getData( dstCellID )->getPointer( level );
-    auto srcData = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
-    auto scalar  = scalars.at( 0 );
-    if ( hyteg::globalDefines::useP1Coloring )
-    {
-      std::map< uint_t, uint_t > groupFirstIdx;
-      groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
-      groupFirstIdx[1] = vertexdof::macrocell::index( level, 1, 0, 0 );
-      groupFirstIdx[2] = vertexdof::macrocell::index( level, 0, 1, 0 );
-      groupFirstIdx[3] = vertexdof::macrocell::index( level, 1, 1, 0 );
-      groupFirstIdx[4] = vertexdof::macrocell::index( level, 0, 0, 1 );
-      groupFirstIdx[5] = vertexdof::macrocell::index( level, 1, 0, 1 );
-      groupFirstIdx[6] = vertexdof::macrocell::index( level, 0, 1, 1 );
-      groupFirstIdx[7] = vertexdof::macrocell::index( level, 1, 1, 1 );
-
-      vertexdof::macrocell::generated::add_3D_macrocell_vertexdof_1_rhs_function_colored( &dstData[groupFirstIdx[0]],
+         vertexdof::macrocell::generated::add_3D_macrocell_vertexdof_1_rhs_function_colored( &dstData[groupFirstIdx[0]],
                                                                                              &dstData[groupFirstIdx[1]],
                                                                                              &dstData[groupFirstIdx[2]],
                                                                                              &dstData[groupFirstIdx[3]],
@@ -1008,19 +1024,18 @@ void macroCellAdd< double >( const uint_t & level, Cell & cell, const std::vecto
                                                                                              &srcData[groupFirstIdx[7]],
                                                                                              scalar,
                                                                                              static_cast< int32_t >( level ) );
-    }
-    else
-    {
-      vertexdof::macrocell::generated::add_3D_macrocell_vertexdof_1_rhs_function(
-      dstData, srcData, scalar, static_cast< int32_t >( level ) );
-    }
-  }
-  else
-  {
-    vertexdof::macrocell::add< double >( level, cell, scalars, srcCellIDs, dstCellID );
-  }
+      }
+      else
+      {
+         vertexdof::macrocell::generated::add_3D_macrocell_vertexdof_1_rhs_function(
+             dstData, srcData, scalar, static_cast< int32_t >( level ) );
+      }
+   }
+   else
+   {
+      vertexdof::macrocell::add< double >( level, cell, scalars, srcCellIDs, dstCellID );
+   }
 }
-
 
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::add(
@@ -1029,7 +1044,7 @@ void VertexDoFFunction< ValueType >::add(
     size_t                                                                               level,
     DoFType                                                                              flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
@@ -1040,7 +1055,7 @@ void VertexDoFFunction< ValueType >::add(
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >   srcCellIDs;
 
-   for( const VertexDoFFunction< ValueType >& function : functions )
+   for ( const VertexDoFFunction< ValueType >& function : functions )
    {
       srcVertexIDs.push_back( function.vertexDataID_ );
       srcEdgeIDs.push_back( function.edgeDataID_ );
@@ -1048,53 +1063,54 @@ void VertexDoFFunction< ValueType >::add(
       srcCellIDs.push_back( function.cellDataID_ );
    }
 
-   for( const auto& it : this->getStorage()->getVertices() )
+   for ( const auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macrovertex::add( vertex, scalars, srcVertexIDs, vertexDataID_, level );
       }
    }
 
-   for( const auto& it : this->getStorage()->getEdges() )
+   for ( const auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macroedge::add< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
       }
    }
 
-   for( const auto& it : this->getStorage()->getFaces() )
+   for ( const auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
          macroFaceAdd< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_, *this->getStorage() );
       }
    }
 
-   for( const auto& it : this->getStorage()->getCells() )
+   for ( const auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
-      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
-        macroCellAdd< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
+         macroCellAdd< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
       }
    }
    this->stopTiming( "Add" );
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::multElementwise( const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
-                                                      const uint_t                                               level,
-                                                      const DoFType                                              flag ) const
+void VertexDoFFunction< ValueType >::multElementwise(
+    const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
+    const uint_t                                                                         level,
+    const DoFType                                                                        flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
@@ -1105,7 +1121,7 @@ void VertexDoFFunction< ValueType >::multElementwise( const std::vector< std::re
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >   srcCellIDs;
 
-   for( const VertexDoFFunction& function : functions )
+   for ( const VertexDoFFunction& function : functions )
    {
       srcVertexIDs.push_back( function.vertexDataID_ );
       srcEdgeIDs.push_back( function.edgeDataID_ );
@@ -1113,40 +1129,40 @@ void VertexDoFFunction< ValueType >::multElementwise( const std::vector< std::re
       srcCellIDs.push_back( function.cellDataID_ );
    }
 
-   for( const auto& it : this->getStorage()->getVertices() )
+   for ( const auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
-         vertexdof::macrovertex::multElementwise< ValueType >( vertex, srcVertexIDs, vertexDataID_, level );
+         vertexdof::macrovertex::multElementwise< ValueType >( level, vertex, srcVertexIDs, vertexDataID_ );
       }
    }
 
-   for( const auto& it : this->getStorage()->getEdges() )
+   for ( const auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macroedge::multElementwise< ValueType >( level, edge, srcEdgeIDs, edgeDataID_ );
       }
    }
 
-   for( const auto& it : this->getStorage()->getFaces() )
+   for ( const auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macroface::multElementwise< ValueType >( level, face, srcFaceIDs, faceDataID_ );
       }
    }
 
-   for( const auto& it : this->getStorage()->getCells() )
+   for ( const auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
-      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macrocell::multElementwise< ValueType >( level, cell, srcCellIDs, cellDataID_ );
       }
@@ -1155,7 +1171,7 @@ void VertexDoFFunction< ValueType >::multElementwise( const std::vector< std::re
 }
 
 template < typename ValueType >
-ValueType VertexDoFFunction< ValueType >::dotGlobal(const VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
+ValueType VertexDoFFunction< ValueType >::dotGlobal( const VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
 {
    ValueType scalarProduct = dotLocal( rhs, level, flag );
    this->startTiming( "Dot (reduce)" );
@@ -1165,49 +1181,49 @@ ValueType VertexDoFFunction< ValueType >::dotGlobal(const VertexDoFFunction< Val
 }
 
 template < typename ValueType >
-ValueType VertexDoFFunction< ValueType >::dotLocal(const VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
+ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return ValueType( 0 );
    }
    this->startTiming( "Dot (local)" );
    auto scalarProduct = ValueType( 0 );
 
-   for( const auto& it : this->getStorage()->getVertices() )
+   for ( const auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
          scalarProduct += vertexdof::macrovertex::dot( vertex, vertexDataID_, rhs.vertexDataID_, level );
       }
    }
 
-   for( const auto& it : this->getStorage()->getEdges() )
+   for ( const auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
          scalarProduct += vertexdof::macroedge::dot< ValueType >( level, edge, edgeDataID_, rhs.edgeDataID_ );
       }
    }
 
-   for( const auto& it : this->getStorage()->getFaces() )
+   for ( const auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
          scalarProduct += vertexdof::macroface::dot< ValueType >( level, face, faceDataID_, rhs.faceDataID_ );
       }
    }
 
-   for( const auto& it : this->getStorage()->getCells() )
+   for ( const auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
-      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          scalarProduct += vertexdof::macrocell::dot< ValueType >( level, cell, cellDataID_, rhs.cellDataID_ );
       }
@@ -1217,59 +1233,59 @@ ValueType VertexDoFFunction< ValueType >::dotLocal(const VertexDoFFunction< Valu
 }
 
 template < typename ValueType >
-ValueType VertexDoFFunction< ValueType >::sumGlobal( const uint_t & level, const DoFType & flag, const bool & absolute ) const
+ValueType VertexDoFFunction< ValueType >::sumGlobal( const uint_t& level, const DoFType& flag, const bool& absolute ) const
 {
    ValueType sum = sumLocal( level, flag, absolute );
-  this->startTiming( "Sum (reduce)" );
-  walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
-  this->stopTiming( "Sum (reduce)" );
-  return sum;
+   this->startTiming( "Sum (reduce)" );
+   walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+   this->stopTiming( "Sum (reduce)" );
+   return sum;
 }
 
 template < typename ValueType >
-ValueType VertexDoFFunction< ValueType >::sumLocal( const uint_t & level, const DoFType & flag, const bool & absolute ) const
+ValueType VertexDoFFunction< ValueType >::sumLocal( const uint_t& level, const DoFType& flag, const bool& absolute ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return ValueType( 0 );
    }
    this->startTiming( "Sum (local)" );
    auto sum = ValueType( 0 );
 
-   for( const auto& it : this->getStorage()->getVertices() )
+   for ( const auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
          sum += vertexdof::macrovertex::sum( level, vertex, vertexDataID_, absolute );
       }
    }
 
-   for( const auto& it : this->getStorage()->getEdges() )
+   for ( const auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
          sum += vertexdof::macroedge::sum< ValueType >( level, edge, edgeDataID_, absolute );
       }
    }
 
-   for( const auto& it : this->getStorage()->getFaces() )
+   for ( const auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
          sum += vertexdof::macroface::sum< ValueType >( level, face, faceDataID_, absolute );
       }
    }
 
-   for( const auto& it : this->getStorage()->getCells() )
+   for ( const auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
-      if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          sum += vertexdof::macrocell::sum< ValueType >( level, cell, cellDataID_, absolute );
       }
@@ -1281,7 +1297,7 @@ ValueType VertexDoFFunction< ValueType >::sumLocal( const uint_t & level, const 
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::enumerate( uint_t level ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
@@ -1294,7 +1310,7 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level ) const
 
    auto startOnRank = ValueType( 0 );
 
-   for( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
+   for ( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
    {
       startOnRank += static_cast< ValueType >( dofs_per_rank[i] );
    }
@@ -1305,30 +1321,30 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level ) const
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
 
-   for( auto& it : this->getStorage()->getVertices() )
+   for ( auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
       vertexdof::macrovertex::enumerate( level, vertex, vertexDataID_, offset );
    }
 
-   for( auto& it : this->getStorage()->getEdges() )
+   for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
       vertexdof::macroedge::enumerate< ValueType >( level, edge, edgeDataID_, offset );
    }
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
       vertexdof::macroface::enumerate< ValueType >( level, face, faceDataID_, offset );
    }
 
-   for( auto& it : this->getStorage()->getCells() )
+   for ( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
       vertexdof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset );
@@ -1344,7 +1360,7 @@ void VertexDoFFunction< ValueType >::integrateDG( DGFunction< ValueType >&      
                                                   uint_t                          level,
                                                   DoFType                         flag )
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
@@ -1361,11 +1377,11 @@ void VertexDoFFunction< ValueType >::integrateDG( DGFunction< ValueType >&      
 
    rhsP1.endCommunication< Edge, Vertex >( level );
 
-   for( auto& it : this->getStorage()->getVertices() )
+   for ( auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macrovertex::integrateDG< ValueType >(
              vertex, this->getStorage(), rhs.getVertexDataID(), rhsP1.getVertexDataID(), vertexDataID_, level );
@@ -1375,11 +1391,11 @@ void VertexDoFFunction< ValueType >::integrateDG( DGFunction< ValueType >&      
    communicators_[level]->template startCommunication< Vertex, Edge >();
    rhsP1.endCommunication< Face, Edge >( level );
 
-   for( auto& it : this->getStorage()->getEdges() )
+   for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macroedge::integrateDG< ValueType >(
              level, edge, this->getStorage(), rhs.getEdgeDataID(), rhsP1.getEdgeDataID(), edgeDataID_ );
@@ -1389,11 +1405,11 @@ void VertexDoFFunction< ValueType >::integrateDG( DGFunction< ValueType >&      
    communicators_[level]->template endCommunication< Vertex, Edge >();
    communicators_[level]->template startCommunication< Edge, Face >();
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
 
-      if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
          vertexdof::macroface::integrateDG< ValueType >( level, face, rhs.getFaceDataID(), rhsP1.getFaceDataID(), faceDataID_ );
       }
@@ -1407,50 +1423,50 @@ void VertexDoFFunction< ValueType >::integrateDG( DGFunction< ValueType >&      
 template < typename ValueType >
 ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return ValueType( 0 );
    }
    auto localMax = -std::numeric_limits< ValueType >::max();
 
-   for( auto& it : this->getStorage()->getCells() )
+   for ( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
-      localMax = std::max( localMax, vertexdof::macrocell::getMaxValue< ValueType >( level, cell, cellDataID_ ) );
+      localMax   = std::max( localMax, vertexdof::macrocell::getMaxValue< ValueType >( level, cell, cellDataID_ ) );
    }
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face&         face   = *it.second;
       const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if( testFlag( faceBC, flag ) )
+      if ( testFlag( faceBC, flag ) )
       {
          localMax = std::max( localMax, vertexdof::macroface::getMaxValue< ValueType >( level, face, faceDataID_ ) );
       }
    }
 
-   for( auto& it : this->getStorage()->getEdges() )
+   for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge&         edge   = *it.second;
       const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if( testFlag( edgeBC, flag ) )
+      if ( testFlag( edgeBC, flag ) )
       {
          localMax = std::max( localMax, vertexdof::macroedge::getMaxValue< ValueType >( level, edge, edgeDataID_ ) );
       }
    }
 
-   for( auto& it : this->getStorage()->getVertices() )
+   for ( auto& it : this->getStorage()->getVertices() )
    {
       Vertex&       vertex   = *it.second;
       const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-      if( testFlag( vertexBC, flag ) )
+      if ( testFlag( vertexBC, flag ) )
       {
          localMax = std::max( localMax, vertexdof::macrovertex::getMaxValue< ValueType >( level, vertex, vertexDataID_ ) );
       }
    }
 
    ValueType globalMax = localMax;
-   if( mpiReduce )
+   if ( mpiReduce )
    {
       globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
    }
@@ -1461,50 +1477,50 @@ ValueType VertexDoFFunction< ValueType >::getMaxValue( uint_t level, DoFType fla
 template < typename ValueType >
 ValueType VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return ValueType( 0 );
    }
    auto localMax = ValueType( 0.0 );
 
-   for( auto& it : this->getStorage()->getCells() )
+   for ( auto& it : this->getStorage()->getCells() )
    {
-     Cell& cell = *it.second;
-     localMax = std::max( localMax, vertexdof::macrocell::getMaxMagnitude< ValueType >( level, cell, cellDataID_ ) );
+      Cell& cell = *it.second;
+      localMax   = std::max( localMax, vertexdof::macrocell::getMaxMagnitude< ValueType >( level, cell, cellDataID_ ) );
    }
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face&         face   = *it.second;
       const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if( testFlag( faceBC, flag ) )
+      if ( testFlag( faceBC, flag ) )
       {
          localMax = std::max( localMax, vertexdof::macroface::getMaxMagnitude< ValueType >( level, face, faceDataID_ ) );
       }
    }
 
-   for( auto& it : this->getStorage()->getEdges() )
+   for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge&         edge   = *it.second;
       const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if( testFlag( edgeBC, flag ) )
+      if ( testFlag( edgeBC, flag ) )
       {
          localMax = std::max( localMax, vertexdof::macroedge::getMaxMagnitude< ValueType >( level, edge, edgeDataID_ ) );
       }
    }
 
-   for( auto& it : this->getStorage()->getVertices() )
+   for ( auto& it : this->getStorage()->getVertices() )
    {
       Vertex&       vertex   = *it.second;
       const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-      if( testFlag( vertexBC, flag ) )
+      if ( testFlag( vertexBC, flag ) )
       {
          localMax = std::max( localMax, vertexdof::macrovertex::getMaxMagnitude< ValueType >( level, vertex, vertexDataID_ ) );
       }
    }
 
    ValueType globalMax = localMax;
-   if( mpiReduce )
+   if ( mpiReduce )
    {
       globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
    }
@@ -1515,50 +1531,50 @@ ValueType VertexDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType
 template < typename ValueType >
 ValueType VertexDoFFunction< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return ValueType( 0 );
    }
    auto localMin = std::numeric_limits< ValueType >::max();
 
-   for( auto& it : this->getStorage()->getCells() )
+   for ( auto& it : this->getStorage()->getCells() )
    {
       Cell& cell = *it.second;
-      localMin = std::min( localMin, vertexdof::macrocell::getMinValue< ValueType >( level, cell, cellDataID_ ) );
+      localMin   = std::min( localMin, vertexdof::macrocell::getMinValue< ValueType >( level, cell, cellDataID_ ) );
    }
 
-   for( auto& it : this->getStorage()->getFaces() )
+   for ( auto& it : this->getStorage()->getFaces() )
    {
       Face&         face   = *it.second;
       const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if( testFlag( faceBC, flag ) )
+      if ( testFlag( faceBC, flag ) )
       {
          localMin = std::min( localMin, vertexdof::macroface::getMinValue< ValueType >( level, face, faceDataID_ ) );
       }
    }
 
-   for( auto& it : this->getStorage()->getEdges() )
+   for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge&         edge   = *it.second;
       const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if( testFlag( edgeBC, flag ) )
+      if ( testFlag( edgeBC, flag ) )
       {
          localMin = std::min( localMin, vertexdof::macroedge::getMinValue< ValueType >( level, edge, edgeDataID_ ) );
       }
    }
 
-   for( auto& it : this->getStorage()->getVertices() )
+   for ( auto& it : this->getStorage()->getVertices() )
    {
       Vertex&       vertex   = *it.second;
       const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-      if( testFlag( vertexBC, flag ) )
+      if ( testFlag( vertexBC, flag ) )
       {
          localMin = std::min( localMin, vertexdof::macrovertex::getMinValue< ValueType >( level, vertex, vertexDataID_ ) );
       }
    }
 
    ValueType globalMin = localMin;
-   if( mpiReduce )
+   if ( mpiReduce )
    {
       globalMin = -walberla::mpi::allReduce( -localMin, walberla::mpi::MAX );
    }
@@ -1570,15 +1586,15 @@ template < typename ValueType >
 void VertexDoFFunction< ValueType >::setLocalCommunicationMode(
     const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode )
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
-   for( auto& communicator : communicators_ )
+   for ( auto& communicator : communicators_ )
    {
       communicator.second->setLocalCommunicationMode( localCommunicationMode );
    }
-   for( auto& communicator : additiveCommunicators_ )
+   for ( auto& communicator : additiveCommunicators_ )
    {
       communicator.second->setLocalCommunicationMode( localCommunicationMode );
    }
@@ -1588,52 +1604,55 @@ template < typename ValueType >
 template < typename PrimitiveType >
 void VertexDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag ) const
 {
-   if( isDummy() )
+   if ( isDummy() )
    {
       return;
    }
    this->startTiming( "Interpolate" );
 
-   if( std::is_same< PrimitiveType, Vertex >::value )
+   if ( std::is_same< PrimitiveType, Vertex >::value )
    {
-      for( const auto& it : this->getStorage()->getVertices() )
+      for ( const auto& it : this->getStorage()->getVertices() )
       {
          Vertex& vertex = *it.second;
 
-         if( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+         if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
          {
             vertexdof::macrovertex::interpolate( level, vertex, vertexDataID_, constant );
          }
       }
-   } else if( std::is_same< PrimitiveType, Edge >::value )
+   }
+   else if ( std::is_same< PrimitiveType, Edge >::value )
    {
-      for( const auto& it : this->getStorage()->getEdges() )
+      for ( const auto& it : this->getStorage()->getEdges() )
       {
          Edge& edge = *it.second;
 
-         if( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+         if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
          {
             vertexdof::macroedge::interpolate( level, edge, edgeDataID_, constant );
          }
       }
-   } else if( std::is_same< PrimitiveType, Face >::value )
+   }
+   else if ( std::is_same< PrimitiveType, Face >::value )
    {
-      for( const auto& it : this->getStorage()->getFaces() )
+      for ( const auto& it : this->getStorage()->getFaces() )
       {
          Face& face = *it.second;
 
-         if( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+         if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
          {
             vertexdof::macroface::interpolate( level, face, faceDataID_, constant );
          }
       }
-   } else if( std::is_same< PrimitiveType, Cell >::value )
+   }
+   else if ( std::is_same< PrimitiveType, Cell >::value )
    {
-      for( const auto& it : this->getStorage()->getCells() )
+      for ( const auto& it : this->getStorage()->getCells() )
       {
          Cell& cell = *it.second;
 
-         if( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
          {
             vertexdof::macrocell::interpolate( level, cell, cellDataID_, constant );
          }
@@ -1647,20 +1666,20 @@ template class VertexDoFFunction< double >;
 template class VertexDoFFunction< int >;
 
 template void VertexDoFFunction< double >::interpolateByPrimitiveType< hyteg::Vertex >( const double& constant,
+                                                                                        uint_t        level,
+                                                                                        DoFType       flag ) const;
+
+template void VertexDoFFunction< double >::interpolateByPrimitiveType< hyteg::Edge >( const double& constant,
                                                                                       uint_t        level,
                                                                                       DoFType       flag ) const;
 
-template void VertexDoFFunction< double >::interpolateByPrimitiveType< hyteg::Edge >( const double& constant,
-                                                                                    uint_t        level,
-                                                                                    DoFType       flag ) const;
-
 template void VertexDoFFunction< double >::interpolateByPrimitiveType< hyteg::Face >( const double& constant,
-                                                                                    uint_t        level,
-                                                                                    DoFType       flag ) const;
+                                                                                      uint_t        level,
+                                                                                      DoFType       flag ) const;
 
 template void VertexDoFFunction< double >::interpolateByPrimitiveType< hyteg::Cell >( const double& constant,
-                                                                                    uint_t        level,
-                                                                                    DoFType       flag ) const;
+                                                                                      uint_t        level,
+                                                                                      DoFType       flag ) const;
 
 } // namespace vertexdof
 } // namespace hyteg

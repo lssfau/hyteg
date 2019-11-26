@@ -18,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
+#include "hyteg/facedofspace/FaceDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 
 namespace hyteg {
@@ -336,6 +337,44 @@ inline void assign(const uint_t & Level, Edge &edge,
         tmp += scalars[k]*edge.getData(srcIds[k])->getPointer(Level)[cellIndex];
       }
       dst[cellIndex] = tmp;
+    }
+  }
+}
+
+
+template< typename ValueType >
+inline void multElementwise( const uint_t&                                                              level,
+                             Edge&                                                                      edge,
+                             const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > >& srcIds,
+                             const PrimitiveDataID< FunctionMemory< ValueType >, Edge >&                dstId )
+{
+   ValueType*                dstPtr = edge.getData( dstId )->getPointer( level );
+   std::vector< ValueType* > srcPtr;
+   for( auto src : srcIds )
+   {
+      srcPtr.push_back( edge.getData( src )->getPointer( level ) );
+   }
+
+   size_t rowsize = levelinfo::num_microvertices_per_edge( level );
+
+   // gray south cells
+   for ( uint_t i = 1; i < rowsize - 2; ++i ) {
+     uint_t index = facedof::macroedge::indexFaceFromVertex( level, i, stencilDirection::CELL_GRAY_SE );
+     ValueType tmp = srcPtr[0][index];
+     for ( uint_t k = 1; k < srcIds.size(); ++k ) {
+       tmp *=  srcPtr[k][index];
+     }
+     dstPtr[index] = tmp;
+   }
+
+  if( edge.getNumNeighborFaces() == 2 ) {
+    for ( uint_t i = 1; i < rowsize - 2; ++i ) {
+      uint_t index = facedof::macroedge::indexFaceFromVertex( level, i, stencilDirection::CELL_GRAY_NE );
+      ValueType tmp = srcPtr[0][index];
+      for ( uint_t k = 1; k < srcIds.size(); ++k ) {
+        tmp *=  srcPtr[k][index];
+      }
+      dstPtr[index] = tmp;
     }
   }
 }
