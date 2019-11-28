@@ -24,11 +24,12 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    /// \param velocityPreconditionerType choose from different velocity preconditioners:
    ///                                   - 0: PCGAMG
    ///                                   - 1: PCJACOBI
+   ///                                   - 2: Schur complement
    PETScBlockPreconditionedStokesSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                                          const uint_t&                              level,
                                          const real_t                               tolerance = 1e-16,
                                          const PetscInt maxIterations              = std::numeric_limits< PetscInt >::max(),
-                                         const uint_t&  velocityPreconditionerType = 0 )
+                                         const uint_t&  velocityPreconditionerType = 1 )
    : allocatedLevel_( level )
    , num( "numerator", storage, level, level )
    , Amat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
@@ -47,7 +48,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    , velocityPreconditionerType_( velocityPreconditionerType )
    {}
 
-   ~PETScBlockPreconditionedStokesSolver() {}
+   ~PETScBlockPreconditionedStokesSolver() = default;
 
    void setNullSpace( const FunctionType& nullspace )
    {
@@ -118,36 +119,59 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       }
       KSPSetOperators( ksp, Amat.get(), Pmat.get() );
 
-      KSPGetPC( ksp, &pc );
-      PCSetType( pc, PCFIELDSPLIT );
-      PCFieldSplitSetType( pc, PC_COMPOSITE_ADDITIVE );
-      PCFieldSplitSetIS( pc, "u", is_[0] );
-      PCFieldSplitSetIS( pc, "p", is_[1] );
-
-      PetscInt numSubKsps;
-      PC       pc_u, pc_p;
-      PCFieldSplitGetSubKSP( pc, &numSubKsps, &sub_ksps_ );
-
-      KSPGetPC( sub_ksps_[0], &pc_u );
-      KSPGetPC( sub_ksps_[1], &pc_p );
-
-      switch ( velocityPreconditionerType_ )
+      if ( velocityPreconditionerType_ == 2 )
       {
-      case 0:
-         PCSetType( pc_u, PCGAMG );
-         PCGAMGSetType( pc_u, PCGAMGAGG );
-         PCGAMGSetNSmooths( pc_u, 1 );
-         break;
-      case 1:
-         PCSetType( pc_u, PCJACOBI );
-         break;
-      default:
-         WALBERLA_ABORT( "Invalid velocity preconditioner for PETSc block prec MinRes solver." );
-         break;
-      }
+        KSPGetPC( ksp, &pc );
+        PCSetType( pc, PCFIELDSPLIT );
+        PCFieldSplitSetType( pc, PC_COMPOSITE_SCHUR );
+        PCFieldSplitSetSchurPre( pc, PC_FIELDSPLIT_SCHUR_PRE_SELFP, NULL );
+        PCFieldSplitSetIS( pc, "u", is_[0] );
+        PCFieldSplitSetIS( pc, "p", is_[1] );
 
-      // inv. lumped mass
-      PCSetType( pc_p, PCJACOBI );
+        PetscInt numSubKsps;
+
+        PCSetUp( pc );
+        PCFieldSplitSchurGetSubKSP( pc, &numSubKsps, &sub_ksps_ );
+
+        KSPSetType( sub_ksps_[0], KSPCG );
+        KSPSetType( sub_ksps_[1], KSPCG );
+
+        KSPSetTolerances( sub_ksps_[0], tolerance_, tolerance_, PETSC_DEFAULT, maxIterations_ );
+        KSPSetTolerances( sub_ksps_[1], tolerance_, tolerance_, PETSC_DEFAULT, maxIterations_ );
+      }
+      else
+      {
+        KSPGetPC( ksp, &pc );
+        PCSetType( pc, PCFIELDSPLIT );
+        PCFieldSplitSetType( pc, PC_COMPOSITE_ADDITIVE );
+        PCFieldSplitSetIS( pc, "u", is_[0] );
+        PCFieldSplitSetIS( pc, "p", is_[1] );
+
+        PetscInt numSubKsps;
+        PC pc_u, pc_p;
+        PCFieldSplitGetSubKSP( pc, &numSubKsps, &sub_ksps_ );
+
+        KSPGetPC( sub_ksps_[0], &pc_u );
+        KSPGetPC( sub_ksps_[1], &pc_p );
+
+        switch ( velocityPreconditionerType_ )
+        {
+          case 0:
+            PCSetType( pc_u, PCGAMG );
+            PCGAMGSetType( pc_u, PCGAMGAGG );
+            PCGAMGSetNSmooths( pc_u, 1 );
+            break;
+          case 1:
+            PCSetType( pc_u, PCJACOBI );
+            break;
+          default:
+          WALBERLA_ABORT( "Invalid velocity preconditioner for PETSc block prec MinRes solver." );
+            break;
+        }
+
+        // inv. lumped mass
+        PCSetType( pc_p, PCJACOBI );
+      }
 
       x.getStorage()->getTimingTree()->stop( "Setup" );
 
