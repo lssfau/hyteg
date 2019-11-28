@@ -32,6 +32,7 @@
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScVersion.hpp"
+#include "hyteg/petsc/PETScExportLinearSystem.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -53,7 +54,11 @@ namespace hyteg {
 ///     0: LU,
 ///     1: MinRes,
 ///     2: block preconditioned MinRes
-void petscSolveTest( const uint_t & solverType, const uint_t & level, const MeshInfo & meshInfo,  const real_t & resEps, const real_t & errEpsUSum, const real_t & errEpsP )
+/// \param blockPreconditionerType
+///     0: velocity AMG, pressure lumped mass
+///     1: velocity Jacobi, pressure lumped mass
+///     2: Schur complement, CG
+void petscSolveTest( const uint_t & solverType, const uint_t & blockPreconditionerType, const uint_t & level, const MeshInfo & meshInfo,  const real_t & resEps, const real_t & errEpsUSum, const real_t & errEpsP )
 {
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -71,6 +76,9 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
   hyteg::P2P1TaylorHoodFunction< real_t >                      err( "err", storage, level, level );
   hyteg::P2P1TaylorHoodFunction< real_t >                      residuum( "res", storage, level, level );
   hyteg::P2P1TaylorHoodFunction< real_t >                      nullspace( "nullspace", storage, level, level );
+  hyteg::P2P1TaylorHoodFunction< PetscInt >                    numerator( "numerator", storage, level, level );
+
+  numerator.enumerate( level );
 
   hyteg::P2P1TaylorHoodStokesOperator A( storage, level, level );
   // hyteg::P1MassOperator   M( storage, level, level );
@@ -118,6 +126,8 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
   x_exact.w.interpolate( exactW, level );
   x_exact.p.interpolate( exactP, level );
 
+  hyteg::vertexdof::projectMean( x_exact.p, level );
+
   nullspace.p.interpolate( ones, level, All );
 
   VTKOutput vtkOutput("../../output", "P2P1Stokes3DPetscSolve", storage);
@@ -141,12 +151,38 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
 
   uint_t localDoFs1 = hyteg::numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
   uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
+  uint_t globalDoFsvelocity = 3 * hyteg::numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
 
-  WALBERLA_LOG_INFO( "localDoFs: " << localDoFs1 << " globalDoFs: " << globalDoFs1 );
+  WALBERLA_LOG_INFO( "localDoFs: " << localDoFs1 << " globalDoFs: " << globalDoFs1
+                                   << ", global velocity dofs: " << globalDoFsvelocity );
+#if 0
+  exportLinearSystem< P2P1TaylorHoodStokesOperator, P2P1TaylorHoodFunction, P2P1TaylorHoodFunctionTag >(
+      A, b, x_exact, "/tmp/matrix.m", "K", "/tmp/rhs.m", "b", storage, level, true );
+
+  PETScVector< real_t, P2P1TaylorHoodFunction > solution( x_exact, numerator, level, All, "x_exact" );
+  solution.print( "/tmp/solution.m" );
+#endif
 
   PETScLUSolver< P2P1TaylorHoodStokesOperator > solver_0( storage, level );
   PETScMinResSolver< P2P1TaylorHoodStokesOperator > solver_1( storage, level );
-  PETScBlockPreconditionedStokesSolver< P2P1TaylorHoodStokesOperator > solver_2( storage, level );
+  PETScBlockPreconditionedStokesSolver< P2P1TaylorHoodStokesOperator > solver_2( storage, level, 1e-16, std::numeric_limits< PetscInt >::max(), blockPreconditionerType );
+
+  std::string precondType;
+  switch ( blockPreconditionerType )
+  {
+    case 0:
+      precondType = "velocity AMG, pressure lumped mass";
+      break;
+    case 1:
+      precondType = "velocity Jacobi, pressure lumped mass";
+      break;
+    case 2:
+      precondType = "Schur complement, CG";
+      break;
+    default:
+      WALBERLA_ABORT( "Invalid preconditioner type." );
+      break;
+  }
 
   walberla::WcTimer timer;
   switch ( solverType )
@@ -164,7 +200,7 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
       solver_1.solve( A, x, b, level );
       break;
     case 2:
-      WALBERLA_LOG_INFO_ON_ROOT( "Block precond. MinRes solver ..." )
+      WALBERLA_LOG_INFO_ON_ROOT( "Block precond. MinRes solver (preconditioner: " << precondType << ") ..." )
       solver_2.solve( A, x, b, level );
       // The second solve() call is intended!
       // The solvers / assembly procedures must be tested for repeated solves
@@ -179,19 +215,20 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
   timer.end();
 
   hyteg::vertexdof::projectMean( x.p, level );
-  hyteg::vertexdof::projectMean( x_exact.p, level );
 
   WALBERLA_LOG_INFO_ON_ROOT( "time was: " << timer.last() );
   A.apply( x, residuum, level, hyteg::Inner );
 
   err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
+  real_t discr_l2_err = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs1 );
   real_t discr_l2_err_1_u = std::sqrt( err.u.dotGlobal( err.u, level ) / (real_t) globalDoFs1 );
   real_t discr_l2_err_1_v = std::sqrt( err.v.dotGlobal( err.v, level ) / (real_t) globalDoFs1 );
   real_t discr_l2_err_1_w = std::sqrt( err.w.dotGlobal( err.w, level ) / (real_t) globalDoFs1 );
   real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFs1 );
   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
 
+  WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error u = " << discr_l2_err_1_u );
   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error v = " << discr_l2_err_1_v );
   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error w = " << discr_l2_err_1_w );
@@ -221,9 +258,11 @@ int main( int argc, char* argv[] )
 
   printPETScVersionNumberString();
 
-  petscSolveTest( 0, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
-  petscSolveTest( 1, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
-  petscSolveTest( 2, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
+  petscSolveTest( 0, 0, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
+  petscSolveTest( 1, 0, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
+  petscSolveTest( 2, 0, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
+  petscSolveTest( 2, 1, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
+  petscSolveTest( 2, 2, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
 
   return EXIT_SUCCESS;
 }
