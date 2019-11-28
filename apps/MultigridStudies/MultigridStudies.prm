@@ -38,6 +38,15 @@ Parameters
     calculateDiscretizationError false;
     coarseGridMaxIterations 20000;
     coarseGridResidualTolerance 1e-10;
+
+    // PETSc only
+    // 0: LU (MUMPS)
+    // 1: Block-prec. MinRes
+    coarseGridSolverType 1;
+
+    // 0: PCGAMG
+    // 1: PCJACOBI
+    // 2: Schur complement
     coarseGridSolverVelocityPreconditionerType 1;
 
     cyclesBeforeDC 0;
