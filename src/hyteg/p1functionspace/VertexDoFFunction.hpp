@@ -196,8 +196,10 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
          return;
       }
       std::vector< PrimitiveID > receiverIDs;
+      std::vector< PrimitiveID > receiverNeighborIDs;
       std::vector< PrimitiveID > excludeFromReceiving;
       primitiveStorage.getPrimitiveIDsGenerically< ReceiverType >( receiverIDs );
+      primitiveStorage.getNeighboringPrimitiveIDsGenerically< ReceiverType >( receiverNeighborIDs );
       for ( PrimitiveID id : receiverIDs )
       {
          if ( testFlag( boundaryCondition_.getBoundaryType( primitiveStorage.getPrimitive( id )->getMeshBoundaryFlag() ),

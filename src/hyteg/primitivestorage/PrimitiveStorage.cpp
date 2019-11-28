@@ -508,6 +508,15 @@ void PrimitiveStorage::getVertexIDs ( std::vector< PrimitiveID > & vertexIDs ) c
   }
 }
 
+void PrimitiveStorage::getNeighboringVertexIDs ( std::vector< PrimitiveID > & vertexIDs ) const
+{
+   vertexIDs.clear();
+   for ( auto const & it : neighborVertices_ )
+   {
+      vertexIDs.push_back( it.first );
+   }
+}
+
 void PrimitiveStorage::getEdgeIDs ( std::vector< PrimitiveID > & edgeIDs ) const
 {
   edgeIDs.clear();
@@ -515,6 +524,15 @@ void PrimitiveStorage::getEdgeIDs ( std::vector< PrimitiveID > & edgeIDs ) const
   {
     edgeIDs.push_back( it.first );
   }
+}
+
+void PrimitiveStorage::getNeighboringEdgeIDs ( std::vector< PrimitiveID > & edgeIDs ) const
+{
+   edgeIDs.clear();
+   for ( auto const & it : neighborEdges_ )
+   {
+      edgeIDs.push_back( it.first );
+   }
 }
 
 void PrimitiveStorage::getFaceIDs ( std::vector< PrimitiveID > & faceIDs ) const
@@ -526,6 +544,15 @@ void PrimitiveStorage::getFaceIDs ( std::vector< PrimitiveID > & faceIDs ) const
   }
 }
 
+void PrimitiveStorage::getNeighboringFaceIDs ( std::vector< PrimitiveID > & faceIDs ) const
+{
+   faceIDs.clear();
+   for ( auto const & it : neighborFaces_ )
+   {
+      faceIDs.push_back( it.first );
+   }
+}
+
 void PrimitiveStorage::getCellIDs ( std::vector< PrimitiveID > & cellIDs ) const
 {
   cellIDs.clear();
@@ -533,6 +560,15 @@ void PrimitiveStorage::getCellIDs ( std::vector< PrimitiveID > & cellIDs ) const
   {
     cellIDs.push_back( it.first );
   }
+}
+
+void PrimitiveStorage::getNeighboringCellIDs ( std::vector< PrimitiveID > & cellIDs ) const
+{
+   cellIDs.clear();
+   for ( auto const & it : neighborCells_ )
+   {
+      cellIDs.push_back( it.first );
+   }
 }
 
 bool PrimitiveStorage::onBoundary( const PrimitiveID & primitiveID, const bool & highestDimensionAlwaysInner ) const

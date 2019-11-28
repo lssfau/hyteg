@@ -201,6 +201,14 @@ inline BufferedCommunicator::CommunicationDirection BufferedCommunicator::getCom
 template< typename SenderType, typename ReceiverType >
 void BufferedCommunicator::startCommunication( std::vector< PrimitiveID > excludeReceivingIDs )
 {
+   //// REMOVE /////
+   std::stringstream ss;
+   for( auto entry : excludeReceivingIDs)
+   {
+      ss << entry << " ";
+   }
+   WALBERLA_LOG_DEVEL( ss.str() )
+   //// REMOVE /////
   staticAssertCommunicationDirections< SenderType, ReceiverType >();
 
   CommunicationDirection communicationDirection = getCommunicationDirection< SenderType, ReceiverType >();
