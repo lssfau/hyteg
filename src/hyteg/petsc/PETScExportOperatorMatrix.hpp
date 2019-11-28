@@ -26,6 +26,8 @@
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
+#include "hyteg/petsc/PETScManager.hpp"
+
 #ifdef HYTEG_BUILD_WITH_PETSC
 
 namespace hyteg {
