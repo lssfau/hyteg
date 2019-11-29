@@ -54,11 +54,9 @@ EdgeDoFFunction< ValueType >::EdgeDoFFunction( const std::string&               
                                                const std::shared_ptr< PrimitiveStorage >& storage,
                                                const uint_t&                              minLevel,
                                                const uint_t&                              maxLevel,
-                                               const BoundaryCondition&                   boundaryCondition,
-                                               const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication )
+                                               const BoundaryCondition&                   boundaryCondition )
 : Function< EdgeDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , boundaryCondition_( boundaryCondition )
-, boundaryTypeToSkipDuringAdditiveCommunication_( boundaryTypeToSkipDuringAdditiveCommunication )
 {
    std::shared_ptr< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > > vertexDataHandling =
        std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > >(
@@ -92,9 +90,7 @@ EdgeDoFFunction< ValueType >::EdgeDoFFunction( const std::string&               
                                                                     edgeDataID_,
                                                                     faceDataID_,
                                                                     cellDataID_,
-                                                                    this->getStorage(),
-                                                                    boundaryCondition_,
-                                                                    boundaryTypeToSkipDuringAdditiveCommunication_ ) );
+                                                                    this->getStorage()) );
    }
 }
 
@@ -1031,6 +1027,20 @@ ValueType EdgeDoFFunction< ValueType >::getMaxMagnitude( uint_t level, DoFType f
    return localMax;
 }
 
+template < typename ValueType >
+void EdgeDoFFunction< ValueType >::setLocalCommunicationMode(
+    const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode )
+{
+   if ( isDummy() ) { return; }
+   for ( auto & communicator : communicators_ )
+   {
+      communicator.second->setLocalCommunicationMode( localCommunicationMode );
+   }
+   for( auto & communicator : additiveCommunicators_ )
+   {
+      communicator.second->setLocalCommunicationMode( localCommunicationMode );
+   }
+}
 
 template < typename ValueType >
 template < typename PrimitiveType >

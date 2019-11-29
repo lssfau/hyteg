@@ -70,8 +70,7 @@ public:
                    const std::shared_ptr< PrimitiveStorage >& storage,
                    const uint_t&                              minLevel,
                    const uint_t&                              maxLevel,
-                   const BoundaryCondition&                   boundaryCondition,
-                   const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication = DoFType::DirichletBoundary );
+                   const BoundaryCondition&                   boundaryCondition );
 
   void swap( const EdgeDoFFunction< ValueType > & other,
              const uint_t & level,
@@ -126,7 +125,6 @@ public:
   ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
   inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
-  inline DoFType           getBoundaryTypeToSkipDuringAdditiveCommunication() const { return boundaryTypeToSkipDuringAdditiveCommunication_; }
 
   template< typename SenderType, typename ReceiverType >
   inline void startCommunication( const uint_t & level ) const
@@ -149,6 +147,9 @@ public:
      endCommunication< SenderType, ReceiverType >( level );
   }
 
+  /// Starts additive communication and will return before the communication is finished such that it can be used for
+  /// asynchronous tasks. endAdditiveCommunication has to be called manually!
+  /// See communicateAdditively( const uint_t& ) const for more details
   template < typename SenderType, typename ReceiverType >
   inline void startAdditiveCommunication( const uint_t& level ) const
   {
@@ -157,11 +158,51 @@ public:
       return;
     }
     interpolateByPrimitiveType< ReceiverType >(
-    real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication_ );
+    real_c( 0 ), level, DoFType::All );
     additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
   }
 
-  template < typename SenderType, typename ReceiverType >
+   /// Starts additive communication that excludes primitives with a certain boundary flag from \b receiving.
+   /// Will return before the communication is finished such that it can be used for
+   /// asynchronous tasks. endAdditiveCommunication has to be called manually!
+   /// See communicateAdditively( const uint_t&, const DoFType, const PrimitiveStorage& ) const for more details
+   template < typename SenderType, typename ReceiverType >
+   inline void startAdditiveCommunication( const uint_t&           level,
+                                           const DoFType           boundaryTypeToSkipDuringAdditiveCommunication,
+                                           const PrimitiveStorage& primitiveStorage ) const
+   {
+      if ( isDummy() )
+      {
+         return;
+      }
+      std::vector< PrimitiveID > receiverIDs;
+      std::vector< PrimitiveID > receiverNeighborIDs;
+      std::vector< PrimitiveID > excludeFromReceiving;
+      primitiveStorage.getPrimitiveIDsGenerically< ReceiverType >( receiverIDs );
+      primitiveStorage.getNeighboringPrimitiveIDsGenerically< ReceiverType >( receiverNeighborIDs );
+      for ( const PrimitiveID& id : receiverIDs )
+      {
+         if ( testFlag( boundaryCondition_.getBoundaryType( primitiveStorage.getPrimitive( id )->getMeshBoundaryFlag() ),
+                        boundaryTypeToSkipDuringAdditiveCommunication ) )
+         {
+            excludeFromReceiving.push_back( id );
+         }
+      }
+      for ( const PrimitiveID& id : receiverNeighborIDs )
+      {
+         if ( testFlag( boundaryCondition_.getBoundaryType( primitiveStorage.getPrimitive( id )->getMeshBoundaryFlag() ),
+                        boundaryTypeToSkipDuringAdditiveCommunication ) )
+         {
+            excludeFromReceiving.push_back( id );
+         }
+      }
+      interpolateByPrimitiveType< ReceiverType >(
+          real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication );
+      additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >( excludeFromReceiving );
+   }
+
+   /// Waits for the additive communication to finish. Requires that startAdditiveCommunication() was called before.
+   template < typename SenderType, typename ReceiverType >
   inline void endAdditiveCommunication( const uint_t& level ) const
   {
     if( isDummy() )
@@ -171,6 +212,12 @@ public:
     additiveCommunicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
   }
 
+   /// Additive communication sends the ghost layers of a primitive with dimension N and reduces (adds) them during the
+   /// communication on the receiving primitive with dimension N-1. This is for example used for the prolongation and restriction
+   /// where e.g. in 2D all the work is done on the faces and the result is additively communicated onto the edges and vertices
+   /// \tparam SenderType type of the sending primitive (e.g. Face)
+   /// \tparam ReceiverType type of the receiving primitive (e.g. Face)
+   /// \param level the refinement level which is communicated
   template < typename SenderType, typename ReceiverType >
   inline void communicateAdditively( const uint_t& level ) const
   {
@@ -178,18 +225,27 @@ public:
      endAdditiveCommunication< SenderType, ReceiverType >( level );
   }
 
-  inline void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode & localCommunicationMode )
-  {
-    if ( isDummy() ) { return; }
-    for ( auto & communicator : communicators_ )
-    {
-      communicator.second->setLocalCommunicationMode( localCommunicationMode );
-    }
-    for( auto & communicator : additiveCommunicators_ )
-    {
-      communicator.second->setLocalCommunicationMode( localCommunicationMode );
-    }
-  }
+   /// Similar to communicateAdditively() but excludes all primitives with the boundary type
+   /// /p boundaryTypeToSkipDuringAdditiveCommunication from receiving any data. These primitives are still sending their data
+   /// however!
+   /// \tparam SenderType type of the sending primitive (e.g. Face)
+   /// \tparam ReceiverType type of the receiving primitive (e.g. Face)
+   /// \param level the refinement level which is communicated
+   /// \param boundaryTypeToSkipDuringAdditiveCommunication primitives will this boundary type will no \b receive any data
+   /// \param primitiveStorage
+   template < typename SenderType, typename ReceiverType >
+   inline void communicateAdditively( const uint_t&           level,
+                                      const DoFType           boundaryTypeToSkipDuringAdditiveCommunication,
+                                      const PrimitiveStorage& primitiveStorage ) const
+   {
+      startAdditiveCommunication< SenderType, ReceiverType >( level, boundaryTypeToSkipDuringAdditiveCommunication, primitiveStorage );
+      endAdditiveCommunication< SenderType, ReceiverType >( level );
+   }
+
+   /// Sets the communication mode that is used between primitives that belong to the same process. Normally this is only needed
+   /// for debugging. See communication::BufferedCommunicator::LocalCommunicationMode for the available options
+   /// \param localCommunicationMode
+  inline void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode & localCommunicationMode );
 
    using Function< EdgeDoFFunction< ValueType > >::isDummy;
 
@@ -209,8 +265,6 @@ private:
    PrimitiveDataID< FunctionMemory< ValueType >, Cell > cellDataID_;
 
    BoundaryCondition boundaryCondition_;
-
-   DoFType boundaryTypeToSkipDuringAdditiveCommunication_;
 
    /// friend P2Function for usage of enumerate
    friend class P2Function< ValueType >;

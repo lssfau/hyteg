@@ -105,7 +105,7 @@ void P2toP2QuadraticRestriction::restrictAdditively( const P2Function< real_t >&
    function.getVertexDoFFunction().communicateAdditively< Face, Edge >( coarseLevel, excludeFlag, *function.getStorage() );
    function.getVertexDoFFunction().communicateAdditively< Face, Vertex >( coarseLevel, excludeFlag, *function.getStorage() );
 
-   function.getEdgeDoFFunction().communicateAdditively< Face, Edge >( coarseLevel );
+   function.getEdgeDoFFunction().communicateAdditively< Face, Edge >( coarseLevel, excludeFlag, *function.getStorage() );
 }
 
 void P2toP2QuadraticRestriction::restrictAdditively3D( const P2Function< real_t >& function,
@@ -230,8 +230,8 @@ void P2toP2QuadraticRestriction::restrictAdditively3D( const P2Function< real_t 
   function.getVertexDoFFunction().communicateAdditively< Cell, Edge >( coarseLevel, excludeFlag, *function.getStorage() );
   function.getVertexDoFFunction().communicateAdditively< Cell, Vertex >( coarseLevel, excludeFlag, *function.getStorage() );
 
-  function.getEdgeDoFFunction().communicateAdditively< Cell, Face >( coarseLevel );
-  function.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( coarseLevel );
+  function.getEdgeDoFFunction().communicateAdditively< Cell, Face >( coarseLevel, excludeFlag, *function.getStorage() );
+  function.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( coarseLevel, excludeFlag, *function.getStorage() );
 }
 
 void P2toP2QuadraticRestriction::restrictWithPostCommunication( const hyteg::P2Function< walberla::real_t >& function,

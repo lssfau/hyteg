@@ -57,8 +57,7 @@ P2Function< ValueType >::P2Function( const std::string&                         
                                      const std::shared_ptr< PrimitiveStorage >& storage,
                                      uint_t                                     minLevel,
                                      uint_t                                     maxLevel,
-                                     BoundaryCondition                          boundaryCondition,
-                                     const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication )
+                                     BoundaryCondition                          boundaryCondition )
 : Function< P2Function< ValueType > >( name, storage, minLevel, maxLevel )
 , vertexDoFFunction_( vertexdof::VertexDoFFunction< ValueType >( name + "_VertexDoF",
                                                                  storage,
@@ -69,8 +68,7 @@ P2Function< ValueType >::P2Function( const std::string&                         
                                                   storage,
                                                   minLevel,
                                                   maxLevel,
-                                                  boundaryCondition,
-                                                  boundaryTypeToSkipDuringAdditiveCommunication ) )
+                                                  boundaryCondition) )
 {
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {

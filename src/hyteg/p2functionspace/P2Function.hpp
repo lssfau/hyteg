@@ -50,8 +50,7 @@ class P2Function : public Function< P2Function< ValueType > >
                const std::shared_ptr< PrimitiveStorage >& storage,
                uint_t                                     minLevel,
                uint_t                                     maxLevel,
-               BoundaryCondition                          boundaryCondition,
-               const DoFType& boundaryTypeToSkipDuringAdditiveCommunication = DoFType::DirichletBoundary );
+               BoundaryCondition                          boundaryCondition );
 
    inline vertexdof::VertexDoFFunction< ValueType > getVertexDoFFunctionCopy() const { return vertexDoFFunction_; }
    inline EdgeDoFFunction< ValueType >              getEdgeDoFFunctionCopy() const { return edgeDoFFunction_; }

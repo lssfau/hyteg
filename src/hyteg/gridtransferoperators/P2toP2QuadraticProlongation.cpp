@@ -141,7 +141,7 @@ void P2toP2QuadraticProlongation::prolongateAdditively( const P2Function< real_t
    function.getVertexDoFFunction().communicateAdditively< Face, Edge >( fineLevel, excludeFlag, *function.getStorage() );
    function.getVertexDoFFunction().communicateAdditively< Face, Vertex >( fineLevel, excludeFlag, *function.getStorage() );
 
-   function.getEdgeDoFFunction().communicateAdditively< Face, Edge >( fineLevel );
+   function.getEdgeDoFFunction().communicateAdditively< Face, Edge >( fineLevel, excludeFlag, *function.getStorage() );
 }
 
 void P2toP2QuadraticProlongation::prolongateAdditively3D( const P2Function< real_t >& function,
@@ -284,8 +284,8 @@ void P2toP2QuadraticProlongation::prolongateAdditively3D( const P2Function< real
   function.getVertexDoFFunction().communicateAdditively< Cell, Edge >( fineLevel, excludeFlag, *function.getStorage() );
   function.getVertexDoFFunction().communicateAdditively< Cell, Vertex >( fineLevel, excludeFlag, *function.getStorage() );
 
-  function.getEdgeDoFFunction().communicateAdditively< Cell, Face >( fineLevel );
-  function.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( fineLevel );
+  function.getEdgeDoFFunction().communicateAdditively< Cell, Face >( fineLevel, excludeFlag, *function.getStorage() );
+  function.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( fineLevel, excludeFlag, *function.getStorage() );
 
 }
 
