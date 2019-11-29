@@ -31,8 +31,11 @@ using indexing::IndexIncrement;
 
 void P2toP2QuadraticRestriction::restrictAdditively( const P2Function< real_t >& function,
                                                      const uint_t&               sourceLevel,
-                                                     const DoFType& ) const
+                                                     const DoFType& flag) const
 {
+   /// XOR flag with all to get the DoFTypes that should be excluded
+   const DoFType excludeFlag = (flag ^ All);
+
    const auto storage = function.getStorage();
 
    const uint_t fineLevel   = sourceLevel;
@@ -99,16 +102,18 @@ void P2toP2QuadraticRestriction::restrictAdditively( const P2Function< real_t >&
                                                                           numNeighborFacesEdge2 );
    }
 
-   function.getVertexDoFFunction().communicateAdditively< Face, Edge >( coarseLevel );
-   function.getVertexDoFFunction().communicateAdditively< Face, Vertex >( coarseLevel );
+   function.getVertexDoFFunction().communicateAdditively< Face, Edge >( coarseLevel, excludeFlag, *function.getStorage() );
+   function.getVertexDoFFunction().communicateAdditively< Face, Vertex >( coarseLevel, excludeFlag, *function.getStorage() );
 
    function.getEdgeDoFFunction().communicateAdditively< Face, Edge >( coarseLevel );
 }
 
 void P2toP2QuadraticRestriction::restrictAdditively3D( const P2Function< real_t >& function,
                                                        const uint_t&               sourceLevel,
-                                                       const DoFType& ) const
+                                                       const DoFType& flag) const
 {
+   /// XOR flag with all to get the DoFTypes that should be excluded
+   const DoFType excludeFlag = (flag ^ All);
    const auto storage = function.getStorage();
 
    const uint_t fineLevel   = sourceLevel;
@@ -221,9 +226,9 @@ void P2toP2QuadraticRestriction::restrictAdditively3D( const P2Function< real_t 
                                                                           numNeighborCellsFace3 );
    }
 
-  function.getVertexDoFFunction().communicateAdditively< Cell, Face >( coarseLevel );
-  function.getVertexDoFFunction().communicateAdditively< Cell, Edge >( coarseLevel );
-  function.getVertexDoFFunction().communicateAdditively< Cell, Vertex >( coarseLevel );
+  function.getVertexDoFFunction().communicateAdditively< Cell, Face >( coarseLevel, excludeFlag, *function.getStorage() );
+  function.getVertexDoFFunction().communicateAdditively< Cell, Edge >( coarseLevel, excludeFlag, *function.getStorage() );
+  function.getVertexDoFFunction().communicateAdditively< Cell, Vertex >( coarseLevel, excludeFlag, *function.getStorage() );
 
   function.getEdgeDoFFunction().communicateAdditively< Cell, Face >( coarseLevel );
   function.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( coarseLevel );
