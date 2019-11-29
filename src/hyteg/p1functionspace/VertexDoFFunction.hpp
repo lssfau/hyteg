@@ -208,6 +208,14 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
             excludeFromReceiving.push_back( id );
          }
       }
+      for ( PrimitiveID id : receiverNeighborIDs )
+      {
+         if ( testFlag( boundaryCondition_.getBoundaryType( primitiveStorage.getPrimitive( id )->getMeshBoundaryFlag() ),
+                        boundaryTypeToSkipDuringAdditiveCommunication ) )
+         {
+            excludeFromReceiving.push_back( id );
+         }
+      }
       interpolateByPrimitiveType< ReceiverType >(
           real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication_ );
       additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >( excludeFromReceiving );
