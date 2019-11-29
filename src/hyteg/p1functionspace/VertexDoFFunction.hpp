@@ -219,7 +219,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
          }
       }
       interpolateByPrimitiveType< ReceiverType >(
-          real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication_ );
+          real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication );
       additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >( excludeFromReceiving );
    }
 
@@ -286,8 +286,6 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    PrimitiveDataID< FunctionMemory< ValueType >, Cell >   cellDataID_;
 
    BoundaryCondition boundaryCondition_;
-
-   DoFType boundaryTypeToSkipDuringAdditiveCommunication_;
 
    /// friend Stokes and P2Function for usage of enumerate
    friend class P2Function< ValueType >;
