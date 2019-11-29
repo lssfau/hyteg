@@ -58,6 +58,7 @@ class BufferedCommunicator
 {
 public:
 
+  /// Options for the communication mode that is used between primitives that belong to the same process
   enum LocalCommunicationMode 
   {
     /// Uses the direct communication callbacks of the respective PackInfos for local neighbors
