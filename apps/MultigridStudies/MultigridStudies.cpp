@@ -1009,9 +1009,14 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       sqlRealProperties["fmg_l2_residual_u_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorU );
       sqlRealProperties["fmg_l2_residual_p_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorP );
       timerFMGErrorCalculation.end();
-      WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error u: " << std::scientific << _l2ErrorU
+      real_t fmgCoraseGridTime = 0.0;
+#ifdef HYTEG_BUILD_WITH_PETSC
+      fmgCoraseGridTime = petscSolver->getTimer().last();
+#endif
+       WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error u: " << std::scientific << _l2ErrorU
                                                   << " / l2 error p: " << std::scientific << _l2ErrorP << std::fixed
-                                                  << " - time error calc: " << timerFMGErrorCalculation.last() << " sec" );
+                                                  << " - time error calc: " << timerFMGErrorCalculation.last() << " sec, "
+                                                  << std::fixed << " time coarse grid: " << fmgCoraseGridTime );
    };
 
    FullMultigridSolver< StokesOperator > fullMultigridSolver(
