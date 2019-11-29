@@ -85,7 +85,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    /// \brief Copies all values function data from other to this.
    ///
    /// This method can be used safely if the other function is located on a different PrimitiveStorage.
-   void copyFrom( const VertexDoFFunction< ValueType > & other, const uint_t & level ) const;
+   void copyFrom( const VertexDoFFunction< ValueType >& other, const uint_t& level ) const;
 
    real_t evaluate( const Point3D& coordinates, uint_t level ) const;
 

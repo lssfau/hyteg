@@ -24,16 +24,16 @@
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "hyteg/geometry/Intersection.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
-#include "hyteg/p2functionspace/P2MacroVertex.hpp"
 #include "hyteg/p2functionspace/P2MacroCell.hpp"
 #include "hyteg/p2functionspace/P2MacroEdge.hpp"
 #include "hyteg/p2functionspace/P2MacroFace.hpp"
-#include "hyteg/p2functionspace/P2TransferOperators.hpp"
+#include "hyteg/p2functionspace/P2MacroVertex.hpp"
 #include "hyteg/p2functionspace/P2Multigrid.hpp"
-#include "hyteg/geometry/Intersection.hpp"
+#include "hyteg/p2functionspace/P2TransferOperators.hpp"
 
 namespace hyteg {
 
@@ -81,18 +81,18 @@ P2Function< ValueType >::P2Function( const std::string&                         
 template < typename ValueType >
 ValueType P2Function< ValueType >::evaluate( const Point3D& coordinates, uint_t level ) const
 {
-  WALBERLA_UNUSED( coordinates );
-  WALBERLA_UNUSED( level );
-  WALBERLA_ABORT( "P2Function< ValueType >::evaluate not implemented for requested template parameter" );
+   WALBERLA_UNUSED( coordinates );
+   WALBERLA_UNUSED( level );
+   WALBERLA_ABORT( "P2Function< ValueType >::evaluate not implemented for requested template parameter" );
 }
 
 template < typename ValueType >
 void P2Function< ValueType >::evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const
 {
-  WALBERLA_UNUSED( coordinates );
-  WALBERLA_UNUSED( level );
-  WALBERLA_UNUSED( gradient );
-  WALBERLA_ABORT( "P2Function< ValueType >::evaluateGradient not implemented for requested template parameter" );
+   WALBERLA_UNUSED( coordinates );
+   WALBERLA_UNUSED( level );
+   WALBERLA_UNUSED( gradient );
+   WALBERLA_ABORT( "P2Function< ValueType >::evaluateGradient not implemented for requested template parameter" );
 }
 
 template < typename ValueType >
@@ -150,10 +150,9 @@ void P2Function< ValueType >::swap( const P2Function< ValueType >& other, const 
 template < typename ValueType >
 void P2Function< ValueType >::copyFrom( const P2Function< ValueType >& other, const uint_t& level ) const
 {
-  vertexDoFFunction_.copyFrom( other.getVertexDoFFunction(), level );
-  edgeDoFFunction_.copyFrom( other.getEdgeDoFFunction(), level );
+   vertexDoFFunction_.copyFrom( other.getVertexDoFFunction(), level );
+   edgeDoFFunction_.copyFrom( other.getEdgeDoFFunction(), level );
 }
-
 
 template < typename ValueType >
 void P2Function< ValueType >::assign( const std::vector< ValueType >&                                               scalars,
@@ -326,10 +325,11 @@ void P2Function< ValueType >::add( const std::vector< ValueType >&              
 }
 
 template < typename ValueType >
-void P2Function< ValueType >::multElementwise( const std::vector< std::reference_wrapper< const P2Function< ValueType > > >& functions,
-                                               uint_t                                                                        level,
-                                               DoFType                                                                       flag ) const {
-
+void P2Function< ValueType >::multElementwise(
+    const std::vector< std::reference_wrapper< const P2Function< ValueType > > >& functions,
+    uint_t                                                                        level,
+    DoFType                                                                       flag ) const
+{
    std::vector< std::reference_wrapper< const vertexdof::VertexDoFFunction< ValueType > > > vertexDoFFunctions;
    std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >              edgeDoFFunctions;
 
@@ -339,12 +339,13 @@ void P2Function< ValueType >::multElementwise( const std::vector< std::reference
       edgeDoFFunctions.push_back( function.edgeDoFFunction_ );
    }
 
-  vertexDoFFunction_.multElementwise( vertexDoFFunctions, level, flag );
-  edgeDoFFunction_.multElementwise( edgeDoFFunctions, level, flag );
+   vertexDoFFunction_.multElementwise( vertexDoFFunctions, level, flag );
+   edgeDoFFunction_.multElementwise( edgeDoFFunctions, level, flag );
 }
 
 template < typename ValueType >
-void P2Function< ValueType >::invertElementwise( uint_t  level, DoFType flag ) const {
+void P2Function< ValueType >::invertElementwise( uint_t level, DoFType flag ) const
+{
    vertexDoFFunction_.invertElementwise( level, flag );
    edgeDoFFunction_.invertElementwise( level, flag );
 }
@@ -369,7 +370,7 @@ ValueType P2Function< ValueType >::dotLocal( const P2Function< ValueType >& rhs,
 }
 
 template < typename ValueType >
-ValueType P2Function< ValueType >::sumGlobal( const uint_t level, const DoFType& flag, const bool & absolute ) const
+ValueType P2Function< ValueType >::sumGlobal( const uint_t level, const DoFType& flag, const bool& absolute ) const
 {
    ValueType sum = sumLocal( level, flag, absolute );
    this->startTiming( "Sum (reduce)" );
@@ -379,7 +380,7 @@ ValueType P2Function< ValueType >::sumGlobal( const uint_t level, const DoFType&
 }
 
 template < typename ValueType >
-ValueType P2Function< ValueType >::sumLocal( const uint_t level, const DoFType& flag, const bool & absolute ) const
+ValueType P2Function< ValueType >::sumLocal( const uint_t level, const DoFType& flag, const bool& absolute ) const
 {
    auto sum = ValueType( 0 );
    sum += vertexDoFFunction_.sumLocal( level, flag, absolute );
@@ -389,8 +390,8 @@ ValueType P2Function< ValueType >::sumLocal( const uint_t level, const DoFType& 
 
 template < typename ValueType >
 void P2Function< ValueType >::prolongateP1ToP2( const hyteg::P1Function< ValueType >& p1Function,
-                                                const uint_t&                       level,
-                                                const DoFType&                      flag ) const
+                                                const uint_t&                         level,
+                                                const DoFType&                        flag ) const
 {
    // Note: 'this' is the dst function - therefore we test this' boundary conditions
 
@@ -637,81 +638,84 @@ void P2Function< ValueType >::setLocalCommunicationMode(
    edgeDoFFunction_.setLocalCommunicationMode( localCommMode );
 }
 
-
 // =================
 //  Specialisations
 // =================
 template <>
 real_t P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level ) const
 {
-  // Check if 2D or 3D function
-  if ( !this->getStorage()->hasGlobalCells() )
-    {
+   // Check if 2D or 3D function
+   if ( !this->getStorage()->hasGlobalCells() )
+   {
       for ( auto& it : this->getStorage()->getFaces() )
-        {
-          Face& face = *it.second;
+      {
+         Face& face = *it.second;
 
-          if ( sphereTriangleIntersection( coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
-            {
-              return P2::macroface::evaluate( level, face, coordinates, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
-            }
-        }
-    }
-  else
-    {
+         if ( sphereTriangleIntersection(
+                  coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+         {
+            return P2::macroface::evaluate(
+                level, face, coordinates, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
+         }
+      }
+   }
+   else
+   {
       for ( auto& it : this->getStorage()->getCells() )
-        {
-          Cell& cell = *it.second;
-          
-          if ( isPointInTetrahedron( coordinates,
-                                     cell.getCoordinates()[0],
-                                     cell.getCoordinates()[1],
-                                     cell.getCoordinates()[2],
-                                     cell.getCoordinates()[3] ) )
-            {
-              WALBERLA_ABORT( " P2Function< real_t >::evaluate not implemented for 3D case" );
-            }
-        }
-    }
+      {
+         Cell& cell = *it.second;
 
-  WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
+         if ( isPointInTetrahedron( coordinates,
+                                    cell.getCoordinates()[0],
+                                    cell.getCoordinates()[1],
+                                    cell.getCoordinates()[2],
+                                    cell.getCoordinates()[3] ) )
+         {
+            WALBERLA_ABORT( " P2Function< real_t >::evaluate not implemented for 3D case" );
+         }
+      }
+   }
+
+   WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
 }
 
 template <>
 void P2Function< real_t >::evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const
 {
-  // Check if 2D or 3D function
-  if ( !this->getStorage()->hasGlobalCells() )
-    {
+   // Check if 2D or 3D function
+   if ( !this->getStorage()->hasGlobalCells() )
+   {
       for ( auto& it : this->getStorage()->getFaces() )
-        {
-          Face& face = *it.second;
+      {
+         Face& face = *it.second;
 
-          if ( sphereTriangleIntersection( coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
-            {
-              P2::macroface::evaluateGradient( level, face, coordinates, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID(), gradient );
-              return;
-            }
-        }
-    }
-  else
-    {
+         if ( sphereTriangleIntersection(
+                  coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+         {
+            P2::macroface::evaluateGradient(
+                level, face, coordinates, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID(), gradient );
+            return;
+         }
+      }
+   }
+   else
+   {
       for ( auto& it : this->getStorage()->getCells() )
-        {
-          Cell& cell = *it.second;
-          
-          if ( isPointInTetrahedron( coordinates,
-                                     cell.getCoordinates()[0],
-                                     cell.getCoordinates()[1],
-                                     cell.getCoordinates()[2],
-                                     cell.getCoordinates()[3] ) )
-            {
-              WALBERLA_ABORT( " P2Function< real_t >::evaluateGradient not implemented for 3D case" );
-            }
-        }
-    }
+      {
+         Cell& cell = *it.second;
 
-  WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
+         if ( isPointInTetrahedron( coordinates,
+                                    cell.getCoordinates()[0],
+                                    cell.getCoordinates()[1],
+                                    cell.getCoordinates()[2],
+                                    cell.getCoordinates()[3] ) )
+         {
+            WALBERLA_ABORT( " P2Function< real_t >::evaluateGradient not implemented for 3D case" );
+         }
+      }
+   }
+
+   WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
 }
 
 // ========================

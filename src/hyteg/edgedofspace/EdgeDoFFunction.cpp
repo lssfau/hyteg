@@ -288,11 +288,14 @@ void EdgeDoFFunction< ValueType >::swap( const EdgeDoFFunction< ValueType >& oth
    {
       for ( auto& it : this->getStorage()->getCells() )
       {
-         Cell& cell = *it.second;
-
-         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         for ( auto& it : this->getStorage()->getCells() )
          {
-            edgedof::macrocell::swap< ValueType >( level, cell, other.getCellDataID(), cellDataID_ );
+            Cell& cell = *it.second;
+   
+            if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+            {
+               edgedof::macrocell::swap< ValueType >( level, cell, other.getCellDataID(), cellDataID_ );
+            }
          }
       }
    }
@@ -300,46 +303,57 @@ void EdgeDoFFunction< ValueType >::swap( const EdgeDoFFunction< ValueType >& oth
    this->stopTiming( "Swap" );
 }
 
-template< typename ValueType >
-void EdgeDoFFunction< ValueType >::copyFrom( const EdgeDoFFunction< ValueType > & other, const uint_t & level ) const
+template < typename ValueType >
+void EdgeDoFFunction< ValueType >::copyFrom( const EdgeDoFFunction< ValueType >& other, const uint_t& level ) const
 {
-  if( isDummy() )
-  {
-    return;
-  }
-  this->startTiming( "Copy" );
+   if ( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "Copy" );
 
-  for( auto& it : this->getStorage()->getVertices() )
-  {
-    auto primitiveID = it.first;
-    WALBERLA_ASSERT( other.getStorage()->vertexExistsLocally( primitiveID ) )
-    this->getStorage()->getVertex( primitiveID )->getData( vertexDataID_ )->copyFrom( *other.getStorage()->getVertex( primitiveID )->getData( other.getVertexDataID() ), level );
-  }
+   for ( auto& it : this->getStorage()->getVertices() )
+   {
+      auto primitiveID = it.first;
+      WALBERLA_ASSERT( other.getStorage()->vertexExistsLocally( primitiveID ) )
+      this->getStorage()
+          ->getVertex( primitiveID )
+          ->getData( vertexDataID_ )
+          ->copyFrom( *other.getStorage()->getVertex( primitiveID )->getData( other.getVertexDataID() ), level );
+   }
 
-  for( auto& it : this->getStorage()->getEdges() )
-  {
-    auto primitiveID = it.first;
-    WALBERLA_ASSERT( other.getStorage()->edgeExistsLocally( primitiveID ) )
-    this->getStorage()->getEdge( primitiveID )->getData( edgeDataID_ )->copyFrom( *other.getStorage()->getEdge( primitiveID )->getData( other.getEdgeDataID() ), level );
-  }
+   for ( auto& it : this->getStorage()->getEdges() )
+   {
+      auto primitiveID = it.first;
+      WALBERLA_ASSERT( other.getStorage()->edgeExistsLocally( primitiveID ) )
+      this->getStorage()
+          ->getEdge( primitiveID )
+          ->getData( edgeDataID_ )
+          ->copyFrom( *other.getStorage()->getEdge( primitiveID )->getData( other.getEdgeDataID() ), level );
+   }
 
-  for( auto& it : this->getStorage()->getFaces() )
-  {
-    auto primitiveID = it.first;
-    WALBERLA_ASSERT( other.getStorage()->faceExistsLocally( primitiveID ) )
-    this->getStorage()->getFace( primitiveID )->getData( faceDataID_ )->copyFrom( *other.getStorage()->getFace( primitiveID )->getData( other.getFaceDataID() ), level );
-  }
+   for ( auto& it : this->getStorage()->getFaces() )
+   {
+      auto primitiveID = it.first;
+      WALBERLA_ASSERT( other.getStorage()->faceExistsLocally( primitiveID ) )
+      this->getStorage()
+          ->getFace( primitiveID )
+          ->getData( faceDataID_ )
+          ->copyFrom( *other.getStorage()->getFace( primitiveID )->getData( other.getFaceDataID() ), level );
+   }
 
-  for( auto& it : this->getStorage()->getCells() )
-  {
-    auto primitiveID = it.first;
-    WALBERLA_ASSERT( other.getStorage()->cellExistsLocally( primitiveID ) )
-    this->getStorage()->getCell( primitiveID )->getData( cellDataID_ )->copyFrom( *other.getStorage()->getCell( primitiveID )->getData( other.getCellDataID() ), level );
-  }
+   for ( auto& it : this->getStorage()->getCells() )
+   {
+      auto primitiveID = it.first;
+      WALBERLA_ASSERT( other.getStorage()->cellExistsLocally( primitiveID ) )
+      this->getStorage()
+          ->getCell( primitiveID )
+          ->getData( cellDataID_ )
+          ->copyFrom( *other.getStorage()->getCell( primitiveID )->getData( other.getCellDataID() ), level );
+   }
 
-  this->stopTiming( "Copy" );
+   this->stopTiming( "Copy" );
 }
-
 
 template < typename ValueType >
 void macroFaceAssign( const uint_t&                                                              level,
@@ -1173,12 +1187,11 @@ void EdgeDoFFunction< ValueType >::setLocalCommunicationMode(
 }
 
 template < typename ValueType >
-void EdgeDoFFunction< ValueType >::invertElementwise( const uint_t  level,
-                                                      const DoFType flag ) const
+void EdgeDoFFunction< ValueType >::invertElementwise( const uint_t level, const DoFType flag ) const
 {
-  WALBERLA_UNUSED( level );
-  WALBERLA_UNUSED( flag );
-  WALBERLA_ABORT( "EdgeDoFFunction< ValueType >::invertElementwise not available for requested ValueType" );
+   WALBERLA_UNUSED( level );
+   WALBERLA_UNUSED( flag );
+   WALBERLA_ABORT( "EdgeDoFFunction< ValueType >::invertElementwise not available for requested ValueType" );
 }
 
 template < typename ValueType >
@@ -1281,12 +1294,11 @@ uint_t edgedof::edgeDoFMacroCellFunctionMemorySize( const uint_t& level, const P
           ( levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) - 1 ) );
 }
 
-
 // =================
 //  specialisations
 // =================
 template <>
-void EdgeDoFFunction< real_t >::invertElementwise( const uint_t  level, const DoFType flag ) const
+void EdgeDoFFunction< real_t >::invertElementwise( const uint_t level, const DoFType flag ) const
 {
    if ( isDummy() )
    {
@@ -1300,11 +1312,12 @@ void EdgeDoFFunction< real_t >::invertElementwise( const uint_t  level, const Do
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
-        real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
-        uint_t size = edgedof::edgeDoFMacroEdgeFunctionMemorySize( level, edge );
-        for( uint_t k = 0; k < size; ++k ) {
-          data[k] = real_c( 1.0 ) / data[k];
-        }
+         real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
+         uint_t  size = edgedof::edgeDoFMacroEdgeFunctionMemorySize( level, edge );
+         for ( uint_t k = 0; k < size; ++k )
+         {
+            data[k] = real_c( 1.0 ) / data[k];
+         }
       }
    }
 
@@ -1314,11 +1327,12 @@ void EdgeDoFFunction< real_t >::invertElementwise( const uint_t  level, const Do
 
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
-        real_t* data = face.getData( faceDataID_ )->getPointer( level );
-        uint_t size = edgedof::edgeDoFMacroFaceFunctionMemorySize( level, face );
-        for( uint_t k = 0; k < size; ++k ) {
-          data[k] = real_c( 1.0 ) / data[k];
-        }
+         real_t* data = face.getData( faceDataID_ )->getPointer( level );
+         uint_t  size = edgedof::edgeDoFMacroFaceFunctionMemorySize( level, face );
+         for ( uint_t k = 0; k < size; ++k )
+         {
+            data[k] = real_c( 1.0 ) / data[k];
+         }
       }
    }
 
@@ -1328,16 +1342,16 @@ void EdgeDoFFunction< real_t >::invertElementwise( const uint_t  level, const Do
 
       if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
-        real_t* data = cell.getData( cellDataID_ )->getPointer( level );
-        uint_t size = edgedof::edgeDoFMacroCellFunctionMemorySize( level, cell );
-        for( uint_t k = 0; k < size; ++k ) {
-          data[k] = real_c( 1.0 ) / data[k];
-        }
+         real_t* data = cell.getData( cellDataID_ )->getPointer( level );
+         uint_t  size = edgedof::edgeDoFMacroCellFunctionMemorySize( level, cell );
+         for ( uint_t k = 0; k < size; ++k )
+         {
+            data[k] = real_c( 1.0 ) / data[k];
+         }
       }
    }
    this->stopTiming( "Invert elementwise" );
 }
-
 
 // ========================
 //  explicit instantiation
