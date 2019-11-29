@@ -120,6 +120,9 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
                          uint_t                                                                               level,
                          DoFType                                                                              flag = All ) const;
 
+   /// Replace values of the function by their inverses in an elementwise fashion
+   void invertElementwise( uint_t level, DoFType flag = All ) const;
+
    ValueType dotLocal( const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
    ValueType dotGlobal( const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
 

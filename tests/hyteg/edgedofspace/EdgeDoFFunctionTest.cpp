@@ -127,6 +127,19 @@ static void testEdgeDoFFunction()
 
   WALBERLA_CHECK_FLOAT_EQUAL( scalarProduct, real_c( levelinfo::num_microedges_per_face( maxLevel ) * 48 * 2 ) );
 
+  // Invert
+
+  timer["Invert"].start();
+  y->invertElementwise( maxLevel, DoFType::All );
+  timer["Invert"].end();
+
+  for ( const auto & it : edgedof::macroface::Iterator( maxLevel ) )
+  {
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::horizontalIndex( maxLevel, it.col(), it.row())], real_c( 1.0/48.0 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::diagonalIndex( maxLevel, it.col(), it.row())], real_c( 1.0/48.0 ) );
+    WALBERLA_CHECK_FLOAT_EQUAL( faceDataY[edgedof::macroface::verticalIndex( maxLevel, it.col(), it.row())], real_c( 1.0/48.0 ) );
+  }
+
   WALBERLA_LOG_INFO_ON_ROOT( timer );
 
   // Output interpolate VTK

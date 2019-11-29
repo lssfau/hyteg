@@ -116,6 +116,9 @@ class P2Function : public Function< P2Function< ValueType > >
                          uint_t                                                                        level,
                          DoFType                                                                       flag = All ) const;
 
+   /// Replace values of the function by their inverses in an elementwise fashion
+   void invertElementwise( uint_t level, DoFType flag = All ) const;
+
    ValueType dotGlobal( const P2Function< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const;
 
    ValueType dotLocal( const P2Function< ValueType >& rhs, uint_t level, const DoFType& flag = All ) const;

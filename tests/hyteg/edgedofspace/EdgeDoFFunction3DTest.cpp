@@ -89,4 +89,9 @@ int main( int argc, char** argv )
    }
 
    WALBERLA_CHECK_FLOAT_EQUAL( dotProduct, 6 * real_c( 20 ) + real_c( 10 ) );
+
+   x1.interpolate( real_c( 1.0/3.0 ), level, All );
+   x1.invertElementwise( level, All );
+   WALBERLA_CHECK_FLOAT_EQUAL( x1.getMaxValue( level, All ), real_c( 3 ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( x1.getMinValue( level, All ), real_c( 3 ) );
 }

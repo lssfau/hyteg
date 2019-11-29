@@ -344,6 +344,12 @@ void P2Function< ValueType >::multElementwise( const std::vector< std::reference
 }
 
 template < typename ValueType >
+void P2Function< ValueType >::invertElementwise( uint_t  level, DoFType flag ) const {
+   vertexDoFFunction_.invertElementwise( level, flag );
+   edgeDoFFunction_.invertElementwise( level, flag );
+}
+
+template < typename ValueType >
 ValueType P2Function< ValueType >::dotGlobal( const P2Function< ValueType >& rhs, const uint_t level, const DoFType& flag ) const
 {
    ValueType sum = dotLocal( rhs, level, flag );

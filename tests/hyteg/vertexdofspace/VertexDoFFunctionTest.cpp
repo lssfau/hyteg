@@ -243,8 +243,19 @@ static void testVertexDoFFunction( const communication::BufferedCommunicator::Lo
   }
 }
 
-} // namespace hyteg
+void testInvertElementwise() {
 
+  auto storage = PrimitiveStorage::createFromGmshFile( "../../data/meshes/3D/pyramid_tilted_4el.msh" );
+  uint_t level = 3;
+
+  vertexdof::VertexDoFFunction<real_t> vFunc( "testFunc", storage, level, level );
+  vFunc.interpolate( real_c( -1.0/3.0 ), level, All );
+  vFunc.invertElementwise( level, All );
+  WALBERLA_CHECK_FLOAT_EQUAL( vFunc.getMaxValue( level, All ), real_c( -3 ) );
+  WALBERLA_CHECK_FLOAT_EQUAL( vFunc.getMinValue( level, All ), real_c( -3 ) );
+}
+
+} // namespace hyteg
 
 int main( int argc, char* argv[] )
 {
@@ -255,6 +266,8 @@ int main( int argc, char* argv[] )
   walberla::MPIManager::instance()->useWorldComm();
   hyteg::testVertexDoFFunction( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI, "../../data/meshes/3D/tet_1el.msh" );
   hyteg::testVertexDoFFunction( hyteg::communication::BufferedCommunicator::LocalCommunicationMode::DIRECT      , "../../data/meshes/3D/tet_1el.msh" );
+
+  hyteg::testInvertElementwise();
 
   return EXIT_SUCCESS;
 }
