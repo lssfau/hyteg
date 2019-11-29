@@ -143,7 +143,7 @@ void EdgeDoFFunction< ValueType >::interpolate( const std::function< ValueType( 
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::interpolateExtended(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-    const std::vector< EdgeDoFFunction< ValueType >* >                                   srcFunctions,
+    const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
     uint_t                                                                               level,
     DoFType                                                                              flag ) const
 {
@@ -157,11 +157,11 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > srcCellIDs;
 
-   for( auto& function : srcFunctions )
+   for( const EdgeDoFFunction& function : srcFunctions )
    {
-      srcEdgeIDs.push_back( function->edgeDataID_ );
-      srcFaceIDs.push_back( function->faceDataID_ );
-      srcCellIDs.push_back( function->cellDataID_ );
+      srcEdgeIDs.push_back( function.edgeDataID_ );
+      srcFaceIDs.push_back( function.faceDataID_ );
+      srcCellIDs.push_back( function.cellDataID_ );
    }
 
    for( auto& it : this->getStorage()->getEdges() )
@@ -199,7 +199,7 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::interpolateExtended(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-    const std::vector< EdgeDoFFunction< ValueType >* >                                   srcFunctions,
+    const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
     uint_t                                                                               level,
     BoundaryUID                                                                          boundaryUID ) const
 {
@@ -213,11 +213,11 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > srcCellIDs;
 
-   for( auto& function : srcFunctions )
+   for( const EdgeDoFFunction& function : srcFunctions )
    {
-      srcEdgeIDs.push_back( function->edgeDataID_ );
-      srcFaceIDs.push_back( function->faceDataID_ );
-      srcCellIDs.push_back( function->cellDataID_ );
+      srcEdgeIDs.push_back( function.edgeDataID_ );
+      srcFaceIDs.push_back( function.faceDataID_ );
+      srcCellIDs.push_back( function.cellDataID_ );
    }
 
    for( auto& it : this->getStorage()->getEdges() )

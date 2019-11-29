@@ -52,10 +52,10 @@ void P2toP2QuadraticProlongation::prolongateAdditively( const P2Function< real_t
                                                         const uint_t&               sourceLevel,
                                                         const DoFType&              flag ) const
 {
-   WALBERLA_CHECK_EQUAL( function.getVertexDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication(),
-                         function.getEdgeDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() );
-   WALBERLA_CHECK_EQUAL( flag, function.getVertexDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() ^ All );
-   WALBERLA_CHECK_EQUAL( flag, function.getEdgeDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() ^ All );
+//   WALBERLA_CHECK_EQUAL( function.getVertexDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication(),
+//                         function.getEdgeDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() );
+//   WALBERLA_CHECK_EQUAL( flag, function.getVertexDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() ^ All );
+//   WALBERLA_CHECK_EQUAL( flag, function.getEdgeDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() ^ All );
 
    const auto storage = function.getStorage();
 
@@ -150,10 +150,10 @@ void P2toP2QuadraticProlongation::prolongateAdditively3D( const P2Function< real
                                                           const uint_t&               sourceLevel,
                                                           const DoFType&              flag ) const
 {
-  WALBERLA_CHECK_EQUAL( function.getVertexDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication(),
-                        function.getEdgeDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() );
-  WALBERLA_CHECK_EQUAL( flag, function.getVertexDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() ^ All );
-  WALBERLA_CHECK_EQUAL( flag, function.getEdgeDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() ^ All );
+//  WALBERLA_CHECK_EQUAL( function.getVertexDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication(),
+//                        function.getEdgeDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() );
+//  WALBERLA_CHECK_EQUAL( flag, function.getVertexDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() ^ All );
+//  WALBERLA_CHECK_EQUAL( flag, function.getEdgeDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() ^ All );
 
   const auto storage = function.getStorage();
 

@@ -98,13 +98,13 @@ public:
 
   void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
 
-  void interpolateExtended( const std::function<ValueType(const Point3D &, const std::vector<ValueType>&)> &expr,
-                            const std::vector<EdgeDoFFunction<ValueType>*> srcFunctions,
-                            uint_t level,
-                            DoFType flag = All) const;
+  void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+                            const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
+                            uint_t                                                                               level,
+                            DoFType flag = All ) const;
 
   void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                            const std::vector< EdgeDoFFunction< ValueType >* >                                   srcFunctions,
+                            const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >&   srcFunctions,
                             uint_t                                                                               level,
                             BoundaryUID                                                                          boundaryUID ) const;
 

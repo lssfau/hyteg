@@ -38,11 +38,8 @@ public:
                              PrimitiveDataID< FunctionMemory< ValueType >, Edge >   dataIDEdge,
                              PrimitiveDataID< FunctionMemory< ValueType >, Face >   dataIDFace,
                              PrimitiveDataID< FunctionMemory< ValueType >, Cell >   dataIDCell,
-                             std::weak_ptr< PrimitiveStorage >                      storage,
-                             BoundaryCondition                                      boundaryCondition,
-                             DoFType                                                boundaryTypeToSkip ) :
-      communication::DoFSpacePackInfo< ValueType >( level, dataIDVertex, dataIDEdge, dataIDFace, dataIDCell, storage ),
-      boundaryCondition_( boundaryCondition ), boundaryTypeToSkip_( boundaryTypeToSkip )
+                             const std::weak_ptr< PrimitiveStorage >&                      storage ) :
+      communication::DoFSpacePackInfo< ValueType >( level, dataIDVertex, dataIDEdge, dataIDFace, dataIDCell, storage )
   {}
 
   void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
@@ -108,9 +105,6 @@ private:
   using communication::DoFSpacePackInfo< ValueType >::dataIDFace_;
   using communication::DoFSpacePackInfo< ValueType >::dataIDCell_;
   using communication::DoFSpacePackInfo< ValueType >::storage_;
-
-  BoundaryCondition boundaryCondition_;
-  DoFType boundaryTypeToSkip_;
 
 };
 

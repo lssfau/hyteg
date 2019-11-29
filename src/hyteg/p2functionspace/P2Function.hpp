@@ -76,10 +76,10 @@ class P2Function : public Function< P2Function< ValueType > >
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
 
-   void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                             const std::vector< P2Function< ValueType >* >                                        srcFunctions,
-                             uint_t                                                                               level,
-                             DoFType flag = All ) const;
+   void interpolate( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+                     const std::vector< std::reference_wrapper< const P2Function< ValueType > > >&        srcFunctions,
+                     uint_t                                                                               level,
+                     DoFType                                                                              flag = All ) const;
 
    void swap( const P2Function< ValueType >& other, const uint_t& level, const DoFType& dofType = All ) const;
 
@@ -110,11 +110,6 @@ class P2Function : public Function< P2Function< ValueType > >
    void restrictP2ToP1( const P1Function< ValueType >& p1Function, const uint_t& level, const DoFType& flag = All ) const;
 
    void restrictInjection( uint_t sourceLevel, DoFType flag = All ) const;
-
-   void interpolate( std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                     const std::vector< P2Function< ValueType >* >                                  srcFunctions,
-                     uint_t                                                                         level,
-                     DoFType                                                                        flag = All ) const;
 
    ValueType getMaxValue( uint_t level, DoFType flag = All ) const;
 

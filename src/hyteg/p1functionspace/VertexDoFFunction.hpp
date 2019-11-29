@@ -73,8 +73,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
                       const std::shared_ptr< PrimitiveStorage >& storage,
                       uint_t                                     minLevel,
                       uint_t                                     maxLevel,
-                      BoundaryCondition                          boundaryCondition,
-                      const DoFType& boundaryTypeToSkipDuringAdditiveCommunication = DoFType::DirichletBoundary );
+                      BoundaryCondition                          boundaryCondition );
 
    const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& getVertexDataID() const { return vertexDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Edge >&   getEdgeDataID() const { return edgeDataID_; }
@@ -121,12 +120,12 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
 
    void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                             const std::vector< VertexDoFFunction* >                                              srcFunctions,
+                             const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& srcFunctions,
                              uint_t                                                                               level,
                              DoFType flag = All ) const;
 
    void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                             const std::vector< VertexDoFFunction* >                                              srcFunctions,
+                             const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& srcFunctions,
                              uint_t                                                                               level,
                              BoundaryUID boundaryUID ) const;
 
@@ -142,10 +141,6 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
    BoundaryCondition getBoundaryCondition() const;
-   inline DoFType    getBoundaryTypeToSkipDuringAdditiveCommunication() const
-   {
-      return boundaryTypeToSkipDuringAdditiveCommunication_;
-   }
 
    template < typename SenderType, typename ReceiverType >
    inline void startCommunication( const uint_t& level ) const
@@ -185,7 +180,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
          return;
       }
       interpolateByPrimitiveType< ReceiverType >(
-          real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication_ );
+          real_c( 0 ), level, DoFType::All );
       additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
    }
 

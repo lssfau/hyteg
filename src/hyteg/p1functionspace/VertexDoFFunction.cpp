@@ -63,11 +63,9 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
                                                    const std::shared_ptr< PrimitiveStorage >& storage,
                                                    uint_t                                     minLevel,
                                                    uint_t                                     maxLevel,
-                                                   BoundaryCondition                          boundaryCondition,
-                                                   const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication )
+                                                   BoundaryCondition                          boundaryCondition )
 : Function< VertexDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , boundaryCondition_( std::move( boundaryCondition ) )
-, boundaryTypeToSkipDuringAdditiveCommunication_( boundaryTypeToSkipDuringAdditiveCommunication )
 {
    auto cellVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >(
        minLevel, maxLevel, vertexDoFMacroCellFunctionMemorySize );
@@ -93,9 +91,7 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
                                                                       edgeDataID_,
                                                                       faceDataID_,
                                                                       cellDataID_,
-                                                                      this->getStorage(),
-                                                                      boundaryCondition_,
-                                                                      boundaryTypeToSkipDuringAdditiveCommunication_ ) );
+                                                                      this->getStorage()) );
    }
 }
 
@@ -153,7 +149,7 @@ void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::interpolateExtended(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-    const std::vector< VertexDoFFunction* >                                              srcFunctions,
+    const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& srcFunctions,
     uint_t                                                                               level,
     DoFType                                                                              flag ) const
 {
@@ -168,12 +164,12 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >   srcCellIDs;
 
-   for( const auto& function : srcFunctions )
+   for( const VertexDoFFunction& function : srcFunctions )
    {
-      srcVertexIDs.push_back( function->vertexDataID_ );
-      srcEdgeIDs.push_back( function->edgeDataID_ );
-      srcFaceIDs.push_back( function->faceDataID_ );
-      srcCellIDs.push_back( function->cellDataID_ );
+      srcVertexIDs.push_back( function.vertexDataID_ );
+      srcEdgeIDs.push_back( function.edgeDataID_ );
+      srcFaceIDs.push_back( function.faceDataID_ );
+      srcCellIDs.push_back( function.cellDataID_ );
    }
 
    for( const auto& it : this->getStorage()->getVertices() )
@@ -221,7 +217,7 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
 template < typename ValueType >
 void VertexDoFFunction< ValueType >::interpolateExtended(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-    const std::vector< VertexDoFFunction* >                                              srcFunctions,
+    const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& srcFunctions,
     uint_t                                                                               level,
     BoundaryUID                                                                          boundaryUID ) const
 {
@@ -236,12 +232,12 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >   srcCellIDs;
 
-   for( const auto& function : srcFunctions )
+   for( const VertexDoFFunction& function : srcFunctions )
    {
-      srcVertexIDs.push_back( function->vertexDataID_ );
-      srcEdgeIDs.push_back( function->edgeDataID_ );
-      srcFaceIDs.push_back( function->faceDataID_ );
-      srcCellIDs.push_back( function->cellDataID_ );
+      srcVertexIDs.push_back( function.vertexDataID_ );
+      srcEdgeIDs.push_back( function.edgeDataID_ );
+      srcFaceIDs.push_back( function.faceDataID_ );
+      srcCellIDs.push_back( function.cellDataID_ );
    }
 
    for( const auto& it : this->getStorage()->getVertices() )
@@ -315,12 +311,12 @@ real_t VertexDoFFunction< ValueType >::evaluate( const Point3D& coordinates, uin
                                  cell.getCoordinates()[2],
                                  cell.getCoordinates()[3] ) )
       {
-        WALBERLA_ABORT("Not implemented.");
+        WALBERLA_ABORT("Not implemented.")
       }
     }
   }
 
-  WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
+  WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates )
 }
 
 template < typename ValueType >
@@ -354,12 +350,12 @@ void VertexDoFFunction< ValueType >::evaluateGradient( const Point3D& coordinate
                                  cell.getCoordinates()[2],
                                  cell.getCoordinates()[3] ) )
       {
-        WALBERLA_ABORT("Not implemented.");
+        WALBERLA_ABORT("Not implemented.")
       }
     }
   }
 
-  WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
+  WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates )
 }
 
 template< typename ValueType >
@@ -666,7 +662,7 @@ void VertexDoFFunction< ValueType >::assign(
    }
    this->startTiming( "Assign" );
 
-   WALBERLA_ASSERT_EQUAL( scalars.size(), functions.size() );
+   WALBERLA_ASSERT_EQUAL( scalars.size(), functions.size() )
 
    // Collect all source IDs in a vector
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
@@ -741,8 +737,8 @@ void VertexDoFFunction< ValueType >::assign( const P2Function< ValueType >& src,
 
    const auto P2Level = P1Level - 1;
 
-   WALBERLA_CHECK_GREATER_EQUAL( P2Level, src.getMinLevel() );
-   WALBERLA_CHECK_LESS_EQUAL( P2Level, src.getMaxLevel() );
+   WALBERLA_CHECK_GREATER_EQUAL( P2Level, src.getMinLevel() )
+   WALBERLA_CHECK_LESS_EQUAL( P2Level, src.getMaxLevel() )
 
    for ( const auto& it : this->getStorage()->getVertices() )
    {
