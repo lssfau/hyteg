@@ -974,6 +974,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
        storage, minLevel, coarseGridMaxLevel ); //, 1, cgVelocity );
    auto coarseGridSolver = std::make_shared< MinResSolver< StokesOperator > >(
        storage, minLevel, coarseGridMaxLevel, coarseGridMaxIterations, coarseResidualTolerance, preconditioner );
+   WALBERLA_UNUSED( coarseGridSolverType );
    WALBERLA_UNUSED( coarseGridSolverVelocityPreconditionerType );
 #endif
 
