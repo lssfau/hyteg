@@ -109,7 +109,7 @@ Parameters
 
     meshLayout CRISSCROSS;
     symmetricCuboidMesh true;
-    numCycles 5;
+    numCycles 1;
     cycleType V;
     fmgInnerCycles 1; // 0 == no fmg
 
@@ -134,6 +134,16 @@ Parameters
     calculateDiscretizationError false;
     coarseGridMaxIterations 20000;
     coarseGridResidualTolerance 1e-10;
+    
+    // PETSc only
+    // 0: LU (MUMPS)
+    // 1: Block-prec. MinRes
+    coarseGridSolverType 0;
+
+    // 0: PCGAMG
+    // 1: PCJACOBI
+    // 2: Schur complement
+    coarseGridSolverVelocityPreconditionerType 1;
 
     cyclesBeforeDC 0;
     postDCPreSmoothingSteps 3;
@@ -154,7 +164,7 @@ Parameters
 
     discretizations = ["P1", "P2"]
     num_processes = 8
-    sor_omega = {"P1": 0.3, "P2": 0.3}
+    sor_omega = {"P1": 0.3, "P2": 0.65}
     symm_gs = ["true", "false"]
     num_pre_post_inc = [(1, 1, 2), (2, 2, 2), (3, 3, 2)]
     inner_cycles = [1, 2]
@@ -235,6 +245,16 @@ Parameters
     calculateDiscretizationError false;
     coarseGridMaxIterations 20000;
     coarseGridResidualTolerance 1e-14;
+    
+    // PETSc only
+    // 0: LU (MUMPS)
+    // 1: Block-prec. MinRes
+    coarseGridSolverType 0;
+
+    // 0: PCGAMG
+    // 1: PCJACOBI
+    // 2: Schur complement
+    coarseGridSolverVelocityPreconditionerType 1;
 
     cyclesBeforeDC 0;
     postDCPreSmoothingSteps 3;
