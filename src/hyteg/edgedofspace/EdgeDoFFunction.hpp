@@ -245,7 +245,7 @@ public:
    /// Sets the communication mode that is used between primitives that belong to the same process. Normally this is only needed
    /// for debugging. See communication::BufferedCommunicator::LocalCommunicationMode for the available options
    /// \param localCommunicationMode
-  inline void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode & localCommunicationMode );
+   void setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode & localCommunicationMode );
 
    using Function< EdgeDoFFunction< ValueType > >::isDummy;
 
