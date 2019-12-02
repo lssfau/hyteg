@@ -191,8 +191,33 @@ public:
   /// Fills the passed vector with the IDs of the locally existing cells
   void getCellIDs   ( std::vector< PrimitiveID > & cellIDs )   const;
 
-  template< typename PrimitiveType >
-  inline void getPrimitiveIDsGenerically( std::vector< PrimitiveID > & primitiveIDs ) const { static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" ); }
+  /// Fills the passed vector with the IDs of the neighboring / non-local / ghost vertices
+  void getNeighboringVertexIDs(std::vector<PrimitiveID> &vertexIDs) const;
+
+  /// Fills the passed vector with the IDs of the neighboring / non-local / ghost edges
+  void getNeighboringEdgeIDs(std::vector<PrimitiveID> &edgeIDs) const;
+
+  /// Fills the passed vector with the IDs of the neighboring / non-local / ghost faces
+  void getNeighboringFaceIDs(std::vector<PrimitiveID> &faceIDs) const;
+
+  /// Fills the passed vector with the IDs of the neighboring / non-local / ghost cells
+  void getNeighboringCellIDs(std::vector<PrimitiveID> &cellIDs) const;
+
+  /// Fills the passed vector with the IDs of the primitives of the type provided via the
+  /// template parameter \p PrimitiveType
+  template < typename PrimitiveType >
+  inline void getPrimitiveIDsGenerically( std::vector< PrimitiveID >& primitiveIDs ) const
+  {
+     static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" );
+  }
+
+  /// Fills the passed vector with the IDs of the neighboring / non-local / ghost primitives of the
+  /// type provided via the template parameter \p PrimitiveType
+  template < typename PrimitiveType >
+  inline void getNeighboringPrimitiveIDsGenerically( std::vector< PrimitiveID >& primitiveIDs ) const
+  {
+     static_assert( sizeof( PrimitiveType ) == 0 /* always false */, "Invalid primitive type" );
+  }
 
   /// Fills the passed map with all PrimitiveIDs and the respective pointers to the primitives
   void getPrimitives( PrimitiveMap & primitiveMap ) const;

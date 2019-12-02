@@ -38,11 +38,8 @@ public:
                              PrimitiveDataID< FunctionMemory< ValueType >, Edge >   dataIDEdge,
                              PrimitiveDataID< FunctionMemory< ValueType >, Face >   dataIDFace,
                              PrimitiveDataID< FunctionMemory< ValueType >, Cell >   dataIDCell,
-                             std::weak_ptr< PrimitiveStorage >                      storage,
-                             BoundaryCondition                                      boundaryCondition,
-                             DoFType                                                boundaryTypeToSkip ) :
-      communication::DoFSpacePackInfo< ValueType >( level, dataIDVertex, dataIDEdge, dataIDFace, dataIDCell, storage ),
-      boundaryCondition_( boundaryCondition ), boundaryTypeToSkip_( boundaryTypeToSkip )
+                             const std::weak_ptr< PrimitiveStorage >&                      storage ) :
+      communication::DoFSpacePackInfo< ValueType >( level, dataIDVertex, dataIDEdge, dataIDFace, dataIDCell, storage )
   {}
 
   void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
@@ -108,9 +105,6 @@ private:
   using communication::DoFSpacePackInfo< ValueType >::dataIDFace_;
   using communication::DoFSpacePackInfo< ValueType >::dataIDCell_;
   using communication::DoFSpacePackInfo< ValueType >::storage_;
-
-  BoundaryCondition boundaryCondition_;
-  DoFType boundaryTypeToSkip_;
 
 };
 
@@ -208,23 +202,11 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackEdgeFromFace(Edge *receiver, 
   WALBERLA_CHECK_NOT_NULLPTR( storage.get() );
   WALBERLA_CHECK( storage->faceExistsLocally( sender ) || storage->faceExistsInNeighborhood( sender ) );
 
-  if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
+  for ( const auto& it : vertexdof::macroedge::Iterator( level_, 1 ) )
   {
-    for ( const auto & it : vertexdof::macroedge::Iterator( level_, 1 ) )
-    {
-      WALBERLA_UNUSED( it );
-      ValueType tmp;
-      buffer >> tmp;
-    }
-  }
-  else
-  {
-    for ( const auto & it : vertexdof::macroedge::Iterator( level_, 1 ) )
-    {
-      ValueType tmp;
-      buffer >> tmp;
-      edgeData[ vertexdof::macroedge::index( level_, it.x() ) ] += tmp;
-    }
+     ValueType tmp;
+     buffer >> tmp;
+     edgeData[vertexdof::macroedge::index( level_, it.x() )] += tmp;
   }
 }
 
@@ -232,9 +214,6 @@ template< typename ValueType >
 void VertexDoFAdditivePackInfo< ValueType >::communicateLocalFaceToEdge(const Face *sender, Edge *receiver) const
 {
   WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Edge only meaningful in 2D." );
-
-  if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
-    return;
 
   ValueType *edgeData = receiver->getData(dataIDEdge_)->getPointer( level_ );
   ValueType *faceData = sender->getData(dataIDFace_)->getPointer( level_ );
@@ -283,19 +262,13 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackVertexFromFace(Vertex *receiv
   ValueType * vertexData = receiver->getData( dataIDVertex_ )->getPointer( level_ );
   ValueType tmp;
   buffer >> tmp;
-  if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) != boundaryTypeToSkip_ )
-  {
-    vertexData[ 0 ] += tmp;
-  }
+  vertexData[ 0 ] += tmp;
 }
 
 template< typename ValueType >
 void VertexDoFAdditivePackInfo< ValueType >::communicateLocalFaceToVertex(const Face *sender, Vertex *receiver) const
 {
   WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Vertex only meaningful in 2D." );
-
-  if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
-    return;
 
   ValueType * faceData = sender->getData( dataIDFace_ )->getPointer( level_ );
   ValueType * vertexData = receiver->getData( dataIDVertex_ )->getPointer( level_ );
@@ -371,23 +344,11 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackFaceFromCell(Face *receiver, 
   WALBERLA_ASSERT_GREATER( receiver->getNumNeighborCells(), 0 );
   WALBERLA_ASSERT( receiver->neighborPrimitiveExists( sender ) );
 
-  if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
+  for ( const auto& it : vertexdof::macroface::Iterator( level_ ) )
   {
-    for ( const auto & it : vertexdof::macroface::Iterator( level_ ))
-    {
-      WALBERLA_UNUSED( it );
-      ValueType tmp;
-      buffer >> tmp;
-    }
-  }
-  else
-  {
-    for ( const auto & it : vertexdof::macroface::Iterator( level_ ))
-    {
-      ValueType tmp;
-      buffer >> tmp;
-      faceData[vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), stencilDirection::VERTEX_C )] += tmp;
-    }
+     ValueType tmp;
+     buffer >> tmp;
+     faceData[vertexdof::macroface::indexFromVertex( level_, it.x(), it.y(), stencilDirection::VERTEX_C )] += tmp;
   }
 }
 
@@ -398,9 +359,6 @@ void VertexDoFAdditivePackInfo< ValueType >::communicateLocalCellToFace(const Ce
 
   WALBERLA_ASSERT_GREATER( receiver->getNumNeighborCells(), 0 );
   WALBERLA_ASSERT( receiver->neighborPrimitiveExists( sender->getID() ) );
-
-  if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
-    return;
 
   const ValueType *cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
   const uint_t localFaceID = sender->getLocalFaceID( receiver->getID());
@@ -461,23 +419,11 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackEdgeFromCell(Edge *receiver, 
   WALBERLA_ASSERT_GREATER( receiver->getNumNeighborCells(), 0 );
   WALBERLA_ASSERT( receiver->neighborPrimitiveExists( sender ) );
 
-  if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
+  for ( const auto& it : vertexdof::macroedge::Iterator( level_ ) )
   {
-    for ( const auto & it : vertexdof::macroedge::Iterator( level_ ))
-    {
-      WALBERLA_UNUSED( it );
-      ValueType tmp;
-      buffer >> tmp;
-    }
-  }
-  else
-  {
-    for ( const auto & it : vertexdof::macroedge::Iterator( level_ ))
-    {
-      ValueType tmp;
-      buffer >> tmp;
-      edgeData[vertexdof::macroedge::indexFromVertex( level_, it.x(), stencilDirection::VERTEX_C )] += tmp;
-    }
+     ValueType tmp;
+     buffer >> tmp;
+     edgeData[vertexdof::macroedge::indexFromVertex( level_, it.x(), stencilDirection::VERTEX_C )] += tmp;
   }
 }
 
@@ -489,9 +435,6 @@ void VertexDoFAdditivePackInfo< ValueType >::communicateLocalCellToEdge(const Ce
 
   WALBERLA_ASSERT_GREATER( receiver->getNumNeighborCells(), 0 );
   WALBERLA_ASSERT( receiver->neighborPrimitiveExists( sender->getID() ) );
-
-  if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
-    return;
 
         ValueType * edgeData = receiver->getData( dataIDEdge_ )->getPointer( level_ );
   const ValueType * cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
@@ -556,17 +499,9 @@ void VertexDoFAdditivePackInfo< ValueType >::unpackVertexFromCell(Vertex *receiv
   WALBERLA_ASSERT_GREATER( receiver->getNumNeighborCells(), 0 );
   WALBERLA_ASSERT( receiver->neighborPrimitiveExists( sender ) );
 
-  if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
-  {
-    ValueType tmp;
-    buffer >> tmp;
-  }
-  else
-  {
-    ValueType tmp;
-    buffer >> tmp;
-    vertexData[ 0 ] += tmp;
-  }
+  ValueType tmp;
+  buffer >> tmp;
+  vertexData[0] += tmp;
 }
 
 
@@ -577,9 +512,6 @@ void VertexDoFAdditivePackInfo< ValueType >::communicateLocalCellToVertex(const 
 
   WALBERLA_ASSERT_GREATER( receiver->getNumNeighborCells(), 0 );
   WALBERLA_ASSERT( receiver->neighborPrimitiveExists( sender->getID() ) );
-
-  if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
-    return;
 
         ValueType * vertexData = receiver->getData( dataIDVertex_ )->getPointer( level_ );
   const ValueType * cellData = sender->getData( dataIDCell_ )->getPointer( level_ );

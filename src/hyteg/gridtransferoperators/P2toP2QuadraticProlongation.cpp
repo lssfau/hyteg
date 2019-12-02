@@ -52,10 +52,8 @@ void P2toP2QuadraticProlongation::prolongateAdditively( const P2Function< real_t
                                                         const uint_t&               sourceLevel,
                                                         const DoFType&              flag ) const
 {
-   WALBERLA_CHECK_EQUAL( function.getVertexDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication(),
-                         function.getEdgeDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() );
-   WALBERLA_CHECK_EQUAL( flag, function.getVertexDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() ^ All );
-   WALBERLA_CHECK_EQUAL( flag, function.getEdgeDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() ^ All );
+   /// XOR flag with all to get the DoFTypes that should be excluded
+   const DoFType excludeFlag = (flag ^ All);
 
    const auto storage = function.getStorage();
 
@@ -140,20 +138,18 @@ void P2toP2QuadraticProlongation::prolongateAdditively( const P2Function< real_t
                                                                                numNeighborFacesEdge2 );
    }
 
-   function.getVertexDoFFunction().communicateAdditively< Face, Edge >( fineLevel );
-   function.getVertexDoFFunction().communicateAdditively< Face, Vertex >( fineLevel );
+   function.getVertexDoFFunction().communicateAdditively< Face, Edge >( fineLevel, excludeFlag, *function.getStorage() );
+   function.getVertexDoFFunction().communicateAdditively< Face, Vertex >( fineLevel, excludeFlag, *function.getStorage() );
 
-   function.getEdgeDoFFunction().communicateAdditively< Face, Edge >( fineLevel );
+   function.getEdgeDoFFunction().communicateAdditively< Face, Edge >( fineLevel, excludeFlag, *function.getStorage() );
 }
 
 void P2toP2QuadraticProlongation::prolongateAdditively3D( const P2Function< real_t >& function,
                                                           const uint_t&               sourceLevel,
                                                           const DoFType&              flag ) const
 {
-  WALBERLA_CHECK_EQUAL( function.getVertexDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication(),
-                        function.getEdgeDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() );
-  WALBERLA_CHECK_EQUAL( flag, function.getVertexDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() ^ All );
-  WALBERLA_CHECK_EQUAL( flag, function.getEdgeDoFFunction().getBoundaryTypeToSkipDuringAdditiveCommunication() ^ All );
+   /// XOR flag with all to get the DoFTypes that should be excluded
+   const DoFType excludeFlag = (flag ^ All);
 
   const auto storage = function.getStorage();
 
@@ -284,12 +280,12 @@ void P2toP2QuadraticProlongation::prolongateAdditively3D( const P2Function< real
                                                                              numNeighborCellsFace3 );
   }
 
-  function.getVertexDoFFunction().communicateAdditively< Cell, Face >( fineLevel );
-  function.getVertexDoFFunction().communicateAdditively< Cell, Edge >( fineLevel );
-  function.getVertexDoFFunction().communicateAdditively< Cell, Vertex >( fineLevel );
+  function.getVertexDoFFunction().communicateAdditively< Cell, Face >( fineLevel, excludeFlag, *function.getStorage() );
+  function.getVertexDoFFunction().communicateAdditively< Cell, Edge >( fineLevel, excludeFlag, *function.getStorage() );
+  function.getVertexDoFFunction().communicateAdditively< Cell, Vertex >( fineLevel, excludeFlag, *function.getStorage() );
 
-  function.getEdgeDoFFunction().communicateAdditively< Cell, Face >( fineLevel );
-  function.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( fineLevel );
+  function.getEdgeDoFFunction().communicateAdditively< Cell, Face >( fineLevel, excludeFlag, *function.getStorage() );
+  function.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( fineLevel, excludeFlag, *function.getStorage() );
 
 }
 

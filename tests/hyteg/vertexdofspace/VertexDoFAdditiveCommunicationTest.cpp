@@ -75,8 +75,8 @@ static void testVertexDoFAdditiveCommunication2D( const communication::BufferedC
   }
 
   // 3. Communicate additively. Each unknown on each primitive should now be equal to the number of neighbor faces times the test value.
-  x.communicateAdditively< Face, Edge >( level );
-  x.communicateAdditively< Face, Vertex >( level );
+  x.communicateAdditively< Face, Edge >( level, hyteg::DirichletBoundary, *storage );
+  x.communicateAdditively< Face, Vertex >( level, hyteg::DirichletBoundary, *storage );
 
   for ( const auto & it : storage->getEdges() )
   {
@@ -143,9 +143,9 @@ static void testVertexDoFAdditiveCommunication3D( const communication::BufferedC
   }
 
   // 3. Communicate additively. Each unknown on each primitive should now be equal to the number of neighbor cells times the test value.
-  x.communicateAdditively< Cell, Face >( level );
-  x.communicateAdditively< Cell, Edge >( level );
-  x.communicateAdditively< Cell, Vertex >( level );
+  x.communicateAdditively< Cell, Face >( level, hyteg::DirichletBoundary, *storage );
+  x.communicateAdditively< Cell, Edge >( level, hyteg::DirichletBoundary, *storage );
+  x.communicateAdditively< Cell, Vertex >( level, hyteg::DirichletBoundary, *storage );
 
   for ( const auto & it : storage->getFaces() )
   {

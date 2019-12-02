@@ -41,7 +41,7 @@ static void testP2Prolongate() {
   std::shared_ptr<SetupPrimitiveStorage> setupStorage =
     std::make_shared<SetupPrimitiveStorage>(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(*setupStorage);
-  auto x = std::make_shared<P2Function<real_t> >("x", storage, sourceLevel, sourceLevel + 2, BoundaryCondition::create012BC(), None);
+  auto x = std::make_shared<P2Function<real_t> >("x", storage, sourceLevel, sourceLevel + 2, BoundaryCondition::create012BC());
   typedef stencilDirection sD;
   std::function<real_t(const hyteg::Point3D &)> values = [](const hyteg::Point3D &) { return 13; };
   x->interpolate(values, sourceLevel, hyteg::All);
@@ -169,7 +169,7 @@ static void testP2Prolongate2() {
   std::shared_ptr<SetupPrimitiveStorage> setupStorage =
     std::make_shared<SetupPrimitiveStorage>(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(*setupStorage);
-  auto x = std::make_shared<P2Function<real_t> >("x", storage, sourceLevel, sourceLevel + 1, BoundaryCondition::create012BC(), None);
+  auto x = std::make_shared<P2Function<real_t> >("x", storage, sourceLevel, sourceLevel + 1, BoundaryCondition::create012BC());
   typedef stencilDirection sD;
 
   P2toP2QuadraticProlongation prolongationOperator;
@@ -325,9 +325,9 @@ static void testP2InterpolateAndProlongate() {
   std::shared_ptr<SetupPrimitiveStorage> setupStorage =
     std::make_shared<SetupPrimitiveStorage>(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(*setupStorage);
-  auto x = P2Function<real_t> ("x", storage, sourceLevel, targetLevel, BoundaryCondition::create012BC(), None);
-  auto y = P2Function<real_t> ("y", storage, sourceLevel, targetLevel, BoundaryCondition::create012BC(), None);
-  auto error = P2Function<real_t> ("x", storage, sourceLevel, targetLevel, BoundaryCondition::create012BC(), None);
+  auto x = P2Function<real_t> ("x", storage, sourceLevel, targetLevel, BoundaryCondition::create012BC());
+  auto y = P2Function<real_t> ("y", storage, sourceLevel, targetLevel, BoundaryCondition::create012BC());
+  auto error = P2Function<real_t> ("x", storage, sourceLevel, targetLevel, BoundaryCondition::create012BC());
 
   std::function<real_t(const hyteg::Point3D&)> exact = [](const hyteg::Point3D& xx) { return 2. * xx[0] * xx[0] + 3. * xx[0] + 13. + 4. * xx[1] + 5. *  xx[1] * xx[1]; };
   x.interpolate(exact,sourceLevel    , hyteg::All);

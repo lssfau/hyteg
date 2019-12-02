@@ -76,3 +76,15 @@ inline void PrimitiveStorage::getPrimitiveIDsGenerically< Face >( std::vector< P
 
 template<>
 inline void PrimitiveStorage::getPrimitiveIDsGenerically< Cell >( std::vector< PrimitiveID > & primitiveIDs ) const { getCellIDs( primitiveIDs ); }
+
+template<>
+inline void PrimitiveStorage::getNeighboringPrimitiveIDsGenerically< Vertex >( std::vector< PrimitiveID > & primitiveIDs ) const { getNeighboringVertexIDs( primitiveIDs ); }
+
+template<>
+inline void PrimitiveStorage::getNeighboringPrimitiveIDsGenerically< Edge >( std::vector< PrimitiveID > & primitiveIDs ) const { getNeighboringEdgeIDs( primitiveIDs ); }
+
+template<>
+inline void PrimitiveStorage::getNeighboringPrimitiveIDsGenerically< Face >( std::vector< PrimitiveID > & primitiveIDs ) const { getNeighboringFaceIDs( primitiveIDs ); }
+
+template<>
+inline void PrimitiveStorage::getNeighboringPrimitiveIDsGenerically< Cell >( std::vector< PrimitiveID > & primitiveIDs ) const { getNeighboringCellIDs( primitiveIDs ); }

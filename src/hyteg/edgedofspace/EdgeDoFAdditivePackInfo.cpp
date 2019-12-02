@@ -146,11 +146,7 @@ void EdgeDoFAdditivePackInfo< ValueType >::unpackEdgeFromFace( Edge*            
    {
       ValueType tmp;
       buffer >> tmp;
-
-      if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) != boundaryTypeToSkip_ )
-      {
-         edgeData[edgedof::macroedge::index( level_, it.x() )] += tmp;
-      }
+      edgeData[edgedof::macroedge::index( level_, it.x() )] += tmp;
    }
 }
 
@@ -158,9 +154,6 @@ template < typename ValueType >
 void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sender, Edge* receiver ) const
 {
    WALBERLA_CHECK( !this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Edge only meaningful in 2D." );
-
-   if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
-      return;
 
    using hyteg::edgedof::macroface::BoundaryIterator;
    ValueType*                    edgeData        = receiver->getData( dataIDEdge_ )->getPointer( level_ );
@@ -293,12 +286,10 @@ void EdgeDoFAdditivePackInfo< ValueType >::unpackFaceFromCell( Face*            
       buffer >> tmpX;
       buffer >> tmpY;
       buffer >> tmpXY;
-      if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) != boundaryTypeToSkip_ )
-      {
-         faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::X )] += tmpX;
-         faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::Y )] += tmpY;
-         faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XY )] += tmpXY;
-      }
+
+      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::X )] += tmpX;
+      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::Y )] += tmpY;
+      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XY )] += tmpXY;
    }
 }
 
@@ -306,11 +297,6 @@ template < typename ValueType >
 void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalCellToFace( const Cell* sender, Face* receiver ) const
 {
    WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Additive communication Face -> Edge only meaningful in 3D." );
-
-   if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
-   {
-      return;
-   }
 
    ValueType*       faceData = receiver->getData( dataIDFace_ )->getPointer( level_ );
    const ValueType* cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
@@ -388,23 +374,11 @@ void EdgeDoFAdditivePackInfo< ValueType >::unpackEdgeFromCell( Edge*            
    WALBERLA_ASSERT_GREATER( receiver->getNumNeighborCells(), 0 );
    WALBERLA_ASSERT( receiver->neighborPrimitiveExists( sender ) );
 
-   if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
+   for ( const auto& it : edgedof::macroedge::Iterator( level_ ) )
    {
-      for ( const auto& it : edgedof::macroedge::Iterator( level_ ) )
-      {
-         WALBERLA_UNUSED( it );
-         ValueType tmp;
-         buffer >> tmp;
-      }
-   }
-   else
-   {
-      for ( const auto& it : edgedof::macroedge::Iterator( level_ ) )
-      {
-         ValueType tmp;
-         buffer >> tmp;
-         edgeData[edgedof::macroedge::index( level_, it.x() )] += tmp;
-      }
+      ValueType tmp;
+      buffer >> tmp;
+      edgeData[edgedof::macroedge::index( level_, it.x() )] += tmp;
    }
 }
 
@@ -415,11 +389,6 @@ void EdgeDoFAdditivePackInfo< ValueType >::communicateLocalCellToEdge( const Cel
 
    WALBERLA_ASSERT_GREATER( receiver->getNumNeighborCells(), 0 );
    WALBERLA_ASSERT( receiver->neighborPrimitiveExists( sender->getID() ) );
-
-   if ( boundaryCondition_.getBoundaryType( receiver->getMeshBoundaryFlag() ) == boundaryTypeToSkip_ )
-   {
-      return;
-   }
 
    ValueType* cellData = sender->getData( dataIDCell_ )->getPointer( level_ );
 

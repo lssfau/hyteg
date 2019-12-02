@@ -57,21 +57,18 @@ P2Function< ValueType >::P2Function( const std::string&                         
                                      const std::shared_ptr< PrimitiveStorage >& storage,
                                      uint_t                                     minLevel,
                                      uint_t                                     maxLevel,
-                                     BoundaryCondition                          boundaryCondition,
-                                     const DoFType&                             boundaryTypeToSkipDuringAdditiveCommunication )
+                                     BoundaryCondition                          boundaryCondition )
 : Function< P2Function< ValueType > >( name, storage, minLevel, maxLevel )
 , vertexDoFFunction_( vertexdof::VertexDoFFunction< ValueType >( name + "_VertexDoF",
                                                                  storage,
                                                                  minLevel,
                                                                  maxLevel,
-                                                                 boundaryCondition,
-                                                                 boundaryTypeToSkipDuringAdditiveCommunication ) )
+                                                                 boundaryCondition ) )
 , edgeDoFFunction_( EdgeDoFFunction< ValueType >( name + "_EdgeDoF",
                                                   storage,
                                                   minLevel,
                                                   maxLevel,
-                                                  boundaryCondition,
-                                                  boundaryTypeToSkipDuringAdditiveCommunication ) )
+                                                  boundaryCondition) )
 {
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
@@ -124,19 +121,19 @@ void P2Function< ValueType >::interpolate( const std::function< ValueType( const
 }
 
 template < typename ValueType >
-void P2Function< ValueType >::interpolateExtended(
+void P2Function< ValueType >::interpolate(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-    const std::vector< P2Function< ValueType >* >                                        srcFunctions,
+    const std::vector< std::reference_wrapper< const P2Function< ValueType > > >&        srcFunctions,
     uint_t                                                                               level,
     DoFType                                                                              flag ) const
 {
-   std::vector< vertexdof::VertexDoFFunction< ValueType >* > vertexDoFFunctions;
-   std::vector< EdgeDoFFunction< ValueType >* >              edgeDoFFunctions;
+   std::vector< std::reference_wrapper< const vertexdof::VertexDoFFunction< ValueType > > > vertexDoFFunctions;
+   std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >              edgeDoFFunctions;
 
-   for ( const auto& function : srcFunctions )
+   for ( const P2Function< ValueType >& function : srcFunctions )
    {
-      vertexDoFFunctions.push_back( &function->vertexDoFFunction_ );
-      edgeDoFFunctions.push_back( &function->edgeDoFFunction_ );
+      vertexDoFFunctions.push_back( function.vertexDoFFunction_ );
+      edgeDoFFunctions.push_back( function.edgeDoFFunction_ );
    }
 
    vertexDoFFunction_.interpolateExtended( expr, vertexDoFFunctions, level, flag );
@@ -553,25 +550,6 @@ void P2Function< ValueType >::restrictInjection( uint_t sourceLevel, DoFType fla
              sourceLevel, vertex, vertexDoFFunction_.getVertexDataID(), edgeDoFFunction_.getVertexDataID() );
       }
    }
-}
-
-template < typename ValueType >
-void P2Function< ValueType >::interpolate( std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                                           const std::vector< P2Function< ValueType >* > srcFunctions,
-                                           uint_t                                        level,
-                                           DoFType                                       flag ) const
-{
-   std::vector< vertexdof::VertexDoFFunction< ValueType >* > vertexDoFFunctions;
-   std::vector< EdgeDoFFunction< ValueType >* >              edgeDoFFunctions;
-
-   for ( const auto& function : srcFunctions )
-   {
-      vertexDoFFunctions.push_back( &function->vertexDoFFunction_ );
-      edgeDoFFunctions.push_back( &function->edgeDoFFunction_ );
-   }
-
-   vertexDoFFunction_.interpolateExtended( expr, vertexDoFFunctions, level, flag );
-   edgeDoFFunction_.interpolateExtended( expr, edgeDoFFunctions, level, flag );
 }
 
 template < typename ValueType >

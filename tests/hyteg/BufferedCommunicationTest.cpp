@@ -223,7 +223,8 @@ static void testBufferedCommunication()
   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
   communicator.enableTiming( timingTree );
 
-  communicator.communicate< Vertex, Edge >();
+  communicator.startCommunication< Vertex, Edge >();
+  communicator.endCommunication< Vertex, Edge >();
 #if 0
   communicator.startCommunication< Vertex, Edge >();
   communicator.endCommunication< Vertex, Edge >();

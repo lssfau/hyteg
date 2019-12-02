@@ -51,11 +51,8 @@ class EdgeDoFAdditivePackInfo : public communication::DoFSpacePackInfo< ValueTyp
                     PrimitiveDataID< FunctionMemory< ValueType >, Edge >   dataIDEdge,
                     PrimitiveDataID< FunctionMemory< ValueType >, Face >   dataIDFace,
                     PrimitiveDataID< FunctionMemory< ValueType >, Cell >   dataIDCell,
-                    std::weak_ptr< PrimitiveStorage >                      storage ,
-                    BoundaryCondition                                      boundaryCondition,
-                    DoFType                                                boundaryTypeToSkip ) :
-     communication::DoFSpacePackInfo< ValueType >( level, dataIDVertex, dataIDEdge, dataIDFace, dataIDCell, storage ),
-     boundaryCondition_( boundaryCondition ), boundaryTypeToSkip_( boundaryTypeToSkip )
+                    std::weak_ptr< PrimitiveStorage >                      storage) :
+     communication::DoFSpacePackInfo< ValueType >( level, dataIDVertex, dataIDEdge, dataIDFace, dataIDCell, storage )
    {}
 
   void packVertexForEdge(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
@@ -120,8 +117,6 @@ class EdgeDoFAdditivePackInfo : public communication::DoFSpacePackInfo< ValueTyp
    using communication::DoFSpacePackInfo< ValueType >::dataIDCell_;
    using communication::DoFSpacePackInfo< ValueType >::storage_;
 
-   BoundaryCondition boundaryCondition_;
-   DoFType           boundaryTypeToSkip_;
 };
 
 } //namespace hyteg

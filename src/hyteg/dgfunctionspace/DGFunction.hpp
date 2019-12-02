@@ -115,11 +115,13 @@ class DGFunction : public Function< DGFunction< ValueType > >
       communicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
    }
 
-   template < typename SenderType, typename ReceiverType >
-   inline void communicate( const uint_t& level ) const
-   {
-      communicators_.at( level )->template communicate< SenderType, ReceiverType >();
-   }
+  template< typename SenderType, typename ReceiverType >
+  inline void communicate( const uint_t & level ) const
+  {
+     startCommunication< SenderType, ReceiverType >( level );
+     endCommunication< SenderType, ReceiverType >( level );
+
+  }
 
    inline void
        setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode )
