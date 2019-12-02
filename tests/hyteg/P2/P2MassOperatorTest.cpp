@@ -32,7 +32,7 @@ using namespace hyteg;
 typedef enum { P2CONSTANT, P2ELEMENTWISE } opType;
 
 template<typename OperatorType>
-void checkArea( std::shared_ptr<PrimitiveStorage> storage, real_t area )
+void checkArea( std::shared_ptr<PrimitiveStorage> storage, real_t area, std::string tag )
 {
 
   const size_t minLevel = 2;
@@ -40,10 +40,7 @@ void checkArea( std::shared_ptr<PrimitiveStorage> storage, real_t area )
 
   OperatorType massOp( storage, minLevel, maxLevel );
 
-  // Some overhead currently required to get the elementwise case correct due to the
-  // fact that boundaryTypeToSkipDuringAdditiveCommunication is property of P2Function
-  P2Function< real_t > aux( "aux", storage, minLevel, maxLevel, BoundaryCondition::create012BC(), DoFType::None );
-  // P2Function< real_t > aux( "aux", storage, minLevel, maxLevel );
+  P2Function< real_t > aux( "aux", storage, minLevel, maxLevel );
   P2Function< real_t > vecOfOnes( "vecOfOnes", storage, minLevel, maxLevel );
 
   for( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
@@ -51,7 +48,7 @@ void checkArea( std::shared_ptr<PrimitiveStorage> storage, real_t area )
       vecOfOnes.interpolate( real_c(1.0), lvl, All );
       massOp.apply( vecOfOnes, aux, lvl, All );
       real_t measure = vecOfOnes.dotGlobal( aux, lvl );
-      WALBERLA_LOG_INFO_ON_ROOT( "measure = " << std::scientific << measure );
+      WALBERLA_LOG_INFO_ON_ROOT( "measure = " << std::scientific << measure << " (" << tag << ")" );
       WALBERLA_CHECK_FLOAT_EQUAL( measure, area );
     }
 }
@@ -71,8 +68,8 @@ int main(int argc, char **argv)
                                                MeshInfo::CRISSCROSS, 1, 2 );
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
-  checkArea<P2ConstantMassOperator>( storage, 8.0 );
-  checkArea<P2ElementwiseMassOperator>( storage, 8.0 );
+  checkArea<P2ConstantMassOperator>( storage, 8.0, "P2ConstantMassOperator"  );
+  checkArea<P2ElementwiseMassOperator>( storage, 8.0, "P2ElementwiseMassOperator" );
 
   // Test with backward facing step
   WALBERLA_LOG_INFO_ON_ROOT( "Testing with BFS" );
@@ -80,8 +77,8 @@ int main(int argc, char **argv)
   SetupPrimitiveStorage setupStorageBFS( meshInfo,
                                          uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
   std::shared_ptr<PrimitiveStorage> storageBFS = std::make_shared<PrimitiveStorage>( setupStorageBFS );
-  checkArea<P2ConstantMassOperator>( storageBFS, 1.75 );
-  checkArea<P2ElementwiseMassOperator>( storageBFS, 1.75 );
+  checkArea<P2ConstantMassOperator>( storageBFS, 1.75, "P2ConstantMassOperator" );
+  checkArea<P2ElementwiseMassOperator>( storageBFS, 1.75, "P2ElementwiseMassOperator" );
 
   return EXIT_SUCCESS;
 }
