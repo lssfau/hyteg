@@ -40,12 +40,12 @@ using namespace hyteg;
 // ----------------------------------------------------------------
 
 // Coefficients of the test polynomial
-#define COEFF_A00 real_c( 2.0 )
-#define COEFF_A10 real_c( 0.0 )
-#define COEFF_A01 real_c( 0.0 )
-#define COEFF_A11 real_c( 1.0 )
-#define COEFF_A20 real_c( 0.0 )
-#define COEFF_A02 real_c( 0.0 )
+#define COEFF_A00 real_c(  2.0 )
+#define COEFF_A10 real_c(  0.0 )
+#define COEFF_A01 real_c(  0.0 )
+#define COEFF_A11 real_c(  1.0 )
+#define COEFF_A20 real_c(  0.5 )
+#define COEFF_A02 real_c( -1.0 )
 
 int main( int argc, char** argv )
 {
