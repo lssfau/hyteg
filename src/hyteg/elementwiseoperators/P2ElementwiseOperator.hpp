@@ -54,6 +54,7 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                     DoFType                     flag ) const;
 
  private:
+
    /// compute product of element local vector with element matrix
    ///
    /// \param face           face primitive we operate on
@@ -77,7 +78,7 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                                      real_t* const                dstVertexData,
                                      real_t* const                dstEdgeData ) const;
 
-   void computeDiagonalOperatorValues( uint_t level );
+   void computeDiagonalOperatorValues( uint_t level, bool invert );
 
    /// Compute contributions to operator diagonal for given micro-face
    ///

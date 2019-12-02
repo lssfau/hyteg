@@ -31,10 +31,11 @@ P2ElementwiseOperator< P2Form >::P2ElementwiseOperator( const std::shared_ptr< P
 {
    if ( needsDiagEntries )
    {
-      diagonalValues_ = std::unique_ptr< P2Function< real_t > >( new P2Function< real_t >( "diagonal entries", storage, minLevel, maxLevel ) );
-      // diagonalValues_ = std::unique_ptr< P2Function< real_t > >( new P2Function< real_t >( "diagonal entries", storage, minLevel, maxLevel, DoFType::None ) );
-      computeDiagonalOperatorValues( maxLevel );
+      diagonalValues_ = std::unique_ptr< P2Function< real_t > >( new P2Function< real_t >( "diagonal entries", storage, minLevel, maxLevel, DoFType::None ) );
+      computeDiagonalOperatorValues( maxLevel, true );
    }
+
+   // WALBERLA_LOG_INFO_ON_ROOT( "Contructed a P2ElementwiseOperator!" );
 }
 
 template < class P2Form >
@@ -44,9 +45,8 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
                                              DoFType                     flag,
                                              UpdateType                  updateType ) const
 {
-   // TODO: We need to include the provided flag, i.e. make sure that we set a corresponding
-   //       communication type for the additive communication
-   WALBERLA_UNUSED( flag );
+
+   WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
    if ( updateType == Add )
    {
@@ -132,14 +132,14 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
       }
 
       // Push result to lower-dimensional primitives
-      dst.getVertexDoFFunction().communicateAdditively< Face, Edge >( level );
-      dst.getVertexDoFFunction().communicateAdditively< Face, Vertex >( level );
-      dst.getEdgeDoFFunction().communicateAdditively< Face, Edge >( level );
+      dst.getVertexDoFFunction().communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_ );
+      dst.getVertexDoFFunction().communicateAdditively< Face, Vertex >( level, DoFType::All ^ flag, *storage_ );
+      dst.getEdgeDoFFunction().communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_ );
 
-      // Retrieve assembled data values (do we need this? should the result be synced?)
-      dst.getVertexDoFFunction().communicate< Vertex, Edge >( level );
-      dst.getVertexDoFFunction().communicate< Edge, Face >( level );
-      dst.getEdgeDoFFunction().communicate< Edge, Face >( level );
+      // We do not need to retrieve assembled data values as we always assume dirty halos before an operation
+      // dst.getVertexDoFFunction().communicate< Vertex, Edge >( level );
+      // dst.getVertexDoFFunction().communicate< Edge, Face >( level );
+      // dst.getEdgeDoFFunction().communicate< Edge, Face >( level );
    }
 }
 
@@ -152,68 +152,12 @@ void P2ElementwiseOperator< P2Form >::smooth_jac( const P2Function< real_t >& ds
                                                   DoFType                     flag ) const
 {
    // compute the current residual
-   apply( src, dst, level, flag );
+   this->apply( src, dst, level, flag );
    dst.assign( {real_c( 1 ), real_c( -1 )}, {rhs, dst}, level, flag );
 
-   // now update all DoFs
-   if ( storage_->hasGlobalCells() )
-   {
-      WALBERLA_ABORT( "P2ElementwiseOperator::smooth_jac() not implemented for cells, yet." );
-   }
-
-   else
-   {
-      PrimitiveDataID< FunctionMemory< real_t >, Face > dstIdx, srcIdx, diagIdx;
-      real_t*                                           dstData  = nullptr;
-      real_t*                                           srcData  = nullptr;
-      real_t*                                           diagData = nullptr;
-
-      // we only perform computations on face primitives
-      for ( auto& it : storage_->getFaces() )
-      {
-         Face& face = *it.second;
-
-         // update dofs at micro-vertices
-         dstIdx  = dst.getVertexDoFFunction().getFaceDataID();
-         dstData = face.getData( dstIdx )->getPointer( level );
-
-         srcIdx  = src.getVertexDoFFunction().getFaceDataID();
-         srcData = face.getData( srcIdx )->getPointer( level );
-
-         diagIdx  = diagonalValues_->getVertexDoFFunction().getFaceDataID();
-         diagData = face.getData( diagIdx )->getPointer( level );
-
-         for ( uint_t k = 0; k < levelinfo::num_microvertices_per_face( level ); ++k )
-         {
-            dstData[k] = srcData[k] + omega * dstData[k] / diagData[k];
-         }
-
-         // update dofs at micro-edges
-         dstIdx  = dst.getEdgeDoFFunction().getFaceDataID();
-         dstData = face.getData( dstIdx )->getPointer( level );
-
-         srcIdx  = src.getEdgeDoFFunction().getFaceDataID();
-         srcData = face.getData( srcIdx )->getPointer( level );
-
-         diagIdx  = diagonalValues_->getEdgeDoFFunction().getFaceDataID();
-         diagData = face.getData( diagIdx )->getPointer( level );
-
-         for ( uint_t k = 0; k < levelinfo::num_microedges_per_face( level ); ++k )
-         {
-            dstData[k] = srcData[k] + omega * dstData[k] / diagData[k];
-         }
-      }
-
-      // Push result to lower-dimensional primitives
-      dst.getVertexDoFFunction().communicateAdditively< Face, Edge >( level );
-      dst.getVertexDoFFunction().communicateAdditively< Face, Vertex >( level );
-      dst.getEdgeDoFFunction().communicateAdditively< Face, Edge >( level );
-
-      // Retrieve assembled data values (do we need this? should the result be synced?)
-      dst.getVertexDoFFunction().communicate< Vertex, Edge >( level );
-      dst.getVertexDoFFunction().communicate< Edge, Face >( level );
-      dst.getEdgeDoFFunction().communicate< Edge, Face >( level );
-   }
+   // perform Jacobi update step
+   dst.multElementwise( { (*diagonalValues_), dst}, level, flag );
+   dst.assign( {1.0,omega}, {src,dst}, level, flag );
 }
 
 template < class P2Form >
@@ -279,7 +223,7 @@ void P2ElementwiseOperator< P2Form >::localMatrixVectorMultiply2D( const Face&  
 }
 
 template < class P2Form >
-void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( uint_t level )
+void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( uint_t level, bool invert )
 {
    WALBERLA_ASSERT_GREATER_EQUAL( level, minLevel_ );
    WALBERLA_ASSERT_LESS_EQUAL( level, maxLevel_ );
@@ -304,12 +248,12 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( uint_t leve
          Point3D x1( face.coords[1] );
          Point3D x2( face.coords[2] );
 
-         WALBERLA_LOG_INFO_ON_ROOT( "Vertex #0:" << x0 );
-         WALBERLA_LOG_INFO_ON_ROOT( "Vertex #1:" << x1 );
-         WALBERLA_LOG_INFO_ON_ROOT( "Vertex #2:" << x2 );
+         // WALBERLA_LOG_INFO_ON_ROOT( "Vertex #0:" << x0 );
+         // WALBERLA_LOG_INFO_ON_ROOT( "Vertex #1:" << x1 );
+         // WALBERLA_LOG_INFO_ON_ROOT( "Vertex #2:" << x2 );
 
-         WALBERLA_LOG_INFO_ON_ROOT( "For level = " << level << " we have " << levelinfo::num_microfaces_per_face( level )
-                                                   << " microfaces" );
+         // WALBERLA_LOG_INFO_ON_ROOT( "For level = " << level << " we have " << levelinfo::num_microfaces_per_face( level )
+         //                                           << " microfaces" );
 
          uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
          uint_t                   inner_rowsize = rowsize;
@@ -355,6 +299,11 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( uint_t leve
       diagonalValues_->getVertexDoFFunction().communicate< Vertex, Edge >( level );
       diagonalValues_->getVertexDoFFunction().communicate< Edge, Face >( level );
       diagonalValues_->getEdgeDoFFunction().communicate< Edge, Face >( level );
+
+      // Invert values if desired
+      if( invert ) {
+        diagonalValues_->invertElementwise( level );
+      }
    }
 }
 
