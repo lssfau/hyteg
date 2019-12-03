@@ -352,6 +352,14 @@ inline uint_t indexOnNeighborFace( const uint_t & level, const uint_t & x, const
 {
   WALBERLA_ASSERT_EQUAL( std::count( faceLocalEdgeDoFOrientations.begin(), faceLocalEdgeDoFOrientations.end(), orientation ), 1, "Invalid orientation." );
 
+  WALBERLA_DEBUG_SECTION()
+  {
+    if ( level == 0 )
+    {
+      WALBERLA_ASSERT( orientation != EdgeDoFOrientation::X );
+    }
+  }
+
   const uint_t numHorizontalDoFsOnEdge       = ::hyteg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
   const uint_t numHorizontalDoFsOnGhostLayer = ::hyteg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) - 1 );
   const uint_t numOtherTypeDoFsOnGhostLayer  = ::hyteg::indexing::macroEdgeSize( levelToWidthAnyEdgeDoF( level ) );
@@ -394,6 +402,13 @@ inline uint_t indexOnNeighborCell( const uint_t&             level,
                                    const uint_t&             numNeighborFaces,
                                    const EdgeDoFOrientation& orientation )
 {
+   if ( level == 0 )
+   {
+     WALBERLA_ASSERT_EQUAL( orientation, EdgeDoFOrientation::YZ );
+     WALBERLA_ASSERT_EQUAL( x, 0 );
+     return 1 + 2 * numNeighborFaces + neighbor;
+   }
+
    const uint_t offsetToFirstCellDoF = levelinfo::num_microedges_per_edge( level ) +
                                        numNeighborFaces * ( 3 * ( levelinfo::num_microedges_per_edge( level ) ) - 1 );
    const uint_t xGhostOffset = levelinfo::num_microedges_per_edge( level ) - 2;
