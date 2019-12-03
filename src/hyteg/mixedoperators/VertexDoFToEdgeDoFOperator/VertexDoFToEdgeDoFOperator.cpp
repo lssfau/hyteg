@@ -283,53 +283,55 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
 
   this->timingTree_->start( "Macro-Cell" );
 
-  for (auto& it : storage_->getCells()) {
-    Cell& cell = *it.second;
-
-    const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-    if ( testFlag( cellBC, flag ) )
+  if ( level >= 1 )
+  {
+    for ( auto & it : storage_->getCells())
     {
-       if ( hyteg::globalDefines::useGeneratedKernels )
-       {
+      Cell & cell = *it.second;
+
+      const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag());
+      if ( testFlag( cellBC, flag ))
+      {
+        if ( hyteg::globalDefines::useGeneratedKernels )
+        {
           typedef edgedof::EdgeDoFOrientation eo;
-          auto                                dstData     = cell.getData( dst.getCellDataID() )->getPointer( level );
-          auto                                srcData     = cell.getData( src.getCellDataID() )->getPointer( level );
-          auto                                stencilData = cell.getData( cellStencilID_ )->getData( level );
-          std::map< eo, uint_t >              firstIdx;
+          auto dstData = cell.getData( dst.getCellDataID())->getPointer( level );
+          auto srcData = cell.getData( src.getCellDataID())->getPointer( level );
+          auto stencilData = cell.getData( cellStencilID_ )->getData( level );
+          std::map< eo, uint_t > firstIdx;
           for ( auto e : edgedof::allEdgeDoFOrientations )
-             firstIdx[e] = edgedof::macrocell::index( level, 0, 0, 0, e );
+            firstIdx[e] = edgedof::macrocell::index( level, 0, 0, 0, e );
 
           if ( updateType == Replace )
           {
-             VertexDoFToEdgeDoF::generated::apply_3D_macrocell_vertexdof_to_edgedof_replace( &dstData[firstIdx[eo::X]],
-                                                                                             &dstData[firstIdx[eo::XY]],
-                                                                                             &dstData[firstIdx[eo::XYZ]],
-                                                                                             &dstData[firstIdx[eo::XZ]],
-                                                                                             &dstData[firstIdx[eo::Y]],
-                                                                                             &dstData[firstIdx[eo::YZ]],
-                                                                                             &dstData[firstIdx[eo::Z]],
-                                                                                             srcData,
-                                                                                             static_cast< int32_t >( level ),
-                                                                                             stencilData );
-          }
-          else
+            VertexDoFToEdgeDoF::generated::apply_3D_macrocell_vertexdof_to_edgedof_replace( &dstData[firstIdx[eo::X]],
+                                                                                            &dstData[firstIdx[eo::XY]],
+                                                                                            &dstData[firstIdx[eo::XYZ]],
+                                                                                            &dstData[firstIdx[eo::XZ]],
+                                                                                            &dstData[firstIdx[eo::Y]],
+                                                                                            &dstData[firstIdx[eo::YZ]],
+                                                                                            &dstData[firstIdx[eo::Z]],
+                                                                                            srcData,
+                                                                                            static_cast< int32_t >( level ),
+                                                                                            stencilData );
+          } else
           {
-             VertexDoFToEdgeDoF::generated::apply_3D_macrocell_vertexdof_to_edgedof_add( &dstData[firstIdx[eo::X]],
-                                                                                         &dstData[firstIdx[eo::XY]],
-                                                                                         &dstData[firstIdx[eo::XYZ]],
-                                                                                         &dstData[firstIdx[eo::XZ]],
-                                                                                         &dstData[firstIdx[eo::Y]],
-                                                                                         &dstData[firstIdx[eo::YZ]],
-                                                                                         &dstData[firstIdx[eo::Z]],
-                                                                                         srcData,
-                                                                                         static_cast< int32_t >( level ),
-                                                                                         stencilData );
+            VertexDoFToEdgeDoF::generated::apply_3D_macrocell_vertexdof_to_edgedof_add( &dstData[firstIdx[eo::X]],
+                                                                                        &dstData[firstIdx[eo::XY]],
+                                                                                        &dstData[firstIdx[eo::XYZ]],
+                                                                                        &dstData[firstIdx[eo::XZ]],
+                                                                                        &dstData[firstIdx[eo::Y]],
+                                                                                        &dstData[firstIdx[eo::YZ]],
+                                                                                        &dstData[firstIdx[eo::Z]],
+                                                                                        srcData,
+                                                                                        static_cast< int32_t >( level ),
+                                                                                        stencilData );
           }
-       }
-       else
-       {
+        } else
+        {
           VertexDoFToEdgeDoF::applyCell( level, cell, cellStencilID_, src.getCellDataID(), dst.getCellDataID(), updateType );
-       }
+        }
+      }
     }
   }
 
@@ -337,155 +339,158 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
 
   this->timingTree_->start( "Macro-Face" );
 
-  for ( auto& it : storage_->getFaces() )
+  if ( level >= 1 )
   {
-     Face& face = *it.second;
-
-     const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-     if ( testFlag( faceBC, flag ) )
+     for ( auto& it : storage_->getFaces() )
      {
-        if ( storage_->hasGlobalCells() )
+        Face& face = *it.second;
+
+        const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+        if ( testFlag( faceBC, flag ) )
         {
-           if ( hyteg::globalDefines::useGeneratedKernels )
+           if ( storage_->hasGlobalCells() )
            {
-              auto dstData     = face.getData( dst.getFaceDataID() )->getPointer( level );
-              auto srcData     = face.getData( src.getFaceDataID() )->getPointer( level );
-              auto stencilData = face.getData( faceStencil3DID_ )->getData( level );
-
-              typedef edgedof::EdgeDoFOrientation eo;
-              std::map< eo, uint_t >              firstIdx;
-              for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
-                 firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
-
-              const uint_t offset_gl_0 = levelinfo::num_microvertices_per_face( level );
-
-
-              auto neighborCell0 = storage_->getCell( face.neighborCells()[0] );
-
-              auto neighbor_cell_0_local_vertex_id_0 =
-                  static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
-                                              .at( neighborCell0->getLocalFaceID( face.getID() ) )
-                                              .at( 0 ) );
-              auto neighbor_cell_0_local_vertex_id_1 =
-                  static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
-                                              .at( neighborCell0->getLocalFaceID( face.getID() ) )
-                                              .at( 1 ) );
-              auto neighbor_cell_0_local_vertex_id_2 =
-                  static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
-                                              .at( neighborCell0->getLocalFaceID( face.getID() ) )
-                                              .at( 2 ) );
-
-              if ( updateType == Replace )
+              if ( hyteg::globalDefines::useGeneratedKernels )
               {
-                VertexDoFToEdgeDoF::generated::apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace(
-                &dstData[firstIdx[eo::X]],
-                &dstData[firstIdx[eo::XY]],
-                &dstData[firstIdx[eo::Y]],
-                &srcData[0],
-                &srcData[offset_gl_0],
-                static_cast< int32_t >( level ),
-                neighbor_cell_0_local_vertex_id_0,
-                neighbor_cell_0_local_vertex_id_1,
-                neighbor_cell_0_local_vertex_id_2,
-                stencilData[0] );
+                 auto dstData     = face.getData( dst.getFaceDataID() )->getPointer( level );
+                 auto srcData     = face.getData( src.getFaceDataID() )->getPointer( level );
+                 auto stencilData = face.getData( faceStencil3DID_ )->getData( level );
+
+                 typedef edgedof::EdgeDoFOrientation eo;
+                 std::map< eo, uint_t >              firstIdx;
+                 for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
+                    firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
+
+                 const uint_t offset_gl_0 = levelinfo::num_microvertices_per_face( level );
+
+                 auto neighborCell0 = storage_->getCell( face.neighborCells()[0] );
+
+                 auto neighbor_cell_0_local_vertex_id_0 =
+                     static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
+                                                 .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                                 .at( 0 ) );
+                 auto neighbor_cell_0_local_vertex_id_1 =
+                     static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
+                                                 .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                                 .at( 1 ) );
+                 auto neighbor_cell_0_local_vertex_id_2 =
+                     static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
+                                                 .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                                 .at( 2 ) );
+
+                 if ( updateType == Replace )
+                 {
+                    VertexDoFToEdgeDoF::generated::apply_3D_macroface_one_sided_vertexdof_to_edgedof_replace(
+                        &dstData[firstIdx[eo::X]],
+                        &dstData[firstIdx[eo::XY]],
+                        &dstData[firstIdx[eo::Y]],
+                        &srcData[0],
+                        &srcData[offset_gl_0],
+                        static_cast< int32_t >( level ),
+                        neighbor_cell_0_local_vertex_id_0,
+                        neighbor_cell_0_local_vertex_id_1,
+                        neighbor_cell_0_local_vertex_id_2,
+                        stencilData[0] );
+                 }
+                 else
+                 {
+                    VertexDoFToEdgeDoF::generated::apply_3D_macroface_one_sided_vertexdof_to_edgedof_add(
+                        &dstData[firstIdx[eo::X]],
+                        &dstData[firstIdx[eo::XY]],
+                        &dstData[firstIdx[eo::Y]],
+                        &srcData[0],
+                        &srcData[offset_gl_0],
+                        static_cast< int32_t >( level ),
+                        neighbor_cell_0_local_vertex_id_0,
+                        neighbor_cell_0_local_vertex_id_1,
+                        neighbor_cell_0_local_vertex_id_2,
+                        stencilData[0] );
+                 }
+
+                 if ( face.getNumNeighborCells() == 2 )
+                 {
+                    const uint_t offset_gl_1 = offset_gl_0 + levelinfo::num_microvertices_per_face_from_width(
+                                                                 levelinfo::num_microvertices_per_edge( level ) - 1 );
+
+                    auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
+
+                    auto neighbor_cell_1_local_vertex_id_0 =
+                        static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                                                    .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                                    .at( 0 ) );
+                    auto neighbor_cell_1_local_vertex_id_1 =
+                        static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                                                    .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                                    .at( 1 ) );
+                    auto neighbor_cell_1_local_vertex_id_2 =
+                        static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
+                                                    .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                                    .at( 2 ) );
+
+                    VertexDoFToEdgeDoF::generated::apply_3D_macroface_one_sided_vertexdof_to_edgedof_add(
+                        &dstData[firstIdx[eo::X]],
+                        &dstData[firstIdx[eo::XY]],
+                        &dstData[firstIdx[eo::Y]],
+                        &srcData[0],
+                        &srcData[offset_gl_1],
+                        static_cast< int32_t >( level ),
+                        neighbor_cell_1_local_vertex_id_0,
+                        neighbor_cell_1_local_vertex_id_1,
+                        neighbor_cell_1_local_vertex_id_2,
+                        stencilData[1] );
+                 }
               }
               else
               {
-                VertexDoFToEdgeDoF::generated::apply_3D_macroface_one_sided_vertexdof_to_edgedof_add(
-                &dstData[firstIdx[eo::X]],
-                &dstData[firstIdx[eo::XY]],
-                &dstData[firstIdx[eo::Y]],
-                &srcData[0],
-                &srcData[offset_gl_0],
-                static_cast< int32_t >( level ),
-                neighbor_cell_0_local_vertex_id_0,
-                neighbor_cell_0_local_vertex_id_1,
-                neighbor_cell_0_local_vertex_id_2,
-                stencilData[0] );
-              }
-
-              if ( face.getNumNeighborCells() == 2 )
-              {
-                 const uint_t offset_gl_1 = offset_gl_0 + levelinfo::num_microvertices_per_face_from_width(
-                                                              levelinfo::num_microvertices_per_edge( level ) - 1 );
-
-                 auto neighborCell1 = storage_->getCell( face.neighborCells()[1] );
-
-                 auto neighbor_cell_1_local_vertex_id_0 =
-                     static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
-                                                 .at( neighborCell1->getLocalFaceID( face.getID() ) )
-                                                 .at( 0 ) );
-                 auto neighbor_cell_1_local_vertex_id_1 =
-                     static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
-                                                 .at( neighborCell1->getLocalFaceID( face.getID() ) )
-                                                 .at( 1 ) );
-                 auto neighbor_cell_1_local_vertex_id_2 =
-                     static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
-                                                 .at( neighborCell1->getLocalFaceID( face.getID() ) )
-                                                 .at( 2 ) );
-
-                 VertexDoFToEdgeDoF::generated::apply_3D_macroface_one_sided_vertexdof_to_edgedof_add(
-                     &dstData[firstIdx[eo::X]],
-                     &dstData[firstIdx[eo::XY]],
-                     &dstData[firstIdx[eo::Y]],
-                     &srcData[0],
-                     &srcData[offset_gl_1],
-                     static_cast< int32_t >( level ),
-                     neighbor_cell_1_local_vertex_id_0,
-                     neighbor_cell_1_local_vertex_id_1,
-                     neighbor_cell_1_local_vertex_id_2,
-                     stencilData[1] );
+                 VertexDoFToEdgeDoF::applyFace3D(
+                     level, face, *storage_, faceStencil3DID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
               }
            }
            else
            {
-              VertexDoFToEdgeDoF::applyFace3D(
-                  level, face, *storage_, faceStencil3DID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
-           }
-        }
-        else
-        {
-           if ( hyteg::globalDefines::useGeneratedKernels )
-           {
-              real_t* opr_data                      = face.getData( faceStencilID_ )->getPointer( level );
-              real_t* vertexToDiagonalEdgeStencil   = &opr_data[4];
-              real_t* vertexToHorizontalEdgeStencil = &opr_data[0];
-              real_t* vertexToVerticalEdgeStencil   = &opr_data[8];
-              real_t* src_data                      = face.getData( src.getFaceDataID() )->getPointer( level );
-              real_t* dst_data                      = face.getData( dst.getFaceDataID() )->getPointer( level );
-
-              typedef edgedof::EdgeDoFOrientation eo;
-              std::map< eo, uint_t >              firstIdx;
-              for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
-                 firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
-
-              if ( updateType == hyteg::Replace )
+              if ( hyteg::globalDefines::useGeneratedKernels )
               {
-                 VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace(
-                     &dst_data[firstIdx[eo::X]],
-                     &dst_data[firstIdx[eo::XY]],
-                     &dst_data[firstIdx[eo::Y]],
-                     src_data,
-                     vertexToDiagonalEdgeStencil,
-                     vertexToHorizontalEdgeStencil,
-                     vertexToVerticalEdgeStencil,
-                     static_cast< int32_t >( level ) );
+                 real_t* opr_data                      = face.getData( faceStencilID_ )->getPointer( level );
+                 real_t* vertexToDiagonalEdgeStencil   = &opr_data[4];
+                 real_t* vertexToHorizontalEdgeStencil = &opr_data[0];
+                 real_t* vertexToVerticalEdgeStencil   = &opr_data[8];
+                 real_t* src_data                      = face.getData( src.getFaceDataID() )->getPointer( level );
+                 real_t* dst_data                      = face.getData( dst.getFaceDataID() )->getPointer( level );
+
+                 typedef edgedof::EdgeDoFOrientation eo;
+                 std::map< eo, uint_t >              firstIdx;
+                 for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
+                    firstIdx[e] = edgedof::macroface::index( level, 0, 0, e );
+
+                 if ( updateType == hyteg::Replace )
+                 {
+                    VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_replace(
+                        &dst_data[firstIdx[eo::X]],
+                        &dst_data[firstIdx[eo::XY]],
+                        &dst_data[firstIdx[eo::Y]],
+                        src_data,
+                        vertexToDiagonalEdgeStencil,
+                        vertexToHorizontalEdgeStencil,
+                        vertexToVerticalEdgeStencil,
+                        static_cast< int32_t >( level ) );
+                 }
+                 else if ( updateType == hyteg::Add )
+                 {
+                    VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_add( &dst_data[firstIdx[eo::X]],
+                                                                                                &dst_data[firstIdx[eo::XY]],
+                                                                                                &dst_data[firstIdx[eo::Y]],
+                                                                                                src_data,
+                                                                                                vertexToDiagonalEdgeStencil,
+                                                                                                vertexToHorizontalEdgeStencil,
+                                                                                                vertexToVerticalEdgeStencil,
+                                                                                                static_cast< int32_t >( level ) );
+                 }
               }
-              else if ( updateType == hyteg::Add )
+              else
               {
-                 VertexDoFToEdgeDoF::generated::apply_2D_macroface_vertexdof_to_edgedof_add( &dst_data[firstIdx[eo::X]],
-                                                                                             &dst_data[firstIdx[eo::XY]],
-                                                                                             &dst_data[firstIdx[eo::Y]],
-                                                                                             src_data,
-                                                                                             vertexToDiagonalEdgeStencil,
-                                                                                             vertexToHorizontalEdgeStencil,
-                                                                                             vertexToVerticalEdgeStencil,
-                                                                                             static_cast< int32_t >( level ) );
+                 VertexDoFToEdgeDoF::applyFace(
+                     level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
               }
-           }
-           else
-           {
-              VertexDoFToEdgeDoF::applyFace( level, face, faceStencilID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
            }
         }
      }
