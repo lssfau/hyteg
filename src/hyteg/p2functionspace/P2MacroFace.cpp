@@ -179,7 +179,7 @@ void smoothJacobiEdgeDoF( const uint_t&                                         
    {
       if ( it.row() != 0 )
       {
-         tmp = rhs[edgedof::stencilIndexFromHorizontalEdge( sD::EDGE_HO_C )];
+         tmp = rhs[edgedof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), sD::EDGE_HO_C )];
          for ( uint_t k = 1; k < edgedof::macroface::neighborsFromHorizontalEdge.size(); ++k )
          {
             tmp -= edgeDoFStencil[edgedof::stencilIndexFromHorizontalEdge( edgedof::macroface::neighborsFromHorizontalEdge[k] )] *
@@ -202,7 +202,7 @@ void smoothJacobiEdgeDoF( const uint_t&                                         
       }
       if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
       {
-         tmp = rhs[edgedof::stencilIndexFromDiagonalEdge( sD::EDGE_DI_C )];
+         tmp = rhs[edgedof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), sD::EDGE_DI_C )];
          for ( uint_t k = 1; k < edgedof::macroface::neighborsFromDiagonalEdge.size(); ++k )
          {
             tmp -= edgeDoFStencil[edgedof::stencilIndexFromDiagonalEdge( edgedof::macroface::neighborsFromDiagonalEdge[k] )] *
@@ -225,7 +225,7 @@ void smoothJacobiEdgeDoF( const uint_t&                                         
       }
       if ( it.col() != 0 )
       {
-         tmp = rhs[edgedof::stencilIndexFromVerticalEdge( sD::EDGE_VE_C )];
+         tmp = rhs[edgedof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), sD::EDGE_VE_C )];
          for ( uint_t k = 1; k < edgedof::macroface::neighborsFromVerticalEdge.size(); ++k )
          {
             tmp -= edgeDoFStencil[edgedof::stencilIndexFromVerticalEdge( edgedof::macroface::neighborsFromVerticalEdge[k] )] *
