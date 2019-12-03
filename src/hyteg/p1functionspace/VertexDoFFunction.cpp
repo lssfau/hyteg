@@ -1233,33 +1233,36 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
       }
    }
 
-   for ( const auto& it : this->getStorage()->getEdges() )
+   if ( level >= 1 )
    {
-      Edge& edge = *it.second;
+     for ( const auto & it : this->getStorage()->getEdges())
+     {
+       Edge & edge = *it.second;
 
-      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-      {
+       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag()), flag ))
+       {
          scalarProduct += vertexdof::macroedge::dot< ValueType >( level, edge, edgeDataID_, rhs.edgeDataID_ );
-      }
-   }
+       }
+     }
 
-   for ( const auto& it : this->getStorage()->getFaces() )
-   {
-      Face& face = *it.second;
+     for ( const auto & it : this->getStorage()->getFaces())
+     {
+       Face & face = *it.second;
 
-      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
-      {
+       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag()), flag ))
+       {
          scalarProduct += vertexdof::macroface::dot< ValueType >( level, face, faceDataID_, rhs.faceDataID_ );
-      }
-   }
+       }
+     }
 
-   for ( const auto& it : this->getStorage()->getCells() )
-   {
-      Cell& cell = *it.second;
-      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
-      {
+     for ( const auto & it : this->getStorage()->getCells())
+     {
+       Cell & cell = *it.second;
+       if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag()), flag ))
+       {
          scalarProduct += vertexdof::macrocell::dot< ValueType >( level, cell, cellDataID_, rhs.cellDataID_ );
-      }
+       }
+     }
    }
    this->stopTiming( "Dot (local)" );
    return scalarProduct;
@@ -1371,16 +1374,22 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset 
       vertexdof::macroedge::enumerate< ValueType >( level, edge, edgeDataID_, offset );
    }
 
-   for ( auto& it : this->getStorage()->getFaces() )
+   if ( level >= 2 )
    {
-      Face& face = *it.second;
-      vertexdof::macroface::enumerate< ValueType >( level, face, faceDataID_, offset );
+     for ( auto & it : this->getStorage()->getFaces())
+     {
+       Face & face = *it.second;
+       vertexdof::macroface::enumerate< ValueType >( level, face, faceDataID_, offset );
+     }
    }
 
-   for ( auto& it : this->getStorage()->getCells() )
+   if ( level >= 2 )
    {
-      Cell& cell = *it.second;
-      vertexdof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset );
+     for ( auto & it : this->getStorage()->getCells())
+     {
+       Cell & cell = *it.second;
+       vertexdof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset );
+     }
    }
 
    /// in contrast to other methods in the function class enumerate needs to communicate due to its usage in the PETSc solvers
