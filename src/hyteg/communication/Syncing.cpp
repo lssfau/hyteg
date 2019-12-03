@@ -57,6 +57,9 @@ template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction<
 template void syncFunctionBetweenPrimitives( const EdgeDoFFunction<double>& function, const uint_t& level );
 template void syncFunctionBetweenPrimitives( const EdgeDoFFunction<int>& function, const uint_t& level );
 
+template void syncFunctionBetweenPrimitives( const P2Function<double>& function, const uint_t& level );
+template void syncFunctionBetweenPrimitives( const P2Function<int>& function, const uint_t& level );
+
 //template void syncFunctionBetweenPrimitives( const P1Function<double>& function, const uint_t& level );
 
 } // namespace communication
