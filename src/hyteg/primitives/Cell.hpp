@@ -23,6 +23,7 @@
 #include "hyteg/primitives/Primitive.hpp"
 #include "hyteg/types/pointnd.hpp"
 #include "hyteg/types/flags.hpp"
+#include "hyteg/indexing/LocalIDMappings.hpp"
 #include "core/logging/Logging.h"
 
 namespace hyteg {
@@ -77,6 +78,8 @@ public:
         uint_t                                        getLocalVertexID( const PrimitiveID & vertexID ) const;
         uint_t                                        getLocalEdgeID  ( const PrimitiveID & edgeID )   const;
         uint_t                                        getLocalFaceID  ( const PrimitiveID & faceID )   const;
+
+  const PrimitiveID                                 & getOppositeEdgeID( const PrimitiveID & edgeID ) const { return neighborEdges().at( indexing::getCellLocalOppositeEdgeID(getLocalEdgeID( edgeID ) ) ); }
 
 
 protected:
