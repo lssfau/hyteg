@@ -52,5 +52,54 @@ inline uint_t getCellLocalFaceIDFromCellLocalVertexIDs( const uint_t v0, const u
 	return 3 - v3;
 }
 
+inline uint_t getCellLocalEdgeIDFromCellLocalVertexIDs( const uint_t v0, const uint_t v1 )
+{
+  WALBERLA_ASSERT_UNEQUAL( v0, v1 );
+  WALBERLA_ASSERT_LESS_EQUAL( v0, 3 );
+  WALBERLA_ASSERT_LESS_EQUAL( v1, 3 );
+  switch ( v0 )
+  {
+    case 0:
+      switch ( v1 )
+      {
+        case 1: return 0;
+        case 2: return 1;
+        case 3: return 3;
+        default: WALBERLA_ABORT("Invalid vertex IDs");
+      }
+    case 1:
+      switch ( v1 )
+      {
+        case 0: return 0;
+        case 2: return 2;
+        case 3: return 4;
+        default: WALBERLA_ABORT("Invalid vertex IDs");
+      }
+    case 2:
+      switch ( v1 )
+      {
+        case 0: return 1;
+        case 1: return 2;
+        case 3: return 5;
+        default: WALBERLA_ABORT("Invalid vertex IDs");
+      }
+    case 3:
+      switch ( v1 )
+      {
+        case 0: return 3;
+        case 1: return 4;
+        case 2: return 5;
+        default: WALBERLA_ABORT("Invalid vertex IDs");
+      }
+    default: WALBERLA_ABORT("Invalid vertex IDs");
+  }
+}
+
+inline uint_t getCellLocalOppositeEdgeID( const uint_t & cellLocalEdgeID )
+{
+   WALBERLA_ASSERT_LESS_EQUAL( cellLocalEdgeID, 5 );
+   return 5 - cellLocalEdgeID;
+}
+
 }
 }
