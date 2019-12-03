@@ -30,6 +30,7 @@
 #include "hyteg/primitives/Cell.hpp"
 #include "hyteg/fenics/ufc_traits.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
+#include "hyteg/indexing/LocalIDMappings.hpp"
 #include "hyteg/fenics/fenics.hpp"
 
 
@@ -276,6 +277,11 @@ inline std::vector< std::array< stencilDirection, 4 > > getNeighboringElements( 
   const auto onCellVertices = vertexdof::macrocell::isOnCellVertex( microVertexIndex, level );
   const auto onCellEdges    = vertexdof::macrocell::isOnCellEdge( microVertexIndex, level );
   const auto onCellFaces    = vertexdof::macrocell::isOnCellFace( microVertexIndex, level );
+
+  if ( level == 0 )
+  {
+    WALBERLA_ASSERT( !onCellVertices.empty() );
+  }
 
   if ( onCellVertices.size() > 0 )
   {
@@ -538,9 +544,18 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
       const auto stencilWeight = it.second;
       const auto cellLocalIndexInDir = indexInMacroCell + vertexdof::logicalIndexOffsetFromVertex( cellLocalDir );
       const auto onLocalEdgesDir = vertexdof::macrocell::isOnCellEdge( cellLocalIndexInDir, level );
+      const auto onLocalVerticesDir = vertexdof::macrocell::isOnCellVertex( cellLocalIndexInDir, level );
       if ( onLocalEdgesDir.size() == 1 )
       {
         const auto cellLocalEdgeID = *onLocalEdgesDir.begin();
+        const auto edgePrimitiveID = macroCell->neighborEdges()[cellLocalEdgeID];
+        const auto vertexLocalEdgeID = vertex.edge_index( edgePrimitiveID );
+        stencil[ vertexLocalEdgeID + 1 ] += stencilWeight;
+      }
+      else if ( onLocalVerticesDir.size() == 1 && level == 0 && cellLocalDir != sd::VERTEX_C )
+      {
+        const auto cellLocalVertexIDOfLeaf = *onLocalVerticesDir.begin();
+        const auto cellLocalEdgeID = indexing::getCellLocalEdgeIDFromCellLocalVertexIDs( localVertexID, cellLocalVertexIDOfLeaf );
         const auto edgePrimitiveID = macroCell->neighborEdges()[cellLocalEdgeID];
         const auto vertexLocalEdgeID = vertex.edge_index( edgePrimitiveID );
         stencil[ vertexLocalEdgeID + 1 ] += stencilWeight;
@@ -580,6 +595,9 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
 
   const uint_t stencilSize = vertexDoFMacroEdgeStencilMemorySize( level, edge );
   std::vector< real_t > stencil( stencilSize, real_c( 0 ) );
+
+  if ( level == 0 )
+    return stencil;
 
   for ( const auto & macroCellID : edge.neighborCells() )
   {
