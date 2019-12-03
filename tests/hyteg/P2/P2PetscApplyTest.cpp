@@ -25,8 +25,8 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/FunctionTraits.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -122,11 +122,14 @@ bool p2PetscApplyTest( const uint_t& level, const std::string& meshFile, const D
       vtkOutput.write( level, 0 );
    }
 
-   if( maxError > eps ){
-     WALBERLA_LOG_INFO_ON_ROOT( "TEST FAILED!" );
-     return false;
-   } else {
-     return true;
+   if ( maxError > eps )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "TEST FAILED!" );
+      return false;
+   }
+   else
+   {
+      return true;
    }
 }
 
@@ -139,13 +142,23 @@ int main( int argc, char* argv[] )
 
    bool succeeded = true;
 
+   succeeded &= hyteg::p2PetscApplyTest( 0, "../../data/meshes/3D/tet_1el.msh", hyteg::All, 1.0e-16 );
+   succeeded &= hyteg::p2PetscApplyTest( 0, "../../data/meshes/3D/pyramid_4el.msh", hyteg::Inner, 3.2e-15 );
+   succeeded &= hyteg::p2PetscApplyTest( 0, "../../data/meshes/3D/regular_octahedron_8el.msh", hyteg::Inner, 3.2e-15 );
+   succeeded &= hyteg::p2PetscApplyTest( 0, "../../data/meshes/3D/cube_24el.msh", hyteg::Inner, 3.2e-15 );
+
+   succeeded &= hyteg::p2PetscApplyTest( 1, "../../data/meshes/3D/tet_1el.msh", hyteg::All, 1.0e-16 );
+   succeeded &= hyteg::p2PetscApplyTest( 1, "../../data/meshes/3D/regular_octahedron_8el.msh", hyteg::Inner, 3.2e-15 );
+   succeeded &= hyteg::p2PetscApplyTest( 1, "../../data/meshes/3D/cube_24el.msh", hyteg::Inner, 3.2e-15 );
+
+   succeeded &= hyteg::p2PetscApplyTest( 2, "../../data/meshes/3D/cube_24el.msh", hyteg::All, 3.1e-15 );
+
    succeeded &= hyteg::p2PetscApplyTest( 3, "../../data/meshes/quad_4el.msh", hyteg::All, 5.0e-15 );
    succeeded &= hyteg::p2PetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh", hyteg::All, 1.7e-13 );
    succeeded &= hyteg::p2PetscApplyTest( 3, "../../data/meshes/3D/tet_1el.msh", hyteg::Inner, 1.0e-16 );
    succeeded &= hyteg::p2PetscApplyTest( 3, "../../data/meshes/3D/pyramid_2el.msh", hyteg::Inner, 9.6e-16 );
    succeeded &= hyteg::p2PetscApplyTest( 3, "../../data/meshes/3D/pyramid_4el.msh", hyteg::Inner, 1.5e-15 );
    succeeded &= hyteg::p2PetscApplyTest( 3, "../../data/meshes/3D/regular_octahedron_8el.msh", hyteg::Inner, 3.2e-15 );
-   succeeded &= hyteg::p2PetscApplyTest( 2, "../../data/meshes/3D/cube_24el.msh", hyteg::All, 3.1e-15 );
 
    WALBERLA_CHECK( succeeded, "One of the tests failed" )
 

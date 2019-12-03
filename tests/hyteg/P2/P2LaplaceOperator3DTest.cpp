@@ -46,7 +46,7 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   WALBERLA_LOG_INFO_ON_ROOT( "===== " << meshFile << " | level " << level << " =====" );
 
   const bool   writeVTK   = true;
-  const real_t errorLimit = 1.1e-12;
+  const real_t errorLimit = 4.0e-12;
 
   uint_t timestep = 0;
 
@@ -70,55 +70,61 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
   // Macro-face //
   ////////////////
 
-  for ( const auto & faceIt : storage->getFaces() )
+  if ( level >= 1 )
   {
-    auto face = faceIt.second;
-    // skip faces at boundary
-    if ( face->getNumNeighborCells() < 2 )
-      continue;
+     for ( const auto& faceIt : storage->getFaces() )
+     {
+        auto face = faceIt.second;
+        // skip faces at boundary
+        if ( face->getNumNeighborCells() < 2 )
+           continue;
 
-    real_t sumAtVertex = real_c(0);
+        real_t sumAtVertex = real_c( 0 );
 
-    // At vertices
-    auto vertexToVertexStencilMap = face->getData( laplaceOperator3D.getVertexToVertexOpr().getFaceStencil3DID() )->getData( level );
-    for ( uint_t neighborCellId = 0; neighborCellId < 2; neighborCellId++ )
-      for ( auto direction : vertexToVertexStencilMap.at(neighborCellId) )
-      {
-        sumAtVertex += direction.second;
-      }
+        // At vertices
+        auto vertexToVertexStencilMap =
+            face->getData( laplaceOperator3D.getVertexToVertexOpr().getFaceStencil3DID() )->getData( level );
+        for ( uint_t neighborCellId = 0; neighborCellId < 2; neighborCellId++ )
+           for ( auto direction : vertexToVertexStencilMap.at( neighborCellId ) )
+           {
+              sumAtVertex += direction.second;
+           }
 
-    auto edgeToVertexStencilMap = face->getData( laplaceOperator3D.getEdgeToVertexOpr().getFaceStencil3DID() )->getData( level );
-    for ( uint_t neighborCellId = 0; neighborCellId < 2; neighborCellId++ )
-      for ( auto leafOrientation : edgeToVertexStencilMap.at(neighborCellId) )
-        for ( auto direction : leafOrientation.second )
-        {
-          sumAtVertex += direction.second;
-        }
+        auto edgeToVertexStencilMap =
+            face->getData( laplaceOperator3D.getEdgeToVertexOpr().getFaceStencil3DID() )->getData( level );
+        for ( uint_t neighborCellId = 0; neighborCellId < 2; neighborCellId++ )
+           for ( auto leafOrientation : edgeToVertexStencilMap.at( neighborCellId ) )
+              for ( auto direction : leafOrientation.second )
+              {
+                 sumAtVertex += direction.second;
+              }
 
-    WALBERLA_CHECK_FLOAT_EQUAL( sumAtVertex, 0.0 );
+        WALBERLA_CHECK_FLOAT_EQUAL( sumAtVertex, 0.0 );
 
-    // At edges
-    // For now we add all three types of edges to check that row sum == 0 (since 0 + 0 + 0 == 0 ;) )
-    // This is however not sufficient to be really sure that the row sum for the individual edge types are zero.
-    real_t sumAtAllEdgeTypes = real_c(0);
+        // At edges
+        // For now we add all three types of edges to check that row sum == 0 (since 0 + 0 + 0 == 0 ;) )
+        // This is however not sufficient to be really sure that the row sum for the individual edge types are zero.
+        real_t sumAtAllEdgeTypes = real_c( 0 );
 
-    auto vertexToEdgeStencilMap = face->getData( laplaceOperator3D.getVertexToEdgeOpr().getFaceStencil3DID() )->getData( level );
-    for ( uint_t neighborCellId = 0; neighborCellId < 2; neighborCellId++ )
-      for ( auto centerOrientation : vertexToEdgeStencilMap.at(neighborCellId) )
-        for ( auto direction : centerOrientation.second )
-        {
-          sumAtAllEdgeTypes += direction.second;
-        }
+        auto vertexToEdgeStencilMap =
+            face->getData( laplaceOperator3D.getVertexToEdgeOpr().getFaceStencil3DID() )->getData( level );
+        for ( uint_t neighborCellId = 0; neighborCellId < 2; neighborCellId++ )
+           for ( auto centerOrientation : vertexToEdgeStencilMap.at( neighborCellId ) )
+              for ( auto direction : centerOrientation.second )
+              {
+                 sumAtAllEdgeTypes += direction.second;
+              }
 
-    auto edgeToEdgeStencilMap = face->getData( laplaceOperator3D.getEdgeToEdgeOpr().getFaceStencil3DID() )->getData( level );
-    for ( uint_t neighborCellId = 0; neighborCellId < 2; neighborCellId++ )
-      for ( auto centerOrientation : edgeToEdgeStencilMap.at(neighborCellId) )
-        for ( auto leafOrientation : centerOrientation.second )
-          for ( auto direction : leafOrientation.second )
-          {
-            sumAtAllEdgeTypes += direction.second;
-          }
-    WALBERLA_CHECK_FLOAT_EQUAL( sumAtAllEdgeTypes, 0.0 );
+        auto edgeToEdgeStencilMap = face->getData( laplaceOperator3D.getEdgeToEdgeOpr().getFaceStencil3DID() )->getData( level );
+        for ( uint_t neighborCellId = 0; neighborCellId < 2; neighborCellId++ )
+           for ( auto centerOrientation : edgeToEdgeStencilMap.at( neighborCellId ) )
+              for ( auto leafOrientation : centerOrientation.second )
+                 for ( auto direction : leafOrientation.second )
+                 {
+                    sumAtAllEdgeTypes += direction.second;
+                 }
+        WALBERLA_CHECK_FLOAT_EQUAL( sumAtAllEdgeTypes, 0.0 );
+     }
   }
 
   ////////////////
@@ -131,25 +137,31 @@ void testLaplace3D( const std::string & meshFile, const uint_t & level )
     if ( edge->getMeshBoundaryFlag() != 0 )
       continue;
 
-    // At vertices
-    auto vertexToVertexStencilSize = edge->getData( laplaceOperator3D.getVertexToVertexOpr().getEdgeStencilID() )->getSize( level );
-    auto vertexToVertexStencilArray = edge->getData( laplaceOperator3D.getVertexToVertexOpr().getEdgeStencilID() )->getPointer( level );
-
-    real_t sumAtVertex = real_c(0);
-    for ( uint_t i = 0; i < vertexToVertexStencilSize; i++ )
+    if ( level >= 1 )
     {
-      sumAtVertex += vertexToVertexStencilArray[i];
+       // At vertices
+       auto vertexToVertexStencilSize =
+           edge->getData( laplaceOperator3D.getVertexToVertexOpr().getEdgeStencilID() )->getSize( level );
+       auto vertexToVertexStencilArray =
+           edge->getData( laplaceOperator3D.getVertexToVertexOpr().getEdgeStencilID() )->getPointer( level );
+
+       real_t sumAtVertex = real_c( 0 );
+       for ( uint_t i = 0; i < vertexToVertexStencilSize; i++ )
+       {
+          sumAtVertex += vertexToVertexStencilArray[i];
+       }
+
+       auto edgeToVertexStencilMap =
+           edge->getData( laplaceOperator3D.getEdgeToVertexOpr().getEdgeStencil3DID() )->getData( level );
+       for ( uint_t neighborCellId = 0; neighborCellId < edge->getNumNeighborCells(); neighborCellId++ )
+          for ( auto leafOrientation : edgeToVertexStencilMap.at( neighborCellId ) )
+             for ( auto direction : leafOrientation.second )
+             {
+                sumAtVertex += direction.second;
+             }
+
+       WALBERLA_CHECK_FLOAT_EQUAL( sumAtVertex, 0.0 );
     }
-
-    auto edgeToVertexStencilMap = edge->getData( laplaceOperator3D.getEdgeToVertexOpr().getEdgeStencil3DID() )->getData( level );
-    for ( uint_t neighborCellId = 0; neighborCellId < edge->getNumNeighborCells(); neighborCellId++ )
-      for ( auto leafOrientation : edgeToVertexStencilMap.at(neighborCellId) )
-        for ( auto direction : leafOrientation.second )
-        {
-          sumAtVertex += direction.second;
-        }
-
-    WALBERLA_CHECK_FLOAT_EQUAL( sumAtVertex, 0.0 );
 
     // At edges
     // For now we add all three types of edges to check that row sum == 0 (since 0 + 0 + 0 == 0 ;) )
@@ -307,7 +319,10 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv( argc, argv );
   walberla::MPIManager::instance()->useWorldComm();
 
+  testLaplace3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 0 );
+  testLaplace3D( "../../data/meshes/3D/cube_24el.msh", 0 );
 
+  testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 1 );
   testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 2 );
   testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 3 );
   testLaplace3D( "../../data/meshes/3D/tet_1el.msh", 4 );

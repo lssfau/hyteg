@@ -36,9 +36,9 @@ using walberla::uint_t;
 
 namespace hyteg {
 
-void P2CGTest(const std::string &meshFile, const uint_t level, const real_t targetError, const bool localMPI)
+void P2CGTest( const std::string& meshFile, const uint_t level, const real_t targetError, const bool localMPI )
 {
-   const auto meshInfo = MeshInfo::fromGmshFile( meshFile );
+   const auto            meshInfo = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -53,7 +53,8 @@ void P2CGTest(const std::string &meshFile, const uint_t level, const real_t targ
    hyteg::P2Function< real_t > err( "err", storage, level, level );
    hyteg::P2Function< real_t > npoints_helper( "npoints_helper", storage, level, level );
 
-   if(localMPI){
+   if ( localMPI )
+   {
       u.setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
    }
 
@@ -82,7 +83,7 @@ void P2CGTest(const std::string &meshFile, const uint_t level, const real_t targ
    vtkOutput.add( npoints_helper );
    vtkOutput.write( level );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
+   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err << " (level " << level << ", mesh: " << meshFile << ")" );
    WALBERLA_CHECK_LESS( discr_l2_err, targetError );
 }
 
@@ -94,10 +95,23 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::P2CGTest("../../data/meshes//tri_1el.msh", 3, 1e-7, false);
-   hyteg::P2CGTest("../../data/meshes//quad_4el.msh", 3, 1e-6, false);
-   hyteg::P2CGTest("../../data/meshes/3D/tet_1el.msh", 2, 3e-6, false);
-   hyteg::P2CGTest("../../data/meshes/3D/tet_1el.msh", 3, 3e-7, true);
-   hyteg::P2CGTest("../../data/meshes/3D/pyramid_2el.msh", 2, 3e-5, false);
-   hyteg::P2CGTest("../../data/meshes/3D/regular_octahedron_8el.msh", 2, 1.7e-5, true);
+   hyteg::P2CGTest( "../../data/meshes//tri_1el.msh", 0, 1, false );
+   hyteg::P2CGTest( "../../data/meshes//quad_4el.msh", 0, 1, false );
+   hyteg::P2CGTest( "../../data/meshes/3D/tet_1el.msh", 0, 1, false );
+   hyteg::P2CGTest( "../../data/meshes/3D/pyramid_2el.msh", 0, 1, false );
+   hyteg::P2CGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 0, 1, true );
+   hyteg::P2CGTest( "../../data/meshes/3D/cube_24el.msh", 0, 1, true );
+
+   hyteg::P2CGTest( "../../data/meshes//tri_1el.msh", 1, 1.5e-05, false );
+   hyteg::P2CGTest( "../../data/meshes//quad_4el.msh", 1, 2e-05, false );
+   hyteg::P2CGTest( "../../data/meshes/3D/tet_1el.msh", 1, 3e-06, false );
+   hyteg::P2CGTest( "../../data/meshes/3D/pyramid_2el.msh", 1, 2e-04, false );
+   hyteg::P2CGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 1, 1.5e-04, true );
+
+   hyteg::P2CGTest( "../../data/meshes//tri_1el.msh", 3, 1e-7, false );
+   hyteg::P2CGTest( "../../data/meshes//quad_4el.msh", 3, 1e-7, false );
+   hyteg::P2CGTest( "../../data/meshes/3D/tet_1el.msh", 2, 3e-6, false );
+   hyteg::P2CGTest( "../../data/meshes/3D/tet_1el.msh", 3, 3e-7, true );
+   hyteg::P2CGTest( "../../data/meshes/3D/pyramid_2el.msh", 2, 3e-5, false );
+   hyteg::P2CGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 2, 1.7e-5, true );
 }
