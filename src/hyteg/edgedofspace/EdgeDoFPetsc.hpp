@@ -484,31 +484,37 @@ inline void createMatrix( const OperatorType&                opr,
     }
   }
 
-  for (auto& it : opr.getStorage()->getFaces()) {
-    Face& face = *it.second;
+  if ( level >= 1 )
+  {
+     for ( auto& it : opr.getStorage()->getFaces() )
+     {
+        Face& face = *it.second;
 
-    const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-    if (testFlag(faceBC, flag))
-    {
-      if ( storage->hasGlobalCells() )
-      {
-        saveFaceOperator3D(level, face, *storage, opr.getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat);
-      }
-      else
-      {
-        saveFaceOperator(level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat);
-      }
-    }
-  }
+        const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+        if ( testFlag( faceBC, flag ) )
+        {
+           if ( storage->hasGlobalCells() )
+           {
+              saveFaceOperator3D(
+                  level, face, *storage, opr.getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+           }
+           else
+           {
+              saveFaceOperator( level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+           }
+        }
+     }
 
-  for (auto& it : opr.getStorage()->getCells()) {
-    Cell& cell = *it.second;
+     for ( auto& it : opr.getStorage()->getCells() )
+     {
+        Cell& cell = *it.second;
 
-    const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-    if (testFlag(cellBC, flag))
-    {
-      saveCellOperator(level, cell, opr.getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat);
-    }
+        const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+        if ( testFlag( cellBC, flag ) )
+        {
+           saveCellOperator( level, cell, opr.getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
+        }
+     }
   }
 }
 
