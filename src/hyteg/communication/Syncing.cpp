@@ -49,6 +49,7 @@ void syncP2FunctionBetweenPrimitives( const P2Function< ValueType >& function, c
 }
 
 template void syncP2FunctionBetweenPrimitives( const P2Function< double >& function, const uint_t& level );
+template void syncP2FunctionBetweenPrimitives( const P2Function< int >& function, const uint_t& level );
 
 template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction<double>& function, const uint_t& level );
 template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction<int>& function, const uint_t& level );
