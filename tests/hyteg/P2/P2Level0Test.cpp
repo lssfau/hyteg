@@ -31,9 +31,6 @@
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/petsc/PETScManager.hpp"
-#include "hyteg/petsc/PETScSparseMatrix.hpp"
-#include "hyteg/petsc/PETScVector.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
@@ -219,13 +216,13 @@ void P2Level0EnumerateTet1elTest()
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
 
-  P2Function< PetscInt > f_interpolation( "f_interpolation", storage, level, level );
+  P2Function< int > f_interpolation( "f_interpolation", storage, level, level );
   f_interpolation.enumerate( level );
 
   communication::syncP2FunctionBetweenPrimitives( f_interpolation, level );
 
-  std::map< PrimitiveID, PetscInt > realDataLocal;
-  std::map< PrimitiveID, PetscInt > realDataGlobal;
+  std::map< PrimitiveID, int > realDataLocal;
+  std::map< PrimitiveID, int > realDataGlobal;
 
   // fill real data
   for ( const auto& itVertex : storage->getVertices() )
@@ -273,7 +270,7 @@ void P2Level0EnumerateTet1elTest()
   while ( !recvBuffer.isEmpty() )
   {
     PrimitiveID primitiveID;
-    PetscInt value;
+    int value;
 
     recvBuffer >> primitiveID;
     recvBuffer >> value;
@@ -300,7 +297,7 @@ void P2Level0EnumerateTet1elTest()
   // fill ghost data maps with all macro-vertex data
   for ( const auto& itVertex : storage->getVertices() )
   {
-    std::map< PrimitiveID, PetscInt > glData;
+    std::map< PrimitiveID, int > glData;
 
     auto vertexID = itVertex.first;
     auto vertex   = itVertex.second;
@@ -345,7 +342,7 @@ void P2Level0EnumerateTet1elTest()
   // fill ghost data maps with all macro-edge data
   for ( const auto& itEdge : storage->getEdges() )
   {
-    std::map< PrimitiveID, PetscInt > glData;
+    std::map< PrimitiveID, int > glData;
 
     auto edgeID = itEdge.first;
     auto edge = itEdge.second;
