@@ -117,6 +117,21 @@ PrimitiveID Face::get_vertex_opposite_to_edge(const PrimitiveID& edge) const
   WALBERLA_ABORT("Face::get_vertex_opposite_to_edge: Edge does not belong to face")
 }
 
+PrimitiveID Face::getEdgeOppositeToVertex( const PrimitiveID& vertexID ) const
+{
+   switch ( vertex_index( vertexID ) )
+   {
+   case 0:
+      return neighborEdges().at( 2 );
+   case 1:
+      return neighborEdges().at( 1 );
+   case 2:
+      return neighborEdges().at( 0 );
+   default:
+      WALBERLA_ABORT( "Invalid neighbor vertex ID." );
+   }
+}
+
 PrimitiveID Face::get_edge_between_vertices(const PrimitiveID& v0, const PrimitiveID& v1) const
 {
   std::vector<PrimitiveID> edges_v0 = adjacent_edges(v0);
