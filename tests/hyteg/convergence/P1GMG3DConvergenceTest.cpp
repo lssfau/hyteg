@@ -46,7 +46,7 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv( argc, argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  const uint_t      minLevel        = 2;
+  const uint_t      minLevel        = 0;
   const uint_t      maxLevel        = 3;
   const std::string meshFile        = "../../data/meshes/3D/regular_octahedron_8el.msh";
 
