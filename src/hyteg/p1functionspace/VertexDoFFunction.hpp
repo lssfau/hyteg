@@ -320,5 +320,8 @@ inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint
    pressure.add( -sum / real_c( numGlobalVertices ), level, All );
 }
 
+extern template class VertexDoFFunction< double >;
+extern template class VertexDoFFunction< int >;
+
 } // namespace vertexdof
 } // namespace hyteg

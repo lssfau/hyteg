@@ -152,6 +152,14 @@ class P2Function : public Function< P2Function< ValueType > >
    EdgeDoFFunction< ValueType >              edgeDoFFunction_;
 };
 
+template <>
+real_t P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level ) const;
+template <>
+void P2Function< real_t >::evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const;
+
+extern template class P2Function< double >;
+extern template class P2Function< int >;
+
 namespace p2function {
 
 void projectMean( const P2Function< real_t >& pressure, const uint_t& level );
