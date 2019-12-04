@@ -1,0 +1,164 @@
+/*
+ * Copyright (c) 2019 Nils Kohl, Dominik Thoennes.
+ *
+ * This file is part of HyTeG
+ * (see https://i10git.cs.fau.de/hyteg/hyteg).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+//////////////////////////////////////////////////////////////////////////////
+// This file is generated! To fix issues, please fix them in the generator. //
+//////////////////////////////////////////////////////////////////////////////
+
+#include "restrict_3D_macrocell_P2_update_edgedofs_level_1_to_0.hpp"
+
+namespace hyteg {
+namespace P2 {
+namespace macrocell {
+namespace generated {
+
+static void restrict_3D_macrocell_P2_update_edgedofs_level_1_to_0_level_any(double * RESTRICT _data_edgeCoarseDst_X, double * RESTRICT _data_edgeCoarseDst_XY, double * RESTRICT _data_edgeCoarseDst_XZ, double * RESTRICT _data_edgeCoarseDst_Y, double * RESTRICT _data_edgeCoarseDst_YZ, double * RESTRICT _data_edgeCoarseDst_Z, double const * RESTRICT const _data_edgeFineSrc_X, double const * RESTRICT const _data_edgeFineSrc_XY, double const * RESTRICT const _data_edgeFineSrc_XYZ, double const * RESTRICT const _data_edgeFineSrc_XZ, double const * RESTRICT const _data_edgeFineSrc_Y, double const * RESTRICT const _data_edgeFineSrc_YZ, double const * RESTRICT const _data_edgeFineSrc_Z, double const * RESTRICT const _data_vertexFineSrc, int32_t coarse_level, double num_neighbor_cells_edge0, double num_neighbor_cells_edge1, double num_neighbor_cells_edge2, double num_neighbor_cells_edge3, double num_neighbor_cells_edge4, double num_neighbor_cells_edge5, double num_neighbor_cells_face0, double num_neighbor_cells_face1, double num_neighbor_cells_face2, double num_neighbor_cells_face3)
+{
+   {
+      for (int ctr_3 = 0; ctr_3 < 1; ctr_3 += 1)
+      {
+         for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
+         {
+            // vertex 0
+            for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
+            {
+               _data_edgeCoarseDst_X[ctr_1 + ctr_2*(-ctr_3 + (1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + (1 << (coarse_level)))*(-ctr_3 + (1 << (coarse_level)) + 1)*(-ctr_3 + (1 << (coarse_level)) + 2)) / (6)) + ((((1 << (coarse_level)) + 1)*((1 << (coarse_level)) + 2)*(1 << (coarse_level))) / (6))] = 0.25*_data_edgeFineSrc_XYZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) - 1)*((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (6))] + 0.25*_data_edgeFineSrc_X[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face1 + 0.5*_data_edgeFineSrc_XZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face1 + 0.5*_data_edgeFineSrc_Z[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6)) + 1]/num_neighbor_cells_face1 + 0.25*_data_edgeFineSrc_X[2*ctr_1 + (2*ctr_2 + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face0 + 0.5*_data_edgeFineSrc_XY[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face0 + 0.5*_data_edgeFineSrc_Y[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6)) + 1]/num_neighbor_cells_face0 + 0.75*_data_edgeFineSrc_X[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6)) + 1]/num_neighbor_cells_edge0 + 0.75*_data_edgeFineSrc_X[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_edge0 + 1.0*_data_vertexFineSrc[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*((1 << (coarse_level + 1)) + 3)) / (6)) - (((-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 3)) / (6)) + 1]/num_neighbor_cells_edge0;
+               _data_edgeCoarseDst_Y[ctr_1 + ctr_2*(-ctr_3 + (1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + (1 << (coarse_level)))*(-ctr_3 + (1 << (coarse_level)) + 1)*(-ctr_3 + (1 << (coarse_level)) + 2)) / (6)) + ((((1 << (coarse_level)) + 1)*((1 << (coarse_level)) + 2)*(1 << (coarse_level))) / (6))] = 0.25*_data_edgeFineSrc_XYZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) - 1)*((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (6))] + 0.25*_data_edgeFineSrc_Y[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face2 + 0.5*_data_edgeFineSrc_YZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face2 + 0.5*_data_edgeFineSrc_Z[2*ctr_1 + (2*ctr_2 + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face2 + 0.25*_data_edgeFineSrc_Y[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6)) + 1]/num_neighbor_cells_face0 + 0.5*_data_edgeFineSrc_XY[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face0 + 0.5*_data_edgeFineSrc_X[2*ctr_1 + (2*ctr_2 + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face0 + 0.75*_data_edgeFineSrc_Y[2*ctr_1 + (2*ctr_2 + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_edge1 + 0.75*_data_edgeFineSrc_Y[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_edge1 + 1.0*_data_vertexFineSrc[2*ctr_1 + (2*ctr_2 + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*((1 << (coarse_level + 1)) + 3)) / (6)) - (((-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 3)) / (6))]/num_neighbor_cells_edge1;
+               _data_edgeCoarseDst_Z[ctr_1 + ctr_2*(-ctr_3 + (1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + (1 << (coarse_level)))*(-ctr_3 + (1 << (coarse_level)) + 1)*(-ctr_3 + (1 << (coarse_level)) + 2)) / (6)) + ((((1 << (coarse_level)) + 1)*((1 << (coarse_level)) + 2)*(1 << (coarse_level))) / (6))] = 0.25*_data_edgeFineSrc_XYZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) - 1)*((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (6))] + 0.25*_data_edgeFineSrc_Z[2*ctr_1 + (2*ctr_2 + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face2 + 0.5*_data_edgeFineSrc_YZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face2 + 0.5*_data_edgeFineSrc_Y[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face2 + 0.25*_data_edgeFineSrc_Z[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6)) + 1]/num_neighbor_cells_face1 + 0.5*_data_edgeFineSrc_XZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face1 + 0.5*_data_edgeFineSrc_X[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face1 + 0.75*_data_edgeFineSrc_Z[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_edge3 + 0.75*_data_edgeFineSrc_Z[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_edge3 + 1.0*_data_vertexFineSrc[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*((1 << (coarse_level + 1)) + 3)) / (6))]/num_neighbor_cells_edge3;
+               _data_edgeCoarseDst_XY[ctr_1 + ctr_2*(-ctr_3 + (1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + (1 << (coarse_level)))*(-ctr_3 + (1 << (coarse_level)) + 1)*(-ctr_3 + (1 << (coarse_level)) + 2)) / (6)) + ((((1 << (coarse_level)) + 1)*((1 << (coarse_level)) + 2)*(1 << (coarse_level))) / (6))] = 0.25*_data_edgeFineSrc_XYZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) - 1)*((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (6))] + 0.25*_data_edgeFineSrc_XY[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face3 + 0.5*_data_edgeFineSrc_XZ[2*ctr_1 + (2*ctr_2 + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face3 + 0.5*_data_edgeFineSrc_YZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6)) + 1]/num_neighbor_cells_face3 + 0.25*_data_edgeFineSrc_XY[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face0 + 0.5*_data_edgeFineSrc_X[2*ctr_1 + (2*ctr_2 + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face0 + 0.5*_data_edgeFineSrc_Y[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6)) + 1]/num_neighbor_cells_face0 + 0.75*_data_edgeFineSrc_XY[2*ctr_1 + (2*ctr_2 + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_edge2 + 0.75*_data_edgeFineSrc_XY[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6)) + 1]/num_neighbor_cells_edge2 + 1.0*_data_vertexFineSrc[2*ctr_1 + (2*ctr_2 + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*((1 << (coarse_level + 1)) + 3)) / (6)) - (((-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 3)) / (6)) + 1]/num_neighbor_cells_edge2;
+               _data_edgeCoarseDst_XZ[ctr_1 + ctr_2*(-ctr_3 + (1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + (1 << (coarse_level)))*(-ctr_3 + (1 << (coarse_level)) + 1)*(-ctr_3 + (1 << (coarse_level)) + 2)) / (6)) + ((((1 << (coarse_level)) + 1)*((1 << (coarse_level)) + 2)*(1 << (coarse_level))) / (6))] = 0.25*_data_edgeFineSrc_XYZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) - 1)*((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (6))] + 0.25*_data_edgeFineSrc_XZ[2*ctr_1 + (2*ctr_2 + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face3 + 0.5*_data_edgeFineSrc_XY[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face3 + 0.5*_data_edgeFineSrc_YZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6)) + 1]/num_neighbor_cells_face3 + 0.25*_data_edgeFineSrc_XZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face1 + 0.5*_data_edgeFineSrc_X[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face1 + 0.5*_data_edgeFineSrc_Z[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6)) + 1]/num_neighbor_cells_face1 + 0.75*_data_edgeFineSrc_XZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6)) + 1]/num_neighbor_cells_edge4 + 0.75*_data_edgeFineSrc_XZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_edge4 + 1.0*_data_vertexFineSrc[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*((1 << (coarse_level + 1)) + 3)) / (6)) + 1]/num_neighbor_cells_edge4;
+               _data_edgeCoarseDst_YZ[ctr_1 + ctr_2*(-ctr_3 + (1 << (coarse_level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) - (((-ctr_3 + (1 << (coarse_level)))*(-ctr_3 + (1 << (coarse_level)) + 1)*(-ctr_3 + (1 << (coarse_level)) + 2)) / (6)) + ((((1 << (coarse_level)) + 1)*((1 << (coarse_level)) + 2)*(1 << (coarse_level))) / (6))] = 0.25*_data_edgeFineSrc_XYZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) - 1)*((1 << (coarse_level + 1)) + 1)*(1 << (coarse_level + 1))) / (6))] + 0.25*_data_edgeFineSrc_YZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6)) + 1]/num_neighbor_cells_face3 + 0.5*_data_edgeFineSrc_XY[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face3 + 0.5*_data_edgeFineSrc_XZ[2*ctr_1 + (2*ctr_2 + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face3 + 0.25*_data_edgeFineSrc_YZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face2 + 0.5*_data_edgeFineSrc_Y[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face2 + 0.5*_data_edgeFineSrc_Z[2*ctr_1 + (2*ctr_2 + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_face2 + 0.75*_data_edgeFineSrc_YZ[2*ctr_1 + (2*ctr_2 + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_edge5 + 0.75*_data_edgeFineSrc_YZ[2*ctr_1 + 2*ctr_2*(-2*ctr_3 + (1 << (coarse_level + 1))) - ((2*ctr_2*(2*ctr_2 + 1)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) - 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*(1 << (coarse_level + 1))) / (6))]/num_neighbor_cells_edge5 + 1.0*_data_vertexFineSrc[2*ctr_1 + (2*ctr_2 + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1) - (((2*ctr_2 + 1)*(2*ctr_2 + 2)) / (2)) - (((-2*ctr_3 + (1 << (coarse_level + 1)))*(-2*ctr_3 + (1 << (coarse_level + 1)) + 1)*(-2*ctr_3 + (1 << (coarse_level + 1)) + 2)) / (6)) + ((((1 << (coarse_level + 1)) + 1)*((1 << (coarse_level + 1)) + 2)*((1 << (coarse_level + 1)) + 3)) / (6))]/num_neighbor_cells_edge5;
+            }
+            // edge 0
+            for (int ctr_1 = 1; ctr_1 < (1 << (coarse_level)) - 1; ctr_1 += 1)
+            {
+               
+            }
+            // vertex 1
+            for (int ctr_1 = (1 << (coarse_level)) - 1; ctr_1 < (1 << (coarse_level)); ctr_1 += 1)
+            {
+               
+            }
+         }
+         for (int ctr_2 = 1; ctr_2 < -ctr_3 + (1 << (coarse_level)) - 1; ctr_2 += 1)
+         {
+            // edge 1
+            for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
+            {
+               
+            }
+            // face 0
+            for (int ctr_1 = 1; ctr_1 < -ctr_2 + (1 << (coarse_level)) - 1; ctr_1 += 1)
+            {
+               
+            }
+            // edge 2
+            for (int ctr_1 = -ctr_2 + (1 << (coarse_level)) - 1; ctr_1 < -ctr_2 + (1 << (coarse_level)); ctr_1 += 1)
+            {
+               
+            }
+         }
+         for (int ctr_2 = -ctr_3 + (1 << (coarse_level)) - 1; ctr_2 < -ctr_3 + (1 << (coarse_level)); ctr_2 += 1)
+         {
+            // vertex 2
+            for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
+            {
+               
+            }
+         }
+      }
+      for (int ctr_3 = 1; ctr_3 < (1 << (coarse_level)) - 1; ctr_3 += 1)
+      {
+         for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
+         {
+            // edge 3
+            for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
+            {
+               
+            }
+            // face 1
+            for (int ctr_1 = 1; ctr_1 < -ctr_3 + (1 << (coarse_level)) - 1; ctr_1 += 1)
+            {
+               
+            }
+            // edge 4
+            for (int ctr_1 = -ctr_3 + (1 << (coarse_level)) - 1; ctr_1 < -ctr_3 + (1 << (coarse_level)); ctr_1 += 1)
+            {
+               
+            }
+         }
+         for (int ctr_2 = 1; ctr_2 < -ctr_3 + (1 << (coarse_level)) - 1; ctr_2 += 1)
+         {
+            // face 2
+            for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
+            {
+               
+            }
+            // cell (inner)
+            for (int ctr_1 = 1; ctr_1 < -ctr_2 - ctr_3 + (1 << (coarse_level)) - 1; ctr_1 += 1)
+            {
+               
+            }
+            // face 3
+            for (int ctr_1 = -ctr_2 - ctr_3 + (1 << (coarse_level)) - 1; ctr_1 < -ctr_2 - ctr_3 + (1 << (coarse_level)); ctr_1 += 1)
+            {
+               
+            }
+         }
+         for (int ctr_2 = -ctr_3 + (1 << (coarse_level)) - 1; ctr_2 < -ctr_3 + (1 << (coarse_level)); ctr_2 += 1)
+         {
+            // edge 5
+            for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
+            {
+               
+            }
+         }
+      }
+      for (int ctr_3 = (1 << (coarse_level)) - 1; ctr_3 < (1 << (coarse_level)); ctr_3 += 1)
+      {
+         for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
+         {
+            // vertex 3
+            for (int ctr_1 = 0; ctr_1 < 1; ctr_1 += 1)
+            {
+               
+            }
+         }
+      }
+   }
+}
+
+
+void restrict_3D_macrocell_P2_update_edgedofs_level_1_to_0(double * RESTRICT _data_edgeCoarseDst_X, double * RESTRICT _data_edgeCoarseDst_XY, double * RESTRICT _data_edgeCoarseDst_XZ, double * RESTRICT _data_edgeCoarseDst_Y, double * RESTRICT _data_edgeCoarseDst_YZ, double * RESTRICT _data_edgeCoarseDst_Z, double const * RESTRICT const _data_edgeFineSrc_X, double const * RESTRICT const _data_edgeFineSrc_XY, double const * RESTRICT const _data_edgeFineSrc_XYZ, double const * RESTRICT const _data_edgeFineSrc_XZ, double const * RESTRICT const _data_edgeFineSrc_Y, double const * RESTRICT const _data_edgeFineSrc_YZ, double const * RESTRICT const _data_edgeFineSrc_Z, double const * RESTRICT const _data_vertexFineSrc, int32_t coarse_level, double num_neighbor_cells_edge0, double num_neighbor_cells_edge1, double num_neighbor_cells_edge2, double num_neighbor_cells_edge3, double num_neighbor_cells_edge4, double num_neighbor_cells_edge5, double num_neighbor_cells_face0, double num_neighbor_cells_face1, double num_neighbor_cells_face2, double num_neighbor_cells_face3)
+{
+    switch( coarse_level )
+    {
+
+    default:
+        restrict_3D_macrocell_P2_update_edgedofs_level_1_to_0_level_any(_data_edgeCoarseDst_X, _data_edgeCoarseDst_XY, _data_edgeCoarseDst_XZ, _data_edgeCoarseDst_Y, _data_edgeCoarseDst_YZ, _data_edgeCoarseDst_Z, _data_edgeFineSrc_X, _data_edgeFineSrc_XY, _data_edgeFineSrc_XYZ, _data_edgeFineSrc_XZ, _data_edgeFineSrc_Y, _data_edgeFineSrc_YZ, _data_edgeFineSrc_Z, _data_vertexFineSrc, coarse_level, num_neighbor_cells_edge0, num_neighbor_cells_edge1, num_neighbor_cells_edge2, num_neighbor_cells_edge3, num_neighbor_cells_edge4, num_neighbor_cells_edge5, num_neighbor_cells_face0, num_neighbor_cells_face1, num_neighbor_cells_face2, num_neighbor_cells_face3);
+        break;
+    }
+}
+    
+
+} // namespace generated
+} // namespace macrocell
+} // namespace P2
+} // namespace hyteg
