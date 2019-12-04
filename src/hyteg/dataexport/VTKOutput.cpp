@@ -1039,6 +1039,11 @@ uint_t VTKOutput::getNumRegisteredFunctions( const VTKOutput::DoFType& dofType )
 
 void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
 {
+   if ( level <= 1 )
+   {
+     return;
+   }
+
    if( writeFrequency_ > 0 && timestep % writeFrequency_ == 0 )
    {
       syncAllFunctions( level );

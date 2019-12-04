@@ -281,6 +281,10 @@ waLBerla_execute_test(NAME P2SwapTest)
 waLBerla_compile_test(FILES P2/P2FunctionTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2FunctionTest)
 
+waLBerla_compile_test(FILES P2/P2Level0Test.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P2Level0Test1 COMMAND $<TARGET_FILE:P2Level0Test> PROCESSES 1)
+waLBerla_execute_test(NAME P2Level0Test2 COMMAND $<TARGET_FILE:P2Level0Test> PROCESSES 2)
+
 waLBerla_compile_test(FILES P2/P2ConstantMassOperatorTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2ConstantMassOperatorTest )
 waLBerla_execute_test(NAME P2ConstantMassOperatorTestMPI COMMAND $<TARGET_FILE:P2ConstantMassOperatorTest> PROCESSES 2 )
@@ -293,10 +297,8 @@ if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_execute_test(NAME P2LaplacePetscSymmetryTest)
 endif()
 
-if(CMAKE_BUILD_TYPE MATCHES "Release")
-    waLBerla_compile_test(FILES P2/P2LaplaceOperator3DTest.cpp DEPENDS hyteg core)
-    waLBerla_execute_test(NAME P2LaplaceOperator3DTest)
-endif()
+waLBerla_compile_test(FILES P2/P2LaplaceOperator3DTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P2LaplaceOperator3DTest)
 
 if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES P2/P2PetscSolveTest.cpp DEPENDS hyteg core )

@@ -2,7 +2,7 @@ Parameters
 {
     equation stokes;
     dim 3;
-    numFacesPerSide 1;
+    numFacesPerSide 3;
     discretization P2;
 
     meshSphericalShell false;
@@ -13,31 +13,41 @@ Parameters
 
     meshLayout CRISSCROSS;
     symmetricCuboidMesh true;
-    numCycles 5;
+    numCycles 0;
     cycleType V;
     fmgInnerCycles 0; // 0 == no fmg
 
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
-    sorRelax 0.55;
+    sorRelax 0.3;
     velocitySorRelax 1.0;
 
-    symmGSVelocity true;
-    numGSVelocity 1;
+    symmGSVelocity false;
+    numGSVelocity 2;
     symmGSPressure false;
     numGSPressure 1;
 
-    preSmoothingSteps 4;
-    postSmoothingSteps 4;
+    preSmoothingSteps 2;
+    postSmoothingSteps 2;
     smoothingIncrement 2;
     minLevel 2;
-    maxLevel 5; // P1 level, P2 level is automatically reduced by 1
+    maxLevel 3; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-16;
     projectPressureAfterRestriction true;
     calculateDiscretizationError false;
-    coarseGridMaxIterations 2000;
-    coarseGridResidualTolerance 1e-08;
+    coarseGridMaxIterations 20000;
+    coarseGridResidualTolerance 1e-10;
+
+    // PETSc only
+    // 0: LU (MUMPS)
+    // 1: Block-prec. MinRes
+    coarseGridSolverType 1;
+
+    // 0: PCGAMG
+    // 1: PCJACOBI
+    // 2: Schur complement
+    coarseGridSolverVelocityPreconditionerType 1;
 
     cyclesBeforeDC 0;
     postDCPreSmoothingSteps 3;
@@ -47,7 +57,7 @@ Parameters
     outputVTK false;
     outputTiming false;
     outputTimingJSON true;
-    outputTimingJSONFile timing.json;
+    outputTimingJSONFile timing-gen-macro-edge-sor.json;
     outputSQL true;
     outputSQLFile database.db;
 

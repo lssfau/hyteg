@@ -119,65 +119,84 @@ void assembleVertexToEdgeStencils( const std::shared_ptr< PrimitiveStorage > & s
     // Macro-faces //
     /////////////////
 
-    for (const auto &it : storage->getFaces()) {
-      const auto &face = *it.second;
+    if ( level >= 1 )
+    {
+       for ( const auto& it : storage->getFaces() )
+       {
+          const auto& face = *it.second;
 
-      WALBERLA_ASSERT_GREATER(face.getNumNeighborCells(), 0);
+          WALBERLA_ASSERT_GREATER( face.getNumNeighborCells(), 0 );
 
-      for (uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++) {
-        const auto &cell = *(storage->getCell(face.neighborCells().at(neighborCellID)));
+          for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++ )
+          {
+             const auto& cell = *( storage->getCell( face.neighborCells().at( neighborCellID ) ) );
 
-        const std::array<edgedof::EdgeDoFOrientation, 3> faceOrientations = {
-                edgedof::EdgeDoFOrientation::X, edgedof::EdgeDoFOrientation::Y,
-                edgedof::EdgeDoFOrientation::XY};
+             const std::array< edgedof::EdgeDoFOrientation, 3 > faceOrientations = {
+                 edgedof::EdgeDoFOrientation::X, edgedof::EdgeDoFOrientation::Y, edgedof::EdgeDoFOrientation::XY};
 
-        const uint_t localFaceID = cell.getLocalFaceID(face.getID());
-        const std::array<uint_t, 4> localVertexIDsAtCell = {
-                cell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0),
-                cell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1),
-                cell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2),
-                6 - cell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(0) -
-                cell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(1) -
-                cell.getFaceLocalVertexToCellLocalVertexMaps().at(localFaceID).at(2)};
+             const uint_t                  localFaceID          = cell.getLocalFaceID( face.getID() );
+             const std::array< uint_t, 4 > localVertexIDsAtCell = {
+                 cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 ),
+                 cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 ),
+                 cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 ),
+                 6 - cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 ) -
+                     cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 ) -
+                     cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 )};
 
-        const auto edgeAssemblyIndexInCell = indexing::basisConversion(
-                indexing::Index(1, 1, 0), localVertexIDsAtCell, {0, 1, 2, 3},
-                levelinfo::num_microedges_per_edge(level));
+             const std::map< edgedof::EdgeDoFOrientation, indexing::Index > edgeAssemblyIndexInFace = {
+                 {edgedof::EdgeDoFOrientation::X, indexing::Index( 0, 1, 0 )},
+                 {edgedof::EdgeDoFOrientation::XY, indexing::Index( 0, 0, 0 )},
+                 {edgedof::EdgeDoFOrientation::Y, indexing::Index( 1, 0, 0 )},
+             };
 
-        auto& vertexToEdgeStencilMemory = face.getData( macroFaceStencilID )->getData( level );
-        for( const auto& centerOrientation : faceOrientations )
-        {
-          const auto convertedCenterOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(
-                  centerOrientation, localVertexIDsAtCell.at(0), localVertexIDsAtCell.at(1), localVertexIDsAtCell.at(2));
-          vertexToEdgeStencilMemory[neighborCellID][convertedCenterOrientation] =
-                  P2Elements::P2Elements3D::calculateVertexToEdgeStencilInMacroCell(
-                          edgeAssemblyIndexInCell, convertedCenterOrientation, cell, level, ufcOperator );
-        }
-      }
+             auto& vertexToEdgeStencilMemory = face.getData( macroFaceStencilID )->getData( level );
+             for ( const auto& centerOrientation : faceOrientations )
+             {
+                const auto edgeAssemblyIndexInCell = indexing::basisConversion( edgeAssemblyIndexInFace.at( centerOrientation ),
+                                                                                localVertexIDsAtCell,
+                                                                                {0, 1, 2, 3},
+                                                                                levelinfo::num_microedges_per_edge( level ) );
+
+                const auto convertedCenterOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(
+                    centerOrientation, localVertexIDsAtCell.at( 0 ), localVertexIDsAtCell.at( 1 ), localVertexIDsAtCell.at( 2 ) );
+                vertexToEdgeStencilMemory[neighborCellID][convertedCenterOrientation] =
+                    P2Elements::P2Elements3D::calculateVertexToEdgeStencilInMacroCell(
+                        edgeAssemblyIndexInCell, convertedCenterOrientation, cell, level, ufcOperator );
+             }
+          }
+       }
     }
 
     /////////////////
     // Macro-cells //
     /////////////////
 
-    for( const auto& it : storage->getCells() )
+    if ( level >= 1 )
     {
-      const auto &cell = *it.second;
+       for ( const auto& it : storage->getCells() )
+       {
+          const auto& cell = *it.second;
 
-      auto& vertexToEdgeStencilMemory = cell.getData( macroCellStencilID )->getData( level );
-      for( const auto& centerOrientation : edgedof::allEdgeDoFOrientations )
-      {
-        const auto vertexToEdgeStencilMap = P2Elements::P2Elements3D::calculateVertexToEdgeStencilInMacroCell(
-                edgedof::macrocell::getInnerIndexByOrientation( centerOrientation ),
-                centerOrientation,
-                cell,
-                level,
-                ufcOperator );
-        for( const auto stencilIt : vertexToEdgeStencilMap )
-        {
-          vertexToEdgeStencilMemory[centerOrientation][stencilIt.first] = stencilIt.second;
-        }
-      }
+          auto& vertexToEdgeStencilMemory = cell.getData( macroCellStencilID )->getData( level );
+          for ( const auto& centerOrientation : edgedof::allEdgeDoFOrientations )
+          {
+             if ( level == 1 && centerOrientation != edgedof::EdgeDoFOrientation::XYZ )
+             {
+                continue;
+             }
+
+             const auto vertexToEdgeStencilMap = P2Elements::P2Elements3D::calculateVertexToEdgeStencilInMacroCell(
+                 edgedof::macrocell::getInnerIndexByOrientation( centerOrientation ),
+                 centerOrientation,
+                 cell,
+                 level,
+                 ufcOperator );
+             for ( const auto stencilIt : vertexToEdgeStencilMap )
+             {
+                vertexToEdgeStencilMemory[centerOrientation][stencilIt.first] = stencilIt.second;
+             }
+          }
+       }
     }
   }
 }

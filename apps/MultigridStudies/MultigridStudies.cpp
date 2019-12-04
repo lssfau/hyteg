@@ -771,6 +771,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       const bool&                                          projectPressureAfterRestriction,
                       const uint_t&                                        coarseGridMaxIterations,
                       const real_t&                                        coarseResidualTolerance,
+                      const uint_t&                                        coarseGridSolverType,
+                      const uint_t&                                        coarseGridSolverVelocityPreconditionerType,
                       const bool&                                          outputVTK,
                       const uint_t&                                        skipCyclesForAvgConvRate,
                       const bool&                                          calcDiscretizationError,
@@ -944,12 +946,24 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 #ifdef HYTEG_BUILD_WITH_PETSC
    // auto petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >(
    //     storage, coarseGridMaxLevel, coarseResidualTolerance, coarseGridMaxIterations );
-   // auto petscSolver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, coarseGridMaxLevel );
-   auto petscSolverInternal = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >( storage, coarseGridMaxLevel,
-           coarseResidualTolerance, coarseGridMaxIterations );
+
+   std::shared_ptr< Solver< StokesOperator > > petscSolverInternal;
+   if ( coarseGridSolverType == 0 )
+   {
+      petscSolverInternal = std::make_shared< PETScLUSolver< StokesOperator > >( storage, coarseGridMaxLevel );
+   }
+   else if ( coarseGridSolverType == 1 )
+   {
+      petscSolverInternal = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
+          storage,
+          coarseGridMaxLevel,
+          coarseResidualTolerance,
+          coarseGridMaxIterations,
+          coarseGridSolverVelocityPreconditionerType );
+   }
+
    auto petscSolver = std::make_shared< TimedSolver< StokesOperator > >( petscSolverInternal );
-   WALBERLA_UNUSED( coarseGridMaxIterations );
-   WALBERLA_UNUSED( coarseResidualTolerance );
+
 #else
    //   const uint_t preconditionerCGIterations = 0;
    //
@@ -960,6 +974,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
        storage, minLevel, coarseGridMaxLevel ); //, 1, cgVelocity );
    auto coarseGridSolver = std::make_shared< MinResSolver< StokesOperator > >(
        storage, minLevel, coarseGridMaxLevel, coarseGridMaxIterations, coarseResidualTolerance, preconditioner );
+   WALBERLA_UNUSED( coarseGridSolverType );
+   WALBERLA_UNUSED( coarseGridSolverVelocityPreconditionerType );
 #endif
 
    auto prolongationOperator = std::make_shared< Prolongation >();
@@ -993,9 +1009,14 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       sqlRealProperties["fmg_l2_residual_u_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorU );
       sqlRealProperties["fmg_l2_residual_p_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorP );
       timerFMGErrorCalculation.end();
-      WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error u: " << std::scientific << _l2ErrorU
+      real_t fmgCoraseGridTime = 0.0;
+#ifdef HYTEG_BUILD_WITH_PETSC
+      fmgCoraseGridTime = petscSolver->getTimer().last();
+#endif
+       WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error u: " << std::scientific << _l2ErrorU
                                                   << " / l2 error p: " << std::scientific << _l2ErrorP << std::fixed
-                                                  << " - time error calc: " << timerFMGErrorCalculation.last() << " sec" );
+                                                  << " - time error calc: " << timerFMGErrorCalculation.last() << " sec, "
+                                                  << std::fixed << " time coarse grid: " << fmgCoraseGridTime );
    };
 
    FullMultigridSolver< StokesOperator > fullMultigridSolver(
@@ -1269,6 +1290,8 @@ void setup( int argc, char** argv )
    const bool        calculateDiscretizationError    = mainConf.getParameter< bool >( "calculateDiscretizationError" );
    const uint_t      coarseGridMaxIterations         = mainConf.getParameter< uint_t >( "coarseGridMaxIterations" );
    const real_t      coarseGridResidualTolerance     = mainConf.getParameter< real_t >( "coarseGridResidualTolerance" );
+   const uint_t      coarseGridSolverType            = mainConf.getParameter< uint_t >( "coarseGridSolverType" );
+   const uint_t      coarseGridSolverVelocityPreconditionerType = mainConf.getParameter< uint_t >( "coarseGridSolverVelocityPreconditionerType" );
    const bool        outputVTK                       = mainConf.getParameter< bool >( "outputVTK" );
    const bool        outputTiming                    = mainConf.getParameter< bool >( "outputTiming" );
    const bool        outputTimingJSON                = mainConf.getParameter< bool >( "outputTimingJSON" );
@@ -1328,6 +1351,9 @@ void setup( int argc, char** argv )
        "  - calculate discretization error:          " << ( calculateDiscretizationError ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid max itertions (stokes only): " << coarseGridMaxIterations );
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid residual tol  (stokes only): " << coarseGridResidualTolerance );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid solver type (stokes only):   " << coarseGridSolverType );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid u prec. type (stokes only):  " << coarseGridSolverVelocityPreconditionerType );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output VTK:                              " << ( outputVTK ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing:                           " << ( outputTiming ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing JSON:                      " << ( outputTimingJSON ? "yes" : "no" ) );
@@ -1598,6 +1624,8 @@ void setup( int argc, char** argv )
                                                                 projectPressureAfterRestriction,
                                                                 coarseGridMaxIterations,
                                                                 coarseGridResidualTolerance,
+                                                                coarseGridSolverType,
+                                                                coarseGridSolverVelocityPreconditionerType,
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
@@ -1637,6 +1665,8 @@ void setup( int argc, char** argv )
                                                                 projectPressureAfterRestriction,
                                                                 coarseGridMaxIterations,
                                                                 coarseGridResidualTolerance,
+                                                                coarseGridSolverType,
+                                                                coarseGridSolverVelocityPreconditionerType,
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,

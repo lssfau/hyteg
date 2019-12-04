@@ -130,8 +130,35 @@ inline void applyVertex3D( const uint_t & level, const Vertex & vertex,
           WALBERLA_ASSERT_EQUAL( onCellFacesSet.size(), 2 );
           WALBERLA_ASSERT_EQUAL( onCellEdgesSet.size(), 1 );
           const auto edgeID = neighborCell.neighborEdges().at( *onCellEdgesSet.begin() );
-          const auto vertexLocalEdgeID = vertex.edge_index( edgeID );
-          leafArrayIndexOnVertex = vertexLocalEdgeID;
+          if ( vertex.neighborPrimitiveExists( edgeID ) )
+          {
+            const auto vertexLocalEdgeID = vertex.edge_index( edgeID );
+            leafArrayIndexOnVertex = vertexLocalEdgeID;
+          }
+          else
+          {
+            // The leaf edgedof is located on an opposite macro-edge
+            // which is no direct neighbor of the current macro-vertex.
+            // This should only happen on level 0.
+            WALBERLA_ASSERT_EQUAL( level, 0 );
+            const std::vector< uint_t > onCellFaces( onCellFacesSet.begin(), onCellFacesSet.end() );
+            WALBERLA_ASSERT_EQUAL( onCellFaces.size(), 2 );
+            const auto faceID0 = neighborCell.neighborFaces().at( onCellFaces.at( 0 ) );
+            const auto faceID1 = neighborCell.neighborFaces().at( onCellFaces.at( 1 ) );
+
+            WALBERLA_ASSERT( !(vertex.neighborPrimitiveExists( faceID0 ) && vertex.neighborPrimitiveExists( faceID1 )) );
+
+            if ( vertex.neighborPrimitiveExists( faceID0 ) )
+            {
+              const auto vertexLocalFaceID = vertex.face_index( faceID0 );
+              leafArrayIndexOnVertex = vertex.getNumNeighborEdges() + vertexLocalFaceID;
+            }
+            else if ( vertex.neighborPrimitiveExists( faceID1 ) )
+            {
+              const auto vertexLocalFaceID = vertex.face_index( faceID1 );
+              leafArrayIndexOnVertex = vertex.getNumNeighborEdges() + vertexLocalFaceID;
+            }
+          }
         }
 
         tmp += src[ leafArrayIndexOnVertex ] * stencilWeight;

@@ -26,10 +26,44 @@
 class PETScManager
 {
  public:
-   PETScManager() { PetscInitializeNoArguments(); }
-   PETScManager( int* argc, char*** argv ) { PetscInitialize( argc, argv, NULL, NULL ); }
+   /// \brief Initializes PETSc in the scope of the object (no arguments).
+   ///
+   /// PETSc is automatically "finialized" when the destructor is called.
+   /// Also the PETScManager detects if PETSc is already initialized and does nothing in that case.
+   PETScManager()
+   : finalizeOnDestruction_( !isInitialized() )
+   {
+      PetscInitializeNoArguments();
+   }
 
-   ~PETScManager() { PetscFinalize(); }
+   /// \brief Initializes PETSc in the scope of the object (with arguments from the command line).
+   ///
+   /// PETSc is automatically "finialized" when the destructor is called.
+   /// Also the PETScManager detects if PETSc is already initialized and does nothing in that case.
+   PETScManager( int* argc, char*** argv )
+   : finalizeOnDestruction_( !isInitialized() )
+   {
+      PetscInitialize( argc, argv, nullptr, nullptr );
+   }
+
+   ~PETScManager()
+   {
+      if ( finalizeOnDestruction_ )
+      {
+         PetscFinalize();
+      }
+   }
+
+   /// \brief Returns true if PETSc is initialized.
+   static bool isInitialized()
+   {
+      PetscBool isInitialized;
+      PetscInitialized( &isInitialized );
+      return isInitialized;
+   }
+
+ private:
+   bool finalizeOnDestruction_;
 };
 
 #endif

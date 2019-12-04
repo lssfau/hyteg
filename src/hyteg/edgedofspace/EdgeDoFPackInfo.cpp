@@ -293,7 +293,7 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge( const Face*                s
    }
 
    //// DoFs on neighboring cells /////
-   for( const auto& neighborCellID : sender->neighborCells() )
+   for ( const auto& neighborCellID : sender->neighborCells() )
    {
       const Cell&  neighborCell    = *( storage_.lock()->getCell( neighborCellID ) );
       const auto   cellLocalEdgeID = neighborCell.getLocalEdgeID( receiver );
@@ -303,78 +303,84 @@ void EdgeDoFPackInfo< ValueType >::packFaceForEdge( const Face*                s
       const uint_t cellLocalVertexID1OfFace = neighborCell.getLocalVertexID( sender->getVertexID1() );
       const uint_t cellLocalVertexID2OfFace = neighborCell.getLocalVertexID( sender->getVertexID2() );
       const uint_t cellLocalRemainingVertex =
-              6 - ( cellLocalVertexID0OfFace + cellLocalVertexID1OfFace + cellLocalVertexID2OfFace );
+          6 - ( cellLocalVertexID0OfFace + cellLocalVertexID1OfFace + cellLocalVertexID2OfFace );
 
       const std::array< uint_t, 4 > faceBasisInCell = {
-              cellLocalVertexID0OfFace, cellLocalVertexID1OfFace, cellLocalVertexID2OfFace, cellLocalRemainingVertex};
+          cellLocalVertexID0OfFace, cellLocalVertexID1OfFace, cellLocalVertexID2OfFace, cellLocalRemainingVertex};
 
       const auto basisInCell = algorithms::getMissingIntegersAscending< 2, 4 >(
-              {neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
-               neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 )} );
+          {neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
+           neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 )} );
 
-      for( const auto edgeOrientationOnReferenceEdge : edgedof::allEdgeDoFOrientations )
+      for ( const auto edgeOrientationOnReferenceEdge : edgedof::allEdgeDoFOrientations )
       {
-         for( const auto& indexOnEdge : hyteg::edgedof::macroedge::Iterator( level_, 0 ) )
+         if ( level_ == 0 && edgeOrientationOnReferenceEdge != edgedof::EdgeDoFOrientation::YZ )
+         {
+            continue;
+         }
+
+         for ( const auto& indexOnEdge : hyteg::edgedof::macroedge::Iterator( level_, 0 ) )
          {
             auto indexOnEdgeCopy = indexOnEdge;
 
-            switch( edgeOrientationOnReferenceEdge )
+            switch ( edgeOrientationOnReferenceEdge )
             {
-               case edgedof::EdgeDoFOrientation::X:
-                  if( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 2 )
-                     continue;
-                  indexOnEdgeCopy.z()++;
-                  indexOnEdgeCopy.y()++;
-                  break;
-               case edgedof::EdgeDoFOrientation::Y:
-                  if( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
-                     continue;
-                  indexOnEdgeCopy.z()++;
-                  break;
-               case edgedof::EdgeDoFOrientation::Z:
-                  if( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
-                     continue;
-                  indexOnEdgeCopy.y()++;
-                  break;
-               case edgedof::EdgeDoFOrientation::XY:
-                  if( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
-                     continue;
-                  indexOnEdgeCopy.z()++;
-                  break;
-               case edgedof::EdgeDoFOrientation::XZ:
-                  indexOnEdgeCopy.y()++;
-                  if( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
-                     continue;
-                  break;
-               case edgedof::EdgeDoFOrientation::YZ:
-                  break;
-               case edgedof::EdgeDoFOrientation::XYZ:
-                  if( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
-                     continue;
-                  break;
-               default:
+            case edgedof::EdgeDoFOrientation::X:
+               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 2 )
+                  continue;
+               indexOnEdgeCopy.z()++;
+               indexOnEdgeCopy.y()++;
+               break;
+            case edgedof::EdgeDoFOrientation::Y:
+               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+                  continue;
+               indexOnEdgeCopy.z()++;
+               break;
+            case edgedof::EdgeDoFOrientation::Z:
+               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+                  continue;
+               indexOnEdgeCopy.y()++;
+               break;
+            case edgedof::EdgeDoFOrientation::XY:
+               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+                  continue;
+               indexOnEdgeCopy.z()++;
+               break;
+            case edgedof::EdgeDoFOrientation::XZ:
+               indexOnEdgeCopy.y()++;
+               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+                  continue;
+               break;
+            case edgedof::EdgeDoFOrientation::YZ:
+               break;
+            case edgedof::EdgeDoFOrientation::XYZ:
+               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+                  continue;
+               break;
+            default:
                WALBERLA_ABORT( "wrong direction" );
             }
 
             /// the size has to be adjusted for the XYZ edge
             uint_t cellWidth;
-            if( edgeOrientationOnReferenceEdge == edgedof::EdgeDoFOrientation::XYZ )
+            if ( edgeOrientationOnReferenceEdge == edgedof::EdgeDoFOrientation::XYZ )
             {
                cellWidth = levelinfo::num_microedges_per_edge( level_ ) - 1;
-            } else
+            }
+            else
             {
                cellWidth = levelinfo::num_microedges_per_edge( level_ );
             }
             const auto indexInCell           = indexing::basisConversion( indexOnEdgeCopy, basisInCell, {0, 1, 2, 3}, cellWidth );
             const auto cellCenterOrientation = edgedof::convertEdgeDoFOrientationFaceToCell(
-                    edgeOrientationOnReferenceEdge, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ) );
+                edgeOrientationOnReferenceEdge, basisInCell.at( 0 ), basisInCell.at( 1 ), basisInCell.at( 2 ) );
 
             const auto indexOnFace           = indexing::basisConversion( indexInCell, {0, 1, 2, 3}, faceBasisInCell, cellWidth );
             const auto edgeOrientationOnFace = edgedof::convertEdgeDoFOrientationCellToFace(
-                    cellCenterOrientation, faceBasisInCell.at( 0 ), faceBasisInCell.at( 1 ), faceBasisInCell.at( 2 ) );
+                cellCenterOrientation, faceBasisInCell.at( 0 ), faceBasisInCell.at( 1 ), faceBasisInCell.at( 2 ) );
 
             uint_t idxOnFace =
-                    edgedof::macroface::index( level_, indexOnFace.x(), indexOnFace.y(), edgeOrientationOnFace, faceLocalCellID );
+                edgedof::macroface::index( level_, indexOnFace.x(), indexOnFace.y(), edgeOrientationOnFace, faceLocalCellID );
             buffer << faceData[idxOnFace];
          }
       }
@@ -406,24 +412,29 @@ void EdgeDoFPackInfo< ValueType >::unpackEdgeFromFace( Edge*                    
    }
 
    //// DoFs on neighboring cells /////
-   for( const auto& neighborCellID : storage_.lock()->getFace( sender )->neighborCells() )
+   for ( const auto& neighborCellID : storage_.lock()->getFace( sender )->neighborCells() )
    {
       const uint_t edgeLocalCellID = receiver->cell_index( neighborCellID );
 
-      for( const auto edgeOrientation : edgedof::allEdgeDoFOrientations )
+      for ( const auto edgeOrientation : edgedof::allEdgeDoFOrientations )
       {
-         for( const auto& indexOnEdge : hyteg::edgedof::macroedge::Iterator( level_, 0 ) )
+         for ( const auto& indexOnEdge : hyteg::edgedof::macroedge::Iterator( level_, 0 ) )
          {
-            switch( edgeOrientation )
+            if ( level_ == 0 && edgeOrientation != edgedof::EdgeDoFOrientation::YZ )
+            {
+               continue;
+            }
+
+            switch ( edgeOrientation )
             {
             case edgedof::EdgeDoFOrientation::X:
-               if( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 2 )
+               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 2 )
                   continue;
                break;
             case edgedof::EdgeDoFOrientation::YZ:
                break;
             default:
-               if( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
                   continue;
                break;
             }
@@ -488,7 +499,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
    ////////////////////////////////////
 
    //// DoFs on neighboring cells /////
-   for( const auto& neighborCellID : sender->neighborCells() )
+   for ( const auto& neighborCellID : sender->neighborCells() )
    {
       const Cell&  neighborCell    = *( storage_.lock()->getCell( neighborCellID ) );
       const auto   cellLocalEdgeID = neighborCell.getLocalEdgeID( receiver->getID() );
@@ -508,44 +519,49 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
           {neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
            neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 )} );
 
-      for( const auto edgeOrientationOnReferenceEdge : edgedof::allEdgeDoFOrientations )
+      for ( const auto edgeOrientationOnReferenceEdge : edgedof::allEdgeDoFOrientations )
       {
-         for( const auto& indexOnEdge : hyteg::edgedof::macroedge::Iterator( level_, 0 ) )
+         if ( level_ == 0 && edgeOrientationOnReferenceEdge != edgedof::EdgeDoFOrientation::YZ )
+         {
+           continue;
+         }
+
+         for ( const auto& indexOnEdge : hyteg::edgedof::macroedge::Iterator( level_, 0 ) )
          {
             auto indexOnEdgeCopy = indexOnEdge;
 
-            switch( edgeOrientationOnReferenceEdge )
+            switch ( edgeOrientationOnReferenceEdge )
             {
             case edgedof::EdgeDoFOrientation::X:
-               if( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 2 )
+               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 2 )
                   continue;
                indexOnEdgeCopy.z()++;
                indexOnEdgeCopy.y()++;
                break;
             case edgedof::EdgeDoFOrientation::Y:
-               if( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
                   continue;
                indexOnEdgeCopy.z()++;
                break;
             case edgedof::EdgeDoFOrientation::Z:
-               if( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
                   continue;
                indexOnEdgeCopy.y()++;
                break;
             case edgedof::EdgeDoFOrientation::XY:
-               if( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
                   continue;
                indexOnEdgeCopy.z()++;
                break;
             case edgedof::EdgeDoFOrientation::XZ:
                indexOnEdgeCopy.y()++;
-               if( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
                   continue;
                break;
             case edgedof::EdgeDoFOrientation::YZ:
                break;
             case edgedof::EdgeDoFOrientation::XYZ:
-               if( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
+               if ( indexOnEdge.x() >= levelinfo::num_microedges_per_edge( level_ ) - 1 )
                   continue;
                break;
             default:
@@ -554,10 +570,11 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
 
             /// the size has to be adjusted for the XYZ edge
             uint_t cellWidth;
-            if( edgeOrientationOnReferenceEdge == edgedof::EdgeDoFOrientation::XYZ )
+            if ( edgeOrientationOnReferenceEdge == edgedof::EdgeDoFOrientation::XYZ )
             {
                cellWidth = levelinfo::num_microedges_per_edge( level_ ) - 1;
-            } else
+            }
+            else
             {
                cellWidth = levelinfo::num_microedges_per_edge( level_ );
             }
@@ -577,6 +594,7 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalFaceToEdge( const Face* sende
          }
       }
    }
+
    this->storage_.lock()->getTimingTree()->stop( "EdgeDoF - Face to Edge" );
 }
 
@@ -603,7 +621,7 @@ void EdgeDoFPackInfo< real_t >::packFaceForCell( const Face*                send
                                                  walberla::mpi::SendBuffer& buffer ) const
 {
    this->storage_.lock()->getTimingTree()->start( "EdgeDoF - Face to Cell (pack)" );
-   if ( globalDefines::useGeneratedKernels )
+   if ( globalDefines::useGeneratedKernels && level_ >= 1 )
    {
       auto         cell             = storage_.lock()->getCell( receiver );
       const uint_t localFaceID      = cell->getLocalFaceID( sender->getID() );
@@ -688,7 +706,7 @@ void EdgeDoFPackInfo< real_t >::unpackCellFromFace( Cell*                      r
    const uint_t iterationVertex1 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
    const uint_t iterationVertex2 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
 
-   if ( globalDefines::useGeneratedKernels )
+   if ( globalDefines::useGeneratedKernels && level_ >= 1 )
    {
       const uint_t requiredBufferElements = levelinfo::num_microedges_per_face( level_ );
       auto         buffer_ptr             = (real_t*) ( buffer.skip( requiredBufferElements * sizeof( real_t ) ) );
@@ -786,7 +804,7 @@ void EdgeDoFPackInfo< real_t >::communicateLocalFaceToCell( const Face* sender, 
   const uint_t iterationVertex1 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
   const uint_t iterationVertex2 = receiver->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
 
-  if ( globalDefines::useGeneratedKernels )
+  if ( globalDefines::useGeneratedKernels && level_ >= 1 )
   {
     std::map< edgedof::EdgeDoFOrientation , uint_t > firstIdxFace;
     for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
@@ -878,17 +896,20 @@ void EdgeDoFPackInfo< ValueType >::packCellForFace( const Cell*                s
       buffer << cellData[edgedof::macrocell::index( level_, cellIt.x(), cellIt.y(), cellIt.z(), dstEdgeOrientationXZ )];
    }
 
-   auto cellItXYZ = edgedof::macrocell::BoundaryIteratorXYZ( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
-   for( const auto& cellIt :
-        edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 ) )
+   if ( level_ >= 1 )
    {
-      buffer << cellData[edgedof::macrocell::index( level_, cellIt.x(), cellIt.y(), cellIt.z(), dstEdgeOrientationX )];
-      buffer << cellData[edgedof::macrocell::index( level_, cellIt.x(), cellIt.y(), cellIt.z(), dstEdgeOrientationY )];
-      buffer << cellData[edgedof::macrocell::index( level_, cellIt.x(), cellIt.y(), cellIt.z(), dstEdgeOrientationXY )];
+     auto cellItXYZ = edgedof::macrocell::BoundaryIteratorXYZ( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
+     for ( const auto & cellIt :
+     edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 ))
+     {
+       buffer << cellData[edgedof::macrocell::index( level_, cellIt.x(), cellIt.y(), cellIt.z(), dstEdgeOrientationX )];
+       buffer << cellData[edgedof::macrocell::index( level_, cellIt.x(), cellIt.y(), cellIt.z(), dstEdgeOrientationY )];
+       buffer << cellData[edgedof::macrocell::index( level_, cellIt.x(), cellIt.y(), cellIt.z(), dstEdgeOrientationXY )];
 
-      buffer << cellData[edgedof::macrocell::index(
-          level_, cellItXYZ->x(), cellItXYZ->y(), cellItXYZ->z(), edgedof::EdgeDoFOrientation::XYZ )];
-      cellItXYZ++;
+       buffer << cellData[edgedof::macrocell::index(
+       level_, cellItXYZ->x(), cellItXYZ->y(), cellItXYZ->z(), edgedof::EdgeDoFOrientation::XYZ )];
+       cellItXYZ++;
+     }
    }
    this->storage_.lock()->getTimingTree()->stop( "EdgeDoF - Cell to Face (pack)" );
 }
@@ -914,13 +935,16 @@ void EdgeDoFPackInfo< ValueType >::unpackFaceFromCell( Face*                    
       buffer >> faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), EO::XZ, localCellID )];
    }
 
-   for( const auto& faceIdx : indexing::FaceIterator( levelinfo::num_microedges_per_edge( level_ ) - 1 ) )
+   if ( level_ >= 1 )
    {
-      buffer >> faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), EO::X, localCellID )];
-      buffer >> faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), EO::Y, localCellID )];
-      buffer >> faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), EO::XY, localCellID )];
+     for ( const auto & faceIdx : indexing::FaceIterator( levelinfo::num_microedges_per_edge( level_ ) - 1 ))
+     {
+       buffer >> faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), EO::X, localCellID )];
+       buffer >> faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), EO::Y, localCellID )];
+       buffer >> faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), EO::XY, localCellID )];
 
-      buffer >> faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), EO::XYZ, localCellID )];
+       buffer >> faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), EO::XYZ, localCellID )];
+     }
    }
    this->storage_.lock()->getTimingTree()->stop( "EdgeDoF - Cell to Face (unpack)" );
 }
@@ -971,28 +995,31 @@ void EdgeDoFPackInfo< ValueType >::communicateLocalCellToFace( const Cell* sende
       cellIterator++;
    }
 
-   auto cellIterator2 = edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 );
-   auto cellIterator3 = edgedof::macrocell::BoundaryIteratorXYZ( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
-   for( const auto& faceIdx : indexing::FaceIterator( levelinfo::num_microedges_per_edge( level_ ) - 1 ) )
+   if ( level_ >= 1 )
    {
-      auto cellIdx2 = *cellIterator2;
+     auto cellIterator2 = edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 );
+     auto cellIterator3 = edgedof::macrocell::BoundaryIteratorXYZ( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
+     for ( const auto & faceIdx : indexing::FaceIterator( levelinfo::num_microedges_per_edge( level_ ) - 1 ))
+     {
+       auto cellIdx2 = *cellIterator2;
 
-      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::X, localCellID )] =
-          cellData[edgedof::macrocell::index( level_, cellIdx2.x(), cellIdx2.y(), cellIdx2.z(), dstEdgeOrientationX )];
-      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::Y, localCellID )] =
-          cellData[edgedof::macrocell::index( level_, cellIdx2.x(), cellIdx2.y(), cellIdx2.z(), dstEdgeOrientationY )];
-      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XY, localCellID )] =
-          cellData[edgedof::macrocell::index( level_, cellIdx2.x(), cellIdx2.y(), cellIdx2.z(), dstEdgeOrientationXY )];
+       faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::X, localCellID )] =
+       cellData[edgedof::macrocell::index( level_, cellIdx2.x(), cellIdx2.y(), cellIdx2.z(), dstEdgeOrientationX )];
+       faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::Y, localCellID )] =
+       cellData[edgedof::macrocell::index( level_, cellIdx2.x(), cellIdx2.y(), cellIdx2.z(), dstEdgeOrientationY )];
+       faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XY, localCellID )] =
+       cellData[edgedof::macrocell::index( level_, cellIdx2.x(), cellIdx2.y(), cellIdx2.z(), dstEdgeOrientationXY )];
 
-      cellIterator2++;
+       cellIterator2++;
 
-      auto cellIdx3 = *cellIterator3;
+       auto cellIdx3 = *cellIterator3;
 
-      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XYZ, localCellID )] =
-          cellData[edgedof::macrocell::index(
-              level_, cellIdx3.x(), cellIdx3.y(), cellIdx3.z(), edgedof::EdgeDoFOrientation::XYZ )];
+       faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XYZ, localCellID )] =
+       cellData[edgedof::macrocell::index(
+       level_, cellIdx3.x(), cellIdx3.y(), cellIdx3.z(), edgedof::EdgeDoFOrientation::XYZ )];
 
-      cellIterator3++;
+       cellIterator3++;
+     }
    }
 
    WALBERLA_ASSERT( cellIterator == cellIterator.end() );
@@ -1013,7 +1040,7 @@ void EdgeDoFPackInfo< real_t >::communicateLocalCellToFace( const Cell* sender, 
   const uint_t iterationVertex1 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 );
   const uint_t iterationVertex2 = sender->getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 );
 
-  if ( globalDefines::useGeneratedKernels )
+  if ( level_ >= 1 && globalDefines::useGeneratedKernels )
   {
     std::map< edgedof::EdgeDoFOrientation , uint_t > firstIdxCell;
     for ( auto e : edgedof::allEdgeDoFOrientations )
@@ -1097,28 +1124,31 @@ void EdgeDoFPackInfo< real_t >::communicateLocalCellToFace( const Cell* sender, 
       cellIterator++;
     }
 
-    auto cellIterator2 = edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 );
-    auto cellIterator3 = edgedof::macrocell::BoundaryIteratorXYZ( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
-    for ( const auto & faceIdx : indexing::FaceIterator( levelinfo::num_microedges_per_edge( level_ ) - 1 ))
+    if ( level_ >= 1 )
     {
-      auto cellIdx2 = *cellIterator2;
+      auto cellIterator2 = edgedof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 1 );
+      auto cellIterator3 = edgedof::macrocell::BoundaryIteratorXYZ( level_, iterationVertex0, iterationVertex1, iterationVertex2 );
+      for ( const auto & faceIdx : indexing::FaceIterator( levelinfo::num_microedges_per_edge( level_ ) - 1 ))
+      {
+        auto cellIdx2 = *cellIterator2;
 
-      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::X, localCellID )] =
-      cellData[edgedof::macrocell::index( level_, cellIdx2.x(), cellIdx2.y(), cellIdx2.z(), dstEdgeOrientationX )];
-      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::Y, localCellID )] =
-      cellData[edgedof::macrocell::index( level_, cellIdx2.x(), cellIdx2.y(), cellIdx2.z(), dstEdgeOrientationY )];
-      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XY, localCellID )] =
-      cellData[edgedof::macrocell::index( level_, cellIdx2.x(), cellIdx2.y(), cellIdx2.z(), dstEdgeOrientationXY )];
+        faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::X, localCellID )] =
+        cellData[edgedof::macrocell::index( level_, cellIdx2.x(), cellIdx2.y(), cellIdx2.z(), dstEdgeOrientationX )];
+        faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::Y, localCellID )] =
+        cellData[edgedof::macrocell::index( level_, cellIdx2.x(), cellIdx2.y(), cellIdx2.z(), dstEdgeOrientationY )];
+        faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XY, localCellID )] =
+        cellData[edgedof::macrocell::index( level_, cellIdx2.x(), cellIdx2.y(), cellIdx2.z(), dstEdgeOrientationXY )];
 
-      cellIterator2++;
+        cellIterator2++;
 
-      auto cellIdx3 = *cellIterator3;
+        auto cellIdx3 = *cellIterator3;
 
-      faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XYZ, localCellID )] =
-      cellData[edgedof::macrocell::index(
-      level_, cellIdx3.x(), cellIdx3.y(), cellIdx3.z(), edgedof::EdgeDoFOrientation::XYZ )];
+        faceData[edgedof::macroface::index( level_, faceIdx.x(), faceIdx.y(), edgedof::EdgeDoFOrientation::XYZ, localCellID )] =
+        cellData[edgedof::macrocell::index(
+        level_, cellIdx3.x(), cellIdx3.y(), cellIdx3.z(), edgedof::EdgeDoFOrientation::XYZ )];
 
-      cellIterator3++;
+        cellIterator3++;
+      }
     }
 
     WALBERLA_ASSERT( cellIterator == cellIterator.end());

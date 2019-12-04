@@ -19,10 +19,17 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    typedef typename OperatorType::srcType               FunctionType;
    typedef typename OperatorType::BlockPreconditioner_T BlockPreconditioner_T;
 
+   /// \brief PETSc-based block preconditioned MinRes solver for the Stokes problem.
+   ///
+   /// \param velocityPreconditionerType choose from different velocity preconditioners:
+   ///                                   - 0: PCGAMG
+   ///                                   - 1: PCJACOBI
+   ///                                   - 2: Schur complement
    PETScBlockPreconditionedStokesSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                                          const uint_t&                              level,
                                          const real_t                               tolerance = 1e-16,
-                                         const PetscInt maxIterations = std::numeric_limits< PetscInt >::max() )
+                                         const PetscInt maxIterations              = std::numeric_limits< PetscInt >::max(),
+                                         const uint_t&  velocityPreconditionerType = 1 )
    : allocatedLevel_( level )
    , num( "numerator", storage, level, level )
    , Amat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
@@ -38,9 +45,10 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    , flag_( hyteg::All )
    , nullSpaceSet_( false )
    , blockPreconditioner_( storage, level, level )
+   , velocityPreconditionerType_( velocityPreconditionerType )
    {}
 
-   ~PETScBlockPreconditionedStokesSolver() {}
+   ~PETScBlockPreconditionedStokesSolver() = default;
 
    void setNullSpace( const FunctionType& nullspace )
    {
@@ -111,26 +119,59 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       }
       KSPSetOperators( ksp, Amat.get(), Pmat.get() );
 
-      KSPGetPC( ksp, &pc );
-      PCSetType( pc, PCFIELDSPLIT );
-      PCFieldSplitSetType( pc, PC_COMPOSITE_ADDITIVE );
-      PCFieldSplitSetIS( pc, "u", is_[0] );
-      PCFieldSplitSetIS( pc, "p", is_[1] );
+      if ( velocityPreconditionerType_ == 2 )
+      {
+        KSPGetPC( ksp, &pc );
+        PCSetType( pc, PCFIELDSPLIT );
+        PCFieldSplitSetType( pc, PC_COMPOSITE_SCHUR );
+        PCFieldSplitSetSchurPre( pc, PC_FIELDSPLIT_SCHUR_PRE_SELFP, NULL );
+        PCFieldSplitSetIS( pc, "u", is_[0] );
+        PCFieldSplitSetIS( pc, "p", is_[1] );
 
-      PetscInt numSubKsps;
-      PC       pc_u, pc_p;
-      PCFieldSplitGetSubKSP( pc, &numSubKsps, &sub_ksps_ );
+        PetscInt numSubKsps;
 
-      KSPGetPC( sub_ksps_[0], &pc_u );
-      KSPGetPC( sub_ksps_[1], &pc_p );
+        PCSetUp( pc );
+        PCFieldSplitSchurGetSubKSP( pc, &numSubKsps, &sub_ksps_ );
 
-      // AMG
-      PCSetType( pc_u, PCGAMG );
-      PCGAMGSetType( pc_u, PCGAMGAGG );
-      PCGAMGSetNSmooths( pc_u, 1 );
+        KSPSetType( sub_ksps_[0], KSPCG );
+        KSPSetType( sub_ksps_[1], KSPCG );
 
-      // inv. lumped mass
-      PCSetType( pc_p, PCJACOBI );
+        KSPSetTolerances( sub_ksps_[0], tolerance_, tolerance_, PETSC_DEFAULT, maxIterations_ );
+        KSPSetTolerances( sub_ksps_[1], tolerance_, tolerance_, PETSC_DEFAULT, maxIterations_ );
+      }
+      else
+      {
+        KSPGetPC( ksp, &pc );
+        PCSetType( pc, PCFIELDSPLIT );
+        PCFieldSplitSetType( pc, PC_COMPOSITE_ADDITIVE );
+        PCFieldSplitSetIS( pc, "u", is_[0] );
+        PCFieldSplitSetIS( pc, "p", is_[1] );
+
+        PetscInt numSubKsps;
+        PC pc_u, pc_p;
+        PCFieldSplitGetSubKSP( pc, &numSubKsps, &sub_ksps_ );
+
+        KSPGetPC( sub_ksps_[0], &pc_u );
+        KSPGetPC( sub_ksps_[1], &pc_p );
+
+        switch ( velocityPreconditionerType_ )
+        {
+          case 0:
+            PCSetType( pc_u, PCGAMG );
+            PCGAMGSetType( pc_u, PCGAMGAGG );
+            PCGAMGSetNSmooths( pc_u, 1 );
+            break;
+          case 1:
+            PCSetType( pc_u, PCJACOBI );
+            break;
+          default:
+          WALBERLA_ABORT( "Invalid velocity preconditioner for PETSc block prec MinRes solver." );
+            break;
+        }
+
+        // inv. lumped mass
+        PCSetType( pc_p, PCJACOBI );
+      }
 
       x.getStorage()->getTimingTree()->stop( "Setup" );
 
@@ -223,13 +264,13 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       }
    }
 
-   uint_t                                                                          allocatedLevel_;
-   typename OperatorType::srcType::template FunctionType< PetscInt >               num;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType > Amat;
+   uint_t                                                                                            allocatedLevel_;
+   typename OperatorType::srcType::template FunctionType< PetscInt >                                 num;
+   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >                   Amat;
    PETScSparseMatrix< BlockPreconditioner_T, BlockPreconditioner_T::srcType::template FunctionType > Pmat;
-   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
-   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > bVec;
-   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > nullspaceVec_;
+   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType >     xVec;
+   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType >     bVec;
+   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType >     nullspaceVec_;
 
    std::shared_ptr< PrimitiveStorage > storage_;
 
@@ -245,6 +286,8 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    MatNullSpace nullspace_;
    DoFType      flag_;
    bool         nullSpaceSet_;
+
+   uint_t velocityPreconditionerType_;
 };
 
 } // namespace hyteg

@@ -90,6 +90,7 @@ inline void saveVertexOperator3D( const uint_t & level,  const Vertex & vertex,
         {
           // on macro-face
           WALBERLA_ASSERT_EQUAL( onCellEdgesSet.size(), 0 );
+          WALBERLA_ASSERT_GREATER_EQUAL( level, 1 );
           const auto faceID = neighborCell.neighborFaces().at( *onCellFacesSet.begin() );
           const auto vertexLocalFaceID = vertex.face_index( faceID );
           leafArrayIndexOnVertex = vertex.getNumNeighborEdges() + vertexLocalFaceID;
@@ -100,8 +101,35 @@ inline void saveVertexOperator3D( const uint_t & level,  const Vertex & vertex,
           WALBERLA_ASSERT_EQUAL( onCellFacesSet.size(), 2 );
           WALBERLA_ASSERT_EQUAL( onCellEdgesSet.size(), 1 );
           const auto edgeID = neighborCell.neighborEdges().at( *onCellEdgesSet.begin() );
-          const auto vertexLocalEdgeID = vertex.edge_index( edgeID );
-          leafArrayIndexOnVertex = vertexLocalEdgeID;
+          if ( vertex.neighborPrimitiveExists( edgeID ) )
+          {
+            const auto vertexLocalEdgeID = vertex.edge_index( edgeID );
+            leafArrayIndexOnVertex = vertexLocalEdgeID;
+          }
+          else
+          {
+            // The leaf edgedof is located on an opposite macro-edge
+            // which is no direct neighbor of the current macro-vertex.
+            // This should only happen on level 0.
+            WALBERLA_ASSERT_EQUAL( level, 0 );
+            const std::vector< uint_t > onCellFaces( onCellFacesSet.begin(), onCellFacesSet.end() );
+            WALBERLA_ASSERT_EQUAL( onCellFaces.size(), 2 );
+            const auto faceID0 = neighborCell.neighborFaces().at( onCellFaces.at( 0 ) );
+            const auto faceID1 = neighborCell.neighborFaces().at( onCellFaces.at( 1 ) );
+
+            WALBERLA_ASSERT( !(vertex.neighborPrimitiveExists( faceID0 ) && vertex.neighborPrimitiveExists( faceID1 )) );
+
+            if ( vertex.neighborPrimitiveExists( faceID0 ) )
+            {
+              const auto vertexLocalFaceID = vertex.face_index( faceID0 );
+              leafArrayIndexOnVertex = vertex.getNumNeighborEdges() + vertexLocalFaceID;
+            }
+            else if ( vertex.neighborPrimitiveExists( faceID1 ) )
+            {
+              const auto vertexLocalFaceID = vertex.face_index( faceID1 );
+              leafArrayIndexOnVertex = vertex.getNumNeighborEdges() + vertexLocalFaceID;
+            }
+          }
         }
 
         const auto dstInt = dst[ 0 ];
@@ -400,49 +428,59 @@ inline void createMatrix( const OperatorType&                opr,
     }
   }
 
-  for (auto& it : opr.getStorage()->getEdges()) {
-    Edge& edge = *it.second;
+  if ( level >= 1 )
+  {
+     for ( auto& it : opr.getStorage()->getEdges() )
+     {
+        Edge& edge = *it.second;
 
-    const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-    if (testFlag(edgeBC, flag))
-    {
-      if ( storage->hasGlobalCells() )
-      {
-        saveEdgeOperator3D(level, edge, *storage, opr.getEdgeStencil3DID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat);
-      }
-      else
-      {
-        saveEdgeOperator(level, edge, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat);
-      }
-
-    }
+        const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+        if ( testFlag( edgeBC, flag ) )
+        {
+           if ( storage->hasGlobalCells() )
+           {
+              saveEdgeOperator3D(
+                  level, edge, *storage, opr.getEdgeStencil3DID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
+           }
+           else
+           {
+              saveEdgeOperator( level, edge, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
+           }
+        }
+     }
   }
 
-  for (auto& it : opr.getStorage()->getFaces()) {
-    Face& face = *it.second;
+  if ( level >= 2 )
+  {
+     for ( auto& it : opr.getStorage()->getFaces() )
+     {
+        Face& face = *it.second;
 
-    const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-    if (testFlag(faceBC, flag))
-    {
-      if ( storage->hasGlobalCells() )
-      {
-        saveFaceOperator3D( level, face, *storage, opr.getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
-      }
-      else
-      {
-        saveFaceOperator( level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
-      }
-    }
-  }
+        const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+        if ( testFlag( faceBC, flag ) )
+        {
+           if ( storage->hasGlobalCells() )
+           {
+              saveFaceOperator3D(
+                  level, face, *storage, opr.getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+           }
+           else
+           {
+              saveFaceOperator( level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+           }
+        }
+     }
 
-  for (auto& it : opr.getStorage()->getCells()) {
-    Cell & cell = *it.second;
+     for ( auto& it : opr.getStorage()->getCells() )
+     {
+        Cell& cell = *it.second;
 
-    const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-    if (testFlag(cellBC, flag))
-    {
-      saveCellOperator(level, cell, opr.getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat);
-    }
+        const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+        if ( testFlag( cellBC, flag ) )
+        {
+           saveCellOperator( level, cell, opr.getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
+        }
+     }
   }
 }
 

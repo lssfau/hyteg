@@ -56,6 +56,7 @@ public:
   {
     num.enumerate( level );
     KSPCreate( walberla::MPIManager::instance()->comm(), &ksp );
+    KSPSetFromOptions( ksp );
   }
 
   ~PETScLUSolver(){

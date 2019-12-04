@@ -179,14 +179,17 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
       }
    }
 
-   for ( auto& it : this->getStorage()->getCells() )
+   if ( level >= 1 )
    {
-      Cell& cell = *it.second;
+     for ( auto & it : this->getStorage()->getCells())
+     {
+       Cell & cell = *it.second;
 
-      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
-      {
+       if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag()), flag ))
+       {
          edgedof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
-      }
+       }
+     }
    }
    this->stopTiming( "Interpolate" );
 }
@@ -235,13 +238,16 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
       }
    }
 
-   for ( auto& it : this->getStorage()->getCells() )
+   if ( level >= 1 )
    {
-      Cell& cell = *it.second;
-
-      if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
+      for ( auto& it : this->getStorage()->getCells() )
       {
-         edgedof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
+         Cell& cell = *it.second;
+
+         if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
+         {
+            edgedof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
+         }
       }
    }
    this->stopTiming( "Interpolate" );
@@ -278,14 +284,16 @@ void EdgeDoFFunction< ValueType >::swap( const EdgeDoFFunction< ValueType >& oth
       }
    }
 
-
-   for ( auto& it : this->getStorage()->getCells() )
+   if ( level >= 1 )
    {
-      Cell& cell = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      for ( auto& it : this->getStorage()->getCells() )
       {
-         edgedof::macrocell::swap< ValueType >( level, cell, other.getCellDataID(), cellDataID_ );
+         Cell& cell = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+            edgedof::macrocell::swap< ValueType >( level, cell, other.getCellDataID(), cellDataID_ );
+         }
       }
    }
 
@@ -595,13 +603,16 @@ void EdgeDoFFunction< ValueType >::assign(
       }
    }
 
-   for ( auto& it : this->getStorage()->getCells() )
+   if ( level >= 1 )
    {
-      Cell& cell = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      for ( auto& it : this->getStorage()->getCells() )
       {
-         macroCellAssign< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
+         Cell& cell = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+            macroCellAssign< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
+         }
       }
    }
 
@@ -637,13 +648,16 @@ void EdgeDoFFunction< ValueType >::add( const ValueType& scalar, uint_t level, D
       }
    }
 
-   for ( auto& it : this->getStorage()->getCells() )
+   if ( level >= 1 )
    {
-      Cell& cell = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      for ( auto& it : this->getStorage()->getCells() )
       {
-         edgedof::macrocell::add< ValueType >( level, cell, scalar, cellDataID_ );
+         Cell& cell = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+            edgedof::macrocell::add< ValueType >( level, cell, scalar, cellDataID_ );
+         }
       }
    }
 
@@ -781,13 +795,16 @@ void EdgeDoFFunction< ValueType >::add(
       }
    }
 
-   for ( auto& it : this->getStorage()->getCells() )
+   if ( level >= 1 )
    {
-      Cell& cell = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      for ( auto& it : this->getStorage()->getCells() )
       {
-         edgedof::macrocell::add< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
+         Cell& cell = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+            edgedof::macrocell::add< ValueType >( level, cell, scalars, srcCellIDs, cellDataID_ );
+         }
       }
    }
 
@@ -826,13 +843,16 @@ ValueType EdgeDoFFunction< ValueType >::dotLocal( const EdgeDoFFunction< ValueTy
       }
    }
 
-   for ( auto& it : this->getStorage()->getCells() )
+   if ( level >= 1 )
    {
-      Cell& cell = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      for ( auto& it : this->getStorage()->getCells() )
       {
-         scalarProduct += edgedof::macrocell::dot< ValueType >( level, cell, cellDataID_, rhs.cellDataID_ );
+         Cell& cell = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+            scalarProduct += edgedof::macrocell::dot< ValueType >( level, cell, cellDataID_, rhs.cellDataID_ );
+         }
       }
    }
 
@@ -931,16 +951,22 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) 
       edgedof::macroedge::enumerate< ValueType >( level, edge, edgeDataID_, offset );
    }
 
-   for ( auto& it : this->getStorage()->getFaces() )
+   if ( level >= 1 )
    {
-      Face& face = *it.second;
-      edgedof::macroface::enumerate< ValueType >( level, face, faceDataID_, offset );
+     for ( auto & it : this->getStorage()->getFaces())
+     {
+       Face & face = *it.second;
+       edgedof::macroface::enumerate< ValueType >( level, face, faceDataID_, offset );
+     }
    }
 
-   for ( auto& it : this->getStorage()->getCells() )
+   if ( level >= 1 )
    {
-      Cell& cell = *it.second;
-      edgedof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset );
+     for ( auto & it : this->getStorage()->getCells())
+     {
+       Cell & cell = *it.second;
+       edgedof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset );
+     }
    }
 
    communication::syncFunctionBetweenPrimitives( *this, level );
@@ -1204,6 +1230,10 @@ uint_t edgedof::edgeDoFMacroVertexFunctionMemorySize( const uint_t& level, const
 
 uint_t edgedof::edgeDoFMacroEdgeFunctionMemorySize( const uint_t& level, const Primitive& primitive )
 {
+   if ( level == 0 )
+   {
+     return 1 /* on edge */ + 2 * primitive.getNumNeighborFaces() + 1 * primitive.getNumNeighborCells();
+   }
    /// memory is allocated on the ghost layer for each orientation (X,Y,Z,XY,XZ,XY,XYZ) and each cell
    /// most of the direction exists (num_microedges_per_edge - 1) times
    /// for the YZ orientation it is: num_microedges_per_edge

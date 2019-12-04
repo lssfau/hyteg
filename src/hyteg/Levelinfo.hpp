@@ -20,6 +20,7 @@
 #pragma once
 
 #include "core/DataTypes.h"
+#include "core/debug/Debug.h"
 
 namespace hyteg {
 namespace levelinfo
@@ -109,8 +110,15 @@ constexpr inline uint_t num_microcells_per_cell( const uint_t & level )
   return (uint_t(1) << (3 * level));
 }
 
-constexpr inline uint_t num_microcells_per_cell_from_width( const uint_t & width )
+inline uint_t num_microcells_per_cell_from_width( const uint_t & width )
 {
+  WALBERLA_ASSERT_GREATER_EQUAL( width, 2 )
+
+  if ( width == 2 )
+  {
+    return 1;
+  }
+
   const uint_t whiteUp   = num_microvertices_per_cell_from_width( width - 1 );
   const uint_t whiteDown = num_microvertices_per_cell_from_width( width - 3 );
   const uint_t others    = num_microvertices_per_cell_from_width( width - 2 );
