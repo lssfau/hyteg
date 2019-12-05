@@ -89,17 +89,34 @@ void P2toP2QuadraticRestriction::restrictAdditively( const P2Function< real_t >&
                                                                             numNeighborFacesVertex1,
                                                                             numNeighborFacesVertex2 );
 
-      P2::macroface::generated::restrict_2D_macroface_P2_update_edgedofs( &edgeCoarseData[firstIdxCoarse[eo::X]],
-                                                                          &edgeCoarseData[firstIdxCoarse[eo::XY]],
-                                                                          &edgeCoarseData[firstIdxCoarse[eo::Y]],
-                                                                          &edgeFineData[firstIdxFine[eo::X]],
-                                                                          &edgeFineData[firstIdxFine[eo::XY]],
-                                                                          &edgeFineData[firstIdxFine[eo::Y]],
-                                                                          vertexFineData,
-                                                                          static_cast< int32_t >( coarseLevel ),
-                                                                          numNeighborFacesEdge0,
-                                                                          numNeighborFacesEdge1,
-                                                                          numNeighborFacesEdge2 );
+      if ( coarseLevel == 0 )
+      {
+         P2::macroface::generated::restrict_2D_macroface_P2_update_edgedofs_level_0_to_1( &edgeCoarseData[firstIdxCoarse[eo::X]],
+                                                                                          &edgeCoarseData[firstIdxCoarse[eo::XY]],
+                                                                                          &edgeCoarseData[firstIdxCoarse[eo::Y]],
+                                                                                          &edgeFineData[firstIdxFine[eo::X]],
+                                                                                          &edgeFineData[firstIdxFine[eo::XY]],
+                                                                                          &edgeFineData[firstIdxFine[eo::Y]],
+                                                                                          vertexFineData,
+                                                                                          static_cast< int32_t >( coarseLevel ),
+                                                                                          numNeighborFacesEdge0,
+                                                                                          numNeighborFacesEdge1,
+                                                                                          numNeighborFacesEdge2 );
+      }
+      else
+      {
+         P2::macroface::generated::restrict_2D_macroface_P2_update_edgedofs( &edgeCoarseData[firstIdxCoarse[eo::X]],
+                                                                             &edgeCoarseData[firstIdxCoarse[eo::XY]],
+                                                                             &edgeCoarseData[firstIdxCoarse[eo::Y]],
+                                                                             &edgeFineData[firstIdxFine[eo::X]],
+                                                                             &edgeFineData[firstIdxFine[eo::XY]],
+                                                                             &edgeFineData[firstIdxFine[eo::Y]],
+                                                                             vertexFineData,
+                                                                             static_cast< int32_t >( coarseLevel ),
+                                                                             numNeighborFacesEdge0,
+                                                                             numNeighborFacesEdge1,
+                                                                             numNeighborFacesEdge2 );
+      }
    }
 
    function.getVertexDoFFunction().communicateAdditively< Face, Edge >( coarseLevel, excludeFlag, *function.getStorage() );
