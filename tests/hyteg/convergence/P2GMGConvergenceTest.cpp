@@ -23,10 +23,10 @@
 #include "core/timing/Timer.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
-#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
+#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
@@ -53,16 +53,16 @@ int main( int argc, char* argv[] )
 
    auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
 
-   hyteg::P1Function< real_t > r( "r", storage, minLevel, maxLevel );
-   hyteg::P1Function< real_t > f( "f", storage, minLevel, maxLevel );
-   hyteg::P1Function< real_t > u( "u", storage, minLevel, maxLevel );
-   hyteg::P1Function< real_t > Au( "Au", storage, minLevel, maxLevel );
-   hyteg::P1Function< real_t > u_exact( "u_exact", storage, minLevel, maxLevel );
-   hyteg::P1Function< real_t > err( "err", storage, minLevel, maxLevel );
-   hyteg::P1Function< real_t > npoints_helper( "npoints_helper", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > r( "r", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > f( "f", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > u( "u", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > Au( "Au", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > u_exact( "u_exact", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > err( "err", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > npoints_helper( "npoints_helper", storage, minLevel, maxLevel );
 
-   hyteg::P1ConstantMassOperator    M( storage, minLevel, maxLevel );
-   hyteg::P1ConstantLaplaceOperator L( storage, minLevel, maxLevel );
+   hyteg::P2ConstantMassOperator    M( storage, minLevel, maxLevel );
+   hyteg::P2ConstantLaplaceOperator L( storage, minLevel, maxLevel );
 
    std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& x ) {
       return ( 1.0 / 2.0 ) * sin( 2 * x[0] ) * sinh( x[1] );
@@ -77,13 +77,13 @@ int main( int argc, char* argv[] )
    npoints_helper.interpolate( rhs, maxLevel );
    M.apply( npoints_helper, f, maxLevel, hyteg::All );
 
-   auto smoother         = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator > >();
-   auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > >(
+   auto smoother         = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P2ConstantLaplaceOperator > >();
+   auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P2ConstantLaplaceOperator > >(
        storage, minLevel, minLevel, maxCoarseGridSolverIter, coarseGridSolverTolerance );
-   auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction >();
-   auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
+   auto restrictionOperator  = std::make_shared< hyteg::P2toP2QuadraticRestriction >();
+   auto prolongationOperator = std::make_shared< hyteg::P2toP2QuadraticProlongation >();
 
-   auto gmgSolver = hyteg::GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator >(
+   auto gmgSolver = hyteg::GeometricMultigridSolver< hyteg::P2ConstantLaplaceOperator >(
        storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
 
    npoints_helper.interpolate( ones, maxLevel );
@@ -121,15 +121,15 @@ int main( int argc, char* argv[] )
 
    if ( writeVTK )
    {
-      VTKOutput vtkOutput( "../../output", "P1GMGConvergenceTest", storage );
+      VTKOutput vtkOutput( "../../output", "P2GMGConvergenceTest", storage );
       vtkOutput.add( u );
       vtkOutput.add( u_exact );
       vtkOutput.add( err );
       vtkOutput.write( maxLevel );
    }
 
-   WALBERLA_CHECK_LESS( discr_l2_res, 3.0e-14 );
-   WALBERLA_CHECK_LESS( discr_l2_err, 2.9e-06 );
+   WALBERLA_CHECK_LESS( discr_l2_res, 3.0e-16 );
+   WALBERLA_CHECK_LESS( discr_l2_err, 5.0e-10 );
 
    return 0;
 }

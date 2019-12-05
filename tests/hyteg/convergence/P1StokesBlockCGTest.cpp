@@ -82,7 +82,7 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
 
-   WALBERLA_CHECK_LESS( discr_l2_err, 5e-17)
+   WALBERLA_CHECK_LESS( discr_l2_err, 1.0e-16)
 
    //  hyteg::VTKWriter({ u, u_exact, &f, &r, &err }, maxLevel, "../output", "test");
    return 0;

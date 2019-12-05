@@ -103,7 +103,7 @@ class CGSolver : public Solver< OperatorType >
             WALBERLA_LOG_INFO_ON_ROOT( "[CG] residual: " << sqrsnew );
          }
 
-         if ( sqrsnew / res_start < tolerance_ )
+         if ( sqrsnew < tolerance_ )
          {
             if ( printInfo_ )
             {
@@ -119,7 +119,7 @@ class CGSolver : public Solver< OperatorType >
          p_.assign( {1.0, beta}, {z_, p_}, level, flag_ );
          prsold = prsnew;
 
-         if ( i % restartFrequency_ == 0 )
+         if ( i > 0 && i % restartFrequency_ == 0 )
          {
             init( A, x, b, level, prsold );
             if ( printInfo_ )

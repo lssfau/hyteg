@@ -19,8 +19,8 @@
  */
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 
-#include "hyteg/gridtransferoperators/generatedKernels/all.hpp"
 #include "hyteg/FunctionMemory.hpp"
+#include "hyteg/gridtransferoperators/generatedKernels/all.hpp"
 #include "hyteg/p2functionspace/P2MacroFace.hpp"
 #include "hyteg/p2functionspace/P2Multigrid.hpp"
 
@@ -31,10 +31,10 @@ using indexing::IndexIncrement;
 
 void P2toP2QuadraticRestriction::restrictAdditively( const P2Function< real_t >& function,
                                                      const uint_t&               sourceLevel,
-                                                     const DoFType& flag) const
+                                                     const DoFType&              flag ) const
 {
    /// XOR flag with all to get the DoFTypes that should be excluded
-   const DoFType excludeFlag = (flag ^ All);
+   const DoFType excludeFlag = ( flag ^ All );
 
    const auto storage = function.getStorage();
 
@@ -72,8 +72,8 @@ void P2toP2QuadraticRestriction::restrictAdditively( const P2Function< real_t >&
       std::map< eo, uint_t >              firstIdxCoarse;
       for ( auto e : edgedof::faceLocalEdgeDoFOrientations )
       {
-        firstIdxFine[e]   = edgedof::macroface::index( fineLevel, 0, 0, e );
-        firstIdxCoarse[e] = edgedof::macroface::index( coarseLevel, 0, 0, e );
+         firstIdxFine[e]   = edgedof::macroface::index( fineLevel, 0, 0, e );
+         firstIdxCoarse[e] = edgedof::macroface::index( coarseLevel, 0, 0, e );
       }
 
       P2::macroface::generated::restrict_2D_macroface_P2_update_vertexdofs( &edgeFineData[firstIdxFine[eo::X]],
@@ -89,17 +89,34 @@ void P2toP2QuadraticRestriction::restrictAdditively( const P2Function< real_t >&
                                                                             numNeighborFacesVertex1,
                                                                             numNeighborFacesVertex2 );
 
-      P2::macroface::generated::restrict_2D_macroface_P2_update_edgedofs( &edgeCoarseData[firstIdxCoarse[eo::X]],
-                                                                          &edgeCoarseData[firstIdxCoarse[eo::XY]],
-                                                                          &edgeCoarseData[firstIdxCoarse[eo::Y]],
-                                                                          &edgeFineData[firstIdxFine[eo::X]],
-                                                                          &edgeFineData[firstIdxFine[eo::XY]],
-                                                                          &edgeFineData[firstIdxFine[eo::Y]],
-                                                                          vertexFineData,
-                                                                          static_cast< int32_t >( coarseLevel ),
-                                                                          numNeighborFacesEdge0,
-                                                                          numNeighborFacesEdge1,
-                                                                          numNeighborFacesEdge2 );
+      if ( coarseLevel == 0 )
+      {
+         P2::macroface::generated::restrict_2D_macroface_P2_update_edgedofs_level_0_to_1( &edgeCoarseData[firstIdxCoarse[eo::X]],
+                                                                                          &edgeCoarseData[firstIdxCoarse[eo::XY]],
+                                                                                          &edgeCoarseData[firstIdxCoarse[eo::Y]],
+                                                                                          &edgeFineData[firstIdxFine[eo::X]],
+                                                                                          &edgeFineData[firstIdxFine[eo::XY]],
+                                                                                          &edgeFineData[firstIdxFine[eo::Y]],
+                                                                                          vertexFineData,
+                                                                                          static_cast< int32_t >( coarseLevel ),
+                                                                                          numNeighborFacesEdge0,
+                                                                                          numNeighborFacesEdge1,
+                                                                                          numNeighborFacesEdge2 );
+      }
+      else
+      {
+         P2::macroface::generated::restrict_2D_macroface_P2_update_edgedofs( &edgeCoarseData[firstIdxCoarse[eo::X]],
+                                                                             &edgeCoarseData[firstIdxCoarse[eo::XY]],
+                                                                             &edgeCoarseData[firstIdxCoarse[eo::Y]],
+                                                                             &edgeFineData[firstIdxFine[eo::X]],
+                                                                             &edgeFineData[firstIdxFine[eo::XY]],
+                                                                             &edgeFineData[firstIdxFine[eo::Y]],
+                                                                             vertexFineData,
+                                                                             static_cast< int32_t >( coarseLevel ),
+                                                                             numNeighborFacesEdge0,
+                                                                             numNeighborFacesEdge1,
+                                                                             numNeighborFacesEdge2 );
+      }
    }
 
    function.getVertexDoFFunction().communicateAdditively< Face, Edge >( coarseLevel, excludeFlag, *function.getStorage() );
@@ -110,11 +127,11 @@ void P2toP2QuadraticRestriction::restrictAdditively( const P2Function< real_t >&
 
 void P2toP2QuadraticRestriction::restrictAdditively3D( const P2Function< real_t >& function,
                                                        const uint_t&               sourceLevel,
-                                                       const DoFType& flag) const
+                                                       const DoFType&              flag ) const
 {
    /// XOR flag with all to get the DoFTypes that should be excluded
-   const DoFType excludeFlag = (flag ^ All);
-   const auto storage = function.getStorage();
+   const DoFType excludeFlag = ( flag ^ All );
+   const auto    storage     = function.getStorage();
 
    const uint_t fineLevel   = sourceLevel;
    const uint_t coarseLevel = sourceLevel - 1;
@@ -198,44 +215,75 @@ void P2toP2QuadraticRestriction::restrictAdditively3D( const P2Function< real_t 
                                                                             numNeighborCellsVertex2,
                                                                             numNeighborCellsVertex3 );
 
-      P2::macrocell::generated::restrict_3D_macrocell_P2_update_edgedofs( &edgeCoarseData[firstIdxCoarse[eo::X]],
-                                                                          &edgeCoarseData[firstIdxCoarse[eo::XY]],
-                                                                          &edgeCoarseData[firstIdxCoarse[eo::XYZ]],
-                                                                          &edgeCoarseData[firstIdxCoarse[eo::XZ]],
-                                                                          &edgeCoarseData[firstIdxCoarse[eo::Y]],
-                                                                          &edgeCoarseData[firstIdxCoarse[eo::YZ]],
-                                                                          &edgeCoarseData[firstIdxCoarse[eo::Z]],
-                                                                          &edgeFineData[firstIdxFine[eo::X]],
-                                                                          &edgeFineData[firstIdxFine[eo::XY]],
-                                                                          &edgeFineData[firstIdxFine[eo::XYZ]],
-                                                                          &edgeFineData[firstIdxFine[eo::XZ]],
-                                                                          &edgeFineData[firstIdxFine[eo::Y]],
-                                                                          &edgeFineData[firstIdxFine[eo::YZ]],
-                                                                          &edgeFineData[firstIdxFine[eo::Z]],
-                                                                          vertexFineData,
-                                                                          static_cast< int32_t >( coarseLevel ),
-                                                                          numNeighborCellsEdge0,
-                                                                          numNeighborCellsEdge1,
-                                                                          numNeighborCellsEdge2,
-                                                                          numNeighborCellsEdge3,
-                                                                          numNeighborCellsEdge4,
-                                                                          numNeighborCellsEdge5,
-                                                                          numNeighborCellsFace0,
-                                                                          numNeighborCellsFace1,
-                                                                          numNeighborCellsFace2,
-                                                                          numNeighborCellsFace3 );
+      if ( coarseLevel == 0 )
+      {
+         P2::macrocell::generated::restrict_3D_macrocell_P2_update_edgedofs_level_1_to_0( &edgeCoarseData[firstIdxCoarse[eo::X]],
+                                                                                          &edgeCoarseData[firstIdxCoarse[eo::XY]],
+                                                                                          &edgeCoarseData[firstIdxCoarse[eo::XZ]],
+                                                                                          &edgeCoarseData[firstIdxCoarse[eo::Y]],
+                                                                                          &edgeCoarseData[firstIdxCoarse[eo::YZ]],
+                                                                                          &edgeCoarseData[firstIdxCoarse[eo::Z]],
+                                                                                          &edgeFineData[firstIdxFine[eo::X]],
+                                                                                          &edgeFineData[firstIdxFine[eo::XY]],
+                                                                                          &edgeFineData[firstIdxFine[eo::XYZ]],
+                                                                                          &edgeFineData[firstIdxFine[eo::XZ]],
+                                                                                          &edgeFineData[firstIdxFine[eo::Y]],
+                                                                                          &edgeFineData[firstIdxFine[eo::YZ]],
+                                                                                          &edgeFineData[firstIdxFine[eo::Z]],
+                                                                                          vertexFineData,
+                                                                                          static_cast< int32_t >( coarseLevel ),
+                                                                                          numNeighborCellsEdge0,
+                                                                                          numNeighborCellsEdge1,
+                                                                                          numNeighborCellsEdge2,
+                                                                                          numNeighborCellsEdge3,
+                                                                                          numNeighborCellsEdge4,
+                                                                                          numNeighborCellsEdge5,
+                                                                                          numNeighborCellsFace0,
+                                                                                          numNeighborCellsFace1,
+                                                                                          numNeighborCellsFace2,
+                                                                                          numNeighborCellsFace3 );
+      }
+      else
+      {
+         P2::macrocell::generated::restrict_3D_macrocell_P2_update_edgedofs( &edgeCoarseData[firstIdxCoarse[eo::X]],
+                                                                             &edgeCoarseData[firstIdxCoarse[eo::XY]],
+                                                                             &edgeCoarseData[firstIdxCoarse[eo::XYZ]],
+                                                                             &edgeCoarseData[firstIdxCoarse[eo::XZ]],
+                                                                             &edgeCoarseData[firstIdxCoarse[eo::Y]],
+                                                                             &edgeCoarseData[firstIdxCoarse[eo::YZ]],
+                                                                             &edgeCoarseData[firstIdxCoarse[eo::Z]],
+                                                                             &edgeFineData[firstIdxFine[eo::X]],
+                                                                             &edgeFineData[firstIdxFine[eo::XY]],
+                                                                             &edgeFineData[firstIdxFine[eo::XYZ]],
+                                                                             &edgeFineData[firstIdxFine[eo::XZ]],
+                                                                             &edgeFineData[firstIdxFine[eo::Y]],
+                                                                             &edgeFineData[firstIdxFine[eo::YZ]],
+                                                                             &edgeFineData[firstIdxFine[eo::Z]],
+                                                                             vertexFineData,
+                                                                             static_cast< int32_t >( coarseLevel ),
+                                                                             numNeighborCellsEdge0,
+                                                                             numNeighborCellsEdge1,
+                                                                             numNeighborCellsEdge2,
+                                                                             numNeighborCellsEdge3,
+                                                                             numNeighborCellsEdge4,
+                                                                             numNeighborCellsEdge5,
+                                                                             numNeighborCellsFace0,
+                                                                             numNeighborCellsFace1,
+                                                                             numNeighborCellsFace2,
+                                                                             numNeighborCellsFace3 );
+      }
    }
 
-  function.getVertexDoFFunction().communicateAdditively< Cell, Face >( coarseLevel, excludeFlag, *function.getStorage() );
-  function.getVertexDoFFunction().communicateAdditively< Cell, Edge >( coarseLevel, excludeFlag, *function.getStorage() );
-  function.getVertexDoFFunction().communicateAdditively< Cell, Vertex >( coarseLevel, excludeFlag, *function.getStorage() );
+   function.getVertexDoFFunction().communicateAdditively< Cell, Face >( coarseLevel, excludeFlag, *function.getStorage() );
+   function.getVertexDoFFunction().communicateAdditively< Cell, Edge >( coarseLevel, excludeFlag, *function.getStorage() );
+   function.getVertexDoFFunction().communicateAdditively< Cell, Vertex >( coarseLevel, excludeFlag, *function.getStorage() );
 
-  function.getEdgeDoFFunction().communicateAdditively< Cell, Face >( coarseLevel, excludeFlag, *function.getStorage() );
-  function.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( coarseLevel, excludeFlag, *function.getStorage() );
+   function.getEdgeDoFFunction().communicateAdditively< Cell, Face >( coarseLevel, excludeFlag, *function.getStorage() );
+   function.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( coarseLevel, excludeFlag, *function.getStorage() );
 }
 
 void P2toP2QuadraticRestriction::restrictWithPostCommunication( const hyteg::P2Function< walberla::real_t >& function,
-                                                                const uint_t&                              sourceLevel,
+                                                                const uint_t&                                sourceLevel,
                                                                 const hyteg::DoFType&                        flag ) const
 {
    const auto  storage           = function.getStorage();

@@ -18,8 +18,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
-#include "hyteg/gridtransferoperators/generatedKernels/all.hpp"
+
 #include "hyteg/FunctionMemory.hpp"
+#include "hyteg/gridtransferoperators/generatedKernels/all.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -28,8 +29,8 @@
 
 namespace hyteg {
 
-using walberla::uint_t;
 using walberla::real_t;
+using walberla::uint_t;
 
 void P2toP2QuadraticProlongation::prolongate( const P2Function< walberla::real_t >& function,
                                               const walberla::uint_t&               sourceLevel,
@@ -53,7 +54,7 @@ void P2toP2QuadraticProlongation::prolongateAdditively( const P2Function< real_t
                                                         const DoFType&              flag ) const
 {
    /// XOR flag with all to get the DoFTypes that should be excluded
-   const DoFType excludeFlag = (flag ^ All);
+   const DoFType excludeFlag = ( flag ^ All );
 
    const auto storage = function.getStorage();
 
@@ -74,9 +75,9 @@ void P2toP2QuadraticProlongation::prolongateAdditively( const P2Function< real_t
       const auto edgeCoarseData   = face->getData( function.getEdgeDoFFunction().getFaceDataID() )->getPointer( coarseLevel );
 
       // we need to set the face ghost-layers to zero explicitly since this is not necessarily done by interpolation
-      for ( const auto & it : vertexdof::macroface::Iterator( fineLevel, 0 ) )
+      for ( const auto& it : vertexdof::macroface::Iterator( fineLevel, 0 ) )
       {
-         vertexFineData[ vertexdof::macroface::index( fineLevel, it.x(), it.y() ) ] = real_c( 0 );
+         vertexFineData[vertexdof::macroface::index( fineLevel, it.x(), it.y() )] = real_c( 0 );
       }
 
       // For some reason the Intel compiler cannot create code if an iterator is used for the edge unknowns.
@@ -125,17 +126,35 @@ void P2toP2QuadraticProlongation::prolongateAdditively( const P2Function< real_t
                                                                                  numNeighborFacesVertex1,
                                                                                  numNeighborFacesVertex2 );
 
-      P2::macroface::generated::prolongate_2D_macroface_P2_push_from_edgedofs( &edgeCoarseData[firstIdxCoarse[eo::X]],
-                                                                               &edgeCoarseData[firstIdxCoarse[eo::XY]],
-                                                                               &edgeCoarseData[firstIdxCoarse[eo::Y]],
-                                                                               &edgeFineData[firstIdxFine[eo::X]],
-                                                                               &edgeFineData[firstIdxFine[eo::XY]],
-                                                                               &edgeFineData[firstIdxFine[eo::Y]],
-                                                                               vertexFineData,
-                                                                               static_cast< int32_t >( coarseLevel ),
-                                                                               numNeighborFacesEdge0,
-                                                                               numNeighborFacesEdge1,
-                                                                               numNeighborFacesEdge2 );
+      if ( coarseLevel == 0 )
+      {
+         P2::macroface::generated::prolongate_2D_macroface_P2_push_from_edgedofs_level_0_to_1(
+             &edgeCoarseData[firstIdxCoarse[eo::X]],
+             &edgeCoarseData[firstIdxCoarse[eo::XY]],
+             &edgeCoarseData[firstIdxCoarse[eo::Y]],
+             &edgeFineData[firstIdxFine[eo::X]],
+             &edgeFineData[firstIdxFine[eo::XY]],
+             &edgeFineData[firstIdxFine[eo::Y]],
+             vertexFineData,
+             static_cast< int32_t >( coarseLevel ),
+             numNeighborFacesEdge0,
+             numNeighborFacesEdge1,
+             numNeighborFacesEdge2 );
+      }
+      else
+      {
+         P2::macroface::generated::prolongate_2D_macroface_P2_push_from_edgedofs( &edgeCoarseData[firstIdxCoarse[eo::X]],
+                                                                                  &edgeCoarseData[firstIdxCoarse[eo::XY]],
+                                                                                  &edgeCoarseData[firstIdxCoarse[eo::Y]],
+                                                                                  &edgeFineData[firstIdxFine[eo::X]],
+                                                                                  &edgeFineData[firstIdxFine[eo::XY]],
+                                                                                  &edgeFineData[firstIdxFine[eo::Y]],
+                                                                                  vertexFineData,
+                                                                                  static_cast< int32_t >( coarseLevel ),
+                                                                                  numNeighborFacesEdge0,
+                                                                                  numNeighborFacesEdge1,
+                                                                                  numNeighborFacesEdge2 );
+      }
    }
 
    function.getVertexDoFFunction().communicateAdditively< Face, Edge >( fineLevel, excludeFlag, *function.getStorage() );
@@ -149,144 +168,175 @@ void P2toP2QuadraticProlongation::prolongateAdditively3D( const P2Function< real
                                                           const DoFType&              flag ) const
 {
    /// XOR flag with all to get the DoFTypes that should be excluded
-   const DoFType excludeFlag = (flag ^ All);
+   const DoFType excludeFlag = ( flag ^ All );
 
-  const auto storage = function.getStorage();
+   const auto storage = function.getStorage();
 
-  const uint_t fineLevel   = sourceLevel + 1;
-  const uint_t coarseLevel = sourceLevel;
+   const uint_t fineLevel   = sourceLevel + 1;
+   const uint_t coarseLevel = sourceLevel;
 
-  function.communicate< Vertex, Edge >( coarseLevel );
-  function.communicate< Edge, Face >( coarseLevel );
-  function.communicate< Face, Cell >( coarseLevel );
+   function.communicate< Vertex, Edge >( coarseLevel );
+   function.communicate< Edge, Face >( coarseLevel );
+   function.communicate< Face, Cell >( coarseLevel );
 
-  for ( const auto& cellIt : function.getStorage()->getCells() )
-  {
-    const auto cell = cellIt.second;
+   for ( const auto& cellIt : function.getStorage()->getCells() )
+   {
+      const auto cell = cellIt.second;
 
-    auto vertexFineData = cell->getData( function.getVertexDoFFunction().getCellDataID() )->getPointer( fineLevel );
-    auto edgeFineData   = cell->getData( function.getEdgeDoFFunction().getCellDataID() )->getPointer( fineLevel );
+      auto vertexFineData = cell->getData( function.getVertexDoFFunction().getCellDataID() )->getPointer( fineLevel );
+      auto edgeFineData   = cell->getData( function.getEdgeDoFFunction().getCellDataID() )->getPointer( fineLevel );
 
-    const auto vertexCoarseData = cell->getData( function.getVertexDoFFunction().getCellDataID() )->getPointer( coarseLevel );
-    const auto edgeCoarseData   = cell->getData( function.getEdgeDoFFunction().getCellDataID() )->getPointer( coarseLevel );
+      const auto vertexCoarseData = cell->getData( function.getVertexDoFFunction().getCellDataID() )->getPointer( coarseLevel );
+      const auto edgeCoarseData   = cell->getData( function.getEdgeDoFFunction().getCellDataID() )->getPointer( coarseLevel );
 
-    // we need to set the face ghost-layers to zero explicitly since this is not necessarily done by interpolation
-    for ( const auto & it : vertexdof::macrocell::Iterator( fineLevel, 0 ) )
-    {
-      vertexFineData[ vertexdof::macrocell::index( fineLevel, it.x(), it.y(), it.z() ) ] = real_c( 0 );
-    }
+      // we need to set the face ghost-layers to zero explicitly since this is not necessarily done by interpolation
+      for ( const auto& it : vertexdof::macrocell::Iterator( fineLevel, 0 ) )
+      {
+         vertexFineData[vertexdof::macrocell::index( fineLevel, it.x(), it.y(), it.z() )] = real_c( 0 );
+      }
 
-    // For some reason the Intel compiler cannot create code if an iterator is used for the edge unknowns.
-    // Therefore we use a plain for loop here.
-    //
-    // See issue #94.
-    //
-    const uint_t edgedofFieldSize = cell->getData( function.getEdgeDoFFunction().getCellDataID() )->getSize( fineLevel );
-    for ( uint_t i = 0; i < edgedofFieldSize; i++ )
-    {
-      edgeFineData[i] = real_c( 0 );
-    }
+      // For some reason the Intel compiler cannot create code if an iterator is used for the edge unknowns.
+      // Therefore we use a plain for loop here.
+      //
+      // See issue #94.
+      //
+      const uint_t edgedofFieldSize = cell->getData( function.getEdgeDoFFunction().getCellDataID() )->getSize( fineLevel );
+      for ( uint_t i = 0; i < edgedofFieldSize; i++ )
+      {
+         edgeFineData[i] = real_c( 0 );
+      }
 
-    const double numNeighborCellsFace0 =
-    static_cast< double >( storage->getFace( cell->neighborFaces().at( 0 ) )->getNumNeighborCells() );
-    const double numNeighborCellsFace1 =
-    static_cast< double >( storage->getFace( cell->neighborFaces().at( 1) )->getNumNeighborCells() );
-    const double numNeighborCellsFace2 =
-    static_cast< double >( storage->getFace( cell->neighborFaces().at( 2 ) )->getNumNeighborCells() );
-    const double numNeighborCellsFace3 =
-    static_cast< double >( storage->getFace( cell->neighborFaces().at( 3 ) )->getNumNeighborCells() );
+      const double numNeighborCellsFace0 =
+          static_cast< double >( storage->getFace( cell->neighborFaces().at( 0 ) )->getNumNeighborCells() );
+      const double numNeighborCellsFace1 =
+          static_cast< double >( storage->getFace( cell->neighborFaces().at( 1 ) )->getNumNeighborCells() );
+      const double numNeighborCellsFace2 =
+          static_cast< double >( storage->getFace( cell->neighborFaces().at( 2 ) )->getNumNeighborCells() );
+      const double numNeighborCellsFace3 =
+          static_cast< double >( storage->getFace( cell->neighborFaces().at( 3 ) )->getNumNeighborCells() );
 
-    const double numNeighborCellsEdge0 =
-    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 0 ) )->getNumNeighborCells() );
-    const double numNeighborCellsEdge1 =
-    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 1) )->getNumNeighborCells() );
-    const double numNeighborCellsEdge2 =
-    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 2 ) )->getNumNeighborCells() );
-    const double numNeighborCellsEdge3 =
-    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 3 ) )->getNumNeighborCells() );
-    const double numNeighborCellsEdge4 =
-    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 4 ) )->getNumNeighborCells() );
-    const double numNeighborCellsEdge5 =
-    static_cast< double >( storage->getEdge( cell->neighborEdges().at( 5 ) )->getNumNeighborCells() );
+      const double numNeighborCellsEdge0 =
+          static_cast< double >( storage->getEdge( cell->neighborEdges().at( 0 ) )->getNumNeighborCells() );
+      const double numNeighborCellsEdge1 =
+          static_cast< double >( storage->getEdge( cell->neighborEdges().at( 1 ) )->getNumNeighborCells() );
+      const double numNeighborCellsEdge2 =
+          static_cast< double >( storage->getEdge( cell->neighborEdges().at( 2 ) )->getNumNeighborCells() );
+      const double numNeighborCellsEdge3 =
+          static_cast< double >( storage->getEdge( cell->neighborEdges().at( 3 ) )->getNumNeighborCells() );
+      const double numNeighborCellsEdge4 =
+          static_cast< double >( storage->getEdge( cell->neighborEdges().at( 4 ) )->getNumNeighborCells() );
+      const double numNeighborCellsEdge5 =
+          static_cast< double >( storage->getEdge( cell->neighborEdges().at( 5 ) )->getNumNeighborCells() );
 
-    const double numNeighborCellsVertex0 =
-    static_cast< double >( storage->getVertex( cell->neighborVertices().at( 0 ) )->getNumNeighborCells() );
-    const double numNeighborCellsVertex1 =
-    static_cast< double >( storage->getVertex( cell->neighborVertices().at( 1) )->getNumNeighborCells() );
-    const double numNeighborCellsVertex2 =
-    static_cast< double >( storage->getVertex( cell->neighborVertices().at( 2 ) )->getNumNeighborCells() );
-    const double numNeighborCellsVertex3 =
-    static_cast< double >( storage->getVertex( cell->neighborVertices().at( 3 ) )->getNumNeighborCells() );
+      const double numNeighborCellsVertex0 =
+          static_cast< double >( storage->getVertex( cell->neighborVertices().at( 0 ) )->getNumNeighborCells() );
+      const double numNeighborCellsVertex1 =
+          static_cast< double >( storage->getVertex( cell->neighborVertices().at( 1 ) )->getNumNeighborCells() );
+      const double numNeighborCellsVertex2 =
+          static_cast< double >( storage->getVertex( cell->neighborVertices().at( 2 ) )->getNumNeighborCells() );
+      const double numNeighborCellsVertex3 =
+          static_cast< double >( storage->getVertex( cell->neighborVertices().at( 3 ) )->getNumNeighborCells() );
 
-    typedef edgedof::EdgeDoFOrientation eo;
-    std::map< eo, uint_t >              firstIdxFine;
-    std::map< eo, uint_t >              firstIdxCoarse;
-    for ( auto e : edgedof::allEdgeDoFOrientations )
-    {
-      firstIdxFine[e]   = edgedof::macrocell::index( fineLevel, 0, 0, 0, e );
-      firstIdxCoarse[e] = edgedof::macrocell::index( coarseLevel, 0, 0, 0, e );
-    }
+      typedef edgedof::EdgeDoFOrientation eo;
+      std::map< eo, uint_t >              firstIdxFine;
+      std::map< eo, uint_t >              firstIdxCoarse;
+      for ( auto e : edgedof::allEdgeDoFOrientations )
+      {
+         firstIdxFine[e]   = edgedof::macrocell::index( fineLevel, 0, 0, 0, e );
+         firstIdxCoarse[e] = edgedof::macrocell::index( coarseLevel, 0, 0, 0, e );
+      }
 
-    P2::macrocell::generated::prolongate_3D_macrocell_P2_push_from_vertexdofs( &edgeFineData[firstIdxFine[eo::X]],
-                                                                               &edgeFineData[firstIdxFine[eo::XY]],
-                                                                               &edgeFineData[firstIdxFine[eo::XYZ]],
-                                                                               &edgeFineData[firstIdxFine[eo::XZ]],
-                                                                               &edgeFineData[firstIdxFine[eo::Y]],
-                                                                               &edgeFineData[firstIdxFine[eo::YZ]],
-                                                                               &edgeFineData[firstIdxFine[eo::Z]],
-                                                                               vertexCoarseData,
-                                                                               vertexFineData,
-                                                                               static_cast< int32_t >( coarseLevel ),
-                                                                               numNeighborCellsEdge0,
-                                                                               numNeighborCellsEdge1,
-                                                                               numNeighborCellsEdge2,
-                                                                               numNeighborCellsEdge3,
-                                                                               numNeighborCellsEdge4,
-                                                                               numNeighborCellsEdge5,
-                                                                               numNeighborCellsFace0,
-                                                                               numNeighborCellsFace1,
-                                                                               numNeighborCellsFace2,
-                                                                               numNeighborCellsFace3,
-                                                                               numNeighborCellsVertex0,
-                                                                               numNeighborCellsVertex1,
-                                                                               numNeighborCellsVertex2,
-                                                                               numNeighborCellsVertex3 );
+      P2::macrocell::generated::prolongate_3D_macrocell_P2_push_from_vertexdofs( &edgeFineData[firstIdxFine[eo::X]],
+                                                                                 &edgeFineData[firstIdxFine[eo::XY]],
+                                                                                 &edgeFineData[firstIdxFine[eo::XYZ]],
+                                                                                 &edgeFineData[firstIdxFine[eo::XZ]],
+                                                                                 &edgeFineData[firstIdxFine[eo::Y]],
+                                                                                 &edgeFineData[firstIdxFine[eo::YZ]],
+                                                                                 &edgeFineData[firstIdxFine[eo::Z]],
+                                                                                 vertexCoarseData,
+                                                                                 vertexFineData,
+                                                                                 static_cast< int32_t >( coarseLevel ),
+                                                                                 numNeighborCellsEdge0,
+                                                                                 numNeighborCellsEdge1,
+                                                                                 numNeighborCellsEdge2,
+                                                                                 numNeighborCellsEdge3,
+                                                                                 numNeighborCellsEdge4,
+                                                                                 numNeighborCellsEdge5,
+                                                                                 numNeighborCellsFace0,
+                                                                                 numNeighborCellsFace1,
+                                                                                 numNeighborCellsFace2,
+                                                                                 numNeighborCellsFace3,
+                                                                                 numNeighborCellsVertex0,
+                                                                                 numNeighborCellsVertex1,
+                                                                                 numNeighborCellsVertex2,
+                                                                                 numNeighborCellsVertex3 );
 
-    P2::macrocell::generated::prolongate_3D_macrocell_P2_push_from_edgedofs( &edgeCoarseData[firstIdxCoarse[eo::X]],
-                                                                             &edgeCoarseData[firstIdxCoarse[eo::XY]],
-                                                                             &edgeCoarseData[firstIdxCoarse[eo::XYZ]],
-                                                                             &edgeCoarseData[firstIdxCoarse[eo::XZ]],
-                                                                             &edgeCoarseData[firstIdxCoarse[eo::Y]],
-                                                                             &edgeCoarseData[firstIdxCoarse[eo::YZ]],
-                                                                             &edgeCoarseData[firstIdxCoarse[eo::Z]],
-                                                                             &edgeFineData[firstIdxFine[eo::X]],
-                                                                             &edgeFineData[firstIdxFine[eo::XY]],
-                                                                             &edgeFineData[firstIdxFine[eo::XYZ]],
-                                                                             &edgeFineData[firstIdxFine[eo::XZ]],
-                                                                             &edgeFineData[firstIdxFine[eo::Y]],
-                                                                             &edgeFineData[firstIdxFine[eo::YZ]],
-                                                                             &edgeFineData[firstIdxFine[eo::Z]],
-                                                                             vertexFineData,
-                                                                             static_cast< int32_t >( coarseLevel ),
-                                                                             numNeighborCellsEdge0,
-                                                                             numNeighborCellsEdge1,
-                                                                             numNeighborCellsEdge2,
-                                                                             numNeighborCellsEdge3,
-                                                                             numNeighborCellsEdge4,
-                                                                             numNeighborCellsEdge5,
-                                                                             numNeighborCellsFace0,
-                                                                             numNeighborCellsFace1,
-                                                                             numNeighborCellsFace2,
-                                                                             numNeighborCellsFace3 );
-  }
+      if ( coarseLevel == 0 )
+      {
+         P2::macrocell::generated::prolongate_3D_macrocell_P2_push_from_edgedofs_level_0_to_1(
+             &edgeCoarseData[firstIdxCoarse[eo::X]],
+             &edgeCoarseData[firstIdxCoarse[eo::XY]],
+             &edgeCoarseData[firstIdxCoarse[eo::XZ]],
+             &edgeCoarseData[firstIdxCoarse[eo::Y]],
+             &edgeCoarseData[firstIdxCoarse[eo::YZ]],
+             &edgeCoarseData[firstIdxCoarse[eo::Z]],
+             &edgeFineData[firstIdxFine[eo::X]],
+             &edgeFineData[firstIdxFine[eo::XY]],
+             &edgeFineData[firstIdxFine[eo::XYZ]],
+             &edgeFineData[firstIdxFine[eo::XZ]],
+             &edgeFineData[firstIdxFine[eo::Y]],
+             &edgeFineData[firstIdxFine[eo::YZ]],
+             &edgeFineData[firstIdxFine[eo::Z]],
+             vertexFineData,
+             static_cast< int32_t >( coarseLevel ),
+             numNeighborCellsEdge0,
+             numNeighborCellsEdge1,
+             numNeighborCellsEdge2,
+             numNeighborCellsEdge3,
+             numNeighborCellsEdge4,
+             numNeighborCellsEdge5,
+             numNeighborCellsFace0,
+             numNeighborCellsFace1,
+             numNeighborCellsFace2,
+             numNeighborCellsFace3 );
+      }
+      else
+      {
+         P2::macrocell::generated::prolongate_3D_macrocell_P2_push_from_edgedofs( &edgeCoarseData[firstIdxCoarse[eo::X]],
+                                                                                  &edgeCoarseData[firstIdxCoarse[eo::XY]],
+                                                                                  &edgeCoarseData[firstIdxCoarse[eo::XYZ]],
+                                                                                  &edgeCoarseData[firstIdxCoarse[eo::XZ]],
+                                                                                  &edgeCoarseData[firstIdxCoarse[eo::Y]],
+                                                                                  &edgeCoarseData[firstIdxCoarse[eo::YZ]],
+                                                                                  &edgeCoarseData[firstIdxCoarse[eo::Z]],
+                                                                                  &edgeFineData[firstIdxFine[eo::X]],
+                                                                                  &edgeFineData[firstIdxFine[eo::XY]],
+                                                                                  &edgeFineData[firstIdxFine[eo::XYZ]],
+                                                                                  &edgeFineData[firstIdxFine[eo::XZ]],
+                                                                                  &edgeFineData[firstIdxFine[eo::Y]],
+                                                                                  &edgeFineData[firstIdxFine[eo::YZ]],
+                                                                                  &edgeFineData[firstIdxFine[eo::Z]],
+                                                                                  vertexFineData,
+                                                                                  static_cast< int32_t >( coarseLevel ),
+                                                                                  numNeighborCellsEdge0,
+                                                                                  numNeighborCellsEdge1,
+                                                                                  numNeighborCellsEdge2,
+                                                                                  numNeighborCellsEdge3,
+                                                                                  numNeighborCellsEdge4,
+                                                                                  numNeighborCellsEdge5,
+                                                                                  numNeighborCellsFace0,
+                                                                                  numNeighborCellsFace1,
+                                                                                  numNeighborCellsFace2,
+                                                                                  numNeighborCellsFace3 );
+      }
+   }
 
-  function.getVertexDoFFunction().communicateAdditively< Cell, Face >( fineLevel, excludeFlag, *function.getStorage() );
-  function.getVertexDoFFunction().communicateAdditively< Cell, Edge >( fineLevel, excludeFlag, *function.getStorage() );
-  function.getVertexDoFFunction().communicateAdditively< Cell, Vertex >( fineLevel, excludeFlag, *function.getStorage() );
+   function.getVertexDoFFunction().communicateAdditively< Cell, Face >( fineLevel, excludeFlag, *function.getStorage() );
+   function.getVertexDoFFunction().communicateAdditively< Cell, Edge >( fineLevel, excludeFlag, *function.getStorage() );
+   function.getVertexDoFFunction().communicateAdditively< Cell, Vertex >( fineLevel, excludeFlag, *function.getStorage() );
 
-  function.getEdgeDoFFunction().communicateAdditively< Cell, Face >( fineLevel, excludeFlag, *function.getStorage() );
-  function.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( fineLevel, excludeFlag, *function.getStorage() );
-
+   function.getEdgeDoFFunction().communicateAdditively< Cell, Face >( fineLevel, excludeFlag, *function.getStorage() );
+   function.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( fineLevel, excludeFlag, *function.getStorage() );
 }
 
 void P2toP2QuadraticProlongation::prolongateStandard( const P2Function< real_t >& function,
