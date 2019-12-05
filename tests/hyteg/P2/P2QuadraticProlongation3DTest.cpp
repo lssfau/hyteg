@@ -274,6 +274,7 @@ int main( int argc, char* argv[] )
    testWeightsInCellEdgeDoF();
 
    testGridTransfer3D( "../../data/meshes/quad_8el.msh", 0 );
+   testGridTransfer3D( "../../data/meshes/bfs_126el.msh", 0 );
    testGridTransfer3D( "../../data/meshes/3D/tet_1el.msh", 0 );
    testGridTransfer3D( "../../data/meshes/3D/pyramid_2el.msh", 0 );
    testGridTransfer3D( "../../data/meshes/3D/pyramid_4el.msh", 0 );
