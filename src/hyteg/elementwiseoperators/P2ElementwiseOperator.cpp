@@ -31,7 +31,7 @@ P2ElementwiseOperator< P2Form >::P2ElementwiseOperator( const std::shared_ptr< P
 {
    if ( needsDiagEntries )
    {
-      diagonalValues_ = std::unique_ptr< P2Function< real_t > >( new P2Function< real_t >( "diagonal entries", storage, minLevel, maxLevel, DoFType::None ) );
+      diagonalValues_ = std::unique_ptr< P2Function< real_t > >( new P2Function< real_t >( "diagonal entries", storage, minLevel, maxLevel ) );
       computeDiagonalOperatorValues( maxLevel, true );
    }
 
@@ -47,6 +47,8 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
 {
 
    WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
+
+   this->startTiming( "apply" );
 
    if ( updateType == Add )
    {
@@ -141,6 +143,8 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
       // dst.getVertexDoFFunction().communicate< Edge, Face >( level );
       // dst.getEdgeDoFFunction().communicate< Edge, Face >( level );
    }
+
+   this->stopTiming( "apply" );
 }
 
 template < class P2Form >
@@ -151,6 +155,8 @@ void P2ElementwiseOperator< P2Form >::smooth_jac( const P2Function< real_t >& ds
                                                   size_t                      level,
                                                   DoFType                     flag ) const
 {
+   this->startTiming( "smooth_jac" );
+
    // compute the current residual
    this->apply( src, dst, level, flag );
    dst.assign( {real_c( 1 ), real_c( -1 )}, {rhs, dst}, level, flag );
@@ -158,6 +164,8 @@ void P2ElementwiseOperator< P2Form >::smooth_jac( const P2Function< real_t >& ds
    // perform Jacobi update step
    dst.multElementwise( { (*diagonalValues_), dst}, level, flag );
    dst.assign( {1.0,omega}, {src,dst}, level, flag );
+
+   this->stopTiming( "smooth_jac" );
 }
 
 template < class P2Form >
