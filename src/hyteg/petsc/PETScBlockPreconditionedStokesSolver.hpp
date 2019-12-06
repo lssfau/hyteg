@@ -92,7 +92,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
       KSPCreate( walberla::MPIManager::instance()->comm(), &ksp );
       KSPSetType( ksp, KSPMINRES );
-      KSPSetTolerances( ksp, tolerance_, tolerance_, PETSC_DEFAULT, maxIterations_ );
+      KSPSetTolerances( ksp, 1e-30, tolerance_, PETSC_DEFAULT, maxIterations_ );
       KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
       KSPSetFromOptions( ksp );
 
@@ -136,8 +136,8 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
         KSPSetType( sub_ksps_[0], KSPCG );
         KSPSetType( sub_ksps_[1], KSPCG );
 
-        KSPSetTolerances( sub_ksps_[0], tolerance_, tolerance_, PETSC_DEFAULT, maxIterations_ );
-        KSPSetTolerances( sub_ksps_[1], tolerance_, tolerance_, PETSC_DEFAULT, maxIterations_ );
+        KSPSetTolerances( sub_ksps_[0], 1e-30, tolerance_, PETSC_DEFAULT, maxIterations_ );
+        KSPSetTolerances( sub_ksps_[1], 1e-30, tolerance_, PETSC_DEFAULT, maxIterations_ );
       }
       else
       {
