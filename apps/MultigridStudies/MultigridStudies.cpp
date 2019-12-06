@@ -785,6 +785,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       std::map< std::string, std::string >&                sqlStringProperties,
                       std::map< uint_t, std::map< std::string, double > >& sqlRealPropertiesMG )
 {
+   walberla::WcTimer timer;
+
    WALBERLA_UNUSED( sqlStringProperties );
 
    if ( cyclesBeforeDC > 0 )
@@ -795,17 +797,26 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       }
    }
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Allocating functions ..." );
+   timer.reset();
    StokesFunction u( "u", storage, minLevel, maxLevel );
    StokesFunction f( "f", storage, minLevel, maxLevel );
 
    StokesFunction error( "error", storage, minLevel, maxLevel );
 
+   timer.end();
+   WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
+
    std::shared_ptr< P1StokesFunction< real_t > > f_dc;
    if ( cyclesBeforeDC > 0 )
       f_dc = std::make_shared< P1StokesFunction< real_t > >( "f_dc", storage, minLevel, maxLevel );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Assembling operators..." );
+   timer.reset();
    StokesOperator A( storage, minLevel, maxLevel );
    MassOperator   M( storage, minLevel, maxLevel );
+   timer.end();
+   WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
 
    long double l2ErrorU;
    long double l2ErrorP;
@@ -841,6 +852,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    // Initialize functions and right-hand side //
    //////////////////////////////////////////////
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Interpolating solution and right-hand side..." );
+   timer.reset();
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
       u.u.interpolate( bcU, level, DirichletBoundary );
@@ -855,6 +868,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       M.apply( error.v, f.v, level, All );
       M.apply( error.w, f.w, level, All );
    }
+   timer.end();
+   WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    /////////////////////////
    // Misc setup and info //
@@ -918,7 +934,6 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
    storage->getTimingTree()->reset();
 
-   walberla::WcTimer timer;
    walberla::WcTimer timerFMGErrorCalculation;
    double            timeError;
    double            timeVTK;
@@ -928,6 +943,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    ///////////
    // Solve //
    ///////////
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Setting up solver ..." );
+   timer.reset();
 
    const uint_t coarseGridMaxLevel = ( numCycles == 0 ? maxLevel : minLevel );
 
@@ -1022,10 +1040,21 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    FullMultigridSolver< StokesOperator > fullMultigridSolver(
        storage, multigridSolver, fmgProlongation, minLevel, maxLevel, fmgInnerCycles, postCycle );
 
+   timer.end();
+   WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+
    printFunctionAllocationInfo( *storage, 1 );
 #ifdef HYTEG_BUILD_WITH_PETSC
    printCurrentMemoryUsage();
 #endif
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Starting solver ..." );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       " After cycle... ||   l2 error u |   l2 error p |     l2 error u red || l2 residualU | l2 residualP |     l2 residual u red || time cycle [s] | time error calculation [s] | time VTK [s] | time CG  [s] |" );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       " ---------------++--------------+--------------+--------------------++--------------+--------------+-----------------------++----------------+----------------------------+--------------+--------------|" );
 
    timer.reset();
    calculateErrorAndResidualStokes( maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
@@ -1040,10 +1069,6 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    timer.end();
    timeVTK = timer.last();
 
-   WALBERLA_LOG_INFO_ON_ROOT(
-       " After cycle... ||   l2 error u |   l2 error p |     l2 error u red || l2 residualU | l2 residualP |     l2 residual u red || time cycle [s] | time error calculation [s] | time VTK [s] | time CG  [s] |" );
-   WALBERLA_LOG_INFO_ON_ROOT(
-       " ---------------++--------------+--------------+--------------------++--------------+--------------+-----------------------++----------------+----------------------------+--------------+--------------|" );
    WALBERLA_LOG_INFO_ON_ROOT( "        initial || " << std::scientific << l2ErrorU << " | " << l2ErrorP << " | "
                                                     << "               --- || " << l2ResidualU << " | " << l2ResidualP
                                                     << " |                   --- ||            --- | " << std::fixed
@@ -1429,6 +1454,10 @@ void setup( int argc, char** argv )
    // Domain //
    ////////////
 
+   walberla::WcTimer timer;
+   WALBERLA_LOG_INFO_ON_ROOT( "Setting up domain ..." );
+   timer.reset();
+
    Point2D leftBottom( {0, 0} );
    Point3D leftBottom3D( {0, 0, 0} );
    if ( equation == "stokes" && ( NEUMANN_PROBLEM || COLLIDING_FLOW ) )
@@ -1533,6 +1562,10 @@ void setup( int argc, char** argv )
      }
 
    }
+
+   timer.end();
+   WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
+
 
    if ( outputVTK )
    {
