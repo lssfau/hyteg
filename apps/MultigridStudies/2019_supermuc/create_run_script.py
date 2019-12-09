@@ -208,7 +208,7 @@ def supermuc_scaling():
     for discretization in ["P2"]:
         for scaling_type in ["weak", "strong"]:
             for coarse_grid_tol in [1e-12]:
-                for coarse_grid_solver_type, coarse_grid_preconditioner_type in [(0, 0), (1, 0), (1, 1) (1, 2)]:
+                for coarse_grid_solver_type, coarse_grid_preconditioner_type in [(0, 0), (1, 0), (1, 1), (1, 2)]:
                     base_config = cube_base_config_fmg[scaling_type][discretization]
                     base_config["coarse_grid_tol"] = coarse_grid_tol
                     base_config["coarse_grid_solver_type"] = coarse_grid_solver_type
