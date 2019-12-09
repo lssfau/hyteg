@@ -980,12 +980,15 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    }
    else if ( coarseGridSolverType == 1 )
    {
-      petscSolverInternal = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
+
+      auto petscSolverInternalTmp = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
           storage,
           coarseGridMaxLevel,
           coarseResidualTolerance,
           coarseGridMaxIterations,
           coarseGridSolverVelocityPreconditionerType );
+      petscSolverInternalTmp->setVerbose( true );
+      petscSolverInternal = petscSolverInternalTmp;
    }
    else if ( coarseGridSolverType == 2 )
    {

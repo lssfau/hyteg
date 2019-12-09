@@ -46,6 +46,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    , nullSpaceSet_( false )
    , blockPreconditioner_( storage, level, level )
    , velocityPreconditionerType_( velocityPreconditionerType )
+   , verbose_( false )
    {}
 
    ~PETScBlockPreconditionedStokesSolver() = default;
@@ -56,6 +57,8 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       nullspaceVec_.createVectorFromFunction( nullspace, num, allocatedLevel_ );
       MatNullSpaceCreate( walberla::MPIManager::instance()->comm(), PETSC_FALSE, 1, &nullspaceVec_.get(), &nullspace_ );
    }
+
+   void setVerbose( bool verbose ) { verbose_ = verbose; }
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level )
    {
@@ -179,6 +182,13 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
       KSPSolve( ksp, bVec.get(), xVec.get() );
 
+      if ( verbose_ )
+      {
+         PetscInt numKSPIterations;
+         KSPGetIterationNumber( ksp, &numKSPIterations );
+         WALBERLA_LOG_INFO_ON_ROOT( "[PETScBlockPreconditionedStokesSolver] num KSP iterations: " << numKSPIterations );
+      }
+
       x.getStorage()->getTimingTree()->stop( "Solve" );
 
       xVec.createFunctionFromVector( x, num, level, flag_ );
@@ -288,6 +298,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    bool         nullSpaceSet_;
 
    uint_t velocityPreconditionerType_;
+   bool   verbose_;
 };
 
 } // namespace hyteg
