@@ -126,19 +126,19 @@ Parameters
     preSmoothingSteps 2;
     postSmoothingSteps 2;
     smoothingIncrement 2;
-    minLevel 2;
+    minLevel 0;
     maxLevel 8; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-16;
     projectPressureAfterRestriction true;
     calculateDiscretizationError false;
-    coarseGridMaxIterations 20000;
-    coarseGridResidualTolerance 1e-10;
+    coarseGridMaxIterations 100000;
+    coarseGridResidualTolerance 1e-12;
     
     // PETSc only
     // 0: LU (MUMPS)
     // 1: Block-prec. MinRes
-    coarseGridSolverType 0;
+    coarseGridSolverType 1;
 
     // 0: PCGAMG
     // 1: PCJACOBI
@@ -237,7 +237,7 @@ Parameters
     preSmoothingSteps 2;
     postSmoothingSteps 2;
     smoothingIncrement 2;
-    minLevel 2;
+    minLevel 0;
     maxLevel 8; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-16;
@@ -273,10 +273,10 @@ Parameters
     with open("discretization_error_base_config.prm", "w") as f:
         f.write(base_config)
 
-    max_levels = list(range(3, 9))
+    max_levels = list(range(1, 9))
     discretizations = ["P1", "P2"]
     num_processes = 8
-    sor_omega = {"P1": 0.3, "P2": 0.3}
+    sor_omega = {"P1": 0.3, "P2": 0.65}
     prepost = {"P1": 3, "P2": 6}
 
     with open("run_discretization_error.sh", "w") as f:
