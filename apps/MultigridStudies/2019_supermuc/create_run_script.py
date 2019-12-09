@@ -47,7 +47,7 @@ Parameters
     L2residualTolerance 1e-16;
     projectPressureAfterRestriction true;
     calculateDiscretizationError false;
-    coarseGridMaxIterations 20000;
+    coarseGridMaxIterations 100000;
     coarseGridResidualTolerance {coarse_grid_tol};
     
     // PETSc only
@@ -143,38 +143,6 @@ mpiexec -n $SLURM_NTASKS ./MultigridStudies 2019_supermuc/{prm_file}
 def supermuc_scaling():
 
     cube_base_config_fmg = {
-        "coarse_grid_strong_26" : {
-            "P2": {
-                "discretization": "P2",
-                "max_level": 1,
-                "num_cycles": 0,
-            }
-        },
-
-        "coarse_grid_strong_20" : {
-            "P2": {
-                "discretization": "P2",
-                "max_level": 1,
-                "num_cycles": 0,
-            }
-        },
-
-        "coarse_grid_strong_16" : {
-            "P2": {
-                "discretization": "P2",
-                "max_level": 1,
-                "num_cycles": 0,
-            }
-        },
-
-        "coarse_grid_strong_13" : {
-            "P2": {
-                "discretization": "P2",
-                "max_level": 1,
-                "num_cycles": 0,
-            }
-        },
-
         "weak": {
             "P2": {
                 "discretization": "P2",
@@ -203,50 +171,6 @@ def supermuc_scaling():
     }
 
     node_dep_parameters_cube = {
-        "coarse_grid_strong_26": {
-            1: {"num_faces_per_side": 26},
-            2: {"num_faces_per_side": 26},
-            6: {"num_faces_per_side": 26},
-            12: {"num_faces_per_side": 26},
-            24: {"num_faces_per_side": 26},
-            48: {"num_faces_per_side": 26},
-            96: {"num_faces_per_side": 26},
-            192: {"num_faces_per_side": 26},
-        },
-
-        "coarse_grid_strong_20": {
-            1: {"num_faces_per_side": 20},
-            2: {"num_faces_per_side": 20},
-            6: {"num_faces_per_side": 20},
-            12: {"num_faces_per_side": 20},
-            24: {"num_faces_per_side": 20},
-            48: {"num_faces_per_side": 20},
-            96: {"num_faces_per_side": 20},
-            192: {"num_faces_per_side": 20},
-        },
-
-        "coarse_grid_strong_16": {
-            1: {"num_faces_per_side": 16},
-            2: {"num_faces_per_side": 16},
-            6: {"num_faces_per_side": 16},
-            12: {"num_faces_per_side": 16},
-            24: {"num_faces_per_side": 16},
-            48: {"num_faces_per_side": 16},
-            96: {"num_faces_per_side": 16},
-            192: {"num_faces_per_side": 16},
-        },
-
-        "coarse_grid_strong_13": {
-            1: {"num_faces_per_side": 13},
-            2: {"num_faces_per_side": 13},
-            6: {"num_faces_per_side": 13},
-            12: {"num_faces_per_side": 13},
-            24: {"num_faces_per_side": 13},
-            48: {"num_faces_per_side": 13},
-            96: {"num_faces_per_side": 13},
-            192: {"num_faces_per_side": 13},
-        },
-
         "weak": {
             1: {"num_faces_per_side": 1},
             2: {"num_faces_per_side": 2},
@@ -282,9 +206,9 @@ def supermuc_scaling():
     }
 
     for discretization in ["P2"]:
-        for scaling_type in ["weak", "strong", "coarse_grid_strong_26", "coarse_grid_strong_20", "coarse_grid_strong_16", "coarse_grid_strong_13"]:
+        for scaling_type in ["weak", "strong"]:
             for coarse_grid_tol in [1e-12]:
-                for coarse_grid_solver_type, coarse_grid_preconditioner_type in [(0, 0), (1, 1)]:
+                for coarse_grid_solver_type, coarse_grid_preconditioner_type in [(0, 0), (1, 0), (1, 1) (1, 2)]:
                     base_config = cube_base_config_fmg[scaling_type][discretization]
                     base_config["coarse_grid_tol"] = coarse_grid_tol
                     base_config["coarse_grid_solver_type"] = coarse_grid_solver_type
