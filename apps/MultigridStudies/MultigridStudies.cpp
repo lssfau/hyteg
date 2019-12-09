@@ -811,7 +811,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    if ( cyclesBeforeDC > 0 )
       f_dc = std::make_shared< P1StokesFunction< real_t > >( "f_dc", storage, minLevel, maxLevel );
 
-   WALBERLA_LOG_INFO( "Memory usage after function allocation:" )
+   WALBERLA_LOG_INFO_ON_ROOT( "Memory usage after function allocation:" )
 #ifdef HYTEG_BUILD_WITH_PETSC
    printCurrentMemoryUsage();
 #endif
@@ -823,7 +823,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    timer.end();
    WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
 
-   WALBERLA_LOG_INFO( "Memory usage after operator assembly:" )
+   WALBERLA_LOG_INFO_ON_ROOT( "Memory usage after operator assembly:" )
 #ifdef HYTEG_BUILD_WITH_PETSC
    printCurrentMemoryUsage();
 #endif
@@ -1065,7 +1065,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
    printFunctionAllocationInfo( *storage, 1 );
 
-   WALBERLA_LOG_INFO( "Memory usage after solver allocation:" )
+   WALBERLA_LOG_INFO_ON_ROOT( "Memory usage after solver allocation:" )
 #ifdef HYTEG_BUILD_WITH_PETSC
    printCurrentMemoryUsage();
 #endif
@@ -1489,7 +1489,7 @@ void setup( int argc, char** argv )
    // Domain //
    ////////////
 
-   WALBERLA_LOG_INFO( "Memory usage before domain setup:" )
+   WALBERLA_LOG_INFO_ON_ROOT( "Memory usage before domain setup:" )
 #ifdef HYTEG_BUILD_WITH_PETSC
    printCurrentMemoryUsage();
 #endif
@@ -1606,7 +1606,7 @@ void setup( int argc, char** argv )
    timer.end();
    WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
 
-   WALBERLA_LOG_INFO( "Memory usage after domain setup:" )
+   WALBERLA_LOG_INFO_ON_ROOT( "Memory usage after domain setup:" )
 #ifdef HYTEG_BUILD_WITH_PETSC
    printCurrentMemoryUsage();
 #endif
