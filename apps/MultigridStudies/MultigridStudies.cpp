@@ -1062,6 +1062,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    printFunctionAllocationInfo( *storage, 1 );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Memory usage after solver allocation:" )
 #ifdef HYTEG_BUILD_WITH_PETSC
@@ -1460,6 +1461,7 @@ void setup( int argc, char** argv )
    sqlStringProperties["tag"]      = sqlTag;
    sqlStringProperties["equation"] = equation;
 
+   sqlStringProperties["git_hash"]                     = gitSHA1();
    sqlIntegerProperties["num_processes"]               = int64_c( numProcesses );
    sqlIntegerProperties["dim"]                         = int64_c( dim );
    sqlIntegerProperties["num_faces_per_side"]          = int64_c( numFacesPerSide );

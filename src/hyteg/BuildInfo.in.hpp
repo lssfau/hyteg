@@ -36,9 +36,9 @@ std::string compilerFlags()
 
 void printBuildInfo()
 {
-   WALBERLA_LOG_INFO( "Build info:" )
-   WALBERLA_LOG_INFO( " - flavour:        " << buildFlavour() );
-   WALBERLA_LOG_INFO( " - compiler flags: " << compilerFlags() );
+   WALBERLA_LOG_INFO_ON_ROOT( "Build info:" )
+   WALBERLA_LOG_INFO_ON_ROOT( " - flavour:        " << buildFlavour() );
+   WALBERLA_LOG_INFO_ON_ROOT( " - compiler flags: " << compilerFlags() );
 }
 
 }

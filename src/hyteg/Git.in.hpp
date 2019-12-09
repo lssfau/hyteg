@@ -36,9 +36,9 @@ std::string gitBranch()
 
 void printGitInfo()
 {
-   WALBERLA_LOG_INFO( "Git info:" )
-   WALBERLA_LOG_INFO( " - SHA1:   " << gitSHA1() );
-   WALBERLA_LOG_INFO( " - branch: " << gitBranch() );
+   WALBERLA_LOG_INFO_ON_ROOT( "Git info:" )
+   WALBERLA_LOG_INFO_ON_ROOT( " - SHA1:   " << gitSHA1() );
+   WALBERLA_LOG_INFO_ON_ROOT( " - branch: " << gitBranch() );
 }
 
 }
