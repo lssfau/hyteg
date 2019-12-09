@@ -39,10 +39,10 @@ Parameters
     coarseGridMaxIterations 20000;
     coarseGridResidualTolerance 1e-10;
 
-    // PETSc only
-    // 0: LU (MUMPS)
-    // 1: Block-prec. MinRes
-    coarseGridSolverType 1;
+    // 0: LU (MUMPS) (PETSc)
+    // 1: Block-prec. MinRes (PETSc)
+    // 2: MinRes (HyTeG)
+    coarseGridSolverType 0;
 
     // 0: PCGAMG
     // 1: PCJACOBI

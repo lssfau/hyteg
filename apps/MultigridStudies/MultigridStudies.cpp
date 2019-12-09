@@ -811,12 +811,22 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    if ( cyclesBeforeDC > 0 )
       f_dc = std::make_shared< P1StokesFunction< real_t > >( "f_dc", storage, minLevel, maxLevel );
 
+   WALBERLA_LOG_INFO( "Memory usage after function allocation:" )
+#ifdef HYTEG_BUILD_WITH_PETSC
+   printCurrentMemoryUsage();
+#endif
+
    WALBERLA_LOG_INFO_ON_ROOT( "Assembling operators..." );
    timer.reset();
    StokesOperator A( storage, minLevel, maxLevel );
    MassOperator   M( storage, minLevel, maxLevel );
    timer.end();
    WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
+
+   WALBERLA_LOG_INFO( "Memory usage after operator assembly:" )
+#ifdef HYTEG_BUILD_WITH_PETSC
+   printCurrentMemoryUsage();
+#endif
 
    long double l2ErrorU;
    long double l2ErrorP;
@@ -979,6 +989,15 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
           coarseGridMaxIterations,
           coarseGridSolverVelocityPreconditionerType );
    }
+   else if ( coarseGridSolverType == 2 )
+   {
+      petscSolverInternal = std::make_shared< MinResSolver< StokesOperator > >(
+          storage,
+          coarseGridMaxLevel,
+          coarseGridMaxLevel,
+          coarseGridMaxIterations,
+          coarseResidualTolerance );
+   }
 
    auto petscSolver = std::make_shared< TimedSolver< StokesOperator > >( petscSolverInternal );
 
@@ -1045,6 +1064,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    printFunctionAllocationInfo( *storage, 1 );
+
+   WALBERLA_LOG_INFO( "Memory usage after solver allocation:" )
 #ifdef HYTEG_BUILD_WITH_PETSC
    printCurrentMemoryUsage();
 #endif
@@ -1115,6 +1136,20 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                                  << std::setprecision( 2 ) << std::setw( 14 ) << timeCycle << " | "
                                                  << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK
                                                  << " | " <<  std::setw( 12 ) << timeCoarseGrid << " | " );
+
+      sqlRealPropertiesMG[1]["l2_error_u"]              = real_c( l2ErrorU );
+      sqlRealPropertiesMG[1]["l2_error_reduction_u"]    = real_c( l2ErrorReductionU );
+      sqlRealPropertiesMG[1]["l2_residual_u"]           = real_c( l2ResidualU );
+      sqlRealPropertiesMG[1]["l2_residual_reduction_u"] = real_c( l2ResidualReductionU );
+
+      sqlRealPropertiesMG[1]["l2_error_p"]              = real_c( l2ErrorP );
+      sqlRealPropertiesMG[1]["l2_error_reduction_p"]    = real_c( l2ErrorReductionP );
+      sqlRealPropertiesMG[1]["l2_residual_p"]           = real_c( l2ResidualP );
+      sqlRealPropertiesMG[1]["l2_residual_reduction_p"] = real_c( l2ResidualReductionP );
+
+      sqlRealPropertiesMG[1]["time_cycle"] = real_c( timeCycle );
+      sqlRealPropertiesMG[1]["time_error"] = real_c( timeError );
+      sqlRealPropertiesMG[1]["time_coarse_grid"] = real_c( timeCoarseGrid );
    }
 
    uint_t numExecutedCycles = 0;
@@ -1454,6 +1489,11 @@ void setup( int argc, char** argv )
    // Domain //
    ////////////
 
+   WALBERLA_LOG_INFO( "Memory usage before domain setup:" )
+#ifdef HYTEG_BUILD_WITH_PETSC
+   printCurrentMemoryUsage();
+#endif
+
    walberla::WcTimer timer;
    WALBERLA_LOG_INFO_ON_ROOT( "Setting up domain ..." );
    timer.reset();
@@ -1566,6 +1606,10 @@ void setup( int argc, char** argv )
    timer.end();
    WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
 
+   WALBERLA_LOG_INFO( "Memory usage after domain setup:" )
+#ifdef HYTEG_BUILD_WITH_PETSC
+   printCurrentMemoryUsage();
+#endif
 
    if ( outputVTK )
    {
