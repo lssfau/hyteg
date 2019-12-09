@@ -48,7 +48,6 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
-#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/petsc/PETScMemoryUsage.hpp"
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
@@ -56,15 +55,14 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/controlflow/TimedSolver.hpp"
 #include "hyteg/solvers/FullMultigridSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/SORSmoother.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
-#include "hyteg/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
-#include "hyteg/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
+#include "hyteg/Git.hpp"
+#include "hyteg/BuildInfo.hpp"
 
 #include "sqlite/SQLite.h"
 
@@ -1305,6 +1303,10 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "///////////////////////" );
    WALBERLA_LOG_INFO_ON_ROOT( "// Multigrid Studies //" );
    WALBERLA_LOG_INFO_ON_ROOT( "///////////////////////" );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+
+   printGitInfo();
+   printBuildInfo();
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    //check if a config was given on command line or load default file otherwise

@@ -135,3 +135,54 @@ if ( DOXYGEN_FOUND )
 
 endif ( )
 ############################################################################################################################
+
+
+############################################################################################################################
+# Git commit hash
+############################################################################################################################
+
+# Get the current working branch
+execute_process(
+        COMMAND git rev-parse --abbrev-ref HEAD
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_BRANCH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+# Get the latest abbreviated commit hash of the working branch
+execute_process(
+        COMMAND git log -1 --format=%h
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE GIT_COMMIT_HASH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+add_definitions("-DGIT_COMMIT_HASH=${GIT_COMMIT_HASH}")
+add_definitions("-DGIT_BRANCH=${GIT_BRANCH}")
+
+configure_file(
+  ${CMAKE_SOURCE_DIR}/src/hyteg/Git.in.hpp
+  ${CMAKE_BINARY_DIR}/src/hyteg/Git.hpp
+)
+
+############################################################################################################################
+
+############################################################################################################################
+# Build info
+############################################################################################################################
+
+set( HYTEG_BUILD_TYPE      ${CMAKE_BUILD_TYPE} )
+if ( CMAKE_BUILD_TYPE STREQUAL "Release" )
+    set( HYTEG_COMPILER_FLAGS  "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS}" )
+elseif ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+    set( HYTEG_COMPILER_FLAGS  "${CMAKE_CXX_FLAGS_DEBUG} ${CMAKE_CXX_FLAGS}" )
+else()
+    message(WARNING "Cannot determine complete list of compiler flags!")
+endif()
+
+configure_file(
+        ${CMAKE_SOURCE_DIR}/src/hyteg/BuildInfo.in.hpp
+        ${CMAKE_BINARY_DIR}/src/hyteg/BuildInfo.hpp
+)
+
+############################################################################################################################
