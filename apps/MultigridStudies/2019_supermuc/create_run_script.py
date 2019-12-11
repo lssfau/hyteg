@@ -28,9 +28,9 @@ Parameters
     cycleType V;
     fmgInnerCycles {fmg_r}; // 0 == no fmg
 
-    // CRISSCROSS: ~0.4
-    // CRISS:    : P1: ? , P2: ~0.72
     sorRelax {omega};
+    sorRelaxEstimationIterations 20;
+    sorRelaxEstimationLevel 3;
     velocitySorRelax 1.0;
 
     symmGSVelocity false;
