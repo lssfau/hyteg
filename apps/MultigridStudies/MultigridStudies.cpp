@@ -61,6 +61,8 @@
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/SORSmoother.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/Git.hpp"
 #include "hyteg/BuildInfo.hpp"
 
