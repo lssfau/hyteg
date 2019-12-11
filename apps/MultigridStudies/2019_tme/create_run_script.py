@@ -116,6 +116,8 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax 0.3;
+    sorRelaxEstimationIterations 20;
+    sorRelaxEstimationLevel 3;
     velocitySorRelax 1.0;
 
     symmGSVelocity true;
@@ -164,7 +166,6 @@ Parameters
 
     discretizations = ["P1", "P2"]
     num_processes = 8
-    sor_omega = {"P1": 0.3, "P2": 0.65}
     symm_gs = ["true", "false"]
     num_pre_post_inc = [(1, 1, 2), (2, 2, 2), (3, 3, 2)]
     inner_cycles = [1, 2]
@@ -188,7 +189,6 @@ Parameters
                                   "-Parameters.preSmoothingSteps={} " \
                                   "-Parameters.postSmoothingSteps={} " \
                                   "-Parameters.smoothingIncrement={} " \
-                                  "-Parameters.sorRelax={} " \
                                   "-Parameters.numGSVelocity={} " \
                                   "-Parameters.symmGSVelocity={} " \
                                   "-Parameters.fmgInnerCycles={} " \
@@ -196,7 +196,7 @@ Parameters
                                   "-Parameters.postDCPreSmoothingSteps={} " \
                                   "-Parameters.postDCPostSmoothingSteps={} " \
                                   "-Parameters.postDCSmoothingIncrement={} " \
-                                  "-Parameters.discretization={} ".format(num_processes, smooth[0], smooth[1], smooth[2], sor_omega[discretization], num, symm, r,
+                                  "-Parameters.discretization={} ".format(num_processes, smooth[0], smooth[1], smooth[2], num, symm, r,
                                                                           cycles_before_dc, dc_pre_post_inc[0], dc_pre_post_inc[1], dc_pre_post_inc[2], discretization)
                             f.write("echo \"{}\"\n".format(cmd))
                             f.write(cmd + "\n")
@@ -227,6 +227,8 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax 0.3;
+    sorRelaxEstimationIterations 20;
+    sorRelaxEstimationLevel 3;
     velocitySorRelax 1.0;
 
     symmGSVelocity true;
