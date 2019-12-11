@@ -164,7 +164,7 @@ Parameters
     with open("fmg_tests_base_config.prm", "w") as f:
         f.write(base_config)
 
-    discretizations = ["P1", "P2"]
+    discretizations = ["P2"]
     num_processes = 8
     symm_gs = ["true", "false"]
     num_pre_post_inc = [(1, 1, 2), (2, 2, 2), (3, 3, 2)]
@@ -276,7 +276,7 @@ Parameters
         f.write(base_config)
 
     max_levels = list(range(1, 9))
-    discretizations = ["P1", "P2"]
+    discretizations = ["P2"]
     num_processes = 8
     sor_omega = {"P1": 0.3, "P2": 0.65}
     prepost = {"P1": 3, "P2": 6}
