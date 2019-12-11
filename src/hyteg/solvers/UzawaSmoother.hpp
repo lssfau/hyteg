@@ -22,6 +22,7 @@
 #define UZAWA_OLD_VARIANT 0
 
 #include "hyteg/composites/StokesOperatorTraits.hpp"
+#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P2P1UzawaDampingFactorEstimationOperator.hpp"
 #include "hyteg/numerictools/SpectrumEstimation.hpp"
 #include "hyteg/solvers/Solver.hpp"
