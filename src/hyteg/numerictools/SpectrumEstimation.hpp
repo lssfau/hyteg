@@ -24,11 +24,11 @@
 
 #pragma once
 
-#ifdef HYTEG_BUILD_WITH_EIGEN
-
 #include "hyteg/eigen/EigenWrapper.hpp"
 #include "core/Abort.h"
 #include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/types/flags.hpp"
 
 namespace hyteg {
 
@@ -81,6 +81,8 @@ namespace hyteg {
     return radius;
   }
 
+#ifdef HYTEG_BUILD_WITH_EIGEN
+
   // =================================================================================================
 
   /// \brief Computes estimates for the smallest and largest eigenvalue of a symmetric
@@ -129,6 +131,7 @@ namespace hyteg {
     upperBound = ev[numIts-1];
   }
 
+#endif // HYTEG_BUILD_WITH_EIGEN
+
 } // namespace hyteg
 
-#endif // HYTEG_BUILD_WITH_EIGEN

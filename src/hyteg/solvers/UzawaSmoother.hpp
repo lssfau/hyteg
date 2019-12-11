@@ -22,7 +22,11 @@
 #define UZAWA_OLD_VARIANT 0
 
 #include "hyteg/composites/StokesOperatorTraits.hpp"
+#include "hyteg/composites/P2P1UzawaDampingFactorEstimationOperator.hpp"
+#include "hyteg/numerictools/SpectrumEstimation.hpp"
 #include "hyteg/solvers/Solver.hpp"
+
+#include "core/math/Random.h"
 
 namespace hyteg {
 
@@ -65,7 +69,8 @@ class UzawaSmoother : public Solver< OperatorType >
                   const bool                                 symmetricGSPressure     = false,
                   const uint_t                               numGSIterationsPressure = 1,
                   const real_t                               velocityRelaxParam      = 1.0 )
-   : flag_( flag )
+   : storage_( storage )
+   , flag_( flag )
    , hasGlobalCells_( storage->hasGlobalCells() )
    , relaxParam_( relaxParam )
    , symmetricGSVelocity_( symmetricGSVelocity )
@@ -91,6 +96,24 @@ class UzawaSmoother : public Solver< OperatorType >
                    std::integral_constant< bool, tensor_variant< OperatorType >::value >(),
                    std::integral_constant< bool, has_pspg_block< OperatorType >::value >() );
    }
+
+   real_t estimateAndSetRelaxationParameter( const OperatorType& A, const uint_t & level, const uint_t & numPowerIterations )
+   {
+      const bool isStableDiscretization = std::is_same< OperatorType, P2P1TaylorHoodStokesOperator >::value;
+      WALBERLA_CHECK( isStableDiscretization, "Relaxation parameter estimation only implemented for P2-P1" );
+      P2P1UzawaDampingFactorEstimationOperator estimator( storage_, level, level, symmetricGSVelocity_, numGSIterationsVelocity_ );
+      P1Function< real_t > iterationVector( "iterationVector", storage_, level, level );
+      walberla::math::seedRandomGenerator( 42 );
+      auto randFunction = []( const Point3D & ) {
+         return walberla::math::realRandom();
+      };
+      iterationVector.interpolate( randFunction, level, All );
+      const real_t estimatedRelaxationParameter = estimateSpectralRadiusWithPowerIteration( estimator, iterationVector, numPowerIterations, storage_, level );
+      relaxParam_ = estimatedRelaxationParameter;
+      return estimatedRelaxationParameter;
+   }
+
+   void setRelaxationParameter( const real_t & omega ) { relaxParam_ = omega; }
 
  private:
    // Block-Laplace variant
@@ -298,6 +321,7 @@ class UzawaSmoother : public Solver< OperatorType >
    }
 
  private:
+   std::shared_ptr< PrimitiveStorage > storage_;
    DoFType flag_;
    bool    hasGlobalCells_;
    real_t  relaxParam_;

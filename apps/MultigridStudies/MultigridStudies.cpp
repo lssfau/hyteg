@@ -758,6 +758,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       const uint_t&                                        fmgInnerCycles,
                       const real_t&                                        L2residualTolerance,
                       const real_t&                                        sorRelax,
+                      const uint_t&                                        sorRelaxEstimationIterations,
+                      const uint_t&                                        sorRelaxEstimationLevel,
                       const real_t&                                        velocitySorRelax,
                       const bool&                                          symmGSVelocity,
                       const uint_t&                                        numGSVelocity,
@@ -968,6 +970,17 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                                                         symmGSPressure,
                                                                         numGSPressure,
                                                                         velocitySorRelax );
+
+   if ( sorRelaxEstimationIterations > 0 )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Estimating omega (" << sorRelaxEstimationIterations << " power iterations on level " << sorRelaxEstimationLevel << ") ..." );
+      WALBERLA_CHECK_LESS_EQUAL( sorRelaxEstimationLevel, maxLevel );
+      const auto estimatedOmega = smoother->estimateAndSetRelaxationParameter( A, sorRelaxEstimationLevel, sorRelaxEstimationIterations );
+      WALBERLA_LOG_INFO_ON_ROOT( "Setting omega to estimate: " << estimatedOmega );
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+      sqlRealProperties["sor_relax"] = estimatedOmega;
+   }
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    // auto petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >(
@@ -1341,6 +1354,8 @@ void setup( int argc, char** argv )
    const uint_t      fmgInnerCycles                  = mainConf.getParameter< uint_t >( "fmgInnerCycles" );
    const real_t      L2residualTolerance             = mainConf.getParameter< real_t >( "L2residualTolerance" );
    const real_t      sorRelax                        = mainConf.getParameter< real_t >( "sorRelax" );
+   const uint_t      sorRelaxEstimationIterations    = mainConf.getParameter< uint_t >( "sorRelaxEstimationIterations" );
+   const uint_t      sorRelaxEstimationLevel         = mainConf.getParameter< uint_t >( "sorRelaxEstimationLevel" );
    const real_t      velocitySorRelax                = mainConf.getParameter< real_t >( "velocitySorRelax" );
    const bool        symmGSVelocity                  = mainConf.getParameter< bool >( "symmGSVelocity" );
    const bool        symmGSPressure                  = mainConf.getParameter< bool >( "symmGSPressure" );
@@ -1402,8 +1417,16 @@ void setup( int argc, char** argv )
        "  - full multigrid:                          "
        << ( fmgInnerCycles == 0 ? "no" : "yes, inner cycles per level: " + std::to_string( fmgInnerCycles ) ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - L2 residual tolerance:                   " << L2residualTolerance );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - SOR relax:                               " << sorRelax );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - Velocity SOR relax:                               " << velocitySorRelax );
+   if ( sorRelaxEstimationIterations > 0 )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "  - SOR relax est. num power iterations:     " << sorRelaxEstimationIterations );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - SOR relax est. level:                    " << sorRelaxEstimationLevel );
+   }
+   else
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "  - SOR relax:                               " << sorRelax );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "  - Velocity SOR relax:                      " << velocitySorRelax );
    WALBERLA_LOG_INFO_ON_ROOT( "  - Uzawa velocity smoother:                 " << ( symmGSVelocity ? "symmetric" : "forward" )
                                                                               << " GS, " << numGSVelocity << " iterations" );
    WALBERLA_LOG_INFO_ON_ROOT( "  - Uzawa pressure smoother:                 " << ( symmGSPressure ? "symmetric" : "forward" )
@@ -1697,6 +1720,8 @@ void setup( int argc, char** argv )
                                                                 fmgInnerCycles,
                                                                 L2residualTolerance,
                                                                 sorRelax,
+                                                                sorRelaxEstimationIterations,
+                                                                sorRelaxEstimationLevel,
                                                                 velocitySorRelax,
                                                                 symmGSVelocity,
                                                                 numGSVelocity,
@@ -1738,6 +1763,8 @@ void setup( int argc, char** argv )
                                                                 fmgInnerCycles,
                                                                 L2residualTolerance,
                                                                 sorRelax,
+                                                                sorRelaxEstimationIterations,
+                                                                sorRelaxEstimationLevel,
                                                                 velocitySorRelax,
                                                                 symmGSVelocity,
                                                                 numGSVelocity,
