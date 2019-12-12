@@ -27,7 +27,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    ///                                   - 2: Schur complement
    PETScBlockPreconditionedStokesSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                                          const uint_t&                              level,
-                                         const real_t                               tolerance = 1e-16,
+                                         const real_t                               tolerance = 1e-12,
                                          const PetscInt maxIterations              = std::numeric_limits< PetscInt >::max(),
                                          const uint_t&  velocityPreconditionerType = 1 )
    : allocatedLevel_( level )
@@ -46,6 +46,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    , nullSpaceSet_( false )
    , blockPreconditioner_( storage, level, level )
    , velocityPreconditionerType_( velocityPreconditionerType )
+   , verbose_( false )
    {}
 
    ~PETScBlockPreconditionedStokesSolver() = default;
@@ -56,6 +57,8 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       nullspaceVec_.createVectorFromFunction( nullspace, num, allocatedLevel_ );
       MatNullSpaceCreate( walberla::MPIManager::instance()->comm(), PETSC_FALSE, 1, &nullspaceVec_.get(), &nullspace_ );
    }
+
+   void setVerbose( bool verbose ) { verbose_ = verbose; }
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level )
    {
@@ -92,7 +95,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
       KSPCreate( walberla::MPIManager::instance()->comm(), &ksp );
       KSPSetType( ksp, KSPMINRES );
-      KSPSetTolerances( ksp, tolerance_, tolerance_, PETSC_DEFAULT, maxIterations_ );
+      KSPSetTolerances( ksp, 1e-30, tolerance_, PETSC_DEFAULT, maxIterations_ );
       KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
       KSPSetFromOptions( ksp );
 
@@ -136,8 +139,8 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
         KSPSetType( sub_ksps_[0], KSPCG );
         KSPSetType( sub_ksps_[1], KSPCG );
 
-        KSPSetTolerances( sub_ksps_[0], tolerance_, tolerance_, PETSC_DEFAULT, maxIterations_ );
-        KSPSetTolerances( sub_ksps_[1], tolerance_, tolerance_, PETSC_DEFAULT, maxIterations_ );
+        KSPSetTolerances( sub_ksps_[0], 1e-30, tolerance_, PETSC_DEFAULT, maxIterations_ );
+        KSPSetTolerances( sub_ksps_[1], 1e-30, tolerance_, PETSC_DEFAULT, maxIterations_ );
       }
       else
       {
@@ -178,6 +181,13 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       x.getStorage()->getTimingTree()->start( "Solve" );
 
       KSPSolve( ksp, bVec.get(), xVec.get() );
+
+      if ( verbose_ )
+      {
+         PetscInt numKSPIterations;
+         KSPGetIterationNumber( ksp, &numKSPIterations );
+         WALBERLA_LOG_INFO_ON_ROOT( "[PETScBlockPreconditionedStokesSolver] num KSP iterations: " << numKSPIterations );
+      }
 
       x.getStorage()->getTimingTree()->stop( "Solve" );
 
@@ -288,6 +298,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    bool         nullSpaceSet_;
 
    uint_t velocityPreconditionerType_;
+   bool   verbose_;
 };
 
 } // namespace hyteg

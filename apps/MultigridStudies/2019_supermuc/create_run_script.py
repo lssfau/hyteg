@@ -28,9 +28,9 @@ Parameters
     cycleType V;
     fmgInnerCycles {fmg_r}; // 0 == no fmg
 
-    // CRISSCROSS: ~0.4
-    // CRISS:    : P1: ? , P2: ~0.72
     sorRelax {omega};
+    sorRelaxEstimationIterations 20;
+    sorRelaxEstimationLevel 3;
     velocitySorRelax 1.0;
 
     symmGSVelocity false;
@@ -41,13 +41,13 @@ Parameters
     preSmoothingSteps {pre};
     postSmoothingSteps {post};
     smoothingIncrement 2;
-    minLevel 2;
+    minLevel 0;
     maxLevel {max_level}; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-16;
     projectPressureAfterRestriction true;
     calculateDiscretizationError false;
-    coarseGridMaxIterations 20000;
+    coarseGridMaxIterations 100000;
     coarseGridResidualTolerance {coarse_grid_tol};
     
     // PETSc only
@@ -144,16 +144,6 @@ def supermuc_scaling():
 
     cube_base_config_fmg = {
         "weak": {
-            "P1": {
-                "discretization": "P1",
-                "fmg_r": 1,
-                "max_level": 8,
-                "num_cycles": 1,
-                "pre": 1,
-                "post": 1,
-                "num_gs_velocity": 2,
-                "omega": 0.3,
-            },
             "P2": {
                 "discretization": "P2",
                 "fmg_r": 1,
@@ -162,20 +152,11 @@ def supermuc_scaling():
                 "pre": 3,
                 "post": 3,
                 "num_gs_velocity": 2,
-                "omega": 0.3,
+                "omega": 0.65,
             }
         },
+
         "strong": {
-            "P1": {
-                "discretization": "P1",
-                "fmg_r": 1,
-                "max_level": 6,
-                "num_cycles": 1,
-                "pre": 1,
-                "post": 1,
-                "num_gs_velocity": 2,
-                "omega": 0.3,
-            },
             "P2": {
                 "discretization": "P2",
                 "fmg_r": 1,
@@ -184,7 +165,7 @@ def supermuc_scaling():
                 "pre": 3,
                 "post": 3,
                 "num_gs_velocity": 2,
-                "omega": 0.3,
+                "omega": 0.65,
             }
         }
     }

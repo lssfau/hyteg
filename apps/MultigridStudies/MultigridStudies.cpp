@@ -48,7 +48,6 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
-#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/petsc/PETScMemoryUsage.hpp"
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
@@ -56,15 +55,16 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/controlflow/TimedSolver.hpp"
 #include "hyteg/solvers/FullMultigridSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/SORSmoother.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
-#include "hyteg/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
+#include "hyteg/Git.hpp"
+#include "hyteg/BuildInfo.hpp"
 
 #include "sqlite/SQLite.h"
 
@@ -760,6 +760,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       const uint_t&                                        fmgInnerCycles,
                       const real_t&                                        L2residualTolerance,
                       const real_t&                                        sorRelax,
+                      const uint_t&                                        sorRelaxEstimationIterations,
+                      const uint_t&                                        sorRelaxEstimationLevel,
                       const real_t&                                        velocitySorRelax,
                       const bool&                                          symmGSVelocity,
                       const uint_t&                                        numGSVelocity,
@@ -785,6 +787,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       std::map< std::string, std::string >&                sqlStringProperties,
                       std::map< uint_t, std::map< std::string, double > >& sqlRealPropertiesMG )
 {
+   walberla::WcTimer timer;
+
    WALBERLA_UNUSED( sqlStringProperties );
 
    if ( cyclesBeforeDC > 0 )
@@ -795,17 +799,36 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       }
    }
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Allocating functions ..." );
+   timer.reset();
    StokesFunction u( "u", storage, minLevel, maxLevel );
    StokesFunction f( "f", storage, minLevel, maxLevel );
 
    StokesFunction error( "error", storage, minLevel, maxLevel );
 
+   timer.end();
+   WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
+
    std::shared_ptr< P1StokesFunction< real_t > > f_dc;
    if ( cyclesBeforeDC > 0 )
       f_dc = std::make_shared< P1StokesFunction< real_t > >( "f_dc", storage, minLevel, maxLevel );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Memory usage after function allocation:" )
+#ifdef HYTEG_BUILD_WITH_PETSC
+   printCurrentMemoryUsage();
+#endif
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Assembling operators..." );
+   timer.reset();
    StokesOperator A( storage, minLevel, maxLevel );
    MassOperator   M( storage, minLevel, maxLevel );
+   timer.end();
+   WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Memory usage after operator assembly:" )
+#ifdef HYTEG_BUILD_WITH_PETSC
+   printCurrentMemoryUsage();
+#endif
 
    long double l2ErrorU;
    long double l2ErrorP;
@@ -841,6 +864,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    // Initialize functions and right-hand side //
    //////////////////////////////////////////////
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Interpolating solution and right-hand side..." );
+   timer.reset();
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
       u.u.interpolate( bcU, level, DirichletBoundary );
@@ -855,6 +880,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       M.apply( error.v, f.v, level, All );
       M.apply( error.w, f.w, level, All );
    }
+   timer.end();
+   WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    /////////////////////////
    // Misc setup and info //
@@ -918,7 +946,6 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
    storage->getTimingTree()->reset();
 
-   walberla::WcTimer timer;
    walberla::WcTimer timerFMGErrorCalculation;
    double            timeError;
    double            timeVTK;
@@ -928,6 +955,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    ///////////
    // Solve //
    ///////////
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Setting up solver ..." );
+   timer.reset();
 
    const uint_t coarseGridMaxLevel = ( numCycles == 0 ? maxLevel : minLevel );
 
@@ -943,6 +973,16 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                                                         numGSPressure,
                                                                         velocitySorRelax );
 
+   if ( sorRelaxEstimationIterations > 0 )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Estimating omega (" << sorRelaxEstimationIterations << " power iterations on level " << sorRelaxEstimationLevel << ") ..." );
+      const auto estimatedOmega = smoother->estimateAndSetRelaxationParameter( sorRelaxEstimationLevel, sorRelaxEstimationIterations );
+      WALBERLA_LOG_INFO_ON_ROOT( "Setting omega to estimate: " << estimatedOmega );
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
+      sqlRealProperties["sor_relax"] = estimatedOmega;
+   }
+
 #ifdef HYTEG_BUILD_WITH_PETSC
    // auto petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >(
    //     storage, coarseGridMaxLevel, coarseResidualTolerance, coarseGridMaxIterations );
@@ -954,12 +994,24 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    }
    else if ( coarseGridSolverType == 1 )
    {
-      petscSolverInternal = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
+
+      auto petscSolverInternalTmp = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
           storage,
           coarseGridMaxLevel,
           coarseResidualTolerance,
           coarseGridMaxIterations,
           coarseGridSolverVelocityPreconditionerType );
+      petscSolverInternalTmp->setVerbose( true );
+      petscSolverInternal = petscSolverInternalTmp;
+   }
+   else if ( coarseGridSolverType == 2 )
+   {
+      petscSolverInternal = std::make_shared< MinResSolver< StokesOperator > >(
+          storage,
+          coarseGridMaxLevel,
+          coarseGridMaxLevel,
+          coarseGridMaxIterations,
+          coarseResidualTolerance );
    }
 
    auto petscSolver = std::make_shared< TimedSolver< StokesOperator > >( petscSolverInternal );
@@ -1022,10 +1074,24 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    FullMultigridSolver< StokesOperator > fullMultigridSolver(
        storage, multigridSolver, fmgProlongation, minLevel, maxLevel, fmgInnerCycles, postCycle );
 
+   timer.end();
+   WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+
    printFunctionAllocationInfo( *storage, 1 );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Memory usage after solver allocation:" )
 #ifdef HYTEG_BUILD_WITH_PETSC
    printCurrentMemoryUsage();
 #endif
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Starting solver ..." );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       " After cycle... ||   l2 error u |   l2 error p |     l2 error u red || l2 residualU | l2 residualP |     l2 residual u red || time cycle [s] | time error calculation [s] | time VTK [s] | time CG  [s] |" );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       " ---------------++--------------+--------------+--------------------++--------------+--------------+-----------------------++----------------+----------------------------+--------------+--------------|" );
 
    timer.reset();
    calculateErrorAndResidualStokes( maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
@@ -1040,10 +1106,6 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    timer.end();
    timeVTK = timer.last();
 
-   WALBERLA_LOG_INFO_ON_ROOT(
-       " After cycle... ||   l2 error u |   l2 error p |     l2 error u red || l2 residualU | l2 residualP |     l2 residual u red || time cycle [s] | time error calculation [s] | time VTK [s] | time CG  [s] |" );
-   WALBERLA_LOG_INFO_ON_ROOT(
-       " ---------------++--------------+--------------+--------------------++--------------+--------------+-----------------------++----------------+----------------------------+--------------+--------------|" );
    WALBERLA_LOG_INFO_ON_ROOT( "        initial || " << std::scientific << l2ErrorU << " | " << l2ErrorP << " | "
                                                     << "               --- || " << l2ResidualU << " | " << l2ResidualP
                                                     << " |                   --- ||            --- | " << std::fixed
@@ -1090,6 +1152,20 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                                  << std::setprecision( 2 ) << std::setw( 14 ) << timeCycle << " | "
                                                  << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK
                                                  << " | " <<  std::setw( 12 ) << timeCoarseGrid << " | " );
+
+      sqlRealPropertiesMG[1]["l2_error_u"]              = real_c( l2ErrorU );
+      sqlRealPropertiesMG[1]["l2_error_reduction_u"]    = real_c( l2ErrorReductionU );
+      sqlRealPropertiesMG[1]["l2_residual_u"]           = real_c( l2ResidualU );
+      sqlRealPropertiesMG[1]["l2_residual_reduction_u"] = real_c( l2ResidualReductionU );
+
+      sqlRealPropertiesMG[1]["l2_error_p"]              = real_c( l2ErrorP );
+      sqlRealPropertiesMG[1]["l2_error_reduction_p"]    = real_c( l2ErrorReductionP );
+      sqlRealPropertiesMG[1]["l2_residual_p"]           = real_c( l2ResidualP );
+      sqlRealPropertiesMG[1]["l2_residual_reduction_p"] = real_c( l2ResidualReductionP );
+
+      sqlRealPropertiesMG[1]["time_cycle"] = real_c( timeCycle );
+      sqlRealPropertiesMG[1]["time_error"] = real_c( timeError );
+      sqlRealPropertiesMG[1]["time_coarse_grid"] = real_c( timeCoarseGrid );
    }
 
    uint_t numExecutedCycles = 0;
@@ -1247,6 +1323,10 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "///////////////////////" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
+   printGitInfo();
+   printBuildInfo();
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+
    //check if a config was given on command line or load default file otherwise
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )
@@ -1275,6 +1355,8 @@ void setup( int argc, char** argv )
    const uint_t      fmgInnerCycles                  = mainConf.getParameter< uint_t >( "fmgInnerCycles" );
    const real_t      L2residualTolerance             = mainConf.getParameter< real_t >( "L2residualTolerance" );
    const real_t      sorRelax                        = mainConf.getParameter< real_t >( "sorRelax" );
+   const uint_t      sorRelaxEstimationIterations    = mainConf.getParameter< uint_t >( "sorRelaxEstimationIterations" );
+   const uint_t      sorRelaxEstimationLevel         = mainConf.getParameter< uint_t >( "sorRelaxEstimationLevel" );
    const real_t      velocitySorRelax                = mainConf.getParameter< real_t >( "velocitySorRelax" );
    const bool        symmGSVelocity                  = mainConf.getParameter< bool >( "symmGSVelocity" );
    const bool        symmGSPressure                  = mainConf.getParameter< bool >( "symmGSPressure" );
@@ -1336,8 +1418,16 @@ void setup( int argc, char** argv )
        "  - full multigrid:                          "
        << ( fmgInnerCycles == 0 ? "no" : "yes, inner cycles per level: " + std::to_string( fmgInnerCycles ) ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - L2 residual tolerance:                   " << L2residualTolerance );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - SOR relax:                               " << sorRelax );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - Velocity SOR relax:                               " << velocitySorRelax );
+   if ( sorRelaxEstimationIterations > 0 )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "  - SOR relax est. num power iterations:     " << sorRelaxEstimationIterations );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - SOR relax est. level:                    " << sorRelaxEstimationLevel );
+   }
+   else
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "  - SOR relax:                               " << sorRelax );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "  - Velocity SOR relax:                      " << velocitySorRelax );
    WALBERLA_LOG_INFO_ON_ROOT( "  - Uzawa velocity smoother:                 " << ( symmGSVelocity ? "symmetric" : "forward" )
                                                                               << " GS, " << numGSVelocity << " iterations" );
    WALBERLA_LOG_INFO_ON_ROOT( "  - Uzawa pressure smoother:                 " << ( symmGSPressure ? "symmetric" : "forward" )
@@ -1398,6 +1488,7 @@ void setup( int argc, char** argv )
    sqlStringProperties["tag"]      = sqlTag;
    sqlStringProperties["equation"] = equation;
 
+   sqlStringProperties["git_hash"]                     = gitSHA1();
    sqlIntegerProperties["num_processes"]               = int64_c( numProcesses );
    sqlIntegerProperties["dim"]                         = int64_c( dim );
    sqlIntegerProperties["num_faces_per_side"]          = int64_c( numFacesPerSide );
@@ -1428,6 +1519,15 @@ void setup( int argc, char** argv )
    ////////////
    // Domain //
    ////////////
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Memory usage before domain setup:" )
+#ifdef HYTEG_BUILD_WITH_PETSC
+   printCurrentMemoryUsage();
+#endif
+
+   walberla::WcTimer timer;
+   WALBERLA_LOG_INFO_ON_ROOT( "Setting up domain ..." );
+   timer.reset();
 
    Point2D leftBottom( {0, 0} );
    Point3D leftBottom3D( {0, 0, 0} );
@@ -1534,6 +1634,14 @@ void setup( int argc, char** argv )
 
    }
 
+   timer.end();
+   WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Memory usage after domain setup:" )
+#ifdef HYTEG_BUILD_WITH_PETSC
+   printCurrentMemoryUsage();
+#endif
+
    if ( outputVTK )
    {
       writeDomainPartitioningVTK( storage, "vtk", "Domain" );
@@ -1613,6 +1721,8 @@ void setup( int argc, char** argv )
                                                                 fmgInnerCycles,
                                                                 L2residualTolerance,
                                                                 sorRelax,
+                                                                sorRelaxEstimationIterations,
+                                                                sorRelaxEstimationLevel,
                                                                 velocitySorRelax,
                                                                 symmGSVelocity,
                                                                 numGSVelocity,
@@ -1654,6 +1764,8 @@ void setup( int argc, char** argv )
                                                                 fmgInnerCycles,
                                                                 L2residualTolerance,
                                                                 sorRelax,
+                                                                sorRelaxEstimationIterations,
+                                                                sorRelaxEstimationLevel,
                                                                 velocitySorRelax,
                                                                 symmGSVelocity,
                                                                 numGSVelocity,

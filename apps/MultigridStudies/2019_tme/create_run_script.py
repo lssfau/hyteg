@@ -116,6 +116,8 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax 0.3;
+    sorRelaxEstimationIterations 20;
+    sorRelaxEstimationLevel 3;
     velocitySorRelax 1.0;
 
     symmGSVelocity true;
@@ -126,19 +128,19 @@ Parameters
     preSmoothingSteps 2;
     postSmoothingSteps 2;
     smoothingIncrement 2;
-    minLevel 2;
+    minLevel 0;
     maxLevel 8; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-16;
     projectPressureAfterRestriction true;
     calculateDiscretizationError false;
-    coarseGridMaxIterations 20000;
-    coarseGridResidualTolerance 1e-10;
+    coarseGridMaxIterations 100000;
+    coarseGridResidualTolerance 1e-12;
     
     // PETSc only
     // 0: LU (MUMPS)
     // 1: Block-prec. MinRes
-    coarseGridSolverType 0;
+    coarseGridSolverType 1;
 
     // 0: PCGAMG
     // 1: PCJACOBI
@@ -162,9 +164,8 @@ Parameters
     with open("fmg_tests_base_config.prm", "w") as f:
         f.write(base_config)
 
-    discretizations = ["P1", "P2"]
+    discretizations = ["P2"]
     num_processes = 8
-    sor_omega = {"P1": 0.3, "P2": 0.65}
     symm_gs = ["true", "false"]
     num_pre_post_inc = [(1, 1, 2), (2, 2, 2), (3, 3, 2)]
     inner_cycles = [1, 2]
@@ -188,7 +189,6 @@ Parameters
                                   "-Parameters.preSmoothingSteps={} " \
                                   "-Parameters.postSmoothingSteps={} " \
                                   "-Parameters.smoothingIncrement={} " \
-                                  "-Parameters.sorRelax={} " \
                                   "-Parameters.numGSVelocity={} " \
                                   "-Parameters.symmGSVelocity={} " \
                                   "-Parameters.fmgInnerCycles={} " \
@@ -196,7 +196,7 @@ Parameters
                                   "-Parameters.postDCPreSmoothingSteps={} " \
                                   "-Parameters.postDCPostSmoothingSteps={} " \
                                   "-Parameters.postDCSmoothingIncrement={} " \
-                                  "-Parameters.discretization={} ".format(num_processes, smooth[0], smooth[1], smooth[2], sor_omega[discretization], num, symm, r,
+                                  "-Parameters.discretization={} ".format(num_processes, smooth[0], smooth[1], smooth[2], num, symm, r,
                                                                           cycles_before_dc, dc_pre_post_inc[0], dc_pre_post_inc[1], dc_pre_post_inc[2], discretization)
                             f.write("echo \"{}\"\n".format(cmd))
                             f.write(cmd + "\n")
@@ -227,6 +227,8 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax 0.3;
+    sorRelaxEstimationIterations 20;
+    sorRelaxEstimationLevel 3;
     velocitySorRelax 1.0;
 
     symmGSVelocity true;
@@ -237,7 +239,7 @@ Parameters
     preSmoothingSteps 2;
     postSmoothingSteps 2;
     smoothingIncrement 2;
-    minLevel 2;
+    minLevel 0;
     maxLevel 8; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-16;
@@ -273,10 +275,10 @@ Parameters
     with open("discretization_error_base_config.prm", "w") as f:
         f.write(base_config)
 
-    max_levels = list(range(3, 9))
-    discretizations = ["P1", "P2"]
+    max_levels = list(range(1, 9))
+    discretizations = ["P2"]
     num_processes = 8
-    sor_omega = {"P1": 0.3, "P2": 0.3}
+    sor_omega = {"P1": 0.3, "P2": 0.65}
     prepost = {"P1": 3, "P2": 6}
 
     with open("run_discretization_error.sh", "w") as f:

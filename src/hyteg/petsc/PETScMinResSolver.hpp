@@ -38,7 +38,7 @@ class PETScMinResSolver : public Solver< OperatorType >
 
    PETScMinResSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                       const uint_t&                              level,
-                      const real_t                               tolerance     = 1e-16,
+                      const real_t                               tolerance     = 1e-12,
                       const PetscInt                             maxIterations = std::numeric_limits< PetscInt >::max() )
    : allocatedLevel_( level )
    , num( "numerator", storage, level, level )
@@ -55,7 +55,7 @@ class PETScMinResSolver : public Solver< OperatorType >
       num.enumerate( level );
       KSPCreate( walberla::MPIManager::instance()->comm(), &ksp );
       KSPSetType( ksp, KSPMINRES );
-      KSPSetTolerances( ksp, tolerance, tolerance, PETSC_DEFAULT, maxIterations );
+      KSPSetTolerances( ksp, 1e-30, tolerance, PETSC_DEFAULT, maxIterations );
       KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
       KSPSetFromOptions( ksp );
    }
