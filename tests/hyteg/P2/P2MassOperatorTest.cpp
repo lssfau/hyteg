@@ -30,17 +30,12 @@ using walberla::real_t;
 using walberla::uint_t;
 using namespace hyteg;
 
-typedef enum
-{
-   P2CONSTANT,
-   P2ELEMENTWISE
-} opType;
 
 template < typename OperatorType >
 void checkArea( std::shared_ptr< PrimitiveStorage > storage, real_t area, std::string tag )
 {
-   const size_t minLevel = 2;
-   const size_t maxLevel = 4;
+   const uint_t minLevel = 2;
+   const uint_t maxLevel = storage->hasGlobalCells() ? 3 : 4;
 
    OperatorType massOp( storage, minLevel, maxLevel );
 
@@ -65,6 +60,10 @@ int main( int argc, char** argv )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
+   // ----------
+   //  2D Tests
+   // ----------
+
    // Test with rectangle
    WALBERLA_LOG_INFO_ON_ROOT( "Testing with RECTANGLE" );
    MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {0.0, -1.0} ), Point2D( {2.0, 3.0} ), MeshInfo::CRISSCROSS, 1, 2 );
@@ -80,6 +79,30 @@ int main( int argc, char** argv )
    std::shared_ptr< PrimitiveStorage > storageBFS = std::make_shared< PrimitiveStorage >( setupStorageBFS );
    checkArea< P2ConstantMassOperator >( storageBFS, 1.75, "P2ConstantMassOperator" );
    checkArea< P2ElementwiseMassOperator >( storageBFS, 1.75, "P2ElementwiseMassOperator" );
+
+   // ----------
+   //  3D Tests
+   // ----------
+
+   // test with cuboid
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing with Cuboid" );
+   meshInfo = MeshInfo::meshCuboid( Point3D( { -1.0, -1.0, 0.0 } ), Point3D( {  2.0,  0.0, 2.0 } ), 1, 2, 1 );
+   SetupPrimitiveStorage setupStorageCuboid( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   std::shared_ptr< PrimitiveStorage > storageCuboid = std::make_shared< PrimitiveStorage >( setupStorageCuboid );
+   checkArea< P2ConstantMassOperator >( storageCuboid, 6.0, "P2ConstantMassOperator" );
+   // Would fail because of missing 3D implementation(s)
+   // checkArea< P2ElementwiseMassOperator >( storageCuboid, 6.0, "P2ElementwiseMassOperator" );
+   
+   // Test with coarse representation of thick spherical shell
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing with Icosahedral Shell" );
+   meshInfo = MeshInfo::meshSphericalShell( 2, {1.0, 2.0} );
+   SetupPrimitiveStorage setupStorageTSS( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   std::shared_ptr< PrimitiveStorage > storageTSS = std::make_shared< PrimitiveStorage >( setupStorageTSS );
+   real_t edgeLength = 8.0 / ( std::sqrt( 10.0 + 2.0*std::sqrt( 5.0 ) ) );
+   real_t volume = 5.0/12.0 * (3.0 + std::sqrt(5.0) ) * edgeLength * edgeLength * edgeLength;
+   edgeLength /= 2.0;
+   volume -= 5.0/12.0 * (3.0 + std::sqrt(5.0) ) * edgeLength * edgeLength * edgeLength;
+   checkArea< P2ConstantMassOperator >( storageTSS, volume, "P2ConstantMassOperator" );
 
    return EXIT_SUCCESS;
 }
