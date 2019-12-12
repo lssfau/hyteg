@@ -98,7 +98,7 @@ class UzawaSmoother : public Solver< OperatorType >
                    std::integral_constant< bool, has_pspg_block< OperatorType >::value >() );
    }
 
-   real_t estimateAndSetRelaxationParameter( const OperatorType& A, const uint_t & level, const uint_t & numPowerIterations )
+   real_t estimateAndSetRelaxationParameter( const uint_t & level, const uint_t & numPowerIterations )
    {
       const bool isStableDiscretization = std::is_same< OperatorType, P2P1TaylorHoodStokesOperator >::value;
       WALBERLA_CHECK( isStableDiscretization, "Relaxation parameter estimation only implemented for P2-P1" );
