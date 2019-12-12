@@ -165,7 +165,7 @@ void petscSolveTest( const uint_t & solverType, const uint_t & blockPrecondition
 
   PETScLUSolver< P2P1TaylorHoodStokesOperator > solver_0( storage, level );
   PETScMinResSolver< P2P1TaylorHoodStokesOperator > solver_1( storage, level );
-  PETScBlockPreconditionedStokesSolver< P2P1TaylorHoodStokesOperator > solver_2( storage, level, 1e-16, std::numeric_limits< PetscInt >::max(), blockPreconditionerType );
+  PETScBlockPreconditionedStokesSolver< P2P1TaylorHoodStokesOperator > solver_2( storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), blockPreconditionerType );
 
   std::string precondType;
   switch ( blockPreconditionerType )
@@ -262,7 +262,6 @@ int main( int argc, char* argv[] )
   petscSolveTest( 1, 0, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
   petscSolveTest( 2, 0, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
   petscSolveTest( 2, 1, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
-  petscSolveTest( 2, 2, 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 2.9e-12, 0.021, 0.33 );
 
   return EXIT_SUCCESS;
 }

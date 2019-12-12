@@ -27,7 +27,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    ///                                   - 2: Schur complement
    PETScBlockPreconditionedStokesSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                                          const uint_t&                              level,
-                                         const real_t                               tolerance = 1e-16,
+                                         const real_t                               tolerance = 1e-12,
                                          const PetscInt maxIterations              = std::numeric_limits< PetscInt >::max(),
                                          const uint_t&  velocityPreconditionerType = 1 )
    : allocatedLevel_( level )

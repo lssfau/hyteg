@@ -150,7 +150,7 @@ void petscSolveTest( const uint_t & solverType, const uint_t & level, const Mesh
 
   PETScLUSolver< P1StokesOperator > solver_0( storage, level );
   PETScMinResSolver< P1StokesOperator > solver_1( storage, level );
-  PETScBlockPreconditionedStokesSolver< P1StokesOperator > solver_2( storage, level );
+  PETScBlockPreconditionedStokesSolver< P1StokesOperator > solver_2( storage, level, 1e-12 );
 
   walberla::WcTimer timer;
   switch ( solverType )
@@ -223,7 +223,7 @@ int main( int argc, char* argv[] )
   printPETScVersionNumberString();
 
   petscSolveTest( 0, 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 8.0e-15, 0.118, 2.78653 );
-  petscSolveTest( 1, 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 8.0e-15, 0.118, 2.78653 );
+  petscSolveTest( 1, 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 1.0e-14, 0.118, 2.78653 );
   petscSolveTest( 2, 3, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 8.0e-15, 0.118, 2.78653 );
 
   return EXIT_SUCCESS;
