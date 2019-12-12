@@ -19,13 +19,12 @@
  */
 #pragma once
 
-#include "hyteg/forms/P1Form.hpp"
-
 #include "hyteg/fenics/fenics.hpp"
 #include "hyteg/fenics/ufc_traits.hpp"
+#include "hyteg/forms/P1Form.hpp"
 
 #ifdef _MSC_VER
-#  pragma warning(push, 0)
+#pragma warning( push, 0 )
 #endif
 
 // P1
@@ -43,7 +42,6 @@
 #include "hyteg/forms/form_fenics_generated/p1_tet_divt_tet.h"
 #include "hyteg/forms/form_fenics_generated/p1_tet_mass.h"
 #include "hyteg/forms/form_fenics_generated/p1_tet_pspg_tet.h"
-
 
 // P2
 #include "hyteg/forms/form_fenics_generated/p2_diffusion.h"
@@ -65,7 +63,7 @@
 #include "hyteg/forms/form_fenics_generated/p2_to_p1_tet_div_tet.h"
 
 #ifdef _MSC_VER
-#  pragma warning(pop)
+#pragma warning( pop )
 #endif
 
 namespace hyteg {
