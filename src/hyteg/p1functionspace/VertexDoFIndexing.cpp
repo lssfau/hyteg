@@ -22,9 +22,9 @@
 #include "core/debug/Debug.h"
 #include "core/logging/Logging.h"
 
-#include "hyteg/indexing/MacroEdgeIndexing.hpp"
-#include "hyteg/Levelinfo.hpp"
 #include "hyteg/HytegDefinitions.hpp"
+#include "hyteg/Levelinfo.hpp"
+#include "hyteg/indexing/MacroEdgeIndexing.hpp"
 
 namespace hyteg {
 namespace vertexdof {
@@ -50,11 +50,11 @@ uint_t index( const uint_t& level, const uint_t& x )
    return hyteg::indexing::macroEdgeIndex( levelinfo::num_microvertices_per_edge( level ), x );
 }
 
-uint_t innerIndex( const uint_t & level, const uint_t & x )
+uint_t innerIndex( const uint_t& level, const uint_t& x )
 {
-  WALBERLA_ASSERT_GREATER( x, 0 );
-  const uint_t innerWidth = levelinfo::num_microvertices_per_edge( level ) - 2;
-  return indexing::macroEdgeIndex( innerWidth, x - 1 );
+   WALBERLA_ASSERT_GREATER( x, 0 );
+   const uint_t innerWidth = levelinfo::num_microvertices_per_edge( level ) - 2;
+   return indexing::macroEdgeIndex( innerWidth, x - 1 );
 }
 
 uint_t indexOnNeighborFace( const uint_t& level, const uint_t& x, const uint_t& neighbor )
@@ -76,7 +76,7 @@ uint_t indexFromVertexOnNeighborFace( const uint_t& level, const uint_t& x, cons
 {
    typedef stencilDirection sD;
    WALBERLA_ASSERT( dir == sD::VERTEX_W || dir == sD::VERTEX_E );
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_W:
       return indexOnNeighborFace( level, x - 1, faceID );
@@ -98,7 +98,7 @@ uint_t indexFromVertex( const uint_t& level, const uint_t& x, const stencilDirec
 {
    typedef stencilDirection sD;
 
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_C:
       return index( level, x );
@@ -123,7 +123,7 @@ uint_t stencilIndexOnEdge( const stencilDirection& dir )
 {
    typedef stencilDirection sD;
    WALBERLA_ASSERT( dir == sD::VERTEX_C || dir == sD::VERTEX_W || dir == sD::VERTEX_E );
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_C:
       return 3;
@@ -140,9 +140,9 @@ uint_t stencilIndexOnNeighborFace( const stencilDirection& dir, const uint_t& fa
 {
    typedef stencilDirection sD;
    WALBERLA_ASSERT( dir == sD::VERTEX_W || dir == sD::VERTEX_E );
-   if( faceID == 0 )
+   if ( faceID == 0 )
    {
-      switch( dir )
+      switch ( dir )
       {
       case sD::VERTEX_W:
          return 0;
@@ -151,9 +151,10 @@ uint_t stencilIndexOnNeighborFace( const stencilDirection& dir, const uint_t& fa
       default:
          WALBERLA_ABORT( "wrong direction" )
       }
-   } else
+   }
+   else
    {
-      switch( dir )
+      switch ( dir )
       {
       case sD::VERTEX_W:
          return 3 + 2 * faceID;
@@ -174,7 +175,7 @@ uint_t indexFromHorizontalEdge( const uint_t& level, const uint_t& x, const sten
 {
    typedef stencilDirection sD;
 
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_W:
       return index( level, x );
@@ -189,7 +190,7 @@ uint_t indexFromHorizontalEdge( const uint_t& level, const uint_t& x, const sten
    }
 }
 
-Iterator::Iterator( const uint_t& level, const uint_t& offsetToCenter, const bool & backwards )
+Iterator::Iterator( const uint_t& level, const uint_t& offsetToCenter, const bool& backwards )
 : EdgeIterator( levelinfo::num_microvertices_per_edge( level ), offsetToCenter, backwards )
 {}
 } // namespace macroedge
@@ -205,12 +206,12 @@ uint_t index( const uint_t& level, const uint_t& x, const uint_t& y )
    return hyteg::indexing::macroFaceIndex( levelinfo::num_microvertices_per_edge( level ), x, y );
 }
 
-uint_t innerIndex( const uint_t & level, const uint_t & x, const uint_t & y )
+uint_t innerIndex( const uint_t& level, const uint_t& x, const uint_t& y )
 {
-  WALBERLA_ASSERT_GREATER( x, 0 );
-  WALBERLA_ASSERT_GREATER( y, 0 );
-  const uint_t innerWidth = levelinfo::num_microvertices_per_edge( level ) - 3;
-  return indexing::macroFaceIndex( innerWidth, x - 1, y - 1 );
+   WALBERLA_ASSERT_GREATER( x, 0 );
+   WALBERLA_ASSERT_GREATER( y, 0 );
+   const uint_t innerWidth = levelinfo::num_microvertices_per_edge( level ) - 3;
+   return indexing::macroFaceIndex( innerWidth, x - 1, y - 1 );
 }
 
 uint_t index( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& neighbor )
@@ -226,7 +227,7 @@ uint_t indexFromVertex( const uint_t& level, const uint_t& x, const uint_t& y, c
 {
    typedef stencilDirection sD;
 
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_C:
       return index( level, x, y );
@@ -279,7 +280,7 @@ uint_t indexFromHorizontalEdge( const uint_t& level, const uint_t& x, const uint
 {
    typedef stencilDirection sD;
 
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_W:
       return index( level, x, y );
@@ -298,7 +299,7 @@ uint_t indexFromDiagonalEdge( const uint_t& level, const uint_t& x, const uint_t
 {
    typedef stencilDirection sD;
 
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_SE:
       return index( level, x + 1, y );
@@ -317,7 +318,7 @@ uint_t indexFromVerticalEdge( const uint_t& level, const uint_t& x, const uint_t
 {
    typedef stencilDirection sD;
 
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_S:
       return index( level, x, y );
@@ -336,7 +337,7 @@ uint_t indexFromGrayFace( const uint_t& level, const uint_t& x, const uint_t& y,
 {
    typedef stencilDirection sD;
 
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_SW:
       return index( level, x, y );
@@ -353,7 +354,7 @@ uint_t indexFromBlueFace( const uint_t& level, const uint_t& x, const uint_t& y,
 {
    typedef stencilDirection sD;
 
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_SE:
       return index( level, x + 1, y );
@@ -368,16 +369,19 @@ uint_t indexFromBlueFace( const uint_t& level, const uint_t& x, const uint_t& y,
 
 bool isVertexOnBoundary( const uint_t& level, const hyteg::indexing::Index& idx )
 {
-   if( idx.row() == 0 )
+   if ( idx.row() == 0 )
    {
       return true;
-   } else if( idx.col() == 0 )
+   }
+   else if ( idx.col() == 0 )
    {
       return true;
-   } else if( ( idx.row() + idx.col() ) == ( hyteg::levelinfo::num_microvertices_per_edge( level ) - 1 ) )
+   }
+   else if ( ( idx.row() + idx.col() ) == ( hyteg::levelinfo::num_microvertices_per_edge( level ) - 1 ) )
    {
       return true;
-   } else
+   }
+   else
    {
       return false;
    }
@@ -387,10 +391,10 @@ Iterator::Iterator( const uint_t& level, const uint_t& offsetToCenter )
 : FaceIterator( levelinfo::num_microvertices_per_edge( level ), offsetToCenter )
 {}
 
-BoundaryIterator::BoundaryIterator( const uint_t&                             level,
-                                const hyteg::indexing::FaceBoundaryDirection& direction,
-                                const uint_t&                             offsetToCenter,
-                                const uint_t&                             offsetFromVertices )
+BoundaryIterator::BoundaryIterator( const uint_t&                                 level,
+                                    const hyteg::indexing::FaceBoundaryDirection& direction,
+                                    const uint_t&                                 offsetToCenter,
+                                    const uint_t&                                 offsetFromVertices )
 : FaceBoundaryIterator( levelinfo::num_microvertices_per_edge( level ), direction, offsetToCenter, offsetFromVertices )
 {}
 } // namespace macroface
@@ -403,36 +407,38 @@ namespace macrocell {
 
 uint_t index( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z )
 {
-  if ( globalDefines::useP1Coloring )
-  {
-    /// We define an 8-color ordering of the vertex DoFs in a tet.
-    ///
-    /// group | width
-    ///     0 | 2**(l-1) + 1
-    ///   1-6 | 2**(l-1)
-    ///     7 | 2**(l-1) - 1
+   if ( globalDefines::useP1Coloring )
+   {
+      /// We define an 8-color ordering of the vertex DoFs in a tet.
+      ///
+      /// group | width
+      ///     0 | 2**(l-1) + 1
+      ///   1-6 | 2**(l-1)
+      ///     7 | 2**(l-1) - 1
 
-    const uint_t group = (z % 2 << 2) + (y % 2 << 1) + (x % 2 << 0);
-    const uint_t sub_idx_x = (x - (x % 2)) / 2;
-    const uint_t sub_idx_y = (y - (y % 2)) / 2;
-    const uint_t sub_idx_z = (z - (z % 2)) / 2;
-    const uint_t width = (1 << (level-1)) - 1 + (group == 0 ? 2 : (group == 7 ? 0 : 1));
-    const uint_t offset = group == 0 ? 0 : levelinfo::num_microvertices_per_cell_from_width( (uint_t(1) << (level-1)) + 1 ) +
-                          (group - 1) * levelinfo::num_microvertices_per_cell_from_width( (uint_t(1) << (level-1)) );
+      const uint_t group     = ( z % 2 << 2 ) + ( y % 2 << 1 ) + ( x % 2 << 0 );
+      const uint_t sub_idx_x = ( x - ( x % 2 ) ) / 2;
+      const uint_t sub_idx_y = ( y - ( y % 2 ) ) / 2;
+      const uint_t sub_idx_z = ( z - ( z % 2 ) ) / 2;
+      const uint_t width     = ( 1 << ( level - 1 ) ) - 1 + ( group == 0 ? 2 : ( group == 7 ? 0 : 1 ) );
+      const uint_t offset =
+          group == 0 ? 0 :
+                       levelinfo::num_microvertices_per_cell_from_width( ( uint_t( 1 ) << ( level - 1 ) ) + 1 ) +
+                           ( group - 1 ) * levelinfo::num_microvertices_per_cell_from_width( ( uint_t( 1 ) << ( level - 1 ) ) );
 
-    return offset + hyteg::indexing::macroCellIndex( width, sub_idx_x, sub_idx_y, sub_idx_z );
-  }
-  else
-  {
-    return hyteg::indexing::macroCellIndex( levelinfo::num_microvertices_per_edge( level ), x, y, z );
-  }
+      return offset + hyteg::indexing::macroCellIndex( width, sub_idx_x, sub_idx_y, sub_idx_z );
+   }
+   else
+   {
+      return hyteg::indexing::macroCellIndex( levelinfo::num_microvertices_per_edge( level ), x, y, z );
+   }
 }
 
 uint_t indexFromVertex( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z, const stencilDirection& dir )
 {
    typedef stencilDirection sD;
 
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_C:
       return index( level, x, y, z );
@@ -501,7 +507,7 @@ indexing::IndexIncrement logicalIndexOffsetFromVertex( const stencilDirection& d
 {
    typedef stencilDirection sD;
 
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_C:
       return indexing::IndexIncrement( 0, 0, 0 );
@@ -545,61 +551,61 @@ stencilDirection stencilDirectionFromLogicalOffset( const indexing::IndexIncreme
    typedef stencilDirection         sD;
    typedef indexing::IndexIncrement inc;
 
-   if( offset == inc( 0, 0, 0 ) )
+   if ( offset == inc( 0, 0, 0 ) )
       return sD::VERTEX_C;
-   else if( offset == inc( -1, 0, 0 ) )
+   else if ( offset == inc( -1, 0, 0 ) )
       return sD::VERTEX_W;
-   else if( offset == inc( 1, 0, 0 ) )
+   else if ( offset == inc( 1, 0, 0 ) )
       return sD::VERTEX_E;
-   else if( offset == inc( 0, 1, 0 ) )
+   else if ( offset == inc( 0, 1, 0 ) )
       return sD::VERTEX_N;
-   else if( offset == inc( 0, -1, 0 ) )
+   else if ( offset == inc( 0, -1, 0 ) )
       return sD::VERTEX_S;
-   else if( offset == inc( -1, 1, 0 ) )
+   else if ( offset == inc( -1, 1, 0 ) )
       return sD::VERTEX_NW;
-   else if( offset == inc( 1, 1, 0 ) )
+   else if ( offset == inc( 1, 1, 0 ) )
       return sD::VERTEX_NE;
-   else if( offset == inc( -1, -1, 0 ) )
+   else if ( offset == inc( -1, -1, 0 ) )
       return sD::VERTEX_SW;
-   else if( offset == inc( 1, -1, 0 ) )
+   else if ( offset == inc( 1, -1, 0 ) )
       return sD::VERTEX_SE;
 
-   else if( offset == inc( 0, 0, 1 ) )
+   else if ( offset == inc( 0, 0, 1 ) )
       return sD::VERTEX_TC;
-   else if( offset == inc( -1, 0, 1 ) )
+   else if ( offset == inc( -1, 0, 1 ) )
       return sD::VERTEX_TW;
-   else if( offset == inc( 1, 0, 1 ) )
+   else if ( offset == inc( 1, 0, 1 ) )
       return sD::VERTEX_TE;
-   else if( offset == inc( 0, 1, 1 ) )
+   else if ( offset == inc( 0, 1, 1 ) )
       return sD::VERTEX_TN;
-   else if( offset == inc( 0, -1, 1 ) )
+   else if ( offset == inc( 0, -1, 1 ) )
       return sD::VERTEX_TS;
-   else if( offset == inc( -1, 1, 1 ) )
+   else if ( offset == inc( -1, 1, 1 ) )
       return sD::VERTEX_TNW;
-   else if( offset == inc( 1, 1, 1 ) )
+   else if ( offset == inc( 1, 1, 1 ) )
       return sD::VERTEX_TNE;
-   else if( offset == inc( -1, -1, 1 ) )
+   else if ( offset == inc( -1, -1, 1 ) )
       return sD::VERTEX_TSW;
-   else if( offset == inc( 1, -1, 1 ) )
+   else if ( offset == inc( 1, -1, 1 ) )
       return sD::VERTEX_TSE;
 
-   else if( offset == inc( 0, 0, -1 ) )
+   else if ( offset == inc( 0, 0, -1 ) )
       return sD::VERTEX_BC;
-   else if( offset == inc( -1, 0, -1 ) )
+   else if ( offset == inc( -1, 0, -1 ) )
       return sD::VERTEX_BW;
-   else if( offset == inc( 1, 0, -1 ) )
+   else if ( offset == inc( 1, 0, -1 ) )
       return sD::VERTEX_BE;
-   else if( offset == inc( 0, 1, -1 ) )
+   else if ( offset == inc( 0, 1, -1 ) )
       return sD::VERTEX_BN;
-   else if( offset == inc( 0, -1, -1 ) )
+   else if ( offset == inc( 0, -1, -1 ) )
       return sD::VERTEX_BS;
-   else if( offset == inc( -1, 1, -1 ) )
+   else if ( offset == inc( -1, 1, -1 ) )
       return sD::VERTEX_BNW;
-   else if( offset == inc( 1, 1, -1 ) )
+   else if ( offset == inc( 1, 1, -1 ) )
       return sD::VERTEX_BNE;
-   else if( offset == inc( -1, -1, -1 ) )
+   else if ( offset == inc( -1, -1, -1 ) )
       return sD::VERTEX_BSW;
-   else if( offset == inc( 1, -1, -1 ) )
+   else if ( offset == inc( 1, -1, -1 ) )
       return sD::VERTEX_BSE;
 
    WALBERLA_ASSERT( false, "Invaild offset!" );
@@ -609,7 +615,7 @@ stencilDirection stencilDirectionFromLogicalOffset( const indexing::IndexIncreme
 uint_t stencilIndexFromVertex( const stencilDirection dir )
 {
    typedef stencilDirection sD;
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_S:
       return 0;
@@ -673,7 +679,7 @@ uint_t stencilIndexFromVertex( const stencilDirection dir )
 uint_t stencilIndexFromHorizontalEdge( const stencilDirection dir )
 {
    typedef stencilDirection sD;
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_E:
       return 0;
@@ -691,7 +697,7 @@ uint_t stencilIndexFromHorizontalEdge( const stencilDirection dir )
 uint_t stencilIndexFromDiagonalEdge( const stencilDirection dir )
 {
    typedef stencilDirection sD;
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_SE:
       return 4;
@@ -709,7 +715,7 @@ uint_t stencilIndexFromDiagonalEdge( const stencilDirection dir )
 uint_t stencilIndexFromVerticalEdge( const stencilDirection dir )
 {
    typedef stencilDirection sD;
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_S:
       return 8;
@@ -727,7 +733,7 @@ uint_t stencilIndexFromVerticalEdge( const stencilDirection dir )
 uint_t stencilIndexFromGrayFace( const stencilDirection& dir )
 {
    typedef stencilDirection sD;
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_SW:
       return 0;
@@ -743,7 +749,7 @@ uint_t stencilIndexFromGrayFace( const stencilDirection& dir )
 uint_t stencilIndexFromBlueFace( const stencilDirection& dir )
 {
    typedef stencilDirection sD;
-   switch( dir )
+   switch ( dir )
    {
    case sD::VERTEX_SE:
       return 0;
