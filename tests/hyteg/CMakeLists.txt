@@ -128,6 +128,9 @@ waLBerla_execute_test(NAME P1FaceIndexingTest)
 waLBerla_compile_test(FILES Indexing/VertexDoFMacroCellIndexingTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME VertexDoFMacroCellIndexingTest)
 
+waLBerla_compile_test(FILES Indexing/MicroCellIterationAndIndexingTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME MicroCellIterationAndIndexingTest)
+
 waLBerla_compile_test(FILES Indexing/EdgeDoFOnMacroEdgeIndexingTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME EdgeDoFOnMacroEdgeIndexingTest)
 
