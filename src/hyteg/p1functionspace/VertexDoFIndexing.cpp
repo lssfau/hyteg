@@ -761,5 +761,20 @@ uint_t stencilIndexFromBlueFace( const stencilDirection& dir )
       return std::numeric_limits< size_t >::max();
    }
 }
+
+// ##############
+// ### Others ###
+// ##############
+void getVertexDoFDataIndicesFromMicroCell( const indexing::Index & microCellIndex,
+                                           const celldof::CellType & cellType,
+                                           const uint_t level,
+                                           std::array<uint_t, 4>& vertexDoFIndices )
+{
+  std::array<indexing::Index, 4> verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCellIndex, cellType );
+  for( uint_t k = 0; k < 4; ++k ) {
+    vertexDoFIndices[k] = vertexdof::macrocell::indexFromVertex( level, verts[k].col(), verts[k].row(), verts[k].dep(), stencilDirection::VERTEX_C );
+  }
+}
+
 } // namespace vertexdof
 } // namespace hyteg

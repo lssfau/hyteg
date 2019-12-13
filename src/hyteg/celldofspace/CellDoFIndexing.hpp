@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <map>
+
 #include "core/Abort.h"
 #include "core/DataTypes.h"
 
@@ -42,6 +44,13 @@ enum class CellType : uint_t
    BLUE_DOWN,
    GREEN_DOWN
 };
+
+const std::map< CellType, std::string > CellTypeToStr = {{CellType::WHITE_UP, "WHITE_UP"},
+                                                         {CellType::BLUE_UP, "BLUE_UP"},
+                                                         {CellType::GREEN_UP, "GREEN_UP"},
+                                                         {CellType::WHITE_DOWN, "WHITE_DOWN"},
+                                                         {CellType::BLUE_DOWN, "BLUE_DOWN"},
+                                                         {CellType::GREEN_DOWN, "GREEN_DOWN"}};
 
 const std::array< CellType, 6 > allCellTypes = {
     {CellType::WHITE_UP, CellType::BLUE_UP, CellType::GREEN_UP, CellType::WHITE_DOWN, CellType::BLUE_DOWN, CellType::GREEN_DOWN}};
