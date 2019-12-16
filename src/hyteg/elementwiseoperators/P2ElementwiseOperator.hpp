@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
@@ -53,8 +54,13 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                     size_t                      level,
                     DoFType                     flag ) const;
 
- private:
+   /// Trigger (re)computation of diagonal matrix entries (central operator weights)
+   ///
+   /// \param level   grid level on which the computation should be run
+   /// \param invert  flag, if true, inverse values will be computed and stored
+   void computeDiagonalOperatorValues( uint_t level, bool invert );
 
+ private:
    /// compute product of element local vector with element matrix
    ///
    /// \param face           face primitive we operate on
@@ -67,7 +73,7 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
    /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
    /// \param dstEdgeData    pointer to DoF data on micro-edges (for writing data)
    ///
-   /// \note The src and dst data array must not be identical.
+   /// \note The src and dst data arrays must not be identical.
    void localMatrixVectorMultiply2D( const Face&                  face,
                                      const uint_t                 level,
                                      const uint_t                 xIdx,
@@ -78,7 +84,26 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                                      real_t* const                dstVertexData,
                                      real_t* const                dstEdgeData ) const;
 
-   void computeDiagonalOperatorValues( uint_t level, bool invert );
+   /// compute product of element local vector with element matrix
+   ///
+   /// \param face           cell primitive we operate on
+   /// \param level          level on which we operate in mesh hierarchy
+   /// \param microCell      index associated with the current element = micro-cell
+   /// \param cType          type of micro-cell (WHITE_UP, BLUE_DOWN, ...)
+   /// \param srcVertexData  pointer to DoF data on micro-vertices (for reading data)
+   /// \param srcEdgeData    pointer to DoF data on micro-edges (for reading data)
+   /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
+   /// \param dstEdgeData    pointer to DoF data on micro-edges (for writing data)
+   ///
+   /// \note The src and dst data arrays must not be identical.
+   void localMatrixVectorMultiply3D( const Cell&             cell,
+                                     const uint_t            level,
+                                     const indexing::Index&  microCell,
+                                     const celldof::CellType cType,
+                                     const real_t* const     srcVertexData,
+                                     const real_t* const     srcEdgeData,
+                                     real_t* const           dstVertexData,
+                                     real_t* const           dstEdgeData ) const;
 
    /// Compute contributions to operator diagonal for given micro-face
    ///
@@ -89,23 +114,22 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
    /// \param element        element specification w.r.t. to micro-vertex
    /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
    /// \param dstEdgeData    pointer to DoF data on micro-edges (for writing data)
-   void   computeLocalDiagonalContributions2D( Face&                        face,
-                                               const uint_t                 level,
-                                               const uint_t                 xIdx,
-                                               const uint_t                 yIdx,
-                                               const P2Elements::P2Element& element,
-                                               real_t* const                dstVertexData,
-                                               real_t* const                dstEdgeData );
+   void computeLocalDiagonalContributions2D( Face&                        face,
+                                             const uint_t                 level,
+                                             const uint_t                 xIdx,
+                                             const uint_t                 yIdx,
+                                             const P2Elements::P2Element& element,
+                                             real_t* const                dstVertexData,
+                                             real_t* const                dstEdgeData );
+
+   /// Form associated with this operator
    P2Form form_;
-
-   // std::unique_ptr< P2Function< real_t > > diagonalValues_;
-
-   bool recomputeDiagonal_ = true;
 };
 
 typedef P2ElementwiseOperator<
     P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >
     P2ElementwiseLaplaceOperator;
+
 typedef P2ElementwiseOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >
     P2ElementwiseMassOperator;
 

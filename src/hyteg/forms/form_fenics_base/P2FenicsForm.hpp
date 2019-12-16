@@ -209,6 +209,20 @@ class P2FenicsForm : public P2Form
       return matRow;
    }
 
+   /// \brief Compute local element matrix and return it
+   ///
+   /// The method computes the local element matrix for the tetrahedron
+   /// given by the vertex coordinates. It returns the complete matrix.
+   ///
+   /// \Note Row and column indices correspond to FEniCS ordering for P2 element
+   ///
+   /// \param coords  The coordinates of the four vertices of the tetrahedron
+   /// \param elMat   On return is filled with the matrix entries
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const
+   {
+      computeLocalStiffnessMatrix( coords, elMat );
+   }
+
    // -------------
 
    bool assemble2D() const override { return !std::is_same< UFCOperator2D, hyteg::fenics::NoAssemble >::value; }

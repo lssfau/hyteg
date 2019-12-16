@@ -268,6 +268,7 @@ typedef PointND<real_t, 2> Point2D;
 typedef PointND<real_t, 3> Point3D;
 typedef PointND<real_t, 4> Point4D;
 typedef PointND<real_t, 6> Point6D;
+typedef PointND<real_t, 10> Point10D;
 
 template <size_t N>
 using PointNDr = PointND<real_t, N>;

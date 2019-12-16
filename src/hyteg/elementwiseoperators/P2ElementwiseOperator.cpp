@@ -31,11 +31,10 @@ P2ElementwiseOperator< P2Form >::P2ElementwiseOperator( const std::shared_ptr< P
 {
    if ( needsDiagEntries )
    {
-      diagonalValues_ = std::unique_ptr< P2Function< real_t > >( new P2Function< real_t >( "diagonal entries", storage, minLevel, maxLevel ) );
+      diagonalValues_ =
+          std::unique_ptr< P2Function< real_t > >( new P2Function< real_t >( "diagonal entries", storage, minLevel, maxLevel ) );
       computeDiagonalOperatorValues( maxLevel, true );
    }
-
-   // WALBERLA_LOG_INFO_ON_ROOT( "Contructed a P2ElementwiseOperator!" );
 }
 
 template < class P2Form >
@@ -45,23 +44,65 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
                                              DoFType                     flag,
                                              UpdateType                  updateType ) const
 {
-
    WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
    this->startTiming( "apply" );
 
+   // Make sure that halos are up-to-date (can we improve communication here?)
+   communication::syncP2FunctionBetweenPrimitives( src, level );
+
    if ( updateType == Add )
    {
       WALBERLA_ABORT( "P2ElementwiseOperator::apply does not support additive update!" );
+      // Note: By zeroing only the dofs in the cells' or faces' halos of dst we could
+      //       actually support an additive update type
    }
-
-   // Make sure that halos are up-to-date (can we improve communication here?)
-   communication::syncP2FunctionBetweenPrimitives( src, level );
+   else
+   {
+      // We need to zero the destination array
+      dst.interpolate( real_c( 0.0 ), level );
+   }
 
    // For 3D we work on cells and for 2D on faces
    if ( storage_->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "P2ElementwiseOperator::apply() not implemented for cells, yet." );
+      // we only perform computations on cell primitives
+      for ( auto& macroIter : storage_->getCells() )
+      {
+         Cell& cell = *macroIter.second;
+
+         // get hold of the actual numerical data in the two functions
+         PrimitiveDataID< FunctionMemory< real_t >, Cell > dstVertexDoFIdx = dst.getVertexDoFFunction().getCellDataID();
+         PrimitiveDataID< FunctionMemory< real_t >, Cell > srcVertexDoFIdx = src.getVertexDoFFunction().getCellDataID();
+
+         PrimitiveDataID< FunctionMemory< real_t >, Cell > dstEdgeDoFIdx = dst.getEdgeDoFFunction().getCellDataID();
+         PrimitiveDataID< FunctionMemory< real_t >, Cell > srcEdgeDoFIdx = src.getEdgeDoFFunction().getCellDataID();
+
+         real_t* srcVertexData = cell.getData( srcVertexDoFIdx )->getPointer( level );
+         real_t* dstVertexData = cell.getData( dstVertexDoFIdx )->getPointer( level );
+
+         real_t* srcEdgeData = cell.getData( srcEdgeDoFIdx )->getPointer( level );
+         real_t* dstEdgeData = cell.getData( dstEdgeDoFIdx )->getPointer( level );
+
+         // loop over micro-cells
+         for ( const auto& cType : celldof::allCellTypes )
+         {
+            for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
+            {
+               localMatrixVectorMultiply3D( cell, level, micro, cType, srcVertexData, srcEdgeData, dstVertexData, dstEdgeData );
+            }
+         }
+      }
+
+      // Push result to lower-dimensional primitives
+      //
+      // Note: We could avoid communication here by implementing the apply() also for the respective
+      //       lower dimensional primitives!
+      dst.getVertexDoFFunction().communicateAdditively< Cell, Face >( level, DoFType::All ^ flag, *storage_ );
+      dst.getVertexDoFFunction().communicateAdditively< Cell, Edge >( level, DoFType::All ^ flag, *storage_ );
+      dst.getVertexDoFFunction().communicateAdditively< Cell, Vertex >( level, DoFType::All ^ flag, *storage_ );
+      dst.getEdgeDoFFunction().communicateAdditively< Cell, Face >( level, DoFType::All ^ flag, *storage_ );
+      dst.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( level, DoFType::All ^ flag, *storage_ );
    }
 
    else
@@ -134,14 +175,12 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
       }
 
       // Push result to lower-dimensional primitives
+      //
+      // Note: We could avoid communication here by implementing the apply() also for the respective
+      //       lower dimensional primitives!
       dst.getVertexDoFFunction().communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_ );
       dst.getVertexDoFFunction().communicateAdditively< Face, Vertex >( level, DoFType::All ^ flag, *storage_ );
       dst.getEdgeDoFFunction().communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_ );
-
-      // We do not need to retrieve assembled data values as we always assume dirty halos before an operation
-      // dst.getVertexDoFFunction().communicate< Vertex, Edge >( level );
-      // dst.getVertexDoFFunction().communicate< Edge, Face >( level );
-      // dst.getEdgeDoFFunction().communicate< Edge, Face >( level );
    }
 
    this->stopTiming( "apply" );
@@ -162,8 +201,8 @@ void P2ElementwiseOperator< P2Form >::smooth_jac( const P2Function< real_t >& ds
    dst.assign( {real_c( 1 ), real_c( -1 )}, {rhs, dst}, level, flag );
 
    // perform Jacobi update step
-   dst.multElementwise( { (*diagonalValues_), dst}, level, flag );
-   dst.assign( {1.0,omega}, {src,dst}, level, flag );
+   dst.multElementwise( {( *diagonalValues_ ), dst}, level, flag );
+   dst.assign( {1.0, omega}, {src, dst}, level, flag );
 
    this->stopTiming( "smooth_jac" );
 }
@@ -231,10 +270,65 @@ void P2ElementwiseOperator< P2Form >::localMatrixVectorMultiply2D( const Face&  
 }
 
 template < class P2Form >
+void P2ElementwiseOperator< P2Form >::localMatrixVectorMultiply3D( const Cell&             cell,
+                                                                   const uint_t            level,
+                                                                   const indexing::Index&  microCell,
+                                                                   const celldof::CellType cType,
+                                                                   const real_t* const     srcVertexData,
+                                                                   const real_t* const     srcEdgeData,
+                                                                   real_t* const           dstVertexData,
+                                                                   real_t* const           dstEdgeData ) const
+{
+   // determine coordinates of vertices of micro-element
+   std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
+   std::array< Point3D, 4 >         coords;
+   for ( uint_t k = 0; k < 4; ++k )
+   {
+      coords[k] = vertexdof::macrocell::coordinateFromIndex( level, cell, verts[k] );
+   }
+
+   // assemble local element matrix
+   Matrix10r elMat;
+   form_.integrateAll( coords, elMat );
+
+   // obtain data indices of dofs associated with micro-cell
+   std::array< uint_t, 4 > vertexDoFIndices;
+   vertexdof::getVertexDoFDataIndicesFromMicroCell( microCell, cType, level, vertexDoFIndices );
+
+   std::array< uint_t, 6 > edgeDoFIndices;
+   edgedof::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
+
+   // assemble local element vector (we use FEniCS indexing? no we don't!)
+   Point10D elVecOld, elVecNew;
+   for ( uint_t k = 0; k < 4; ++k )
+   {
+      elVecOld[k] = srcVertexData[vertexDoFIndices[k]];
+   }
+   for ( uint_t k = 4; k < 10; ++k )
+   {
+      elVecOld[k] = srcEdgeData[edgeDoFIndices[k - 4]];
+   }
+
+   // apply matrix (operator locally)
+   elVecNew = elMat.mul( elVecOld );
+
+   // redistribute result from "local" to "global vector"
+   for ( uint_t k = 0; k < 4; ++k )
+   {
+      dstVertexData[vertexDoFIndices[k]] += elVecNew[k];
+   }
+   for ( uint_t k = 4; k < 10; ++k )
+   {
+      dstEdgeData[edgeDoFIndices[k - 4]] += elVecNew[k];
+   }
+}
+
+template < class P2Form >
 void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( uint_t level, bool invert )
 {
    WALBERLA_ASSERT_GREATER_EQUAL( level, minLevel_ );
    WALBERLA_ASSERT_LESS_EQUAL( level, maxLevel_ );
+   WALBERLA_ASSERT_NOT_NULLPTR( diagonalValies_ );
 
    // Make sure that halos are up-to-date (can we improve communication here?)
    communication::syncP2FunctionBetweenPrimitives( *diagonalValues_, level );
@@ -242,7 +336,7 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( uint_t leve
    // For 3D we work on cells and for 2D on faces
    if ( storage_->hasGlobalCells() )
    {
-      WALBERLA_ABORT( "P2ElementwiseOperator::computeDiagonalOperatorValues() not implemented for cells, yet." );
+      // WALBERLA_ABORT( "P2ElementwiseOperator::computeDiagonalOperatorValues() not implemented for cells, yet." );
    }
 
    else
@@ -255,13 +349,6 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( uint_t leve
          Point3D x0( face.coords[0] );
          Point3D x1( face.coords[1] );
          Point3D x2( face.coords[2] );
-
-         // WALBERLA_LOG_INFO_ON_ROOT( "Vertex #0:" << x0 );
-         // WALBERLA_LOG_INFO_ON_ROOT( "Vertex #1:" << x1 );
-         // WALBERLA_LOG_INFO_ON_ROOT( "Vertex #2:" << x2 );
-
-         // WALBERLA_LOG_INFO_ON_ROOT( "For level = " << level << " we have " << levelinfo::num_microfaces_per_face( level )
-         //                                           << " microfaces" );
 
          uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
          uint_t                   inner_rowsize = rowsize;
@@ -309,8 +396,9 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( uint_t leve
       diagonalValues_->getEdgeDoFFunction().communicate< Edge, Face >( level );
 
       // Invert values if desired
-      if( invert ) {
-        diagonalValues_->invertElementwise( level );
+      if ( invert )
+      {
+         diagonalValues_->invertElementwise( level );
       }
    }
 }
