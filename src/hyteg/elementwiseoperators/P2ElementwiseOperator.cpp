@@ -328,7 +328,7 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( uint_t leve
 {
    WALBERLA_ASSERT_GREATER_EQUAL( level, minLevel_ );
    WALBERLA_ASSERT_LESS_EQUAL( level, maxLevel_ );
-   WALBERLA_ASSERT_NOT_NULLPTR( diagonalValies_ );
+   WALBERLA_ASSERT_NOT_NULLPTR( diagonalValues_.get() );
 
    // Make sure that halos are up-to-date (can we improve communication here?)
    communication::syncP2FunctionBetweenPrimitives( *diagonalValues_, level );
