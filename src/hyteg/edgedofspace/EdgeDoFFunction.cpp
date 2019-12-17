@@ -254,6 +254,43 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
 }
 
 template < typename ValueType >
+void EdgeDoFFunction< ValueType >::setToZero( uint_t level ) const
+{
+   if ( isDummy() )
+   {
+      return;
+   }
+
+   this->startTiming( "setToZero" );
+
+   for ( const auto& it : this->getStorage()->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+      vertex.getData( vertexDataID_ )->setToZero( level );
+   }
+
+   for ( const auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+      edge.getData( edgeDataID_ )->setToZero( level );
+   }
+
+   for ( const auto& it : this->getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+      face.getData( faceDataID_ )->setToZero( level );
+   }
+
+   for ( const auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+      cell.getData( cellDataID_ )->setToZero( level );
+   }
+
+   this->stopTiming( "setToZero" );
+}
+
+template < typename ValueType >
 void EdgeDoFFunction< ValueType >::swap( const EdgeDoFFunction< ValueType >& other,
                                          const uint_t&                       level,
                                          const DoFType&                      flag ) const

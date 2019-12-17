@@ -148,6 +148,9 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
                              uint_t                                                                               level,
                              BoundaryUID boundaryUID ) const;
 
+   /// Set all function DoFs to zero including the ones in the halos
+   void setToZero( const uint_t level ) const;
+
    /// assigns unique values to all data points
    /// this function is mainly used for petsc to get global identifier for all DoFs
    /// \tparam ValueType

@@ -80,6 +80,9 @@ class P2Function : public Function< P2Function< ValueType > >
                      uint_t                                                                               level,
                      DoFType                                                                              flag = All ) const;
 
+   /// Set all function DoFs to zero including the ones in the halos
+   void setToZero( const uint_t level ) const;
+
    void swap( const P2Function< ValueType >& other, const uint_t& level, const DoFType& dofType = All ) const;
 
    /// \brief Copies all values function data from other to this.

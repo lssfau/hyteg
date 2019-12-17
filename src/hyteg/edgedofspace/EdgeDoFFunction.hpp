@@ -132,6 +132,9 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
    ValueType sumLocal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
    ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
 
+   /// Set all function DoFs to zero including the ones in the halos
+   void setToZero( const uint_t level ) const;
+
    void enumerate( uint_t level ) const;
 
    const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& getVertexDataID() const { return vertexDataID_; }

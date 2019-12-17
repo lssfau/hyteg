@@ -55,12 +55,16 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
    {
       WALBERLA_ABORT( "P2ElementwiseOperator::apply does not support additive update!" );
       // Note: By zeroing only the dofs in the cells' or faces' halos of dst we could
-      //       actually support an additive update type
+      //       actually support an additive update type. That's incorrect, as the additive
+      //       communication zeros before doing the accumulation.
+      // 
+      //       "Add" could be done, if we perform the computations on all primitives, which
+      //       means that the additive communication is saved.
    }
    else
    {
-      // We need to zero the destination array
-      dst.interpolate( real_c( 0.0 ), level );
+      // We need to zero the destination array (including halos)
+      dst.setToZero( level );
    }
 
    // For 3D we work on cells and for 2D on faces
@@ -332,6 +336,9 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( uint_t leve
 
    // Make sure that halos are up-to-date (can we improve communication here?)
    communication::syncP2FunctionBetweenPrimitives( *diagonalValues_, level );
+
+   // Zero destination before performing additive computation
+   diagonalValues_->setToZero( level );
 
    // For 3D we work on cells and for 2D on faces
    if ( storage_->hasGlobalCells() )

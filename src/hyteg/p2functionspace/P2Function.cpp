@@ -140,6 +140,14 @@ void P2Function< ValueType >::interpolate(
    edgeDoFFunction_.interpolateExtended( expr, edgeDoFFunctions, level, flag );
 }
 
+
+template < typename ValueType >
+void P2Function< ValueType >::setToZero( const uint_t level ) const
+{
+   vertexDoFFunction_.setToZero( level );
+   edgeDoFFunction_.setToZero( level );
+}
+
 template < typename ValueType >
 void P2Function< ValueType >::swap( const P2Function< ValueType >& other, const uint_t& level, const DoFType& flag ) const
 {
