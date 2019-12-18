@@ -5,8 +5,8 @@ def generate_benchmark_script():
 Parameters
 {
     level 8;
-    iterationMinTime 0.0001;
-    chunkSize 5;
+    iterationMinTime 1.0;
+    chunkSize 20;
     kernelType APPLY_V_TO_V_REPLACE;
 }
 """
