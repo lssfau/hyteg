@@ -86,7 +86,7 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
 
    /// compute product of element local vector with element matrix
    ///
-   /// \param face           cell primitive we operate on
+   /// \param cell           cell primitive we operate on
    /// \param level          level on which we operate in mesh hierarchy
    /// \param microCell      index associated with the current element = micro-cell
    /// \param cType          type of micro-cell (WHITE_UP, BLUE_DOWN, ...)
@@ -114,13 +114,28 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
    /// \param element        element specification w.r.t. to micro-vertex
    /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
    /// \param dstEdgeData    pointer to DoF data on micro-edges (for writing data)
-   void computeLocalDiagonalContributions2D( Face&                        face,
+   void computeLocalDiagonalContributions2D( const Face&                  face,
                                              const uint_t                 level,
                                              const uint_t                 xIdx,
                                              const uint_t                 yIdx,
                                              const P2Elements::P2Element& element,
                                              real_t* const                dstVertexData,
                                              real_t* const                dstEdgeData );
+
+   /// Compute contributions to operator diagonal for given micro-face
+   ///
+   /// \param cell           cell primitive we operate on
+   /// \param level          level on which we operate in mesh hierarchy
+   /// \param microCell      index associated with the current element = micro-cell
+   /// \param cType          type of micro-cell (WHITE_UP, BLUE_DOWN, ...)
+   /// \param vertexData     pointer to DoF data for storing diagonal values for vertex DoF stencils
+   /// \param edgeData       pointer to DoF data for storing diagonal values for edge DoF stencils
+   void computeLocalDiagonalContributions3D( const Cell&             cell,
+                                             const uint_t            level,
+                                             const indexing::Index&  microCell,
+                                             const celldof::CellType cType,
+                                             real_t* const           vertexData,
+                                             real_t* const           edgeData );
 
    /// Form associated with this operator
    P2Form form_;

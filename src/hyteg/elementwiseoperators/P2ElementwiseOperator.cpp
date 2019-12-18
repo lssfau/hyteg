@@ -57,7 +57,7 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
       // Note: By zeroing only the dofs in the cells' or faces' halos of dst we could
       //       actually support an additive update type. That's incorrect, as the additive
       //       communication zeros before doing the accumulation.
-      // 
+      //
       //       "Add" could be done, if we perform the computations on all primitives, which
       //       means that the additive communication is saved.
    }
@@ -302,7 +302,7 @@ void P2ElementwiseOperator< P2Form >::localMatrixVectorMultiply3D( const Cell&  
    std::array< uint_t, 6 > edgeDoFIndices;
    edgedof::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
 
-   // assemble local element vector (we use FEniCS indexing? no we don't!)
+   // assemble local element vector
    Point10D elVecOld, elVecNew;
    for ( uint_t k = 0; k < 4; ++k )
    {
@@ -343,7 +343,35 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( uint_t leve
    // For 3D we work on cells and for 2D on faces
    if ( storage_->hasGlobalCells() )
    {
-      // WALBERLA_ABORT( "P2ElementwiseOperator::computeDiagonalOperatorValues() not implemented for cells, yet." );
+      // we only perform computations on cell primitives
+      for ( auto& macroIter : storage_->getCells() )
+      {
+         Cell& cell = *macroIter.second;
+
+         // get hold of the actual numerical data
+         PrimitiveDataID< FunctionMemory< real_t >, Cell > diagVertexDoFIdx =
+             diagonalValues_->getVertexDoFFunction().getCellDataID();
+         PrimitiveDataID< FunctionMemory< real_t >, Cell > diagEdgeDoFIdx = diagonalValues_->getEdgeDoFFunction().getCellDataID();
+
+         real_t* diagVertexData = cell.getData( diagVertexDoFIdx )->getPointer( level );
+         real_t* diagEdgeData   = cell.getData( diagEdgeDoFIdx )->getPointer( level );
+
+         // loop over micro-cells
+         for ( const auto& cType : celldof::allCellTypes )
+         {
+            for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
+            {
+               computeLocalDiagonalContributions3D( cell, level, micro, cType, diagVertexData, diagEdgeData );
+            }
+         }
+      }
+
+      // Push result to lower-dimensional primitives
+      diagonalValues_->getVertexDoFFunction().communicateAdditively< Cell, Face >( level );
+      diagonalValues_->getVertexDoFFunction().communicateAdditively< Cell, Edge >( level );
+      diagonalValues_->getVertexDoFFunction().communicateAdditively< Cell, Vertex >( level );
+      diagonalValues_->getEdgeDoFFunction().communicateAdditively< Cell, Face >( level );
+      diagonalValues_->getEdgeDoFFunction().communicateAdditively< Cell, Edge >( level );
    }
 
    else
@@ -411,7 +439,7 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( uint_t leve
 }
 
 template < class P2Form >
-void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions2D( Face&                        face,
+void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions2D( const Face&                  face,
                                                                            const uint_t                 level,
                                                                            const uint_t                 xIdx,
                                                                            const uint_t                 yIdx,
@@ -453,6 +481,44 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions2D( Face&
    dstEdgeData[dofDataIdx[3]] += elMat( 4, 4 );
    dstEdgeData[dofDataIdx[4]] += elMat( 5, 5 );
    dstEdgeData[dofDataIdx[5]] += elMat( 3, 3 );
+}
+
+template < class P2Form >
+void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions3D( const Cell&             cell,
+                                                                           const uint_t            level,
+                                                                           const indexing::Index&  microCell,
+                                                                           const celldof::CellType cType,
+                                                                           real_t* const           vertexData,
+                                                                           real_t* const           edgeData )
+{
+   // determine coordinates of vertices of micro-element
+   std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
+   std::array< Point3D, 4 >         coords;
+   for ( uint_t k = 0; k < 4; ++k )
+   {
+      coords[k] = vertexdof::macrocell::coordinateFromIndex( level, cell, verts[k] );
+   }
+
+   // assemble local element matrix
+   Matrix10r elMat;
+   form_.integrateAll( coords, elMat );
+
+   // obtain data indices of dofs associated with micro-cell
+   std::array< uint_t, 4 > vertexDoFIndices;
+   vertexdof::getVertexDoFDataIndicesFromMicroCell( microCell, cType, level, vertexDoFIndices );
+
+   std::array< uint_t, 6 > edgeDoFIndices;
+   edgedof::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
+
+   // add contributions for central stencil weights
+   for ( uint_t k = 0; k < 4; ++k )
+   {
+      vertexData[vertexDoFIndices[k]] += elMat( k, k );
+   }
+   for ( uint_t k = 4; k < 10; ++k )
+   {
+      edgeData[edgeDoFIndices[k - 4]] += elMat( k, k );
+   }
 }
 
 // P2ElementwiseLaplaceOperator
