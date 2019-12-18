@@ -297,6 +297,6 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
    friend class P2Function< ValueType >;
 };
 
-extern template class EdgeDoFFunction< double >;
+// extern template class EdgeDoFFunction< double >;
 extern template class EdgeDoFFunction< int >;
 } // namespace hyteg
