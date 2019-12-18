@@ -112,6 +112,42 @@ class P1FenicsForm : public P1Form
       out[3] = localStiffnessMatrix( 0, 3 );
    }
 
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const
+   {
+      real_t fenicsCoords[6];
+      fenicsCoords[0] = coords[0][0];
+      fenicsCoords[1] = coords[0][1];
+      fenicsCoords[2] = coords[1][0];
+      fenicsCoords[3] = coords[1][1];
+      fenicsCoords[4] = coords[2][0];
+      fenicsCoords[5] = coords[2][1];
+      UFCOperator2D gen;
+      gen.tabulate_tensor( elMat.data(), nullptr, fenicsCoords, 0 );
+   }
+
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const
+   {
+      real_t fenicsCoords[12];
+      fenicsCoords[0] = coords[0][0];
+      fenicsCoords[1] = coords[0][1];
+      fenicsCoords[2] = coords[0][2];
+
+      fenicsCoords[3] = coords[1][0];
+      fenicsCoords[4] = coords[1][1];
+      fenicsCoords[5] = coords[1][2];
+
+      fenicsCoords[6] = coords[2][0];
+      fenicsCoords[7] = coords[2][1];
+      fenicsCoords[8] = coords[2][2];
+
+      fenicsCoords[9]  = coords[3][0];
+      fenicsCoords[10] = coords[3][1];
+      fenicsCoords[11] = coords[3][2];
+
+      UFCOperator3D gen;
+      gen.tabulate_tensor( elMat.data(), nullptr, fenicsCoords, 0 );
+   }
+
    bool assemble2D() const override { return !std::is_same< UFCOperator2D, hyteg::fenics::NoAssemble >::value; }
 
    bool assemble3D() const override { return !std::is_same< UFCOperator3D, hyteg::fenics::NoAssemble >::value; }
