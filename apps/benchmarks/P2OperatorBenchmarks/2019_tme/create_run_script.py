@@ -31,8 +31,8 @@ Parameters
             for likwid_group in ["FLOPS_DP", "L3"]:
                 for level in range(5, 9):
                     cmd = "likwid-mpirun -mpi openmpi -np {} -nperdomain S:4 -g {} -m ./P2OperatorBenchmarks 2019_tme/run_benchmark_base_config.prm " \
-                        "-Parameters.kernelType={} " + \
-                        "-Parameters.level={} " + \
+                        "-Parameters.kernelType={} " \
+                        "-Parameters.level={} " \
                         "-- -allow-run-as-root".format(num_processes, likwid_group, kernel_type, level)
                     f.write("echo \"{}\"\n".format(cmd))
                     f.write(cmd + "\n")
