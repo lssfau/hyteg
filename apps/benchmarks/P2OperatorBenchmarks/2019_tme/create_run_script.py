@@ -16,7 +16,8 @@ Parameters
 
     num_processes = 8
     kernel_types = ["APPLY_V_TO_V_REPLACE", "APPLY_V_TO_E_ADD", "APPLY_E_TO_V_ADD", "APPLY_E_TO_E_REPLACE",
-                    "SOR_P1_V", "SOR_P2_V", "SOR_P2_E"]
+                    "SOR_P1_V", "SOR_P2_V", "SOR_P2_E_ALL", "SOR_P2_E_X", "SOR_P2_E_Y", "SOR_P2_E_Z",
+                    "SOR_P2_E_XY", "SOR_P2_E_XZ", "SOR_P2_E_YZ", "SOR_P2_E_XYZ"]
 
     with open("hostfile.txt", "w") as f:
         for i in range(8):
