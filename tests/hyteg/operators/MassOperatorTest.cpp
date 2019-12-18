@@ -21,7 +21,9 @@
 #include "core/Environment.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+// #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -38,8 +40,8 @@ void checkArea( std::shared_ptr< PrimitiveStorage > storage, real_t area, std::s
 
    OperatorType massOp( storage, minLevel, maxLevel );
 
-   P2Function< real_t > aux( "aux", storage, minLevel, maxLevel );
-   P2Function< real_t > vecOfOnes( "vecOfOnes", storage, minLevel, maxLevel );
+   typename OperatorType::srcType aux( "aux", storage, minLevel, maxLevel );
+   typename OperatorType::srcType vecOfOnes( "vecOfOnes", storage, minLevel, maxLevel );
 
    for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
    {
@@ -68,7 +70,10 @@ int main( int argc, char** argv )
    MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {0.0, -1.0} ), Point2D( {2.0, 3.0} ), MeshInfo::CRISSCROSS, 1, 2 );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   checkArea< P1ConstantMassOperator >( storage, 8.0, "P1ConstantMassOperator" );
    checkArea< P2ConstantMassOperator >( storage, 8.0, "P2ConstantMassOperator" );
+   checkArea< P1ElementwiseMassOperator >( storage, 8.0, "P1ElementwiseMassOperator" );
    checkArea< P2ElementwiseMassOperator >( storage, 8.0, "P2ElementwiseMassOperator" );
 
    // Test with backward facing step
@@ -76,7 +81,10 @@ int main( int argc, char** argv )
    meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/bfs_12el.msh" );
    SetupPrimitiveStorage setupStorageBFS( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storageBFS = std::make_shared< PrimitiveStorage >( setupStorageBFS );
+
+   checkArea< P1ConstantMassOperator >( storageBFS, 1.75, "P1ConstantMassOperator" );
    checkArea< P2ConstantMassOperator >( storageBFS, 1.75, "P2ConstantMassOperator" );
+   checkArea< P1ElementwiseMassOperator >( storageBFS, 1.75, "P1ElementwiseMassOperator" );
    checkArea< P2ElementwiseMassOperator >( storageBFS, 1.75, "P2ElementwiseMassOperator" );
 
    // ----------
@@ -88,8 +96,10 @@ int main( int argc, char** argv )
    meshInfo = MeshInfo::meshCuboid( Point3D( {-1.0, -1.0, 0.0} ), Point3D( {2.0, 0.0, 2.0} ), 1, 2, 1 );
    SetupPrimitiveStorage setupStorageCuboid( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storageCuboid = std::make_shared< PrimitiveStorage >( setupStorageCuboid );
+
+   checkArea< P1ConstantMassOperator >( storageCuboid, 6.0, "P1ConstantMassOperator" );
    checkArea< P2ConstantMassOperator >( storageCuboid, 6.0, "P2ConstantMassOperator" );
-   // Would fail because of missing 3D implementation(s)
+   checkArea< P1ElementwiseMassOperator >( storageCuboid, 6.0, "P1ElementwiseMassOperator" );
    checkArea< P2ElementwiseMassOperator >( storageCuboid, 6.0, "P2ElementwiseMassOperator" );
 
    // Test with coarse representation of thick spherical shell
@@ -101,7 +111,11 @@ int main( int argc, char** argv )
    real_t                              volume = 5.0 / 12.0 * ( 3.0 + std::sqrt( 5.0 ) ) * edgeLength * edgeLength * edgeLength;
    edgeLength /= 2.0;
    volume -= 5.0 / 12.0 * ( 3.0 + std::sqrt( 5.0 ) ) * edgeLength * edgeLength * edgeLength;
+
+   checkArea< P1ConstantMassOperator >( storageTSS, volume, "P1ConstantMassOperator" );
    checkArea< P2ConstantMassOperator >( storageTSS, volume, "P2ConstantMassOperator" );
+   checkArea< P1ElementwiseMassOperator >( storageTSS, volume, "P1ElementwiseMassOperator" );
+   checkArea< P2ElementwiseMassOperator >( storageTSS, volume, "P2ElementwiseMassOperator" );
 
    return EXIT_SUCCESS;
 }
