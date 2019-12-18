@@ -53,9 +53,4 @@ int generateZero< int >()
    return 0;
 }
 
-template double generateZero< double >();
-template float  generateZero< float >();
-template uint_t generateZero< uint_t >();
-template int    generateZero< int >();
-
 } // namespace hyteg
