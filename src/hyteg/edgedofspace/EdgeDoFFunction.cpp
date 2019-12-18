@@ -325,15 +325,12 @@ void EdgeDoFFunction< ValueType >::swap( const EdgeDoFFunction< ValueType >& oth
    {
       for ( auto& it : this->getStorage()->getCells() )
       {
-         for ( auto& it : this->getStorage()->getCells() )
-         {
-            Cell& cell = *it.second;
+        Cell& cell = *it.second;
    
-            if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
-            {
-               edgedof::macrocell::swap< ValueType >( level, cell, other.getCellDataID(), cellDataID_ );
-            }
-         }
+        if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+        {
+            edgedof::macrocell::swap< ValueType >( level, cell, other.getCellDataID(), cellDataID_ );
+        }
       }
    }
 
@@ -1208,6 +1205,7 @@ void EdgeDoFFunction< ValueType >::multElementwise(
    }
    this->stopTiming( "Multiply elementwise" );
 }
+
 template < typename ValueType >
 void EdgeDoFFunction< ValueType >::setLocalCommunicationMode(
     const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode )
