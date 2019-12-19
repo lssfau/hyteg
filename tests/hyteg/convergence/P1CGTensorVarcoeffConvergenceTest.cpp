@@ -20,7 +20,7 @@
 #include <core/Environment.h>
 #include <core/timing/Timer.h>
 
-#include "hyteg/Format.hpp"
+#include "core/Format.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/p1functionspace/P1CoefficientOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
@@ -119,7 +119,7 @@ int main( int argc, char* argv[] )
    walberla::WcTimer timer;
    solver.solve( L, u, f,  maxLevel);
    timer.end();
-   WALBERLA_LOG_INFO_ON_ROOT( hyteg::format( "time was: %f", timer.last() ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "time was: %f", timer.last() ) );
    err.assign( {1.0, -1.0}, {u, u_exact}, maxLevel );
 
    npoints_helper.interpolate( ones, maxLevel );

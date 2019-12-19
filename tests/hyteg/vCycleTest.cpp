@@ -22,7 +22,7 @@
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
 
-#include "hyteg/Format.hpp"
+#include "core/Format.hpp"
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -183,7 +183,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "Num dofs = {}" << uint_c( npoints ) );
    WALBERLA_LOG_INFO_ON_ROOT( "Starting V cycles" );
    WALBERLA_LOG_INFO_ON_ROOT(
-       hyteg::format( "%6s|%10s|%10s|%10s|%10s|%10s", "iter", "abs_res", "rel_res", "conv", "L2-error", "Time" ) )
+       walberla::format( "%6s|%10s|%10s|%10s|%10s|%10s", "iter", "abs_res", "rel_res", "conv", "L2-error", "Time" ) )
 
    real_t rel_res = 1.0;
 
@@ -196,7 +196,7 @@ int main( int argc, char* argv[] )
    err.assign( {1.0, -1.0}, {x, x_exact}, maxLevel );
    real_t discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
-   WALBERLA_LOG_INFO_ON_ROOT( hyteg::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, discr_l2_err, 0 ) )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, discr_l2_err, 0 ) )
 
    real_t       totalTime              = real_c( 0.0 );
    real_t       averageConvergenceRate = real_c( 0.0 );
@@ -231,7 +231,7 @@ int main( int argc, char* argv[] )
       err.assign( {1.0, -1.0}, {x, x_exact}, maxLevel );
       discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
-      WALBERLA_LOG_INFO_ON_ROOT( hyteg::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e",
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e",
                                               i + 1,
                                               begin_res,
                                               rel_res,

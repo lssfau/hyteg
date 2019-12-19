@@ -24,7 +24,7 @@
 #include "hyteg/composites/P1CoefficientStokesOperator.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P1StokesOperator.hpp"
-#include "hyteg/Format.hpp"
+#include "core/Format.hpp"
 #include "hyteg/geometry/CircularMap.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
@@ -197,7 +197,7 @@ int main( int argc, char* argv[] )
    real_t npoints = one.dotGlobal( one, maxLevel );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Starting Uzawa cycles" );
-   WALBERLA_LOG_INFO_ON_ROOT( hyteg::format( "%6s|%10s|%10s|%10s|%10s", "iter", "abs_res", "rel_res", "conv", "Time" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%10s|%10s|%10s|%10s", "iter", "abs_res", "rel_res", "conv", "Time" ) );
 
    L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
    r.assign( {1.0, -1.0}, {f, r}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
@@ -206,7 +206,7 @@ int main( int argc, char* argv[] )
    real_t rel_res     = 1.0;
 
    WALBERLA_LOG_INFO_ON_ROOT(
-       hyteg::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, 0 ) );
+       walberla::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, 0 ) );
 
    real_t       solveTime              = real_c( 0.0 );
    real_t       averageConvergenceRate = real_c( 0.0 );
@@ -228,7 +228,7 @@ int main( int argc, char* argv[] )
       real_t abs_res = std::sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary ) );
       rel_res        = abs_res / begin_res;
       WALBERLA_LOG_INFO_ON_ROOT(
-          hyteg::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e", outer + 1, abs_res, rel_res, abs_res / abs_res_old, end - start ) );
+          walberla::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e", outer + 1, abs_res, rel_res, abs_res / abs_res_old, end - start ) );
       solveTime += end - start;
 
       if( abs_res / abs_res_old > 0.95 )

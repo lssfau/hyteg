@@ -24,7 +24,7 @@
 #include "core/mpi/MPIManager.h"
 #include "core/timing/TimingJSON.h"
 
-#include "hyteg/Format.hpp"
+#include "core/Format.hpp"
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/edgedofspace/generatedKernels/all.hpp"
@@ -94,7 +94,7 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
    uint_t innerIterationsVertex =
        levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - 3 );
    WALBERLA_LOG_INFO_ON_ROOT(
-       hyteg::format( "%18s|%10s|%10s|%10s|%6s|%5s", "kernel", "Time (s)", "MLUPs", "MFLOPs", " Iter", " Level" ) );
+       walberla::format( "%18s|%10s|%10s|%10s|%6s|%5s", "kernel", "Time (s)", "MLUPs", "MFLOPs", " Iter", " Level" ) );
 
    typedef edgedof::EdgeDoFOrientation eo;
    std::map< eo, uint_t >              firstIdx;
@@ -151,7 +151,7 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
       mflops = real_t( innerIterationsVertex * iterations * 13 ) / time / 1e6;
 
       WALBERLA_LOG_INFO_ON_ROOT(
-          hyteg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "vertex to vertex", time, mlups, mflops, iterations, level ) );
+          walberla::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "vertex to vertex", time, mlups, mflops, iterations, level ) );
    }
    /// Edge to Vertex
    if ( benchEdgeToVertex )
@@ -202,7 +202,7 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
       mflops = real_t( innerIterationsVertex * iterations * 23 ) / time / 1e6;
 
       WALBERLA_LOG_INFO_ON_ROOT(
-          hyteg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "edge to vertex", time, mlups, mflops, iterations, level ) );
+          walberla::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "edge to vertex", time, mlups, mflops, iterations, level ) );
    }
    /// Edge to Edge
    if ( benchEdgeToEdge )
@@ -257,7 +257,7 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
       mflops = real_t( innerIterationsVertex * iterations * 27 ) / time / 1e6;
 
       WALBERLA_LOG_INFO_ON_ROOT(
-          hyteg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "edge to edge", time, mlups, mflops, iterations, level ) );
+          walberla::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "edge to edge", time, mlups, mflops, iterations, level ) );
    }
    /// Vertex to Edge
    if ( benchVertextoEdge )
@@ -313,7 +313,7 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
       mflops = real_t( innerIterationsVertex * iterations * 21 ) / time / 1e6;
 
       WALBERLA_LOG_INFO_ON_ROOT(
-          hyteg::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "vertex to edge", time, mlups, mflops, iterations, level ) );
+          walberla::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "vertex to edge", time, mlups, mflops, iterations, level ) );
    }
 }
 

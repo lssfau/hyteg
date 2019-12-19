@@ -19,7 +19,7 @@
  */
 #include "hyteg/dataexport/VTKOutput.hpp"
 
-#include "hyteg/Format.hpp"
+#include "core/Format.hpp"
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
@@ -288,7 +288,7 @@ const std::map< VTKOutput::DoFType, std::string > VTKOutput::DoFTypeToString_ = 
 
 std::string VTKOutput::fileNameExtension( const VTKOutput::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const
 {
-   return hyteg::format( "_%s_level%u_ts%u", DoFTypeToString_.at( dofType ).c_str(), level, timestep );
+   return walberla::format( "_%s_level%u_ts%u", DoFTypeToString_.at( dofType ).c_str(), level, timestep );
 }
 
 void VTKOutput::writePointsForMicroVertices( std::ostream&                              output,
@@ -1068,7 +1068,7 @@ void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
       {
          if( getNumRegisteredFunctions( dofType ) > 0 )
          {
-            const std::string completeFilePath = hyteg::format(
+            const std::string completeFilePath = walberla::format(
                 "%s/%s%s.vtu", dir_.c_str(), filename_.c_str(), fileNameExtension( dofType, level, timestep ).c_str() );
             //( fmt::format( "{}/{}{}.vtu", dir_, filename_, fileNameExtension( dofType, level, timestep ) ) );
 

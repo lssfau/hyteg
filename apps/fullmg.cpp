@@ -22,7 +22,7 @@
 #include "core/Environment.h"
 #include "core/math/Constants.h"
 
-#include "hyteg/Format.hpp"
+#include "core/Format.hpp"
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -175,7 +175,7 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( "Num dofs = " << npoints );
       WALBERLA_LOG_INFO_ON_ROOT( "Starting V cycles" );
       WALBERLA_LOG_INFO_ON_ROOT(
-          hyteg::format( "%6s|%10s|%10s|%10s|%10s|%10s", "iter", "abs_res", "rel_res", "conv", "L2-error", "H1-semi" ) );
+          walberla::format( "%6s|%10s|%10s|%10s|%10s|%10s", "iter", "abs_res", "rel_res", "conv", "L2-error", "H1-semi" ) );
       real_t rel_res = 1.0;
 
       A.apply( x, ax, ll, hyteg::Inner );
@@ -187,7 +187,7 @@ int main( int argc, char* argv[] )
       A.apply( err, tmp, ll, hyteg::Inner );
       real_t discr_h1_err = std::sqrt( err.dotGlobal( tmp, ll ) );
 
-      WALBERLA_LOG_INFO_ON_ROOT( hyteg::format(
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
           "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, discr_l2_err, discr_h1_err ) )
 
       for( size_t i = 0; i < outer; ++i )
@@ -202,7 +202,7 @@ int main( int argc, char* argv[] )
          A.apply( err, tmp, ll, hyteg::Inner );
          discr_h1_err = std::sqrt( err.dotGlobal( tmp, ll ) );
 
-         WALBERLA_LOG_INFO_ON_ROOT( hyteg::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e",
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e",
                                                  i + 1,
                                                  begin_res,
                                                  rel_res,
