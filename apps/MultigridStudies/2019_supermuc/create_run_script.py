@@ -82,7 +82,7 @@ Parameters
     return base_config
 
 
-def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", prm_file="parameter_file.prm", num_nodes=1):
+def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", prm_file="parameter_file.prm", num_nodes=1, ppn=48):
 
     def partition(num_nodes):
         if num_nodes <= 16:
@@ -119,7 +119,7 @@ def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", p
 #SBATCH --partition={partition}
 #Number of nodes and MPI tasks per node:
 #SBATCH --nodes={num_nodes}
-#SBATCH --ntasks-per-node=48
+#SBATCH --ntasks-per-node={ppn}
 {constraint}
 
 module load slurm_setup
@@ -136,7 +136,7 @@ ls -lha
 mpiexec -n $SLURM_NTASKS ./MultigridStudies 2019_supermuc/{prm_file}
 
 """.format(job_name=job_name, wall_clock_limit=wall_clock_limit, num_nodes=num_nodes, prm_file=prm_file, partition=partition(num_nodes),
-           constraint=constraint)
+           constraint=constraint, ppn=ppn)
     return base_config
 
 
@@ -170,6 +170,9 @@ def supermuc_scaling():
         }
     }
 
+    cube_base_config_fmg["weak_fast"] = cube_base_config_fmg["weak"]
+    cube_base_config_fmg["weak_large"] = cube_base_config_fmg["weak"]
+
     node_dep_parameters_cube = {
         "weak": {
             1: {"num_faces_per_side": 1},
@@ -184,6 +187,33 @@ def supermuc_scaling():
             768: {"num_faces_per_side": 16},
             1536: {"num_faces_per_side": 20},
             3072: {"num_faces_per_side": 26},
+        },
+        "weak_large": {
+            1: {"num_faces_per_side": 1},
+            2: {"num_faces_per_side": 2},
+            6: {"num_faces_per_side": 3},
+            12: {"num_faces_per_side": 4},
+            24: {"num_faces_per_side": 5},
+            48: {"num_faces_per_side": 6},
+            96: {"num_faces_per_side": 8},
+            192: {"num_faces_per_side": 10},
+            384: {"num_faces_per_side": 13},
+            768: {"num_faces_per_side": 16},
+            1536: {"num_faces_per_side": 20},
+            3072: {"num_faces_per_side": 26},
+        },
+        "weak_fast": {
+            2: {"num_faces_per_side": 1},
+            6: {"num_faces_per_side": 2},
+            12: {"num_faces_per_side": 3},
+            24: {"num_faces_per_side": 4},
+            48: {"num_faces_per_side": 5},
+            96: {"num_faces_per_side": 6},
+            192: {"num_faces_per_side": 8},
+            384: {"num_faces_per_side": 10},
+            768: {"num_faces_per_side": 13},
+            1536: {"num_faces_per_side": 16},
+            3072: {"num_faces_per_side": 20},
         },
         "strong": {
             1: {"num_faces_per_side": 6},
@@ -206,9 +236,15 @@ def supermuc_scaling():
     }
 
     for discretization in ["P2"]:
-        for scaling_type in ["weak", "strong"]:
+        for scaling_type in ["weak", "weak_fast", "weak_large", "strong"]:
             for coarse_grid_tol in [1e-12]:
                 for coarse_grid_solver_type, coarse_grid_preconditioner_type in [(0, 0), (1, 0), (1, 1), (1, 2)]:
+
+                    if scaling_type == "weak_large":
+                        ppn = 24
+                    else:
+                        ppn = 48
+
                     base_config = cube_base_config_fmg[scaling_type][discretization]
                     base_config["coarse_grid_tol"] = coarse_grid_tol
                     base_config["coarse_grid_solver_type"] = coarse_grid_solver_type
@@ -234,7 +270,7 @@ def supermuc_scaling():
 
                         prm_string = supermuc_scaling_prm_file_string(**prm_string_prm_dict)
                         job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="1:00:00",
-                                                              num_nodes=num_nodes, prm_file=prm_file_name)
+                                                              num_nodes=num_nodes, prm_file=prm_file_name, ppn=ppn)
 
                         with open(prm_file_name, "w") as f:
                             f.write(prm_string)
