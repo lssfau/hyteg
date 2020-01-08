@@ -278,6 +278,42 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
 }
 
 template < typename ValueType >
+void VertexDoFFunction< ValueType >::setToZero( uint_t level ) const
+{
+   if ( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "setToZero" );
+
+   for ( const auto& it : this->getStorage()->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+      vertex.getData( vertexDataID_ )->setToZero( level );
+   }
+
+   for ( const auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+      edge.getData( edgeDataID_ )->setToZero( level );
+   }
+
+   for ( const auto& it : this->getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+      face.getData( faceDataID_ )->setToZero( level );
+   }
+
+   for ( const auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+      cell.getData( cellDataID_ )->setToZero( level );
+   }
+
+   this->stopTiming( "setToZero" );
+}
+
+template < typename ValueType >
 real_t VertexDoFFunction< ValueType >::evaluate( const Point3D& coordinates, uint_t level ) const
 {
    // Check if 2D or 3D function
@@ -406,47 +442,57 @@ void VertexDoFFunction< ValueType >::swap( const VertexDoFFunction< ValueType >&
    this->stopTiming( "Swap" );
 }
 
-
-template< typename ValueType >
-void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueType > & other, const uint_t & level ) const
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::copyFrom( const VertexDoFFunction< ValueType >& other, const uint_t& level ) const
 {
-  if( isDummy() )
-  {
-    return;
-  }
-  this->startTiming( "Copy" );
+   if ( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "Copy" );
 
-  for( auto& it : this->getStorage()->getVertices() )
-  {
-     auto primitiveID = it.first;
-     WALBERLA_ASSERT( other.getStorage()->vertexExistsLocally( primitiveID ) )
-     this->getStorage()->getVertex( primitiveID )->getData( vertexDataID_ )->copyFrom( *other.getStorage()->getVertex( primitiveID )->getData( other.getVertexDataID() ), level );
-  }
+   for ( auto& it : this->getStorage()->getVertices() )
+   {
+      auto primitiveID = it.first;
+      WALBERLA_ASSERT( other.getStorage()->vertexExistsLocally( primitiveID ) )
+      this->getStorage()
+          ->getVertex( primitiveID )
+          ->getData( vertexDataID_ )
+          ->copyFrom( *other.getStorage()->getVertex( primitiveID )->getData( other.getVertexDataID() ), level );
+   }
 
-  for( auto& it : this->getStorage()->getEdges() )
-  {
-    auto primitiveID = it.first;
-    WALBERLA_ASSERT( other.getStorage()->edgeExistsLocally( primitiveID ) )
-    this->getStorage()->getEdge( primitiveID )->getData( edgeDataID_ )->copyFrom( *other.getStorage()->getEdge( primitiveID )->getData( other.getEdgeDataID() ), level );
-  }
+   for ( auto& it : this->getStorage()->getEdges() )
+   {
+      auto primitiveID = it.first;
+      WALBERLA_ASSERT( other.getStorage()->edgeExistsLocally( primitiveID ) )
+      this->getStorage()
+          ->getEdge( primitiveID )
+          ->getData( edgeDataID_ )
+          ->copyFrom( *other.getStorage()->getEdge( primitiveID )->getData( other.getEdgeDataID() ), level );
+   }
 
-  for( auto& it : this->getStorage()->getFaces() )
-  {
-    auto primitiveID = it.first;
-    WALBERLA_ASSERT( other.getStorage()->faceExistsLocally( primitiveID ) )
-    this->getStorage()->getFace( primitiveID )->getData( faceDataID_ )->copyFrom( *other.getStorage()->getFace( primitiveID )->getData( other.getFaceDataID() ), level );
-  }
+   for ( auto& it : this->getStorage()->getFaces() )
+   {
+      auto primitiveID = it.first;
+      WALBERLA_ASSERT( other.getStorage()->faceExistsLocally( primitiveID ) )
+      this->getStorage()
+          ->getFace( primitiveID )
+          ->getData( faceDataID_ )
+          ->copyFrom( *other.getStorage()->getFace( primitiveID )->getData( other.getFaceDataID() ), level );
+   }
 
-  for( auto& it : this->getStorage()->getCells() )
-  {
-    auto primitiveID = it.first;
-    WALBERLA_ASSERT( other.getStorage()->cellExistsLocally( primitiveID ) )
-    this->getStorage()->getCell( primitiveID )->getData( cellDataID_ )->copyFrom( *other.getStorage()->getCell( primitiveID )->getData( other.getCellDataID() ), level );
-  }
+   for ( auto& it : this->getStorage()->getCells() )
+   {
+      auto primitiveID = it.first;
+      WALBERLA_ASSERT( other.getStorage()->cellExistsLocally( primitiveID ) )
+      this->getStorage()
+          ->getCell( primitiveID )
+          ->getData( cellDataID_ )
+          ->copyFrom( *other.getStorage()->getCell( primitiveID )->getData( other.getCellDataID() ), level );
+   }
 
-  this->stopTiming( "Copy" );
+   this->stopTiming( "Copy" );
 }
-
 
 template < typename ValueType >
 void macroFaceAssign( const uint_t&                                                              level,
@@ -1204,6 +1250,14 @@ void VertexDoFFunction< ValueType >::multElementwise(
 }
 
 template < typename ValueType >
+void VertexDoFFunction< ValueType >::invertElementwise( const uint_t level, const DoFType flag ) const
+{
+   WALBERLA_UNUSED( level );
+   WALBERLA_UNUSED( flag );
+   WALBERLA_ABORT( "VertexDoFFunction< ValueType >::invertElementwise not available for requested ValueType" );
+}
+
+template < typename ValueType >
 ValueType VertexDoFFunction< ValueType >::dotGlobal( const VertexDoFFunction< ValueType >& rhs, size_t level, DoFType flag ) const
 {
    ValueType scalarProduct = dotLocal( rhs, level, flag );
@@ -1704,6 +1758,80 @@ void VertexDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType
    this->stopTiming( "Interpolate" );
 }
 
+// =================
+//  specialisations
+// =================
+template <>
+void VertexDoFFunction< real_t >::invertElementwise( const uint_t level, const DoFType flag ) const
+{
+   if ( isDummy() )
+   {
+      return;
+   }
+
+   this->startTiming( "Invert elementwise" );
+
+   for ( const auto& it : this->getStorage()->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      {
+         real_t* data = vertex.getData( vertexDataID_ )->getPointer( level );
+         data[0]      = real_c( 1.0 ) / data[0];
+      }
+   }
+
+   for ( const auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      {
+         real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
+         uint_t  size = edge.getData( edgeDataID_ )->getSize( level );
+         for ( uint_t k = 0; k < size; ++k )
+         {
+            data[k] = real_c( 1.0 ) / data[k];
+         }
+      }
+   }
+
+   for ( const auto& it : this->getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      {
+         real_t* data = face.getData( faceDataID_ )->getPointer( level );
+         uint_t  size = face.getData( faceDataID_ )->getSize( level );
+         for ( uint_t k = 0; k < size; ++k )
+         {
+            data[k] = real_c( 1.0 ) / data[k];
+         }
+      }
+   }
+
+   for ( const auto& it : this->getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+      {
+         real_t* data = cell.getData( cellDataID_ )->getPointer( level );
+         uint_t  size = cell.getData( cellDataID_ )->getSize( level );
+         for ( uint_t k = 0; k < size; ++k )
+         {
+            data[k] = real_c( 1.0 ) / data[k];
+         }
+      }
+   }
+   this->stopTiming( "Invert elementwise" );
+}
+
+// ========================
+//  explicit instantiation
+// ========================
 template class VertexDoFFunction< double >;
 template class VertexDoFFunction< int >;
 

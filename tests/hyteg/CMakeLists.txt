@@ -128,6 +128,9 @@ waLBerla_execute_test(NAME P1FaceIndexingTest)
 waLBerla_compile_test(FILES Indexing/VertexDoFMacroCellIndexingTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME VertexDoFMacroCellIndexingTest)
 
+waLBerla_compile_test(FILES Indexing/MicroCellIterationAndIndexingTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME MicroCellIterationAndIndexingTest)
+
 waLBerla_compile_test(FILES Indexing/EdgeDoFOnMacroEdgeIndexingTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME EdgeDoFOnMacroEdgeIndexingTest)
 
@@ -207,11 +210,11 @@ waLBerla_execute_test(NAME EdgeDoFToEdgeDoFOperatorTest)
 waLBerla_compile_test(FILES operators/SimpleVertexDoFToEdgeDoFOperatorTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME SimpleVertexDoFToEdgeDoFOperatorTest)
 
-#################### P1 ####################
+waLBerla_compile_test(FILES operators/MassOperatorTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME MassOperatorTest )
+waLBerla_execute_test(NAME MassOperatorTestMPI COMMAND $<TARGET_FILE:MassOperatorTest> PROCESSES 2 )
 
-waLBerla_compile_test(FILES P1/P1MassOperatorTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME P1MassOperatorTest )
-waLBerla_execute_test(NAME P1MassOperatorTestMPI COMMAND $<TARGET_FILE:P1MassOperatorTest> PROCESSES 2 )
+#################### P1 ####################
 
 waLBerla_compile_test(FILES P1/P1LaplaceOperator3DTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1LaplaceOperator3DTest)
@@ -288,10 +291,6 @@ waLBerla_execute_test(NAME P2FunctionTest)
 waLBerla_compile_test(FILES P2/P2Level0Test.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2Level0Test1 COMMAND $<TARGET_FILE:P2Level0Test> PROCESSES 1)
 waLBerla_execute_test(NAME P2Level0Test2 COMMAND $<TARGET_FILE:P2Level0Test> PROCESSES 2)
-
-waLBerla_compile_test(FILES P2/P2ConstantMassOperatorTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME P2ConstantMassOperatorTest )
-waLBerla_execute_test(NAME P2ConstantMassOperatorTestMPI COMMAND $<TARGET_FILE:P2ConstantMassOperatorTest> PROCESSES 2 )
 
 waLBerla_compile_test(FILES P2/P2EvaluateTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2EvaluateTest)

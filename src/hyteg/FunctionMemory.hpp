@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "hyteg/misc/zeros.hpp"
 #include "hyteg/primitivedata/PrimitiveDataHandling.hpp"
 #include "hyteg/primitives/Primitive.hpp"
 
@@ -38,9 +39,11 @@
 namespace hyteg {
 
 using walberla::uint_t;
+using walberla::real_c;
 using walberla::real_t;
 using walberla::mpi::SendBuffer;
 using walberla::mpi::RecvBuffer;
+
 
 template< typename ValueType >
 class FunctionMemory
@@ -85,6 +88,16 @@ public:
     WALBERLA_ASSERT( other.hasLevel( level ), "Requested level not allocated." );
     WALBERLA_ASSERT_EQUAL( getSize( level ), other.getSize( level ), "Cannot swap FunctionMemory of different sizes." );
     data_.at( level )->swap( *(other.data_.at( level )) );
+  }
+
+  inline void setToZero( const uint_t & level ) const
+  {
+    WALBERLA_ASSERT( hasLevel( level ), "Requested level not allocated." );
+    ValueType * ptr = data_.at( level )->data();
+    for( uint_t k = 0; k < data_.at( level )->size(); ++k )
+    {
+      ptr[k] = generateZero< ValueType >();
+    }
   }
 
   inline static unsigned long long getLocalAllocatedMemoryInBytes() { return totalAllocatedMemoryInBytes_; }

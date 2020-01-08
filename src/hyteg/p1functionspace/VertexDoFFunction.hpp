@@ -85,7 +85,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    /// \brief Copies all values function data from other to this.
    ///
    /// This method can be used safely if the other function is located on a different PrimitiveStorage.
-   void copyFrom( const VertexDoFFunction< ValueType > & other, const uint_t & level ) const;
+   void copyFrom( const VertexDoFFunction< ValueType >& other, const uint_t& level ) const;
 
    real_t evaluate( const Point3D& coordinates, uint_t level ) const;
 
@@ -120,6 +120,9 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
                          uint_t                                                                               level,
                          DoFType                                                                              flag = All ) const;
 
+   /// Replace values of the function by their inverses in an elementwise fashion
+   void invertElementwise( uint_t level, DoFType flag = All ) const;
+
    ValueType dotLocal( const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
    ValueType dotGlobal( const VertexDoFFunction< ValueType >& rhs, uint_t level, DoFType flag = All ) const;
 
@@ -144,6 +147,9 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
                              const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& srcFunctions,
                              uint_t                                                                               level,
                              BoundaryUID boundaryUID ) const;
+
+   /// Set all function DoFs to zero including the ones in the halos
+   void setToZero( const uint_t level ) const;
 
    /// assigns unique values to all data points
    /// this function is mainly used for petsc to get global identifier for all DoFs
@@ -320,7 +326,7 @@ inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint
    pressure.add( -sum / real_c( numGlobalVertices ), level, All );
 }
 
-extern template class VertexDoFFunction< double >;
+// extern template class VertexDoFFunction< double >;
 extern template class VertexDoFFunction< int >;
 
 } // namespace vertexdof

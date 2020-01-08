@@ -75,18 +75,23 @@ int main( int argc, char** argv )
 
    vtkOutput.write( level, 1 );
 
-   for( const auto& itCell : storage->getCells() )
+   for ( const auto& itCell : storage->getCells() )
    {
       const auto sumData  = itCell.second->getData( xSum.getCellDataID() )->getPointer( level );
       const auto testData = itCell.second->getData( x1.getCellDataID() )->getPointer( level );
 
       const auto length = itCell.second->getData( xSum.getCellDataID() )->getSize( level );
 
-      for( uint_t i = 0; i < length; i++ )
+      for ( uint_t i = 0; i < length; i++ )
       {
          WALBERLA_CHECK_FLOAT_EQUAL( sumData[i], testData[i] );
       }
    }
 
    WALBERLA_CHECK_FLOAT_EQUAL( dotProduct, 6 * real_c( 20 ) + real_c( 10 ) );
+
+   x1.interpolate( real_c( 1.0 / 3.0 ), level, All );
+   x1.invertElementwise( level, All );
+   WALBERLA_CHECK_FLOAT_EQUAL( x1.getMaxValue( level, All ), real_c( 3 ) );
+   WALBERLA_CHECK_FLOAT_EQUAL( x1.getMinValue( level, All ), real_c( 3 ) );
 }

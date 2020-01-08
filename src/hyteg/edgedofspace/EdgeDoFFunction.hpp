@@ -124,10 +124,16 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
                          uint_t                                                                             level,
                          DoFType                                                                            flag = All ) const;
 
+   /// Replace values of the function by their inverses in an elementwise fashion
+   void invertElementwise( uint_t level, DoFType flag = All ) const;
+
    ValueType dotLocal( const EdgeDoFFunction< ValueType >& rhs, const uint_t level, const DoFType flag = All ) const;
 
    ValueType sumLocal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
    ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
+
+   /// Set all function DoFs to zero including the ones in the halos
+   void setToZero( const uint_t level ) const;
 
    void enumerate( uint_t level ) const;
 
@@ -291,6 +297,6 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
    friend class P2Function< ValueType >;
 };
 
-extern template class EdgeDoFFunction< double >;
+// extern template class EdgeDoFFunction< double >;
 extern template class EdgeDoFFunction< int >;
 } // namespace hyteg
