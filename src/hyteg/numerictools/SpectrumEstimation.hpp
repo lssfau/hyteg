@@ -53,7 +53,7 @@ namespace hyteg {
   ///
   /// \return Estimate for the spectral radius of op  
   template < typename OperatorType >
-  real_t estimateSpectralRadiusWithPowerIteration( OperatorType op,
+  real_t estimateSpectralRadiusWithPowerIteration( OperatorType& op,
                                                    typename OperatorType::srcType &itrVec,
                                                    const uint_t numIts,
                                                    const std::shared_ptr<PrimitiveStorage> &storage,
