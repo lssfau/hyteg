@@ -206,11 +206,11 @@ class InvDiagOperatorWrapper : public Operator< typename WrappedOperatorType::sr
 /// \param x An initial guess of the eigenvalue, which MUST NOT be in the kernel of A. Contains after the iteration an estimate for the eigenvector.
 /// \return An estimate of the spectral radius.
 template < typename OperatorType >
-real_t estimateRadius( const OperatorType&                        A,
-                       const uint_t&                              level,
-                       const uint_t&                              maxIter,
-                       const std::shared_ptr< PrimitiveStorage >& storage,
-                       typename OperatorType::srcType&            x )
+inline real_t estimateRadius( const OperatorType&                        A,
+                              const uint_t&                              level,
+                              const uint_t&                              maxIter,
+                              const std::shared_ptr< PrimitiveStorage >& storage,
+                              typename OperatorType::srcType&            x )
 {
    InvDiagOperatorWrapper< OperatorType > invDiagA( storage, level, level, A );
    return hyteg::estimateSpectralRadiusWithPowerIteration( invDiagA, x, maxIter, storage, level );
