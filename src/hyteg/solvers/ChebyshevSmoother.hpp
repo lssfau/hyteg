@@ -203,7 +203,7 @@ class InvDiagOperatorWrapper : public Operator< typename WrappedOperatorType::sr
 /// \param level The level on which we should estimate the eigenvalue.
 /// \param maxIter How many iterations, should we spend?
 /// \param storage Our primitive storage.
-/// \param x An initial guess of the eigenvalue, which MUST NOT be in the kernel of A. Contains after the iteration an estimate for the eigenvector.
+/// \param x An initial guess of the eigenvector, which MUST NOT be in the kernel of A. Contains after the iteration an estimate for the eigenvector.
 /// \return An estimate of the spectral radius.
 template < typename OperatorType >
 inline real_t estimateRadius( const OperatorType&                        A,
