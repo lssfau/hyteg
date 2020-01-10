@@ -22,6 +22,7 @@
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
+#include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p1functionspace/P1Elements.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -125,9 +126,6 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                                              const indexing::Index&  microCell,
                                              const celldof::CellType cType,
                                              real_t* const           vertexData );
-
-   /// Form associated with this operator
-   P1Form form_;
 };
 
 typedef P1ElementwiseOperator<
@@ -136,5 +134,8 @@ typedef P1ElementwiseOperator<
 
 typedef P1ElementwiseOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >
     P1ElementwiseMassOperator;
+
+typedef P1ElementwiseOperator< P1Form_mass >
+    P1ElementwiseBlendingMassOperator;
 
 } // namespace hyteg

@@ -73,7 +73,7 @@ inline void applyVariableStencil(uint_t Level,
    Point3D d2 = h * ( face.coords[2] - face.coords[0] );
 
    P1Form form;
-   form.geometryMap = face.getGeometryMap();
+   form.setGeometryMap( face.getGeometryMap() );
 
    ValueType tmp;
 
@@ -157,7 +157,7 @@ inline void smoothGSVariableStencil(uint_t Level,
    Point3D d2 = h * ( face.coords[2] - face.coords[0] );
 
    P1Form form;
-   form.geometryMap = face.getGeometryMap();
+   form.setGeometryMap( face.getGeometryMap() );
 
    ValueType tmp;
 
@@ -274,14 +274,14 @@ inline void applyVariableStencil(uint_t Level,
       std::fill( opr_data.begin(), opr_data.end(), 0.0 );
 
       // assemble south
-      form.geometryMap = faceS->getGeometryMap();
+      form.setGeometryMap( faceS->getGeometryMap() );
       assembleLocalStencil< P1Form >( form, {x, x + dir_W, x + dir_S}, P1Elements::P1Elements2D::elementSW, opr_data.data() );
       assembleLocalStencil< P1Form >( form, {x, x + dir_S, x + dir_SE}, P1Elements::P1Elements2D::elementS, opr_data.data() );
       assembleLocalStencil< P1Form >( form, {x, x + dir_SE, x + dir_E}, P1Elements::P1Elements2D::elementSE, opr_data.data() );
 
       if( edge.getNumNeighborFaces() == 2 )
       {
-         form.geometryMap = faceN->getGeometryMap();
+         form.setGeometryMap( faceN->getGeometryMap() );
          assembleLocalStencil< P1Form >( form, {x, x + dir_E, x + dir_N}, P1Elements::P1Elements2D::elementNE, opr_data.data() );
          assembleLocalStencil< P1Form >( form, {x, x + dir_N, x + dir_NW}, P1Elements::P1Elements2D::elementN, opr_data.data() );
          assembleLocalStencil< P1Form >( form, {x, x + dir_NW, x + dir_W}, P1Elements::P1Elements2D::elementNW, opr_data.data() );
@@ -383,14 +383,14 @@ inline void smoothGSVariableStencil(uint_t Level,
       std::fill( opr_data.begin(), opr_data.end(), 0.0 );
 
       // assemble south
-      form.geometryMap = faceS->getGeometryMap();
+      form.setGeometryMap( faceS->getGeometryMap() );
       assembleLocalStencil< P1Form >( form, {x, x + dir_W, x + dir_S}, P1Elements::P1Elements2D::elementSW, opr_data.data() );
       assembleLocalStencil< P1Form >( form, {x, x + dir_S, x + dir_SE}, P1Elements::P1Elements2D::elementS, opr_data.data() );
       assembleLocalStencil< P1Form >( form, {x, x + dir_SE, x + dir_E}, P1Elements::P1Elements2D::elementSE, opr_data.data() );
 
       if( edge.getNumNeighborFaces() == 2 )
       {
-         form.geometryMap = faceN->getGeometryMap();
+         form.setGeometryMap( faceN->getGeometryMap() );
          assembleLocalStencil< P1Form >( form, {x, x + dir_E, x + dir_N}, P1Elements::P1Elements2D::elementNE, opr_data.data() );
          assembleLocalStencil< P1Form >( form, {x, x + dir_N, x + dir_NW}, P1Elements::P1Elements2D::elementN, opr_data.data() );
          assembleLocalStencil< P1Form >( form, {x, x + dir_NW, x + dir_W}, P1Elements::P1Elements2D::elementNW, opr_data.data() );
@@ -459,7 +459,7 @@ inline void applyVariableStencil(uint_t level,
    for( auto& faceId : vertex.neighborFaces() )
    {
       Face* face       = storage->getFace( faceId );
-      form.geometryMap = face->getGeometryMap();
+      form.setGeometryMap( face->getGeometryMap() );
 
       uint_t                     v_i       = face->vertex_index( vertex.getID() );
       std::vector< PrimitiveID > adj_edges = face->adjacent_edges( vertex.getID() );
@@ -530,7 +530,7 @@ inline void smoothGSVariableStencil(uint_t level,
    for( auto& faceId : vertex.neighborFaces() )
    {
       Face* face       = storage->getFace( faceId );
-      form.geometryMap = face->getGeometryMap();
+      form.setGeometryMap( face->getGeometryMap() );
 
       uint_t                     v_i       = face->vertex_index( vertex.getID() );
       std::vector< PrimitiveID > adj_edges = face->adjacent_edges( vertex.getID() );

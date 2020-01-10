@@ -78,6 +78,14 @@ void setMap( SetupPrimitiveStorage& setupStorage, std::shared_ptr<GeometryMap> m
   }
 }
 
+void logSectionHeader( const char* header ) {
+  std::string hdr( header );
+  size_t len = hdr.length();
+  std::string separator( len + 2, '-' );
+  WALBERLA_LOG_INFO_ON_ROOT( separator << "\n " << hdr << "\n" << separator );
+}
+
+
 int main( int argc, char** argv )
 {
    walberla::debug::enterTestMode();
@@ -91,7 +99,7 @@ int main( int argc, char** argv )
    // ----------
 
    // Test with rectangle
-   WALBERLA_LOG_INFO_ON_ROOT( "Testing with RECTANGLE" );
+   logSectionHeader( "Testing with RECTANGLE" );
    MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {0.0, -1.0} ), Point2D( {2.0, 3.0} ), MeshInfo::CRISSCROSS, 1, 2 );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -102,7 +110,7 @@ int main( int argc, char** argv )
    checkArea< P2ElementwiseMassOperator >( storage, 8.0, "P2ElementwiseMassOperator" );
 
    // Test with backward facing step
-   WALBERLA_LOG_INFO_ON_ROOT( "Testing with BFS" );
+   logSectionHeader( "Testing with BFS" );
    meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/bfs_12el.msh" );
    SetupPrimitiveStorage setupStorageBFS( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storageBFS = std::make_shared< PrimitiveStorage >( setupStorageBFS );
@@ -117,7 +125,7 @@ int main( int argc, char** argv )
    // ----------
 
    // test with cuboid
-   WALBERLA_LOG_INFO_ON_ROOT( "Testing with Cuboid" );
+   logSectionHeader( "Testing with Cuboid" );
    meshInfo = MeshInfo::meshCuboid( Point3D( {-1.0, -1.0, 0.0} ), Point3D( {2.0, 0.0, 2.0} ), 1, 2, 1 );
    SetupPrimitiveStorage setupStorageCuboid( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storageCuboid = std::make_shared< PrimitiveStorage >( setupStorageCuboid );
@@ -128,7 +136,7 @@ int main( int argc, char** argv )
    checkArea< P2ElementwiseMassOperator >( storageCuboid, 6.0, "P2ElementwiseMassOperator" );
 
    // Test with coarse representation of thick spherical shell
-   WALBERLA_LOG_INFO_ON_ROOT( "Testing with Icosahedral Shell" );
+   logSectionHeader( "Testing with Icosahedral Shell" );
    meshInfo = MeshInfo::meshSphericalShell( 2, {1.0, 2.0} );
    SetupPrimitiveStorage setupStorageTSS( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storageTSS = std::make_shared< PrimitiveStorage >( setupStorageTSS );
@@ -147,16 +155,17 @@ int main( int argc, char** argv )
    // -------------------
 
    // Test with annulus
-   WALBERLA_LOG_INFO_ON_ROOT( "Testing with BLENDING( ANNULUS )" );
+   logSectionHeader( "Testing with BLENDING( ANNULUS )" );
    MeshInfo meshInfoPolar = MeshInfo::meshRectangle( Point2D( { 1.0, 0.0 } ), Point2D( { 2.0, 2.0*pi } ), MeshInfo::CROSS, 1, 6 );
    SetupPrimitiveStorage               setupStoragePolar( meshInfoPolar, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setMap( setupStoragePolar, std::make_shared< PolarCoordsMap >() );
    std::shared_ptr< PrimitiveStorage > storagePolar = std::make_shared< PrimitiveStorage >( setupStoragePolar );
 
    checkArea< P1BlendingMassOperator >( storagePolar, 3.0 * pi, "P1BlendingMassOperator" );
+   checkArea< P1ElementwiseBlendingMassOperator >( storagePolar, 3.0 * pi, "P1ElementwiseBlendingMassOperator" );
 
    // Test with unit square containing circular hole
-   WALBERLA_LOG_INFO_ON_ROOT( "Testing with BLENDING( SQUARE with CIRCULAR HOLE )" );
+   logSectionHeader( "Testing with BLENDING( SQUARE with CIRCULAR HOLE )" );
    MeshInfo              meshInfoHole = MeshInfo::fromGmshFile( "../../data/meshes/unitsquare_with_circular_hole.msh" );
    SetupPrimitiveStorage setupStorageHole( meshInfoHole, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -190,6 +199,7 @@ int main( int argc, char** argv )
    std::shared_ptr< PrimitiveStorage > storageHole = std::make_shared< PrimitiveStorage >( setupStorageHole );
 
    checkArea< P1BlendingMassOperator >( storageHole, 1.0 - pi / 16.0, "P1BlendingMassOperator", 3 );
+   checkArea< P1ElementwiseBlendingMassOperator >( storageHole, 1.0 - pi / 16.0, "P1ElementwiseBlendingMassOperator", 3 );
 
    return EXIT_SUCCESS;
 }

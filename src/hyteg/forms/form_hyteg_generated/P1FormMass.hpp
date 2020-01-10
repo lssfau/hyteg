@@ -19,11 +19,12 @@
  */
 #pragma once
 
+#include "hyteg/forms/form_hyteg_base/P1FormHyTeG.hpp"
 #include "hyteg/geometry/GeometryMap.hpp"
 
 namespace hyteg {
 
-class P1Form_mass {
+class P1Form_mass : public P1FormHyTeG {
 public:
   void evalQuadraturePoint(const Point3D& x_hat, const std::array<Point3D,3>& coords, const Matrix2r DFinv, real_t w, Point3D& out) const
   {
@@ -38,6 +39,9 @@ public:
 
   void integrate(const std::array<Point3D,3>& coords, Point3D& out) const
   {
+
+     WALBERLA_ASSERT_NOT_NULLPTR( geometryMap_.get() );
+
      Point3D x_hat;
      Point3D x_tilde;
      Matrix2r DFinv;
@@ -48,19 +52,19 @@ public:
      x_hat[1] = 0.16666666666666666;
      x_tilde[0] = 0.666666666666667*coords[0][0] + 0.166666666666667*coords[1][0] + 0.166666666666667*coords[2][0];
      x_tilde[1] = 0.666666666666667*coords[0][1] + 0.166666666666667*coords[1][1] + 0.166666666666667*coords[2][1];
-     geometryMap->evalDFinv(x_tilde, DFinv);
+     geometryMap_->evalDFinv(x_tilde, DFinv);
      evalQuadraturePoint(x_hat, coords, DFinv, 0.16666666666666666, out);
      x_hat[0] = 0.6666666666666666;
      x_hat[1] = 0.16666666666666666;
      x_tilde[0] = 0.166666666666667*coords[0][0] + 0.666666666666667*coords[1][0] + 0.166666666666667*coords[2][0];
      x_tilde[1] = 0.166666666666667*coords[0][1] + 0.666666666666667*coords[1][1] + 0.166666666666667*coords[2][1];
-     geometryMap->evalDFinv(x_tilde, DFinv);
+     geometryMap_->evalDFinv(x_tilde, DFinv);
      evalQuadraturePoint(x_hat, coords, DFinv, 0.16666666666666666, out);
      x_hat[0] = 0.16666666666666666;
      x_hat[1] = 0.6666666666666666;
      x_tilde[0] = 0.166666666666667*coords[0][0] + 0.166666666666667*coords[1][0] + 0.666666666666667*coords[2][0];
      x_tilde[1] = 0.166666666666667*coords[0][1] + 0.166666666666667*coords[1][1] + 0.666666666666667*coords[2][1];
-     geometryMap->evalDFinv(x_tilde, DFinv);
+     geometryMap_->evalDFinv(x_tilde, DFinv);
      evalQuadraturePoint(x_hat, coords, DFinv, 0.16666666666666666, out);
   }
 
