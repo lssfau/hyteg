@@ -47,12 +47,6 @@ using namespace hyteg;
 
 namespace hyteg {
 
-namespace examples {
-
-namespace sines {} // namespace sines
-
-} // namespace examples
-
 class P1JacobiSmoother : public Solver< P1ElementwiseLaplaceOperator >
 {
  public:
