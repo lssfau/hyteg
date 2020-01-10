@@ -1,0 +1,17 @@
+Parameters
+{
+  minLevel 2;
+  maxLevel 5;
+  maxOuterIter 20;
+  maxCoarseIter 10000;
+  mgTolerance 1e-16;
+  // Possible smoother types:
+  // - richardson
+  // - jacobi
+  // - chebyshev
+  smootherType chebyshev;
+  order 4;
+  smoothingSteps 3;
+  coarseTolerance 1e-16;
+  writeCSV true;
+}
