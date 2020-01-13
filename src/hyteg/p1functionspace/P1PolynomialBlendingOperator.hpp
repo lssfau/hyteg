@@ -100,7 +100,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       for ( auto& it : storage_->getFaces() )
       {
          Face& face       = *it.second;
-         form.geometryMap = face.getGeometryMap();
+         form.setGeometryMap( face.getGeometryMap() );
 
          for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
          {
@@ -217,7 +217,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       for ( auto& it : storage_->getFaces() )
       {
          Face& face       = *it.second;
-         form.geometryMap = face.getGeometryMap();
+         form.setGeometryMap( face.getGeometryMap() );
 
          for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
          {
