@@ -174,6 +174,9 @@ def supermuc_scaling():
 
     cube_base_config_fmg["weak_fast"] = cube_base_config_fmg["weak"]
     cube_base_config_fmg["weak_large"] = cube_base_config_fmg["weak"]
+    cube_base_config_fmg["weak_large_3072_27fps"] = cube_base_config_fmg["weak"]
+    cube_base_config_fmg["weak_large_3072_28fps"] = cube_base_config_fmg["weak"]
+    cube_base_config_fmg["weak_large_3072_29fps"] = cube_base_config_fmg["weak"]
 
     node_dep_parameters_cube = {
         "weak": {
