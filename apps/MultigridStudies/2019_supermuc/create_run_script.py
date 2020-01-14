@@ -203,6 +203,15 @@ def supermuc_scaling():
             1536: {"num_faces_per_side": 20},
             3072: {"num_faces_per_side": 26},
         },
+        "weak_large_3072_27fps": {
+            3072: {"num_faces_per_side": 27},
+        },
+        "weak_large_3072_28fps": {
+            3072: {"num_faces_per_side": 28},
+        },
+        "weak_large_3072_29fps": {
+            3072: {"num_faces_per_side": 29},
+        },
         "weak_fast": {
             2: {"num_faces_per_side": 1},
             6: {"num_faces_per_side": 2},
@@ -237,11 +246,11 @@ def supermuc_scaling():
     }
 
     for discretization in ["P2"]:
-        for scaling_type in ["weak", "weak_fast", "weak_large", "strong"]:
+        for scaling_type in ["weak", "weak_fast", "weak_large", "strong", "weak_large_3072_27fps", "weak_large_3072_28fps", "weak_large_3072_29fps"]:
             for coarse_grid_tol in [1e-12]:
                 for coarse_grid_solver_type, coarse_grid_preconditioner_type in [(0, 0), (1, 0), (1, 1), (1, 2)]:
 
-                    if scaling_type == "weak_large":
+                    if "weak_large" in scaling_type:
                         ppn = 24
                     else:
                         ppn = 48
@@ -270,7 +279,7 @@ def supermuc_scaling():
                         prm_string_prm_dict["db_file"] = db_file
 
                         prm_string = supermuc_scaling_prm_file_string(**prm_string_prm_dict)
-                        job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="1:00:00",
+                        job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="0:30:00",
                                                               num_nodes=num_nodes, prm_file=prm_file_name, ppn=ppn)
 
                         with open(prm_file_name, "w") as f:
