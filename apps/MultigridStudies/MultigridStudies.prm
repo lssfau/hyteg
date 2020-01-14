@@ -56,6 +56,7 @@ Parameters
     postDCPostSmoothingSteps 3;
     postDCSmoothingIncrement 2;
 
+    outputBaseDirectory .;
     outputVTK false;
     outputTiming false;
     outputTimingJSON true;

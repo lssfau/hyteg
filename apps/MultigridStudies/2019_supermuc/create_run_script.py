@@ -65,6 +65,7 @@ Parameters
     postDCPostSmoothingSteps 3;
     postDCSmoothingIncrement 2;
 
+    outputBaseDirectory /hppfs/work/pr86ma/di36vuv2;
     outputVTK false;
     outputTiming false;
     outputTimingJSON true;
