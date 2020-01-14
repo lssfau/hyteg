@@ -1381,6 +1381,7 @@ void setup( int argc, char** argv )
    const bool        outputTimingJSON                = mainConf.getParameter< bool >( "outputTimingJSON" );
    const std::string outputTimingJSONFile            = mainConf.getParameter< std::string >( "outputTimingJSONFile" );
    const bool        outputSQL                       = mainConf.getParameter< bool >( "outputSQL" );
+   const bool        outputParallelSQL                       = mainConf.getParameter< bool >( "outputParallelSQL" );
    const std::string outputSQLFile                   = mainConf.getParameter< std::string >( "outputSQLFile" );
    const std::string sqlTag                          = mainConf.getParameter< std::string >( "sqlTag", "default" );
    const uint_t      skipCyclesForAvgConvRate        = mainConf.getParameter< uint_t >( "skipCyclesForAvgConvRate" );
@@ -1452,6 +1453,7 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing JSON:                      " << ( outputTimingJSON ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing JSON file:                 " << outputTimingJSONFile );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output SQL:                              " << ( outputSQL ? "yes" : "no" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - output parallel SQL:                     " << ( outputParallelSQL ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output SQL file:                         " << outputSQLFile );
    WALBERLA_LOG_INFO_ON_ROOT( "  - SQL tag:                                 " << sqlTag );
    WALBERLA_LOG_INFO_ON_ROOT( "  - skip cycles for avg conv rate:           " << skipCyclesForAvgConvRate );
@@ -1834,43 +1836,49 @@ void setup( int argc, char** argv )
          }
       }
 
-      WALBERLA_LOG_INFO_ON_ROOT( "Writing parallel data (e.g. timing trees) ..." )
-
-      storage->getTimingTree()->synchronize();
-      walberla::mpi::broadcastObject( runId );
-
-      const auto rank     = walberla::mpi::MPIManager::instance()->rank();
-      const auto hostname = walberla::getHostName();
-
-      const auto parallelDBFile = dbFile + ".r" + std::to_string( rank ) + ".db";
-
-      std::map< std::string, walberla::int64_t >          sqlIntegerPropertiesParallel;
-      std::map< std::string, double >                     sqlRealPropertiesParallel;
-      std::map< std::string, std::string >                sqlStringPropertiesParallel;
-
-      sqlIntegerPropertiesParallel["rank"] = rank;
-      sqlStringPropertiesParallel["hostname"] = hostname;
-
-      // create subdirectories on root first
-      const int numRanksPerDirectory = 100;
-      const auto parallelDirectoryPrefix = "subdir_from_rank_";
-      WALBERLA_ROOT_SECTION()
+      if ( outputParallelSQL )
       {
-         for ( int p = 0; p < (walberla::mpi::MPIManager::instance()->numProcesses() / numRanksPerDirectory) + 1; p++ )
+         WALBERLA_LOG_INFO_ON_ROOT( "Writing parallel data (e.g. timing trees) ..." )
+
+         storage->getTimingTree()->synchronize();
+         walberla::mpi::broadcastObject( runId );
+
+         const auto rank     = walberla::mpi::MPIManager::instance()->rank();
+         const auto hostname = walberla::getHostName();
+
+         const auto parallelDBFile = dbFile + ".r" + std::to_string( rank ) + ".db";
+
+         std::map< std::string, walberla::int64_t > sqlIntegerPropertiesParallel;
+         std::map< std::string, double >            sqlRealPropertiesParallel;
+         std::map< std::string, std::string >       sqlStringPropertiesParallel;
+
+         sqlIntegerPropertiesParallel["rank"]    = rank;
+         sqlStringPropertiesParallel["hostname"] = hostname;
+
+         // create subdirectories on root first
+         const int  numRanksPerDirectory    = 100;
+         const auto parallelDirectoryPrefix = "subdir_from_rank_";
+         WALBERLA_ROOT_SECTION()
          {
-            walberla::filesystem::create_directory( outputBaseDirectory + "/" + parallelDirectoryPrefix + std::to_string( p * numRanksPerDirectory ) );
+            for ( int p = 0; p < ( walberla::mpi::MPIManager::instance()->numProcesses() / numRanksPerDirectory ) + 1; p++ )
+            {
+               walberla::filesystem::create_directory( outputBaseDirectory + "/" + parallelDirectoryPrefix +
+                                                       std::to_string( p * numRanksPerDirectory ) );
+            }
          }
+         WALBERLA_MPI_BARRIER();
+
+         const auto parallelSubDirectory =
+             parallelDirectoryPrefix + std::to_string( ( rank / numRanksPerDirectory ) * numRanksPerDirectory );
+
+         walberla::sqlite::SQLiteDB dbParallel( outputBaseDirectory + "/" + parallelSubDirectory + "/" + parallelDBFile, 1 );
+
+         dbParallel.storeAdditionalRunInfo(
+             runId, "runs", sqlIntegerPropertiesParallel, sqlStringPropertiesParallel, sqlRealPropertiesParallel );
+         dbParallel.storeTimingTree( runId, *storage->getTimingTree(), "tt" );
+
+         WALBERLA_MPI_BARRIER();
       }
-      WALBERLA_MPI_BARRIER();
-
-      const auto parallelSubDirectory = parallelDirectoryPrefix + std::to_string( (rank / numRanksPerDirectory) * numRanksPerDirectory );
-
-      walberla::sqlite::SQLiteDB dbParallel( outputBaseDirectory + "/" + parallelSubDirectory + "/" + parallelDBFile, 1 );
-
-      dbParallel.storeAdditionalRunInfo( runId, "runs", sqlIntegerPropertiesParallel, sqlStringPropertiesParallel, sqlRealPropertiesParallel );
-      dbParallel.storeTimingTree( runId, *storage->getTimingTree(), "tt" );
-
-      WALBERLA_MPI_BARRIER();
 
       WALBERLA_LOG_INFO_ON_ROOT( "Done writing SQL database." )
    }

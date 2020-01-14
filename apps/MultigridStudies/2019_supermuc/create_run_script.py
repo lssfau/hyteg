@@ -71,6 +71,7 @@ Parameters
     outputTimingJSON true;
     outputTimingJSONFile {timing_file};
     outputSQL true;
+    outputParallelSQL false;
     outputSQLFile {db_file};
 }}
 """.format(discretization=discretization, ntan=ntan, nrad=nrad,
