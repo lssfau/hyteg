@@ -19,18 +19,19 @@
  */
 #pragma once
 
+#include "hyteg/forms/form_hyteg_base/P1FormHyTeG.hpp"
 #include "hyteg/geometry/GeometryMap.hpp"
 
 namespace hyteg {
 
-class P1Form_pspg {
+class P1Form_pspg : P1FormHyTeG {
 public:
   void integrate(const std::array<Point3D,3>& coords, Point3D& out) const
   {
      Point3D x_hat({0.333333333333333, 0.333333333333333});
      Point3D x_tilde({0.333333333333333*coords[0][0] + 0.333333333333333*coords[1][0] + 0.333333333333333*coords[2][0], 0.333333333333333*coords[0][1] + 0.333333333333333*coords[1][1] + 0.333333333333333*coords[2][1]});
      Matrix2r DFinv;
-     geometryMap->evalDFinv(x_tilde, DFinv);
+     geometryMap_->evalDFinv(x_tilde, DFinv);
      real_t tmp0 = coords[0][0] - coords[1][0];
      real_t tmp1 = coords[0][1] - coords[2][1];
      real_t tmp2 = coords[0][0] - coords[2][0];
@@ -49,8 +50,6 @@ public:
      out[1] = -tmp5*(0.1*tmp13*(-tmp11 + tmp12) + 0.1*tmp9*(-tmp7 + tmp8));
      out[2] = tmp5*(0.1*tmp10*tmp13 + 0.1*tmp6*tmp9);
   }
-
-  std::shared_ptr<GeometryMap> geometryMap;
 };
 
 }

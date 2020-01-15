@@ -209,6 +209,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixVectorMultiply2D( const Face&  
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 3 >  dofDataIdx;
+   P1Form form;
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -219,7 +220,8 @@ void P1ElementwiseOperator< P1Form >::localMatrixVectorMultiply2D( const Face&  
    v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
 
    // assemble local element matrix
-   form_.integrateAll( {v0, v1, v2}, elMat );
+   form.setGeometryMap( face.getGeometryMap() );
+   form.integrateAll( {v0, v1, v2}, elMat );
 
    // assemble local element vector
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
@@ -257,7 +259,9 @@ void P1ElementwiseOperator< P1Form >::localMatrixVectorMultiply3D( const Cell&  
 
    // assemble local element matrix
    Matrix4r elMat;
-   form_.integrateAll( coords, elMat );
+   P1Form form;
+   form.setGeometryMap( cell.getGeometryMap() );
+   form.integrateAll( coords, elMat );
 
    // obtain data indices of dofs associated with micro-cell
    std::array< uint_t, 4 > vertexDoFIndices;
@@ -392,6 +396,7 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions2D( const
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 6 >  dofDataIdx;
+   P1Form form;
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -402,7 +407,8 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions2D( const
    v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
 
    // assemble local element matrix
-   form_.integrateAll( {v0, v1, v2}, elMat );
+   form.setGeometryMap( face.getGeometryMap() );
+   form.integrateAll( {v0, v1, v2}, elMat );
 
    // get global indices for local dofs
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
@@ -433,7 +439,9 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions3D( const
 
    // assemble local element matrix
    Matrix4r elMat;
-   form_.integrateAll( coords, elMat );
+   P1Form form;
+   // form.setGeometryMap( cell.getGeometryMap() );
+   form.integrateAll( coords, elMat );
 
    // obtain data indices of dofs associated with micro-cell
    std::array< uint_t, 4 > vertexDoFIndices;
@@ -452,5 +460,8 @@ template class P1ElementwiseOperator<
 
 // P1ElementwiseMassOperator
 template class P1ElementwiseOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >;
+
+// P1ElementwiseBlendingMassOperator
+template class P1ElementwiseOperator< P1Form_mass >;
 
 } // namespace hyteg
