@@ -59,13 +59,13 @@ def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", p
 
 module load slurm_setup
 
-source load_modules.sh
-
-module list
-
 cd ..
 pwd
 ls -lha
+
+source load_modules.sh
+
+module list
 
 #Run the program:
 mpiexec -n $SLURM_NTASKS ./SnoopFilterIssueBenchmark {prm_file}
