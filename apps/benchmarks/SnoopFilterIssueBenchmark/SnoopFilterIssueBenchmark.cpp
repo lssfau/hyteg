@@ -266,11 +266,11 @@ void runBenchmark( uint_t      level,
    // general data to get run ID
 
    uint_t runId = 0;
-   walberla::sqlite::SQLiteDB db( dbFile );
 
    WALBERLA_ROOT_SECTION()
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Writing root SQL data (global run data) ..." )
+      walberla::sqlite::SQLiteDB db( dbFile );
       sqlIntegerProperties["data_point"]       = 0;
       sqlIntegerProperties["num_processes"]    = walberla::mpi::MPIManager::instance()->numProcesses();
       sqlIntegerProperties["outer_iterations"] = static_cast< int >( numOuterSORIterations );
@@ -297,6 +297,7 @@ void runBenchmark( uint_t      level,
 
    WALBERLA_ROOT_SECTION()
    {
+      walberla::sqlite::SQLiteDB db( dbFile );
       while (!rb.isEmpty())
       {
          std::string                          hostname;
