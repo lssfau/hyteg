@@ -17,7 +17,7 @@ Parameters
     return base_config
 
 
-def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", prm_file="parameter_file.prm", num_nodes=1, ppn=48):
+def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", prm_string="parameter_file.prm", num_nodes=1, ppn=48):
 
     def partition(num_nodes):
         if num_nodes <= 16:
@@ -68,9 +68,9 @@ source load_modules.sh
 module list
 
 #Run the program:
-mpiexec -n $SLURM_NTASKS ./SnoopFilterIssueBenchmark {prm_file}
+mpiexec -n $SLURM_NTASKS ./SnoopFilterIssueBenchmark {prm_string}
 
-""".format(job_name=job_name, wall_clock_limit=wall_clock_limit, num_nodes=num_nodes, prm_file=prm_file, partition=partition(num_nodes),
+""".format(job_name=job_name, wall_clock_limit=wall_clock_limit, num_nodes=num_nodes, prm_string=prm_string, partition=partition(num_nodes),
            constraint=constraint, ppn=ppn)
     return base_config
 
@@ -82,25 +82,29 @@ def supermuc_scaling():
 
     ppn = 48
     outer_iterations = 2
-    inner_iterations = 10
-    cells_pp = 2
-    level = 7
+    inner_iterations_list = [1, 10, 100]
+    cells_pp_list = [2, 10]
+    level_list = [6, 7]
 
     for num_nodes in [1, 2, 6, 12, 24, 48, 96, 192, 384, 768, 1536, 3072]:
-        job_name = "snoop_n{}_ppn{}_level{}_cellspp{}_inner{}_outer{}_{}".format(num_nodes, ppn, level, cells_pp, inner_iterations, outer_iterations, some_id)
-        prm_file_name = job_name + ".prm"
-        job_file_name = job_name + ".job"
-        db_file = job_name + ".db"
+        for inner_iterations in inner_iterations_list:
+            for cells_pp in cells_pp_list:
+                for level in level_list:
+                    job_name = "snoop_n{}_ppn{}_level{}_cellspp{}_inner{}_outer{}_{}".format(num_nodes, ppn, level, cells_pp, inner_iterations, outer_iterations, some_id)
+                    prm_file_name = job_name + ".prm"
+                    job_file_name = job_name + ".job"
+                    db_file = job_name + ".csv"
 
-        prm_string = supermuc_scaling_prm_file_string(level=level, num_cells_per_process=cells_pp, num_outer_iterations=outer_iterations,
-                                                      num_inner_iterations=inner_iterations, db_file=os.path.join(some_id, db_file))
-        job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="0:10:00",
-                                              num_nodes=num_nodes, prm_file=os.path.join(some_id, prm_file_name), ppn=ppn)
+                    # prm_string = supermuc_scaling_prm_file_string(level=level, num_cells_per_process=cells_pp, num_outer_iterations=outer_iterations,
+                    #                                               num_inner_iterations=inner_iterations, db_file=os.path.join(some_id, db_file))
+                    prm_string = "{} {} {} {} {}".format(level, cells_pp, outer_iterations, inner_iterations, db_file)
+                    job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="0:10:00",
+                                                          num_nodes=num_nodes, prm_string=prm_string, ppn=ppn)
 
-        with open(os.path.join(some_id, prm_file_name), "w") as f:
-            f.write(prm_string)
-        with open(os.path.join(some_id, job_file_name), "w") as f:
-            f.write(job_string)
+                    # with open(os.path.join(some_id, prm_file_name), "w") as f:
+                        # f.write(prm_string)
+                    with open(os.path.join(some_id, job_file_name), "w") as f:
+                        f.write(job_string)
 
 if __name__ == "__main__":
     supermuc_scaling()

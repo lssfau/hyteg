@@ -4,5 +4,5 @@ Parameters
     numCellPerProcess 2;
     numOuterSORIterations 2;
     numInnerSORIterations 10;
-    dbFile database.db;
+    dbFile database.csv;
 }

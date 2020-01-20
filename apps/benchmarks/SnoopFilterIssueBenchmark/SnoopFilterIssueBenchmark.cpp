@@ -53,15 +53,19 @@ void runBenchmark( uint_t      level,
                    uint_t      numInnerSORIterations,
                    const std::string & dbFile )
 {
+   WALBERLA_LOG_INFO_ON_ROOT("")
+
    printGitInfo();
 
+   const uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
+
    WALBERLA_LOG_INFO_ON_ROOT( "Parameters:" )
+   WALBERLA_LOG_INFO_ON_ROOT( "  - num processes:    " << numProcesses )
    WALBERLA_LOG_INFO_ON_ROOT( "  - level:            " << level )
    WALBERLA_LOG_INFO_ON_ROOT( "  - cells / process:  " << numCellsPerProcess )
    WALBERLA_LOG_INFO_ON_ROOT( "  - outer iterations: " << numOuterSORIterations )
    WALBERLA_LOG_INFO_ON_ROOT( "  - inner iterations: " << numInnerSORIterations )
    WALBERLA_LOG_INFO_ON_ROOT( "")
-   const uint_t numProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
    const auto nx = ( ( numCellsPerProcess * numProcesses ) / 6 ) + 1;
 
@@ -75,8 +79,6 @@ void runBenchmark( uint_t      level,
    P2Function< real_t > p2Src( "x", storage, level, level );
    P2Function< real_t > p2Dst( "x", storage, level, level );
 
-   printFunctionAllocationInfo( *storage );
-   WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    std::function< real_t( const hyteg::Point3D& ) > someFunction = []( const hyteg::Point3D& x ) {
       return cos( walberla::math::pi * x[0] ) - sin( 2.0 * walberla::math::pi * x[1] ) + cos( 2.0 * walberla::math::pi * x[2] );
@@ -87,15 +89,15 @@ void runBenchmark( uint_t      level,
 
    const auto numTotalVertexDoFsPerCell = levelinfo::num_microvertices_per_cell( level );
    const auto numTotalEdgeDoFsPerCell   = levelinfo::num_microedges_per_cell( level );
-   WALBERLA_LOG_INFO_ON_ROOT( "Number of TOTAL DoFs / cell:" )
-   WALBERLA_LOG_INFO_ON_ROOT( " - vertex: " << numTotalVertexDoFsPerCell << " (" << static_cast< double >( numTotalVertexDoFsPerCell ) * 8. / 1000000. << " MB / cell)" );
-   WALBERLA_LOG_INFO_ON_ROOT( " - edge:   " << numTotalEdgeDoFsPerCell << " (" << static_cast< double >( numTotalEdgeDoFsPerCell )  * 8. / 1000000. << " MB / cell)" );
-   WALBERLA_LOG_INFO_ON_ROOT( " - all:    " << numTotalVertexDoFsPerCell + numTotalEdgeDoFsPerCell << " (" << static_cast< double >(numTotalVertexDoFsPerCell + numTotalEdgeDoFsPerCell) * 8. / 1000000. << " MB / cell)" );
-   const auto numInnerVertexDoFsPerCell = numberOfInnerDoFs< P1FunctionTag, Cell >( level );
-   const auto numInnerEdgeDoFsPerCell   = numberOfInnerDoFs< EdgeDoFFunctionTag, Cell >( level );
-   WALBERLA_LOG_INFO_ON_ROOT( "Number of INNER DoFs / cell:" )
-   WALBERLA_LOG_INFO_ON_ROOT( " - vertex: " << numInnerVertexDoFsPerCell );
-   WALBERLA_LOG_INFO_ON_ROOT( " - edge:   " << numInnerEdgeDoFsPerCell );
+   WALBERLA_LOG_INFO_ON_ROOT( "Number of TOTAL DoFs / cell: " << numTotalVertexDoFsPerCell + numTotalEdgeDoFsPerCell << " (" << static_cast< double >(numTotalVertexDoFsPerCell + numTotalEdgeDoFsPerCell) * 8. / 1000000. << " MB / cell)" )
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
+   // WALBERLA_LOG_INFO_ON_ROOT( " - vertex: " << numTotalVertexDoFsPerCell << " (" << static_cast< double >( numTotalVertexDoFsPerCell ) * 8. / 1000000. << " MB / cell)" );
+   // WALBERLA_LOG_INFO_ON_ROOT( " - edge:   " << numTotalEdgeDoFsPerCell << " (" << static_cast< double >( numTotalEdgeDoFsPerCell )  * 8. / 1000000. << " MB / cell)" );
+//   const auto numInnerVertexDoFsPerCell = numberOfInnerDoFs< P1FunctionTag, Cell >( level );
+//   const auto numInnerEdgeDoFsPerCell   = numberOfInnerDoFs< EdgeDoFFunctionTag, Cell >( level );
+//   WALBERLA_LOG_INFO_ON_ROOT( "Number of INNER DoFs / cell:" )
+//   WALBERLA_LOG_INFO_ON_ROOT( " - vertex: " << numInnerVertexDoFsPerCell );
+//   WALBERLA_LOG_INFO_ON_ROOT( " - edge:   " << numInnerEdgeDoFsPerCell );
 
    P2ConstantLaplaceOperator p2Operator( storage, level, level );
 
@@ -105,6 +107,9 @@ void runBenchmark( uint_t      level,
    {
       sorTimings[id] = std::vector< double >( numOuterSORIterations );
    }
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Running benchmark ..." );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    for ( uint_t cellID = 0; cellID < numCellsPerProcess; cellID++ )
    {
@@ -265,27 +270,6 @@ void runBenchmark( uint_t      level,
 
    // general data to get run ID
 
-   uint_t runId = 0;
-
-   WALBERLA_ROOT_SECTION()
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "Writing root SQL data (global run data) ..." )
-      walberla::sqlite::SQLiteDB db( dbFile );
-      sqlIntegerProperties["data_point"]       = 0;
-      sqlIntegerProperties["num_processes"]    = walberla::mpi::MPIManager::instance()->numProcesses();
-      sqlIntegerProperties["outer_iterations"] = static_cast< int >( numOuterSORIterations );
-      sqlIntegerProperties["inner_iterations"] = static_cast< int >( numInnerSORIterations );
-      sqlIntegerProperties["cell_per_process"] = static_cast< int >( numCellsPerProcess );
-      sqlIntegerProperties["level"] = static_cast< int >( level );
-      sqlIntegerProperties["dofs_per_cell"] = static_cast< int >( numTotalVertexDoFsPerCell + numTotalEdgeDoFsPerCell );
-
-      runId = db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
-
-      WALBERLA_LOG_INFO_ON_ROOT( "Run ID (for database): " << runId );
-
-      sqlIntegerProperties.clear();
-   }
-
    walberla::mpi::SendBuffer sb;
    walberla::mpi::RecvBuffer rb;
 
@@ -293,37 +277,132 @@ void runBenchmark( uint_t      level,
    sb << walberla::mpi::MPIManager::instance()->rank();
    sb << sorTimings;
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Gathering data ..." )
    walberla::mpi::gathervBuffer(sb, rb);
 
    WALBERLA_ROOT_SECTION()
    {
-      walberla::sqlite::SQLiteDB db( dbFile );
+
+      std::stringstream myfile;
+
+      // header
+
+      myfile << "data_point,";
+      myfile << "num_processes,";
+      myfile << "outer_iterations,";
+      myfile << "inner_iterations,";
+      myfile << "cell_per_process,";
+      myfile << "level,";
+      myfile << "dofs_per_cell,";
+
+      myfile << "hostname,";
+      myfile << "rank,";
+      myfile << "outer_iteration,";
+      myfile << "cell_id,";
+      myfile << "time\n";
+
+      // global data
+
+      myfile << 0 << ",";
+      myfile << walberla::mpi::MPIManager::instance()->numProcesses() << ",";
+      myfile << numOuterSORIterations << ",";
+      myfile << numInnerSORIterations << ",";
+      myfile << numCellsPerProcess << ",";
+      myfile << level << ",";
+      myfile << numTotalVertexDoFsPerCell + numTotalEdgeDoFsPerCell << ",";
+
+      myfile << ",";
+      myfile << ",";
+      myfile << ",";
+      myfile << ",";
+      myfile << "\n";
+
+      std::vector< std::vector< std::vector< double > > > sorTimingsRecv( numProcesses );
+
       while (!rb.isEmpty())
       {
          std::string                          hostname;
          int                                  rank;
-         std::vector< std::vector< double > > sorTimingsRecv;
 
          rb >> hostname;
          rb >> rank;
-         rb >> sorTimingsRecv;
-
-         sqlStringProperties["hostname"] = hostname;
-         sqlIntegerProperties["rank"]    = rank;
-         sqlIntegerProperties["data_point"]    = 1;
-         sqlIntegerProperties["runId_parent"]  = static_cast< int >( runId );
+         rb >> sorTimingsRecv[uint_c(rank)];
 
          for ( uint_t id = 0; id < numCellsPerProcess; id++ )
          {
             for ( uint_t i = 0; i < numOuterSORIterations; i++ )
             {
-               sqlIntegerProperties["outer_iteration"] = static_cast< int >( i );
-               sqlIntegerProperties["cell_id"]         = static_cast< int >( id );
-               sqlRealProperties["time"]               = sorTimingsRecv[id][i];
-               db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
+               myfile << 1 << ",";
+               myfile << ",";
+               myfile << ",";
+               myfile << ",";
+               myfile << ",";
+               myfile << ",";
+               myfile << ",";
+
+               myfile << hostname << ",";
+               myfile << rank << ",";
+               myfile << i << ",";
+               myfile << id << ",";
+               myfile << sorTimingsRecv[uint_c(rank)][id][i] << "\n";
             }
          }
       }
+
+      double min = std::numeric_limits< real_t >::max();
+      double max = 0;
+      double avg = 0;
+      double maxDiff = 0;
+      uint_t maxDiffCellID = 0;
+      uint_t maxDiffIteration = 0;
+
+      for ( uint_t id = 0; id < numCellsPerProcess; id++ )
+      {
+         for ( uint_t i = 0; i < numOuterSORIterations; i++ )
+         {
+            double itMin = std::numeric_limits< real_t >::max();
+            double itMax = 0;
+            double itSum = 0;
+            for ( uint_t r = 0; r < uint_c(numProcesses); r++ )
+            {
+               const double time = sorTimingsRecv[uint_c(r)][id][i];
+               if (itMin > time)
+                  itMin = time;
+               if (itMax < time)
+                  itMax = time;
+               itSum += time;
+            }
+
+            double itAvg = itSum / static_cast< double >( numProcesses );
+            double itDiff = itMax - itAvg;
+
+            if ( maxDiff <= itDiff )
+            {
+               maxDiff = itDiff;
+               avg = itAvg;
+               max = itMax;
+               min = itMin;
+               maxDiffCellID = id;
+               maxDiffIteration = i;
+            }
+         }
+      }
+
+      WALBERLA_LOG_INFO_ON_ROOT( "Measurement with largest difference (max(rank) - average(all ranks)):" )
+      WALBERLA_LOG_INFO_ON_ROOT( " - min:             " << min );
+      WALBERLA_LOG_INFO_ON_ROOT( " - max:             " << max );
+      WALBERLA_LOG_INFO_ON_ROOT( " - avg:             " << avg );
+      WALBERLA_LOG_INFO_ON_ROOT( " - max - avg:       " << max - avg << " (" << (maxDiff / avg) * 100. << "% of average)" );
+      WALBERLA_LOG_INFO_ON_ROOT( " - cell ID:         " << maxDiffCellID );
+      WALBERLA_LOG_INFO_ON_ROOT( " - outer iteration: " << maxDiffIteration );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "" )
+      WALBERLA_LOG_INFO_ON_ROOT( "Writing root data (global run data) ..." )
+
+      std::ofstream outputFile;
+      outputFile.open(dbFile);
+      outputFile << myfile.str();
+      outputFile.close();
    }
 }
 
@@ -332,26 +411,57 @@ void runBenchmark( uint_t      level,
 
 int main( int argc, char** argv )
 {
-   walberla::Environment env( argc, argv );
+   // walberla::Environment env( argc, argv );
+   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   auto cfg = std::make_shared< walberla::config::Config >();
-   if ( env.config() == nullptr )
+//   auto cfg = std::make_shared< walberla::config::Config >();
+//   if ( env.config() == nullptr )
+//   {
+//      auto defaultFile = "./parameters.prm";
+//      cfg->readParameterFile( defaultFile );
+//   }
+//   else
+//   {
+//      cfg = env.config();
+//   }
+
+   uint_t level, numCellsPerProcess, numOuterSORIterations, numInnerSORIterations;
+   std::string outputFile;
+
+   WALBERLA_LOG_INFO_ON_ROOT("Parallel SOR benchmark.")
+   WALBERLA_LOG_INFO_ON_ROOT("Performs stencil-based SOR iterations on structured refined tetrahedral domains.")
+
+   if ( argc != 6 )
    {
-      auto defaultFile = "./parameters.prm";
-      cfg->readParameterFile( defaultFile );
+      WALBERLA_LOG_INFO_ON_ROOT("")
+      WALBERLA_LOG_INFO_ON_ROOT("Usage:")
+      WALBERLA_LOG_INFO_ON_ROOT("    ./SnoopFilterIssueBenchmark <level> <numCellsPerProcess> <numOuterIterations> <numInnerIterations> <outputFile.csv>")
+      WALBERLA_LOG_INFO_ON_ROOT("")
+      WALBERLA_LOG_INFO_ON_ROOT("Parameters:")
+      WALBERLA_LOG_INFO_ON_ROOT(" - level:                 refinement level of the tet (6 or 7 should be used for fields of size ~3MB and ~20MB)")
+      WALBERLA_LOG_INFO_ON_ROOT(" - numCellsPerProcess:    number of different tetrahedrons to process (to vary the memory addresses, each tetrahedron is measured individually)")
+      WALBERLA_LOG_INFO_ON_ROOT(" - numOuterSORIterations: number of measured iterations per tetrahedron")
+      WALBERLA_LOG_INFO_ON_ROOT(" - numInnerSORIterations: number of relaxation iterations performed per measurement/outer iteration")
+      WALBERLA_LOG_INFO_ON_ROOT(" - outputFile.csv:        file to output the detailed measurements per rank, cell and outer iteration")
+      return EXIT_SUCCESS;
    }
    else
    {
-      cfg = env.config();
+      level = walberla::uint_c(std::atoi( argv[1] ));
+      numCellsPerProcess = walberla::uint_c(std::atoi( argv[2] ));
+      numOuterSORIterations = walberla::uint_c(std::atoi( argv[3] ));
+      numInnerSORIterations = walberla::uint_c(std::atoi( argv[4] ));
+      outputFile = std::string( argv[5] );
    }
 
-   const walberla::Config::BlockHandle mainConf              = cfg->getBlock( "Parameters" );
-   const uint_t                        level                 = mainConf.getParameter< uint_t >( "level" );
-   const uint_t                        numCellPerProcess     = mainConf.getParameter< uint_t >( "numCellPerProcess" );
-   const uint_t                        numOuterSORIterations = mainConf.getParameter< uint_t >( "numOuterSORIterations" );
-   const uint_t                        numInnerSORIterations = mainConf.getParameter< uint_t >( "numInnerSORIterations" );
-   const std::string                   dbFile                = mainConf.getParameter< std::string >( "dbFile" );
 
-   hyteg::runBenchmark( level, numCellPerProcess, numOuterSORIterations, numInnerSORIterations, dbFile );
+//   const walberla::Config::BlockHandle mainConf              = cfg->getBlock( "Parameters" );
+//   const uint_t                        level                 = mainConf.getParameter< uint_t >( "level" );
+//   const uint_t                        numCellPerProcess     = mainConf.getParameter< uint_t >( "numCellsPerProcess" );
+//   const uint_t                        numOuterSORIterations = mainConf.getParameter< uint_t >( "numOuterSORIterations" );
+//   const uint_t                        numInnerSORIterations = mainConf.getParameter< uint_t >( "numInnerSORIterations" );
+//   const std::string                   dbFile                = mainConf.getParameter< std::string >( "dbFile" );
+
+   hyteg::runBenchmark( level, numCellsPerProcess, numOuterSORIterations, numInnerSORIterations, outputFile );
 }
