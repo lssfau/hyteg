@@ -36,6 +36,7 @@
 #include "hyteg/p2functionspace/generatedKernels/all.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitives/Cell.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -58,7 +59,14 @@ enum KernelType
 
    SOR_P1_V,
    SOR_P2_V,
-   SOR_P2_E
+   SOR_P2_E_ALL,
+   SOR_P2_E_X,
+   SOR_P2_E_Y,
+   SOR_P2_E_Z,
+   SOR_P2_E_XY,
+   SOR_P2_E_XZ,
+   SOR_P2_E_YZ,
+   SOR_P2_E_XYZ
 };
 
 const std::map< std::string, KernelType > strToKernelType = {
@@ -76,7 +84,14 @@ const std::map< std::string, KernelType > strToKernelType = {
 
     {"SOR_P1_V", SOR_P1_V},
     {"SOR_P2_V", SOR_P2_V},
-    {"SOR_P2_E", SOR_P2_E},
+    {"SOR_P2_E_ALL", SOR_P2_E_ALL},
+    {"SOR_P2_E_X", SOR_P2_E_X},
+    {"SOR_P2_E_Y", SOR_P2_E_Y},
+    {"SOR_P2_E_Z", SOR_P2_E_Z},
+    {"SOR_P2_E_XY", SOR_P2_E_XY},
+    {"SOR_P2_E_XZ", SOR_P2_E_XZ},
+    {"SOR_P2_E_YZ", SOR_P2_E_YZ},
+    {"SOR_P2_E_XYZ", SOR_P2_E_XYZ},
 };
 
 const std::map< KernelType, std::string > kernelTypeToString = {
@@ -94,7 +109,14 @@ const std::map< KernelType, std::string > kernelTypeToString = {
 
     {SOR_P1_V, "SOR_P1_V"},
     {SOR_P2_V, "SOR_P2_V"},
-    {SOR_P2_E, "SOR_P2_E"},
+    {SOR_P2_E_ALL, "SOR_P2_E_ALL"},
+    {SOR_P2_E_X, "SOR_P2_E_X"},
+    {SOR_P2_E_Y, "SOR_P2_E_Y"},
+    {SOR_P2_E_Z, "SOR_P2_E_Z"},
+    {SOR_P2_E_XY, "SOR_P2_E_XY"},
+    {SOR_P2_E_XZ, "SOR_P2_E_XZ"},
+    {SOR_P2_E_YZ, "SOR_P2_E_YZ"},
+    {SOR_P2_E_XYZ, "SOR_P2_E_XYZ"},
 };
 
 void printArithmeticIntensity( KernelType kernelType )
@@ -193,13 +215,16 @@ void printArithmeticIntensity( KernelType kernelType )
       writesDst   = 1;
       break;
 
-   case SOR_P2_E:
+   case SOR_P2_E_ALL:
       adds        = 25 * 4 + 17 * 3 + 7;
       mults       = 26 * 4 + 18 * 3 + 7 + 7;
       loadsSrcAll = 27 * 4 + 19 * 3 + 7;
       loadsSrcMin = 8;
       loadsDst    = 0;
       writesDst   = 1;
+      break;
+   default:
+      loadsDst = 1;
       break;
    }
 
@@ -245,10 +270,15 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
       return cos( walberla::math::pi * x[0] ) - sin( 2.0 * walberla::math::pi * x[1] ) + cos( 2.0 * walberla::math::pi * x[2] );
    };
 
-   WALBERLA_LOG_INFO_ON_ROOT( "alsdfkn" )
+   const auto numInnerVertexDoFsPerCell = numberOfInnerDoFs< P1FunctionTag, Cell >( level );
+   const auto numInnerEdgeDoFsPerCell = numberOfInnerDoFs< EdgeDoFFunctionTag, Cell >( level );
+   WALBERLA_LOG_INFO_ON_ROOT( "Number of inner DoFs / cell:" )
+   WALBERLA_LOG_INFO_ON_ROOT(  " - vertex: " << numInnerVertexDoFsPerCell );
+   WALBERLA_LOG_INFO_ON_ROOT(  " - edge:   " << numInnerEdgeDoFsPerCell );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Interpolating ..." )
    p2Src.interpolate( someFunction, level );
    p2Dst.interpolate( someFunction, level );
-   WALBERLA_LOG_INFO_ON_ROOT( "sssss" )
 
    P2ConstantLaplaceOperator p2Operator( storage, level, level );
 
@@ -286,7 +316,7 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
    /////////////////////
    // Apply benchmark //
    /////////////////////
-
+   WALBERLA_LOG_INFO_ON_ROOT( "Starting benchmark ..." )
    uint_t chunk = 0;
    while ( timer.total() < iterationMinTime )
    {
@@ -464,7 +494,7 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
          }
          break;
 
-      case SOR_P2_E:
+      case SOR_P2_E_ALL:
          for ( uint_t i = 0; i < chunkSize; i++ )
          {
            const real_t relax = 1.1;
@@ -565,6 +595,167 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
          }
          break;
 
+      case SOR_P2_E_X:
+         for ( uint_t i = 0; i < chunkSize; i++ )
+         {
+            const real_t relax = 1.1;
+            P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_X( &e_dst_data[firstEdgeIdx[eo::X]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::XY]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::XYZ]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::XZ]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::Y]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::YZ]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::Z]],
+                                                                                     &e_rhs_data[firstEdgeIdx[eo::X]],
+                                                                                     v_dst_data,
+                                                                                     e2e_opr_data,
+                                                                                     static_cast< int32_t >( level ),
+                                                                                     relax,
+                                                                                     v2e_opr_data );
+            hyteg::misc::dummy( e_dst_data );
+            hyteg::misc::dummy( v_dst_data );
+            hyteg::misc::dummy( e_rhs_data );
+         }
+         break;
+
+      case SOR_P2_E_Y:
+         for ( uint_t i = 0; i < chunkSize; i++ )
+         {
+            const real_t relax = 1.1;
+            P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_Y( &e_dst_data[firstEdgeIdx[eo::X]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::XY]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::XYZ]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::XZ]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::Y]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::YZ]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::Z]],
+                                                                                     &e_rhs_data[firstEdgeIdx[eo::Y]],
+                                                                                     v_dst_data,
+                                                                                     e2e_opr_data,
+                                                                                     static_cast< int32_t >( level ),
+                                                                                     relax,
+                                                                                     v2e_opr_data );
+            hyteg::misc::dummy( e_dst_data );
+            hyteg::misc::dummy( v_dst_data );
+            hyteg::misc::dummy( e_rhs_data );
+         }
+         break;
+
+      case SOR_P2_E_Z:
+         for ( uint_t i = 0; i < chunkSize; i++ )
+         {
+            const real_t relax = 1.1;
+            P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_Z( &e_dst_data[firstEdgeIdx[eo::X]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::XY]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::XYZ]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::XZ]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::Y]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::YZ]],
+                                                                                     &e_dst_data[firstEdgeIdx[eo::Z]],
+                                                                                     &e_rhs_data[firstEdgeIdx[eo::Z]],
+                                                                                     v_dst_data,
+                                                                                     e2e_opr_data,
+                                                                                     static_cast< int32_t >( level ),
+                                                                                     relax,
+                                                                                     v2e_opr_data );
+            hyteg::misc::dummy( e_dst_data );
+            hyteg::misc::dummy( v_dst_data );
+            hyteg::misc::dummy( e_rhs_data );
+         }
+         break;
+
+      case SOR_P2_E_XY:
+         for ( uint_t i = 0; i < chunkSize; i++ )
+         {
+            const real_t relax = 1.1;
+            P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_XY( &e_dst_data[firstEdgeIdx[eo::X]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::XY]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::XYZ]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::XZ]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::Y]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::YZ]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::Z]],
+                                                                                      &e_rhs_data[firstEdgeIdx[eo::XY]],
+                                                                                      v_dst_data,
+                                                                                      e2e_opr_data,
+                                                                                      static_cast< int32_t >( level ),
+                                                                                      relax,
+                                                                                      v2e_opr_data );
+            hyteg::misc::dummy( e_dst_data );
+            hyteg::misc::dummy( v_dst_data );
+            hyteg::misc::dummy( e_rhs_data );
+         }
+         break;
+
+      case SOR_P2_E_XZ:
+         for ( uint_t i = 0; i < chunkSize; i++ )
+         {
+            const real_t relax = 1.1;
+            P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_XZ( &e_dst_data[firstEdgeIdx[eo::X]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::XY]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::XYZ]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::XZ]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::Y]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::YZ]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::Z]],
+                                                                                      &e_rhs_data[firstEdgeIdx[eo::XZ]],
+                                                                                      v_dst_data,
+                                                                                      e2e_opr_data,
+                                                                                      static_cast< int32_t >( level ),
+                                                                                      relax,
+                                                                                      v2e_opr_data );
+            hyteg::misc::dummy( e_dst_data );
+            hyteg::misc::dummy( v_dst_data );
+            hyteg::misc::dummy( e_rhs_data );
+         }
+         break;
+
+      case SOR_P2_E_YZ:
+         for ( uint_t i = 0; i < chunkSize; i++ )
+         {
+            const real_t relax = 1.1;
+            P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_YZ( &e_dst_data[firstEdgeIdx[eo::X]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::XY]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::XYZ]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::XZ]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::Y]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::YZ]],
+                                                                                      &e_dst_data[firstEdgeIdx[eo::Z]],
+                                                                                      &e_rhs_data[firstEdgeIdx[eo::YZ]],
+                                                                                      v_dst_data,
+                                                                                      e2e_opr_data,
+                                                                                      static_cast< int32_t >( level ),
+                                                                                      relax,
+                                                                                      v2e_opr_data );
+            hyteg::misc::dummy( e_dst_data );
+            hyteg::misc::dummy( v_dst_data );
+            hyteg::misc::dummy( e_rhs_data );
+         }
+         break;
+
+      case SOR_P2_E_XYZ:
+         for ( uint_t i = 0; i < chunkSize; i++ )
+         {
+            const real_t relax = 1.1;
+            P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_XYZ( &e_dst_data[firstEdgeIdx[eo::X]],
+                                                                                       &e_dst_data[firstEdgeIdx[eo::XY]],
+                                                                                       &e_dst_data[firstEdgeIdx[eo::XYZ]],
+                                                                                       &e_dst_data[firstEdgeIdx[eo::XZ]],
+                                                                                       &e_dst_data[firstEdgeIdx[eo::Y]],
+                                                                                       &e_dst_data[firstEdgeIdx[eo::YZ]],
+                                                                                       &e_dst_data[firstEdgeIdx[eo::Z]],
+                                                                                       &e_rhs_data[firstEdgeIdx[eo::XYZ]],
+                                                                                       v_dst_data,
+                                                                                       e2e_opr_data,
+                                                                                       static_cast< int32_t >( level ),
+                                                                                       relax,
+                                                                                       v2e_opr_data );
+            hyteg::misc::dummy( e_dst_data );
+            hyteg::misc::dummy( v_dst_data );
+            hyteg::misc::dummy( e_rhs_data );
+         }
+         break;
+
       default:
          WALBERLA_ABORT( "Kernel type not implemented." );
          break;
@@ -578,7 +769,12 @@ void runBenchmark( uint_t level, real_t iterationMinTime, uint_t chunkSize, Kern
 
    LIKWID_MARKER_CLOSE;
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Total number of iterations: " << chunk * chunkSize << ", total time: " << timer.total() << "sec" );
+   const auto numIterations = chunk * chunkSize;
+   const auto totalTime = timer.total();
+   const auto avgTimePerIteration = totalTime / real_c( numIterations );
+   WALBERLA_LOG_INFO_ON_ROOT( "Total number of iterations: " << numIterations )
+   WALBERLA_LOG_INFO_ON_ROOT( "Total time:                 " << totalTime << " s" )
+   WALBERLA_LOG_INFO_ON_ROOT( "Avg. time per iteration:    " << avgTimePerIteration << " s" )
 }
 } // namespace hyteg
 int main( int argc, char** argv )

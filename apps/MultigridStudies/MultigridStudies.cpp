@@ -22,6 +22,7 @@
 #include "core/config/Config.h"
 #include "core/math/Constants.h"
 #include "core/timing/TimingJSON.h"
+#include "core/Hostname.h"
 
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
@@ -1374,11 +1375,13 @@ void setup( int argc, char** argv )
    const real_t      coarseGridResidualTolerance     = mainConf.getParameter< real_t >( "coarseGridResidualTolerance" );
    const uint_t      coarseGridSolverType            = mainConf.getParameter< uint_t >( "coarseGridSolverType" );
    const uint_t      coarseGridSolverVelocityPreconditionerType = mainConf.getParameter< uint_t >( "coarseGridSolverVelocityPreconditionerType" );
+   const std::string outputBaseDirectory             = mainConf.getParameter< std::string >( "outputBaseDirectory" );
    const bool        outputVTK                       = mainConf.getParameter< bool >( "outputVTK" );
    const bool        outputTiming                    = mainConf.getParameter< bool >( "outputTiming" );
    const bool        outputTimingJSON                = mainConf.getParameter< bool >( "outputTimingJSON" );
    const std::string outputTimingJSONFile            = mainConf.getParameter< std::string >( "outputTimingJSONFile" );
    const bool        outputSQL                       = mainConf.getParameter< bool >( "outputSQL" );
+   const bool        outputParallelSQL                       = mainConf.getParameter< bool >( "outputParallelSQL" );
    const std::string outputSQLFile                   = mainConf.getParameter< std::string >( "outputSQLFile" );
    const std::string sqlTag                          = mainConf.getParameter< std::string >( "sqlTag", "default" );
    const uint_t      skipCyclesForAvgConvRate        = mainConf.getParameter< uint_t >( "skipCyclesForAvgConvRate" );
@@ -1444,11 +1447,13 @@ void setup( int argc, char** argv )
 
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid solver type (stokes only):   " << coarseGridSolverType );
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid u prec. type (stokes only):  " << coarseGridSolverVelocityPreconditionerType );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - output base directory:                   " << outputBaseDirectory );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output VTK:                              " << ( outputVTK ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing:                           " << ( outputTiming ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing JSON:                      " << ( outputTimingJSON ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing JSON file:                 " << outputTimingJSONFile );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output SQL:                              " << ( outputSQL ? "yes" : "no" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - output parallel SQL:                     " << ( outputParallelSQL ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output SQL file:                         " << outputSQLFile );
    WALBERLA_LOG_INFO_ON_ROOT( "  - SQL tag:                                 " << sqlTag );
    WALBERLA_LOG_INFO_ON_ROOT( "  - skip cycles for avg conv rate:           " << skipCyclesForAvgConvRate );
@@ -1644,7 +1649,7 @@ void setup( int argc, char** argv )
 
    if ( outputVTK )
    {
-      writeDomainPartitioningVTK( storage, "vtk", "Domain" );
+      writeDomainPartitioningVTK( storage, "vtk", outputBaseDirectory + "/Domain" );
    }
 
    auto globalInfo = storage->getGlobalInfo();
@@ -1807,13 +1812,16 @@ void setup( int argc, char** argv )
 
    if ( outputSQL )
    {
+      WALBERLA_LOG_INFO_ON_ROOT( "Writing SQL database to " << outputSQLFile )
+
+      const std::string          dbFile = outputSQLFile;
+
       WALBERLA_ROOT_SECTION()
       {
-         WALBERLA_LOG_INFO_ON_ROOT( "Writing SQL database to " << outputSQLFile )
-         const std::string                  dbFile = outputSQLFile;
-         walberla::sqlite::SQLiteDB db( dbFile );
+         WALBERLA_LOG_INFO_ON_ROOT( "Writing root SQL data (global run data) ..." )
+         walberla::sqlite::SQLiteDB db( dbFile, 1 );
          sqlIntegerProperties["conv_table_for_run"] = -1;
-         auto runId                                 = db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
+         uint_t runId                                      = db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
          for ( uint_t cycle = 0; cycle <= numCycles; cycle++ )
          {
             if ( sqlRealPropertiesMG.count( cycle ) > 0 )
@@ -1824,8 +1832,54 @@ void setup( int argc, char** argv )
                db.storeRun( runIdMap, std::map< std::string, std::string >(), sqlRealPropertiesMG[cycle] );
             }
          }
-         WALBERLA_LOG_INFO_ON_ROOT( "Done writing SQL database." )
       }
+
+      if ( outputParallelSQL )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Writing parallel data (e.g. timing trees) ..." )
+
+         storage->getTimingTree()->synchronize();
+         uint_t runId = 0;
+         walberla::mpi::broadcastObject( runId );
+
+         const auto rank     = walberla::mpi::MPIManager::instance()->rank();
+         const auto hostname = walberla::getHostName();
+
+         const auto parallelDBFile = dbFile + ".r" + std::to_string( rank ) + ".db";
+
+         std::map< std::string, walberla::int64_t > sqlIntegerPropertiesParallel;
+         std::map< std::string, double >            sqlRealPropertiesParallel;
+         std::map< std::string, std::string >       sqlStringPropertiesParallel;
+
+         sqlIntegerPropertiesParallel["rank"]    = rank;
+         sqlStringPropertiesParallel["hostname"] = hostname;
+
+         // create subdirectories on root first
+         const int  numRanksPerDirectory    = 100;
+         const auto parallelDirectoryPrefix = "subdir_from_rank_";
+         WALBERLA_ROOT_SECTION()
+         {
+            for ( int p = 0; p < ( walberla::mpi::MPIManager::instance()->numProcesses() / numRanksPerDirectory ) + 1; p++ )
+            {
+               walberla::filesystem::create_directory( outputBaseDirectory + "/" + parallelDirectoryPrefix +
+                                                       std::to_string( p * numRanksPerDirectory ) );
+            }
+         }
+         WALBERLA_MPI_BARRIER();
+
+         const auto parallelSubDirectory =
+             parallelDirectoryPrefix + std::to_string( ( rank / numRanksPerDirectory ) * numRanksPerDirectory );
+
+         walberla::sqlite::SQLiteDB dbParallel( outputBaseDirectory + "/" + parallelSubDirectory + "/" + parallelDBFile, 1 );
+
+         dbParallel.storeAdditionalRunInfo(
+             runId, "runs", sqlIntegerPropertiesParallel, sqlStringPropertiesParallel, sqlRealPropertiesParallel );
+         dbParallel.storeTimingTree( runId, *storage->getTimingTree(), "tt" );
+
+         WALBERLA_MPI_BARRIER();
+      }
+
+      WALBERLA_LOG_INFO_ON_ROOT( "Done writing SQL database." )
    }
 
    LIKWID_MARKER_CLOSE;
