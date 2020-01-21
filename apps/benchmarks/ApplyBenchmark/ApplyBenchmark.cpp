@@ -103,7 +103,7 @@ static walberla::WcTimingTree runbenchmark( const uint_t& level, const uint_t& f
    const real_t glups           = real_c( globalInnerDoFs * iterations ) / 1e9 / hyteg_apply;
    const real_t gflops          = real_c( globalInnerDoFs * iterations * flopsPerIter ) / 1e9 / hyteg_apply;
 
-   WALBERLA_LOG_INFO_ON_ROOT( hyteg::format( "%10.3e|%10.3e|%10.3e|%10.3e|%5u|%5u|%7u",
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%10.3e|%10.3e|%10.3e|%10.3e|%5u|%5u|%7u",
                                            hyteg_apply,
                                            glups,
                                            gflops,
@@ -142,7 +142,7 @@ int main( int argc, char* argv[] )
 
    walberla::WcTimingTree tt2;
 
-   WALBERLA_LOG_INFO_ON_ROOT( hyteg::format( "%10s|%10s|%10s|%10s|%5s|%5s|%7s| Discr.: %s",
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%10s|%10s|%10s|%10s|%5s|%5s|%7s| Discr.: %s",
                                            "Time (s)",
                                            "GDoF/s",
                                            "GFLOP/s",

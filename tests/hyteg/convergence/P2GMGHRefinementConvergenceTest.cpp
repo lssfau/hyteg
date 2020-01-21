@@ -23,7 +23,7 @@
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg/Format.hpp"
+#include "core/Format.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
@@ -150,7 +150,7 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "Starting V cycles" );
    WALBERLA_LOG_INFO_ON_ROOT(
-       hyteg::format( "%6s|%10s|%10s|%10s|%10s|%10s", "iter", "abs_res", "rel_res", "conv", "L2-error", "Time" ) );
+       walberla::format( "%6s|%10s|%10s|%10s|%10s|%10s", "iter", "abs_res", "rel_res", "conv", "L2-error", "Time" ) );
 
    real_t rel_res = 1.0;
 
@@ -164,7 +164,7 @@ int main( int argc, char* argv[] )
    real_t discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
    //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  -", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err));
-   WALBERLA_LOG_INFO_ON_ROOT( hyteg::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, discr_l2_err, 0 ) )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, discr_l2_err, 0 ) )
 
    real_t       solveTime              = real_c( 0.0 );
    real_t       averageConvergenceRate = real_c( 0.0 );
@@ -188,7 +188,7 @@ int main( int argc, char* argv[] )
       discr_l2_err = std::sqrt( err.dotGlobal( err, maxLevel ) / npoints );
 
       //WALBERLA_LOG_INFO_ON_ROOT(fmt::format("{:3d}   {:e}  {:e}  {:e}  {:e}  {:e}", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, end-start));
-      WALBERLA_LOG_INFO_ON_ROOT( hyteg::format(
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
           "%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i + 1, abs_res, rel_res, abs_res / abs_res_old, discr_l2_err, end - start ) )
       solveTime += end - start;
 

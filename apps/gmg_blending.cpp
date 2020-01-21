@@ -40,7 +40,7 @@
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/geometry/CircularMap.hpp"
-#include "hyteg/Format.hpp"
+#include "core/Format.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -228,7 +228,7 @@ int main(int argc, char* argv[])
 
 
   WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
-  WALBERLA_LOG_INFO_ON_ROOT(hyteg::format("%6s|%10s|%10s|%10s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","L2-error","est. L2", "Cycle-Time", "Est-Time"));
+  WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6s|%10s|%10s|%10s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","L2-error","est. L2", "Cycle-Time", "Est-Time"));
 
   real_t rel_res = 1.0;
 
@@ -255,7 +255,7 @@ int main(int argc, char* argv[])
 //  real_t estL2ErrorOld = estL2Error;
   real_t estL2Error = 0;
 
-  WALBERLA_LOG_INFO_ON_ROOT(hyteg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,estL2Error,0.0));
+  WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old, discr_l2_err,estL2Error,0.0));
 
   real_t solveTime = real_c(0.0);
   real_t averageConvergenceRate = real_c(0.0);
@@ -294,7 +294,7 @@ int main(int argc, char* argv[])
     err.assign({1.0, -1.0}, { u, u_exact }, maxLevel);
     discr_l2_err = std::sqrt(err.dotGlobal(err, maxLevel) / npoints);
 
-    WALBERLA_LOG_INFO_ON_ROOT(hyteg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, estL2Error, vCycleTime, estimatorTime));
+    WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old, discr_l2_err, estL2Error, vCycleTime, estimatorTime));
 
 #if 0
     if (polynomialOperator) {

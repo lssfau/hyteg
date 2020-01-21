@@ -39,7 +39,7 @@
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
-#include "hyteg/Format.hpp"
+#include "core/Format.hpp"
 
 using walberla::real_t;
 using namespace hyteg;
@@ -182,7 +182,7 @@ int main( int argc, char* argv[] )
 //   auto solver = Solver(storage, minResSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2, 2);
 
    WALBERLA_LOG_INFO_ON_ROOT("Starting Uzawa cycles");
-   WALBERLA_LOG_INFO_ON_ROOT(hyteg::format("%6s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","Time"));
+   WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6s|%10s|%10s|%10s|%10s","iter","abs_res","rel_res","conv","Time"));
 
    L.apply(u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary);
    r.assign({1.0, -1.0}, { f, r }, maxLevel, hyteg::Inner | hyteg::NeumannBoundary);
@@ -190,7 +190,7 @@ int main( int argc, char* argv[] )
    real_t abs_res_old = begin_res;
    real_t rel_res = 1.0;
 
-   WALBERLA_LOG_INFO_ON_ROOT(hyteg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e",0,begin_res, rel_res, begin_res/abs_res_old, 0));
+   WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e",0,begin_res, rel_res, begin_res/abs_res_old, 0));
 
    real_t solveTime = real_c(0.0);
    real_t averageConvergenceRate = real_c(0.0);
@@ -209,7 +209,7 @@ int main( int argc, char* argv[] )
       r.assign({1.0, -1.0}, { f, r }, maxLevel, hyteg::Inner | hyteg::NeumannBoundary);
       real_t abs_res = std::sqrt(r.dotGlobal(r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary));
       rel_res = abs_res / begin_res;
-      WALBERLA_LOG_INFO_ON_ROOT(hyteg::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e",outer+1,abs_res, rel_res, abs_res/abs_res_old, end-start));
+      WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e",outer+1,abs_res, rel_res, abs_res/abs_res_old, end-start));
       solveTime += end-start;
 
       if (abs_res/abs_res_old > 0.95) {

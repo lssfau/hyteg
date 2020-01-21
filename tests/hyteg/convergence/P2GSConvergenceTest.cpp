@@ -26,7 +26,7 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/Format.hpp"
+#include "core/Format.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 
@@ -80,14 +80,14 @@ static void test( const std::string & meshFile, const uint_t & level, const uint
 
   real_t begin_res, abs_res_old, rel_res, abs_res = 0;
 
-  WALBERLA_LOG_INFO_ON_ROOT( hyteg::format("%6s|%10s|%10s|%10s","iter","abs_res","rel_res","conv"));
+  WALBERLA_LOG_INFO_ON_ROOT( walberla::format("%6s|%10s|%10s|%10s","iter","abs_res","rel_res","conv"));
 
   L.apply(p2function, Lu, level, hyteg::Inner);
   residuum.assign({1.0, -1.0}, { rhs, Lu }, level, hyteg::Inner);
   begin_res = std::sqrt(residuum.dotGlobal(residuum, level, hyteg::Inner));
   abs_res_old = begin_res;
 
-  WALBERLA_LOG_INFO_ON_ROOT( hyteg::format("%6d|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old))
+  WALBERLA_LOG_INFO_ON_ROOT( walberla::format("%6d|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res/abs_res_old))
   walberla::WcTimer timer;
 
   for(uint_t i = 0; i < maxiter; ++i)
@@ -105,7 +105,7 @@ static void test( const std::string & meshFile, const uint_t & level, const uint
     residuum.assign({1.0, -1.0}, { rhs, Lu }, level, hyteg::Inner);
     abs_res = std::sqrt(residuum.dotGlobal(residuum, level, hyteg::Inner));
     rel_res = abs_res / begin_res;
-    WALBERLA_LOG_INFO_ON_ROOT( hyteg::format("%6d|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old))
+    WALBERLA_LOG_INFO_ON_ROOT( walberla::format("%6d|%10.3e|%10.3e|%10.3e", i+1, abs_res, rel_res, abs_res/abs_res_old))
     WALBERLA_CHECK_LESS(abs_res,abs_res_old);
     abs_res_old = abs_res;
   }
