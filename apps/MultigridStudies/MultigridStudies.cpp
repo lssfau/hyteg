@@ -1816,14 +1816,12 @@ void setup( int argc, char** argv )
 
       const std::string          dbFile = outputSQLFile;
 
-      uint_t runId;
-
       WALBERLA_ROOT_SECTION()
       {
          WALBERLA_LOG_INFO_ON_ROOT( "Writing root SQL data (global run data) ..." )
          walberla::sqlite::SQLiteDB db( dbFile, 1 );
          sqlIntegerProperties["conv_table_for_run"] = -1;
-         runId                                      = db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
+         uint_t runId                                      = db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
          for ( uint_t cycle = 0; cycle <= numCycles; cycle++ )
          {
             if ( sqlRealPropertiesMG.count( cycle ) > 0 )
@@ -1841,6 +1839,7 @@ void setup( int argc, char** argv )
          WALBERLA_LOG_INFO_ON_ROOT( "Writing parallel data (e.g. timing trees) ..." )
 
          storage->getTimingTree()->synchronize();
+         uint_t runId = 0;
          walberla::mpi::broadcastObject( runId );
 
          const auto rank     = walberla::mpi::MPIManager::instance()->rank();
