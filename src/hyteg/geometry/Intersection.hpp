@@ -61,6 +61,26 @@ inline Point3D tetrahedronInwardNormal( const Point3D& planeVertex0,
    }
 }
 
+inline bool isPointInTriangle( const Point2D & pointOfInterest,
+                               const Point2D & v1,
+                               const Point2D & v2,
+                               const Point2D & v3 )
+{
+   const auto v1x     = v1[0];
+   const auto v1y     = v1[1];
+   const auto v2x     = v2[0];
+   const auto v2y     = v2[1];
+   const auto v3x     = v3[0];
+   const auto v3y     = v3[1];
+   const auto centrex = pointOfInterest[0];
+   const auto centrey = pointOfInterest[1];
+
+   const auto area = 0.5 * ( -v2y * v3x + v1y * ( -v2x + v3x ) + v1x * ( v2y - v3y ) + v2x * v3y );
+   const auto s    = 1 / ( 2 * area ) * ( v1y * v3x - v1x * v3y + ( v3y - v1y ) * centrex + ( v1x - v3x ) * centrey );
+   const auto t    = 1 / ( 2 * area ) * ( v1x * v2y - v1y * v2x + ( v1y - v2y ) * centrex + ( v2x - v1x ) * centrey );
+   return ( s > 0 && t > 0 && 1 - s - t > 0 );
+}
+
 /// \brief Returns true if the passed circle and triangle intersect.
 inline bool circleTriangleIntersection( const Point2D& centre,
                                         const real_t&  radius,
@@ -101,12 +121,7 @@ inline bool circleTriangleIntersection( const Point2D& centre,
    //
    // TEST 2: Circle centre within triangle
    //
-   // NOTE: This works for clockwise ordered vertices!
-   //
-   const auto area = 0.5 * ( -v2y * v3x + v1y * ( -v2x + v3x ) + v1x * ( v2y - v3y ) + v2x * v3y );
-   const auto s    = 1 / ( 2 * area ) * ( v1y * v3x - v1x * v3y + ( v3y - v1y ) * centrex + ( v1x - v3x ) * centrey );
-   const auto t    = 1 / ( 2 * area ) * ( v1x * v2y - v1y * v2x + ( v1y - v2y ) * centrex + ( v2x - v1x ) * centrey );
-   if ( s > 0 && t > 0 && 1 - s - t > 0 )
+   if ( isPointInTriangle( centre, v1, v2, v3 ) )
       return true;
 
    //
