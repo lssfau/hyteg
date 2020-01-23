@@ -126,11 +126,12 @@ void P1ElementwiseOperator< P1Form >::apply( const P1Function< real_t >& src,
          real_t* srcVertexData = face.getData( srcVertexDoFIdx )->getPointer( level );
          real_t* dstVertexData = face.getData( dstVertexDoFIdx )->getPointer( level );
 
+         // the explicit uint_c cast prevents a segfault in intel compiler 2018.4
          // now loop over micro-faces of macro-face
-         for ( yIdx = 0; yIdx < rowsize - 2; ++yIdx )
+         for ( yIdx = uint_c(0); yIdx < rowsize - 2; ++yIdx )
          {
             // loop over vertices in row with two associated triangles
-            for ( xIdx = 1; xIdx < inner_rowsize - 1; ++xIdx )
+            for ( xIdx = uint_c(1); xIdx < inner_rowsize - 1; ++xIdx )
             {
                // we associate two elements with current micro-vertex
                localMatrixVectorMultiply2D( face,
