@@ -63,7 +63,7 @@ cd ..
 pwd
 ls -lha
 
-source load_modules.sh
+source load_modules_supermuc.sh
 
 module list
 
