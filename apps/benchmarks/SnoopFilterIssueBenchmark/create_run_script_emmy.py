@@ -33,7 +33,7 @@ def emmy_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", prm_s
 
     base_config = """#!/bin/bash -l
 #
-#PBS -l nodes={num_nodes}:ppn=40,walltime={wall_clock_limit}
+#PBS -l nodes={num_nodes}:ppn=40:f2.2,walltime={wall_clock_limit}
 #
 # job name 
 #PBS -N {job_name}
