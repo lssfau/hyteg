@@ -93,7 +93,7 @@ void exportLinearSystem( OperatorType                        op,
    PETScSparseMatrix< OperatorType, FunctionType > petscMatrix( localDoFs, globalDoFs, nameMatrix.c_str() );
    FunctionType< PetscInt >                        numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
-   petscMatrix.createMatrixFromFunction( op, level, numerator );
+   petscMatrix.createMatrixFromOperator( op, level, numerator );
 
    if ( beVerbose )
    {

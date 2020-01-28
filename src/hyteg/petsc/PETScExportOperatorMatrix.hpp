@@ -79,7 +79,7 @@ namespace hyteg {
     PETScSparseMatrix< OperatorType, FunctionType > petscMatrix( localDoFs, globalDoFs, matrixName.c_str() );
     FunctionType< PetscInt > numerator( "numerator", storage, level, level );
     numerator.enumerate( level );
-    petscMatrix.createMatrixFromFunction( op, level, numerator );
+    petscMatrix.createMatrixFromOperator( op, level, numerator );
 
     // Zero rows and columns of "Dirichlet DoFs"
     std::vector< PetscInt > indices;

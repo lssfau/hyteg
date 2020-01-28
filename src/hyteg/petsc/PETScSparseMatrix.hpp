@@ -62,7 +62,7 @@ public:
     MatDestroy(&mat);
   }
 
-  inline void createMatrixFromFunction(const OperatorType& op, uint_t level,const FunctionType<PetscInt>& numerator,DoFType flag = All){
+  inline void createMatrixFromOperator(const OperatorType& op, uint_t level,const FunctionType<PetscInt>& numerator,DoFType flag = All){
     //WALBERLA_LOG_INFO_ON_ROOT("Creating PETSc Matrix")
     hyteg::petsc::createMatrix<OperatorType>(op, numerator, numerator, mat, level, flag);
 
@@ -70,10 +70,10 @@ public:
     MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
   }
 
-  inline bool createMatrixFromFunctionOnce(const OperatorType& op, uint_t level,const FunctionType<PetscInt>& numerator,DoFType flag = All){
+  inline bool createMatrixFromOperatorOnce(const OperatorType& op, uint_t level,const FunctionType<PetscInt>& numerator,DoFType flag = All){
     if(assembled)
       return false;
-    createMatrixFromFunction(op,level,numerator,flag);
+    createMatrixFromOperator(op,level,numerator,flag);
     assembled = true;
     return true;
   }

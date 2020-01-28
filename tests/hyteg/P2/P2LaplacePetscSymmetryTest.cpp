@@ -51,7 +51,7 @@ static void test( const std::string & meshFile, const uint_t & level )
   numerator.enumerate( level );
 
   hyteg::PETScSparseMatrix< hyteg::P2ConstantLaplaceOperator, hyteg::P2Function > Lpetsc( localDoFs, globalDoFs );
-  Lpetsc.createMatrixFromFunction( L, level, numerator, hyteg::All );
+  Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
 
   WALBERLA_CHECK( Lpetsc.isSymmetric(), "P2 Laplacian _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );
   WALBERLA_LOG_INFO_ON_ROOT( "P2 Laplacian symmetric for: level = " << level << ", mesh: " << meshFile );

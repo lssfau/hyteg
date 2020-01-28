@@ -93,7 +93,7 @@ public:
     bVec.createVectorFromFunction(b,num,level,All);
 
     x.getStorage()->getTimingTree()->start( "Matrix assembly and solver setup" );
-    const bool matrixAssembledForTheFirstTime = Amat.createMatrixFromFunctionOnce(A, level, num, All);
+    const bool matrixAssembledForTheFirstTime = Amat.createMatrixFromOperatorOnce(A, level, num, All);
 
     if( matrixAssembledForTheFirstTime )
     {

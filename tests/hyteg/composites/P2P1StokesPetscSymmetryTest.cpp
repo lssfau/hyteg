@@ -51,7 +51,7 @@ static void test( const std::string & meshFile, const uint_t & level )
   numerator.enumerate( level );
 
   hyteg::PETScSparseMatrix< P2P1TaylorHoodStokesOperator, P2P1TaylorHoodFunction > Lpetsc( localDoFs, globalDoFs );
-  Lpetsc.createMatrixFromFunction( L, level, numerator, hyteg::All );
+  Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
 
   WALBERLA_CHECK( Lpetsc.isSymmetric(), "P2P1 Stokes operator _NOT_ symmetric for: level = " << level << ", mesh: " << meshFile );
   WALBERLA_LOG_INFO_ON_ROOT( "P2P1 Stokes operator symmetric for: level = " << level << ", mesh: " << meshFile );
