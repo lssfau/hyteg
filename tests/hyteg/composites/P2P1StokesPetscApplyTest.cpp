@@ -98,7 +98,7 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
 
    srcPetscVec.createVectorFromFunction( src, numerator, level, All );
    dstPetscVec.createVectorFromFunction( petscDst, numerator, level, All );
-   petscMatrix.createMatrixFromFunction( L, level, numerator, All );
+   petscMatrix.createMatrixFromOperator( L, level, numerator, All );
 
    WALBERLA_CHECK( petscMatrix.isSymmetric() );
 

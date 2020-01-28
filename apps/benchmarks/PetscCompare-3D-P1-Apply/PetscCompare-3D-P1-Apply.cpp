@@ -131,7 +131,7 @@ int main( int argc, char* argv[] )
    LIKWID_MARKER_START( "PETSc-setup" );
    wcTimingTreeApp.start( "Petsc setup" );
    hyteg::PETScSparseMatrix< hyteg::P1ConstantLaplaceOperator, hyteg::P1Function > matPetsc( localDoFs, globalDoFs );
-   matPetsc.createMatrixFromFunction( mass, level, numerator, hyteg::Inner );
+   matPetsc.createMatrixFromOperator( mass, level, numerator, hyteg::Inner );
    hyteg::PETScVector< real_t, hyteg::P1Function > vecPetsc( localDoFs );
    vecPetsc.createVectorFromFunction( x, numerator, level, hyteg::Inner );
    hyteg::PETScVector< real_t, hyteg::P1Function > dstvecPetsc( localDoFs );

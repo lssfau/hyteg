@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
   numerator.enumerate( level );
 
   hyteg::PETScSparseMatrix< hyteg::P2ConstantLaplaceOperator, hyteg::P2Function> Lpetsc(localDoFs, globalDoFs);
-  Lpetsc.createMatrixFromFunction(L, level, numerator, hyteg::All);
+  Lpetsc.createMatrixFromOperator(L, level, numerator, hyteg::All);
 
   WALBERLA_CHECK_EQUAL( Lpetsc.isSymmetric(), true );
 
