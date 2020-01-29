@@ -121,6 +121,7 @@ waLBerla_compile_test(FILES convection/Upwind2DCircularConvectionTest.cpp DEPEND
 waLBerla_compile_test(FILES convection/MMOC2DCircularConvectionTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME MMOC2DCircularConvectionTest LABELS longrun)
 
+waLBerla_compile_test(FILES convection/MMOC2DSwirlingFlowConvectionTest.cpp DEPENDS hyteg core)
 
 ## Indexing ##
 
