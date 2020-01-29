@@ -39,6 +39,31 @@ namespace macroface {
 
 using walberla::real_c;
 using walberla::uint_t;
+using indexing::Index;
+
+inline Point3D coordinateFromIndex( const uint_t& Level, const Face& face, const Index& index, const EdgeDoFOrientation & orientation)
+{
+   const real_t  stepFrequency = 1.0 / levelinfo::num_microedges_per_edge( Level );
+   const Point3D xStep         = ( face.getCoordinates()[1] - face.getCoordinates()[0] ) * stepFrequency;
+   const Point3D yStep         = ( face.getCoordinates()[2] - face.getCoordinates()[0] ) * stepFrequency;
+   Point3D increment;
+   switch ( orientation )
+   {
+   case EdgeDoFOrientation::X:
+      increment = 0.5 * xStep;
+      break;
+   case EdgeDoFOrientation::Y:
+      increment = 0.5 * yStep;
+      break;
+   case EdgeDoFOrientation::XY:
+      increment = 0.5 * xStep + 0.5 * yStep;
+      break;
+   default:
+      WALBERLA_ABORT( "Invalid edgedof orientation." )
+   }
+   return face.getCoordinates()[0] + xStep * real_c( index.x() ) + yStep * real_c( index.y() ) + increment;
+}
+
 
 inline indexing::Index getIndexInNeighboringMacroCell( const indexing::Index&  edgeDoFIndexInMacroFace,
                                                        const Face&             face,

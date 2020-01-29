@@ -44,6 +44,14 @@ namespace macroedge {
 
 using walberla::real_c;
 using walberla::uint_t;
+using indexing::Index;
+
+inline Point3D coordinateFromIndex( const uint_t & level, const Edge & edge, const Index & index )
+{
+   const real_t  stepFrequency = 1.0 / levelinfo::num_microedges_per_edge( level );
+   const Point3D step         = ( edge.getCoordinates()[1] - edge.getCoordinates()[0] ) * stepFrequency;
+   return edge.getCoordinates()[0] + 0.5 * step + step * real_c( index.x() );
+}
 
 template < typename ValueType >
 inline void interpolate( const uint_t&                                               Level,
