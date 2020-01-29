@@ -324,7 +324,7 @@ real_t VertexDoFFunction< ValueType >::evaluate( const Point3D& coordinates, uin
          Face& face = *it.second;
 
          if ( sphereTriangleIntersection(
-                  coordinates, 1e-05, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+                  coordinates, 1e-08, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
          {
             return vertexdof::macroface::evaluate< ValueType >( level, face, coordinates, faceDataID_ );
          }
