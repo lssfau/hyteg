@@ -60,6 +60,23 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
    /// \param invert  flag, if true, inverse values will be computed and stored
    void computeDiagonalOperatorValues( uint_t level, bool invert );
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+   /// Assemble operator as sparse matrix for PETSc
+   ///
+   /// \param mat   PETSc's own matrix data structure
+   /// \param src   P2Function for determining column indices
+   /// \param dst   P2Function for determining row indices
+   /// \param level level in mesh hierarchy for which local operator is to be assembled
+   /// \param flag  ignored
+   ///
+   /// \note src and dst are legal to and often will be the same function object
+   void assembleLocalMatrix( Mat&                          mat,
+                             const P2Function< PetscInt >& src,
+                             const P2Function< PetscInt >& dst,
+                             uint_t                        level,
+                             DoFType                       flag ) const;
+#endif
+
  private:
    /// compute product of element local vector with element matrix
    ///
@@ -136,6 +153,29 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                                              const celldof::CellType cType,
                                              real_t* const           vertexData,
                                              real_t* const           edgeData );
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+   void localMatrixAssembly2D( Mat&                         mat,
+                               const Face&                  face,
+                               const uint_t                 level,
+                               const uint_t                 xIdx,
+                               const uint_t                 yIdx,
+                               const P2Elements::P2Element& element,
+                               const PetscInt* const        srcVertexIdx,
+                               const PetscInt* const        srcEdgeIdx,
+                               const PetscInt* const        dstVertexIdx,
+                               const PetscInt* const        dstEdgeIdx ) const;
+
+   void localMatrixAssembly3D( Mat&                    mat,
+                               const Cell&             cell,
+                               const uint_t            level,
+                               const indexing::Index&  microCell,
+                               const celldof::CellType cType,
+                               const PetscInt* const   srcVertexIdx,
+                               const PetscInt* const   srcEdgeIdx,
+                               const PetscInt* const   dstVertexIdx,
+                               const PetscInt* const   dstEdgeIdx ) const;
+#endif
 
    /// Form associated with this operator
    P2Form form_;

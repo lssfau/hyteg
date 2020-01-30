@@ -521,6 +521,257 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions3D( const
    }
 }
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+
+// Assemble operator as sparse matrix for PETSc
+template < class P2Form >
+void P2ElementwiseOperator< P2Form >::assembleLocalMatrix( Mat&                          mat,
+                                                           const P2Function< PetscInt >& src,
+                                                           const P2Function< PetscInt >& dst,
+                                                           uint_t                        level,
+                                                           DoFType                       flag ) const
+{
+   // We currently ignore the flag provided!
+   WALBERLA_UNUSED( flag );
+
+   // For 3D we work on cells and for 2D on faces
+   if ( storage_->hasGlobalCells() )
+   {
+      // we only perform computations on cell primitives
+      for ( auto& macroIter : storage_->getCells() )
+      {
+         Cell& cell = *macroIter.second;
+
+         // get hold of the actual numerical data in the two indexing functions
+         PrimitiveDataID< FunctionMemory< PetscInt >, Cell > dstVertexDoFIdx = dst.getVertexDoFFunction().getCellDataID();
+         PrimitiveDataID< FunctionMemory< PetscInt >, Cell > srcVertexDoFIdx = src.getVertexDoFFunction().getCellDataID();
+
+         PrimitiveDataID< FunctionMemory< PetscInt >, Cell > dstEdgeDoFIdx = dst.getEdgeDoFFunction().getCellDataID();
+         PrimitiveDataID< FunctionMemory< PetscInt >, Cell > srcEdgeDoFIdx = src.getEdgeDoFFunction().getCellDataID();
+
+         PetscInt* srcVertexIndices = cell.getData( srcVertexDoFIdx )->getPointer( level );
+         PetscInt* dstVertexIndices = cell.getData( dstVertexDoFIdx )->getPointer( level );
+
+         PetscInt* srcEdgeIndices = cell.getData( srcEdgeDoFIdx )->getPointer( level );
+         PetscInt* dstEdgeIndices = cell.getData( dstEdgeDoFIdx )->getPointer( level );
+
+         // loop over micro-cells
+         for ( const auto& cType : celldof::allCellTypes )
+         {
+            for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
+            {
+               localMatrixAssembly3D(
+                   mat, cell, level, micro, cType, srcVertexIndices, srcEdgeIndices, dstVertexIndices, dstEdgeIndices );
+            }
+         }
+      }
+   }
+
+   else
+   {
+      // we only perform computations on face primitives
+      for ( auto& it : storage_->getFaces() )
+      {
+         Face& face = *it.second;
+
+         Point3D x0( face.coords[0] );
+         Point3D x1( face.coords[1] );
+         Point3D x2( face.coords[2] );
+
+         uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
+         uint_t                   inner_rowsize = rowsize;
+         uint_t                   xIdx, yIdx;
+         Point3D                  v0, v1, v2;
+         indexing::Index          nodeIdx;
+         indexing::IndexIncrement offset;
+
+         // get hold of the actual numerical data in the two functions
+         PrimitiveDataID< FunctionMemory< PetscInt >, Face > dstVertexDoFIdx = dst.getVertexDoFFunction().getFaceDataID();
+         PrimitiveDataID< FunctionMemory< PetscInt >, Face > srcVertexDoFIdx = src.getVertexDoFFunction().getFaceDataID();
+
+         PrimitiveDataID< FunctionMemory< PetscInt >, Face > dstEdgeDoFIdx = dst.getEdgeDoFFunction().getFaceDataID();
+         PrimitiveDataID< FunctionMemory< PetscInt >, Face > srcEdgeDoFIdx = src.getEdgeDoFFunction().getFaceDataID();
+
+         PetscInt* srcVertexIndices = face.getData( srcVertexDoFIdx )->getPointer( level );
+         PetscInt* dstVertexIndices = face.getData( dstVertexDoFIdx )->getPointer( level );
+
+         PetscInt* srcEdgeIndices = face.getData( srcEdgeDoFIdx )->getPointer( level );
+         PetscInt* dstEdgeIndices = face.getData( dstEdgeDoFIdx )->getPointer( level );
+
+         // now loop over micro-faces of macro-face
+         for ( yIdx = 0; yIdx < rowsize - 2; ++yIdx )
+         {
+            // loop over vertices in row with two associated triangles
+            for ( xIdx = 1; xIdx < inner_rowsize - 1; ++xIdx )
+            {
+               // we associate two elements with current micro-vertex
+               localMatrixAssembly2D( mat,
+                                      face,
+                                      level,
+                                      xIdx,
+                                      yIdx,
+                                      P2Elements::P2Face::elementN,
+                                      srcVertexIndices,
+                                      srcEdgeIndices,
+                                      dstVertexIndices,
+                                      dstEdgeIndices );
+               localMatrixAssembly2D( mat,
+                                      face,
+                                      level,
+                                      xIdx,
+                                      yIdx,
+                                      P2Elements::P2Face::elementNW,
+                                      srcVertexIndices,
+                                      srcEdgeIndices,
+                                      dstVertexIndices,
+                                      dstEdgeIndices );
+            }
+            --inner_rowsize;
+
+            // final micro-vertex in row has only one associated micro-face
+            localMatrixAssembly2D( mat,
+                                   face,
+                                   level,
+                                   xIdx,
+                                   yIdx,
+                                   P2Elements::P2Face::elementNW,
+                                   srcVertexIndices,
+                                   srcEdgeIndices,
+                                   dstVertexIndices,
+                                   dstEdgeIndices );
+         }
+
+         // top north-west micro-element not treated, yet
+         localMatrixAssembly2D( mat,
+                                face,
+                                level,
+                                1,
+                                yIdx,
+                                P2Elements::P2Face::elementNW,
+                                srcVertexIndices,
+                                srcEdgeIndices,
+                                dstVertexIndices,
+                                dstEdgeIndices );
+      }
+   }
+}
+
+template < class P2Form >
+void P2ElementwiseOperator< P2Form >::localMatrixAssembly2D( Mat&                         mat,
+                                                             const Face&                  face,
+                                                             const uint_t                 level,
+                                                             const uint_t                 xIdx,
+                                                             const uint_t                 yIdx,
+                                                             const P2Elements::P2Element& element,
+                                                             const PetscInt* const        srcVertexIdx,
+                                                             const PetscInt* const        srcEdgeIdx,
+                                                             const PetscInt* const        dstVertexIdx,
+                                                             const PetscInt* const        dstEdgeIdx ) const
+
+{
+   Matrix6r                 elMat;
+   indexing::Index          nodeIdx;
+   indexing::IndexIncrement offset;
+   Point3D                  v0, v1, v2;
+   std::array< uint_t, 6 >  dofDataIdx;
+
+   // determine vertices of micro-element
+   nodeIdx = indexing::Index( xIdx, yIdx, 0 );
+   v0      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx );
+   offset  = vertexdof::logicalIndexOffsetFromVertex( element[1] );
+   v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
+   offset  = vertexdof::logicalIndexOffsetFromVertex( element[2] );
+   v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
+
+   // assemble local element matrix
+   // form_.setGeometryMap( face.getGeometryMap() );
+   form_.integrateAll( {v0, v1, v2}, elMat );
+
+   // determine global indices of our local DoFs (note the tweaked ordering to go along with FEniCS indexing)
+   dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
+   dofDataIdx[1] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[1] );
+   dofDataIdx[2] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[2] );
+
+   dofDataIdx[3] = edgedof::macroface::indexFromVertex( level, xIdx, yIdx, element[4] );
+   dofDataIdx[4] = edgedof::macroface::indexFromVertex( level, xIdx, yIdx, element[5] );
+   dofDataIdx[5] = edgedof::macroface::indexFromVertex( level, xIdx, yIdx, element[3] );
+
+   PetscInt rowIdx[6];
+   rowIdx[0] = dstVertexIdx[dofDataIdx[0]];
+   rowIdx[1] = dstVertexIdx[dofDataIdx[1]];
+   rowIdx[2] = dstVertexIdx[dofDataIdx[2]];
+
+   rowIdx[3] = dstEdgeIdx[dofDataIdx[3]];
+   rowIdx[4] = dstEdgeIdx[dofDataIdx[4]];
+   rowIdx[5] = dstEdgeIdx[dofDataIdx[5]];
+
+   PetscInt colIdx[6];
+   colIdx[0] = srcVertexIdx[dofDataIdx[0]];
+   colIdx[1] = srcVertexIdx[dofDataIdx[1]];
+   colIdx[2] = srcVertexIdx[dofDataIdx[2]];
+
+   colIdx[3] = srcEdgeIdx[dofDataIdx[3]];
+   colIdx[4] = srcEdgeIdx[dofDataIdx[4]];
+   colIdx[5] = srcEdgeIdx[dofDataIdx[5]];
+
+   // add local matrix into global matrix
+   PetscErrorCode ierr = MatSetValues( mat, 6, rowIdx, 6, colIdx, elMat.data(), ADD_VALUES );
+   WALBERLA_ASSERT_EQUAL( ierr, 0 )
+   WALBERLA_UNUSED( ierr );
+}
+
+template < class P2Form >
+void P2ElementwiseOperator< P2Form >::localMatrixAssembly3D( Mat&                    mat,
+                                                             const Cell&             cell,
+                                                             const uint_t            level,
+                                                             const indexing::Index&  microCell,
+                                                             const celldof::CellType cType,
+                                                             const PetscInt* const   srcVertexIdx,
+                                                             const PetscInt* const   srcEdgeIdx,
+                                                             const PetscInt* const   dstVertexIdx,
+                                                             const PetscInt* const   dstEdgeIdx ) const
+{
+   // determine coordinates of vertices of micro-element
+   std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
+   std::array< Point3D, 4 >         coords;
+   for ( uint_t k = 0; k < 4; ++k )
+   {
+      coords[k] = vertexdof::macrocell::coordinateFromIndex( level, cell, verts[k] );
+   }
+
+   // assemble local element matrix
+   Matrix10r elMat;
+   form_.integrateAll( coords, elMat );
+
+   // obtain data indices of dofs associated with micro-cell
+   std::array< uint_t, 4 > vertexDoFIndices;
+   vertexdof::getVertexDoFDataIndicesFromMicroCell( microCell, cType, level, vertexDoFIndices );
+
+   std::array< uint_t, 6 > edgeDoFIndices;
+   edgedof::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
+
+   PetscInt rowIdx[10];
+   PetscInt colIdx[10];
+
+   for ( uint_t k = 0; k < 4; ++k )
+   {
+      rowIdx[k] = dstVertexIdx[vertexDoFIndices[k]];
+      colIdx[k] = srcVertexIdx[vertexDoFIndices[k]];
+   }
+   for ( uint_t k = 4; k < 10; ++k )
+   {
+      rowIdx[k] = dstEdgeIdx[edgeDoFIndices[k - 4]];
+      colIdx[k] = srcEdgeIdx[edgeDoFIndices[k - 4]];
+   }
+
+   // add local matrix into global matrix
+   PetscErrorCode ierr = MatSetValues( mat, 10, rowIdx, 10, colIdx, elMat.data(), ADD_VALUES );
+   WALBERLA_ASSERT_EQUAL( ierr, 0 )
+   WALBERLA_UNUSED( ierr );
+}
+
+#endif
+
 // P2ElementwiseLaplaceOperator
 template class P2ElementwiseOperator<
     P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >;

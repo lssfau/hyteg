@@ -23,9 +23,9 @@
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p1functionspace/P1Elements.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 
 namespace hyteg {
 
@@ -55,6 +55,23 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                     size_t                      level,
                     DoFType                     flag ) const;
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+   /// Assemble operator as sparse matrix for PETSc
+   ///
+   /// \param mat   PETSc's own matrix data structure
+   /// \param src   P2Function for determining column indices
+   /// \param dst   P2Function for determining row indices
+   /// \param level level in mesh hierarchy for which local operator is to be assembled
+   /// \param flag  ignored
+   ///
+   /// \note src and dst are legal to and often will be the same function object
+   void assembleLocalMatrix( Mat&                          mat,
+                             const P1Function< PetscInt >& src,
+                             const P1Function< PetscInt >& dst,
+                             uint_t                        level,
+                             DoFType                       flag ) const;
+#endif
+
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    ///
    /// \param level   grid level on which the computation should be run
@@ -62,7 +79,6 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
    void computeDiagonalOperatorValues( uint_t level, bool invert );
 
  private:
-
    /// compute product of element local vector with element matrix
    ///
    /// \param face           face primitive we operate on
@@ -74,13 +90,13 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
    /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
    ///
    /// \note The src and dst data arrays must not be identical.
-   void localMatrixVectorMultiply2D( const Face&                  face,
-                                     const uint_t                 level,
-                                     const uint_t                 xIdx,
-                                     const uint_t                 yIdx,
+   void localMatrixVectorMultiply2D( const Face&                                face,
+                                     const uint_t                               level,
+                                     const uint_t                               xIdx,
+                                     const uint_t                               yIdx,
                                      const P1Elements::P1Elements2D::P1Element& element,
-                                     const real_t* const          srcVertexData,
-                                     real_t* const                dstVertexData ) const;
+                                     const real_t* const                        srcVertexData,
+                                     real_t* const                              dstVertexData ) const;
 
    /// compute product of element local vector with element matrix
    ///
@@ -107,12 +123,12 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
    /// \param yIdx           row index of vertex specifying micro-element
    /// \param element        element specification w.r.t. to micro-vertex
    /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
-   void computeLocalDiagonalContributions2D( const Face&                  face,
-                                             const uint_t                 level,
-                                             const uint_t                 xIdx,
-                                             const uint_t                 yIdx,
+   void computeLocalDiagonalContributions2D( const Face&                                face,
+                                             const uint_t                               level,
+                                             const uint_t                               xIdx,
+                                             const uint_t                               yIdx,
                                              const P1Elements::P1Elements2D::P1Element& element,
-                                             real_t* const                dstVertexData );
+                                             real_t* const                              dstVertexData );
 
    /// Compute contributions to operator diagonal for given micro-face
    ///
@@ -126,6 +142,25 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                                              const indexing::Index&  microCell,
                                              const celldof::CellType cType,
                                              real_t* const           vertexData );
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+   void localMatrixAssembly2D( Mat&                                       mat,
+                               const Face&                                face,
+                               const uint_t                               level,
+                               const uint_t                               xIdx,
+                               const uint_t                               yIdx,
+                               const P1Elements::P1Elements2D::P1Element& element,
+                               const PetscInt* const                      srcIdx,
+                               const PetscInt* const                      dstIdx ) const;
+
+   void localMatrixAssembly3D( Mat&                    mat,
+                               const Cell&             cell,
+                               const uint_t            level,
+                               const indexing::Index&  microCell,
+                               const celldof::CellType cType,
+                               const PetscInt* const   srcIdx,
+                               const PetscInt* const   dstIdx ) const;
+#endif
 };
 
 typedef P1ElementwiseOperator<
@@ -135,7 +170,6 @@ typedef P1ElementwiseOperator<
 typedef P1ElementwiseOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >
     P1ElementwiseMassOperator;
 
-typedef P1ElementwiseOperator< P1Form_mass >
-    P1ElementwiseBlendingMassOperator;
+typedef P1ElementwiseOperator< P1Form_mass > P1ElementwiseBlendingMassOperator;
 
 } // namespace hyteg

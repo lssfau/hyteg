@@ -498,6 +498,14 @@ waLBerla_execute_test(NAME FunctionMemorySerializationTest8 COMMAND $<TARGET_FIL
 #  waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest8 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> PROCESSES 8 )
 #endif()
 
+## Elementwise Operators ##
+if( HYTEG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES operators/ElementwiseOperatorPetscTest.cpp DEPENDS hyteg core)
+  waLBerla_execute_test(NAME ElementwiseOperatorPetscTest COMMAND $<TARGET_FILE:PetscTest> )
+  waLBerla_execute_test(NAME ElementwiseOperatorPetscTest2 COMMAND $<TARGET_FILE:PetscTest> PROCESSES 2 )
+endif()
+
+
 # Test some basic auxiliary stuff for application layer
 waLBerla_compile_test(FILES FindMaxMinMagTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FindMaxMinMagTest1 COMMAND $<TARGET_FILE:FindMaxMinMagTest> )

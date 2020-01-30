@@ -35,6 +35,7 @@
 
 namespace hyteg {
 
+/// Wrapper class for PETSc sparse matrix usage
 template <class OperatorType, template <class> class FunctionType>
 class PETScSparseMatrix {
 protected:
