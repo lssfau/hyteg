@@ -359,17 +359,11 @@ class MMOCTransport
    MMOCTransport( const std::shared_ptr< PrimitiveStorage >& storage,
                   const uint_t                               minLevel,
                   const uint_t                               maxLevel,
-                  const TimeSteppingScheme&                  timeSteppingSchemeConvection,
-                  const bool&                                conserveMass )
+                  const TimeSteppingScheme&                  timeSteppingSchemeConvection )
    : storage_( storage )
    , cOld_( "cOld", storage, minLevel, maxLevel )
    , timeSteppingSchemeConvection_( timeSteppingSchemeConvection )
-   {
-      if ( conserveMass )
-      {
-         WALBERLA_ABORT( "Mass-conservative MMOC not implemented." )
-      }
-   }
+   {}
 
    void step( const FunctionType& c,
               const FunctionType& ux,

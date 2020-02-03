@@ -151,7 +151,7 @@ int main( int argc, char* argv[] )
    FunctionType w( "w", storage, minLevel, maxLevel );
 
    MassOperator                  M( storage, minLevel, maxLevel );
-   MMOCTransport< FunctionType > transport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4, false );
+   MMOCTransport< FunctionType > transport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
    c.interpolate( initialTemp, maxLevel );
    cInitial.interpolate( initialTemp, maxLevel );
