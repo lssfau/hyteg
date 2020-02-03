@@ -191,6 +191,14 @@ public:
     return x_[index];
   }
 
+   void setAll( const T & scalar )
+   {
+      for (size_t i = 0; i < N; ++i)
+      {
+         x_[i] = scalar;
+      }
+   }
+
   void serialize( walberla::mpi::SendBuffer & sendBuffer ) const
   {
     for ( size_t index = 0; index < N; index++ )
