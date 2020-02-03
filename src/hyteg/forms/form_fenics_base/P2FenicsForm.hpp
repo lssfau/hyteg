@@ -186,16 +186,13 @@ class P2FenicsForm : public P2Form
    /// \param leafPos  degrees of freedom specifying column indices of entries
    ///
    /// \return an array with entries of the local element matrix
-   template < long unsigned int size >
-   std::array< real_t, size > integrate( const std::array< Point3D, 4 >&                         coords,
-                                         const P2Form::dofPosByVertexPair3D&                     cntrPos,
-                                         const std::array< P2Form::dofPosByVertexPair3D, size >& leafPos ) const
+   std::vector< real_t > integrate( const std::array< Point3D, 4 >&                         coords,
+                                    const P2Form::dofPosByVertexPair3D&                     cntrPos,
+                                    const std::vector< P2Form::dofPosByVertexPair3D >& leafPos ) const
    {
       Matrix10r elMat;
       computeLocalStiffnessMatrix( coords, elMat );
-      std::array< real_t, size > matRow;
-      matRow.fill( real_t( 0 ) );
-      // std::array<real_t,leafPos.size()> matRow;
+      std::vector< real_t > matRow( leafPos.size(), 0 );
 
       uint_t rowIdx = fenics::P2DoFMap[cntrPos[0]][cntrPos[1]];
       uint_t colIdx = 0;
