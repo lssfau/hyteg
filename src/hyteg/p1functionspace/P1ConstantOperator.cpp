@@ -50,7 +50,17 @@ P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::P1ConstantOperat
     const std::shared_ptr< PrimitiveStorage >& storage,
     size_t                                     minLevel,
     size_t                                     maxLevel )
+: P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >( storage, minLevel, maxLevel, P1Form() )
+{}
+
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
+P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::P1ConstantOperator(
+    const std::shared_ptr< PrimitiveStorage >& storage,
+    size_t                                     minLevel,
+    size_t                                     maxLevel,
+    const P1Form&                              form )
 : Operator( storage, minLevel, maxLevel )
+, form_( form )
 {
    auto cellP1StencilMemoryDataHandling =
        std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell > >(
@@ -80,18 +90,18 @@ P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::P1ConstantOperat
 
    if ( storage_->hasGlobalCells() )
    {
-      const bool assemblyDefined = form.assembly3DDefined();
+      const bool assemblyDefined = form_.assembly3DDefined();
       WALBERLA_CHECK( assemblyDefined, "Assembly undefined for 3D elements." );
-      if ( form.assemble3D() )
+      if ( form_.assemble3D() )
       {
          assembleStencils3D();
       }
    }
    else
    {
-      if ( form.assemble2D() )
+      if ( form_.assemble2D() )
       {
-         const bool assemblyDefined = form.assembly2DDefined();
+         const bool assemblyDefined = form_.assembly2DDefined();
          WALBERLA_CHECK( assemblyDefined, "Assembly undefined for 2D elements." );
          assembleStencils();
       }
@@ -109,9 +119,9 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
          auto stencilSize   = vertex->getData( getVertexStencilID() )->getSize( level );
          auto stencilMemory = vertex->getData( getVertexStencilID() )->getPointer( level );
 
-         form.geometryMap = vertex->getGeometryMap();
+         form_.geometryMap = vertex->getGeometryMap();
          auto stencil =
-             P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, *vertex, indexing::Index( 0, 0, 0 ), level, form );
+             P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, *vertex, indexing::Index( 0, 0, 0 ), level, form_ );
 
          WALBERLA_ASSERT_EQUAL( stencilSize, stencil.size() );
          for ( uint_t i = 0; i < stencilSize; i++ )
@@ -149,11 +159,11 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
             auto  stencilMemory = edge->getData( getEdgeStencilID() )->getPointer( level );
             auto& stencilMap    = edge->getData( getEdgeStencil3DID() )->getData( level );
 
-            form.geometryMap = edge->getGeometryMap();
+            form_.geometryMap = edge->getGeometryMap();
 
             // old linear stencil memory
             auto stencil =
-                P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, *edge, indexing::Index( 1, 0, 0 ), level, form );
+                P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, *edge, indexing::Index( 1, 0, 0 ), level, form_ );
 
             WALBERLA_ASSERT_EQUAL( stencilSize, stencil.size() );
             for ( uint_t i = 0; i < stencilSize; i++ )
@@ -215,7 +225,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
                auto vertexAssemblyIndexInCell =
                    vertexdof::macroedge::getIndexInNeighboringMacroCell( {1, 0, 0}, *edge, neighborCellID, *storage_, level );
                stencilMap[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
-                   storage_, *neighborCell, vertexAssemblyIndexInCell, level, form );
+                   storage_, *neighborCell, vertexAssemblyIndexInCell, level, form_ );
             }
          }
       }
@@ -233,7 +243,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
             auto vertexAssemblyIndexInCell =
             vertexdof::macroface::getIndexInNeighboringMacroCell( { 1, 1, 0 }, *face, neighborCellID, *storage_, level );
             stencilMemory[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
-            storage_, *neighborCell, vertexAssemblyIndexInCell, level, form );
+            storage_, *neighborCell, vertexAssemblyIndexInCell, level, form_ );
           }
 
           // The lumping and inverted diagonal modifications for split stencils is realized
@@ -287,10 +297,10 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
           auto cell = it.second;
           auto & stencilMemory = cell->getData( getCellStencilID())->getData( level );
 
-          form.geometryMap = cell->getGeometryMap();
+          form_.geometryMap = cell->getGeometryMap();
 
           stencilMemory =
-          P1Elements::P1Elements3D::assembleP1LocalStencilNew( storage_, *cell, indexing::Index( 1, 1, 1 ), level, form );
+          P1Elements::P1Elements3D::assembleP1LocalStencilNew( storage_, *cell, indexing::Index( 1, 1, 1 ), level, form_ );
 
           if ( Lumped )
           {
@@ -337,7 +347,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
          Point3D d0 = h * ( face.coords[1] - face.coords[0] );
          Point3D d2 = h * ( face.coords[2] - face.coords[0] );
 
-         form.geometryMap = face.getGeometryMap();
+         form_.geometryMap = face.getGeometryMap();
 
          Point3D dirS  = -1.0 * d2;
          Point3D dirSE = d0 - 1.0 * d2;
@@ -347,17 +357,17 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
          Point3D dirN  = d2;
 
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, face_stencil );
+             form_, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, face_stencil );
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, face_stencil );
+             form_, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, face_stencil );
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, face_stencil );
+             form_, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, face_stencil );
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, face_stencil );
+             form_, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, face_stencil );
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, face_stencil );
+             form_, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, face_stencil );
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, face_stencil );
+             form_, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, face_stencil );
 
          if ( Lumped )
          {
@@ -430,23 +440,23 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
          }
 
          // assemble south
-         form.geometryMap = faceS->getGeometryMap();
+         form_.geometryMap = faceS->getGeometryMap();
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form, {x, x + dir_W, x + dir_S}, P1Elements::P1Elements2D::elementSW, edge_stencil );
+             form_, {x, x + dir_W, x + dir_S}, P1Elements::P1Elements2D::elementSW, edge_stencil );
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form, {x, x + dir_S, x + dir_SE}, P1Elements::P1Elements2D::elementS, edge_stencil );
+             form_, {x, x + dir_S, x + dir_SE}, P1Elements::P1Elements2D::elementS, edge_stencil );
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form, {x, x + dir_SE, x + dir_E}, P1Elements::P1Elements2D::elementSE, edge_stencil );
+             form_, {x, x + dir_SE, x + dir_E}, P1Elements::P1Elements2D::elementSE, edge_stencil );
 
          if ( edge.getNumNeighborFaces() == 2 )
          {
-            form.geometryMap = faceN->getGeometryMap();
+            form_.geometryMap = faceN->getGeometryMap();
             vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                form, {x, x + dir_E, x + dir_N}, P1Elements::P1Elements2D::elementNE, edge_stencil );
+                form_, {x, x + dir_E, x + dir_N}, P1Elements::P1Elements2D::elementNE, edge_stencil );
             vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                form, {x, x + dir_N, x + dir_NW}, P1Elements::P1Elements2D::elementN, edge_stencil );
+                form_, {x, x + dir_N, x + dir_NW}, P1Elements::P1Elements2D::elementN, edge_stencil );
             vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                form, {x, x + dir_NW, x + dir_W}, P1Elements::P1Elements2D::elementNW, edge_stencil );
+                form_, {x, x + dir_NW, x + dir_W}, P1Elements::P1Elements2D::elementNW, edge_stencil );
          }
 
          if ( Lumped )
@@ -522,7 +532,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
          for ( auto& faceId : vertex.neighborFaces() )
          {
             Face* face       = storage_->getFace( faceId );
-            form.geometryMap = face->getGeometryMap();
+            form_.geometryMap = face->getGeometryMap();
 
             uint_t                     v_i       = face->vertex_index( vertex.getID() );
             std::vector< PrimitiveID > adj_edges = face->adjacent_edges( vertex.getID() );
@@ -536,7 +546,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
                  h;
 
             Point3D matrixRow;
-            form.integrate( {{x, x + d0, x + d2}}, matrixRow );
+            form_.integrate( {{x, x + d0, x + d2}}, matrixRow );
 
             uint_t i = 1;
             // iterate over adjacent edges
@@ -1655,5 +1665,7 @@ template class P1ConstantOperator<
 template class P1ConstantOperator< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise > >;
 
 template class P1ConstantOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >;
+
+template class P1ConstantOperator< P2LinearCombinationForm >;
 
 } // namespace hyteg

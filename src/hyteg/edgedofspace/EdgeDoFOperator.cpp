@@ -26,47 +26,62 @@
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
+#include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
 
 namespace hyteg {
 
-template< class EdgeDoFForm >
-EdgeDoFOperator< EdgeDoFForm >::EdgeDoFOperator( const std::shared_ptr<PrimitiveStorage> &storage,
-                                                 const uint_t minLevel, const uint_t maxLevel )
-  : Operator(storage, minLevel, maxLevel)
+template < class EdgeDoFForm >
+EdgeDoFOperator< EdgeDoFForm >::EdgeDoFOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                 const uint_t                               minLevel,
+                                                 const uint_t                               maxLevel )
+: EdgeDoFOperator< EdgeDoFForm >( storage, minLevel, maxLevel, EdgeDoFForm() )
+{}
+
+template < class EdgeDoFForm >
+EdgeDoFOperator< EdgeDoFForm >::EdgeDoFOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                 const uint_t                               minLevel,
+                                                 const uint_t                               maxLevel,
+                                                 const EdgeDoFForm&                         form )
+: Operator( storage, minLevel, maxLevel )
+, form_( form )
 {
-  auto edgeDataHandling   =
-      std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Edge   >>(minLevel_, maxLevel_, macroEdgeEdgeDoFToEdgeDoFStencilSize);
+   auto edgeDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Edge > >(
+       minLevel_, maxLevel_, macroEdgeEdgeDoFToEdgeDoFStencilSize );
 
-  auto edge3DDataHandling   =
-    std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< edgedof::macroedge::StencilMap_T >, Edge >>( minLevel_, maxLevel_ );
-  
-  auto faceDataHandling   =
-      std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Face   >>(minLevel_, maxLevel_, macroFaceEdgeDoFToEdgeDoFStencilSize);
+   auto edge3DDataHandling =
+       std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< edgedof::macroedge::StencilMap_T >, Edge > >( minLevel_,
+                                                                                                                     maxLevel_ );
 
-  auto face3DDataHandling   =
-      std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< edgedof::macroface::StencilMap_T >, Face >>( minLevel_, maxLevel_ );
+   auto faceDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Face > >(
+       minLevel_, maxLevel_, macroFaceEdgeDoFToEdgeDoFStencilSize );
 
-  auto cellDataHandling   =
-      std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< edgedof::macrocell::StencilMap_T >, Cell >>( minLevel_, maxLevel_ );
+   auto face3DDataHandling =
+       std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< edgedof::macroface::StencilMap_T >, Face > >( minLevel_,
+                                                                                                                     maxLevel_ );
 
-  storage->addEdgeData(edgeStencilID_, edgeDataHandling  , "VertexDoFToEdgeDoFOperatorEdgeStencil");
-  storage->addEdgeData(edgeStencil3DID_, edge3DDataHandling  , "VertexDoFToEdgeDoFOperatorEdge3DStencil");
-  storage->addFaceData(faceStencilID_, faceDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
-  storage->addFaceData(faceStencil3DID_, face3DDataHandling  , "VertexDoFToEdgeDoFOperatorFace3DStencil");
-  storage->addCellData(cellStencilID_, cellDataHandling  , "VertexDoFToEdgeDoFOperatorCellStencil");
+   auto cellDataHandling =
+       std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< edgedof::macrocell::StencilMap_T >, Cell > >( minLevel_,
+                                                                                                                     maxLevel_ );
+
+   storage->addEdgeData( edgeStencilID_, edgeDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil" );
+   storage->addEdgeData( edgeStencil3DID_, edge3DDataHandling, "VertexDoFToEdgeDoFOperatorEdge3DStencil" );
+   storage->addFaceData( faceStencilID_, faceDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil" );
+   storage->addFaceData( faceStencil3DID_, face3DDataHandling, "VertexDoFToEdgeDoFOperatorFace3DStencil" );
+   storage->addCellData( cellStencilID_, cellDataHandling, "VertexDoFToEdgeDoFOperatorCellStencil" );
 
    if ( this->getStorage()->hasGlobalCells() )
    {
-      if ( form.assemble3D() )
+      if ( form_.assemble3D() )
       {
-        // WALBERLA_ABORT("Not implemented.");
-        assembleEdgeToEdgeStencils< EdgeDoFForm >( storage, minLevel, maxLevel, edgeStencil3DID_, faceStencil3DID_, cellStencilID_ );
+         // WALBERLA_ABORT("Not implemented.");
+         assembleEdgeToEdgeStencils< EdgeDoFForm >(
+             storage, minLevel, maxLevel, edgeStencil3DID_, faceStencil3DID_, cellStencilID_, form_ );
       }
    }
    else
    {
-      if ( form.assemble2D() )
+      if ( form_.assemble2D() )
       {
          assembleStencils();
       }
@@ -88,7 +103,7 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils() {
          // Assemble vertexToEdge stencil
          real_t * vStencil = storage_->getFace(face.getID())->getData(faceStencilID_)->getPointer(level);
 
-         form.geometryMap = face.getGeometryMap();
+         form_.geometryMap = face.getGeometryMap();
 
          const Point3D faceBottomLeftCoords  = face.coords[0];
          const Point3D faceBottomRightCoords = face.coords[1];
@@ -128,7 +143,7 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils() {
                                                                               walberla::real_c( edgeIt->row() * 2 + 1 ) * verticalMicroEdgeOffset );
          const Point3D diagonalMicroEdgePosition   = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
 
-         P2::variablestencil::assembleEdgeToEdgeStencil( form,
+         P2::variablestencil::assembleEdgeToEdgeStencil( form_,
                                         {horizontalMicroEdgePosition + dirHO_W,
                                          horizontalMicroEdgePosition + dirHO_E,
                                          horizontalMicroEdgePosition + dirHO_NW},
@@ -136,7 +151,7 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils() {
                                          edgedof::stencilIndexFromHorizontalEdge( SD::EDGE_VE_NW ),
                                          edgedof::stencilIndexFromHorizontalEdge( SD::EDGE_HO_C )},
                                                          vStencil );
-         P2::variablestencil::assembleEdgeToEdgeStencil( form,
+         P2::variablestencil::assembleEdgeToEdgeStencil( form_,
                                         {horizontalMicroEdgePosition + dirHO_W,
                                          horizontalMicroEdgePosition + dirHO_E,
                                          horizontalMicroEdgePosition + dirHO_SE},
@@ -146,14 +161,14 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils() {
                                                          vStencil );
 
          P2::variablestencil::assembleEdgeToEdgeStencil(
-                 form,
+             form_,
                  {verticalMicroEdgePosition + dirVE_N, verticalMicroEdgePosition + dirVE_S, verticalMicroEdgePosition + dirVE_NW},
                  {edgedof::stencilIndexFromVerticalEdge( SD::EDGE_DI_W ),
                   edgedof::stencilIndexFromVerticalEdge( SD::EDGE_HO_NW ),
                   edgedof::stencilIndexFromVerticalEdge( SD::EDGE_VE_C )},
                  vStencil );
          P2::variablestencil::assembleEdgeToEdgeStencil(
-                 form,
+             form_,
                  {verticalMicroEdgePosition + dirVE_N, verticalMicroEdgePosition + dirVE_S, verticalMicroEdgePosition + dirVE_SE},
                  {edgedof::stencilIndexFromVerticalEdge( SD::EDGE_HO_SE ),
                   edgedof::stencilIndexFromVerticalEdge( SD::EDGE_DI_E ),
@@ -161,14 +176,14 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils() {
                  vStencil );
 
          P2::variablestencil::assembleEdgeToEdgeStencil(
-                 form,
+             form_,
                  {diagonalMicroEdgePosition + dirDI_NW, diagonalMicroEdgePosition + dirDI_SE, diagonalMicroEdgePosition + dirDI_SW},
                  {edgedof::stencilIndexFromDiagonalEdge( SD::EDGE_HO_S ),
                   edgedof::stencilIndexFromDiagonalEdge( SD::EDGE_VE_W ),
                   edgedof::stencilIndexFromDiagonalEdge( SD::EDGE_DI_C )},
                  vStencil );
          P2::variablestencil::assembleEdgeToEdgeStencil(
-                 form,
+             form_,
                  {diagonalMicroEdgePosition + dirDI_NW, diagonalMicroEdgePosition + dirDI_SE, diagonalMicroEdgePosition + dirDI_NE},
                  {edgedof::stencilIndexFromDiagonalEdge( SD::EDGE_VE_E ),
                   edgedof::stencilIndexFromDiagonalEdge( SD::EDGE_HO_N ),
@@ -226,7 +241,7 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils() {
          horizontalMicroEdgePosition = leftCoords + ( real_c( 0 ) + 0.5 ) * dS_se;
 
          P2::variablestencil::assembleEdgeToEdgeStencil(
-              form,
+             form_,
               {horizontalMicroEdgePosition + dir_W, horizontalMicroEdgePosition + dir_E, horizontalMicroEdgePosition + dir_SE},
               {edgedof::stencilIndexFromHorizontalEdge( SD::EDGE_VE_SE ),
                edgedof::stencilIndexFromHorizontalEdge( SD::EDGE_DI_S ),
@@ -235,10 +250,10 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils() {
 
          if( edge.getNumNeighborFaces() == 2 )
          {
-            form.geometryMap = faceN->getGeometryMap();
+            form_.geometryMap = faceN->getGeometryMap();
 
             P2::variablestencil::assembleEdgeToEdgeStencil(
-                 form,
+                form_,
                  {horizontalMicroEdgePosition + dir_W, horizontalMicroEdgePosition + dir_E, horizontalMicroEdgePosition + dir_NW},
                  {edgedof::stencilIndexFromHorizontalEdge( SD::EDGE_DI_N ),
                   edgedof::stencilIndexFromHorizontalEdge( SD::EDGE_VE_NW ),
@@ -591,6 +606,8 @@ template class EdgeDoFOperator< P2FenicsForm< p2_div_cell_integral_1_otherwise, 
 template class EdgeDoFOperator< P2FenicsForm< fenics::NoAssemble, p2_tet_div_tet_cell_integral_2_otherwise > >;
 
 template class EdgeDoFOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >;
+
+template class EdgeDoFOperator< P2LinearCombinationForm >;
 
 }
 

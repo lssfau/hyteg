@@ -28,6 +28,7 @@
 #include "hyteg/LevelWiseMemory.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
+#include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 
@@ -40,6 +41,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
 {
  public:
    P1ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
+   P1ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form & form );
 
    ~P1ConstantOperator() override = default;
 
@@ -106,7 +108,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face > faceStencil3DID_;
    PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell > cellStencilID_;
 
-   P1Form form;
+   P1Form form_;
 };
 
 typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, fenics::NoAssemble > > P1ZeroOperator;
@@ -166,5 +168,7 @@ typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_
     P1ToP1DivTyVertexToVertexConstantOperator;
 typedef P1ConstantOperator< P1FenicsForm< fenics::UndefinedAssembly, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >
     P1ToP1DivTzVertexToVertexConstantOperator;
+
+typedef P1ConstantOperator< P2LinearCombinationForm > P1ConstantLinearCombinationOperator;
 
 } // namespace hyteg

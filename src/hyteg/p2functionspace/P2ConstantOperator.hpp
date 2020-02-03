@@ -21,6 +21,7 @@
 
 #include "hyteg/edgedofspace/EdgeDoFOperator.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
+#include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
@@ -35,6 +36,7 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
 {
  public:
    P2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
+   P2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P2Form & form );
 
    const P1ConstantOperator< P2Form >& getVertexToVertexOpr() const { return vertexToVertex; }
 
@@ -86,7 +88,7 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
    VertexDoFToEdgeDoFOperator< P2Form > vertexToEdge;
    EdgeDoFOperator< P2Form >            edgeToEdge;
 
-   P2Form form;
+   P2Form form_;
 };
 
 typedef P2ConstantOperator< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >
@@ -108,5 +110,7 @@ typedef P2ConstantOperator< P2FenicsForm< fenics::NoAssemble, p2_tet_div_tet_cel
 
 typedef P2ConstantOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >
     P2ConstantPSPGOperator;
+
+typedef P2ConstantOperator< P2LinearCombinationForm > P2LinearCombinationOperator;
 
 } // namespace hyteg
