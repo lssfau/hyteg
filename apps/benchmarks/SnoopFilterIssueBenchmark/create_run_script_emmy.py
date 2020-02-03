@@ -17,7 +17,7 @@ Parameters
     return base_config
 
 
-def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", prm_string="parameter_file.prm", num_nodes=1, ppn=48):
+def emmy_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", prm_string="parameter_file.prm", num_nodes=1, ppn=20):
 
     def partition(num_nodes):
         if num_nodes <= 16:
@@ -31,62 +31,42 @@ def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", p
     if num_nodes <= 792:
         constraint = "#SBATCH --constraint=[i01|i02|i03|i04|i05|i06|i07|i08]"
 
-    base_config = """#!/bin/bash
-# Job Name and Files (also --job-name)
-#SBATCH -J {job_name}
-#Output and error (also --output, --error):
-#SBATCH -o ./%x.%j.out
-#SBATCH -e ./%x.%j.err
-#Initial working directory (also --chdir):
-#SBATCH -D ./
-#Notification and type
-#SBATCH --mail-type=END
-#SBATCH --mail-user=nils.kohl@fau.de
-# Wall clock limit:
-#SBATCH --time={wall_clock_limit}
-#SBATCH --no-requeue
-#Setup of execution environment
-#SBATCH --export=NONE
-#SBATCH --get-user-env
-#SBATCH --account=pr86ma
- 
-#SBATCH --ear=off
-#SBATCH --partition={partition}
-#Number of nodes and MPI tasks per node:
-#SBATCH --nodes={num_nodes}
-#SBATCH --ntasks-per-node={ppn}
-{constraint}
+    base_config = """#!/bin/bash -l
+#
+#PBS -l nodes={num_nodes}:ppn=40:f2.2,walltime={wall_clock_limit}
+#
+# job name 
+#PBS -N {job_name}
+#
+# first non-empty non-comment line ends PBS options
 
-module load slurm_setup
+# jobs always start in $HOME - 
+# change to work directory
+cd /home/hpc/iwia/iwia007h/hyteg-build-release/apps/benchmarks/SnoopFilterIssueBenchmark
 
-cd ..
-pwd
-ls -lha
+# load required modules (compiler, MPI, ...)
+source load_modules_emmy.sh
 
-source load_modules_supermuc.sh
-
-module list
-
-#Run the program:
-mpiexec -n $SLURM_NTASKS ./SnoopFilterIssueBenchmark {prm_string}
+# run, using only physical cores
+mpirun -n {num_cores} ./SnoopFilterIssueBenchmark {prm_string}
 
 """.format(job_name=job_name, wall_clock_limit=wall_clock_limit, num_nodes=num_nodes, prm_string=prm_string, partition=partition(num_nodes),
-           constraint=constraint, ppn=ppn)
+           num_cores=ppn*num_nodes)
     return base_config
 
 
-def supermuc_scaling():
+def emmy_scaling():
 
     some_id = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H-%M-%S')
     os.mkdir(some_id)
 
-    ppn = 48
+    ppn = 20
     outer_iterations = 2
     inner_iterations_list = [1, 10, 100]
     cells_pp_list = [2, 10]
     level_list = [6, 7]
 
-    for num_nodes in [1, 2, 6, 12, 24, 48, 96, 192, 384, 768, 1536, 3072]:
+    for num_nodes in [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]:
         for inner_iterations in inner_iterations_list:
             for cells_pp in cells_pp_list:
                 for level in level_list:
@@ -98,8 +78,8 @@ def supermuc_scaling():
                     # prm_string = supermuc_scaling_prm_file_string(level=level, num_cells_per_process=cells_pp, num_outer_iterations=outer_iterations,
                     #                                               num_inner_iterations=inner_iterations, db_file=os.path.join(some_id, db_file))
                     prm_string = "{} {} {} {} {}".format(level, cells_pp, outer_iterations, inner_iterations, db_file)
-                    job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="0:10:00",
-                                                          num_nodes=num_nodes, prm_string=prm_string, ppn=ppn)
+                    job_string = emmy_job_file_string(job_name=job_name, wall_clock_limit="0:15:00",
+                                                      num_nodes=num_nodes, prm_string=prm_string, ppn=ppn)
 
                     # with open(os.path.join(some_id, prm_file_name), "w") as f:
                         # f.write(prm_string)
@@ -107,4 +87,4 @@ def supermuc_scaling():
                         f.write(job_string)
 
 if __name__ == "__main__":
-    supermuc_scaling()
+    emmy_scaling()
