@@ -122,10 +122,11 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage > storage,
       WALBERLA_LOG_INFO_ON_ROOT( "* Infinity norm ....... " << normInf << "\n" );
    }
 
-   WALBERLA_ASSERT_LESS_EQUAL( normFrb, limits[0] );
-   WALBERLA_ASSERT_LESS_EQUAL( normOne, limits[1] );
-   WALBERLA_ASSERT_LESS_EQUAL( normInf, limits[2] );
+   WALBERLA_CHECK_LESS_EQUAL( normFrb, limits[0] );
+   WALBERLA_CHECK_LESS_EQUAL( normOne, limits[1] );
+   WALBERLA_CHECK_LESS_EQUAL( normInf, limits[2] );
 }
+
 
 int main( int argc, char* argv[] )
 {
