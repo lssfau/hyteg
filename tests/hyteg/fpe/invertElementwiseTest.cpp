@@ -52,7 +52,8 @@ int main( int argc, char** argv )
    walberla::MPIManager::instance()->useWorldComm();
 
    // Set mesh and primitives
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/unitsquare_with_circular_hole.msh" );
+   // MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/unitsquare_with_circular_hole.msh" );
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/regular_octahedron_8el.msh" );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -68,7 +69,9 @@ int main( int argc, char** argv )
    logSectionHeader( "Testing invertElementwise() after syncing halos:" );
    communication::syncP2FunctionBetweenPrimitives( tFunc1, level );
    tFunc1.invertElementwise( level, All );
-   WALBERLA_LOG_INFO_ON_ROOT( "* Check! No floating point exceptions detected!" );
+   std::cout << std::flush;
+   WALBERLA_LOG_INFO_ON_ROOT( "* Check! No floating point exceptions detected!" << std::endl );
+   WALBERLA_MPI_BARRIER();
 
    logSectionHeader( "Testing invertElementwise() without syncing halos:" );
    tFunc2.invertElementwise( level, All );
