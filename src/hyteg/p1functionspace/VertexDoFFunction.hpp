@@ -201,8 +201,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
       {
          return;
       }
-      interpolateByPrimitiveType< ReceiverType >(
-          real_c( 0 ), level, DoFType::All );
+      interpolateByPrimitiveType< ReceiverType >( real_c( 0 ), level, DoFType::All );
       additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
    }
 
@@ -282,7 +281,8 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
                                       const DoFType           boundaryTypeToSkipDuringAdditiveCommunication,
                                       const PrimitiveStorage& primitiveStorage ) const
    {
-      startAdditiveCommunication< SenderType, ReceiverType >( level, boundaryTypeToSkipDuringAdditiveCommunication, primitiveStorage );
+      startAdditiveCommunication< SenderType, ReceiverType >(
+          level, boundaryTypeToSkipDuringAdditiveCommunication, primitiveStorage );
       endAdditiveCommunication< SenderType, ReceiverType >( level );
    }
 
