@@ -523,3 +523,8 @@ waLBerla_compile_test(FILES numerictools/SpectrumEstimationTest.cpp DEPENDS hyte
 waLBerla_execute_test(NAME SpectrumEstimationTest )
 waLBerla_execute_test(NAME SpectrumEstimationTestMPI COMMAND $<TARGET_FILE:SpectrumEstimationTest> PROCESSES 3 )
 endif()
+
+## Floating point exceptions ##
+waLBerla_compile_test(FILES fpe/invertElementwiseTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME invertElementwiseTest )
+waLBerla_execute_test(NAME invertElementwiseTestMPI COMMAND $<TARGET_FILE:invertElementwiseTest> PROCESSES 3 )
