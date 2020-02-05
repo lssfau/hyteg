@@ -114,6 +114,12 @@ waLBerla_execute_test(NAME P2P1UzawaConvergenceTest)
 waLBerla_compile_test(FILES convergence/P1ChebyshevSmootherConvergenceTest.cpp DEPENDS hyteg core )
 waLBerla_execute_test(NAME P1ChebyshevSmootherConvergenceTest)
 
+waLBerla_compile_test(FILES convergence/P2UnsteadyDiffusion2DTest.cpp DEPENDS hyteg core )
+waLBerla_execute_test(NAME P2UnsteadyDiffusion2DTest)
+
+waLBerla_compile_test(FILES convergence/P2UnsteadyConvectionDiffusion2DTest.cpp DEPENDS hyteg core )
+waLBerla_execute_test(NAME P2UnsteadyConvectionDiffusion2DTest)
+
 ## convection ##
 
 waLBerla_compile_test(FILES convection/Upwind2DCircularConvectionTest.cpp DEPENDS hyteg core)

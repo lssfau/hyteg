@@ -1,0 +1,174 @@
+/*
+ * Copyright (c) 2017-2020 Nils Kohl.
+ *
+ * This file is part of HyTeG
+ * (see https://i10git.cs.fau.de/hyteg/hyteg).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+#include "core/Environment.h"
+#include "core/config/Config.h"
+#include "core/logging/Logging.h"
+#include "core/math/Constants.h"
+#include "core/timing/Timer.h"
+
+#include "hyteg/composites/UnsteadyDiffusion.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
+#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/controlflow/SolverLoop.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
+
+using walberla::real_t;
+using walberla::uint_c;
+using walberla::uint_t;
+
+using walberla::math::e;
+using walberla::math::pi;
+
+namespace hyteg {
+
+class Solution
+{
+ public:
+   Solution( real_t diffusivity )
+   : diffusivity_( diffusivity ), t_( 0 )
+   {}
+
+   real_t operator()( const Point3D& p )
+   {
+      return diffusivity_ * ( 1 - std::pow( e, -t_ ) ) * std::sin( p[0] ) * std::cos( p[1] );
+      // return 2 * t_ + p[0] * p[0];
+   }
+
+   void inc( const real_t& dt ) { t_ += dt; }
+
+ private:
+   real_t diffusivity_;
+   real_t t_;
+};
+
+class Rhs
+{
+ public:
+   Rhs( real_t diffusivity )
+   : diffusivity_( diffusivity ), t_( 0 )
+   {}
+
+   real_t operator()( const Point3D& p )
+   {
+      return diffusivity_ * ( 2 - std::pow( e, -t_ ) ) * std::sin( p[0] ) * std::cos( p[1] );
+      // return 0;
+   }
+
+   void inc( const real_t& dt ) { t_ += dt; }
+
+ private:
+   real_t diffusivity_;
+   real_t t_;
+};
+
+void P2UnsteadyDiffusionTest( const uint_t& minLevel, const uint_t& maxLevel )
+{
+   const auto meshInfo = MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {0.5 * pi, 0.5 * pi} ), MeshInfo::CRISSCROSS, 2, 2 );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   writeDomainPartitioningVTK( storage, "../../output", "P2UnsteadyDiffusionTest_domain" );
+
+   const real_t dt    = 1e-3;
+   const uint_t steps = 100;
+   const bool   vtk   = false;
+   const real_t diffusivity = 0.1;
+
+   hyteg::P2Function< real_t > u( "u", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > f( "f", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > uExact( "uExact", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > error( "error", storage, minLevel, maxLevel );
+
+   P2UnsteadyDiffusionOperator diffusionOperator( storage, minLevel, maxLevel, dt, diffusivity );
+   P2ConstantMassOperator      M( storage, minLevel, maxLevel );
+
+   auto coarseGridSolver = std::make_shared< CGSolver< P2UnsteadyDiffusionOperator > >( storage, minLevel, minLevel );
+   auto smoother         = std::make_shared< GaussSeidelSmoother< P2UnsteadyDiffusionOperator > >();
+   auto restriction      = std::make_shared< P2toP2QuadraticRestriction >();
+   auto prolongation     = std::make_shared< P2toP2QuadraticProlongation >();
+   auto solver           = std::make_shared< GeometricMultigridSolver< P2UnsteadyDiffusionOperator > >(
+       storage, smoother, coarseGridSolver, restriction, prolongation, minLevel, maxLevel, 3, 3 );
+   auto solverLoop  = std::make_shared< SolverLoop< P2UnsteadyDiffusionOperator > >( solver, 1 );
+
+   UnsteadyDiffusion< P2Function< real_t >, P2UnsteadyDiffusionOperator, P2ConstantMassOperator > diffusionSolver(
+       storage, minLevel, maxLevel, solverLoop );
+
+   hyteg::VTKOutput vtkOutput( "../../output", "P2UnsteadyDiffusionTest", storage );
+   vtkOutput.add( uExact );
+   vtkOutput.add( u );
+   vtkOutput.add( error );
+
+   Solution solution( diffusivity );
+   Rhs      rhs( diffusivity );
+
+   uExact.interpolate( solution, maxLevel, All );
+   f.interpolate( rhs, maxLevel, All );
+   u.interpolate( solution, maxLevel, DirichletBoundary );
+   error.assign( {1.0, -1.0}, {u, uExact}, maxLevel, All );
+   real_t l2Error = std::sqrt( error.dotGlobal( error, maxLevel, Inner ) /
+                               real_c( numberOfGlobalInnerDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " timestep | discr. L2 error " ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "----------+-----------------" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8d | %15.2e ", 0, l2Error ) );
+   if ( vtk )
+      vtkOutput.write( maxLevel, 0 );
+   solution.inc( dt );
+   rhs.inc( dt );
+
+   for ( uint_t step = 1; step <= steps; step++ )
+   {
+      solution.inc( dt );
+      rhs.inc( dt );
+
+      uExact.interpolate( solution, maxLevel, All );
+      f.interpolate( rhs, maxLevel, All );
+      u.interpolate( solution, maxLevel, DirichletBoundary );
+      diffusionSolver.step( diffusionOperator, M, u, f, maxLevel, Inner );
+
+      error.assign( {1.0, -1.0}, {u, uExact}, maxLevel, All );
+      l2Error = std::sqrt( error.dotGlobal( error, maxLevel, Inner ) /
+                           real_c( numberOfGlobalInnerDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
+
+      WALBERLA_CHECK_LESS( l2Error, 3.6e-04 );
+
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8d | %15.5e ", step, l2Error ) );
+      if ( vtk )
+         vtkOutput.write( maxLevel, step );
+   }
+}
+
+} // namespace hyteg
+
+int main( int argc, char* argv[] )
+{
+   walberla::Environment walberlaEnv( argc, argv );
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   hyteg::P2UnsteadyDiffusionTest( 2, 4 );
+}
