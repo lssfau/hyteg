@@ -91,6 +91,7 @@ VTKOutput::VTKOutput( std::string                                dir,
 , filename_( std::move( filename ) )
 , writeFrequency_( writeFrequency )
 , write2D_( true )
+, storage_( storage )
 {
    /// set output to 3D is storage contains cells
    if( storage->hasGlobalCells() )
@@ -1044,6 +1045,8 @@ void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
      return;
    }
 
+   storage_->getTimingTree()->start( "VTK write" );
+
    if( writeFrequency_ > 0 && timestep % writeFrequency_ == 0 )
    {
       syncAllFunctions( level );
@@ -1091,6 +1094,8 @@ void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
          }
       }
    }
+
+   storage_->getTimingTree()->stop( "VTK write" );
 }
 
 void VTKOutput::openDataElement( std::ostream& output, const std::string& type, const std::string& name,

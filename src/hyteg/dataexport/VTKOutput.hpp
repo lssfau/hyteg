@@ -148,6 +148,8 @@ class VTKOutput
    std::vector< DGFunction< real_t > >      dgFunctions_;
 
    std::vector< P2Function< real_t > > p2Functions_;
+
+   std::shared_ptr< PrimitiveStorage > storage_;
 };
 
 } // namespace hyteg
