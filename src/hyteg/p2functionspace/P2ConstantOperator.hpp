@@ -20,8 +20,8 @@
 #pragma once
 
 #include "hyteg/edgedofspace/EdgeDoFOperator.hpp"
-#include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
+#include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
@@ -36,7 +36,7 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
 {
  public:
    P2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
-   P2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P2Form & form );
+   P2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P2Form& form );
 
    const P1ConstantOperator< P2Form >& getVertexToVertexOpr() const { return vertexToVertex; }
 

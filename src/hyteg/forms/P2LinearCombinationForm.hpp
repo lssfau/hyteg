@@ -29,7 +29,7 @@ namespace hyteg {
 /// \brief P2 form that performs a linear combination of other P2 forms.
 ///
 /// The linear combinations are formed according to the passed scalars and forms:
-///    result = scalar[0] * form[0].integrate() + scalar[1] * form[1].integrate() + ...
+///    result = scalar[0] * form[0]->integrate() + scalar[1] * form[1]->integrate() + ...
 /// The number of passed scalars and forms must be identical.
 ///
 class P2LinearCombinationForm : public P2Form
@@ -37,14 +37,14 @@ class P2LinearCombinationForm : public P2Form
  public:
    P2LinearCombinationForm() = default;
 
-   P2LinearCombinationForm( const std::vector< real_t >& scalars, const std::vector< std::reference_wrapper< P2Form > >& forms )
+   P2LinearCombinationForm( const std::vector< real_t >& scalars, const std::vector< P2Form* >& forms )
    : scalars_( scalars )
    , forms_( forms )
    {
       WALBERLA_CHECK_EQUAL( scalars.size(), forms.size(), "Must pass same number of forms and scalars!" )
    }
 
-   virtual ~P2LinearCombinationForm() {}
+   virtual ~P2LinearCombinationForm() = default;
 
    // ---------------------------
    //  2D versions for triangles
@@ -55,7 +55,7 @@ class P2LinearCombinationForm : public P2Form
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
          Point3D tmpOut;
-         forms_[i].get().integrate( coords, tmpOut );
+         forms_[i]->integrate( coords, tmpOut );
          out += scalars_[i] * tmpOut;
       }
    }
@@ -66,7 +66,7 @@ class P2LinearCombinationForm : public P2Form
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
          Point3D tmpOut;
-         forms_[i].get().integrateEdgeToVertex( coords, tmpOut );
+         forms_[i]->integrateEdgeToVertex( coords, tmpOut );
          out += scalars_[i] * tmpOut;
       }
    }
@@ -77,7 +77,7 @@ class P2LinearCombinationForm : public P2Form
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
          Point3D tmpOut;
-         forms_[i].get().integrateVertexToEdge( coords, tmpOut );
+         forms_[i]->integrateVertexToEdge( coords, tmpOut );
          out += scalars_[i] * tmpOut;
       }
    }
@@ -88,7 +88,7 @@ class P2LinearCombinationForm : public P2Form
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
          Point3D tmpOut;
-         forms_[i].get().integrateEdgeToEdge( coords, tmpOut );
+         forms_[i]->integrateEdgeToEdge( coords, tmpOut );
          out += scalars_[i] * tmpOut;
       }
    }
@@ -99,7 +99,7 @@ class P2LinearCombinationForm : public P2Form
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
          Matrix6r tmpOut;
-         forms_[i].get().integrateAll( coords, tmpOut );
+         forms_[i]->integrateAll( coords, tmpOut );
          elMat += scalars_[i] * tmpOut;
       }
    }
@@ -113,7 +113,7 @@ class P2LinearCombinationForm : public P2Form
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
          Point4D tmpOut;
-         forms_[i].get().integrate( coords, tmpOut );
+         forms_[i]->integrate( coords, tmpOut );
          out += scalars_[i] * tmpOut;
       }
    }
@@ -144,7 +144,7 @@ class P2LinearCombinationForm : public P2Form
       real_t out = 0;
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
-         out += scalars_[i] * forms_[i].get().integrate( coords, cntrPos, leafPos );
+         out += scalars_[i] * forms_[i]->integrate( coords, cntrPos, leafPos );
       }
       return out;
    }
@@ -156,7 +156,7 @@ class P2LinearCombinationForm : public P2Form
       std::vector< real_t > out( leafPos.size(), 0 );
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
-         auto tmpOut = forms_[i].get().integrate( coords, cntrPos, leafPos );
+         auto tmpOut = forms_[i]->integrate( coords, cntrPos, leafPos );
          for ( uint_t j = 0; j < leafPos.size(); j++ )
          {
             out[j] += scalars_[i] * tmpOut[j];
@@ -171,7 +171,7 @@ class P2LinearCombinationForm : public P2Form
       for ( uint_t i = 0; i < forms_.size(); i++ )
       {
          Matrix10r tmpOut;
-         forms_[i].get().integrateAll( coords, tmpOut );
+         forms_[i]->integrateAll( coords, tmpOut );
          elMat += scalars_[i] * tmpOut;
       }
    }
@@ -181,7 +181,7 @@ class P2LinearCombinationForm : public P2Form
       bool assemble = true;
       for ( const auto& form : forms_ )
       {
-         assemble &= form.get().assemble2D();
+         assemble &= form->assemble2D();
       }
       return assemble;
    }
@@ -191,7 +191,7 @@ class P2LinearCombinationForm : public P2Form
       bool assemble = true;
       for ( const auto& form : forms_ )
       {
-         assemble &= form.get().assemble3D();
+         assemble &= form->assemble3D();
       }
       return assemble;
    }
@@ -201,7 +201,7 @@ class P2LinearCombinationForm : public P2Form
       bool assemble = true;
       for ( const auto& form : forms_ )
       {
-         assemble &= form.get().assembly2DDefined();
+         assemble &= form->assembly2DDefined();
       }
       return assemble;
    }
@@ -211,14 +211,14 @@ class P2LinearCombinationForm : public P2Form
       bool assemble = true;
       for ( const auto& form : forms_ )
       {
-         assemble &= form.get().assembly3DDefined();
+         assemble &= form->assembly3DDefined();
       }
       return assemble;
    }
 
  private:
    std::vector< real_t >                           scalars_;
-   std::vector< std::reference_wrapper< P2Form > > forms_;
+   std::vector< P2Form* > forms_;
 };
 
 } // namespace hyteg
