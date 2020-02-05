@@ -18,6 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "hyteg/forms/P2LinearCombinationForm.hpp"
+
 #include <numeric>
 
 #include "core/DataTypes.h"
@@ -27,7 +29,6 @@
 #include "hyteg/FunctionTraits.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_generated/p2_diffusion.h"
 #include "hyteg/forms/form_fenics_generated/p2_mass.h"
@@ -45,13 +46,12 @@ using walberla::real_t;
 
 namespace hyteg {
 
-
-bool P2LinearCombinationFormTest( const uint_t & level, const std::string & meshFile )
+bool P2LinearCombinationFormTest( const uint_t& level, const std::string& meshFile )
 {
-   const bool writeVTK = false;
-   const real_t eps = 1e-14;
+   const bool   writeVTK = false;
+   const real_t eps      = 1e-14;
 
-   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFile );
+   MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    loadbalancing::roundRobin( setupStorage );
@@ -59,15 +59,15 @@ bool P2LinearCombinationFormTest( const uint_t & level, const std::string & mesh
 
    writeDomainPartitioningVTK( storage, "../../output", "P2ConstantOperatorAssignTest" );
 
-   P2Function< real_t >   src( "src", storage, level, level );
-   P2Function< real_t >   tmpL( "tmpL", storage, level, level );
-   P2Function< real_t >   tmpM( "tmpM", storage, level, level );
-   P2Function< real_t >   dstAssign( "dstAssign", storage, level, level );
-   P2Function< real_t >   dstVerification( "dstVerification", storage, level, level );
-   P2Function< real_t >   err( "err", storage, level, level );
+   P2Function< real_t > src( "src", storage, level, level );
+   P2Function< real_t > tmpL( "tmpL", storage, level, level );
+   P2Function< real_t > tmpM( "tmpM", storage, level, level );
+   P2Function< real_t > dstAssign( "dstAssign", storage, level, level );
+   P2Function< real_t > dstVerification( "dstVerification", storage, level, level );
+   P2Function< real_t > err( "err", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > srcFunction = []( const hyteg::Point3D& x ) {
-     return x[0] * x[0] * x[0] * x[0] * std::sinh( x[1] ) * std::cos( x[2] );
+      return x[0] * x[0] * x[0] * x[0] * std::sinh( x[1] ) * std::cos( x[2] );
    };
 
    src.interpolate( srcFunction, level, hyteg::All );
@@ -75,16 +75,18 @@ bool P2LinearCombinationFormTest( const uint_t & level, const std::string & mesh
    // operators to combine
 
    P2ConstantLaplaceOperator L( storage, level, level );
-   P2ConstantMassOperator M( storage, level, level );
-   const real_t c0 = 0.3;
-   const real_t c1 = 0.7;
+   P2ConstantMassOperator    M( storage, level, level );
+   const real_t              c0 = 0.3;
+   const real_t              c1 = 0.7;
 
    // linear combination through forms
 
-   P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > p2DiffusionFormFenics;
-   P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > p2MassFormFenics;
+   auto p2DiffusionFormFenics =
+       std::make_shared< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >();
+   auto p2MassFormFenics =
+       std::make_shared< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >();
 
-   P2LinearCombinationForm linearCombinationForm( {c0, c1}, {p2DiffusionFormFenics, p2MassFormFenics} );
+   P2LinearCombinationForm linearCombinationForm( {c0, c1}, {p2DiffusionFormFenics.get(), p2MassFormFenics.get()} );
    P2ConstantOperator< P2LinearCombinationForm > A( storage, level, level, linearCombinationForm );
 
    // test form combination

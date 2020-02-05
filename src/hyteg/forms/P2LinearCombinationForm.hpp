@@ -22,6 +22,8 @@
 
 #include <vector>
 
+#include "core/debug/CheckFunctions.h"
+
 #include "hyteg/forms/P2Form.hpp"
 
 namespace hyteg {
