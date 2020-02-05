@@ -652,6 +652,11 @@ void P2Function< ValueType >::setLocalCommunicationMode(
 template <>
 real_t P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level ) const
 {
+   this->startTiming( "Evaluate" );
+
+   real_t result = 0;
+   bool foundMacro = false;
+
    // Check if 2D or 3D function
    if ( !this->getStorage()->hasGlobalCells() )
    {
@@ -662,8 +667,10 @@ real_t P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level 
          if ( sphereTriangleIntersection(
                   coordinates, 1e-08, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
          {
-            return P2::macroface::evaluate(
+            result = P2::macroface::evaluate(
                 level, face, coordinates, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
+            foundMacro = true;
+            break;
          }
       }
    }
@@ -684,7 +691,11 @@ real_t P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level 
       }
    }
 
-   WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
+   WALBERLA_CHECK( foundMacro, "There is no local macro element including a point at the given coordinates " << coordinates );
+
+   this->stopTiming( "Evaluate" );
+
+   return result;
 }
 
 template <>
