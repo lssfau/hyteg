@@ -68,13 +68,16 @@ int main( int argc, char** argv )
 
    logSectionHeader( "Testing invertElementwise() after syncing halos:" );
    communication::syncP2FunctionBetweenPrimitives( tFunc1, level );
-   tFunc1.invertElementwise( level, All );
+   bool workOnHalos = true;
+   WALBERLA_LOG_INFO_ON_ROOT( "workOnHalos = " << std::boolalpha << workOnHalos );
+   tFunc1.invertElementwise( level, All, workOnHalos );
    std::cout << std::flush;
    WALBERLA_LOG_INFO_ON_ROOT( "* Check! No floating point exceptions detected!" << std::endl );
    WALBERLA_MPI_BARRIER();
 
    logSectionHeader( "Testing invertElementwise() without syncing halos:" );
-   tFunc2.invertElementwise( level, All );
+   workOnHalos = false;
+   tFunc2.invertElementwise( level, All, workOnHalos );
    WALBERLA_LOG_INFO_ON_ROOT( "* Check! No floating point exceptions detected!" );
 
    return EXIT_SUCCESS;

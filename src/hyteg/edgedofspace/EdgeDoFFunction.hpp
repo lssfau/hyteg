@@ -125,7 +125,7 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
                          DoFType                                                                            flag = All ) const;
 
    /// Replace values of the function by their inverses in an elementwise fashion
-   void invertElementwise( uint_t level, DoFType flag = All ) const;
+   void invertElementwise( uint_t level, DoFType flag = All, bool workOnHalos = false ) const;
 
    ValueType dotLocal( const EdgeDoFFunction< ValueType >& rhs, const uint_t level, const DoFType flag = All ) const;
 

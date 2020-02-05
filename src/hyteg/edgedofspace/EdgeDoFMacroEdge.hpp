@@ -553,6 +553,17 @@ inline ValueType
    return localMax;
 }
 
+inline void
+    invertElementwise( const uint_t& level, Edge& edge, const PrimitiveDataID< FunctionMemory< real_t >, Edge >& edgeDataID )
+{
+   real_t* data = edge.getData( edgeDataID )->getPointer( level );
+   for ( const auto& iter : edgedof::macroedge::Iterator( level ) )
+   {
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, iter.col(), stencilDirection::EDGE_HO_C );
+      data[idx]        = real_c( 1.0 ) / data[idx];
+   }
+}
+
 #ifdef HYTEG_BUILD_WITH_PETSC
 template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               Level,

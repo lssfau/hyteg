@@ -131,7 +131,7 @@ static void testEdgeDoFFunction()
    // Invert
 
    timer["Invert"].start();
-   y->invertElementwise( maxLevel, DoFType::All );
+   y->invertElementwise( maxLevel, DoFType::All, true );
    timer["Invert"].end();
 
    for ( const auto& it : edgedof::macroface::Iterator( maxLevel ) )

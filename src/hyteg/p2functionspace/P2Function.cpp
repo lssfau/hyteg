@@ -59,16 +59,9 @@ P2Function< ValueType >::P2Function( const std::string&                         
                                      uint_t                                     maxLevel,
                                      BoundaryCondition                          boundaryCondition )
 : Function< P2Function< ValueType > >( name, storage, minLevel, maxLevel )
-, vertexDoFFunction_( vertexdof::VertexDoFFunction< ValueType >( name + "_VertexDoF",
-                                                                 storage,
-                                                                 minLevel,
-                                                                 maxLevel,
-                                                                 boundaryCondition ) )
-, edgeDoFFunction_( EdgeDoFFunction< ValueType >( name + "_EdgeDoF",
-                                                  storage,
-                                                  minLevel,
-                                                  maxLevel,
-                                                  boundaryCondition) )
+, vertexDoFFunction_(
+      vertexdof::VertexDoFFunction< ValueType >( name + "_VertexDoF", storage, minLevel, maxLevel, boundaryCondition ) )
+, edgeDoFFunction_( EdgeDoFFunction< ValueType >( name + "_EdgeDoF", storage, minLevel, maxLevel, boundaryCondition ) )
 {
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
@@ -139,7 +132,6 @@ void P2Function< ValueType >::interpolate(
    vertexDoFFunction_.interpolateExtended( expr, vertexDoFFunctions, level, flag );
    edgeDoFFunction_.interpolateExtended( expr, edgeDoFFunctions, level, flag );
 }
-
 
 template < typename ValueType >
 void P2Function< ValueType >::setToZero( const uint_t level ) const
@@ -352,10 +344,10 @@ void P2Function< ValueType >::multElementwise(
 }
 
 template < typename ValueType >
-void P2Function< ValueType >::invertElementwise( uint_t level, DoFType flag ) const
+void P2Function< ValueType >::invertElementwise( uint_t level, DoFType flag, bool workOnHalos ) const
 {
-   vertexDoFFunction_.invertElementwise( level, flag );
-   edgeDoFFunction_.invertElementwise( level, flag );
+   vertexDoFFunction_.invertElementwise( level, flag, workOnHalos );
+   edgeDoFFunction_.invertElementwise( level, flag, workOnHalos );
 }
 
 template < typename ValueType >
