@@ -67,14 +67,10 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
 : Function< VertexDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
 , boundaryCondition_( std::move( boundaryCondition ) )
 {
-   auto cellVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >(
-       minLevel, maxLevel, vertexDoFMacroCellFunctionMemorySize );
-   auto faceVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face > >(
-       minLevel, maxLevel, vertexDoFMacroFaceFunctionMemorySize );
-   auto edgeVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Edge > >(
-       minLevel, maxLevel, vertexDoFMacroEdgeFunctionMemorySize );
-   auto vertexVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > >(
-       minLevel, maxLevel, vertexDoFMacroVertexFunctionMemorySize );
+   auto cellVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Cell > >();
+   auto faceVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Face > >();
+   auto edgeVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Edge > >();
+   auto vertexVertexDoFFunctionMemoryDataHandling = std::make_shared< MemoryDataHandling< FunctionMemory< ValueType >, Vertex > >();
 
    storage->addCellData( cellDataID_, cellVertexDoFFunctionMemoryDataHandling, name );
    storage->addFaceData( faceDataID_, faceVertexDoFFunctionMemoryDataHandling, name );
@@ -83,12 +79,134 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
 
    for ( uint_t level = minLevel; level <= maxLevel; ++level )
    {
+      for ( const auto & it : storage->getVertices() )
+      {
+         allocateMemory( level, *it.second );
+      }
+      for ( const auto & it : storage->getEdges() )
+      {
+         allocateMemory( level, *it.second );
+      }
+      for ( const auto & it : storage->getFaces() )
+      {
+         allocateMemory( level, *it.second );
+      }
+      for ( const auto & it : storage->getCells() )
+      {
+         allocateMemory( level, *it.second );
+      }
+
       communicators_[level]->addPackInfo( std::make_shared< VertexDoFPackInfo< ValueType > >(
           level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
       additiveCommunicators_[level]->addPackInfo( std::make_shared< VertexDoFAdditivePackInfo< ValueType > >(
           level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
    }
 }
+
+template < typename ValueType >
+bool VertexDoFFunction< ValueType >::hasMemoryAllocated( const uint_t & level, const Vertex & vertex ) const
+{
+   WALBERLA_CHECK( this->getStorage()->vertexExistsLocally( vertex.getID() ) );
+   return vertex.hasData( getVertexDataID() ) && vertex.getData( getVertexDataID() )->hasLevel( level );
+}
+
+template < typename ValueType >
+bool VertexDoFFunction< ValueType >::hasMemoryAllocated( const uint_t & level, const Edge & edge ) const
+{
+   WALBERLA_CHECK( this->getStorage()->edgeExistsLocally( edge.getID() ) );
+   return edge.hasData( getEdgeDataID() ) && edge.getData( getEdgeDataID() )->hasLevel( level );
+}
+
+template < typename ValueType >
+bool VertexDoFFunction< ValueType >::hasMemoryAllocated( const uint_t & level, const Face & face ) const
+{
+   WALBERLA_CHECK( this->getStorage()->faceExistsLocally( face.getID() ) );
+   return face.hasData( getFaceDataID() ) && face.getData( getFaceDataID() )->hasLevel( level );
+}
+
+template < typename ValueType >
+bool VertexDoFFunction< ValueType >::hasMemoryAllocated( const uint_t & level, const Cell & cell ) const
+{
+   WALBERLA_CHECK( this->getStorage()->cellExistsLocally( cell.getID() ) );
+   return cell.hasData( getCellDataID() ) && cell.getData( getCellDataID() )->hasLevel( level );
+}
+
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::allocateMemory( const uint_t & level, const Vertex & vertex )
+{
+   WALBERLA_CHECK( this->getStorage()->vertexExistsLocally( vertex.getID() ) );
+   WALBERLA_CHECK( vertex.hasData( getVertexDataID() ) )
+   if ( hasMemoryAllocated( level, vertex ) )
+      return;
+   vertex.getData( getVertexDataID() )->addData( level, vertexDoFMacroVertexFunctionMemorySize( level, vertex ), 0 );
+}
+
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::allocateMemory( const uint_t & level, const Edge & edge )
+{
+   WALBERLA_CHECK( this->getStorage()->edgeExistsLocally( edge.getID() ) );
+   WALBERLA_CHECK( edge.hasData( getEdgeDataID() ) )
+   if ( hasMemoryAllocated( level, edge ) )
+      return;
+   edge.getData( getEdgeDataID() )->addData( level, vertexDoFMacroEdgeFunctionMemorySize( level, edge ), 0 );
+}
+
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::allocateMemory( const uint_t & level, const Face & face )
+{
+   WALBERLA_CHECK( this->getStorage()->faceExistsLocally( face.getID() ) );
+   WALBERLA_CHECK( face.hasData( getFaceDataID() ) )
+   if ( hasMemoryAllocated( level, face ) )
+      return;
+   face.getData( getFaceDataID() )->addData( level, vertexDoFMacroFaceFunctionMemorySize( level, face ), 0 );
+}
+
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::allocateMemory( const uint_t & level, const Cell & cell )
+{
+   WALBERLA_CHECK( this->getStorage()->cellExistsLocally( cell.getID() ) );
+   WALBERLA_CHECK( cell.hasData( getCellDataID() ) )
+   if ( hasMemoryAllocated( level, cell ) )
+      return;
+   cell.getData( getCellDataID() )->addData( level, vertexDoFMacroCellFunctionMemorySize( level, cell ), 0 );
+}
+
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::deleteMemory( const uint_t & level, const Vertex & vertex )
+{
+   WALBERLA_CHECK( this->getStorage()->vertexExistsLocally( vertex.getID() ) );
+   if ( !hasMemoryAllocated( level, vertex ) )
+      return;
+   vertex.getData( getVertexDataID() )->deleteData( level );
+}
+
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::deleteMemory( const uint_t & level, const Edge & edge )
+{
+   WALBERLA_CHECK( this->getStorage()->edgeExistsLocally( edge.getID() ) );
+   if ( !hasMemoryAllocated( level, edge ) )
+      return;
+   edge.getData( getEdgeDataID() )->deleteData( level );
+}
+
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::deleteMemory( const uint_t & level, const Face & face )
+{
+   WALBERLA_CHECK( this->getStorage()->faceExistsLocally( face.getID() ) );
+   if ( !hasMemoryAllocated( level, face ) )
+      return;
+   face.getData( getFaceDataID() )->deleteData( level );
+}
+
+template < typename ValueType >
+void VertexDoFFunction< ValueType >::deleteMemory( const uint_t & level, const Cell & cell )
+{
+   WALBERLA_CHECK( this->getStorage()->cellExistsLocally( cell.getID() ) );
+   if ( !hasMemoryAllocated( level, cell ) )
+      return;
+   cell.getData( getCellDataID() )->deleteData( level );
+}
+
 
 template < typename ValueType >
 BoundaryCondition VertexDoFFunction< ValueType >::getBoundaryCondition() const
