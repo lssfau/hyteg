@@ -184,9 +184,6 @@ void P2Function< ValueType >::assign( const P1Function< ValueType >& src, const 
 
    const auto P1Level = P2Level + 1;
 
-   WALBERLA_CHECK_GREATER_EQUAL( P1Level, src.getMinLevel() )
-   WALBERLA_CHECK_LESS_EQUAL( P1Level, src.getMaxLevel() )
-
    for ( const auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;

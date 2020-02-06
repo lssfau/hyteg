@@ -72,6 +72,21 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
                     const uint_t&                              maxLevel,
                     const BoundaryCondition&                   boundaryCondition );
 
+   bool hasMemoryAllocated( const uint_t & level, const Vertex & vertex ) const;
+   bool hasMemoryAllocated( const uint_t & level, const Edge & edge ) const;
+   bool hasMemoryAllocated( const uint_t & level, const Face & face ) const;
+   bool hasMemoryAllocated( const uint_t & level, const Cell & cell ) const;
+
+   void allocateMemory( const uint_t & level, const Vertex & vertex );
+   void allocateMemory( const uint_t & level, const Edge & edge );
+   void allocateMemory( const uint_t & level, const Face & face );
+   void allocateMemory( const uint_t & level, const Cell & cell );
+
+   void deleteMemory( const uint_t & level, const Vertex & vertex );
+   void deleteMemory( const uint_t & level, const Edge & edge );
+   void deleteMemory( const uint_t & level, const Face & face );
+   void deleteMemory( const uint_t & level, const Cell & cell );
+
    void swap( const EdgeDoFFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const;
 
    /// \brief Copies all values function data from other to this.

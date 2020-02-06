@@ -75,6 +75,21 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
                       uint_t                                     maxLevel,
                       BoundaryCondition                          boundaryCondition );
 
+   bool hasMemoryAllocated( const uint_t & level, const Vertex & vertex ) const;
+   bool hasMemoryAllocated( const uint_t & level, const Edge & edge ) const;
+   bool hasMemoryAllocated( const uint_t & level, const Face & face ) const;
+   bool hasMemoryAllocated( const uint_t & level, const Cell & cell ) const;
+
+   void allocateMemory( const uint_t & level, const Vertex & vertex );
+   void allocateMemory( const uint_t & level, const Edge & edge );
+   void allocateMemory( const uint_t & level, const Face & face );
+   void allocateMemory( const uint_t & level, const Cell & cell );
+
+   void deleteMemory( const uint_t & level, const Vertex & vertex );
+   void deleteMemory( const uint_t & level, const Edge & edge );
+   void deleteMemory( const uint_t & level, const Face & face );
+   void deleteMemory( const uint_t & level, const Cell & cell );
+
    const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& getVertexDataID() const { return vertexDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Edge >&   getEdgeDataID() const { return edgeDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Face >&   getFaceDataID() const { return faceDataID_; }

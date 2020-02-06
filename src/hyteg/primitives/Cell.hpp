@@ -64,6 +64,14 @@ public:
   virtual uint_t getNumLowerDimNeighbors()  const { return getNumNeighborFaces(); }
   virtual uint_t getNumHigherDimNeighbors() const { return 0; }
 
+   /// Returns true if the data that belongs to the passed \ref PrimitiveDataID is allocated.
+   /// \param index the \ref PrimitiveDataID of the data that shall be asked for
+   template< typename DataType >
+   bool hasData( const PrimitiveDataID< DataType, Cell > & index ) const
+   {
+      return genericHasData< DataType >( index );
+   }
+
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned
   template< typename DataType >

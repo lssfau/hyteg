@@ -76,6 +76,14 @@ public:
   /// Spatial coordinates of vertex
   const Point3D getCoordinates() const { return coordinates_; }
 
+   /// Returns true if the data that belongs to the passed \ref PrimitiveDataID is allocated.
+   /// \param index the \ref PrimitiveDataID of the data that shall be asked for
+   template< typename DataType >
+   bool hasData( const PrimitiveDataID< DataType, Vertex > & index ) const
+   {
+      return genericHasData< DataType >( index );
+   }
+
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned
   template< typename DataType >
