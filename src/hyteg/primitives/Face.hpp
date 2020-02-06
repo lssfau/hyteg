@@ -94,6 +94,14 @@ public:
   const PrimitiveID & getCellID0() const { WALBERLA_CHECK_GREATER( getNumNeighborCells(), 0 ); return neighborCells_[0]; }
   const PrimitiveID & getCellID1() const { WALBERLA_CHECK_GREATER( getNumNeighborCells(), 1 ); return neighborCells_[1]; }
 
+   /// Returns true if the data that belongs to the passed \ref PrimitiveDataID is allocated.
+   /// \param index the \ref PrimitiveDataID of the data that shall be asked for
+   template< typename DataType >
+   bool hasData( const PrimitiveDataID< DataType, Face > & index ) const
+   {
+      return genericHasData< DataType >( index );
+   }
+
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned
   template< typename DataType >

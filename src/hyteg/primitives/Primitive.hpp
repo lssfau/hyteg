@@ -104,6 +104,11 @@ public:
 
   virtual ~Primitive() {}
 
+   /// Returns true if the data that belongs to the passed \ref PrimitiveDataID is allocated.
+   /// \param index the \ref PrimitiveDataID of the data that shall be asked for
+   template< typename DataType >
+   inline bool hasData( const PrimitiveDataID< DataType, Primitive > & index ) const;
+
   /// Returns a pointer to the data that belongs to the passed \ref PrimitiveDataID.
   /// \param index the \ref PrimitiveDataID of the data that should be returned
   template< typename DataType >
@@ -187,8 +192,11 @@ protected:
   /// Creates Primitive from an MPI buffer
   Primitive( walberla::mpi::RecvBuffer & recvBuffer ) { deserializePrimitive( recvBuffer ); }
 
-  template< typename DataType, typename PrimitiveType >
-  inline DataType* genericGetData( const PrimitiveDataID< DataType, PrimitiveType > & index ) const;
+  template < typename DataType, typename PrimitiveType >
+  inline bool genericHasData( const PrimitiveDataID< DataType, PrimitiveType >& index ) const;
+
+  template < typename DataType, typename PrimitiveType >
+  inline DataType* genericGetData( const PrimitiveDataID< DataType, PrimitiveType >& index ) const;
 
   std::vector< PrimitiveID > neighborVertices_;
   std::vector< PrimitiveID > neighborEdges_;
@@ -234,8 +242,13 @@ inline void Primitive::getNeighborPrimitivesGenerically< Face >( std::vector< Pr
 template<>
 inline void Primitive::getNeighborPrimitivesGenerically< Cell >( std::vector< PrimitiveID > & neighborPrimitives ) const { getNeighborCells( neighborPrimitives ); }
 
-
 // General methods for data and data handling retrieval
+template< typename DataType, typename PrimitiveType >
+bool Primitive::genericHasData( const PrimitiveDataID< DataType, PrimitiveType > & index ) const
+{
+   return data_.count( index ) > 0;
+}
+
 template< typename DataType, typename PrimitiveType >
 DataType* Primitive::genericGetData( const PrimitiveDataID< DataType, PrimitiveType > & index ) const
 {
@@ -244,6 +257,12 @@ DataType* Primitive::genericGetData( const PrimitiveDataID< DataType, PrimitiveT
 }
 
 // Methods to retrieve data and data handling from primitives
+template< typename DataType >
+bool Primitive::hasData( const PrimitiveDataID< DataType, Primitive > & index ) const
+{
+   return genericHasData< DataType >( index );
+}
+
 template< typename DataType >
 DataType* Primitive::getData( const PrimitiveDataID< DataType, Primitive > & index ) const
 {
