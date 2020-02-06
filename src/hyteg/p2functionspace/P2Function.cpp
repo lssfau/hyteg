@@ -665,7 +665,7 @@ real_t P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level 
          Face& face = *it.second;
 
          if ( sphereTriangleIntersection(
-                  coordinates, 1e-08, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+                  coordinates, 1e-05, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
          {
             result = P2::macroface::evaluate(
                 level, face, coordinates, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
