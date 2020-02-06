@@ -674,7 +674,7 @@ void VTKOutput::writeP1( std::ostream& output, const uint_t& level ) const
       return;
    }
 
-   auto& storage = p1Functions_[0].getStorage();
+   auto storage = p1Functions_[0].getStorage();
 
    const uint_t numberOfPoints2D = storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level );
    const uint_t numberOfCells2D  = storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level );
@@ -730,7 +730,7 @@ void VTKOutput::writeEdgeDoFs( std::ostream& output, const uint_t& level, const 
       return;
    }
 
-   auto& storage = edgeDoFFunctions_[0].getStorage();
+   auto storage = edgeDoFFunctions_[0].getStorage();
 
    const uint_t numberOfPoints2D = storage->getNumberOfLocalFaces() * levelinfo::num_microedges_per_face( level ) / 3;
    const uint_t faceWidth        = levelinfo::num_microedges_per_edge( level );
@@ -795,7 +795,7 @@ void VTKOutput::writeDGDoFs( std::ostream& output, const uint_t& level ) const
       return;
    }
 
-   auto& storage = dgFunctions_[0].getStorage();
+   auto storage = dgFunctions_[0].getStorage();
 
    const uint_t numberOfPoints = storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level );
    const uint_t numberOfCells  = storage->getNumberOfLocalFaces() * levelinfo::num_microfaces_per_face( level );
@@ -853,7 +853,7 @@ void VTKOutput::writeP2( std::ostream& output, const uint_t& level ) const
       return;
    }
 
-   auto& storage = p2Functions_[0].getStorage();
+   auto storage = p2Functions_[0].getStorage();
 
    const uint_t numberOfPoints = write2D_ ?
                                      storage->getNumberOfLocalFaces() * levelinfo::num_microvertices_per_face( level + 1 ) :

@@ -827,9 +827,6 @@ void VertexDoFFunction< ValueType >::assign( const P2Function< ValueType >& src,
 
    const auto P2Level = P1Level - 1;
 
-   WALBERLA_CHECK_GREATER_EQUAL( P2Level, src.getMinLevel() )
-   WALBERLA_CHECK_LESS_EQUAL( P2Level, src.getMaxLevel() )
-
    for ( const auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;

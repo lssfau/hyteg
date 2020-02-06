@@ -75,11 +75,7 @@ public:
 
   const std::string &getFunctionName() const { return functionName_; }
 
-  const std::shared_ptr< PrimitiveStorage > getStorage() const { WALBERLA_ASSERT( !!(storage_.lock()) ); return storage_.lock(); }
-
-  uint_t getMinLevel() const { return minLevel_; }
-
-  uint_t getMaxLevel() const { return maxLevel_; }
+  std::shared_ptr< PrimitiveStorage > getStorage() const { return storage_; }
 
   void enableTiming( const std::shared_ptr< walberla::WcTimingTree > & timingTree )
   {
@@ -103,7 +99,7 @@ public:
 protected:
 
   const std::string functionName_;
-  const std::weak_ptr< PrimitiveStorage > storage_;
+  const std::shared_ptr< PrimitiveStorage > storage_;
   const uint_t minLevel_;
   const uint_t maxLevel_;
   const bool   isDummy_;
