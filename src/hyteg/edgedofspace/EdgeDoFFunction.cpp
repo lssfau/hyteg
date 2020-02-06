@@ -83,13 +83,8 @@ EdgeDoFFunction< ValueType >::EdgeDoFFunction( const std::string&               
       //communicators_[level]->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
       communicators_[level]->addPackInfo( std::make_shared< EdgeDoFPackInfo< ValueType > >(
           level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
-      additiveCommunicators_[level]->addPackInfo(
-          std::make_shared< EdgeDoFAdditivePackInfo< ValueType > >( level,
-                                                                    vertexDataID_,
-                                                                    edgeDataID_,
-                                                                    faceDataID_,
-                                                                    cellDataID_,
-                                                                    this->getStorage()) );
+      additiveCommunicators_[level]->addPackInfo( std::make_shared< EdgeDoFAdditivePackInfo< ValueType > >(
+          level, vertexDataID_, edgeDataID_, faceDataID_, cellDataID_, this->getStorage() ) );
    }
 }
 
@@ -152,7 +147,7 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > srcCellIDs;
 
-   for( const EdgeDoFFunction& function : srcFunctions )
+   for ( const EdgeDoFFunction& function : srcFunctions )
    {
       srcEdgeIDs.push_back( function.edgeDataID_ );
       srcFaceIDs.push_back( function.faceDataID_ );
@@ -181,15 +176,15 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
 
    if ( level >= 1 )
    {
-     for ( auto & it : this->getStorage()->getCells())
-     {
-       Cell & cell = *it.second;
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
 
-       if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag()), flag ))
-       {
-         edgedof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
-       }
-     }
+         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+            edgedof::macrocell::interpolate< ValueType >( level, cell, cellDataID_, srcCellIDs, expr );
+         }
+      }
    }
    this->stopTiming( "Interpolate" );
 }
@@ -211,7 +206,7 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcFaceIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > > srcCellIDs;
 
-   for( const EdgeDoFFunction& function : srcFunctions )
+   for ( const EdgeDoFFunction& function : srcFunctions )
    {
       srcEdgeIDs.push_back( function.edgeDataID_ );
       srcFaceIDs.push_back( function.faceDataID_ );
@@ -325,12 +320,12 @@ void EdgeDoFFunction< ValueType >::swap( const EdgeDoFFunction< ValueType >& oth
    {
       for ( auto& it : this->getStorage()->getCells() )
       {
-        Cell& cell = *it.second;
-   
-        if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
-        {
+         Cell& cell = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
             edgedof::macrocell::swap< ValueType >( level, cell, other.getCellDataID(), cellDataID_ );
-        }
+         }
       }
    }
 
@@ -1001,20 +996,20 @@ void EdgeDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset ) 
 
    if ( level >= 1 )
    {
-     for ( auto & it : this->getStorage()->getFaces())
-     {
-       Face & face = *it.second;
-       edgedof::macroface::enumerate< ValueType >( level, face, faceDataID_, offset );
-     }
+      for ( auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+         edgedof::macroface::enumerate< ValueType >( level, face, faceDataID_, offset );
+      }
    }
 
    if ( level >= 1 )
    {
-     for ( auto & it : this->getStorage()->getCells())
-     {
-       Cell & cell = *it.second;
-       edgedof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset );
-     }
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+         edgedof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset );
+      }
    }
 
    communication::syncFunctionBetweenPrimitives( *this, level );
@@ -1210,22 +1205,26 @@ template < typename ValueType >
 void EdgeDoFFunction< ValueType >::setLocalCommunicationMode(
     const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode )
 {
-   if ( isDummy() ) { return; }
-   for ( auto & communicator : communicators_ )
+   if ( isDummy() )
+   {
+      return;
+   }
+   for ( auto& communicator : communicators_ )
    {
       communicator.second->setLocalCommunicationMode( localCommunicationMode );
    }
-   for( auto & communicator : additiveCommunicators_ )
+   for ( auto& communicator : additiveCommunicators_ )
    {
       communicator.second->setLocalCommunicationMode( localCommunicationMode );
    }
 }
 
 template < typename ValueType >
-void EdgeDoFFunction< ValueType >::invertElementwise( const uint_t level, const DoFType flag ) const
+void EdgeDoFFunction< ValueType >::invertElementwise( const uint_t level, const DoFType flag, bool workOnHalos ) const
 {
    WALBERLA_UNUSED( level );
    WALBERLA_UNUSED( flag );
+   WALBERLA_UNUSED( workOnHalos );
    WALBERLA_ABORT( "EdgeDoFFunction< ValueType >::invertElementwise not available for requested ValueType" );
 }
 
@@ -1289,7 +1288,7 @@ uint_t edgedof::edgeDoFMacroEdgeFunctionMemorySize( const uint_t& level, const P
 {
    if ( level == 0 )
    {
-     return 1 /* on edge */ + 2 * primitive.getNumNeighborFaces() + 1 * primitive.getNumNeighborCells();
+      return 1 /* on edge */ + 2 * primitive.getNumNeighborFaces() + 1 * primitive.getNumNeighborCells();
    }
    /// memory is allocated on the ghost layer for each orientation (X,Y,Z,XY,XZ,XY,XYZ) and each cell
    /// most of the direction exists (num_microedges_per_edge - 1) times
@@ -1333,7 +1332,7 @@ uint_t edgedof::edgeDoFMacroCellFunctionMemorySize( const uint_t& level, const P
 //  specialisations
 // =================
 template <>
-void EdgeDoFFunction< real_t >::invertElementwise( const uint_t level, const DoFType flag ) const
+void EdgeDoFFunction< real_t >::invertElementwise( uint_t level, DoFType flag, bool workOnHalos ) const
 {
    if ( isDummy() )
    {
@@ -1341,50 +1340,102 @@ void EdgeDoFFunction< real_t >::invertElementwise( const uint_t level, const DoF
    }
    this->startTiming( "Invert elementwise" );
 
-   for ( const auto& it : this->getStorage()->getEdges() )
+   if ( workOnHalos )
    {
-      Edge& edge = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      for ( const auto& it : this->getStorage()->getVertices() )
       {
-         real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
-         uint_t  size = edgedof::edgeDoFMacroEdgeFunctionMemorySize( level, edge );
-         for ( uint_t k = 0; k < size; ++k )
+         Vertex& vertex = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
          {
-            data[k] = real_c( 1.0 ) / data[k];
+            real_t* data = vertex.getData( vertexDataID_ )->getPointer( level );
+            uint_t  size = edgedof::edgeDoFMacroVertexFunctionMemorySize( level, vertex );
+            for ( uint_t k = 0; k < size; ++k )
+            {
+               data[k] = real_c( 1.0 ) / data[k];
+            }
+         }
+      }
+      for ( const auto& it : this->getStorage()->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+         {
+            real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
+            uint_t  size = edgedof::edgeDoFMacroEdgeFunctionMemorySize( level, edge );
+            for ( uint_t k = 0; k < size; ++k )
+            {
+               data[k] = real_c( 1.0 ) / data[k];
+            }
+         }
+      }
+
+      for ( const auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+         {
+            real_t* data = face.getData( faceDataID_ )->getPointer( level );
+            uint_t  size = edgedof::edgeDoFMacroFaceFunctionMemorySize( level, face );
+            for ( uint_t k = 0; k < size; ++k )
+            {
+               data[k] = real_c( 1.0 ) / data[k];
+            }
+         }
+      }
+
+      for ( const auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+            real_t* data = cell.getData( cellDataID_ )->getPointer( level );
+            uint_t  size = edgedof::edgeDoFMacroCellFunctionMemorySize( level, cell );
+            for ( uint_t k = 0; k < size; ++k )
+            {
+               data[k] = real_c( 1.0 ) / data[k];
+            }
          }
       }
    }
 
-   for ( const auto& it : this->getStorage()->getFaces() )
+   // do not work on halos
+   else
    {
-      Face& face = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      for ( const auto& it : this->getStorage()->getEdges() )
       {
-         real_t* data = face.getData( faceDataID_ )->getPointer( level );
-         uint_t  size = edgedof::edgeDoFMacroFaceFunctionMemorySize( level, face );
-         for ( uint_t k = 0; k < size; ++k )
+         Edge& edge = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
          {
-            data[k] = real_c( 1.0 ) / data[k];
+            edgedof::macroedge::invertElementwise( level, edge, edgeDataID_ );
+         }
+      }
+
+      for ( const auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+         {
+            edgedof::macroface::invertElementwise( level, face, faceDataID_ );
+         }
+      }
+
+      for ( const auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+            edgedof::macrocell::invertElementwise( level, cell, cellDataID_ );
          }
       }
    }
 
-   for ( const auto& it : this->getStorage()->getCells() )
-   {
-      Cell& cell = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
-      {
-         real_t* data = cell.getData( cellDataID_ )->getPointer( level );
-         uint_t  size = edgedof::edgeDoFMacroCellFunctionMemorySize( level, cell );
-         for ( uint_t k = 0; k < size; ++k )
-         {
-            data[k] = real_c( 1.0 ) / data[k];
-         }
-      }
-   }
    this->stopTiming( "Invert elementwise" );
 }
 

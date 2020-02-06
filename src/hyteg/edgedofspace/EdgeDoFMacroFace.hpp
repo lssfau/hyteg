@@ -921,6 +921,36 @@ inline ValueType
    return localMax;
 }
 
+inline void
+    invertElementwise( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< real_t >, Face >& faceDataID )
+{
+   real_t* data = face.getData( faceDataID )->getPointer( level );
+
+   for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
+   {
+      // Do not update horizontal DoFs at bottom
+      if ( it.row() != 0 )
+      {
+         uint_t idx = edgedof::macroface::horizontalIndex( level, it.col(), it.row() );
+         data[idx]  = real_c( 1.0 ) / data[idx];
+      }
+
+      // Do not update vertical DoFs at left border
+      if ( it.col() != 0 )
+      {
+         uint_t idx = edgedof::macroface::verticalIndex( level, it.col(), it.row() );
+         data[idx]  = real_c( 1.0 ) / data[idx];
+      }
+
+      // Do not update diagonal DoFs at diagonal border
+      if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
+      {
+         uint_t idx = edgedof::macroface::diagonalIndex( level, it.col(), it.row() );
+         data[idx]  = real_c( 1.0 ) / data[idx];
+      }
+   }
+}
+
 #ifdef HYTEG_BUILD_WITH_PETSC
 
 template < typename ValueType >

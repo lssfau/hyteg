@@ -914,6 +914,41 @@ inline void enumerate( const uint_t&                                            
    }
 }
 
+inline void
+    invertElementwise( const uint_t& level, Cell& cell, const PrimitiveDataID< FunctionMemory< real_t >, Cell >& cellDataID )
+{
+   auto data = cell.getData( cellDataID )->getPointer( level );
+
+   for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) )
+   {
+      uint_t idx;
+
+      idx       = edgedof::macrocell::xIndex( level, it.x(), it.y(), it.z() );
+      data[idx] = real_c( 1.0 ) / data[idx];
+
+      idx       = edgedof::macrocell::yIndex( level, it.x(), it.y(), it.z() );
+      data[idx] = real_c( 1.0 ) / data[idx];
+
+      idx       = edgedof::macrocell::zIndex( level, it.x(), it.y(), it.z() );
+      data[idx] = real_c( 1.0 ) / data[idx];
+
+      idx       = edgedof::macrocell::xyIndex( level, it.x(), it.y(), it.z() );
+      data[idx] = real_c( 1.0 ) / data[idx];
+
+      idx       = edgedof::macrocell::xzIndex( level, it.x(), it.y(), it.z() );
+      data[idx] = real_c( 1.0 ) / data[idx];
+
+      idx       = edgedof::macrocell::yzIndex( level, it.x(), it.y(), it.z() );
+      data[idx] = real_c( 1.0 ) / data[idx];
+   }
+
+   for ( const auto& it : edgedof::macrocell::IteratorXYZ( level, 0 ) )
+   {
+      uint_t idx = edgedof::macrocell::xyzIndex( level, it.x(), it.y(), it.z() );
+      data[idx]  = real_c( 1.0 ) / data[idx];
+   }
+}
+
 #ifdef HYTEG_BUILD_WITH_PETSC
 
 template < typename ValueType >

@@ -1250,10 +1250,11 @@ void VertexDoFFunction< ValueType >::multElementwise(
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::invertElementwise( const uint_t level, const DoFType flag ) const
+void VertexDoFFunction< ValueType >::invertElementwise( uint_t level, DoFType flag, bool workOnHalos ) const
 {
    WALBERLA_UNUSED( level );
    WALBERLA_UNUSED( flag );
+   WALBERLA_UNUSED( workOnHalos );
    WALBERLA_ABORT( "VertexDoFFunction< ValueType >::invertElementwise not available for requested ValueType" );
 }
 
@@ -1289,34 +1290,34 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
 
    if ( level >= 1 )
    {
-     for ( const auto & it : this->getStorage()->getEdges())
-     {
-       Edge & edge = *it.second;
+      for ( const auto& it : this->getStorage()->getEdges() )
+      {
+         Edge& edge = *it.second;
 
-       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag()), flag ))
-       {
-         scalarProduct += vertexdof::macroedge::dot< ValueType >( level, edge, edgeDataID_, rhs.edgeDataID_ );
-       }
-     }
+         if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+         {
+            scalarProduct += vertexdof::macroedge::dot< ValueType >( level, edge, edgeDataID_, rhs.edgeDataID_ );
+         }
+      }
 
-     for ( const auto & it : this->getStorage()->getFaces())
-     {
-       Face & face = *it.second;
+      for ( const auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
 
-       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag()), flag ))
-       {
-         scalarProduct += vertexdof::macroface::dot< ValueType >( level, face, faceDataID_, rhs.faceDataID_ );
-       }
-     }
+         if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+         {
+            scalarProduct += vertexdof::macroface::dot< ValueType >( level, face, faceDataID_, rhs.faceDataID_ );
+         }
+      }
 
-     for ( const auto & it : this->getStorage()->getCells())
-     {
-       Cell & cell = *it.second;
-       if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag()), flag ))
-       {
-         scalarProduct += vertexdof::macrocell::dot< ValueType >( level, cell, cellDataID_, rhs.cellDataID_ );
-       }
-     }
+      for ( const auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+            scalarProduct += vertexdof::macrocell::dot< ValueType >( level, cell, cellDataID_, rhs.cellDataID_ );
+         }
+      }
    }
    this->stopTiming( "Dot (local)" );
    return scalarProduct;
@@ -1430,20 +1431,20 @@ void VertexDoFFunction< ValueType >::enumerate( uint_t level, ValueType& offset 
 
    if ( level >= 2 )
    {
-     for ( auto & it : this->getStorage()->getFaces())
-     {
-       Face & face = *it.second;
-       vertexdof::macroface::enumerate< ValueType >( level, face, faceDataID_, offset );
-     }
+      for ( auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+         vertexdof::macroface::enumerate< ValueType >( level, face, faceDataID_, offset );
+      }
    }
 
    if ( level >= 2 )
    {
-     for ( auto & it : this->getStorage()->getCells())
-     {
-       Cell & cell = *it.second;
-       vertexdof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset );
-     }
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+         vertexdof::macrocell::enumerate< ValueType >( level, cell, cellDataID_, offset );
+      }
    }
 
    /// in contrast to other methods in the function class enumerate needs to communicate due to its usage in the PETSc solvers
@@ -1762,7 +1763,7 @@ void VertexDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType
 //  specialisations
 // =================
 template <>
-void VertexDoFFunction< real_t >::invertElementwise( const uint_t level, const DoFType flag ) const
+void VertexDoFFunction< real_t >::invertElementwise( uint_t level, DoFType flag, bool workOnHalos ) const
 {
    if ( isDummy() )
    {
@@ -1771,61 +1772,132 @@ void VertexDoFFunction< real_t >::invertElementwise( const uint_t level, const D
 
    this->startTiming( "Invert elementwise" );
 
-   for ( const auto& it : this->getStorage()->getVertices() )
+   if ( workOnHalos )
    {
-      Vertex& vertex = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      for ( const auto& it : this->getStorage()->getVertices() )
       {
-         real_t* data = vertex.getData( vertexDataID_ )->getPointer( level );
-         data[0]      = real_c( 1.0 ) / data[0];
-      }
-   }
+         Vertex& vertex = *it.second;
 
-   for ( const auto& it : this->getStorage()->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
-      {
-         real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
-         uint_t  size = edge.getData( edgeDataID_ )->getSize( level );
-         for ( uint_t k = 0; k < size; ++k )
+         if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
          {
-            data[k] = real_c( 1.0 ) / data[k];
+            real_t* data = vertex.getData( vertexDataID_ )->getPointer( level );
+            uint_t  size = vertex.getData( vertexDataID_ )->getSize( level );
+            for ( uint_t k = 0; k < size; ++k )
+            {
+               data[k] = real_c( 1.0 ) / data[k];
+               // data[0]      = real_c( 1.0 ) / data[0];
+            }
+         }
+      }
+
+      for ( const auto& it : this->getStorage()->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+         {
+            real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
+            uint_t  size = edge.getData( edgeDataID_ )->getSize( level );
+            for ( uint_t k = 0; k < size; ++k )
+            {
+               data[k] = real_c( 1.0 ) / data[k];
+            }
+         }
+      }
+
+      for ( const auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+         {
+            real_t* data = face.getData( faceDataID_ )->getPointer( level );
+            uint_t  size = face.getData( faceDataID_ )->getSize( level );
+            for ( uint_t k = 0; k < size; ++k )
+            {
+               data[k] = real_c( 1.0 ) / data[k];
+            }
+         }
+      }
+
+      for ( const auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+            real_t* data = cell.getData( cellDataID_ )->getPointer( level );
+            uint_t  size = cell.getData( cellDataID_ )->getSize( level );
+            for ( uint_t k = 0; k < size; ++k )
+            {
+               data[k] = real_c( 1.0 ) / data[k];
+            }
          }
       }
    }
 
-   for ( const auto& it : this->getStorage()->getFaces() )
+   // do not work on halos
+   else
    {
-      Face& face = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      for ( const auto& it : this->getStorage()->getVertices() )
       {
-         real_t* data = face.getData( faceDataID_ )->getPointer( level );
-         uint_t  size = face.getData( faceDataID_ )->getSize( level );
-         for ( uint_t k = 0; k < size; ++k )
+         Vertex& vertex = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
          {
-            data[k] = real_c( 1.0 ) / data[k];
+            real_t* data = vertex.getData( vertexDataID_ )->getPointer( level );
+            data[0]      = real_c( 1.0 ) / data[0];
+         }
+      }
+
+      for ( const auto& it : this->getStorage()->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+         {
+            real_t* data = edge.getData( edgeDataID_ )->getPointer( level );
+            for ( const auto& iter : vertexdof::macroedge::Iterator( level, 1 ) )
+            {
+               const uint_t idx = vertexdof::macroedge::indexFromVertex( level, iter.x(), stencilDirection::VERTEX_C );
+               data[idx]        = real_c( 1.0 ) / data[idx];
+            }
+         }
+      }
+
+      for ( const auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+         {
+            real_t* data = face.getData( faceDataID_ )->getPointer( level );
+            for ( const auto& iter : vertexdof::macroface::Iterator( level, 1 ) )
+            {
+               const uint_t idx =
+                   vertexdof::macroface::indexFromVertex( level, iter.col(), iter.row(), stencilDirection::VERTEX_C );
+               data[idx] = real_c( 1.0 ) / data[idx];
+            }
+         }
+      }
+
+      for ( const auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
+         {
+            real_t* data = cell.getData( cellDataID_ )->getPointer( level );
+            for ( const auto& iter : vertexdof::macrocell::Iterator( level, 1 ) )
+            {
+               const uint_t idx =
+                   vertexdof::macrocell::indexFromVertex( level, iter.x(), iter.y(), iter.z(), stencilDirection::VERTEX_C );
+               data[idx] = real_c( 1.0 ) / data[idx];
+            }
          }
       }
    }
 
-   for ( const auto& it : this->getStorage()->getCells() )
-   {
-      Cell& cell = *it.second;
-
-      if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
-      {
-         real_t* data = cell.getData( cellDataID_ )->getPointer( level );
-         uint_t  size = cell.getData( cellDataID_ )->getSize( level );
-         for ( uint_t k = 0; k < size; ++k )
-         {
-            data[k] = real_c( 1.0 ) / data[k];
-         }
-      }
-   }
    this->stopTiming( "Invert elementwise" );
 }
 
