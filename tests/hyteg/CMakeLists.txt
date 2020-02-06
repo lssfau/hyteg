@@ -466,6 +466,11 @@ waLBerla_compile_test(FILES MeshGenTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME MeshInfoTest3 COMMAND $<TARGET_FILE:MeshGenTest> )
 waLBerla_execute_test(NAME MeshInfoTest4 COMMAND $<TARGET_FILE:MeshGenTest> PROCESSES 2 )
 
+waLBerla_compile_test(FILES FunctionMemoryAllocationTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME FunctionMemoryAllocationTest1 COMMAND $<TARGET_FILE:FunctionMemoryAllocationTest> )
+waLBerla_execute_test(NAME FunctionMemoryAllocationTest2 COMMAND $<TARGET_FILE:FunctionMemoryAllocationTest> PROCESSES 2 )
+waLBerla_execute_test(NAME FunctionMemoryAllocationTest8 COMMAND $<TARGET_FILE:FunctionMemoryAllocationTest> PROCESSES 8 )
+
 waLBerla_compile_test(FILES FunctionSpaceDataTypesTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionSpaceDataTypesTest1 COMMAND $<TARGET_FILE:FunctionSpaceDataTypesTest> )
 
