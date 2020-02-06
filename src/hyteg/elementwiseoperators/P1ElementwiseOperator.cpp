@@ -365,10 +365,11 @@ void P1ElementwiseOperator< P1Form >::computeDiagonalOperatorValues( uint_t leve
       diagonalValues_->communicate< Vertex, Edge >( level );
       diagonalValues_->communicate< Edge, Face >( level );
 
-      // Invert values if desired
+      // Invert values if desired (note: using false below means we only invert in the interior of the primitives,
+      // the values in the halos are untouched; should be okay for using diagonalValue_ in smoothers)
       if ( invert )
       {
-         diagonalValues_->invertElementwise( level );
+         diagonalValues_->invertElementwise( level, All, false );
       }
    }
 }

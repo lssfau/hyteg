@@ -430,10 +430,11 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( uint_t leve
       diagonalValues_->getVertexDoFFunction().communicate< Edge, Face >( level );
       diagonalValues_->getEdgeDoFFunction().communicate< Edge, Face >( level );
 
-      // Invert values if desired
+      // Invert values if desired (note: using false below means we only invert in the interior of the primitives,
+      // the values in the halos are untouched; should be okay for using diagonalValue_ in smoothers)
       if ( invert )
       {
-         diagonalValues_->invertElementwise( level );
+         diagonalValues_->invertElementwise( level, All, false );
       }
    }
 }
