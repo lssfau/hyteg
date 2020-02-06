@@ -324,7 +324,7 @@ real_t VertexDoFFunction< ValueType >::evaluate( const Point3D& coordinates, uin
          Face& face = *it.second;
 
          if ( sphereTriangleIntersection(
-                  coordinates, 1e-08, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+                  coordinates, 1e-05, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
          {
             return vertexdof::macroface::evaluate< ValueType >( level, face, coordinates, faceDataID_ );
          }
@@ -336,13 +336,14 @@ real_t VertexDoFFunction< ValueType >::evaluate( const Point3D& coordinates, uin
       {
          Cell& cell = *it.second;
 
-         if ( isPointInTetrahedron( coordinates,
+         if ( sphereTetrahedronIntersection( coordinates,
+                                    1e-05,
                                     cell.getCoordinates()[0],
                                     cell.getCoordinates()[1],
                                     cell.getCoordinates()[2],
                                     cell.getCoordinates()[3] ) )
          {
-            WALBERLA_ABORT( "Not implemented." )
+            return vertexdof::macrocell::evaluate< ValueType >( level, cell, coordinates, cellDataID_ );
          }
       }
    }
