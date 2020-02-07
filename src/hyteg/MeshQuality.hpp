@@ -42,5 +42,20 @@ real_t getMinimalEdgeLength( const std::shared_ptr< hyteg::PrimitiveStorage >& s
    return std::pow( 2.0, -walberla::real_c( level ) ) * globalMin;
 }
 
+real_t getMaximalEdgeLength( const std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t level )
+{
+   real_t localMax = 0;
+
+   for( auto& it : storage->getEdges() )
+   {
+      Edge& edge = *it.second;
+      localMax   = std::max( localMax, edge.getLength() );
+   }
+
+   real_t globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+
+   return std::pow( 2.0, -walberla::real_c( level ) ) * globalMax;
+}
+
 } // namespace MeshQuality
 } // namespace hyteg
