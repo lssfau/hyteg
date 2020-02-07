@@ -173,11 +173,7 @@ inline Point3D transformToLocalTet( const Point3D & tet0, const Point3D & tet1, 
    return Point3D( { result[0], result[1], result[2] } );
 }
 
-}
-
-template<>
-inline real_t evaluate( const uint_t & level, const Cell & cell, const Point3D & coordinates,
-                        const PrimitiveDataID< FunctionMemory< real_t >, Cell > & dataID )
+inline std::array< Index, 4 > findLocalMicroCell( const uint_t & level, const Cell & cell, const Point3D & coordinates )
 {
    // Assuming now that the passed coordinates are in the cell.
    // Otherwise they are clamped.
@@ -310,7 +306,16 @@ inline real_t evaluate( const uint_t & level, const Cell & cell, const Point3D &
    WALBERLA_ASSERT_LESS( microCellIndices[2].x() + microCellIndices[2].y() + microCellIndices[2].z(), numMicroVertices );
    WALBERLA_ASSERT_LESS( microCellIndices[3].x() + microCellIndices[3].y() + microCellIndices[3].z(), numMicroVertices );
 
-   // ^^^ in extra function - code can be re-used for any element order ^^^
+   return microCellIndices;
+}
+
+}
+
+template<>
+inline real_t evaluate( const uint_t & level, const Cell & cell, const Point3D & coordinates,
+                        const PrimitiveDataID< FunctionMemory< real_t >, Cell > & dataID )
+{
+   auto microCellIndices = detail::findLocalMicroCell( level, cell, coordinates );
 
    // 3. perform interpolation
 

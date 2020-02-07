@@ -30,12 +30,8 @@
 using walberla::real_t;
 using namespace hyteg;
 
-void test2D( int argc, char** argv )
+void test2D()
 {
-   walberla::debug::enterTestMode();
-   walberla::mpi::Environment MPIenv( argc, argv );
-   walberla::MPIManager::instance()->useWorldComm();
-
    MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/bfs_12el.msh" );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -116,8 +112,52 @@ void test2D( int argc, char** argv )
    }
 }
 
+void test3D()
+{
+   MeshInfo                            meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
+   SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   const size_t minLevel = 2;
+   const size_t maxLevel = 5;
+
+   walberla::math::seedRandomGenerator( 12345678 );
+
+   const uint_t numRandomEvaluations = 1000;
+
+   auto testFunc = []( const Point3D& x ) {
+     return 5.0 * x[0] * x[0] + 2.0 * x[0] * x[1] + 4.0 * x[0] * x[2] + 7.0 * x[1] * x[1] + 9.0 * x[1] * x[2] + 3.0 * x[2] * x[2] + 10.0 * x[0] + 3.0 * x[1] + 4.0 * x[2] + 1.0;
+   };
+
+   P2Function< real_t > x( "x", storage, minLevel, maxLevel );
+
+   for ( uint_t level = minLevel; level <= maxLevel; level++ )
+   {
+      x.interpolate( testFunc, level );
+      communication::syncFunctionBetweenPrimitives( x, level );
+
+      for ( uint_t i = 0; i < numRandomEvaluations; ++i )
+      {
+         Point3D coordinates;
+         coordinates[0] = walberla::math::realRandom( 0.0, 1.0 );
+         coordinates[1] = walberla::math::realRandom( 0.0, 1.0 );
+         coordinates[2] = walberla::math::realRandom( 0.0, 1.0 );
+
+         const real_t eval = x.evaluate( coordinates, level );
+         WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ), "Test3D: wrong value at " << coordinates << "." );
+
+         WALBERLA_LOG_INFO_ON_ROOT( "Passed: " << coordinates )
+      }
+   }
+}
+
 int main( int argc, char** argv )
 {
-   test2D( argc, argv );
+   walberla::debug::enterTestMode();
+   walberla::mpi::Environment MPIenv( argc, argv );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   test2D();
+   test3D();
    return EXIT_SUCCESS;
 }

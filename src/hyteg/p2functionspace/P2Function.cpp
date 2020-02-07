@@ -686,7 +686,10 @@ real_t P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level 
                                     cell.getCoordinates()[2],
                                     cell.getCoordinates()[3] ) )
          {
-            WALBERLA_ABORT( " P2Function< real_t >::evaluate not implemented for 3D case" );
+            result = P2::macrocell::evaluate(
+                level, cell, coordinates, vertexDoFFunction_.getCellDataID(), edgeDoFFunction_.getCellDataID() );
+            foundMacro = true;
+            break;
          }
       }
    }
