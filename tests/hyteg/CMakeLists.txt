@@ -564,6 +564,10 @@ waLBerla_execute_test(NAME SpectrumEstimationTest )
 waLBerla_execute_test(NAME SpectrumEstimationTestMPI COMMAND $<TARGET_FILE:SpectrumEstimationTest> PROCESSES 3 )
 endif()
 
+## Form Evaluation ##
+waLBerla_compile_test(FILES forms/HytegVsFenicsFormTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME HytegVsFenicsFormTest )
+
 ## Floating point exceptions ##
 waLBerla_compile_test(FILES fpe/invertElementwiseTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME invertElementwiseTest )

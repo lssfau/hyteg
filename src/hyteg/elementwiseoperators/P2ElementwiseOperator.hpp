@@ -22,6 +22,7 @@
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
+#include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -176,9 +177,6 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                                const PetscInt* const   dstVertexIdx,
                                const PetscInt* const   dstEdgeIdx ) const;
 #endif
-
-   /// Form associated with this operator
-   P2Form form_;
 };
 
 typedef P2ElementwiseOperator<
@@ -187,5 +185,7 @@ typedef P2ElementwiseOperator<
 
 typedef P2ElementwiseOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >
     P2ElementwiseMassOperator;
+
+typedef P2ElementwiseOperator< P2Form_mass > P2ElementwiseBlendingMassOperator;
 
 } // namespace hyteg

@@ -19,7 +19,7 @@
  */
 // test that the product one^T*M*one with mass matrix M and vector of ones gives area of domain
 #include "core/Environment.h"
-#include <core/math/Constants.h>
+#include "core/math/Constants.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
@@ -30,6 +30,9 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/geometry/CircularMap.hpp"
 #include "hyteg/geometry/PolarCoordsMap.hpp"
+
+// Hunting the NaN
+#include <cfenv>
 
 using walberla::math::pi;
 using walberla::real_t;
@@ -88,6 +91,8 @@ void logSectionHeader( const char* header ) {
 
 int main( int argc, char** argv )
 {
+   feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+
    walberla::debug::enterTestMode();
 
    walberla::mpi::Environment MPIenv( argc, argv );
@@ -119,6 +124,8 @@ int main( int argc, char** argv )
    checkArea< P2ConstantMassOperator >( storageBFS, 1.75, "P2ConstantMassOperator" );
    checkArea< P1ElementwiseMassOperator >( storageBFS, 1.75, "P1ElementwiseMassOperator" );
    checkArea< P2ElementwiseMassOperator >( storageBFS, 1.75, "P2ElementwiseMassOperator" );
+
+   checkArea< P2ElementwiseBlendingMassOperator >( storageBFS, 1.75, "P2ElementwiseBlendingMassOperator" );
 
    // ----------
    //  3D Tests
@@ -163,6 +170,7 @@ int main( int argc, char** argv )
 
    checkArea< P1BlendingMassOperator >( storagePolar, 3.0 * pi, "P1BlendingMassOperator" );
    checkArea< P1ElementwiseBlendingMassOperator >( storagePolar, 3.0 * pi, "P1ElementwiseBlendingMassOperator" );
+   checkArea< P2ElementwiseBlendingMassOperator >( storagePolar, 3.0 * pi, "P2ElementwiseBlendingMassOperator" );
 
    // Test with unit square containing circular hole
    logSectionHeader( "Testing with BLENDING( SQUARE with CIRCULAR HOLE )" );
@@ -200,6 +208,7 @@ int main( int argc, char** argv )
 
    checkArea< P1BlendingMassOperator >( storageHole, 1.0 - pi / 16.0, "P1BlendingMassOperator", 3 );
    checkArea< P1ElementwiseBlendingMassOperator >( storageHole, 1.0 - pi / 16.0, "P1ElementwiseBlendingMassOperator", 3 );
+   checkArea< P2ElementwiseBlendingMassOperator >( storageHole, 1.0 - pi / 16.0, "P2ElementwiseBlendingMassOperator", 3 );
 
    return EXIT_SUCCESS;
 }

@@ -634,4 +634,7 @@ template class P1ElementwiseOperator< P1FenicsForm< p1_mass_cell_integral_0_othe
 // P1ElementwiseBlendingMassOperator
 template class P1ElementwiseOperator< P1Form_mass >;
 
+// P1ElementwiseBlendingMassOperator3D
+template class P1ElementwiseOperator< P1Form_mass3D >;
+
 } // namespace hyteg

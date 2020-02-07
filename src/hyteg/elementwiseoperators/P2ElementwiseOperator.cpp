@@ -231,6 +231,7 @@ void P2ElementwiseOperator< P2Form >::localMatrixVectorMultiply2D( const Face&  
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 6 >  dofDataIdx;
+   P2Form                   form;
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -241,7 +242,8 @@ void P2ElementwiseOperator< P2Form >::localMatrixVectorMultiply2D( const Face&  
    v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
 
    // assemble local element matrix
-   form_.integrateAll( {v0, v1, v2}, elMat );
+   form.setGeometryMap( face.getGeometryMap() );
+   form.integrateAll( {v0, v1, v2}, elMat );
 
    // assemble local element vector (note the tweaked ordering to go along with FEniCS indexing)
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
@@ -293,7 +295,9 @@ void P2ElementwiseOperator< P2Form >::localMatrixVectorMultiply3D( const Cell&  
 
    // assemble local element matrix
    Matrix10r elMat;
-   form_.integrateAll( coords, elMat );
+   P2Form    form;
+   form.setGeometryMap( cell.getGeometryMap() );
+   form.integrateAll( coords, elMat );
 
    // obtain data indices of dofs associated with micro-cell
    std::array< uint_t, 4 > vertexDoFIndices;
@@ -453,6 +457,7 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions2D( const
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 6 >  dofDataIdx;
+   P2Form                   form;
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -463,7 +468,8 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions2D( const
    v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
 
    // assemble local element matrix
-   form_.integrateAll( {v0, v1, v2}, elMat );
+   form.setGeometryMap( face.getGeometryMap() );
+   form.integrateAll( {v0, v1, v2}, elMat );
 
    // get global indices for local dofs
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
@@ -502,7 +508,9 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions3D( const
 
    // assemble local element matrix
    Matrix10r elMat;
-   form_.integrateAll( coords, elMat );
+   P2Form    form;
+   form.setGeometryMap( cell.getGeometryMap() );
+   form.integrateAll( coords, elMat );
 
    // obtain data indices of dofs associated with micro-cell
    std::array< uint_t, 4 > vertexDoFIndices;
@@ -675,6 +683,7 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly2D( Mat&               
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 6 >  dofDataIdx;
+   P2Form                   form;
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -685,8 +694,8 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly2D( Mat&               
    v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
 
    // assemble local element matrix
-   // form_.setGeometryMap( face.getGeometryMap() );
-   form_.integrateAll( {v0, v1, v2}, elMat );
+   form.setGeometryMap( face.getGeometryMap() );
+   form.integrateAll( {v0, v1, v2}, elMat );
 
    // determine global indices of our local DoFs (note the tweaked ordering to go along with FEniCS indexing)
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
@@ -742,7 +751,9 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly3D( Mat&               
 
    // assemble local element matrix
    Matrix10r elMat;
-   form_.integrateAll( coords, elMat );
+   P2Form    form;
+   form.setGeometryMap( cell.getGeometryMap() );
+   form.integrateAll( coords, elMat );
 
    // obtain data indices of dofs associated with micro-cell
    std::array< uint_t, 4 > vertexDoFIndices;
@@ -779,5 +790,8 @@ template class P2ElementwiseOperator<
 
 // P2ElementwiseMassOperator
 template class P2ElementwiseOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >;
+
+// P2ElementwiseBlendingMassOperator
+template class P2ElementwiseOperator< P2Form_mass >;
 
 } // namespace hyteg
