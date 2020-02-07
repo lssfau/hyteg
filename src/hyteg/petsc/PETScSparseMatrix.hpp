@@ -189,6 +189,33 @@ public:
     return norm < tol;
   }
 
+  bool isDiagonal( real_t tol = real_c( 1e-13 ) )
+  {
+     Mat       B;
+     PetscReal norm;
+     Vec       diag;
+     MatCreate( walberla::MPIManager::instance()->comm(), &B );
+     MatSetType( B, MATMPIAIJ );
+     PetscInt localSize, globalSize;
+     MatGetSize( mat, &localSize, &globalSize );
+     MatSetSizes( B, localSize, localSize, globalSize, globalSize );
+     MatSetUp( B );
+     MatAssemblyBegin( B, MAT_FINAL_ASSEMBLY );
+     MatAssemblyEnd( B, MAT_FINAL_ASSEMBLY );
+     VecCreate( walberla::MPIManager::instance()->comm(), &diag );
+     VecSetType( diag, VECMPI );
+     VecSetSizes( diag, localSize, globalSize );
+     VecSetUp( diag );
+     MatCopy( mat, B, DIFFERENT_NONZERO_PATTERN );
+     MatGetDiagonal( B, diag );
+     VecScale( diag, -1.0 );
+     MatDiagonalSet( B, diag, ADD_VALUES );
+     MatNorm( B, NORM_INFINITY, &norm );
+     // WALBERLA_LOG_DEVEL_ON_ROOT( "PETSC_NORM = " << norm );
+     MatDestroy( &B );
+     VecDestroy( &diag );
+     return norm < tol;
+  }
 };
 
 }
