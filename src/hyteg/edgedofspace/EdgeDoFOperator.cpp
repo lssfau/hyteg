@@ -27,6 +27,7 @@
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
+#include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
 
 namespace hyteg {
@@ -608,6 +609,7 @@ template class EdgeDoFOperator< P2FenicsForm< fenics::NoAssemble, p2_tet_div_tet
 template class EdgeDoFOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >;
 
 template class EdgeDoFOperator< P2LinearCombinationForm >;
+template class EdgeDoFOperator< P2RowSumForm >;
 
 }
 

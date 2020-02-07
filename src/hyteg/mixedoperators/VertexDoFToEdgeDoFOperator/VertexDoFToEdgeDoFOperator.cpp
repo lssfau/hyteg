@@ -20,6 +20,7 @@
 #include "VertexDoFToEdgeDoFOperator.hpp"
 
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
+#include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
@@ -598,5 +599,6 @@ template class VertexDoFToEdgeDoFOperator<
     P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >;
 
 template class VertexDoFToEdgeDoFOperator< P2LinearCombinationForm >;
+template class VertexDoFToEdgeDoFOperator< P2RowSumForm >;
 
 } // namespace hyteg

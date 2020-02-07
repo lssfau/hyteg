@@ -26,6 +26,7 @@
 
 #include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
+#include "hyteg/forms/P2RowSumForm.hpp"
 
 namespace hyteg {
 
@@ -666,5 +667,6 @@ template class EdgeDoFToVertexDoFOperator< P2ToP1FenicsForm< fenics::NoAssemble,
 template class EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >;
 
 template class EdgeDoFToVertexDoFOperator< P2LinearCombinationForm >;
+template class EdgeDoFToVertexDoFOperator< P2RowSumForm >;
 
 }// namespace hyteg

@@ -29,6 +29,7 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
+#include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 
@@ -170,5 +171,6 @@ typedef P1ConstantOperator< P1FenicsForm< fenics::UndefinedAssembly, p1_to_p2_te
     P1ToP1DivTzVertexToVertexConstantOperator;
 
 typedef P1ConstantOperator< P2LinearCombinationForm > P1ConstantLinearCombinationOperator;
+typedef P1ConstantOperator< P2RowSumForm > P1ConstantRowSumOperator;
 
 } // namespace hyteg

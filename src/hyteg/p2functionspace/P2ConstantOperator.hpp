@@ -21,6 +21,7 @@
 
 #include "hyteg/edgedofspace/EdgeDoFOperator.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
+#include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
@@ -112,5 +113,6 @@ typedef P2ConstantOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_
     P2ConstantPSPGOperator;
 
 typedef P2ConstantOperator< P2LinearCombinationForm > P2LinearCombinationOperator;
+typedef P2ConstantOperator< P2RowSumForm > P2RowSumOperator;
 
 } // namespace hyteg

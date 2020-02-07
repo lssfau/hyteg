@@ -61,6 +61,8 @@
 #include "hyteg/p2functionspace/P2MacroFace.hpp"
 #include "hyteg/p2functionspace/P2MacroVertex.hpp"
 #include "hyteg/p2functionspace/generatedKernels/all.hpp"
+#include "hyteg/forms/P2RowSumForm.hpp"
+#include "hyteg/forms/P2LinearCombinationForm.hpp"
 
 namespace hyteg {
 
@@ -1116,6 +1118,7 @@ template class P2ConstantOperator< P2FenicsForm< fenics::NoAssemble, p2_tet_div_
 template class P2ConstantOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >;
 
 template class P2ConstantOperator< P2LinearCombinationForm >;
+template class P2ConstantOperator< P2RowSumForm >;
 
 
 } // namespace hyteg

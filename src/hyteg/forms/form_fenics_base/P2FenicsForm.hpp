@@ -76,6 +76,16 @@ class P2FenicsForm : public P2Form
    // ---------------------------
    //  2D versions for triangles
    // ---------------------------
+
+   // Fenics P2 DoF ordering
+   // 2         1---5--0
+   // | \        \     |
+   // |  \        \    |
+   // 4   3        3   4
+   // |    \        \  |
+   // |     \        \ |
+   // 0--5---1         2
+
    void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const override
    {
       Matrix6r localStiffnessMatrix;
