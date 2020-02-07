@@ -112,7 +112,7 @@ typedef P2ConstantOperator< P2FenicsForm< fenics::NoAssemble, p2_tet_div_tet_cel
 typedef P2ConstantOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >
     P2ConstantPSPGOperator;
 
-typedef P2ConstantOperator< P2LinearCombinationForm > P2LinearCombinationOperator;
-typedef P2ConstantOperator< P2RowSumForm > P2RowSumOperator;
+typedef P2ConstantOperator< P2LinearCombinationForm > P2ConstantLinearCombinationOperator;
+typedef P2ConstantOperator< P2RowSumForm > P2ConstantRowSumOperator;
 
 } // namespace hyteg
