@@ -97,14 +97,14 @@ class CircularMap : public GeometryMap
       real_t tmp11 = tmp10 * x3bar_[0];
       real_t tmp12 = s1_ + s3bar_ * tmp10;
       real_t tmp13 = -tmp8 + tmp9 + 1;
+      if (std::fabs(tmp13) < 1e-14) {
+         Fx = x;
+         return;
+      }
       real_t tmp14 = ( tmp13 - tmp3 + tmp6 ) / tmp13;
       real_t tmp15 = tmp10 * x3bar_[1];
-      if (std::fabs(tmp13) > 1e-14) {
-         Fx[0]        = tmp11 + tmp14 * ( center_[0] + radius_ * cos( tmp12 ) + tmp0 - tmp11 ) + tmp7 * x2bar_[0] + x1_[0];
-         Fx[1]        = tmp14 * ( center_[1] + radius_ * sin( tmp12 ) - tmp15 + tmp4 ) + tmp15 + tmp7 * x2bar_[1] + x1_[1];
-      } else {
-         Fx = x;
-      }
+      Fx[0]        = tmp11 + tmp14 * ( center_[0] + radius_ * cos( tmp12 ) + tmp0 - tmp11 ) + tmp7 * x2bar_[0] + x1_[0];
+      Fx[1]        = tmp14 * ( center_[1] + radius_ * sin( tmp12 ) - tmp15 + tmp4 ) + tmp15 + tmp7 * x2bar_[1] + x1_[1];
    }
 
    void evalDF( const Point3D& x, Matrix2r& DFx ) const
@@ -124,6 +124,13 @@ class CircularMap : public GeometryMap
       real_t tmp12 = tmp2 * x2bar_[0];
       real_t tmp13 = tmp11 * tmp12;
       real_t tmp14 = -tmp13 + tmp9 + 1;
+      if (std::fabs(tmp14) < 1e-14) {
+         DFx( 0, 0 )  = 1.0;
+         DFx( 0, 1 )  = 0.0;
+         DFx( 1, 0 )  = 0.0;
+         DFx( 1, 1 )  = 1.0;
+         return;
+      }
       real_t tmp15 = 1.0 / tmp14;
       real_t tmp16 = tmp15 * ( tmp5 - tmp6 );
       real_t tmp17 = tmp13 - tmp9;
