@@ -33,7 +33,8 @@ class GeometryMap
       IDENTITY = 0,
       AFFINE   = 1,
       CIRCULAR = 2,
-      POLAR_COORDS = 3
+      POLAR_COORDS = 3,
+      ANNULUS_MAP = 4
    };
 
    virtual ~GeometryMap(){};

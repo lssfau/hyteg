@@ -224,7 +224,8 @@ int main( int argc, char* argv[] )
       break;
 
    case ANNULUS:
-      meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, 15, 2 ) );
+      // meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, 15, 2 ) );
+      meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, 0.0, 2.0 * pi, MeshInfo::CROSS, 12, 2 ) );
       break;
 
    case FACE_CHAIN:
