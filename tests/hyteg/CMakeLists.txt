@@ -132,6 +132,9 @@ waLBerla_execute_test(NAME MMOC3DCircularConvectionTest LABELS longrun)
 
 waLBerla_compile_test(FILES convection/MMOC2DSwirlingFlowConvectionTest.cpp DEPENDS hyteg core)
 
+waLBerla_compile_test(FILES convection/MesaPDCouplingTest.cpp DEPENDS hyteg core mesa_pd_convection)
+waLBerla_execute_test(NAME MesaPDCouplingTest LABELS)
+
 ## Forms ##
 
 waLBerla_compile_test(FILES forms/P2LinearCombinationFormTest.cpp DEPENDS hyteg core)
