@@ -87,7 +87,7 @@ int main( int argc, char* argv[] )
 
    const uint_t minLevel   = 2;
    const uint_t maxLevel   = 5;
-   const real_t dt         = 1e-02;
+   const real_t dt         = 4e-02;
    const real_t hMin       = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    const real_t hMax       = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
    const real_t tEnd       = 2 * walberla::math::pi;
@@ -238,7 +238,7 @@ int main( int argc, char* argv[] )
    WALBERLA_CHECK_LESS( error_E2, 8.0e-03 );
 
    storage->getTimingTree()->stop( "Total" );
-   WALBERLA_LOG_INFO_ON_ROOT( storage->getTimingTree()->getCopyWithRemainder() );
+   // WALBERLA_LOG_INFO_ON_ROOT( storage->getTimingTree()->getCopyWithRemainder() );
 
    return EXIT_SUCCESS;
 }
