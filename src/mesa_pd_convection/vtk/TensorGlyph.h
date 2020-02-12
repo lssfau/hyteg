@@ -18,12 +18,6 @@
 //
 //======================================================================================================================
 
-//======================================================================================================================
-//
-//  THIS FILE IS GENERATED - PLEASE CHANGE THE TEMPLATE !!!
-//
-//======================================================================================================================
-
 #pragma once
 
 #include <mesa_pd_convection/data/DataTypes.h>
@@ -39,5 +33,5 @@ using TensorGlyph = std::array<real_t, 6>;
 TensorGlyph createTensorGlyph(const Vec3& semiAxes, const Rot3& rot);
 
 } // namespace vtk
-} // namespace mesa_pd_convection
+} // namespace pe
 } // namespace walberla

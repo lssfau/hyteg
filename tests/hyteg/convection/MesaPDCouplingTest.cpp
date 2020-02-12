@@ -18,16 +18,57 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mesa_pd_convection/data/ParticleStorage.h"
+#include <mesa_pd_convection/data/ParticleStorage.h>
+#include <mesa_pd_convection/domain/BlockForestDomain.h>
+#include <mesa_pd_convection/mpi/SyncNextNeighbors.h>
 
+#include <blockforest/Initialization.h>
+#include <core/Environment.h>
+#include <core/mpi/MPIManager.h>
+
+using namespace walberla;
 using namespace walberla::mesa_pd_convection;
 
 int main( int argc, char ** argv )
 {
-   data::ParticleStorage particleStorage;
+   Environment env(argc, argv);
+   WALBERLA_UNUSED(env);
+   walberla::mpi::MPIManager::instance()->useWorldComm();
 
-   auto pIt = particleStorage.create();
-   pIt->setPosition( walberla::Vector3< real_t >( 1, 2, 3 ) );
+   //init domain partitioning
+   auto forest = blockforest::createBlockForest( math::AABB(0,0,0,10,10,10), // simulation domain
+                                                 Vector3<uint_t>(2,2,2), // blocks in each direction
+                                                 Vector3<bool>(false, false, false) // periodicity
+                                                 );
+   domain::BlockForestDomain domain(forest);
+
+   data::ParticleStorage particleStorage(100);
+
+   Vec3 pt(2.5, 2.5, 2.5);
+   if (forest->begin()->getAABB().contains(pt))
+   {
+      auto pIt = particleStorage.create();
+      pIt->setPosition(pt);
+      pIt->setInteractionRadius(real_t(0));
+      pIt->setOwner(walberla::mpi::MPIManager::instance()->rank());
+   }
+
+   for (auto p : particleStorage)
+   {
+      WALBERLA_LOG_DEVEL(p.getPosition());
+      p.setPosition(Vec3(7.5, 2.5, 2.5));
+   }
+
+   mesa_pd_convection::mpi::SyncNextNeighbors SNN;
+
+   SNN(particleStorage, domain);
+   SNN(particleStorage, domain);
+
+   for (auto p : particleStorage)
+   {
+      WALBERLA_LOG_DEVEL(p.getPosition());
+      p.setPosition(Vec3(7.5, 2.5, 2.5));
+   }
 
    return 0;
 }

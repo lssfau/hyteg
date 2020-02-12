@@ -18,12 +18,6 @@
 //
 //======================================================================================================================
 
-//======================================================================================================================
-//
-//  THIS FILE IS GENERATED - PLEASE CHANGE THE TEMPLATE !!!
-//
-//======================================================================================================================
-
 #include "ParticleVtkOutput.h"
 
 namespace walberla {
@@ -90,5 +84,6 @@ void ParticleVtkOutput::addOutput(const std::string& name, const std::shared_ptr
 }
 
 } // namespace vtk
-} // namespace mesa_pd_convection
+} // namespace pe
 } // namespace walberla
+

@@ -18,12 +18,6 @@
 //
 //======================================================================================================================
 
-//======================================================================================================================
-//
-//  THIS FILE IS GENERATED - PLEASE CHANGE THE TEMPLATE !!!
-//
-//======================================================================================================================
-
 #include <mesa_pd_convection/vtk/TensorGlyph.h>
 
 namespace walberla {
@@ -46,5 +40,5 @@ TensorGlyph createTensorGlyph(const Vec3& semiAxes, const Rot3& rot)
 }
 
 } // namespace vtk
-} // namespace mesa_pd_convection
+} // namespace pe
 } // namespace walberla

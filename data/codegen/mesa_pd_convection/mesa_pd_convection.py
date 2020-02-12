@@ -17,10 +17,17 @@ if __name__ == '__main__':
     parser.add_argument('path', help='Where should the files be created?')
     args = parser.parse_args()
 
-    mpd = Module(args.path, "mesa_pd_convection", "mesa_pd_convection")
+    mpd = Module(args.path, 'mesa_pd_convection')
     ps = mpd.add(data.ParticleStorage())
-    ps.add_property("position", "walberla::mesa_pd::Vec3", defValue="real_t(0)", syncMode="ALWAYS")
+    ps.add_property("velocity", "walberla::mesa_pd::Vec3", defValue="real_t(0)", syncMode="ALWAYS")
 
-    mpd.add(vtk.VTK())
+    ps.add_include("blockforest/BlockForest.h")
+    ps.add_property("currentBlock", "blockforest::BlockID", defValue="", syncMode="NEVER")
+
+    mpd.add(mpi.Notifications(ps))
+    mpd.add(mpi.SyncGhostOwners(ps))
+    mpd.add(mpi.SyncNextNeighbors(ps))
+
+    ps.print()
 
     mpd.generate(False)

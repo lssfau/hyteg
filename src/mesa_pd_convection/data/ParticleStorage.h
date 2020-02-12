@@ -34,9 +34,11 @@
 #include <unordered_set>
 #include <vector>
 
+#include <mesa_pd_convection/data/ContactHistory.h>
 #include <mesa_pd_convection/data/DataTypes.h>
 #include <mesa_pd_convection/data/IAccessor.h>
 #include <mesa_pd_convection/data/Flags.h>
+#include <blockforest/BlockForest.h>
 #include <mesa_pd_convection/data/STLOverloads.h>
 
 #include <core/Abort.h>
@@ -70,11 +72,14 @@ public:
 
       
       using uid_type = walberla::id_t;
-      using position_type = walberla::mesa_pd::Vec3;
+      using position_type = walberla::mesa_pd_convection::Vec3;
       using interactionRadius_type = walberla::real_t;
-      using flags_type = walberla::mesa_pd::data::particle_flags::FlagT;
+      using flags_type = walberla::mesa_pd_convection::data::particle_flags::FlagT;
       using owner_type = int;
       using ghostOwners_type = std::unordered_set<walberla::mpi::MPIRank>;
+      using velocity_type = walberla::mesa_pd_convection::Vec3;
+      using currentBlock_type = blockforest::BlockID;
+      using neighborState_type = std::unordered_set<walberla::mpi::MPIRank>;
 
       
       uid_type const & getUid() const {return storage_.getUid(i_);}
@@ -100,6 +105,18 @@ public:
       ghostOwners_type const & getGhostOwners() const {return storage_.getGhostOwners(i_);}
       ghostOwners_type& getGhostOwnersRef() {return storage_.getGhostOwnersRef(i_);}
       void setGhostOwners(ghostOwners_type const & v) { storage_.setGhostOwners(i_, v);}
+      
+      velocity_type const & getVelocity() const {return storage_.getVelocity(i_);}
+      velocity_type& getVelocityRef() {return storage_.getVelocityRef(i_);}
+      void setVelocity(velocity_type const & v) { storage_.setVelocity(i_, v);}
+      
+      currentBlock_type const & getCurrentBlock() const {return storage_.getCurrentBlock(i_);}
+      currentBlock_type& getCurrentBlockRef() {return storage_.getCurrentBlockRef(i_);}
+      void setCurrentBlock(currentBlock_type const & v) { storage_.setCurrentBlock(i_, v);}
+      
+      neighborState_type const & getNeighborState() const {return storage_.getNeighborState(i_);}
+      neighborState_type& getNeighborStateRef() {return storage_.getNeighborStateRef(i_);}
+      void setNeighborState(neighborState_type const & v) { storage_.setNeighborState(i_, v);}
       
 
       size_t getIdx() const {return i_;}
@@ -162,11 +179,14 @@ public:
 
    
    using uid_type = walberla::id_t;
-   using position_type = walberla::mesa_pd::Vec3;
+   using position_type = walberla::mesa_pd_convection::Vec3;
    using interactionRadius_type = walberla::real_t;
-   using flags_type = walberla::mesa_pd::data::particle_flags::FlagT;
+   using flags_type = walberla::mesa_pd_convection::data::particle_flags::FlagT;
    using owner_type = int;
    using ghostOwners_type = std::unordered_set<walberla::mpi::MPIRank>;
+   using velocity_type = walberla::mesa_pd_convection::Vec3;
+   using currentBlock_type = blockforest::BlockID;
+   using neighborState_type = std::unordered_set<walberla::mpi::MPIRank>;
 
    
    uid_type const & getUid(const size_t idx) const {return uid_[idx];}
@@ -192,6 +212,18 @@ public:
    ghostOwners_type const & getGhostOwners(const size_t idx) const {return ghostOwners_[idx];}
    ghostOwners_type& getGhostOwnersRef(const size_t idx) {return ghostOwners_[idx];}
    void setGhostOwners(const size_t idx, ghostOwners_type const & v) { ghostOwners_[idx] = v; }
+   
+   velocity_type const & getVelocity(const size_t idx) const {return velocity_[idx];}
+   velocity_type& getVelocityRef(const size_t idx) {return velocity_[idx];}
+   void setVelocity(const size_t idx, velocity_type const & v) { velocity_[idx] = v; }
+   
+   currentBlock_type const & getCurrentBlock(const size_t idx) const {return currentBlock_[idx];}
+   currentBlock_type& getCurrentBlockRef(const size_t idx) {return currentBlock_[idx];}
+   void setCurrentBlock(const size_t idx, currentBlock_type const & v) { currentBlock_[idx] = v; }
+   
+   neighborState_type const & getNeighborState(const size_t idx) const {return neighborState_[idx];}
+   neighborState_type& getNeighborStateRef(const size_t idx) {return neighborState_[idx];}
+   void setNeighborState(const size_t idx, neighborState_type const & v) { neighborState_[idx] = v; }
    
 
    /**
@@ -290,6 +322,9 @@ public:
    std::vector<flags_type> flags_ {};
    std::vector<owner_type> owner_ {};
    std::vector<ghostOwners_type> ghostOwners_ {};
+   std::vector<velocity_type> velocity_ {};
+   std::vector<currentBlock_type> currentBlock_ {};
+   std::vector<neighborState_type> neighborState_ {};
    std::unordered_map<uid_type, size_t> uidToIdx_;
    static_assert(std::is_same<uid_type, id_t>::value,
                  "Property uid of type id_t is missing. This property is required!");
@@ -305,6 +340,9 @@ ParticleStorage::Particle& ParticleStorage::Particle::operator=(const ParticleSt
    getFlagsRef() = rhs.getFlags();
    getOwnerRef() = rhs.getOwner();
    getGhostOwnersRef() = rhs.getGhostOwners();
+   getVelocityRef() = rhs.getVelocity();
+   getCurrentBlockRef() = rhs.getCurrentBlock();
+   getNeighborStateRef() = rhs.getNeighborState();
    return *this;
 }
 
@@ -317,6 +355,9 @@ ParticleStorage::Particle& ParticleStorage::Particle::operator=(ParticleStorage:
    getFlagsRef() = std::move(rhs.getFlagsRef());
    getOwnerRef() = std::move(rhs.getOwnerRef());
    getGhostOwnersRef() = std::move(rhs.getGhostOwnersRef());
+   getVelocityRef() = std::move(rhs.getVelocityRef());
+   getCurrentBlockRef() = std::move(rhs.getCurrentBlockRef());
+   getNeighborStateRef() = std::move(rhs.getNeighborStateRef());
    return *this;
 }
 
@@ -330,6 +371,9 @@ void swap(ParticleStorage::Particle lhs, ParticleStorage::Particle rhs)
    std::swap(lhs.getFlagsRef(), rhs.getFlagsRef());
    std::swap(lhs.getOwnerRef(), rhs.getOwnerRef());
    std::swap(lhs.getGhostOwnersRef(), rhs.getGhostOwnersRef());
+   std::swap(lhs.getVelocityRef(), rhs.getVelocityRef());
+   std::swap(lhs.getCurrentBlockRef(), rhs.getCurrentBlockRef());
+   std::swap(lhs.getNeighborStateRef(), rhs.getNeighborStateRef());
 }
 
 inline
@@ -343,6 +387,9 @@ std::ostream& operator<<( std::ostream& os, const ParticleStorage::Particle& p )
          "flags               : " << p.getFlags() << "\n" <<
          "owner               : " << p.getOwner() << "\n" <<
          "ghostOwners         : " << p.getGhostOwners() << "\n" <<
+         "velocity            : " << p.getVelocity() << "\n" <<
+         "currentBlock        : " << p.getCurrentBlock() << "\n" <<
+         "neighborState       : " << p.getNeighborState() << "\n" <<
          "================================" << std::endl;
    return os;
 }
@@ -426,6 +473,9 @@ inline ParticleStorage::iterator ParticleStorage::create(const id_t& uid)
    flags_.emplace_back();
    owner_.emplace_back(-1);
    ghostOwners_.emplace_back();
+   velocity_.emplace_back(real_t(0));
+   currentBlock_.emplace_back();
+   neighborState_.emplace_back();
    uid_.back() = uid;
    uidToIdx_[uid] = uid_.size() - 1;
    return iterator(this, size() - 1);
@@ -464,6 +514,9 @@ inline ParticleStorage::iterator ParticleStorage::erase(iterator& it)
    flags_.pop_back();
    owner_.pop_back();
    ghostOwners_.pop_back();
+   velocity_.pop_back();
+   currentBlock_.pop_back();
+   neighborState_.pop_back();
    return it;
 }
 
@@ -489,6 +542,9 @@ inline void ParticleStorage::reserve(const size_t size)
    flags_.reserve(size);
    owner_.reserve(size);
    ghostOwners_.reserve(size);
+   velocity_.reserve(size);
+   currentBlock_.reserve(size);
+   neighborState_.reserve(size);
 }
 
 inline void ParticleStorage::clear()
@@ -499,6 +555,9 @@ inline void ParticleStorage::clear()
    flags_.clear();
    owner_.clear();
    ghostOwners_.clear();
+   velocity_.clear();
+   currentBlock_.clear();
+   neighborState_.clear();
    uidToIdx_.clear();
 }
 
@@ -510,6 +569,9 @@ inline size_t ParticleStorage::size() const
    //WALBERLA_ASSERT_EQUAL( uid_.size(), flags.size() );
    //WALBERLA_ASSERT_EQUAL( uid_.size(), owner.size() );
    //WALBERLA_ASSERT_EQUAL( uid_.size(), ghostOwners.size() );
+   //WALBERLA_ASSERT_EQUAL( uid_.size(), velocity.size() );
+   //WALBERLA_ASSERT_EQUAL( uid_.size(), currentBlock.size() );
+   //WALBERLA_ASSERT_EQUAL( uid_.size(), neighborState.size() );
    return uid_.size();
 }
 
@@ -706,10 +768,10 @@ public:
 class SelectParticlePosition
 {
 public:
-   using return_type = walberla::mesa_pd::Vec3;
-   walberla::mesa_pd::Vec3& operator()(data::Particle& p) const {return p.getPositionRef();}
-   walberla::mesa_pd::Vec3& operator()(data::Particle&& p) const {return p.getPositionRef();}
-   walberla::mesa_pd::Vec3 const & operator()(const data::Particle& p) const {return p.getPosition();}
+   using return_type = walberla::mesa_pd_convection::Vec3;
+   walberla::mesa_pd_convection::Vec3& operator()(data::Particle& p) const {return p.getPositionRef();}
+   walberla::mesa_pd_convection::Vec3& operator()(data::Particle&& p) const {return p.getPositionRef();}
+   walberla::mesa_pd_convection::Vec3 const & operator()(const data::Particle& p) const {return p.getPosition();}
 };
 ///Predicate that selects a certain property from a Particle
 class SelectParticleInteractionRadius
@@ -724,10 +786,10 @@ public:
 class SelectParticleFlags
 {
 public:
-   using return_type = walberla::mesa_pd::data::particle_flags::FlagT;
-   walberla::mesa_pd::data::particle_flags::FlagT& operator()(data::Particle& p) const {return p.getFlagsRef();}
-   walberla::mesa_pd::data::particle_flags::FlagT& operator()(data::Particle&& p) const {return p.getFlagsRef();}
-   walberla::mesa_pd::data::particle_flags::FlagT const & operator()(const data::Particle& p) const {return p.getFlags();}
+   using return_type = walberla::mesa_pd_convection::data::particle_flags::FlagT;
+   walberla::mesa_pd_convection::data::particle_flags::FlagT& operator()(data::Particle& p) const {return p.getFlagsRef();}
+   walberla::mesa_pd_convection::data::particle_flags::FlagT& operator()(data::Particle&& p) const {return p.getFlagsRef();}
+   walberla::mesa_pd_convection::data::particle_flags::FlagT const & operator()(const data::Particle& p) const {return p.getFlags();}
 };
 ///Predicate that selects a certain property from a Particle
 class SelectParticleOwner
@@ -746,6 +808,33 @@ public:
    std::unordered_set<walberla::mpi::MPIRank>& operator()(data::Particle& p) const {return p.getGhostOwnersRef();}
    std::unordered_set<walberla::mpi::MPIRank>& operator()(data::Particle&& p) const {return p.getGhostOwnersRef();}
    std::unordered_set<walberla::mpi::MPIRank> const & operator()(const data::Particle& p) const {return p.getGhostOwners();}
+};
+///Predicate that selects a certain property from a Particle
+class SelectParticleVelocity
+{
+public:
+   using return_type = walberla::mesa_pd_convection::Vec3;
+   walberla::mesa_pd_convection::Vec3& operator()(data::Particle& p) const {return p.getVelocityRef();}
+   walberla::mesa_pd_convection::Vec3& operator()(data::Particle&& p) const {return p.getVelocityRef();}
+   walberla::mesa_pd_convection::Vec3 const & operator()(const data::Particle& p) const {return p.getVelocity();}
+};
+///Predicate that selects a certain property from a Particle
+class SelectParticleCurrentBlock
+{
+public:
+   using return_type = blockforest::BlockID;
+   blockforest::BlockID& operator()(data::Particle& p) const {return p.getCurrentBlockRef();}
+   blockforest::BlockID& operator()(data::Particle&& p) const {return p.getCurrentBlockRef();}
+   blockforest::BlockID const & operator()(const data::Particle& p) const {return p.getCurrentBlock();}
+};
+///Predicate that selects a certain property from a Particle
+class SelectParticleNeighborState
+{
+public:
+   using return_type = std::unordered_set<walberla::mpi::MPIRank>;
+   std::unordered_set<walberla::mpi::MPIRank>& operator()(data::Particle& p) const {return p.getNeighborStateRef();}
+   std::unordered_set<walberla::mpi::MPIRank>& operator()(data::Particle&& p) const {return p.getNeighborStateRef();}
+   std::unordered_set<walberla::mpi::MPIRank> const & operator()(const data::Particle& p) const {return p.getNeighborState();}
 };
 
 } //namespace data

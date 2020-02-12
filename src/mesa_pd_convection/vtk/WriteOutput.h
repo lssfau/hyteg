@@ -18,12 +18,6 @@
 //
 //======================================================================================================================
 
-//======================================================================================================================
-//
-//  THIS FILE IS GENERATED - PLEASE CHANGE THE TEMPLATE !!!
-//
-//======================================================================================================================
-
 #pragma once
 
 #include <mesa_pd_convection/data/DataTypes.h>
@@ -92,5 +86,5 @@ void writeOutput(walberla::vtk::Base64Writer& b64, const Vec3& data, const uint_
 }
 
 } // namespace vtk
-} // namespace mesa_pd_convection
+} // namespace pe
 } // namespace walberla
