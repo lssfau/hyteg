@@ -129,7 +129,8 @@ void integrateNodes( const PrimitiveStorage& ,
                      const uint_t&           ,
                      const DoFType&,
                      const uint_t&,
-                     const TimeSteppingScheme & )
+                     const TimeSteppingScheme &,
+                     const real_t & )
 {
    WALBERLA_ABORT( "Integration not implemented for this function type." );
 }
@@ -145,11 +146,10 @@ void integrateNodes( const PrimitiveStorage& storage,
                      const uint_t&           level,
                      const DoFType&,
                      const uint_t& steps,
-                     const TimeSteppingScheme & timeSteppingScheme )
+                     const TimeSteppingScheme & timeSteppingScheme,
+                     const real_t & )
 {
    WALBERLA_CHECK_EQUAL( walberla::mpi::MPIManager::instance()->numProcesses(), 1 );
-
-   cOld.assign( {1.0}, {c}, level, All );
 
    communication::syncFunctionBetweenPrimitives( cOld, level );
    communication::syncFunctionBetweenPrimitives( ux, level );
@@ -228,11 +228,10 @@ void integrateNodes( const PrimitiveStorage& storage,
                      const uint_t&           level,
                      const DoFType&,
                      const uint_t& steps,
-                     const TimeSteppingScheme & timeSteppingScheme )
+                     const TimeSteppingScheme & timeSteppingScheme,
+                     const real_t & initialOffset )
 {
    WALBERLA_CHECK_EQUAL( walberla::mpi::MPIManager::instance()->numProcesses(), 1 );
-
-   cOld.assign( {1.0}, {c}, level, All );
 
    communication::syncFunctionBetweenPrimitives( cOld, level );
    communication::syncFunctionBetweenPrimitives( ux, level );
@@ -298,10 +297,28 @@ void integrateNodes( const PrimitiveStorage& storage,
       auto cDataV = face.getData( c.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
       auto cDataE = face.getData( c.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
 
+      auto uxDataV = face.getData( ux.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+      auto uxDataE = face.getData( ux.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+
+      auto uyDataV = face.getData( uy.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+      auto uyDataE = face.getData( uy.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+
+      auto uzDataV = face.getData( uz.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
+      auto uzDataE = face.getData( uz.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
+
       for ( const auto& it : vertexdof::macroface::Iterator( level, 1 ) )
       {
-         const Point3D coordinate = vertexdof::macroface::coordinateFromIndex( level, face, it );
+         Point3D coordinate = vertexdof::macroface::coordinateFromIndex( level, face, it );
          const uint_t  idx        = vertexdof::macroface::index( level, it.x(), it.y() );
+
+         if ( initialOffset > 0 )
+         {
+            auto velX = uxDataV[ idx ];
+            auto velY = uyDataV[ idx ];
+            auto velZ = uzDataV[ idx ];
+
+            coordinate += initialOffset * Point3D( {velX, velY, velZ} );
+         }
 
          auto posPast = performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
 
@@ -314,8 +331,17 @@ void integrateNodes( const PrimitiveStorage& storage,
       {
          if ( it.row() != 0 )
          {
-            const Point3D coordinate = edgedof::macroface::coordinateFromIndex( level, face, it, edgedof::EdgeDoFOrientation::X );
+            Point3D coordinate = edgedof::macroface::coordinateFromIndex( level, face, it, edgedof::EdgeDoFOrientation::X );
             const uint_t  idx        = edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::X );
+
+            if ( initialOffset > 0 )
+            {
+               auto velX = uxDataE[ idx ];
+               auto velY = uyDataE[ idx ];
+               auto velZ = uzDataE[ idx ];
+
+               coordinate += initialOffset * Point3D( {velX, velY, velZ} );
+            }
 
             auto posPast = performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
 
@@ -326,8 +352,17 @@ void integrateNodes( const PrimitiveStorage& storage,
 
          if ( it.col() != 0 )
          {
-            const Point3D coordinate = edgedof::macroface::coordinateFromIndex( level, face, it, edgedof::EdgeDoFOrientation::Y );
+            Point3D coordinate = edgedof::macroface::coordinateFromIndex( level, face, it, edgedof::EdgeDoFOrientation::Y );
             const uint_t  idx        = edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::Y );
+
+            if ( initialOffset > 0 )
+            {
+               auto velX = uxDataE[ idx ];
+               auto velY = uyDataE[ idx ];
+               auto velZ = uzDataE[ idx ];
+
+               coordinate += initialOffset * Point3D( {velX, velY, velZ} );
+            }
 
             auto posPast = performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
 
@@ -338,8 +373,17 @@ void integrateNodes( const PrimitiveStorage& storage,
 
          if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
          {
-            const Point3D coordinate = edgedof::macroface::coordinateFromIndex( level, face, it, edgedof::EdgeDoFOrientation::XY );
+            Point3D coordinate = edgedof::macroface::coordinateFromIndex( level, face, it, edgedof::EdgeDoFOrientation::XY );
             const uint_t  idx        = edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::XY );
+
+            if ( initialOffset > 0 )
+            {
+               auto velX = uxDataE[ idx ];
+               auto velY = uyDataE[ idx ];
+               auto velZ = uzDataE[ idx ];
+
+               coordinate += initialOffset * Point3D( {velX, velY, velZ} );
+            }
 
             auto posPast = performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
 
@@ -362,6 +406,10 @@ class MMOCTransport
                   const TimeSteppingScheme&                  timeSteppingSchemeConvection )
    : storage_( storage )
    , cOld_( "cOld", storage, minLevel, maxLevel )
+   , cTmp_( "cTmp", storage, minLevel, maxLevel )
+   , cPlus_( "cPlus", storage, minLevel, maxLevel )
+   , cMinus_( "cMinus", storage, minLevel, maxLevel )
+   , cAdjusted_( "cAdjusted", storage, minLevel, maxLevel )
    , timeSteppingSchemeConvection_( timeSteppingSchemeConvection )
    {}
 
@@ -374,13 +422,80 @@ class MMOCTransport
               const real_t&       dt,
               const uint_t&       innerSteps )
    {
-      integrateNodes< FunctionType >( *storage_, c, cOld_, ux, uy, uz, dt, level, flag, innerSteps, timeSteppingSchemeConvection_ );
+      cOld_.assign( {1.0}, {c}, level, All );
+
+      integrateNodes< FunctionType >( *storage_, c, cOld_, ux, uy, uz, dt, level, flag, innerSteps, timeSteppingSchemeConvection_, 0 );
+   }
+
+   template< typename MassOperator >
+   void step( const FunctionType& c,
+              const FunctionType& ux,
+              const FunctionType& uy,
+              const FunctionType& uz,
+              const uint_t&       level,
+              const DoFType&      flag,
+              const real_t&       dt,
+              const uint_t&       innerSteps,
+              const MassOperator & massOperator,
+              const real_t & allowedRelativeMassDifference,
+              const real_t & adjustedAdvectionOffset )
+   {
+      cOld_.assign( {1.0}, {c}, level, All );
+
+      // calculate old mass
+      massOperator.apply( cOld_, cTmp_, level, flag );
+      auto massBefore = cTmp_.sumGlobal( level, flag );
+
+      integrateNodes< FunctionType >( *storage_, c, cOld_, ux, uy, uz, dt, level, flag, innerSteps, timeSteppingSchemeConvection_, 0 );
+
+      // calculate new mass
+      massOperator.apply( c, cTmp_, level, flag );
+      auto massAfter = cTmp_.sumGlobal( level, flag );
+
+      auto relativeMassDifference = std::abs( (massAfter - massBefore) / massBefore );
+
+      if ( relativeMassDifference <= allowedRelativeMassDifference )
+         return;
+
+      // perform adjusted advection steps
+      integrateNodes< FunctionType >( *storage_, cPlus_, cOld_, ux, uy, uz, dt, level, flag, innerSteps, timeSteppingSchemeConvection_, adjustedAdvectionOffset );
+      integrateNodes< FunctionType >( *storage_, cMinus_, cOld_, ux, uy, uz, dt, level, flag, innerSteps, timeSteppingSchemeConvection_, -adjustedAdvectionOffset );
+
+      // max/min assign functions
+      std::function< real_t( const Point3D &, const std::vector< real_t > & ) > maxAssignment = []( const Point3D &, const std::vector< real_t > & values ) {
+         return std::max( values[0], values[1] );
+      };
+
+      std::function< real_t( const Point3D &, const std::vector< real_t > & ) > minAssignment = []( const Point3D &, const std::vector< real_t > & values ) {
+        return std::min( values[0], values[1] );
+      };
+
+      if ( massAfter <= massBefore )
+      {
+         cAdjusted_.interpolate( maxAssignment, {cPlus_, cMinus_}, level );
+      }
+      else
+      {
+         cAdjusted_.interpolate( minAssignment, {cPlus_, cMinus_}, level );
+      }
+
+      // calculate adjustment mass
+      massOperator.apply( cAdjusted_, cTmp_, level, flag );
+      auto massAdjusted = cTmp_.sumGlobal( level, flag );
+
+      auto theta = ( massBefore - massAdjusted ) / ( massAfter - massAdjusted );
+
+      c.assign( {theta, 1-theta}, {c, cAdjusted_}, level, flag );
    }
 
  private:
 
    const std::shared_ptr< PrimitiveStorage > storage_;
    FunctionType                              cOld_;
+   FunctionType                              cTmp_;
+   FunctionType                              cPlus_;
+   FunctionType                              cMinus_;
+   FunctionType                              cAdjusted_;
    TimeSteppingScheme                        timeSteppingSchemeConvection_;
 };
 

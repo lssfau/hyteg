@@ -208,13 +208,14 @@ int main( int argc, char* argv[] )
 
    for ( uint_t i = 1; i <= outerSteps; i++ )
    {
-      transport.step( c, u, v, w, maxLevel, Inner, dt, innerSteps );
+      transport.step( c, u, v, w, maxLevel, Inner, dt, innerSteps, M, 0, 0.1 * hMin );
 
       cError.assign( {1.0, -1.0}, {c, cInitial}, maxLevel, All );
       max_temp = c.getMaxMagnitude( maxLevel, All );
       M.apply( c, cMass, maxLevel, All );
       auto total_mass_new  = cMass.sumGlobal( maxLevel );
       auto total_mass_lost = 1.0 - ( total_mass_new / total_mass );
+      WALBERLA_CHECK_LESS( std::abs( total_mass_lost ), 1e-12 );
       total_mass           = total_mass_new;
 
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
