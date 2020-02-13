@@ -59,6 +59,7 @@ static void testIntersection()
   WALBERLA_CHECK(  sphereTetrahedronIntersection( Point3D({3, 0.1, 3}), 2.0, tetV1, tetV2, tetV3, tetV4 ) );
   WALBERLA_CHECK( !sphereTetrahedronIntersection( Point3D({9, 1, 1}), 2.0, tetV1, tetV2, tetV3, tetV4 ) );
   WALBERLA_CHECK( !sphereTetrahedronIntersection( Point3D({-1, -1, -1}), 1.0, tetV1, tetV2, tetV3, tetV4 ) );
+  WALBERLA_CHECK( !sphereTetrahedronIntersection( Point3D({ 0, 5, 5 }), 1.0, tetV1, tetV2, tetV3, tetV4 ) );
 
 }
 

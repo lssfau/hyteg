@@ -182,6 +182,11 @@ waLBerla_execute_test(NAME EdgeDoFOrientationConversionTest)
 #  endif()
 #endif()
 
+## Math ##
+
+waLBerla_compile_test(FILES math/IntersectionTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME IntersectionTest)
+
 ## VertexDoFSpace ##
 
 waLBerla_compile_test(FILES vertexdofspace/VertexDoFFunctionTest.cpp DEPENDS hyteg core)

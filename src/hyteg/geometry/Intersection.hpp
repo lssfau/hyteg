@@ -215,15 +215,15 @@ inline bool sphereTriangleIntersection( const Point3D& centre,
    walberla::math::Matrix3< real_t > basisTrafo;
 
    basisTrafo( 0, 0 ) = planeTangent0[0];
-   basisTrafo( 0, 1 ) = planeTangent0[1];
-   basisTrafo( 0, 2 ) = planeTangent0[2];
+   basisTrafo( 1, 0 ) = planeTangent0[1];
+   basisTrafo( 2, 0 ) = planeTangent0[2];
 
-   basisTrafo( 1, 0 ) = planeTangent1[0];
+   basisTrafo( 0, 1 ) = planeTangent1[0];
    basisTrafo( 1, 1 ) = planeTangent1[1];
-   basisTrafo( 1, 2 ) = planeTangent1[2];
+   basisTrafo( 2, 1 ) = planeTangent1[2];
 
-   basisTrafo( 2, 0 ) = planeNormal[0];
-   basisTrafo( 2, 1 ) = planeNormal[1];
+   basisTrafo( 0, 2 ) = planeNormal[0];
+   basisTrafo( 1, 2 ) = planeNormal[1];
    basisTrafo( 2, 2 ) = planeNormal[2];
 
    basisTrafo.invert();
@@ -294,7 +294,8 @@ inline bool sphereTetrahedronIntersection( const Point3D& sphereCenter,
                                            const Point3D& tetVertex2,
                                            const Point3D& tetVertex3 )
 {
-   return isSphereCompletelyInTetrahedron( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex2, tetVertex3 ) ||
+   return isPointInTetrahedron( sphereCenter, tetVertex0, tetVertex1, tetVertex2, tetVertex3 ) ||
+          isSphereCompletelyInTetrahedron( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex2, tetVertex3 ) ||
           sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex2 ) ||
           sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex3 ) ||
           sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex2, tetVertex3 ) ||
