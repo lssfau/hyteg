@@ -22,6 +22,7 @@
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
+#include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
 #include "hyteg/p1functionspace/P1Elements.hpp"
@@ -173,5 +174,7 @@ typedef P1ElementwiseOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, 
 
 typedef P1ElementwiseOperator< P1Form_mass >   P1ElementwiseBlendingMassOperator;
 typedef P1ElementwiseOperator< P1Form_mass3D > P1ElementwiseBlendingMassOperator3D;
+
+typedef P1ElementwiseOperator< P1Form_laplace > P1ElementwiseBlendingLaplaceOperator;
 
 } // namespace hyteg

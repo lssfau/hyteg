@@ -637,4 +637,7 @@ template class P1ElementwiseOperator< P1Form_mass >;
 // P1ElementwiseBlendingMassOperator3D
 template class P1ElementwiseOperator< P1Form_mass3D >;
 
+// P1ElementwiseBlendingLaplaceOperator
+template class P1ElementwiseOperator< P1Form_laplace >;
+
 } // namespace hyteg

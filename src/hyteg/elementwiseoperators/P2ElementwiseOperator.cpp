@@ -794,4 +794,7 @@ template class P2ElementwiseOperator< P2FenicsForm< p2_mass_cell_integral_0_othe
 // P2ElementwiseBlendingMassOperator
 template class P2ElementwiseOperator< P2Form_mass >;
 
+// P2ElementwiseBlendingLaplaceOperator
+template class P2ElementwiseOperator< P2Form_laplace >;
+
 } // namespace hyteg
