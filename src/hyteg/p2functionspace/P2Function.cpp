@@ -680,7 +680,7 @@ real_t P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level 
       {
          Cell& cell = *it.second;
 
-         if ( isPointInTetrahedron( coordinates,
+         if ( sphereTetrahedronIntersection( coordinates, 1e-08,
                                     cell.getCoordinates()[0],
                                     cell.getCoordinates()[1],
                                     cell.getCoordinates()[2],
