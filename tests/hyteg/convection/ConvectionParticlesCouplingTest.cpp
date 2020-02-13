@@ -26,20 +26,24 @@
 #include <core/Environment.h>
 #include <core/mpi/MPIManager.h>
 
+#include <hyteg/primitivestorage/SetupPrimitiveStorage.hpp>
+#include <hyteg/primitivestorage/convection_particles_coupling/SetupPrimitiveStorageConvectionParticlesInterface.hpp>
+
+#include <hyteg/geometry/Intersection.hpp>
+
+
 using namespace walberla;
 using namespace walberla::convection_particles;
+using namespace hyteg;
 
-int main( int argc, char ** argv )
+void testBlockForestCoupling()
 {
-   Environment env(argc, argv);
-   WALBERLA_UNUSED(env);
-   walberla::mpi::MPIManager::instance()->useWorldComm();
-
+   WALBERLA_LOG_INFO_ON_ROOT( "Block forest coupling ..." )
    //init domain partitioning
-   auto forest = blockforest::createBlockForest( math::AABB(0,0,0,10,10,10), // simulation domain
+   auto forest = blockforest::createBlockForest( walberla::math::AABB(0,0,0,10,10,10), // simulation domain
                                                  Vector3<uint_t>(2,2,2), // blocks in each direction
                                                  Vector3<bool>(false, false, false) // periodicity
-                                                 );
+   );
    domain::BlockForestDomain domain(forest);
 
    data::ParticleStorage particleStorage(100);
@@ -68,6 +72,102 @@ int main( int argc, char ** argv )
       WALBERLA_LOG_DEVEL(p.getPosition());
       p.setPosition(Vec3(7.5, 2.5, 2.5));
    }
+}
+
+void testSetupPrimitiveStorageCoupling2D()
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "Primitive storage coupling 2D ..." )
+
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D({0, 0}), Point2D({10, 10}), MeshInfo::CRISS, 3, 3 );
+   auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+   SetupPrimitiveStorageConvectionParticlesInterface domain( setupStorage );
+
+   data::ParticleStorage particleStorage(100);
+
+   Vec3 pt(2.5, 2.5, 0);
+
+   // get any cell
+   if ( domain.findContainingProcessRank( pt ) == walberla::mpi::MPIManager::instance()->rank() )
+   {
+      WALBERLA_LOG_INFO( "Creating particle ..." )
+      auto pIt = particleStorage.create();
+      pIt->setPosition(pt);
+      pIt->setInteractionRadius(real_t(0));
+      pIt->setOwner(walberla::mpi::MPIManager::instance()->rank());
+   }
+
+   for (auto p : particleStorage)
+   {
+      WALBERLA_LOG_DEVEL(p.getPosition());
+      p.setPosition(Vec3(7.5, 2.5, 0));
+   }
+
+   convection_particles::mpi::SyncNextNeighbors SNN;
+
+   SNN(particleStorage, domain);
+   SNN(particleStorage, domain);
+
+   for (auto p : particleStorage)
+   {
+      auto isGhost = p.getFlags().getRawDataRef() == walberla::convection_particles::data::particle_flags::GHOST;
+      WALBERLA_LOG_INFO( "Received particle: pos " << p.getPosition() << ", ghost " << isGhost )
+      p.setPosition(Vec3(7.5, 2.5, 0));
+   }
+}
+
+
+void testSetupPrimitiveStorageCoupling3D()
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "Primitive storage coupling 3D ..." )
+
+   MeshInfo meshInfo = MeshInfo::meshCuboid( Point3D({0, 0, 0}), Point3D({10, 10, 10}), 1, 1, 1 );
+   auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+   SetupPrimitiveStorageConvectionParticlesInterface domain( setupStorage );
+
+   data::ParticleStorage particleStorage(100);
+
+   Vec3 pt(2.5, 2.5, 2.5);
+
+   // get any cell
+   if ( domain.findContainingProcessRank( pt ) == walberla::mpi::MPIManager::instance()->rank() )
+   {
+      WALBERLA_LOG_INFO( "Creating particle ..." )
+      auto pIt = particleStorage.create();
+      pIt->setPosition(pt);
+      pIt->setInteractionRadius(real_t(0));
+      pIt->setOwner(walberla::mpi::MPIManager::instance()->rank());
+   }
+
+   for (auto p : particleStorage)
+   {
+      WALBERLA_LOG_DEVEL(p.getPosition());
+      p.setPosition(Vec3(7.5, 2.5, 2.5));
+   }
+
+   convection_particles::mpi::SyncNextNeighbors SNN;
+
+   SNN(particleStorage, domain);
+   SNN(particleStorage, domain);
+
+   for (auto p : particleStorage)
+   {
+      auto isGhost = p.getFlags().getRawDataRef() == walberla::convection_particles::data::particle_flags::GHOST;
+      WALBERLA_LOG_INFO( "Received particle: pos " << p.getPosition() << ", ghost " << isGhost )
+      p.setPosition(Vec3(7.5, 2.5, 2.5));
+   }
+}
+
+int main( int argc, char ** argv )
+{
+   Environment env(argc, argv);
+   WALBERLA_UNUSED(env);
+   walberla::mpi::MPIManager::instance()->useWorldComm();
+
+   testBlockForestCoupling();
+   testSetupPrimitiveStorageCoupling2D();
+   testSetupPrimitiveStorageCoupling3D();
 
    return 0;
 }
