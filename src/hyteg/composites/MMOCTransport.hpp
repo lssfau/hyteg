@@ -250,7 +250,8 @@ void integrateNodes( const PrimitiveStorage& storage,
       const Point3D coordinate = vertex.getCoordinates();
       const uint_t  idx        = 0;
 
-      auto posPast = performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
+      auto posPast =
+          performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
 
       // evaluate new temperature
       const auto newTemp = cOld.evaluate( posPast, level );
@@ -272,10 +273,11 @@ void integrateNodes( const PrimitiveStorage& storage,
          const Point3D coordinate = vertexdof::macroedge::coordinateFromIndex( level, edge, it );
          const uint_t  idx        = vertexdof::macroedge::index( level, it.x() );
 
-         auto posPast = performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
+         auto posPast =
+             performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
 
          const auto newTemp = cOld.evaluate( posPast, level );
-         cDataV[idx]         = newTemp;
+         cDataV[idx]        = newTemp;
       }
 
       for ( const auto& it : edgedof::macroedge::Iterator( level, 0 ) )
@@ -283,16 +285,20 @@ void integrateNodes( const PrimitiveStorage& storage,
          const Point3D coordinate = edgedof::macroedge::coordinateFromIndex( level, edge, it );
          const uint_t  idx        = edgedof::macroedge::index( level, it.x() );
 
-         auto posPast = performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
+         auto posPast =
+             performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
 
          const auto newTemp = cOld.evaluate( posPast, level );
-         cDataE[idx]         = newTemp;
+         cDataE[idx]        = newTemp;
       }
    }
 
    for ( const auto& oldFaceIt : storage.getFaces() )
    {
       const auto& face = *oldFaceIt.second;
+
+      if ( storage.onBoundary( face.getID() ) )
+         continue;
 
       auto cDataV = face.getData( c.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
       auto cDataE = face.getData( c.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
@@ -308,93 +314,185 @@ void integrateNodes( const PrimitiveStorage& storage,
 
       for ( const auto& it : vertexdof::macroface::Iterator( level, 1 ) )
       {
-         Point3D coordinate = vertexdof::macroface::coordinateFromIndex( level, face, it );
-         const uint_t  idx        = vertexdof::macroface::index( level, it.x(), it.y() );
+         Point3D      coordinate = vertexdof::macroface::coordinateFromIndex( level, face, it );
+         const uint_t idx        = vertexdof::macroface::index( level, it.x(), it.y() );
 
          if ( initialOffset > 0 )
          {
-            auto velX = uxDataV[ idx ];
-            auto velY = uyDataV[ idx ];
-            auto velZ = uzDataV[ idx ];
+            auto velX = uxDataV[idx];
+            auto velY = uyDataV[idx];
+            auto velZ = uzDataV[idx];
 
             coordinate += initialOffset * Point3D( {velX, velY, velZ} );
          }
 
-         auto posPast = performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
+         auto posPast =
+             performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
 
          // evaluate new temperature
          const auto newTemp = cOld.evaluate( posPast, level );
-         cDataV[idx]         = newTemp;
+         cDataV[idx]        = newTemp;
       }
 
       for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
       {
          if ( it.row() != 0 )
          {
-            Point3D coordinate = edgedof::macroface::coordinateFromIndex( level, face, it, edgedof::EdgeDoFOrientation::X );
-            const uint_t  idx        = edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::X );
+            Point3D      coordinate = edgedof::macroface::coordinateFromIndex( level, face, it, edgedof::EdgeDoFOrientation::X );
+            const uint_t idx        = edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::X );
 
             if ( initialOffset > 0 )
             {
-               auto velX = uxDataE[ idx ];
-               auto velY = uyDataE[ idx ];
-               auto velZ = uzDataE[ idx ];
+               auto velX = uxDataE[idx];
+               auto velY = uyDataE[idx];
+               auto velZ = uzDataE[idx];
 
                coordinate += initialOffset * Point3D( {velX, velY, velZ} );
             }
 
-            auto posPast = performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
+            auto posPast =
+                performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
 
             // evaluate new temperature
             const auto newTemp = cOld.evaluate( posPast, level );
-            cDataE[idx]         = newTemp;
+            cDataE[idx]        = newTemp;
          }
 
          if ( it.col() != 0 )
          {
-            Point3D coordinate = edgedof::macroface::coordinateFromIndex( level, face, it, edgedof::EdgeDoFOrientation::Y );
-            const uint_t  idx        = edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::Y );
+            Point3D      coordinate = edgedof::macroface::coordinateFromIndex( level, face, it, edgedof::EdgeDoFOrientation::Y );
+            const uint_t idx        = edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::Y );
 
             if ( initialOffset > 0 )
             {
-               auto velX = uxDataE[ idx ];
-               auto velY = uyDataE[ idx ];
-               auto velZ = uzDataE[ idx ];
+               auto velX = uxDataE[idx];
+               auto velY = uyDataE[idx];
+               auto velZ = uzDataE[idx];
 
                coordinate += initialOffset * Point3D( {velX, velY, velZ} );
             }
 
-            auto posPast = performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
+            auto posPast =
+                performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
 
             // evaluate new temperature
             const auto newTemp = cOld.evaluate( posPast, level );
-            cDataE[idx]         = newTemp;
+            cDataE[idx]        = newTemp;
          }
 
          if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
          {
-            Point3D coordinate = edgedof::macroface::coordinateFromIndex( level, face, it, edgedof::EdgeDoFOrientation::XY );
-            const uint_t  idx        = edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::XY );
+            Point3D      coordinate = edgedof::macroface::coordinateFromIndex( level, face, it, edgedof::EdgeDoFOrientation::XY );
+            const uint_t idx        = edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::XY );
 
             if ( initialOffset > 0 )
             {
-               auto velX = uxDataE[ idx ];
-               auto velY = uyDataE[ idx ];
-               auto velZ = uzDataE[ idx ];
+               auto velX = uxDataE[idx];
+               auto velY = uyDataE[idx];
+               auto velZ = uzDataE[idx];
 
                coordinate += initialOffset * Point3D( {velX, velY, velZ} );
             }
 
-            auto posPast = performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
+            auto posPast =
+                performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
 
             // evaluate new temperature
             const auto newTemp = cOld.evaluate( posPast, level );
-            cDataE[idx]         = newTemp;
+            cDataE[idx]        = newTemp;
          }
       }
    }
-}
 
+   for ( const auto& oldCellIt : storage.getCells() )
+   {
+      const auto& cell = *oldCellIt.second;
+
+      auto cDataV = cell.getData( c.getVertexDoFFunction().getCellDataID() )->getPointer( level );
+      auto cDataE = cell.getData( c.getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+
+      auto uxDataV = cell.getData( ux.getVertexDoFFunction().getCellDataID() )->getPointer( level );
+      auto uxDataE = cell.getData( ux.getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+
+      auto uyDataV = cell.getData( uy.getVertexDoFFunction().getCellDataID() )->getPointer( level );
+      auto uyDataE = cell.getData( uy.getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+
+      auto uzDataV = cell.getData( uz.getVertexDoFFunction().getCellDataID() )->getPointer( level );
+      auto uzDataE = cell.getData( uz.getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+
+      for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) )
+      {
+         Point3D      coordinate = vertexdof::macrocell::coordinateFromIndex( level, cell, it );
+         const uint_t idx        = vertexdof::macrocell::index( level, it.x(), it.y(), it.z() );
+
+         if ( initialOffset > 0 )
+         {
+            auto velX = uxDataV[idx];
+            auto velY = uyDataV[idx];
+            auto velZ = uzDataV[idx];
+
+            coordinate += initialOffset * Point3D( {velX, velY, velZ} );
+         }
+
+         auto posPast =
+             performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
+
+         // evaluate new temperature
+         const auto newTemp = cOld.evaluate( posPast, level );
+         cDataV[idx]        = newTemp;
+      }
+
+      for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) )
+      {
+         for ( const auto& orientation : edgedof::allEdgeDoFOrientationsWithoutXYZ )
+         {
+            if ( edgedof::macrocell::isInnerEdgeDoF( level, it, orientation ) ) 
+            {
+               Point3D      coordinate = edgedof::macrocell::coordinateFromIndex( level, cell, it, orientation );
+               const uint_t idx        = edgedof::macrocell::index( level, it.x(), it.y(), it.z(), orientation );
+
+               if ( initialOffset > 0 )
+               {
+                  auto velX = uxDataE[idx];
+                  auto velY = uyDataE[idx];
+                  auto velZ = uzDataE[idx];
+
+                  coordinate += initialOffset * Point3D( {velX, velY, velZ} );
+               }
+
+               auto posPast =
+                   performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
+
+               // evaluate new temperature
+               const auto newTemp = cOld.evaluate( posPast, level );
+               cDataE[idx]        = newTemp;
+            }
+         }
+      }
+
+      for ( const auto& it : edgedof::macrocell::IteratorXYZ( level, 0 ) )
+      {
+         Point3D      coordinate = edgedof::macrocell::coordinateFromIndex( level, cell, it, edgedof::EdgeDoFOrientation::XYZ );
+         const uint_t idx        = edgedof::macrocell::index( level, it.x(), it.y(), it.z(), edgedof::EdgeDoFOrientation::XYZ );
+
+         if ( initialOffset > 0 )
+         {
+            auto velX = uxDataE[idx];
+            auto velY = uyDataE[idx];
+            auto velZ = uzDataE[idx];
+
+            coordinate += initialOffset * Point3D( {velX, velY, velZ} );
+         }
+
+         auto posPast =
+             performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
+
+         // evaluate new temperature
+         const auto newTemp = cOld.evaluate( posPast, level );
+         cDataE[idx]        = newTemp;
+      }
+   }
+}
 
 template < typename FunctionType >
 class MMOCTransport
