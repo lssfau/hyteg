@@ -24,6 +24,8 @@
 #include "core/Environment.h"
 #include "core/math/Random.h"
 
+#include "hyteg/FunctionIterator.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
@@ -114,8 +116,8 @@ void test2D()
 
 void test3D()
 {
-   MeshInfo                            meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
-   SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   MeshInfo              meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( {-1, -1, -1} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
    const size_t minLevel = 2;
@@ -126,7 +128,8 @@ void test3D()
    const uint_t numRandomEvaluations = 1000;
 
    auto testFunc = []( const Point3D& x ) {
-     return 5.0 * x[0] * x[0] + 2.0 * x[0] * x[1] + 4.0 * x[0] * x[2] + 7.0 * x[1] * x[1] + 9.0 * x[1] * x[2] + 3.0 * x[2] * x[2] + 10.0 * x[0] + 3.0 * x[1] + 4.0 * x[2] + 1.0;
+      return 5.0 * x[0] * x[0] + 2.0 * x[0] * x[1] + 4.0 * x[0] * x[2] + 7.0 * x[1] * x[1] + 9.0 * x[1] * x[2] +
+             3.0 * x[2] * x[2] + 10.0 * x[0] + 3.0 * x[1] + 4.0 * x[2] + 1.0;
    };
 
    P2Function< real_t > x( "x", storage, minLevel, maxLevel );
@@ -151,6 +154,66 @@ void test3D()
    }
 }
 
+void test3DReversibility()
+{
+   MeshInfo                            meshInfo = MeshInfo::meshCuboid( Point3D( {-1, -1, -1} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
+   SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   const size_t minLevel = 2;
+   const size_t maxLevel = 4;
+
+   auto testFunc = []( const Point3D& x ) {
+      // return 5.0 * x[0] * x[0] + 2.0 * x[0] * x[1] + 4.0 * x[0] * x[2] + 7.0 * x[1] * x[1] + 9.0 * x[1] * x[2] + 3.0 * x[2] * x[2] + 10.0 * x[0] + 3.0 * x[1] + 4.0 * x[2] + 1.0;
+      return std::sin( x[0] ) + std::sin( x[1] ) + std::sin( x[2] );
+   };
+
+   P2Function< real_t > x( "x", storage, minLevel, maxLevel );
+   P2Function< real_t > y( "y", storage, minLevel, maxLevel );
+   P2Function< real_t > error( "error", storage, minLevel, maxLevel );
+
+   VTKOutput vtk( "../../output", "P2EvaluateReversibilityTest", storage );
+   vtk.add( x );
+   vtk.add( y );
+   vtk.add( error );
+
+   for ( uint_t level = minLevel; level <= maxLevel; level++ )
+   {
+      x.interpolate( testFunc, level );
+      communication::syncFunctionBetweenPrimitives( x, level );
+
+      for ( auto it : FunctionIterator< vertexdof::VertexDoFFunction< real_t > >( y.getVertexDoFFunction(), level ) )
+      {
+         it.value() = x.evaluate( it.coordinates(), level );
+      }
+
+      for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( y.getEdgeDoFFunction(), level ) )
+      {
+         it.value() = x.evaluate( it.coordinates(), level );
+      }
+
+      error.assign( {1.0, -1.0}, {x, y}, level, All );
+      const auto errorL2 =
+          std::sqrt( error.dotGlobal( error, level, All ) / real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, level ) ) );
+      WALBERLA_LOG_DEVEL_ON_ROOT( "Level " << level << ": L2 error = " << errorL2 );
+      vtk.write( level );
+      switch ( level )
+      {
+      case 2:
+         WALBERLA_CHECK_LESS( errorL2, 0.006 );
+         break;
+      case 3:
+         WALBERLA_CHECK_LESS( errorL2, 0.003 );
+         break;
+      case 4:
+         WALBERLA_CHECK_LESS( errorL2, 0.0006 );
+         break;
+      default:
+         WALBERLA_ABORT( "No check yet for this level." )
+      }
+   }
+}
+
 int main( int argc, char** argv )
 {
    walberla::debug::enterTestMode();
@@ -159,5 +222,6 @@ int main( int argc, char** argv )
 
    test2D();
    test3D();
+   test3DReversibility();
    return EXIT_SUCCESS;
 }
