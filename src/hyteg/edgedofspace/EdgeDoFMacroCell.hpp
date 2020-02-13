@@ -145,6 +145,34 @@ inline Point3D zShiftFromVertex( const uint_t& level, const Cell& cell )
    return 0.5 * ( cell.getCoordinates()[3] - cell.getCoordinates()[0] ) * stepFrequency;
 }
 
+inline Point3D coordinateFromIndex( const uint_t&             level,
+                                    const Cell&               cell,
+                                    const indexing::Index&    index,
+                                    const EdgeDoFOrientation& orientation )
+{
+   const Point3D microVertexPosition = vertexdof::macrocell::coordinateFromIndex( level, cell, index );
+   switch ( orientation )
+   {
+   case EdgeDoFOrientation::X:
+      return microVertexPosition + xShiftFromVertex( level, cell );
+   case EdgeDoFOrientation::Y:
+      return microVertexPosition + yShiftFromVertex( level, cell );
+   case EdgeDoFOrientation::Z:
+      return microVertexPosition + zShiftFromVertex( level, cell );
+   case EdgeDoFOrientation::XY:
+      return microVertexPosition + xShiftFromVertex( level, cell ) + yShiftFromVertex( level, cell );
+   case EdgeDoFOrientation::XZ:
+      return microVertexPosition + xShiftFromVertex( level, cell ) + zShiftFromVertex( level, cell );
+   case EdgeDoFOrientation::YZ:
+      return microVertexPosition + yShiftFromVertex( level, cell ) + zShiftFromVertex( level, cell );
+   case EdgeDoFOrientation::XYZ:
+      return microVertexPosition + xShiftFromVertex( level, cell ) + yShiftFromVertex( level, cell ) +
+             zShiftFromVertex( level, cell );
+   default:
+      WALBERLA_ABORT( "Invalid orientation" );
+   }
+}
+
 template < typename ValueType >
 inline void interpolate( const uint_t&                                               Level,
                          Cell&                                                       cell,
