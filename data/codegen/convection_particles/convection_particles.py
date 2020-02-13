@@ -13,11 +13,11 @@ import numpy as np
 import os
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Generate all necessary files for the waLBerla mesa_pd module.')
-    parser.add_argument('path', help='Where should the files be created?')
+    parser = argparse.ArgumentParser(description='Generate all necessary files for the HyTeG convection particles module.')
+    parser.add_argument('path', help='path to the HyTeG top level directory')
     args = parser.parse_args()
 
-    mpd = Module(args.path, 'mesa_pd_convection')
+    mpd = Module(args.path, 'convection_particles')
     ps = mpd.add(data.ParticleStorage())
     ps.add_property("velocity", "walberla::mesa_pd::Vec3", defValue="real_t(0)", syncMode="ALWAYS")
 

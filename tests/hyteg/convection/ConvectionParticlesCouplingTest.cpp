@@ -18,16 +18,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <mesa_pd_convection/data/ParticleStorage.h>
-#include <mesa_pd_convection/domain/BlockForestDomain.h>
-#include <mesa_pd_convection/mpi/SyncNextNeighbors.h>
+#include <convection_particles/data/ParticleStorage.h>
+#include <convection_particles/domain/BlockForestDomain.h>
+#include <convection_particles/mpi/SyncNextNeighbors.h>
 
 #include <blockforest/Initialization.h>
 #include <core/Environment.h>
 #include <core/mpi/MPIManager.h>
 
 using namespace walberla;
-using namespace walberla::mesa_pd_convection;
+using namespace walberla::convection_particles;
 
 int main( int argc, char ** argv )
 {
@@ -59,7 +59,7 @@ int main( int argc, char ** argv )
       p.setPosition(Vec3(7.5, 2.5, 2.5));
    }
 
-   mesa_pd_convection::mpi::SyncNextNeighbors SNN;
+   convection_particles::mpi::SyncNextNeighbors SNN;
 
    SNN(particleStorage, domain);
    SNN(particleStorage, domain);
