@@ -1,0 +1,11 @@
+namespace walberla {
+namespace convection_particles {
+
+/**
+ * \defgroup convection_particles_mpi Communication functionality for MESA-PD module.
+ * \ingroup convection_particles
+ * Description of all communication functions available in the MESA-PD module.
+**/
+
+}
+}
