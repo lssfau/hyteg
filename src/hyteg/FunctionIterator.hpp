@@ -26,6 +26,9 @@
 #include "hyteg/FunctionTraits.hpp"
 #include "hyteg/PrimitiveID.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
+#include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
+#include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
@@ -109,7 +112,18 @@ inline Point3D FunctionIteratorDoF< FunctionType >::coordinates() const
    }
    else if ( isEdgeDoF() )
    {
-      WALBERLA_ABORT( "coordinates() not yet implemented for edgedofs" );
+      if ( isOnMacroEdge() )
+      {
+         return edgedof::macroedge::coordinateFromIndex( level_, *( function_.getStorage()->getEdge( primitiveID_ ) ), index_ );
+      }
+      if ( isOnMacroFace() )
+      {
+         return edgedof::macroface::coordinateFromIndex( level_, *( function_.getStorage()->getFace( primitiveID_ ) ), index_, edgeDoFOrientation_ );
+      }
+      if ( isOnMacroCell() )
+      {
+         return edgedof::macrocell::coordinateFromIndex( level_, *( function_.getStorage()->getCell( primitiveID_ ) ), index_, edgeDoFOrientation_ );
+      }
    }
    WALBERLA_ABORT("not implemented")
 }
