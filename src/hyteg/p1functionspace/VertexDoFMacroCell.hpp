@@ -165,11 +165,11 @@ inline Point3D transformToLocalTet( const Point3D & tet0, const Point3D & tet1, 
    A( 2, 1 ) = ( tet2 - tet0 )[2];
    A( 2, 2 ) = ( tet3 - tet0 )[2];
 
-   auto transform = A.invert();
+   A.invert();
 
    walberla::Vector3< real_t > x( globalPoint[0] - tet0[0], globalPoint[1] - tet0[1], globalPoint[2] - tet0[2] );
 
-   auto result = transform * x;
+   auto result = A * x;
    return Point3D( { result[0], result[1], result[2] } );
 }
 
@@ -247,8 +247,8 @@ inline std::array< Index, 4 > findLocalMicroCell( const uint_t & level, const Ce
    // clip to prevent element outside macro-cell. std::clamp is C++17 ...
 
    planeX = detail::clamp( planeX, 0, numMicroEdges - 1 );
-   planeY = detail::clamp( planeY, 0, numMicroEdges - 1 );
-   planeZ = detail::clamp( planeZ, 0, numMicroEdges - 1 );
+   planeY = detail::clamp( planeY, 0, numMicroEdges - 1 - planeX );
+   planeZ = detail::clamp( planeZ, 0, numMicroEdges - 1 - planeX - planeY );
 
    planeXYZ = detail::clamp( planeXYZ, planeX + planeY + planeZ, planeX + planeY + planeZ + 2 );
    planeXY  = detail::clamp( planeXY, planeX + planeY, planeX + planeY + 1 );
