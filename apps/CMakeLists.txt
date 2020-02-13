@@ -42,10 +42,6 @@ waLBerla_add_executable( NAME PrimitiveSizes
         FILES PrimitiveSizes.cpp
         DEPENDS hyteg)
 
-waLBerla_add_executable( NAME annulus
-        FILES annulus.cpp
-        DEPENDS hyteg)
-
 if( HYTEG_BUILD_WITH_EIGEN )
     waLBerla_add_executable( NAME cg_P1_blending
             FILES cg_P1_blending.cpp
@@ -59,6 +55,10 @@ endif()
 if( HYTEG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME exportOperatorMatrix
         FILES exportOperatorMatrix.cpp
+        DEPENDS hyteg)
+
+waLBerla_add_executable( NAME annulus
+        FILES annulus.cpp
         DEPENDS hyteg)
 endif()
 
