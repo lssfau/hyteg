@@ -39,6 +39,9 @@
 #include <convection_particles/data/IAccessor.h>
 #include <convection_particles/data/Flags.h>
 #include <blockforest/BlockForest.h>
+#include <hyteg/indexing/Common.hpp>
+#include <hyteg/PrimitiveID.hpp>
+#include <hyteg/edgedofspace/EdgeDoFIndexing.hpp>
 #include <convection_particles/data/STLOverloads.h>
 
 #include <core/Abort.h>
@@ -79,6 +82,14 @@ public:
       using ghostOwners_type = std::unordered_set<walberla::mpi::MPIRank>;
       using velocity_type = walberla::convection_particles::Vec3;
       using currentBlock_type = blockforest::BlockID;
+      using startPosition_type = walberla::convection_particles::Vec3;
+      using startIndex_type = hyteg::indexing::Index;
+      using startProcess_type = uint_t;
+      using startPrimitiveID_type = hyteg::PrimitiveID;
+      using startDoFType_type = uint_t;
+      using startEdgeDoFOrientation_type = hyteg::edgedof::EdgeDoFOrientation;
+      using k_type = std::vector< walberla::convection_particles::Vec3 >;
+      using finalTemperature_type = real_t;
       using neighborState_type = std::unordered_set<walberla::mpi::MPIRank>;
 
       
@@ -113,6 +124,38 @@ public:
       currentBlock_type const & getCurrentBlock() const {return storage_.getCurrentBlock(i_);}
       currentBlock_type& getCurrentBlockRef() {return storage_.getCurrentBlockRef(i_);}
       void setCurrentBlock(currentBlock_type const & v) { storage_.setCurrentBlock(i_, v);}
+      
+      startPosition_type const & getStartPosition() const {return storage_.getStartPosition(i_);}
+      startPosition_type& getStartPositionRef() {return storage_.getStartPositionRef(i_);}
+      void setStartPosition(startPosition_type const & v) { storage_.setStartPosition(i_, v);}
+      
+      startIndex_type const & getStartIndex() const {return storage_.getStartIndex(i_);}
+      startIndex_type& getStartIndexRef() {return storage_.getStartIndexRef(i_);}
+      void setStartIndex(startIndex_type const & v) { storage_.setStartIndex(i_, v);}
+      
+      startProcess_type const & getStartProcess() const {return storage_.getStartProcess(i_);}
+      startProcess_type& getStartProcessRef() {return storage_.getStartProcessRef(i_);}
+      void setStartProcess(startProcess_type const & v) { storage_.setStartProcess(i_, v);}
+      
+      startPrimitiveID_type const & getStartPrimitiveID() const {return storage_.getStartPrimitiveID(i_);}
+      startPrimitiveID_type& getStartPrimitiveIDRef() {return storage_.getStartPrimitiveIDRef(i_);}
+      void setStartPrimitiveID(startPrimitiveID_type const & v) { storage_.setStartPrimitiveID(i_, v);}
+      
+      startDoFType_type const & getStartDoFType() const {return storage_.getStartDoFType(i_);}
+      startDoFType_type& getStartDoFTypeRef() {return storage_.getStartDoFTypeRef(i_);}
+      void setStartDoFType(startDoFType_type const & v) { storage_.setStartDoFType(i_, v);}
+      
+      startEdgeDoFOrientation_type const & getStartEdgeDoFOrientation() const {return storage_.getStartEdgeDoFOrientation(i_);}
+      startEdgeDoFOrientation_type& getStartEdgeDoFOrientationRef() {return storage_.getStartEdgeDoFOrientationRef(i_);}
+      void setStartEdgeDoFOrientation(startEdgeDoFOrientation_type const & v) { storage_.setStartEdgeDoFOrientation(i_, v);}
+      
+      k_type const & getK() const {return storage_.getK(i_);}
+      k_type& getKRef() {return storage_.getKRef(i_);}
+      void setK(k_type const & v) { storage_.setK(i_, v);}
+      
+      finalTemperature_type const & getFinalTemperature() const {return storage_.getFinalTemperature(i_);}
+      finalTemperature_type& getFinalTemperatureRef() {return storage_.getFinalTemperatureRef(i_);}
+      void setFinalTemperature(finalTemperature_type const & v) { storage_.setFinalTemperature(i_, v);}
       
       neighborState_type const & getNeighborState() const {return storage_.getNeighborState(i_);}
       neighborState_type& getNeighborStateRef() {return storage_.getNeighborStateRef(i_);}
@@ -186,6 +229,14 @@ public:
    using ghostOwners_type = std::unordered_set<walberla::mpi::MPIRank>;
    using velocity_type = walberla::convection_particles::Vec3;
    using currentBlock_type = blockforest::BlockID;
+   using startPosition_type = walberla::convection_particles::Vec3;
+   using startIndex_type = hyteg::indexing::Index;
+   using startProcess_type = uint_t;
+   using startPrimitiveID_type = hyteg::PrimitiveID;
+   using startDoFType_type = uint_t;
+   using startEdgeDoFOrientation_type = hyteg::edgedof::EdgeDoFOrientation;
+   using k_type = std::vector< walberla::convection_particles::Vec3 >;
+   using finalTemperature_type = real_t;
    using neighborState_type = std::unordered_set<walberla::mpi::MPIRank>;
 
    
@@ -220,6 +271,38 @@ public:
    currentBlock_type const & getCurrentBlock(const size_t idx) const {return currentBlock_[idx];}
    currentBlock_type& getCurrentBlockRef(const size_t idx) {return currentBlock_[idx];}
    void setCurrentBlock(const size_t idx, currentBlock_type const & v) { currentBlock_[idx] = v; }
+   
+   startPosition_type const & getStartPosition(const size_t idx) const {return startPosition_[idx];}
+   startPosition_type& getStartPositionRef(const size_t idx) {return startPosition_[idx];}
+   void setStartPosition(const size_t idx, startPosition_type const & v) { startPosition_[idx] = v; }
+   
+   startIndex_type const & getStartIndex(const size_t idx) const {return startIndex_[idx];}
+   startIndex_type& getStartIndexRef(const size_t idx) {return startIndex_[idx];}
+   void setStartIndex(const size_t idx, startIndex_type const & v) { startIndex_[idx] = v; }
+   
+   startProcess_type const & getStartProcess(const size_t idx) const {return startProcess_[idx];}
+   startProcess_type& getStartProcessRef(const size_t idx) {return startProcess_[idx];}
+   void setStartProcess(const size_t idx, startProcess_type const & v) { startProcess_[idx] = v; }
+   
+   startPrimitiveID_type const & getStartPrimitiveID(const size_t idx) const {return startPrimitiveID_[idx];}
+   startPrimitiveID_type& getStartPrimitiveIDRef(const size_t idx) {return startPrimitiveID_[idx];}
+   void setStartPrimitiveID(const size_t idx, startPrimitiveID_type const & v) { startPrimitiveID_[idx] = v; }
+   
+   startDoFType_type const & getStartDoFType(const size_t idx) const {return startDoFType_[idx];}
+   startDoFType_type& getStartDoFTypeRef(const size_t idx) {return startDoFType_[idx];}
+   void setStartDoFType(const size_t idx, startDoFType_type const & v) { startDoFType_[idx] = v; }
+   
+   startEdgeDoFOrientation_type const & getStartEdgeDoFOrientation(const size_t idx) const {return startEdgeDoFOrientation_[idx];}
+   startEdgeDoFOrientation_type& getStartEdgeDoFOrientationRef(const size_t idx) {return startEdgeDoFOrientation_[idx];}
+   void setStartEdgeDoFOrientation(const size_t idx, startEdgeDoFOrientation_type const & v) { startEdgeDoFOrientation_[idx] = v; }
+   
+   k_type const & getK(const size_t idx) const {return k_[idx];}
+   k_type& getKRef(const size_t idx) {return k_[idx];}
+   void setK(const size_t idx, k_type const & v) { k_[idx] = v; }
+   
+   finalTemperature_type const & getFinalTemperature(const size_t idx) const {return finalTemperature_[idx];}
+   finalTemperature_type& getFinalTemperatureRef(const size_t idx) {return finalTemperature_[idx];}
+   void setFinalTemperature(const size_t idx, finalTemperature_type const & v) { finalTemperature_[idx] = v; }
    
    neighborState_type const & getNeighborState(const size_t idx) const {return neighborState_[idx];}
    neighborState_type& getNeighborStateRef(const size_t idx) {return neighborState_[idx];}
@@ -324,6 +407,14 @@ public:
    std::vector<ghostOwners_type> ghostOwners_ {};
    std::vector<velocity_type> velocity_ {};
    std::vector<currentBlock_type> currentBlock_ {};
+   std::vector<startPosition_type> startPosition_ {};
+   std::vector<startIndex_type> startIndex_ {};
+   std::vector<startProcess_type> startProcess_ {};
+   std::vector<startPrimitiveID_type> startPrimitiveID_ {};
+   std::vector<startDoFType_type> startDoFType_ {};
+   std::vector<startEdgeDoFOrientation_type> startEdgeDoFOrientation_ {};
+   std::vector<k_type> k_ {};
+   std::vector<finalTemperature_type> finalTemperature_ {};
    std::vector<neighborState_type> neighborState_ {};
    std::unordered_map<uid_type, size_t> uidToIdx_;
    static_assert(std::is_same<uid_type, id_t>::value,
@@ -342,6 +433,14 @@ ParticleStorage::Particle& ParticleStorage::Particle::operator=(const ParticleSt
    getGhostOwnersRef() = rhs.getGhostOwners();
    getVelocityRef() = rhs.getVelocity();
    getCurrentBlockRef() = rhs.getCurrentBlock();
+   getStartPositionRef() = rhs.getStartPosition();
+   getStartIndexRef() = rhs.getStartIndex();
+   getStartProcessRef() = rhs.getStartProcess();
+   getStartPrimitiveIDRef() = rhs.getStartPrimitiveID();
+   getStartDoFTypeRef() = rhs.getStartDoFType();
+   getStartEdgeDoFOrientationRef() = rhs.getStartEdgeDoFOrientation();
+   getKRef() = rhs.getK();
+   getFinalTemperatureRef() = rhs.getFinalTemperature();
    getNeighborStateRef() = rhs.getNeighborState();
    return *this;
 }
@@ -357,6 +456,14 @@ ParticleStorage::Particle& ParticleStorage::Particle::operator=(ParticleStorage:
    getGhostOwnersRef() = std::move(rhs.getGhostOwnersRef());
    getVelocityRef() = std::move(rhs.getVelocityRef());
    getCurrentBlockRef() = std::move(rhs.getCurrentBlockRef());
+   getStartPositionRef() = std::move(rhs.getStartPositionRef());
+   getStartIndexRef() = std::move(rhs.getStartIndexRef());
+   getStartProcessRef() = std::move(rhs.getStartProcessRef());
+   getStartPrimitiveIDRef() = std::move(rhs.getStartPrimitiveIDRef());
+   getStartDoFTypeRef() = std::move(rhs.getStartDoFTypeRef());
+   getStartEdgeDoFOrientationRef() = std::move(rhs.getStartEdgeDoFOrientationRef());
+   getKRef() = std::move(rhs.getKRef());
+   getFinalTemperatureRef() = std::move(rhs.getFinalTemperatureRef());
    getNeighborStateRef() = std::move(rhs.getNeighborStateRef());
    return *this;
 }
@@ -373,6 +480,14 @@ void swap(ParticleStorage::Particle lhs, ParticleStorage::Particle rhs)
    std::swap(lhs.getGhostOwnersRef(), rhs.getGhostOwnersRef());
    std::swap(lhs.getVelocityRef(), rhs.getVelocityRef());
    std::swap(lhs.getCurrentBlockRef(), rhs.getCurrentBlockRef());
+   std::swap(lhs.getStartPositionRef(), rhs.getStartPositionRef());
+   std::swap(lhs.getStartIndexRef(), rhs.getStartIndexRef());
+   std::swap(lhs.getStartProcessRef(), rhs.getStartProcessRef());
+   std::swap(lhs.getStartPrimitiveIDRef(), rhs.getStartPrimitiveIDRef());
+   std::swap(lhs.getStartDoFTypeRef(), rhs.getStartDoFTypeRef());
+   std::swap(lhs.getStartEdgeDoFOrientationRef(), rhs.getStartEdgeDoFOrientationRef());
+   std::swap(lhs.getKRef(), rhs.getKRef());
+   std::swap(lhs.getFinalTemperatureRef(), rhs.getFinalTemperatureRef());
    std::swap(lhs.getNeighborStateRef(), rhs.getNeighborStateRef());
 }
 
@@ -389,6 +504,14 @@ std::ostream& operator<<( std::ostream& os, const ParticleStorage::Particle& p )
          "ghostOwners         : " << p.getGhostOwners() << "\n" <<
          "velocity            : " << p.getVelocity() << "\n" <<
          "currentBlock        : " << p.getCurrentBlock() << "\n" <<
+         "startPosition       : " << p.getStartPosition() << "\n" <<
+         "startIndex          : " << p.getStartIndex() << "\n" <<
+         "startProcess        : " << p.getStartProcess() << "\n" <<
+         "startPrimitiveID    : " << p.getStartPrimitiveID() << "\n" <<
+         "startDoFType        : " << p.getStartDoFType() << "\n" <<
+         "startEdgeDoFOrientation: " << p.getStartEdgeDoFOrientation() << "\n" <<
+         "k                   : " << p.getK() << "\n" <<
+         "finalTemperature    : " << p.getFinalTemperature() << "\n" <<
          "neighborState       : " << p.getNeighborState() << "\n" <<
          "================================" << std::endl;
    return os;
@@ -475,6 +598,14 @@ inline ParticleStorage::iterator ParticleStorage::create(const id_t& uid)
    ghostOwners_.emplace_back();
    velocity_.emplace_back(real_t(0));
    currentBlock_.emplace_back();
+   startPosition_.emplace_back(real_t(0));
+   startIndex_.emplace_back();
+   startProcess_.emplace_back();
+   startPrimitiveID_.emplace_back();
+   startDoFType_.emplace_back();
+   startEdgeDoFOrientation_.emplace_back();
+   k_.emplace_back();
+   finalTemperature_.emplace_back();
    neighborState_.emplace_back();
    uid_.back() = uid;
    uidToIdx_[uid] = uid_.size() - 1;
@@ -516,6 +647,14 @@ inline ParticleStorage::iterator ParticleStorage::erase(iterator& it)
    ghostOwners_.pop_back();
    velocity_.pop_back();
    currentBlock_.pop_back();
+   startPosition_.pop_back();
+   startIndex_.pop_back();
+   startProcess_.pop_back();
+   startPrimitiveID_.pop_back();
+   startDoFType_.pop_back();
+   startEdgeDoFOrientation_.pop_back();
+   k_.pop_back();
+   finalTemperature_.pop_back();
    neighborState_.pop_back();
    return it;
 }
@@ -544,6 +683,14 @@ inline void ParticleStorage::reserve(const size_t size)
    ghostOwners_.reserve(size);
    velocity_.reserve(size);
    currentBlock_.reserve(size);
+   startPosition_.reserve(size);
+   startIndex_.reserve(size);
+   startProcess_.reserve(size);
+   startPrimitiveID_.reserve(size);
+   startDoFType_.reserve(size);
+   startEdgeDoFOrientation_.reserve(size);
+   k_.reserve(size);
+   finalTemperature_.reserve(size);
    neighborState_.reserve(size);
 }
 
@@ -557,6 +704,14 @@ inline void ParticleStorage::clear()
    ghostOwners_.clear();
    velocity_.clear();
    currentBlock_.clear();
+   startPosition_.clear();
+   startIndex_.clear();
+   startProcess_.clear();
+   startPrimitiveID_.clear();
+   startDoFType_.clear();
+   startEdgeDoFOrientation_.clear();
+   k_.clear();
+   finalTemperature_.clear();
    neighborState_.clear();
    uidToIdx_.clear();
 }
@@ -571,6 +726,14 @@ inline size_t ParticleStorage::size() const
    //WALBERLA_ASSERT_EQUAL( uid_.size(), ghostOwners.size() );
    //WALBERLA_ASSERT_EQUAL( uid_.size(), velocity.size() );
    //WALBERLA_ASSERT_EQUAL( uid_.size(), currentBlock.size() );
+   //WALBERLA_ASSERT_EQUAL( uid_.size(), startPosition.size() );
+   //WALBERLA_ASSERT_EQUAL( uid_.size(), startIndex.size() );
+   //WALBERLA_ASSERT_EQUAL( uid_.size(), startProcess.size() );
+   //WALBERLA_ASSERT_EQUAL( uid_.size(), startPrimitiveID.size() );
+   //WALBERLA_ASSERT_EQUAL( uid_.size(), startDoFType.size() );
+   //WALBERLA_ASSERT_EQUAL( uid_.size(), startEdgeDoFOrientation.size() );
+   //WALBERLA_ASSERT_EQUAL( uid_.size(), k.size() );
+   //WALBERLA_ASSERT_EQUAL( uid_.size(), finalTemperature.size() );
    //WALBERLA_ASSERT_EQUAL( uid_.size(), neighborState.size() );
    return uid_.size();
 }
@@ -826,6 +989,78 @@ public:
    blockforest::BlockID& operator()(data::Particle& p) const {return p.getCurrentBlockRef();}
    blockforest::BlockID& operator()(data::Particle&& p) const {return p.getCurrentBlockRef();}
    blockforest::BlockID const & operator()(const data::Particle& p) const {return p.getCurrentBlock();}
+};
+///Predicate that selects a certain property from a Particle
+class SelectParticleStartPosition
+{
+public:
+   using return_type = walberla::convection_particles::Vec3;
+   walberla::convection_particles::Vec3& operator()(data::Particle& p) const {return p.getStartPositionRef();}
+   walberla::convection_particles::Vec3& operator()(data::Particle&& p) const {return p.getStartPositionRef();}
+   walberla::convection_particles::Vec3 const & operator()(const data::Particle& p) const {return p.getStartPosition();}
+};
+///Predicate that selects a certain property from a Particle
+class SelectParticleStartIndex
+{
+public:
+   using return_type = hyteg::indexing::Index;
+   hyteg::indexing::Index& operator()(data::Particle& p) const {return p.getStartIndexRef();}
+   hyteg::indexing::Index& operator()(data::Particle&& p) const {return p.getStartIndexRef();}
+   hyteg::indexing::Index const & operator()(const data::Particle& p) const {return p.getStartIndex();}
+};
+///Predicate that selects a certain property from a Particle
+class SelectParticleStartProcess
+{
+public:
+   using return_type = uint_t;
+   uint_t& operator()(data::Particle& p) const {return p.getStartProcessRef();}
+   uint_t& operator()(data::Particle&& p) const {return p.getStartProcessRef();}
+   uint_t const & operator()(const data::Particle& p) const {return p.getStartProcess();}
+};
+///Predicate that selects a certain property from a Particle
+class SelectParticleStartPrimitiveID
+{
+public:
+   using return_type = hyteg::PrimitiveID;
+   hyteg::PrimitiveID& operator()(data::Particle& p) const {return p.getStartPrimitiveIDRef();}
+   hyteg::PrimitiveID& operator()(data::Particle&& p) const {return p.getStartPrimitiveIDRef();}
+   hyteg::PrimitiveID const & operator()(const data::Particle& p) const {return p.getStartPrimitiveID();}
+};
+///Predicate that selects a certain property from a Particle
+class SelectParticleStartDoFType
+{
+public:
+   using return_type = uint_t;
+   uint_t& operator()(data::Particle& p) const {return p.getStartDoFTypeRef();}
+   uint_t& operator()(data::Particle&& p) const {return p.getStartDoFTypeRef();}
+   uint_t const & operator()(const data::Particle& p) const {return p.getStartDoFType();}
+};
+///Predicate that selects a certain property from a Particle
+class SelectParticleStartEdgeDoFOrientation
+{
+public:
+   using return_type = hyteg::edgedof::EdgeDoFOrientation;
+   hyteg::edgedof::EdgeDoFOrientation& operator()(data::Particle& p) const {return p.getStartEdgeDoFOrientationRef();}
+   hyteg::edgedof::EdgeDoFOrientation& operator()(data::Particle&& p) const {return p.getStartEdgeDoFOrientationRef();}
+   hyteg::edgedof::EdgeDoFOrientation const & operator()(const data::Particle& p) const {return p.getStartEdgeDoFOrientation();}
+};
+///Predicate that selects a certain property from a Particle
+class SelectParticleK
+{
+public:
+   using return_type = std::vector< walberla::convection_particles::Vec3 >;
+   std::vector< walberla::convection_particles::Vec3 >& operator()(data::Particle& p) const {return p.getKRef();}
+   std::vector< walberla::convection_particles::Vec3 >& operator()(data::Particle&& p) const {return p.getKRef();}
+   std::vector< walberla::convection_particles::Vec3 > const & operator()(const data::Particle& p) const {return p.getK();}
+};
+///Predicate that selects a certain property from a Particle
+class SelectParticleFinalTemperature
+{
+public:
+   using return_type = real_t;
+   real_t& operator()(data::Particle& p) const {return p.getFinalTemperatureRef();}
+   real_t& operator()(data::Particle&& p) const {return p.getFinalTemperatureRef();}
+   real_t const & operator()(const data::Particle& p) const {return p.getFinalTemperature();}
 };
 ///Predicate that selects a certain property from a Particle
 class SelectParticleNeighborState

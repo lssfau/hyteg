@@ -123,7 +123,7 @@ void SyncNextNeighborsNoGhosts::generateSynchronizationMessages(data::ParticleSt
 
          // create ghost on new owner process
          auto& buffer( bs.sendBuffer(ownerRank) );
-         WALBERLA_LOG_DETAIL( "Sending ghost copy notification for particle " << pIt->getUid() << " to process " << (nbProcessRank) );
+         WALBERLA_LOG_DETAIL( "Sending ghost copy notification for particle " << pIt->getUid() << " to process " << ownerRank );
          packNotification(buffer, ParticleGhostCopyNotification( *pIt ));
 
          WALBERLA_LOG_DETAIL( "Sending migration notification for particle " << pIt->getUid() << " to process " << ownerRank << "." );

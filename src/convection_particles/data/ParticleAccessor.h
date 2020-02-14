@@ -80,6 +80,38 @@ public:
    blockforest::BlockID& getCurrentBlockRef(const size_t p_idx) {return ps_->getCurrentBlockRef(p_idx);}
    void setCurrentBlock(const size_t p_idx, blockforest::BlockID const & v) { ps_->setCurrentBlock(p_idx, v);}
    
+   walberla::convection_particles::Vec3 const & getStartPosition(const size_t p_idx) const {return ps_->getStartPosition(p_idx);}
+   walberla::convection_particles::Vec3& getStartPositionRef(const size_t p_idx) {return ps_->getStartPositionRef(p_idx);}
+   void setStartPosition(const size_t p_idx, walberla::convection_particles::Vec3 const & v) { ps_->setStartPosition(p_idx, v);}
+   
+   hyteg::indexing::Index const & getStartIndex(const size_t p_idx) const {return ps_->getStartIndex(p_idx);}
+   hyteg::indexing::Index& getStartIndexRef(const size_t p_idx) {return ps_->getStartIndexRef(p_idx);}
+   void setStartIndex(const size_t p_idx, hyteg::indexing::Index const & v) { ps_->setStartIndex(p_idx, v);}
+   
+   uint_t const & getStartProcess(const size_t p_idx) const {return ps_->getStartProcess(p_idx);}
+   uint_t& getStartProcessRef(const size_t p_idx) {return ps_->getStartProcessRef(p_idx);}
+   void setStartProcess(const size_t p_idx, uint_t const & v) { ps_->setStartProcess(p_idx, v);}
+   
+   hyteg::PrimitiveID const & getStartPrimitiveID(const size_t p_idx) const {return ps_->getStartPrimitiveID(p_idx);}
+   hyteg::PrimitiveID& getStartPrimitiveIDRef(const size_t p_idx) {return ps_->getStartPrimitiveIDRef(p_idx);}
+   void setStartPrimitiveID(const size_t p_idx, hyteg::PrimitiveID const & v) { ps_->setStartPrimitiveID(p_idx, v);}
+   
+   uint_t const & getStartDoFType(const size_t p_idx) const {return ps_->getStartDoFType(p_idx);}
+   uint_t& getStartDoFTypeRef(const size_t p_idx) {return ps_->getStartDoFTypeRef(p_idx);}
+   void setStartDoFType(const size_t p_idx, uint_t const & v) { ps_->setStartDoFType(p_idx, v);}
+   
+   hyteg::edgedof::EdgeDoFOrientation const & getStartEdgeDoFOrientation(const size_t p_idx) const {return ps_->getStartEdgeDoFOrientation(p_idx);}
+   hyteg::edgedof::EdgeDoFOrientation& getStartEdgeDoFOrientationRef(const size_t p_idx) {return ps_->getStartEdgeDoFOrientationRef(p_idx);}
+   void setStartEdgeDoFOrientation(const size_t p_idx, hyteg::edgedof::EdgeDoFOrientation const & v) { ps_->setStartEdgeDoFOrientation(p_idx, v);}
+   
+   std::vector< walberla::convection_particles::Vec3 > const & getK(const size_t p_idx) const {return ps_->getK(p_idx);}
+   std::vector< walberla::convection_particles::Vec3 >& getKRef(const size_t p_idx) {return ps_->getKRef(p_idx);}
+   void setK(const size_t p_idx, std::vector< walberla::convection_particles::Vec3 > const & v) { ps_->setK(p_idx, v);}
+   
+   real_t const & getFinalTemperature(const size_t p_idx) const {return ps_->getFinalTemperature(p_idx);}
+   real_t& getFinalTemperatureRef(const size_t p_idx) {return ps_->getFinalTemperatureRef(p_idx);}
+   void setFinalTemperature(const size_t p_idx, real_t const & v) { ps_->setFinalTemperature(p_idx, v);}
+   
    std::unordered_set<walberla::mpi::MPIRank> const & getNeighborState(const size_t p_idx) const {return ps_->getNeighborState(p_idx);}
    std::unordered_set<walberla::mpi::MPIRank>& getNeighborStateRef(const size_t p_idx) {return ps_->getNeighborStateRef(p_idx);}
    void setNeighborState(const size_t p_idx, std::unordered_set<walberla::mpi::MPIRank> const & v) { ps_->setNeighborState(p_idx, v);}
@@ -161,6 +193,38 @@ public:
    void setCurrentBlock(const size_t /*p_idx*/, blockforest::BlockID const & v) { currentBlock_ = v;}
    blockforest::BlockID& getCurrentBlockRef(const size_t /*p_idx*/) {return currentBlock_;}
    
+   walberla::convection_particles::Vec3 const & getStartPosition(const size_t /*p_idx*/) const {return startPosition_;}
+   void setStartPosition(const size_t /*p_idx*/, walberla::convection_particles::Vec3 const & v) { startPosition_ = v;}
+   walberla::convection_particles::Vec3& getStartPositionRef(const size_t /*p_idx*/) {return startPosition_;}
+   
+   hyteg::indexing::Index const & getStartIndex(const size_t /*p_idx*/) const {return startIndex_;}
+   void setStartIndex(const size_t /*p_idx*/, hyteg::indexing::Index const & v) { startIndex_ = v;}
+   hyteg::indexing::Index& getStartIndexRef(const size_t /*p_idx*/) {return startIndex_;}
+   
+   uint_t const & getStartProcess(const size_t /*p_idx*/) const {return startProcess_;}
+   void setStartProcess(const size_t /*p_idx*/, uint_t const & v) { startProcess_ = v;}
+   uint_t& getStartProcessRef(const size_t /*p_idx*/) {return startProcess_;}
+   
+   hyteg::PrimitiveID const & getStartPrimitiveID(const size_t /*p_idx*/) const {return startPrimitiveID_;}
+   void setStartPrimitiveID(const size_t /*p_idx*/, hyteg::PrimitiveID const & v) { startPrimitiveID_ = v;}
+   hyteg::PrimitiveID& getStartPrimitiveIDRef(const size_t /*p_idx*/) {return startPrimitiveID_;}
+   
+   uint_t const & getStartDoFType(const size_t /*p_idx*/) const {return startDoFType_;}
+   void setStartDoFType(const size_t /*p_idx*/, uint_t const & v) { startDoFType_ = v;}
+   uint_t& getStartDoFTypeRef(const size_t /*p_idx*/) {return startDoFType_;}
+   
+   hyteg::edgedof::EdgeDoFOrientation const & getStartEdgeDoFOrientation(const size_t /*p_idx*/) const {return startEdgeDoFOrientation_;}
+   void setStartEdgeDoFOrientation(const size_t /*p_idx*/, hyteg::edgedof::EdgeDoFOrientation const & v) { startEdgeDoFOrientation_ = v;}
+   hyteg::edgedof::EdgeDoFOrientation& getStartEdgeDoFOrientationRef(const size_t /*p_idx*/) {return startEdgeDoFOrientation_;}
+   
+   std::vector< walberla::convection_particles::Vec3 > const & getK(const size_t /*p_idx*/) const {return k_;}
+   void setK(const size_t /*p_idx*/, std::vector< walberla::convection_particles::Vec3 > const & v) { k_ = v;}
+   std::vector< walberla::convection_particles::Vec3 >& getKRef(const size_t /*p_idx*/) {return k_;}
+   
+   real_t const & getFinalTemperature(const size_t /*p_idx*/) const {return finalTemperature_;}
+   void setFinalTemperature(const size_t /*p_idx*/, real_t const & v) { finalTemperature_ = v;}
+   real_t& getFinalTemperatureRef(const size_t /*p_idx*/) {return finalTemperature_;}
+   
    std::unordered_set<walberla::mpi::MPIRank> const & getNeighborState(const size_t /*p_idx*/) const {return neighborState_;}
    void setNeighborState(const size_t /*p_idx*/, std::unordered_set<walberla::mpi::MPIRank> const & v) { neighborState_ = v;}
    std::unordered_set<walberla::mpi::MPIRank>& getNeighborStateRef(const size_t /*p_idx*/) {return neighborState_;}
@@ -184,6 +248,14 @@ private:
    std::unordered_set<walberla::mpi::MPIRank> ghostOwners_;
    walberla::convection_particles::Vec3 velocity_;
    blockforest::BlockID currentBlock_;
+   walberla::convection_particles::Vec3 startPosition_;
+   hyteg::indexing::Index startIndex_;
+   uint_t startProcess_;
+   hyteg::PrimitiveID startPrimitiveID_;
+   uint_t startDoFType_;
+   hyteg::edgedof::EdgeDoFOrientation startEdgeDoFOrientation_;
+   std::vector< walberla::convection_particles::Vec3 > k_;
+   real_t finalTemperature_;
    std::unordered_set<walberla::mpi::MPIRank> neighborState_;
 };
 

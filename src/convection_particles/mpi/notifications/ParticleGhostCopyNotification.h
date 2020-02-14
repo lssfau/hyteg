@@ -54,6 +54,14 @@ public:
       walberla::convection_particles::data::particle_flags::FlagT flags {};
       int owner {-1};
       walberla::convection_particles::Vec3 velocity {real_t(0)};
+      walberla::convection_particles::Vec3 startPosition {real_t(0)};
+      hyteg::indexing::Index startIndex {};
+      uint_t startProcess {};
+      hyteg::PrimitiveID startPrimitiveID {};
+      uint_t startDoFType {};
+      hyteg::edgedof::EdgeDoFOrientation startEdgeDoFOrientation {};
+      std::vector< walberla::convection_particles::Vec3 > k {};
+      real_t finalTemperature {};
    };
 
    inline explicit ParticleGhostCopyNotification( const data::Particle& particle ) : particle_(particle) {}
@@ -71,6 +79,14 @@ inline data::ParticleStorage::iterator createNewParticle(data::ParticleStorage& 
    pIt->setFlags(data.flags);
    pIt->setOwner(data.owner);
    pIt->setVelocity(data.velocity);
+   pIt->setStartPosition(data.startPosition);
+   pIt->setStartIndex(data.startIndex);
+   pIt->setStartProcess(data.startProcess);
+   pIt->setStartPrimitiveID(data.startPrimitiveID);
+   pIt->setStartDoFType(data.startDoFType);
+   pIt->setStartEdgeDoFOrientation(data.startEdgeDoFOrientation);
+   pIt->setK(data.k);
+   pIt->setFinalTemperature(data.finalTemperature);
    return pIt;
 }
 
@@ -103,6 +119,14 @@ mpi::GenericSendBuffer<T,G>& operator<<( mpi::GenericSendBuffer<T,G> & buf, cons
    buf << obj.particle_.getFlags();
    buf << obj.particle_.getOwner();
    buf << obj.particle_.getVelocity();
+   buf << obj.particle_.getStartPosition();
+   buf << obj.particle_.getStartIndex();
+   buf << obj.particle_.getStartProcess();
+   buf << obj.particle_.getStartPrimitiveID();
+   buf << obj.particle_.getStartDoFType();
+   buf << obj.particle_.getStartEdgeDoFOrientation();
+   buf << obj.particle_.getK();
+   buf << obj.particle_.getFinalTemperature();
    return buf;
 }
 
@@ -116,6 +140,14 @@ mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buf, convecti
    buf >> objparam.flags;
    buf >> objparam.owner;
    buf >> objparam.velocity;
+   buf >> objparam.startPosition;
+   buf >> objparam.startIndex;
+   buf >> objparam.startProcess;
+   buf >> objparam.startPrimitiveID;
+   buf >> objparam.startDoFType;
+   buf >> objparam.startEdgeDoFOrientation;
+   buf >> objparam.k;
+   buf >> objparam.finalTemperature;
    return buf;
 }
 

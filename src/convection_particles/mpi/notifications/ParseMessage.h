@@ -105,6 +105,14 @@ void ParseMessage::operator()(int sender,
       pIt->setUid(objparam.uid);
       pIt->setPosition(objparam.position);
       pIt->setVelocity(objparam.velocity);
+      pIt->setStartPosition(objparam.startPosition);
+      pIt->setStartIndex(objparam.startIndex);
+      pIt->setStartProcess(objparam.startProcess);
+      pIt->setStartPrimitiveID(objparam.startPrimitiveID);
+      pIt->setStartDoFType(objparam.startDoFType);
+      pIt->setStartEdgeDoFOrientation(objparam.startEdgeDoFOrientation);
+      pIt->setK(objparam.k);
+      pIt->setFinalTemperature(objparam.finalTemperature);
 
       domain.correctParticlePosition(pIt->getPositionRef());
 
