@@ -27,6 +27,7 @@ if __name__ == '__main__':
     mpd.add(mpi.Notifications(ps))
     mpd.add(mpi.SyncGhostOwners(ps))
     mpd.add(mpi.SyncNextNeighbors(ps))
+    mpd.add(mpi.SyncNextNeighborsNoGhosts(ps))
 
     ps.print()
 

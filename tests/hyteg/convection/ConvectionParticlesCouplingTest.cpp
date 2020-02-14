@@ -20,7 +20,7 @@
 
 #include <convection_particles/data/ParticleStorage.h>
 #include <convection_particles/domain/BlockForestDomain.h>
-#include <convection_particles/mpi/SyncNextNeighbors.h>
+#include <convection_particles/mpi/SyncNextNeighborsNoGhosts.h>
 
 #include <blockforest/Initialization.h>
 #include <core/Environment.h>
@@ -59,9 +59,8 @@ int main( int argc, char ** argv )
       p.setPosition(Vec3(7.5, 2.5, 2.5));
    }
 
-   convection_particles::mpi::SyncNextNeighbors SNN;
+   convection_particles::mpi::SyncNextNeighborsNoGhosts SNN;
 
-   SNN(particleStorage, domain);
    SNN(particleStorage, domain);
 
    for (auto p : particleStorage)
