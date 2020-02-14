@@ -103,7 +103,7 @@ void testSetupPrimitiveStorageCoupling2D()
       p.setPosition(Vec3(7.5, 2.5, 0));
    }
 
-   convection_particles::mpi::SyncNextNeighbors SNN;
+   convection_particles::mpi::SyncNextNeighborsNoGhosts SNN;
 
    SNN(particleStorage, domain);
    SNN(particleStorage, domain);
@@ -146,7 +146,7 @@ void testSetupPrimitiveStorageCoupling3D()
       p.setPosition(Vec3(7.5, 2.5, 2.5));
    }
 
-   convection_particles::mpi::SyncNextNeighbors SNN;
+   convection_particles::mpi::SyncNextNeighborsNoGhosts SNN;
 
    SNN(particleStorage, domain);
    SNN(particleStorage, domain);
