@@ -20,22 +20,28 @@
 
 #pragma once
 
+#include <convection_particles/data/ParticleStorage.h>
+#include <convection_particles/mpi/SyncNextNeighborsNoGhosts.h>
 #include <core/math/MatrixMxN.h>
 
+#include "hyteg/FunctionIterator.hpp"
 #include "hyteg/communication/Syncing.hpp"
-#include "hyteg/geometry/Intersection.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "hyteg/geometry/Intersection.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/convection_particles_coupling/SetupPrimitiveStorageConvectionParticlesInterface.hpp"
 
 namespace hyteg {
+
+using namespace walberla::convection_particles;
 
 enum class TimeSteppingScheme
 {
@@ -43,26 +49,37 @@ enum class TimeSteppingScheme
    RK4,
 };
 
-std::array< std::array< real_t, 1 >, 1 > RK_A_ExplicitEuler = {{{0}}};
-std::array< real_t, 1 >                  RK_b_ExplicitEuler = {1};
+const static std::vector< std::vector< real_t > > RK_A_ExplicitEuler = {{{0}}};
+const static std::vector< real_t >                RK_b_ExplicitEuler = {1};
 
-std::array< std::array< real_t, 4 >, 4 > RK_A_RK4 = {{{0, 0, 0, 0}, {0.5, 0, 0, 0}, {0, 0.5, 0, 0}, {0, 0, 1, 0}}};
-std::array< real_t, 4 >                  RK_b_RK4 = {1. / 6., 1. / 3., 1. / 3., 1. / 6.};
+const static std::vector< std::vector< real_t > > RK_A_RK4 = {{{0, 0, 0, 0}, {0.5, 0, 0, 0}, {0, 0.5, 0, 0}, {0, 0, 1, 0}}};
+const static std::vector< real_t >                RK_b_RK4 = {1. / 6., 1. / 3., 1. / 3., 1. / 6.};
 
-template < typename FunctionType, uint_t stages >
+const static std::map< TimeSteppingScheme, std::vector< std::vector< real_t > > > RK_A = {
+    { TimeSteppingScheme::ExplicitEuler, RK_A_ExplicitEuler },
+    { TimeSteppingScheme::RK4, RK_A_RK4 }
+};
+
+const static std::map< TimeSteppingScheme, std::vector< real_t > > RK_b = {
+    { TimeSteppingScheme::ExplicitEuler, RK_b_ExplicitEuler },
+    { TimeSteppingScheme::RK4, RK_b_RK4 }
+};
+
+template < typename FunctionType >
 inline Point3D stepRK( const Point3D&                                            startPosition,
                        const real_t&                                             velocityFactor,
-                       const std::array< std::array< real_t, stages >, stages >& A,
-                       const std::array< real_t, stages >&                       b,
+                       const std::vector< std::vector< real_t > >& A,
+                       const std::vector< real_t >&                       b,
                        const FunctionType&                                       ux,
                        const FunctionType&                                       uy,
                        const FunctionType&                                       uz,
                        const real_t&                                             dt,
                        const uint_t&                                             level )
 {
-   std::array< real_t, stages > kx;
-   std::array< real_t, stages > ky;
-   std::array< real_t, stages > kz;
+   const uint_t stages = b.size();
+   std::vector< real_t > kx( stages );
+   std::vector< real_t > ky( stages );
+   std::vector< real_t > kz( stages );
 
    kx[0] = velocityFactor * ux.evaluate( startPosition, level );
    ky[0] = velocityFactor * uy.evaluate( startPosition, level );
@@ -106,14 +123,7 @@ Point3D performInnerRKTimeSteps( const Point3D&      startingPosition,
    Point3D posPast = startingPosition;
    for ( uint_t step = 0; step < innerSteps; step++ )
    {
-      if ( timeSteppingScheme == TimeSteppingScheme::ExplicitEuler )
-      {
-         posPast = stepRK< FunctionType, 1 >( posPast, -1.0, RK_A_ExplicitEuler, RK_b_ExplicitEuler, ux, uy, uz, dt, level );
-      }
-      else if ( timeSteppingScheme == TimeSteppingScheme::RK4 )
-      {
-         posPast = stepRK< FunctionType, 4 >( posPast, -1.0, RK_A_RK4, RK_b_RK4, ux, uy, uz, dt, level );
-      }
+      posPast = stepRK< FunctionType >( posPast, -1.0, RK_A.at( timeSteppingScheme ), RK_b.at( timeSteppingScheme ), ux, uy, uz, dt, level );
    }
    return posPast;
 }
@@ -494,6 +504,346 @@ void integrateNodes( const PrimitiveStorage& storage,
    }
 }
 
+void particleIntegration(walberla::convection_particles::data::ParticleStorage & particleStorage,
+                         const walberla::convection_particles::domain::IDomain& particleDomainInterface,
+                         const PrimitiveStorage& storage,
+                         const P2Function< real_t >&     c,
+                         const P2Function< real_t >&     cOld,
+                         const P2Function< real_t >&     ux,
+                         const P2Function< real_t >&     uy,
+                         const P2Function< real_t >&     uz,
+                         const real_t&           dt,
+                         const uint_t&           level,
+                         const DoFType&,
+                         const uint_t& steps,
+                         const TimeSteppingScheme & timeSteppingScheme,
+                         const real_t & initialOffset )
+{
+   communication::syncFunctionBetweenPrimitives( cOld, level );
+   communication::syncFunctionBetweenPrimitives( ux, level );
+   communication::syncFunctionBetweenPrimitives( uy, level );
+   communication::syncFunctionBetweenPrimitives( uz, level );
+
+   // initialize particles locally
+
+   // store
+   // - start position (coords)
+   // - start index
+   // - start process
+   // - start macro ID
+   // - start function (edgedof or vertexdof)
+   // - start edgedof orientation
+   // - initial velocity (optimization especially for single step, store in k[0], no evaluate call needed)
+   //
+   // also store number of created particles to verify the number of processes messages later
+
+   particleStorage.clear();
+
+   const uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
+   const std::vector< std::vector< real_t > > & A = RK_A.at( timeSteppingScheme );
+   const std::vector< real_t > & b = RK_b.at( timeSteppingScheme );
+   const uint_t rkStages = b.size();
+
+   for ( auto it : FunctionIterator< vertexdof::VertexDoFFunction< real_t > >( c.getVertexDoFFunction(), level ) )
+   {
+      auto particleIt = particleStorage.create();
+      particleIt->setOwner( (int)rank );
+      particleIt->setPosition( toVec3( it.coordinates() ) );
+      particleIt->setStartPosition( toVec3( it.coordinates() ) );
+      particleIt->setStartDoFType( 0 ); // 0 == vertexdof
+      particleIt->setStartEdgeDoFOrientation( it.edgeDoFOrientation() );
+      particleIt->setStartPrimitiveID( it.primitiveID() );
+      particleIt->setStartIndex( it.index() );
+      particleIt->setStartProcess( rank );
+      particleIt->getKRef().resize( rkStages );
+      if ( it.isOnMacroVertex() )
+      {
+         particleIt->getKRef()[0][0] = storage.getVertex( it.primitiveID() )->getData( ux.getVertexDoFFunction().getVertexDataID() )->getPointer( level )[ it.arrayIndex() ];
+         particleIt->getKRef()[0][1] = storage.getVertex( it.primitiveID() )->getData( uy.getVertexDoFFunction().getVertexDataID() )->getPointer( level )[ it.arrayIndex() ];
+         particleIt->getKRef()[0][2] = storage.getVertex( it.primitiveID() )->getData( uz.getVertexDoFFunction().getVertexDataID() )->getPointer( level )[ it.arrayIndex() ];
+      }
+      if ( it.isOnMacroEdge() )
+      {
+         particleIt->getKRef()[0][0] = storage.getEdge( it.primitiveID() )->getData( ux.getVertexDoFFunction().getEdgeDataID() )->getPointer( level )[ it.arrayIndex() ];
+         particleIt->getKRef()[0][1] = storage.getEdge( it.primitiveID() )->getData( uy.getVertexDoFFunction().getEdgeDataID() )->getPointer( level )[ it.arrayIndex() ];
+         particleIt->getKRef()[0][2] = storage.getEdge( it.primitiveID() )->getData( uz.getVertexDoFFunction().getEdgeDataID() )->getPointer( level )[ it.arrayIndex() ];
+      }
+      if ( it.isOnMacroFace() )
+      {
+         particleIt->getKRef()[0][0] = storage.getFace( it.primitiveID() )->getData( ux.getVertexDoFFunction().getFaceDataID() )->getPointer( level )[ it.arrayIndex() ];
+         particleIt->getKRef()[0][1] = storage.getFace( it.primitiveID() )->getData( uy.getVertexDoFFunction().getFaceDataID() )->getPointer( level )[ it.arrayIndex() ];
+         particleIt->getKRef()[0][2] = storage.getFace( it.primitiveID() )->getData( uz.getVertexDoFFunction().getFaceDataID() )->getPointer( level )[ it.arrayIndex() ];
+      }
+   }
+
+   for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( c.getEdgeDoFFunction(), level ) )
+   {
+      auto particleIt = particleStorage.create();
+      particleIt->setOwner( (int)rank );
+      particleIt->setPosition( toVec3( it.coordinates() ) );
+      particleIt->setStartPosition( toVec3( it.coordinates() ) );
+      particleIt->setStartDoFType( 1 ); // 1 == edgedof
+      particleIt->setStartEdgeDoFOrientation( it.edgeDoFOrientation() );
+      particleIt->setStartPrimitiveID( it.primitiveID() );
+      particleIt->setStartIndex( it.index() );
+      particleIt->setStartProcess( rank );
+      particleIt->getKRef().resize( rkStages );
+      WALBERLA_CHECK( !it.isOnMacroVertex() );
+      if ( it.isOnMacroEdge() )
+      {
+         particleIt->getKRef()[0][0] = storage.getEdge( it.primitiveID() )->getData( ux.getEdgeDoFFunction().getEdgeDataID() )->getPointer( level )[ it.arrayIndex() ];
+         particleIt->getKRef()[0][1] = storage.getEdge( it.primitiveID() )->getData( uy.getEdgeDoFFunction().getEdgeDataID() )->getPointer( level )[ it.arrayIndex() ];
+         particleIt->getKRef()[0][2] = storage.getEdge( it.primitiveID() )->getData( uz.getEdgeDoFFunction().getEdgeDataID() )->getPointer( level )[ it.arrayIndex() ];
+      }
+      if ( it.isOnMacroFace() )
+      {
+         particleIt->getKRef()[0][0] = storage.getFace( it.primitiveID() )->getData( ux.getEdgeDoFFunction().getFaceDataID() )->getPointer( level )[ it.arrayIndex() ];
+         particleIt->getKRef()[0][1] = storage.getFace( it.primitiveID() )->getData( uy.getEdgeDoFFunction().getFaceDataID() )->getPointer( level )[ it.arrayIndex() ];
+         particleIt->getKRef()[0][2] = storage.getFace( it.primitiveID() )->getData( uz.getEdgeDoFFunction().getFaceDataID() )->getPointer( level )[ it.arrayIndex() ];
+      }
+   }
+
+   const uint_t numberOfCreatedParticles = particleStorage.size();
+   // WALBERLA_LOG_INFO( "Particles after creation: " << particleStorage.size() );
+
+   // now sync particles so that all particles are "assigned" a macro-cell (macro-face in 2D) automatically
+   walberla::convection_particles::mpi::SyncNextNeighborsNoGhosts SNN;
+   SNN( particleStorage, particleDomainInterface );
+
+   // WALBERLA_LOG_INFO( "Particles after init sync: " << particleStorage.size() );
+
+   for ( uint_t step = 0; step < steps; step++ )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Starting inner time step " << step << " ..." )
+      // TODO: sort particle storage by governing macro (optimization, tbd)
+
+      // RK stage 0
+      // skip setting to start pos (already happened)
+      // skip synchronization (already happened)
+      // evaluate velocity - if first step, velocity is already set
+      if ( step > 0 )
+      {
+         for ( auto p : particleStorage )
+         {
+            p->getKRef()[0][0] = ux.evaluate( toPoint3D( p.getPosition() ), level );
+            p->getKRef()[0][1] = uy.evaluate( toPoint3D( p.getPosition() ), level );
+            if ( storage.hasGlobalCells() )
+               p->getKRef()[0][2] = uz.evaluate( toPoint3D( p.getPosition() ), level );
+         }
+      }
+
+      // RK stages [1, ..., stages - 1]
+      for ( uint_t stage = 1; stage < rkStages; stage++ )
+      {
+         // determine function evaluation points for this stage
+         for ( auto p : particleStorage )
+         {
+            auto evaluationPoint = p.getStartPosition();
+            for ( uint_t j = 0; j < stage; j++ )
+            {
+               evaluationPoint += dt * A[stage][j] * p->getK().at(j);
+            }
+            p->setPosition( evaluationPoint );
+         }
+
+         // sync particles to be able to evaluate the velocity at that point
+         SNN( particleStorage, particleDomainInterface );
+
+         // evaluate velocity at current particle positions and update k[stage]
+         for ( auto p : particleStorage )
+         {
+            p->getKRef()[stage][0] = ux.evaluate( toPoint3D( p->getPosition() ), level );
+            p->getKRef()[stage][1] = uy.evaluate( toPoint3D( p->getPosition() ), level );
+            if ( storage.hasGlobalCells() )
+               p->getKRef()[stage][2] = uz.evaluate( toPoint3D( p->getPosition() ), level );
+         }
+      }
+
+      // all k[i] are now calculated, set final integration result for each particle and
+      // assign the position accordingly
+      for ( auto p : particleStorage )
+      {
+         auto finalPosition = p->getStartPosition();
+         for ( uint_t i = 0; i < rkStages; i++ )
+         {
+            finalPosition += dt * b[i] * p->getKRef()[i];
+         }
+         p->setPosition( finalPosition );
+         p->setStartPosition( finalPosition );
+      }
+
+      // sync particles as position was finally updated
+      SNN( particleStorage, particleDomainInterface );
+
+      // TODO: for multiple inner time steps we need a more clever communication routine
+      //       to find initial ranks - part of this probably must happen after each RK iteration
+      //       if we guarantee that ( dt * maxVelocity < convexNeighborhood )
+
+
+      // (pull out stage 0 - it's special in explicit RK)
+      // for each RK step s in [0, ..., stages-1]
+      //    for each particle
+      //       pos = start
+      //       pos += dt * sum j=0, j<s ( A[s, j] * k[j] )   <- function for each macro on all macro-local particles
+
+      //    sync all (not necessary in stage s == 0)
+
+      //    for each macro:
+      //       (in step 0 we can evaluate directly - in single step RK4 this reduces eval overhead by 25%)
+      //       k[s] = u(pos) (evaluate)                      <- function for each macro on all macro-local particles
+
+      // for each particle
+      //    finalpos = startPosition + dt * sum k_i
+
+      // sync all
+
+      // for each particle
+      //    startpos = finalpos
+
+      // track particle ranks:
+      //    each process has list of ranks to receive from (initially neighborhood)
+      //    send former owner current rank (former owner in neighborhood)
+
+      // end inner time step
+   }
+
+   // evaluate temperature at final position
+   for ( auto p : particleStorage )
+   {
+      p->setFinalTemperature( cOld.evaluate( toPoint3D( p->getPosition() ), level ) );
+   }
+
+   // Communicate temperatures in two steps:
+   // 1. via MPI_ANY_SOURCE, send a dummy message (number of particles,
+   //    allows for check it all msgs were received) to original process (where particle was created)
+   // 2. use the buffer system as now as usual, the receiver knows the sender ranks by now
+
+   // part I
+
+   std::map< uint_t, unsigned > numParticlesToSendToRank;
+   std::map< uint_t, unsigned > numParticlesToReceiveFromRank;
+
+   std::map< uint_t, MPI_Request > sendRequests;
+
+   for ( const auto & p : particleStorage )
+   {
+      if ( numParticlesToSendToRank.count( p.getStartProcess() ) == 0 )
+         numParticlesToSendToRank[ p.getStartProcess() ] = 0;
+      numParticlesToSendToRank[ p.getStartProcess() ]++;
+      sendRequests[ p.getStartProcess() ] = MPI_Request();
+   }
+
+   for ( auto it : numParticlesToSendToRank )
+   {
+      // WALBERLA_LOG_INFO( "Particle communcation prep: rank " << rank << " -> " << it.first << ": " << it.second )
+      MPI_Isend( &it.second, 1, MPI_UNSIGNED, (int)it.first, 0, walberla::mpi::MPIManager::instance()->comm(), &sendRequests[it.first] );
+   }
+
+   for ( auto it : sendRequests )
+   {
+      MPI_Status status;
+      MPI_Wait( &it.second, &status );
+   }
+
+
+   uint_t numReceivedParticleLocations = 0;
+   while ( numReceivedParticleLocations < numberOfCreatedParticles )
+   {
+      unsigned numParticles;
+      MPI_Status status;
+      MPI_Recv( &numParticles, 1, MPI_UNSIGNED, MPI_ANY_SOURCE, MPI_ANY_TAG, walberla::mpi::MPIManager::instance()->comm(), &status );
+      // WALBERLA_LOG_INFO( "Particle communcation prep: receiving " << numParticles << " particles from rank " << status.MPI_SOURCE );
+      numReceivedParticleLocations += numParticles;
+      numParticlesToReceiveFromRank[ uint_c( status.MPI_SOURCE ) ] = numParticles;
+      // WALBERLA_LOG_INFO( "total received particle infos: " << numReceivedParticleLocations )
+      // WALBERLA_LOG_INFO( "created particles: " << numberOfCreatedParticles )
+   }
+
+   // part II
+   std::set< walberla::mpi::MPIRank > ranksToReceiveFrom;
+   for ( auto r : numParticlesToReceiveFromRank )
+   {
+      ranksToReceiveFrom.insert( (walberla::mpi::MPIRank)r.first );
+   }
+   walberla::mpi::BufferSystem bufferSystem( walberla::mpi::MPIManager::instance()->comm() );
+   bufferSystem.setReceiverInfo( ranksToReceiveFrom, true );
+
+   for ( const auto & p : particleStorage )
+   {
+      bufferSystem.sendBuffer( p.getStartProcess() ) << p.getStartPrimitiveID();
+      bufferSystem.sendBuffer( p.getStartProcess() ) << p.getStartIndex();
+      bufferSystem.sendBuffer( p.getStartProcess() ) << p.getStartDoFType();
+      bufferSystem.sendBuffer( p.getStartProcess() ) << p.getStartEdgeDoFOrientation();
+      bufferSystem.sendBuffer( p.getStartProcess() ) << p.getFinalTemperature();
+   }
+
+   bufferSystem.sendAll();
+
+   for ( auto i = bufferSystem.begin(); i != bufferSystem.end(); ++i )
+   {
+      PrimitiveID primitiveID;
+      indexing::Index index;
+      uint_t dofType;
+      edgedof::EdgeDoFOrientation orientation;
+      real_t temp;
+
+      while ( !i.buffer().isEmpty() )
+      {
+         i.buffer() >> primitiveID;
+         i.buffer() >> index;
+         i.buffer() >> dofType;
+         i.buffer() >> orientation;
+         i.buffer() >> temp;
+
+         WALBERLA_CHECK( storage.primitiveExistsLocally( primitiveID ) );
+         if ( storage.vertexExistsLocally( primitiveID ) )
+         {
+            auto vertex = storage.getVertex( primitiveID );
+            WALBERLA_CHECK_EQUAL( dofType, 0 );
+            vertex->getData( c.getVertexDoFFunction().getVertexDataID() )->getPointer( level )[0] = temp;
+         }
+         else if ( storage.edgeExistsLocally( primitiveID ) )
+         {
+            auto edge = storage.getEdge( primitiveID );
+            if ( dofType == 0 )
+               edge->getData( c.getVertexDoFFunction().getEdgeDataID() )
+                   ->getPointer( level )[vertexdof::macroedge::index( level, index.x() )] = temp;
+            else
+               edge->getData( c.getEdgeDoFFunction().getEdgeDataID() )
+                   ->getPointer( level )[edgedof::macroedge::index( level, index.x() )] = temp;
+         }
+         else if ( storage.faceExistsLocally( primitiveID ) )
+         {
+            auto face = storage.getFace( primitiveID );
+            if ( dofType == 0 )
+               face->getData( c.getVertexDoFFunction().getFaceDataID() )
+                   ->getPointer( level )[vertexdof::macroface::index( level, index.x(), index.y() )] = temp;
+            else
+               face->getData( c.getEdgeDoFFunction().getFaceDataID() )
+                   ->getPointer( level )[edgedof::macroface::index( level, index.x(), index.y(), orientation )] = temp;
+         }
+         else if ( storage.cellExistsLocally( primitiveID ) )
+         {
+            auto cell = storage.getCell( primitiveID );
+            if ( dofType == 0 )
+               cell->getData( c.getVertexDoFFunction().getCellDataID() )
+                   ->getPointer( level )[vertexdof::macrocell::index( level, index.x(), index.y(), index.z() )] = temp;
+            else
+               cell->getData( c.getEdgeDoFFunction().getCellDataID() )
+                   ->getPointer( level )[edgedof::macrocell::index( level, index.x(), index.y(), index.z(), orientation )] = temp;
+         }
+      }
+   }
+
+   // done communication
+
+   // for each macro:
+   //    store c(finalPos) in particle
+
+   // send particles back to former owner (position does not matter) and set c[idx] = p[c_final]
+
+}
+
 template < typename FunctionType >
 class MMOCTransport
 {
@@ -523,6 +873,23 @@ class MMOCTransport
       cOld_.assign( {1.0}, {c}, level, All );
 
       integrateNodes< FunctionType >( *storage_, c, cOld_, ux, uy, uz, dt, level, flag, innerSteps, timeSteppingSchemeConvection_, 0 );
+   }
+
+   void step( const std::shared_ptr< SetupPrimitiveStorage > & setupStorage,
+              const FunctionType& c,
+              const FunctionType& ux,
+              const FunctionType& uy,
+              const FunctionType& uz,
+              const uint_t&       level,
+              const DoFType&      flag,
+              const real_t&       dt,
+              const uint_t&       innerSteps )
+   {
+      cOld_.assign( {1.0}, {c}, level, All );
+
+      walberla::convection_particles::data::ParticleStorage particleStorage( 10000 );
+      SetupPrimitiveStorageConvectionParticlesInterface particleDomainInterface( setupStorage );
+      particleIntegration( particleStorage, particleDomainInterface, *storage_, c, cOld_, ux, uy, uz, dt, level, Inner, innerSteps, timeSteppingSchemeConvection_, 0 );
    }
 
    template< typename MassOperator >
