@@ -37,7 +37,26 @@ inline real_t distanceToPlane( const Point3D& pointOfInterest, const Point3D& po
    return ( planeNormal / planeNormal.norm() ).dot( pointOfInterest - pointOnPlane );
 }
 
+/// \brief Returns the absolute distance to a half plane in 3D.
+inline real_t distanceToPlane( const Point3D& planeVertex0,
+                               const Point3D& planeVertex1,
+                               const Point3D& planeVertex2,
+                               const Point3D& opposingVertex )
+{
+   auto v      = opposingVertex - planeVertex0;
+   auto normal = crossProduct( planeVertex1 - planeVertex0, planeVertex2 - planeVertex0 );
+   normal /= normal.norm();
+   auto dist           = normal.dot( v );
+   auto projectedPoint = opposingVertex - dist * normal;
+   auto inwardNormal   = opposingVertex - projectedPoint;
+   return inwardNormal.norm();
+}
+
+
 /// \brief Returns the normal of the passed triangle in the direction of the opposite (4th) vertex of the tet.
+///
+/// This function may return a weird normal if the "opposing" vertex lies almost on the plane.
+/// Use distanceToPlane() to be sure that this is not the case.
 inline Point3D tetrahedronInwardNormal( const Point3D& planeVertex0,
                                         const Point3D& planeVertex1,
                                         const Point3D& planeVertex2,
@@ -53,6 +72,7 @@ inline Point3D tetrahedronInwardNormal( const Point3D& planeVertex0,
    {
       // The opposing vertex seems to be located on the plane of the triangle.
       // Let's return any normal..
+      WALBERLA_ASSERT( false );
       return normal;
    }
    else
@@ -200,10 +220,13 @@ inline bool sphereTriangleIntersection( const Point3D& centre,
 {
    // If the distance of the sphere to the triangle plane is greater than the sphere's radius there is no intersection.
    // Otherwise, check intersection of the triangle with the circle that is common with the plane (where the plane cuts through the sphere).
-   auto planeNormal       = tetrahedronInwardNormal( v1, v2, v3, centre );
-   auto centreDistToPlane = distanceToPlane( centre, v1, planeNormal );
+   auto centreDistToPlane = distanceToPlane( v1, v2, v3, centre );
    if ( centreDistToPlane > radius )
       return false;
+   if ( std::abs( centreDistToPlane - radius ) < 1e-07 )
+      return true;
+
+   auto planeNormal = tetrahedronInwardNormal( v1, v2, v3, centre );
 
    auto intersectionRadius = std::sqrt( radius * radius - centreDistToPlane * centreDistToPlane );
 
