@@ -147,15 +147,26 @@ int main( int argc, char* argv[] )
 
    succeeded &= hyteg::P2RowSumTest( 0, "../../data/meshes/quad_4el.msh" );
    succeeded &= hyteg::P2RowSumTest( 0, "../../data/meshes/annulus_coarse.msh" );
+   succeeded &= hyteg::P2RowSumTest( 0, "../../data/meshes/3D/regular_octahedron_8el.msh" );
+   succeeded &= hyteg::P2RowSumTest( 0, "../../data/meshes/3D/cube_6el.msh" );
 
    succeeded &= hyteg::P2RowSumTest( 1, "../../data/meshes/quad_4el.msh" );
    succeeded &= hyteg::P2RowSumTest( 1, "../../data/meshes/annulus_coarse.msh" );
+   succeeded &= hyteg::P2RowSumTest( 1, "../../data/meshes/3D/regular_octahedron_8el.msh" );
+   succeeded &= hyteg::P2RowSumTest( 1, "../../data/meshes/3D/cube_6el.msh" );
 
    succeeded &= hyteg::P2RowSumTest( 2, "../../data/meshes/quad_4el.msh" );
    succeeded &= hyteg::P2RowSumTest( 2, "../../data/meshes/annulus_coarse.msh" );
+   succeeded &= hyteg::P2RowSumTest( 2, "../../data/meshes/3D/regular_octahedron_8el.msh" );
+   succeeded &= hyteg::P2RowSumTest( 2, "../../data/meshes/3D/cube_6el.msh" );
 
    succeeded &= hyteg::P2RowSumTest( 3, "../../data/meshes/quad_4el.msh" );
    succeeded &= hyteg::P2RowSumTest( 3, "../../data/meshes/annulus_coarse.msh" );
+   succeeded &= hyteg::P2RowSumTest( 3, "../../data/meshes/3D/regular_octahedron_8el.msh" );
+   succeeded &= hyteg::P2RowSumTest( 3, "../../data/meshes/3D/cube_6el.msh" );
+
+
+
 
    WALBERLA_CHECK( succeeded, "One of the tests failed" )
 
