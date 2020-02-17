@@ -25,6 +25,7 @@
 #include "core/debug/CheckFunctions.h"
 
 #include "hyteg/forms/P2Form.hpp"
+#include "hyteg/fenics/fenics.hpp"
 
 namespace hyteg {
 
@@ -67,13 +68,15 @@ class P2RowSumForm : public P2Form
 
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const
    {
-      form_->integrateAll( coords, elMat );
+      Matrix6r stiffness;
+      form_->integrateAll( coords, stiffness );
+      elMat.setAll( 0 );
       for ( uint_t i = 0; i < 6; i++ )
       {
          real_t sum = 0;
          for ( uint_t j = 0; j < 6; j++ )
          {
-            sum += elMat( i, j );
+            sum += stiffness( i, j );
          }
          elMat( i, i ) = sum;
       }
@@ -84,7 +87,12 @@ class P2RowSumForm : public P2Form
    // ----------------------------
    void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const
    {
-      WALBERLA_ABORT( "P2RowSum form not implemented for 3D." );
+      Matrix10r localStiffnessMatrix;
+      integrateAll( coords, localStiffnessMatrix );
+      out[0] = localStiffnessMatrix( 0, 0 );
+      out[1] = localStiffnessMatrix( 0, 1 );
+      out[2] = localStiffnessMatrix( 0, 2 );
+      out[3] = localStiffnessMatrix( 0, 3 );
    }
 
    void integrateEdgeToVertex( const std::array< Point3D, 4 >& coords, Point4D& out ) const
@@ -110,28 +118,57 @@ class P2RowSumForm : public P2Form
                      const P2Form::dofPosByVertexPair3D& cntrPos,
                      const P2Form::dofPosByVertexPair3D& leafPos ) const
    {
-      WALBERLA_ABORT( "P2RowSum form not implemented for 3D." );
+      Matrix10r elMat;
+      integrateAll( coords, elMat );
+      uint_t rowIdx = fenics::P2DoFMap[cntrPos[0]][cntrPos[1]];
+      uint_t colIdx = fenics::P2DoFMap[leafPos[0]][leafPos[1]];
+
+      return walberla::real_c( elMat( rowIdx, colIdx ) );
    }
 
    std::vector< real_t > integrate( const std::array< Point3D, 4 >&                    coords,
                                     const P2Form::dofPosByVertexPair3D&                cntrPos,
                                     const std::vector< P2Form::dofPosByVertexPair3D >& leafPos ) const
    {
-      WALBERLA_ABORT( "P2RowSum form not implemented for 3D." );
+      Matrix10r elMat;
+      integrateAll( coords, elMat );
+      std::vector< real_t > matRow( leafPos.size(), 0 );
+
+      uint_t rowIdx = fenics::P2DoFMap[cntrPos[0]][cntrPos[1]];
+      uint_t colIdx = 0;
+
+      for ( uint_t k = 0; k < leafPos.size(); ++k )
+      {
+         colIdx    = fenics::P2DoFMap[leafPos[k][0]][leafPos[k][1]];
+         matRow[k] = walberla::real_c( elMat( rowIdx, colIdx ) );
+      }
+
+      return matRow;
    }
 
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const
    {
-      WALBERLA_ABORT( "P2RowSum form not implemented for 3D." );
+      Matrix10r stiffness;
+      form_->integrateAll( coords, stiffness );
+      elMat.setAll( 0 );
+      for ( uint_t i = 0; i < 10; i++ )
+      {
+         real_t sum = 0;
+         for ( uint_t j = 0; j < 10; j++ )
+         {
+            sum += stiffness( i, j );
+         }
+         elMat( i, i ) = sum;
+      }
    }
 
    bool assemble2D() const override { return true; }
 
-   bool assemble3D() const override { return false; }
+   bool assemble3D() const override { return true; }
 
    bool assembly2DDefined() const override { return true; }
 
-   bool assembly3DDefined() const override { return false; }
+   bool assembly3DDefined() const override { return true; }
 
  private:
    std::shared_ptr< P2Form > form_;
