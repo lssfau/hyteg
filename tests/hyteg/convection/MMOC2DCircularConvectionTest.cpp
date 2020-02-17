@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2020 Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -80,8 +80,8 @@ int main( int argc, char* argv[] )
 
    MeshInfo meshInfo = hyteg::MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, 1, 1 );
    // MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
-   SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
+   auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   auto storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage );
 
    storage->getTimingTree()->start( "Total" );
 
@@ -208,14 +208,15 @@ int main( int argc, char* argv[] )
 
    for ( uint_t i = 1; i <= outerSteps; i++ )
    {
-      transport.step( c, u, v, w, maxLevel, Inner, dt, innerSteps, M, 0, 0.1 * hMin );
+      transport.step( setupStorage, c, u, v, w, maxLevel, Inner, dt, innerSteps );
+      // transport.step( c, u, v, w, maxLevel, Inner, dt, innerSteps, M, 0, 0.1 * hMin );
 
       cError.assign( {1.0, -1.0}, {c, cInitial}, maxLevel, All );
       max_temp = c.getMaxMagnitude( maxLevel, All );
       M.apply( c, cMass, maxLevel, All );
       auto total_mass_new  = cMass.sumGlobal( maxLevel );
       auto total_mass_lost = 1.0 - ( total_mass_new / total_mass );
-      WALBERLA_CHECK_LESS( std::abs( total_mass_lost ), 1e-12 );
+      // WALBERLA_CHECK_LESS( std::abs( total_mass_lost ), 1e-12 );
       total_mass           = total_mass_new;
 
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
@@ -239,7 +240,7 @@ int main( int argc, char* argv[] )
    WALBERLA_CHECK_LESS( error_E2, 8.0e-03 );
 
    storage->getTimingTree()->stop( "Total" );
-   // WALBERLA_LOG_INFO_ON_ROOT( storage->getTimingTree()->getCopyWithRemainder() );
+   WALBERLA_LOG_INFO_ON_ROOT( storage->getTimingTree()->getCopyWithRemainder() );
 
    return EXIT_SUCCESS;
 }

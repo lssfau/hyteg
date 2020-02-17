@@ -75,21 +75,22 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    MeshInfo meshInfo = hyteg::MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
-   SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
+   auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage );
 
    storage->getTimingTree()->start( "Total" );
 
    const uint_t minLevel   = 2;
-   const uint_t maxLevel   = 5;
-   const real_t dt         = 1e-02;
+   const uint_t maxLevel   = 4;
+   const real_t dt         = 2e-02;
    const real_t hMin       = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    const real_t hMax       = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
    const real_t tEnd       = 2 * walberla::math::pi;
    const uint_t stepsTotal = uint_c( tEnd / dt );
 
    const uint_t outerSteps = 1;
-   const uint_t innerSteps = stepsTotal;
+   const uint_t innerSteps = 314;
 
    WALBERLA_LOG_INFO_ON_ROOT( "Circular convection" )
    WALBERLA_LOG_INFO_ON_ROOT( " - dt:                                           " << dt )
@@ -171,6 +172,7 @@ int main( int argc, char* argv[] )
 
    u.interpolate( vel_x, maxLevel );
    v.interpolate( vel_y, maxLevel );
+   w.interpolate( 0, maxLevel );
    c.interpolate( initialBodies, maxLevel );
    cInitial.interpolate( initialBodies, maxLevel );
 
@@ -181,7 +183,7 @@ int main( int argc, char* argv[] )
 
    velocityMagnitude.interpolate( magnitude, {u, v, w}, maxLevel, All );
 
-   hyteg::VTKOutput vtkOutput( "../../output", "MMOC3DCircularConvectionTest", storage, innerSteps );
+   hyteg::VTKOutput vtkOutput( "../../output", "MMOC3DCircularConvectionTest", storage );
 
    vtkOutput.add( u );
    vtkOutput.add( v );
@@ -204,7 +206,7 @@ int main( int argc, char* argv[] )
 
    for ( uint_t i = 1; i <= outerSteps; i++ )
    {
-      transport.step( c, u, v, w, maxLevel, Inner, dt, innerSteps );
+      transport.step( setupStorage, c, u, v, w, maxLevel, Inner, dt, innerSteps );
 
       cError.assign( {1.0, -1.0}, {c, cInitial}, maxLevel, All );
       max_temp = c.getMaxMagnitude( maxLevel, All );
@@ -230,8 +232,8 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "E1: " << walberla::format( "%5.4e", error_E1 ) );
    WALBERLA_LOG_INFO_ON_ROOT( "E2: " << walberla::format( "%5.4e", error_E2 ) );
 
-   WALBERLA_CHECK_LESS( error_E1, 2.0e-03 );
-   WALBERLA_CHECK_LESS( error_E2, 8.0e-03 );
+   WALBERLA_CHECK_LESS( error_E1, 1.2e-03 );
+   WALBERLA_CHECK_LESS( error_E2, 1.2e-02 );
 
    storage->getTimingTree()->stop( "Total" );
    WALBERLA_LOG_INFO_ON_ROOT( storage->getTimingTree()->getCopyWithRemainder() );
