@@ -229,30 +229,25 @@ inline std::array< Index, 4 > findLocalMicroCell( const uint_t & level, const Ce
    const real_t microEdgeSize = 1.0 / real_c( numMicroEdges );
 
    const real_t planeWidthXYZ = microEdgeSize * std::sqrt( 3.0 ) / 3.0;
-   const real_t planeWidthXY  = microEdgeSize * std::sqrt( 2.0 ) / 2.0;
-   const real_t planeWidthYZ  = microEdgeSize * std::sqrt( 2.0 ) / 2.0;
 
    int planeX = (int) ( xRelMacro[0] / microEdgeSize );
    int planeY = (int) ( xRelMacro[1] / microEdgeSize );
    int planeZ = (int) ( xRelMacro[2] / microEdgeSize );
 
-   const real_t lengthXYZ = xRelMacro.norm();
-   const real_t lengthXY  = std::sqrt( xRelMacro[0] * xRelMacro[0] + xRelMacro[1] * xRelMacro[1] );
-   const real_t lengthYZ  = std::sqrt( xRelMacro[1] * xRelMacro[1] + xRelMacro[2] * xRelMacro[2] );
+   // projecting to point to line (0, 0, 0) -- (1, 1, 1) to measure distance from vertex 0
+   // projecton = (sum(p), sum(p), sum(p)) / 3
+   const real_t xyzProjectionCoord = (xRelMacro[0] + xRelMacro[1] + xRelMacro[2]) / 3.;
+   // then taking the norm
+   const real_t lengthXYZ = std::sqrt( 3. * (xyzProjectionCoord * xyzProjectionCoord) );
 
    int planeXYZ = (int) ( lengthXYZ / planeWidthXYZ );
-   int planeXY  = (int) ( lengthXY / planeWidthXY );
-   int planeYZ  = (int) ( lengthYZ / planeWidthYZ );
 
    // clip to prevent element outside macro-cell. std::clamp is C++17 ...
 
    planeX = detail::clamp( planeX, 0, numMicroEdges - 1 );
    planeY = detail::clamp( planeY, 0, numMicroEdges - 1 - planeX );
    planeZ = detail::clamp( planeZ, 0, numMicroEdges - 1 - planeX - planeY );
-
    planeXYZ = detail::clamp( planeXYZ, planeX + planeY + planeZ, planeX + planeY + planeZ + 2 );
-   planeXY  = detail::clamp( planeXY, planeX + planeY, planeX + planeY + 1 );
-   planeYZ  = detail::clamp( planeYZ, planeY + planeZ, planeY + planeZ + 1 );
 
    celldof::CellType cellType;
 
@@ -264,6 +259,16 @@ inline std::array< Index, 4 > findLocalMicroCell( const uint_t & level, const Ce
 
    const int whiteCellDecider = planeXYZ - ( planeX + planeY + planeZ );
 
+   Point3D cubeOrigin( {real_c(planeX), real_c(planeY), real_c(planeZ)} );
+   cubeOrigin *= microEdgeSize;
+   const auto xRelCube = xRelMacro - cubeOrigin;
+
+   const real_t lengthXY  = std::sqrt( xRelCube[0] * xRelCube[0] + xRelCube[1] * xRelCube[1] );
+   const real_t lengthYZ  = std::sqrt( xRelCube[1] * xRelCube[1] + xRelCube[2] * xRelCube[2] );
+
+   const bool lowerPlaneXY = lengthXY < 0.5 * std::sqrt( 2 ) * microEdgeSize;
+   const bool lowerPlaneYZ = lengthYZ < 0.5 * std::sqrt( 2 ) * microEdgeSize;
+
    if ( (!inFullCube && !inCutCube) || whiteCellDecider == 0 )
    {
       cellType = celldof::CellType::WHITE_UP;
@@ -274,27 +279,19 @@ inline std::array< Index, 4 > findLocalMicroCell( const uint_t & level, const Ce
    }
    else
    {
-      if ( planeXY - ( planeX + planeY ) == 0 )
+      if ( lowerPlaneXY )
       {
-         if ( planeYZ - ( planeY + planeZ ) == 0 )
-         {
+         if ( lowerPlaneYZ )
             cellType = celldof::CellType::GREEN_UP;
-         }
          else
-         {
             cellType = celldof::CellType::BLUE_DOWN;
-         }
       }
       else
       {
-         if ( planeYZ - ( planeY + planeZ ) == 0 )
-         {
+         if ( lowerPlaneYZ )
             cellType = celldof::CellType::BLUE_UP;
-         }
          else
-         {
             cellType = celldof::CellType::GREEN_DOWN;
-         }
       }
    }
 

@@ -184,11 +184,23 @@ void test3DReversibility()
 
       for ( auto it : FunctionIterator< vertexdof::VertexDoFFunction< real_t > >( y.getVertexDoFFunction(), level ) )
       {
+         auto evaluation = x.evaluate( it.coordinates(), level );
+         auto nodeValue = testFunc( it.coordinates() );
+         auto localError = std::abs( evaluation - nodeValue );
+         if ( localError > 1e-06 )
+            WALBERLA_LOG_INFO_ON_ROOT( "error: " << localError << ", " << it);
          it.value() = x.evaluate( it.coordinates(), level );
+
+
       }
 
       for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( y.getEdgeDoFFunction(), level ) )
       {
+         auto evaluation = x.evaluate( it.coordinates(), level );
+         auto nodeValue = testFunc( it.coordinates() );
+         auto localError = std::abs( evaluation - nodeValue );
+         if ( localError > 1e-06 )
+            WALBERLA_LOG_INFO_ON_ROOT( "error: " << localError << ", " << it);
          it.value() = x.evaluate( it.coordinates(), level );
       }
 
@@ -200,13 +212,13 @@ void test3DReversibility()
       switch ( level )
       {
       case 2:
-         WALBERLA_CHECK_LESS( errorL2, 0.006 );
+         WALBERLA_CHECK_LESS( errorL2, 1e-15 );
          break;
       case 3:
-         WALBERLA_CHECK_LESS( errorL2, 0.003 );
+         WALBERLA_CHECK_LESS( errorL2, 1e-15 );
          break;
       case 4:
-         WALBERLA_CHECK_LESS( errorL2, 0.0006 );
+         WALBERLA_CHECK_LESS( errorL2, 1e-15 );
          break;
       default:
          WALBERLA_ABORT( "No check yet for this level." )
