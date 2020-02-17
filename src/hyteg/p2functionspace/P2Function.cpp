@@ -654,8 +654,8 @@ real_t P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level 
 {
    this->startTiming( "Evaluate" );
 
-   real_t result = 0;
-   bool foundMacro = false;
+   real_t result     = 0;
+   bool   foundMacro = false;
 
    // Check if 2D or 3D function
    if ( !this->getStorage()->hasGlobalCells() )
@@ -664,8 +664,11 @@ real_t P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level 
       {
          Face& face = *it.second;
 
-         if ( sphereTriangleIntersection(
-                  coordinates, 1e-05, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+         if ( circleTriangleIntersection( Point2D( {coordinates[0], coordinates[1]} ),
+                                          1e-05,
+                                          Point2D( {face.getCoordinates()[0][0], face.getCoordinates()[0][1]} ),
+                                          Point2D( {face.getCoordinates()[1][0], face.getCoordinates()[1][1]} ),
+                                          Point2D( {face.getCoordinates()[2][0], face.getCoordinates()[2][1]} ) ) )
          {
             result = P2::macroface::evaluate(
                 level, face, coordinates, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
