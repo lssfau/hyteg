@@ -90,6 +90,7 @@ public:
       using startEdgeDoFOrientation_type = hyteg::edgedof::EdgeDoFOrientation;
       using k_type = std::vector< walberla::convection_particles::Vec3 >;
       using finalTemperature_type = real_t;
+      using containingPrimitive_type = hyteg::PrimitiveID;
       using neighborState_type = std::unordered_set<walberla::mpi::MPIRank>;
 
       
@@ -156,6 +157,10 @@ public:
       finalTemperature_type const & getFinalTemperature() const {return storage_.getFinalTemperature(i_);}
       finalTemperature_type& getFinalTemperatureRef() {return storage_.getFinalTemperatureRef(i_);}
       void setFinalTemperature(finalTemperature_type const & v) { storage_.setFinalTemperature(i_, v);}
+      
+      containingPrimitive_type const & getContainingPrimitive() const {return storage_.getContainingPrimitive(i_);}
+      containingPrimitive_type& getContainingPrimitiveRef() {return storage_.getContainingPrimitiveRef(i_);}
+      void setContainingPrimitive(containingPrimitive_type const & v) { storage_.setContainingPrimitive(i_, v);}
       
       neighborState_type const & getNeighborState() const {return storage_.getNeighborState(i_);}
       neighborState_type& getNeighborStateRef() {return storage_.getNeighborStateRef(i_);}
@@ -237,6 +242,7 @@ public:
    using startEdgeDoFOrientation_type = hyteg::edgedof::EdgeDoFOrientation;
    using k_type = std::vector< walberla::convection_particles::Vec3 >;
    using finalTemperature_type = real_t;
+   using containingPrimitive_type = hyteg::PrimitiveID;
    using neighborState_type = std::unordered_set<walberla::mpi::MPIRank>;
 
    
@@ -303,6 +309,10 @@ public:
    finalTemperature_type const & getFinalTemperature(const size_t idx) const {return finalTemperature_[idx];}
    finalTemperature_type& getFinalTemperatureRef(const size_t idx) {return finalTemperature_[idx];}
    void setFinalTemperature(const size_t idx, finalTemperature_type const & v) { finalTemperature_[idx] = v; }
+   
+   containingPrimitive_type const & getContainingPrimitive(const size_t idx) const {return containingPrimitive_[idx];}
+   containingPrimitive_type& getContainingPrimitiveRef(const size_t idx) {return containingPrimitive_[idx];}
+   void setContainingPrimitive(const size_t idx, containingPrimitive_type const & v) { containingPrimitive_[idx] = v; }
    
    neighborState_type const & getNeighborState(const size_t idx) const {return neighborState_[idx];}
    neighborState_type& getNeighborStateRef(const size_t idx) {return neighborState_[idx];}
@@ -415,6 +425,7 @@ public:
    std::vector<startEdgeDoFOrientation_type> startEdgeDoFOrientation_ {};
    std::vector<k_type> k_ {};
    std::vector<finalTemperature_type> finalTemperature_ {};
+   std::vector<containingPrimitive_type> containingPrimitive_ {};
    std::vector<neighborState_type> neighborState_ {};
    std::unordered_map<uid_type, size_t> uidToIdx_;
    static_assert(std::is_same<uid_type, id_t>::value,
@@ -441,6 +452,7 @@ ParticleStorage::Particle& ParticleStorage::Particle::operator=(const ParticleSt
    getStartEdgeDoFOrientationRef() = rhs.getStartEdgeDoFOrientation();
    getKRef() = rhs.getK();
    getFinalTemperatureRef() = rhs.getFinalTemperature();
+   getContainingPrimitiveRef() = rhs.getContainingPrimitive();
    getNeighborStateRef() = rhs.getNeighborState();
    return *this;
 }
@@ -464,6 +476,7 @@ ParticleStorage::Particle& ParticleStorage::Particle::operator=(ParticleStorage:
    getStartEdgeDoFOrientationRef() = std::move(rhs.getStartEdgeDoFOrientationRef());
    getKRef() = std::move(rhs.getKRef());
    getFinalTemperatureRef() = std::move(rhs.getFinalTemperatureRef());
+   getContainingPrimitiveRef() = std::move(rhs.getContainingPrimitiveRef());
    getNeighborStateRef() = std::move(rhs.getNeighborStateRef());
    return *this;
 }
@@ -488,6 +501,7 @@ void swap(ParticleStorage::Particle lhs, ParticleStorage::Particle rhs)
    std::swap(lhs.getStartEdgeDoFOrientationRef(), rhs.getStartEdgeDoFOrientationRef());
    std::swap(lhs.getKRef(), rhs.getKRef());
    std::swap(lhs.getFinalTemperatureRef(), rhs.getFinalTemperatureRef());
+   std::swap(lhs.getContainingPrimitiveRef(), rhs.getContainingPrimitiveRef());
    std::swap(lhs.getNeighborStateRef(), rhs.getNeighborStateRef());
 }
 
@@ -512,6 +526,7 @@ std::ostream& operator<<( std::ostream& os, const ParticleStorage::Particle& p )
          "startEdgeDoFOrientation: " << p.getStartEdgeDoFOrientation() << "\n" <<
          "k                   : " << p.getK() << "\n" <<
          "finalTemperature    : " << p.getFinalTemperature() << "\n" <<
+         "containingPrimitive : " << p.getContainingPrimitive() << "\n" <<
          "neighborState       : " << p.getNeighborState() << "\n" <<
          "================================" << std::endl;
    return os;
@@ -606,6 +621,7 @@ inline ParticleStorage::iterator ParticleStorage::create(const id_t& uid)
    startEdgeDoFOrientation_.emplace_back();
    k_.emplace_back();
    finalTemperature_.emplace_back();
+   containingPrimitive_.emplace_back();
    neighborState_.emplace_back();
    uid_.back() = uid;
    uidToIdx_[uid] = uid_.size() - 1;
@@ -655,6 +671,7 @@ inline ParticleStorage::iterator ParticleStorage::erase(iterator& it)
    startEdgeDoFOrientation_.pop_back();
    k_.pop_back();
    finalTemperature_.pop_back();
+   containingPrimitive_.pop_back();
    neighborState_.pop_back();
    return it;
 }
@@ -691,6 +708,7 @@ inline void ParticleStorage::reserve(const size_t size)
    startEdgeDoFOrientation_.reserve(size);
    k_.reserve(size);
    finalTemperature_.reserve(size);
+   containingPrimitive_.reserve(size);
    neighborState_.reserve(size);
 }
 
@@ -712,6 +730,7 @@ inline void ParticleStorage::clear()
    startEdgeDoFOrientation_.clear();
    k_.clear();
    finalTemperature_.clear();
+   containingPrimitive_.clear();
    neighborState_.clear();
    uidToIdx_.clear();
 }
@@ -734,6 +753,7 @@ inline size_t ParticleStorage::size() const
    //WALBERLA_ASSERT_EQUAL( uid_.size(), startEdgeDoFOrientation.size() );
    //WALBERLA_ASSERT_EQUAL( uid_.size(), k.size() );
    //WALBERLA_ASSERT_EQUAL( uid_.size(), finalTemperature.size() );
+   //WALBERLA_ASSERT_EQUAL( uid_.size(), containingPrimitive.size() );
    //WALBERLA_ASSERT_EQUAL( uid_.size(), neighborState.size() );
    return uid_.size();
 }
@@ -1061,6 +1081,15 @@ public:
    real_t& operator()(data::Particle& p) const {return p.getFinalTemperatureRef();}
    real_t& operator()(data::Particle&& p) const {return p.getFinalTemperatureRef();}
    real_t const & operator()(const data::Particle& p) const {return p.getFinalTemperature();}
+};
+///Predicate that selects a certain property from a Particle
+class SelectParticleContainingPrimitive
+{
+public:
+   using return_type = hyteg::PrimitiveID;
+   hyteg::PrimitiveID& operator()(data::Particle& p) const {return p.getContainingPrimitiveRef();}
+   hyteg::PrimitiveID& operator()(data::Particle&& p) const {return p.getContainingPrimitiveRef();}
+   hyteg::PrimitiveID const & operator()(const data::Particle& p) const {return p.getContainingPrimitive();}
 };
 ///Predicate that selects a certain property from a Particle
 class SelectParticleNeighborState

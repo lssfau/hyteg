@@ -113,6 +113,7 @@ void ParseMessage::operator()(int sender,
       pIt->setStartEdgeDoFOrientation(objparam.startEdgeDoFOrientation);
       pIt->setK(objparam.k);
       pIt->setFinalTemperature(objparam.finalTemperature);
+      pIt->setContainingPrimitive(objparam.containingPrimitive);
 
       domain.correctParticlePosition(pIt->getPositionRef());
 

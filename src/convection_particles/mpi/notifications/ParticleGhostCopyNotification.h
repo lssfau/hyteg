@@ -62,6 +62,7 @@ public:
       hyteg::edgedof::EdgeDoFOrientation startEdgeDoFOrientation {};
       std::vector< walberla::convection_particles::Vec3 > k {};
       real_t finalTemperature {};
+      hyteg::PrimitiveID containingPrimitive {};
    };
 
    inline explicit ParticleGhostCopyNotification( const data::Particle& particle ) : particle_(particle) {}
@@ -87,6 +88,7 @@ inline data::ParticleStorage::iterator createNewParticle(data::ParticleStorage& 
    pIt->setStartEdgeDoFOrientation(data.startEdgeDoFOrientation);
    pIt->setK(data.k);
    pIt->setFinalTemperature(data.finalTemperature);
+   pIt->setContainingPrimitive(data.containingPrimitive);
    return pIt;
 }
 
@@ -127,6 +129,7 @@ mpi::GenericSendBuffer<T,G>& operator<<( mpi::GenericSendBuffer<T,G> & buf, cons
    buf << obj.particle_.getStartEdgeDoFOrientation();
    buf << obj.particle_.getK();
    buf << obj.particle_.getFinalTemperature();
+   buf << obj.particle_.getContainingPrimitive();
    return buf;
 }
 
@@ -148,6 +151,7 @@ mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buf, convecti
    buf >> objparam.startEdgeDoFOrientation;
    buf >> objparam.k;
    buf >> objparam.finalTemperature;
+   buf >> objparam.containingPrimitive;
    return buf;
 }
 

@@ -112,6 +112,10 @@ public:
    real_t& getFinalTemperatureRef(const size_t p_idx) {return ps_->getFinalTemperatureRef(p_idx);}
    void setFinalTemperature(const size_t p_idx, real_t const & v) { ps_->setFinalTemperature(p_idx, v);}
    
+   hyteg::PrimitiveID const & getContainingPrimitive(const size_t p_idx) const {return ps_->getContainingPrimitive(p_idx);}
+   hyteg::PrimitiveID& getContainingPrimitiveRef(const size_t p_idx) {return ps_->getContainingPrimitiveRef(p_idx);}
+   void setContainingPrimitive(const size_t p_idx, hyteg::PrimitiveID const & v) { ps_->setContainingPrimitive(p_idx, v);}
+   
    std::unordered_set<walberla::mpi::MPIRank> const & getNeighborState(const size_t p_idx) const {return ps_->getNeighborState(p_idx);}
    std::unordered_set<walberla::mpi::MPIRank>& getNeighborStateRef(const size_t p_idx) {return ps_->getNeighborStateRef(p_idx);}
    void setNeighborState(const size_t p_idx, std::unordered_set<walberla::mpi::MPIRank> const & v) { ps_->setNeighborState(p_idx, v);}
@@ -225,6 +229,10 @@ public:
    void setFinalTemperature(const size_t /*p_idx*/, real_t const & v) { finalTemperature_ = v;}
    real_t& getFinalTemperatureRef(const size_t /*p_idx*/) {return finalTemperature_;}
    
+   hyteg::PrimitiveID const & getContainingPrimitive(const size_t /*p_idx*/) const {return containingPrimitive_;}
+   void setContainingPrimitive(const size_t /*p_idx*/, hyteg::PrimitiveID const & v) { containingPrimitive_ = v;}
+   hyteg::PrimitiveID& getContainingPrimitiveRef(const size_t /*p_idx*/) {return containingPrimitive_;}
+   
    std::unordered_set<walberla::mpi::MPIRank> const & getNeighborState(const size_t /*p_idx*/) const {return neighborState_;}
    void setNeighborState(const size_t /*p_idx*/, std::unordered_set<walberla::mpi::MPIRank> const & v) { neighborState_ = v;}
    std::unordered_set<walberla::mpi::MPIRank>& getNeighborStateRef(const size_t /*p_idx*/) {return neighborState_;}
@@ -256,6 +264,7 @@ private:
    hyteg::edgedof::EdgeDoFOrientation startEdgeDoFOrientation_;
    std::vector< walberla::convection_particles::Vec3 > k_;
    real_t finalTemperature_;
+   hyteg::PrimitiveID containingPrimitive_;
    std::unordered_set<walberla::mpi::MPIRank> neighborState_;
 };
 
