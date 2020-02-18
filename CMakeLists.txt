@@ -171,14 +171,11 @@ configure_file(
 # Build info
 ############################################################################################################################
 
-set( HYTEG_BUILD_TYPE      ${CMAKE_BUILD_TYPE} )
-if ( CMAKE_BUILD_TYPE STREQUAL "Release" )
-    set( HYTEG_COMPILER_FLAGS  "${CMAKE_CXX_FLAGS_RELEASE} ${CMAKE_CXX_FLAGS}" )
-elseif ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
-    set( HYTEG_COMPILER_FLAGS  "${CMAKE_CXX_FLAGS_DEBUG} ${CMAKE_CXX_FLAGS}" )
-else()
-    message(WARNING "Cannot determine complete list of compiler flags!")
-endif()
+string( TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPER )
+
+set      ( HYTEG_BUILD_TYPE      ${CMAKE_BUILD_TYPE} )
+set      ( HYTEG_COMPILER_FLAGS  "${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_UPPER}} ${CMAKE_CXX_FLAGS}" )
+string   ( REPLACE "\"" "\\\"" HYTEG_COMPILER_FLAGS ${HYTEG_COMPILER_FLAGS} )
 
 configure_file(
         ${CMAKE_SOURCE_DIR}/src/hyteg/BuildInfo.in.hpp
