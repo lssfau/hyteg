@@ -117,7 +117,7 @@ waLBerla_execute_test(NAME P1ChebyshevSmootherConvergenceTest)
 waLBerla_compile_test(FILES convergence/P2UnsteadyDiffusion2DTest.cpp DEPENDS hyteg core )
 waLBerla_execute_test(NAME P2UnsteadyDiffusion2DTest)
 
-waLBerla_compile_test(FILES convergence/P2UnsteadyConvectionDiffusion2DTest.cpp DEPENDS hyteg core )
+waLBerla_compile_test(FILES convergence/P2UnsteadyConvectionDiffusion2DTest.cpp DEPENDS hyteg core convection_particles )
 waLBerla_execute_test(NAME P2UnsteadyConvectionDiffusion2DTest)
 
 ## convection ##
@@ -131,7 +131,7 @@ waLBerla_execute_test(NAME MMOC2DCircularConvectionTest LABELS longrun)
 waLBerla_compile_test(FILES convection/MMOC3DCircularConvectionTest.cpp DEPENDS hyteg core convection_particles)
 waLBerla_execute_test(NAME MMOC3DCircularConvectionTest LABELS longrun)
 
-waLBerla_compile_test(FILES convection/MMOC2DSwirlingFlowConvectionTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES convection/MMOC2DSwirlingFlowConvectionTest.cpp DEPENDS hyteg core convection_particles)
 
 waLBerla_compile_test(FILES convection/ConvectionParticlesCouplingTest.cpp DEPENDS core convection_particles)
 waLBerla_execute_test(NAME ConvectionParticlesCouplingTest LABELS)
