@@ -628,6 +628,9 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly3D( Mat&               
 template class P1ElementwiseOperator<
     P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >;
 
+// P1ElementwisePolarLaplaceOperator
+template class P1ElementwiseOperator< P1FenicsForm< p1_polar_laplacian_cell_integral_0_otherwise > >;
+
 // P1ElementwiseMassOperator
 template class P1ElementwiseOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >;
 

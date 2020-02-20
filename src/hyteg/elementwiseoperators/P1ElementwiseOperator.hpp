@@ -22,6 +22,7 @@
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
+#include "hyteg/forms/form_fenics_generated/p1_polar_laplacian.h"
 #include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
@@ -168,6 +169,8 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
 typedef P1ElementwiseOperator<
     P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >
     P1ElementwiseLaplaceOperator;
+
+typedef P1ElementwiseOperator< P1FenicsForm< p1_polar_laplacian_cell_integral_0_otherwise > > P1ElementwisePolarLaplaceOperator;
 
 typedef P1ElementwiseOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >
     P1ElementwiseMassOperator;

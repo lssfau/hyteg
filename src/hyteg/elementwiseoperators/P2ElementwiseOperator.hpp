@@ -22,6 +22,7 @@
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
+#include "hyteg/forms/form_fenics_generated/p2_polar_laplacian.h"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
@@ -183,6 +184,10 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
 typedef P2ElementwiseOperator<
     P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >
     P2ElementwiseLaplaceOperator;
+
+typedef P2ElementwiseOperator<
+    P2FenicsForm< p2_polar_laplacian_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >
+    P2ElementwisePolarLaplaceOperator;
 
 typedef P2ElementwiseOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >
     P2ElementwiseMassOperator;

@@ -6,6 +6,7 @@ waLBerla_add_executable( NAME IndexFunctionVSManualVersion
         FILES IndexFunctionVSManualVersion.cpp
         DEPENDS hyteg)
 
+add_subdirectory(ElementwiseOps)
 add_subdirectory(KernelBench)
 add_subdirectory(P1Benchmark)
 add_subdirectory(P2Benchmark)

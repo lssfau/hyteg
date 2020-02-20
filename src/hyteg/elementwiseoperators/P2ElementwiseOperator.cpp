@@ -788,6 +788,10 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly3D( Mat&               
 template class P2ElementwiseOperator<
     P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >;
 
+// P2ElementwisePolarLaplaceOperator
+template class P2ElementwiseOperator<
+    P2FenicsForm< p2_polar_laplacian_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >;
+
 // P2ElementwiseMassOperator
 template class P2ElementwiseOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >;
 
