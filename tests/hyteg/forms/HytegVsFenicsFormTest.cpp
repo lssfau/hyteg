@@ -29,7 +29,7 @@
 #include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
-#include "hyteg/forms/form_hyteg_manual/P2FormDiffusion.hpp"
+#include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
 #include "hyteg/geometry/IdentityMap.hpp"
@@ -128,11 +128,11 @@ int main( int argc, char** argv )
                  Matrix6r,
                  3 >( triangle, 5e-14 );
 
-   logSectionHeader( "P2 Diffusion Form" );
+   logSectionHeader( "P2 DivKGrad Form" );
    compareForms< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise >,
-                 P2Form_diffusion,
+                 P2Form_divKgrad,
                  Matrix6r,
-                 3 >( triangle, 5e-16 );
+                 3 >( triangle, 5e-14 );
 
    // ------------
    //  3D Testing

@@ -23,6 +23,7 @@
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_generated/p2_polar_laplacian.h"
+#include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
@@ -194,5 +195,7 @@ typedef P2ElementwiseOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, 
 
 typedef P2ElementwiseOperator< P2Form_mass >    P2ElementwiseBlendingMassOperator;
 typedef P2ElementwiseOperator< P2Form_laplace > P2ElementwiseBlendingLaplaceOperator;
+
+typedef P2ElementwiseOperator< P2Form_divKgrad > P2ElementwiseDivKGradOperator;
 
 } // namespace hyteg

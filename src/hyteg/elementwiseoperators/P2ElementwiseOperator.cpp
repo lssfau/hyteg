@@ -795,6 +795,9 @@ template class P2ElementwiseOperator<
 // P2ElementwiseMassOperator
 template class P2ElementwiseOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >;
 
+// P2ElementwiseDivKGradOperator
+template class P2ElementwiseOperator< P2Form_divKgrad >;
+
 // P2ElementwiseBlendingMassOperator
 template class P2ElementwiseOperator< P2Form_mass >;
 

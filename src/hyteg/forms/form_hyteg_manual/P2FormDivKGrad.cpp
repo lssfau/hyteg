@@ -15,9 +15,10 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * along with this progra m. If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once
+
+#include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/types/matrix.hpp"
@@ -25,21 +26,12 @@
 
 namespace hyteg {
 
-class P2FormHyTeG
+real_t neutralCallback( const Point3D& x )
 {
- public:
+   WALBERLA_UNUSED( x );
+   return real_c( 1.0 );
+}
 
-   virtual ~P2FormHyTeG() {}
-
-   virtual void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const = 0;
-
-   virtual void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const = 0;
-
-   void setGeometryMap( const std::shared_ptr< GeometryMap > map ) { this->geometryMap_ = map; }
-
- protected:
-   std::shared_ptr< GeometryMap > geometryMap_;
-
-};
+std::function< real_t( const Point3D& ) > P2Form_divKgrad::callback = &neutralCallback;
 
 } // namespace hyteg
