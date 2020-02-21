@@ -32,6 +32,7 @@
 #include "hyteg/geometry/PolarCoordsMap.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
@@ -143,6 +144,32 @@ void generateTable( const std::vector< caseResult >& results )
    WALBERLA_LOG_INFO_ON_ROOT( "" << tab.str() );
 }
 
+
+// =====================
+//  embedInRefinedSpace
+// =====================
+template < typename funcType >
+void embedInRefinedSpace( funcType& u, uint_t level )
+{
+  WALBERLA_UNUSED( u );
+  WALBERLA_UNUSED( level );
+  WALBERLA_ABORT( "Template deduction failed!" );
+}
+
+template <>
+void embedInRefinedSpace<P2Function<real_t>>( P2Function<real_t>& u, uint_t level )
+{
+   P2toP2QuadraticProlongation embeddor;
+   embeddor.prolongate( u, level, All );
+}
+
+template <>
+void embedInRefinedSpace<P1Function<real_t>>( P1Function<real_t>& u, uint_t level )
+{
+   P1toP1LinearProlongation embeddor;
+   embeddor.prolongate( u, level, All );
+}
+
 // =============
 //  analyseCase
 // =============
@@ -150,21 +177,68 @@ template < typename funcType >
 caseResult analyseCase( std::shared_ptr< PrimitiveStorage > storage,
                         uint_t                              level,
                         const funcType&                     u_exact,
-                        const funcType&                     u,
+                        funcType&                           u,
                         funcType&                           error )
 {
    typedef typename FunctionTrait< typename funcType::template FunctionType< PetscInt > >::Tag funcTag;
 
-   error.assign( {1.0, -1.0}, {u_exact, u}, level, All );
-   real_t     npoints = static_cast< real_t >( numberOfGlobalDoFs< funcTag >( *storage, level ) );
+   // embed numeric solution in next finer space
+   embedInRefinedSpace( u, level );
+
+   error.assign( {1.0, -1.0}, {u_exact, u}, level + 1, All );
+   real_t     npoints = static_cast< real_t >( numberOfGlobalDoFs< funcTag >( *storage, level + 1 ) );
    caseResult testCase;
    testCase.level   = level;
    testCase.dofs    = numberOfGlobalInnerDoFs< funcTag >( *storage, level );
-   testCase.maxNorm = error.getMaxMagnitude( level );
-   testCase.errNorm = std::sqrt( error.dotGlobal( error, level, All ) / npoints );
+   testCase.maxNorm = error.getMaxMagnitude( level + 1 );
+   testCase.errNorm = std::sqrt( error.dotGlobal( error, level + 1, All ) / npoints );
+
+   // error.assign( {1.0, -1.0}, {u_exact, u}, level, All );
+   // real_t     npoints = static_cast< real_t >( numberOfGlobalDoFs< funcTag >( *storage, level ) );
+   // caseResult testCase;
+   // testCase.level   = level;
+   // testCase.dofs    = numberOfGlobalInnerDoFs< funcTag >( *storage, level );
+   // testCase.maxNorm = error.getMaxMagnitude( level );
+   // testCase.errNorm = std::sqrt( error.dotGlobal( error, level, All ) / npoints );
 
    return testCase;
 }
+
+
+// ============
+//  addToTable
+// ============
+void addToTable( const std::vector< caseResult >& results, uint_t curLevel, uint_t minLevel, uint_t maxLevel )
+{
+   std::stringstream tab;
+   uint_t            idx = curLevel - minLevel;
+   static real_t     errOld = 0.0;
+   static real_t     maxOld = 0.0;
+
+   if ( curLevel == minLevel )
+   {
+      // we are doing several test runs, so static alone does not do the trick
+      errOld = 0.0;
+      maxOld = 0.0;
+
+      tab << "-------------------------------------------------------------------------------\n"
+          << "| level |  #DoFs  |        disc. L2 norm        |         maximum norm        |\n"
+          << "|       |         |     error    |   reduction  |     error    |   reduction  |\n"
+          << "-------------------------------------------------------------------------------\n";
+   }
+
+   const caseResult& entry  = results[idx];
+   tab << "| " << std::scientific << std::setw( 3 ) << entry.level << "   | " << std::setw( 7 ) << entry.dofs << " | "
+       << entry.errNorm << " | " << errOld / entry.errNorm << " | " << entry.maxNorm << " | " << maxOld / entry.maxNorm << " |";
+   errOld = entry.errNorm;
+   maxOld = entry.maxNorm;
+   if ( curLevel == maxLevel )
+   {
+      tab << "\n-------------------------------------------------------------------------------\n";
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "" << tab.str() );
+}
+
 
 // ==========================
 //  solve_using_geometry_map
@@ -252,20 +326,25 @@ void solve_using_geometry_map( mapType mType, uint_t minLevel, uint_t maxLevel, 
    };
 
    // generate functions
-   funcType u_exact( "u_analytic", storage, minLevel, maxLevel );
-   funcType u( "u_numeric", storage, minLevel, maxLevel );
+   funcType u_exact( "u_analytic", storage, minLevel, maxLevel + 1 );
+   funcType u( "u_numeric", storage, minLevel, maxLevel + 1 );
    funcType rhs( "rhs", storage, minLevel, maxLevel );
-   funcType error( "error", storage, minLevel, maxLevel );
+   funcType error( "error", storage, minLevel, maxLevel + 1 );
 
    // Operator for weak-form
    opType lap( storage, minLevel, maxLevel );
+
+   // setup analytic solution for comparison
+   for ( uint_t lvl = minLevel; lvl <= maxLevel + 1; lvl++ )
+   {
+      u_exact.interpolate( solFunc, lvl );
+   }
 
    // run test cases
    std::vector< caseResult > results;
    for ( uint_t lvl = minLevel; lvl <= maxLevel; lvl++ )
    {
       // initialise functions
-      u_exact.interpolate( solFunc, lvl );
       u.interpolate( real_c( 0.0 ), lvl, Inner );
       u.interpolate( solFunc, lvl, DirichletBoundary );
       rhs.interpolate( real_c( 0.0 ), lvl, All );
@@ -276,6 +355,7 @@ void solve_using_geometry_map( mapType mType, uint_t minLevel, uint_t maxLevel, 
 
       // analyse error
       results.push_back( analyseCase( storage, lvl, u_exact, u, error ) );
+      addToTable( results, lvl, minLevel, maxLevel );
 
       // output data for visualisation
       if ( fileName.length() > 0 )
@@ -288,7 +368,7 @@ void solve_using_geometry_map( mapType mType, uint_t minLevel, uint_t maxLevel, 
       }
    }
 
-   generateTable( results );
+   // generateTable( results );
 }
 
 // =========================
@@ -320,20 +400,25 @@ void solve_using_pimped_form( uint_t minLevel, uint_t maxLevel, bool outputVTK )
    };
 
    // generate functions
-   funcType u_exact( "u_analytic", storage, minLevel, maxLevel );
-   funcType u( "u_numeric", storage, minLevel, maxLevel );
+   funcType u_exact( "u_analytic", storage, minLevel, maxLevel + 1 );
+   funcType u( "u_numeric", storage, minLevel, maxLevel + 1 );
    funcType rhs( "rhs", storage, minLevel, maxLevel );
-   funcType error( "error", storage, minLevel, maxLevel );
+   funcType error( "error", storage, minLevel, maxLevel + 1 );
 
    // operator for weak-form
    opType lap( storage, minLevel, maxLevel );
+
+   // setup analytic solution for comparison
+   for ( uint_t lvl = minLevel; lvl <= maxLevel + 1; lvl++ )
+   {
+      u_exact.interpolate( solFunc, lvl );
+   }
 
    // run test cases
    std::vector< caseResult > results;
    for ( uint_t lvl = minLevel; lvl <= maxLevel; lvl++ )
    {
       // initialise functions
-      u_exact.interpolate( solFunc, lvl );
       u.interpolate( real_c( 0.0 ), lvl, Inner );
       u.interpolate( solFunc, lvl, DirichletBoundary );
       rhs.interpolate( real_c( 0.0 ), lvl, All );
@@ -344,6 +429,7 @@ void solve_using_pimped_form( uint_t minLevel, uint_t maxLevel, bool outputVTK )
 
       // analyse error
       results.push_back( analyseCase( storage, lvl, u_exact, u, error ) );
+      addToTable( results, lvl, minLevel, maxLevel );
 
       // output data for visualisation
       if ( outputVTK )
@@ -356,5 +442,5 @@ void solve_using_pimped_form( uint_t minLevel, uint_t maxLevel, bool outputVTK )
       }
    }
 
-   generateTable( results );
+   // generateTable( results );
 }
