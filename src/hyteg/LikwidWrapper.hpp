@@ -29,15 +29,15 @@
 #ifdef LIKWID_PERFMON
 #include <likwid.h>
 #else
-#define LIKWID_MARKER_INIT
-#define LIKWID_MARKER_THREADINIT
-#define LIKWID_MARKER_SWITCH
-#define LIKWID_MARKER_REGISTER(regionTag)
-#define LIKWID_MARKER_START(regionTag)
-#define LIKWID_MARKER_STOP(regionTag)
-#define LIKWID_MARKER_CLOSE
-#define LIKWID_MARKER_GET(regionTag, nevents, events, time, count)
-#define LIKWID_MARKER_RESET(regionTag)
+#define LIKWID_MARKER_INIT (void)0
+#define LIKWID_MARKER_THREADINIT (void)0
+#define LIKWID_MARKER_SWITCH (void)0
+#define LIKWID_MARKER_REGISTER(regionTag) (void)0
+#define LIKWID_MARKER_START(regionTag) (void)0
+#define LIKWID_MARKER_STOP(regionTag) (void)0
+#define LIKWID_MARKER_CLOSE (void)0
+#define LIKWID_MARKER_GET(regionTag, nevents, events, time, count) (void)0
+#define LIKWID_MARKER_RESET(regionTag) (void)0
 #endif // LIKWID_PERFMON
 
 

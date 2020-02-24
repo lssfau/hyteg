@@ -61,5 +61,9 @@ int main( int argc, char* argv[] )
    hyteg::testFunctionProperties< hyteg::P1FunctionTag >( "../../data/meshes/3D/tet_1el.msh", 2, 35, 1 );
    hyteg::testFunctionProperties< hyteg::P1FunctionTag >( "../../data/meshes/3D/tet_1el.msh", 3, 165, 35 );
 
+   /// EdgeDofFunction
+   hyteg::testFunctionProperties< hyteg::EdgeDoFFunctionTag >( "../../data/meshes/tri_1el.msh", 2, 12 + 6 * 3, 6 * 3 );
+   hyteg::testFunctionProperties< hyteg::EdgeDoFFunctionTag >( "../../data/meshes/tri_1el.msh", 3, 24 + 28 * 3, 28 * 3 );
+
    return EXIT_SUCCESS;
 }

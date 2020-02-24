@@ -51,7 +51,7 @@ bool benchEdgeToVertex   = true;
 bool benchEdgeToEdge     = true;
 bool benchVertextoEdge   = true;
 
-static void registerLikwidRegion( std::string regionName )
+static void registerLikwidRegion( const std::string& regionName )
 {
    WALBERLA_UNUSED( regionName );
    /// register, start and stop to avoid warning in RESET
@@ -86,15 +86,10 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
    eename = "Edge-to-Edge-Apply-" + benchInfoString;
    vename = "Vertex-to-Edge-Apply-" + benchInfoString;
 
-   registerLikwidRegion( vvname );
-   registerLikwidRegion( evname );
-   registerLikwidRegion( eename );
-   registerLikwidRegion( vename );
-
    uint_t innerIterationsVertex =
        levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level ) - 3 );
    WALBERLA_LOG_INFO_ON_ROOT(
-       walberla::format( "%18s|%10s|%10s|%10s|%6s|%5s", "kernel", "Time (s)", "MLUPs", "MFLOPs", " Iter", " Level" ) );
+       walberla::format( "%18s|%10s|%10s|%10s|%6s|%5s", "kernel", "Time (s)", "MLUPs", "MFLOPs", " Iter", " Level" ) )
 
    typedef edgedof::EdgeDoFOrientation eo;
    std::map< eo, uint_t >              firstIdx;
@@ -105,6 +100,7 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
 
    if ( benchVertexToVertex )
    {
+      registerLikwidRegion( vvname );
       do
       {
          timingTree.start( vvname );
@@ -151,13 +147,13 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
       mflops = real_t( innerIterationsVertex * iterations * 13 ) / time / 1e6;
 
       WALBERLA_LOG_INFO_ON_ROOT(
-          walberla::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "vertex to vertex", time, mlups, mflops, iterations, level ) );
+          walberla::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "vertex to vertex", time, mlups, mflops, iterations, level ) )
    }
    /// Edge to Vertex
    if ( benchEdgeToVertex )
    {
+      registerLikwidRegion( evname );
       iterations = startIterations;
-
       do
       {
          timingTree.start( evname );
@@ -202,13 +198,13 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
       mflops = real_t( innerIterationsVertex * iterations * 23 ) / time / 1e6;
 
       WALBERLA_LOG_INFO_ON_ROOT(
-          walberla::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "edge to vertex", time, mlups, mflops, iterations, level ) );
+          walberla::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "edge to vertex", time, mlups, mflops, iterations, level ) )
    }
    /// Edge to Edge
    if ( benchEdgeToEdge )
    {
+      registerLikwidRegion( eename );
       iterations = startIterations;
-
       do
       {
          timingTree.start( eename );
@@ -257,13 +253,13 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
       mflops = real_t( innerIterationsVertex * iterations * 27 ) / time / 1e6;
 
       WALBERLA_LOG_INFO_ON_ROOT(
-          walberla::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "edge to edge", time, mlups, mflops, iterations, level ) );
+          walberla::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "edge to edge", time, mlups, mflops, iterations, level ) )
    }
    /// Vertex to Edge
    if ( benchVertextoEdge )
    {
+      registerLikwidRegion( vename );
       iterations = startIterations;
-
       do
       {
          timingTree.start( vename );
@@ -313,7 +309,7 @@ static void performBenchmark( hyteg::P2Function< double >&      src,
       mflops = real_t( innerIterationsVertex * iterations * 21 ) / time / 1e6;
 
       WALBERLA_LOG_INFO_ON_ROOT(
-          walberla::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "vertex to edge", time, mlups, mflops, iterations, level ) );
+          walberla::format( "%18s|%10.3e|%10.3e|%10.3e|%6u|%5u", "vertex to edge", time, mlups, mflops, iterations, level ) )
    }
 }
 
@@ -334,7 +330,7 @@ int main( int argc, char* argv[] )
    if ( env.config() == nullptr )
    {
       auto defaultFile = "./ApplyPerformanceAnalysis-2D-P2.prm";
-      WALBERLA_LOG_PROGRESS_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
+      WALBERLA_LOG_PROGRESS_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile )
       cfg->readParameterFile( defaultFile );
    }
    else
@@ -375,7 +371,7 @@ int main( int argc, char* argv[] )
    ///// Apply benchmarks /////
 
    std::vector< PrimitiveID > macroFaces = storage->getFaceIDs();
-   WALBERLA_CHECK_EQUAL( macroFaces.size(), 1 );
+   WALBERLA_CHECK_EQUAL( macroFaces.size(), 1 )
    auto face = storage->getFace( macroFaces.front() );
 
    performBenchmark( src, dst, laplace, level, *face, wcTimingTreeApp, useGeneratedKernels, startIterations );
@@ -383,11 +379,11 @@ int main( int argc, char* argv[] )
    if ( mainConf.getParameter< bool >( "printTiming" ) )
    {
       auto wcTPReduced = wcTimingTreeApp.getReduced();
-      WALBERLA_LOG_INFO_ON_ROOT( wcTPReduced );
+      WALBERLA_LOG_INFO_ON_ROOT( wcTPReduced )
 
       walberla::WcTimingTree tt  = timingTree->getReduced();
       auto                   tt2 = tt.getCopyWithRemainder();
-      WALBERLA_LOG_INFO_ON_ROOT( tt2 );
+      WALBERLA_LOG_INFO_ON_ROOT( tt2 )
 
       nlohmann::json ttJson;
       walberla::timing::to_json( ttJson, wcTPReduced );
@@ -399,7 +395,7 @@ int main( int argc, char* argv[] )
 
    if ( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Writing VTK output" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Writing VTK output" )
       hyteg::VTKOutput vtkOutput( "./output", "ApplyPerformanceAnalysis-2D-P2.cpp", storage );
       vtkOutput.add( src );
       vtkOutput.add( dst );
