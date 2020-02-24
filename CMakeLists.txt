@@ -98,9 +98,14 @@ if(NOT EXISTS ${CMAKE_BINARY_DIR}/doc/images)
     file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/doc/images")
 endif()
 
+if(NOT EXISTS ${CMAKE_BINARY_DIR}/data/kerncraftMachineFiles)
+   file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/data/kerncraftMachineFiles")
+endif()
+
 waLBerla_link_files_to_builddir(data/meshes/*.msh)
 waLBerla_link_files_to_builddir(data/meshes/3D/*.msh)
 waLBerla_link_files_to_builddir(data/param/*.prm)
+waLBerla_link_files_to_builddir(data/kerncraftMachineFiles/*.yml)
 waLBerla_link_files_to_builddir(doc/images/*.png)
 
 add_subdirectory( src )
