@@ -72,7 +72,6 @@ inline Point3D tetrahedronInwardNormal( const Point3D& planeVertex0,
    {
       // The opposing vertex seems to be located on the plane of the triangle.
       // Let's return any normal..
-      WALBERLA_ASSERT( false );
       return normal;
    }
    else
@@ -223,8 +222,6 @@ inline bool sphereTriangleIntersection( const Point3D& centre,
    auto centreDistToPlane = distanceToPlane( v1, v2, v3, centre );
    if ( centreDistToPlane > radius )
       return false;
-   if ( std::abs( centreDistToPlane - radius ) < 1e-07 )
-      return true;
 
    auto planeNormal = tetrahedronInwardNormal( v1, v2, v3, centre );
 
@@ -317,12 +314,14 @@ inline bool sphereTetrahedronIntersection( const Point3D& sphereCenter,
                                            const Point3D& tetVertex2,
                                            const Point3D& tetVertex3 )
 {
-   return isPointInTetrahedron( sphereCenter, tetVertex0, tetVertex1, tetVertex2, tetVertex3 ) ||
-          isSphereCompletelyInTetrahedron( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex2, tetVertex3 ) ||
-          sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex2 ) ||
-          sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex3 ) ||
-          sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex2, tetVertex3 ) ||
-          sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex1, tetVertex2, tetVertex3 );
+   const auto pointInTet = isPointInTetrahedron( sphereCenter, tetVertex0, tetVertex1, tetVertex2, tetVertex3 );
+   const auto sphereInTet = isSphereCompletelyInTetrahedron( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex2, tetVertex3 );
+   const auto sphereTriangleIntersection0 = sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex2 );
+   const auto sphereTriangleIntersection1 = sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex3 );
+   const auto sphereTriangleIntersection2 = sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex2, tetVertex3 );
+   const auto sphereTriangleIntersection3 = sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex1, tetVertex2, tetVertex3 );
+
+   return pointInTet || sphereInTet || sphereTriangleIntersection0 || sphereTriangleIntersection1 || sphereTriangleIntersection2 || sphereTriangleIntersection3;
 }
 
 } // namespace hyteg
