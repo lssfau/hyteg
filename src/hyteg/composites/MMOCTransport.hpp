@@ -23,6 +23,7 @@
 #include <convection_particles/data/ParticleStorage.h>
 #include <convection_particles/mpi/SyncNextNeighborsNoGhosts.h>
 #include <core/math/MatrixMxN.h>
+#include <core/mpi/MPIWrapper.h>
 
 #include "hyteg/FunctionIterator.hpp"
 #include "hyteg/communication/Syncing.hpp"
