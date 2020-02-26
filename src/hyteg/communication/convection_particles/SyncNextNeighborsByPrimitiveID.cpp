@@ -101,17 +101,6 @@ void SyncNextNeighborsByPrimitiveID::generateSynchronizationMessages(data::Parti
       {
          WALBERLA_LOG_DETAIL( "Local particle " << pIt->getUid() << " is no longer on process " << ownRank << " but on process " << ownerRank );
 
-         if( ownerRank < 0 ) {
-            // No owner found: Outflow condition.
-            WALBERLA_LOG_DETAIL( "Sending deletion notifications for particle " << pIt->getUid() << " due to outflow." );
-
-            // remove particle
-            // since there are no ghosts owners no one has to be notified
-            pIt = ps.erase( pIt );
-
-            continue;
-         }
-
          // create ghost on new owner process
          auto& buffer( bs.sendBuffer(ownerRank) );
          WALBERLA_LOG_DETAIL( "Sending ghost copy notification for particle " << pIt->getUid() << " to process " << ownerRank );
