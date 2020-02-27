@@ -74,7 +74,7 @@ class AnnulusMap : public GeometryMap
 
       // compute new coordinates
       real_t oldRad = std::sqrt( xold[0] * xold[0] + xold[1] * xold[1] );
-      real_t newRad = radRefVertex_ + factor * ( radRayVertex_ - radRefVertex_ );
+      real_t newRad = radRayVertex_ + factor * ( radRefVertex_ - radRayVertex_ );
       xnew[0]       = xold[0] * newRad / oldRad;
       xnew[1]       = xold[1] * newRad / oldRad;
 
@@ -230,8 +230,8 @@ class AnnulusMap : public GeometryMap
       rayVertex_ = coords[intRay];
       refVertex_ = coords[intRef];
 
-      radRefVertex_ = radius[intRay];
-      radRayVertex_ = radius[intRef];
+      radRayVertex_ = radius[intRay];
+      radRefVertex_ = radius[intRef];
 
 #ifdef ANNULUS_MAP_DEBUG
       WALBERLA_LOG_INFO_ON_ROOT( "refVertex: (" << refVertex_[0] << ", " << refVertex_[1] << ")" );
