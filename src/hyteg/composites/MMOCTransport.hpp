@@ -46,6 +46,7 @@
 namespace hyteg {
 
 using namespace walberla::convection_particles;
+using namespace walberla::mpistubs;
 
 enum class TimeSteppingScheme
 {
