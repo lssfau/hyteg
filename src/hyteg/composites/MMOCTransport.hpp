@@ -896,52 +896,69 @@ void evaluateTemperature( walberla::convection_particles::data::ParticleStorage&
 
    std::map< uint_t, MPI_Request > sendRequests;
 
-   for ( const auto& p : particleStorage )
-   {
-      if ( numParticlesToSendToRank.count( p.getStartProcess() ) == 0 )
-         numParticlesToSendToRank[p.getStartProcess()] = 0;
-      numParticlesToSendToRank[p.getStartProcess()]++;
-      sendRequests[p.getStartProcess()] = MPI_Request();
-   }
-
-   for ( auto it : numParticlesToSendToRank )
-   {
-      // WALBERLA_LOG_INFO( "Particle communcation prep: rank " << rank << " -> " << it.first << ": " << it.second )
-      MPI_Isend( &it.second,
-                 1,
-                 MPI_UNSIGNED,
-                 (int) it.first,
-                 0,
-                 walberla::mpi::MPIManager::instance()->comm(),
-                 &sendRequests[it.first] );
-   }
-
-   for ( auto it : sendRequests )
-   {
-      MPI_Status status;
-      MPI_Wait( &it.second, &status );
-   }
-
-   uint_t numReceivedParticleLocations = 0;
-   while ( numReceivedParticleLocations < numberOfCreatedParticles )
-   {
-      unsigned   numParticles;
-      MPI_Status status;
-      MPI_Recv(
-          &numParticles, 1, MPI_UNSIGNED, MPI_ANY_SOURCE, MPI_ANY_TAG, walberla::mpi::MPIManager::instance()->comm(), &status );
-      // WALBERLA_LOG_INFO( "Particle communcation prep: receiving " << numParticles << " particles from rank " << status.MPI_SOURCE );
-      numReceivedParticleLocations += numParticles;
-      numParticlesToReceiveFromRank[uint_c( status.MPI_SOURCE )] = numParticles;
-      // WALBERLA_LOG_INFO( "total received particle infos: " << numReceivedParticleLocations )
-      // WALBERLA_LOG_INFO( "created particles: " << numberOfCreatedParticles )
-   }
-
-   // part II
    std::set< walberla::mpi::MPIRank > ranksToReceiveFrom;
-   for ( auto r : numParticlesToReceiveFromRank )
+
+   WALBERLA_MPI_SECTION()
    {
-      ranksToReceiveFrom.insert( (walberla::mpi::MPIRank) r.first );
+      for ( const auto& p : particleStorage )
+      {
+         if ( numParticlesToSendToRank.count( p.getStartProcess() ) == 0 )
+            numParticlesToSendToRank[p.getStartProcess()] = 0;
+         numParticlesToSendToRank[p.getStartProcess()]++;
+         sendRequests[p.getStartProcess()] = MPI_Request();
+      }
+
+      for ( auto it : numParticlesToSendToRank )
+      {
+         // WALBERLA_LOG_INFO( "Particle communcation prep: rank " << rank << " -> " << it.first << ": " << it.second )
+         MPI_Isend( &it.second,
+                    1,
+                    MPI_UNSIGNED,
+                    (int) it.first,
+                    0,
+                    walberla::mpi::MPIManager::instance()->comm(),
+                    &sendRequests[it.first] );
+      }
+
+      for ( auto it : sendRequests )
+      {
+         MPI_Status status;
+         MPI_Wait( &it.second, &status );
+      }
+
+      uint_t numReceivedParticleLocations = 0;
+      while ( numReceivedParticleLocations < numberOfCreatedParticles )
+      {
+         unsigned   numParticles;
+         MPI_Status status;
+         MPI_Recv( &numParticles,
+                   1,
+                   MPI_UNSIGNED,
+                   MPI_ANY_SOURCE,
+                   MPI_ANY_TAG,
+                   walberla::mpi::MPIManager::instance()->comm(),
+                   &status );
+         // WALBERLA_LOG_INFO( "Particle communcation prep: receiving " << numParticles << " particles from rank " << status.MPI_SOURCE );
+         numReceivedParticleLocations += numParticles;
+         numParticlesToReceiveFromRank[uint_c( status.MPI_SOURCE )] = numParticles;
+         // WALBERLA_LOG_INFO( "total received particle infos: " << numReceivedParticleLocations )
+         // WALBERLA_LOG_INFO( "created particles: " << numberOfCreatedParticles )
+      }
+
+      // part II
+      for ( auto r : numParticlesToReceiveFromRank )
+      {
+         ranksToReceiveFrom.insert( (walberla::mpi::MPIRank) r.first );
+      }
    }
+
+   WALBERLA_NON_MPI_SECTION()
+   {
+      numParticlesToSendToRank[ 0 ] = (unsigned) particleStorage.size();
+      numParticlesToReceiveFromRank[ 0 ] = (unsigned) particleStorage.size();
+      ranksToReceiveFrom.insert( 0 );
+   }
+
    walberla::mpi::BufferSystem bufferSystem( walberla::mpi::MPIManager::instance()->comm() );
    bufferSystem.setReceiverInfo( ranksToReceiveFrom, true );
 
