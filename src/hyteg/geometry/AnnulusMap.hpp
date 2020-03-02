@@ -86,14 +86,14 @@ class AnnulusMap : public GeometryMap
    // note: we could save computations by fusing evalF with evalDF!
    void evalDF( const Point3D& x, Matrix2r& DFx ) const
    {
-      real_t dist  = radRayVertex_ - radRefVertex_;
+      real_t dist  = radRefVertex_ - radRayVertex_;
       real_t areaT = ( refVertex_[0] - rayVertex_[0] ) * ( thrVertex_[1] - rayVertex_[1] ) -
                      ( refVertex_[1] - rayVertex_[1] ) * ( thrVertex_[0] - rayVertex_[0] );
       real_t areaX = ( x[0] - rayVertex_[0] ) * ( thrVertex_[1] - rayVertex_[1] ) -
                      ( x[1] - rayVertex_[1] ) * ( thrVertex_[0] - rayVertex_[0] );
       real_t bary   = areaX / areaT;
       real_t oldRad = std::sqrt( x[0] * x[0] + x[1] * x[1] );
-      real_t newRad = radRefVertex_ + bary * dist;
+      real_t newRad = radRayVertex_ + bary * dist;
 
       real_t invNorm  = 1.0 / oldRad;
       real_t invNorm3 = invNorm * invNorm * invNorm;
