@@ -34,7 +34,8 @@ class GeometryMap
       AFFINE   = 1,
       CIRCULAR = 2,
       POLAR_COORDS = 3,
-      ANNULUS_MAP = 4
+      ANNULUS_MAP = 4,
+      ICOSAHEDRAL_SHELL_MAP = 5
    };
 
    virtual ~GeometryMap(){};
