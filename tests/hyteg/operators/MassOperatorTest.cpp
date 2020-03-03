@@ -186,18 +186,7 @@ int main( int argc, char** argv )
    logSectionHeader( "Testing with BLENDING( ANNULUS -- AnnulusMap )" );
    MeshInfo              meshInfoAnnulus = MeshInfo::meshAnnulus( 1.0, 2.0, 0.0, 2.0 * pi, MeshInfo::CROSS, 12, 2 );
    SetupPrimitiveStorage setupStorageAnnulus( meshInfoAnnulus, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-
-   for ( auto it : setupStorageAnnulus.getFaces() )
-   {
-      Face& face = *it.second;
-      setupStorageAnnulus.setGeometryMap( face.getID(), std::make_shared< AnnulusMap >( face ) );
-   }
-
-   for ( auto it : setupStorageAnnulus.getEdges() )
-   {
-      Edge& edge = *it.second;
-      setupStorageAnnulus.setGeometryMap( edge.getID(), std::make_shared< AnnulusMap >( edge, setupStorageAnnulus ) );
-   }
+   AnnulusMap::setMap( setupStorageAnnulus );
    std::shared_ptr< PrimitiveStorage > storageAnnulus = std::make_shared< PrimitiveStorage >( setupStorageAnnulus );
    checkArea< P1ElementwiseBlendingMassOperator >( storagePolar, 3.0 * pi, "P1ElementwiseBlendingMassOperator" );
    checkArea< P2ElementwiseBlendingMassOperator >( storagePolar, 3.0 * pi, "P2ElementwiseBlendingMassOperator" );

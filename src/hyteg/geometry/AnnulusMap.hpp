@@ -125,6 +125,22 @@ class AnnulusMap : public GeometryMap
       sendBuffer << Type::ANNULUS_MAP << rayVertex_ << refVertex_ << thrVertex_ << radRefVertex_ << radRayVertex_;
    }
 
+   static void setMap( SetupPrimitiveStorage& setupStorage ) {
+
+     for ( auto it : setupStorage.getFaces() )
+       {
+         Face& face = *it.second;
+         setupStorage.setGeometryMap( face.getID(), std::make_shared< AnnulusMap >( face ) );
+       }
+
+     for ( auto it : setupStorage.getEdges() )
+       {
+         Edge& edge = *it.second;
+         setupStorage.setGeometryMap( edge.getID(), std::make_shared< AnnulusMap >( edge, setupStorage ) );
+       }
+   }
+
+
  private:
    /// \name Classified vertices of macro triangle
    ///
