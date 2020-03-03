@@ -103,7 +103,9 @@ class P2Form : public Form
    virtual real_t integrate( const std::array< Point3D, 4 >&     coords,
                              const P2Form::dofPosByVertexPair3D& cntrPos,
                              const P2Form::dofPosByVertexPair3D& leafPos ) const
-   {}
+   {
+      return 0;  
+   }
 
    /// \brief Compute local element matrix and return selected entries from a row
    ///
@@ -121,7 +123,9 @@ class P2Form : public Form
    virtual std::vector< real_t > integrate( const std::array< Point3D, 4 >&                    coords,
                                             const P2Form::dofPosByVertexPair3D&                cntrPos,
                                             const std::vector< P2Form::dofPosByVertexPair3D >& leafPos ) const
-   {}
+   {
+      return std::vector< real_t >();  
+   }
 
    /// \brief Compute local element matrix and return it
    ///
