@@ -25,18 +25,16 @@
 
 #include "GeometryMap.hpp"
 
-#define SHELL_MAP_DEBUG
-#define SHELL_MAP_LOG( STR ) WALBERLA_LOG_INFO_ON_ROOT( STR );
+// #define SHELL_MAP_LOG( STR ) WALBERLA_LOG_INFO_ON_ROOT( STR );
+#define SHELL_MAP_LOG( STR )
 
 namespace hyteg {
 
 /// Class providing geometry mapping for a facetted isosahedral shell
 ///
-///
-///
-///
-///
-///
+/// This geometry map provides a blending operation for a base mesh generated
+/// with the inline meshSphericalShell generator. Geometric nodes on refined
+/// hierarchy levels are projected onto spherical layers.
 class IcosahedralShellMap : public GeometryMap
 {
  public:
@@ -113,9 +111,68 @@ class IcosahedralShellMap : public GeometryMap
       // SHELL_MAP_LOG( "Mapped: " << xold << " --> " << xnew );
    }
 
-   void evalDF( const Point3D& x, Matrix2r& DFx ) const { WALBERLA_ABORT( "evalDF unimplemented!" ); }
+   void evalDF( const Point3D& x, Matrix2r& DFx ) const final {
+     WALBERLA_ABORT( "IcosahedralMap::evalDF unimplemented for 2D!" );
+   }
 
-   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const { WALBERLA_ABORT( "evalDFinv unimplemented!" ); }
+   void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const final {
+     WALBERLA_ABORT( "IcosahedralMap::evalDFinv unimplemented for 2D!" );
+   }
+
+   real_t evalDF( const Point3D& x, Matrix3r& DFx ) const final {
+     
+     // real_t tmp0 = pow(x[0], 2);
+     real_t tmp0 = x[0] * x[0];
+     real_t tmp1 = rayVertex_[2] - refVertex_[2];
+     real_t tmp2 = rayVertex_[0] - thrVertex_[0];
+     real_t tmp3 = rayVertex_[1] - forVertex_[1];
+     real_t tmp4 = tmp2*tmp3;
+     real_t tmp5 = rayVertex_[1] - refVertex_[1];
+     real_t tmp6 = rayVertex_[0] - forVertex_[0];
+     real_t tmp7 = rayVertex_[2] - thrVertex_[2];
+     real_t tmp8 = tmp6*tmp7;
+     real_t tmp9 = rayVertex_[0] - refVertex_[0];
+     real_t tmp10 = rayVertex_[1] - thrVertex_[1];
+     real_t tmp11 = rayVertex_[2] - forVertex_[2];
+     real_t tmp12 = tmp10*tmp11;
+     real_t tmp13 = tmp11*tmp2;
+     real_t tmp14 = tmp10*tmp6;
+     real_t tmp15 = tmp3*tmp7;
+     real_t tmp16 = -tmp1*tmp14 + tmp1*tmp4 + tmp12*tmp9 - tmp13*tmp5 - tmp15*tmp9 + tmp5*tmp8;
+     real_t tmp17 = radRayVertex_ - radRefVertex_;
+     real_t tmp18 = rayVertex_[2] - x[2];
+     real_t tmp19 = rayVertex_[1] - x[1];
+     real_t tmp20 = rayVertex_[0] - x[0];
+     real_t tmp21 = radRayVertex_*tmp16 - tmp17*(tmp12*tmp20 - tmp13*tmp19 - tmp14*tmp18 - tmp15*tmp20 + tmp18*tmp4 + tmp19*tmp8);
+     // real_t tmp22 = pow(x[1], 2);
+     // real_t tmp23 = pow(x[2], 2);
+     real_t tmp22 = x[1] * x[1];
+     real_t tmp23 = x[2] * x[2];
+     real_t tmp24 = tmp0 + tmp22 + tmp23;
+     real_t tmp25 = tmp17*(tmp12 - tmp15);
+     real_t tmp26 = 1.0/(tmp16*pow(tmp24, 3.0/2.0));
+     real_t tmp27 = tmp13 - tmp8;
+     real_t tmp28 = tmp17*tmp24;
+     real_t tmp29 = tmp21*x[1] + tmp27*tmp28;
+     real_t tmp30 = tmp26*x[0];
+     real_t tmp31 = -tmp14 + tmp4;
+     real_t tmp32 = -tmp21*x[2] + tmp28*tmp31;
+     real_t tmp33 = -tmp21*x[0] + tmp24*tmp25;
+     real_t tmp34 = tmp26*x[1];
+     real_t tmp35 = tmp26*x[2];
+
+     DFx( 0, 0 ) = tmp26*(-tmp0*tmp21 + tmp24*(tmp21 + tmp25*x[0]));
+     DFx( 0, 1 ) = -tmp29*tmp30;
+     DFx( 0, 2 ) = tmp30*tmp32;
+     DFx( 1, 0 ) = tmp33*tmp34;
+     DFx( 1, 1 ) = tmp26*(-tmp21*tmp22 + tmp24*(-tmp17*tmp27*x[1] + tmp21));
+     DFx( 1, 2 ) = tmp32*tmp34;
+     DFx( 2, 0 ) = tmp33*tmp35;
+     DFx( 2, 1 ) = -tmp29*tmp35;
+     DFx( 2, 2 ) = tmp26*(-tmp21*tmp23 + tmp24*(tmp17*tmp31*x[2] + tmp21));
+
+     return DFx(0,0)*DFx(1,1)*DFx(2,2) - DFx(0,0)*DFx(2,1)*DFx(1,2) - DFx(1,0)*DFx(0,1)*DFx(2,2) + DFx(1,0)*DFx(2,1)*DFx(0,2) + DFx(2,0)*DFx(0,1)*DFx(1,2) - DFx(2,0)*DFx(1,1)*DFx(0,2);
+   };
 
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const
    {

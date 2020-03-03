@@ -36,10 +36,10 @@ public:
   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const final {
 
 // Select quadrature rule
-// #define CUBAPOINTS cubature::T4_points
-// #define CUBAWEIGHTS cubature::T4_weights
-#define CUBAPOINTS cubature::T3_points
-#define CUBAWEIGHTS cubature::T3_weights
+#define CUBAPOINTS cubature::T4_points
+#define CUBAWEIGHTS cubature::T4_weights
+// #define CUBAPOINTS cubature::T3_points
+// #define CUBAWEIGHTS cubature::T3_weights
 
 // Shape functions on unit tetrahedron
 #define SF_N0 L1
@@ -50,7 +50,7 @@ public:
 // Executing quadrature rule
 #define INTEGRATE3D(i,j)                                                                                                                             \
   elMat(i,j) = 0.0;                                                                                                                                  \
-  for( uint_t k = 0; k < CUBAWEIGHTS.size(); k++ ) {                                                                                                \
+  for( uint_t k = 0; k < CUBAWEIGHTS.size(); k++ ) {                                                                                                 \
     real_t L2 = CUBAPOINTS[k][0];                                                                                                                    \
     real_t L3 = CUBAPOINTS[k][1];                                                                                                                    \
     real_t L4 = CUBAPOINTS[k][2];                                                                                                                    \
@@ -58,7 +58,7 @@ public:
     mappedPt[0] = ( coords[1][0] - coords[0][0] ) * L2 + ( coords[2][0] - coords[0][0] ) * L3 + ( coords[3][0] - coords[0][0] ) * L4 + coords[0][0]; \
     mappedPt[1] = ( coords[1][1] - coords[0][1] ) * L2 + ( coords[2][1] - coords[0][1] ) * L3 + ( coords[3][1] - coords[0][1] ) * L4 + coords[0][1]; \
     mappedPt[2] = ( coords[1][2] - coords[0][2] ) * L2 + ( coords[2][2] - coords[0][2] ) * L3 + ( coords[3][2] - coords[0][2] ) * L4 + coords[0][2]; \
-    real_t detDPsi = std::abs( geometryMap_->evalDetDF( mappedPt ) );                                                                                \
+    real_t detDPsi = std::abs( geometryMap_->evalDF( mappedPt, dummy ) );                                                                            \
     elMat(i,j) += CUBAWEIGHTS[k] * detJacPhiInv * detDPsi * SF_N ## i * SF_N ## j;                                                                   \
   }                                                                                                                                                  \
   elMat(j,i) = elMat(i,j);
@@ -81,6 +81,9 @@ public:
 
     // Cubature point mapped to computational tetrahedron
     Point3D mappedPt;
+
+    // dummy matrix for evaluation of Jacobian of 3D map
+    Matrix3r dummy;
 
     // ------------
     //  Zeroth row

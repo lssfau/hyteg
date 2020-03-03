@@ -147,7 +147,8 @@ int main( int argc, char** argv )
    compareForms< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >,
                  P1Form_mass3D,
                  Matrix4r,
-                 4 >( theTet, 1e-15 );
+                 4 >( theTet, 1e-8 );
+                 // 4 >( theTet, 1e-15 ); only works for lower-order quadrature rule in HyTeG form
 
    logSectionHeader( "P2 Mass Forms (3D)" );
    compareForms< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise >,

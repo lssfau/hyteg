@@ -156,7 +156,7 @@ public:
     mappedPt[0] = ( coords[1][0] - coords[0][0] ) * L2 + ( coords[2][0] - coords[0][0] ) * L3 + ( coords[3][0] - coords[0][0] ) * L4 + coords[0][0]; \
     mappedPt[1] = ( coords[1][1] - coords[0][1] ) * L2 + ( coords[2][1] - coords[0][1] ) * L3 + ( coords[3][1] - coords[0][1] ) * L4 + coords[0][1]; \
     mappedPt[2] = ( coords[1][2] - coords[0][2] ) * L2 + ( coords[2][2] - coords[0][2] ) * L3 + ( coords[3][2] - coords[0][2] ) * L4 + coords[0][2]; \
-    real_t detDPsi = std::abs( geometryMap_->evalDetDF( mappedPt ) );                                                                                \
+    real_t detDPsi = std::abs( geometryMap_->evalDF( mappedPt, dummy ) );                                                                            \
     elMat(i,j) += CUBAWEIGHTS[k] * detJacPhiInv * detDPsi * SF_N ## i * SF_N ## j;                                                                   \
   }                                                                                                                                                  \
   elMat(j,i) = elMat(i,j)
@@ -179,6 +179,9 @@ public:
 
     // Cubature point mapped to computational tetrahedron
     Point3D mappedPt;
+
+    // dummy matrix for evaluation of Jacobian of 3D map
+    Matrix3r dummy;
 
     INTEGRATE3D(0,0);
     INTEGRATE3D(0,1);

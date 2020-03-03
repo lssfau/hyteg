@@ -26,6 +26,7 @@
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/CircularMap.hpp"
+#include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/geometry/PolarCoordsMap.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
@@ -46,6 +47,7 @@ void checkArea( std::shared_ptr< PrimitiveStorage > storage,
                 real_t                              area,
                 std::string                         tag,
                 const uint_t                        minLevel  = 2,
+                real_t                              tolerance = -1.0,
                 bool                                outputVTK = false )
 {
    // const uint_t minLevel = 2;
@@ -70,8 +72,15 @@ void checkArea( std::shared_ptr< PrimitiveStorage > storage,
          vtkOutput.write( lvl );
       }
 
-      WALBERLA_LOG_INFO_ON_ROOT( "measure = " << std::scientific << measure << " (" << tag << ")" );
-      WALBERLA_CHECK_FLOAT_EQUAL( measure, area );
+      if( tolerance < 0.0 ) {
+        WALBERLA_LOG_INFO_ON_ROOT( "measure = " << std::scientific << measure << " (" << tag << ")" );
+        WALBERLA_CHECK_FLOAT_EQUAL( measure, area );
+      }
+      else {
+        WALBERLA_LOG_INFO_ON_ROOT( "measure = " << std::scientific << measure << ", difference = " << std::abs( measure - area )
+                                   << " (" << tag << ")" );
+        WALBERLA_CHECK_LESS( std::abs( measure - area ), tolerance );
+      }
    }
 }
 
@@ -233,6 +242,20 @@ int main( int argc, char** argv )
    checkArea< P1BlendingMassOperator >( storageHole, 1.0 - pi / 16.0, "P1BlendingMassOperator", 3 );
    checkArea< P1ElementwiseBlendingMassOperator >( storageHole, 1.0 - pi / 16.0, "P1ElementwiseBlendingMassOperator", 3 );
    checkArea< P2ElementwiseBlendingMassOperator >( storageHole, 1.0 - pi / 16.0, "P2ElementwiseBlendingMassOperator", 3 );
+
+   // -------------------
+   //  3D Blending Tests
+   // -------------------
+
+   // Test with thick spherical shell
+   logSectionHeader( "Testing with BLENDING( Thick Spherical Shell -- IcosahedralShellMap )" );
+   meshInfo = MeshInfo::meshSphericalShell( 2, 2, 1.0, 2.0 );
+   SetupPrimitiveStorage setupStorageShell( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   IcosahedralShellMap::setMap( setupStorageShell );
+   std::shared_ptr< PrimitiveStorage > storageShell = std::make_shared< PrimitiveStorage >( setupStorageShell );
+
+   checkArea< P1ElementwiseBlendingMassOperator3D >( storageShell, 4.0/3.0 * pi * 7.0, "P1ElementwiseBlendingMassOperator3D", 2, 2e-6 );
+   checkArea< P2ElementwiseBlendingMassOperator >( storageShell, 4.0/3.0 * pi * 7.0, "P2ElementwiseBlendingMassOperator", 2, 2e-6 );
 
    return EXIT_SUCCESS;
 }

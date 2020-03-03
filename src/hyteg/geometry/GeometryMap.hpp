@@ -52,6 +52,15 @@ class GeometryMap
 
    /// Evaluation of the Jacobian matrix at reference position \p x
    /// \param x Reference input coordinates
+   /// \param DFx Jacobian matrix
+   virtual real_t evalDF( const Point3D& x, Matrix3r& DFx ) const {
+     WALBERLA_UNUSED( x );
+     WALBERLA_UNUSED( DFx );
+     WALBERLA_ABORT( "GeometryMap::evalDF() not implemented for 3D" );
+   };
+
+   /// Evaluation of the Jacobian matrix at reference position \p x
+   /// \param x Reference input coordinates
    /// \param DFinvx Inverse of the Jacobian matrix
    virtual void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const = 0;
 

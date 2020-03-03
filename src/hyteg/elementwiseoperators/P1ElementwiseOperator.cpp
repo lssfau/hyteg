@@ -430,7 +430,7 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions3D( const
    // assemble local element matrix
    Matrix4r elMat;
    P1Form   form;
-   // form.setGeometryMap( cell.getGeometryMap() );
+   form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
 
    // obtain data indices of dofs associated with micro-cell
