@@ -257,7 +257,8 @@ inline std::map< indexing::IndexIncrement, real_t > calculateEdgeToVertexStencil
 template< typename UFCOperator >
 inline std::map< indexing::IndexIncrement, real_t > calculateVertexToEdgeStencilInMacroCell( const indexing::Index & microEdgeIndex,
                                                                                              const edgedof::EdgeDoFOrientation & centerOrientation,
-                                                                                             const Cell & cell, const uint_t & level, const UFCOperator & ufcGen )
+                                                                                             const Cell & cell, const uint_t & level,
+                                                                                             const UFCOperator & ufcGen )
 {
   typedef stencilDirection sd;
   std::map< indexing::IndexIncrement, real_t > macroCellStencilEntries;
@@ -307,11 +308,11 @@ inline std::map< indexing::IndexIncrement, real_t > calculateVertexToEdgeStencil
     if( std::is_same<UFCOperator, P2Form >::value ) {
 
       // obtain weights from local element matrix
-      std::array<P2Form::dofPosByVertexPair3D,4> leafPos = {{ {0,0}, {1,1}, {2,2}, {3,3} }};
-      std::array<real_t,4> weights = ufcGen.template integrate< 4 >( geometricCoordinates, centerEdge, leafPos );
+      std::vector<P2Form::dofPosByVertexPair3D > leafPos = {{ {0,0}, {1,1}, {2,2}, {3,3} }};
+      std::vector<real_t> weights = ufcGen.integrate( geometricCoordinates, centerEdge, leafPos );
       
       // add values at correct index position into stencil
-      for ( uint_t localVertexID = 0; localVertexID < 4; localVertexID++ )
+      for ( uint_t localVertexID = 0; localVertexID < weights.size(); localVertexID++ )
         {
           const auto vertexDoFIndex = neighboringVertex0 + elementAsIndices.at( localVertexID );
           macroCellStencilEntries[ vertexDoFIndex ] += weights[ localVertexID ];

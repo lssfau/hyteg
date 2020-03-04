@@ -641,6 +641,11 @@ void P2Function< ValueType >::setLocalCommunicationMode(
 template <>
 real_t P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level ) const
 {
+   this->startTiming( "Evaluate" );
+
+   real_t result     = 0;
+   bool   foundMacro = false;
+
    // Check if 2D or 3D function
    if ( !this->getStorage()->hasGlobalCells() )
    {
@@ -648,11 +653,16 @@ real_t P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level 
       {
          Face& face = *it.second;
 
-         if ( sphereTriangleIntersection(
-                  coordinates, 0.0, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+         if ( circleTriangleIntersection( Point2D( {coordinates[0], coordinates[1]} ),
+                                          1e-05,
+                                          Point2D( {face.getCoordinates()[0][0], face.getCoordinates()[0][1]} ),
+                                          Point2D( {face.getCoordinates()[1][0], face.getCoordinates()[1][1]} ),
+                                          Point2D( {face.getCoordinates()[2][0], face.getCoordinates()[2][1]} ) ) )
          {
-            return P2::macroface::evaluate(
+            result = P2::macroface::evaluate(
                 level, face, coordinates, vertexDoFFunction_.getFaceDataID(), edgeDoFFunction_.getFaceDataID() );
+            foundMacro = true;
+            break;
          }
       }
    }
@@ -662,18 +672,25 @@ real_t P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level 
       {
          Cell& cell = *it.second;
 
-         if ( isPointInTetrahedron( coordinates,
+         if ( sphereTetrahedronIntersection( coordinates, 1e-05,
                                     cell.getCoordinates()[0],
                                     cell.getCoordinates()[1],
                                     cell.getCoordinates()[2],
                                     cell.getCoordinates()[3] ) )
          {
-            WALBERLA_ABORT( " P2Function< real_t >::evaluate not implemented for 3D case" );
+            result = P2::macrocell::evaluate(
+                level, cell, coordinates, vertexDoFFunction_.getCellDataID(), edgeDoFFunction_.getCellDataID() );
+            foundMacro = true;
+            break;
          }
       }
    }
 
-   WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates );
+   WALBERLA_CHECK( foundMacro, "There is no local macro element including a point at the given coordinates " << coordinates );
+
+   this->stopTiming( "Evaluate" );
+
+   return result;
 }
 
 template <>

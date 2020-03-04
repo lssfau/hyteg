@@ -25,69 +25,86 @@
 #include "hyteg/p2functionspace/P2Elements.hpp"
 
 #include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
+#include "hyteg/forms/P2LinearCombinationForm.hpp"
+#include "hyteg/forms/P2RowSumForm.hpp"
 
 namespace hyteg {
 
-template< class EdgeDoFToVertexDoFForm >
-EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::EdgeDoFToVertexDoFOperator(const std::shared_ptr<PrimitiveStorage> &storage,
-                                                       const size_t & minLevel,
-                                                       const size_t & maxLevel)
-  :Operator(storage,minLevel,maxLevel)
+template < class EdgeDoFToVertexDoFForm >
+EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::EdgeDoFToVertexDoFOperator(
+    const std::shared_ptr< PrimitiveStorage >& storage,
+    const size_t&                              minLevel,
+    const size_t&                              maxLevel )
+: EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >( storage, minLevel, maxLevel, EdgeDoFToVertexDoFForm() )
+{}
+
+template < class EdgeDoFToVertexDoFForm >
+EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::EdgeDoFToVertexDoFOperator(
+    const std::shared_ptr< PrimitiveStorage >& storage,
+    const size_t&                              minLevel,
+    const size_t&                              maxLevel,
+    const EdgeDoFToVertexDoFForm&              form )
+: Operator( storage, minLevel, maxLevel )
+, form_( form )
 {
+   using namespace EdgeDoFToVertexDoF;
 
-  using namespace EdgeDoFToVertexDoF;
+   auto vertexDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Vertex > >(
+       minLevel_, maxLevel_, macroVertexEdgeDoFToVertexDoFStencilSize );
 
-  auto vertexDataHandling =
-    std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Vertex >>(minLevel_, maxLevel_, macroVertexEdgeDoFToVertexDoFStencilSize);
+   auto vertex3DDataHandling =
+       std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< EdgeDoFToVertexDoF::MacroVertexStencilMap_T >, Vertex > >(
+           minLevel_, maxLevel_ );
 
-  auto vertex3DDataHandling   =
-    std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< EdgeDoFToVertexDoF::MacroVertexStencilMap_T >, Vertex > >(minLevel_, maxLevel_);
+   auto edgeDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Edge > >(
+       minLevel_, maxLevel_, macroEdgeEdgeDoFToVertexDoFStencilSize );
 
-  auto edgeDataHandling   =
-    std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Edge   >>(minLevel_, maxLevel_, macroEdgeEdgeDoFToVertexDoFStencilSize);
+   auto edge3DDataHandling =
+       std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge > >(
+           minLevel_, maxLevel_ );
 
-  auto edge3DDataHandling   =
-    std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< EdgeDoFToVertexDoF::MacroEdgeStencilMap_T >, Edge > >(minLevel_, maxLevel_);
-  
-  auto faceDataHandling   =
-    std::make_shared< MemoryDataHandling<StencilMemory<real_t>, Face   >>(minLevel_, maxLevel_, macroFaceEdgeDoFToVertexDoFStencilSize);
+   auto faceDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Face > >(
+       minLevel_, maxLevel_, macroFaceEdgeDoFToVertexDoFStencilSize );
 
-  auto face3DDataHandling   =
-    std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face > >(minLevel_, maxLevel_);
+   auto face3DDataHandling =
+       std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< EdgeDoFToVertexDoF::MacroFaceStencilMap_T >, Face > >(
+           minLevel_, maxLevel_ );
 
-  auto cellDataHandling   =
-    std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell > >(minLevel_, maxLevel_);
+   auto cellDataHandling =
+       std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< EdgeDoFToVertexDoF::MacroCellStencilMap_T >, Cell > >(
+           minLevel_, maxLevel_ );
 
-  storage->addVertexData(vertexStencilID_, vertexDataHandling, "VertexDoFToEdgeDoFOperatorVertexStencil");
-  storage->addVertexData(vertexStencil3DID_, vertex3DDataHandling, "VertexDoFToEdgeDoFOperatorVertexStencil3D");
-  storage->addEdgeData(edgeStencilID_, edgeDataHandling  , "VertexDoFToEdgeDoFOperatorEdgeStencil");
-  storage->addEdgeData(edgeStencil3DID_, edge3DDataHandling  , "VertexDoFToEdgeDoFOperatorEdgeStencil3D");
-  storage->addFaceData(faceStencilID_, faceDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil");
-  storage->addFaceData(faceStencil3DID_, face3DDataHandling  , "VertexDoFToEdgeDoFOperatorFaceStencil3D");
-  storage->addCellData(cellStencilID_, cellDataHandling  , "VertexDoFToEdgeDoFOperatorCellStencil");
+   storage->addVertexData( vertexStencilID_, vertexDataHandling, "VertexDoFToEdgeDoFOperatorVertexStencil" );
+   storage->addVertexData( vertexStencil3DID_, vertex3DDataHandling, "VertexDoFToEdgeDoFOperatorVertexStencil3D" );
+   storage->addEdgeData( edgeStencilID_, edgeDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil" );
+   storage->addEdgeData( edgeStencil3DID_, edge3DDataHandling, "VertexDoFToEdgeDoFOperatorEdgeStencil3D" );
+   storage->addFaceData( faceStencilID_, faceDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil" );
+   storage->addFaceData( faceStencil3DID_, face3DDataHandling, "VertexDoFToEdgeDoFOperatorFaceStencil3D" );
+   storage->addCellData( cellStencilID_, cellDataHandling, "VertexDoFToEdgeDoFOperatorCellStencil" );
 
-  if ( this->getStorage()->hasGlobalCells() )
-  {
-    if ( form.assemble3D() )
-    {
-      // WALBERLA_ABORT( "assembleEdgeToVertexStencils< UFCOperator3D > not implemented!" );
-      assembleEdgeToVertexStencils< EdgeDoFToVertexDoFForm >( this->getStorage(),
-                                                     this->minLevel_,
-                                                     this->maxLevel_,
-                                                     getVertexStencil3DID(),
-                                                     getEdgeStencil3DID(),
-                                                     getFaceStencil3DID(),
-                                                     getCellStencilID());
-    }
-  }
-  else
-  {
-    // Only assemble stencils if UFCOperator is specified
-    if ( form.assemble2D() )
-    {
-      assembleStencils();
-    }
-  }
+   if ( this->getStorage()->hasGlobalCells() )
+   {
+      if ( form_.assemble3D() )
+      {
+         // WALBERLA_ABORT( "assembleEdgeToVertexStencils< UFCOperator3D > not implemented!" );
+         assembleEdgeToVertexStencils< EdgeDoFToVertexDoFForm >( this->getStorage(),
+                                                                 this->minLevel_,
+                                                                 this->maxLevel_,
+                                                                 getVertexStencil3DID(),
+                                                                 getEdgeStencil3DID(),
+                                                                 getFaceStencil3DID(),
+                                                                 getCellStencilID(),
+                                                                 form_ );
+      }
+   }
+   else
+   {
+      // Only assemble stencils if UFCOperator is specified
+      if ( form_.assemble2D() )
+      {
+         assembleStencils();
+      }
+   }
 
 }
 
@@ -111,7 +128,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils() {
        Point3D d0 = h * ( face.coords[1] - face.coords[0] );
        Point3D d2 = h * ( face.coords[2] - face.coords[0] );
 
-       form.geometryMap = face.getGeometryMap();
+       form_.geometryMap = face.getGeometryMap();
 
        Point3D dirS  = -1.0 * d2;
        Point3D dirSE = d0 - 1.0 * d2;
@@ -123,17 +140,17 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils() {
        real_t* vStencil = storage_->getFace(face.getID())->getData(faceStencilID_)->getPointer(level);
 
        P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-           form, {x, x + dirW, x + dirS}, P2Elements::P2Face::elementSW_reord, vStencil );
+           form_, {x, x + dirW, x + dirS}, P2Elements::P2Face::elementSW_reord, vStencil );
        P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-           form, {x, x + dirS, x + dirSE}, P2Elements::P2Face::elementS_reord, vStencil );
+           form_, {x, x + dirS, x + dirSE}, P2Elements::P2Face::elementS_reord, vStencil );
        P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-           form, {x, x + dirSE, x + dirE}, P2Elements::P2Face::elementSE_reord, vStencil );
+           form_, {x, x + dirSE, x + dirE}, P2Elements::P2Face::elementSE_reord, vStencil );
        P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-           form, {x, x + dirE, x + dirN}, P2Elements::P2Face::elementNE_reord, vStencil );
+           form_, {x, x + dirE, x + dirN}, P2Elements::P2Face::elementNE_reord, vStencil );
        P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-           form, {x, x + dirN, x + dirNW}, P2Elements::P2Face::elementN_reord, vStencil );
+           form_, {x, x + dirN, x + dirNW}, P2Elements::P2Face::elementN_reord, vStencil );
        P2::variablestencil::assembleEdgeToVertexStencil< EdgeDoFToVertexDoFForm >(
-           form, {x, x + dirNW, x + dirW}, P2Elements::P2Face::elementNW_reord, vStencil );
+           form_, {x, x + dirNW, x + dirW}, P2Elements::P2Face::elementNW_reord, vStencil );
     }
 
     // Assemble edge stencils
@@ -182,22 +199,24 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils() {
       }
 
      // assemble south
-     form.geometryMap = faceS->getGeometryMap();
-     P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(form, {x, x + dir_W, x + dir_S},
+      form_.geometryMap = faceS->getGeometryMap();
+     P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(
+          form_, {x, x + dir_W, x + dir_S},
                                                          P2Elements::P2Face::elementSW_reord, vStencil);
-     P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(form, {x, x + dir_S, x + dir_SE},
+     P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(
+         form_, {x, x + dir_S, x + dir_SE},
                                                          P2Elements::P2Face::elementS_reord, vStencil);
      P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(
-         form, {x, x + dir_SE, x + dir_E}, P2Elements::P2Face::elementSE_reord, vStencil);
+         form_, {x, x + dir_SE, x + dir_E}, P2Elements::P2Face::elementSE_reord, vStencil);
 
      if (edge.getNumNeighborFaces() == 2) {
-       form.geometryMap = faceN->getGeometryMap();
+        form_.geometryMap = faceN->getGeometryMap();
        P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(
-           form, {x, x + dir_E, x + dir_N}, P2Elements::P2Face::elementNE_reord, vStencil);
+            form_, {x, x + dir_E, x + dir_N}, P2Elements::P2Face::elementNE_reord, vStencil);
        P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(
-           form, {x, x + dir_N, x + dir_NW}, P2Elements::P2Face::elementN_reord, vStencil);
+           form_, {x, x + dir_N, x + dir_NW}, P2Elements::P2Face::elementN_reord, vStencil);
        P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(
-           form, {x, x + dir_NW, x + dir_W}, P2Elements::P2Face::elementNW_reord, vStencil);
+           form_, {x, x + dir_NW, x + dir_W}, P2Elements::P2Face::elementNW_reord, vStencil);
         }
     }
 
@@ -219,7 +238,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils() {
        for( auto& faceId : vertex.neighborFaces() )
        {
           Face* face       = storage_->getFace( faceId );
-          form.geometryMap = face->getGeometryMap();
+          form_.geometryMap = face->getGeometryMap();
 
           uint_t                     v_i       = face->vertex_index( vertex.getID() );
           std::vector< PrimitiveID > adj_edges = face->adjacent_edges( vertex.getID() );
@@ -231,7 +250,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils() {
               ( face->coords[face->vertex_index( storage_->getEdge( adj_edges[1] )->get_opposite_vertex( vertex.getID() ) )] - x ) * h;
 
           Point3D matrixRow;
-          form.integrateEdgeToVertex( {{x, x + d0, x + d2}}, matrixRow );
+          form_.integrateEdgeToVertex( {{x, x + d0, x + d2}}, matrixRow );
 
           uint_t i = 1;
           // iterate over adjacent edges
@@ -646,5 +665,8 @@ template class EdgeDoFToVertexDoFOperator< P2ToP1FenicsForm< p2_to_p1_div_cell_i
 template class EdgeDoFToVertexDoFOperator< P2ToP1FenicsForm< fenics::NoAssemble,                     p2_to_p1_tet_div_tet_cell_integral_2_otherwise > >;
 
 template class EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >;
+
+template class EdgeDoFToVertexDoFOperator< P2LinearCombinationForm >;
+template class EdgeDoFToVertexDoFOperator< P2RowSumForm >;
 
 }// namespace hyteg

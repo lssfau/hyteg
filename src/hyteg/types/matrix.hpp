@@ -121,6 +121,15 @@ public:
     return &x[0];
   }
 
+   Matrix<T, M, N>& operator+=(const Matrix<T, M, N>& rhs)
+   {
+      for (uint_t i = 0; i < Size; ++i)
+      {
+         x[i] += rhs.x[i];
+      }
+      return *this;
+   }
+
   Matrix<T, M, N>& operator*=(T scalar)
   {
     for (uint_t i = 0; i < Size; ++i)
@@ -193,9 +202,31 @@ public:
     WALBERLA_ABORT("Determinant computation not implemented for matrix dimensions " << M << " x " << N)
   }
 
+  void setAll( const T & constant )
+  {
+     for (uint_t i = 0; i < Size; ++i)
+     {
+        x[i] = constant;
+     }
+  }
+
 private:
   T x[Size];
 };
+
+template<typename T, uint_t M, uint_t N>
+inline Matrix<T, M, N> operator*(T scalar, Matrix<T, M, N> rhs)
+{
+   rhs *= scalar;
+   return rhs;
+}
+
+template<typename T, uint_t M, uint_t N>
+inline Matrix<T, M, N> operator*(Matrix<T, M, N> lhs, T scalar)
+{
+   lhs *= scalar;
+   return lhs;
+}
 
 template<typename T, uint_t M, uint_t N>
 inline std::ostream& operator<<(std::ostream &os, const Matrix<T, M, N> &matrix)

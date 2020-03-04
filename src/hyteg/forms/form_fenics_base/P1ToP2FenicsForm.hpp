@@ -87,10 +87,9 @@ class P1ToP2FenicsForm : public Form
       return real_c( elMat( rowIdx, colIdx ) );
    }
 
-   template < long unsigned int size >
-   std::array< real_t, size > integrate( const std::array< Point3D, 4 >&                         coords,
-                                         const P2Form::dofPosByVertexPair3D&                     cntrPos,
-                                         const std::array< P2Form::dofPosByVertexPair3D, size >& leafPos ) const
+   std::vector< real_t > integrate( const std::array< Point3D, 4 >&                    coords,
+                                    const P2Form::dofPosByVertexPair3D&                cntrPos,
+                                    const std::vector< P2Form::dofPosByVertexPair3D >& leafPos ) const
    {
       WALBERLA_ABORT( "Missing implementation in P1ToP2FenicsForm" );
    }

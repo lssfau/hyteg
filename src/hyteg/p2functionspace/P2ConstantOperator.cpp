@@ -61,6 +61,8 @@
 #include "hyteg/p2functionspace/P2MacroFace.hpp"
 #include "hyteg/p2functionspace/P2MacroVertex.hpp"
 #include "hyteg/p2functionspace/generatedKernels/all.hpp"
+#include "hyteg/forms/P2RowSumForm.hpp"
+#include "hyteg/forms/P2LinearCombinationForm.hpp"
 
 namespace hyteg {
 
@@ -68,11 +70,20 @@ template < class P2Form >
 P2ConstantOperator< P2Form >::P2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                                   size_t                                     minLevel,
                                                   size_t                                     maxLevel )
-: Operator( storage, minLevel, maxLevel )
-, vertexToVertex( storage, minLevel, maxLevel )
-, edgeToVertex( storage, minLevel, maxLevel )
-, vertexToEdge( storage, minLevel, maxLevel )
-, edgeToEdge( storage, minLevel, maxLevel )
+: P2ConstantOperator< P2Form >( storage, minLevel, maxLevel, P2Form() )
+{}
+
+template < class P2Form >
+P2ConstantOperator< P2Form >::P2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                  size_t                                     minLevel,
+                                                  size_t                                     maxLevel,
+                                                  const P2Form & form )
+    : Operator( storage, minLevel, maxLevel )
+    , vertexToVertex( storage, minLevel, maxLevel, form )
+    , edgeToVertex( storage, minLevel, maxLevel, form )
+    , vertexToEdge( storage, minLevel, maxLevel, form )
+    , edgeToEdge( storage, minLevel, maxLevel, form )
+    , form_( form )
 {
    if ( globalDefines::useP1Coloring )
    {
@@ -1105,5 +1116,9 @@ template class P2ConstantOperator< P2FenicsForm< p2_div_cell_integral_1_otherwis
 template class P2ConstantOperator< P2FenicsForm< fenics::NoAssemble, p2_tet_div_tet_cell_integral_2_otherwise > >;
 
 template class P2ConstantOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >;
+
+template class P2ConstantOperator< P2LinearCombinationForm >;
+template class P2ConstantOperator< P2RowSumForm >;
+
 
 } // namespace hyteg

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2020 Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,6 +27,7 @@
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
 #include "hyteg/primitives/Cell.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 
 namespace hyteg {
 namespace P2 {
@@ -34,6 +35,115 @@ namespace macrocell {
 
 using walberla::real_t;
 using walberla::uint_t;
+using indexing::Index;
+using indexing::IndexIncrement;
+
+template < typename ValueType >
+inline ValueType evaluate( const uint_t&                                               level,
+                           const Cell&                                                 cell,
+                           const Point3D&                                              coordinates,
+                           const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& vertexDoFDataID,
+                           const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& edgeDoFDataID )
+{
+   WALBERLA_ABORT( "P2 3D evaluate not implemented for this data type-" )
+}
+
+template <>
+inline real_t evaluate( const uint_t&                                            level,
+                        const Cell&                                              cell,
+                        const Point3D&                                           coordinates,
+                        const PrimitiveDataID< FunctionMemory< real_t >, Cell >& vertexDoFDataID,
+                        const PrimitiveDataID< FunctionMemory< real_t >, Cell >& edgeDoFDataID )
+{
+   auto microCellIndices = vertexdof::macrocell::detail::findLocalMicroCell( level, cell, coordinates );
+
+   // 3. perform interpolation
+
+   auto microTet0 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[0] );
+   auto microTet1 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[1] );
+   auto microTet2 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[2] );
+   auto microTet3 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[3] );
+
+   auto vertexdofData = cell.getData( vertexDoFDataID )->getPointer( level );
+   auto edgedofData   = cell.getData( edgeDoFDataID )->getPointer( level );
+
+   auto valueTetV0 = vertexdofData[vertexdof::macrocell::index(
+       level, microCellIndices[0].x(), microCellIndices[0].y(), microCellIndices[0].z() )];
+   auto valueTetV1 = vertexdofData[vertexdof::macrocell::index(
+       level, microCellIndices[1].x(), microCellIndices[1].y(), microCellIndices[1].z() )];
+   auto valueTetV2 = vertexdofData[vertexdof::macrocell::index(
+       level, microCellIndices[2].x(), microCellIndices[2].y(), microCellIndices[2].z() )];
+   auto valueTetV3 = vertexdofData[vertexdof::macrocell::index(
+       level, microCellIndices[3].x(), microCellIndices[3].y(), microCellIndices[3].z() )];
+
+   IndexIncrement vertexIndex0 = IndexIncrement( microCellIndices[0].x(), microCellIndices[0].y(), microCellIndices[0].z() );
+   IndexIncrement vertexIndex1 = IndexIncrement( microCellIndices[1].x(), microCellIndices[1].y(), microCellIndices[1].z() );
+   IndexIncrement vertexIndex2 = IndexIncrement( microCellIndices[2].x(), microCellIndices[2].y(), microCellIndices[2].z() );
+   IndexIncrement vertexIndex3 = IndexIncrement( microCellIndices[3].x(), microCellIndices[3].y(), microCellIndices[3].z() );
+
+   auto edgeIndex0 = edgedof::calcEdgeDoFIndex( vertexIndex0, vertexIndex1 );
+   auto edgeIndex1 = edgedof::calcEdgeDoFIndex( vertexIndex0, vertexIndex2 );
+   auto edgeIndex2 = edgedof::calcEdgeDoFIndex( vertexIndex1, vertexIndex2 );
+   auto edgeIndex3 = edgedof::calcEdgeDoFIndex( vertexIndex0, vertexIndex3 );
+   auto edgeIndex4 = edgedof::calcEdgeDoFIndex( vertexIndex1, vertexIndex3 );
+   auto edgeIndex5 = edgedof::calcEdgeDoFIndex( vertexIndex2, vertexIndex3 );
+
+   auto edgeOrientation0 = edgedof::calcEdgeDoFOrientation( vertexIndex0, vertexIndex1 );
+   auto edgeOrientation1 = edgedof::calcEdgeDoFOrientation( vertexIndex0, vertexIndex2 );
+   auto edgeOrientation2 = edgedof::calcEdgeDoFOrientation( vertexIndex1, vertexIndex2 );
+   auto edgeOrientation3 = edgedof::calcEdgeDoFOrientation( vertexIndex0, vertexIndex3 );
+   auto edgeOrientation4 = edgedof::calcEdgeDoFOrientation( vertexIndex1, vertexIndex3 );
+   auto edgeOrientation5 = edgedof::calcEdgeDoFOrientation( vertexIndex2, vertexIndex3 );
+
+   auto valueTetE0 =
+       edgedofData[edgedof::macrocell::index( level, edgeIndex0.x(), edgeIndex0.y(), edgeIndex0.z(), edgeOrientation0 )];
+   auto valueTetE1 =
+       edgedofData[edgedof::macrocell::index( level, edgeIndex1.x(), edgeIndex1.y(), edgeIndex1.z(), edgeOrientation1 )];
+   auto valueTetE2 =
+       edgedofData[edgedof::macrocell::index( level, edgeIndex2.x(), edgeIndex2.y(), edgeIndex2.z(), edgeOrientation2 )];
+   auto valueTetE3 =
+       edgedofData[edgedof::macrocell::index( level, edgeIndex3.x(), edgeIndex3.y(), edgeIndex3.z(), edgeOrientation3 )];
+   auto valueTetE4 =
+       edgedofData[edgedof::macrocell::index( level, edgeIndex4.x(), edgeIndex4.y(), edgeIndex4.z(), edgeOrientation4 )];
+   auto valueTetE5 =
+       edgedofData[edgedof::macrocell::index( level, edgeIndex5.x(), edgeIndex5.y(), edgeIndex5.z(), edgeOrientation5 )];
+
+   auto xLocal = vertexdof::macrocell::detail::transformToLocalTet( microTet0, microTet1, microTet2, microTet3, coordinates );
+
+   // basis functions P2 N(xi_1, xi_2, xi_3):
+   //   at [0. 0. 0.]: 2.0*xi_1**2 + 4.0*xi_1*xi_2 + 4.0*xi_1*xi_3 - 3.0*xi_1 + 2.0*xi_2**2 + 4.0*xi_2*xi_3 - 3.0*xi_2 + 2.0*xi_3**2 - 3.0*xi_3 + 1.0
+   //   at [1. 0. 0.]: 2.0*xi_1**2 - 1.0*xi_1
+   //   at [0. 1. 0.]: 2.0*xi_2**2 - 1.0*xi_2
+   //   at [0. 0. 1.]: 2.0*xi_3**2 - 1.0*xi_3
+   //   at [0.5 0.  0. ]: -4.0*xi_1**2 - 4.0*xi_1*xi_2 - 4.0*xi_1*xi_3 + 4.0*xi_1
+   //   at [0.5 0.5 0. ]: 4.0*xi_1*xi_2
+   //   at [0.  0.5 0. ]: -4.0*xi_1*xi_2 - 4.0*xi_2**2 - 4.0*xi_2*xi_3 + 4.0*xi_2
+   //   at [0.  0.  0.5]: -4.0*xi_1*xi_3 - 4.0*xi_2*xi_3 - 4.0*xi_3**2 + 4.0*xi_3
+   //   at [0.5 0.  0.5]: 4.0*xi_1*xi_3
+   //   at [0.  0.5 0.5]: 4.0*xi_2*xi_3
+
+   auto xi_1 = xLocal[0];
+   auto xi_2 = xLocal[1];
+   auto xi_3 = xLocal[2];
+
+   auto scaleV0 = valueTetV0 * ( 2.0 * xi_1 * xi_1 + 4.0 * xi_1 * xi_2 + 4.0 * xi_1 * xi_3 - 3.0 * xi_1 + 2.0 * xi_2 * xi_2 +
+                                 4.0 * xi_2 * xi_3 - 3.0 * xi_2 + 2.0 * xi_3 * xi_3 - 3.0 * xi_3 + 1.0 );
+   auto scaleV1 = valueTetV1 * ( 2.0 * xi_1 * xi_1 - 1.0 * xi_1 );
+   auto scaleV2 = valueTetV2 * ( 2.0 * xi_2 * xi_2 - 1.0 * xi_2 );
+   auto scaleV3 = valueTetV3 * ( 2.0 * xi_3 * xi_3 - 1.0 * xi_3 );
+
+   auto scaleE0 = valueTetE0 * ( -4.0 * xi_1 * xi_1 - 4.0 * xi_1 * xi_2 - 4.0 * xi_1 * xi_3 + 4.0 * xi_1 );
+   auto scaleE1 = valueTetE1 * ( -4.0 * xi_1 * xi_2 - 4.0 * xi_2 * xi_2 - 4.0 * xi_2 * xi_3 + 4.0 * xi_2 );
+   auto scaleE2 = valueTetE2 * ( 4.0 * xi_1 * xi_2 );
+   auto scaleE3 = valueTetE3 * ( -4.0 * xi_1 * xi_3 - 4.0 * xi_2 * xi_3 - 4.0 * xi_3 * xi_3 + 4.0 * xi_3 );
+   auto scaleE4 = valueTetE4 * ( 4.0 * xi_1 * xi_3 );
+   auto scaleE5 = valueTetE5 * ( 4.0 * xi_2 * xi_3 );
+
+   auto value = scaleV0 + scaleV1 + scaleV2 + scaleV3 + scaleE0 + scaleE1 + scaleE2 + scaleE3 +
+                scaleE4 + scaleE5;
+
+   return value;
+}
 
 void smoothSOR(
     const uint_t&                                                                                level,

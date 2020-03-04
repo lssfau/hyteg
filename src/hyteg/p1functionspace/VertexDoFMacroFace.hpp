@@ -133,70 +133,113 @@ inline ValueType assembleLocalDG( const uint_t&                            Level
 }
 
 template < typename ValueType >
-inline void getLocalElementDoFIndicesFromCoordinates( const uint_t & level, Face & face, const Point3D coordinates,
-                                                      const PrimitiveDataID< FunctionMemory< ValueType >, Face > & srcID,
-                                                      Point2D& localCoordinates, Matrix2r& transform, Point3D& dofs)
+inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&                                               level,
+                                                      const Face&                                                 face,
+                                                      const Point3D                                               coordinates,
+                                                      const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcID,
+                                                      Point2D&  localCoordinates,
+                                                      Matrix2r& transform,
+                                                      Point3D&  dofs )
 {
-  // Get the element local coordinates and DoFs from physical coordinates
-  // The local DoFs are sorted in following order
-  // 2
-  // | \
-  // |  \
-  // 0 - 1
+   // Get the element local coordinates and DoFs from physical coordinates
+   // The local DoFs are sorted in following order
+   // 2
+   // | \
+   // |  \
+   // 0 - 1
 
-  // Transform absolute coordinates to macro element relative coordinates
-  Matrix2r A;
-  A(0,0) = (face.getCoordinates()[1] - face.getCoordinates()[0])[0];
-  A(0,1) = (face.getCoordinates()[2] - face.getCoordinates()[0])[0];
-  A(1,0) = (face.getCoordinates()[1] - face.getCoordinates()[0])[1];
-  A(1,1) = (face.getCoordinates()[2] - face.getCoordinates()[0])[1];
-  transform = A.adj();
-  transform *= 1.0 / A.det();
+   // Transform absolute coordinates to macro element relative coordinates
+   Matrix2r A;
+   A( 0, 0 ) = ( face.getCoordinates()[1] - face.getCoordinates()[0] )[0];
+   A( 0, 1 ) = ( face.getCoordinates()[2] - face.getCoordinates()[0] )[0];
+   A( 1, 0 ) = ( face.getCoordinates()[1] - face.getCoordinates()[0] )[1];
+   A( 1, 1 ) = ( face.getCoordinates()[2] - face.getCoordinates()[0] )[1];
+   transform = A.adj();
+   transform *= 1.0 / A.det();
 
-  Point2D x({coordinates[0] - face.getCoordinates()[0][0], coordinates[1] - face.getCoordinates()[0][1]});
+   Point2D x( {coordinates[0] - face.getCoordinates()[0][0], coordinates[1] - face.getCoordinates()[0][1]} );
 
-  Point2D xRelMacro = transform.mul(x);
+   Point2D xRelMacro = transform.mul( x );
 
-  // Determine lower-left corner index of the quad where the evaluation point lies in
-  uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
-  real_t hInv = walberla::real_c(rowsize - 1);
-  real_t h = walberla::real_c(1.0 / hInv);
-  Index index;
-  index.x() = walberla::uint_c(std::floor(xRelMacro[0] * (rowsize-1)));
-  index.y() = walberla::uint_c(std::floor(xRelMacro[1] * (rowsize-1)));
+   // Determine lower-left corner index of the quad where the evaluation point lies in
+   uint_t rowsize = levelinfo::num_microvertices_per_edge( level );
+   real_t hInv    = walberla::real_c( rowsize - 1 );
+   real_t h       = walberla::real_c( 1.0 / hInv );
+   int    binX    = static_cast< int >( std::floor( xRelMacro[0] * ( rowsize - 1 ) ) );
+   int    binY    = static_cast< int >( std::floor( xRelMacro[1] * ( rowsize - 1 ) ) );
 
-  if (index.x() == rowsize-1) {
-    --index.x();
-  }
+   if ( binX < 0 )
+   {
+      binX = 0;
+   }
 
-  if (index.y() == rowsize-1) {
-    --index.y();
-  }
+   if ( binY < 0 )
+   {
+      binY = 0;
+   }
 
-  localCoordinates[0] = xRelMacro[0] - index.x() * h;
-  localCoordinates[1] = xRelMacro[1] - index.y() * h;
-  localCoordinates *= hInv;
+   if ( binX >= static_cast< int >( rowsize - 1 ) )
+   {
+      binX = static_cast< int >( rowsize - 2 );
+   }
 
-  auto srcData = face.getData( srcID )->getPointer( level );
+   if ( binY >= static_cast< int >( rowsize - 1 ) )
+   {
+      binY = static_cast< int >( rowsize - 2 );
+   }
 
-  transform *= hInv;
-  transform = transform.transpose();
+   if ( binX + binY >= static_cast< int >( rowsize - 1 ) )
+   {
+      int binXDec = (binX + binY - static_cast< int >( rowsize - 2 )) / 2;
+      binXDec += (binX + binY - static_cast< int >( rowsize - 2 )) % 2;
+      int binYDec = (binX + binY - static_cast< int >( rowsize - 2 )) / 2;
+      binX -= binXDec;
+      binY -= binYDec;
+   }
 
-  // Combine solution from linear basis functions depending on triangle orientation
-  // Up triangle
-  if (localCoordinates[0] + localCoordinates[1] <= 1.0) {
-    dofs[0] = srcData[vertexdof::macroface::indexFromVertex( level, index.x(), index.y(), stencilDirection::VERTEX_C)];
-    dofs[1] = srcData[vertexdof::macroface::indexFromVertex( level, index.x(), index.y(), stencilDirection::VERTEX_E)];
-    dofs[2] = srcData[vertexdof::macroface::indexFromVertex( level, index.x(), index.y(), stencilDirection::VERTEX_N)];
-  } else { // Down triangle
-    index.y() += 1;
-    localCoordinates[0] = 1.0 - localCoordinates[0];
-    localCoordinates[1] = 1.0 - localCoordinates[1];
-    transform *= -1.0;
-    dofs[0] = srcData[vertexdof::macroface::indexFromVertex( level, index.x(), index.y(), stencilDirection::VERTEX_E)];
-    dofs[1] = srcData[vertexdof::macroface::indexFromVertex( level, index.x(), index.y(), stencilDirection::VERTEX_C)];
-    dofs[2] = srcData[vertexdof::macroface::indexFromVertex( level, index.x(), index.y(), stencilDirection::VERTEX_SE)];
-  }
+   Index index;
+   index.x() = uint_c( binX );
+   index.y() = uint_c( binY );
+
+   WALBERLA_ASSERT_LESS( index.x(), rowsize - 1 );
+   WALBERLA_ASSERT_LESS( index.y(), rowsize - 1 );
+   WALBERLA_ASSERT_LESS( index.x() + index.y(), rowsize - 1, "index.x(): " << index.x() << ", index.y()" << index.y() );
+
+   localCoordinates[0] = xRelMacro[0] - index.x() * h;
+   localCoordinates[1] = xRelMacro[1] - index.y() * h;
+   localCoordinates *= hInv;
+
+   auto srcData = face.getData( srcID )->getPointer( level );
+
+   transform *= hInv;
+   transform = transform.transpose();
+
+
+   // decide if up or down triangle
+   // clamp to macro-face if the corresponding down-triangle would be out of the macro-face
+   // otherwise check floating point distance
+   bool upTriangle = (index.x() + index.y() == rowsize - 2) || ( localCoordinates[0] + localCoordinates[1] <= 1.0 );
+
+   // Combine solution from linear basis functions depending on triangle orientation
+   if ( upTriangle )
+   {
+      dofs[0] = srcData[vertexdof::macroface::indexFromVertex( level, index.x(), index.y(), stencilDirection::VERTEX_C )];
+      dofs[1] = srcData[vertexdof::macroface::indexFromVertex( level, index.x(), index.y(), stencilDirection::VERTEX_E )];
+      dofs[2] = srcData[vertexdof::macroface::indexFromVertex( level, index.x(), index.y(), stencilDirection::VERTEX_N )];
+   }
+   else
+   {
+      WALBERLA_ASSERT_LESS( index.x(), rowsize - 2 );
+      WALBERLA_ASSERT_LESS( index.y(), rowsize - 2 );
+      WALBERLA_ASSERT_LESS( index.x() + index.y(), rowsize - 2 );
+      index.y() += 1;
+      localCoordinates[0] = 1.0 - localCoordinates[0];
+      localCoordinates[1] = 1.0 - localCoordinates[1];
+      transform *= -1.0;
+      dofs[0] = srcData[vertexdof::macroface::indexFromVertex( level, index.x(), index.y(), stencilDirection::VERTEX_E )];
+      dofs[1] = srcData[vertexdof::macroface::indexFromVertex( level, index.x(), index.y(), stencilDirection::VERTEX_C )];
+      dofs[2] = srcData[vertexdof::macroface::indexFromVertex( level, index.x(), index.y(), stencilDirection::VERTEX_SE )];
+   }
 }
 
 template < typename ValueType >
@@ -248,7 +291,7 @@ inline void interpolate( const uint_t&                                          
 }
 
 template< typename ValueType >
-inline real_t evaluate( const uint_t & level, Face & face, const Point3D coordinates,
+inline real_t evaluate( const uint_t & level, const Face & face, const Point3D coordinates,
                         const PrimitiveDataID< FunctionMemory< ValueType >, Face > & srcID)
 {
    Point2D localCoordinates;

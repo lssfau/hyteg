@@ -1,0 +1,10 @@
+namespace walberla {
+namespace convection_particles {
+
+/**
+ * \defgroup convection_particles MESA-PD - Modular and Extensible Software Architecture for Particle Dynamics
+ * The particle dynamics module of the waLBerla multi-physics framework.
+**/
+
+}
+}

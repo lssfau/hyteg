@@ -22,6 +22,7 @@
 
 #include "core/debug/all.h"
 #include "core/DataTypes.h"
+#include "core/math/Matrix3.h"
 
 #include "hyteg/primitives/Cell.hpp"
 #include "hyteg/Levelinfo.hpp"
@@ -34,6 +35,7 @@
 #include "hyteg/Algorithms.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
 #include "hyteg/LevelWiseMemory.hpp"
+#include "hyteg/celldofspace/CellDoFIndexing.hpp"
 
 namespace hyteg {
 namespace vertexdof {
@@ -127,6 +129,211 @@ inline void swap( const uint_t & level, Cell & cell,
   auto srcData = cell.getData( srcID );
   auto dstData = cell.getData( dstID );
   srcData->swap( *dstData, level );
+}
+
+template< typename ValueType >
+inline real_t evaluate( const uint_t & level, const Cell & cell, const Point3D & coordinates,
+                        const PrimitiveDataID< FunctionMemory< ValueType >, Cell > & dataID )
+{
+   WALBERLA_ABORT("VertexDoF macro-cell evaluate not implemented for this data type.")
+}
+
+namespace detail {
+
+// we should find better locations for alle functions here in detail namespace
+
+inline constexpr int clamp( int x, int min, int max )
+{
+   if ( x < min ) return min;
+   if ( x > max ) return max;
+   return x;
+}
+
+inline Point3D transformToLocalTet( const Point3D & tet0, const Point3D & tet1, const Point3D & tet2, const Point3D & tet3, const Point3D & globalPoint )
+{
+   walberla::math::Matrix3< real_t > A;
+
+   A( 0, 0 ) = ( tet1 - tet0 )[0];
+   A( 0, 1 ) = ( tet2 - tet0 )[0];
+   A( 0, 2 ) = ( tet3 - tet0 )[0];
+
+   A( 1, 0 ) = ( tet1 - tet0 )[1];
+   A( 1, 1 ) = ( tet2 - tet0 )[1];
+   A( 1, 2 ) = ( tet3 - tet0 )[1];
+
+   A( 2, 0 ) = ( tet1 - tet0 )[2];
+   A( 2, 1 ) = ( tet2 - tet0 )[2];
+   A( 2, 2 ) = ( tet3 - tet0 )[2];
+
+   A.invert();
+
+   walberla::Vector3< real_t > x( globalPoint[0] - tet0[0], globalPoint[1] - tet0[1], globalPoint[2] - tet0[2] );
+
+   auto result = A * x;
+   return Point3D( { result[0], result[1], result[2] } );
+}
+
+inline std::array< Index, 4 > findLocalMicroCell( const uint_t & level, const Cell & cell, const Point3D & coordinates )
+{
+   // Assuming now that the passed coordinates are in the cell.
+   // Otherwise they are clamped.
+
+   // 1. affine transformation to local macro-tet
+
+   auto xRelMacro = detail::transformToLocalTet(
+       cell.getCoordinates()[0], cell.getCoordinates()[1], cell.getCoordinates()[2], cell.getCoordinates()[3], coordinates );
+
+   // 2. Clip along the six relevant half planes that intersect the macro-tetrahedron.
+   //    Those planes have the following normals:
+   //       (1, 0, 0) -> x-plane
+   //       (0, 1, 0) -> y-plane
+   //       (0, 0, 1) -> z-plane
+   //       (1, 1, 1) -> xyz-plane
+   //       (1, 1, 0) -> xy-plane
+   //       (0, 1, 1) -> yz-plane
+   //    All coordinates are clipped to the next lower plane (relative to origin at vertex 0, or (0, 0, 0)).
+   //    Also they are clipped to the "interior" of the tetrahedron.
+   //
+   //    Depending on the index of the plane, the exact micro-tetrahedron can be defined.
+   //    First we determine the "micro-cube" depending on the x-, y- and z-planes.
+   //    Then the other plane-indices are evaluated.
+   //    E.g.:
+   //       x-plane = 0, y-plane = 0, z-plane = 0 (=> micro-cube at (0, 0, 0) - (1, 1, 1))
+   //       xyz-plane == 0 -> white-up cell
+   //       xyz-plane == 2 -> white-down cell
+   //       xyz-plane == 1 ->
+   //          xy-plane | yz-plane |     cell
+   //          ---------+----------+---------
+   //              0    |     0    | green-up
+   //              0    |     1    | blue-down
+   //              1    |     0    | blue-up
+   //              1    |     1    | green-down
+   //
+   //    In general we can calculate the final cell directly using the following rules:
+   //       xyz-plane - (x-plane + y-plane + z-plane) == 0 -> white-up cell
+   //       xyz-plane - (x-plane + y-plane + z-plane) == 2 -> white-down cell
+   //       xyz-plane - (x-plane + y-plane + z-plane) == 1 ->
+   //
+   //          xy-plane-tilde = xy-plane - (x-plane + y-plane)
+   //          yz-plane-tilde = yz-plane - (y-plane + z-plane)
+   //
+   //          xy-plane-tilde | yz-plane-tilde |     cell
+   //          ---------------+----------------+---------
+   //                    0    |     0          | green-up
+   //                    0    |     1          | blue-down
+   //                    1    |     0          | blue-up
+   //                    1    |     1          | green-down
+   //    The final cell has the local cell-coordinates of the cube (x-plane, y-plane, z-plane).
+
+   const int    numMicroEdges = (int) levelinfo::num_microedges_per_edge( level );
+   const real_t microEdgeSize = 1.0 / real_c( numMicroEdges );
+
+   const real_t planeWidthXYZ = microEdgeSize * std::sqrt( 3.0 ) / 3.0;
+
+   int planeX = (int) ( xRelMacro[0] / microEdgeSize );
+   int planeY = (int) ( xRelMacro[1] / microEdgeSize );
+   int planeZ = (int) ( xRelMacro[2] / microEdgeSize );
+
+   // projecting to point to line (0, 0, 0) -- (1, 1, 1) to measure distance from vertex 0
+   // projecton = (sum(p), sum(p), sum(p)) / 3
+   const real_t xyzProjectionCoord = (xRelMacro[0] + xRelMacro[1] + xRelMacro[2]) / 3.;
+   // then taking the norm
+   const real_t lengthXYZ = std::sqrt( 3. * (xyzProjectionCoord * xyzProjectionCoord) );
+
+   int planeXYZ = (int) ( lengthXYZ / planeWidthXYZ );
+
+   // clip to prevent element outside macro-cell. std::clamp is C++17 ...
+
+   planeX = detail::clamp( planeX, 0, numMicroEdges - 1 );
+   planeY = detail::clamp( planeY, 0, numMicroEdges - 1 - planeX );
+   planeZ = detail::clamp( planeZ, 0, numMicroEdges - 1 - planeX - planeY );
+   planeXYZ = detail::clamp( planeXYZ, planeX + planeY + planeZ, planeX + planeY + planeZ + 2 );
+
+   celldof::CellType cellType;
+
+   // check if the point is located in a sub-cube, i.e. all cell types are possible
+   const bool inFullCube = planeX + planeY + planeZ < numMicroEdges - 2;
+   // check if cube is at boundary and lacks the WHITE_DOWN cell
+   const bool inCutCube  = planeX + planeY + planeZ == numMicroEdges - 2;
+   // if both are false, the point is located in a white cell near the macro-edges / macro-vertices
+
+   const int whiteCellDecider = planeXYZ - ( planeX + planeY + planeZ );
+
+   Point3D cubeOrigin( {real_c(planeX), real_c(planeY), real_c(planeZ)} );
+   cubeOrigin *= microEdgeSize;
+   const auto xRelCube = xRelMacro - cubeOrigin;
+
+   const real_t lengthXY  = std::sqrt( xRelCube[0] * xRelCube[0] + xRelCube[1] * xRelCube[1] );
+   const real_t lengthYZ  = std::sqrt( xRelCube[1] * xRelCube[1] + xRelCube[2] * xRelCube[2] );
+
+   const bool lowerPlaneXY = lengthXY < 0.5 * std::sqrt( 2 ) * microEdgeSize;
+   const bool lowerPlaneYZ = lengthYZ < 0.5 * std::sqrt( 2 ) * microEdgeSize;
+
+   if ( (!inFullCube && !inCutCube) || whiteCellDecider == 0 )
+   {
+      cellType = celldof::CellType::WHITE_UP;
+   }
+   else if ( inFullCube && whiteCellDecider == 2 )
+   {
+      cellType = celldof::CellType::WHITE_DOWN;
+   }
+   else
+   {
+      if ( lowerPlaneXY )
+      {
+         if ( lowerPlaneYZ )
+            cellType = celldof::CellType::GREEN_UP;
+         else
+            cellType = celldof::CellType::BLUE_DOWN;
+      }
+      else
+      {
+         if ( lowerPlaneYZ )
+            cellType = celldof::CellType::BLUE_UP;
+         else
+            cellType = celldof::CellType::GREEN_DOWN;
+      }
+   }
+
+   const auto microCellIndices = celldof::macrocell::getMicroVerticesFromMicroCell( Index( uint_c(planeX), uint_c(planeY), uint_c(planeZ) ), cellType );
+
+   const uint_t numMicroVertices = levelinfo::num_microvertices_per_edge( level );
+   WALBERLA_ASSERT_LESS( microCellIndices[0].x() + microCellIndices[0].y() + microCellIndices[0].z(), numMicroVertices );
+   WALBERLA_ASSERT_LESS( microCellIndices[1].x() + microCellIndices[1].y() + microCellIndices[1].z(), numMicroVertices );
+   WALBERLA_ASSERT_LESS( microCellIndices[2].x() + microCellIndices[2].y() + microCellIndices[2].z(), numMicroVertices );
+   WALBERLA_ASSERT_LESS( microCellIndices[3].x() + microCellIndices[3].y() + microCellIndices[3].z(), numMicroVertices );
+
+   return microCellIndices;
+}
+
+}
+
+template<>
+inline real_t evaluate( const uint_t & level, const Cell & cell, const Point3D & coordinates,
+                        const PrimitiveDataID< FunctionMemory< real_t >, Cell > & dataID )
+{
+   auto microCellIndices = detail::findLocalMicroCell( level, cell, coordinates );
+
+   // 3. perform interpolation
+
+   auto microTet0 = coordinateFromIndex( level, cell, microCellIndices[0] );
+   auto microTet1 = coordinateFromIndex( level, cell, microCellIndices[1] );
+   auto microTet2 = coordinateFromIndex( level, cell, microCellIndices[2] );
+   auto microTet3 = coordinateFromIndex( level, cell, microCellIndices[3] );
+
+   auto cellData = cell.getData( dataID )->getPointer( level );
+
+   auto valueTet0 = cellData[ vertexdof::macrocell::index( level, microCellIndices[0].x(), microCellIndices[0].y(), microCellIndices[0].z()) ];
+   auto valueTet1 = cellData[ vertexdof::macrocell::index( level, microCellIndices[1].x(), microCellIndices[1].y(), microCellIndices[1].z()) ];
+   auto valueTet2 = cellData[ vertexdof::macrocell::index( level, microCellIndices[2].x(), microCellIndices[2].y(), microCellIndices[2].z()) ];
+   auto valueTet3 = cellData[ vertexdof::macrocell::index( level, microCellIndices[3].x(), microCellIndices[3].y(), microCellIndices[3].z()) ];
+
+   auto xLocal = detail::transformToLocalTet( microTet0, microTet1, microTet2, microTet3, coordinates );
+
+   auto value = valueTet0 * (1.0 - xLocal[0] - xLocal[1] - xLocal[2]) + valueTet1 * xLocal[0] + valueTet2 * xLocal[1] + valueTet3 * xLocal[2];
+
+   return value;
+
 }
 
 template< typename ValueType >

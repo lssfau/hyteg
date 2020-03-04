@@ -39,6 +39,31 @@ namespace macroface {
 
 using walberla::real_c;
 using walberla::uint_t;
+using indexing::Index;
+
+inline Point3D coordinateFromIndex( const uint_t& Level, const Face& face, const Index& index, const EdgeDoFOrientation & orientation)
+{
+   const real_t  stepFrequency = 1.0 / levelinfo::num_microedges_per_edge( Level );
+   const Point3D xStep         = ( face.getCoordinates()[1] - face.getCoordinates()[0] ) * stepFrequency;
+   const Point3D yStep         = ( face.getCoordinates()[2] - face.getCoordinates()[0] ) * stepFrequency;
+   Point3D increment;
+   switch ( orientation )
+   {
+   case EdgeDoFOrientation::X:
+      increment = 0.5 * xStep;
+      break;
+   case EdgeDoFOrientation::Y:
+      increment = 0.5 * yStep;
+      break;
+   case EdgeDoFOrientation::XY:
+      increment = 0.5 * xStep + 0.5 * yStep;
+      break;
+   default:
+      WALBERLA_ABORT( "Invalid edgedof orientation." )
+   }
+   return face.getCoordinates()[0] + xStep * real_c( index.x() ) + yStep * real_c( index.y() ) + increment;
+}
+
 
 inline indexing::Index getIndexInNeighboringMacroCell( const indexing::Index&  edgeDoFIndexInMacroFace,
                                                        const Face&             face,
@@ -110,18 +135,45 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
    real_t hInv    = walberla::real_c( rowsize - 1 );
    real_t h       = walberla::real_c( 1.0 / hInv );
 
-   uint_t col = walberla::uint_c( std::floor( xRelMacro[0] * real_c( rowsize - 1 ) ) );
-   uint_t row = walberla::uint_c( std::floor( xRelMacro[1] * real_c( rowsize - 1 ) ) );
+   int    binX    = static_cast< int >( std::floor( xRelMacro[0] * ( rowsize - 1 ) ) );
+   int    binY    = static_cast< int >( std::floor( xRelMacro[1] * ( rowsize - 1 ) ) );
 
-   if ( col == rowsize - 1 )
+   if ( binX < 0 )
    {
-      --col;
+      binX = 0;
    }
 
-   if ( row == rowsize - 1 )
+   if ( binY < 0 )
    {
-      --row;
+      binY = 0;
    }
+
+   if ( binX >= static_cast< int >( rowsize - 1 ) )
+   {
+      binX = static_cast< int >( rowsize - 2 );
+   }
+
+   if ( binY >= static_cast< int >( rowsize - 1 ) )
+   {
+      binY = static_cast< int >( rowsize - 2 );
+   }
+
+   if ( binX + binY >= static_cast< int >( rowsize - 1 ) )
+   {
+      int binXDec = (binX + binY - static_cast< int >( rowsize - 2 )) / 2;
+      binXDec += (binX + binY - static_cast< int >( rowsize - 2 )) % 2;
+      int binYDec = (binX + binY - static_cast< int >( rowsize - 2 )) / 2;
+      binX -= binXDec;
+      binY -= binYDec;
+   }
+
+   uint_t col = uint_c( binX );
+   uint_t row = uint_c( binY );
+
+   WALBERLA_ASSERT_LESS( col, rowsize - 1 );
+   WALBERLA_ASSERT_LESS( row, rowsize - 1 );
+   WALBERLA_ASSERT_LESS( col + row, rowsize - 1, "index.x(): " << col << ", index.y()" << row );
+
 
    localCoordinates[0] = xRelMacro[0] - col * h;
    localCoordinates[1] = xRelMacro[1] - row * h;
@@ -132,15 +184,21 @@ inline void getLocalElementDoFIndicesFromCoordinates( const uint_t&             
    transform *= hInv;
    transform = transform.transpose();
 
-   // Up triangle
-   if ( localCoordinates[0] + localCoordinates[1] <= 1.0 )
+   // decide if up or down triangle
+   // clamp to macro-face if the corresponding down-triangle would be out of the macro-face
+   // otherwise check floating point distance
+   bool upTriangle = (col + row == rowsize - 2) || ( localCoordinates[0] + localCoordinates[1] <= 1.0 );
+
+   if ( upTriangle )
    {
+      // Up triangle
       dofs[0] = srcData[edgedof::macroface::diagonalIndex( level, col, row )];
       dofs[1] = srcData[edgedof::macroface::verticalIndex( level, col, row )];
       dofs[2] = srcData[edgedof::macroface::horizontalIndex( level, col, row )];
    }
    else
-   { // Down triangle
+   {
+      // Down triangle
       localCoordinates[0] = 1.0 - localCoordinates[0];
       localCoordinates[1] = 1.0 - localCoordinates[1];
       transform *= -1.0;

@@ -62,7 +62,7 @@ public:
 
 
 /// Wrapper around Point3D for convenient access to logical indices.
-class Index : protected PointND< uint_t, 3 >
+class Index : public PointND< uint_t, 3 >
 {
 public:
 

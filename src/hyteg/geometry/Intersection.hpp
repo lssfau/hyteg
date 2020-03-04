@@ -37,7 +37,26 @@ inline real_t distanceToPlane( const Point3D& pointOfInterest, const Point3D& po
    return ( planeNormal / planeNormal.norm() ).dot( pointOfInterest - pointOnPlane );
 }
 
+/// \brief Returns the absolute distance to a half plane in 3D.
+inline real_t distanceToPlane( const Point3D& planeVertex0,
+                               const Point3D& planeVertex1,
+                               const Point3D& planeVertex2,
+                               const Point3D& opposingVertex )
+{
+   auto v      = opposingVertex - planeVertex0;
+   auto normal = crossProduct( planeVertex1 - planeVertex0, planeVertex2 - planeVertex0 );
+   normal /= normal.norm();
+   auto dist           = normal.dot( v );
+   auto projectedPoint = opposingVertex - dist * normal;
+   auto inwardNormal   = opposingVertex - projectedPoint;
+   return inwardNormal.norm();
+}
+
+
 /// \brief Returns the normal of the passed triangle in the direction of the opposite (4th) vertex of the tet.
+///
+/// This function may return a weird normal if the "opposing" vertex lies almost on the plane.
+/// Use distanceToPlane() to be sure that this is not the case.
 inline Point3D tetrahedronInwardNormal( const Point3D& planeVertex0,
                                         const Point3D& planeVertex1,
                                         const Point3D& planeVertex2,
@@ -59,6 +78,26 @@ inline Point3D tetrahedronInwardNormal( const Point3D& planeVertex0,
    {
       return inwardNormal / inwardNormal.norm();
    }
+}
+
+inline bool isPointInTriangle( const Point2D & pointOfInterest,
+                               const Point2D & v1,
+                               const Point2D & v2,
+                               const Point2D & v3 )
+{
+   const auto v1x     = v1[0];
+   const auto v1y     = v1[1];
+   const auto v2x     = v2[0];
+   const auto v2y     = v2[1];
+   const auto v3x     = v3[0];
+   const auto v3y     = v3[1];
+   const auto centrex = pointOfInterest[0];
+   const auto centrey = pointOfInterest[1];
+
+   const auto area = 0.5 * ( -v2y * v3x + v1y * ( -v2x + v3x ) + v1x * ( v2y - v3y ) + v2x * v3y );
+   const auto s    = 1 / ( 2 * area ) * ( v1y * v3x - v1x * v3y + ( v3y - v1y ) * centrex + ( v1x - v3x ) * centrey );
+   const auto t    = 1 / ( 2 * area ) * ( v1x * v2y - v1y * v2x + ( v1y - v2y ) * centrex + ( v2x - v1x ) * centrey );
+   return ( s > 0 && t > 0 && 1 - s - t > 0 );
 }
 
 /// \brief Returns true if the passed circle and triangle intersect.
@@ -101,12 +140,7 @@ inline bool circleTriangleIntersection( const Point2D& centre,
    //
    // TEST 2: Circle centre within triangle
    //
-   // NOTE: This works for clockwise ordered vertices!
-   //
-   const auto area = 0.5 * ( -v2y * v3x + v1y * ( -v2x + v3x ) + v1x * ( v2y - v3y ) + v2x * v3y );
-   const auto s    = 1 / ( 2 * area ) * ( v1y * v3x - v1x * v3y + ( v3y - v1y ) * centrex + ( v1x - v3x ) * centrey );
-   const auto t    = 1 / ( 2 * area ) * ( v1x * v2y - v1y * v2x + ( v1y - v2y ) * centrex + ( v2x - v1x ) * centrey );
-   if ( s > 0 && t > 0 && 1 - s - t > 0 )
+   if ( isPointInTriangle( centre, v1, v2, v3 ) )
       return true;
 
    //
@@ -185,10 +219,11 @@ inline bool sphereTriangleIntersection( const Point3D& centre,
 {
    // If the distance of the sphere to the triangle plane is greater than the sphere's radius there is no intersection.
    // Otherwise, check intersection of the triangle with the circle that is common with the plane (where the plane cuts through the sphere).
-   auto planeNormal       = tetrahedronInwardNormal( v1, v2, v3, centre );
-   auto centreDistToPlane = distanceToPlane( centre, v1, planeNormal );
+   auto centreDistToPlane = distanceToPlane( v1, v2, v3, centre );
    if ( centreDistToPlane > radius )
       return false;
+
+   auto planeNormal = tetrahedronInwardNormal( v1, v2, v3, centre );
 
    auto intersectionRadius = std::sqrt( radius * radius - centreDistToPlane * centreDistToPlane );
 
@@ -200,15 +235,15 @@ inline bool sphereTriangleIntersection( const Point3D& centre,
    walberla::math::Matrix3< real_t > basisTrafo;
 
    basisTrafo( 0, 0 ) = planeTangent0[0];
-   basisTrafo( 0, 1 ) = planeTangent0[1];
-   basisTrafo( 0, 2 ) = planeTangent0[2];
+   basisTrafo( 1, 0 ) = planeTangent0[1];
+   basisTrafo( 2, 0 ) = planeTangent0[2];
 
-   basisTrafo( 1, 0 ) = planeTangent1[0];
+   basisTrafo( 0, 1 ) = planeTangent1[0];
    basisTrafo( 1, 1 ) = planeTangent1[1];
-   basisTrafo( 1, 2 ) = planeTangent1[2];
+   basisTrafo( 2, 1 ) = planeTangent1[2];
 
-   basisTrafo( 2, 0 ) = planeNormal[0];
-   basisTrafo( 2, 1 ) = planeNormal[1];
+   basisTrafo( 0, 2 ) = planeNormal[0];
+   basisTrafo( 1, 2 ) = planeNormal[1];
    basisTrafo( 2, 2 ) = planeNormal[2];
 
    basisTrafo.invert();
@@ -279,11 +314,14 @@ inline bool sphereTetrahedronIntersection( const Point3D& sphereCenter,
                                            const Point3D& tetVertex2,
                                            const Point3D& tetVertex3 )
 {
-   return isSphereCompletelyInTetrahedron( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex2, tetVertex3 ) ||
-          sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex2 ) ||
-          sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex3 ) ||
-          sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex2, tetVertex3 ) ||
-          sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex1, tetVertex2, tetVertex3 );
+   const auto pointInTet = isPointInTetrahedron( sphereCenter, tetVertex0, tetVertex1, tetVertex2, tetVertex3 );
+   const auto sphereInTet = isSphereCompletelyInTetrahedron( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex2, tetVertex3 );
+   const auto sphereTriangleIntersection0 = sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex2 );
+   const auto sphereTriangleIntersection1 = sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex3 );
+   const auto sphereTriangleIntersection2 = sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex2, tetVertex3 );
+   const auto sphereTriangleIntersection3 = sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex1, tetVertex2, tetVertex3 );
+
+   return pointInTet || sphereInTet || sphereTriangleIntersection0 || sphereTriangleIntersection1 || sphereTriangleIntersection2 || sphereTriangleIntersection3;
 }
 
 } // namespace hyteg

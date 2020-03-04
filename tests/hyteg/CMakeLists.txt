@@ -114,6 +114,36 @@ waLBerla_execute_test(NAME P2P1UzawaConvergenceTest)
 waLBerla_compile_test(FILES convergence/P1ChebyshevSmootherConvergenceTest.cpp DEPENDS hyteg core )
 waLBerla_execute_test(NAME P1ChebyshevSmootherConvergenceTest)
 
+waLBerla_compile_test(FILES convergence/P2UnsteadyDiffusion2DTest.cpp DEPENDS hyteg core )
+waLBerla_execute_test(NAME P2UnsteadyDiffusion2DTest)
+
+waLBerla_compile_test(FILES convergence/P2UnsteadyConvectionDiffusion2DTest.cpp DEPENDS hyteg core convection_particles )
+waLBerla_execute_test(NAME P2UnsteadyConvectionDiffusion2DTest)
+
+## convection ##
+
+waLBerla_compile_test(FILES convection/Upwind2DCircularConvectionTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES convection/AlgebraicUpwind3DCircularConvectionTest.cpp DEPENDS hyteg core)
+
+waLBerla_compile_test(FILES convection/MMOC2DCircularConvectionTest.cpp DEPENDS hyteg core convection_particles)
+waLBerla_execute_test(NAME MMOC2DCircularConvectionTest LABELS longrun)
+
+waLBerla_compile_test(FILES convection/MMOC3DCircularConvectionTest.cpp DEPENDS hyteg core convection_particles)
+waLBerla_execute_test(NAME MMOC3DCircularConvectionTest LABELS longrun)
+
+waLBerla_compile_test(FILES convection/MMOC2DSwirlingFlowConvectionTest.cpp DEPENDS hyteg core convection_particles)
+
+waLBerla_compile_test(FILES convection/ConvectionParticlesCouplingTest.cpp DEPENDS core convection_particles)
+waLBerla_execute_test(NAME ConvectionParticlesCouplingTest LABELS)
+
+## Forms ##
+
+waLBerla_compile_test(FILES forms/P2LinearCombinationFormTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P2LinearCombinationFormTest)
+
+waLBerla_compile_test(FILES forms/P2RowSumTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P2RowSumTest)
+
 ## Indexing ##
 
 waLBerla_compile_test(FILES Indexing/CommonIndexingTest.cpp DEPENDS hyteg core)
@@ -152,6 +182,11 @@ waLBerla_execute_test(NAME EdgeDoFOrientationConversionTest)
 #    waLBerla_execute_test(NAME ConstexprIndexTest)
 #  endif()
 #endif()
+
+## Math ##
+
+waLBerla_compile_test(FILES math/IntersectionTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME IntersectionTest)
 
 ## VertexDoFSpace ##
 
