@@ -22,9 +22,11 @@
 #include <cmath>
 
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+
 #include "GeometryMap.hpp"
 
-// #define ANNULUS_MAP_DEBUG
+#define ANNULUS_MAP_LOG( MSG )
+// #define ANNULUS_MAP_LOG( MSG ) WALBERLA_LOG_INFO_ON_ROOT( MSG );
 
 namespace hyteg {
 
@@ -41,21 +43,19 @@ class AnnulusMap : public GeometryMap
  public:
    AnnulusMap( const Face& face )
    {
-#ifdef ANNULUS_MAP_DEBUG
-      WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------------------" );
-      WALBERLA_LOG_INFO_ON_ROOT( "Initialising Annulus map for faceID: " << face.getID() );
-      WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------------------" );
-#endif
+      ANNULUS_MAP_LOG( "---------------------------------------------" );
+      ANNULUS_MAP_LOG( "Initialising Annulus map for faceID: " << face.getID() );
+      ANNULUS_MAP_LOG( "---------------------------------------------" );
+
       classifyVertices( face.getCoordinates() );
    }
 
    AnnulusMap( const Edge& edge, const SetupPrimitiveStorage& storage )
    {
-#ifdef ANNULUS_MAP_DEBUG
-      WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------------------" );
-      WALBERLA_LOG_INFO_ON_ROOT( "Initialising Annulus map for edgeID: " << edge.getID() );
-      WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------------------" );
-#endif
+      ANNULUS_MAP_LOG( "---------------------------------------------" );
+      ANNULUS_MAP_LOG( "Initialising Annulus map for edgeID: " << edge.getID() );
+      ANNULUS_MAP_LOG( "---------------------------------------------" );
+
       std::vector< PrimitiveID > neighborFaces;
       edge.getNeighborFaces( neighborFaces );
       WALBERLA_ASSERT_GREATER( neighborFaces.size(), 0 );
@@ -78,9 +78,22 @@ class AnnulusMap : public GeometryMap
       xnew[0]       = xold[0] * newRad / oldRad;
       xnew[1]       = xold[1] * newRad / oldRad;
 
-#ifdef ANNULUS_MAP_DEBUG
-      WALBERLA_LOG_INFO_ON_ROOT( "Mapped: " << xold << " --> " << xnew );
-#endif
+      ANNULUS_MAP_LOG( "Mapped: " << xold << " --> " << xnew );
+   }
+
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const
+   {
+      real_t tmp0 = radRayVertex_ - radRefVertex_;
+      real_t tmp1 = rayVertex_[1] - thrVertex_[1];
+      real_t tmp2 = rayVertex_[0] - thrVertex_[0];
+      real_t aux  = std::sqrt( xPhys[0] * xPhys[0] + xPhys[1] * xPhys[1] );
+      real_t tmp3 = radRefVertex_ - aux;
+      real_t tmp4 = ( tmp1 * ( refVertex_[0] * tmp0 - tmp3 * ( rayVertex_[0] - refVertex_[0] ) ) -
+                      tmp2 * ( refVertex_[1] * tmp0 - tmp3 * ( rayVertex_[1] - refVertex_[1] ) ) ) /
+                    ( tmp0 * ( tmp1 * xPhys[0] - tmp2 * xPhys[1] ) );
+
+      xComp[0] = tmp4 * xPhys[0];
+      xComp[1] = tmp4 * xPhys[1];
    }
 
    // note: we could save computations by fusing evalF with evalDF!
@@ -125,21 +138,20 @@ class AnnulusMap : public GeometryMap
       sendBuffer << Type::ANNULUS_MAP << rayVertex_ << refVertex_ << thrVertex_ << radRefVertex_ << radRayVertex_;
    }
 
-   static void setMap( SetupPrimitiveStorage& setupStorage ) {
-
-     for ( auto it : setupStorage.getFaces() )
-       {
+   static void setMap( SetupPrimitiveStorage& setupStorage )
+   {
+      for ( auto it : setupStorage.getFaces() )
+      {
          Face& face = *it.second;
          setupStorage.setGeometryMap( face.getID(), std::make_shared< AnnulusMap >( face ) );
-       }
+      }
 
-     for ( auto it : setupStorage.getEdges() )
-       {
+      for ( auto it : setupStorage.getEdges() )
+      {
          Edge& edge = *it.second;
          setupStorage.setGeometryMap( edge.getID(), std::make_shared< AnnulusMap >( edge, setupStorage ) );
-       }
+      }
    }
-
 
  private:
    /// \name Classified vertices of macro triangle
@@ -167,21 +179,17 @@ class AnnulusMap : public GeometryMap
       for ( uint_t k = 0; k < 3; k++ )
       {
          radius[k] = std::sqrt( coords[k].normSq() );
-#ifdef ANNULUS_MAP_DEBUG
-         WALBERLA_LOG_INFO_ON_ROOT( "Vertex " << k << ": (" // << std::scientific
-                                              << coords[k][0] << ", " << coords[k][1] << ", " << coords[k][2] << ")\n"
-                                              << " radius = " << radius[k] );
-#endif
+         ANNULUS_MAP_LOG( "Vertex " << k << ": (" // << std::scientific
+                                    << coords[k][0] << ", " << coords[k][1] << ", " << coords[k][2] << ")\n"
+                                    << " radius = " << radius[k] );
       }
       real_t cross01 = coords[0][0] * coords[1][1] - coords[0][1] * coords[1][0];
       real_t cross02 = coords[0][0] * coords[2][1] - coords[0][1] * coords[2][0];
       real_t cross12 = coords[1][0] * coords[2][1] - coords[1][1] * coords[2][0];
 
-#ifdef ANNULUS_MAP_DEBUG
-      WALBERLA_LOG_INFO_ON_ROOT( "r0 x r1 = " << std::showpos << std::scientific << cross01 );
-      WALBERLA_LOG_INFO_ON_ROOT( "r0 x r2 = " << std::showpos << std::scientific << cross02 );
-      WALBERLA_LOG_INFO_ON_ROOT( "r1 x r2 = " << std::showpos << std::scientific << cross12 );
-#endif
+      ANNULUS_MAP_LOG( "r0 x r1 = " << std::showpos << std::scientific << cross01 );
+      ANNULUS_MAP_LOG( "r0 x r2 = " << std::showpos << std::scientific << cross02 );
+      ANNULUS_MAP_LOG( "r1 x r2 = " << std::showpos << std::scientific << cross12 );
 
       real_t tol    = 1e-14;
       uint_t intRay = 99;
@@ -236,11 +244,17 @@ class AnnulusMap : public GeometryMap
       }
 
       // swap classes in case we have a triangle pointing towards the origin
+      ANNULUS_MAP_LOG( "Critical value = " << std::abs( coords[intRef].normSq() - thrVertex_.normSq() ) );
       if ( std::abs( coords[intRef].normSq() - thrVertex_.normSq() ) < tol )
       {
+         ANNULUS_MAP_LOG( "Detected inward pointing triangle" );
          uint_t aux = intRay;
          intRay     = intRef;
          intRef     = aux;
+      }
+      else
+      {
+         ANNULUS_MAP_LOG( "Detected outward pointing triangle" );
       }
 
       rayVertex_ = coords[intRay];
@@ -249,11 +263,9 @@ class AnnulusMap : public GeometryMap
       radRayVertex_ = radius[intRay];
       radRefVertex_ = radius[intRef];
 
-#ifdef ANNULUS_MAP_DEBUG
-      WALBERLA_LOG_INFO_ON_ROOT( "refVertex: (" << refVertex_[0] << ", " << refVertex_[1] << ")" );
-      WALBERLA_LOG_INFO_ON_ROOT( "rayVertex: (" << rayVertex_[0] << ", " << rayVertex_[1] << ")" );
-      WALBERLA_LOG_INFO_ON_ROOT( "thrVertex: (" << thrVertex_[0] << ", " << thrVertex_[1] << ")" );
-#endif
+      ANNULUS_MAP_LOG( "refVertex: (" << refVertex_[0] << ", " << refVertex_[1] << ")" );
+      ANNULUS_MAP_LOG( "rayVertex: (" << rayVertex_[0] << ", " << rayVertex_[1] << ")" );
+      ANNULUS_MAP_LOG( "thrVertex: (" << thrVertex_[0] << ", " << thrVertex_[1] << ")" );
    }
 };
 

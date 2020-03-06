@@ -30,6 +30,8 @@ class IdentityMap : public GeometryMap
 
    void evalF( const Point3D& x, Point3D& Fx ) const final { Fx = x; }
 
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const final { xComp = xPhys; }
+
    void evalDF( const Point3D&, Matrix2r& DFx ) const final
    {
       DFx( 0, 0 ) = 1.0;

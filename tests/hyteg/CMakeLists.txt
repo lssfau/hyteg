@@ -537,6 +537,8 @@ waLBerla_execute_test(NAME FunctionMemorySerializationTest8 COMMAND $<TARGET_FIL
 #  waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest2 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> PROCESSES 2 )
 #  waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest8 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> PROCESSES 8 )
 #endif()
+waLBerla_compile_test(FILES blending/AnnulusMapTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME AnnulusMapTest1 COMMAND $<TARGET_FILE:AnnulusMapTest> )
 
 ## Elementwise Operators ##
 if( HYTEG_BUILD_WITH_PETSC )
