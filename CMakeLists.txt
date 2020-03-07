@@ -6,7 +6,6 @@ enable_testing()
 option ( HYTEG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
 option ( HYTEG_BUILD_WITH_EIGEN       "Build with Eigen"                             OFF)
 option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if available" ON)
-option ( HYTEG_P1_COLORING            "Use multicolored P1 layout EXPERIMENTAL (tets only) - only toggle when using only P1 elements" OFF)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -19,10 +18,6 @@ include_directories ( src )
 
 # Extends cmake module path - so that FindwaLBerla.cmake in the current directory is found
 set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${hyteg_SOURCE_DIR}/cmake/modules )
-
-if ( HYTEG_P1_COLORING )
-    message(STATUS "Using multicolor layout for P1 elements! Do not use other discretizations at all.")
-endif()
 
 if ( HYTEG_USE_GENERATED_KERNELS )
     message(STATUS "Using generated HyTeG kernels.")
