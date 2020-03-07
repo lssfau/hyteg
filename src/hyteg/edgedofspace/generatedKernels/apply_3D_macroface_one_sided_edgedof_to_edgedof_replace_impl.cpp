@@ -167,7 +167,7 @@ static void apply_3D_macroface_one_sided_edgedof_to_edgedof_replace_impl_012_lev
             const double xi_42 = xi_202*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + ((((1 << (level)) + 1)*(1 << (level))) / (2))];
             const double xi_43 = xi_203*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 5*((((1 << (level)) + 1)*(1 << (level))) / (2))];
             const double xi_44 = xi_204*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))];
-            const double xi_45 = xi_205*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2))];
+            const double xi_45 = xi_205*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 4*((((1 << (level)) + 1)*(1 << (level))) / (2))];
             const double xi_46 = xi_206*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + 3*((((1 << (level)) - 1)*(1 << (level))) / (2)) + 4*((((1 << (level)) + 1)*(1 << (level))) / (2)) + 1];
             const double xi_47 = xi_207*_data_edgeFaceSrc_X[ctr_1 + ctr_2*((1 << (level)) + 1) - ((ctr_2*(ctr_2 + 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2))];
             const double xi_37 = xi_208*_data_edgeFaceSrc_X[ctr_1 + (ctr_2 - 1)*((1 << (level)) + 1) - ((ctr_2*(ctr_2 - 1)) / (2)) + 2*((((1 << (level)) + 1)*(1 << (level))) / (2)) + 1];
