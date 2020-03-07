@@ -25,20 +25,17 @@
 #include "core/math/Constants.h"
 #include "core/timing/Timer.h"
 
+#include "hyteg/Git.hpp"
 #include "hyteg/LikwidWrapper.hpp"
-#include "hyteg/edgedofspace/generatedKernels/all.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/misc/dummy.hpp"
-#include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/all.hpp"
-#include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/all.hpp"
-#include "hyteg/p1functionspace/generatedKernels/all.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p2functionspace/generatedKernels/all.hpp"
+#include "hyteg/p2functionspace/generatedKernels/sor_3D_macrocell_P2_update_edgedofs_by_type.hpp"
+#include "hyteg/p2functionspace/generatedKernels/sor_3D_macrocell_P2_update_vertexdofs.hpp"
 #include "hyteg/primitives/Cell.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/Git.hpp"
 
 #include "sqlite/SQLite.h"
 
