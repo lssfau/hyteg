@@ -29,7 +29,7 @@ namespace vertexdof {
 namespace macrocell {
 namespace generated {
 
-static void add_3D_macrocell_vertexdof_1_rhs_function_level_any(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double c, int32_t level)
+static void add_3D_macrocell_vertexdof_1_rhs_function_level_any(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double c, int level)
 {
    for (int ctr_3 = 1; ctr_3 < (1 << (level)); ctr_3 += 1)
    {
@@ -47,7 +47,7 @@ static void add_3D_macrocell_vertexdof_1_rhs_function_level_any(double * RESTRIC
 }
 
 
-void add_3D_macrocell_vertexdof_1_rhs_function(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double c, int32_t level)
+void add_3D_macrocell_vertexdof_1_rhs_function(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double c, int level)
 {
     switch( level )
     {

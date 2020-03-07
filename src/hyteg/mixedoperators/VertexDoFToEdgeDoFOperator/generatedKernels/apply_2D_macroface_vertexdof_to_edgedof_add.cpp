@@ -28,7 +28,7 @@ namespace hyteg {
 namespace VertexDoFToEdgeDoF {
 namespace generated {
 
-static void apply_2D_macroface_vertexdof_to_edgedof_add_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexToDiagonalEdgeFaceStencil, double const * RESTRICT const _data_vertexToHorizontalEdgeFaceStencil, double const * RESTRICT const _data_vertexToVerticalEdgeFaceStencil, int32_t level)
+static void apply_2D_macroface_vertexdof_to_edgedof_add_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexToDiagonalEdgeFaceStencil, double const * RESTRICT const _data_vertexToHorizontalEdgeFaceStencil, double const * RESTRICT const _data_vertexToVerticalEdgeFaceStencil, int level)
 {
    const double xi_31 = _data_vertexToDiagonalEdgeFaceStencil[3];
    const double xi_32 = _data_vertexToDiagonalEdgeFaceStencil[2];
@@ -156,7 +156,7 @@ static void apply_2D_macroface_vertexdof_to_edgedof_add_level_any(double * RESTR
 }
 
 
-void apply_2D_macroface_vertexdof_to_edgedof_add(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexToDiagonalEdgeFaceStencil, double const * RESTRICT const _data_vertexToHorizontalEdgeFaceStencil, double const * RESTRICT const _data_vertexToVerticalEdgeFaceStencil, int32_t level)
+void apply_2D_macroface_vertexdof_to_edgedof_add(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double const * RESTRICT const _data_vertexFaceSrc, double const * RESTRICT const _data_vertexToDiagonalEdgeFaceStencil, double const * RESTRICT const _data_vertexToHorizontalEdgeFaceStencil, double const * RESTRICT const _data_vertexToVerticalEdgeFaceStencil, int level)
 {
     switch( level )
     {

@@ -23,7 +23,6 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "all.hpp"
 #include "core/Macros.h"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
 #include "hyteg/indexing/Common.hpp"
@@ -35,7 +34,7 @@ namespace edgedof {
 namespace macroface {
 namespace generated {
 
-void assign_2D_macroface_edgedof_1_rhs_function(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double * RESTRICT _data_edgeFaceSrc_X, double * RESTRICT _data_edgeFaceSrc_XY, double * RESTRICT _data_edgeFaceSrc_Y, double c, int32_t level);
+void assign_2D_macroface_edgedof_1_rhs_function(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double * RESTRICT _data_edgeFaceSrc_X, double * RESTRICT _data_edgeFaceSrc_XY, double * RESTRICT _data_edgeFaceSrc_Y, double c, int level);
 
 } // namespace generated
 } // namespace macroface

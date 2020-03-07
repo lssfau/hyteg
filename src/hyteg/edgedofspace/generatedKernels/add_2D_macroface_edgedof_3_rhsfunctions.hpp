@@ -23,7 +23,6 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "all.hpp"
 #include "core/Macros.h"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
 #include "hyteg/indexing/Common.hpp"
@@ -35,7 +34,7 @@ namespace edgedof {
 namespace macroface {
 namespace generated {
 
-void add_2D_macroface_edgedof_3_rhs_functions(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double * RESTRICT _data_edgeFaceSrc0_X, double * RESTRICT _data_edgeFaceSrc0_XY, double * RESTRICT _data_edgeFaceSrc0_Y, double * RESTRICT _data_edgeFaceSrc1_X, double * RESTRICT _data_edgeFaceSrc1_XY, double * RESTRICT _data_edgeFaceSrc1_Y, double * RESTRICT _data_edgeFaceSrc2_X, double * RESTRICT _data_edgeFaceSrc2_XY, double * RESTRICT _data_edgeFaceSrc2_Y, double c0, double c1, double c2, int32_t level);
+void add_2D_macroface_edgedof_3_rhs_functions(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double * RESTRICT _data_edgeFaceSrc0_X, double * RESTRICT _data_edgeFaceSrc0_XY, double * RESTRICT _data_edgeFaceSrc0_Y, double * RESTRICT _data_edgeFaceSrc1_X, double * RESTRICT _data_edgeFaceSrc1_XY, double * RESTRICT _data_edgeFaceSrc1_Y, double * RESTRICT _data_edgeFaceSrc2_X, double * RESTRICT _data_edgeFaceSrc2_XY, double * RESTRICT _data_edgeFaceSrc2_Y, double c0, double c1, double c2, int level);
 
 } // namespace generated
 } // namespace macroface

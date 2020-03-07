@@ -84,12 +84,7 @@ P2ConstantOperator< P2Form >::P2ConstantOperator( const std::shared_ptr< Primiti
     , vertexToEdge( storage, minLevel, maxLevel, form )
     , edgeToEdge( storage, minLevel, maxLevel, form )
     , form_( form )
-{
-   if ( globalDefines::useP1Coloring )
-   {
-      WALBERLA_ABORT( "The colored P1 memory layout is not supported for mixed operators." );
-   }
-}
+{}
 
 template < class P2Form >
 void P2ConstantOperator< P2Form >::apply( const P2Function< real_t >& src,

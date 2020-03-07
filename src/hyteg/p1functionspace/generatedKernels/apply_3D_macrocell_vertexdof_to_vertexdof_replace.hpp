@@ -23,7 +23,6 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "all.hpp"
 #include "core/Macros.h"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
 #include "hyteg/indexing/Common.hpp"
@@ -35,7 +34,7 @@ namespace vertexdof {
 namespace macrocell {
 namespace generated {
 
-void apply_3D_macrocell_vertexdof_to_vertexdof_replace(double * RESTRICT _data_p1CellDst, double const * RESTRICT const _data_p1CellSrc, int32_t level, std::map< hyteg::indexing::IndexIncrement, double > p1CellStencil);
+void apply_3D_macrocell_vertexdof_to_vertexdof_replace(double * RESTRICT _data_p1CellDst, double const * RESTRICT const _data_p1CellSrc, int level, std::map< hyteg::indexing::IndexIncrement, double > p1CellStencil);
 
 } // namespace generated
 } // namespace macrocell

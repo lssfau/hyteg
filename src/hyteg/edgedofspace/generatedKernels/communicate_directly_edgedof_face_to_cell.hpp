@@ -23,19 +23,19 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "all.hpp"
 #include "core/Macros.h"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include <map>
 #define RESTRICT WALBERLA_RESTRICT
+#include "communicate_directly_edgedof_face_to_cell_impl.hpp"
 
 namespace hyteg {
 namespace edgedof {
 namespace comm {
 namespace generated {
 
-void communicate_directly_edgedof_face_to_cell(double * RESTRICT _data_edge_cell_dst_X, double * RESTRICT _data_edge_cell_dst_XY, double * RESTRICT _data_edge_cell_dst_XZ, double * RESTRICT _data_edge_cell_dst_Y, double * RESTRICT _data_edge_cell_dst_YZ, double * RESTRICT _data_edge_cell_dst_Z, double const * RESTRICT const _data_edge_face_src_X, double const * RESTRICT const _data_edge_face_src_XY, double const * RESTRICT const _data_edge_face_src_Y, int32_t level, int64_t neighbor_cell_local_vertex_id_0, int64_t neighbor_cell_local_vertex_id_1, int64_t neighbor_cell_local_vertex_id_2);
+void communicate_directly_edgedof_face_to_cell(double * RESTRICT _data_edge_cell_dst_X, double * RESTRICT _data_edge_cell_dst_XY, double * RESTRICT _data_edge_cell_dst_XZ, double * RESTRICT _data_edge_cell_dst_Y, double * RESTRICT _data_edge_cell_dst_YZ, double * RESTRICT _data_edge_cell_dst_Z, double const * RESTRICT const _data_edge_face_src_X, double const * RESTRICT const _data_edge_face_src_XY, double const * RESTRICT const _data_edge_face_src_Y, int level, int64_t neighbor_cell_local_vertex_id_0, int64_t neighbor_cell_local_vertex_id_1, int64_t neighbor_cell_local_vertex_id_2);
 
 } // namespace generated
 } // namespace comm

@@ -29,7 +29,7 @@ namespace edgedof {
 namespace macroface {
 namespace generated {
 
-static void add_2D_macroface_edgedof_3_rhs_functions_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double * RESTRICT _data_edgeFaceSrc0_X, double * RESTRICT _data_edgeFaceSrc0_XY, double * RESTRICT _data_edgeFaceSrc0_Y, double * RESTRICT _data_edgeFaceSrc1_X, double * RESTRICT _data_edgeFaceSrc1_XY, double * RESTRICT _data_edgeFaceSrc1_Y, double * RESTRICT _data_edgeFaceSrc2_X, double * RESTRICT _data_edgeFaceSrc2_XY, double * RESTRICT _data_edgeFaceSrc2_Y, double c0, double c1, double c2, int32_t level)
+static void add_2D_macroface_edgedof_3_rhs_functions_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double * RESTRICT _data_edgeFaceSrc0_X, double * RESTRICT _data_edgeFaceSrc0_XY, double * RESTRICT _data_edgeFaceSrc0_Y, double * RESTRICT _data_edgeFaceSrc1_X, double * RESTRICT _data_edgeFaceSrc1_XY, double * RESTRICT _data_edgeFaceSrc1_Y, double * RESTRICT _data_edgeFaceSrc2_X, double * RESTRICT _data_edgeFaceSrc2_XY, double * RESTRICT _data_edgeFaceSrc2_Y, double c0, double c1, double c2, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -133,7 +133,7 @@ static void add_2D_macroface_edgedof_3_rhs_functions_level_any(double * RESTRICT
 }
 
 
-void add_2D_macroface_edgedof_3_rhs_functions(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double * RESTRICT _data_edgeFaceSrc0_X, double * RESTRICT _data_edgeFaceSrc0_XY, double * RESTRICT _data_edgeFaceSrc0_Y, double * RESTRICT _data_edgeFaceSrc1_X, double * RESTRICT _data_edgeFaceSrc1_XY, double * RESTRICT _data_edgeFaceSrc1_Y, double * RESTRICT _data_edgeFaceSrc2_X, double * RESTRICT _data_edgeFaceSrc2_XY, double * RESTRICT _data_edgeFaceSrc2_Y, double c0, double c1, double c2, int32_t level)
+void add_2D_macroface_edgedof_3_rhs_functions(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double * RESTRICT _data_edgeFaceSrc0_X, double * RESTRICT _data_edgeFaceSrc0_XY, double * RESTRICT _data_edgeFaceSrc0_Y, double * RESTRICT _data_edgeFaceSrc1_X, double * RESTRICT _data_edgeFaceSrc1_XY, double * RESTRICT _data_edgeFaceSrc1_Y, double * RESTRICT _data_edgeFaceSrc2_X, double * RESTRICT _data_edgeFaceSrc2_XY, double * RESTRICT _data_edgeFaceSrc2_Y, double c0, double c1, double c2, int level)
 {
     switch( level )
     {
