@@ -18,15 +18,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "EdgeDoFToVertexDoFOperator.hpp"
-#include "EdgeDoFToVertexDoFApply.hpp"
-#include "generatedKernels/all.hpp"
 
-#include "hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
-#include "hyteg/p2functionspace/P2Elements.hpp"
-
-#include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
+#include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
+#include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/apply_2D_macroface_edgedof_to_vertexdof_add.hpp"
+#include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/apply_2D_macroface_edgedof_to_vertexdof_replace.hpp"
+#include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/apply_3D_macrocell_edgedof_to_vertexdof_add.hpp"
+#include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/apply_3D_macroedge_per_cell_edgedof_to_vertexdof_add.hpp"
+#include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/apply_3D_macroface_one_sided_edgedof_to_vertexdof_add.hpp"
+#include "hyteg/p2functionspace/P2Elements.hpp"
+#include "hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
+
+#include "EdgeDoFToVertexDoFApply.hpp"
 
 namespace hyteg {
 

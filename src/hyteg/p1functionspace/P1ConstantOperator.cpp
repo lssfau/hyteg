@@ -38,10 +38,24 @@
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/p1functionspace/generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_add.hpp"
+#include "hyteg/p1functionspace/generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_replace.hpp"
+#include "hyteg/p1functionspace/generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_add.hpp"
+#include "hyteg/p1functionspace/generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_replace.hpp"
+#include "hyteg/p1functionspace/generatedKernels/apply_3D_macroface_one_sided_vertexdof_to_vertexdof_add.hpp"
+#include "hyteg/p1functionspace/generatedKernels/apply_3D_macroface_one_sided_vertexdof_to_vertexdof_replace.hpp"
+#include "hyteg/p1functionspace/generatedKernels/gaussseidel_3D_macrocell_P1.hpp"
+#include "hyteg/p1functionspace/generatedKernels/sor_2D_macroface_vertexdof_to_vertexdof.hpp"
+#include "hyteg/p1functionspace/generatedKernels/sor_2D_macroface_vertexdof_to_vertexdof_backwards.hpp"
+#include "hyteg/p1functionspace/generatedKernels/sor_3D_macrocell_P1.hpp"
+#include "hyteg/p1functionspace/generatedKernels/sor_3D_macrocell_P1_backwards.hpp"
+#include "hyteg/p1functionspace/generatedKernels/sor_3D_macroface_P1.hpp"
+#include "hyteg/p1functionspace/generatedKernels/sor_3D_macroface_P1_backwards.hpp"
+#include "hyteg/p1functionspace/generatedKernels/sor_3D_macroface_P1_one_sided.hpp"
+#include "hyteg/p1functionspace/generatedKernels/sor_3D_macroface_P1_one_sided_backwards.hpp"
 #include "hyteg/p1functionspace/variablestencil/VertexDoFVariableStencil.hpp"
 
 #include "P1Elements.hpp"
-#include "generatedKernels/all.hpp"
 
 namespace hyteg {
 

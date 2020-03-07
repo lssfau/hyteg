@@ -19,15 +19,20 @@
  */
 #include "EdgeDoFOperator.hpp"
 
-#include "hyteg/HytegDefinitions.hpp"
 #include "hyteg/FunctionMemory.hpp"
-#include "hyteg/edgedofspace/generatedKernels/all.hpp"
+#include "hyteg/HytegDefinitions.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
-#include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
-#include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
+#include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "hyteg/edgedofspace/generatedKernels/apply_2D_macroface_edgedof_to_edgedof_add.hpp"
+#include "hyteg/edgedofspace/generatedKernels/apply_2D_macroface_edgedof_to_edgedof_replace.hpp"
+#include "hyteg/edgedofspace/generatedKernels/apply_3D_macrocell_edgedof_to_edgedof_add.hpp"
+#include "hyteg/edgedofspace/generatedKernels/apply_3D_macrocell_edgedof_to_edgedof_replace.hpp"
+#include "hyteg/edgedofspace/generatedKernels/apply_3D_macroface_one_sided_edgedof_to_edgedof_add.hpp"
+#include "hyteg/edgedofspace/generatedKernels/apply_3D_macroface_one_sided_edgedof_to_edgedof_replace.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
+#include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
 
 namespace hyteg {

@@ -19,13 +19,15 @@
  */
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 
-#include "hyteg/FunctionMemory.hpp"
-#include "hyteg/gridtransferoperators/generatedKernels/all.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p2functionspace/P2MacroFace.hpp"
 #include "hyteg/p2functionspace/P2Multigrid.hpp"
+#include "hyteg/gridtransferoperators/generatedKernels/prolongate_2D_macroface_P2_push_from_vertexdofs.hpp"
+#include "hyteg/gridtransferoperators/generatedKernels/prolongate_2D_macroface_P2_push_from_edgedofs.hpp"
+#include "hyteg/gridtransferoperators/generatedKernels/prolongate_2D_macroface_P2_push_from_edgedofs_level_0_to_1.hpp"
+#include "hyteg/gridtransferoperators/generatedKernels/prolongate_3D_macrocell_P2_push_from_vertexdofs.hpp"
+#include "hyteg/gridtransferoperators/generatedKernels/prolongate_3D_macrocell_P2_push_from_edgedofs.hpp"
+#include "hyteg/gridtransferoperators/generatedKernels/prolongate_3D_macrocell_P2_push_from_edgedofs_level_0_to_1.hpp"
 
 namespace hyteg {
 

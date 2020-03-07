@@ -28,7 +28,11 @@
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
 #include "hyteg/indexing/LocalIDMappings.hpp"
 #include "hyteg/HytegDefinitions.hpp"
-#include "hyteg/edgedofspace/generatedKernels/all.hpp"
+#include "hyteg/edgedofspace/generatedKernels/communicate_buffered_pack_edgedof_face_to_cell.hpp"
+#include "hyteg/edgedofspace/generatedKernels/communicate_buffered_unpack_edgedof_face_to_cell.hpp"
+#include "hyteg/edgedofspace/generatedKernels/communicate_directly_edgedof_face_to_cell.hpp"
+#include "hyteg/edgedofspace/generatedKernels/communicate_directly_edgedof_cell_to_face_part_1.hpp"
+#include "hyteg/edgedofspace/generatedKernels/communicate_directly_edgedof_cell_to_face_part_2.hpp"
 
 namespace hyteg {
 

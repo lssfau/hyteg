@@ -26,7 +26,15 @@
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/edgedofspace/EdgeDoFPackInfo.hpp"
-#include "hyteg/edgedofspace/generatedKernels/all.hpp"
+#include "hyteg/edgedofspace/generatedKernels/add_2D_macroface_edgedof_1_rhsfunction.hpp"
+#include "hyteg/edgedofspace/generatedKernels/add_2D_macroface_edgedof_2_rhsfunctions.hpp"
+#include "hyteg/edgedofspace/generatedKernels/add_2D_macroface_edgedof_3_rhsfunctions.hpp"
+#include "hyteg/edgedofspace/generatedKernels/assign_2D_macroface_edgedof_1_rhsfunction.hpp"
+#include "hyteg/edgedofspace/generatedKernels/assign_2D_macroface_edgedof_2_rhsfunctions.hpp"
+#include "hyteg/edgedofspace/generatedKernels/assign_2D_macroface_edgedof_3_rhsfunctions.hpp"
+#include "hyteg/edgedofspace/generatedKernels/assign_3D_macrocell_edgedof_1_rhsfunction.hpp"
+#include "hyteg/edgedofspace/generatedKernels/assign_3D_macrocell_edgedof_2_rhsfunctions.hpp"
+#include "hyteg/edgedofspace/generatedKernels/assign_3D_macrocell_edgedof_3_rhsfunctions.hpp"
 #include "hyteg/primitives/all.hpp"
 
 namespace hyteg {
