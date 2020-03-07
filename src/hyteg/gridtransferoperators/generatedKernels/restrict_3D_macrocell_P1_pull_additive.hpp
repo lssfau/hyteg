@@ -24,9 +24,6 @@
 
 #pragma once
 #include "core/Macros.h"
-#include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
-#include "hyteg/indexing/Common.hpp"
-#include <map>
 #define RESTRICT WALBERLA_RESTRICT
 
 namespace hyteg {

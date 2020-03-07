@@ -24,9 +24,6 @@
 
 #pragma once
 #include "core/Macros.h"
-#include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
-#include "hyteg/indexing/Common.hpp"
-#include <map>
 #define RESTRICT WALBERLA_RESTRICT
 #include "communicate_buffered_pack_edgedof_face_to_cell_impl.hpp"
 
@@ -35,7 +32,7 @@ namespace edgedof {
 namespace comm {
 namespace generated {
 
-void communicate_buffered_pack_edgedof_face_to_cell(double const * RESTRICT const _data_edge_face_src_X, double const * RESTRICT const _data_edge_face_src_XY, double const * RESTRICT const _data_edge_face_src_Y, double * RESTRICT _data_send_buffer, int level, int64_t neighbor_cell_local_vertex_id_0, int64_t neighbor_cell_local_vertex_id_1, int64_t neighbor_cell_local_vertex_id_2, int64_t send_buffer_first_element_idx);
+void communicate_buffered_pack_edgedof_face_to_cell(double const * RESTRICT const _data_edge_face_src_X, double const * RESTRICT const _data_edge_face_src_XY, double const * RESTRICT const _data_edge_face_src_Y, double * RESTRICT _data_send_buffer, int level, int neighbor_cell_local_vertex_id_0, int neighbor_cell_local_vertex_id_1, int neighbor_cell_local_vertex_id_2, int send_buffer_first_element_idx);
 
 } // namespace generated
 } // namespace comm

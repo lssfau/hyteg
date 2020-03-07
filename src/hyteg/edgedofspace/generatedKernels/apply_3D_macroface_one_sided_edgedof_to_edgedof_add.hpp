@@ -23,10 +23,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "core/Macros.h"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include <map>
+#include "core/Macros.h"
 #define RESTRICT WALBERLA_RESTRICT
 #include "apply_3D_macroface_one_sided_edgedof_to_edgedof_add_impl.hpp"
 
