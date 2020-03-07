@@ -110,17 +110,17 @@ bool P2RowSumTest( const uint_t& level, const std::string& meshFile )
    numerator.enumerate( level );
 
    PETScSparseMatrix< P2ConstantOperator< P2RowSumForm >, P2Function > massLumpedPetsc( localSize, globalSize );
-   massLumpedPetsc.createMatrixFromFunction( MLumped, level, numerator );
+   massLumpedPetsc.createMatrixFromOperator( MLumped, level, numerator );
 
    PETScSparseMatrix< P2ConstantOperator< P2RowSumForm >, P2Function > laplaceLumpedPetsc( localSize, globalSize );
-   laplaceLumpedPetsc.createMatrixFromFunction( LLumped, level, numerator );
+   laplaceLumpedPetsc.createMatrixFromOperator( LLumped, level, numerator );
 
    const auto massDiagonal    = massLumpedPetsc.isDiagonal();
    const auto laplaceDiagonal = laplaceLumpedPetsc.isDiagonal();
 
    // just to make sure petsc is diagonal check works...
    PETScSparseMatrix< P2ConstantLaplaceOperator, P2Function > laplacePetsc( localSize, globalSize );
-   laplacePetsc.createMatrixFromFunction( L, level, numerator );
+   laplacePetsc.createMatrixFromOperator( L, level, numerator );
    WALBERLA_CHECK( !laplacePetsc.isDiagonal() );
 
    if ( !massDiagonal || !laplaceDiagonal )
