@@ -29,7 +29,7 @@ namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-static void add_2D_macroface_vertexdof_1_rhs_function_level_any(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc, double c, int32_t level)
+static void add_2D_macroface_vertexdof_1_rhs_function_level_any(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc, double c, int level)
 {
    for (int ctr_2 = 1; ctr_2 < (1 << (level)); ctr_2 += 1)
    {
@@ -44,7 +44,7 @@ static void add_2D_macroface_vertexdof_1_rhs_function_level_any(double * RESTRIC
 }
 
 
-void add_2D_macroface_vertexdof_1_rhs_function(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc, double c, int32_t level)
+void add_2D_macroface_vertexdof_1_rhs_function(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceSrc, double c, int level)
 {
     switch( level )
     {

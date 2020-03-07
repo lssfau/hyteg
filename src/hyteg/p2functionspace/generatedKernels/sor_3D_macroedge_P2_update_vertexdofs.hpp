@@ -23,19 +23,19 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "all.hpp"
 #include "core/Macros.h"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include <map>
 #define RESTRICT WALBERLA_RESTRICT
+#include "sor_3D_macroedge_P2_update_vertexdofs_impl.hpp"
 
 namespace hyteg {
 namespace P2 {
 namespace macroedge {
 namespace generated {
 
-void sor_3D_macroedge_P2_update_vertexdofs(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int32_t level, int64_t micro_edge_index_x, int64_t neighbor_cell_local_vertex_id_0, int64_t neighbor_cell_local_vertex_id_1, int64_t neighbor_cell_local_vertex_id_2, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil);
+void sor_3D_macroedge_P2_update_vertexdofs(double const * RESTRICT const _data_edgedof_macroedge_src, double * RESTRICT _data_vertexdof_macroedge_dst, double const * RESTRICT const _data_vertexdof_macroedge_src, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil, int64_t id_cell, int64_t id_face_0, int64_t id_face_1, int level, int64_t micro_edge_index_x, int64_t neighbor_cell_local_vertex_id_0, int64_t neighbor_cell_local_vertex_id_1, int64_t neighbor_cell_local_vertex_id_2, int64_t num_neighbor_faces, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil);
 
 } // namespace generated
 } // namespace macroedge

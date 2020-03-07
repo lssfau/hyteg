@@ -386,20 +386,12 @@ inline void VertexDoFPackInfo< real_t >::communicateLocalFaceToCell(const Face *
 
   if ( globalDefines::useGeneratedKernels )
   {
-    if ( globalDefines::useP1Coloring )
-    {
-      vertexdof::comm::generated::communicate_directly_vertexdof_face_to_cell_colored(
-      cellData, faceData, static_cast< int32_t >( level_ ), iterationVertex0, iterationVertex1, iterationVertex2 );
-    }
-    else
-    {
-       vertexdof::comm::generated::communicate_directly_vertexdof_face_to_cell( cellData,
-                                                                                faceData,
-                                                                                static_cast< int32_t >( level_ ),
-                                                                                static_cast< int64_t >( iterationVertex0 ),
-                                                                                static_cast< int64_t >( iterationVertex1 ),
-                                                                                static_cast< int64_t >( iterationVertex2 ) );
-    }
+     vertexdof::comm::generated::communicate_directly_vertexdof_face_to_cell( cellData,
+                                                                              faceData,
+                                                                              static_cast< int32_t >( level_ ),
+                                                                              static_cast< int64_t >( iterationVertex0 ),
+                                                                              static_cast< int64_t >( iterationVertex1 ),
+                                                                              static_cast< int64_t >( iterationVertex2 ) );
   }
   else
   {
@@ -512,24 +504,17 @@ inline void VertexDoFPackInfo< real_t >::communicateLocalCellToFace(const Cell *
   if ( globalDefines::useGeneratedKernels )
   {
     const auto faceLocalCellID = receiver->cell_index( sender->getID() );
-    const auto offsetToGhostLayer = faceLocalCellID == 0 ? levelinfo::num_microvertices_per_face( level_ ) :
-      levelinfo::num_microvertices_per_face( level_ ) + levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level_ ) - 1 );
-
-    if ( globalDefines::useP1Coloring )
-    {
-      vertexdof::comm::generated::communicate_directly_vertexdof_cell_to_face_colored(
-      cellData, &faceData[offsetToGhostLayer], static_cast< int32_t >( level_ ), iterationVertex0, iterationVertex1, iterationVertex2
-      );
-    }
-    else
-    {
-       vertexdof::comm::generated::communicate_directly_vertexdof_cell_to_face( cellData,
-                                                                                &faceData[offsetToGhostLayer],
-                                                                                static_cast< int32_t >( level_ ),
-                                                                                static_cast< int64_t >( iterationVertex0 ),
-                                                                                static_cast< int64_t >( iterationVertex1 ),
-                                                                                static_cast< int64_t >( iterationVertex2 ) );
-    }
+    const auto offsetToGhostLayer =
+        faceLocalCellID == 0 ?
+            levelinfo::num_microvertices_per_face( level_ ) :
+            levelinfo::num_microvertices_per_face( level_ ) +
+                levelinfo::num_microvertices_per_face_from_width( levelinfo::num_microvertices_per_edge( level_ ) - 1 );
+    vertexdof::comm::generated::communicate_directly_vertexdof_cell_to_face( cellData,
+                                                                             &faceData[offsetToGhostLayer],
+                                                                             static_cast< int32_t >( level_ ),
+                                                                             static_cast< int64_t >( iterationVertex0 ),
+                                                                             static_cast< int64_t >( iterationVertex1 ),
+                                                                             static_cast< int64_t >( iterationVertex2 ) );
   }
   else
   {

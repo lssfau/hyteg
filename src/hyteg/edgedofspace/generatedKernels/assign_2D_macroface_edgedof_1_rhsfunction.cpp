@@ -29,7 +29,7 @@ namespace edgedof {
 namespace macroface {
 namespace generated {
 
-static void assign_2D_macroface_edgedof_1_rhs_function_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double * RESTRICT _data_edgeFaceSrc_X, double * RESTRICT _data_edgeFaceSrc_XY, double * RESTRICT _data_edgeFaceSrc_Y, double c, int32_t level)
+static void assign_2D_macroface_edgedof_1_rhs_function_level_any(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double * RESTRICT _data_edgeFaceSrc_X, double * RESTRICT _data_edgeFaceSrc_XY, double * RESTRICT _data_edgeFaceSrc_Y, double c, int level)
 {
    {
       for (int ctr_2 = 0; ctr_2 < 1; ctr_2 += 1)
@@ -85,7 +85,7 @@ static void assign_2D_macroface_edgedof_1_rhs_function_level_any(double * RESTRI
 }
 
 
-void assign_2D_macroface_edgedof_1_rhs_function(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double * RESTRICT _data_edgeFaceSrc_X, double * RESTRICT _data_edgeFaceSrc_XY, double * RESTRICT _data_edgeFaceSrc_Y, double c, int32_t level)
+void assign_2D_macroface_edgedof_1_rhs_function(double * RESTRICT _data_edgeFaceDst_X, double * RESTRICT _data_edgeFaceDst_XY, double * RESTRICT _data_edgeFaceDst_Y, double * RESTRICT _data_edgeFaceSrc_X, double * RESTRICT _data_edgeFaceSrc_XY, double * RESTRICT _data_edgeFaceSrc_Y, double c, int level)
 {
     switch( level )
     {

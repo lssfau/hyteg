@@ -216,7 +216,7 @@ int main( int argc, char* argv[] )
   auto ttreduced = tt->getReduced().getCopyWithRemainder();
   WALBERLA_LOG_INFO_ON_ROOT( ttreduced );
 
-  WALBERLA_CHECK_LESS( discr_l2_err_1_u + discr_l2_err_1_v + discr_l2_err_1_w, 0.6416 );
+  WALBERLA_CHECK_LESS( discr_l2_err_1_u + discr_l2_err_1_v + discr_l2_err_1_w, 0.6417 );
   WALBERLA_CHECK_LESS( discr_l2_err_1_p, 4.003 );
   WALBERLA_CHECK_LESS( residuum_l2_1, 0.01934 );
 

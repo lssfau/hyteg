@@ -29,93 +29,93 @@ namespace P2 {
 namespace macroface {
 namespace generated {
 
-static void sor_3D_macroface_P2_update_vertexdofs_backwards_impl_203_312_level_any(double const * RESTRICT const _data_edgeFaceDst_X, double const * RESTRICT const _data_edgeFaceDst_XY, double const * RESTRICT const _data_edgeFaceDst_Y, double const * RESTRICT const _data_edgeFaceDst_gl0_X, double const * RESTRICT const _data_edgeFaceDst_gl0_XY, double const * RESTRICT const _data_edgeFaceDst_gl0_XYZ, double const * RESTRICT const _data_edgeFaceDst_gl0_XZ, double const * RESTRICT const _data_edgeFaceDst_gl0_Y, double const * RESTRICT const _data_edgeFaceDst_gl0_YZ, double const * RESTRICT const _data_edgeFaceDst_gl0_Z, double const * RESTRICT const _data_edgeFaceDst_gl1_X, double const * RESTRICT const _data_edgeFaceDst_gl1_XY, double const * RESTRICT const _data_edgeFaceDst_gl1_XYZ, double const * RESTRICT const _data_edgeFaceDst_gl1_XZ, double const * RESTRICT const _data_edgeFaceDst_gl1_Y, double const * RESTRICT const _data_edgeFaceDst_gl1_YZ, double const * RESTRICT const _data_edgeFaceDst_gl1_Z, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil_fused_face_0, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil_fused_face_1, int32_t level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+static void sor_3D_macroface_P2_update_vertexdofs_backwards_impl_203_312_level_any(double const * RESTRICT const _data_edgeFaceDst_X, double const * RESTRICT const _data_edgeFaceDst_XY, double const * RESTRICT const _data_edgeFaceDst_Y, double const * RESTRICT const _data_edgeFaceDst_gl0_X, double const * RESTRICT const _data_edgeFaceDst_gl0_XY, double const * RESTRICT const _data_edgeFaceDst_gl0_XYZ, double const * RESTRICT const _data_edgeFaceDst_gl0_XZ, double const * RESTRICT const _data_edgeFaceDst_gl0_Y, double const * RESTRICT const _data_edgeFaceDst_gl0_YZ, double const * RESTRICT const _data_edgeFaceDst_gl0_Z, double const * RESTRICT const _data_edgeFaceDst_gl1_X, double const * RESTRICT const _data_edgeFaceDst_gl1_XY, double const * RESTRICT const _data_edgeFaceDst_gl1_XYZ, double const * RESTRICT const _data_edgeFaceDst_gl1_XZ, double const * RESTRICT const _data_edgeFaceDst_gl1_Y, double const * RESTRICT const _data_edgeFaceDst_gl1_YZ, double const * RESTRICT const _data_edgeFaceDst_gl1_Z, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, double const * e2v_cell_stencil_fused_face_0, double const * e2v_cell_stencil_fused_face_1, int level, double relax, double const * v2v_cell_stencil_fused_face_0, double const * v2v_cell_stencil_fused_face_1)
 {
-   const double xi_1 = v2v_cell_stencil_fused_face_0[{ 0, 0, 0 }];
-   const double xi_2 = v2v_cell_stencil_fused_face_1[{ 0, 0, 0 }];
+   const double xi_1 = v2v_cell_stencil_fused_face_0[7];
+   const double xi_2 = v2v_cell_stencil_fused_face_1[7];
    const double xi_86 = 1 / (xi_1 + xi_2);
-   const double xi_3 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, -1, -1 }];
-   const double xi_4 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, -1, 0 }];
-   const double xi_5 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, 0, -1 }];
-   const double xi_6 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, -1, 0 }];
-   const double xi_7 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, -1, 1 }];
-   const double xi_8 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, -1 }];
-   const double xi_9 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, 0 }];
-   const double xi_10 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, -1, 0 }];
-   const double xi_11 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, -1 }];
-   const double xi_12 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, 0 }];
-   const double xi_13 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, -1, 0 }];
-   const double xi_14 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, -1, 1 }];
-   const double xi_15 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 0, -1 }];
-   const double xi_16 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 0, 0 }];
-   const double xi_17 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, -1, -1 }];
-   const double xi_18 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, -1, 0 }];
-   const double xi_19 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, -1 }];
-   const double xi_20 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, 0 }];
-   const double xi_21 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 1, -1, -1 }];
-   const double xi_22 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 1, -1, 0 }];
-   const double xi_23 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, -1, 0 }];
-   const double xi_24 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, -1, 1 }];
-   const double xi_25 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, -1 }];
-   const double xi_26 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, 0 }];
-   const double xi_27 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Y][{ 1, -1, 0 }];
-   const double xi_28 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, -1, 0 }];
-   const double xi_29 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, -1 }];
-   const double xi_30 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, 0 }];
-   const double xi_31 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, 1, -1 }];
-   const double xi_32 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Z][{ 1, -1, 0 }];
-   const double xi_33 = e2v_cell_stencil_fused_face_0[hyteg::edgedof::EdgeDoFOrientation::Z][{ 1, 0, -1 }];
-   const double xi_34 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, -1, 0 }];
-   const double xi_35 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ -1, 0, -1 }];
-   const double xi_36 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XYZ][{ 0, -1, -1 }];
-   const double xi_37 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, -1, 0 }];
-   const double xi_38 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, -1, 1 }];
-   const double xi_39 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, -1 }];
-   const double xi_40 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XY][{ -1, 0, 0 }];
-   const double xi_41 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, -1, 0 }];
-   const double xi_42 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XY][{ 0, 0, -1 }];
-   const double xi_43 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XZ][{ -1, 0, -1 }];
-   const double xi_44 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XZ][{ -1, 0, 0 }];
-   const double xi_45 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XZ][{ -1, 1, -1 }];
-   const double xi_46 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, -1, 0 }];
-   const double xi_47 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::XZ][{ 0, 0, -1 }];
-   const double xi_48 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::X][{ -1, 0, 0 }];
-   const double xi_49 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::X][{ -1, 1, -1 }];
-   const double xi_50 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, -1, 0 }];
-   const double xi_51 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::X][{ 0, 0, -1 }];
-   const double xi_52 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::YZ][{ -1, 0, -1 }];
-   const double xi_53 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::YZ][{ -1, 0, 0 }];
-   const double xi_54 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, -1, -1 }];
-   const double xi_55 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, -1, 0 }];
-   const double xi_56 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 0, 0, -1 }];
-   const double xi_57 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::YZ][{ 1, -1, -1 }];
-   const double xi_58 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::Y][{ -1, 0, 0 }];
-   const double xi_59 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, -1, 0 }];
-   const double xi_60 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::Y][{ 0, 0, -1 }];
-   const double xi_61 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::Z][{ -1, 0, 0 }];
-   const double xi_62 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::Z][{ -1, 1, -1 }];
-   const double xi_63 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, -1, 0 }];
-   const double xi_64 = e2v_cell_stencil_fused_face_1[hyteg::edgedof::EdgeDoFOrientation::Z][{ 0, 0, -1 }];
-   const double xi_65 = v2v_cell_stencil_fused_face_0[{ 0, -1, 0 }];
-   const double xi_66 = v2v_cell_stencil_fused_face_0[{ 0, -1, 1 }];
-   const double xi_67 = v2v_cell_stencil_fused_face_0[{ 0, 0, -1 }];
-   const double xi_68 = v2v_cell_stencil_fused_face_0[{ 0, 0, 1 }];
-   const double xi_69 = v2v_cell_stencil_fused_face_0[{ 0, 1, -1 }];
-   const double xi_70 = v2v_cell_stencil_fused_face_0[{ 0, 1, 0 }];
-   const double xi_71 = v2v_cell_stencil_fused_face_0[{ 1, -1, 0 }];
-   const double xi_72 = v2v_cell_stencil_fused_face_0[{ 1, -1, 1 }];
-   const double xi_73 = v2v_cell_stencil_fused_face_0[{ 1, 0, -1 }];
-   const double xi_74 = v2v_cell_stencil_fused_face_0[{ 1, 0, 0 }];
-   const double xi_75 = v2v_cell_stencil_fused_face_1[{ -1, 0, 0 }];
-   const double xi_76 = v2v_cell_stencil_fused_face_1[{ -1, 0, 1 }];
-   const double xi_77 = v2v_cell_stencil_fused_face_1[{ -1, 1, -1 }];
-   const double xi_78 = v2v_cell_stencil_fused_face_1[{ -1, 1, 0 }];
-   const double xi_79 = v2v_cell_stencil_fused_face_1[{ 0, -1, 0 }];
-   const double xi_80 = v2v_cell_stencil_fused_face_1[{ 0, -1, 1 }];
-   const double xi_81 = v2v_cell_stencil_fused_face_1[{ 0, 0, -1 }];
-   const double xi_82 = v2v_cell_stencil_fused_face_1[{ 0, 1, -1 }];
-   const double xi_83 = v2v_cell_stencil_fused_face_1[{ 1, -1, 0 }];
-   const double xi_84 = v2v_cell_stencil_fused_face_1[{ 1, 0, -1 }];
+   const double xi_3 = e2v_cell_stencil_fused_face_0[3];
+   const double xi_4 = e2v_cell_stencil_fused_face_0[4];
+   const double xi_5 = e2v_cell_stencil_fused_face_0[5];
+   const double xi_6 = e2v_cell_stencil_fused_face_0[10];
+   const double xi_7 = e2v_cell_stencil_fused_face_0[11];
+   const double xi_8 = e2v_cell_stencil_fused_face_0[12];
+   const double xi_9 = e2v_cell_stencil_fused_face_0[13];
+   const double xi_10 = e2v_cell_stencil_fused_face_0[17];
+   const double xi_11 = e2v_cell_stencil_fused_face_0[18];
+   const double xi_12 = e2v_cell_stencil_fused_face_0[19];
+   const double xi_13 = e2v_cell_stencil_fused_face_0[24];
+   const double xi_14 = e2v_cell_stencil_fused_face_0[25];
+   const double xi_15 = e2v_cell_stencil_fused_face_0[26];
+   const double xi_16 = e2v_cell_stencil_fused_face_0[27];
+   const double xi_17 = e2v_cell_stencil_fused_face_0[30];
+   const double xi_18 = e2v_cell_stencil_fused_face_0[31];
+   const double xi_19 = e2v_cell_stencil_fused_face_0[32];
+   const double xi_20 = e2v_cell_stencil_fused_face_0[33];
+   const double xi_21 = e2v_cell_stencil_fused_face_0[34];
+   const double xi_22 = e2v_cell_stencil_fused_face_0[35];
+   const double xi_23 = e2v_cell_stencil_fused_face_0[37];
+   const double xi_24 = e2v_cell_stencil_fused_face_0[38];
+   const double xi_25 = e2v_cell_stencil_fused_face_0[39];
+   const double xi_26 = e2v_cell_stencil_fused_face_0[40];
+   const double xi_27 = e2v_cell_stencil_fused_face_0[41];
+   const double xi_28 = e2v_cell_stencil_fused_face_0[44];
+   const double xi_29 = e2v_cell_stencil_fused_face_0[45];
+   const double xi_30 = e2v_cell_stencil_fused_face_0[46];
+   const double xi_31 = e2v_cell_stencil_fused_face_0[47];
+   const double xi_32 = e2v_cell_stencil_fused_face_0[48];
+   const double xi_33 = e2v_cell_stencil_fused_face_0[49];
+   const double xi_34 = e2v_cell_stencil_fused_face_1[0];
+   const double xi_35 = e2v_cell_stencil_fused_face_1[1];
+   const double xi_36 = e2v_cell_stencil_fused_face_1[3];
+   const double xi_37 = e2v_cell_stencil_fused_face_1[6];
+   const double xi_38 = e2v_cell_stencil_fused_face_1[7];
+   const double xi_39 = e2v_cell_stencil_fused_face_1[8];
+   const double xi_40 = e2v_cell_stencil_fused_face_1[9];
+   const double xi_41 = e2v_cell_stencil_fused_face_1[10];
+   const double xi_42 = e2v_cell_stencil_fused_face_1[12];
+   const double xi_43 = e2v_cell_stencil_fused_face_1[14];
+   const double xi_44 = e2v_cell_stencil_fused_face_1[15];
+   const double xi_45 = e2v_cell_stencil_fused_face_1[16];
+   const double xi_46 = e2v_cell_stencil_fused_face_1[17];
+   const double xi_47 = e2v_cell_stencil_fused_face_1[18];
+   const double xi_48 = e2v_cell_stencil_fused_face_1[20];
+   const double xi_49 = e2v_cell_stencil_fused_face_1[22];
+   const double xi_50 = e2v_cell_stencil_fused_face_1[24];
+   const double xi_51 = e2v_cell_stencil_fused_face_1[26];
+   const double xi_52 = e2v_cell_stencil_fused_face_1[28];
+   const double xi_53 = e2v_cell_stencil_fused_face_1[29];
+   const double xi_54 = e2v_cell_stencil_fused_face_1[30];
+   const double xi_55 = e2v_cell_stencil_fused_face_1[31];
+   const double xi_56 = e2v_cell_stencil_fused_face_1[32];
+   const double xi_57 = e2v_cell_stencil_fused_face_1[34];
+   const double xi_58 = e2v_cell_stencil_fused_face_1[36];
+   const double xi_59 = e2v_cell_stencil_fused_face_1[37];
+   const double xi_60 = e2v_cell_stencil_fused_face_1[39];
+   const double xi_61 = e2v_cell_stencil_fused_face_1[42];
+   const double xi_62 = e2v_cell_stencil_fused_face_1[43];
+   const double xi_63 = e2v_cell_stencil_fused_face_1[44];
+   const double xi_64 = e2v_cell_stencil_fused_face_1[45];
+   const double xi_65 = v2v_cell_stencil_fused_face_0[4];
+   const double xi_66 = v2v_cell_stencil_fused_face_0[5];
+   const double xi_67 = v2v_cell_stencil_fused_face_0[6];
+   const double xi_68 = v2v_cell_stencil_fused_face_0[8];
+   const double xi_69 = v2v_cell_stencil_fused_face_0[9];
+   const double xi_70 = v2v_cell_stencil_fused_face_0[10];
+   const double xi_71 = v2v_cell_stencil_fused_face_0[11];
+   const double xi_72 = v2v_cell_stencil_fused_face_0[12];
+   const double xi_73 = v2v_cell_stencil_fused_face_0[13];
+   const double xi_74 = v2v_cell_stencil_fused_face_0[14];
+   const double xi_75 = v2v_cell_stencil_fused_face_1[0];
+   const double xi_76 = v2v_cell_stencil_fused_face_1[1];
+   const double xi_77 = v2v_cell_stencil_fused_face_1[2];
+   const double xi_78 = v2v_cell_stencil_fused_face_1[3];
+   const double xi_79 = v2v_cell_stencil_fused_face_1[4];
+   const double xi_80 = v2v_cell_stencil_fused_face_1[5];
+   const double xi_81 = v2v_cell_stencil_fused_face_1[6];
+   const double xi_82 = v2v_cell_stencil_fused_face_1[9];
+   const double xi_83 = v2v_cell_stencil_fused_face_1[11];
+   const double xi_84 = v2v_cell_stencil_fused_face_1[13];
    for (int ctr_2 = (1 << (level)) - 1; ctr_2 >= 1; ctr_2 += -1)
    {
       // inner triangle
@@ -127,7 +127,7 @@ static void sor_3D_macroface_P2_update_vertexdofs_backwards_impl_203_312_level_a
 }
 
 
-void sor_3D_macroface_P2_update_vertexdofs_backwards_impl_203_312(double const * RESTRICT const _data_edgeFaceDst_X, double const * RESTRICT const _data_edgeFaceDst_XY, double const * RESTRICT const _data_edgeFaceDst_Y, double const * RESTRICT const _data_edgeFaceDst_gl0_X, double const * RESTRICT const _data_edgeFaceDst_gl0_XY, double const * RESTRICT const _data_edgeFaceDst_gl0_XYZ, double const * RESTRICT const _data_edgeFaceDst_gl0_XZ, double const * RESTRICT const _data_edgeFaceDst_gl0_Y, double const * RESTRICT const _data_edgeFaceDst_gl0_YZ, double const * RESTRICT const _data_edgeFaceDst_gl0_Z, double const * RESTRICT const _data_edgeFaceDst_gl1_X, double const * RESTRICT const _data_edgeFaceDst_gl1_XY, double const * RESTRICT const _data_edgeFaceDst_gl1_XYZ, double const * RESTRICT const _data_edgeFaceDst_gl1_XZ, double const * RESTRICT const _data_edgeFaceDst_gl1_Y, double const * RESTRICT const _data_edgeFaceDst_gl1_YZ, double const * RESTRICT const _data_edgeFaceDst_gl1_Z, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil_fused_face_0, std::map< hyteg::edgedof::EdgeDoFOrientation, std::map< hyteg::indexing::IndexIncrement, double > > e2v_cell_stencil_fused_face_1, int32_t level, double relax, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_0, std::map< hyteg::indexing::IndexIncrement, double > v2v_cell_stencil_fused_face_1)
+void sor_3D_macroface_P2_update_vertexdofs_backwards_impl_203_312(double const * RESTRICT const _data_edgeFaceDst_X, double const * RESTRICT const _data_edgeFaceDst_XY, double const * RESTRICT const _data_edgeFaceDst_Y, double const * RESTRICT const _data_edgeFaceDst_gl0_X, double const * RESTRICT const _data_edgeFaceDst_gl0_XY, double const * RESTRICT const _data_edgeFaceDst_gl0_XYZ, double const * RESTRICT const _data_edgeFaceDst_gl0_XZ, double const * RESTRICT const _data_edgeFaceDst_gl0_Y, double const * RESTRICT const _data_edgeFaceDst_gl0_YZ, double const * RESTRICT const _data_edgeFaceDst_gl0_Z, double const * RESTRICT const _data_edgeFaceDst_gl1_X, double const * RESTRICT const _data_edgeFaceDst_gl1_XY, double const * RESTRICT const _data_edgeFaceDst_gl1_XYZ, double const * RESTRICT const _data_edgeFaceDst_gl1_XZ, double const * RESTRICT const _data_edgeFaceDst_gl1_Y, double const * RESTRICT const _data_edgeFaceDst_gl1_YZ, double const * RESTRICT const _data_edgeFaceDst_gl1_Z, double * RESTRICT _data_vertexFaceDst, double * RESTRICT _data_vertexFaceDst_gl0, double * RESTRICT _data_vertexFaceDst_gl1, double const * RESTRICT const _data_vertexFaceRhs, double const * e2v_cell_stencil_fused_face_0, double const * e2v_cell_stencil_fused_face_1, int level, double relax, double const * v2v_cell_stencil_fused_face_0, double const * v2v_cell_stencil_fused_face_1)
 {
     switch( level )
     {

@@ -29,7 +29,7 @@ namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-static void apply_2D_macroface_vertexdof_to_vertexdof_replace_level_any(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * RESTRICT const _data_p1FaceStencil, int32_t level)
+static void apply_2D_macroface_vertexdof_to_vertexdof_replace_level_any(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * RESTRICT const _data_p1FaceStencil, int level)
 {
    const double xi_0 = _data_p1FaceStencil[2];
    const double xi_1 = _data_p1FaceStencil[5];
@@ -56,7 +56,7 @@ static void apply_2D_macroface_vertexdof_to_vertexdof_replace_level_any(double *
 }
 
 
-void apply_2D_macroface_vertexdof_to_vertexdof_replace(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * RESTRICT const _data_p1FaceStencil, int32_t level)
+void apply_2D_macroface_vertexdof_to_vertexdof_replace(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * RESTRICT const _data_p1FaceStencil, int level)
 {
     switch( level )
     {

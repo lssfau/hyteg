@@ -696,42 +696,8 @@ void macroCellAssign< double >( const uint_t&                                   
       auto dstData = cell.getData( dstCellID )->getPointer( level );
       auto srcData = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
       auto scalar  = scalars.at( 0 );
-      if ( hyteg::globalDefines::useP1Coloring )
-      {
-         std::map< uint_t, uint_t > groupFirstIdx;
-         groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
-         groupFirstIdx[1] = vertexdof::macrocell::index( level, 1, 0, 0 );
-         groupFirstIdx[2] = vertexdof::macrocell::index( level, 0, 1, 0 );
-         groupFirstIdx[3] = vertexdof::macrocell::index( level, 1, 1, 0 );
-         groupFirstIdx[4] = vertexdof::macrocell::index( level, 0, 0, 1 );
-         groupFirstIdx[5] = vertexdof::macrocell::index( level, 1, 0, 1 );
-         groupFirstIdx[6] = vertexdof::macrocell::index( level, 0, 1, 1 );
-         groupFirstIdx[7] = vertexdof::macrocell::index( level, 1, 1, 1 );
-
-         vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_1_rhs_function_colored( &dstData[groupFirstIdx[0]],
-                                                                                                &dstData[groupFirstIdx[1]],
-                                                                                                &dstData[groupFirstIdx[2]],
-                                                                                                &dstData[groupFirstIdx[3]],
-                                                                                                &dstData[groupFirstIdx[4]],
-                                                                                                &dstData[groupFirstIdx[5]],
-                                                                                                &dstData[groupFirstIdx[6]],
-                                                                                                &dstData[groupFirstIdx[7]],
-                                                                                                &srcData[groupFirstIdx[0]],
-                                                                                                &srcData[groupFirstIdx[1]],
-                                                                                                &srcData[groupFirstIdx[2]],
-                                                                                                &srcData[groupFirstIdx[3]],
-                                                                                                &srcData[groupFirstIdx[4]],
-                                                                                                &srcData[groupFirstIdx[5]],
-                                                                                                &srcData[groupFirstIdx[6]],
-                                                                                                &srcData[groupFirstIdx[7]],
-                                                                                                scalar,
-                                                                                                static_cast< int32_t >( level ) );
-      }
-      else
-      {
-         vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_1_rhs_function(
-             dstData, srcData, scalar, static_cast< int32_t >( level ) );
-      }
+      vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_1_rhs_function(
+          dstData, srcData, scalar, static_cast< int32_t >( level ) );
    }
    else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 2 )
    {
@@ -740,52 +706,8 @@ void macroCellAssign< double >( const uint_t&                                   
       auto srcData1 = cell.getData( srcCellIDs.at( 1 ) )->getPointer( level );
       auto scalar0  = scalars.at( 0 );
       auto scalar1  = scalars.at( 1 );
-      if ( hyteg::globalDefines::useP1Coloring )
-      {
-         std::map< uint_t, uint_t > groupFirstIdx;
-         groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
-         groupFirstIdx[1] = vertexdof::macrocell::index( level, 1, 0, 0 );
-         groupFirstIdx[2] = vertexdof::macrocell::index( level, 0, 1, 0 );
-         groupFirstIdx[3] = vertexdof::macrocell::index( level, 1, 1, 0 );
-         groupFirstIdx[4] = vertexdof::macrocell::index( level, 0, 0, 1 );
-         groupFirstIdx[5] = vertexdof::macrocell::index( level, 1, 0, 1 );
-         groupFirstIdx[6] = vertexdof::macrocell::index( level, 0, 1, 1 );
-         groupFirstIdx[7] = vertexdof::macrocell::index( level, 1, 1, 1 );
-
-         vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_2_rhs_functions_colored(
-             &dstData[groupFirstIdx[0]],
-             &dstData[groupFirstIdx[1]],
-             &dstData[groupFirstIdx[2]],
-             &dstData[groupFirstIdx[3]],
-             &dstData[groupFirstIdx[4]],
-             &dstData[groupFirstIdx[5]],
-             &dstData[groupFirstIdx[6]],
-             &dstData[groupFirstIdx[7]],
-             &srcData0[groupFirstIdx[0]],
-             &srcData0[groupFirstIdx[1]],
-             &srcData0[groupFirstIdx[2]],
-             &srcData0[groupFirstIdx[3]],
-             &srcData0[groupFirstIdx[4]],
-             &srcData0[groupFirstIdx[5]],
-             &srcData0[groupFirstIdx[6]],
-             &srcData0[groupFirstIdx[7]],
-             &srcData1[groupFirstIdx[0]],
-             &srcData1[groupFirstIdx[1]],
-             &srcData1[groupFirstIdx[2]],
-             &srcData1[groupFirstIdx[3]],
-             &srcData1[groupFirstIdx[4]],
-             &srcData1[groupFirstIdx[5]],
-             &srcData1[groupFirstIdx[6]],
-             &srcData1[groupFirstIdx[7]],
-             scalar0,
-             scalar1,
-             static_cast< int32_t >( level ) );
-      }
-      else
-      {
-         vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_2_rhs_functions(
-             dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
-      }
+      vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_2_rhs_functions(
+          dstData, srcData0, srcData1, scalar0, scalar1, static_cast< int32_t >( level ) );
    }
    else if ( hyteg::globalDefines::useGeneratedKernels && scalars.size() == 3 )
    {
@@ -796,61 +718,8 @@ void macroCellAssign< double >( const uint_t&                                   
       auto scalar0  = scalars.at( 0 );
       auto scalar1  = scalars.at( 1 );
       auto scalar2  = scalars.at( 2 );
-      if ( hyteg::globalDefines::useP1Coloring )
-      {
-         std::map< uint_t, uint_t > groupFirstIdx;
-         groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
-         groupFirstIdx[1] = vertexdof::macrocell::index( level, 1, 0, 0 );
-         groupFirstIdx[2] = vertexdof::macrocell::index( level, 0, 1, 0 );
-         groupFirstIdx[3] = vertexdof::macrocell::index( level, 1, 1, 0 );
-         groupFirstIdx[4] = vertexdof::macrocell::index( level, 0, 0, 1 );
-         groupFirstIdx[5] = vertexdof::macrocell::index( level, 1, 0, 1 );
-         groupFirstIdx[6] = vertexdof::macrocell::index( level, 0, 1, 1 );
-         groupFirstIdx[7] = vertexdof::macrocell::index( level, 1, 1, 1 );
-
-         vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_3_rhs_functions_colored(
-             &dstData[groupFirstIdx[0]],
-             &dstData[groupFirstIdx[1]],
-             &dstData[groupFirstIdx[2]],
-             &dstData[groupFirstIdx[3]],
-             &dstData[groupFirstIdx[4]],
-             &dstData[groupFirstIdx[5]],
-             &dstData[groupFirstIdx[6]],
-             &dstData[groupFirstIdx[7]],
-             &srcData0[groupFirstIdx[0]],
-             &srcData0[groupFirstIdx[1]],
-             &srcData0[groupFirstIdx[2]],
-             &srcData0[groupFirstIdx[3]],
-             &srcData0[groupFirstIdx[4]],
-             &srcData0[groupFirstIdx[5]],
-             &srcData0[groupFirstIdx[6]],
-             &srcData0[groupFirstIdx[7]],
-             &srcData1[groupFirstIdx[0]],
-             &srcData1[groupFirstIdx[1]],
-             &srcData1[groupFirstIdx[2]],
-             &srcData1[groupFirstIdx[3]],
-             &srcData1[groupFirstIdx[4]],
-             &srcData1[groupFirstIdx[5]],
-             &srcData1[groupFirstIdx[6]],
-             &srcData1[groupFirstIdx[7]],
-             &srcData2[groupFirstIdx[0]],
-             &srcData2[groupFirstIdx[1]],
-             &srcData2[groupFirstIdx[2]],
-             &srcData2[groupFirstIdx[3]],
-             &srcData2[groupFirstIdx[4]],
-             &srcData2[groupFirstIdx[5]],
-             &srcData2[groupFirstIdx[6]],
-             &srcData2[groupFirstIdx[7]],
-             scalar0,
-             scalar1,
-             scalar2,
-             static_cast< int32_t >( level ) );
-      }
-      else
-      {
-         vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_3_rhs_functions(
-             dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
-      }
+      vertexdof::macrocell::generated::assign_3D_macrocell_vertexdof_3_rhs_functions(
+          dstData, srcData0, srcData1, srcData2, scalar0, scalar1, scalar2, static_cast< int32_t >( level ) );
    }
    else
    {
@@ -1189,42 +1058,8 @@ void macroCellAdd< double >( const uint_t&                                      
       auto dstData = cell.getData( dstCellID )->getPointer( level );
       auto srcData = cell.getData( srcCellIDs.at( 0 ) )->getPointer( level );
       auto scalar  = scalars.at( 0 );
-      if ( hyteg::globalDefines::useP1Coloring )
-      {
-         std::map< uint_t, uint_t > groupFirstIdx;
-         groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
-         groupFirstIdx[1] = vertexdof::macrocell::index( level, 1, 0, 0 );
-         groupFirstIdx[2] = vertexdof::macrocell::index( level, 0, 1, 0 );
-         groupFirstIdx[3] = vertexdof::macrocell::index( level, 1, 1, 0 );
-         groupFirstIdx[4] = vertexdof::macrocell::index( level, 0, 0, 1 );
-         groupFirstIdx[5] = vertexdof::macrocell::index( level, 1, 0, 1 );
-         groupFirstIdx[6] = vertexdof::macrocell::index( level, 0, 1, 1 );
-         groupFirstIdx[7] = vertexdof::macrocell::index( level, 1, 1, 1 );
-
-         vertexdof::macrocell::generated::add_3D_macrocell_vertexdof_1_rhs_function_colored( &dstData[groupFirstIdx[0]],
-                                                                                             &dstData[groupFirstIdx[1]],
-                                                                                             &dstData[groupFirstIdx[2]],
-                                                                                             &dstData[groupFirstIdx[3]],
-                                                                                             &dstData[groupFirstIdx[4]],
-                                                                                             &dstData[groupFirstIdx[5]],
-                                                                                             &dstData[groupFirstIdx[6]],
-                                                                                             &dstData[groupFirstIdx[7]],
-                                                                                             &srcData[groupFirstIdx[0]],
-                                                                                             &srcData[groupFirstIdx[1]],
-                                                                                             &srcData[groupFirstIdx[2]],
-                                                                                             &srcData[groupFirstIdx[3]],
-                                                                                             &srcData[groupFirstIdx[4]],
-                                                                                             &srcData[groupFirstIdx[5]],
-                                                                                             &srcData[groupFirstIdx[6]],
-                                                                                             &srcData[groupFirstIdx[7]],
-                                                                                             scalar,
-                                                                                             static_cast< int32_t >( level ) );
-      }
-      else
-      {
-         vertexdof::macrocell::generated::add_3D_macrocell_vertexdof_1_rhs_function(
-             dstData, srcData, scalar, static_cast< int32_t >( level ) );
-      }
+      vertexdof::macrocell::generated::add_3D_macrocell_vertexdof_1_rhs_function(
+          dstData, srcData, scalar, static_cast< int32_t >( level ) );
    }
    else
    {

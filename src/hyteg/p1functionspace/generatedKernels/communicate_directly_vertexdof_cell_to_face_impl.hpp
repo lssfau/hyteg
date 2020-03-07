@@ -23,7 +23,6 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "all.hpp"
 #include "core/Macros.h"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
 #include "hyteg/indexing/Common.hpp"
@@ -35,30 +34,30 @@ namespace vertexdof {
 namespace comm {
 namespace generated {
 
-void communicate_directly_vertexdof_cell_to_face_impl_012(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_013(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_021(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_023(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_031(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_032(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_102(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_103(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_120(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_123(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_130(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_132(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_201(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_203(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_210(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_213(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_230(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_231(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_301(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_302(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_310(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_312(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_320(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
-void communicate_directly_vertexdof_cell_to_face_impl_321(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level);
+void communicate_directly_vertexdof_cell_to_face_impl_012(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_013(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_021(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_023(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_031(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_032(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_102(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_103(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_120(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_123(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_130(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_132(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_201(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_203(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_210(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_213(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_230(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_231(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_301(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_302(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_310(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_312(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_320(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
+void communicate_directly_vertexdof_cell_to_face_impl_321(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level);
 
 } // namespace generated
 } // namespace comm

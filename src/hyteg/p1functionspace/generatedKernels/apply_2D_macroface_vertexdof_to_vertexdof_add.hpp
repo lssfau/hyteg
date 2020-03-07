@@ -23,7 +23,6 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "all.hpp"
 #include "core/Macros.h"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
 #include "hyteg/indexing/Common.hpp"
@@ -35,7 +34,7 @@ namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-void apply_2D_macroface_vertexdof_to_vertexdof_add(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * RESTRICT const _data_p1FaceStencil, int32_t level);
+void apply_2D_macroface_vertexdof_to_vertexdof_add(double * RESTRICT _data_p1FaceDst, double const * RESTRICT const _data_p1FaceSrc, double const * RESTRICT const _data_p1FaceStencil, int level);
 
 } // namespace generated
 } // namespace macroface

@@ -23,19 +23,19 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "all.hpp"
 #include "core/Macros.h"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include <map>
 #define RESTRICT WALBERLA_RESTRICT
+#include "communicate_directly_vertexdof_cell_to_face_impl.hpp"
 
 namespace hyteg {
 namespace vertexdof {
 namespace comm {
 namespace generated {
 
-void communicate_directly_vertexdof_cell_to_face(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int32_t level, int64_t neighbor_cell_local_vertex_id_0, int64_t neighbor_cell_local_vertex_id_1, int64_t neighbor_cell_local_vertex_id_2);
+void communicate_directly_vertexdof_cell_to_face(double const * RESTRICT const _data_p1_cell_src, double * RESTRICT _data_p1_face_dst_gl0, int level, int64_t neighbor_cell_local_vertex_id_0, int64_t neighbor_cell_local_vertex_id_1, int64_t neighbor_cell_local_vertex_id_2);
 
 } // namespace generated
 } // namespace comm

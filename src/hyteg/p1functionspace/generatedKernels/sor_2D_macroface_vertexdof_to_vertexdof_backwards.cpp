@@ -29,7 +29,7 @@ namespace vertexdof {
 namespace macroface {
 namespace generated {
 
-static void sor_2D_macroface_vertexdof_to_vertexdof_backwards_level_any(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceRhs, double const * RESTRICT const _data_p1FaceStencil, int32_t level, double relax)
+static void sor_2D_macroface_vertexdof_to_vertexdof_backwards_level_any(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceRhs, double const * RESTRICT const _data_p1FaceStencil, int level, double relax)
 {
    const double xi_11 = 1.0;
    const double xi_12 = -relax;
@@ -59,7 +59,7 @@ static void sor_2D_macroface_vertexdof_to_vertexdof_backwards_level_any(double *
 }
 
 
-void sor_2D_macroface_vertexdof_to_vertexdof_backwards(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceRhs, double const * RESTRICT const _data_p1FaceStencil, int32_t level, double relax)
+void sor_2D_macroface_vertexdof_to_vertexdof_backwards(double * RESTRICT _data_p1FaceDst, double * RESTRICT _data_p1FaceRhs, double const * RESTRICT const _data_p1FaceStencil, int level, double relax)
 {
     switch( level )
     {

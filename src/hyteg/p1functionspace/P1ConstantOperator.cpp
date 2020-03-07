@@ -800,82 +800,18 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
          {
             if ( hyteg::globalDefines::useGeneratedKernels )
             {
-               if ( hyteg::globalDefines::useP1Coloring )
+               auto    opr_data = cell.getData( cellStencilID_ )->getData( level );
+               real_t* src_data = cell.getData( src.getCellDataID() )->getPointer( level );
+               real_t* dst_data = cell.getData( dst.getCellDataID() )->getPointer( level );
+               if ( updateType == Replace )
                {
-                  auto    opr_data = cell.getData( cellStencilID_ )->getData( level );
-                  real_t* src_data = cell.getData( src.getCellDataID() )->getPointer( level );
-                  real_t* dst_data = cell.getData( dst.getCellDataID() )->getPointer( level );
-
-                  std::map< uint_t, uint_t > groupFirstIdx;
-                  groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
-                  groupFirstIdx[1] = vertexdof::macrocell::index( level, 1, 0, 0 );
-                  groupFirstIdx[2] = vertexdof::macrocell::index( level, 0, 1, 0 );
-                  groupFirstIdx[3] = vertexdof::macrocell::index( level, 1, 1, 0 );
-                  groupFirstIdx[4] = vertexdof::macrocell::index( level, 0, 0, 1 );
-                  groupFirstIdx[5] = vertexdof::macrocell::index( level, 1, 0, 1 );
-                  groupFirstIdx[6] = vertexdof::macrocell::index( level, 0, 1, 1 );
-                  groupFirstIdx[7] = vertexdof::macrocell::index( level, 1, 1, 1 );
-
-                  if ( updateType == Replace )
-                  {
-                     vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_replace_colored_fused(
-                         &dst_data[groupFirstIdx[0]],
-                         &dst_data[groupFirstIdx[1]],
-                         &dst_data[groupFirstIdx[2]],
-                         &dst_data[groupFirstIdx[3]],
-                         &dst_data[groupFirstIdx[4]],
-                         &dst_data[groupFirstIdx[5]],
-                         &dst_data[groupFirstIdx[6]],
-                         &dst_data[groupFirstIdx[7]],
-                         &src_data[groupFirstIdx[0]],
-                         &src_data[groupFirstIdx[1]],
-                         &src_data[groupFirstIdx[2]],
-                         &src_data[groupFirstIdx[3]],
-                         &src_data[groupFirstIdx[4]],
-                         &src_data[groupFirstIdx[5]],
-                         &src_data[groupFirstIdx[6]],
-                         &src_data[groupFirstIdx[7]],
-                         static_cast< int32_t >( level ),
-                         opr_data );
-                  }
-                  else
-                  {
-                     vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_add_colored_fused(
-                         &dst_data[groupFirstIdx[0]],
-                         &dst_data[groupFirstIdx[1]],
-                         &dst_data[groupFirstIdx[2]],
-                         &dst_data[groupFirstIdx[3]],
-                         &dst_data[groupFirstIdx[4]],
-                         &dst_data[groupFirstIdx[5]],
-                         &dst_data[groupFirstIdx[6]],
-                         &dst_data[groupFirstIdx[7]],
-                         &src_data[groupFirstIdx[0]],
-                         &src_data[groupFirstIdx[1]],
-                         &src_data[groupFirstIdx[2]],
-                         &src_data[groupFirstIdx[3]],
-                         &src_data[groupFirstIdx[4]],
-                         &src_data[groupFirstIdx[5]],
-                         &src_data[groupFirstIdx[6]],
-                         &src_data[groupFirstIdx[7]],
-                         static_cast< int32_t >( level ),
-                         opr_data );
-                  }
+                  vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_replace(
+                      dst_data, src_data, static_cast< int32_t >( level ), opr_data );
                }
-               else
+               else if ( updateType == Add )
                {
-                  auto    opr_data = cell.getData( cellStencilID_ )->getData( level );
-                  real_t* src_data = cell.getData( src.getCellDataID() )->getPointer( level );
-                  real_t* dst_data = cell.getData( dst.getCellDataID() )->getPointer( level );
-                  if ( updateType == Replace )
-                  {
-                     vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_replace(
-                         dst_data, src_data, static_cast< int32_t >( level ), opr_data );
-                  }
-                  else if ( updateType == Add )
-                  {
-                     vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_add(
-                         dst_data, src_data, static_cast< int32_t >( level ), opr_data );
-                  }
+                  vertexdof::macrocell::generated::apply_3D_macrocell_vertexdof_to_vertexdof_add(
+                      dst_data, src_data, static_cast< int32_t >( level ), opr_data );
                }
             }
             else
@@ -1068,53 +1004,8 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_gs( 
             auto rhs_data = cell.getData( rhs.getCellDataID() )->getPointer( level );
             auto dst_data = cell.getData( dst.getCellDataID() )->getPointer( level );
             auto stencil  = cell.getData( cellStencilID_ )->getData( level );
-            if ( hyteg::globalDefines::useP1Coloring )
-            {
-               std::map< uint_t, uint_t > groupFirstIdx;
-               groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
-               groupFirstIdx[1] = vertexdof::macrocell::index( level, 1, 0, 0 );
-               groupFirstIdx[2] = vertexdof::macrocell::index( level, 0, 1, 0 );
-               groupFirstIdx[3] = vertexdof::macrocell::index( level, 1, 1, 0 );
-               groupFirstIdx[4] = vertexdof::macrocell::index( level, 0, 0, 1 );
-               groupFirstIdx[5] = vertexdof::macrocell::index( level, 1, 0, 1 );
-               groupFirstIdx[6] = vertexdof::macrocell::index( level, 0, 1, 1 );
-               groupFirstIdx[7] = vertexdof::macrocell::index( level, 1, 1, 1 );
-
-               for ( uint_t g = 0; g < 8; g++ )
-                  vertexdof::macrocell::generated::sor_3D_macrocell_P1_colored( &dst_data[groupFirstIdx[0]],
-                                                                                &dst_data[groupFirstIdx[0]],
-                                                                                &dst_data[groupFirstIdx[1]],
-                                                                                &dst_data[groupFirstIdx[1]],
-                                                                                &dst_data[groupFirstIdx[2]],
-                                                                                &dst_data[groupFirstIdx[2]],
-                                                                                &dst_data[groupFirstIdx[3]],
-                                                                                &dst_data[groupFirstIdx[3]],
-                                                                                &dst_data[groupFirstIdx[4]],
-                                                                                &dst_data[groupFirstIdx[4]],
-                                                                                &dst_data[groupFirstIdx[5]],
-                                                                                &dst_data[groupFirstIdx[5]],
-                                                                                &dst_data[groupFirstIdx[6]],
-                                                                                &dst_data[groupFirstIdx[6]],
-                                                                                &dst_data[groupFirstIdx[7]],
-                                                                                &dst_data[groupFirstIdx[7]],
-                                                                                &rhs_data[groupFirstIdx[0]],
-                                                                                &rhs_data[groupFirstIdx[1]],
-                                                                                &rhs_data[groupFirstIdx[2]],
-                                                                                &rhs_data[groupFirstIdx[3]],
-                                                                                &rhs_data[groupFirstIdx[4]],
-                                                                                &rhs_data[groupFirstIdx[5]],
-                                                                                &rhs_data[groupFirstIdx[6]],
-                                                                                &rhs_data[groupFirstIdx[7]],
-                                                                                static_cast< int64_t >( g ),
-                                                                                static_cast< int32_t >( level ),
-                                                                                stencil,
-                                                                                1.0 );
-            }
-            else
-            {
-               vertexdof::macrocell::generated::gaussseidel_3D_macrocell_P1(
-                   dst_data, rhs_data, static_cast< int32_t >( level ), stencil );
-            }
+            vertexdof::macrocell::generated::gaussseidel_3D_macrocell_P1(
+                dst_data, rhs_data, static_cast< int32_t >( level ), stencil );
          }
          else
          {
@@ -1406,68 +1297,19 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor(
       {
          if ( globalDefines::useGeneratedKernels )
          {
-            if ( hyteg::globalDefines::useP1Coloring )
+            auto rhs_data = cell.getData( rhs.getCellDataID() )->getPointer( level );
+            auto dst_data = cell.getData( dst.getCellDataID() )->getPointer( level );
+            auto stencil  = cell.getData( cellStencilID_ )->getData( level );
+
+            if ( backwards )
             {
-               auto    opr_data = cell.getData( cellStencilID_ )->getData( level );
-               real_t* rhs_data = cell.getData( rhs.getCellDataID() )->getPointer( level );
-               real_t* dst_data = cell.getData( dst.getCellDataID() )->getPointer( level );
-
-               std::map< uint_t, uint_t > groupFirstIdx;
-               groupFirstIdx[0] = vertexdof::macrocell::index( level, 0, 0, 0 );
-               groupFirstIdx[1] = vertexdof::macrocell::index( level, 1, 0, 0 );
-               groupFirstIdx[2] = vertexdof::macrocell::index( level, 0, 1, 0 );
-               groupFirstIdx[3] = vertexdof::macrocell::index( level, 1, 1, 0 );
-               groupFirstIdx[4] = vertexdof::macrocell::index( level, 0, 0, 1 );
-               groupFirstIdx[5] = vertexdof::macrocell::index( level, 1, 0, 1 );
-               groupFirstIdx[6] = vertexdof::macrocell::index( level, 0, 1, 1 );
-               groupFirstIdx[7] = vertexdof::macrocell::index( level, 1, 1, 1 );
-
-               for ( uint_t g = 0; g < 8; g++ )
-                  vertexdof::macrocell::generated::sor_3D_macrocell_P1_colored( &dst_data[groupFirstIdx[0]],
-                                                                                &dst_data[groupFirstIdx[0]],
-                                                                                &dst_data[groupFirstIdx[1]],
-                                                                                &dst_data[groupFirstIdx[1]],
-                                                                                &dst_data[groupFirstIdx[2]],
-                                                                                &dst_data[groupFirstIdx[2]],
-                                                                                &dst_data[groupFirstIdx[3]],
-                                                                                &dst_data[groupFirstIdx[3]],
-                                                                                &dst_data[groupFirstIdx[4]],
-                                                                                &dst_data[groupFirstIdx[4]],
-                                                                                &dst_data[groupFirstIdx[5]],
-                                                                                &dst_data[groupFirstIdx[5]],
-                                                                                &dst_data[groupFirstIdx[6]],
-                                                                                &dst_data[groupFirstIdx[6]],
-                                                                                &dst_data[groupFirstIdx[7]],
-                                                                                &dst_data[groupFirstIdx[7]],
-                                                                                &rhs_data[groupFirstIdx[0]],
-                                                                                &rhs_data[groupFirstIdx[1]],
-                                                                                &rhs_data[groupFirstIdx[2]],
-                                                                                &rhs_data[groupFirstIdx[3]],
-                                                                                &rhs_data[groupFirstIdx[4]],
-                                                                                &rhs_data[groupFirstIdx[5]],
-                                                                                &rhs_data[groupFirstIdx[6]],
-                                                                                &rhs_data[groupFirstIdx[7]],
-                                                                                static_cast< int64_t >( g ),
-                                                                                static_cast< int32_t >( level ),
-                                                                                opr_data,
-                                                                                relax );
+               vertexdof::macrocell::generated::sor_3D_macrocell_P1_backwards(
+                   dst_data, rhs_data, static_cast< int32_t >( level ), stencil, relax );
             }
             else
             {
-               auto rhs_data = cell.getData( rhs.getCellDataID() )->getPointer( level );
-               auto dst_data = cell.getData( dst.getCellDataID() )->getPointer( level );
-               auto stencil  = cell.getData( cellStencilID_ )->getData( level );
-
-               if ( backwards )
-               {
-                  vertexdof::macrocell::generated::sor_3D_macrocell_P1_backwards(
-                      dst_data, rhs_data, static_cast< int32_t >( level ), stencil, relax );
-               }
-               else
-               {
-                  vertexdof::macrocell::generated::sor_3D_macrocell_P1(
-                      dst_data, rhs_data, static_cast< int32_t >( level ), stencil, relax );
-               }
+               vertexdof::macrocell::generated::sor_3D_macrocell_P1(
+                   dst_data, rhs_data, static_cast< int32_t >( level ), stencil, relax );
             }
          }
          else

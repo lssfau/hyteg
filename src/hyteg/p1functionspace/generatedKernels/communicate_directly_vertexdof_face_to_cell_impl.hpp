@@ -23,7 +23,6 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "all.hpp"
 #include "core/Macros.h"
 #include "hyteg/edgedofspace/EdgeDoFOrientation.hpp"
 #include "hyteg/indexing/Common.hpp"
@@ -35,30 +34,30 @@ namespace vertexdof {
 namespace comm {
 namespace generated {
 
-void communicate_directly_vertexdof_face_to_cell_impl_012(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_013(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_021(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_023(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_031(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_032(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_102(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_103(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_120(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_123(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_130(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_132(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_201(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_203(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_210(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_213(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_230(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_231(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_301(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_302(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_310(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_312(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_320(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
-void communicate_directly_vertexdof_face_to_cell_impl_321(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int32_t level);
+void communicate_directly_vertexdof_face_to_cell_impl_012(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_013(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_021(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_023(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_031(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_032(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_102(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_103(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_120(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_123(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_130(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_132(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_201(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_203(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_210(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_213(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_230(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_231(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_301(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_302(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_310(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_312(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_320(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
+void communicate_directly_vertexdof_face_to_cell_impl_321(double * RESTRICT _data_p1_cell_dst, double const * RESTRICT const _data_p1_face_src, int level);
 
 } // namespace generated
 } // namespace comm
