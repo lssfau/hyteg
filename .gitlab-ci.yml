@@ -1107,6 +1107,8 @@ benchmark_build_time:
   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
   tags:
     - docker-benchmark
+  variables:
+    CTEST_EXCLUDE_LABELS: "longrun"
 
 benchmark_ClangBuildAnalyzer:
   script:
@@ -1139,6 +1141,8 @@ benchmark_ClangBuildAnalyzer:
   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
   tags:
     - docker-benchmark
+  variables:
+    CTEST_EXCLUDE_LABELS: "longrun"
 
 .benchmark_template: &benchmark_definition
    script:
@@ -1198,6 +1202,8 @@ benchmark_ClangBuildAnalyzer:
       - python3 createLevelScalingPlot.py $DOCKER_IMAGE_NAME.txt 2 15 --perfgroup "DP MFLOP/s STAT"
    tags:
       - docker-benchmark
+   variables:
+     CTEST_EXCLUDE_LABELS: "longrun"
    artifacts:
      paths:
        - $CI_PROJECT_DIR/build/apps/benchmarks/ApplyPerformanceAnalysis-2D-P2/*.pdf
