@@ -17,11 +17,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include <hyteg/edgedofspace/EdgeDoFIndexing.hpp>
-#include <hyteg/edgedofspace/EdgeDoFMacroEdge.hpp>
-#include <hyteg/p1functionspace/VertexDoFIndexing.hpp>
-#include <hyteg/p1functionspace/VertexDoFMacroEdge.hpp>
-#include "hyteg/p2functionspace/generatedKernels/all.hpp"
+#include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
+#include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
+#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
+#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroedge_P2_update_vertexdofs.hpp"
 
 #include "P2MacroFace.hpp"
 

@@ -27,10 +27,6 @@
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
-#include "hyteg/p1functionspace/generatedKernels/all.hpp"
-#include "hyteg/edgedofspace/generatedKernels/all.hpp"
-#include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/generatedKernels/all.hpp"
-#include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/all.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 

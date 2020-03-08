@@ -55,14 +55,22 @@
 #endif
 
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/forms/P2LinearCombinationForm.hpp"
+#include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2MacroCell.hpp"
 #include "hyteg/p2functionspace/P2MacroEdge.hpp"
 #include "hyteg/p2functionspace/P2MacroFace.hpp"
 #include "hyteg/p2functionspace/P2MacroVertex.hpp"
-#include "hyteg/p2functionspace/generatedKernels/all.hpp"
-#include "hyteg/forms/P2RowSumForm.hpp"
-#include "hyteg/forms/P2LinearCombinationForm.hpp"
+#include "hyteg/p2functionspace/generatedKernels/sor_2D_macroface_P2_update_edgedofs.hpp"
+#include "hyteg/p2functionspace/generatedKernels/sor_2D_macroface_P2_update_vertexdofs.hpp"
+#include "hyteg/p2functionspace/generatedKernels/sor_3D_macrocell_P2_update_edgedofs_by_type.hpp"
+#include "hyteg/p2functionspace/generatedKernels/sor_3D_macrocell_P2_update_vertexdofs.hpp"
+#include "hyteg/p2functionspace/generatedKernels/sor_3D_macrocell_P2_update_vertexdofs_backwards.hpp"
+#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_edgedofs.hpp"
+#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_edgedofs_backwards.hpp"
+#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_vertexdofs.hpp"
+#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_vertexdofs_backwards.hpp"
 
 namespace hyteg {
 
