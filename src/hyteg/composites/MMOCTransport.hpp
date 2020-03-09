@@ -891,8 +891,8 @@ void evaluateTemperature( walberla::convection_particles::data::ParticleStorage&
 
    // part I
 
-   std::map< uint_t, unsigned > numParticlesToSendToRank;
-   std::map< uint_t, unsigned > numParticlesToReceiveFromRank;
+   std::map< uint_t, int > numParticlesToSendToRank;
+   std::map< uint_t, int > numParticlesToReceiveFromRank;
 
    std::map< uint_t, MPI_Request > sendRequests;
 
@@ -900,6 +900,8 @@ void evaluateTemperature( walberla::convection_particles::data::ParticleStorage&
 
    WALBERLA_MPI_SECTION()
    {
+      const int TAG = 98234;
+
       for ( const auto& p : particleStorage )
       {
          if ( numParticlesToSendToRank.count( p.getStartProcess() ) == 0 )
@@ -908,41 +910,40 @@ void evaluateTemperature( walberla::convection_particles::data::ParticleStorage&
          sendRequests[p.getStartProcess()] = MPI_Request();
       }
 
-      for ( auto it : numParticlesToSendToRank )
+      for ( auto& it : numParticlesToSendToRank )
       {
-         // WALBERLA_LOG_INFO( "Particle communcation prep: rank " << rank << " -> " << it.first << ": " << it.second )
+         //         WALBERLA_LOG_INFO( "Particle communcation prep: rank " << walberla::mpi::MPIManager::instance()->rank() << " -> "
+         //                                                                << it.first << ": " << it.second )
          MPI_Isend( &it.second,
                     1,
-                    MPI_UNSIGNED,
+                    MPI_INT,
                     (int) it.first,
-                    0,
+                    TAG,
                     walberla::mpi::MPIManager::instance()->comm(),
                     &sendRequests[it.first] );
       }
 
-      for ( auto it : sendRequests )
+      for ( auto& it : sendRequests )
       {
          MPI_Status status;
          MPI_Wait( &it.second, &status );
       }
 
-      uint_t numReceivedParticleLocations = 0;
+      int numReceivedParticleLocations = 0;
       while ( numReceivedParticleLocations < numberOfCreatedParticles )
       {
-         unsigned   numParticles;
          MPI_Status status;
-         MPI_Recv( &numParticles,
-                   1,
-                   MPI_UNSIGNED,
-                   MPI_ANY_SOURCE,
-                   MPI_ANY_TAG,
-                   walberla::mpi::MPIManager::instance()->comm(),
-                   &status );
-         // WALBERLA_LOG_INFO( "Particle communcation prep: receiving " << numParticles << " particles from rank " << status.MPI_SOURCE );
-         numReceivedParticleLocations += numParticles;
-         numParticlesToReceiveFromRank[uint_c( status.MPI_SOURCE )] = numParticles;
-         // WALBERLA_LOG_INFO( "total received particle infos: " << numReceivedParticleLocations )
-         // WALBERLA_LOG_INFO( "created particles: " << numberOfCreatedParticles )
+
+         int numParticlesSum = 0;
+
+         MPI_Recv( &numParticlesSum, 1, MPI_INT, MPI_ANY_SOURCE, TAG, walberla::mpi::MPIManager::instance()->comm(), &status );
+
+         //         WALBERLA_LOG_INFO( "Particle communcation prep: receiving " << numParticlesSum << " particles from rank "
+         //                                                                     << status.MPI_SOURCE );
+         numReceivedParticleLocations += numParticlesSum;
+         numParticlesToReceiveFromRank[uint_c( status.MPI_SOURCE )] = numParticlesSum;
+         //         WALBERLA_LOG_INFO( "total received particle infos: " << numReceivedParticleLocations )
+         //         WALBERLA_LOG_INFO( "created particles: " << numberOfCreatedParticles )
       }
 
       // part II
@@ -954,13 +955,12 @@ void evaluateTemperature( walberla::convection_particles::data::ParticleStorage&
 
    WALBERLA_NON_MPI_SECTION()
    {
-      numParticlesToSendToRank[ 0 ] = (unsigned) particleStorage.size();
-      numParticlesToReceiveFromRank[ 0 ] = (unsigned) particleStorage.size();
+      numParticlesToSendToRank[0]      = (int) particleStorage.size();
+      numParticlesToReceiveFromRank[0] = (int) particleStorage.size();
       ranksToReceiveFrom.insert( 0 );
    }
 
-   walberla::mpi::BufferSystem bufferSystem( walberla::mpi::MPIManager::instance()->comm() );
-   bufferSystem.setReceiverInfo( ranksToReceiveFrom, true );
+   walberla::mpi::BufferSystem bufferSystem( walberla::mpi::MPIManager::instance()->comm(), 654654555 );
 
    for ( const auto& p : particleStorage )
    {
@@ -970,6 +970,8 @@ void evaluateTemperature( walberla::convection_particles::data::ParticleStorage&
       bufferSystem.sendBuffer( p.getStartProcess() ) << p.getStartEdgeDoFOrientation();
       bufferSystem.sendBuffer( p.getStartProcess() ) << p.getFinalTemperature();
    }
+
+   bufferSystem.setReceiverInfo( ranksToReceiveFrom, true );
 
    bufferSystem.sendAll();
 
