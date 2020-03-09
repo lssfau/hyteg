@@ -189,12 +189,12 @@ real_t getMaxDifference( P1Function< real_t >& fMapped, P1Function< real_t >& fU
   real_t* testDataMapped = faceMapped.getData( fMapped.getFaceDataID() )->getPointer( level );
   uint_t  sizeMapped = faceMapped.getData( fMapped.getFaceDataID() )->getSize( level );
 
+  WALBERLA_UNUSED( sizeUnmapped );
   WALBERLA_ASSERT_EQUAL( sizeMapped, sizeUnmapped );
 
   real_t aux = 0.0;
   for( uint_t k = 0; k < sizeMapped; k++ ) {
     real_t diff = std::abs( testDataMapped[k] - testDataUnmapped[k] );
-    // WALBERLA_LOG_INFO_ON_ROOT( "diff = " << std::scientific << testDataUnmapped[k] << " , " << testDataMapped[k] );
     aux = aux < diff ? diff : aux;
   }
 
