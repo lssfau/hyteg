@@ -365,10 +365,11 @@ void P1ElementwiseOperator< P1Form >::computeDiagonalOperatorValues( uint_t leve
       diagonalValues_->communicate< Vertex, Edge >( level );
       diagonalValues_->communicate< Edge, Face >( level );
 
-      // Invert values if desired
+      // Invert values if desired (note: using false below means we only invert in the interior of the primitives,
+      // the values in the halos are untouched; should be okay for using diagonalValue_ in smoothers)
       if ( invert )
       {
-         diagonalValues_->invertElementwise( level );
+         diagonalValues_->invertElementwise( level, All, false );
       }
    }
 }
@@ -429,7 +430,7 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions3D( const
    // assemble local element matrix
    Matrix4r elMat;
    P1Form   form;
-   // form.setGeometryMap( cell.getGeometryMap() );
+   form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
 
    // obtain data indices of dofs associated with micro-cell
@@ -627,10 +628,19 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly3D( Mat&               
 template class P1ElementwiseOperator<
     P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >;
 
+// P1ElementwisePolarLaplaceOperator
+template class P1ElementwiseOperator< P1FenicsForm< p1_polar_laplacian_cell_integral_0_otherwise > >;
+
 // P1ElementwiseMassOperator
 template class P1ElementwiseOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >;
 
 // P1ElementwiseBlendingMassOperator
 template class P1ElementwiseOperator< P1Form_mass >;
+
+// P1ElementwiseBlendingMassOperator3D
+template class P1ElementwiseOperator< P1Form_mass3D >;
+
+// P1ElementwiseBlendingLaplaceOperator
+template class P1ElementwiseOperator< P1Form_laplace >;
 
 } // namespace hyteg

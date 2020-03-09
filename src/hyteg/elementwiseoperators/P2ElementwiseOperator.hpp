@@ -22,6 +22,10 @@
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
+#include "hyteg/forms/form_fenics_generated/p2_polar_laplacian.h"
+#include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
+#include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
+#include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -176,16 +180,22 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                                const PetscInt* const   dstVertexIdx,
                                const PetscInt* const   dstEdgeIdx ) const;
 #endif
-
-   /// Form associated with this operator
-   P2Form form_;
 };
 
 typedef P2ElementwiseOperator<
     P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >
     P2ElementwiseLaplaceOperator;
 
+typedef P2ElementwiseOperator<
+    P2FenicsForm< p2_polar_laplacian_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >
+    P2ElementwisePolarLaplaceOperator;
+
 typedef P2ElementwiseOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >
     P2ElementwiseMassOperator;
+
+typedef P2ElementwiseOperator< P2Form_mass >    P2ElementwiseBlendingMassOperator;
+typedef P2ElementwiseOperator< P2Form_laplace > P2ElementwiseBlendingLaplaceOperator;
+
+typedef P2ElementwiseOperator< P2Form_divKgrad > P2ElementwiseDivKGradOperator;
 
 } // namespace hyteg

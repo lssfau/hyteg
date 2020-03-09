@@ -30,10 +30,12 @@ class GeometryMap
  public:
    enum class Type : uint_t
    {
-      IDENTITY = 0,
-      AFFINE   = 1,
-      CIRCULAR = 2,
-      POLAR_COORDS = 3
+      IDENTITY              = 0,
+      AFFINE                = 1,
+      CIRCULAR              = 2,
+      POLAR_COORDS          = 3,
+      ANNULUS_MAP           = 4,
+      ICOSAHEDRAL_SHELL_MAP = 5
    };
 
    virtual ~GeometryMap(){};
@@ -41,12 +43,32 @@ class GeometryMap
    /// Mapping of reference coordinates \p x to physical coordinates \p Fx
    /// \param x Reference input coordinates
    /// \param Fx Physical output coordinates
-   virtual void evalF( const Point3D& x, Point3D& Fx ) const          = 0;
+   virtual void evalF( const Point3D& x, Point3D& Fx ) const = 0;
+
+   /// Maps point from physical back to computational domain (inverse blending)
+   /// \param xPhys coordinates of point in physical domain
+   /// \param xComp coordinates of point in computational domain
+   virtual void evalFinv( const Point3D& xPhys, Point3D& xComp ) const
+   {
+      WALBERLA_UNUSED( xPhys );
+      WALBERLA_UNUSED( xComp );
+      WALBERLA_ABORT( "GeometryMap::evalFinv() not implemented for this map" );
+   }
 
    /// Evaluation of the Jacobian matrix at reference position \p x
    /// \param x Reference input coordinates
    /// \param DFx Jacobian matrix
-   virtual void evalDF( const Point3D& x, Matrix2r& DFx ) const       = 0;
+   virtual void evalDF( const Point3D& x, Matrix2r& DFx ) const = 0;
+
+   /// Evaluation of the Jacobian matrix at reference position \p x
+   /// \param x Reference input coordinates
+   /// \param DFx Jacobian matrix
+   virtual real_t evalDF( const Point3D& x, Matrix3r& DFx ) const
+   {
+      WALBERLA_UNUSED( x );
+      WALBERLA_UNUSED( DFx );
+      WALBERLA_ABORT( "GeometryMap::evalDF() not implemented for 3D" );
+   };
 
    /// Evaluation of the Jacobian matrix at reference position \p x
    /// \param x Reference input coordinates

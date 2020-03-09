@@ -537,6 +537,8 @@ waLBerla_execute_test(NAME FunctionMemorySerializationTest8 COMMAND $<TARGET_FIL
 #  waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest2 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> PROCESSES 2 )
 #  waLBerla_execute_test(NAME P1StokesPolynomialBlendingTest8 COMMAND $<TARGET_FILE:P1StokesPolynomialBlendingTest> PROCESSES 8 )
 #endif()
+waLBerla_compile_test(FILES blending/AnnulusMapTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME AnnulusMapTest1 COMMAND $<TARGET_FILE:AnnulusMapTest> )
 
 ## Elementwise Operators ##
 if( HYTEG_BUILD_WITH_PETSC )
@@ -563,6 +565,10 @@ waLBerla_compile_test(FILES numerictools/SpectrumEstimationTest.cpp DEPENDS hyte
 waLBerla_execute_test(NAME SpectrumEstimationTest )
 waLBerla_execute_test(NAME SpectrumEstimationTestMPI COMMAND $<TARGET_FILE:SpectrumEstimationTest> PROCESSES 3 )
 endif()
+
+## Form Evaluation ##
+waLBerla_compile_test(FILES forms/HytegVsFenicsFormTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME HytegVsFenicsFormTest )
 
 ## Floating point exceptions ##
 waLBerla_compile_test(FILES fpe/invertElementwiseTest.cpp DEPENDS hyteg core)

@@ -25,10 +25,10 @@ forms[ "p2_to_p1" ] = [ "div_tet" ]
 # For each element and pair set the directory into which we place the
 # generated C++ header files (relative to hytegsrc below)
 outDir = {}
-outDir[ "p1" ] = [ "p1functionspace/generated" ]
-outDir[ "p2" ] = [ "p2functionspace/generated" ]
-outDir[ "p1_to_p2" ] = [ "mixedoperators/generated" ]
-outDir[ "p2_to_p1" ] = [ "mixedoperators/generated" ]
+outDir[ "p1" ] = [ "forms/form_fenics_generated" ]
+outDir[ "p2" ] = [ "forms/form_fenics_generated" ]
+outDir[ "p1_to_p2" ] = [ "forms/form_fenics_generated" ]
+outDir[ "p2_to_p1" ] = [ "forms/form_fenics_generated" ]
 
 # Set output directory
 hytegsrc = "../../src/hyteg"

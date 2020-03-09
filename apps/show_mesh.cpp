@@ -23,6 +23,7 @@
 #include "core/timing/Timer.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -46,7 +47,7 @@ void showUsage()
              << " 2) by meshing a rectangle in a certain flavour\n"
              << " 3) by meshing a full or partial annulus\n"
              << " 4) by generating a strip of chained triangles\n"
-             << " 5) by meshing a thick spherical shell\n"
+             << " 5) by meshing a thick spherical shell (w/ or w/o blending)\n"
              << " 6) by meshing a rectangular cuboid\n\n"
              << " 7) by meshing a symmetric rectangular cuboid\n\n"
              << " This is steered by choosing one of the options below:\n\n"
@@ -55,6 +56,7 @@ void showUsage()
              << "  --annulus [full|partial]\n"
              << "  --face-chain [numFaces]\n"
              << "  --spherical-shell [ntan]\n"
+             << "  --blended-spherical-shell [ntan]\n"
              << "  --cuboid [nHint]\n"
              << "  --symm-cuboid [nSubCubes]\n\n"
              << " The generated base mesh will be tested be doing two levels of refinement.\n"
@@ -85,9 +87,11 @@ int main( int argc, char* argv[] )
    MeshInfo::meshFlavour rectMeshType = MeshInfo::CROSS;
    MeshInfo*             meshInfo     = nullptr;
    bool                  beVerbose    = false;
+   bool                  blending     = false;
    uint_t                ntan         = 5;
    uint_t                nHint        = 1;
-   std::vector< real_t > layers       = {0.5, 0.6, 0.7, 0.8};
+   // std::vector< real_t > layers       = {0.5, 0.6, 0.7, 0.8};
+   std::vector< real_t > layers       = {1.0, 2.0};
    uint_t                numFaces     = 2;
 
    typedef enum
@@ -156,7 +160,14 @@ int main( int argc, char* argv[] )
    {
       ntan        = uint_c( std::stoi( argv[2] ) );
       meshDomain  = SPHERICAL_SHELL;
+      blending    = false;
       vtkFileName = std::string( "sphericalShell" );
+   } else if( strcmp( argv[1], "--blended-spherical-shell" ) == 0 )
+   {
+      ntan        = uint_c( std::stoi( argv[2] ) );
+      meshDomain  = SPHERICAL_SHELL;
+      blending    = true;
+      vtkFileName = std::string( "blendedSphericalShell" );
    } else if( strcmp( argv[1], "--cuboid" ) == 0 )
    {
       nHint       = uint_c( std::stoi( argv[2] ) );
@@ -224,7 +235,7 @@ int main( int argc, char* argv[] )
       break;
 
    case ANNULUS:
-      meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, 15, 2 ) );
+      meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, 0.0, 2.0 * pi, MeshInfo::CROSS, 12, 2 ) );
       break;
 
    case FACE_CHAIN:
@@ -291,6 +302,14 @@ int main( int argc, char* argv[] )
 
    SetupPrimitiveStorage* setupStorage = nullptr;
    setupStorage = new SetupPrimitiveStorage( *meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+   // check, if blending for spherical shell needs to be done
+   if( blending ) {
+     if( meshDomain == SPHERICAL_SHELL ) {
+       IcosahedralShellMap::setMap( *setupStorage );
+       WALBERLA_LOG_INFO_ON_ROOT( "added geometry map for blending" );
+     }
+   }
 
    switch( loadBalancingType )
    {

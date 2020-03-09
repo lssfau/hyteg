@@ -56,6 +56,10 @@ if( HYTEG_BUILD_WITH_PETSC )
 waLBerla_add_executable( NAME exportOperatorMatrix
         FILES exportOperatorMatrix.cpp
         DEPENDS hyteg)
+
+waLBerla_add_executable( NAME annulus
+        FILES annulus.cpp
+        DEPENDS hyteg)
 endif()
 
 add_subdirectory(benchmarks)

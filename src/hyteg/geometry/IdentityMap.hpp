@@ -28,9 +28,11 @@ class IdentityMap : public GeometryMap
  public:
    IdentityMap() {}
 
-   void evalF( const Point3D& x, Point3D& Fx ) const { Fx = x; }
+   void evalF( const Point3D& x, Point3D& Fx ) const final { Fx = x; }
 
-   void evalDF( const Point3D&, Matrix2r& DFx ) const
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const final { xComp = xPhys; }
+
+   void evalDF( const Point3D&, Matrix2r& DFx ) const final
    {
       DFx( 0, 0 ) = 1.0;
       DFx( 0, 1 ) = 0.0;
@@ -38,7 +40,24 @@ class IdentityMap : public GeometryMap
       DFx( 1, 1 ) = 1.0;
    }
 
-   void evalDFinv( const Point3D&, Matrix2r& DFinvx ) const
+   real_t evalDF( const Point3D&, Matrix3r& DFx ) const final
+   {
+      DFx( 0, 0 ) = 1.0;
+      DFx( 0, 1 ) = 0.0;
+      DFx( 0, 2 ) = 0.0;
+
+      DFx( 1, 0 ) = 0.0;
+      DFx( 1, 1 ) = 1.0;
+      DFx( 1, 2 ) = 0.0;
+
+      DFx( 2, 0 ) = 0.0;
+      DFx( 2, 1 ) = 0.0;
+      DFx( 2, 2 ) = 1.0;
+
+      return 1.0;
+   }
+
+   void evalDFinv( const Point3D&, Matrix2r& DFinvx ) const final
    {
       DFinvx( 0, 0 ) = 1.0;
       DFinvx( 0, 1 ) = 0.0;
