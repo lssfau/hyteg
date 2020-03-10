@@ -50,22 +50,34 @@ using namespace walberla::mpistubs;
 
 enum class TimeSteppingScheme
 {
-   ExplicitEuler,
-   RK4,
+   ExplicitEuler, // first order
+   RK3,           // third order
+   Ralston,       // third order
+   RK4,           // fourth order
 };
 
 const static std::vector< std::vector< real_t > > RK_A_ExplicitEuler = {{{0}}};
 const static std::vector< real_t >                RK_b_ExplicitEuler = {1};
+
+const static std::vector< std::vector< real_t > > RK_A_RK3 = {{{0, 0, 0}, {0.5, 0, 0}, {-1., 2., 0}}};
+const static std::vector< real_t >                RK_b_RK3 = {1. / 6., 2. / 3., 1. / 6.};
+
+const static std::vector< std::vector< real_t > > RK_A_Ralston = {{{0, 0, 0}, {0.5, 0, 0}, {0, 0.75, 0}}};
+const static std::vector< real_t >                RK_b_Ralston = {2. / 9., 1. / 3., 4. / 9.};
 
 const static std::vector< std::vector< real_t > > RK_A_RK4 = {{{0, 0, 0, 0}, {0.5, 0, 0, 0}, {0, 0.5, 0, 0}, {0, 0, 1, 0}}};
 const static std::vector< real_t >                RK_b_RK4 = {1. / 6., 1. / 3., 1. / 3., 1. / 6.};
 
 const static std::map< TimeSteppingScheme, std::vector< std::vector< real_t > > > RK_A = {
     {TimeSteppingScheme::ExplicitEuler, RK_A_ExplicitEuler},
+    {TimeSteppingScheme::RK3, RK_A_RK3},
+    {TimeSteppingScheme::Ralston, RK_A_Ralston},
     {TimeSteppingScheme::RK4, RK_A_RK4}};
 
 const static std::map< TimeSteppingScheme, std::vector< real_t > > RK_b = {
     {TimeSteppingScheme::ExplicitEuler, RK_b_ExplicitEuler},
+    {TimeSteppingScheme::RK3, RK_b_RK3},
+    {TimeSteppingScheme::Ralston, RK_b_Ralston},
     {TimeSteppingScheme::RK4, RK_b_RK4}};
 
 
@@ -145,6 +157,44 @@ real_t evaluateAtParticlePosition( PrimitiveStorage&                            
                                         function.getEdgeDoFFunction().getCellDataID() );
    }
    return result;
+}
+
+void evaluateAtParticlePosition( PrimitiveStorage&                                                      storage,
+                                 const std::vector< P2Function< real_t > >&                             functions,
+                                 const walberla::convection_particles::data::ParticleStorage::Particle& particle,
+                                 const uint_t&                                                          level,
+                                 std::vector< real_t >&                                                 results )
+{
+   if ( !storage.hasGlobalCells() )
+   {
+      WALBERLA_CHECK( storage.faceExistsLocally( particle.getContainingPrimitive() ) );
+      Face& face = *storage.getFace( particle.getContainingPrimitive() );
+
+      for ( uint_t i = 0; i < functions.size(); i++ )
+      {
+         results[i] = P2::macroface::evaluate( level,
+                                               face,
+                                               toPoint3D( particle.getPosition() ),
+                                               functions[i].getVertexDoFFunction().getFaceDataID(),
+                                               functions[i].getEdgeDoFFunction().getFaceDataID() );
+      }
+   }
+   else
+   {
+      std::vector< PrimitiveDataID< FunctionMemory< real_t >, Cell > > vertexDataIDs;
+      std::vector< PrimitiveDataID< FunctionMemory< real_t >, Cell > > edgeDataIDs;
+
+      for ( uint_t i = 0; i < functions.size(); i++ )
+      {
+         vertexDataIDs.push_back( functions[i].getVertexDoFFunction().getCellDataID() );
+         edgeDataIDs.push_back( functions[i].getEdgeDoFFunction().getCellDataID() );
+      }
+
+      WALBERLA_CHECK( storage.cellExistsLocally( particle.getContainingPrimitive() ) );
+      Cell& cell = *storage.getCell( particle.getContainingPrimitive() );
+
+      P2::macrocell::evaluate( level, cell, toPoint3D( particle.getPosition() ), vertexDataIDs, edgeDataIDs, results );
+   }
 }
 
 uint_t initializeParticles( walberla::convection_particles::data::ParticleStorage& particleStorage,
@@ -365,12 +415,22 @@ void particleIntegration( walberla::convection_particles::data::ParticleStorage&
       // skip synchronization (already happened)
 
       storage.getTimingTree()->start( "Evaluate at particle position" );
+
+      std::vector< real_t > results( {0, 0} );
+      std::vector< P2Function< real_t > > functions = { ux, uy };
+      if ( storage.hasGlobalCells() )
+      {
+         results.push_back( 0 );
+         functions.push_back( uz );
+      }
+
       for ( auto p : particleStorage )
       {
-         p->getKRef()[0][0] = -evaluateAtParticlePosition( storage, ux, p, level );
-         p->getKRef()[0][1] = -evaluateAtParticlePosition( storage, uy, p, level );
+         evaluateAtParticlePosition( storage, functions, p, level, results );
+         p->getKRef()[0][0] = - results[0];
+         p->getKRef()[0][1] = - results[1];
          if ( storage.hasGlobalCells() )
-            p->getKRef()[0][2] = -evaluateAtParticlePosition( storage, uz, p, level );
+            p->getKRef()[0][2] = - results[2];
       }
       storage.getTimingTree()->stop( "Evaluate at particle position" );
 
@@ -400,10 +460,11 @@ void particleIntegration( walberla::convection_particles::data::ParticleStorage&
          storage.getTimingTree()->start( "Evaluate at particle position" );
          for ( auto p : particleStorage )
          {
-            p->getKRef()[stage][0] = -evaluateAtParticlePosition( storage, ux, p, level );
-            p->getKRef()[stage][1] = -evaluateAtParticlePosition( storage, uy, p, level );
+            evaluateAtParticlePosition( storage, functions, p, level, results );
+            p->getKRef()[stage][0] = - results[0];
+            p->getKRef()[stage][1] = - results[1];
             if ( storage.hasGlobalCells() )
-               p->getKRef()[stage][2] = -evaluateAtParticlePosition( storage, uz, p, level );
+               p->getKRef()[stage][2] = - results[2];
          }
          storage.getTimingTree()->stop( "Evaluate at particle position" );
       }
