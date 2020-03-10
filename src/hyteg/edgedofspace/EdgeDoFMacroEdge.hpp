@@ -37,6 +37,8 @@
 #include "hyteg/primitives/Cell.hpp"
 #include "hyteg/primitives/Edge.hpp"
 #include "hyteg/primitives/Face.hpp"
+#include "hyteg/HytegDefinitions.hpp"
+#include "hyteg/petsc/PETScWrapper.hpp"
 
 namespace hyteg {
 namespace edgedof {
@@ -573,6 +575,7 @@ inline void
 }
 
 #ifdef HYTEG_BUILD_WITH_PETSC
+
 template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               Level,
                                       Edge&                                                       edge,
