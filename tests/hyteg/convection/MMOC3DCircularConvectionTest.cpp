@@ -82,15 +82,15 @@ int main( int argc, char* argv[] )
    storage->getTimingTree()->start( "Total" );
 
    const uint_t minLevel   = 2;
-   const uint_t maxLevel   = 6;
+   const uint_t maxLevel   = 4;
 
    const real_t hMin       = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    const real_t hMax       = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
    const real_t tEnd       = 2 * walberla::math::pi;
    const real_t dt         = tEnd / 60.;
-   const uint_t stepsTotal = uint_c( tEnd / dt );
+   const uint_t stepsTotal = 2; // uint_c( tEnd / dt );
 
-   const uint_t outerSteps = 60;
+   const uint_t outerSteps = 2; // 60;
    const uint_t innerSteps = stepsTotal / outerSteps;
 
    const auto unknowns = numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel );
@@ -198,7 +198,7 @@ int main( int argc, char* argv[] )
    M.apply( c, cMass, maxLevel, All );
    auto total_mass = cMass.sumGlobal( maxLevel );
 
-   vtkOutput.write( maxLevel );
+   // vtkOutput.write( maxLevel );
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %10d | %8d | %15.3e | %10.3e | %30.2f%% ", 0, 0, max_temp, total_mass, 0, 0. ) )
 
@@ -216,7 +216,7 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
           " %10d | %8d | %15.3e | %10.3e | %30.2f%% ", i, i * innerSteps, max_temp, total_mass, total_mass_lost * 100. ) )
 
-      vtkOutput.write( maxLevel, i * innerSteps );
+      // vtkOutput.write( maxLevel, i * innerSteps );
    }
 
    auto p2MassFormFenics =
