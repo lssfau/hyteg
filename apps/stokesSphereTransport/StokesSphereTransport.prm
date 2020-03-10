@@ -1,28 +1,21 @@
 Parameters
 {
   // domain
-  ntan 5;
+  ntan 3;
   minLevel 2;
-  maxLevel 4;
-  useParMETIS true;
+  maxLevel 3;
 
   // simulation
-  innerTimeSteps 100;
-  outerIterations 500;
-  viscosity 1e-300;
-  dt 1e-3;
+  timeSteps 1000;
+  diffusivity 1e-08; // set negative to optimize for zero diffusivity
+  dt 1e-1;
   rhsScaleFactor 500.0;
 
-  // solver
-  numVCycle 3;
-  uzawaTolerance 1e-16;
-  uzawaMaxIter 100;
+  // Stokes solver
+  stokesResidual 1e-06; // after each timestep we iterate until we reach this residual
+  stokesMaxNumVCycles 5;
 
   /// output
-  printGlobalStorageInfo true;
-  printParameters true;
-  printDoFCount true;
-  printFunctionCount true;
   printTiming true;
   writeDomainVTK true;
   VTKOutput true;
@@ -34,7 +27,6 @@ Parameters
 /// the values have to be sorted ascending
 Layers
 {
-  layer0 1.0;
-  layer1 1.5;
-  layer2 2.0;
+  innerBoundary 0.55; // 3481 km from center (outer core boundary)
+  outerBoundary 1.0; // 6371 km from center
 }
