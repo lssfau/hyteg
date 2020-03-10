@@ -68,447 +68,6 @@ const static std::map< TimeSteppingScheme, std::vector< real_t > > RK_b = {
     {TimeSteppingScheme::ExplicitEuler, RK_b_ExplicitEuler},
     {TimeSteppingScheme::RK4, RK_b_RK4}};
 
-template < typename FunctionType >
-inline Point3D stepRK( const Point3D&                              startPosition,
-                       const real_t&                               velocityFactor,
-                       const std::vector< std::vector< real_t > >& A,
-                       const std::vector< real_t >&                b,
-                       const FunctionType&                         ux,
-                       const FunctionType&                         uy,
-                       const FunctionType&                         uz,
-                       const real_t&                               dt,
-                       const uint_t&                               level )
-{
-   const uint_t          stages = b.size();
-   std::vector< real_t > kx( stages );
-   std::vector< real_t > ky( stages );
-   std::vector< real_t > kz( stages );
-
-   kx[0] = velocityFactor * ux.evaluate( startPosition, level );
-   ky[0] = velocityFactor * uy.evaluate( startPosition, level );
-   kz[0] = velocityFactor * uz.evaluate( startPosition, level );
-
-   for ( uint_t i = 1; i < stages; i++ )
-   {
-      Point3D evaluationPoint = startPosition;
-      for ( uint_t j = 0; j < i; j++ )
-      {
-         evaluationPoint += dt * A[i][j] * Point3D( {kx[j], ky[j], kz[j]} );
-      }
-      kx[i] = velocityFactor * ux.evaluate( evaluationPoint, level );
-      ky[i] = velocityFactor * uy.evaluate( evaluationPoint, level );
-      kz[i] = velocityFactor * uz.evaluate( evaluationPoint, level );
-   }
-
-   real_t kxSum = 0;
-   real_t kySum = 0;
-   real_t kzSum = 0;
-   for ( uint_t i = 0; i < stages; i++ )
-   {
-      kxSum += b[i] * kx[i];
-      kySum += b[i] * ky[i];
-      kzSum += b[i] * kz[i];
-   }
-
-   return startPosition + dt * Point3D( {kxSum, kySum, kzSum} );
-}
-
-template < typename FunctionType >
-Point3D performInnerRKTimeSteps( const Point3D&            startingPosition,
-                                 const uint_t&             innerSteps,
-                                 const FunctionType&       ux,
-                                 const FunctionType&       uy,
-                                 const FunctionType&       uz,
-                                 const uint_t&             level,
-                                 const real_t&             dt,
-                                 const TimeSteppingScheme& timeSteppingScheme )
-{
-   Point3D posPast = startingPosition;
-   for ( uint_t step = 0; step < innerSteps; step++ )
-   {
-      posPast = stepRK< FunctionType >(
-          posPast, -1.0, RK_A.at( timeSteppingScheme ), RK_b.at( timeSteppingScheme ), ux, uy, uz, dt, level );
-   }
-   return posPast;
-}
-
-template < typename FunctionType >
-void integrateNodes( const PrimitiveStorage&,
-                     const FunctionType&,
-                     const FunctionType&,
-                     const FunctionType&,
-                     const FunctionType&,
-                     const FunctionType&,
-                     const real_t&,
-                     const uint_t&,
-                     const DoFType&,
-                     const uint_t&,
-                     const TimeSteppingScheme&,
-                     const real_t& )
-{
-   WALBERLA_ABORT( "Integration not implemented for this function type." );
-}
-
-template <>
-void integrateNodes( const PrimitiveStorage&     storage,
-                     const P1Function< real_t >& c,
-                     const P1Function< real_t >& cOld,
-                     const P1Function< real_t >& ux,
-                     const P1Function< real_t >& uy,
-                     const P1Function< real_t >& uz,
-                     const real_t&               dt,
-                     const uint_t&               level,
-                     const DoFType&,
-                     const uint_t&             steps,
-                     const TimeSteppingScheme& timeSteppingScheme,
-                     const real_t& )
-{
-   WALBERLA_CHECK_EQUAL( walberla::mpi::MPIManager::instance()->numProcesses(), 1 );
-
-   communication::syncFunctionBetweenPrimitives( cOld, level );
-   communication::syncFunctionBetweenPrimitives( ux, level );
-   communication::syncFunctionBetweenPrimitives( uy, level );
-   communication::syncFunctionBetweenPrimitives( uz, level );
-
-   for ( const auto& oldVertexIt : storage.getVertices() )
-   {
-      const auto& vertex = *oldVertexIt.second;
-
-      if ( storage.onBoundary( vertex.getID() ) )
-         continue;
-
-      auto cData = vertex.getData( c.getVertexDataID() )->getPointer( level );
-
-      const Point3D coordinate = vertex.getCoordinates();
-      const uint_t  idx        = 0;
-
-      auto posPast =
-          performInnerRKTimeSteps< P1Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
-
-      // evaluate new temperature
-      const auto newTemp = cOld.evaluate( posPast, level );
-      cData[idx]         = newTemp;
-   }
-
-   for ( const auto& oldEdgeIt : storage.getEdges() )
-   {
-      const auto& edge = *oldEdgeIt.second;
-
-      if ( storage.onBoundary( edge.getID() ) )
-         continue;
-
-      auto cData = edge.getData( c.getEdgeDataID() )->getPointer( level );
-
-      for ( const auto& it : vertexdof::macroedge::Iterator( level, 1 ) )
-      {
-         const Point3D coordinate = vertexdof::macroedge::coordinateFromIndex( level, edge, it );
-         const uint_t  idx        = vertexdof::macroedge::index( level, it.x() );
-
-         auto posPast =
-             performInnerRKTimeSteps< P1Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
-
-         const auto newTemp = cOld.evaluate( posPast, level );
-         cData[idx]         = newTemp;
-      }
-   }
-
-   for ( const auto& oldFaceIt : storage.getFaces() )
-   {
-      const auto& face = *oldFaceIt.second;
-
-      auto cData = face.getData( c.getFaceDataID() )->getPointer( level );
-
-      for ( const auto& it : vertexdof::macroface::Iterator( level, 1 ) )
-      {
-         const Point3D coordinate = vertexdof::macroface::coordinateFromIndex( level, face, it );
-         const uint_t  idx        = vertexdof::macroface::index( level, it.x(), it.y() );
-
-         auto posPast =
-             performInnerRKTimeSteps< P1Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
-
-         // evaluate new temperature
-         const auto newTemp = cOld.evaluate( posPast, level );
-         cData[idx]         = newTemp;
-      }
-   }
-}
-
-template <>
-void integrateNodes( const PrimitiveStorage&     storage,
-                     const P2Function< real_t >& c,
-                     const P2Function< real_t >& cOld,
-                     const P2Function< real_t >& ux,
-                     const P2Function< real_t >& uy,
-                     const P2Function< real_t >& uz,
-                     const real_t&               dt,
-                     const uint_t&               level,
-                     const DoFType&,
-                     const uint_t&             steps,
-                     const TimeSteppingScheme& timeSteppingScheme,
-                     const real_t&             initialOffset )
-{
-   WALBERLA_CHECK_EQUAL( walberla::mpi::MPIManager::instance()->numProcesses(), 1 );
-
-   communication::syncFunctionBetweenPrimitives( cOld, level );
-   communication::syncFunctionBetweenPrimitives( ux, level );
-   communication::syncFunctionBetweenPrimitives( uy, level );
-   communication::syncFunctionBetweenPrimitives( uz, level );
-
-   for ( const auto& oldVertexIt : storage.getVertices() )
-   {
-      const auto& vertex = *oldVertexIt.second;
-
-      if ( storage.onBoundary( vertex.getID() ) )
-         continue;
-
-      auto cData = vertex.getData( c.getVertexDoFFunction().getVertexDataID() )->getPointer( level );
-
-      const Point3D coordinate = vertex.getCoordinates();
-      const uint_t  idx        = 0;
-
-      auto posPast =
-          performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
-
-      // evaluate new temperature
-      const auto newTemp = cOld.evaluate( posPast, level );
-      cData[idx]         = newTemp;
-   }
-
-   for ( const auto& oldEdgeIt : storage.getEdges() )
-   {
-      const auto& edge = *oldEdgeIt.second;
-
-      if ( storage.onBoundary( edge.getID() ) )
-         continue;
-
-      auto cDataV = edge.getData( c.getVertexDoFFunction().getEdgeDataID() )->getPointer( level );
-      auto cDataE = edge.getData( c.getEdgeDoFFunction().getEdgeDataID() )->getPointer( level );
-
-      for ( const auto& it : vertexdof::macroedge::Iterator( level, 1 ) )
-      {
-         const Point3D coordinate = vertexdof::macroedge::coordinateFromIndex( level, edge, it );
-         const uint_t  idx        = vertexdof::macroedge::index( level, it.x() );
-
-         auto posPast =
-             performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
-
-         const auto newTemp = cOld.evaluate( posPast, level );
-         cDataV[idx]        = newTemp;
-      }
-
-      for ( const auto& it : edgedof::macroedge::Iterator( level, 0 ) )
-      {
-         const Point3D coordinate = edgedof::macroedge::coordinateFromIndex( level, edge, it );
-         const uint_t  idx        = edgedof::macroedge::index( level, it.x() );
-
-         auto posPast =
-             performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
-
-         const auto newTemp = cOld.evaluate( posPast, level );
-         cDataE[idx]        = newTemp;
-      }
-   }
-
-   for ( const auto& oldFaceIt : storage.getFaces() )
-   {
-      const auto& face = *oldFaceIt.second;
-
-      if ( storage.onBoundary( face.getID() ) )
-         continue;
-
-      auto cDataV = face.getData( c.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-      auto cDataE = face.getData( c.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-
-      auto uxDataV = face.getData( ux.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-      auto uxDataE = face.getData( ux.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-
-      auto uyDataV = face.getData( uy.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-      auto uyDataE = face.getData( uy.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-
-      auto uzDataV = face.getData( uz.getVertexDoFFunction().getFaceDataID() )->getPointer( level );
-      auto uzDataE = face.getData( uz.getEdgeDoFFunction().getFaceDataID() )->getPointer( level );
-
-      for ( const auto& it : vertexdof::macroface::Iterator( level, 1 ) )
-      {
-         Point3D      coordinate = vertexdof::macroface::coordinateFromIndex( level, face, it );
-         const uint_t idx        = vertexdof::macroface::index( level, it.x(), it.y() );
-
-         if ( initialOffset > 0 )
-         {
-            auto velX = uxDataV[idx];
-            auto velY = uyDataV[idx];
-            auto velZ = uzDataV[idx];
-
-            coordinate += initialOffset * Point3D( {velX, velY, velZ} );
-         }
-
-         auto posPast =
-             performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
-
-         // evaluate new temperature
-         const auto newTemp = cOld.evaluate( posPast, level );
-         cDataV[idx]        = newTemp;
-      }
-
-      for ( const auto& it : edgedof::macroface::Iterator( level, 0 ) )
-      {
-         if ( it.row() != 0 )
-         {
-            Point3D      coordinate = edgedof::macroface::coordinateFromIndex( level, face, it, edgedof::EdgeDoFOrientation::X );
-            const uint_t idx        = edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::X );
-
-            if ( initialOffset > 0 )
-            {
-               auto velX = uxDataE[idx];
-               auto velY = uyDataE[idx];
-               auto velZ = uzDataE[idx];
-
-               coordinate += initialOffset * Point3D( {velX, velY, velZ} );
-            }
-
-            auto posPast =
-                performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
-
-            // evaluate new temperature
-            const auto newTemp = cOld.evaluate( posPast, level );
-            cDataE[idx]        = newTemp;
-         }
-
-         if ( it.col() != 0 )
-         {
-            Point3D      coordinate = edgedof::macroface::coordinateFromIndex( level, face, it, edgedof::EdgeDoFOrientation::Y );
-            const uint_t idx        = edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::Y );
-
-            if ( initialOffset > 0 )
-            {
-               auto velX = uxDataE[idx];
-               auto velY = uyDataE[idx];
-               auto velZ = uzDataE[idx];
-
-               coordinate += initialOffset * Point3D( {velX, velY, velZ} );
-            }
-
-            auto posPast =
-                performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
-
-            // evaluate new temperature
-            const auto newTemp = cOld.evaluate( posPast, level );
-            cDataE[idx]        = newTemp;
-         }
-
-         if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( level ) - 1 ) )
-         {
-            Point3D      coordinate = edgedof::macroface::coordinateFromIndex( level, face, it, edgedof::EdgeDoFOrientation::XY );
-            const uint_t idx        = edgedof::macroface::index( level, it.x(), it.y(), edgedof::EdgeDoFOrientation::XY );
-
-            if ( initialOffset > 0 )
-            {
-               auto velX = uxDataE[idx];
-               auto velY = uyDataE[idx];
-               auto velZ = uzDataE[idx];
-
-               coordinate += initialOffset * Point3D( {velX, velY, velZ} );
-            }
-
-            auto posPast =
-                performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
-
-            // evaluate new temperature
-            const auto newTemp = cOld.evaluate( posPast, level );
-            cDataE[idx]        = newTemp;
-         }
-      }
-   }
-
-   for ( const auto& oldCellIt : storage.getCells() )
-   {
-      const auto& cell = *oldCellIt.second;
-
-      auto cDataV = cell.getData( c.getVertexDoFFunction().getCellDataID() )->getPointer( level );
-      auto cDataE = cell.getData( c.getEdgeDoFFunction().getCellDataID() )->getPointer( level );
-
-      auto uxDataV = cell.getData( ux.getVertexDoFFunction().getCellDataID() )->getPointer( level );
-      auto uxDataE = cell.getData( ux.getEdgeDoFFunction().getCellDataID() )->getPointer( level );
-
-      auto uyDataV = cell.getData( uy.getVertexDoFFunction().getCellDataID() )->getPointer( level );
-      auto uyDataE = cell.getData( uy.getEdgeDoFFunction().getCellDataID() )->getPointer( level );
-
-      auto uzDataV = cell.getData( uz.getVertexDoFFunction().getCellDataID() )->getPointer( level );
-      auto uzDataE = cell.getData( uz.getEdgeDoFFunction().getCellDataID() )->getPointer( level );
-
-      for ( const auto& it : vertexdof::macrocell::Iterator( level, 1 ) )
-      {
-         Point3D      coordinate = vertexdof::macrocell::coordinateFromIndex( level, cell, it );
-         const uint_t idx        = vertexdof::macrocell::index( level, it.x(), it.y(), it.z() );
-
-         if ( initialOffset > 0 )
-         {
-            auto velX = uxDataV[idx];
-            auto velY = uyDataV[idx];
-            auto velZ = uzDataV[idx];
-
-            coordinate += initialOffset * Point3D( {velX, velY, velZ} );
-         }
-
-         auto posPast =
-             performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
-
-         // evaluate new temperature
-         const auto newTemp = cOld.evaluate( posPast, level );
-         cDataV[idx]        = newTemp;
-      }
-
-      for ( const auto& it : edgedof::macrocell::Iterator( level, 0 ) )
-      {
-         for ( const auto& orientation : edgedof::allEdgeDoFOrientationsWithoutXYZ )
-         {
-            if ( edgedof::macrocell::isInnerEdgeDoF( level, it, orientation ) )
-            {
-               Point3D      coordinate = edgedof::macrocell::coordinateFromIndex( level, cell, it, orientation );
-               const uint_t idx        = edgedof::macrocell::index( level, it.x(), it.y(), it.z(), orientation );
-
-               if ( initialOffset > 0 )
-               {
-                  auto velX = uxDataE[idx];
-                  auto velY = uyDataE[idx];
-                  auto velZ = uzDataE[idx];
-
-                  coordinate += initialOffset * Point3D( {velX, velY, velZ} );
-               }
-
-               auto posPast = performInnerRKTimeSteps< P2Function< real_t > >(
-                   coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
-
-               // evaluate new temperature
-               const auto newTemp = cOld.evaluate( posPast, level );
-               cDataE[idx]        = newTemp;
-            }
-         }
-      }
-
-      for ( const auto& it : edgedof::macrocell::IteratorXYZ( level, 0 ) )
-      {
-         Point3D      coordinate = edgedof::macrocell::coordinateFromIndex( level, cell, it, edgedof::EdgeDoFOrientation::XYZ );
-         const uint_t idx        = edgedof::macrocell::index( level, it.x(), it.y(), it.z(), edgedof::EdgeDoFOrientation::XYZ );
-
-         if ( initialOffset > 0 )
-         {
-            auto velX = uxDataE[idx];
-            auto velY = uyDataE[idx];
-            auto velZ = uzDataE[idx];
-
-            coordinate += initialOffset * Point3D( {velX, velY, velZ} );
-         }
-
-         auto posPast =
-             performInnerRKTimeSteps< P2Function< real_t > >( coordinate, steps, ux, uy, uz, level, dt, timeSteppingScheme );
-
-         // evaluate new temperature
-         const auto newTemp = cOld.evaluate( posPast, level );
-         cDataE[idx]        = newTemp;
-      }
-   }
-}
 
 void updateParticlePosition( const SetupPrimitiveStorage&                           setupStorage,
                              walberla::convection_particles::data::ParticleStorage& particleStorage )
@@ -1056,20 +615,6 @@ class MMOCTransport
    , particleStorage_( 10000 )
    {}
 
-   void step( const FunctionType& c,
-              const FunctionType& ux,
-              const FunctionType& uy,
-              const FunctionType& uz,
-              const uint_t&       level,
-              const DoFType&      flag,
-              const real_t&       dt,
-              const uint_t&       innerSteps )
-   {
-      cOld_.assign( {1.0}, {c}, level, All );
-
-      integrateNodes< FunctionType >(
-          *storage_, c, cOld_, ux, uy, uz, dt, level, flag, innerSteps, timeSteppingSchemeConvection_, 0 );
-   }
 
    void step( const std::shared_ptr< SetupPrimitiveStorage >& setupStorage,
               const FunctionType&                             c,
@@ -1104,87 +649,87 @@ class MMOCTransport
       storage_->getTimingTree()->stop( "MMOCTransport" );
    }
 
-   template < typename MassOperator >
-   void step( const FunctionType& c,
-              const FunctionType& ux,
-              const FunctionType& uy,
-              const FunctionType& uz,
-              const uint_t&       level,
-              const DoFType&      flag,
-              const real_t&       dt,
-              const uint_t&       innerSteps,
-              const MassOperator& massOperator,
-              const real_t&       allowedRelativeMassDifference,
-              const real_t&       adjustedAdvectionOffset )
-   {
-      cOld_.assign( {1.0}, {c}, level, All );
-
-      // calculate old mass
-      massOperator.apply( cOld_, cTmp_, level, flag );
-      auto massBefore = cTmp_.sumGlobal( level, flag );
-
-      integrateNodes< FunctionType >(
-          *storage_, c, cOld_, ux, uy, uz, dt, level, flag, innerSteps, timeSteppingSchemeConvection_, 0 );
-
-      // calculate new mass
-      massOperator.apply( c, cTmp_, level, flag );
-      auto massAfter = cTmp_.sumGlobal( level, flag );
-
-      auto relativeMassDifference = std::abs( ( massAfter - massBefore ) / massBefore );
-
-      if ( relativeMassDifference <= allowedRelativeMassDifference )
-         return;
-
-      // perform adjusted advection steps
-      integrateNodes< FunctionType >( *storage_,
-                                      cPlus_,
-                                      cOld_,
-                                      ux,
-                                      uy,
-                                      uz,
-                                      dt,
-                                      level,
-                                      flag,
-                                      innerSteps,
-                                      timeSteppingSchemeConvection_,
-                                      adjustedAdvectionOffset );
-      integrateNodes< FunctionType >( *storage_,
-                                      cMinus_,
-                                      cOld_,
-                                      ux,
-                                      uy,
-                                      uz,
-                                      dt,
-                                      level,
-                                      flag,
-                                      innerSteps,
-                                      timeSteppingSchemeConvection_,
-                                      -adjustedAdvectionOffset );
-
-      // max/min assign functions
-      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > maxAssignment =
-          []( const Point3D&, const std::vector< real_t >& values ) { return std::max( values[0], values[1] ); };
-
-      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > minAssignment =
-          []( const Point3D&, const std::vector< real_t >& values ) { return std::min( values[0], values[1] ); };
-
-      if ( massAfter <= massBefore )
-      {
-         cAdjusted_.interpolate( maxAssignment, {cPlus_, cMinus_}, level );
-      }
-      else
-      {
-         cAdjusted_.interpolate( minAssignment, {cPlus_, cMinus_}, level );
-      }
-
-      // calculate adjustment mass
-      massOperator.apply( cAdjusted_, cTmp_, level, flag );
-      auto massAdjusted = cTmp_.sumGlobal( level, flag );
-
-      auto theta = ( massBefore - massAdjusted ) / ( massAfter - massAdjusted );
-
-      c.assign( {theta, 1 - theta}, {c, cAdjusted_}, level, flag );
-   }
+//   template < typename MassOperator >
+//   void step( const FunctionType& c,
+//              const FunctionType& ux,
+//              const FunctionType& uy,
+//              const FunctionType& uz,
+//              const uint_t&       level,
+//              const DoFType&      flag,
+//              const real_t&       dt,
+//              const uint_t&       innerSteps,
+//              const MassOperator& massOperator,
+//              const real_t&       allowedRelativeMassDifference,
+//              const real_t&       adjustedAdvectionOffset )
+//   {
+//      cOld_.assign( {1.0}, {c}, level, All );
+//
+//      // calculate old mass
+//      massOperator.apply( cOld_, cTmp_, level, flag );
+//      auto massBefore = cTmp_.sumGlobal( level, flag );
+//
+//      integrateNodes< FunctionType >(
+//          *storage_, c, cOld_, ux, uy, uz, dt, level, flag, innerSteps, timeSteppingSchemeConvection_, 0 );
+//
+//      // calculate new mass
+//      massOperator.apply( c, cTmp_, level, flag );
+//      auto massAfter = cTmp_.sumGlobal( level, flag );
+//
+//      auto relativeMassDifference = std::abs( ( massAfter - massBefore ) / massBefore );
+//
+//      if ( relativeMassDifference <= allowedRelativeMassDifference )
+//         return;
+//
+//      // perform adjusted advection steps
+//      integrateNodes< FunctionType >( *storage_,
+//                                      cPlus_,
+//                                      cOld_,
+//                                      ux,
+//                                      uy,
+//                                      uz,
+//                                      dt,
+//                                      level,
+//                                      flag,
+//                                      innerSteps,
+//                                      timeSteppingSchemeConvection_,
+//                                      adjustedAdvectionOffset );
+//      integrateNodes< FunctionType >( *storage_,
+//                                      cMinus_,
+//                                      cOld_,
+//                                      ux,
+//                                      uy,
+//                                      uz,
+//                                      dt,
+//                                      level,
+//                                      flag,
+//                                      innerSteps,
+//                                      timeSteppingSchemeConvection_,
+//                                      -adjustedAdvectionOffset );
+//
+//      // max/min assign functions
+//      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > maxAssignment =
+//          []( const Point3D&, const std::vector< real_t >& values ) { return std::max( values[0], values[1] ); };
+//
+//      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > minAssignment =
+//          []( const Point3D&, const std::vector< real_t >& values ) { return std::min( values[0], values[1] ); };
+//
+//      if ( massAfter <= massBefore )
+//      {
+//         cAdjusted_.interpolate( maxAssignment, {cPlus_, cMinus_}, level );
+//      }
+//      else
+//      {
+//         cAdjusted_.interpolate( minAssignment, {cPlus_, cMinus_}, level );
+//      }
+//
+//      // calculate adjustment mass
+//      massOperator.apply( cAdjusted_, cTmp_, level, flag );
+//      auto massAdjusted = cTmp_.sumGlobal( level, flag );
+//
+//      auto theta = ( massBefore - massAdjusted ) / ( massAfter - massAdjusted );
+//
+//      c.assign( {theta, 1 - theta}, {c, cAdjusted_}, level, flag );
+//   }
 
  private:
    const std::shared_ptr< PrimitiveStorage >             storage_;
