@@ -510,12 +510,10 @@ void integrateNodes( const PrimitiveStorage&     storage,
    }
 }
 
-void updateParticlePosition( const SetupPrimitiveStorage&                                     setupStorage,
-                             walberla::convection_particles::data::ParticleStorage::Particle& particle,
-                             const walberla::math::Vector3< real_t >&                         newPosition )
+void updateParticlePosition( const SetupPrimitiveStorage&                           setupStorage,
+                             walberla::convection_particles::data::ParticleStorage& particleStorage )
 {
    std::set< PrimitiveID > containingPrimitives;
-   auto                    pt = newPosition;
    if ( setupStorage.getNumberOfCells() == 0 )
    {
       for ( const auto& faceIt : setupStorage.getFaces() )
@@ -523,15 +521,18 @@ void updateParticlePosition( const SetupPrimitiveStorage&                       
          auto faceID = faceIt.first;
          auto face   = faceIt.second;
 
-         Point2D pointOfInterest( {pt[0], pt[1]} );
-
-         if ( circleTriangleIntersection( pointOfInterest,
-                                          1e-05,
-                                          Point2D( {face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1]} ),
-                                          Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
-                                          Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
+         for ( auto p : particleStorage )
          {
-            containingPrimitives.insert( faceID );
+            Point2D pointOfInterest( {p->getPosition()[0], p->getPosition()[1]} );
+
+            if ( circleTriangleIntersection( pointOfInterest,
+                                             1e-05,
+                                             Point2D( {face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1]} ),
+                                             Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
+                                             Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
+            {
+               p->setContainingPrimitive( faceID );
+            }
          }
       }
    }
@@ -542,33 +543,21 @@ void updateParticlePosition( const SetupPrimitiveStorage&                       
          auto cellID = cellIt.first;
          auto cell   = cellIt.second;
 
-         Point3D pointOfInterest( {pt[0], pt[1], pt[2]} );
-
-         if ( sphereTetrahedronIntersection( pointOfInterest,
-                                             1e-05,
-                                             cell->getCoordinates().at( 0 ),
-                                             cell->getCoordinates().at( 1 ),
-                                             cell->getCoordinates().at( 2 ),
-                                             cell->getCoordinates().at( 3 ) ) )
+         for ( auto p : particleStorage )
          {
-            containingPrimitives.insert( cellID );
+            auto pointOfInterest = toPoint3D( p->getPosition() );
+
+            if ( sphereTetrahedronIntersection( pointOfInterest,
+                                                1e-05,
+                                                cell->getCoordinates().at( 0 ),
+                                                cell->getCoordinates().at( 1 ),
+                                                cell->getCoordinates().at( 2 ),
+                                                cell->getCoordinates().at( 3 ) ) )
+            {
+               p->setContainingPrimitive( cellID );
+            }
          }
       }
-   }
-
-   if ( containingPrimitives.empty() )
-   {
-      // do not change macro nor position
-      // the particle left the domain or neighborhood
-      // TODO: define behaviour here
-      return;
-   }
-   else
-   {
-      // std::set is required to be sorted by the standard.
-      // ::begin() returns the smallest element.
-      particle->setPosition( newPosition );
-      particle->setContainingPrimitive( *containingPrimitives.begin() );
    }
 }
 
@@ -577,26 +566,28 @@ real_t evaluateAtParticlePosition( PrimitiveStorage&                            
                                    const walberla::convection_particles::data::ParticleStorage::Particle& particle,
                                    const uint_t&                                                          level )
 {
+   real_t result;
    if ( !storage.hasGlobalCells() )
    {
       WALBERLA_CHECK( storage.faceExistsLocally( particle.getContainingPrimitive() ) );
       Face& face = *storage.getFace( particle.getContainingPrimitive() );
-      return P2::macroface::evaluate( level,
-                                      face,
-                                      toPoint3D( particle.getPosition() ),
-                                      function.getVertexDoFFunction().getFaceDataID(),
-                                      function.getEdgeDoFFunction().getFaceDataID() );
+      result     = P2::macroface::evaluate( level,
+                                        face,
+                                        toPoint3D( particle.getPosition() ),
+                                        function.getVertexDoFFunction().getFaceDataID(),
+                                        function.getEdgeDoFFunction().getFaceDataID() );
    }
    else
    {
       WALBERLA_CHECK( storage.cellExistsLocally( particle.getContainingPrimitive() ) );
       Cell& cell = *storage.getCell( particle.getContainingPrimitive() );
-      return P2::macrocell::evaluate( level,
-                                      cell,
-                                      toPoint3D( particle.getPosition() ),
-                                      function.getVertexDoFFunction().getCellDataID(),
-                                      function.getEdgeDoFFunction().getCellDataID() );
+      result     = P2::macrocell::evaluate( level,
+                                        cell,
+                                        toPoint3D( particle.getPosition() ),
+                                        function.getVertexDoFFunction().getCellDataID(),
+                                        function.getEdgeDoFFunction().getCellDataID() );
    }
+   return result;
 }
 
 uint_t initializeParticles( walberla::convection_particles::data::ParticleStorage& particleStorage,
@@ -803,7 +794,9 @@ void particleIntegration( walberla::convection_particles::data::ParticleStorage&
    const std::vector< real_t >&                b        = RK_b.at( timeSteppingScheme );
    const uint_t                                rkStages = b.size();
 
+   storage.getTimingTree()->start( "Sync particles" );
    SNN( particleStorage, setupStorage );
+   storage.getTimingTree()->stop( "Sync particles" );
 
    for ( uint_t step = 0; step < steps; step++ )
    {
@@ -814,6 +807,7 @@ void particleIntegration( walberla::convection_particles::data::ParticleStorage&
       // skip setting to start pos (already happened)
       // skip synchronization (already happened)
 
+      storage.getTimingTree()->start( "Evaluate at particle position" );
       for ( auto p : particleStorage )
       {
          p->getKRef()[0][0] = -evaluateAtParticlePosition( storage, ux, p, level );
@@ -821,11 +815,13 @@ void particleIntegration( walberla::convection_particles::data::ParticleStorage&
          if ( storage.hasGlobalCells() )
             p->getKRef()[0][2] = -evaluateAtParticlePosition( storage, uz, p, level );
       }
+      storage.getTimingTree()->stop( "Evaluate at particle position" );
 
       // RK stages [1, ..., stages - 1]
       for ( uint_t stage = 1; stage < rkStages; stage++ )
       {
          // determine function evaluation points for this stage
+         storage.getTimingTree()->start( "Update particle position" );
          for ( auto p : particleStorage )
          {
             auto evaluationPoint = p.getStartPosition();
@@ -833,13 +829,18 @@ void particleIntegration( walberla::convection_particles::data::ParticleStorage&
             {
                evaluationPoint += dt * A[stage][j] * p->getK().at( j );
             }
-            updateParticlePosition( setupStorage, p, evaluationPoint );
+            p->setPosition( evaluationPoint );
          }
+         updateParticlePosition( setupStorage, particleStorage );
+         storage.getTimingTree()->stop( "Update particle position" );
 
          // sync particles to be able to evaluate the velocity at that point
+         storage.getTimingTree()->start( "Sync particles" );
          SNN( particleStorage, setupStorage );
+         storage.getTimingTree()->stop( "Sync particles" );
 
          // evaluate velocity at current particle positions and update k[stage]
+         storage.getTimingTree()->start( "Evaluate at particle position" );
          for ( auto p : particleStorage )
          {
             p->getKRef()[stage][0] = -evaluateAtParticlePosition( storage, ux, p, level );
@@ -847,10 +848,12 @@ void particleIntegration( walberla::convection_particles::data::ParticleStorage&
             if ( storage.hasGlobalCells() )
                p->getKRef()[stage][2] = -evaluateAtParticlePosition( storage, uz, p, level );
          }
+         storage.getTimingTree()->stop( "Evaluate at particle position" );
       }
 
       // all k[i] are now calculated, set final integration result for each particle and
       // assign the position accordingly
+      storage.getTimingTree()->start( "Update particle position" );
       for ( auto p : particleStorage )
       {
          auto finalPosition = p->getStartPosition();
@@ -858,12 +861,16 @@ void particleIntegration( walberla::convection_particles::data::ParticleStorage&
          {
             finalPosition += dt * b[i] * p->getKRef()[i];
          }
-         updateParticlePosition( setupStorage, p, finalPosition );
+         p->setPosition( finalPosition );
          p->setStartPosition( p->getPosition() );
       }
+      updateParticlePosition( setupStorage, particleStorage );
+      storage.getTimingTree()->stop( "Update particle position" );
 
       // sync particles as position was finally updated
+      storage.getTimingTree()->start( "Sync particles" );
       SNN( particleStorage, setupStorage );
+      storage.getTimingTree()->stop( "Sync particles" );
    }
 }
 
@@ -1077,16 +1084,26 @@ class MMOCTransport
               const uint_t&                                   innerSteps,
               const bool&                                     resetParticles = true )
    {
+      storage_->getTimingTree()->start( "MMOCTransport" );
       if ( resetParticles )
       {
          cOld_.assign( {1.0}, {c}, level, All );
+         storage_->getTimingTree()->start( "Particle initialization" );
          numberOfCreatedParticles_ = initializeParticles(
              particleStorage_, *setupStorage, *storage_, c, ux, uy, uz, level, Inner, timeSteppingSchemeConvection_, 0 );
+         storage_->getTimingTree()->stop( "Particle initialization" );
       }
 
+      storage_->getTimingTree()->start( "Particle integration" );
       particleIntegration(
           particleStorage_, *setupStorage, *storage_, ux, uy, uz, dt, level, Inner, innerSteps, timeSteppingSchemeConvection_ );
+      storage_->getTimingTree()->stop( "Particle integration" );
+
+      storage_->getTimingTree()->start( "Temperature evaluation" );
       evaluateTemperature( particleStorage_, *storage_, c, cOld_, level, Inner, numberOfCreatedParticles_ );
+      storage_->getTimingTree()->stop( "Temperature evaluation" );
+
+      storage_->getTimingTree()->stop( "MMOCTransport" );
    }
 
    template < typename MassOperator >
