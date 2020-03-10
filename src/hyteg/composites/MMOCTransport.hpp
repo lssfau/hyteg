@@ -525,11 +525,10 @@ void updateParticlePosition( const SetupPrimitiveStorage&                       
          {
             Point2D pointOfInterest( {p->getPosition()[0], p->getPosition()[1]} );
 
-            if ( circleTriangleIntersection( pointOfInterest,
-                                             1e-05,
-                                             Point2D( {face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1]} ),
-                                             Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
-                                             Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
+            if ( isPointInTriangle( pointOfInterest,
+                                    Point2D( {face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1]} ),
+                                    Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
+                                    Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
             {
                p->setContainingPrimitive( faceID );
             }
@@ -547,12 +546,11 @@ void updateParticlePosition( const SetupPrimitiveStorage&                       
          {
             auto pointOfInterest = toPoint3D( p->getPosition() );
 
-            if ( sphereTetrahedronIntersection( pointOfInterest,
-                                                1e-05,
-                                                cell->getCoordinates().at( 0 ),
-                                                cell->getCoordinates().at( 1 ),
-                                                cell->getCoordinates().at( 2 ),
-                                                cell->getCoordinates().at( 3 ) ) )
+            if ( isPointInTetrahedron( pointOfInterest,
+                                       cell->getCoordinates().at( 0 ),
+                                       cell->getCoordinates().at( 1 ),
+                                       cell->getCoordinates().at( 2 ),
+                                       cell->getCoordinates().at( 3 ) ) )
             {
                p->setContainingPrimitive( cellID );
             }
