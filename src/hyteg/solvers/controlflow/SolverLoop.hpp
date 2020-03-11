@@ -21,8 +21,11 @@
 #pragma once
 
 #include "hyteg/solvers/Solver.hpp"
+#include "core/DataTypes.h"
 
 namespace hyteg {
+
+using walberla::uint_t;
 
 template < typename OperatorType >
 class SolverLoop : public Solver< OperatorType >
