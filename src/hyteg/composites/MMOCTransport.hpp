@@ -80,17 +80,64 @@ const static std::map< TimeSteppingScheme, std::vector< real_t > > RK_b = {
     {TimeSteppingScheme::Ralston, RK_b_Ralston},
     {TimeSteppingScheme::RK4, RK_b_RK4}};
 
+std::vector< PrimitiveID > getLocalAndNeighboringPrimitives( const SetupPrimitiveStorage & setupStorage )
+{
+   std::set< PrimitiveID > localAndNeighboringPrimitives;
+   if ( setupStorage.getNumberOfCells() > 0 )
+   {
+      for ( const auto& it : setupStorage.getCells() )
+      {
+         auto cellID = it.first;
+         auto cell   = it.second;
+         if ( setupStorage.getTargetRank( cellID ) != uint_c( walberla::mpi::MPIManager::instance()->rank() ) )
+            continue;
+         localAndNeighboringPrimitives.insert( cellID );
+         for ( const auto& vertexID : cell->neighborVertices() )
+         {
+            auto vertex = setupStorage.getVertex( vertexID );
+            for ( const auto& neighborCellID : vertex->neighborCells() )
+            {
+               if ( setupStorage.getTargetRank( neighborCellID ) == uint_c( walberla::mpi::MPIManager::instance()->rank() ) )
+                  continue;
+               localAndNeighboringPrimitives.insert( neighborCellID );
+            }
+         }
+      }
+   }
+   else
+   {
+      for ( const auto& it : setupStorage.getFaces() )
+      {
+         auto faceID = it.first;
+         auto face   = it.second;
+         if ( setupStorage.getTargetRank( faceID ) != uint_c( walberla::mpi::MPIManager::instance()->rank() ) )
+            continue;
+         localAndNeighboringPrimitives.insert( faceID );
+         for ( const auto& vertexID : face->neighborVertices() )
+         {
+            auto vertex = setupStorage.getVertex( vertexID );
+            for ( const auto& neighborFaceID : vertex->neighborFaces() )
+            {
+               if ( setupStorage.getTargetRank( neighborFaceID ) == uint_c( walberla::mpi::MPIManager::instance()->rank() ) )
+                  continue;
+               localAndNeighboringPrimitives.insert( neighborFaceID );
+            }
+         }
+      }
+   }
+   return std::vector< PrimitiveID >( localAndNeighboringPrimitives.begin(), localAndNeighboringPrimitives.end() );
+}
 
 void updateParticlePosition( const SetupPrimitiveStorage&                           setupStorage,
+                             const std::vector< PrimitiveID > & localAndNeighboringPrimitives,
                              walberla::convection_particles::data::ParticleStorage& particleStorage )
 {
    std::set< PrimitiveID > containingPrimitives;
    if ( setupStorage.getNumberOfCells() == 0 )
    {
-      for ( const auto& faceIt : setupStorage.getFaces() )
+      for ( const auto& faceID : localAndNeighboringPrimitives )
       {
-         auto faceID = faceIt.first;
-         auto face   = faceIt.second;
+         auto face   = setupStorage.getFace( faceID );
 
          for ( auto p : particleStorage )
          {
@@ -108,10 +155,9 @@ void updateParticlePosition( const SetupPrimitiveStorage&                       
    }
    else
    {
-      for ( const auto& cellIt : setupStorage.getCells() )
+      for ( const auto& cellID : localAndNeighboringPrimitives )
       {
-         auto cellID = cellIt.first;
-         auto cell   = cellIt.second;
+         auto cell   = setupStorage.getCell( cellID );
 
          for ( auto p : particleStorage )
          {
@@ -381,6 +427,7 @@ uint_t initializeParticles( walberla::convection_particles::data::ParticleStorag
 void particleIntegration( walberla::convection_particles::data::ParticleStorage& particleStorage,
                           const SetupPrimitiveStorage&                           setupStorage,
                           PrimitiveStorage&                                      storage,
+                          const std::vector< PrimitiveID > &                     localAndNeighboringPrimitives,
                           const P2Function< real_t >&                            ux,
                           const P2Function< real_t >&                            uy,
                           const P2Function< real_t >&                            uz,
@@ -448,7 +495,7 @@ void particleIntegration( walberla::convection_particles::data::ParticleStorage&
             }
             p->setPosition( evaluationPoint );
          }
-         updateParticlePosition( setupStorage, particleStorage );
+         updateParticlePosition( setupStorage, localAndNeighboringPrimitives, particleStorage );
          storage.getTimingTree()->stop( "Update particle position" );
 
          // sync particles to be able to evaluate the velocity at that point
@@ -482,7 +529,7 @@ void particleIntegration( walberla::convection_particles::data::ParticleStorage&
          p->setPosition( finalPosition );
          p->setStartPosition( p->getPosition() );
       }
-      updateParticlePosition( setupStorage, particleStorage );
+      updateParticlePosition( setupStorage, localAndNeighboringPrimitives, particleStorage );
       storage.getTimingTree()->stop( "Update particle position" );
 
       // sync particles as position was finally updated
@@ -662,10 +709,12 @@ class MMOCTransport
 {
  public:
    MMOCTransport( const std::shared_ptr< PrimitiveStorage >& storage,
+                  const std::shared_ptr< SetupPrimitiveStorage >& setupStorage,
                   const uint_t                               minLevel,
                   const uint_t                               maxLevel,
                   const TimeSteppingScheme&                  timeSteppingSchemeConvection )
    : storage_( storage )
+   , setupStorage_( setupStorage )
    , cOld_( "cOld", storage, minLevel, maxLevel )
    , cTmp_( "cTmp", storage, minLevel, maxLevel )
    , cPlus_( "cPlus", storage, minLevel, maxLevel )
@@ -674,11 +723,11 @@ class MMOCTransport
    , timeSteppingSchemeConvection_( timeSteppingSchemeConvection )
    , numberOfCreatedParticles_( 0 )
    , particleStorage_( 10000 )
+   , localAndNeighboringPrimitives_( getLocalAndNeighboringPrimitives( *setupStorage ) )
    {}
 
 
-   void step( const std::shared_ptr< SetupPrimitiveStorage >& setupStorage,
-              const FunctionType&                             c,
+   void step( const FunctionType&                             c,
               const FunctionType&                             ux,
               const FunctionType&                             uy,
               const FunctionType&                             uz,
@@ -694,13 +743,13 @@ class MMOCTransport
          cOld_.assign( {1.0}, {c}, level, All );
          storage_->getTimingTree()->start( "Particle initialization" );
          numberOfCreatedParticles_ = initializeParticles(
-             particleStorage_, *setupStorage, *storage_, c, ux, uy, uz, level, Inner, timeSteppingSchemeConvection_, 0 );
+             particleStorage_, *setupStorage_, *storage_, c, ux, uy, uz, level, Inner, timeSteppingSchemeConvection_, 0 );
          storage_->getTimingTree()->stop( "Particle initialization" );
       }
 
       storage_->getTimingTree()->start( "Particle integration" );
       particleIntegration(
-          particleStorage_, *setupStorage, *storage_, ux, uy, uz, dt, level, Inner, innerSteps, timeSteppingSchemeConvection_ );
+          particleStorage_, *setupStorage_, *storage_, localAndNeighboringPrimitives_, ux, uy, uz, dt, level, Inner, innerSteps, timeSteppingSchemeConvection_ );
       storage_->getTimingTree()->stop( "Particle integration" );
 
       storage_->getTimingTree()->start( "Temperature evaluation" );
@@ -794,6 +843,7 @@ class MMOCTransport
 
  private:
    const std::shared_ptr< PrimitiveStorage >             storage_;
+   const std::shared_ptr< SetupPrimitiveStorage >        setupStorage_;
    FunctionType                                          cOld_;
    FunctionType                                          cTmp_;
    FunctionType                                          cPlus_;
@@ -802,6 +852,7 @@ class MMOCTransport
    TimeSteppingScheme                                    timeSteppingSchemeConvection_;
    uint_t                                                numberOfCreatedParticles_;
    walberla::convection_particles::data::ParticleStorage particleStorage_;
+   std::vector< PrimitiveID >                            localAndNeighboringPrimitives_;
 };
 
 } // namespace hyteg
