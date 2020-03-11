@@ -1,12 +1,23 @@
 import time
 import datetime
 
-def parameter_string(vtkDirectory, vtkBaseName):
+def parameter_string(vtkDirectory, vtkBaseName, ntan, num_layers):
+
+    if num_layers == 3:
+        layer_string = """  innerBoundary 0.55; // 3481 km from center (outer core boundary)
+  layer1 0.775;
+  outerBoundary 1.0; // 6371 km from center"""
+    elif num_layers == 5:
+        layer_string = """  innerBoundary 0.55; // 3481 km from center (outer core boundary)
+  layer0 0.6625;
+  layer1 0.775;
+  layer2 0.8875;
+  outerBoundary 1.0; // 6371 km from center"""
 
     return """Parameters
 {{
   // domain
-  ntan 9;
+  ntan {ntan};
   minLevel 2;
   maxLevel 5;
 
@@ -38,13 +49,9 @@ def parameter_string(vtkDirectory, vtkBaseName):
 /// the values have to be sorted ascending
 Layers
 {{
-  innerBoundary 0.55; // 3481 km from center (outer core boundary)
-  layer0 0.6625;
-  layer1 0.775;
-  layer2 0.8875;
-  outerBoundary 1.0; // 6371 km from center
+{layer_string}
 }}
-""".format(vtkBaseName=vtkBaseName, vtkDirectory=vtkDirectory)
+""".format(vtkBaseName=vtkBaseName, vtkDirectory=vtkDirectory, ntan=ntan, layer_string=layer_string)
 
 
 def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", prm_file="parameter_file.prm", num_nodes=1, ppn=48):
@@ -88,7 +95,7 @@ def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", p
 
 module load slurm_setup
 
-source load_modules.sh
+source load_modules_supermucng.sh
 
 module list
 
@@ -108,19 +115,35 @@ mpiexec -n $SLURM_NTASKS ./StokesSphereTransport {prm_file}
 def generate_files():
 
     some_id = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H-%M-%S')
-    prm_string = parameter_string("/hppfs/work/pr86ma/di36vuv2/stokes_sphere_transport/", "stokes_{}".format(some_id))
 
-    job_name = "stokes_{}".format(some_id)
-    prm_file_name = job_name + ".prm"
-    job_file_name = job_name + ".job"
+    config_0 = {
+        "name": "config_8_nodes_1920cells",
+        "num_nodes": 8,
+        "ntan": 5,
+        "num_layers": 3
+    }
 
-    job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="1:00:00",
-                                          num_nodes=96, prm_file=prm_file_name, ppn=48)
+    config_1 = {
+        "name": "config_96nodes_15360cells",
+        "num_nodes": 96,
+        "ntan": 9,
+        "num_layers": 5
+    }
 
-    with open(prm_file_name, "w") as f:
-        f.write(prm_string)
-    with open(job_file_name, "w") as f:
-        f.write(job_string)
+    for config in [config_0, config_1]:
+        job_name = "stokes_{}_{}".format(config["name"], some_id)
+
+        prm_string = parameter_string("/hppfs/work/pr86ma/di36vuv2/stokes_sphere_transport/", job_name, config["ntan"], config["num_layers"])
+        prm_file_name = job_name + ".prm"
+        job_file_name = job_name + ".job"
+
+        job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="1:00:00",
+                                              num_nodes=config["num_nodes"], prm_file=prm_file_name, ppn=48)
+
+        with open(prm_file_name, "w") as f:
+            f.write(prm_string)
+        with open(job_file_name, "w") as f:
+            f.write(job_string)
 
 if __name__ == "__main__":
     generate_files()
