@@ -140,7 +140,6 @@ void simulate( int argc, char* argv[] )
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   loadbalancing::greedy( *setupStorage );
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
    std::shared_ptr< PrimitiveStorage >       storage = std::make_shared< PrimitiveStorage >( *setupStorage, timingTree );
