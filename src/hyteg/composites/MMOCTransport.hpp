@@ -80,96 +80,118 @@ const static std::map< TimeSteppingScheme, std::vector< real_t > > RK_b = {
     {TimeSteppingScheme::Ralston, RK_b_Ralston},
     {TimeSteppingScheme::RK4, RK_b_RK4}};
 
-std::vector< PrimitiveID > getLocalAndNeighboringPrimitives( const SetupPrimitiveStorage & setupStorage )
+std::vector< PrimitiveID > getNeighboringPrimitives( const PrimitiveID& primitiveID, const SetupPrimitiveStorage& setupStorage )
 {
-   std::set< PrimitiveID > localAndNeighboringPrimitives;
+   std::set< PrimitiveID > neighboringPrimitives;
    if ( setupStorage.getNumberOfCells() > 0 )
    {
-      for ( const auto& it : setupStorage.getCells() )
+      auto cellID = primitiveID;
+      auto cell   = setupStorage.getCell( cellID );
+
+      for ( const auto& vertexID : cell->neighborVertices() )
       {
-         auto cellID = it.first;
-         auto cell   = it.second;
-         if ( setupStorage.getTargetRank( cellID ) != uint_c( walberla::mpi::MPIManager::instance()->rank() ) )
-            continue;
-         localAndNeighboringPrimitives.insert( cellID );
-         for ( const auto& vertexID : cell->neighborVertices() )
+         auto vertex = setupStorage.getVertex( vertexID );
+         for ( const auto& neighborCellID : vertex->neighborCells() )
          {
-            auto vertex = setupStorage.getVertex( vertexID );
-            for ( const auto& neighborCellID : vertex->neighborCells() )
-            {
-               if ( setupStorage.getTargetRank( neighborCellID ) == uint_c( walberla::mpi::MPIManager::instance()->rank() ) )
-                  continue;
-               localAndNeighboringPrimitives.insert( neighborCellID );
-            }
+            neighboringPrimitives.insert( neighborCellID );
          }
       }
    }
    else
    {
-      for ( const auto& it : setupStorage.getFaces() )
+      auto faceID = primitiveID;
+      auto face   = setupStorage.getFace( faceID );
+
+      for ( const auto& vertexID : face->neighborVertices() )
       {
-         auto faceID = it.first;
-         auto face   = it.second;
-         if ( setupStorage.getTargetRank( faceID ) != uint_c( walberla::mpi::MPIManager::instance()->rank() ) )
-            continue;
-         localAndNeighboringPrimitives.insert( faceID );
-         for ( const auto& vertexID : face->neighborVertices() )
+         auto vertex = setupStorage.getVertex( vertexID );
+         for ( const auto& neighborFaceID : vertex->neighborFaces() )
          {
-            auto vertex = setupStorage.getVertex( vertexID );
-            for ( const auto& neighborFaceID : vertex->neighborFaces() )
-            {
-               if ( setupStorage.getTargetRank( neighborFaceID ) == uint_c( walberla::mpi::MPIManager::instance()->rank() ) )
-                  continue;
-               localAndNeighboringPrimitives.insert( neighborFaceID );
-            }
+            neighboringPrimitives.insert( neighborFaceID );
          }
       }
    }
-   return std::vector< PrimitiveID >( localAndNeighboringPrimitives.begin(), localAndNeighboringPrimitives.end() );
+   return std::vector< PrimitiveID >( neighboringPrimitives.begin(), neighboringPrimitives.end() );
 }
 
+
 void updateParticlePosition( const SetupPrimitiveStorage&                           setupStorage,
-                             const std::vector< PrimitiveID > & localAndNeighboringPrimitives,
                              walberla::convection_particles::data::ParticleStorage& particleStorage )
 {
-   std::set< PrimitiveID > containingPrimitives;
    if ( setupStorage.getNumberOfCells() == 0 )
    {
-      for ( const auto& faceID : localAndNeighboringPrimitives )
+      for ( auto p : particleStorage )
       {
+         Point2D pointOfInterest( {p->getPosition()[0], p->getPosition()[1]} );
+
+         // check for current cell (probability is high that we find the particle here...)
+         auto faceID = p->getContainingPrimitive();
          auto face   = setupStorage.getFace( faceID );
 
-         for ( auto p : particleStorage )
-         {
-            Point2D pointOfInterest( {p->getPosition()[0], p->getPosition()[1]} );
-
-            if ( isPointInTriangle( pointOfInterest,
+         if ( isPointInTriangle( pointOfInterest,
                                     Point2D( {face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1]} ),
                                     Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
                                     Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
+         {
+            p->setContainingPrimitive( faceID );
+         }
+         else
+         {
+            // check for neighbor cells if we did not find it in its previous cell
+            auto neighboringFaces = getNeighboringPrimitives( faceID, setupStorage );
+            for ( const auto & neighborFaceID : neighboringFaces )
             {
-               p->setContainingPrimitive( faceID );
+               face = setupStorage.getFace( neighborFaceID );
+
+               if ( isPointInTriangle( pointOfInterest,
+                                       Point2D( {face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1]} ),
+                                       Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
+                                       Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
+               {
+                  // set it to the first neighbor we found to contain the particle
+                  p->setContainingPrimitive( neighborFaceID );
+                  continue;
+               }
             }
          }
       }
    }
    else
    {
-      for ( const auto& cellID : localAndNeighboringPrimitives )
+      for ( auto p : particleStorage )
       {
+         auto pointOfInterest = toPoint3D( p->getPosition() );
+
+         // check for current cell (probability is high that we find the particle here...)
+         auto cellID = p->getContainingPrimitive();
          auto cell   = setupStorage.getCell( cellID );
 
-         for ( auto p : particleStorage )
+         if ( isPointInTetrahedron( pointOfInterest,
+                                    cell->getCoordinates().at( 0 ),
+                                    cell->getCoordinates().at( 1 ),
+                                    cell->getCoordinates().at( 2 ),
+                                    cell->getCoordinates().at( 3 ) ) )
          {
-            auto pointOfInterest = toPoint3D( p->getPosition() );
-
-            if ( isPointInTetrahedron( pointOfInterest,
-                                       cell->getCoordinates().at( 0 ),
-                                       cell->getCoordinates().at( 1 ),
-                                       cell->getCoordinates().at( 2 ),
-                                       cell->getCoordinates().at( 3 ) ) )
+            p->setContainingPrimitive( cellID );
+         }
+         else
+         {
+            // check for neighbor cells if we did not find it in its previous cell
+            auto neighboringCells = getNeighboringPrimitives( cellID, setupStorage );
+            for ( const auto & neighborCellID : neighboringCells )
             {
-               p->setContainingPrimitive( cellID );
+               cell = setupStorage.getCell( neighborCellID );
+
+               if ( isPointInTetrahedron( pointOfInterest,
+                                          cell->getCoordinates().at( 0 ),
+                                          cell->getCoordinates().at( 1 ),
+                                          cell->getCoordinates().at( 2 ),
+                                          cell->getCoordinates().at( 3 ) ) )
+               {
+                  // set it to the first neighbor we found to contain the particle
+                  p->setContainingPrimitive( neighborCellID );
+                  continue;
+               }
             }
          }
       }
@@ -427,7 +449,6 @@ uint_t initializeParticles( walberla::convection_particles::data::ParticleStorag
 void particleIntegration( walberla::convection_particles::data::ParticleStorage& particleStorage,
                           const SetupPrimitiveStorage&                           setupStorage,
                           PrimitiveStorage&                                      storage,
-                          const std::vector< PrimitiveID > &                     localAndNeighboringPrimitives,
                           const P2Function< real_t >&                            ux,
                           const P2Function< real_t >&                            uy,
                           const P2Function< real_t >&                            uz,
@@ -463,8 +484,8 @@ void particleIntegration( walberla::convection_particles::data::ParticleStorage&
 
       storage.getTimingTree()->start( "Evaluate at particle position" );
 
-      std::vector< real_t > results( {0, 0} );
-      std::vector< P2Function< real_t > > functions = { ux, uy };
+      std::vector< real_t >               results( {0, 0} );
+      std::vector< P2Function< real_t > > functions = {ux, uy};
       if ( storage.hasGlobalCells() )
       {
          results.push_back( 0 );
@@ -474,10 +495,10 @@ void particleIntegration( walberla::convection_particles::data::ParticleStorage&
       for ( auto p : particleStorage )
       {
          evaluateAtParticlePosition( storage, functions, p, level, results );
-         p->getKRef()[0][0] = - results[0];
-         p->getKRef()[0][1] = - results[1];
+         p->getKRef()[0][0] = -results[0];
+         p->getKRef()[0][1] = -results[1];
          if ( storage.hasGlobalCells() )
-            p->getKRef()[0][2] = - results[2];
+            p->getKRef()[0][2] = -results[2];
       }
       storage.getTimingTree()->stop( "Evaluate at particle position" );
 
@@ -495,7 +516,7 @@ void particleIntegration( walberla::convection_particles::data::ParticleStorage&
             }
             p->setPosition( evaluationPoint );
          }
-         updateParticlePosition( setupStorage, localAndNeighboringPrimitives, particleStorage );
+         updateParticlePosition( setupStorage, particleStorage );
          storage.getTimingTree()->stop( "Update particle position" );
 
          // sync particles to be able to evaluate the velocity at that point
@@ -508,10 +529,10 @@ void particleIntegration( walberla::convection_particles::data::ParticleStorage&
          for ( auto p : particleStorage )
          {
             evaluateAtParticlePosition( storage, functions, p, level, results );
-            p->getKRef()[stage][0] = - results[0];
-            p->getKRef()[stage][1] = - results[1];
+            p->getKRef()[stage][0] = -results[0];
+            p->getKRef()[stage][1] = -results[1];
             if ( storage.hasGlobalCells() )
-               p->getKRef()[stage][2] = - results[2];
+               p->getKRef()[stage][2] = -results[2];
          }
          storage.getTimingTree()->stop( "Evaluate at particle position" );
       }
@@ -529,7 +550,7 @@ void particleIntegration( walberla::convection_particles::data::ParticleStorage&
          p->setPosition( finalPosition );
          p->setStartPosition( p->getPosition() );
       }
-      updateParticlePosition( setupStorage, localAndNeighboringPrimitives, particleStorage );
+      updateParticlePosition( setupStorage, particleStorage );
       storage.getTimingTree()->stop( "Update particle position" );
 
       // sync particles as position was finally updated
@@ -708,11 +729,11 @@ template < typename FunctionType >
 class MMOCTransport
 {
  public:
-   MMOCTransport( const std::shared_ptr< PrimitiveStorage >& storage,
+   MMOCTransport( const std::shared_ptr< PrimitiveStorage >&      storage,
                   const std::shared_ptr< SetupPrimitiveStorage >& setupStorage,
-                  const uint_t                               minLevel,
-                  const uint_t                               maxLevel,
-                  const TimeSteppingScheme&                  timeSteppingSchemeConvection )
+                  const uint_t                                    minLevel,
+                  const uint_t                                    maxLevel,
+                  const TimeSteppingScheme&                       timeSteppingSchemeConvection )
    : storage_( storage )
    , setupStorage_( setupStorage )
    , cOld_( "cOld", storage, minLevel, maxLevel )
@@ -723,19 +744,17 @@ class MMOCTransport
    , timeSteppingSchemeConvection_( timeSteppingSchemeConvection )
    , numberOfCreatedParticles_( 0 )
    , particleStorage_( 10000 )
-   , localAndNeighboringPrimitives_( getLocalAndNeighboringPrimitives( *setupStorage ) )
    {}
 
-
-   void step( const FunctionType&                             c,
-              const FunctionType&                             ux,
-              const FunctionType&                             uy,
-              const FunctionType&                             uz,
-              const uint_t&                                   level,
-              const DoFType&                                  flag,
-              const real_t&                                   dt,
-              const uint_t&                                   innerSteps,
-              const bool&                                     resetParticles = true )
+   void step( const FunctionType& c,
+              const FunctionType& ux,
+              const FunctionType& uy,
+              const FunctionType& uz,
+              const uint_t&       level,
+              const DoFType&      flag,
+              const real_t&       dt,
+              const uint_t&       innerSteps,
+              const bool&         resetParticles = true )
    {
       storage_->getTimingTree()->start( "MMOCTransport" );
       if ( resetParticles )
@@ -748,8 +767,17 @@ class MMOCTransport
       }
 
       storage_->getTimingTree()->start( "Particle integration" );
-      particleIntegration(
-          particleStorage_, *setupStorage_, *storage_, localAndNeighboringPrimitives_, ux, uy, uz, dt, level, Inner, innerSteps, timeSteppingSchemeConvection_ );
+      particleIntegration( particleStorage_,
+                           *setupStorage_,
+                           *storage_,
+                           ux,
+                           uy,
+                           uz,
+                           dt,
+                           level,
+                           Inner,
+                           innerSteps,
+                           timeSteppingSchemeConvection_ );
       storage_->getTimingTree()->stop( "Particle integration" );
 
       storage_->getTimingTree()->start( "Temperature evaluation" );
@@ -759,87 +787,87 @@ class MMOCTransport
       storage_->getTimingTree()->stop( "MMOCTransport" );
    }
 
-//   template < typename MassOperator >
-//   void step( const FunctionType& c,
-//              const FunctionType& ux,
-//              const FunctionType& uy,
-//              const FunctionType& uz,
-//              const uint_t&       level,
-//              const DoFType&      flag,
-//              const real_t&       dt,
-//              const uint_t&       innerSteps,
-//              const MassOperator& massOperator,
-//              const real_t&       allowedRelativeMassDifference,
-//              const real_t&       adjustedAdvectionOffset )
-//   {
-//      cOld_.assign( {1.0}, {c}, level, All );
-//
-//      // calculate old mass
-//      massOperator.apply( cOld_, cTmp_, level, flag );
-//      auto massBefore = cTmp_.sumGlobal( level, flag );
-//
-//      integrateNodes< FunctionType >(
-//          *storage_, c, cOld_, ux, uy, uz, dt, level, flag, innerSteps, timeSteppingSchemeConvection_, 0 );
-//
-//      // calculate new mass
-//      massOperator.apply( c, cTmp_, level, flag );
-//      auto massAfter = cTmp_.sumGlobal( level, flag );
-//
-//      auto relativeMassDifference = std::abs( ( massAfter - massBefore ) / massBefore );
-//
-//      if ( relativeMassDifference <= allowedRelativeMassDifference )
-//         return;
-//
-//      // perform adjusted advection steps
-//      integrateNodes< FunctionType >( *storage_,
-//                                      cPlus_,
-//                                      cOld_,
-//                                      ux,
-//                                      uy,
-//                                      uz,
-//                                      dt,
-//                                      level,
-//                                      flag,
-//                                      innerSteps,
-//                                      timeSteppingSchemeConvection_,
-//                                      adjustedAdvectionOffset );
-//      integrateNodes< FunctionType >( *storage_,
-//                                      cMinus_,
-//                                      cOld_,
-//                                      ux,
-//                                      uy,
-//                                      uz,
-//                                      dt,
-//                                      level,
-//                                      flag,
-//                                      innerSteps,
-//                                      timeSteppingSchemeConvection_,
-//                                      -adjustedAdvectionOffset );
-//
-//      // max/min assign functions
-//      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > maxAssignment =
-//          []( const Point3D&, const std::vector< real_t >& values ) { return std::max( values[0], values[1] ); };
-//
-//      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > minAssignment =
-//          []( const Point3D&, const std::vector< real_t >& values ) { return std::min( values[0], values[1] ); };
-//
-//      if ( massAfter <= massBefore )
-//      {
-//         cAdjusted_.interpolate( maxAssignment, {cPlus_, cMinus_}, level );
-//      }
-//      else
-//      {
-//         cAdjusted_.interpolate( minAssignment, {cPlus_, cMinus_}, level );
-//      }
-//
-//      // calculate adjustment mass
-//      massOperator.apply( cAdjusted_, cTmp_, level, flag );
-//      auto massAdjusted = cTmp_.sumGlobal( level, flag );
-//
-//      auto theta = ( massBefore - massAdjusted ) / ( massAfter - massAdjusted );
-//
-//      c.assign( {theta, 1 - theta}, {c, cAdjusted_}, level, flag );
-//   }
+   //   template < typename MassOperator >
+   //   void step( const FunctionType& c,
+   //              const FunctionType& ux,
+   //              const FunctionType& uy,
+   //              const FunctionType& uz,
+   //              const uint_t&       level,
+   //              const DoFType&      flag,
+   //              const real_t&       dt,
+   //              const uint_t&       innerSteps,
+   //              const MassOperator& massOperator,
+   //              const real_t&       allowedRelativeMassDifference,
+   //              const real_t&       adjustedAdvectionOffset )
+   //   {
+   //      cOld_.assign( {1.0}, {c}, level, All );
+   //
+   //      // calculate old mass
+   //      massOperator.apply( cOld_, cTmp_, level, flag );
+   //      auto massBefore = cTmp_.sumGlobal( level, flag );
+   //
+   //      integrateNodes< FunctionType >(
+   //          *storage_, c, cOld_, ux, uy, uz, dt, level, flag, innerSteps, timeSteppingSchemeConvection_, 0 );
+   //
+   //      // calculate new mass
+   //      massOperator.apply( c, cTmp_, level, flag );
+   //      auto massAfter = cTmp_.sumGlobal( level, flag );
+   //
+   //      auto relativeMassDifference = std::abs( ( massAfter - massBefore ) / massBefore );
+   //
+   //      if ( relativeMassDifference <= allowedRelativeMassDifference )
+   //         return;
+   //
+   //      // perform adjusted advection steps
+   //      integrateNodes< FunctionType >( *storage_,
+   //                                      cPlus_,
+   //                                      cOld_,
+   //                                      ux,
+   //                                      uy,
+   //                                      uz,
+   //                                      dt,
+   //                                      level,
+   //                                      flag,
+   //                                      innerSteps,
+   //                                      timeSteppingSchemeConvection_,
+   //                                      adjustedAdvectionOffset );
+   //      integrateNodes< FunctionType >( *storage_,
+   //                                      cMinus_,
+   //                                      cOld_,
+   //                                      ux,
+   //                                      uy,
+   //                                      uz,
+   //                                      dt,
+   //                                      level,
+   //                                      flag,
+   //                                      innerSteps,
+   //                                      timeSteppingSchemeConvection_,
+   //                                      -adjustedAdvectionOffset );
+   //
+   //      // max/min assign functions
+   //      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > maxAssignment =
+   //          []( const Point3D&, const std::vector< real_t >& values ) { return std::max( values[0], values[1] ); };
+   //
+   //      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > minAssignment =
+   //          []( const Point3D&, const std::vector< real_t >& values ) { return std::min( values[0], values[1] ); };
+   //
+   //      if ( massAfter <= massBefore )
+   //      {
+   //         cAdjusted_.interpolate( maxAssignment, {cPlus_, cMinus_}, level );
+   //      }
+   //      else
+   //      {
+   //         cAdjusted_.interpolate( minAssignment, {cPlus_, cMinus_}, level );
+   //      }
+   //
+   //      // calculate adjustment mass
+   //      massOperator.apply( cAdjusted_, cTmp_, level, flag );
+   //      auto massAdjusted = cTmp_.sumGlobal( level, flag );
+   //
+   //      auto theta = ( massBefore - massAdjusted ) / ( massAfter - massAdjusted );
+   //
+   //      c.assign( {theta, 1 - theta}, {c, cAdjusted_}, level, flag );
+   //   }
 
  private:
    const std::shared_ptr< PrimitiveStorage >             storage_;
@@ -852,7 +880,6 @@ class MMOCTransport
    TimeSteppingScheme                                    timeSteppingSchemeConvection_;
    uint_t                                                numberOfCreatedParticles_;
    walberla::convection_particles::data::ParticleStorage particleStorage_;
-   std::vector< PrimitiveID >                            localAndNeighboringPrimitives_;
 };
 
 } // namespace hyteg
