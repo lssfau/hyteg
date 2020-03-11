@@ -6,20 +6,25 @@ Parameters
   maxLevel 3;
 
   // simulation
-  timeSteps 1000;
-  diffusivity 1e-08; // set negative to optimize for zero diffusivity
+  timeSteps 10;
+  diffusivity 1e-02; // set negative to optimize for zero diffusivity
   dt 1e-1;
   rhsScaleFactor 500.0;
 
   // Stokes solver
   stokesResidual 1e-06; // after each timestep we iterate until we reach this residual
   stokesMaxNumVCycles 5;
+  numDiffusionVCycles 1;
 
   /// output
   printTiming true;
+  timingFile StokesSphereTransport_lel.json;
   writeDomainVTK true;
-  VTKOutput true;
-  VTKFrequency 1;
+  vtkOutput true;
+  vtkFrequency 1;
+  vtkBaseFile StokesSphereTransport_lel;
+  vtkDirectory output_2;
+  vtkOutputLevel 3; // P1 level, max output level <= maxLevel but will output only the vertex unknowns (cannot output all DoFs)
 }
 
 /// Layers for the spherical shell generator
