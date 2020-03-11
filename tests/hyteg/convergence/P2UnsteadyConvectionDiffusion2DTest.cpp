@@ -195,7 +195,7 @@ int main( int argc, char* argv[] )
 
    UnsteadyDiffusionOperator     diffusionOperator( storage, minLevel, maxLevel, dt, diffusivity );
    MassOperator                  M( storage, minLevel, maxLevel );
-   MMOCTransport< FunctionType > transport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
+   MMOCTransport< FunctionType > transport( storage, setupStorage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
    auto coarseGridSolver = std::make_shared< CGSolver< P2UnsteadyDiffusionOperator > >( storage, minLevel, minLevel );
    auto smoother         = std::make_shared< GaussSeidelSmoother< P2UnsteadyDiffusionOperator > >();
@@ -255,7 +255,7 @@ int main( int argc, char* argv[] )
       c.interpolate( solution, maxLevel, DirichletBoundary );
       cSolution.interpolate( solution, maxLevel, All );
 
-      transport.step( setupStorage, c, u, v, w, maxLevel, Inner, dt, 1 );
+      transport.step( c, u, v, w, maxLevel, Inner, dt, 1 );
       diffusionSolver.step( diffusionOperator, M, c, f, maxLevel, Inner );
 
       // various errors
