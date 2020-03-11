@@ -39,11 +39,11 @@
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
-#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
@@ -95,7 +95,8 @@ void simulate( int argc, char* argv[] )
    const real_t      dt                  = mainConf.getParameter< real_t >( "dt" );
    const real_t      rhsScaleFactor      = mainConf.getParameter< real_t >( "rhsScaleFactor" );
    const bool        writeVTK            = mainConf.getParameter< bool >( "vtkOutput" );
-   const bool        writeDomainVTK      = mainConf.getParameter< bool >( "writeDomainVTK" );
+   const bool        writeDomainVTK       = mainConf.getParameter< bool >( "writeDomainVTK" );
+   const bool        exitAfterWriteDomain = mainConf.getParameter< bool >( "exitAfterWriteDomain" );
    const uint_t      VTKOutputFrequency  = mainConf.getParameter< uint_t >( "vtkFrequency" );
    const bool        printTiming         = mainConf.getParameter< bool >( "printTiming" );
    const std::string timingFile          = mainConf.getParameter< std::string >( "timingFile" );
@@ -127,6 +128,7 @@ void simulate( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "   + VTK output level: " << vtkOutputLevel )
    WALBERLA_LOG_INFO_ON_ROOT( "   + VTK interval: " << VTKOutputFrequency )
    WALBERLA_LOG_INFO_ON_ROOT( "   + print timing: " << printTiming )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + exit after domain output: " << exitAfterWriteDomain )
 
    /////////////////// Mesh / Domain ///////////////////////
 
@@ -135,6 +137,7 @@ void simulate( int argc, char* argv[] )
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   loadbalancing::greedy( *setupStorage );
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
    std::shared_ptr< PrimitiveStorage >       storage = std::make_shared< PrimitiveStorage >( *setupStorage, timingTree );
@@ -148,6 +151,9 @@ void simulate( int argc, char* argv[] )
    {
       writeDomainPartitioningVTK( storage, vtkDirectory, vtkBaseFile + "_domain" );
    }
+
+   if ( exitAfterWriteDomain )
+      return;
 
    P2P1TaylorHoodFunction< real_t > r( "r", storage, minLevel, maxLevel );
    P2P1TaylorHoodFunction< real_t > f( "f", storage, minLevel, maxLevel );
@@ -210,7 +216,7 @@ void simulate( int argc, char* argv[] )
    auto gmgSolver = std::make_shared< GeometricMultigridSolver< P2P1TaylorHoodStokesOperator > >(
        storage, uzawaSmoother, coarseGridSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 3, 3, 2 );
 
-   MMOCTransport< P2Function< real_t > > transport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
+   MMOCTransport< P2Function< real_t > > transport( storage, setupStorage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
    P2UnsteadyDiffusionOperator diffusionOperator( storage, minLevel, maxLevel, dt, diffusivity );
    auto                        diffusionCoarseGridSolver = std::make_shared< CGSolver< P2UnsteadyDiffusionOperator > >(
@@ -337,7 +343,7 @@ void simulate( int argc, char* argv[] )
 
       time += dt;
 
-      transport.step( setupStorage, temp, u.u, u.v, u.w, maxLevel, All, dt, 1, true );
+      transport.step( temp, u.u, u.v, u.w, maxLevel, All, dt, 1, true );
 
       timer.end();
       WALBERLA_LOG_INFO_ON_ROOT( "" )

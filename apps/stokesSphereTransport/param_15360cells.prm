@@ -1,13 +1,13 @@
 Parameters
 {
   // domain
-  ntan 3;
-  minLevel 0;
-  maxLevel 3;
+  ntan 9;
+  minLevel 2;
+  maxLevel 5;
 
   // simulation
-  timeSteps 10;
-  diffusivity 1e-02; // set negative to optimize for zero diffusivity
+  timeSteps 10000;
+  diffusivity 1e-04; // set negative to optimize for zero diffusivity
   dt 1e-1;
   rhsScaleFactor 500.0;
 
@@ -24,8 +24,8 @@ Parameters
   vtkFrequency 1;
   vtkBaseFile StokesSphereTransport_lel;
   vtkDirectory output_4;
-  vtkOutputLevel 3; // P1 level, max output level <= maxLevel but will output only the vertex unknowns (cannot output all DoFs)
-  exitAfterWriteDomain false;
+  vtkOutputLevel 4; // P1 level, max output level <= maxLevel but will output only the vertex unknowns (cannot output all DoFs)
+  exitAfterWriteDomain false; // true to exit application after coarse domain output (to improve mesh offline)
 }
 
 /// Layers for the spherical shell generator
@@ -34,8 +34,8 @@ Parameters
 Layers
 {
   innerBoundary 0.55; // 3481 km from center (outer core boundary)
-  // layer0 0.6625;
-  // layer1 0.775;
-  // layer2 0.8875;
+  layer0 0.6625;
+  layer1 0.775;
+  layer2 0.8875;
   outerBoundary 1.0; // 6371 km from center
 }
