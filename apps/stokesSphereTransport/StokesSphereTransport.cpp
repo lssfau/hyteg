@@ -47,6 +47,7 @@
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
+#include "hyteg/Git.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
@@ -59,6 +60,8 @@ void simulate( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    PETScManager petscManager;
+
+   printGitInfo();
 
    //check if a config was given on command line or load default file otherwise
    auto cfg = std::make_shared< walberla::config::Config >();
@@ -171,6 +174,8 @@ void simulate( int argc, char* argv[] )
    {
       uint_t tmpDofStokes = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, lvl );
       WALBERLA_LOG_INFO_ON_ROOT( "Stokes DoFs on level " << lvl << " : " << tmpDofStokes );
+      uint_t tmpDofTemperature = numberOfGlobalDoFs< P2FunctionTag >( *storage, lvl );
+      WALBERLA_LOG_INFO_ON_ROOT( "Temperature DoFs on level " << lvl << " : " << tmpDofTemperature );
       totalGlobalDofsStokes += tmpDofStokes;
    }
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -231,6 +236,8 @@ void simulate( int argc, char* argv[] )
 
    UnsteadyDiffusion< P2Function< real_t >, P2UnsteadyDiffusionOperator, P2ConstantMassOperator > diffusion(
        storage, minLevel, maxLevel, diffusionSolver );
+
+   printFunctionAllocationInfo( *storage, 1 );
 
    walberla::WcTimer timer;
    real_t            time = 0.0;
