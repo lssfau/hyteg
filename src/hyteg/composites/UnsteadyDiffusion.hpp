@@ -169,6 +169,18 @@ class UnsteadyDiffusion
       solver_->solve( A, u, uOld_, level );
    }
 
+   /// \brief Same step implementation but for rhs == 0.
+   void step( const UnsteadyDiffusionOperatorType& A,
+              const MassOperatorType&              M,
+              const FunctionType&                  u,
+              const uint_t&                        level,
+              const DoFType&                       flag )
+   {
+      M.apply( u, uOld_, level, flag );
+      uOld_.assign( {1.0}, {uOld_}, level, flag );
+      solver_->solve( A, u, uOld_, level );
+   }
+
  private:
    const std::shared_ptr< PrimitiveStorage >                  storage_;
    FunctionType                                               uOld_;
