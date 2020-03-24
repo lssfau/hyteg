@@ -23,13 +23,14 @@ def parameter_string(vtkDirectory, vtkBaseName, ntan, num_layers):
 
   // simulation
   timeSteps 10000;
-  diffusivity 1e-04; // set negative to optimize for zero diffusivity
-  dt 1e-1;
-  rhsScaleFactor 500.0;
+  diffusivity -1; // set negative to optimize for zero diffusivity
+  dt 1e-2;
+  rhsScaleFactor 100.0;
 
   // Stokes solver
-  stokesResidual 1e-06; // after each timestep we iterate until we reach this residual
+  stokesResidual 1e-12; // after each timestep we iterate until we reach this residual
   stokesMaxNumVCycles 5;
+  stokesSolveInterval 10;
   numDiffusionVCycles 1;
 
   /// output
@@ -37,7 +38,7 @@ def parameter_string(vtkDirectory, vtkBaseName, ntan, num_layers):
   timingFile {vtkBaseName}.json;
   writeDomainVTK true;
   vtkOutput true;
-  vtkFrequency 1;
+  vtkFrequency 10;
   vtkBaseFile {vtkBaseName};
   vtkDirectory {vtkDirectory};
   vtkOutputLevel 4; // P1 level, max output level <= maxLevel but will output only the vertex unknowns (cannot output all DoFs)
@@ -137,7 +138,7 @@ def generate_files():
         prm_file_name = job_name + ".prm"
         job_file_name = job_name + ".job"
 
-        job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="1:00:00",
+        job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="4:00:00",
                                               num_nodes=config["num_nodes"], prm_file=prm_file_name, ppn=48)
 
         with open(prm_file_name, "w") as f:

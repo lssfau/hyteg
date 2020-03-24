@@ -6,7 +6,7 @@ Parameters
   maxLevel 3;
 
   // simulation
-  timeSteps 10;
+  timeSteps 5;
   diffusivity 1e-02; // set negative to optimize for zero diffusivity
   dt 1e-1;
   rhsScaleFactor 500.0;
@@ -14,6 +14,7 @@ Parameters
   // Stokes solver
   stokesResidual 1e-06; // after each timestep we iterate until we reach this residual
   stokesMaxNumVCycles 5;
+  stokesSolveInterval 10;
   numDiffusionVCycles 1;
 
   /// output
@@ -23,7 +24,7 @@ Parameters
   vtkOutput true;
   vtkFrequency 1;
   vtkBaseFile StokesSphereTransport_lel;
-  vtkDirectory output_4;
+  vtkDirectory output_5;
   vtkOutputLevel 3; // P1 level, max output level <= maxLevel but will output only the vertex unknowns (cannot output all DoFs)
   exitAfterWriteDomain false;
 }

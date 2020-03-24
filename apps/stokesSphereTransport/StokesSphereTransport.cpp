@@ -27,6 +27,8 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/FunctionProperties.hpp"
+#include "hyteg/Git.hpp"
+#include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/MMOCTransport.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
@@ -47,7 +49,6 @@
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
-#include "hyteg/Git.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
@@ -62,6 +63,7 @@ void simulate( int argc, char* argv[] )
    PETScManager petscManager;
 
    printGitInfo();
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    //check if a config was given on command line or load default file otherwise
    auto cfg = std::make_shared< walberla::config::Config >();
@@ -86,26 +88,27 @@ void simulate( int argc, char* argv[] )
       layers.push_back( layersParam.getParameter< double >( it.first ) );
    }
 
-   const double      rmin                = layers.front();
-   const double      rmax                = layers.back();
-   const uint_t      minLevel            = mainConf.getParameter< uint_t >( "minLevel" );
-   const uint_t      maxLevel            = mainConf.getParameter< uint_t >( "maxLevel" );
-   const real_t      stokesResidual      = mainConf.getParameter< real_t >( "stokesResidual" );
-   const uint_t      stokesMaxNumVCycles = mainConf.getParameter< uint_t >( "stokesMaxNumVCycles" );
-   const uint_t      numDiffusionVCycles = mainConf.getParameter< uint_t >( "numDiffusionVCycles" );
-   const uint_t      timeSteps           = mainConf.getParameter< uint_t >( "timeSteps" );
-   const real_t      diffusivity         = mainConf.getParameter< real_t >( "diffusivity" );
-   const real_t      dt                  = mainConf.getParameter< real_t >( "dt" );
-   const real_t      rhsScaleFactor      = mainConf.getParameter< real_t >( "rhsScaleFactor" );
-   const bool        writeVTK            = mainConf.getParameter< bool >( "vtkOutput" );
+   const double      rmin                 = layers.front();
+   const double      rmax                 = layers.back();
+   const uint_t      minLevel             = mainConf.getParameter< uint_t >( "minLevel" );
+   const uint_t      maxLevel             = mainConf.getParameter< uint_t >( "maxLevel" );
+   const real_t      stokesResidual       = mainConf.getParameter< real_t >( "stokesResidual" );
+   const uint_t      stokesMaxNumVCycles  = mainConf.getParameter< uint_t >( "stokesMaxNumVCycles" );
+   const uint_t      stokesSolveInterval  = mainConf.getParameter< uint_t >( "stokesSolveInterval" );
+   const uint_t      numDiffusionVCycles  = mainConf.getParameter< uint_t >( "numDiffusionVCycles" );
+   const uint_t      timeSteps            = mainConf.getParameter< uint_t >( "timeSteps" );
+   const real_t      diffusivity          = mainConf.getParameter< real_t >( "diffusivity" );
+   const real_t      dt                   = mainConf.getParameter< real_t >( "dt" );
+   const real_t      rhsScaleFactor       = mainConf.getParameter< real_t >( "rhsScaleFactor" );
+   const bool        writeVTK             = mainConf.getParameter< bool >( "vtkOutput" );
    const bool        writeDomainVTK       = mainConf.getParameter< bool >( "writeDomainVTK" );
    const bool        exitAfterWriteDomain = mainConf.getParameter< bool >( "exitAfterWriteDomain" );
-   const uint_t      VTKOutputFrequency  = mainConf.getParameter< uint_t >( "vtkFrequency" );
-   const bool        printTiming         = mainConf.getParameter< bool >( "printTiming" );
-   const std::string timingFile          = mainConf.getParameter< std::string >( "timingFile" );
-   const std::string vtkBaseFile         = mainConf.getParameter< std::string >( "vtkBaseFile" );
-   const std::string vtkDirectory        = mainConf.getParameter< std::string >( "vtkDirectory" );
-   const uint_t      vtkOutputLevel      = mainConf.getParameter< uint_t >( "vtkOutputLevel" );
+   const uint_t      VTKOutputFrequency   = mainConf.getParameter< uint_t >( "vtkFrequency" );
+   const bool        printTiming          = mainConf.getParameter< bool >( "printTiming" );
+   const std::string timingFile           = mainConf.getParameter< std::string >( "timingFile" );
+   const std::string vtkBaseFile          = mainConf.getParameter< std::string >( "vtkBaseFile" );
+   const std::string vtkDirectory         = mainConf.getParameter< std::string >( "vtkDirectory" );
+   const uint_t      vtkOutputLevel       = mainConf.getParameter< uint_t >( "vtkOutputLevel" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Parameters:" )
    WALBERLA_LOG_INFO_ON_ROOT( " - domain:" )
@@ -132,6 +135,7 @@ void simulate( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "   + VTK interval: " << VTKOutputFrequency )
    WALBERLA_LOG_INFO_ON_ROOT( "   + print timing: " << printTiming )
    WALBERLA_LOG_INFO_ON_ROOT( "   + exit after domain output: " << exitAfterWriteDomain )
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    /////////////////// Mesh / Domain ///////////////////////
 
@@ -154,6 +158,12 @@ void simulate( int argc, char* argv[] )
       writeDomainPartitioningVTK( storage, vtkDirectory, vtkBaseFile + "_domain" );
    }
 
+   const auto hmin = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
+   const auto hmax = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
+   WALBERLA_LOG_INFO_ON_ROOT( "hmin: " << hmin )
+   WALBERLA_LOG_INFO_ON_ROOT( "hmax: " << hmax );
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
+
    if ( exitAfterWriteDomain )
       return;
 
@@ -167,6 +177,8 @@ void simulate( int argc, char* argv[] )
    P2Function< real_t >             normalX( "normalX", storage, minLevel, maxLevel );
    P2Function< real_t >             normalY( "normalY", storage, minLevel, maxLevel );
    P2Function< real_t >             normalZ( "normalZ", storage, minLevel, maxLevel );
+   P2Function< real_t >             tmp( "tmp", storage, minLevel, maxLevel );
+   P2Function< real_t >             tmp2( "tmp2", storage, minLevel, maxLevel );
 
    uint_t totalGlobalDofsStokes = 0;
    for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
@@ -210,7 +222,7 @@ void simulate( int argc, char* argv[] )
    normalZ.interpolate( nZ, maxLevel );
 
    auto coarseGridSolver = std::make_shared< PETScBlockPreconditionedStokesSolver< P2P1TaylorHoodStokesOperator > >(
-       storage, minLevel, 1e-12, std::numeric_limits< PetscInt >::max(), 1 );
+       storage, minLevel, 1e-12, 2000, 1 );
    auto stokesRestriction  = std::make_shared< P2P1StokesToP2P1StokesRestriction >( true );
    auto stokesProlongation = std::make_shared< P2P1StokesToP2P1StokesProlongation >();
    auto uzawaSmoother = std::make_shared< UzawaSmoother< P2P1TaylorHoodStokesOperator > >( storage, minLevel, maxLevel, 0.3 );
@@ -223,8 +235,8 @@ void simulate( int argc, char* argv[] )
    MMOCTransport< P2Function< real_t > > transport( storage, setupStorage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
    P2UnsteadyDiffusionOperator diffusionOperator( storage, minLevel, maxLevel, dt, diffusivity );
-   auto                        diffusionCoarseGridSolver = std::make_shared< CGSolver< P2UnsteadyDiffusionOperator > >(
-       storage, minLevel, maxLevel, std::numeric_limits< PetscInt >::max(), 1e-12 );
+   auto                        diffusionCoarseGridSolver =
+       std::make_shared< CGSolver< P2UnsteadyDiffusionOperator > >( storage, minLevel, maxLevel, 2000, 1e-12 );
    auto diffusionRestriction  = std::make_shared< P2toP2QuadraticRestriction >();
    auto diffusionProlongation = std::make_shared< P2toP2QuadraticProlongation >();
    auto gsSmoother            = std::make_shared< GaussSeidelSmoother< P2UnsteadyDiffusionOperator > >();
@@ -281,6 +293,24 @@ void simulate( int argc, char* argv[] )
       storage->getTimingTree()->stop( "VTK" );
    };
 
+   auto maxMagnitudeVelocity = [&]() {
+      tmp2.interpolate( 0, maxLevel, All );
+
+      tmp.assign( {1.0}, {u.u}, maxLevel, All );
+      tmp.multElementwise( {tmp, tmp}, maxLevel, All );
+      tmp2.assign( {1.0, 1.0}, {tmp2, tmp}, maxLevel, All );
+
+      tmp.assign( {1.0}, {u.v}, maxLevel, All );
+      tmp.multElementwise( {tmp, tmp}, maxLevel, All );
+      tmp2.assign( {1.0, 1.0}, {tmp2, tmp}, maxLevel, All );
+
+      tmp.assign( {1.0}, {u.w}, maxLevel, All );
+      tmp.multElementwise( {tmp, tmp}, maxLevel, All );
+      tmp2.assign( {1.0, 1.0}, {tmp2, tmp}, maxLevel, All );
+
+      return std::sqrt( tmp2.getMaxMagnitude( maxLevel, All ) );
+   };
+
    if ( writeVTK )
    {
       writeVTKCallback( 0 );
@@ -311,33 +341,42 @@ void simulate( int argc, char* argv[] )
 
       // Check residual, if less than tolerance, quit v-cycle loop early
 
-      storage->getTimingTree()->start( "Stokes" );
-      timer.start();
-
-      real_t currentResidual = calculateResidualStokes();
-      real_t lastResidual    = currentResidual;
-      WALBERLA_LOG_INFO_ON_ROOT( " iteration | residual (l2) | convergence rate " );
-      WALBERLA_LOG_INFO_ON_ROOT( "-----------+---------------+------------------" );
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "   initial | %13.3e |                - ", currentResidual ) )
-
-      for ( uint_t i = 0; i < stokesMaxNumVCycles; i++ )
+      if ( step % stokesSolveInterval == 0 )
       {
-         if ( currentResidual < stokesResidual )
-            break;
+         storage->getTimingTree()->start( "Stokes" );
+         timer.start();
 
-         gmgSolver->solve( L, u, f, maxLevel );
+         real_t currentResidual = calculateResidualStokes();
+         real_t lastResidual    = currentResidual;
+         WALBERLA_LOG_INFO_ON_ROOT( " iteration | residual (l2) | convergence rate " );
+         WALBERLA_LOG_INFO_ON_ROOT( "-----------+---------------+------------------" );
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "   initial | %13.3e |                - ", currentResidual ) )
 
-         currentResidual      = calculateResidualStokes();
-         auto convergenceRate = currentResidual / lastResidual;
-         lastResidual         = currentResidual;
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9d | %13.3e | %16.3e ", i, currentResidual, convergenceRate ) )
+         for ( uint_t i = 0; i < stokesMaxNumVCycles; i++ )
+         {
+            if ( currentResidual < stokesResidual )
+               break;
+
+            gmgSolver->solve( L, u, f, maxLevel );
+
+            currentResidual      = calculateResidualStokes();
+            auto convergenceRate = currentResidual / lastResidual;
+            lastResidual         = currentResidual;
+            WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9d | %13.3e | %16.3e ", i, currentResidual, convergenceRate ) )
+         }
+
+         const auto maxVelocity = maxMagnitudeVelocity();
+         const auto cfl         = ( maxVelocity * dt ) / hmin;
+         WALBERLA_LOG_INFO_ON_ROOT( "" )
+         WALBERLA_LOG_INFO_ON_ROOT( "max velocity magnitude: " << maxVelocity );
+         WALBERLA_LOG_INFO_ON_ROOT( "CFL ( u_max * dt / h_min ): " << cfl );
+
+         timer.end();
+         WALBERLA_LOG_INFO_ON_ROOT( "" )
+         WALBERLA_LOG_INFO_ON_ROOT( "... " << timer.last() << " seconds" )
+         WALBERLA_LOG_INFO_ON_ROOT( "" )
+         storage->getTimingTree()->stop( "Stokes" );
       }
-
-      timer.end();
-      WALBERLA_LOG_INFO_ON_ROOT( "" )
-      WALBERLA_LOG_INFO_ON_ROOT( "... " << timer.last() << " seconds" )
-      WALBERLA_LOG_INFO_ON_ROOT( "" )
-      storage->getTimingTree()->stop( "Stokes" );
 
       // Advection-diffusion
 
@@ -358,25 +397,28 @@ void simulate( int argc, char* argv[] )
 
       storage->getTimingTree()->stop( "Advection" );
 
-      storage->getTimingTree()->start( "Diffusion" );
+      if ( diffusivity > 0 )
+      {
+         storage->getTimingTree()->start( "Diffusion" );
 
-      WALBERLA_LOG_INFO_ON_ROOT( "Diffusion time step ..." )
+         WALBERLA_LOG_INFO_ON_ROOT( "Diffusion time step ..." )
 
-      timer.start();
+         timer.start();
 
-      tempOld.assign( {1.0}, {temp}, maxLevel, All );
-      diffusion.step( diffusionOperator, M, temp, maxLevel, Inner | NeumannBoundary );
+         tempOld.assign( {1.0}, {temp}, maxLevel, All );
+         diffusion.step( diffusionOperator, M, temp, maxLevel, Inner | NeumannBoundary );
 
-      const auto residualDiffusion = calculateResidualDiffusion();
-      WALBERLA_LOG_INFO_ON_ROOT( "" )
-      WALBERLA_LOG_INFO_ON_ROOT( "l2 residual diffusion: " << residualDiffusion );
+         const auto residualDiffusion = calculateResidualDiffusion();
+         WALBERLA_LOG_INFO_ON_ROOT( "" )
+         WALBERLA_LOG_INFO_ON_ROOT( "l2 residual diffusion: " << residualDiffusion );
 
-      timer.end();
-      WALBERLA_LOG_INFO_ON_ROOT( "" )
-      WALBERLA_LOG_INFO_ON_ROOT( "... " << timer.last() << " seconds" )
-      WALBERLA_LOG_INFO_ON_ROOT( "" )
+         timer.end();
+         WALBERLA_LOG_INFO_ON_ROOT( "" )
+         WALBERLA_LOG_INFO_ON_ROOT( "... " << timer.last() << " seconds" )
+         WALBERLA_LOG_INFO_ON_ROOT( "" )
 
-      storage->getTimingTree()->stop( "Diffusion" );
+         storage->getTimingTree()->stop( "Diffusion" );
+      }
 
       if ( writeVTK )
       {
