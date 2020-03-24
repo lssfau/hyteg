@@ -21,6 +21,7 @@
 
 #include "hyteg/solvers/Solver.hpp"
 #include "core/DataTypes.h"
+#include "hyteg/types/flags.hpp"
 
 
 

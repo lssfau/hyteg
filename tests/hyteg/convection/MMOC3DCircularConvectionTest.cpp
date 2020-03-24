@@ -24,6 +24,7 @@
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/MMOCTransport.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
@@ -82,16 +83,18 @@ int main( int argc, char* argv[] )
    storage->getTimingTree()->start( "Total" );
 
    const uint_t minLevel   = 2;
-   const uint_t maxLevel   = 6;
+   const uint_t maxLevel   = 4;
 
    const real_t hMin       = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    const real_t hMax       = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
    const real_t tEnd       = 2 * walberla::math::pi;
    const real_t dt         = tEnd / 60.;
-   const uint_t stepsTotal = uint_c( tEnd / dt );
+   const uint_t stepsTotal = 2; // uint_c( tEnd / dt );
 
-   const uint_t outerSteps = 60;
+   const uint_t outerSteps = 2; // 60;
    const uint_t innerSteps = stepsTotal / outerSteps;
+
+   const bool vtk = false;
 
    const auto unknowns = numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel );
    WALBERLA_LOG_INFO_ON_ROOT( unknowns )
@@ -166,7 +169,7 @@ int main( int argc, char* argv[] )
    FunctionType tmp1( "tmp1", storage, minLevel, maxLevel );
 
    MassOperator                  M( storage, minLevel, maxLevel );
-   MMOCTransport< FunctionType > transport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
+   MMOCTransport< FunctionType > transport( storage, setupStorage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
    u.interpolate( vel_x, maxLevel );
    v.interpolate( vel_y, maxLevel );
@@ -198,13 +201,14 @@ int main( int argc, char* argv[] )
    M.apply( c, cMass, maxLevel, All );
    auto total_mass = cMass.sumGlobal( maxLevel );
 
-   vtkOutput.write( maxLevel );
+   if ( vtk )
+      vtkOutput.write( maxLevel );
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %10d | %8d | %15.3e | %10.3e | %30.2f%% ", 0, 0, max_temp, total_mass, 0, 0. ) )
 
    for ( uint_t i = 1; i <= outerSteps; i++ )
    {
-      transport.step( setupStorage, c, u, v, w, maxLevel, Inner, dt, innerSteps, i == 1 );
+      transport.step( c, u, v, w, maxLevel, Inner, dt, innerSteps, i == 1 );
 
       cError.assign( {1.0, -1.0}, {c, cInitial}, maxLevel, All );
       max_temp = c.getMaxMagnitude( maxLevel, All );
@@ -216,7 +220,8 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
           " %10d | %8d | %15.3e | %10.3e | %30.2f%% ", i, i * innerSteps, max_temp, total_mass, total_mass_lost * 100. ) )
 
-      vtkOutput.write( maxLevel, i * innerSteps );
+      if ( vtk )
+         vtkOutput.write( maxLevel, i * innerSteps );
    }
 
    auto p2MassFormFenics =
@@ -235,6 +240,8 @@ int main( int argc, char* argv[] )
 
    storage->getTimingTree()->stop( "Total" );
    WALBERLA_LOG_INFO_ON_ROOT( storage->getTimingTree()->getCopyWithRemainder() );
+
+   writeTimingTreeJSON( *storage->getTimingTree(), "/tmp/mmoc_timing.json" );
 
    return EXIT_SUCCESS;
 }

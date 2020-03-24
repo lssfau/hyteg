@@ -223,7 +223,7 @@ int main( int argc, char* argv[] )
    FunctionType w( "w", storage, minLevel, maxLevel );
 
    MassOperator                  M( storage, minLevel, maxLevel );
-   MMOCTransport< FunctionType > transport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
+   MMOCTransport< FunctionType > transport( storage, setupStorage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
    c.interpolate( initialBodies, maxLevel );
    cInitial.interpolate( initialBodies, maxLevel );
@@ -249,7 +249,7 @@ int main( int argc, char* argv[] )
    {
       u.interpolate( vel_x, maxLevel );
       v.interpolate( vel_y, maxLevel );
-      transport.step( setupStorage, c, u, v, w, maxLevel, Inner, dt, 1, i == 1 );
+      transport.step( c, u, v, w, maxLevel, Inner, dt, 1, i == 1 );
       vel_x.step();
       vel_y.step();
 

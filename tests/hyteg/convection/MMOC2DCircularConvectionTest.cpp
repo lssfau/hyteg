@@ -195,7 +195,7 @@ int main( int argc, char* argv[] )
    FunctionType tmp1( "tmp1", storage, minLevel, maxLevel );
 
    MassOperator                  M( storage, minLevel, maxLevel );
-   MMOCTransport< FunctionType > transport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
+   MMOCTransport< FunctionType > transport( storage, setupStorage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
    u.interpolate( vel_x, maxLevel );
    v.interpolate( vel_y, maxLevel );
@@ -231,7 +231,7 @@ int main( int argc, char* argv[] )
 
    for ( uint_t i = 1; i <= outerSteps; i++ )
    {
-      transport.step( setupStorage, c, u, v, w, maxLevel, Inner, dt, innerSteps, i == 1 );
+      transport.step( c, u, v, w, maxLevel, Inner, dt, innerSteps, i == 1 );
 
       cError.assign( {1.0, -1.0}, {c, cInitial}, maxLevel, All );
       max_temp = c.getMaxMagnitude( maxLevel, All );

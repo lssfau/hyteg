@@ -1,0 +1,22 @@
+Parameters
+{
+  minLevel 2;
+  maxLevel 5;
+  numVCycles 1;
+  uzawaTolerance 1e-16;
+
+  dt 1e-2;
+  plotFrequency 1;
+  diffusivity 1e-8;
+  timesteps 1000;
+  convectivity 100.0;
+
+  /// output
+  printGlobalStorageInfo true;
+  printParameters true;
+  printDoFCount true;
+  printFunctionCount true;
+  printTiming false;
+  writeDomainVTK true;
+  VTKOutput true;
+}
