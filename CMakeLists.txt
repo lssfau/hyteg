@@ -4,7 +4,7 @@ PROJECT ( hyteg )
 enable_testing()
 
 option ( HYTEG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
-option ( HYTEG_BUILD_WITH_EIGEN       "Build with Eigen"                              ON)
+option ( HYTEG_BUILD_WITH_EIGEN       "Build with Eigen"                             OFF)
 option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if available" ON)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
