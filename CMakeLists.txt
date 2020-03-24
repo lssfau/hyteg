@@ -4,7 +4,7 @@ PROJECT ( hyteg )
 enable_testing()
 
 option ( HYTEG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
-option ( HYTEG_BUILD_WITH_EIGEN       "Build with Eigen"                             OFF)
+option ( HYTEG_BUILD_WITH_EIGEN       "Build with Eigen"                              ON)
 option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if available" ON)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -13,6 +13,7 @@ set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON  CACHE BOOL "Enable compiler optimization
 set(WALBERLA_LOG_SKIPPED            OFF CACHE BOOL "Log skipped cmake targets"                         )
 set(WALBERLA_DIR ${hyteg_SOURCE_DIR}/walberla CACHE  PATH  "waLBerla path")
 
+set(EIGEN_DIR ${hyteg_SOURCE_DIR}/eigen CACHE  PATH  "eigen path")
 
 include_directories ( src )
 
@@ -35,9 +36,8 @@ if ( HYTEG_BUILD_WITH_PETSC )
 endif()
 
 if ( HYTEG_BUILD_WITH_EIGEN )
-    find_package( Eigen3 REQUIRED )
-    include_directories ( ${EIGEN3_INCLUDE_DIRS} )
-    link_directories    ( ${EIGEN3_LIBRARY_DIR} )
+    include_directories ( ${EIGEN_DIR} )
+    link_directories    ( ${EIGEN_DIR} )
 endif()
 
 find_package( waLBerla )
