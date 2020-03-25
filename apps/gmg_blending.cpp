@@ -143,7 +143,9 @@ int main(int argc, char* argv[])
   typedef hyteg::P1PolynomialBlendingLaplaceOperator SolveOperatorPoly;
 
   std::function<real_t(const hyteg::Point3D&)> exact = [](const hyteg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
-  std::function<real_t(const hyteg::Point3D&)> rhs = [](const hyteg::Point3D& x) { return -2*(x[0] + 1)*cos(x[0])*sinh(x[1]) - 3*sin(x[0])*cosh(x[1]); };
+  // std::function<real_t(const hyteg::Point3D&)> rhs = [](const hyteg::Point3D& x) { return -2*(x[0] + 1)*cos(x[0])*sinh(x[1]) - 3*sin(x[0])*cosh(x[1]); };
+  std::function<real_t(const hyteg::Point3D&)> rhs = [](const hyteg::Point3D&) { return 0.0; };
+
   std::function<real_t(const hyteg::Point3D&)> zeros = [](const hyteg::Point3D&) { return 0.0; };
   std::function<real_t(const hyteg::Point3D&)> ones  = [](const hyteg::Point3D&) { return 1.0; };
 
