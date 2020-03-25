@@ -69,8 +69,8 @@ int main(int argc, char* argv[])
 
   uint_t level_H = parameters.getParameter<uint_t>("level_h_coarse");
   uint_t level_h = parameters.getParameter<uint_t>("level_h_fine");
-  const uint_t minLevel = 2;
-  const uint_t maxLevel = level_h - level_H;
+  const uint_t minLevel = level_H;
+  const uint_t maxLevel = level_h;
   const uint_t maxMemoryLevel = maxLevel + 1;
   const uint_t maxPolyDegree = parameters.getParameter<uint_t>("maxPolyDegree");
   const uint_t interpolationLevel = parameters.getParameter<uint_t>("interpolationLevel");
