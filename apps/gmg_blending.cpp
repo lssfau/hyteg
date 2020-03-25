@@ -80,8 +80,8 @@ int main(int argc, char* argv[])
   const real_t coarse_tolerance = parameters.getParameter<real_t>("coarse_tolerance");
   const bool polynomialOperator = parameters.getParameter<bool>("polynomialOperator");
 
-//  MeshInfo meshInfo = MeshInfo::fromGmshFile(parameters.getParameter<std::string>("meshFilename"));
-  MeshInfo meshInfo = MeshInfo::meshUnitSquare(level_H);
+  MeshInfo meshInfo = MeshInfo::fromGmshFile(parameters.getParameter<std::string>("meshFilename"));
+  // MeshInfo meshInfo = MeshInfo::meshUnitSquare(level_H);
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   Point3D circleCenter{{0.5, 0.5, 0}};
@@ -92,9 +92,10 @@ int main(int argc, char* argv[])
      Face& face = *(it.second);
 
      std::vector< PrimitiveID > neighborEdgesOnBoundary = face.neighborEdges();
-     std::remove_if( neighborEdgesOnBoundary.begin(), neighborEdgesOnBoundary.end(),
-                     [ &setupStorage ]( const PrimitiveID & id ){ return !setupStorage.onBoundary( id ); } );
-
+     neighborEdgesOnBoundary.erase(
+      std::remove_if( neighborEdgesOnBoundary.begin(), neighborEdgesOnBoundary.end(),
+                     [ &setupStorage ]( const PrimitiveID & id ){ return !setupStorage.onBoundary( id ); } )
+      , neighborEdgesOnBoundary.end());
      if( neighborEdgesOnBoundary.size() > 0 )
      {
         Edge& edge = *setupStorage.getEdge( neighborEdgesOnBoundary[0] );

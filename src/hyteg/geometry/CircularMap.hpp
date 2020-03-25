@@ -38,8 +38,11 @@ class CircularMap : public GeometryMap
      // Get edge on boundary
      // TODO: ATTENTION - ONLY ONE EDGE MAY LIE ON THE BOUNDARY
      std::vector< PrimitiveID > neighborEdgesOnBoundary = face.neighborEdges();
-     std::remove_if( neighborEdgesOnBoundary.begin(), neighborEdgesOnBoundary.end(),
-                     [ &storage ]( const PrimitiveID & id ){ return !storage.onBoundary( id ); } );
+     neighborEdgesOnBoundary.erase(
+      std::remove_if( neighborEdgesOnBoundary.begin(), neighborEdgesOnBoundary.end(),
+                     [ &storage ]( const PrimitiveID & id ){ return !storage.onBoundary( id ); } )
+      ,neighborEdgesOnBoundary.end());
+
      WALBERLA_ASSERT_GREATER( neighborEdgesOnBoundary.size(), 0 );
 
       const Edge&   edge   = *storage.getEdge( neighborEdgesOnBoundary[0] );

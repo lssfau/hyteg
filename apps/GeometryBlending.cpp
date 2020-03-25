@@ -58,8 +58,10 @@ int main( int argc, char* argv[] )
       Face& face = *(it.second);
 
       std::vector< PrimitiveID > neighborEdgesOnBoundary = face.neighborEdges();
-      std::remove_if( neighborEdgesOnBoundary.begin(), neighborEdgesOnBoundary.end(),
-                      [ &setupStorage ]( const PrimitiveID & id ){ return !setupStorage.onBoundary( id ); } );
+      neighborEdgesOnBoundary.erase(
+         std::remove_if( neighborEdgesOnBoundary.begin(), neighborEdgesOnBoundary.end(),
+                      [ &setupStorage ]( const PrimitiveID & id ){ return !setupStorage.onBoundary( id ); } )
+         , neighborEdgesOnBoundary.end());
 
       if( neighborEdgesOnBoundary.size() > 0 )
       {
