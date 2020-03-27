@@ -135,7 +135,7 @@ class AnnulusMap : public GeometryMap
 
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const
    {
-      sendBuffer << Type::ANNULUS_MAP << rayVertex_ << refVertex_ << thrVertex_ << radRefVertex_ << radRayVertex_;
+      sendBuffer << Type::ANNULUS << rayVertex_ << refVertex_ << thrVertex_ << radRefVertex_ << radRayVertex_;
    }
 
    static void setMap( SetupPrimitiveStorage& setupStorage )
