@@ -29,6 +29,7 @@
 #include <vector>
 
 using walberla::math::pi;
+using walberla::real_c;
 
 namespace hyteg {
 
@@ -68,6 +69,44 @@ MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax,
 
 }
 
+
+
+MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax,
+                                const meshFlavour flavour, uint_t nTan, uint_t nRad )
+{
+
+  WALBERLA_ASSERT_LESS( rhoMin, rhoMax );
+  WALBERLA_ASSERT_GREATER( rhoMin, 1e-8 );
+  WALBERLA_ASSERT_GREATER( nTan, 0 );
+  WALBERLA_ASSERT_GREATER( nRad, 0 );
+
+  // mesh partial annulus in polar coordinates
+  MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( { rhoMin, real_c(0.0) } ),
+                                               Point2D( { rhoMax, real_c(2.0) * pi } ),
+                                               flavour, nRad, nTan );
+
+  // close domain at phi = 0 = 2*pi
+  // your code goes here!
+
+  // map vertex coordinates to cartesian domain
+  Point3D node;
+  node[2] = 0.0;
+  uint_t boundaryFlag;
+  real_t rho, phi;
+  for ( size_t id = 0; id < meshInfo.vertices_.size(); ++id )
+    {
+      node = meshInfo.vertices_[id].getCoordinates();
+      boundaryFlag = meshInfo.vertices_[id].getBoundaryFlag();
+      rho = node[0];
+      phi = node[1];
+      node[0] = rho*std::cos(phi);
+      node[1] = rho*std::sin(phi);
+      meshInfo.vertices_[id] = MeshInfo::Vertex( id, Point3D( node ), boundaryFlag );
+    }
+
+  return meshInfo;
+
+}
 
 MeshInfo MeshInfo::meshAnnulus( const real_t rhoMin, const real_t rhoMax, uint_t nTan, uint_t nRad )
 {
