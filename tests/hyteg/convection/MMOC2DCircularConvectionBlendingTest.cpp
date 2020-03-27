@@ -84,7 +84,8 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   MeshInfo meshInfo = MeshInfo::meshAnnulus( 0.5, 1.5, 0.0, 2.0 * walberla::math::pi, MeshInfo::CROSS, 6, 2 );
+   // MeshInfo meshInfo = MeshInfo::meshAnnulus( 0.5, 1.5, 0.0, 2.0 * walberla::math::pi, MeshInfo::CROSS, 6, 2 );
+   MeshInfo meshInfo = MeshInfo::meshAnnulus( 0.5, 1.5, MeshInfo::CROSS, 6, 2 );
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    for ( auto it : setupStorage->getFaces() )
