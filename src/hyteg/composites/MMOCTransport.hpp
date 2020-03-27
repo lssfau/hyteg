@@ -122,13 +122,15 @@ void updateParticlePosition( const SetupPrimitiveStorage&                       
    {
       for ( auto p : particleStorage )
       {
-         Point2D pointOfInterest( {p->getPosition()[0], p->getPosition()[1]} );
-
          // check for current cell (probability is high that we find the particle here...)
          auto faceID = p->getContainingPrimitive();
          auto face   = setupStorage.getFace( faceID );
 
-         if ( isPointInTriangle( pointOfInterest,
+         Point3D computationalLocation;
+         face->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocation );
+         Point2D computationalLocation2D( {computationalLocation[0], computationalLocation[1]} );
+
+         if ( isPointInTriangle( computationalLocation2D,
                                     Point2D( {face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1]} ),
                                     Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
                                     Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
@@ -143,7 +145,7 @@ void updateParticlePosition( const SetupPrimitiveStorage&                       
             {
                face = setupStorage.getFace( neighborFaceID );
 
-               if ( isPointInTriangle( pointOfInterest,
+               if ( isPointInTriangle( computationalLocation2D,
                                        Point2D( {face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1]} ),
                                        Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
                                        Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
@@ -208,9 +210,11 @@ real_t evaluateAtParticlePosition( PrimitiveStorage&                            
    {
       WALBERLA_CHECK( storage.faceExistsLocally( particle.getContainingPrimitive() ) );
       Face& face = *storage.getFace( particle.getContainingPrimitive() );
+      Point3D computationalLocation;
+      face.getGeometryMap()->evalFinv( toPoint3D( particle.getPosition() ), computationalLocation );
       result     = P2::macroface::evaluate( level,
                                         face,
-                                        toPoint3D( particle.getPosition() ),
+                                            computationalLocation,
                                         function.getVertexDoFFunction().getFaceDataID(),
                                         function.getEdgeDoFFunction().getFaceDataID() );
    }
@@ -238,11 +242,14 @@ void evaluateAtParticlePosition( PrimitiveStorage&                              
       WALBERLA_CHECK( storage.faceExistsLocally( particle.getContainingPrimitive() ) );
       Face& face = *storage.getFace( particle.getContainingPrimitive() );
 
+      Point3D computationalLocation;
+      face.getGeometryMap()->evalFinv( toPoint3D( particle.getPosition() ), computationalLocation );
+
       for ( uint_t i = 0; i < functions.size(); i++ )
       {
          results[i] = P2::macroface::evaluate( level,
                                                face,
-                                               toPoint3D( particle.getPosition() ),
+                                               computationalLocation,
                                                functions[i].getVertexDoFFunction().getFaceDataID(),
                                                functions[i].getEdgeDoFFunction().getFaceDataID() );
       }
@@ -306,10 +313,14 @@ uint_t initializeParticles( walberla::convection_particles::data::ParticleStorag
       if ( storage.onBoundary( it.primitiveID(), true ) )
          continue;
 
+      Point3D physicalLocation;
+      auto primitive = setupStorage.getPrimitive( it.primitiveID() );
+      primitive->getGeometryMap()->evalF( it.coordinates(), physicalLocation );
+
       auto particleIt = particleStorage.create();
       particleIt->setOwner( (int) rank );
-      particleIt->setPosition( toVec3( it.coordinates() ) );
-      particleIt->setStartPosition( toVec3( it.coordinates() ) );
+      particleIt->setPosition( toVec3( physicalLocation ) );
+      particleIt->setStartPosition( toVec3( physicalLocation ) );
       particleIt->setStartDoFType( 0 ); // 0 == vertexdof
       particleIt->setStartEdgeDoFOrientation( it.edgeDoFOrientation() );
       particleIt->setStartPrimitiveID( it.primitiveID() );
@@ -378,10 +389,14 @@ uint_t initializeParticles( walberla::convection_particles::data::ParticleStorag
       if ( storage.onBoundary( it.primitiveID(), true ) )
          continue;
 
+      Point3D physicalLocation;
+      auto primitive = setupStorage.getPrimitive( it.primitiveID() );
+      primitive->getGeometryMap()->evalF( it.coordinates(), physicalLocation );
+
       auto particleIt = particleStorage.create();
       particleIt->setOwner( (int) rank );
-      particleIt->setPosition( toVec3( it.coordinates() ) );
-      particleIt->setStartPosition( toVec3( it.coordinates() ) );
+      particleIt->setPosition( toVec3( physicalLocation ) );
+      particleIt->setStartPosition( toVec3( physicalLocation ) );
       particleIt->setStartDoFType( 1 ); // 1 == edgedof
       particleIt->setStartEdgeDoFOrientation( it.edgeDoFOrientation() );
       particleIt->setStartPrimitiveID( it.primitiveID() );

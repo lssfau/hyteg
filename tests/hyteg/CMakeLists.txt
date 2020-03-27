@@ -128,6 +128,9 @@ waLBerla_compile_test(FILES convection/AlgebraicUpwind3DCircularConvectionTest.c
 waLBerla_compile_test(FILES convection/MMOC2DCircularConvectionTest.cpp DEPENDS hyteg core convection_particles)
 waLBerla_execute_test(NAME MMOC2DCircularConvectionTest LABELS longrun)
 
+waLBerla_compile_test(FILES convection/MMOC2DCircularConvectionBlendingTest.cpp DEPENDS hyteg core convection_particles)
+waLBerla_execute_test(NAME MMOC2DCircularConvectionBlendingTest LABELS longrun)
+
 waLBerla_compile_test(FILES convection/MMOC3DCircularConvectionTest.cpp DEPENDS hyteg core convection_particles)
 waLBerla_execute_test(NAME MMOC3DCircularConvectionTest LABELS longrun)
 
