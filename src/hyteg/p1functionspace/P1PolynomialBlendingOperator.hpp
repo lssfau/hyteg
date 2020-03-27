@@ -391,13 +391,18 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       checkForMissingPolynomial( level, polyDegree_ );
 
       // start pulling vertex halos
-      dst.startCommunication< Edge, Vertex >( level );
+      // dst.startCommunication< Edge, Vertex >( level );
 
       // start pulling edge halos
-      dst.startCommunication< Face, Edge >( level );
+      // dst.startCommunication< Face, Edge >( level );
 
       // end pulling vertex halos
-      dst.endCommunication< Edge, Vertex >( level );
+      // dst.endCommunication< Edge, Vertex >( level );
+
+      dst.communicate< Vertex, Edge >( level );
+      dst.communicate< Edge, Face >( level );
+      dst.communicate< Face, Edge >( level );
+      dst.communicate< Edge, Vertex >( level );
 
       for ( auto& it : storage_->getVertices() )
       {
@@ -411,10 +416,12 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
          }
       }
 
-      dst.startCommunication< Vertex, Edge >( level );
+      // dst.startCommunication< Vertex, Edge >( level );
 
       // end pulling edge halos
-      dst.endCommunication< Face, Edge >( level );
+      // dst.endCommunication< Face, Edge >( level );
+
+      dst.communicate< Vertex, Edge >( level );
 
       for ( auto& it : storage_->getEdges() )
       {
@@ -428,9 +435,11 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
          }
       }
 
-      dst.endCommunication< Vertex, Edge >( level );
+      // dst.endCommunication< Vertex, Edge >( level );
 
-      dst.startCommunication< Edge, Face >( level );
+      // dst.startCommunication< Edge, Face >( level );
+
+      dst.communicate< Edge, Face >( level );
 
       for ( auto& it : storage_->getFaces() )
       {
@@ -455,7 +464,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
          }
       }
 
-      dst.endCommunication< Edge, Face >( level );
+      // dst.endCommunication< Edge, Face >( level );
    }
 
    void smooth_jac( const P1Function< real_t >& dst,
