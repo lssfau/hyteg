@@ -111,7 +111,7 @@ int main( int argc, char* argv[] )
    const real_t dt         = tEnd / 150;
    const uint_t stepsTotal = uint_c( tEnd / dt );
 
-   const uint_t outerSteps = 150;
+   const uint_t outerSteps = 15;
    const uint_t innerSteps = stepsTotal / outerSteps;
 
    WALBERLA_LOG_INFO_ON_ROOT( "Circular convection" )
@@ -240,8 +240,8 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "E1: " << walberla::format( "%5.4e", error_E1 ) );
    WALBERLA_LOG_INFO_ON_ROOT( "E2: " << walberla::format( "%5.4e", error_E2 ) );
 
-   WALBERLA_CHECK_LESS( error_E1, 9.0e-08 );
-   WALBERLA_CHECK_LESS( error_E2, 4.0e-07 );
+   WALBERLA_CHECK_LESS( error_E1, 9.0e-07 );
+   WALBERLA_CHECK_LESS( error_E2, 6.0e-06 );
 
    storage->getTimingTree()->stop( "Total" );
    WALBERLA_LOG_INFO_ON_ROOT( storage->getTimingTree()->getCopyWithRemainder() );
