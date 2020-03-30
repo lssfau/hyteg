@@ -24,8 +24,10 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/FunctionTraits.hpp"
+#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -162,6 +164,8 @@ int main( int argc, char* argv[] )
        storage, "P2Mass", level, {1e-16, 1e-17, 1e-17}, beVerbose );
    compareMatrices< P2ConstantLaplaceOperator, P2ElementwiseDivKGradOperator, P2Function >(
        storage, "P2DivKGrad", level, {1.5e-12, 1e-13, 1.5e-13}, beVerbose );
+   compareMatrices< P2P1TaylorHoodStokesOperator, P2P1ElementwiseConstantCoefficientStokesOperator, P2P1TaylorHoodFunction >(
+       storage, "P2P1StokesCC", level, {2.0e-12, 1e-13, 1.5e-13}, beVerbose );
 
    // ----------------------------
    //  Prepare setup for 3D tests
@@ -185,6 +189,8 @@ int main( int argc, char* argv[] )
        storage3D, "P2Laplace - 3D", level, {1e-13, 1e-13, 1e-13}, beVerbose );
    compareMatrices< P2ConstantMassOperator, P2ElementwiseMassOperator, P2Function >(
        storage3D, "P2Mass - 3D", level, {1e-17, 1e-18, 1e-18}, beVerbose );
+   compareMatrices< P2P1TaylorHoodStokesOperator, P2P1ElementwiseConstantCoefficientStokesOperator, P2P1TaylorHoodFunction >(
+       storage3D, "P2P1StokesCC", level, {1.5e-12, 1e-13, 1.5e-13}, beVerbose );
 
    return 0;
 }

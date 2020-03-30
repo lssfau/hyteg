@@ -26,6 +26,8 @@
 #include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroVertex.hpp>
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+
 namespace hyteg {
 namespace petsc {
 
@@ -256,3 +258,5 @@ inline void createMatrix( const OperatorType&           opr,
 
 } // namespace petsc
 } // namespace hyteg
+
+#endif

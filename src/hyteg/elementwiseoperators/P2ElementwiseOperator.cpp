@@ -51,17 +51,7 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
    // Make sure that halos are up-to-date (can we improve communication here?)
    communication::syncP2FunctionBetweenPrimitives( src, level );
 
-   if ( updateType == Add )
-   {
-      WALBERLA_ABORT( "P2ElementwiseOperator::apply does not support additive update!" );
-      // Note: By zeroing only the dofs in the cells' or faces' halos of dst we could
-      //       actually support an additive update type. That's incorrect, as the additive
-      //       communication zeros before doing the accumulation.
-      //
-      //       "Add" could be done, if we perform the computations on all primitives, which
-      //       means that the additive communication is saved.
-   }
-   else
+   if ( updateType == Replace )
    {
       // We need to zero the destination array (including halos)
       dst.setToZero( level );
@@ -88,6 +78,33 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
          real_t* srcEdgeData = cell.getData( srcEdgeDoFIdx )->getPointer( level );
          real_t* dstEdgeData = cell.getData( dstEdgeDoFIdx )->getPointer( level );
 
+         if ( updateType == Add )
+         {
+            // Zero out dst halos only - then during additive comm we skip zeroing
+            // the data on the lower-dim primitives.
+
+            for ( const auto& idx : vertexdof::macrocell::Iterator( level ) )
+            {
+               if ( !vertexdof::macrocell::isOnCellFace( idx, level ).empty() )
+               {
+                  auto arrayIdx           = vertexdof::macrocell::index( level, idx.x(), idx.y(), idx.z() );
+                  dstVertexData[arrayIdx] = real_c( 0 );
+               }
+            }
+
+            for ( const auto& idx : edgedof::macrocell::Iterator( level ) )
+            {
+               for ( const auto& orientation : edgedof::allEdgeDoFOrientationsWithoutXYZ )
+               {
+                  if ( !edgedof::macrocell::isInnerEdgeDoF( level, idx, orientation ) )
+                  {
+                     auto arrayIdx         = edgedof::macrocell::index( level, idx.x(), idx.y(), idx.z(), orientation );
+                     dstEdgeData[arrayIdx] = real_c( 0 );
+                  }
+               }
+            }
+         }
+
          // loop over micro-cells
          for ( const auto& cType : celldof::allCellTypes )
          {
@@ -102,11 +119,16 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
       //
       // Note: We could avoid communication here by implementing the apply() also for the respective
       //       lower dimensional primitives!
-      dst.getVertexDoFFunction().communicateAdditively< Cell, Face >( level, DoFType::All ^ flag, *storage_ );
-      dst.getVertexDoFFunction().communicateAdditively< Cell, Edge >( level, DoFType::All ^ flag, *storage_ );
-      dst.getVertexDoFFunction().communicateAdditively< Cell, Vertex >( level, DoFType::All ^ flag, *storage_ );
-      dst.getEdgeDoFFunction().communicateAdditively< Cell, Face >( level, DoFType::All ^ flag, *storage_ );
-      dst.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( level, DoFType::All ^ flag, *storage_ );
+      dst.getVertexDoFFunction().communicateAdditively< Cell, Face >(
+          level, DoFType::All ^ flag, *storage_, updateType == Replace );
+      dst.getVertexDoFFunction().communicateAdditively< Cell, Edge >(
+          level, DoFType::All ^ flag, *storage_, updateType == Replace );
+      dst.getVertexDoFFunction().communicateAdditively< Cell, Vertex >(
+          level, DoFType::All ^ flag, *storage_, updateType == Replace );
+      dst.getEdgeDoFFunction().communicateAdditively< Cell, Face >(
+          level, DoFType::All ^ flag, *storage_, updateType == Replace );
+      dst.getEdgeDoFFunction().communicateAdditively< Cell, Edge >(
+          level, DoFType::All ^ flag, *storage_, updateType == Replace );
    }
 
    else
@@ -139,6 +161,33 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
 
          real_t* srcEdgeData = face.getData( srcEdgeDoFIdx )->getPointer( level );
          real_t* dstEdgeData = face.getData( dstEdgeDoFIdx )->getPointer( level );
+
+         if ( updateType == Add )
+         {
+            // Zero out dst halos only - then during additive comm we skip zeroing
+            // the data on the lower-dim primitives.
+
+            for ( const auto& idx : vertexdof::macroface::Iterator( level ) )
+            {
+               if ( vertexdof::macroface::isVertexOnBoundary( level, idx ) )
+               {
+                  auto arrayIdx           = vertexdof::macroface::index( level, idx.x(), idx.y() );
+                  dstVertexData[arrayIdx] = real_c( 0 );
+               }
+            }
+
+            for ( const auto& idx : edgedof::macroface::Iterator( level ) )
+            {
+               for ( const auto& orientation : edgedof::faceLocalEdgeDoFOrientations )
+               {
+                  if ( !edgedof::macroface::isInnerEdgeDoF( level, idx, orientation ) )
+                  {
+                     auto arrayIdx         = edgedof::macroface::index( level, idx.x(), idx.y(), orientation );
+                     dstEdgeData[arrayIdx] = real_c( 0 );
+                  }
+               }
+            }
+         }
 
          // now loop over micro-faces of macro-face
          for ( yIdx = 0; yIdx < rowsize - 2; ++yIdx )
@@ -182,9 +231,9 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
       //
       // Note: We could avoid communication here by implementing the apply() also for the respective
       //       lower dimensional primitives!
-      dst.getVertexDoFFunction().communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_ );
-      dst.getVertexDoFFunction().communicateAdditively< Face, Vertex >( level, DoFType::All ^ flag, *storage_ );
-      dst.getEdgeDoFFunction().communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_ );
+      dst.getVertexDoFFunction().communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
+      dst.getVertexDoFFunction().communicateAdditively< Face, Vertex >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
+      dst.getEdgeDoFFunction().communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
    }
 
    this->stopTiming( "apply" );

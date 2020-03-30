@@ -264,6 +264,9 @@ waLBerla_compile_test(FILES operators/MassOperatorTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME MassOperatorTest )
 waLBerla_execute_test(NAME MassOperatorTestMPI COMMAND $<TARGET_FILE:MassOperatorTest> PROCESSES 2 )
 
+waLBerla_compile_test(FILES operators/ElementwiseOperatorAdditiveApplyTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME ElementwiseOperatorAdditiveApplyTest)
+
 #################### P1 ####################
 
 waLBerla_compile_test(FILES P1/P1LaplaceOperator3DTest.cpp DEPENDS hyteg core)
@@ -425,6 +428,9 @@ if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES composites/P2P2Stokes3DPetscSolveTest.cpp DEPENDS hyteg core )
   waLBerla_execute_test(NAME P2P2Stokes3DPetscSolveTest)
 endif()
+
+waLBerla_compile_test(FILES composites/P2P1ElementwiseStokesOperatorTest.cpp DEPENDS hyteg core )
+waLBerla_execute_test(NAME P2P1ElementwiseStokesOperatorTest)
 
 ## Other ##
 

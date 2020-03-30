@@ -21,6 +21,7 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -30,11 +31,9 @@
 using walberla::real_t;
 using walberla::real_c;
 
-int main( int argc, char* argv[] )
+template< typename P2P1StokesOperator >
+void stokesMinResConvergenceTest()
 {
-   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
-   walberla::MPIManager::instance()->useWorldComm();
-
    std::string meshFileName = "../../data/meshes/quad_4el_neumann.msh";
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
@@ -51,7 +50,7 @@ int main( int argc, char* argv[] )
    hyteg::P2P1TaylorHoodFunction< real_t > f( "f", storage, level, level );
    hyteg::P2P1TaylorHoodFunction< real_t > u( "u", storage, level, level );
 
-   hyteg::P2P1TaylorHoodStokesOperator L( storage, level, level );
+   P2P1StokesOperator L( storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > bc_x = []( const hyteg::Point3D& x ) { return 4.0 * ( 1.0 - x[1] ) * x[1]; };
    std::function< real_t( const hyteg::Point3D& ) > rhs  = []( const hyteg::Point3D& ) { return 0.0; };
@@ -62,7 +61,7 @@ int main( int argc, char* argv[] )
    u.u.interpolate( bc_x, level, hyteg::DirichletBoundary );
    u.v.interpolate( zero, level, hyteg::DirichletBoundary );
 
-   auto solver = hyteg::MinResSolver< hyteg::P2P1TaylorHoodStokesOperator >( storage, level, level, maxiter );
+   auto solver = hyteg::MinResSolver< P2P1StokesOperator >( storage, level, level, maxiter );
    solver.solve( L, u, f, level );
 
    L.apply( u, r, level, hyteg::Inner | hyteg::NeumannBoundary );
@@ -72,5 +71,18 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "Residuum: " << final_residuum )
 
    WALBERLA_CHECK_LESS( final_residuum, 2.6e-05 );
+}
+
+int main( int argc, char* argv[] )
+{
+   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Stokes CC stencil-based" )
+   stokesMinResConvergenceTest< hyteg::P2P1TaylorHoodStokesOperator >();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Stokes CC elementwise" )
+   stokesMinResConvergenceTest< hyteg::P2P1ElementwiseConstantCoefficientStokesOperator >();
+
    return EXIT_SUCCESS;
 }
