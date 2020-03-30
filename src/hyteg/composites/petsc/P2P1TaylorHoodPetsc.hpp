@@ -24,6 +24,8 @@
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+
 namespace hyteg {
 namespace petsc {
 
@@ -119,3 +121,5 @@ inline void createMatrix< P2P1TaylorHoodStokesBlockPreconditioner >( const P2P1T
 }
 }
 }
+
+#endif
