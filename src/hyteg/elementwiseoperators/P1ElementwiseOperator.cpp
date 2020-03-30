@@ -51,17 +51,7 @@ void P1ElementwiseOperator< P1Form >::apply( const P1Function< real_t >& src,
    // Make sure that halos are up-to-date (can we improve communication here?)
    communication::syncFunctionBetweenPrimitives( src, level );
 
-   if ( updateType == Add )
-   {
-      WALBERLA_ABORT( "P1ElementwiseOperator::apply does not support additive update!" );
-      // Note: By zeroing only the dofs in the cells' or faces' halos of dst we could
-      //       actually support an additive update type. That's incorrect, as the additive
-      //       communication zeros before doing the accumulation.
-      //
-      //       "Add" could be done, if we perform the computations on all primitives, which
-      //       means that the additive communication is saved.
-   }
-   else
+   if ( updateType == Replace )
    {
       // We need to zero the destination array (including halos)
       dst.setToZero( level );
@@ -82,6 +72,21 @@ void P1ElementwiseOperator< P1Form >::apply( const P1Function< real_t >& src,
          real_t* srcVertexData = cell.getData( srcVertexDoFIdx )->getPointer( level );
          real_t* dstVertexData = cell.getData( dstVertexDoFIdx )->getPointer( level );
 
+         if ( updateType == Add )
+         {
+            // Zero out dst halos only - then during additive comm we skip zeroing
+            // the data on the lower-dim primitives.
+
+            for ( const auto& idx : vertexdof::macrocell::Iterator( level ) )
+            {
+               if ( !vertexdof::macrocell::isOnCellFace( idx, level ).empty() )
+               {
+                  auto arrayIdx           = vertexdof::macrocell::index( level, idx.x(), idx.y(), idx.z() );
+                  dstVertexData[arrayIdx] = real_c( 0 );
+               }
+            }
+         }
+
          // loop over micro-cells
          for ( const auto& cType : celldof::allCellTypes )
          {
@@ -96,9 +101,9 @@ void P1ElementwiseOperator< P1Form >::apply( const P1Function< real_t >& src,
       //
       // Note: We could avoid communication here by implementing the apply() also for the respective
       //       lower dimensional primitives!
-      dst.communicateAdditively< Cell, Face >( level, DoFType::All ^ flag, *storage_ );
-      dst.communicateAdditively< Cell, Edge >( level, DoFType::All ^ flag, *storage_ );
-      dst.communicateAdditively< Cell, Vertex >( level, DoFType::All ^ flag, *storage_ );
+      dst.communicateAdditively< Cell, Face >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
+      dst.communicateAdditively< Cell, Edge >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
+      dst.communicateAdditively< Cell, Vertex >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
    }
 
    else
@@ -125,6 +130,21 @@ void P1ElementwiseOperator< P1Form >::apply( const P1Function< real_t >& src,
 
          real_t* srcVertexData = face.getData( srcVertexDoFIdx )->getPointer( level );
          real_t* dstVertexData = face.getData( dstVertexDoFIdx )->getPointer( level );
+
+         if ( updateType == Add )
+         {
+            // Zero out dst halos only - then during additive comm we skip zeroing
+            // the data on the lower-dim primitives.
+
+            for ( const auto& idx : vertexdof::macroface::Iterator( level ) )
+            {
+               if ( vertexdof::macroface::isVertexOnBoundary( level, idx ) )
+               {
+                  auto arrayIdx           = vertexdof::macroface::index( level, idx.x(), idx.y() );
+                  dstVertexData[arrayIdx] = real_c( 0 );
+               }
+            }
+         }
 
          // the explicit uint_c cast prevents a segfault in intel compiler 2018.4
          // now loop over micro-faces of macro-face
@@ -154,8 +174,8 @@ void P1ElementwiseOperator< P1Form >::apply( const P1Function< real_t >& src,
       //
       // Note: We could avoid communication here by implementing the apply() also for the respective
       //       lower dimensional primitives!
-      dst.communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_ );
-      dst.communicateAdditively< Face, Vertex >( level, DoFType::All ^ flag, *storage_ );
+      dst.communicateAdditively< Face, Edge >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
+      dst.communicateAdditively< Face, Vertex >( level, DoFType::All ^ flag, *storage_, updateType == Replace );
    }
 
    this->stopTiming( "apply" );
@@ -633,6 +653,9 @@ template class P1ElementwiseOperator< P1FenicsForm< p1_polar_laplacian_cell_inte
 
 // P1ElementwiseMassOperator
 template class P1ElementwiseOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >;
+
+// P1ElementwisePSPGOperator
+template class P1ElementwiseOperator< P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >;
 
 // P1ElementwiseBlendingMassOperator
 template class P1ElementwiseOperator< P1Form_mass >;
