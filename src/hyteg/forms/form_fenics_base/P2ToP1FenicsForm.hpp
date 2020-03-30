@@ -104,7 +104,7 @@ class P2ToP1FenicsForm : public Form
    ///
    /// \param coords  The coordinates of the three vertices of the triangle
    /// \param elMat   On return is filled with the matrix entries
-   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 6 > & elMat ) const
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrixr< 3, 6 > & elMat ) const
    {
       computeLocalStiffnessMatrix( coords, elMat );
    }
@@ -118,7 +118,7 @@ class P2ToP1FenicsForm : public Form
    ///
    /// \param coords  The coordinates of the four vertices of the tetrahedron
    /// \param elMat   On return is filled with the matrix entries
-   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 10 > & elMat ) const
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrixr< 4, 10 > & elMat ) const
    {
       computeLocalStiffnessMatrix( coords, elMat );
    }

@@ -36,10 +36,10 @@ namespace hyteg {
 using walberla::real_t;
 
 template < class P1toP2Form >
-class P1toP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Function< real_t > >
+class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Function< real_t > >
 {
  public:
-   P1toP2ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
+   P1ToP2ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
 
    void apply( const P1Function< real_t >& src,
                const P2Function< real_t >& dst,
@@ -127,15 +127,15 @@ class P1toP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
 #endif
 };
 
-typedef P1toP2ElementwiseOperator<
+typedef P1ToP2ElementwiseOperator<
     P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise > >
     P1toP2ElementwiseDivTxOperator;
 
-typedef P1toP2ElementwiseOperator<
+typedef P1ToP2ElementwiseOperator<
     P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise > >
     P1toP2ElementwiseDivTyOperator;
 
-typedef P1toP2ElementwiseOperator< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >
+typedef P1ToP2ElementwiseOperator< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >
     P1toP2ElementwiseDivTzOperator;
 
 } // namespace hyteg

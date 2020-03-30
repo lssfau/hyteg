@@ -21,9 +21,9 @@
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
-#include "hyteg/elementwiseoperators/P1toP2ElementwiseOperator.hpp"
+#include "hyteg/elementwiseoperators/P1ToP2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
-#include "hyteg/elementwiseoperators/P2toP1ElementwiseOperator.hpp"
+#include "hyteg/elementwiseoperators/P2ToP1ElementwiseOperator.hpp"
 
 namespace hyteg {
 
