@@ -373,6 +373,9 @@ public:
   /// Construct a MeshInfo object for a full annulus
   static MeshInfo meshAnnulus( const real_t rmin, const real_t rmax, uint_t nTan, uint_t nRad );
 
+  /// Construct a MeshInfo object for a full annulus
+  static MeshInfo meshAnnulus( const real_t rmin, const real_t rmax, const meshFlavour flavour, uint_t nTan, uint_t nRad );
+
   /// Constuct a MeshInfo describing a unit cube discretized by 2 * 4^{level} macro-faces
   static MeshInfo meshUnitSquare( uint_t level );
 

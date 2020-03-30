@@ -126,15 +126,27 @@ waLBerla_compile_test(FILES convection/Upwind2DCircularConvectionTest.cpp DEPEND
 waLBerla_compile_test(FILES convection/AlgebraicUpwind3DCircularConvectionTest.cpp DEPENDS hyteg core)
 
 waLBerla_compile_test(FILES convection/MMOC2DCircularConvectionTest.cpp DEPENDS hyteg core convection_particles)
-waLBerla_execute_test(NAME MMOC2DCircularConvectionTest LABELS longrun)
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+  waLBerla_execute_test(NAME MMOC2DCircularConvectionTest)
+endif()
+
+waLBerla_compile_test(FILES convection/MMOC2DCircularConvectionBlendingTest.cpp DEPENDS hyteg core convection_particles)
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+  waLBerla_execute_test(NAME MMOC2DCircularConvectionBlendingTest)
+endif()
 
 waLBerla_compile_test(FILES convection/MMOC3DCircularConvectionTest.cpp DEPENDS hyteg core convection_particles)
-waLBerla_execute_test(NAME MMOC3DCircularConvectionTest LABELS longrun)
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+  waLBerla_execute_test(NAME MMOC3DCircularConvectionTest LABELS longrun)
+endif()
 
 waLBerla_compile_test(FILES convection/MMOC2DSwirlingFlowConvectionTest.cpp DEPENDS hyteg core convection_particles)
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+  waLBerla_execute_test(NAME MMOC2DSwirlingFlowConvectionTest)
+endif()
 
 waLBerla_compile_test(FILES convection/ConvectionParticlesCouplingTest.cpp DEPENDS core convection_particles)
-waLBerla_execute_test(NAME ConvectionParticlesCouplingTest LABELS)
+waLBerla_execute_test(NAME ConvectionParticlesCouplingTest)
 
 ## Forms ##
 
