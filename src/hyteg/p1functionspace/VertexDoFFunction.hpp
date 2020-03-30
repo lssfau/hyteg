@@ -210,13 +210,16 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    /// asynchronous tasks. endAdditiveCommunication has to be called manually!
    /// See communicateAdditively( const uint_t& ) const for more details
    template < typename SenderType, typename ReceiverType >
-   inline void startAdditiveCommunication( const uint_t& level ) const
+   inline void startAdditiveCommunication( const uint_t& level, const bool & zeroOutDestination = true ) const
    {
       if ( isDummy() )
       {
          return;
       }
-      interpolateByPrimitiveType< ReceiverType >( real_c( 0 ), level, DoFType::All );
+      if ( zeroOutDestination )
+      {
+         interpolateByPrimitiveType< ReceiverType >( real_c( 0 ), level, DoFType::All );
+      }
       additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >();
    }
 
@@ -227,7 +230,8 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    template < typename SenderType, typename ReceiverType >
    inline void startAdditiveCommunication( const uint_t&           level,
                                            const DoFType           boundaryTypeToSkipDuringAdditiveCommunication,
-                                           const PrimitiveStorage& primitiveStorage ) const
+                                           const PrimitiveStorage& primitiveStorage,
+                                           const bool & zeroOutDestination = true ) const
    {
       if ( isDummy() )
       {
@@ -254,8 +258,11 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
             excludeFromReceiving.push_back( id );
          }
       }
-      interpolateByPrimitiveType< ReceiverType >(
-          real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication );
+      if ( zeroOutDestination )
+      {
+         interpolateByPrimitiveType< ReceiverType >(
+             real_c( 0 ), level, DoFType::All ^ boundaryTypeToSkipDuringAdditiveCommunication );
+      }
       additiveCommunicators_.at( level )->template startCommunication< SenderType, ReceiverType >( excludeFromReceiving );
    }
 
@@ -276,10 +283,12 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    /// \tparam SenderType type of the sending primitive (e.g. Face)
    /// \tparam ReceiverType type of the receiving primitive (e.g. Face)
    /// \param level the refinement level which is communicated
+   /// \param zeroOutDestination if true, sets all values on the destination function to zero
+   ///                           otherwise, the dst array is not modified
    template < typename SenderType, typename ReceiverType >
-   inline void communicateAdditively( const uint_t& level ) const
+   inline void communicateAdditively( const uint_t& level, const bool & zeroOutDestination = true ) const
    {
-      startAdditiveCommunication< SenderType, ReceiverType >( level );
+      startAdditiveCommunication< SenderType, ReceiverType >( level, zeroOutDestination );
       endAdditiveCommunication< SenderType, ReceiverType >( level );
    }
 
@@ -291,13 +300,16 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    /// \param level the refinement level which is communicated
    /// \param boundaryTypeToSkipDuringAdditiveCommunication primitives will this boundary type will no \b receive any data
    /// \param primitiveStorage
+   /// \param zeroOutDestination if true, sets all values on the destination function to zero
+   ///                           otherwise, the dst array is not modified
    template < typename SenderType, typename ReceiverType >
    inline void communicateAdditively( const uint_t&           level,
                                       const DoFType           boundaryTypeToSkipDuringAdditiveCommunication,
-                                      const PrimitiveStorage& primitiveStorage ) const
+                                      const PrimitiveStorage& primitiveStorage,
+                                      const bool & zeroOutDestination = true ) const
    {
       startAdditiveCommunication< SenderType, ReceiverType >(
-          level, boundaryTypeToSkipDuringAdditiveCommunication, primitiveStorage );
+          level, boundaryTypeToSkipDuringAdditiveCommunication, primitiveStorage, zeroOutDestination );
       endAdditiveCommunication< SenderType, ReceiverType >( level );
    }
 
