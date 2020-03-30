@@ -33,11 +33,13 @@ using walberla::uint_t;
 #include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
+#include "hyteg/forms/form_hyteg_generated/P1FormDiv.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
+#include "hyteg/forms/form_hyteg_manual/P2FormDiv.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
-// #include "hyteg/forms/form_hyteg_manual/P2ToP1FormDiv.hpp"
+#include "hyteg/forms/form_hyteg_manual/P2ToP1FormDiv.hpp"
 #include "hyteg/geometry/IdentityMap.hpp"
 
 using namespace hyteg;
@@ -106,6 +108,7 @@ int main( int argc, char** argv )
 
    // define our test triangle
    std::array< Point3D, 3 > triangle{Point3D( {-0.7, -2.0, 0.0} ), Point3D( {1.0, 1.0, 0.0} ), Point3D( {-1.0, 0.5, 0.0} )};
+   // std::array< Point3D, 3 > triangle{Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 0.0, 0.0} ), Point3D( {0.0, 1.0, 0.0} )};
 
    logSectionHeader( "P1 Mass Forms" );
    compareForms< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >,
@@ -118,6 +121,18 @@ int main( int argc, char** argv )
                  P1Form_laplace,
                  Matrix3r,
                  2 >( triangle, 1e-15 );
+
+   logSectionHeader( "P1 DivX Forms" );
+   compareForms< P1FenicsForm< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise >,
+                 P1Form_div_1,
+                 Matrix3r,
+                 2 >( triangle, 2e-15 );
+
+   logSectionHeader( "P1 DivY Forms" );
+   compareForms< P1FenicsForm< p1_div_cell_integral_1_otherwise, p1_tet_div_tet_cell_integral_1_otherwise >,
+                 P1Form_div_2,
+                 Matrix3r,
+                 2 >( triangle, 2e-15 );
 
    logSectionHeader( "P2 Mass Forms" );
    compareForms< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise >,
@@ -137,11 +152,23 @@ int main( int argc, char** argv )
                  Matrix6r,
                  2 >( triangle, 5e-14 );
 
-   // logSectionHeader( "P2ToP1 DivX Forms" );
-   // compareForms< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, p2_to_p1_tet_div_tet_cell_integral_0_otherwise >,
-   //               P2ToP1Form_div<0>,
-   //               Matrixr<3,6>,
-   //               2 >( triangle, 1e-15 );
+   logSectionHeader( "P2 DivX Forms" );
+   compareForms< P2FenicsForm< p2_div_cell_integral_0_otherwise, p2_tet_div_tet_cell_integral_0_otherwise >,
+                 P2Form_div<0>,
+                 Matrix6r,
+                 2 >( triangle, 1.5e-14 );
+
+   logSectionHeader( "P2 DivY Forms" );
+   compareForms< P2FenicsForm< p2_div_cell_integral_1_otherwise, p2_tet_div_tet_cell_integral_1_otherwise >,
+                 P2Form_div<1>,
+                 Matrix6r,
+                 2 >( triangle, 2e-14 );
+
+   logSectionHeader( "P2ToP1 DivX Forms" );
+   compareForms< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, p2_to_p1_tet_div_tet_cell_integral_0_otherwise >,
+                 P2ToP1Form_div<0>,
+                 Matrixr<3,6>,
+                 2 >( triangle, 1.2e-14 );
 
    // ------------
    //  3D Testing
