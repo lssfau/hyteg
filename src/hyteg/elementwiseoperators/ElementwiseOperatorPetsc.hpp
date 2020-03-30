@@ -19,8 +19,10 @@
  */
 #pragma once
 
+#include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 
@@ -51,6 +53,32 @@ inline void createMatrix( const P2ElementwiseOperator< FormType >& opr,
                           DoFType                                  flag )
 {
    opr.assembleLocalMatrix( mat, src, dst, level, flag );
+}
+
+/// Version of createMatrix function for P2P1ElementwiseConstantCoefficientStokesOperator
+template <>
+inline void createMatrix( const P2P1ElementwiseConstantCoefficientStokesOperator& opr,
+                          const P2P1TaylorHoodFunction< PetscInt >&               src,
+                          const P2P1TaylorHoodFunction< PetscInt >&               dst,
+                          Mat&                                                    mat,
+                          uint_t                                                  level,
+                          DoFType                                                 flag )
+{
+   opr.A.assembleLocalMatrix( mat, src.u, dst.u, level, flag );
+   opr.A.assembleLocalMatrix( mat, src.v, dst.v, level, flag );
+
+   opr.divT_x.assembleLocalMatrix( mat, src.p, dst.u, level, flag );
+   opr.divT_y.assembleLocalMatrix( mat, src.p, dst.v, level, flag );
+
+   opr.div_x.assembleLocalMatrix( mat, src.u, dst.p, level, flag );
+   opr.div_y.assembleLocalMatrix( mat, src.v, dst.p, level, flag );
+
+   if ( src.getStorage()->hasGlobalCells() )
+   {
+      opr.A.assembleLocalMatrix( mat, src.w, dst.w, level, flag );
+      opr.divT_z.assembleLocalMatrix( mat, src.p, dst.w, level, flag );
+      opr.div_z.assembleLocalMatrix( mat, src.w, dst.p, level, flag );
+   }
 }
 
 } // namespace petsc
