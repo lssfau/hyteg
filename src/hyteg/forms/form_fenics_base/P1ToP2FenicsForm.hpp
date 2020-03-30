@@ -37,6 +37,8 @@
 
 namespace hyteg {
 
+using walberla::real_c;
+
 template < class UFCOperator2D, class UFCOperator3D = fenics::UndefinedAssembly >
 class P1ToP2FenicsForm : public Form
 {
@@ -94,6 +96,34 @@ class P1ToP2FenicsForm : public Form
       WALBERLA_ABORT( "Missing implementation in P1ToP2FenicsForm" );
    }
 
+   /// \brief Compute local element matrix and return it
+   ///
+   /// The method computes the local element matrix for the triangle
+   /// given by the vertex coordinates. It returns the complete matrix.
+   ///
+   /// \Note Row and column indices correspond to FEniCS ordering for P1toP2 mixed element
+   ///
+   /// \param coords  The coordinates of the three vertices of the triangle
+   /// \param elMat   On return is filled with the matrix entries
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 6, 3 > & elMat ) const
+   {
+      computeLocalStiffnessMatrix( coords, elMat );
+   }
+
+   /// \brief Compute local element matrix and return it
+   ///
+   /// The method computes the local element matrix for the tetrahedron
+   /// given by the vertex coordinates. It returns the complete matrix.
+   ///
+   /// \Note Row and column indices correspond to FEniCS ordering for P1toP2 mixed element
+   ///
+   /// \param coords  The coordinates of the four vertices of the tetrahedron
+   /// \param elMat   On return is filled with the matrix entries
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 4 > & elMat ) const
+   {
+      computeLocalStiffnessMatrix( coords, elMat );
+   }
+
    bool assemble2D() const override { return !std::is_same< UFCOperator2D, hyteg::fenics::NoAssemble >::value; }
 
    bool assemble3D() const override { return !std::is_same< UFCOperator3D, hyteg::fenics::NoAssemble >::value; }
@@ -101,6 +131,8 @@ class P1ToP2FenicsForm : public Form
    bool assembly2DDefined() const override { return !std::is_same< UFCOperator2D, hyteg::fenics::UndefinedAssembly >::value; }
 
    bool assembly3DDefined() const override { return !std::is_same< UFCOperator3D, hyteg::fenics::UndefinedAssembly >::value; }
+
+   inline void setGeometryMap( const std::shared_ptr< GeometryMap > map ) const { WALBERLA_UNUSED( map ); }
 
  private:
    void computeLocalStiffnessMatrix( const std::array< Point3D, 3 >& coords, Matrixr< 6, 3 >& localStiffnessMatrix ) const
