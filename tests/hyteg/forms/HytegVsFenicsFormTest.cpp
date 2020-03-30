@@ -23,19 +23,22 @@
 #include <core/Environment.h>
 #include <core/math/Constants.h>
 
+using walberla::real_c;
+using walberla::real_t;
+using walberla::uint_t;
+
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
+#include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
+// #include "hyteg/forms/form_hyteg_manual/P2ToP1FormDiv.hpp"
 #include "hyteg/geometry/IdentityMap.hpp"
-
-using walberla::real_t;
-using walberla::uint_t;
 
 using namespace hyteg;
 
@@ -47,16 +50,16 @@ void logSectionHeader( const char* header )
    WALBERLA_LOG_INFO_ON_ROOT( separator << "\n " << hdr << "\n" << separator );
 }
 
-template < uint_t dim >
-real_t normOfDifference( const Matrix< real_t, dim, dim >& mat1,
-                         const Matrix< real_t, dim, dim >& mat2,
-                         Matrix< real_t, dim, dim >&       diffMat )
+template < uint_t nRows, uint_t nCols >
+real_t normOfDifference( const Matrixr< nRows, nCols >& mat1,
+                         const Matrixr< nRows, nCols >& mat2,
+                         Matrixr< nRows, nCols >&       diffMat )
 {
    real_t        norm  = 0.0;
    const real_t* data1 = mat1.data();
    const real_t* data2 = mat2.data();
    real_t*       diff  = diffMat.data();
-   for ( uint_t k = 0; k < dim * dim; k++ )
+   for ( uint_t k = 0; k < nRows * nCols; k++ )
    {
       diff[k] = ( data1[k] - data2[k] );
       norm += diff[k] * diff[k];
@@ -65,7 +68,7 @@ real_t normOfDifference( const Matrix< real_t, dim, dim >& mat1,
 }
 
 template < class FormFEniCS, class FormHyTeG, typename matType, uint_t dim >
-void compareForms( const std::array< Point3D, dim >& element, real_t tol )
+void compareForms( const std::array< Point3D, dim+1 >& element, real_t tol )
 {
    // setup our two forms
    FormFEniCS                     fenicsForm;
@@ -108,31 +111,37 @@ int main( int argc, char** argv )
    compareForms< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >,
                  P1Form_mass,
                  Matrix3r,
-                 3 >( triangle, 1e-15 );
+                 2 >( triangle, 1e-15 );
 
    logSectionHeader( "P1 Diffusion Forms" );
    compareForms< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise >,
                  P1Form_laplace,
                  Matrix3r,
-                 3 >( triangle, 1e-15 );
+                 2 >( triangle, 1e-15 );
 
    logSectionHeader( "P2 Mass Forms" );
    compareForms< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise >,
                  P2Form_mass,
                  Matrix6r,
-                 3 >( triangle, 5e-14 );
+                 2 >( triangle, 5e-14 );
 
    logSectionHeader( "P2 Laplace Form" );
    compareForms< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise >,
                  P2Form_laplace,
                  Matrix6r,
-                 3 >( triangle, 5e-14 );
+                 2 >( triangle, 5e-14 );
 
    logSectionHeader( "P2 DivKGrad Form" );
    compareForms< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise >,
                  P2Form_divKgrad,
                  Matrix6r,
-                 3 >( triangle, 5e-14 );
+                 2 >( triangle, 5e-14 );
+
+   // logSectionHeader( "P2ToP1 DivX Forms" );
+   // compareForms< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, p2_to_p1_tet_div_tet_cell_integral_0_otherwise >,
+   //               P2ToP1Form_div<0>,
+   //               Matrixr<3,6>,
+   //               2 >( triangle, 1e-15 );
 
    // ------------
    //  3D Testing
@@ -147,14 +156,14 @@ int main( int argc, char** argv )
    compareForms< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >,
                  P1Form_mass3D,
                  Matrix4r,
-                 4 >( theTet, 1e-8 );
+                 3 >( theTet, 1e-8 );
                  // 4 >( theTet, 1e-15 ); only works for lower-order quadrature rule in HyTeG form
 
    logSectionHeader( "P2 Mass Forms (3D)" );
    compareForms< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise >,
                  P2Form_mass,
                  Matrix10r,
-                 4 >( theTet, 1e-8 ); // why the large difference? is our FEniCS form under-integrating?
+                 3 >( theTet, 1e-8 ); // why the large difference? is our FEniCS form under-integrating?
 
    return EXIT_SUCCESS;
 }

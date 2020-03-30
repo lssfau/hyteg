@@ -63,7 +63,7 @@ class P1FormHyTeG
       elMat( 2, 2 ) = matrixRow[0];
    }
 
-   virtual void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const { WALBERLA_ABORT( "Not implemented." ); }
+   virtual void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const { WALBERLA_ABORT( "integrateAll() for 3D not implemented by current HyTeG form." ); }
 
    void setGeometryMap( const std::shared_ptr< GeometryMap > map ) { this->geometryMap_ = map; }
 
