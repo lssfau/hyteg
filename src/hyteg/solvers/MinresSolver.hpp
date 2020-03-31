@@ -69,7 +69,7 @@ public:
     A.apply(x, r_, level, flag_);
     p_v.assign({1.0, -1.0}, {b, r_}, level, flag_);
 
-    preconditioner_->solve(A, p_v, p_z, level );
+    preconditioner_->solve(A, p_z, p_v, level );
 
     real_t gamma_old = 1.0;
     real_t gamma_new = std::sqrt(p_z.dotGlobal(p_v, level, flag_));
@@ -103,7 +103,7 @@ public:
 
       p_vp.assign({1.0, -delta / gamma_new, -gamma_new / gamma_old}, {p_vp, p_v, p_vm}, level, flag_);
 
-      preconditioner_->solve(A, p_vp, p_zp, level );
+      preconditioner_->solve(A, p_zp, p_vp, level );
 
       gamma_old = gamma_new;
       gamma_new = std::sqrt(p_zp.dotGlobal(p_vp, level, flag_));

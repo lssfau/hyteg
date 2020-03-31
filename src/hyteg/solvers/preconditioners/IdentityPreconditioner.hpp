@@ -38,7 +38,7 @@ class IdentityPreconditioner : public Solver< OperatorType >
                const typename OperatorType::dstType& b,
                const uint_t                          level ) override
    {
-      b.assign( {1.0}, {x}, level, flag_ );
+      x.assign( {1.0}, {b}, level, flag_ );
    }
 
  private:
