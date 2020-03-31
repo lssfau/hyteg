@@ -39,9 +39,7 @@ namespace solvertemplates {
 /// \brief Returns a geometric multigrid solver for the constant-coefficient Stokes equation.
 ///
 /// This solver performs a v-cycle and employs as smoother the inexact Uzawa method.
-/// Depending on the discretization and implementation of the operator, the
-/// relaxation on the A-block is performed with a forward Gauss-Seidel.
-///
+/// The relaxation on the A-block is performed with a forward Gauss-Seidel.
 /// As coarse grid solver a pressure-preconditioned MINRES is employed.
 ///
 /// As for all solver templates, this should not be used if performance
