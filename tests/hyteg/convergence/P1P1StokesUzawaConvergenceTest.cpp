@@ -32,11 +32,12 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
-#include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -77,8 +78,6 @@ int main( int argc, char* argv[] )
 
    const uint_t minLevel  = 2;
    const uint_t maxLevel  = 4;
-   const real_t tolerance = 1e-17;
-   const uint_t maxIter   = 10000;
    const bool   writeVTK  = true;
 
    //create a Rectangle as mesh with 4 triangles
@@ -125,19 +124,7 @@ int main( int argc, char* argv[] )
    hyteg::communication::syncFunctionBetweenPrimitives( u_exact.u, maxLevel );
    hyteg::communication::syncFunctionBetweenPrimitives( u_exact.p, maxLevel );
 
-   auto pressurePreconditioner =
-       std::make_shared< hyteg::StokesPressureBlockPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator > >(
-           storage, minLevel, maxLevel );
-   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< P1StokesOperator::VelocityOperator_T > >();
-   auto uzawaVelocitySmoother = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< P1StokesOperator > >( storage, gaussSeidel );
-   auto smoother = std::make_shared< hyteg::UzawaSmoother< hyteg::P1StokesOperator > >( storage, uzawaVelocitySmoother, minLevel, maxLevel, 0.37 );
-   auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P1StokesOperator > >(
-       storage, minLevel, minLevel, maxIter, tolerance, pressurePreconditioner );
-   auto restrictionOperator  = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction >( false );
-   auto prolongationOperator = std::make_shared< hyteg::P1P1StokesToP1P1StokesProlongation >();
-
-   auto gmgSolver = hyteg::GeometricMultigridSolver< hyteg::P1StokesOperator >(
-       storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3, 2 );
+   auto gmgSolver = solvertemplates::stokesGMGUzawaSolver< P1StokesOperator >( storage, minLevel, maxLevel, 3, 3, 0.37 );
 
    const uint_t npoints = hyteg::numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, maxLevel );
    real_t       discr_l2_err_u, discr_l2_err_p, currRes, oldRes = 0;
@@ -176,7 +163,7 @@ int main( int argc, char* argv[] )
 
    for ( int j = 0; j < 8; ++j )
    {
-      gmgSolver.solve( L, u, f, maxLevel );
+      gmgSolver->solve( L, u, f, maxLevel );
 
       L.apply( u, Au, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
       r.assign( {1.0, -1.0}, {f, Au}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );

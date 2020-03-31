@@ -36,7 +36,7 @@
 #include "hyteg/solvers/UzawaSmoother.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
-#include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
+#include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -77,8 +77,6 @@ int main( int argc, char* argv[] )
 
    const uint_t minLevel  = 2;
    const uint_t maxLevel  = 3;
-   const real_t tolerance = 1e-17;
-   const uint_t maxIter   = 10000;
    const bool   writeVTK  = false;
 
    //create a Rectangle as mesh with 4 triangles
@@ -125,19 +123,7 @@ int main( int argc, char* argv[] )
    hyteg::communication::syncP2FunctionBetweenPrimitives( u_exact.u, maxLevel );
    hyteg::communication::syncFunctionBetweenPrimitives( u_exact.p, maxLevel );
 
-   auto pressurePreconditioner = std::make_shared<
-       hyteg::StokesPressureBlockPreconditioner< hyteg::P2P1TaylorHoodStokesOperator, hyteg::P1LumpedInvMassOperator > >(storage, minLevel, maxLevel);
-   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P2P1TaylorHoodStokesOperator::VelocityOperator_T > >();
-   auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P2P1TaylorHoodStokesOperator > >( storage, gaussSeidel );
-   auto smoother = std::make_shared< hyteg::UzawaSmoother< hyteg::P2P1TaylorHoodStokesOperator>  >(storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.37);
-   auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P2P1TaylorHoodStokesOperator > >( storage, minLevel, minLevel, maxIter, tolerance, pressurePreconditioner );
-   auto restrictionOperator = std::make_shared< hyteg::P2P1StokesToP2P1StokesRestriction>();
-   auto prolongationOperator = std::make_shared< hyteg::P2P1StokesToP2P1StokesProlongation >();
-
-   auto gmgSolver = hyteg::GeometricMultigridSolver< hyteg::P2P1TaylorHoodStokesOperator >(
-      storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3 );
-
-
+   auto gmgSolver = hyteg::solvertemplates::stokesGMGUzawaSolver< hyteg::P2P1TaylorHoodStokesOperator >( storage, minLevel, maxLevel, 3, 3, 0.37 );
 
    const uint_t npoints = hyteg::numberOfGlobalDoFs< hyteg::P2P1TaylorHoodFunctionTag >( *storage, maxLevel );
    real_t       discr_l2_err, currRes, oldRes = 0;
@@ -171,7 +157,7 @@ int main( int argc, char* argv[] )
 
    for( int j = 0; j < 8; ++j )
    {
-      gmgSolver.solve(L, u, f, maxLevel);
+      gmgSolver->solve(L, u, f, maxLevel);
 
       L.apply( u, Au, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
       r.assign( {1.0, -1.0}, {f, Au}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
