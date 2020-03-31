@@ -558,6 +558,9 @@ waLBerla_execute_test(NAME FunctionMemorySerializationTest8 COMMAND $<TARGET_FIL
 waLBerla_compile_test(FILES blending/AnnulusMapTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME AnnulusMapTest1 COMMAND $<TARGET_FILE:AnnulusMapTest> )
 
+waLBerla_compile_test(FILES blending/AffineMap3DTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME AffineMap3DTest1 COMMAND $<TARGET_FILE:AffineMap3DTest> )
+
 ## Elementwise Operators ##
 if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES operators/ElementwiseOperatorPetscTest.cpp DEPENDS hyteg core)

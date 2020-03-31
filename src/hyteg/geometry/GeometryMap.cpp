@@ -18,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include "AffineMap.hpp"
+#include "AffineMap3D.hpp"
 #include "CircularMap.hpp"
 #include "IdentityMap.hpp"
 #include "PolarCoordsMap.hpp"
@@ -41,7 +42,7 @@ std::shared_ptr< GeometryMap > GeometryMap::deserialize( walberla::mpi::RecvBuff
    Type type;
    recvBuffer >> type;
 
-   switch( type )
+   switch ( type )
    {
    case Type::IDENTITY:
       return std::make_shared< IdentityMap >();
@@ -51,6 +52,8 @@ std::shared_ptr< GeometryMap > GeometryMap::deserialize( walberla::mpi::RecvBuff
       return std::make_shared< CircularMap >( recvBuffer );
    case Type::POLAR_COORDS:
       return std::make_shared< PolarCoordsMap >();
+   case Type::AFFINE_3D:
+      return std::make_shared< AffineMap3D >( recvBuffer );
    default:
       WALBERLA_ABORT( "Error in deserializing GeometryMap: Unknown Type" )
    }

@@ -118,6 +118,9 @@ int main( int argc, char** argv )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
+   std::unique_ptr< SetupPrimitiveStorage > setStore;
+   std::shared_ptr< PrimitiveStorage > primStore;
+
    // ----------
    //  2D Tests
    // ----------
@@ -125,26 +128,26 @@ int main( int argc, char** argv )
    // Test with rectangle
    logSectionHeader( "Testing with RECTANGLE" );
    MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {0.0, -1.0} ), Point2D( {2.0, 3.0} ), MeshInfo::CRISSCROSS, 1, 2 );
-   SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
-
-   checkArea< P1ConstantMassOperator >( storage, 8.0, "P1ConstantMassOperator" );
-   checkArea< P2ConstantMassOperator >( storage, 8.0, "P2ConstantMassOperator" );
-   checkArea< P1ElementwiseMassOperator >( storage, 8.0, "P1ElementwiseMassOperator" );
-   checkArea< P2ElementwiseMassOperator >( storage, 8.0, "P2ElementwiseMassOperator" );
+   setStore = std::make_unique< SetupPrimitiveStorage> ( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
+ 
+   checkArea< P1ConstantMassOperator >( primStore, 8.0, "P1ConstantMassOperator" );
+   checkArea< P2ConstantMassOperator >( primStore, 8.0, "P2ConstantMassOperator" );
+   checkArea< P1ElementwiseMassOperator >( primStore, 8.0, "P1ElementwiseMassOperator" );
+   checkArea< P2ElementwiseMassOperator >( primStore, 8.0, "P2ElementwiseMassOperator" );
 
    // Test with backward facing step
    logSectionHeader( "Testing with BFS" );
    meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/bfs_12el.msh" );
-   SetupPrimitiveStorage setupStorageBFS( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   std::shared_ptr< PrimitiveStorage > storageBFS = std::make_shared< PrimitiveStorage >( setupStorageBFS );
+   setStore = std::make_unique< SetupPrimitiveStorage> ( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
 
-   checkArea< P1ConstantMassOperator >( storageBFS, 1.75, "P1ConstantMassOperator" );
-   checkArea< P2ConstantMassOperator >( storageBFS, 1.75, "P2ConstantMassOperator" );
-   checkArea< P1ElementwiseMassOperator >( storageBFS, 1.75, "P1ElementwiseMassOperator" );
-   checkArea< P2ElementwiseMassOperator >( storageBFS, 1.75, "P2ElementwiseMassOperator" );
+   checkArea< P1ConstantMassOperator >( primStore, 1.75, "P1ConstantMassOperator" );
+   checkArea< P2ConstantMassOperator >( primStore, 1.75, "P2ConstantMassOperator" );
+   checkArea< P1ElementwiseMassOperator >( primStore, 1.75, "P1ElementwiseMassOperator" );
+   checkArea< P2ElementwiseMassOperator >( primStore, 1.75, "P2ElementwiseMassOperator" );
 
-   checkArea< P2ElementwiseBlendingMassOperator >( storageBFS, 1.75, "P2ElementwiseBlendingMassOperator" );
+   checkArea< P2ElementwiseBlendingMassOperator >( primStore, 1.75, "P2ElementwiseBlendingMassOperator" );
 
    // ----------
    //  3D Tests
@@ -153,13 +156,15 @@ int main( int argc, char** argv )
    // test with cuboid
    logSectionHeader( "Testing with Cuboid" );
    meshInfo = MeshInfo::meshCuboid( Point3D( {-1.0, -1.0, 0.0} ), Point3D( {2.0, 0.0, 2.0} ), 1, 2, 1 );
-   SetupPrimitiveStorage setupStorageCuboid( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   std::shared_ptr< PrimitiveStorage > storageCuboid = std::make_shared< PrimitiveStorage >( setupStorageCuboid );
+   setStore = std::make_unique< SetupPrimitiveStorage> ( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
+   // SetupPrimitiveStorage setupStorageCuboid( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   // std::shared_ptr< PrimitiveStorage > storageCuboid = std::make_shared< PrimitiveStorage >( setupStorageCuboid );
 
-   checkArea< P1ConstantMassOperator >( storageCuboid, 6.0, "P1ConstantMassOperator" );
-   checkArea< P2ConstantMassOperator >( storageCuboid, 6.0, "P2ConstantMassOperator" );
-   checkArea< P1ElementwiseMassOperator >( storageCuboid, 6.0, "P1ElementwiseMassOperator" );
-   checkArea< P2ElementwiseMassOperator >( storageCuboid, 6.0, "P2ElementwiseMassOperator" );
+   checkArea< P1ConstantMassOperator >( primStore, 6.0, "P1ConstantMassOperator" );
+   checkArea< P2ConstantMassOperator >( primStore, 6.0, "P2ConstantMassOperator" );
+   checkArea< P1ElementwiseMassOperator >( primStore, 6.0, "P1ElementwiseMassOperator" );
+   checkArea< P2ElementwiseMassOperator >( primStore, 6.0, "P2ElementwiseMassOperator" );
 
    // Test with coarse representation of thick spherical shell
    logSectionHeader( "Testing with Icosahedral Shell" );
@@ -247,15 +252,27 @@ int main( int argc, char** argv )
    //  3D Blending Tests
    // -------------------
 
+   // Test with identity mapping
+   logSectionHeader( "Testing with BLENDING( UNIT CUBE with IdentityMap )" );
+
+   Point3D lowerLeftFront( {0.0, 0.0, 0.0 } );
+   Point3D upperRightBack( {1.0, 1.0, 1.0 } );
+   meshInfo = MeshInfo::meshCuboid( lowerLeftFront, upperRightBack, 1, 1, 1 );
+   setStore = std::make_unique< SetupPrimitiveStorage> ( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
+
+   checkArea< P1ElementwiseBlendingMassOperator3D >( primStore, 1.0, "P1ElementwiseBlendingMassOperator3D", 2, 6e-8 );
+   checkArea< P2ElementwiseBlendingMassOperator >( primStore, 1.0, "P2ElementwiseBlendingMassOperator", 2, 6e-8 );
+
    // Test with thick spherical shell
    logSectionHeader( "Testing with BLENDING( Thick Spherical Shell -- IcosahedralShellMap )" );
    meshInfo = MeshInfo::meshSphericalShell( 2, 2, 1.0, 2.0 );
-   SetupPrimitiveStorage setupStorageShell( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   IcosahedralShellMap::setMap( setupStorageShell );
-   std::shared_ptr< PrimitiveStorage > storageShell = std::make_shared< PrimitiveStorage >( setupStorageShell );
+   setStore = std::make_unique< SetupPrimitiveStorage> ( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   IcosahedralShellMap::setMap( *setStore.get() );
+   primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
 
-   checkArea< P1ElementwiseBlendingMassOperator3D >( storageShell, 4.0/3.0 * pi * 7.0, "P1ElementwiseBlendingMassOperator3D", 2, 2e-6 );
-   checkArea< P2ElementwiseBlendingMassOperator >( storageShell, 4.0/3.0 * pi * 7.0, "P2ElementwiseBlendingMassOperator", 2, 2e-6 );
+   checkArea< P1ElementwiseBlendingMassOperator3D >( primStore, 4.0/3.0 * pi * 7.0, "P1ElementwiseBlendingMassOperator3D", 2, 2e-6 );
+   checkArea< P2ElementwiseBlendingMassOperator >( primStore, 4.0/3.0 * pi * 7.0, "P2ElementwiseBlendingMassOperator", 2, 2e-6 );
 
    return EXIT_SUCCESS;
 }

@@ -108,14 +108,14 @@ public:
   }
 
   /// Get raw pointer to underlying matrix data
-  /// \returns Pointer to first element of unerlying matrix data
+  /// \returns Pointer to first element of underlying matrix data
   T* data()
   {
     return &x[0];
   }
 
   /// Get const raw pointer to underlying matrix data
-  /// \returns Constant pointer to first element of unerlying matrix data
+  /// \returns Constant pointer to first element of underlying matrix data
   const T* data() const
   {
     return &x[0];

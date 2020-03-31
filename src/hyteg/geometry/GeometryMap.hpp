@@ -30,12 +30,13 @@ class GeometryMap
  public:
    enum class Type : uint_t
    {
-      IDENTITY              = 0,
-      AFFINE                = 1,
-      CIRCULAR              = 2,
-      POLAR_COORDS          = 3,
-      ANNULUS_MAP           = 4,
-      ICOSAHEDRAL_SHELL_MAP = 5
+      IDENTITY          = 0,
+      AFFINE            = 1,
+      CIRCULAR          = 2,
+      POLAR_COORDS      = 3,
+      ANNULUS           = 4,
+      ICOSAHEDRAL_SHELL = 5,
+      AFFINE_3D         = 6
    };
 
    virtual ~GeometryMap(){};
@@ -63,11 +64,12 @@ class GeometryMap
    /// Evaluation of the Jacobian matrix at reference position \p x
    /// \param x Reference input coordinates
    /// \param DFx Jacobian matrix
+   /// \return value of Jacobian determinant
    virtual real_t evalDF( const Point3D& x, Matrix3r& DFx ) const
    {
       WALBERLA_UNUSED( x );
       WALBERLA_UNUSED( DFx );
-      WALBERLA_ABORT( "GeometryMap::evalDF() not implemented for 3D" );
+      WALBERLA_ABORT( "GeometryMap::evalDF() not implemented for 3D in child class!" );
    };
 
    /// Evaluation of the Jacobian matrix at reference position \p x
