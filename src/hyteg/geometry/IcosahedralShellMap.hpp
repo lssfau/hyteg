@@ -72,6 +72,28 @@ class IcosahedralShellMap : public GeometryMap
       classifyVertices( cell, storage );
    }
 
+   IcosahedralShellMap( walberla::mpi::RecvBuffer& recvBuffer )
+   {
+      recvBuffer >> rayVertex_[0];
+      recvBuffer >> rayVertex_[1];
+      recvBuffer >> rayVertex_[2];
+
+      recvBuffer >> refVertex_[0];
+      recvBuffer >> refVertex_[1];
+      recvBuffer >> refVertex_[2];
+
+      recvBuffer >> thrVertex_[0];
+      recvBuffer >> thrVertex_[1];
+      recvBuffer >> thrVertex_[2];
+
+      recvBuffer >> forVertex_[0];
+      recvBuffer >> forVertex_[1];
+      recvBuffer >> forVertex_[2];
+
+      recvBuffer >> radRefVertex_;
+      recvBuffer >> radRayVertex_;
+   }
+
    void evalF( const Point3D& xold, Point3D& xnew ) const
    {
       // determine barycentric coordinate w.r.t. vertex refVertex_
@@ -113,11 +135,15 @@ class IcosahedralShellMap : public GeometryMap
 
    void evalDF( const Point3D& x, Matrix2r& DFx ) const final
    {
+      WALBERLA_UNUSED( x );
+      WALBERLA_UNUSED( DFx );
       WALBERLA_ABORT( "IcosahedralMap::evalDF unimplemented for 2D!" );
    }
 
    void evalDFinv( const Point3D& x, Matrix2r& DFinvx ) const final
    {
+      WALBERLA_UNUSED( x );
+      WALBERLA_UNUSED( DFinvx );
       WALBERLA_ABORT( "IcosahedralMap::evalDFinv unimplemented for 2D!" );
    }
 
@@ -290,7 +316,7 @@ class IcosahedralShellMap : public GeometryMap
       const std::array< Point3D, 4 >& coords = cell.getCoordinates();
 
       real_t aux;
-      real_t pairFound = false;
+      bool   pairFound = false;
 
       uint_t idxRefVertex;
       uint_t idxRayVertex;

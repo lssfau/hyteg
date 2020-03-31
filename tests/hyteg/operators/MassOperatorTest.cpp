@@ -24,6 +24,7 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/geometry/AffineMap2D.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/CircularMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
@@ -122,6 +123,9 @@ int main( int argc, char** argv )
 
    std::unique_ptr< SetupPrimitiveStorage > setStore;
    std::shared_ptr< PrimitiveStorage >      primStore;
+
+   Matrix2r mat;
+   Point2D vec;
 
    // ----------
    //  2D Tests
@@ -251,6 +255,42 @@ int main( int argc, char** argv )
    checkArea< P1BlendingMassOperator >( primStore, 1.0 - pi / 16.0, "P1BlendingMassOperator", 3 );
    checkArea< P1ElementwiseBlendingMassOperator >( primStore, 1.0 - pi / 16.0, "P1ElementwiseBlendingMassOperator", 3 );
    checkArea< P2ElementwiseBlendingMassOperator >( primStore, 1.0 - pi / 16.0, "P2ElementwiseBlendingMassOperator", 3 );
+
+   // Test with backward facing step and affine mapping
+   logSectionHeader( "Testing with BLENDING( AFFINE_MAP rotation )" );
+   meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/bfs_12el.msh" );
+   setStore =
+       std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   vec = Point2D( {0.0, 0.0} );
+   real_t phi = real_c(27) * pi / real_c(180);
+   mat(0,0) = +std::cos(phi);
+   mat(0,1) = -std::sin(phi);
+   mat(1,0) = +std::sin(phi);
+   mat(1,1) = +std::cos(phi);
+   AffineMap2D::setMap( *setStore.get(), mat, vec );
+   primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
+
+   checkArea< P1BlendingMassOperator >( primStore, 1.75, "P1BlendingMassOperator" );
+   checkArea< P1ElementwiseBlendingMassOperator >( primStore, 1.75, "P1ElementwiseBlendingMassOperator" );
+   checkArea< P2ElementwiseBlendingMassOperator >( primStore, 1.75, "P2ElementwiseBlendingMassOperator" );
+
+   // Test with backward facing step and affine mapping
+   logSectionHeader( "Testing with BLENDING( AFFINE_MAP shear, scale + shift )" );
+   meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/bfs_12el.msh" );
+   setStore =
+       std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   vec = Point2D( {-2.0, 3.0} );
+   real_t scalFac = real_c(2);
+   mat(0,0) = real_c(scalFac);
+   mat(0,1) = real_c(1);
+   mat(1,0) = real_c(0);
+   mat(1,1) = real_c(scalFac);
+   AffineMap2D::setMap( *setStore.get(), mat, vec );
+   primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
+
+   checkArea< P1BlendingMassOperator >( primStore, 1.75*scalFac*scalFac, "P1BlendingMassOperator", 2, -1.0, true );
+   checkArea< P1ElementwiseBlendingMassOperator >( primStore, 1.75*scalFac*scalFac, "P1ElementwiseBlendingMassOperator" );
+   checkArea< P2ElementwiseBlendingMassOperator >( primStore, 1.75*scalFac*scalFac, "P2ElementwiseBlendingMassOperator" );
 
    // -------------------
    //  3D Blending Tests

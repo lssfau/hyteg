@@ -63,6 +63,24 @@ class AnnulusMap : public GeometryMap
       classifyVertices( face.getCoordinates() );
    }
 
+   AnnulusMap( walberla::mpi::RecvBuffer& recvBuffer )
+   {
+      recvBuffer >> rayVertex_[0];
+      recvBuffer >> rayVertex_[1];
+      recvBuffer >> rayVertex_[2];
+
+      recvBuffer >> refVertex_[0];
+      recvBuffer >> refVertex_[1];
+      recvBuffer >> refVertex_[2];
+
+      recvBuffer >> thrVertex_[0];
+      recvBuffer >> thrVertex_[1];
+      recvBuffer >> thrVertex_[2];
+
+      recvBuffer >> radRefVertex_;
+      recvBuffer >> radRayVertex_;
+   }
+
    void evalF( const Point3D& xold, Point3D& xnew ) const
    {
       // determine barycentric coordinate w.r.t. vertex refVertex_
