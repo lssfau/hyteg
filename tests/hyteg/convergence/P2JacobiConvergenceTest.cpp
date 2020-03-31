@@ -64,11 +64,8 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > exactFunction = []( const hyteg::Point3D& x ) {
       return sin( x[0] ) * sinh( x[1] );
    };
-   //std::function<real_t(const hyteg::Point3D&)> zeros = [](const hyteg::Point3D&) { return 0.0; };
+
    std::function< real_t( const hyteg::Point3D& ) > ones   = []( const hyteg::Point3D& ) { return 1.0; };
-   std::function< real_t( const hyteg::Point3D& ) > random = []( const hyteg::Point3D& ) { return real_c( rand() ); };
-   p2function.interpolate( random, level, hyteg::Inner );
-   helperFun.interpolate( random, level, hyteg::Inner );
 
    p2function.interpolate( exactFunction, level, hyteg::DirichletBoundary );
    helperFun.interpolate( exactFunction, level, hyteg::DirichletBoundary );
@@ -126,6 +123,9 @@ int main( int argc, char* argv[] )
       walberla::WcTimingTree tt = timingTree->getReduced();
       WALBERLA_LOG_INFO_ON_ROOT( tt );
    }
+
+   WALBERLA_CHECK_LESS( discr_l2_err, 2.0e-06 );
+   WALBERLA_CHECK_LESS( abs_res,      8.0e-06 );
 
    return 0;
 }
