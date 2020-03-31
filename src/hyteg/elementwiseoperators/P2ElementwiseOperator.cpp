@@ -53,8 +53,12 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
 
    if ( updateType == Replace )
    {
-      // We need to zero the destination array (including halos)
-      dst.setToZero( level );
+      // We need to zero the destination array (including halos).
+      // However, we must not zero out anything that is not flagged with the specified BCs.
+      // Therefore we first zero out everything that flagged, and then, later,
+      // the halos of the highest dim primitives.
+
+      dst.interpolate( real_c(0), level, flag );
    }
 
    // For 3D we work on cells and for 2D on faces
@@ -78,32 +82,32 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
          real_t* srcEdgeData = cell.getData( srcEdgeDoFIdx )->getPointer( level );
          real_t* dstEdgeData = cell.getData( dstEdgeDoFIdx )->getPointer( level );
 
-         if ( updateType == Add )
+         // Zero out dst halos only
+         //
+         // This is also necessary when using update type == Add.
+         // During additive comm we then skip zeroing the data on the lower-dim primitives.
+
+         for ( const auto& idx : vertexdof::macrocell::Iterator( level ) )
          {
-            // Zero out dst halos only - then during additive comm we skip zeroing
-            // the data on the lower-dim primitives.
-
-            for ( const auto& idx : vertexdof::macrocell::Iterator( level ) )
+            if ( !vertexdof::macrocell::isOnCellFace( idx, level ).empty() )
             {
-               if ( !vertexdof::macrocell::isOnCellFace( idx, level ).empty() )
-               {
-                  auto arrayIdx           = vertexdof::macrocell::index( level, idx.x(), idx.y(), idx.z() );
-                  dstVertexData[arrayIdx] = real_c( 0 );
-               }
+               auto arrayIdx           = vertexdof::macrocell::index( level, idx.x(), idx.y(), idx.z() );
+               dstVertexData[arrayIdx] = real_c( 0 );
             }
+         }
 
-            for ( const auto& idx : edgedof::macrocell::Iterator( level ) )
+         for ( const auto& idx : edgedof::macrocell::Iterator( level ) )
+         {
+            for ( const auto& orientation : edgedof::allEdgeDoFOrientationsWithoutXYZ )
             {
-               for ( const auto& orientation : edgedof::allEdgeDoFOrientationsWithoutXYZ )
+               if ( !edgedof::macrocell::isInnerEdgeDoF( level, idx, orientation ) )
                {
-                  if ( !edgedof::macrocell::isInnerEdgeDoF( level, idx, orientation ) )
-                  {
-                     auto arrayIdx         = edgedof::macrocell::index( level, idx.x(), idx.y(), idx.z(), orientation );
-                     dstEdgeData[arrayIdx] = real_c( 0 );
-                  }
+                  auto arrayIdx         = edgedof::macrocell::index( level, idx.x(), idx.y(), idx.z(), orientation );
+                  dstEdgeData[arrayIdx] = real_c( 0 );
                }
             }
          }
+
 
          // loop over micro-cells
          for ( const auto& cType : celldof::allCellTypes )
@@ -162,29 +166,28 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
          real_t* srcEdgeData = face.getData( srcEdgeDoFIdx )->getPointer( level );
          real_t* dstEdgeData = face.getData( dstEdgeDoFIdx )->getPointer( level );
 
-         if ( updateType == Add )
+         // Zero out dst halos only
+         //
+         // This is also necessary when using update type == Add.
+         // During additive comm we then skip zeroing the data on the lower-dim primitives.
+
+         for ( const auto& idx : vertexdof::macroface::Iterator( level ) )
          {
-            // Zero out dst halos only - then during additive comm we skip zeroing
-            // the data on the lower-dim primitives.
-
-            for ( const auto& idx : vertexdof::macroface::Iterator( level ) )
+            if ( vertexdof::macroface::isVertexOnBoundary( level, idx ) )
             {
-               if ( vertexdof::macroface::isVertexOnBoundary( level, idx ) )
-               {
-                  auto arrayIdx           = vertexdof::macroface::index( level, idx.x(), idx.y() );
-                  dstVertexData[arrayIdx] = real_c( 0 );
-               }
+               auto arrayIdx           = vertexdof::macroface::index( level, idx.x(), idx.y() );
+               dstVertexData[arrayIdx] = real_c( 0 );
             }
+         }
 
-            for ( const auto& idx : edgedof::macroface::Iterator( level ) )
+         for ( const auto& idx : edgedof::macroface::Iterator( level ) )
+         {
+            for ( const auto& orientation : edgedof::faceLocalEdgeDoFOrientations )
             {
-               for ( const auto& orientation : edgedof::faceLocalEdgeDoFOrientations )
+               if ( !edgedof::macroface::isInnerEdgeDoF( level, idx, orientation ) )
                {
-                  if ( !edgedof::macroface::isInnerEdgeDoF( level, idx, orientation ) )
-                  {
-                     auto arrayIdx         = edgedof::macroface::index( level, idx.x(), idx.y(), orientation );
-                     dstEdgeData[arrayIdx] = real_c( 0 );
-                  }
+                  auto arrayIdx         = edgedof::macroface::index( level, idx.x(), idx.y(), orientation );
+                  dstEdgeData[arrayIdx] = real_c( 0 );
                }
             }
          }
