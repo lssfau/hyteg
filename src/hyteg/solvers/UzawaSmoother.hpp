@@ -21,13 +21,13 @@
 
 #define UZAWA_OLD_VARIANT 0
 
-#include "hyteg/composites/StokesOperatorTraits.hpp"
+#include "core/math/Random.h"
+
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P2P1UzawaDampingFactorEstimationOperator.hpp"
+#include "hyteg/composites/StokesOperatorTraits.hpp"
 #include "hyteg/numerictools/SpectrumEstimation.hpp"
 #include "hyteg/solvers/Solver.hpp"
-
-#include "core/math/Random.h"
 
 namespace hyteg {
 
@@ -37,48 +37,45 @@ class UzawaSmoother : public Solver< OperatorType >
  public:
    typedef typename OperatorType::srcType FunctionType;
 
-   UzawaSmoother( const std::shared_ptr< PrimitiveStorage >& storage,
-                  const uint_t                               minLevel,
-                  const uint_t                               maxLevel,
-                  real_t                                     relaxParam,
-                  hyteg::DoFType                             flag                    = hyteg::Inner | hyteg::NeumannBoundary,
-                  const bool                                 symmetricGSVelocity     = false,
-                  const uint_t                               numGSIterationsVelocity = 2,
-                  const bool                                 symmetricGSPressure     = false,
-                  const uint_t                               numGSIterationsPressure = 1,
-                  const real_t                               velocityRelaxParam      = 1.0 )
+   UzawaSmoother( const std::shared_ptr< PrimitiveStorage >&       storage,
+                  const std::shared_ptr< Solver< OperatorType > >& velocitySmoother,
+                  const uint_t                                     minLevel,
+                  const uint_t                                     maxLevel,
+                  real_t                                           relaxParam,
+                  hyteg::DoFType                                   flag = hyteg::Inner | hyteg::NeumannBoundary,
+                  const uint_t                                     numGSIterationsVelocity = 2,
+                  const bool                                       symmetricGSPressure     = false,
+                  const uint_t                                     numGSIterationsPressure = 1 )
    : UzawaSmoother( storage,
+                    velocitySmoother,
                     FunctionType( "uzawa_smoother_r", storage, minLevel, maxLevel ),
                     minLevel,
                     maxLevel,
                     relaxParam,
                     flag,
-                    symmetricGSVelocity,
                     numGSIterationsVelocity,
                     symmetricGSPressure,
                     numGSIterationsPressure )
    {}
 
-   UzawaSmoother( const std::shared_ptr< PrimitiveStorage >& storage,
-                  const FunctionType&                        tmpFunction,
-                  const uint_t                               minLevel,
-                  const uint_t                               maxLevel,
-                  real_t                                     relaxParam,
-                  hyteg::DoFType                               flag                    = hyteg::Inner | hyteg::NeumannBoundary,
-                  const bool                                 symmetricGSVelocity     = false,
-                  const uint_t                               numGSIterationsVelocity = 2,
-                  const bool                                 symmetricGSPressure     = false,
-                  const uint_t                               numGSIterationsPressure = 1,
-                  const real_t                               velocityRelaxParam      = 1.0 )
+   UzawaSmoother( const std::shared_ptr< PrimitiveStorage >&       storage,
+                  const std::shared_ptr< Solver< OperatorType > >& velocitySmoother,
+                  const FunctionType&                              tmpFunction,
+                  const uint_t                                     minLevel,
+                  const uint_t                                     maxLevel,
+                  real_t                                           relaxParam,
+                  hyteg::DoFType                                   flag = hyteg::Inner | hyteg::NeumannBoundary,
+                  const uint_t                                     numGSIterationsVelocity = 2,
+                  const bool                                       symmetricGSPressure     = false,
+                  const uint_t                                     numGSIterationsPressure = 1 )
    : storage_( storage )
+   , velocitySmoother_( velocitySmoother )
    , flag_( flag )
    , hasGlobalCells_( storage->hasGlobalCells() )
    , relaxParam_( relaxParam )
-   , symmetricGSVelocity_( symmetricGSVelocity )
    , numGSIterationsVelocity_( numGSIterationsVelocity )
    , symmetricGSPressure_( symmetricGSPressure )
    , numGSIterationsPressure_( numGSIterationsPressure )
-   , velocityRelaxParam_( velocityRelaxParam )
    , r_( tmpFunction )
 #if UZAWA_OLD_VARIANT
    , tmp_( "uzawa_smoother_tmp", storage, minLevel, maxLevel )
@@ -98,23 +95,23 @@ class UzawaSmoother : public Solver< OperatorType >
                    std::integral_constant< bool, has_pspg_block< OperatorType >::value >() );
    }
 
-   real_t estimateAndSetRelaxationParameter( const uint_t & level, const uint_t & numPowerIterations )
+   real_t estimateAndSetRelaxationParameter( const uint_t& level, const uint_t& numPowerIterations )
    {
       const bool isStableDiscretization = std::is_same< OperatorType, P2P1TaylorHoodStokesOperator >::value;
       WALBERLA_CHECK( isStableDiscretization, "Relaxation parameter estimation only implemented for P2-P1" );
-      P2P1UzawaDampingFactorEstimationOperator estimator( storage_, level, level, symmetricGSVelocity_, numGSIterationsVelocity_ );
+      P2P1UzawaDampingFactorEstimationOperator estimator(
+          storage_, level, level, symmetricGSVelocity_, numGSIterationsVelocity_ );
       P1Function< real_t > iterationVector( "iterationVector", storage_, level, level );
       walberla::math::seedRandomGenerator( 42 );
-      auto randFunction = []( const Point3D & ) {
-         return walberla::math::realRandom();
-      };
+      auto randFunction = []( const Point3D& ) { return walberla::math::realRandom(); };
       iterationVector.interpolate( randFunction, level, All );
-      const real_t estimatedRelaxationParameter = estimateSpectralRadiusWithPowerIteration( estimator, iterationVector, numPowerIterations, storage_, level );
+      const real_t estimatedRelaxationParameter =
+          estimateSpectralRadiusWithPowerIteration( estimator, iterationVector, numPowerIterations, storage_, level );
       relaxParam_ = estimatedRelaxationParameter;
       return estimatedRelaxationParameter;
    }
 
-   void setRelaxationParameter( const real_t & omega ) { relaxParam_ = omega; }
+   void setRelaxationParameter( const real_t& omega ) { relaxParam_ = omega; }
 
  private:
    // Block-Laplace variant
@@ -127,50 +124,19 @@ class UzawaSmoother : public Solver< OperatorType >
    {
       A.divT_x.apply( x.p, r_.u, level, flag_, Replace );
       r_.u.assign( {1.0, -1.0}, {b.u, r_.u}, level, flag_ );
-      for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
-      {
-         if ( symmetricGSVelocity_ )
-         {
-            A.A.smooth_gs( x.u, r_.u, level, flag_ );
-            A.A.smooth_gs_backwards( x.u, r_.u, level, flag_ );
-         }
-         else
-         {
-            A.A.smooth_gs( x.u, r_.u, level, flag_ );
-         }
-      }
 
       A.divT_y.apply( x.p, r_.v, level, flag_, Replace );
       r_.v.assign( {1.0, -1.0}, {b.v, r_.v}, level, flag_ );
-      for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
-      {
-         if ( symmetricGSVelocity_ )
-         {
-            A.A.smooth_gs( x.v, r_.v, level, flag_ );
-            A.A.smooth_gs_backwards( x.v, r_.v, level, flag_ );
-         }
-         else
-         {
-            A.A.smooth_gs( x.v, r_.v, level, flag_ );
-         }
-      }
 
       if ( hasGlobalCells_ )
       {
          A.divT_z.apply( x.p, r_.w, level, flag_, Replace );
          r_.w.assign( {1.0, -1.0}, {b.w, r_.w}, level, flag_ );
-         for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
-         {
-            if ( symmetricGSVelocity_ )
-            {
-               A.A.smooth_gs( x.w, r_.w, level, flag_ );
-               A.A.smooth_gs_backwards( x.w, r_.w, level, flag_ );
-            }
-            else
-            {
-               A.A.smooth_gs( x.w, r_.w, level, flag_ );
-            }
-         }
+      }
+
+      for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
+      {
+         velocitySmoother_->solve( A, x, r_, level );
       }
 
       A.div_x.apply( x.u, r_.p, level, flag_, Replace );
@@ -234,52 +200,18 @@ class UzawaSmoother : public Solver< OperatorType >
       A.divT_x.apply( x.p, r_.u, level, flag_, Replace );
       r_.u.assign( {1.0, -1.0}, {b.u, r_.u}, level, flag_ );
 
-      for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
-      {
-         if ( symmetricGSVelocity_ )
-         {
-            A.A.smooth_sor( x.u, r_.u, velocityRelaxParam_, level, flag_ );
-            A.A.smooth_sor_backwards( x.u, r_.u, velocityRelaxParam_, level, flag_ );
-         }
-         else
-         {
-            A.A.smooth_sor( x.u, r_.u, velocityRelaxParam_, level, flag_ );
-         }
-      }
-
       A.divT_y.apply( x.p, r_.v, level, flag_, Replace );
       r_.v.assign( {1.0, -1.0}, {b.v, r_.v}, level, flag_ );
-
-      for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
-      {
-         if ( symmetricGSVelocity_ )
-         {
-            A.A.smooth_sor( x.v, r_.v, velocityRelaxParam_, level, flag_ );
-            A.A.smooth_sor_backwards( x.v, r_.v, velocityRelaxParam_, level, flag_ );
-         }
-         else
-         {
-            A.A.smooth_sor( x.v, r_.v, velocityRelaxParam_, level, flag_ );
-         }
-      }
 
       if ( hasGlobalCells_ )
       {
          A.divT_z.apply( x.p, r_.w, level, flag_, Replace );
          r_.w.assign( {1.0, -1.0}, {b.w, r_.w}, level, flag_ );
+      }
 
-         for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
-         {
-            if ( symmetricGSVelocity_ )
-            {
-               A.A.smooth_sor( x.w, r_.w, velocityRelaxParam_, level, flag_ );
-               A.A.smooth_sor_backwards( x.w, r_.w, velocityRelaxParam_, level, flag_ );
-            }
-            else
-            {
-               A.A.smooth_sor( x.w, r_.w, velocityRelaxParam_, level, flag_ );
-            }
-         }
+      for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
+      {
+         velocitySmoother_->solve( A, x, r_, level );
       }
 
       A.div_x.apply( x.u, r_.p, level, flag_, Replace );
@@ -310,27 +242,27 @@ class UzawaSmoother : public Solver< OperatorType >
 
       x.p.add( {1.0}, {tmp_.p}, level, flag_ | DirichletBoundary );
 #else
-     // This variant is similar to the one published in
-     // Gaspar et al. (2014): A simple and efficient segregated smoother for the discrete stokes equations
-     // however, we additionally scale Bu with the inverse of the diagonal of the PSPG operator.
-     // This is similar to the old variant where we performed one SOR relaxation step on
-     // the zero vector and added the result to the solution.
-     r_.p.assign( {relaxParam_}, {r_.p}, level, flag_ );
-     A.pspg_inv_diag_.apply( r_.p, x.p, level, flag_, Add );
+      // This variant is similar to the one published in
+      // Gaspar et al. (2014): A simple and efficient segregated smoother for the discrete stokes equations
+      // however, we additionally scale Bu with the inverse of the diagonal of the PSPG operator.
+      // This is similar to the old variant where we performed one SOR relaxation step on
+      // the zero vector and added the result to the solution.
+      r_.p.assign( {relaxParam_}, {r_.p}, level, flag_ );
+      A.pspg_inv_diag_.apply( r_.p, x.p, level, flag_, Add );
 #endif
-
    }
 
  private:
-   std::shared_ptr< PrimitiveStorage > storage_;
-   DoFType flag_;
-   bool    hasGlobalCells_;
-   real_t  relaxParam_;
-   real_t  velocityRelaxParam_;
-   bool    symmetricGSVelocity_;
-   uint_t  numGSIterationsVelocity_;
-   bool    symmetricGSPressure_;
-   uint_t  numGSIterationsPressure_;
+   std::shared_ptr< PrimitiveStorage >       storage_;
+   std::shared_ptr< Solver< OperatorType > > velocitySmoother_;
+   DoFType                                   flag_;
+   bool                                      hasGlobalCells_;
+   real_t                                    relaxParam_;
+   real_t                                    velocityRelaxParam_;
+   bool                                      symmetricGSVelocity_;
+   uint_t                                    numGSIterationsVelocity_;
+   bool                                      symmetricGSPressure_;
+   uint_t                                    numGSIterationsPressure_;
 
    FunctionType r_;
 

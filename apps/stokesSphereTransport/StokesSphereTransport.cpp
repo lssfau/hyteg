@@ -49,6 +49,8 @@
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
@@ -225,7 +227,9 @@ void simulate( int argc, char* argv[] )
        storage, minLevel, 1e-12, 2000, 1 );
    auto stokesRestriction  = std::make_shared< P2P1StokesToP2P1StokesRestriction >( true );
    auto stokesProlongation = std::make_shared< P2P1StokesToP2P1StokesProlongation >();
-   auto uzawaSmoother = std::make_shared< UzawaSmoother< P2P1TaylorHoodStokesOperator > >( storage, minLevel, maxLevel, 0.3 );
+   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< P2P1TaylorHoodStokesOperator::VelocityOperator_T > >();
+   auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< P2P1TaylorHoodStokesOperator > >( storage, gaussSeidel );
+   auto uzawaSmoother = std::make_shared< UzawaSmoother< P2P1TaylorHoodStokesOperator > >( storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.3 );
    const auto uzawaRelaxationParameter = uzawaSmoother->estimateAndSetRelaxationParameter( 2, 20 );
    WALBERLA_LOG_INFO_ON_ROOT( "Estimated relaxation parameter for Uzawa: " << uzawaRelaxationParameter );
    WALBERLA_LOG_INFO_ON_ROOT( "" );

@@ -40,7 +40,9 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 
 using walberla::real_c;
@@ -137,8 +139,10 @@ int main( int argc, char* argv[] )
         PressurePreconditioner_T;
    auto pressurePrec = std::make_shared< PressurePreconditioner_T >( storage, minLevel, maxLevel );
 
+   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1StokesOperator::VelocityOperator_T > >();
+   auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1StokesOperator > >( storage, gaussSeidel );
    auto smoother =
-       std::make_shared< hyteg::UzawaSmoother< hyteg::P1StokesOperator > >( storage, minLevel, maxLevel, 0.3 );
+       std::make_shared< hyteg::UzawaSmoother< hyteg::P1StokesOperator > >( storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.3 );
    auto restriction      = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction >( true );
    auto prolongation     = std::make_shared< hyteg::P1P1StokesToP1P1StokesProlongation >();
    auto coarseGridSolver = std::make_shared< hyteg::PETScLUSolver< hyteg::P1StokesOperator > >( storage, minLevel );

@@ -52,6 +52,7 @@
 #include "hyteg/solvers/UzawaSmoother.hpp"
 #include "hyteg/solvers/preconditioners/IdentityPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 #include "hyteg/types/pointnd.hpp"
 
 using walberla::real_t;
@@ -442,8 +443,10 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
            auto restrictionOperator = std::make_shared< RestrictionOperator_T >();
            auto prolongationOperator = std::make_shared< ProlongationOperator_T >();
+           auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< typename StokesOperator_T::VelocityOperator_T > >();
+           auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator_T > >( storage, gaussSeidel );
            auto uzawaSmoother = std::make_shared< hyteg::UzawaSmoother< StokesOperator_T > >(
-               storage, minLevel, maxLevel, uzawaRelaxParam );
+               storage, uzawaVelocityPreconditioner, minLevel, maxLevel, uzawaRelaxParam );
 
            auto solver = hyteg::GeometricMultigridSolver< StokesOperator_T >( storage,
                                                                             uzawaSmoother,
@@ -499,8 +502,10 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
           auto restrictionOperator = std::make_shared< RestrictionOperator_T >();
           auto prolongationOperator = std::make_shared< ProlongationOperator_T >();
-          auto uzawaSmoother = std::make_shared< hyteg::UzawaSmoother< StokesOperator_T > >(
-              storage, minLevel, maxLevel, uzawaRelaxParam );
+           auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< typename StokesOperator_T::VelocityOperator_T > >();
+           auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator_T > >( storage, gaussSeidel );
+           auto uzawaSmoother = std::make_shared< hyteg::UzawaSmoother< StokesOperator_T > >(
+              storage, uzawaVelocityPreconditioner, minLevel, maxLevel, uzawaRelaxParam );
 
           auto solver = hyteg::GeometricMultigridSolver< StokesOperator_T >( storage,
                                                                            uzawaSmoother,
@@ -554,8 +559,10 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
            auto restrictionOperator = std::make_shared< RestrictionOperator_T >();
            auto prolongationOperator = std::make_shared< ProlongationOperator_T >();
+           auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< typename StokesOperator_T::VelocityOperator_T > >();
+           auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator_T > >( storage, gaussSeidel );
            auto uzawaSmoother = std::make_shared< hyteg::UzawaSmoother< StokesOperator_T > >(
-               storage, minLevel, maxLevel, uzawaRelaxParam );
+               storage, uzawaVelocityPreconditioner, minLevel, maxLevel, uzawaRelaxParam );
 
            auto solver = hyteg::GeometricMultigridSolver< StokesOperator_T >( storage,
                                                                             uzawaSmoother,

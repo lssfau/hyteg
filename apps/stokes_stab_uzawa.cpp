@@ -35,6 +35,7 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -97,8 +98,10 @@ int main(int argc, char* argv[])
   L.apply(u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary);
   r.assign({1.0, -1.0}, { f, r }, maxLevel, hyteg::Inner | hyteg::NeumannBoundary);
 
+   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1StokesOperator::VelocityOperator_T > >();
+   auto uzawaVelocitySmoother = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1StokesOperator > >( storage, gaussSeidel);
    auto smoother = std::make_shared< hyteg::UzawaSmoother< hyteg::P1StokesOperator > >(
-       storage, minLevel, maxLevel, 0.3 );
+       storage, uzawaVelocitySmoother, minLevel, maxLevel, 0.3 );
    auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P1StokesOperator > >( storage, minLevel, minLevel, coarseMaxiter );
    auto restrictionOperator = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction>();
    auto prolongationOperator = std::make_shared< hyteg::P1P1StokesToP1P1StokesProlongation >();

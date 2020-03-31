@@ -34,7 +34,9 @@
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -125,7 +127,9 @@ int main( int argc, char* argv[] )
 
    auto pressurePreconditioner = std::make_shared<
        hyteg::StokesPressureBlockPreconditioner< hyteg::P2P1TaylorHoodStokesOperator, hyteg::P1LumpedInvMassOperator > >(storage, minLevel, maxLevel);
-   auto smoother = std::make_shared< hyteg::UzawaSmoother< hyteg::P2P1TaylorHoodStokesOperator>  >(storage, minLevel, maxLevel, 0.37);
+   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P2P1TaylorHoodStokesOperator::VelocityOperator_T > >();
+   auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P2P1TaylorHoodStokesOperator > >( storage, gaussSeidel );
+   auto smoother = std::make_shared< hyteg::UzawaSmoother< hyteg::P2P1TaylorHoodStokesOperator>  >(storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.37);
    auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P2P1TaylorHoodStokesOperator > >( storage, minLevel, minLevel, maxIter, tolerance, pressurePreconditioner );
    auto restrictionOperator = std::make_shared< hyteg::P2P1StokesToP2P1StokesRestriction>();
    auto prolongationOperator = std::make_shared< hyteg::P2P1StokesToP2P1StokesProlongation >();

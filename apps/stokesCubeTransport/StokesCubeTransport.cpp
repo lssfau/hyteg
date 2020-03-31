@@ -48,8 +48,8 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
-#include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
@@ -180,8 +180,10 @@ int main( int argc, char* argv[] )
    typedef GeometricMultigridSolver< hyteg::P1StokesOperator > UzawaSolver_T;
    auto stokesRestriction  = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction >();
    auto stokesProlongation = std::make_shared< hyteg::P1P1StokesToP1P1StokesProlongation >();
+   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< P1StokesOperator::VelocityOperator_T > >();
+   auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< P1StokesOperator > >( storage, gaussSeidel );
    auto uzawaSmoother =
-       std::make_shared< hyteg::UzawaSmoother< P1StokesOperator > >( storage, minLevel, maxLevel, 0.3 );
+       std::make_shared< hyteg::UzawaSmoother< P1StokesOperator > >( storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.3 );
 
    UzawaSolver_T uzawaSolver( storage,
                               uzawaSmoother,

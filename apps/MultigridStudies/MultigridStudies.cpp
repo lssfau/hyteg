@@ -63,9 +63,11 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/SORSmoother.hpp"
+#include "hyteg/solvers/SymmetricSORSmoother.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
 #include "hyteg/solvers/controlflow/TimedSolver.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
 #include "sqlite/SQLite.h"
 
@@ -962,17 +964,28 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
    const uint_t coarseGridMaxLevel = ( numCycles == 0 ? maxLevel : minLevel );
 
+   std::shared_ptr< Solver< typename StokesOperator::VelocityOperator_T > > scalarSmoother;
+   if ( symmGSVelocity )
+   {
+      scalarSmoother = std::make_shared< SymmetricSORSmoother< typename StokesOperator::VelocityOperator_T > >( velocitySorRelax );
+   }
+   else
+   {
+      scalarSmoother = std::make_shared< SORSmoother< typename StokesOperator::VelocityOperator_T > >( velocitySorRelax );
+   }
+
+   auto uzawaVelocityPreconditioner = std::make_shared< StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator > >( storage, scalarSmoother );
+
    auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage,
+                                                                        uzawaVelocityPreconditioner,
                                                                         error,
                                                                         minLevel,
                                                                         maxLevel,
                                                                         sorRelax,
                                                                         Inner | NeumannBoundary,
-                                                                        symmGSVelocity,
                                                                         numGSVelocity,
                                                                         symmGSPressure,
-                                                                        numGSPressure,
-                                                                        velocitySorRelax );
+                                                                        numGSPressure );
 
    if ( sorRelaxEstimationIterations > 0 )
    {
