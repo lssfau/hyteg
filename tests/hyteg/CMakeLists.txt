@@ -117,6 +117,9 @@ endif()
 waLBerla_compile_test(FILES convergence/P2GSConvergenceTest.cpp DEPENDS hyteg core )
 waLBerla_execute_test(NAME P2GSConvergenceTest)
 
+waLBerla_compile_test(FILES convergence/P2P1ElementwiseUzawaConvergenceTest.cpp DEPENDS hyteg core )
+waLBerla_execute_test(NAME P2P1ElementwiseUzawaConvergenceTest)
+
 waLBerla_compile_test(FILES convergence/P2P1UzawaConvergenceTest.cpp DEPENDS hyteg core )
 waLBerla_execute_test(NAME P2P1UzawaConvergenceTest)
 
