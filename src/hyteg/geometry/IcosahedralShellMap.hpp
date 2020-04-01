@@ -478,6 +478,7 @@ class IcosahedralShellMap : public GeometryMap
             }
          }
       }
+      WALBERLA_ABORT( "Cound not findNonSkewTetInPrism()" );
    }
 };
 

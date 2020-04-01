@@ -92,9 +92,16 @@ class P2Form_div< 0 > : public P2FormHyTeG
       mappedPt[0] = ( coords[1][0] - coords[0][0] ) * L2 + ( coords[2][0] - coords[0][0] ) * L3 + coords[0][0]; \
       mappedPt[1] = ( coords[1][1] - coords[0][1] ) * L2 + ( coords[2][1] - coords[0][1] ) * L3 + coords[0][1]; \
                                                                                                                 \
-      real_t aux4 = ( tmp3 * DetaN##j - tmp1 * DxiN##j ) * aux3;                                                \
+      Matrix2r DPsi;                                                                                            \
+      geometryMap_->evalDF( mappedPt, DPsi );                                                                   \
+      real_t detDPsi = DPsi( 0, 0 ) * DPsi( 1, 1 ) - DPsi( 1, 0 ) * DPsi( 0, 1 );                               \
                                                                                                                 \
-      elMat( i, j ) -= QUADWEIGHTS[k] * detJacPhiInv * aux4 * SF_M##i;                                          \
+      real_t aux4 = ( tmp3 * DetaN##j - tmp1 * DxiN##j ) * aux3;                                                \
+      real_t aux5 = ( tmp2 * DxiN##j - tmp0 * DetaN##j ) * aux3;                                                \
+                                                                                                                \
+      real_t aux6 = ( DPsi( 1, 1 ) * aux4 - DPsi( 1, 0 ) * aux5 ) / detDPsi;                                    \
+                                                                                                                \
+      elMat( i, j ) -= QUADWEIGHTS[k] * detJacPhiInv * aux6 * std::abs( detDPsi ) * SF_M##i;                    \
    }
 
       // compute Jacobian determinant of inverse pull-back mapping
@@ -104,7 +111,6 @@ class P2Form_div< 0 > : public P2FormHyTeG
       real_t tmp3 = coords[0][1] - coords[1][1];
 
       real_t aux1 = tmp0 * tmp1 - tmp2 * tmp3;
-      // real_t aux2 = aux1 * aux1;
       real_t aux3 = 1.0 / aux1;
 
       real_t detJacPhiInv = std::abs( aux1 );
@@ -234,9 +240,16 @@ class P2Form_div< 1 > : public P2FormHyTeG
       mappedPt[0] = ( coords[1][0] - coords[0][0] ) * L2 + ( coords[2][0] - coords[0][0] ) * L3 + coords[0][0]; \
       mappedPt[1] = ( coords[1][1] - coords[0][1] ) * L2 + ( coords[2][1] - coords[0][1] ) * L3 + coords[0][1]; \
                                                                                                                 \
-      real_t aux4 = ( tmp2 * DxiN##j - tmp0 * DetaN##j ) * aux3;                                                \
+      Matrix2r DPsi;                                                                                            \
+      geometryMap_->evalDF( mappedPt, DPsi );                                                                   \
+      real_t detDPsi = DPsi( 0, 0 ) * DPsi( 1, 1 ) - DPsi( 1, 0 ) * DPsi( 0, 1 );                               \
                                                                                                                 \
-      elMat( i, j ) -= QUADWEIGHTS[k] * detJacPhiInv * aux4 * SF_M##i;                                          \
+      real_t aux4 = ( tmp3 * DetaN##j - tmp1 * DxiN##j ) * aux3;                                                \
+      real_t aux5 = ( tmp2 * DxiN##j - tmp0 * DetaN##j ) * aux3;                                                \
+                                                                                                                \
+      real_t aux6 = ( DPsi( 0, 0 ) * aux5 - DPsi( 0, 1 ) * aux4 ) / detDPsi;                                    \
+                                                                                                                \
+      elMat( i, j ) -= QUADWEIGHTS[k] * detJacPhiInv * aux6 * std::abs( detDPsi ) * SF_M##i;                    \
    }
 
       // compute Jacobian determinant of inverse pull-back mapping
