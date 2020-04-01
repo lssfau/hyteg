@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes.
+ * Copyright (c) 2017-2020 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -32,21 +32,19 @@ class JacobiPreconditioner : public Solver< OperatorType >
    , flag_( hyteg::Inner | hyteg::NeumannBoundary )
    {}
 
-   // y = M^{-1} * x
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
-      b.assign( {1.0}, {x}, level, flag_ );
-
-      for( uint_t i = 0; i < iterations_; ++i )
+      x.assign( {1.0}, {b}, level, flag_ );
+      for ( uint_t i = 0; i < iterations_; ++i )
       {
-         tmp_.assign( {1.0}, {b}, level, flag_ );
-         A.smooth_jac( b, x, tmp_, level, flag_ );
+         tmp_.assign( {1.0}, {x}, level, flag_ );
+         A.smooth_jac( x, b, tmp_, level, flag_ );
       }
    }
 
  private:
-   uint_t       iterations_;
-   FunctionType tmp_;
+   uint_t         iterations_;
+   FunctionType   tmp_;
    hyteg::DoFType flag_;
 };
 

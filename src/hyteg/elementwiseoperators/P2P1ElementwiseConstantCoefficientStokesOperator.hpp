@@ -45,7 +45,7 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
    , divT_y( storage, minLevel, maxLevel )
    , divT_z( storage, minLevel, maxLevel )
 //   , pspg_( storage, minLevel, maxLevel )
-//   , pspg_inv_diag_( storage, minLevel, maxLevel )
+   , pspg_inv_diag_( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
@@ -85,7 +85,7 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
 
    /// this operator is need in the uzawa smoother
 //   P1ElementwisePSPGOperator        pspg_;
-//   P1ElementwisePSPGInvDiagOperator pspg_inv_diag_;
+   P1PSPGInvDiagOperator pspg_inv_diag_;
    bool                             hasGlobalCells_;
 };
 

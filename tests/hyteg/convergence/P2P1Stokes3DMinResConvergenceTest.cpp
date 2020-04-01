@@ -36,8 +36,8 @@
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
-#include "hyteg/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
-#include "hyteg/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

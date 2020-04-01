@@ -112,7 +112,7 @@ class CGSolver : public Solver< OperatorType >
             break;
          }
 
-         preconditioner_->solve( A, r_, z_, level );
+         preconditioner_->solve( A, z_, r_, level );
          prsnew = r_.dotGlobal( z_, level, flag_ );
          beta   = prsnew / prsold;
 
@@ -235,7 +235,7 @@ class CGSolver : public Solver< OperatorType >
    {
       A.apply( x, p_, level, flag_, Replace );
       r_.assign( {1.0, -1.0}, {b, p_}, level, flag_ );
-      preconditioner_->solve( A, r_, z_, level );
+      preconditioner_->solve( A, z_, r_, level );
       p_.assign( {1.0}, {z_}, level, flag_ );
       prsold = r_.dotGlobal( z_, level, flag_ );
    }

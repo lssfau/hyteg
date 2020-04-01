@@ -22,25 +22,26 @@
 #include <hyteg/FunctionProperties.hpp>
 
 #include "hyteg/MeshQuality.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGUpwindOperator.hpp"
-#include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/p1functionspace/P1HelperFunctions.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
+#include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/p1functionspace/P1HelperFunctions.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
-#include "hyteg/solvers/UzawaSmoother.hpp"
-#include "hyteg/solvers/GeometricMultigridSolver.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
-#include "hyteg/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
+#include "hyteg/solvers/UzawaSmoother.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -139,7 +140,9 @@ int main( int argc, char* argv[] )
    c->assign( {1.0}, {*c_old}, maxLevel );
 
    auto pressurePreconditioner = std::make_shared< hyteg::StokesPressureBlockPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator > >(storage, minLevel, maxLevel);
-   auto smoother = std::make_shared< hyteg::UzawaSmoother< hyteg::P1StokesOperator>  >(storage, minLevel, maxLevel, 0.37);
+   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1StokesOperator::VelocityOperator_T > >();
+   auto uzawaVelocitySmoother = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1StokesOperator > >( storage, gaussSeidel);
+   auto smoother = std::make_shared< hyteg::UzawaSmoother< hyteg::P1StokesOperator>  >(storage, uzawaVelocitySmoother, minLevel, maxLevel, 0.37);
    auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P1StokesOperator > >( storage, minLevel, minLevel, solverMaxiter, 1e-16, pressurePreconditioner );
    auto restrictionOperator = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction>();
    auto prolongationOperator = std::make_shared< hyteg::P1P1StokesToP1P1StokesProlongation >();

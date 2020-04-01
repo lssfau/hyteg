@@ -37,7 +37,7 @@ class StokesBlockDiagonalPreconditioner : public Solver< OperatorType >
                                       uint_t                                     maxLevel,
                                       uint_t                                     velocityPreconditionSteps,
                                       std::shared_ptr< hyteg::Solver< typename OperatorType::VelocityOperator_T > >
-                                          velocityBlockPreconditioner = std::make_shared< hyteg::EmptySolver< typename OperatorType::VelocityOperator_T > >() )
+                                          velocityBlockPreconditioner = std::make_shared< hyteg::IdentityPreconditioner< typename OperatorType::VelocityOperator_T > >() )
    : velocityPreconditionSteps_( velocityPreconditionSteps )
    , flag_( hyteg::Inner | hyteg::NeumannBoundary )
    , velocityBlockPreconditioner_( velocityBlockPreconditioner )
@@ -47,16 +47,14 @@ class StokesBlockDiagonalPreconditioner : public Solver< OperatorType >
    // y = M^{-1} * x
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, uint_t level ) override
    {
-      b.assign( {1.0}, {x}, level, flag_ );
-
       for( uint_t steps = 0; steps < velocityPreconditionSteps_; steps++ )
       {
-         velocityBlockPreconditioner_->solve( A.A, b.u, x.u, level );
-         velocityBlockPreconditioner_->solve( A.A, b.v, x.v, level );
-         velocityBlockPreconditioner_->solve( A.A, b.w, x.w, level );
+         velocityBlockPreconditioner_->solve( A.A, x.u, b.u, level );
+         velocityBlockPreconditioner_->solve( A.A, x.v, b.v, level );
+         velocityBlockPreconditioner_->solve( A.A, x.w, b.w, level );
       }
 
-      pressureBlockPreconditioner_->apply( x.p, b.p, level, flag_, Replace );
+      pressureBlockPreconditioner_->apply( b.p, x.p, level, flag_, Replace );
    }
 
  private:

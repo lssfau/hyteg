@@ -19,43 +19,41 @@
  */
 #include "core/DataTypes.h"
 #include "core/Environment.h"
+#include "core/math/Constants.h"
 #include "core/mpi/MPIManager.h"
 #include "core/timing/Timer.h"
-#include "core/math/Constants.h"
-
-#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
 
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P1StokesOperator.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
+#include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
+#include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
+#include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/petsc/PETScLUSolver.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScVector.hpp"
+#include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/EmptySolver.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
-#include "hyteg/solvers/EmptySolver.hpp"
-#include "hyteg/solvers/GeometricMultigridSolver.hpp"
-#include "hyteg/solvers/GaussSeidelSmoother.hpp"
-#include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/IdentityPreconditioner.hpp"
-#include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
-#include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
-#include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
-#include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 #include "hyteg/types/pointnd.hpp"
-#include "hyteg/FunctionProperties.hpp"
-
-#include "hyteg/petsc/PETScManager.hpp"
-#include "hyteg/petsc/PETScLUSolver.hpp"
-#include "hyteg/petsc/PETScVector.hpp"
-#include "hyteg/petsc/PETScWrapper.hpp"
 
 using walberla::real_t;
 
@@ -445,8 +443,10 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
            auto restrictionOperator = std::make_shared< RestrictionOperator_T >();
            auto prolongationOperator = std::make_shared< ProlongationOperator_T >();
+           auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< typename StokesOperator_T::VelocityOperator_T > >();
+           auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator_T > >( storage, gaussSeidel );
            auto uzawaSmoother = std::make_shared< hyteg::UzawaSmoother< StokesOperator_T > >(
-               storage, minLevel, maxLevel, uzawaRelaxParam );
+               storage, uzawaVelocityPreconditioner, minLevel, maxLevel, uzawaRelaxParam );
 
            auto solver = hyteg::GeometricMultigridSolver< StokesOperator_T >( storage,
                                                                             uzawaSmoother,
@@ -502,8 +502,10 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
           auto restrictionOperator = std::make_shared< RestrictionOperator_T >();
           auto prolongationOperator = std::make_shared< ProlongationOperator_T >();
-          auto uzawaSmoother = std::make_shared< hyteg::UzawaSmoother< StokesOperator_T > >(
-              storage, minLevel, maxLevel, uzawaRelaxParam );
+           auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< typename StokesOperator_T::VelocityOperator_T > >();
+           auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator_T > >( storage, gaussSeidel );
+           auto uzawaSmoother = std::make_shared< hyteg::UzawaSmoother< StokesOperator_T > >(
+              storage, uzawaVelocityPreconditioner, minLevel, maxLevel, uzawaRelaxParam );
 
           auto solver = hyteg::GeometricMultigridSolver< StokesOperator_T >( storage,
                                                                            uzawaSmoother,
@@ -557,8 +559,10 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
            auto restrictionOperator = std::make_shared< RestrictionOperator_T >();
            auto prolongationOperator = std::make_shared< ProlongationOperator_T >();
+           auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< typename StokesOperator_T::VelocityOperator_T > >();
+           auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator_T > >( storage, gaussSeidel );
            auto uzawaSmoother = std::make_shared< hyteg::UzawaSmoother< StokesOperator_T > >(
-               storage, minLevel, maxLevel, uzawaRelaxParam );
+               storage, uzawaVelocityPreconditioner, minLevel, maxLevel, uzawaRelaxParam );
 
            auto solver = hyteg::GeometricMultigridSolver< StokesOperator_T >( storage,
                                                                             uzawaSmoother,

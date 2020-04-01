@@ -19,11 +19,13 @@
  */
 
 #include "core/Environment.h"
+#include "core/Hostname.h"
 #include "core/config/Config.h"
 #include "core/math/Constants.h"
 #include "core/timing/TimingJSON.h"
-#include "core/Hostname.h"
 
+#include "hyteg/BuildInfo.hpp"
+#include "hyteg/Git.hpp"
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P1StokesOperator.hpp"
@@ -47,25 +49,25 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScMemoryUsage.hpp"
-#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
-#include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/petsc/PETScVersion.hpp"
+#include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/solvers/controlflow/TimedSolver.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/FullMultigridSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/SORSmoother.hpp"
+#include "hyteg/solvers/SymmetricSORSmoother.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
-#include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
-#include "hyteg/Git.hpp"
-#include "hyteg/BuildInfo.hpp"
+#include "hyteg/solvers/controlflow/TimedSolver.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
 #include "sqlite/SQLite.h"
 
@@ -962,17 +964,28 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
    const uint_t coarseGridMaxLevel = ( numCycles == 0 ? maxLevel : minLevel );
 
+   std::shared_ptr< Solver< typename StokesOperator::VelocityOperator_T > > scalarSmoother;
+   if ( symmGSVelocity )
+   {
+      scalarSmoother = std::make_shared< SymmetricSORSmoother< typename StokesOperator::VelocityOperator_T > >( velocitySorRelax );
+   }
+   else
+   {
+      scalarSmoother = std::make_shared< SORSmoother< typename StokesOperator::VelocityOperator_T > >( velocitySorRelax );
+   }
+
+   auto uzawaVelocityPreconditioner = std::make_shared< StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator > >( storage, scalarSmoother );
+
    auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage,
+                                                                        uzawaVelocityPreconditioner,
                                                                         error,
                                                                         minLevel,
                                                                         maxLevel,
                                                                         sorRelax,
                                                                         Inner | NeumannBoundary,
-                                                                        symmGSVelocity,
                                                                         numGSVelocity,
                                                                         symmGSPressure,
-                                                                        numGSPressure,
-                                                                        velocitySorRelax );
+                                                                        numGSPressure );
 
    if ( sorRelaxEstimationIterations > 0 )
    {

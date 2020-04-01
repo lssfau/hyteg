@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2017-2020 Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -25,6 +25,7 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -35,11 +36,9 @@ using walberla::uint_t;
 
 using namespace hyteg;
 
-int main( int argc, char* argv[] )
+template< typename P2LaplaceOperator_T >
+void jacobiTest()
 {
-   walberla::Environment walberlaEnv( argc, argv );
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
-   walberla::MPIManager::instance()->useWorldComm();
    walberla::shared_ptr< walberla::config::Config > cfg( new walberla::config::Config );
    cfg->readParameterFile( "../../data/param/jacobi_P2.prm" );
    walberla::Config::BlockHandle parameters = cfg->getOneBlock( "Parameters" );
@@ -51,7 +50,7 @@ int main( int argc, char* argv[] )
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
    std::shared_ptr< PrimitiveStorage >       storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
 
-   hyteg::P2ConstantLaplaceOperator L( storage, level, level );
+   P2LaplaceOperator_T L( storage, level, level );
 
    hyteg::P2Function< real_t > residuum( "residuum", storage, level, level );
    hyteg::P2Function< real_t > rhs( "rhs", storage, level, level );
@@ -62,13 +61,10 @@ int main( int argc, char* argv[] )
    hyteg::P2Function< real_t > helperFun( "helperFun", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > exactFunction = []( const hyteg::Point3D& x ) {
-      return sin( x[0] ) * sinh( x[1] );
+     return sin( x[0] ) * sinh( x[1] );
    };
-   //std::function<real_t(const hyteg::Point3D&)> zeros = [](const hyteg::Point3D&) { return 0.0; };
+
    std::function< real_t( const hyteg::Point3D& ) > ones   = []( const hyteg::Point3D& ) { return 1.0; };
-   std::function< real_t( const hyteg::Point3D& ) > random = []( const hyteg::Point3D& ) { return real_c( rand() ); };
-   p2function.interpolate( random, level, hyteg::Inner );
-   helperFun.interpolate( random, level, hyteg::Inner );
 
    p2function.interpolate( exactFunction, level, hyteg::DirichletBoundary );
    helperFun.interpolate( exactFunction, level, hyteg::DirichletBoundary );
@@ -126,6 +122,20 @@ int main( int argc, char* argv[] )
       walberla::WcTimingTree tt = timingTree->getReduced();
       WALBERLA_LOG_INFO_ON_ROOT( tt );
    }
+
+   WALBERLA_CHECK_LESS( discr_l2_err, 2.0e-06 );
+   WALBERLA_CHECK_LESS( abs_res,      8.0e-06 );
+
+}
+
+int main( int argc, char* argv[] )
+{
+   walberla::Environment walberlaEnv( argc, argv );
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   jacobiTest< hyteg::P2ConstantLaplaceOperator >();
+   jacobiTest< hyteg::P2ElementwiseLaplaceOperator >();
 
    return 0;
 }

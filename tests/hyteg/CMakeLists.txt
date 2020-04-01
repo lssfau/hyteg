@@ -54,6 +54,11 @@ waLBerla_execute_test(NAME P1MinResConvergenceTest)
 waLBerla_compile_test(FILES convergence/P1StokesMinResConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1StokesMinResConvergenceTest)
 
+if( HYTEG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES convergence/P1P1StokesUzawaConvergenceTest.cpp DEPENDS hyteg core)
+  waLBerla_execute_test(NAME P1P1StokesUzawaConvergenceTest)
+endif()
+
 if(CMAKE_BUILD_TYPE MATCHES "Release")
   waLBerla_compile_test(FILES convergence/P1Stokes3DMinResConvergenceTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME P1Stokes3DMinResConvergenceTest)
@@ -75,6 +80,10 @@ endif()
 waLBerla_compile_test(FILES convergence/P2CGConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2CGConvergenceTest)
 waLBerla_execute_test(NAME P2CGConvergenceTestMPI COMMAND $<TARGET_FILE:P2CGConvergenceTest> PROCESSES 2 )
+
+waLBerla_compile_test(FILES convergence/P2ElementwiseCGConvergenceTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P2ElementwiseCGConvergenceTest)
+waLBerla_execute_test(NAME P2ElementwiseCGConvergenceTestMPI COMMAND $<TARGET_FILE:P2ElementwiseCGConvergenceTest> PROCESSES 2 )
 
 waLBerla_compile_test(FILES convergence/P2SmoothConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2SmoothConvergenceTest)
@@ -107,6 +116,9 @@ endif()
 
 waLBerla_compile_test(FILES convergence/P2GSConvergenceTest.cpp DEPENDS hyteg core )
 waLBerla_execute_test(NAME P2GSConvergenceTest)
+
+waLBerla_compile_test(FILES convergence/P2P1ElementwiseUzawaConvergenceTest.cpp DEPENDS hyteg core )
+waLBerla_execute_test(NAME P2P1ElementwiseUzawaConvergenceTest)
 
 waLBerla_compile_test(FILES convergence/P2P1UzawaConvergenceTest.cpp DEPENDS hyteg core )
 waLBerla_execute_test(NAME P2P1UzawaConvergenceTest)

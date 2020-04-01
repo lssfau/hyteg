@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2020 Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -18,32 +18,39 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #pragma once
-#include <vector>
+
+#include "core/DataTypes.h"
 
 #include "hyteg/solvers/Solver.hpp"
 
 namespace hyteg {
 
 template < class OperatorType >
-class IdentityPreconditioner : public Solver< OperatorType >
+class WeightedJacobiSmoother : public Solver< OperatorType >
 {
  public:
-   IdentityPreconditioner()
-   : updateType_( Replace )
+   WeightedJacobiSmoother( const std::shared_ptr< PrimitiveStorage >& storage,
+                           uint_t                                     minLevel,
+                           uint_t                                     maxLevel,
+                           const real_t&                              relax )
+   : relax_( relax )
+   , tmp_( "tmp_weighted_jacobi", storage, minLevel, maxLevel )
    , flag_( hyteg::Inner | hyteg::NeumannBoundary )
    {}
 
-   void solve( const OperatorType&,
+   void solve( const OperatorType&                   A,
                const typename OperatorType::srcType& x,
                const typename OperatorType::dstType& b,
-               const uint_t                          level ) override
+               const walberla::uint_t                level ) override
    {
-      x.assign( {1.0}, {b}, level, flag_ );
+      tmp_.assign( {1.0}, {x}, level, All );
+      A.smooth_jac( x, b, tmp_, relax_, level, flag_ );
    }
 
  private:
-   UpdateType updateType_;
-   DoFType    flag_;
+   real_t                         relax_;
+   typename OperatorType::srcType tmp_;
+   DoFType                        flag_;
 };
 
 } // namespace hyteg

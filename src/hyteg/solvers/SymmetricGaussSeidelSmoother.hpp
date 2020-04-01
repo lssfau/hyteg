@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2020 Dominik Thoennes, Nils Kohl
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -17,33 +17,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 #pragma once
-#include <vector>
+
+#include "core/DataTypes.h"
 
 #include "hyteg/solvers/Solver.hpp"
+#include "hyteg/types/flags.hpp"
 
 namespace hyteg {
 
 template < class OperatorType >
-class IdentityPreconditioner : public Solver< OperatorType >
+class SymmetricGaussSeidelSmoother : public Solver< OperatorType >
 {
  public:
-   IdentityPreconditioner()
-   : updateType_( Replace )
-   , flag_( hyteg::Inner | hyteg::NeumannBoundary )
+   SymmetricGaussSeidelSmoother()
+   : flag_( hyteg::Inner | hyteg::NeumannBoundary )
    {}
 
-   void solve( const OperatorType&,
+   void solve( const OperatorType&                   A,
                const typename OperatorType::srcType& x,
                const typename OperatorType::dstType& b,
-               const uint_t                          level ) override
+               const walberla::uint_t                level ) override
    {
-      x.assign( {1.0}, {b}, level, flag_ );
+      A.smooth_gs( x, b, level, flag_ );
+      A.smooth_gs_backwards( x, b, level, flag_ );
    }
 
  private:
-   UpdateType updateType_;
-   DoFType    flag_;
+   DoFType flag_;
 };
 
 } // namespace hyteg

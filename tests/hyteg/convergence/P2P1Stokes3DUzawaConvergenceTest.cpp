@@ -24,9 +24,9 @@
 #include "core/timing/TimingJSON.h"
 
 #include "hyteg/FunctionProperties.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -35,13 +35,12 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
-#include "hyteg/solvers/preconditioners/StokesBlockDiagonalPreconditioner.hpp"
-#include "hyteg/solvers/preconditioners/StokesPressureBlockPreconditioner.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
+#include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
@@ -137,8 +136,10 @@ int main( int argc, char* argv[] )
         PressurePreconditioner_T;
    auto pressurePrec = std::make_shared< PressurePreconditioner_T >( storage, minLevel, maxLevel );
 
+   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P2P1TaylorHoodStokesOperator::VelocityOperator_T > >();
+   auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P2P1TaylorHoodStokesOperator > >( storage, gaussSeidel );
    auto smoother =
-       std::make_shared< hyteg::UzawaSmoother< hyteg::P2P1TaylorHoodStokesOperator > >( storage, minLevel, maxLevel, 0.4 );
+       std::make_shared< hyteg::UzawaSmoother< hyteg::P2P1TaylorHoodStokesOperator > >( storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.4 );
    auto restriction      = std::make_shared< hyteg::P2P1StokesToP2P1StokesRestriction >( true );
    auto prolongation     = std::make_shared< hyteg::P2P1StokesToP2P1StokesProlongation >();
    auto coarseGridSolver = std::make_shared< hyteg::PETScLUSolver< hyteg::P2P1TaylorHoodStokesOperator > >( storage, minLevel );
