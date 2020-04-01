@@ -36,7 +36,8 @@ class GeometryMap
       POLAR_COORDS      = 3,
       ANNULUS           = 4,
       ICOSAHEDRAL_SHELL = 5,
-      AFFINE_3D         = 6
+      AFFINE_2D         = 6,
+      AFFINE_3D         = 7
    };
 
    virtual ~GeometryMap(){};
@@ -53,7 +54,7 @@ class GeometryMap
    {
       WALBERLA_UNUSED( xPhys );
       WALBERLA_UNUSED( xComp );
-      WALBERLA_ABORT( "GeometryMap::evalFinv() not implemented for this map" );
+      WALBERLA_ABORT( "GeometryMap::evalFinv() not implemented for current child map" );
    }
 
    /// Evaluation of the Jacobian matrix at reference position \p x

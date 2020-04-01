@@ -101,8 +101,6 @@ class P1ToP2FenicsForm : public Form
    /// The method computes the local element matrix for the triangle
    /// given by the vertex coordinates. It returns the complete matrix.
    ///
-   /// \Note Row and column indices correspond to FEniCS ordering for P1toP2 mixed element
-   ///
    /// \param coords  The coordinates of the three vertices of the triangle
    /// \param elMat   On return is filled with the matrix entries
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrixr< 6, 3 > & elMat ) const
@@ -114,8 +112,6 @@ class P1ToP2FenicsForm : public Form
    ///
    /// The method computes the local element matrix for the tetrahedron
    /// given by the vertex coordinates. It returns the complete matrix.
-   ///
-   /// \Note Row and column indices correspond to FEniCS ordering for P1toP2 mixed element
    ///
    /// \param coords  The coordinates of the four vertices of the tetrahedron
    /// \param elMat   On return is filled with the matrix entries

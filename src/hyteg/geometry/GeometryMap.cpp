@@ -17,9 +17,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "AffineMap.hpp"
+#include "AffineMap2D.hpp"
 #include "AffineMap3D.hpp"
+#include "AnnulusMap.hpp"
 #include "CircularMap.hpp"
+#include "IcosahedralShellMap.hpp"
 #include "IdentityMap.hpp"
 #include "PolarCoordsMap.hpp"
 
@@ -47,11 +49,17 @@ std::shared_ptr< GeometryMap > GeometryMap::deserialize( walberla::mpi::RecvBuff
    case Type::IDENTITY:
       return std::make_shared< IdentityMap >();
    case Type::AFFINE:
-      return std::make_shared< AffineMap >( recvBuffer );
+      return std::make_shared< AffineMap2D >( recvBuffer );
    case Type::CIRCULAR:
       return std::make_shared< CircularMap >( recvBuffer );
    case Type::POLAR_COORDS:
       return std::make_shared< PolarCoordsMap >();
+   case Type::ANNULUS:
+      return std::make_shared< AnnulusMap >( recvBuffer );
+   case Type::ICOSAHEDRAL_SHELL:
+      return std::make_shared< IcosahedralShellMap >( recvBuffer );
+   case Type::AFFINE_2D:
+      return std::make_shared< AffineMap2D >( recvBuffer );
    case Type::AFFINE_3D:
       return std::make_shared< AffineMap3D >( recvBuffer );
    default:
