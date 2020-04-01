@@ -29,14 +29,18 @@ using walberla::uint_t;
 
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
+#include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormDiv.hpp"
+#include "hyteg/forms/form_hyteg_generated/P1FormDivT.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
+#include "hyteg/forms/form_hyteg_manual/P1ToP2FormDivT.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDiv.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
+#include "hyteg/forms/form_hyteg_manual/P2FormDivT.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2ToP1FormDiv.hpp"
@@ -124,69 +128,79 @@ void run2DTestsWithoutBlending()
    // std::array< Point3D, 3 > triangle{Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 0.0, 0.0} ), Point3D( {0.0, 1.0, 0.0} )};
 
    logSectionHeader( "P1 Mass Forms" );
-   compareForms< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >,
-                 P1Form_mass,
-                 Matrix3r,
-                 2 >( triangle, 1e-15 );
+   compareForms< P1FenicsForm< p1_mass_cell_integral_0_otherwise, fenics::NoAssemble >, P1Form_mass, Matrix3r, 2 >( triangle,
+                                                                                                                    1e-15 );
 
    logSectionHeader( "P1 Diffusion Forms" );
-   compareForms< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise >,
-                 P1Form_laplace,
-                 Matrix3r,
-                 2 >( triangle, 1e-15 );
+   compareForms< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >, P1Form_laplace, Matrix3r, 2 >(
+       triangle, 1e-15 );
 
    logSectionHeader( "P1 DivX Forms" );
-   compareForms< P1FenicsForm< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise >,
-                 P1Form_div_1,
-                 Matrix3r,
-                 2 >( triangle, 2e-15 );
+   compareForms< P1FenicsForm< p1_div_cell_integral_0_otherwise, fenics::NoAssemble >, P1Form_div_1, Matrix3r, 2 >( triangle,
+                                                                                                                    2e-15 );
 
    logSectionHeader( "P1 DivY Forms" );
-   compareForms< P1FenicsForm< p1_div_cell_integral_1_otherwise, p1_tet_div_tet_cell_integral_1_otherwise >,
-                 P1Form_div_2,
-                 Matrix3r,
-                 2 >( triangle, 2e-15 );
+   compareForms< P1FenicsForm< p1_div_cell_integral_1_otherwise, fenics::NoAssemble >, P1Form_div_2, Matrix3r, 2 >( triangle,
+                                                                                                                    2e-15 );
+
+   logSectionHeader( "P1 DivX^T Forms" );
+   compareForms< P1FenicsForm< p1_divt_cell_integral_0_otherwise, fenics::NoAssemble >, P1Form_divT_1, Matrix3r, 2 >( triangle,
+                                                                                                                      1.2e-14 );
+
+   logSectionHeader( "P1 DivY^T Forms" );
+   compareForms< P1FenicsForm< p1_divt_cell_integral_1_otherwise, fenics::NoAssemble >, P1Form_divT_2, Matrix3r, 2 >( triangle,
+                                                                                                                      1.2e-14 );
 
    logSectionHeader( "P2 Mass Forms" );
-   compareForms< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise >,
-                 P2Form_mass,
-                 Matrix6r,
-                 2 >( triangle, 5e-14 );
+   compareForms< P2FenicsForm< p2_mass_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_mass, Matrix6r, 2 >( triangle,
+                                                                                                                    5e-14 );
 
    logSectionHeader( "P2 Laplace Form" );
-   compareForms< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise >,
-                 P2Form_laplace,
-                 Matrix6r,
-                 2 >( triangle, 5e-14 );
+   compareForms< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_laplace, Matrix6r, 2 >(
+       triangle, 5e-14 );
 
    logSectionHeader( "P2 DivKGrad Form" );
-   compareForms< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise >,
-                 P2Form_divKgrad,
-                 Matrix6r,
-                 2 >( triangle, 5e-14 );
+   compareForms< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_divKgrad, Matrix6r, 2 >(
+       triangle, 5e-14 );
 
    logSectionHeader( "P2 DivX Forms" );
-   compareForms< P2FenicsForm< p2_div_cell_integral_0_otherwise, p2_tet_div_tet_cell_integral_0_otherwise >,
-                 P2Form_div< 0 >,
-                 Matrix6r,
-                 2 >( triangle, 1.5e-14 );
+   compareForms< P2FenicsForm< p2_div_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_div< 0 >, Matrix6r, 2 >( triangle,
+                                                                                                                       1.5e-14 );
 
    logSectionHeader( "P2 DivY Forms" );
-   compareForms< P2FenicsForm< p2_div_cell_integral_1_otherwise, p2_tet_div_tet_cell_integral_1_otherwise >,
-                 P2Form_div< 1 >,
-                 Matrix6r,
-                 2 >( triangle, 2e-14 );
+   compareForms< P2FenicsForm< p2_div_cell_integral_1_otherwise, fenics::NoAssemble >, P2Form_div< 1 >, Matrix6r, 2 >( triangle,
+                                                                                                                       2e-14 );
+
+   logSectionHeader( "P2 DivX^T Forms" );
+   compareForms< P2FenicsForm< p2_divt_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_divt< 0 >, Matrix6r, 2 >(
+       triangle, 1.5e-14 );
+
+   logSectionHeader( "P2 DivY^T Forms" );
+   compareForms< P2FenicsForm< p2_divt_cell_integral_1_otherwise, fenics::NoAssemble >, P2Form_divt< 1 >, Matrix6r, 2 >( triangle,
+                                                                                                                         2e-14 );
 
    logSectionHeader( "P2ToP1 DivX Forms" );
-   compareForms< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, p2_to_p1_tet_div_tet_cell_integral_0_otherwise >,
+   compareForms< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, fenics::NoAssemble >,
                  P2ToP1Form_div< 0 >,
                  Matrixr< 3, 6 >,
                  2 >( triangle, 1.2e-14 );
 
    logSectionHeader( "P2ToP1 DivY Forms" );
-   compareForms< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_1_otherwise, p2_to_p1_tet_div_tet_cell_integral_1_otherwise >,
+   compareForms< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_1_otherwise, fenics::NoAssemble >,
                  P2ToP1Form_div< 1 >,
                  Matrixr< 3, 6 >,
+                 2 >( triangle, 1.2e-14 );
+
+   logSectionHeader( "P1ToP2 DivX^T Forms" );
+   compareForms< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, fenics::NoAssemble >,
+                 P1ToP2Form_divt< 0 >,
+                 Matrixr< 6, 3 >,
+                 2 >( triangle, 1.2e-14 );
+
+   logSectionHeader( "P1ToP2 DivY^T Forms" );
+   compareForms< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, fenics::NoAssemble >,
+                 P1ToP2Form_divt< 1 >,
+                 Matrixr< 6, 3 >,
                  2 >( triangle, 1.2e-14 );
 }
 
@@ -205,52 +219,68 @@ void run2DTestsWithAffineMap()
    // std::array< Point3D, 3 > triangle{Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 0.0, 0.0} ), Point3D( {0.0, 1.0, 0.0} )};
 
    logSectionHeader( "P1 Mass Forms" );
-   compareScaled< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >,
-                  P1Form_mass,
-                  Matrix3r,
-                  2 >( triangle, 1e-15, map, mat( 0, 0 ) * mat( 1, 1 ) );
+   compareScaled< P1FenicsForm< p1_mass_cell_integral_0_otherwise, fenics::NoAssemble >, P1Form_mass, Matrix3r, 2 >(
+       triangle, 1e-15, map, mat( 0, 0 ) * mat( 1, 1 ) );
 
    logSectionHeader( "P2 Mass Forms" );
-   compareScaled< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise >,
-                  P2Form_mass,
-                  Matrix6r,
-                  2 >( triangle, 8e-14, map, mat( 0, 0 ) * mat( 1, 1 ) );
+   compareScaled< P2FenicsForm< p2_mass_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_mass, Matrix6r, 2 >(
+       triangle, 8e-14, map, mat( 0, 0 ) * mat( 1, 1 ) );
 
    logSectionHeader( "P2ToP1 DivX Forms" );
-   compareScaled< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, p2_to_p1_tet_div_tet_cell_integral_0_otherwise >,
+   compareScaled< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, fenics::NoAssemble >,
                   P2ToP1Form_div< 0 >,
                   Matrixr< 3, 6 >,
                   2 >( triangle, 2.5e-14, map, mat( 1, 1 ) );
 
    logSectionHeader( "P2ToP1 DivY Forms" );
-   compareScaled< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_1_otherwise, p2_to_p1_tet_div_tet_cell_integral_1_otherwise >,
+   compareScaled< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_1_otherwise, fenics::NoAssemble >,
                   P2ToP1Form_div< 1 >,
                   Matrixr< 3, 6 >,
                   2 >( triangle, 3e-14, map, mat( 0, 0 ) );
 
    logSectionHeader( "P1 DivX Forms" );
-   compareScaled< P1FenicsForm< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise >,
-                  P1Form_div_1,
-                  Matrix3r,
-                  2 >( triangle, 2e-15, map, mat( 1, 1 ) );
+   compareScaled< P1FenicsForm< p1_div_cell_integral_0_otherwise, fenics::NoAssemble >, P1Form_div_1, Matrix3r, 2 >(
+       triangle, 2e-15, map, mat( 1, 1 ) );
 
    logSectionHeader( "P1 DivY Forms" );
-   compareScaled< P1FenicsForm< p1_div_cell_integral_1_otherwise, p1_tet_div_tet_cell_integral_1_otherwise >,
-                  P1Form_div_2,
-                  Matrix3r,
-                  2 >( triangle, 5e-15, map, mat( 0, 0 ) );
+   compareScaled< P1FenicsForm< p1_div_cell_integral_1_otherwise, fenics::NoAssemble >, P1Form_div_2, Matrix3r, 2 >(
+       triangle, 5e-15, map, mat( 0, 0 ) );
 
    logSectionHeader( "P2 DivX Forms" );
-   compareScaled< P2FenicsForm< p2_div_cell_integral_0_otherwise, p2_tet_div_tet_cell_integral_0_otherwise >,
-                  P2Form_div< 0 >,
-                  Matrix6r,
-                  2 >( triangle, 2.5e-14, map, mat( 1, 1 ) );
+   compareScaled< P2FenicsForm< p2_div_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_div< 0 >, Matrix6r, 2 >(
+       triangle, 2.5e-14, map, mat( 1, 1 ) );
 
    logSectionHeader( "P2 DivY Forms" );
-   compareScaled< P2FenicsForm< p2_div_cell_integral_1_otherwise, p2_tet_div_tet_cell_integral_1_otherwise >,
-                  P2Form_div< 1 >,
-                  Matrix6r,
-                  2 >( triangle, 2.5e-14, map, mat( 0, 0 ) );
+   compareScaled< P2FenicsForm< p2_div_cell_integral_1_otherwise, fenics::NoAssemble >, P2Form_div< 1 >, Matrix6r, 2 >(
+       triangle, 2.5e-14, map, mat( 0, 0 ) );
+
+   logSectionHeader( "P2 DivX^T Forms" );
+   compareScaled< P2FenicsForm< p2_divt_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_divt< 0 >, Matrix6r, 2 >(
+       triangle, 2.5e-14, map, mat( 1, 1 ) );
+
+   logSectionHeader( "P2 DivY^T Forms" );
+   compareScaled< P2FenicsForm< p2_divt_cell_integral_1_otherwise, fenics::NoAssemble >, P2Form_divt< 1 >, Matrix6r, 2 >(
+       triangle, 2.5e-14, map, mat( 0, 0 ) );
+
+   logSectionHeader( "P1 DivX^T Forms" );
+   compareScaled< P1FenicsForm< p1_divt_cell_integral_0_otherwise, fenics::NoAssemble >, P1Form_divT_1, Matrix3r, 2 >(
+       triangle, 1.2e-14, map, mat( 1, 1 ) );
+
+   logSectionHeader( "P1 DivY^T Forms" );
+   compareScaled< P1FenicsForm< p1_divt_cell_integral_1_otherwise, fenics::NoAssemble >, P1Form_divT_2, Matrix3r, 2 >(
+       triangle, 1.2e-14, map, mat( 0, 0 ) );
+
+   logSectionHeader( "P1ToP2 DivX^T Forms" );
+   compareScaled< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, fenics::NoAssemble >,
+                  P1ToP2Form_divt< 0 >,
+                  Matrixr< 6, 3 >,
+                  2 >( triangle, 1.2e-14, map, mat( 1, 1 ) );
+
+   logSectionHeader( "P1ToP2 DivY^T Forms" );
+   compareScaled< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, fenics::NoAssemble >,
+                  P1ToP2Form_divt< 1 >,
+                  Matrixr< 6, 3 >,
+                  2 >( triangle, 3e-14, map, mat( 0, 0 ) );
 
    // diffusion forms are not as straightforward; we just distort equally in both directions,
    // then we should get the same element matrices in 2D
@@ -259,16 +289,12 @@ void run2DTestsWithAffineMap()
    map         = std::make_shared< AffineMap2D >( mat, vec );
 
    logSectionHeader( "P1 Diffusion Forms" );
-   compareForms< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise >,
-                 P1Form_laplace,
-                 Matrix3r,
-                 2 >( triangle, 1e-15, map, real_c( 1 ) );
+   compareForms< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >, P1Form_laplace, Matrix3r, 2 >(
+       triangle, 1e-15, map, real_c( 1 ) );
 
    logSectionHeader( "P2 Laplace Form" );
-   compareForms< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise >,
-                 P2Form_laplace,
-                 Matrix6r,
-                 2 >( triangle, 5e-14, map, real_c( 1 ) );
+   compareForms< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_laplace, Matrix6r, 2 >(
+       triangle, 5e-14, map, real_c( 1 ) );
 }
 
 int main( int argc, char** argv )
@@ -300,17 +326,13 @@ int main( int argc, char** argv )
    // std::array<Point3D,4> theTet{ Point3D({0.0, 0.0, 0.0}), Point3D({1.0, 0.0, 0.0}), Point3D({0.0, 1.0, 0.0}), Point3D({0.0, 0.0, 1.0}) };
 
    logSectionHeader( "P1 Mass Forms (3D)" );
-   compareForms< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >,
-                 P1Form_mass3D,
-                 Matrix4r,
-                 3 >( theTet, 1e-8 );
+   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >( theTet,
+                                                                                                                          1e-8 );
    // 4 >( theTet, 1e-15 ); only works for lower-order quadrature rule in HyTeG form
 
    logSectionHeader( "P2 Mass Forms (3D)" );
-   compareForms< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise >,
-                 P2Form_mass,
-                 Matrix10r,
-                 3 >( theTet, 1e-8 ); // why the large difference? is our FEniCS form under-integrating?
+   compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >, P2Form_mass, Matrix10r, 3 >(
+       theTet, 1e-8 ); // why the large difference? is our FEniCS form under-integrating?
 
    return EXIT_SUCCESS;
 }
