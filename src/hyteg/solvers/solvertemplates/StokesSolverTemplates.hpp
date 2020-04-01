@@ -33,10 +33,38 @@
 
 namespace hyteg {
 
-/// \brief Contains conenience functions that assemble solvers for common problems.
+/// \brief Contains convenience functions that assemble solvers for common problems.
 namespace solvertemplates {
 
-/// \brief Returns a geometric multigrid solver for the constant-coefficient Stokes equation.
+/// \brief Returns a pressure preconditioned MINRES solver for the Stokes system.
+///
+/// The pressure is pre-multiplied with the inverse of the lumped mass matrix.
+/// It is assumed that the pressure is discretized with P1 finite elements.
+///
+/// \tparam StokesOperatorType most types of Stokes operators should be possible to pass here
+///                            since the MINRES solver does not require any knowledge about the
+///                            structure of the A-block
+/// \param storage the PrimitiveStorage that defines the domain
+/// \param level the refinement level of the grid
+/// \param absoluteTargetResidual absolute (as opposed to relative) residual as a stopping criterion for the iteration
+/// \param maxIterations if not converged to the target residual, the iteration stops after this many iterations
+///
+template < typename StokesOperatorType >
+std::shared_ptr< Solver< StokesOperatorType > > stokesMinResSolver( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                                    const uint_t&                              level,
+                                                                    const real_t& absoluteTargetResidual,
+                                                                    const uint_t& maxIterations )
+{
+   auto pressurePreconditioner =
+       std::make_shared< StokesPressureBlockPreconditioner< StokesOperatorType, P1LumpedInvMassOperator > >(
+           storage, level, level );
+   auto pressurePreconditionedMinResSolver = std::make_shared< MinResSolver< StokesOperatorType > >(
+       storage, level, level, maxIterations, absoluteTargetResidual, pressurePreconditioner );
+
+   return pressurePreconditionedMinResSolver;
+}
+
+/// \brief Returns a geometric multigrid solver for the constant-coefficient Stokes system.
 ///
 /// This solver performs a v-cycle and employs as smoother the inexact Uzawa method.
 /// The relaxation on the A-block is performed with a forward Gauss-Seidel.
