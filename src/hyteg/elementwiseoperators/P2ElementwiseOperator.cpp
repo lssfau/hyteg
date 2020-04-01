@@ -33,7 +33,10 @@ P2ElementwiseOperator< P2Form >::P2ElementwiseOperator( const std::shared_ptr< P
    {
       diagonalValues_ =
           std::unique_ptr< P2Function< real_t > >( new P2Function< real_t >( "diagonal entries", storage, minLevel, maxLevel ) );
-      computeDiagonalOperatorValues( maxLevel, true );
+      for ( uint_t level = minLevel; level <= maxLevel; level++ )
+      {
+         computeDiagonalOperatorValues( level, true );
+      }
    }
 }
 

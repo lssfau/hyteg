@@ -107,7 +107,7 @@ void runBenchmark( uint_t benchmark )
       WALBERLA_ABORT( "Invalid benchmark" )
 
    const uint_t minLevel       = 2;
-   const uint_t maxLevel       = 3;
+   const uint_t maxLevel       = 4;
    const bool   writeVTK       = false;
    const uint_t uzawaPre       = 6;
    const uint_t uzawaPost      = 6;
@@ -288,14 +288,14 @@ void runBenchmark( uint_t benchmark )
       WALBERLA_CHECK_LESS( currRes, 1.0e-10 );
       WALBERLA_CHECK_LESS( discr_l2_err_u, 5e-09 );
       WALBERLA_CHECK_LESS( discr_l2_err_v, 5e-09 );
-      WALBERLA_CHECK_LESS( discr_l2_err_p, 4e-07 );
+      WALBERLA_CHECK_LESS( discr_l2_err_p, 3e-07 );
    }
    else if ( benchmark == 1 )
    {
-      WALBERLA_CHECK_LESS( currRes, 1.0e-09 );
-      WALBERLA_CHECK_LESS( discr_l2_err_u, 3.5e-04 );
-      WALBERLA_CHECK_LESS( discr_l2_err_v, 6.5e-04 );
-      WALBERLA_CHECK_LESS( discr_l2_err_p, 1.5e-01 );
+      WALBERLA_CHECK_LESS( currRes, 1.0e-10 );
+      WALBERLA_CHECK_LESS( discr_l2_err_u, 3.0e-05 );
+      WALBERLA_CHECK_LESS( discr_l2_err_v, 5.0e-05 );
+      WALBERLA_CHECK_LESS( discr_l2_err_p, 4.0e-02 );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "Solving down with MINRES ..." )
@@ -330,9 +330,9 @@ void runBenchmark( uint_t benchmark )
    else if ( benchmark == 1 )
    {
       WALBERLA_CHECK_LESS( currRes, 1.0e-14 );
-      WALBERLA_CHECK_LESS( discr_l2_err_u, 3.5e-04 );
-      WALBERLA_CHECK_LESS( discr_l2_err_v, 6.5e-04 );
-      WALBERLA_CHECK_LESS( discr_l2_err_p, 1.5e-01 );
+      WALBERLA_CHECK_LESS( discr_l2_err_u, 3.0e-05 );
+      WALBERLA_CHECK_LESS( discr_l2_err_v, 5.0e-05 );
+      WALBERLA_CHECK_LESS( discr_l2_err_p, 4.0e-02 );
    }
 
    if ( writeVTK )
