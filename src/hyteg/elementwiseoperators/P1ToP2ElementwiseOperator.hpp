@@ -27,6 +27,7 @@
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
+#include "hyteg/forms/form_hyteg_manual/P1ToP2FormDivT.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -129,13 +130,17 @@ class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
 
 typedef P1ToP2ElementwiseOperator<
     P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise > >
-    P1toP2ElementwiseDivTxOperator;
+    P1ToP2ElementwiseDivTxOperator;
 
 typedef P1ToP2ElementwiseOperator<
     P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise > >
-    P1toP2ElementwiseDivTyOperator;
+    P1ToP2ElementwiseDivTyOperator;
 
 typedef P1ToP2ElementwiseOperator< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >
-    P1toP2ElementwiseDivTzOperator;
+    P1ToP2ElementwiseDivTzOperator;
+
+typedef P1ToP2ElementwiseOperator< P1ToP2Form_divt< 0 > > P1ToP2ElementwiseBlendingDivTxOperator;
+typedef P1ToP2ElementwiseOperator< P1ToP2Form_divt< 1 > > P1ToP2ElementwiseBlendingDivTyOperator;
+
 
 } // namespace hyteg
