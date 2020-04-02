@@ -76,12 +76,12 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
    }
 
    P2ElementwiseLaplaceOperator   A;
-   P2toP1ElementwiseDivxOperator  div_x;
-   P2toP1ElementwiseDivyOperator  div_y;
-   P2toP1ElementwiseDivzOperator  div_z;
-   P1toP2ElementwiseDivTxOperator divT_x;
-   P1toP2ElementwiseDivTyOperator divT_y;
-   P1toP2ElementwiseDivTzOperator divT_z;
+   P2ToP1ElementwiseDivxOperator  div_x;
+   P2ToP1ElementwiseDivyOperator  div_y;
+   P2ToP1ElementwiseDivzOperator  div_z;
+   P1ToP2ElementwiseDivTxOperator divT_x;
+   P1ToP2ElementwiseDivTyOperator divT_y;
+   P1ToP2ElementwiseDivTzOperator divT_z;
 
    /// this operator is need in the uzawa smoother
 //   P1ElementwisePSPGOperator        pspg_;
