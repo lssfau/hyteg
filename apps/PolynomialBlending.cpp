@@ -31,6 +31,7 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
+#include "hyteg/p2functionspace/P2VariableOperator.hpp"
 #include "hyteg/p1functionspace/P1PolynomialBlendingOperator.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
@@ -55,7 +56,6 @@ typedef std::function<real_t(const hyteg::Point3D&)> c_function;
 
 struct P1Space
 {
-  static constexpr bool LSQP = false;
   typedef hyteg::P1Function<real_t> Function;
   typedef hyteg::P1BlendingMassOperator Mass;
   typedef hyteg::P1BlendingLaplaceOperator Laplace;
@@ -70,7 +70,6 @@ struct P1Space
 
 struct P1Space_LSQP
 {
-  static constexpr bool LSQP = true;
   static uint_t polyDegree;
   static uint_t interpolationLevel;
   typedef hyteg::P1Function<real_t> Function;
@@ -292,7 +291,7 @@ int main(int argc, char* argv[])
   {
     for (const auto& it : setupStorage.getFaces())
     {
-      Face& face = *(it.second);
+      hyteg::Face& face = *(it.second);
 
       std::vector< PrimitiveID > neighborEdgesOnBoundary = face.neighborEdges();
       neighborEdgesOnBoundary.erase(
@@ -301,7 +300,7 @@ int main(int argc, char* argv[])
 
       if (neighborEdgesOnBoundary.size() > 0)
       {
-        Edge& edge = *setupStorage.getEdge(neighborEdgesOnBoundary[0]);
+        hyteg::Edge& edge = *setupStorage.getEdge(neighborEdgesOnBoundary[0]);
 
         if ((edge.getCoordinates()[0] - circleCenter).norm() < middle)
         {

@@ -30,6 +30,9 @@
 
 #include <hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp>
 
+#include <hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp>
+#include <hyteg/forms/form_hyteg_manual/P2FormMass.hpp>
+
 #include <hyteg/communication/Syncing.hpp>
 #include <hyteg/types/pointnd.hpp>
 
@@ -56,14 +59,14 @@ class P2VariableOperator : public Operator<P2Function<real_t>, P2Function<real_t
 
       communication::syncP2FunctionBetweenPrimitives(src, level);
 
-      vertexdof::VertexDoFFunction<real_t>&  srcVertexDoF   = src.getVertexDoFFunction();
-      EdgeDoFFunction<real_t>&               srcEdgeDoF     = src.getEdgeDoFFunction();
-      vertexdof::VertexDoFFunction<real_t>&  dstVertexDoF   = dst.getVertexDoFFunction();
-      EdgeDoFFunction<real_t>&               dstEdgeDoF     = dst.getEdgeDoFFunction();
+      const vertexdof::VertexDoFFunction<real_t>&  srcVertexDoF   = src.getVertexDoFFunction();
+      const EdgeDoFFunction<real_t>&               srcEdgeDoF     = src.getEdgeDoFFunction();
+      const vertexdof::VertexDoFFunction<real_t>&  dstVertexDoF   = dst.getVertexDoFFunction();
+      const EdgeDoFFunction<real_t>&               dstEdgeDoF     = dst.getEdgeDoFFunction();
 
       for (auto& it : storage_->getVertices())
       {
-         Vertex& vertex = *it.second;
+         hyteg::Vertex& vertex = *it.second;
 
          const DoFType vtxFlag = dst.getBoundaryCondition().getBoundaryType(vertex.getMeshBoundaryFlag());
 
@@ -75,7 +78,7 @@ class P2VariableOperator : public Operator<P2Function<real_t>, P2Function<real_t
 
       for (auto& it : storage_->getEdges())
       {
-         Edge& edge = *it.second;
+         hyteg::Edge& edge = *it.second;
 
          const DoFType edgeFlag = dst.getBoundaryCondition().getBoundaryType(edge.getMeshBoundaryFlag());
 
@@ -87,7 +90,7 @@ class P2VariableOperator : public Operator<P2Function<real_t>, P2Function<real_t
 
       for (auto& it : storage_->getFaces())
       {
-         Face& face = *it.second;
+         hyteg::Face& face = *it.second;
 
          const DoFType faceFlag = dst.getBoundaryCondition().getBoundaryType(face.getMeshBoundaryFlag());
 
@@ -105,14 +108,14 @@ class P2VariableOperator : public Operator<P2Function<real_t>, P2Function<real_t
    {
       communication::syncP2FunctionBetweenPrimitives(dst, level);
 
-      vertexdof::VertexDoFFunction<real_t>&  dstVertexDoF   = dst.getVertexDoFFunction();
-      EdgeDoFFunction<real_t>&               dstEdgeDoF     = dst.getEdgeDoFFunction();
-      vertexdof::VertexDoFFunction<real_t>&  rhsVertexDoF   = rhs.getVertexDoFFunction();
-      EdgeDoFFunction<real_t>&               rhsEdgeDoF     = rhs.getEdgeDoFFunction();
+      const vertexdof::VertexDoFFunction<real_t>&  dstVertexDoF   = dst.getVertexDoFFunction();
+      const EdgeDoFFunction<real_t>&               dstEdgeDoF     = dst.getEdgeDoFFunction();
+      const vertexdof::VertexDoFFunction<real_t>&  rhsVertexDoF   = rhs.getVertexDoFFunction();
+      const EdgeDoFFunction<real_t>&               rhsEdgeDoF     = rhs.getEdgeDoFFunction();
 
       for (auto& it : storage_->getVertices())
       {
-         Vertex& vertex = *it.second;
+         hyteg::Vertex& vertex = *it.second;
 
          const DoFType vertexFlag = dst.getBoundaryCondition().getBoundaryType(vertex.getMeshBoundaryFlag());
 
@@ -126,7 +129,7 @@ class P2VariableOperator : public Operator<P2Function<real_t>, P2Function<real_t
 
       for (auto& it : storage_->getEdges())
       {
-         Edge& edge = *it.second;
+         hyteg::Edge& edge = *it.second;
 
          const DoFType edgeFlag = dst.getBoundaryCondition().getBoundaryType(edge.getMeshBoundaryFlag());
 
@@ -140,7 +143,7 @@ class P2VariableOperator : public Operator<P2Function<real_t>, P2Function<real_t
 
       for (auto& it : storage_->getFaces())
       {
-         Face& face = *it.second;
+         hyteg::Face& face = *it.second;
 
          const DoFType faceFlag = dst.getBoundaryCondition().getBoundaryType(face.getMeshBoundaryFlag());
 
@@ -162,7 +165,12 @@ class P2VariableOperator : public Operator<P2Function<real_t>, P2Function<real_t
                    size_t level,
                    DoFType flag) const
    {
-      WALBERLA_ABORT("To be implemented")
+      WALBERLA_ABORT("To be implemented");
    }
+};
+typedef P2VariableOperator<P2FenicsForm<p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise>> P2BlendingLaplaceOperator;
+typedef P2VariableOperator<P2FenicsForm<p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise>> P2BlendingMassOperator;
+// typedef P2VariableOperator<P2Form_laplace> P2BlendingLaplaceOperator;
+// typedef P2VariableOperator<P2Form_mass>    P2BlendingMassOperator;
 
 } // namespace hyteg
