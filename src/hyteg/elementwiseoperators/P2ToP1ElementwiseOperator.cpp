@@ -525,4 +525,8 @@ template class P2ToP1ElementwiseOperator<
 template class P2ToP1ElementwiseOperator<
     P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise > >;
 
+template class P2ToP1ElementwiseOperator< P2ToP1Form_div< 0 > >;
+template class P2ToP1ElementwiseOperator< P2ToP1Form_div< 1 > >;
+
+
 } // namespace hyteg

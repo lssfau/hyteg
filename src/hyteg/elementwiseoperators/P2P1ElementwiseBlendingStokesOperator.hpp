@@ -27,13 +27,13 @@
 
 namespace hyteg {
 
-class P2P1ElementwiseConstantCoefficientStokesOperator
+class P2P1ElementwiseBlendingStokesOperator
 : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
  public:
-   typedef P2ElementwiseLaplaceOperator VelocityOperator_T;
+   typedef P2ElementwiseBlendingLaplaceOperator VelocityOperator_T;
 
-   P2P1ElementwiseConstantCoefficientStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+   P2P1ElementwiseBlendingStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                                      size_t                                     minLevel,
                                                      size_t                                     maxLevel )
    : Operator( storage, minLevel, maxLevel )
@@ -54,6 +54,8 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
                const uint_t                            level,
                const DoFType                           flag ) const
    {
+      WALBERLA_CHECK( !hasGlobalCells_, "Elementwise Stokes operator w/ blending not implemented for 3D." );
+
       A.apply( src.u, dst.u, level, flag, Replace );
       divT_x.apply( src.p, dst.u, level, flag, Add );
 
@@ -68,20 +70,21 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
 
       div_x.apply( src.u, dst.p, level, flag, Replace );
       div_y.apply( src.v, dst.p, level, flag, Add );
-
       if ( hasGlobalCells_ )
       {
          div_z.apply( src.w, dst.p, level, flag, Add );
       }
+
+
    }
 
-   P2ElementwiseLaplaceOperator   A;
-   P2ToP1ElementwiseDivxOperator  div_x;
-   P2ToP1ElementwiseDivyOperator  div_y;
+   P2ElementwiseBlendingLaplaceOperator   A;
+   P2ToP1ElementwiseBlendingDivxOperator  div_x;
+   P2ToP1ElementwiseBlendingDivyOperator  div_y;
    P2ToP1ElementwiseDivzOperator  div_z;
-   P1ToP2ElementwiseDivTxOperator divT_x;
-   P1ToP2ElementwiseDivTyOperator divT_y;
-   P1ToP2ElementwiseDivTzOperator divT_z;
+   P1ToP2ElementwiseBlendingDivTxOperator divT_x;
+   P1ToP2ElementwiseBlendingDivTyOperator divT_y;
+   P1ToP2ElementwiseDivTzOperator         divT_z;
 
    /// this operator is need in the uzawa smoother
 //   P1ElementwisePSPGOperator        pspg_;
