@@ -26,6 +26,7 @@
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/geometry/Intersection.hpp"
@@ -58,6 +59,7 @@ namespace hyteg {
 /// and \f$ \mathcal{L} = - \Delta \f$ the negative Laplacian.
 ///
 /// To solve the unsteady diffusion equation, see UnsteadyDiffusion.
+template < template < class > class P2Operator, typename LaplaceForm_T, typename MassForm_T >
 class P2UnsteadyDiffusionOperator : public Operator< P2Function< real_t >, P2Function< real_t > >
 {
  public:
@@ -108,15 +110,21 @@ class P2UnsteadyDiffusionOperator : public Operator< P2Function< real_t >, P2Fun
    real_t dt() const { return dt_; }
 
  private:
-   typedef P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > LaplaceForm_T;
-   typedef P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise >           MassForm_T;
-
    std::shared_ptr< LaplaceForm_T >              laplaceForm_;
    std::shared_ptr< MassForm_T >                 massForm_;
    P2ConstantOperator< P2LinearCombinationForm > unsteadyDiffusionOperator_;
 
    real_t dt_;
 };
+
+typedef P2UnsteadyDiffusionOperator<
+    P2ConstantOperator,
+    P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise >,
+    P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >
+    P2ConstantUnsteadyDiffusionOperator;
+
+/// This unsteady diffusion operator supports blending.
+typedef P2UnsteadyDiffusionOperator< P2ElementwiseOperator, P2Form_laplace, P2Form_mass > P2ElementwiseUnsteadyDiffusionOperator;
 
 /// \brief Wrapper class to solve the unsteady diffusion equation in time.
 ///

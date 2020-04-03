@@ -58,6 +58,16 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                     size_t                      level,
                     DoFType                     flag ) const;
 
+   void smooth_gs( const P2Function< real_t >&, const P2Function< real_t >&, size_t, DoFType ) const
+   {
+      WALBERLA_ABORT( "Gauss-Seidel not implemented for P2ElementwiseOperator." )
+   }
+
+   void smooth_sor( const P2Function< real_t >&, const P2Function< real_t >&, real_t, size_t, DoFType ) const
+   {
+      WALBERLA_ABORT( "SOR not implemented for P2ElementwiseOperator." )
+   }
+
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    ///
    /// \param level   grid level on which the computation should be run

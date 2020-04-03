@@ -33,9 +33,9 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/solvers/controlflow/SolverLoop.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
+#include "hyteg/solvers/controlflow/SolverLoop.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -50,7 +50,8 @@ class Solution
 {
  public:
    Solution( real_t diffusivity )
-   : diffusivity_( diffusivity ), t_( 0 )
+   : diffusivity_( diffusivity )
+   , t_( 0 )
    {}
 
    real_t operator()( const Point3D& p )
@@ -70,7 +71,8 @@ class Rhs
 {
  public:
    Rhs( real_t diffusivity )
-   : diffusivity_( diffusivity ), t_( 0 )
+   : diffusivity_( diffusivity )
+   , t_( 0 )
    {}
 
    real_t operator()( const Point3D& p )
@@ -88,15 +90,16 @@ class Rhs
 
 void P2UnsteadyDiffusionTest( const uint_t& minLevel, const uint_t& maxLevel )
 {
-   const auto meshInfo = MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {0.5 * pi, 0.5 * pi} ), MeshInfo::CRISSCROSS, 2, 2 );
+   const auto meshInfo =
+       MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {0.5 * pi, 0.5 * pi} ), MeshInfo::CRISSCROSS, 2, 2 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
    writeDomainPartitioningVTK( storage, "../../output", "P2UnsteadyDiffusionTest_domain" );
 
-   const real_t dt    = 1e-3;
-   const uint_t steps = 100;
-   const bool   vtk   = false;
+   const real_t dt          = 1e-3;
+   const uint_t steps       = 100;
+   const bool   vtk         = false;
    const real_t diffusivity = 0.1;
 
    hyteg::P2Function< real_t > u( "u", storage, minLevel, maxLevel );
@@ -104,18 +107,18 @@ void P2UnsteadyDiffusionTest( const uint_t& minLevel, const uint_t& maxLevel )
    hyteg::P2Function< real_t > uExact( "uExact", storage, minLevel, maxLevel );
    hyteg::P2Function< real_t > error( "error", storage, minLevel, maxLevel );
 
-   P2UnsteadyDiffusionOperator diffusionOperator( storage, minLevel, maxLevel, dt, diffusivity );
-   P2ConstantMassOperator      M( storage, minLevel, maxLevel );
+   P2ConstantUnsteadyDiffusionOperator diffusionOperator( storage, minLevel, maxLevel, dt, diffusivity );
+   P2ConstantMassOperator              M( storage, minLevel, maxLevel );
 
-   auto coarseGridSolver = std::make_shared< CGSolver< P2UnsteadyDiffusionOperator > >( storage, minLevel, minLevel );
-   auto smoother         = std::make_shared< GaussSeidelSmoother< P2UnsteadyDiffusionOperator > >();
+   auto coarseGridSolver = std::make_shared< CGSolver< P2ConstantUnsteadyDiffusionOperator > >( storage, minLevel, minLevel );
+   auto smoother         = std::make_shared< GaussSeidelSmoother< P2ConstantUnsteadyDiffusionOperator > >();
    auto restriction      = std::make_shared< P2toP2QuadraticRestriction >();
    auto prolongation     = std::make_shared< P2toP2QuadraticProlongation >();
-   auto solver           = std::make_shared< GeometricMultigridSolver< P2UnsteadyDiffusionOperator > >(
+   auto solver           = std::make_shared< GeometricMultigridSolver< P2ConstantUnsteadyDiffusionOperator > >(
        storage, smoother, coarseGridSolver, restriction, prolongation, minLevel, maxLevel, 3, 3 );
-   auto solverLoop  = std::make_shared< SolverLoop< P2UnsteadyDiffusionOperator > >( solver, 1 );
+   auto solverLoop = std::make_shared< SolverLoop< P2ConstantUnsteadyDiffusionOperator > >( solver, 1 );
 
-   UnsteadyDiffusion< P2Function< real_t >, P2UnsteadyDiffusionOperator, P2ConstantMassOperator > diffusionSolver(
+   UnsteadyDiffusion< P2Function< real_t >, P2ConstantUnsteadyDiffusionOperator, P2ConstantMassOperator > diffusionSolver(
        storage, minLevel, maxLevel, solverLoop );
 
    hyteg::VTKOutput vtkOutput( "../../output", "P2UnsteadyDiffusionTest", storage );
