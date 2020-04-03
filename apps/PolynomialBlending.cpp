@@ -28,17 +28,24 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
-#include "hyteg/p2functionspace/P2VariableOperator.hpp"
 #include "hyteg/p1functionspace/P1PolynomialBlendingOperator.hpp"
+
+#include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2VariableOperator.hpp"
+
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
-#include "hyteg/gridtransferoperators/P1toP1QuadraticProlongation.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
+
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
+
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/geometry/CircularMap.hpp"
 #include "core/Format.hpp"
@@ -88,6 +95,20 @@ struct P1Space_LSQP
 };
 uint_t P1Space_LSQP::polyDegree = 0;
 uint_t P1Space_LSQP::interpolationLevel = 0;
+
+struct P2Space
+{
+  typedef hyteg::P2Function<real_t> Function;
+  typedef hyteg::P2BlendingMassOperator Mass;
+  typedef hyteg::P2BlendingLaplaceOperator Laplace;
+  typedef hyteg::P2toP2QuadraticRestriction Restriction;
+  typedef hyteg::P2toP2QuadraticProlongation Prolongation;
+
+  static std::shared_ptr<Laplace> laplaceOperator(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel, const uint_t maxLevel)
+  {
+    return std::make_shared<Laplace>(storage, minLevel, maxLevel);
+  }
+};
 
 
 template<typename FE>
@@ -364,7 +385,7 @@ int main(int argc, char* argv[])
     // }
     else
     {
-      WALBERLA_ABORT("To be implemented");
+      WALBERLA_ABORT("The desired FE space is not implemented");
     }
   }
   else
@@ -373,13 +394,13 @@ int main(int argc, char* argv[])
     {
       solve<P1Space>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
     }
-    // else if (FE_space == 2)
-    // {
-    //   solve<P2Space>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
-    // }
+    else if (FE_space == 2)
+    {
+      solve<P2Space>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
+    }
     else
     {
-      WALBERLA_ABORT("To be implemented");
+      WALBERLA_ABORT("The desired FE space is not implemented");
     }
   }
 
