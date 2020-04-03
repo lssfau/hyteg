@@ -574,8 +574,10 @@ waLBerla_compile_test(FILES blending/AffineMap3DTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME AffineMap3DTest1 COMMAND $<TARGET_FILE:AffineMap3DTest> )
 
 if(CMAKE_BUILD_TYPE MATCHES "Release")
+  if(NOT WALBERLA_CXX_COMPILER_IS_INTEL)
   waLBerla_compile_test(FILES blending/P2P1StokesElementwiseAnnulusBlendingTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME P2P1StokesElementwiseAnnulusBlendingTest COMMAND   $<TARGET_FILE:P2P1StokesElementwiseAnnulusBlendingTest> )
+  endif()
 endif()
 
 ## Elementwise Operators ##
