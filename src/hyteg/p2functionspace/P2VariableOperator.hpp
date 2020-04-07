@@ -168,9 +168,7 @@ class P2VariableOperator : public Operator<P2Function<real_t>, P2Function<real_t
       WALBERLA_ABORT("To be implemented");
    }
 };
-typedef P2VariableOperator<P2FenicsForm<p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise>> P2BlendingLaplaceOperator;
-typedef P2VariableOperator<P2FenicsForm<p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise>> P2BlendingMassOperator;
-// typedef P2VariableOperator<P2Form_laplace> P2BlendingLaplaceOperator;
-// typedef P2VariableOperator<P2Form_mass>    P2BlendingMassOperator;
+typedef P2VariableOperator<P2Form_laplace> P2BlendingLaplaceOperator;
+typedef P2VariableOperator<P2Form_mass>    P2BlendingMassOperator;
 
 } // namespace hyteg
