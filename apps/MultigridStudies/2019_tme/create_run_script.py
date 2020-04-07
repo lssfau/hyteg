@@ -29,6 +29,8 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax 0.3;
+    sorRelaxEstimationIterations 20;
+    sorRelaxEstimationLevel 3;
     velocitySorRelax 1.0;
 
     symmGSVelocity true;
@@ -53,11 +55,13 @@ Parameters
     postDCPostSmoothingSteps 3;
     postDCSmoothingIncrement 2;
 
+    outputBaseDirectory .;
     outputVTK false;
     outputTiming false;
     outputTimingJSON true;
     outputTimingJSONFile timing.json;
     outputSQL true;
+    outputParallelSQL false;
     outputSQLFile omega_sampling.db;
 }
 """
@@ -152,11 +156,13 @@ Parameters
     postDCPostSmoothingSteps 3;
     postDCSmoothingIncrement 2;
 
+    outputBaseDirectory .;
     outputVTK false;
     outputTiming false;
     outputTimingJSON true;
     outputTimingJSONFile timing.json;
     outputSQL true;
+    outputParallelSQL false;
     outputSQLFile fmg_benchmark.db;
 }
 """
@@ -263,11 +269,13 @@ Parameters
     postDCPostSmoothingSteps 3;
     postDCSmoothingIncrement 2;
 
+    outputBaseDirectory .;
     outputVTK false;
     outputTiming false;
     outputTimingJSON true;
     outputTimingJSONFile timing.json;
     outputSQL true;
+    outputParallelSQL false;
     outputSQLFile discretization_error.db;
 }
 """
