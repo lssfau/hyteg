@@ -87,6 +87,7 @@ int main( int argc, char* argv[] )
   P1Function< real_t > uRand1( "uRand", storage, level, level );
   P1Function< real_t > uRand2( "uRand", storage, level, level );
   P1Function< real_t > rhs( "rhs", storage, level, level );
+  P1Function< real_t > tmp( "tmp", storage, level, level );
 
   uRand1.interpolate( randFunc, level, Inner );
   uRand2.interpolate( randFunc, level, Inner );
@@ -112,7 +113,7 @@ int main( int argc, char* argv[] )
   uint_t numIts = 50;
 
   // Power Iteration
-  real_t radius = estimateSpectralRadiusWithPowerIteration( op, uRand1, numIts, storage, level );
+  real_t radius = estimateSpectralRadiusWithPowerIteration( op, uRand1, tmp, numIts, storage, level );
   WALBERLA_LOG_INFO_ON_ROOT( "Estimation for spectral radius with Power Iteration = " << std::scientific << radius );
   WALBERLA_CHECK_LESS( std::abs( 7.9 - radius ), 5e-2 );
   WALBERLA_CHECK_FLOAT_EQUAL( radius, 7.92126990394241570e+00 );
