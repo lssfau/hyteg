@@ -102,11 +102,12 @@ class UzawaSmoother : public Solver< OperatorType >
       P2P1UzawaDampingFactorEstimationOperator estimator(
           storage_, level, level, symmetricGSVelocity_, numGSIterationsVelocity_ );
       P1Function< real_t > iterationVector( "iterationVector", storage_, level, level );
+      P1Function< real_t > auxVector( "auxVector", storage_, level, level );
       walberla::math::seedRandomGenerator( 42 );
       auto randFunction = []( const Point3D& ) { return walberla::math::realRandom(); };
       iterationVector.interpolate( randFunction, level, All );
       const real_t estimatedRelaxationParameter =
-          estimateSpectralRadiusWithPowerIteration( estimator, iterationVector, numPowerIterations, storage_, level );
+          estimateSpectralRadiusWithPowerIteration( estimator, iterationVector, auxVector, numPowerIterations, storage_, level );
       relaxParam_ = estimatedRelaxationParameter;
       return estimatedRelaxationParameter;
    }
