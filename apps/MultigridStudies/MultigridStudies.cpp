@@ -990,8 +990,11 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    if ( sorRelaxEstimationIterations > 0 )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "" );
-      WALBERLA_LOG_INFO_ON_ROOT( "Estimating omega (" << sorRelaxEstimationIterations << " power iterations on level " << sorRelaxEstimationLevel << ") ..." );
-      const auto estimatedOmega = smoother->estimateAndSetRelaxationParameter( sorRelaxEstimationLevel, sorRelaxEstimationIterations );
+      WALBERLA_LOG_INFO_ON_ROOT( "Estimating omega (" << sorRelaxEstimationIterations << " power iterations on level "
+                                                      << sorRelaxEstimationLevel << ") ..." );
+      const auto estimatedOmega = estimateUzawaRelaxationParameter(
+          storage, uzawaVelocityPreconditioner, sorRelaxEstimationLevel, sorRelaxEstimationIterations, numGSVelocity );
+      smoother->setRelaxationParameter( estimatedOmega );
       WALBERLA_LOG_INFO_ON_ROOT( "Setting omega to estimate: " << estimatedOmega );
       WALBERLA_LOG_INFO_ON_ROOT( "" );
       sqlRealProperties["sor_relax"] = estimatedOmega;

@@ -44,101 +44,63 @@ namespace hyteg {
 class P2P1UzawaDampingFactorEstimationOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
  public:
-   P2P1UzawaDampingFactorEstimationOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                                             uint_t                                     minLevel,
-                                             uint_t                                     maxLevel,
-                                             const bool                                 symmetricGSVelocity     = false,
-                                             const uint_t                               numGSIterationsVelocity = 2 )
+   P2P1UzawaDampingFactorEstimationOperator( const std::shared_ptr< PrimitiveStorage >&                       storage,
+                                             const std::shared_ptr< Solver< P2P1TaylorHoodStokesOperator > >& velocitySmoother,
+                                             uint_t                                                           minLevel,
+                                             uint_t                                                           maxLevel,
+                                             const uint_t numGSIterationsVelocity = 2 )
    : Operator( storage, minLevel, maxLevel )
    , A( storage, minLevel, maxLevel )
-   , div_x( storage, minLevel, maxLevel )
-   , div_y( storage, minLevel, maxLevel )
-   , div_z( storage, minLevel, maxLevel )
-   , divT_x( storage, minLevel, maxLevel )
-   , divT_y( storage, minLevel, maxLevel )
-   , divT_z( storage, minLevel, maxLevel )
    , mass_inv_diag_( storage, minLevel, maxLevel )
    , pspg_inv_diag_( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
-   , symmetricGSVelocity_( symmetricGSVelocity )
+   , velocitySmoother_( velocitySmoother )
    , numGSIterationsVelocity_( numGSIterationsVelocity )
-   , tmp_rhs_u_( "tmp_rhs_u", storage, minLevel, maxLevel )
-   , tmp_rhs_v_( "tmp_rhs_v", storage, minLevel, maxLevel )
-   , tmp_rhs_w_( "tmp_rhs_w", storage, minLevel, maxLevel )
-   , tmp_solution_u_( "tmp_solution_u", storage, minLevel, maxLevel )
-   , tmp_solution_v_( "tmp_solution_v", storage, minLevel, maxLevel )
-   , tmp_solution_w_( "tmp_solution_w", storage, minLevel, maxLevel )
+   , tmp_rhs_( "tmp_rhs_", storage, minLevel, maxLevel )
+   , tmp_solution_( "tmp_solution_", storage, minLevel, maxLevel )
    , tmp_schur_( "tmp_schur", storage, minLevel, maxLevel )
    {}
 
-   void apply( const P1Function< real_t >& src,
-               const P1Function< real_t >& dst,
-               const uint_t                            level,
-               const DoFType                           flag ) const
+   void apply( const P1Function< real_t >& src, const P1Function< real_t >& dst, const uint_t level, const DoFType flag ) const
    {
-      tmp_solution_u_.interpolate( 0, level, All );
-      tmp_solution_v_.interpolate( 0, level, All );
-      tmp_solution_w_.interpolate( 0, level, All );
+      tmp_solution_.u.interpolate( 0, level, All );
+      tmp_solution_.v.interpolate( 0, level, All );
+      tmp_solution_.w.interpolate( 0, level, All );
 
-      divT_x.apply( src, tmp_rhs_u_, level, flag, Replace );
-      divT_y.apply( src, tmp_rhs_v_, level, flag, Replace );
+      A.divT_x.apply( src, tmp_rhs_.u, level, flag, Replace );
+      A.divT_y.apply( src, tmp_rhs_.v, level, flag, Replace );
       if ( hasGlobalCells_ )
       {
-         divT_z.apply( src, tmp_rhs_w_, level, flag, Replace );
+         A.divT_z.apply( src, tmp_rhs_.w, level, flag, Replace );
       }
 
       for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
       {
-         A.smooth_gs( tmp_solution_u_, tmp_rhs_u_, level, Inner );
-         A.smooth_gs( tmp_solution_v_, tmp_rhs_v_, level, Inner );
-         if ( hasGlobalCells_ )
-         {
-            A.smooth_gs( tmp_solution_w_, tmp_rhs_w_, level, Inner );
-         }
-
-         if ( symmetricGSVelocity_ )
-         {
-            A.smooth_gs_backwards( tmp_solution_u_, tmp_rhs_u_, level, Inner );
-            A.smooth_gs_backwards( tmp_solution_v_, tmp_rhs_v_, level, Inner );
-            if ( hasGlobalCells_ )
-            {
-               A.smooth_gs_backwards( tmp_solution_w_, tmp_rhs_w_, level, Inner );
-            }
-         }
+         velocitySmoother_->solve( A, tmp_solution_, tmp_rhs_, level );
       }
 
-      div_x.apply( tmp_solution_u_, tmp_schur_, level, flag, Replace );
-      div_y.apply( tmp_solution_v_, tmp_schur_, level, flag, Add );
+      A.div_x.apply( tmp_solution_.u, tmp_schur_, level, flag, Replace );
+      A.div_y.apply( tmp_solution_.v, tmp_schur_, level, flag, Add );
       if ( hasGlobalCells_ )
       {
-         div_z.apply( tmp_solution_w_, tmp_schur_, level, flag, Add );
+         A.div_z.apply( tmp_solution_.w, tmp_schur_, level, flag, Add );
       }
 
       mass_inv_diag_.apply( tmp_schur_, dst, level, flag, Replace );
-
    }
 
-   P2ConstantLaplaceOperator   A;
-   P2ToP1ConstantDivxOperator  div_x;
-   P2ToP1ConstantDivyOperator  div_y;
-   P2ToP1ConstantDivzOperator  div_z;
-   P1ToP2ConstantDivTxOperator divT_x;
-   P1ToP2ConstantDivTyOperator divT_y;
-   P1ToP2ConstantDivTzOperator divT_z;
+   P2P1TaylorHoodStokesOperator A;
 
-   /// this operator is need in the uzawa smoother
-   P1PSPGInvDiagOperator pspg_inv_diag_;
-   P1LumpedInvMassOperator mass_inv_diag_;
-   bool                  hasGlobalCells_;
-   bool symmetricGSVelocity_;
+   P1LumpedInvMassOperator                                   mass_inv_diag_;
+   P1PSPGInvDiagOperator                                     pspg_inv_diag_;
+   bool                                                      hasGlobalCells_;
+   std::shared_ptr< Solver< P2P1TaylorHoodStokesOperator > > velocitySmoother_;
+
    uint_t numGSIterationsVelocity_;
 
-   P2Function< real_t > tmp_rhs_u_;
-   P2Function< real_t > tmp_rhs_v_;
-   P2Function< real_t > tmp_rhs_w_;
-   P2Function< real_t > tmp_solution_u_;
-   P2Function< real_t > tmp_solution_v_;
-   P2Function< real_t > tmp_solution_w_;
+   P2P1TaylorHoodFunction< real_t > tmp_rhs_;
+   P2P1TaylorHoodFunction< real_t > tmp_solution_;
+
    P1Function< real_t > tmp_schur_;
 };
 
