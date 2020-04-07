@@ -70,6 +70,8 @@ namespace hyteg {
     op.apply( itrVec, auxVec, level, hyteg::All );
     real_t radius = 0.0;
 
+    WALBERLA_MPI_BARRIER();
+
     // run power iteration
     for( uint it = 1; it <= numIts; ++it ) {
       norm = std::sqrt( auxVec.dotGlobal( auxVec, level, hyteg::All ) );
