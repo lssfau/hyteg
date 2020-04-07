@@ -19,6 +19,7 @@
  */
 #pragma once
 
+#include "hyteg/solvers/Solver.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 #include "hyteg/mixedoperators/P1ToP2Operator.hpp"

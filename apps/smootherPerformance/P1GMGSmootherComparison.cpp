@@ -131,12 +131,13 @@ std::shared_ptr< Solver< P1ElementwiseLaplaceOperator > > setupSmoother( const s
                                                                          const std::string&                         smootherType,
                                                                          const uint_t&                              order,
                                                                          P1ElementwiseLaplaceOperator& laplaceOperator,
-                                                                         P1Function< real_t >          function )
+                                                                         P1Function< real_t >          function,
+                                                                         P1Function< real_t >          tmpFunction )
 {
    if ( smootherType == "richardson" )
    {
       auto       smoother       = std::make_shared< P1RichardsonSmoother >( storage, minLevel, maxLevel );
-      const auto spectralRadius = estimateSpectralRadiusWithPowerIteration( laplaceOperator, function, 40, storage, minLevel );
+      const auto spectralRadius = estimateSpectralRadiusWithPowerIteration( laplaceOperator, function, tmpFunction, 40, storage, minLevel );
       smoother->setWeight( 1 / spectralRadius );
       return smoother;
    }
@@ -151,7 +152,7 @@ std::shared_ptr< Solver< P1ElementwiseLaplaceOperator > > setupSmoother( const s
    {
       setupDiagonal( minLevel, maxLevel, laplaceOperator );
       auto       smoother = std::make_shared< ChebyshevSmoother< P1ElementwiseLaplaceOperator > >( storage, minLevel, maxLevel );
-      const auto spectralRadius = chebyshev::estimateRadius( laplaceOperator, minLevel, 100, storage, function );
+      const auto spectralRadius = chebyshev::estimateRadius( laplaceOperator, minLevel, 100, storage, function, tmpFunction );
       smoother->setupCoefficients( order, spectralRadius );
       return smoother;
    }
@@ -229,8 +230,9 @@ int main( int argc, char** argv )
 
    // create smoothers
    P1Function< real_t > eigenvector( "eigenvector", storage, minLevel, maxLevel );
+   P1Function< real_t > tmp( "tmp", storage, minLevel, maxLevel );
    eigenvector.interpolate( analytic_solution, minLevel, DirichletBoundary );
-   auto smoother = setupSmoother( storage, minLevel, maxLevel, smootherType, order, laplaceOperator, eigenvector );
+   auto smoother = setupSmoother( storage, minLevel, maxLevel, smootherType, order, laplaceOperator, eigenvector, tmp );
 
    auto coarseGridSolver = std::make_shared< CGSolver< P1ElementwiseLaplaceOperator > >(
        storage, minLevel, minLevel, max_coarse_iter, coarse_tolerance );
