@@ -47,7 +47,6 @@
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
-#include "hyteg/solvers/JacobiSmoother.hpp"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/geometry/CircularMap.hpp"
@@ -233,13 +232,13 @@ void compareP2(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel,
   CGsolver_const->solve(*L_const,u_const,f_const,maxLevel);
   CGsolver_ew->solve(*L_ew,u_ew,f_ew,maxLevel);
 
-  // for (uint_t k = 0; k < max_outer_iter; ++k)
-  // {
+  for (uint_t k = 0; k < max_outer_iter; ++k)
+  {
   //   // smoother_const->solve(*L_const, u_const, f_const, maxLevel);
   //   // smoother_var->solve(*L_var, u_var, f_var, maxLevel);
   //   laplaceSolver_const.solve(*L_const, u_const, f_const, maxLevel);
   //   laplaceSolver_var.solve(*L_var, u_var, f_var, maxLevel);
-  // }
+  }
   err_c_solver.assign({1.0, -1.0}, {u_const, u_var}, maxLevel);
   err_ew_solver.assign({1.0, -1.0}, {u_ew, u_var}, maxLevel);
 
