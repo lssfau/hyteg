@@ -76,6 +76,17 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       }
    }
 
+   P1PolynomialBlendingOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                 uint_t                                     minLevel,
+                                 uint_t                                     maxLevel,
+                                 uint_t                                     interpolationLevel,
+                                 uint_t                                     polyDegree )
+   : P1PolynomialBlendingOperator( storage, minLevel, maxLevel, interpolationLevel )
+   {
+      interpolateStencils(polyDegree);
+      useDegree(polyDegree);
+   }
+
    ~P1PolynomialBlendingOperator() {}
 
    void interpolateStencils( uint_t polyDegree )
