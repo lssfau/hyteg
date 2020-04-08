@@ -90,3 +90,39 @@ inline type func(uint_t polyDegree, Args&&... args)                   \
       WALBERLA_ABORT("Degree " << polyDegree << " not supported")     \
   }                                                                   \
 }
+
+#define SPECIALIZE_R_POLYNOMIAL(type, func_tmpl, func)              \
+template <typename... Args>                                         \
+inline type func(uint_t polyDegree, Args&&... args)                 \
+{                                                                   \
+  switch(polyDegree) {                                              \
+    case 0:                                                         \
+      return func_tmpl< 0 >(args...);                               \
+    case 1:                                                         \
+      return func_tmpl< 1 >(args...);                               \
+    case 2:                                                         \
+      return func_tmpl< 2 >(args...);                               \
+    case 3:                                                         \
+      return func_tmpl< 3 >(args...);                               \
+    case 4:                                                         \
+      return func_tmpl< 4 >(args...);                               \
+    case 5:                                                         \
+      return func_tmpl< 5 >(args...);                               \
+    case 6:                                                         \
+      return func_tmpl< 6 >(args...);                               \
+    case 7:                                                         \
+      return func_tmpl< 7 >(args...);                               \
+    case 8:                                                         \
+      return func_tmpl< 8 >(args...);                               \
+    case 9:                                                         \
+      return func_tmpl< 9 >(args...);                               \
+    case 10:                                                        \
+      return func_tmpl< 10 >(args...);                              \
+    case 11:                                                        \
+      return func_tmpl< 11 >(args...);                              \
+    case 12:                                                        \
+      return func_tmpl< 12 >(args...);                              \
+    default:                                                        \
+      WALBERLA_ABORT("Degree " << polyDegree << " not supported")   \
+  }                                                                 \
+}
