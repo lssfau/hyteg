@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes.
+ * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Benjamin Mann.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -25,6 +25,256 @@
 
 namespace hyteg {
 namespace P2 {
+
+enum NumStencilentries2D
+{
+   VtV = 7,
+   EtV = 12,
+   VtE = 12,
+   EtE = 15
+};
+
+
+namespace macroface {
+
+inline void applyStencil_DoF(const uint_t level, const hyteg::indexing::Index& idx,
+                             const real_t* VtVStencil, const real_t* EtVStencil,
+                             const real_t* VtEStencil, const real_t* EtEStencil,
+                             const real_t* srcVertexDoF,  const real_t* srcEdgeDoF,
+                             real_t* dstVertexDoF,  real_t* dstEdgeDoF,
+                             UpdateType update)
+{
+   typedef stencilDirection SD;
+
+   real_t tmp;
+   uint_t i = idx.col();
+   uint_t j = idx.row();
+
+   // VERTEX DoF
+   if (!vertexdof::macroface::isVertexOnBoundary(level, idx))
+   {
+      if (update == Replace)
+      {
+         tmp = walberla::real_c(0);
+      }
+      else
+      {
+         tmp = dstVertexDoF[vertexdof::macroface::indexFromVertex(level, i, j, SD::VERTEX_C)];
+      }
+
+      /// vertex to vertex
+      for (const auto& dir : vertexdof::macroface::neighborsWithCenter)
+      {
+         tmp += srcVertexDoF[vertexdof::macroface::indexFromVertex(level, i, j, dir)] *
+                VtVStencil[vertexdof::stencilIndexFromVertex(dir)];
+      }
+
+      /// edge to vertex
+      for (const auto& dir : edgedof::macroface::neighborsFromVertex)
+      {
+         tmp += srcEdgeDoF[edgedof::macroface::indexFromVertex(level, i, j, dir)] *
+                EtVStencil[edgedof::stencilIndexFromVertex(dir)];
+      }
+
+      dstVertexDoF[vertexdof::macroface::indexFromVertex(level, i, j, SD::VERTEX_C)] = tmp;
+   }
+
+   // HORIZONTAL EDGE DoF
+   if (!edgedof::macroface::isHorizontalEdgeOnBoundary(level, idx))
+   {
+      if (update == Replace)
+      {
+         tmp = walberla::real_c(0);
+      }
+      else
+      {
+         tmp = dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge(level, i, j, SD::EDGE_HO_C)];
+      }
+
+      /// vertex to edge
+      for (const auto& dir : vertexdof::macroface::neighborsFromHorizontalEdge)
+      {
+         tmp += srcVertexDoF[vertexdof::macroface::indexFromHorizontalEdge(level, i, j, dir)] *
+                VtEStencil[vertexdof::stencilIndexFromHorizontalEdge(dir)];
+      }
+
+      /// edge to edge
+      for (const auto& dir : edgedof::macroface::neighborsFromHorizontalEdge)
+      {
+         tmp += srcEdgeDoF[edgedof::macroface::indexFromHorizontalEdge(level, i, j, dir)] *
+                EtEStencil[edgedof::stencilIndexFromHorizontalEdge(dir)];
+      }
+
+      dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge(level, i, j, SD::EDGE_HO_C)] = tmp;
+   }
+
+   // VERTICAL EDGE DoF
+   if (!edgedof::macroface::isVerticalEdgeOnBoundary(level, idx))
+   {
+      if (update == Replace)
+      {
+         tmp = walberla::real_c(0);
+      }
+      else
+      {
+         tmp = dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge(level, i, j, SD::EDGE_VE_C)];
+      }
+
+      /// vertex to edge
+      for (const auto& dir : vertexdof::macroface::neighborsFromVerticalEdge)
+      {
+         tmp += srcVertexDoF[vertexdof::macroface::indexFromVerticalEdge(level, i, j, dir)] *
+                VtEStencil[vertexdof::stencilIndexFromVerticalEdge(dir)];
+      }
+
+      /// edge to edge
+      for (const auto& dir : edgedof::macroface::neighborsFromVerticalEdge)
+      {
+         tmp += srcEdgeDoF[edgedof::macroface::indexFromVerticalEdge(level, i, j, dir)] *
+                EtEStencil[edgedof::stencilIndexFromVerticalEdge(dir)];
+      }
+
+      dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge(level, i, j, SD::EDGE_VE_C)] = tmp;
+   }
+
+   // DIAGONAL EDGE DoF
+   if (!edgedof::macroface::isDiagonalEdgeOnBoundary(level, idx))
+   {
+      if (update == Replace)
+      {
+         tmp = walberla::real_c(0);
+      }
+      else
+      {
+         tmp = dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge(level, i, j, SD::EDGE_DI_C)];
+      }
+
+      /// vertex to edge
+      for (const auto& dir : vertexdof::macroface::neighborsFromDiagonalEdge)
+      {
+         tmp += srcVertexDoF[vertexdof::macroface::indexFromDiagonalEdge(level, i, j, dir)] *
+                VtEStencil[vertexdof::stencilIndexFromDiagonalEdge(dir)];
+      }
+
+      /// edge to edge
+      for (const auto& dir : edgedof::macroface::neighborsFromDiagonalEdge)
+      {
+         tmp += srcEdgeDoF[edgedof::macroface::indexFromDiagonalEdge(level, i, j, dir)] *
+                EtEStencil[edgedof::stencilIndexFromDiagonalEdge(dir)];
+      }
+
+      dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge(level, i, j, SD::EDGE_DI_C)] = tmp;
+   }
+}
+
+inline void applyGS_DoF(const uint_t level, const hyteg::indexing::Index& idx,
+                        const real_t* VtVStencil, const real_t* EtVStencil,
+                        const real_t* VtEStencil, const real_t* EtEStencil,
+                        const real_t* rhsVertexDoF,  const real_t* rhsEdgeDoF,
+                        real_t* dstVertexDoF,  real_t* dstEdgeDoF)
+{
+   typedef stencilDirection SD;
+
+   real_t tmp;
+   uint_t i = idx.col();
+   uint_t j = idx.row();
+
+   // VERTEX DoF
+   if (!vertexdof::macroface::isVertexOnBoundary(level, idx))
+   {
+      tmp = rhsVertexDoF[vertexdof::macroface::indexFromVertex(level, i, j, SD::VERTEX_C)];
+
+      /// vertex to vertex
+      for (const auto& dir : vertexdof::macroface::neighborsWithoutCenter)
+      {
+         tmp -= dstVertexDoF[vertexdof::macroface::indexFromVertex(level, i, j, dir)] *
+                VtVStencil[vertexdof::stencilIndexFromVertex(dir)];
+      }
+
+      /// edge to vertex
+      for (const auto& dir : edgedof::macroface::neighborsFromVertex)
+      {
+         tmp -= dstEdgeDoF[edgedof::macroface::indexFromVertex(level, i, j, dir)] *
+                EtVStencil[edgedof::stencilIndexFromVertex(dir)];
+      }
+
+      dstVertexDoF[vertexdof::macroface::indexFromVertex(level, i, j, SD::VERTEX_C)] =
+         tmp / VtVStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_C)];
+   }
+
+   // HORIZONTAL EDGE DoF
+   if (!edgedof::macroface::isHorizontalEdgeOnBoundary(level, idx))
+   {
+      tmp = rhsEdgeDoF[edgedof::macroface::indexFromHorizontalEdge(level, i, j, SD::EDGE_HO_C)];
+
+      /// vertex to edge
+      for (const auto& dir : vertexdof::macroface::neighborsFromHorizontalEdge)
+      {
+         tmp -= dstVertexDoF[vertexdof::macroface::indexFromHorizontalEdge(level, i, j, dir)] *
+                VtEStencil[vertexdof::stencilIndexFromHorizontalEdge(dir)];
+      }
+
+      /// edge to edge
+      for (const auto& dir : edgedof::macroface::neighborsFromHorizontalEdgeWithoutCenter)
+      {
+         tmp -= dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge(level, i, j, dir)] *
+                EtEStencil[edgedof::stencilIndexFromHorizontalEdge(dir)];
+      }
+
+      dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge(level, i, j, SD::EDGE_HO_C)] =
+         tmp / EtEStencil[edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_HO_C)];
+   }
+
+   // VERTICAL EDGE DoF
+   if (!edgedof::macroface::isVerticalEdgeOnBoundary(level, idx))
+   {
+      tmp = rhsEdgeDoF[edgedof::macroface::indexFromVerticalEdge(level, i, j, SD::EDGE_VE_C)];
+
+      /// vertex to edge
+      for (const auto& dir : vertexdof::macroface::neighborsFromVerticalEdge)
+      {
+         tmp -= dstVertexDoF[vertexdof::macroface::indexFromVerticalEdge(level, i, j, dir)] *
+                VtEStencil[vertexdof::stencilIndexFromVerticalEdge(dir)];
+      }
+
+      /// edge to edge
+      for (const auto& dir : edgedof::macroface::neighborsFromVerticalEdgeWithoutCenter)
+      {
+         tmp -= dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge(level, i, j, dir)] *
+                EtEStencil[edgedof::stencilIndexFromVerticalEdge(dir)];
+      }
+
+      dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge(level, i, j, SD::EDGE_VE_C)] =
+         tmp / EtEStencil[edgedof::stencilIndexFromVerticalEdge(SD::EDGE_VE_C)];
+   }
+
+   // DIAGONAL EDGE DoF
+   if (!edgedof::macroface::isDiagonalEdgeOnBoundary(level, idx))
+   {
+      tmp = rhsEdgeDoF[edgedof::macroface::indexFromDiagonalEdge(level, i, j, SD::EDGE_DI_C)];
+
+      /// vertex to edge
+      for (const auto& dir : vertexdof::macroface::neighborsFromDiagonalEdge)
+      {
+         tmp -= dstVertexDoF[vertexdof::macroface::indexFromDiagonalEdge(level, i, j, dir)] *
+                VtEStencil[vertexdof::stencilIndexFromDiagonalEdge(dir)];
+      }
+
+      /// edge to edge
+      for (const auto& dir : edgedof::macroface::neighborsFromDiagonalEdgeWithoutCenter)
+      {
+         tmp -= dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge(level, i, j, dir)] *
+                EtEStencil[edgedof::stencilIndexFromDiagonalEdge(dir)];
+      }
+
+      dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge(level, i, j, SD::EDGE_DI_C)] =
+         tmp / EtEStencil[edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_DI_C)];
+   }
+}
+
+} // namespace macroface
+
+
 namespace variablestencil {
 
 //template<class P2Form>
@@ -160,26 +410,28 @@ inline void edgeDoFStencilFromElMat(const Matrix6r& elMat, const std::array<uint
 namespace macroface {
 
 template <class P2Form>
-inline void assembleStencil(P2Form form, Point3D x, const Point3D& dirS, const Point3D& dirSE, const Point3D& dirE, const Point3D& dirN, const Point3D& dirNW, const Point3D& dirW, const Point3D& dirNE, std::vector<real_t>& VtVStencil, std::vector<real_t>& EtVStencil, std::vector<real_t>& VtEStencil, std::vector<real_t>& EtEStencil, Matrix6r& elMat)
+inline void assembleStencil(const P2Form& form, const Point3D& x, const Point3D& dirS, const Point3D& dirSE, const Point3D& dirE, const Point3D& dirN, const Point3D& dirNW, const Point3D& dirW, const Point3D& dirNE, std::vector<real_t>& VtVStencil, std::vector<real_t>& EtVStencil, std::vector<real_t>& VtEStencil, std::vector<real_t>& EtEStencil)
 {
    // nbr face coordinates
-   std::array<Point3D, 3> NE = {x, x + dirE, x + dirN};
-   std::array<Point3D, 3> N = {x, x + dirN, x + dirNW};
-   std::array<Point3D, 3> NW = {x, x + dirNW, x + dirW};
-   std::array<Point3D, 3> SW = {x, x + dirW, x + dirS};
-   std::array<Point3D, 3> S = {x, x + dirS, x + dirSE};
-   std::array<Point3D, 3> SE = {x, x + dirSE, x + dirE};
-   // std::array<Point3D,3> HO_N = NE;
-   std::array<Point3D, 3> HO_S = {x, x + dirE, x + dirSE};
-   std::array<Point3D, 3> VE_E = {x + dirN, x, x + dirE};
-   std::array<Point3D, 3> VE_W = {x + dirN, x, x + dirNW};
-   std::array<Point3D, 3> DI_SW = {x + dirN, x + dirE, x};
-   std::array<Point3D, 3> DI_NE = {x + dirN, x + dirE, x + dirNE};
+   const std::array<Point3D, 3> NE = {x, x + dirE, x + dirN};
+   const std::array<Point3D, 3> N = {x, x + dirN, x + dirNW};
+   const std::array<Point3D, 3> NW = {x, x + dirNW, x + dirW};
+   const std::array<Point3D, 3> SW = {x, x + dirW, x + dirS};
+   const std::array<Point3D, 3> S = {x, x + dirS, x + dirSE};
+   const std::array<Point3D, 3> SE = {x, x + dirSE, x + dirE};
+   // const std::array<Point3D,3> HO_N = NE;
+   const std::array<Point3D, 3> HO_S = {x, x + dirE, x + dirSE};
+   const std::array<Point3D, 3> VE_E = {x + dirN, x, x + dirE};
+   const std::array<Point3D, 3> VE_W = {x + dirN, x, x + dirNW};
+   const std::array<Point3D, 3> DI_SW = {x + dirN, x + dirE, x};
+   const std::array<Point3D, 3> DI_NE = {x + dirN, x + dirE, x + dirNE};
 
    std::fill(VtVStencil.begin(), VtVStencil.end(), 0.0);
    std::fill(EtVStencil.begin(), EtVStencil.end(), 0.0);
    std::fill(VtEStencil.begin(), VtEStencil.end(), 0.0);
    std::fill(EtEStencil.begin(), EtEStencil.end(), 0.0);
+
+   Matrix6r elMat;
 
    // assemble stencils
    form.integrateAll(NE, elMat);
@@ -217,7 +469,6 @@ inline void assembleStencil(P2Form form, Point3D x, const Point3D& dirS, const P
    edgeDoFStencilFromElMat(elMat, edgeDoFstencilIndices::DI_v_NE, edgeDoFstencilIndices::DI_e_NE, VtEStencil, EtEStencil);
 }
 
-
 template <class P2Form>
 inline void applyVariableStencil(uint_t level,
                                  const Face& face,
@@ -227,12 +478,10 @@ inline void applyVariableStencil(uint_t level,
                                  const PrimitiveDataID<FunctionMemory<real_t>, Face>& dstEdgeDoFID,
                                  UpdateType update)
 {
-   typedef stencilDirection SD;
-
-   real_t* srcVertexDoF = face.getData(srcVertexDoFID)->getPointer(level);
-   real_t* srcEdgeDoF   = face.getData(srcEdgeDoFID)->getPointer(level);
-   real_t* dstVertexDoF = face.getData(dstVertexDoFID)->getPointer(level);
-   real_t* dstEdgeDoF   = face.getData(dstEdgeDoFID)->getPointer(level);
+   const real_t* srcVertexDoF = face.getData(srcVertexDoFID)->getPointer(level);
+   const real_t* srcEdgeDoF   = face.getData(srcEdgeDoFID)->getPointer(level);
+   real_t* dstVertexDoF       = face.getData(dstVertexDoFID)->getPointer(level);
+   real_t* dstEdgeDoF         = face.getData(dstEdgeDoFID)->getPointer(level);
 
    Point3D x0(face.coords[0]), x;
    real_t  h = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
@@ -242,8 +491,6 @@ inline void applyVariableStencil(uint_t level,
 
    P2Form form;
    form.setGeometryMap(face.getGeometryMap());
-
-   real_t tmp = 0;
 
    // directions
    const Point3D dirS  = -d2;
@@ -255,138 +502,24 @@ inline void applyVariableStencil(uint_t level,
    const Point3D dirNE = dirN + dirE;
 
    // stencil entries
-   std::vector<real_t> vertexToVertexStencil(7);
-   std::vector<real_t> edgeToVertexStencil(12);
-   std::vector<real_t> vertexToEdgeStencil(12);
-   std::vector<real_t> edgeToEdgeStencil(15);
-   Matrix6r            elMat;
+   std::vector<real_t> vertexToVertexStencil(NumStencilentries2D::VtV);
+   std::vector<real_t> edgeToVertexStencil(NumStencilentries2D::EtV);
+   std::vector<real_t> vertexToEdgeStencil(NumStencilentries2D::VtE);
+   std::vector<real_t> edgeToEdgeStencil(NumStencilentries2D::EtE);
 
    // loop over all DOFs
    for (const auto& it : hyteg::edgedof::macroface::Iterator(level, 0))
    {
-      uint_t j = it.row();
-      uint_t i = it.col();
-      x = x0 + walberla::real_c(j) * d2 + walberla::real_c(i) * d0;
-      assembleStencil(form, x, dirS, dirSE, dirE, dirN, dirNW, dirW, dirNE, vertexToVertexStencil, edgeToVertexStencil, vertexToEdgeStencil, edgeToEdgeStencil, elMat);
+      x = x0 + walberla::real_c(it.row()) * d2 + walberla::real_c(it.col()) * d0;
 
-      ////////// VERTEX //////////
-      if (!vertexdof::macroface::isVertexOnBoundary(level, it))
-      {
-         if (update == Replace)
-         {
-            tmp = walberla::real_c(0);
-         }
-         else
-         {
-            tmp = dstVertexDoF[vertexdof::macroface::indexFromVertex(level, i, j, SD::VERTEX_C)];
-         }
+      assembleStencil(form, x, dirS, dirSE, dirE, dirN, dirNW, dirW, dirNE,
+                      vertexToVertexStencil, edgeToVertexStencil,
+                      vertexToEdgeStencil, edgeToEdgeStencil);
 
-         /// vertex to vertex
-         for (const auto& dir : vertexdof::macroface::neighborsWithCenter)
-         {
-            tmp += srcVertexDoF[vertexdof::macroface::indexFromVertex(level, i, j, dir)] *
-                   vertexToVertexStencil[vertexdof::stencilIndexFromVertex(dir)];
-         }
-
-         /// edge to vertex
-         for (const auto& dir : edgedof::macroface::neighborsFromVertex)
-         {
-            tmp += srcEdgeDoF[edgedof::macroface::indexFromVertex(level, i, j, dir)] *
-                   edgeToVertexStencil[edgedof::stencilIndexFromVertex(dir)];
-         }
-
-         dstVertexDoF[vertexdof::macroface::indexFromVertex(level, i, j, SD::VERTEX_C)] = tmp;
-      }
-
-      ////////// HORIZONTAL EDGE //////////
-      if (!edgedof::macroface::isHorizontalEdgeOnBoundary(level, it))
-      {
-         // apply Operator
-         if (update == Replace)
-         {
-            tmp = walberla::real_c(0);
-         }
-         else
-         {
-            tmp = dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge(level, i, j, SD::EDGE_HO_C)];
-         }
-
-         /// vertex to edge
-         for (const auto& dir : vertexdof::macroface::neighborsFromHorizontalEdge)
-         {
-            tmp += srcVertexDoF[vertexdof::macroface::indexFromHorizontalEdge(level, i, j, dir)] *
-                   vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge(dir)];
-         }
-
-         /// edge to edge
-         for (const auto& dir : edgedof::macroface::neighborsFromHorizontalEdge)
-         {
-            tmp += srcEdgeDoF[edgedof::macroface::indexFromHorizontalEdge(level, i, j, dir)] *
-                   edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge(dir)];
-         }
-
-         dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge(level, i, j, SD::EDGE_HO_C)] = tmp;
-      }
-
-      ////////// VERTICAL EDGE //////////
-      if (!edgedof::macroface::isVerticalEdgeOnBoundary(level, it))
-      {
-         // apply Operator
-         if (update == Replace)
-         {
-            tmp = walberla::real_c(0);
-         }
-         else
-         {
-            tmp = dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge(level, i, j, SD::EDGE_VE_C)];
-         }
-
-         /// vertex to edge
-         for (const auto& dir : vertexdof::macroface::neighborsFromVerticalEdge)
-         {
-            tmp += srcVertexDoF[vertexdof::macroface::indexFromVerticalEdge(level, i, j, dir)] *
-                   vertexToEdgeStencil[vertexdof::stencilIndexFromVerticalEdge(dir)];
-         }
-
-         /// edge to edge
-         for (const auto& dir : edgedof::macroface::neighborsFromVerticalEdge)
-         {
-            tmp += srcEdgeDoF[edgedof::macroface::indexFromVerticalEdge(level, i, j, dir)] *
-                   edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge(dir)];
-         }
-
-         dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge(level, i, j, SD::EDGE_VE_C)] = tmp;
-      }
-
-      ////////// DIAGONAL EDGE //////////
-      if (!edgedof::macroface::isDiagonalEdgeOnBoundary(level, it))
-      {
-         // apply Operator
-         if (update == Replace)
-         {
-            tmp = walberla::real_c(0);
-         }
-         else
-         {
-            tmp = dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge(level, i, j, SD::EDGE_DI_C)];
-         }
-
-         /// vertex to edge
-         for (const auto& dir : vertexdof::macroface::neighborsFromDiagonalEdge)
-         {
-            tmp += srcVertexDoF[vertexdof::macroface::indexFromDiagonalEdge(level, i, j, dir)] *
-                   vertexToEdgeStencil[vertexdof::stencilIndexFromDiagonalEdge(dir)];
-         }
-
-         /// edge to edge
-         for (const auto& dir : edgedof::macroface::neighborsFromDiagonalEdge)
-         {
-            tmp += srcEdgeDoF[edgedof::macroface::indexFromDiagonalEdge(level, i, j, dir)] *
-                   edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge(dir)];
-         }
-
-         dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge(level, i, j, SD::EDGE_DI_C)] = tmp;
-      }
+      P2::macroface::applyStencil_DoF(level, it,
+                                      vertexToVertexStencil.data(), edgeToVertexStencil.data(),
+                                      vertexToEdgeStencil.data(), edgeToEdgeStencil.data(),
+                                      srcVertexDoF, srcEdgeDoF, dstVertexDoF, dstEdgeDoF, update);
    }
 }
 
@@ -398,12 +531,10 @@ inline void smoothGSVariableStencil(uint_t level,
                                     const PrimitiveDataID<FunctionMemory<real_t>, Face>& rhsVertexDoFID,
                                     const PrimitiveDataID<FunctionMemory<real_t>, Face>& rhsEdgeDoFID)
 {
-   typedef stencilDirection SD;
-
-   real_t* dstVertexDoF = face.getData(dstVertexDoFID)->getPointer(level);
-   real_t* dstEdgeDoF   = face.getData(dstEdgeDoFID)->getPointer(level);
-   real_t* rhsVertexDoF = face.getData(rhsVertexDoFID)->getPointer(level);
-   real_t* rhsEdgeDoF   = face.getData(rhsEdgeDoFID)->getPointer(level);
+   real_t* dstVertexDoF       = face.getData(dstVertexDoFID)->getPointer(level);
+   real_t* dstEdgeDoF         = face.getData(dstEdgeDoFID)->getPointer(level);
+   const real_t* rhsVertexDoF = face.getData(rhsVertexDoFID)->getPointer(level);
+   const real_t* rhsEdgeDoF   = face.getData(rhsEdgeDoFID)->getPointer(level);
 
    Point3D x0(face.coords[0]), x;
    real_t  h = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
@@ -413,8 +544,6 @@ inline void smoothGSVariableStencil(uint_t level,
 
    P2Form form;
    form.setGeometryMap(face.getGeometryMap());
-
-   real_t tmp = 0;
 
    // directions
    const Point3D dirS  = -d2;
@@ -426,112 +555,24 @@ inline void smoothGSVariableStencil(uint_t level,
    const Point3D dirNE = dirN + dirE;
 
    // stencil entries
-   std::vector<real_t> vertexToVertexStencil(7);
-   std::vector<real_t> edgeToVertexStencil(12);
-   std::vector<real_t> vertexToEdgeStencil(12);
-   std::vector<real_t> edgeToEdgeStencil(15);
-   Matrix6r elMat;
+   std::vector<real_t> vertexToVertexStencil(NumStencilentries2D::VtV);
+   std::vector<real_t> edgeToVertexStencil(NumStencilentries2D::EtV);
+   std::vector<real_t> vertexToEdgeStencil(NumStencilentries2D::VtE);
+   std::vector<real_t> edgeToEdgeStencil(NumStencilentries2D::EtE);
 
    // loop over all DOFs
    for (const auto& it : hyteg::edgedof::macroface::Iterator(level, 0))
    {
-      uint_t j = it.row();
-      uint_t i = it.col();
-      x = x0 + walberla::real_c(j) * d2 + walberla::real_c(i) * d0;
-      assembleStencil(form, x, dirS, dirSE, dirE, dirN, dirNW, dirW, dirNE, vertexToVertexStencil, edgeToVertexStencil, vertexToEdgeStencil, edgeToEdgeStencil, elMat);
+      x = x0 + walberla::real_c(it.row()) * d2 + walberla::real_c(it.col()) * d0;
 
-      ////////// VERTEX //////////
-      if (!vertexdof::macroface::isVertexOnBoundary(level, it))
-      {
-         tmp = rhsVertexDoF[vertexdof::macroface::indexFromVertex(level, i, j, SD::VERTEX_C)];
+      assembleStencil(form, x, dirS, dirSE, dirE, dirN, dirNW, dirW, dirNE,
+                      vertexToVertexStencil, edgeToVertexStencil,
+                      vertexToEdgeStencil, edgeToEdgeStencil);
 
-         /// vertex to vertex
-         for (const auto& dir : vertexdof::macroface::neighborsWithoutCenter)
-         {
-            tmp -= dstVertexDoF[vertexdof::macroface::indexFromVertex(level, i, j, dir)] *
-                   vertexToVertexStencil[vertexdof::stencilIndexFromVertex(dir)];
-         }
-
-         /// edge to vertex
-         for (const auto& dir : edgedof::macroface::neighborsFromVertex)
-         {
-            tmp -= dstEdgeDoF[edgedof::macroface::indexFromVertex(level, i, j, dir)] *
-                   edgeToVertexStencil[edgedof::stencilIndexFromVertex(dir)];
-         }
-
-         dstVertexDoF[vertexdof::macroface::indexFromVertex(level, i, j, SD::VERTEX_C)] =
-            tmp / vertexToVertexStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_C)];
-      }
-
-      ////////// HORIZONTAL EDGE //////////
-      if (!edgedof::macroface::isHorizontalEdgeOnBoundary(level, it))
-      {
-         tmp = rhsEdgeDoF[edgedof::macroface::indexFromHorizontalEdge(level, i, j, SD::EDGE_HO_C)];
-
-         /// vertex to edge
-         for (const auto& dir : vertexdof::macroface::neighborsFromHorizontalEdge)
-         {
-            tmp -= dstVertexDoF[vertexdof::macroface::indexFromHorizontalEdge(level, i, j, dir)] *
-                   vertexToEdgeStencil[vertexdof::stencilIndexFromHorizontalEdge(dir)];
-         }
-
-         /// edge to edge
-         for (const auto& dir : edgedof::macroface::neighborsFromHorizontalEdgeWithoutCenter)
-         {
-            tmp -= dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge(level, i, j, dir)] *
-                   edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge(dir)];
-         }
-
-         dstEdgeDoF[edgedof::macroface::indexFromHorizontalEdge(level, i, j, SD::EDGE_HO_C)] =
-            tmp / edgeToEdgeStencil[edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_HO_C)];
-      }
-
-      ////////// VERTICAL EDGE //////////
-      if (!edgedof::macroface::isVerticalEdgeOnBoundary(level, it))
-      {
-         tmp = rhsEdgeDoF[edgedof::macroface::indexFromVerticalEdge(level, i, j, SD::EDGE_VE_C)];
-
-         /// vertex to edge
-         for (const auto& dir : vertexdof::macroface::neighborsFromVerticalEdge)
-         {
-            tmp -= dstVertexDoF[vertexdof::macroface::indexFromVerticalEdge(level, i, j, dir)] *
-                   vertexToEdgeStencil[vertexdof::stencilIndexFromVerticalEdge(dir)];
-         }
-
-         /// edge to edge
-         for (const auto& dir : edgedof::macroface::neighborsFromVerticalEdgeWithoutCenter)
-         {
-            tmp -= dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge(level, i, j, dir)] *
-                   edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge(dir)];
-         }
-
-         dstEdgeDoF[edgedof::macroface::indexFromVerticalEdge(level, i, j, SD::EDGE_VE_C)] =
-            tmp / edgeToEdgeStencil[edgedof::stencilIndexFromVerticalEdge(SD::EDGE_VE_C)];
-      }
-
-      ////////// DIAGONAL EDGE //////////
-      if (!edgedof::macroface::isDiagonalEdgeOnBoundary(level, it))
-      {
-         // apply GS
-         tmp = rhsEdgeDoF[edgedof::macroface::indexFromDiagonalEdge(level, i, j, SD::EDGE_DI_C)];
-
-         /// vertex to edge
-         for (const auto& dir : vertexdof::macroface::neighborsFromDiagonalEdge)
-         {
-            tmp -= dstVertexDoF[vertexdof::macroface::indexFromDiagonalEdge(level, i, j, dir)] *
-                   vertexToEdgeStencil[vertexdof::stencilIndexFromDiagonalEdge(dir)];
-         }
-
-         /// edge to edge
-         for (const auto& dir : edgedof::macroface::neighborsFromDiagonalEdgeWithoutCenter)
-         {
-            tmp -= dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge(level, i, j, dir)] *
-                   edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge(dir)];
-         }
-
-         dstEdgeDoF[edgedof::macroface::indexFromDiagonalEdge(level, i, j, SD::EDGE_DI_C)] =
-            tmp / edgeToEdgeStencil[edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_DI_C)];
-      }
+      P2::macroface::applyGS_DoF(level, it,
+                                 vertexToVertexStencil.data(), edgeToVertexStencil.data(),
+                                 vertexToEdgeStencil.data(), edgeToEdgeStencil.data(),
+                                 rhsVertexDoF, rhsEdgeDoF, dstVertexDoF, dstEdgeDoF);
    }
 }
 
@@ -540,22 +581,24 @@ inline void smoothGSVariableStencil(uint_t level,
 namespace macroedge {
 
 template <class P2Form>
-inline void assembleStencil(P2Form formS, P2Form formN, bool hasNorth, Point3D x, const Point3D& dirS, const Point3D& dirSE, const Point3D& dirE, const Point3D& dirN, const Point3D& dirNW, const Point3D& dirW, std::vector<real_t>& VtVStencil, std::vector<real_t>& EtVStencil, std::vector<real_t>& VtEStencil, std::vector<real_t>& EtEStencil, Matrix6r& elMat)
+inline void assembleStencil(const P2Form& formS, const P2Form& formN, const bool hasNorth, const Point3D& x, const Point3D& dirS, const Point3D& dirSE, const Point3D& dirE, const Point3D& dirN, const Point3D& dirNW, const Point3D& dirW, std::vector<real_t>& VtVStencil, std::vector<real_t>& EtVStencil, std::vector<real_t>& VtEStencil, std::vector<real_t>& EtEStencil)
 {
    // nbr face coordinates
-   std::array<Point3D, 3> NE = {x, x + dirE, x + dirN};
-   std::array<Point3D, 3> N = {x, x + dirN, x + dirNW};
-   std::array<Point3D, 3> NW = {x, x + dirNW, x + dirW};
-   std::array<Point3D, 3> SW = {x, x + dirW, x + dirS};
-   std::array<Point3D, 3> S = {x, x + dirS, x + dirSE};
-   std::array<Point3D, 3> SE = {x, x + dirSE, x + dirE};
-   // std::array<Point3D,3> HO_N = NE;
-   std::array<Point3D, 3> HO_S = {x, x + dirE, x + dirSE};
+   const std::array<Point3D, 3> NE = {x, x + dirE, x + dirN};
+   const std::array<Point3D, 3> N = {x, x + dirN, x + dirNW};
+   const std::array<Point3D, 3> NW = {x, x + dirNW, x + dirW};
+   const std::array<Point3D, 3> SW = {x, x + dirW, x + dirS};
+   const std::array<Point3D, 3> S = {x, x + dirS, x + dirSE};
+   const std::array<Point3D, 3> SE = {x, x + dirSE, x + dirE};
+   // const std::array<Point3D,3> HO_N = NE;
+   const std::array<Point3D, 3> HO_S = {x, x + dirE, x + dirSE};
 
    std::fill(VtVStencil.begin(), VtVStencil.end(), 0.0);
    std::fill(EtVStencil.begin(), EtVStencil.end(), 0.0);
    std::fill(VtEStencil.begin(), VtEStencil.end(), 0.0);
    std::fill(EtEStencil.begin(), EtEStencil.end(), 0.0);
+
+   Matrix6r elMat;
 
    // assemble stencils
    formS.integrateAll(SW, elMat);
@@ -596,10 +639,10 @@ inline void applyVariableStencil(uint_t level,
 {
    typedef stencilDirection SD;
 
-   real_t* srcVertexDoF = edge.getData(srcVertexDoFID)->getPointer(level);
-   real_t* srcEdgeDoF   = edge.getData(srcEdgeDoFID)->getPointer(level);
-   real_t* dstVertexDoF = edge.getData(dstVertexDoFID)->getPointer(level);
-   real_t* dstEdgeDoF   = edge.getData(dstEdgeDoFID)->getPointer(level);
+   const real_t* srcVertexDoF = edge.getData(srcVertexDoFID)->getPointer(level);
+   const real_t* srcEdgeDoF   = edge.getData(srcEdgeDoFID)->getPointer(level);
+   real_t* dstVertexDoF       = edge.getData(dstVertexDoFID)->getPointer(level);
+   real_t* dstEdgeDoF         = edge.getData(dstEdgeDoFID)->getPointer(level);
 
    real_t  h = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
 
@@ -652,20 +695,19 @@ inline void applyVariableStencil(uint_t level,
    real_t tmp = walberla::real_c(0);
 
    // stencil entries
-   std::vector<real_t> vertexToVertexStencil(7);
-   std::vector<real_t> edgeToVertexStencil(12);
-   std::vector<real_t> vertexToEdgeStencil(12);
-   std::vector<real_t> edgeToEdgeStencil(15);
-   Matrix6r elMat;
+   std::vector<real_t> vertexToVertexStencil(NumStencilentries2D::VtV);
+   std::vector<real_t> edgeToVertexStencil(NumStencilentries2D::EtV);
+   std::vector<real_t> vertexToEdgeStencil(NumStencilentries2D::VtE);
+   std::vector<real_t> edgeToEdgeStencil(NumStencilentries2D::EtE);
 
    // loop over all DOFs
    for (const auto& it : hyteg::edgedof::macroedge::Iterator(level, 0))
    {
       uint_t i = it.col();
       x = x0 + walberla::real_c(i) * dx;
-      assembleStencil(formS, formN, bool(faceN), x, dirS, dirSE, dirE, dirN, dirNW, dirW, vertexToVertexStencil, edgeToVertexStencil, vertexToEdgeStencil, edgeToEdgeStencil, elMat);
+      assembleStencil(formS, formN, bool(faceN), x, dirS, dirSE, dirE, dirN, dirNW, dirW, vertexToVertexStencil, edgeToVertexStencil, vertexToEdgeStencil, edgeToEdgeStencil);
 
-      ////////// VERTEX //////////
+      // VERTEX DoF
       if (i != 0)
       {
          if (update == Replace)
@@ -783,10 +825,10 @@ inline void smoothGSVariableStencil(uint_t level,
 {
    typedef stencilDirection SD;
 
-   real_t* dstVertexDoF = edge.getData(dstVertexDoFID)->getPointer(level);
-   real_t* dstEdgeDoF   = edge.getData(dstEdgeDoFID)->getPointer(level);
-   real_t* rhsVertexDoF = edge.getData(rhsVertexDoFID)->getPointer(level);
-   real_t* rhsEdgeDoF   = edge.getData(rhsEdgeDoFID)->getPointer(level);
+   real_t* dstVertexDoF       = edge.getData(dstVertexDoFID)->getPointer(level);
+   real_t* dstEdgeDoF         = edge.getData(dstEdgeDoFID)->getPointer(level);
+   const real_t* rhsVertexDoF = edge.getData(rhsVertexDoFID)->getPointer(level);
+   const real_t* rhsEdgeDoF   = edge.getData(rhsEdgeDoFID)->getPointer(level);
 
    real_t  h = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
 
@@ -839,20 +881,19 @@ inline void smoothGSVariableStencil(uint_t level,
    real_t tmp = walberla::real_c(0);
 
    // stencil entries
-   std::vector<real_t> vertexToVertexStencil(7);
-   std::vector<real_t> edgeToVertexStencil(12);
-   std::vector<real_t> vertexToEdgeStencil(12);
-   std::vector<real_t> edgeToEdgeStencil(15);
-   Matrix6r elMat;
+   std::vector<real_t> vertexToVertexStencil(NumStencilentries2D::VtV);
+   std::vector<real_t> edgeToVertexStencil(NumStencilentries2D::EtV);
+   std::vector<real_t> vertexToEdgeStencil(NumStencilentries2D::VtE);
+   std::vector<real_t> edgeToEdgeStencil(NumStencilentries2D::EtE);
 
    // loop over all DOFs
    for (const auto& it : hyteg::edgedof::macroedge::Iterator(level, 0))
    {
       uint_t i = it.col();
       x = x0 + walberla::real_c(i) * dx;
-      assembleStencil(formS, formN, bool(faceN), x, dirS, dirSE, dirE, dirN, dirNW, dirW, vertexToVertexStencil, edgeToVertexStencil, vertexToEdgeStencil, edgeToEdgeStencil, elMat);
+      assembleStencil(formS, formN, bool(faceN), x, dirS, dirSE, dirE, dirN, dirNW, dirW, vertexToVertexStencil, edgeToVertexStencil, vertexToEdgeStencil, edgeToEdgeStencil);
 
-      ////////// VERTEX //////////
+      // VERTEX DoF
       if (i != 0)
       {
          tmp = rhsVertexDoF[vertexdof::macroedge::indexFromVertex(level, i, SD::VERTEX_C)];
@@ -998,9 +1039,9 @@ inline void applyVariableStencil(uint_t level,
                                  const PrimitiveDataID<FunctionMemory<real_t>, Vertex>& dstVertexDoFID,
                                  UpdateType update)
 {
-   real_t* srcVertexDoF = vertex.getData(srcVertexDoFID)->getPointer(level);
-   real_t* srcEdgeDoF   = vertex.getData(srcEdgeDoFID)->getPointer(level);
-   real_t* dstVertexDoF = vertex.getData(dstVertexDoFID)->getPointer(level);
+   const real_t* srcVertexDoF = vertex.getData(srcVertexDoFID)->getPointer(level);
+   const real_t* srcEdgeDoF   = vertex.getData(srcEdgeDoFID)->getPointer(level);
+   real_t* dstVertexDoF       = vertex.getData(dstVertexDoFID)->getPointer(level);
 
    const uint_t NE = vertex.getNumNeighborEdges();
    const uint_t NF = vertex.getNumNeighborFaces();
@@ -1033,9 +1074,9 @@ inline void smoothGSVariableStencil(uint_t level,
                                     const PrimitiveDataID<FunctionMemory<real_t>, Vertex>& dstEdgeDoFID,
                                     const PrimitiveDataID<FunctionMemory<real_t>, Vertex>& rhsVertexDoFID)
 {
-   real_t* dstVertexDoF = vertex.getData(dstVertexDoFID)->getPointer(level);
-   real_t* dstEdgeDoF   = vertex.getData(dstEdgeDoFID)->getPointer(level);
-   real_t* rhsVertexDoF = vertex.getData(rhsVertexDoFID)->getPointer(level);
+   real_t* dstVertexDoF       = vertex.getData(dstVertexDoFID)->getPointer(level);
+   real_t* dstEdgeDoF         = vertex.getData(dstEdgeDoFID)->getPointer(level);
+   const real_t* rhsVertexDoF = vertex.getData(rhsVertexDoFID)->getPointer(level);
 
    const uint_t NE = vertex.getNumNeighborEdges();
    const uint_t NF = vertex.getNumNeighborFaces();
