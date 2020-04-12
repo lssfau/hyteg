@@ -37,6 +37,7 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2VariableOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/p2functionspace/P2PolynomialBlendingOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
@@ -91,10 +92,7 @@ struct P1Space_LSQP
 
   static std::shared_ptr<Laplace> laplaceOperator(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel, const uint_t maxLevel)
   {
-    auto L = std::make_shared<Laplace>(storage, minLevel, maxLevel, interpolationLevel);
-    L->interpolateStencils(polyDegree);
-    L->useDegree(polyDegree);
-    return L;
+    return std::make_shared<Laplace>(storage, minLevel, maxLevel, interpolationLevel, polyDegree);
   }
 };
 uint_t P1Space_LSQP::polyDegree = 0;
@@ -113,6 +111,24 @@ struct P2Space
     return std::make_shared<Laplace>(storage, minLevel, maxLevel);
   }
 };
+
+struct P2Space_LSQP
+{
+  static uint_t polyDegree;
+  static uint_t interpolationLevel;
+  typedef hyteg::P2Function<real_t> Function;
+  typedef hyteg::P2BlendingMassOperator Mass;
+  typedef hyteg::P2PolynomialBlendingLaplaceOperator Laplace;
+  typedef hyteg::P2toP2QuadraticRestriction Restriction;
+  typedef hyteg::P2toP2QuadraticProlongation Prolongation;
+
+  static std::shared_ptr<Laplace> laplaceOperator(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel, const uint_t maxLevel)
+  {
+    return std::make_shared<Laplace>(storage, minLevel, maxLevel, interpolationLevel, polyDegree);
+  }
+};
+uint_t P2Space_LSQP::polyDegree = 0;
+uint_t P2Space_LSQP::interpolationLevel = 0;
 
 struct P2Space_const
 {
@@ -554,12 +570,12 @@ int main(int argc, char* argv[])
         P1Space_LSQP::polyDegree = maxPolyDegree;
         solve<P1Space_LSQP>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
       }
-      // else if (FE_space == 2)
-      // {
-        // P2Space_LSQP::interpolationLevel = interpolationLevel;
-        // P2Space_LSQP::polyDegree = maxPolyDegree;
-        // solve<P2Space_LSQP>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
-      // }
+      else if (FE_space == 2)
+      {
+        P2Space_LSQP::interpolationLevel = interpolationLevel;
+        P2Space_LSQP::polyDegree = maxPolyDegree;
+        solve<P2Space_LSQP>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
+      }
       else
       {
         WALBERLA_ABORT("The desired FE space is not implemented");
