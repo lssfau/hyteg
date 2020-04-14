@@ -64,9 +64,12 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    {
       WALBERLA_CHECK_EQUAL( level, allocatedLevel_ );
 
+      walberla::WcTimer timer;
+
       x.getStorage()->getTimingTree()->start( "PETSc block prec MinRes Solver" );
 
       x.getStorage()->getTimingTree()->start( "Setup" );
+      timer.start();
 
       x.getStorage()->getTimingTree()->start( "Index set setup" );
       num.enumerate( level );
@@ -176,20 +179,27 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
         PCSetType( pc_p, PCJACOBI );
       }
 
+      timer.end();
+      const double hytegToPetscSetup = timer.last();
       x.getStorage()->getTimingTree()->stop( "Setup" );
 
       x.getStorage()->getTimingTree()->start( "Solve" );
 
+      timer.start();
       KSPSolve( ksp, bVec.get(), xVec.get() );
+      timer.end();
+      const double petscKSPTimer = timer.last();
+
+      x.getStorage()->getTimingTree()->stop( "Solve" );
 
       if ( verbose_ )
       {
          PetscInt numKSPIterations;
          KSPGetIterationNumber( ksp, &numKSPIterations );
-         WALBERLA_LOG_INFO_ON_ROOT( "[PETScBlockPreconditionedStokesSolver] num KSP iterations: " << numKSPIterations );
+         WALBERLA_LOG_INFO_ON_ROOT( "[PETScBlockPreconditionedStokesSolver] num KSP iterations: " << numKSPIterations << " | "
+                                                                                                  << "PETSc KSPSolver time: " << petscKSPTimer << " | "
+                                                                                                  << "HyTeG to PETSc setup: " << hytegToPetscSetup );
       }
-
-      x.getStorage()->getTimingTree()->stop( "Solve" );
 
       xVec.createFunctionFromVector( x, num, level, flag_ );
 
