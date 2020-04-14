@@ -30,7 +30,25 @@ class FacePolynomialMemory
  public:
 
    template <NumStencilentries2D N>
-   using StencilPolynomial = std::array<std::shared_ptr<GeneralPolynomial2D>, N>;
+   class StencilPolynomial
+   {
+    public:
+
+      inline void initialize(uint_t degree)
+      {
+         for (uint_t i = 0; i < N; ++i)
+         {
+            data_[i] = std::make_shared<GeneralPolynomial2D>(degree);
+         }
+      }
+
+      inline GeneralPolynomial2D& operator[](uint_t i) {return *data_[i];}
+
+      inline const GeneralPolynomial2D& operator[](uint_t i) const {return *data_[i];}
+
+    private:
+      std::array<std::shared_ptr<GeneralPolynomial2D>, N> data_;
+   };
 
    struct FacePolynomials
    {
@@ -50,11 +68,10 @@ class FacePolynomialMemory
       }
 
       FacePolynomials& poly = polynomials_[degree];
-
-      initializePolynomial<NumStencilentries2D::VtV>(poly.VtV, degree);
-      initializePolynomial<NumStencilentries2D::EtV>(poly.EtV, degree);
-      initializePolynomial<NumStencilentries2D::VtE>(poly.VtE, degree);
-      initializePolynomial<NumStencilentries2D::EtE>(poly.EtE, degree);
+      poly.VtV.initialize(degree);
+      poly.EtV.initialize(degree);
+      poly.VtE.initialize(degree);
+      poly.EtE.initialize(degree);
 
       return poly;
    }
@@ -71,15 +88,6 @@ class FacePolynomialMemory
 
 
  private:
-
-   template <NumStencilentries2D N>
-   inline void initializePolynomial(StencilPolynomial<N>& poly, uint_t degree)
-   {
-      for (uint_t i = 0; i < N; ++i)
-      {
-         poly[i] = std::make_shared<GeneralPolynomial2D>(degree);
-      }
-   }
 
    std::map<uint_t, FacePolynomials> polynomials_;
 };

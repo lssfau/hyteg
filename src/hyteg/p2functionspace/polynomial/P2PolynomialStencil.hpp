@@ -46,7 +46,7 @@ class PolynomialStencil
    {
       for (uint_t i = 0; i < N; ++i)
       {
-         evaluator_[i] = std::make_shared<Polynomial2DEvaluator>(*poly[i]);
+         evaluator_[i] = std::make_shared<Polynomial2DEvaluator>(poly[i]);
       }
    }
 
