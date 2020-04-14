@@ -51,6 +51,7 @@
 
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/geometry/CircularMap.hpp"
+#include "hyteg/geometry/AnnulusMap.hpp"
 #include "core/Format.hpp"
 
 using walberla::real_t;
@@ -460,8 +461,9 @@ int main(int argc, char* argv[])
   const bool blending = parameters.getParameter<bool>("blending");
   const bool annulus = parameters.getParameter<bool>("annulus");
   const uint_t maxPolyDegree = parameters.getParameter<uint_t>("maxPolyDegree");
-  const uint_t maxInterpolationLevel = parameters.getParameter<uint_t>("interpolationLevel");
-  const uint_t interpolationLevel = std::min(maxLevel, maxInterpolationLevel);
+  // const uint_t maxInterpolationLevel = parameters.getParameter<uint_t>("interpolationLevel");
+  // const uint_t interpolationLevel = std::min(maxLevel, maxInterpolationLevel);
+  const uint_t interpolationLevel = parameters.getParameter<uint_t>("interpolationLevel");
 
   const uint_t max_outer_iter =  parameters.getParameter<uint_t>("max_outer_iter");
   const uint_t max_cg_iter =  parameters.getParameter<uint_t>("max_cg_iter");
@@ -497,60 +499,34 @@ int main(int argc, char* argv[])
   }
 
   // define functions and domain
+
   /// case rectangle
   c_function exact = [](const hyteg::Point3D & x) {return sin(PI*x[0])*sin(PI* x[1]);};
   c_function boundary = [](const hyteg::Point3D &) {return 0;};
   c_function rhs = [](const hyteg::Point3D & x) {return 2*PI*PI*sin(PI*x[0])*sin(PI* x[1]);};
 
-  std::string meshfile = "../data/meshes/quad_2el.msh";
+  MeshInfo meshInfo = MeshInfo::meshRectangle(Point2D({0.0, 0.0}), Point2D({1.0, 1.0}), MeshInfo::CRISS, 1, 1);
 
   /// case annulus
-  Point3D circleCenter{{0, 0, 0}};
-  real_t innerRadius = 1.0;
-  real_t outerRadius = 2.0;
-  real_t middle = (outerRadius + innerRadius) / 2.0;
-
   if (annulus)
   {
+    Point3D circleCenter{{0, 0, 0}};
+    real_t innerRadius = 1.0;
+    real_t outerRadius = 2.0;
+    real_t middle = (outerRadius + innerRadius) / 2.0;
+
     exact = [](const hyteg::Point3D & x) {return sin(x[0] * x[0] + x[1] * x[1]);};
     boundary = [circleCenter, innerRadius, outerRadius, middle](const hyteg::Point3D & x) {return ((x - circleCenter).norm() < middle) ? sin(innerRadius * innerRadius) : sin(outerRadius * outerRadius);};
     rhs = [](const hyteg::Point3D & x) {return - 4 * cos(x[0] * x[0] + x[1] * x[1]) + 4 * (x[0] * x[0] + x[1] * x[1]) * sin(x[0] * x[0] + x[1] * x[1]);};
 
-    meshfile = "../data/meshes/annulus_coarse.msh";
+    meshInfo = MeshInfo::meshAnnulus(innerRadius, outerRadius, MeshInfo::CRISS, 4, 1);
   }
-
-  MeshInfo meshInfo = MeshInfo::fromGmshFile(meshfile);
 
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
-
-  // apply Geometrymap
+  setupStorage.setMeshBoundaryFlagsOnBoundary(1, 0, true);
 
   if (annulus && blending)
-  {
-    for (const auto& it : setupStorage.getEdges())
-    {
-      if (setupStorage.onBoundary(it.first))
-      {
-        hyteg::Edge& edge = *(it.second);
-        hyteg::Face& face = *setupStorage.getFace(edge.neighborFaces()[0]);
-
-        if ((edge.getCoordinates()[0] - circleCenter).norm() < middle)
-        {
-          setupStorage.setGeometryMap(edge.getID(),
-                                      std::make_shared< CircularMap >(face, setupStorage, circleCenter, innerRadius));
-          setupStorage.setGeometryMap(face.getID(),
-                                      std::make_shared< CircularMap >(face, setupStorage, circleCenter, innerRadius));
-        }
-        else
-        {
-          setupStorage.setGeometryMap(edge.getID(),
-                                      std::make_shared< CircularMap >(face, setupStorage, circleCenter, outerRadius));
-          setupStorage.setGeometryMap(face.getID(),
-                                      std::make_shared< CircularMap >(face, setupStorage, circleCenter, outerRadius));
-        }
-      }
-    }
-  }
+    AnnulusMap::setMap(setupStorage);
 
   hyteg::loadbalancing::roundRobin(setupStorage);
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
