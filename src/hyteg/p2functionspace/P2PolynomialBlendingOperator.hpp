@@ -115,10 +115,10 @@ class P2PolynomialBlendingOperator : public Operator<P2Function<real_t>, P2Funct
       real_t  H = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(interpolationLevel_) - 1));
 
       // stencil entries
-      std::vector<real_t> vertexToVertexStencil(P2::NumStencilentries2D::VtV);
-      std::vector<real_t> edgeToVertexStencil(P2::NumStencilentries2D::EtV);
-      std::vector<real_t> vertexToEdgeStencil(P2::NumStencilentries2D::VtE);
-      std::vector<real_t> edgeToEdgeStencil(P2::NumStencilentries2D::EtE);
+      std::array<real_t, P2::NumStencilentries2D::VtV> vertexToVertexStencil;
+      std::array<real_t, P2::NumStencilentries2D::EtV> edgeToVertexStencil;
+      std::array<real_t, P2::NumStencilentries2D::VtE> vertexToEdgeStencil;
+      std::array<real_t, P2::NumStencilentries2D::EtE> edgeToEdgeStencil;
 
       // we only use polynomials for face stencils
       for (auto& it : storage_->getFaces())

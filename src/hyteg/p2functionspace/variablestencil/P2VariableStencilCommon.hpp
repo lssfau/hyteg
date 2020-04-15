@@ -389,7 +389,9 @@ const std::array<uint_t, 3> DI_e_NE = {edgedof::stencilIndexFromDiagonalEdge(ste
                                       };
 }
 
-inline void vertexDoFStencilFromElMat(const Matrix6r& elMat, const P2Elements::P2Element& el, std::vector<real_t>& VtVStencil, std::vector<real_t>& EtVStencil)
+inline void vertexDoFStencilFromElMat(const Matrix6r& elMat, const P2Elements::P2Element& el,
+                                      std::array<real_t, NumStencilentries2D::VtV>& VtVStencil,
+                                      std::array<real_t, NumStencilentries2D::EtV>& EtVStencil)
 {
    for (uint_t i = 0; i < 3; ++i)
    {
@@ -398,7 +400,11 @@ inline void vertexDoFStencilFromElMat(const Matrix6r& elMat, const P2Elements::P
    }
 }
 
-inline void edgeDoFStencilFromElMat(const Matrix6r& elMat, const std::array<uint_t, 3>& idxVtE, const std::array<uint_t, 3>& idxEtE, std::vector<real_t>& VtEStencil, std::vector<real_t>& EtEStencil)
+inline void edgeDoFStencilFromElMat(const Matrix6r& elMat,
+                                    const std::array<uint_t, 3>& idxVtE,
+                                    const std::array<uint_t, 3>& idxEtE,
+                                    std::array<real_t, NumStencilentries2D::VtE>& VtEStencil,
+                                    std::array<real_t, NumStencilentries2D::EtE>& EtEStencil)
 {
    for (uint_t i = 0; i < 3; ++i)
    {
@@ -410,7 +416,13 @@ inline void edgeDoFStencilFromElMat(const Matrix6r& elMat, const std::array<uint
 namespace macroface {
 
 template <class P2Form>
-inline void assembleStencil(const P2Form& form, const Point3D& x, const Point3D& dirS, const Point3D& dirSE, const Point3D& dirE, const Point3D& dirN, const Point3D& dirNW, const Point3D& dirW, const Point3D& dirNE, std::vector<real_t>& VtVStencil, std::vector<real_t>& EtVStencil, std::vector<real_t>& VtEStencil, std::vector<real_t>& EtEStencil)
+inline void assembleStencil(const P2Form& form, const Point3D& x,
+                            const Point3D& dirS, const Point3D& dirSE, const Point3D& dirE,
+                            const Point3D& dirN, const Point3D& dirNW, const Point3D& dirW, const Point3D& dirNE,
+                            std::array<real_t, NumStencilentries2D::VtV>& VtVStencil,
+                            std::array<real_t, NumStencilentries2D::EtV>& EtVStencil,
+                            std::array<real_t, NumStencilentries2D::VtE>& VtEStencil,
+                            std::array<real_t, NumStencilentries2D::EtE>& EtEStencil)
 {
    // nbr face coordinates
    const std::array<Point3D, 3> NE = {x, x + dirE, x + dirN};
@@ -426,10 +438,10 @@ inline void assembleStencil(const P2Form& form, const Point3D& x, const Point3D&
    const std::array<Point3D, 3> DI_SW = {x + dirN, x + dirE, x};
    const std::array<Point3D, 3> DI_NE = {x + dirN, x + dirE, x + dirNE};
 
-   std::fill(VtVStencil.begin(), VtVStencil.end(), 0.0);
-   std::fill(EtVStencil.begin(), EtVStencil.end(), 0.0);
-   std::fill(VtEStencil.begin(), VtEStencil.end(), 0.0);
-   std::fill(EtEStencil.begin(), EtEStencil.end(), 0.0);
+   VtVStencil.fill(0.0);
+   EtVStencil.fill(0.0);
+   VtEStencil.fill(0.0);
+   EtEStencil.fill(0.0);
 
    Matrix6r elMat;
 
@@ -502,10 +514,10 @@ inline void applyVariableStencil(uint_t level,
    const Point3D dirNE = dirN + dirE;
 
    // stencil entries
-   std::vector<real_t> vertexToVertexStencil(NumStencilentries2D::VtV);
-   std::vector<real_t> edgeToVertexStencil(NumStencilentries2D::EtV);
-   std::vector<real_t> vertexToEdgeStencil(NumStencilentries2D::VtE);
-   std::vector<real_t> edgeToEdgeStencil(NumStencilentries2D::EtE);
+   std::array<real_t, NumStencilentries2D::VtV> vertexToVertexStencil;
+   std::array<real_t, NumStencilentries2D::EtV> edgeToVertexStencil;
+   std::array<real_t, NumStencilentries2D::VtE> vertexToEdgeStencil;
+   std::array<real_t, NumStencilentries2D::EtE> edgeToEdgeStencil;
 
    // loop over all DOFs
    for (const auto& it : hyteg::edgedof::macroface::Iterator(level, 0))
@@ -555,10 +567,10 @@ inline void smoothGSVariableStencil(uint_t level,
    const Point3D dirNE = dirN + dirE;
 
    // stencil entries
-   std::vector<real_t> vertexToVertexStencil(NumStencilentries2D::VtV);
-   std::vector<real_t> edgeToVertexStencil(NumStencilentries2D::EtV);
-   std::vector<real_t> vertexToEdgeStencil(NumStencilentries2D::VtE);
-   std::vector<real_t> edgeToEdgeStencil(NumStencilentries2D::EtE);
+   std::array<real_t, NumStencilentries2D::VtV> vertexToVertexStencil;
+   std::array<real_t, NumStencilentries2D::EtV> edgeToVertexStencil;
+   std::array<real_t, NumStencilentries2D::VtE> vertexToEdgeStencil;
+   std::array<real_t, NumStencilentries2D::EtE> edgeToEdgeStencil;
 
    // loop over all DOFs
    for (const auto& it : hyteg::edgedof::macroface::Iterator(level, 0))
@@ -581,7 +593,13 @@ inline void smoothGSVariableStencil(uint_t level,
 namespace macroedge {
 
 template <class P2Form>
-inline void assembleStencil(const P2Form& formS, const P2Form& formN, const bool hasNorth, const Point3D& x, const Point3D& dirS, const Point3D& dirSE, const Point3D& dirE, const Point3D& dirN, const Point3D& dirNW, const Point3D& dirW, std::vector<real_t>& VtVStencil, std::vector<real_t>& EtVStencil, std::vector<real_t>& VtEStencil, std::vector<real_t>& EtEStencil)
+inline void assembleStencil(const P2Form& formS, const P2Form& formN, const bool hasNorth, const Point3D& x,
+                            const Point3D& dirS, const Point3D& dirSE, const Point3D& dirE,
+                            const Point3D& dirN, const Point3D& dirNW, const Point3D& dirW,
+                            std::array<real_t, NumStencilentries2D::VtV>& VtVStencil,
+                            std::array<real_t, NumStencilentries2D::EtV>& EtVStencil,
+                            std::array<real_t, NumStencilentries2D::VtE>& VtEStencil,
+                            std::array<real_t, NumStencilentries2D::EtE>& EtEStencil)
 {
    // nbr face coordinates
    const std::array<Point3D, 3> NE = {x, x + dirE, x + dirN};
@@ -593,10 +611,10 @@ inline void assembleStencil(const P2Form& formS, const P2Form& formN, const bool
    // const std::array<Point3D,3> HO_N = NE;
    const std::array<Point3D, 3> HO_S = {x, x + dirE, x + dirSE};
 
-   std::fill(VtVStencil.begin(), VtVStencil.end(), 0.0);
-   std::fill(EtVStencil.begin(), EtVStencil.end(), 0.0);
-   std::fill(VtEStencil.begin(), VtEStencil.end(), 0.0);
-   std::fill(EtEStencil.begin(), EtEStencil.end(), 0.0);
+   VtVStencil.fill(0.0);
+   EtVStencil.fill(0.0);
+   VtEStencil.fill(0.0);
+   EtEStencil.fill(0.0);
 
    Matrix6r elMat;
 
@@ -695,10 +713,10 @@ inline void applyVariableStencil(uint_t level,
    real_t tmp = walberla::real_c(0);
 
    // stencil entries
-   std::vector<real_t> vertexToVertexStencil(NumStencilentries2D::VtV);
-   std::vector<real_t> edgeToVertexStencil(NumStencilentries2D::EtV);
-   std::vector<real_t> vertexToEdgeStencil(NumStencilentries2D::VtE);
-   std::vector<real_t> edgeToEdgeStencil(NumStencilentries2D::EtE);
+   std::array<real_t, NumStencilentries2D::VtV> vertexToVertexStencil;
+   std::array<real_t, NumStencilentries2D::EtV> edgeToVertexStencil;
+   std::array<real_t, NumStencilentries2D::VtE> vertexToEdgeStencil;
+   std::array<real_t, NumStencilentries2D::EtE> edgeToEdgeStencil;
 
    // loop over all DOFs
    for (const auto& it : hyteg::edgedof::macroedge::Iterator(level, 0))
@@ -881,10 +899,10 @@ inline void smoothGSVariableStencil(uint_t level,
    real_t tmp = walberla::real_c(0);
 
    // stencil entries
-   std::vector<real_t> vertexToVertexStencil(NumStencilentries2D::VtV);
-   std::vector<real_t> edgeToVertexStencil(NumStencilentries2D::EtV);
-   std::vector<real_t> vertexToEdgeStencil(NumStencilentries2D::VtE);
-   std::vector<real_t> edgeToEdgeStencil(NumStencilentries2D::EtE);
+   std::array<real_t, NumStencilentries2D::VtV> vertexToVertexStencil;
+   std::array<real_t, NumStencilentries2D::EtV> edgeToVertexStencil;
+   std::array<real_t, NumStencilentries2D::VtE> vertexToEdgeStencil;
+   std::array<real_t, NumStencilentries2D::EtE> edgeToEdgeStencil;
 
    // loop over all DOFs
    for (const auto& it : hyteg::edgedof::macroedge::Iterator(level, 0))
