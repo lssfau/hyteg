@@ -142,8 +142,8 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
         KSPSetType( sub_ksps_[0], KSPCG );
         KSPSetType( sub_ksps_[1], KSPCG );
 
-        KSPSetTolerances( sub_ksps_[0], tolerance_, tolerance_, PETSC_DEFAULT, maxIterations_ );
-        KSPSetTolerances( sub_ksps_[1], tolerance_, tolerance_, PETSC_DEFAULT, maxIterations_ );
+        KSPSetTolerances( sub_ksps_[0], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
+        KSPSetTolerances( sub_ksps_[1], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
       }
       else
       {
