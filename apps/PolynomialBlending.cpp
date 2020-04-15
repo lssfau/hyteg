@@ -460,6 +460,8 @@ int main(int argc, char* argv[])
   const bool polynomialOperator = parameters.getParameter<bool>("polynomialOperator");
   const bool blending = parameters.getParameter<bool>("blending");
   const bool annulus = parameters.getParameter<bool>("annulus");
+  const uint_t nX = parameters.getParameter<uint_t>("nX");
+  const uint_t nY = parameters.getParameter<uint_t>("nY");
   const uint_t maxPolyDegree = parameters.getParameter<uint_t>("maxPolyDegree");
   // const uint_t maxInterpolationLevel = parameters.getParameter<uint_t>("interpolationLevel");
   // const uint_t interpolationLevel = std::min(maxLevel, maxInterpolationLevel);
@@ -505,7 +507,7 @@ int main(int argc, char* argv[])
   c_function boundary = [](const hyteg::Point3D &) {return 0;};
   c_function rhs = [](const hyteg::Point3D & x) {return 2*PI*PI*sin(PI*x[0])*sin(PI* x[1]);};
 
-  MeshInfo meshInfo = MeshInfo::meshRectangle(Point2D({0.0, 0.0}), Point2D({1.0, 1.0}), MeshInfo::CRISS, 1, 1);
+  MeshInfo meshInfo = MeshInfo::meshRectangle(Point2D({0.0, 0.0}), Point2D({1.0, 1.0}), MeshInfo::CRISS, nX, nY);
 
   /// case annulus
   if (annulus)
@@ -519,7 +521,7 @@ int main(int argc, char* argv[])
     boundary = [circleCenter, innerRadius, outerRadius, middle](const hyteg::Point3D & x) {return ((x - circleCenter).norm() < middle) ? sin(innerRadius * innerRadius) : sin(outerRadius * outerRadius);};
     rhs = [](const hyteg::Point3D & x) {return - 4 * cos(x[0] * x[0] + x[1] * x[1]) + 4 * (x[0] * x[0] + x[1] * x[1]) * sin(x[0] * x[0] + x[1] * x[1]);};
 
-    meshInfo = MeshInfo::meshAnnulus(innerRadius, outerRadius, MeshInfo::CRISS, 4, 1);
+    meshInfo = MeshInfo::meshAnnulus(innerRadius, outerRadius, MeshInfo::CRISS, nX, nY);
   }
 
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
