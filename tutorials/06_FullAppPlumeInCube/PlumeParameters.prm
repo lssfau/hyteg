@@ -4,9 +4,6 @@ Parameters
   maxLevel 4;
   numVCycles 2;
 
-  coarseGridTolerance 1e-16;
-  coarseGridMaxIter 100;
-
   dt 1e-2;
   numStokesSteps 100;
   numTimeStepsPerStokesStep 100;
