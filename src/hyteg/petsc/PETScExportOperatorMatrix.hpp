@@ -21,12 +21,13 @@
 
 #include <fstream>
 
-// Primitive management
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
 #include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScSparseMatrix.hpp"
+#include "hyteg/petsc/PETScVector.hpp"
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
