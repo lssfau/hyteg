@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Nils Kohl.
+ * Copyright (c) 2017-2020 Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,12 +19,12 @@
  */
 #pragma once
 
-#include "hyteg/solvers/Solver.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 #include "hyteg/mixedoperators/P1ToP2Operator.hpp"
 #include "hyteg/mixedoperators/P2ToP1Operator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/solvers/Solver.hpp"
 
 namespace hyteg {
 
@@ -32,7 +32,7 @@ namespace hyteg {
 ///
 ///   E = M^-1 * ( B * A^-1 * B^T )
 ///
-/// where A^-1 corresponds to numGSIterationsVelocity symmetric or forward Gauss-Seidel iterations
+/// where A^-1 corresponds to the relaxation operator that is used in the Uzawa smoother
 /// and M^-1 is the inverse of the lumped mass-matrix.
 ///
 /// A and B are the respective blocks of the P2-P1 discretized Stokes operator.
@@ -53,7 +53,6 @@ class P2P1UzawaDampingFactorEstimationOperator : public Operator< P1Function< re
    : Operator( storage, minLevel, maxLevel )
    , A( storage, minLevel, maxLevel )
    , mass_inv_diag_( storage, minLevel, maxLevel )
-   , pspg_inv_diag_( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    , velocitySmoother_( velocitySmoother )
    , numGSIterationsVelocity_( numGSIterationsVelocity )
@@ -93,7 +92,6 @@ class P2P1UzawaDampingFactorEstimationOperator : public Operator< P1Function< re
    P2P1TaylorHoodStokesOperator A;
 
    P1LumpedInvMassOperator                                   mass_inv_diag_;
-   P1PSPGInvDiagOperator                                     pspg_inv_diag_;
    bool                                                      hasGlobalCells_;
    std::shared_ptr< Solver< P2P1TaylorHoodStokesOperator > > velocitySmoother_;
 
