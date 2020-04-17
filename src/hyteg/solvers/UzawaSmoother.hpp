@@ -25,7 +25,6 @@
 
 #include "hyteg/composites/P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
-#include "hyteg/composites/P1P1UzawaDampingFactorEstimationOperator.hpp"
 #include "hyteg/composites/P2P1UzawaDampingFactorEstimationOperator.hpp"
 #include "hyteg/composites/StokesOperatorTraits.hpp"
 #include "hyteg/numerictools/SpectrumEstimation.hpp"
