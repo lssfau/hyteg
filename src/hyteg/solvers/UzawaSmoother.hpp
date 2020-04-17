@@ -25,6 +25,7 @@
 
 #include "hyteg/composites/P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
+#include "hyteg/composites/P1P1UzawaDampingFactorEstimationOperator.hpp"
 #include "hyteg/composites/P2P1UzawaDampingFactorEstimationOperator.hpp"
 #include "hyteg/composites/StokesOperatorTraits.hpp"
 #include "hyteg/numerictools/SpectrumEstimation.hpp"
@@ -150,7 +151,8 @@ class UzawaSmoother : public Solver< OperatorType >
          velocitySmoother_->solve( A, x, r_, level );
       }
 
-      A.div_x.apply( x.u, r_.p, level, flag_, Replace );
+      A.pspg.apply( x.p, r_.p, level, flag_, Replace );
+      A.div_x.apply( x.u, r_.p, level, flag_, Add );
       A.div_y.apply( x.v, r_.p, level, flag_, Add );
 
       if ( hasGlobalCells_ )
@@ -160,18 +162,8 @@ class UzawaSmoother : public Solver< OperatorType >
 
       r_.p.assign( {1.0, -1.0}, {b.p, r_.p}, level, flag_ );
 
-      for ( uint_t i = 0; i < numGSIterationsPressure_; i++ )
-      {
-         if ( symmetricGSPressure_ )
-         {
-            A.pspg.smooth_sor( x.p, r_.p, relaxParam_, level, flag_ );
-            A.pspg.smooth_sor_backwards( x.p, r_.p, relaxParam_, level, flag_ );
-         }
-         else
-         {
-            A.pspg.smooth_sor( x.p, r_.p, relaxParam_, level, flag_ );
-         }
-      }
+      r_.p.assign( {relaxParam_}, {r_.p}, level, flag_ );
+      A.pspg_inv_diag_.apply( r_.p, x.p, level, flag_, Add );
    }
 
    // Tensor variant
