@@ -987,7 +987,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                                                         symmGSPressure,
                                                                         numGSPressure );
 
-   if ( sorRelaxEstimationIterations > 0 )
+   if ( sorRelaxEstimationIterations > 0 && std::is_same< StokesOperator, P2P1TaylorHoodStokesOperator >::value )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "" );
       WALBERLA_LOG_INFO_ON_ROOT( "Estimating omega (" << sorRelaxEstimationIterations << " power iterations on level "
@@ -998,6 +998,12 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       WALBERLA_LOG_INFO_ON_ROOT( "Setting omega to estimate: " << estimatedOmega );
       WALBERLA_LOG_INFO_ON_ROOT( "" );
       sqlRealProperties["sor_relax"] = estimatedOmega;
+   }
+   else
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "" )
+      WALBERLA_LOG_INFO_ON_ROOT( "Using omega from parameter file." )
+      WALBERLA_LOG_INFO_ON_ROOT( "" )
    }
 
 #ifdef HYTEG_BUILD_WITH_PETSC
