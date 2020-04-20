@@ -6,6 +6,7 @@ enable_testing()
 option ( HYTEG_BUILD_WITH_PETSC       "Build with PETSc"                             OFF)
 option ( HYTEG_BUILD_WITH_EIGEN       "Build with Eigen"                             OFF)
 option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if available" ON)
+option ( HYTEG_GIT_SUBMODULE_AUTO     "Check submodules during build"                 ON)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -138,32 +139,50 @@ endif ( )
 
 
 ############################################################################################################################
-# Git commit hash
+# Git commit hash and submodules
 ############################################################################################################################
 
-# Get the current working branch
-execute_process(
-        COMMAND git rev-parse --abbrev-ref HEAD
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        OUTPUT_VARIABLE GIT_BRANCH
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+find_package(Git QUIET)
+if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
+   # Update submodules as needed
 
-# Get the latest abbreviated commit hash of the working branch
-execute_process(
-        COMMAND git log -1 --format=%h
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        OUTPUT_VARIABLE GIT_COMMIT_HASH
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+   if(GIT_SUBMODULE)
+      message(STATUS "Submodule update")
+      execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            RESULT_VARIABLE GIT_SUBMOD_RESULT)
+      if(NOT GIT_SUBMOD_RESULT EQUAL "0")
+         message(FATAL_ERROR "git submodule update --init failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
+      endif()
+   endif()
+   # Get the current working branch
+   execute_process(
+         COMMAND git rev-parse --abbrev-ref HEAD
+         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+         OUTPUT_VARIABLE GIT_BRANCH
+         OUTPUT_STRIP_TRAILING_WHITESPACE
+   )
 
-add_definitions("-DGIT_COMMIT_HASH=${GIT_COMMIT_HASH}")
-add_definitions("-DGIT_BRANCH=${GIT_BRANCH}")
+   # Get the latest abbreviated commit hash of the working branch
+   execute_process(
+         COMMAND git log -1 --format=%h
+         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+         OUTPUT_VARIABLE GIT_COMMIT_HASH
+         OUTPUT_STRIP_TRAILING_WHITESPACE
+   )
 
-configure_file(
-  ${CMAKE_SOURCE_DIR}/src/hyteg/Git.in.hpp
-  ${CMAKE_BINARY_DIR}/src/hyteg/Git.hpp
-)
+   add_definitions("-DGIT_COMMIT_HASH=${GIT_COMMIT_HASH}")
+   add_definitions("-DGIT_BRANCH=${GIT_BRANCH}")
+
+   configure_file(
+         ${CMAKE_SOURCE_DIR}/src/hyteg/Git.in.hpp
+         ${CMAKE_BINARY_DIR}/src/hyteg/Git.hpp
+   )
+else()
+   message(FATAL_ERROR "git executalbe could not be found")
+endif()
+
+
 
 ############################################################################################################################
 
