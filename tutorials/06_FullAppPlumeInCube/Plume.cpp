@@ -107,8 +107,8 @@
  * - a smoother
  * - and the grid transfer operators.
  *
- * The components are then simply plugged together into the geometric multigrid solver.
- * The common Solver base-class allows this easily.
+ * To easily setup a default case we can use the solver templates provied by HyTeG.
+ * The components that are used are the following:
  *
  * For the coarse grid we employ a pressure preconditioned MinRes solver.
  *
@@ -201,6 +201,7 @@
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
+#include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
@@ -225,9 +226,6 @@ int main( int argc, char* argv[] )
    const uint_t maxLevel   = mainConf.getParameter< uint_t >( "maxLevel" );
    const uint_t numVCycles = mainConf.getParameter< uint_t >( "numVCycles" );
 
-   const real_t coarseGridTolerance = mainConf.getParameter< double >( "coarseGridTolerance" );
-   const uint_t coarseGridMaxIter   = mainConf.getParameter< uint_t >( "coarseGridMaxIter" );
-
    const real_t convectivity              = mainConf.getParameter< real_t >( "convectivity" );
    const real_t dt                        = mainConf.getParameter< real_t >( "dt" );
    const real_t plotDt                    = mainConf.getParameter< real_t >( "plotDt" );
@@ -241,7 +239,7 @@ int main( int argc, char* argv[] )
 
    /// [Domain]
 
-   MeshInfo              meshInfo = MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
+   MeshInfo              meshInfo = MeshInfo::meshCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -304,27 +302,7 @@ int main( int argc, char* argv[] )
 
    /// [Solvers]
 
-   // coarse grid
-   typedef StokesPressureBlockPreconditioner< P1StokesOperator, P1LumpedInvMassOperator > PressurePreconditioner_T;
-   auto pressurePrec                       = std::make_shared< PressurePreconditioner_T >( storage, minLevel, minLevel );
-   auto pressurePreconditionedMinResSolver = std::make_shared< MinResSolver< P1StokesOperator > >(
-       storage, minLevel, minLevel, coarseGridMaxIter, coarseGridTolerance, pressurePrec );
-
-   // multigrid solver
-   auto stokesRestriction  = std::make_shared< P1P1StokesToP1P1StokesRestriction >();
-   auto stokesProlongation = std::make_shared< P1P1StokesToP1P1StokesProlongation >();
-   auto uzawaSmoother      = std::make_shared< UzawaSmoother< P1StokesOperator > >( storage, minLevel, maxLevel, 0.3 );
-
-   GeometricMultigridSolver< P1StokesOperator > uzawaSolver( storage,
-                                                             uzawaSmoother,
-                                                             pressurePreconditionedMinResSolver,
-                                                             stokesRestriction,
-                                                             stokesProlongation,
-                                                             minLevel,
-                                                             maxLevel,
-                                                             2,
-                                                             2,
-                                                             2 );
+   auto uzawaSolver = solvertemplates::stokesGMGUzawaSolver< P1StokesOperator >( storage, minLevel, maxLevel, 2, 2, 0.3 );
 
    /// [Solvers]
 
@@ -332,7 +310,7 @@ int main( int argc, char* argv[] )
    /// [Residual]
    auto calculateResidual = [&]() {
       L.apply( u, r, maxLevel, Inner );
-      r.assign( {1.0, -1.0}, {f, r}, maxLevel, Inner );
+      r.assign( { 1.0, -1.0 }, { f, r }, maxLevel, Inner );
       return sqrt( r.dotGlobal( r, maxLevel, Inner ) ) /
              real_c( numberOfGlobalDoFs< P1StokesFunctionTag >( *storage, maxLevel ) );
    };
@@ -348,14 +326,14 @@ int main( int argc, char* argv[] )
       /// [Simulation Stokes]
       // mass matrix applied to temperature and stored in right-hand side vector
       M.apply( temp, f.w, maxLevel, All );
-      f.w.assign( {convectivity}, {f.w}, maxLevel, All );
+      f.w.assign( { convectivity }, { f.w }, maxLevel, All );
 
       real_t currentResidualL2 = calculateResidual();
 
       // perform a number of V-cycles to approximately solve the Stokes system
       for ( uint_t i = 0; i < numVCycles; i++ )
       {
-         uzawaSolver.solve( L, u, f, maxLevel );
+         uzawaSolver->solve( L, u, f, maxLevel );
 
          lastResidualL2    = currentResidualL2;
          currentResidualL2 = calculateResidual();
@@ -364,8 +342,8 @@ int main( int argc, char* argv[] )
 
       avgResidualReduction /= real_c( numVCycles );
 
-      WALBERLA_LOG_INFO_ON_ROOT( "Simulated time: " << std::setw(6) << std::setprecision(2) << std::fixed << time << "s (time step " << std::setw( 6 )
-                                                    << stokesStep * numTimeStepsPerStokesStep
+      WALBERLA_LOG_INFO_ON_ROOT( "Simulated time: " << std::setw( 6 ) << std::setprecision( 2 ) << std::fixed << time
+                                                    << "s (time step " << std::setw( 6 ) << stokesStep * numTimeStepsPerStokesStep
                                                     << ") | Stokes solver: final residual: " << std::scientific
                                                     << currentResidualL2 << " (avg. conv. rate: " << avgResidualReduction << ")" )
       /// [Simulation Stokes]
