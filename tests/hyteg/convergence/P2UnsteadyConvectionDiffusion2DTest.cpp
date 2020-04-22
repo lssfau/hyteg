@@ -81,35 +81,6 @@ class Solution
    real_t  t_;
 };
 
-real_t errorE1( const uint_t&                   level,
-                const P2Function< real_t >&     c,
-                const P2Function< real_t >&     solution,
-                const P2Function< real_t >&     tmp0,
-                const P2Function< real_t >&     tmp1,
-                const P2ConstantRowSumOperator& lumpedMass )
-{
-   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > E1 =
-       []( const Point3D&, const std::vector< real_t >& values ) { return std::abs( values[0] - values[1] ); };
-
-   tmp0.interpolate( E1, {solution, c}, level, All );
-   lumpedMass.apply( tmp0, tmp1, level, All );
-   return tmp1.sumGlobal( level, All );
-}
-
-real_t errorE2( const uint_t&                   level,
-                const P2Function< real_t >&     c,
-                const P2Function< real_t >&     solution,
-                const P2Function< real_t >&     tmp0,
-                const P2Function< real_t >&     tmp1,
-                const P2ConstantRowSumOperator& lumpedMass )
-{
-   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > E2 =
-       []( const Point3D&, const std::vector< real_t >& values ) { return std::pow( std::abs( values[0] - values[1] ), 2 ); };
-
-   tmp0.interpolate( E2, {solution, c}, level, All );
-   lumpedMass.apply( tmp0, tmp1, level, All );
-   return std::sqrt( tmp1.sumGlobal( level, All ) );
-}
 
 real_t errorE1( const uint_t&                 level,
                 const P2Function< real_t >&   c,
@@ -141,11 +112,8 @@ real_t errorE2( const uint_t&                 level,
    return std::sqrt( tmp1.sumGlobal( level, All ) );
 }
 
-int main( int argc, char* argv[] )
+void runTest( uint_t maxLevel, uint_t steps, uint_t timeSteppingScheme, real_t discrL2Eps, real_t peakEps )
 {
-   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
-   walberla::MPIManager::instance()->useWorldComm();
-
    MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( Point2D( {-1, -1} ), Point2D( {5, 1} ), MeshInfo::CRISS, 6, 1 );
    auto     setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -156,22 +124,24 @@ int main( int argc, char* argv[] )
    writeDomainPartitioningVTK( storage, "../../output", "P2UnsteadyConvectionDiffusion2DTest_Domain" );
 
    const uint_t  minLevel = 2;
-   const uint_t  maxLevel = 5;
-   const real_t  hMax     = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
-   const real_t  hMin     = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
-   const real_t  dt       = 1e-02;
+   const real_t  hMin     = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
+   const real_t  hMax     = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
    const real_t  t0       = 0.5 * pi;
    const Point3D p0( {-0.5, 0, 0} );
-   const uint_t  steps = 10;
    const bool    vtk   = false;
+   const real_t  tFinal = 1.0;
+   const real_t dt = tFinal / real_c(steps);
 
-   const real_t diffusivity = 1e-02;
+   const real_t diffusivity = 1e-00;
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Circular convection-diffusion" )
+   WALBERLA_LOG_INFO_ON_ROOT( "Convection-diffusion test" )
    WALBERLA_LOG_INFO_ON_ROOT( " - dt:                                           " << dt )
    WALBERLA_LOG_INFO_ON_ROOT( " - h (min, max):                                 " << hMin << ", " << hMax )
    WALBERLA_LOG_INFO_ON_ROOT( " - level:                                        " << maxLevel )
    WALBERLA_LOG_INFO_ON_ROOT( " - diffusivity:                                  " << diffusivity )
+   WALBERLA_LOG_INFO_ON_ROOT( " - time stepping scheme diffusion:               " << timeSteppingScheme )
+
+   DiffusionTimeIntegrator timeIntegrator = timeSteppingScheme == 0 ? DiffusionTimeIntegrator::ImplicitEuler : DiffusionTimeIntegrator::CrankNicolson;
 
    Solution solution( diffusivity, p0, t0 );
 
@@ -179,10 +149,12 @@ int main( int argc, char* argv[] )
    auto vel_y = []( const hyteg::Point3D& ) -> real_t { return 0; };
 
    typedef P2Function< real_t >                FunctionType;
+   typedef P2ConstantLaplaceOperator           LaplaceOperator;
    typedef P2ConstantMassOperator              MassOperator;
    typedef P2ConstantUnsteadyDiffusionOperator UnsteadyDiffusionOperator;
 
    FunctionType c( "c", storage, minLevel, maxLevel );
+   FunctionType cOld( "cOld", storage, minLevel, maxLevel );
    FunctionType cError( "cError", storage, minLevel, maxLevel );
    FunctionType cSolution( "cSolution", storage, minLevel, maxLevel );
    FunctionType cMass( "cMass", storage, minLevel, maxLevel );
@@ -192,20 +164,22 @@ int main( int argc, char* argv[] )
    FunctionType v( "v", storage, minLevel, maxLevel );
    FunctionType w( "w", storage, minLevel, maxLevel );
    FunctionType f( "f", storage, minLevel, maxLevel );
+   FunctionType fOld( "fOld", storage, minLevel, maxLevel );
 
-   UnsteadyDiffusionOperator     diffusionOperator( storage, minLevel, maxLevel, dt, diffusivity );
+   UnsteadyDiffusionOperator     diffusionOperator( storage, minLevel, maxLevel, dt, diffusivity, timeIntegrator );
+   LaplaceOperator               L( storage, minLevel, maxLevel );
    MassOperator                  M( storage, minLevel, maxLevel );
    MMOCTransport< FunctionType > transport( storage, setupStorage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
-   auto coarseGridSolver = std::make_shared< CGSolver< P2ConstantUnsteadyDiffusionOperator > >( storage, minLevel, minLevel );
+   auto coarseGridSolver = std::make_shared< CGSolver< P2ConstantUnsteadyDiffusionOperator > >( storage, minLevel, maxLevel );
    auto smoother         = std::make_shared< GaussSeidelSmoother< P2ConstantUnsteadyDiffusionOperator > >();
    auto restriction      = std::make_shared< P2toP2QuadraticRestriction >();
    auto prolongation     = std::make_shared< P2toP2QuadraticProlongation >();
    auto solver           = std::make_shared< GeometricMultigridSolver< P2ConstantUnsteadyDiffusionOperator > >(
        storage, smoother, coarseGridSolver, restriction, prolongation, minLevel, maxLevel, 2, 2 );
-   auto solverLoop = std::make_shared< SolverLoop< P2ConstantUnsteadyDiffusionOperator > >( solver, 3 );
+   auto solverLoop = std::make_shared< SolverLoop< P2ConstantUnsteadyDiffusionOperator > >( solver, 1 );
 
-   UnsteadyDiffusion< P2Function< real_t >, P2ConstantUnsteadyDiffusionOperator, P2ConstantMassOperator > diffusionSolver(
+   UnsteadyDiffusion< P2Function< real_t >, P2ConstantUnsteadyDiffusionOperator, P2ConstantLaplaceOperator, P2ConstantMassOperator > diffusionSolver(
        storage, minLevel, maxLevel, solverLoop );
 
    u.interpolate( vel_x, maxLevel );
@@ -229,7 +203,7 @@ int main( int argc, char* argv[] )
    cError.assign( {1.0, -1.0}, {c, cSolution}, maxLevel, All );
 
    auto discrL2            = std::sqrt( cError.dotGlobal( cError, maxLevel, All ) /
-                             real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
+                                        real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
    auto maxTempApproximate = c.getMaxMagnitude( maxLevel, All );
    auto maxTempAnalytical  = cSolution.getMaxMagnitude( maxLevel, All );
    auto E_peak             = maxTempApproximate / maxTempAnalytical - 1;
@@ -243,62 +217,67 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT(
        walberla::format( " %8d | %15.3e | %10.3e | %10.3e | %30.2f%% ", 0, discrL2, E_peak, total_mass, 0. ) )
 
-   auto p2MassFormFenics =
-       std::make_shared< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >();
-   P2RowSumForm                       rowSumMass( p2MassFormFenics );
-   P2ConstantOperator< P2RowSumForm > MLumped( storage, minLevel, maxLevel, rowSumMass );
+   real_t total_mass_lost = 0;
 
    for ( uint_t i = 1; i <= steps; i++ )
    {
       solution.inc( dt );
 
-      c.interpolate( solution, maxLevel, DirichletBoundary );
       cSolution.interpolate( solution, maxLevel, All );
 
       transport.step( c, u, v, w, maxLevel, Inner, dt, 1 );
-      diffusionSolver.step( diffusionOperator, M, c, f, maxLevel, Inner );
+
+      fOld.assign( {1.0}, {f}, maxLevel, All );
+      cOld.assign( {1.0}, {c}, maxLevel, All );
+
+      c.interpolate( solution, maxLevel, DirichletBoundary );
+
+      diffusionSolver.step( diffusionOperator, L, M, c, cOld, f, fOld, maxLevel, Inner );
 
       // various errors
       cError.assign( {1.0, -1.0}, {c, cSolution}, maxLevel, All );
 
       discrL2            = std::sqrt( cError.dotGlobal( cError, maxLevel, All ) /
-                           real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
+                                      real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
       maxTempApproximate = c.getMaxMagnitude( maxLevel, All );
       maxTempAnalytical  = cSolution.getMaxMagnitude( maxLevel, All );
       E_peak             = maxTempApproximate / maxTempAnalytical - 1;
 
       M.apply( c, cMass, maxLevel, All );
       auto total_mass_new  = cMass.sumGlobal( maxLevel );
-      auto total_mass_lost = 1.0 - ( total_mass_new / total_mass );
+      total_mass_lost = 1.0 - ( total_mass_new / total_mass );
       total_mass           = total_mass_new;
-
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-          " %8d | %15.3e | %10.3e | %10.3e | %30.2f%% ", i, discrL2, E_peak, total_mass, total_mass_lost * 100. ) )
-
-      WALBERLA_CHECK_LESS( std::abs( E_peak ), 5e-04 )
-      WALBERLA_CHECK_LESS( discrL2, 2e-03 )
-
-      auto error_E1            = errorE1( maxLevel, c, cSolution, tmp0, tmp1, MLumped );
-      auto error_E2            = errorE2( maxLevel, c, cSolution, tmp0, tmp1, MLumped );
-      auto error_E1_consistent = errorE1( maxLevel, c, cSolution, tmp0, tmp1, M );
-      auto error_E2_consistent = errorE2( maxLevel, c, cSolution, tmp0, tmp1, M );
-
-      WALBERLA_LOG_INFO_ON_ROOT( "E1 lumped:     " << walberla::format( "%5.4e", error_E1 ) );
-      WALBERLA_LOG_INFO_ON_ROOT( "E1 consistent: " << walberla::format( "%5.4e", error_E1_consistent ) );
-
-      WALBERLA_LOG_INFO_ON_ROOT( "E2 lumped:     " << walberla::format( "%5.4e", error_E2 ) );
-      WALBERLA_LOG_INFO_ON_ROOT( "E2 consistent: " << walberla::format( "%5.4e", error_E2_consistent ) );
-
-      WALBERLA_CHECK_LESS( error_E1, 3.0e-04 );
-      WALBERLA_CHECK_LESS( error_E2, 4.0e-04 );
 
       if ( vtk )
          vtkOutput.write( maxLevel, i );
    }
 
-   storage->getTimingTree()->stop( "Entire test" );
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+       " %8d | %15.3e | %10.3e | %10.3e | %30.2f%% ", steps, discrL2, E_peak, total_mass, total_mass_lost * 100. ) )
 
-   // WALBERLA_LOG_INFO_ON_ROOT( storage->getTimingTree()->getCopyWithRemainder() );
+   auto error_E1_consistent = errorE1( maxLevel, c, cSolution, tmp0, tmp1, M );
+   auto error_E2_consistent = errorE2( maxLevel, c, cSolution, tmp0, tmp1, M );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "E1 consistent: " << walberla::format( "%5.4e", error_E1_consistent ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "E2 consistent: " << walberla::format( "%5.4e", error_E2_consistent ) );
+
+   WALBERLA_CHECK_LESS( std::abs( E_peak ), peakEps )
+   WALBERLA_CHECK_LESS( discrL2, discrL2Eps )
+
+   storage->getTimingTree()->stop( "Entire test" );
+}
+
+int main( int argc, char* argv[] )
+{
+   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   uint_t timeSteppingScheme = 0;
+   uint_t maxLevel = 4;
+   runTest( maxLevel, 10, timeSteppingScheme, 1.1e-04, 8.0e-03 );
+   runTest( maxLevel, 20, timeSteppingScheme, 5.0e-05, 3.6e-03 );
+   runTest( maxLevel, 40, timeSteppingScheme, 1.8e-05, 1.3e-03 );
+   runTest( maxLevel, 80, timeSteppingScheme, 5.5e-06, 9.0e-05 );
 
    return EXIT_SUCCESS;
 }

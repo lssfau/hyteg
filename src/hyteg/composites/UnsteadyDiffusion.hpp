@@ -42,6 +42,12 @@
 
 namespace hyteg {
 
+enum class DiffusionTimeIntegrator
+{
+   ImplicitEuler,
+   CrankNicolson
+};
+
 /// \brief Unsteady diffusion operator for a P2 finite element discretization of the solution.
 ///
 /// This is a composite operator used to solve the parabolic PDE that describes unsteady diffusion:
@@ -50,13 +56,13 @@ namespace hyteg {
 ///
 /// where \f$ D \f$ is a constant diffusion parameter.
 ///
-/// This operator can be used for an implicit Euler discretization in time.
+/// This operator can be used for an implicit Euler or Crank-Nicolson time-integrator.
 /// In particular it equals
 ///
-/// \f$ M + dt\ D\ \mathcal{L} \f$
+/// \f$ M + \theta\ dt\ D\ \mathcal{L} \f$
 ///
 /// where \f$ D \f$ is again the diffusivity constant, \f$ M \f$ the finite element mass matrix, \f$ dt \f$ a constant time step,
-/// and \f$ \mathcal{L} = - \Delta \f$ the negative Laplacian.
+/// \f$ \mathcal{L} = - \Delta \f$ the negative Laplacian, and \f$ \theta \in \{0.5, 1\} \f$ for Crank-Nicolson or implicit Euler.
 ///
 /// To solve the unsteady diffusion equation, see UnsteadyDiffusion.
 template < template < class > class P2Operator, typename LaplaceForm_T, typename MassForm_T >
@@ -67,15 +73,17 @@ class P2UnsteadyDiffusionOperator : public Operator< P2Function< real_t >, P2Fun
                                 const uint_t&                              minLevel,
                                 const uint_t&                              maxLevel,
                                 const real_t&                              dt,
-                                const real_t&                              diffusionCoefficient )
+                                const real_t&                              diffusionCoefficient,
+                                const DiffusionTimeIntegrator&             timeIntegrator )
    : Operator( storage, minLevel, maxLevel )
-   , laplaceForm_( new LaplaceForm_T )
-   , massForm_( new MassForm_T )
+   , laplaceForm_( new LaplaceForm_T() )
+   , massForm_( new MassForm_T() )
+   , timeIntegrator_( timeIntegrator )
    , unsteadyDiffusionOperator_(
          storage,
          minLevel,
          maxLevel,
-         P2LinearCombinationForm( {1.0, dt * diffusionCoefficient}, {massForm_.get(), laplaceForm_.get()} ) )
+         P2LinearCombinationForm( {1.0, dtScaling() * dt * diffusionCoefficient}, {massForm_.get(), laplaceForm_.get()} ) )
    , dt_( dt )
    {}
 
@@ -107,12 +115,41 @@ class P2UnsteadyDiffusionOperator : public Operator< P2Function< real_t >, P2Fun
       smooth_sor( dst, rhs, 1.0, level, flag, backwards );
    }
 
+   void smooth_jac( const P2Function< real_t >& dst,
+                    const P2Function< real_t >& rhs,
+                    const P2Function< real_t >& src,
+                    const real_t&               relax,
+                    size_t                      level,
+                    DoFType                     flag ) const
+   {
+      unsteadyDiffusionOperator_.smooth_jac( dst, rhs, src, relax, level, flag );
+   }
+
    real_t dt() const { return dt_; }
 
+   DiffusionTimeIntegrator getTimeIntegrator() const { return timeIntegrator_; }
+
+   const P2Operator< P2LinearCombinationForm > & getOperator() const { return unsteadyDiffusionOperator_; }
+
  private:
+
+   real_t dtScaling()
+   {
+      switch( timeIntegrator_ )
+      {
+      case DiffusionTimeIntegrator::ImplicitEuler:
+         return 1.0;
+      case DiffusionTimeIntegrator::CrankNicolson:
+         return 0.5;
+      default:
+         WALBERLA_ABORT("Invalid time integrator")
+      }
+   }
+
    std::shared_ptr< LaplaceForm_T >              laplaceForm_;
    std::shared_ptr< MassForm_T >                 massForm_;
-   P2ConstantOperator< P2LinearCombinationForm > unsteadyDiffusionOperator_;
+   DiffusionTimeIntegrator timeIntegrator_;
+   P2Operator< P2LinearCombinationForm >         unsteadyDiffusionOperator_;
 
    real_t dt_;
 };
@@ -126,16 +163,19 @@ typedef P2UnsteadyDiffusionOperator<
 /// This unsteady diffusion operator supports blending.
 typedef P2UnsteadyDiffusionOperator< P2ElementwiseOperator, P2Form_laplace, P2Form_mass > P2ElementwiseUnsteadyDiffusionOperator;
 
+
 /// \brief Wrapper class to solve the unsteady diffusion equation in time.
 ///
 /// \tparam FunctionType function discretization type (e.g. P2Function< real_t >)
 /// \tparam UnsteadyDiffusionOperatorType type of the unsteady diffusion operator, must match the function type (e.g. P2UnsteadyDiffusionOperator)
+/// \tparam LaplaceOperatorType Laplace operator matrix type matching the function (e.g. P2ConstantLaplaceOperator)
 /// \tparam MassOperatorType mass matrix type matching the function (e.g. P2ConstantMassOperator)
 ///
-/// Performs the implicit Euler method to advance the solution of the unsteady diffusion equation.
+/// Performs the implicit Euler or Crank-Nicholson method to advance the solution of the unsteady diffusion equation.
 /// Therefore in each time step, the passed UnsteadyDiffusionOperatorType instance must be inverted.
 ///
-template < typename FunctionType, typename UnsteadyDiffusionOperatorType, typename MassOperatorType >
+/// Note that the selection of the time-integrator is done during the construction of the diffusion operator.
+template < typename FunctionType, typename UnsteadyDiffusionOperatorType, typename LaplaceOperatorType, typename MassOperatorType >
 class UnsteadyDiffusion
 {
  public:
@@ -149,44 +189,114 @@ class UnsteadyDiffusion
    , solver_( diffusionSolver )
    {}
 
-   /// \brief Performs one implicit Euler step to advance the solution of the PDE.
+   /// \brief Performs one implicit Euler step to advance the solution of the PDE from time step n to n+1.
    ///
-   /// \param A the unsteady diffusion operator instance (dt and the diffusivity are defined by this operator)
-   /// \param M the finite element mass matrix
-   /// \param u the solution function
-   /// \param f the right hand side (in "strong" form - it is multiplied by the mass in this method)
+   /// \param A the unsteady diffusion operator instance (dt, diffusivity and time integrator are defined by this operator)
+   /// \param L the Laplacian operator
+   /// \param M the finite element mass operator
+   /// \param u the solution function of the next time step n+1
+   ///          (must have corresponding BCs of the next time step interpolated on the boundary)
+   /// \param uOld the solution of the previous time step n
+   ///             (the interpolated Dirichlet BCs must be equal to those of the previous time step)
+   /// \param f the right hand side of time step n+1
+   ///          (in "strong" form - it is multiplied by the mass in this method)
+   /// \param fOld the right hand side of time step n
+   ///             (in "strong" form - it is multiplied by the mass in this method)
    /// \param level the refinement level
    /// \param flag where to solve
    ///
-   /// This method performs
+   /// This method solves for \f$ u^{n+1}\f$:
    ///
-   /// \f$ u^{n+1} := (M + dt\ D\ \mathcal{L})^{-1} M (dt\ f + u^n) \f$
+   /// \f$ (M + \theta\ dt\ D\ \mathcal{L}) u^{n+1} := (M - (1 - \theta)\ dt\ D\ \mathcal{L}) u^n + \theta\ dt\ M f^{n+1} + (1-\theta)\ dt\ M f^{n} \f$
    ///
-   /// where \f$ A = M + dt\ D\ \mathcal{L} \f$ the unsteady diffusion operator (see e.g. P2UnsteadyDiffusionOperator).
+   /// where \f$ A = M + \theta\ dt\ D\ \mathcal{L} \f$ the unsteady diffusion operator (see e.g. P2UnsteadyDiffusionOperator).
    ///
    void step( const UnsteadyDiffusionOperatorType& A,
+              const LaplaceOperatorType&           L,
               const MassOperatorType&              M,
               const FunctionType&                  u,
+              const FunctionType&                  uOld,
               const FunctionType&                  f,
+              const FunctionType&                  fOld,
               const uint_t&                        level,
               const DoFType&                       flag )
    {
-      M.apply( f, fWeak_, level, flag );
-      M.apply( u, uOld_, level, flag );
-      uOld_.assign( {1.0, A.dt()}, {uOld_, fWeak_}, level, flag );
-      solver_->solve( A, u, uOld_, level );
+      if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::ImplicitEuler )
+      {
+         // implicit Euler
+         M.apply( f, fWeak_, level, flag );
+         M.apply( uOld, uOld_, level, flag );
+         uOld_.assign( {1.0, A.dt()}, {uOld_, fWeak_}, level, flag );
+         solver_->solve( A, u, uOld_, level );
+      }
+      else if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::CrankNicolson )
+      {
+         // Crank-Nicholson
+         M.apply( f, fWeak_, level, flag );
+         M.apply( fOld, fWeak_, level, flag, Add );
+         M.apply( uOld, uOld_, level, flag );
+         uOld_.assign( {1.0, 0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
+         L.apply( uOld, fWeak_, level, flag );
+         uOld_.assign( {1.0, - 0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
+         solver_->solve( A, u, uOld_, level );
+      }
    }
 
    /// \brief Same step implementation but for rhs == 0.
    void step( const UnsteadyDiffusionOperatorType& A,
+              const LaplaceOperatorType&           L,
               const MassOperatorType&              M,
               const FunctionType&                  u,
+              const FunctionType&                  uOld,
               const uint_t&                        level,
               const DoFType&                       flag )
    {
-      M.apply( u, uOld_, level, flag );
-      uOld_.assign( {1.0}, {uOld_}, level, flag );
-      solver_->solve( A, u, uOld_, level );
+      if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::ImplicitEuler )
+      {
+         M.apply( u, uOld_, level, flag );
+         uOld_.assign( {1.0}, {uOld_}, level, flag );
+         solver_->solve( A, u, uOld_, level );
+      }
+      else if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::CrankNicolson )
+      {
+         // Crank-Nicholson
+         M.apply( uOld, uOld_, level, flag );
+         uOld_.assign( {1.0}, {uOld_}, level, flag );
+         L.apply( uOld, fWeak_, level, flag );
+         uOld_.assign( {1.0, - 0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
+         solver_->solve( A, u, uOld_, level );
+      }
+   }
+
+   /// \brief Calculates the residual of the computed solution u^n+1 and writes it to r.
+   void calculateResidual( const UnsteadyDiffusionOperatorType& A,
+                           const LaplaceOperatorType&           L,
+                           const MassOperatorType&              M,
+                           const FunctionType&                  u,
+                           const FunctionType&                  uOld,
+                           const FunctionType&                  f,
+                           const FunctionType&                  fOld,
+                           FunctionType&                        r,
+                           const uint_t&                        level,
+                           const DoFType&                       flag )
+   {
+      if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::ImplicitEuler )
+      {
+         M.apply( f, fWeak_, level, flag );
+         M.apply( uOld, uOld_, level, flag );
+         uOld_.assign( {1.0, A.dt()}, {uOld_, fWeak_}, level, flag );
+      }
+      else if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::CrankNicolson )
+      {
+         M.apply( f, fWeak_, level, flag );
+         M.apply( fOld, fWeak_, level, flag, Add );
+         M.apply( uOld, uOld_, level, flag );
+         uOld_.assign( {1.0, 0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
+         L.apply( uOld, fWeak_, level, flag );
+         uOld_.assign( {1.0, - 0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
+      }
+      A.apply( u, fWeak_, level, flag );
+      r.assign( {1.0, -1.0}, {uOld_, fWeak_}, level, flag );
    }
 
  private:

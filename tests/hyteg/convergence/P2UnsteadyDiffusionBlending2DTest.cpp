@@ -25,16 +25,20 @@
 
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
+#include "hyteg/solvers/WeightedJacobiSmoother.hpp"
 #include "hyteg/solvers/controlflow/SolverLoop.hpp"
 
 using walberla::real_t;
@@ -106,60 +110,57 @@ class Rhs
    real_t t_;
 };
 
-void P2UnsteadyDiffusionTest( const uint_t minLevel,
-                              const uint_t maxLevel,
-                              const uint_t testSolution,
-                              const uint_t steps,
-                              const real_t tMax,
-                              const uint_t timeSteppingScheme,
-                              const real_t discrL2Eps )
+void P2UnsteadyDiffusionBlendingTest( const uint_t minLevel,
+                                      const uint_t maxLevel,
+                                      const uint_t testSolution,
+                                      const uint_t steps,
+                                      const real_t tMax,
+                                      const uint_t timeSteppingScheme,
+                                      const real_t discrL2Eps )
 {
-   const auto            meshInfo = MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, 1, 1 );
+   const auto            meshInfo = MeshInfo::meshAnnulus( 0.35 * pi, pi, MeshInfo::CRISS, 8, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   AnnulusMap::setMap( setupStorage );
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
-   writeDomainPartitioningVTK( storage, "../../output", "P2UnsteadyDiffusionTest_domain" );
+   writeDomainPartitioningVTK( storage, "../../output", "P2UnsteadyDiffusionBlendingTest_domain" );
 
    const real_t dt          = tMax / real_c( steps );
-   const bool   vtk         = true;
+   const bool   vtk         = false;
    const real_t diffusivity = 1.0;
-
-   WALBERLA_LOG_INFO_ON_ROOT( "dt: " << dt )
-   WALBERLA_LOG_INFO_ON_ROOT( "max level: " << maxLevel );
-   WALBERLA_LOG_INFO_ON_ROOT( "time integrator: " << timeSteppingScheme );
 
    hyteg::P2Function< real_t > u( "u", storage, minLevel, maxLevel );
    hyteg::P2Function< real_t > uOld( "uOld", storage, minLevel, maxLevel );
    hyteg::P2Function< real_t > f( "f", storage, minLevel, maxLevel );
    hyteg::P2Function< real_t > fOld( "fOld", storage, minLevel, maxLevel );
-   hyteg::P2Function< real_t > fWeak( "fWeak", storage, minLevel, maxLevel );
+   hyteg::P2Function< real_t > r( "r", storage, minLevel, maxLevel );
    hyteg::P2Function< real_t > uExact( "uExact", storage, minLevel, maxLevel );
    hyteg::P2Function< real_t > error( "error", storage, minLevel, maxLevel );
-   hyteg::P2Function< real_t > Au( "Au", storage, minLevel, maxLevel );
-   hyteg::P2Function< real_t > r( "r", storage, minLevel, maxLevel );
 
    DiffusionTimeIntegrator timeIntegrator =
        timeSteppingScheme == 0 ? DiffusionTimeIntegrator::ImplicitEuler : DiffusionTimeIntegrator::CrankNicolson;
 
-   P2ConstantUnsteadyDiffusionOperator diffusionOperator( storage, minLevel, maxLevel, dt, diffusivity, timeIntegrator );
-   P2ConstantLaplaceOperator           L( storage, minLevel, maxLevel );
-   P2ConstantMassOperator              M( storage, minLevel, maxLevel );
+   P2ElementwiseUnsteadyDiffusionOperator diffusionOperator( storage, minLevel, maxLevel, dt, diffusivity, timeIntegrator );
+   P2ElementwiseBlendingLaplaceOperator   L( storage, minLevel, maxLevel );
+   P2ElementwiseBlendingMassOperator      M( storage, minLevel, maxLevel );
 
-   auto coarseGridSolver = std::make_shared< CGSolver< P2ConstantUnsteadyDiffusionOperator > >( storage, minLevel, maxLevel );
-   auto smoother         = std::make_shared< GaussSeidelSmoother< P2ConstantUnsteadyDiffusionOperator > >();
-   auto restriction      = std::make_shared< P2toP2QuadraticRestriction >();
-   auto prolongation     = std::make_shared< P2toP2QuadraticProlongation >();
-   auto solver           = std::make_shared< GeometricMultigridSolver< P2ConstantUnsteadyDiffusionOperator > >(
-       storage, smoother, coarseGridSolver, restriction, prolongation, minLevel, maxLevel, 1, 1 );
-   auto solverLoop = std::make_shared< SolverLoop< P2ConstantUnsteadyDiffusionOperator > >( solver, 1 );
+   auto coarseGridSolver =
+       std::make_shared< CGSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, minLevel, minLevel, 1000 );
+   auto smoother =
+       std::make_shared< WeightedJacobiSmoother< P2ElementwiseUnsteadyDiffusionOperator > >( storage, minLevel, maxLevel, 0.66 );
+   auto restriction  = std::make_shared< P2toP2QuadraticRestriction >();
+   auto prolongation = std::make_shared< P2toP2QuadraticProlongation >();
+   auto solver       = std::make_shared< GeometricMultigridSolver< P2ElementwiseUnsteadyDiffusionOperator > >(
+       storage, smoother, coarseGridSolver, restriction, prolongation, minLevel, maxLevel, 6, 6 );
+   auto solverLoop = std::make_shared< SolverLoop< P2ElementwiseUnsteadyDiffusionOperator > >( solver, 4 );
 
    UnsteadyDiffusion< P2Function< real_t >,
-                      P2ConstantUnsteadyDiffusionOperator,
-                      P2ConstantLaplaceOperator,
-                      P2ConstantMassOperator >
-       diffusionSolver( storage, minLevel, maxLevel, coarseGridSolver );
+                      P2ElementwiseUnsteadyDiffusionOperator,
+                      P2ElementwiseBlendingLaplaceOperator,
+                      P2ElementwiseBlendingMassOperator >
+       diffusionSolver( storage, minLevel, maxLevel, solverLoop );
 
-   hyteg::VTKOutput vtkOutput( "../../output", "P2UnsteadyDiffusionTest", storage );
+   hyteg::VTKOutput vtkOutput( "../../output", "P2UnsteadyDiffusionBlendingTest", storage );
    vtkOutput.add( uExact );
    vtkOutput.add( u );
    vtkOutput.add( error );
@@ -167,18 +168,17 @@ void P2UnsteadyDiffusionTest( const uint_t minLevel,
    Solution solution( diffusivity, testSolution );
    Rhs      rhs( diffusivity, testSolution );
 
-   u.interpolate( solution, maxLevel, All );
    uExact.interpolate( solution, maxLevel, All );
    f.interpolate( rhs, maxLevel, All );
-   M.apply( f, fWeak, maxLevel, All );
+   u.interpolate( solution, maxLevel, DirichletBoundary );
    error.assign( {1.0, -1.0}, {u, uExact}, maxLevel, All );
-
-   real_t l2Error    = std::sqrt( error.dotGlobal( error, maxLevel, Inner ) /
+   real_t l2Error = std::sqrt( error.dotGlobal( error, maxLevel, Inner ) /
                                real_c( numberOfGlobalInnerDoFs< P2FunctionTag >( *storage, maxLevel ) ) );
    real_t l2Residual = 0.0;
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " timestep | time total | discr. L2 error | discr. L2 residual" ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "----------+------------+-----------------+--------------------" ) );
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8d | %10.2e | %15.2e | %15.2e", 0, 0, l2Error, l2Residual ) );
+
    if ( vtk )
       vtkOutput.write( maxLevel, 0 );
 
@@ -196,7 +196,6 @@ void P2UnsteadyDiffusionTest( const uint_t minLevel,
       f.interpolate( rhs, maxLevel, All );
       u.interpolate( solution, maxLevel, DirichletBoundary );
 
-      M.apply( f, fWeak, maxLevel, All );
       diffusionSolver.step( diffusionOperator, L, M, u, uOld, f, fOld, maxLevel, Inner );
 
       error.assign( {1.0, -1.0}, {u, uExact}, maxLevel, All );
@@ -213,6 +212,7 @@ void P2UnsteadyDiffusionTest( const uint_t minLevel,
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8d | %10.2e | %15.2e | %15.2e", steps, timeTotal, l2Error, l2Residual ) );
 
    WALBERLA_CHECK_LESS( l2Error, discrL2Eps );
+
 }
 
 } // namespace hyteg
@@ -227,12 +227,12 @@ int main( int argc, char* argv[] )
    real_t tMax           = 1;
    uint_t maxLevel       = 4;
    uint_t timeIntegrator = 0;
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 10, tMax, timeIntegrator, 3.6e-04 );
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, 1.8e-04 );
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 40, tMax, timeIntegrator, 8.6e-05 );
+   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 10, tMax, timeIntegrator, 3.0e-03 );
+   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, 1.5e-03 );
+   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 40, tMax, timeIntegrator, 7.5e-04 );
 
    timeIntegrator = 1;
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 10, tMax, timeIntegrator, 5.7e-06 );
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, 1.5e-06 );
-   hyteg::P2UnsteadyDiffusionTest( 2, maxLevel, testSolution, 40, tMax, timeIntegrator, 3.5e-07 );
+   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 10, tMax, timeIntegrator, 5.0e-05 );
+   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 20, tMax, timeIntegrator, 1.5e-05 );
+   hyteg::P2UnsteadyDiffusionBlendingTest( 2, maxLevel, testSolution, 40, tMax, timeIntegrator, 4.1e-06 );
 }
