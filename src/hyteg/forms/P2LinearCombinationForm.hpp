@@ -218,8 +218,16 @@ class P2LinearCombinationForm : public P2Form
       return assemble;
    }
 
+   virtual void setGeometryMap( const std::shared_ptr< GeometryMap >& geometryMap )
+   {
+      for ( auto& form : forms_ )
+      {
+         form->setGeometryMap( geometryMap );
+      }
+   }
+
  private:
-   std::vector< real_t >                           scalars_;
+   std::vector< real_t >  scalars_;
    std::vector< P2Form* > forms_;
 };
 

@@ -133,7 +133,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
          auto stencilSize   = vertex->getData( getVertexStencilID() )->getSize( level );
          auto stencilMemory = vertex->getData( getVertexStencilID() )->getPointer( level );
 
-         form_.geometryMap = vertex->getGeometryMap();
+         form_.setGeometryMap( vertex->getGeometryMap() );
          auto stencil =
              P1Elements::P1Elements3D::assembleP1LocalStencil( storage_, *vertex, indexing::Index( 0, 0, 0 ), level, form_ );
 
@@ -173,7 +173,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
             auto  stencilMemory = edge->getData( getEdgeStencilID() )->getPointer( level );
             auto& stencilMap    = edge->getData( getEdgeStencil3DID() )->getData( level );
 
-            form_.geometryMap = edge->getGeometryMap();
+            form_.setGeometryMap( edge->getGeometryMap() );
 
             // old linear stencil memory
             auto stencil =
@@ -311,7 +311,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
           auto cell = it.second;
           auto & stencilMemory = cell->getData( getCellStencilID())->getData( level );
 
-          form_.geometryMap = cell->getGeometryMap();
+          form_.setGeometryMap( cell->getGeometryMap() );
 
           stencilMemory =
           P1Elements::P1Elements3D::assembleP1LocalStencilNew( storage_, *cell, indexing::Index( 1, 1, 1 ), level, form_ );
@@ -361,7 +361,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
          Point3D d0 = h * ( face.coords[1] - face.coords[0] );
          Point3D d2 = h * ( face.coords[2] - face.coords[0] );
 
-         form_.geometryMap = face.getGeometryMap();
+         form_.setGeometryMap( face.getGeometryMap() );
 
          Point3D dirS  = -1.0 * d2;
          Point3D dirSE = d0 - 1.0 * d2;
@@ -454,7 +454,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
          }
 
          // assemble south
-         form_.geometryMap = faceS->getGeometryMap();
+         form_.setGeometryMap( faceS->getGeometryMap() );
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
              form_, {x, x + dir_W, x + dir_S}, P1Elements::P1Elements2D::elementSW, edge_stencil );
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
@@ -464,7 +464,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
 
          if ( edge.getNumNeighborFaces() == 2 )
          {
-            form_.geometryMap = faceN->getGeometryMap();
+            form_.setGeometryMap( faceN->getGeometryMap() );
             vertexdof::variablestencil::assembleLocalStencil< P1Form >(
                 form_, {x, x + dir_E, x + dir_N}, P1Elements::P1Elements2D::elementNE, edge_stencil );
             vertexdof::variablestencil::assembleLocalStencil< P1Form >(
@@ -546,7 +546,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
          for ( auto& faceId : vertex.neighborFaces() )
          {
             Face* face       = storage_->getFace( faceId );
-            form_.geometryMap = face->getGeometryMap();
+            form_.setGeometryMap( face->getGeometryMap() );
 
             uint_t                     v_i       = face->vertex_index( vertex.getID() );
             std::vector< PrimitiveID > adj_edges = face->adjacent_edges( vertex.getID() );

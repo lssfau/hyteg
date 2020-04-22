@@ -132,7 +132,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils() {
        Point3D d0 = h * ( face.coords[1] - face.coords[0] );
        Point3D d2 = h * ( face.coords[2] - face.coords[0] );
 
-       form_.geometryMap = face.getGeometryMap();
+       form_.setGeometryMap( face.getGeometryMap() );
 
        Point3D dirS  = -1.0 * d2;
        Point3D dirSE = d0 - 1.0 * d2;
@@ -203,7 +203,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils() {
       }
 
      // assemble south
-      form_.geometryMap = faceS->getGeometryMap();
+      form_.setGeometryMap( faceS->getGeometryMap() );
      P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(
           form_, {x, x + dir_W, x + dir_S},
                                                          P2Elements::P2Face::elementSW_reord, vStencil);
@@ -214,7 +214,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils() {
          form_, {x, x + dir_SE, x + dir_E}, P2Elements::P2Face::elementSE_reord, vStencil);
 
      if (edge.getNumNeighborFaces() == 2) {
-        form_.geometryMap = faceN->getGeometryMap();
+        form_.setGeometryMap( faceN->getGeometryMap() );
        P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(
             form_, {x, x + dir_E, x + dir_N}, P2Elements::P2Face::elementNE_reord, vStencil);
        P2::variablestencil::assembleEdgeToVertexStencil<EdgeDoFToVertexDoFForm>(
@@ -242,7 +242,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::assembleStencils() {
        for( auto& faceId : vertex.neighborFaces() )
        {
           Face* face       = storage_->getFace( faceId );
-          form_.geometryMap = face->getGeometryMap();
+          form_.setGeometryMap( face->getGeometryMap() );
 
           uint_t                     v_i       = face->vertex_index( vertex.getID() );
           std::vector< PrimitiveID > adj_edges = face->adjacent_edges( vertex.getID() );

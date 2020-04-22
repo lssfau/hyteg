@@ -109,7 +109,7 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils() {
          // Assemble vertexToEdge stencil
          real_t * vStencil = storage_->getFace(face.getID())->getData(faceStencilID_)->getPointer(level);
 
-         form_.geometryMap = face.getGeometryMap();
+         form_.setGeometryMap( face.getGeometryMap() );
 
          const Point3D faceBottomLeftCoords  = face.coords[0];
          const Point3D faceBottomRightCoords = face.coords[1];
@@ -256,7 +256,7 @@ void EdgeDoFOperator< EdgeDoFForm >::assembleStencils() {
 
          if( edge.getNumNeighborFaces() == 2 )
          {
-            form_.geometryMap = faceN->getGeometryMap();
+            form_.setGeometryMap( faceN->getGeometryMap() );
 
             P2::variablestencil::assembleEdgeToEdgeStencil(
                 form_,
