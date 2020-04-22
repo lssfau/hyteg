@@ -61,8 +61,9 @@ int main( int argc, char** argv )
    setupDiagonal( minLevel, maxLevel, laplaceOperator );
 
    P1Function< real_t > eigenvector( "eigenvector", storage, minLevel, maxLevel );
+   P1Function< real_t > tmp( "tmp", storage, minLevel, maxLevel );
    eigenvector.interpolate( analytic_solution, minLevel, DirichletBoundary );
-   const auto spectralRadius = chebyshev::estimateRadius( laplaceOperator, minLevel, 100, storage, eigenvector );
+   const auto spectralRadius = chebyshev::estimateRadius( laplaceOperator, minLevel, 100, storage, eigenvector, tmp );
 
    const std::array< real_t, 5 > expectedResiduals{0.00799318, 0.000244743, 4.86337e-05, 1.53384e-05, 6.00188e-06};
 

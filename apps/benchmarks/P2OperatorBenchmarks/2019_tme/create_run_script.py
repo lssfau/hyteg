@@ -28,7 +28,7 @@ Parameters
         f.write("echo BENCHMARK\n")
         f.write("echo\n")
         for kernel_type in kernel_types:
-            for likwid_group in ["FLOPS_DP", "L3"]:
+            for likwid_group in ["FLOPS_DP", "L3CACHE", "MEM_DP", "MEM"]:
                 for level in range(5, 9):
                     cmd = "likwid-mpirun -mpi openmpi -np {} -nperdomain S:4 -g {} -m ./P2OperatorBenchmarks 2019_tme/run_benchmark_base_config.prm " \
                         "-Parameters.kernelType={} " \

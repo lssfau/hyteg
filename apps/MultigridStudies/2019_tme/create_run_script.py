@@ -29,6 +29,8 @@ Parameters
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
     sorRelax 0.3;
+    sorRelaxEstimationIterations 20;
+    sorRelaxEstimationLevel 3;
     velocitySorRelax 1.0;
 
     symmGSVelocity true;
@@ -53,11 +55,13 @@ Parameters
     postDCPostSmoothingSteps 3;
     postDCSmoothingIncrement 2;
 
+    outputBaseDirectory .;
     outputVTK false;
     outputTiming false;
     outputTimingJSON true;
     outputTimingJSONFile timing.json;
     outputSQL true;
+    outputParallelSQL false;
     outputSQLFile omega_sampling.db;
 }
 """
@@ -152,11 +156,13 @@ Parameters
     postDCPostSmoothingSteps 3;
     postDCSmoothingIncrement 2;
 
+    outputBaseDirectory .;
     outputVTK false;
     outputTiming false;
     outputTimingJSON true;
     outputTimingJSONFile timing.json;
     outputSQL true;
+    outputParallelSQL false;
     outputSQLFile fmg_benchmark.db;
 }
 """
@@ -164,7 +170,7 @@ Parameters
     with open("fmg_tests_base_config.prm", "w") as f:
         f.write(base_config)
 
-    discretizations = ["P2"]
+    discretizations = ["P1", "P2"]
     num_processes = 8
     symm_gs = ["true", "false"]
     num_pre_post_inc = [(1, 1, 2), (2, 2, 2), (3, 3, 2)]
@@ -263,11 +269,13 @@ Parameters
     postDCPostSmoothingSteps 3;
     postDCSmoothingIncrement 2;
 
+    outputBaseDirectory .;
     outputVTK false;
     outputTiming false;
     outputTimingJSON true;
     outputTimingJSONFile timing.json;
     outputSQL true;
+    outputParallelSQL false;
     outputSQLFile discretization_error.db;
 }
 """
@@ -276,7 +284,7 @@ Parameters
         f.write(base_config)
 
     max_levels = list(range(1, 9))
-    discretizations = ["P2"]
+    discretizations = ["P1", "P2"]
     num_processes = 8
     sor_omega = {"P1": 0.3, "P2": 0.65}
     prepost = {"P1": 3, "P2": 6}

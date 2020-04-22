@@ -987,14 +987,23 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                                                         symmGSPressure,
                                                                         numGSPressure );
 
-   if ( sorRelaxEstimationIterations > 0 )
+   if ( sorRelaxEstimationIterations > 0 && std::is_same< StokesOperator, P2P1TaylorHoodStokesOperator >::value )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "" );
-      WALBERLA_LOG_INFO_ON_ROOT( "Estimating omega (" << sorRelaxEstimationIterations << " power iterations on level " << sorRelaxEstimationLevel << ") ..." );
-      const auto estimatedOmega = smoother->estimateAndSetRelaxationParameter( sorRelaxEstimationLevel, sorRelaxEstimationIterations );
+      WALBERLA_LOG_INFO_ON_ROOT( "Estimating omega (" << sorRelaxEstimationIterations << " power iterations on level "
+                                                      << sorRelaxEstimationLevel << ") ..." );
+      const auto estimatedOmega = estimateUzawaRelaxationParameter(
+          storage, uzawaVelocityPreconditioner, sorRelaxEstimationLevel, sorRelaxEstimationIterations, numGSVelocity );
+      smoother->setRelaxationParameter( estimatedOmega );
       WALBERLA_LOG_INFO_ON_ROOT( "Setting omega to estimate: " << estimatedOmega );
       WALBERLA_LOG_INFO_ON_ROOT( "" );
       sqlRealProperties["sor_relax"] = estimatedOmega;
+   }
+   else
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "" )
+      WALBERLA_LOG_INFO_ON_ROOT( "Using omega from parameter file." )
+      WALBERLA_LOG_INFO_ON_ROOT( "" )
    }
 
 #ifdef HYTEG_BUILD_WITH_PETSC
@@ -1004,7 +1013,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    std::shared_ptr< Solver< StokesOperator > > petscSolverInternal;
    if ( coarseGridSolverType == 0 )
    {
-      petscSolverInternal = std::make_shared< PETScLUSolver< StokesOperator > >( storage, coarseGridMaxLevel );
+      auto petscSolverInternalTmp = std::make_shared< PETScLUSolver< StokesOperator > >( storage, coarseGridMaxLevel );
+      petscSolverInternalTmp->setVerbose( true );
+      petscSolverInternal = petscSolverInternalTmp;
    }
    else if ( coarseGridSolverType == 1 )
    {
@@ -1608,6 +1619,19 @@ void setup( int argc, char** argv )
            meshInfo =
            MeshInfo::meshCuboid( leftBottom3D, Point3D( { 1, 1, 1 } ), numFacesPerSide, numFacesPerSide, numFacesPerSide );
          }
+          exactU = shellExactU;
+          exactV = shellExactV;
+          exactW = shellExactW;
+
+          exactP = shellExactP;
+
+          bcU = shellExactU;
+          bcV = shellExactV;
+          bcW = shellExactW;
+
+          rhsU = shellRhsU;
+          rhsV = shellRhsV;
+          rhsW = shellRhsW;
        }
        SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
        setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
