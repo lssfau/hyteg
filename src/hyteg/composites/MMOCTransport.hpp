@@ -80,7 +80,7 @@ const static std::map< TimeSteppingScheme, std::vector< real_t > > RK_b = {
     {TimeSteppingScheme::Ralston, RK_b_Ralston},
     {TimeSteppingScheme::RK4, RK_b_RK4}};
 
-std::vector< PrimitiveID > getNeighboringPrimitives( const PrimitiveID& primitiveID, const SetupPrimitiveStorage& setupStorage )
+inline std::vector< PrimitiveID > getNeighboringPrimitives( const PrimitiveID& primitiveID, const SetupPrimitiveStorage& setupStorage )
 {
    std::set< PrimitiveID > neighboringPrimitives;
    if ( setupStorage.getNumberOfCells() > 0 )
@@ -115,7 +115,7 @@ std::vector< PrimitiveID > getNeighboringPrimitives( const PrimitiveID& primitiv
 }
 
 
-void updateParticlePosition( const SetupPrimitiveStorage&                           setupStorage,
+inline void updateParticlePosition( const SetupPrimitiveStorage&                           setupStorage,
                              walberla::convection_particles::data::ParticleStorage& particleStorage )
 {
    if ( setupStorage.getNumberOfCells() == 0 )
@@ -200,10 +200,10 @@ void updateParticlePosition( const SetupPrimitiveStorage&                       
    }
 }
 
-real_t evaluateAtParticlePosition( PrimitiveStorage&                                                      storage,
-                                   const P2Function< real_t >&                                            function,
-                                   const walberla::convection_particles::data::ParticleStorage::Particle& particle,
-                                   const uint_t&                                                          level )
+inline real_t evaluateAtParticlePosition( PrimitiveStorage&                                                      storage,
+                                          const P2Function< real_t >&                                            function,
+                                          const walberla::convection_particles::data::ParticleStorage::Particle& particle,
+                                          const uint_t&                                                          level )
 {
    real_t result;
    if ( !storage.hasGlobalCells() )
@@ -231,11 +231,11 @@ real_t evaluateAtParticlePosition( PrimitiveStorage&                            
    return result;
 }
 
-void evaluateAtParticlePosition( PrimitiveStorage&                                                      storage,
-                                 const std::vector< P2Function< real_t > >&                             functions,
-                                 const walberla::convection_particles::data::ParticleStorage::Particle& particle,
-                                 const uint_t&                                                          level,
-                                 std::vector< real_t >&                                                 results )
+inline void evaluateAtParticlePosition( PrimitiveStorage&                                                      storage,
+                                        const std::vector< P2Function< real_t > >&                             functions,
+                                        const walberla::convection_particles::data::ParticleStorage::Particle& particle,
+                                        const uint_t&                                                          level,
+                                        std::vector< real_t >&                                                 results )
 {
    if ( !storage.hasGlobalCells() )
    {
@@ -272,17 +272,17 @@ void evaluateAtParticlePosition( PrimitiveStorage&                              
    }
 }
 
-uint_t initializeParticles( walberla::convection_particles::data::ParticleStorage& particleStorage,
-                            const SetupPrimitiveStorage&                           setupStorage,
-                            PrimitiveStorage&                                      storage,
-                            const P2Function< real_t >&                            c,
-                            const P2Function< real_t >&                            ux,
-                            const P2Function< real_t >&                            uy,
-                            const P2Function< real_t >&                            uz,
-                            const uint_t&                                          level,
-                            const DoFType&,
-                            const TimeSteppingScheme& timeSteppingScheme,
-                            const real_t&             initialOffset )
+inline uint_t initializeParticles( walberla::convection_particles::data::ParticleStorage& particleStorage,
+                                   const SetupPrimitiveStorage&                           setupStorage,
+                                   PrimitiveStorage&                                      storage,
+                                   const P2Function< real_t >&                            c,
+                                   const P2Function< real_t >&                            ux,
+                                   const P2Function< real_t >&                            uy,
+                                   const P2Function< real_t >&                            uz,
+                                   const uint_t&                                          level,
+                                   const DoFType&,
+                                   const TimeSteppingScheme& timeSteppingScheme,
+                                   const real_t&             initialOffset )
 {
    communication::syncFunctionBetweenPrimitives( ux, level );
    communication::syncFunctionBetweenPrimitives( uy, level );
@@ -461,17 +461,17 @@ uint_t initializeParticles( walberla::convection_particles::data::ParticleStorag
    return numberOfCreatedParticles;
 }
 
-void particleIntegration( walberla::convection_particles::data::ParticleStorage& particleStorage,
-                          const SetupPrimitiveStorage&                           setupStorage,
-                          PrimitiveStorage&                                      storage,
-                          const P2Function< real_t >&                            ux,
-                          const P2Function< real_t >&                            uy,
-                          const P2Function< real_t >&                            uz,
-                          const real_t&                                          dt,
-                          const uint_t&                                          level,
-                          const DoFType&,
-                          const uint_t&             steps,
-                          const TimeSteppingScheme& timeSteppingScheme )
+inline void particleIntegration( walberla::convection_particles::data::ParticleStorage& particleStorage,
+                                 const SetupPrimitiveStorage&                           setupStorage,
+                                 PrimitiveStorage&                                      storage,
+                                 const P2Function< real_t >&                            ux,
+                                 const P2Function< real_t >&                            uy,
+                                 const P2Function< real_t >&                            uz,
+                                 const real_t&                                          dt,
+                                 const uint_t&                                          level,
+                                 const DoFType&,
+                                 const uint_t&             steps,
+                                 const TimeSteppingScheme& timeSteppingScheme )
 {
    communication::syncFunctionBetweenPrimitives( ux, level );
    communication::syncFunctionBetweenPrimitives( uy, level );
@@ -575,13 +575,13 @@ void particleIntegration( walberla::convection_particles::data::ParticleStorage&
    }
 }
 
-void evaluateTemperature( walberla::convection_particles::data::ParticleStorage& particleStorage,
-                          PrimitiveStorage&                                      storage,
-                          const P2Function< real_t >&                            c,
-                          const P2Function< real_t >&                            cOld,
-                          const uint_t&                                          level,
-                          const DoFType&,
-                          const uint_t& numberOfCreatedParticles )
+inline void evaluateTemperature( walberla::convection_particles::data::ParticleStorage& particleStorage,
+                                 PrimitiveStorage&                                      storage,
+                                 const P2Function< real_t >&                            c,
+                                 const P2Function< real_t >&                            cOld,
+                                 const uint_t&                                          level,
+                                 const DoFType&,
+                                 const uint_t& numberOfCreatedParticles )
 {
    communication::syncFunctionBetweenPrimitives( cOld, level );
 
