@@ -7,3 +7,7 @@ waLBerla_link_files_to_builddir( *.prm )
 waLBerla_add_executable( NAME MantleConvectionBlendedAnnulus
         FILES  MantleConvectionBlendedAnnulus.cpp
         DEPENDS hyteg convection_particles)
+
+waLBerla_add_executable( NAME Benchmark_01_CircularAdvection
+        FILES Benchmark_01_CircularAdvection.cpp
+        DEPENDS hyteg convection_particles)
