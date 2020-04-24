@@ -19,3 +19,7 @@ waLBerla_add_executable( NAME Benchmark_02_SwirlingAdvection
 waLBerla_add_executable( NAME Benchmark_03_BlendedAdvection
         FILES Benchmark_03_BlendedAdvection.cpp Helpers.cpp
         DEPENDS hyteg convection_particles)
+
+waLBerla_add_executable( NAME Benchmark_04_BlendedAdvectionDiffusion
+        FILES Benchmark_04_BlendedAdvectionDiffusion.cpp Helpers.cpp
+        DEPENDS hyteg convection_particles)

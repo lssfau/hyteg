@@ -37,7 +37,8 @@ void solve( const MeshInfo&         meshInfo,
             uint_t                  numTimeSteps,
             bool                    vtk,
             const std::string&      benchmarkName,
-            uint_t                  printInterval )
+            uint_t                  printInterval,
+            uint_t                  vtkInterval )
 {
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -91,7 +92,7 @@ void solve( const MeshInfo&         meshInfo,
    auto       massChange  = ( mass / initialMass ) - 1.0;
    real_t     timeTotal   = 0;
 
-   hyteg::VTKOutput vtkOutput( "./output", benchmarkName, storage );
+   hyteg::VTKOutput vtkOutput( "./output", benchmarkName, storage, vtkInterval );
 
    vtkOutput.add( u );
    vtkOutput.add( v );

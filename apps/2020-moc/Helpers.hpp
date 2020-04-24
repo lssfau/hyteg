@@ -145,7 +145,8 @@ void solve( const MeshInfo&         meshInfo,
             uint_t                  numTimeSteps,
             bool                    vtk,
             const std::string&      benchmarkName,
-            uint_t                  printInterval );
+            uint_t                  printInterval,
+            uint_t                  vtkInterval );
 
 
 } // namespace moc_benchmarks

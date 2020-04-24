@@ -1,13 +1,14 @@
 Parameters
 {
-  level 6;
-  numTimeSteps 200;
+  level 7;
+  numTimeSteps 50;
 
   enableGaussianCone true;
   enableLinearCone false;
   enableCylinder false;
 
-  resetParticles true;
+  resetParticles false;
   vtk false;
-  printInterval 0;
+  printInterval 1;
+  vtkInterval 1;
 }

@@ -142,6 +142,8 @@ void benchmark( int argc, char** argv )
    const bool   enableGaussianCone = mainConf.getParameter< bool >( "enableGaussianCone" );
    const uint_t printInterval      = mainConf.getParameter< uint_t >( "printInterval" );
    const bool   vtk                = mainConf.getParameter< bool >( "vtk" );
+   const uint_t vtkInterval        = mainConf.getParameter< uint_t >( "vtkInterval" );
+
 
    MeshInfo meshInfo = MeshInfo::meshAnnulus( 0.5, 1.5, MeshInfo::CROSS, 6, 2 );
 
@@ -166,7 +168,8 @@ void benchmark( int argc, char** argv )
           numTimeSteps,
           vtk,
           "Benchmark_03_BlendedAdvection",
-          printInterval );
+          printInterval,
+          vtkInterval );
 }
 } // namespace moc_benchmarks
 } // namespace hyteg

@@ -10,4 +10,6 @@ Parameters
   resetParticles true;
   vtk true;
   printInterval 1;
+  vtkInterval 1;
+
 }

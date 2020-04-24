@@ -38,80 +38,53 @@
 using walberla::real_t;
 using walberla::uint_c;
 using walberla::uint_t;
+using walberla::math::pi;
 
 namespace hyteg {
 namespace moc_benchmarks {
-
-auto r = []( const hyteg::Point3D& x, const hyteg::Point3D& x0, const real_t& r0 ) -> real_t {
-   return ( 1 / r0 ) * std::sqrt( std::pow( x[0] - x0[0], 2 ) + std::pow( x[1] - x0[1], 2 ) );
-};
-
-auto conicalBody = []( const hyteg::Point3D& x ) -> real_t {
-   const Point3D x0( {0.5, 0.25, 0.0} );
-   const real_t  r0 = 0.15;
-   if ( r( x, x0, r0 ) <= 1. )
-      return 1 - r( x, x0, r0 );
-   else
-      return 0.0;
-};
-
-auto gaussianCone = []( const hyteg::Point3D& x ) -> real_t {
-   const Point3D x0( {0.25, 0.5, 0.0} );
-   const real_t  r0 = 0.15;
-   if ( r( x, x0, r0 ) <= 1. )
-      return ( 1 + std::cos( walberla::math::pi * r( x, x0, r0 ) ) ) * 0.25;
-   else
-      return 0.0;
-};
-
-auto slottedCylinder = []( const hyteg::Point3D& x ) -> real_t {
-   const Point3D x0( {0.5, 0.75, 0.0} );
-   const real_t  r0 = 0.15;
-   if ( ( r( x, x0, r0 ) <= 1. ) && ( std::abs( x[0] - x0[0] ) >= 0.025 || x[1] >= 0.85 ) )
-      return 1;
-   else
-      return 0.0;
-};
 
 
 class TempSolution : public Solution
 {
  public:
-   TempSolution( bool enableGaussianCone, bool enableLinearCone, bool enableCylinder )
-   : enableGaussianCone_( enableGaussianCone )
-   , enableLinearCone_( enableLinearCone )
-   , enableCylinder_( enableCylinder )
+   TempSolution( real_t diffusivity, Point3D p0, real_t t0 )
+       : Solution( t0 )
+       , diffusivity_( diffusivity )
+       , p0_( p0 )
    {}
 
-   /// Evaluates the solution at a specific point.
    real_t operator()( const Point3D& x ) const override
    {
-      real_t val = 0;
-      if ( enableGaussianCone_ )
-         val += gaussianCone( x );
-      if ( enableLinearCone_ )
-         val += conicalBody( x );
-      if ( enableCylinder_ )
-         val += slottedCylinder( x );
-      return val;
+       auto x_hat    = p0_[0] * std::cos( currentTime_ ) - p0_[1] * std::sin( currentTime_ );
+       auto y_hat    = -p0_[0] * std::sin( currentTime_ ) + p0_[1] * std::cos( currentTime_ );
+//      auto x_hat    = p0_[0] + currentTime_;
+//      auto y_hat    = 0;
+      auto exponent = -std::pow( r( x, x_hat, y_hat ), 2 ) / ( 4.0 * diffusivity_ * currentTime_ );
+      return ( 1.0 / ( 4.0 * pi * diffusivity_ * currentTime_ ) ) * std::exp( exponent );
    }
 
  private:
-   bool enableGaussianCone_;
-   bool enableLinearCone_;
-   bool enableCylinder_;
+   real_t r( const Point3D& p, const real_t& x_hat, const real_t& y_hat ) const
+   {
+      return std::sqrt( std::pow( p[0] - x_hat, 2 ) + std::pow( p[1] - y_hat, 2 ) );
+   }
+
+ private:
+   real_t  diffusivity_;
+   Point3D p0_;
 };
+
 
 class VelocitySolutionX : public Solution
 {
    /// Evaluates the solution at a specific point.
-   real_t operator()( const Point3D& x ) const override { return 0.5 - x[1]; }
+   real_t operator()( const Point3D& x ) const override { return -x[1]; }
 };
 
 class VelocitySolutionY : public Solution
 {
    /// Evaluates the solution at a specific point.
-   real_t operator()( const Point3D& x ) const override { return x[0] - 0.5; }
+   real_t operator()( const Point3D& x ) const override { return x[0]; }
 };
 
 void benchmark( int argc, char** argv )
@@ -122,7 +95,7 @@ void benchmark( int argc, char** argv )
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )
    {
-      auto defaultFile = "./Benchmark_01_CircularAdvection.prm";
+      auto defaultFile = "./Benchmark_04_BlendedAdvectionDiffusion.prm";
       WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
       cfg->readParameterFile( defaultFile );
    }
@@ -135,37 +108,39 @@ void benchmark( int argc, char** argv )
 
    const uint_t numTimeSteps       = mainConf.getParameter< uint_t >( "numTimeSteps" );
    const uint_t level              = mainConf.getParameter< uint_t >( "level" );
-   const bool   resetParticles     = mainConf.getParameter< bool >( "resetParticles" );
-   const bool   enableCylinder     = mainConf.getParameter< bool >( "enableCylinder" );
-   const bool   enableLinearCone   = mainConf.getParameter< bool >( "enableLinearCone" );
-   const bool   enableGaussianCone = mainConf.getParameter< bool >( "enableGaussianCone" );
+   const real_t diffusivity              = mainConf.getParameter< real_t >( "diffusivity" );
    const uint_t printInterval      = mainConf.getParameter< uint_t >( "printInterval" );
    const bool   vtk                = mainConf.getParameter< bool >( "vtk" );
    const uint_t vtkInterval        = mainConf.getParameter< uint_t >( "vtkInterval" );
 
-   MeshInfo meshInfo = hyteg::MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, 1, 1 );
 
-   const real_t tEnd = 2 * walberla::math::pi;
-   const real_t dt   = tEnd / real_c( numTimeSteps );
+   MeshInfo meshInfo = MeshInfo::meshAnnulus( 0.5, 1.5, MeshInfo::CROSS, 6, 2 );
 
-   TempSolution      cSolution( enableGaussianCone, enableLinearCone, enableCylinder );
+   const Point3D p0( { 0, 1, 0 } );
+
+   const real_t tStart = 0.5 * pi;
+   const real_t tEnd = 2.5 * pi;
+
+   const real_t dt   = (tEnd - tStart) / real_c( numTimeSteps - 1 );
+
+   TempSolution      cSolution( diffusivity, p0, tStart );
    VelocitySolutionX uSolution;
    VelocitySolutionY vSolution;
 
    solve( meshInfo,
-          false,
+          true,
           cSolution,
           uSolution,
           vSolution,
           dt,
-          1.0,
+          diffusivity,
           level,
           DiffusionTimeIntegrator::ImplicitEuler,
-          false,
-          resetParticles,
+          true,
+          true,
           numTimeSteps,
           vtk,
-          "Benchmark_01_CircularAdvection",
+          "Benchmark_04_BlendedAdvectionDiffusion",
           printInterval,
           vtkInterval );
 }

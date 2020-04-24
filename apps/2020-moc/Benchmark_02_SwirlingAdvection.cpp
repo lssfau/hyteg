@@ -167,6 +167,8 @@ void benchmark( int argc, char** argv )
    const bool   enableGaussianCone = mainConf.getParameter< bool >( "enableGaussianCone" );
    const uint_t printInterval      = mainConf.getParameter< uint_t >( "printInterval" );
    const bool   vtk                = mainConf.getParameter< bool >( "vtk" );
+   const uint_t vtkInterval        = mainConf.getParameter< uint_t >( "vtkInterval" );
+
 
    MeshInfo meshInfo = hyteg::MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, 1, 1 );
 
@@ -191,7 +193,8 @@ void benchmark( int argc, char** argv )
           numTimeSteps,
           vtk,
           "Benchmark_02_SwirlingAdvection",
-          printInterval );
+          printInterval,
+          vtkInterval );
 }
 } // namespace moc_benchmarks
 } // namespace hyteg
