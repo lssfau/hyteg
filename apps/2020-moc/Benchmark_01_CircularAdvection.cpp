@@ -73,9 +73,6 @@ auto slottedCylinder = []( const hyteg::Point3D& x ) -> real_t {
       return 0.0;
 };
 
-auto velX = []( const hyteg::Point3D& x ) -> real_t { return 0.5 - x[1]; };
-
-auto velY = []( const hyteg::Point3D& x ) -> real_t { return x[0] - 0.5; };
 
 class TempSolution : public Solution
 {
@@ -108,13 +105,13 @@ class TempSolution : public Solution
 class VelocitySolutionX : public Solution
 {
    /// Evaluates the solution at a specific point.
-   real_t operator()( const Point3D& x ) const override { return velX( x ); }
+   real_t operator()( const Point3D& x ) const override { return 0.5 - x[1]; }
 };
 
 class VelocitySolutionY : public Solution
 {
    /// Evaluates the solution at a specific point.
-   real_t operator()( const Point3D& x ) const override { return velY( x ); }
+   real_t operator()( const Point3D& x ) const override { return x[0] - 0.5; }
 };
 
 void benchmark( int argc, char** argv )
