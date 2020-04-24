@@ -74,10 +74,6 @@ auto slottedCylinder = []( const hyteg::Point3D& x ) -> real_t {
       return 0.0;
 };
 
-auto velX = []( const hyteg::Point3D& x ) -> real_t { return 0.5 - x[1]; };
-
-auto velY = []( const hyteg::Point3D& x ) -> real_t { return x[0] - 0.5; };
-
 class TempSolution : public Solution
 {
  public:
