@@ -26,6 +26,7 @@
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
@@ -163,6 +164,32 @@ typedef P2UnsteadyDiffusionOperator<
 /// This unsteady diffusion operator supports blending.
 typedef P2UnsteadyDiffusionOperator< P2ElementwiseOperator, P2Form_laplace, P2Form_mass > P2ElementwiseUnsteadyDiffusionOperator;
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+namespace petsc {
+template <>
+inline void createMatrix< P2ConstantUnsteadyDiffusionOperator >( const P2ConstantUnsteadyDiffusionOperator& opr,
+                                                                 const P2Function< PetscInt >&              src,
+                                                                 const P2Function< PetscInt >&              dst,
+                                                                 Mat&                                       mat,
+                                                                 uint_t                                     level,
+                                                                 DoFType                                    flag )
+{
+   createMatrix( opr.getOperator(), src, dst, mat, level, flag );
+}
+
+template <>
+inline void createMatrix< P2ElementwiseUnsteadyDiffusionOperator >( const P2ElementwiseUnsteadyDiffusionOperator& opr,
+                                                                    const P2Function< PetscInt >&                 src,
+                                                                    const P2Function< PetscInt >&                 dst,
+                                                                    Mat&                                          mat,
+                                                                    uint_t                                        level,
+                                                                    DoFType                                       flag )
+{
+   createMatrix< P2ElementwiseOperator< P2LinearCombinationForm >, P2LinearCombinationForm >(
+       opr.getOperator(), src, dst, mat, level, flag );
+}
+} // namespace petsc
+#endif
 
 /// \brief Wrapper class to solve the unsteady diffusion equation in time.
 ///

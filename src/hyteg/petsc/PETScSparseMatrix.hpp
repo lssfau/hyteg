@@ -30,6 +30,7 @@
 
 #include "hyteg/p2functionspace/P2Petsc.hpp"
 #include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
+#include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 
 #include "hyteg/petsc/PETScVector.hpp"
