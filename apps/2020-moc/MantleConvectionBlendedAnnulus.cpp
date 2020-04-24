@@ -119,7 +119,9 @@ void runSimulation( int argc, char** argv )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
+#ifdef HYTEG_BUILD_WITH_PETSC
    PETScManager petscManager( &argc, &argv );
+#endif
 
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )
@@ -159,6 +161,7 @@ void runSimulation( int argc, char** argv )
 
    const bool writeVTK    = mainConf.getParameter< bool >( "writeVTK" );
    const bool printTiming = mainConf.getParameter< bool >( "printTiming" );
+   const std::string outputDirectory = mainConf.getParameter< std::string >( "outputDirectory" );
 
    WALBERLA_LOG_INFO_ON_ROOT( " - level:        " << maxLevel )
    WALBERLA_LOG_INFO_ON_ROOT( " - time steps:   " << stepsTotal )
@@ -221,10 +224,10 @@ void runSimulation( int argc, char** argv )
 
    if ( writeVTK )
    {
-      writeDomainPartitioningVTK( storage, "./output", "MantleConvectionBlendedAnnulusDomain" );
+      writeDomainPartitioningVTK( storage, outputDirectory, "MantleConvectionBlendedAnnulusDomain" );
    }
 
-   VTKOutput vtkOutput( "./output", "MantleConvectionBlendedAnnulus", storage );
+   VTKOutput vtkOutput( outputDirectory, "MantleConvectionBlendedAnnulus", storage );
 
    vtkOutput.add( u );
    vtkOutput.add( f );
@@ -236,9 +239,11 @@ void runSimulation( int argc, char** argv )
    }
 
    // Solver setup
-
+#ifdef HYTEG_BUILD_WITH_PETSC
+   auto stokesSolver = std::make_shared< PETScLUSolver< P2P1ElementwiseBlendingStokesOperator > >( storage, maxLevel );
+#else
    auto stokesSolver = buildStokesSolver( storage, minLevel, maxLevel, preSmooth, postSmooth, 0.37, 0.66 );
-   PETScLUSolver< P2P1ElementwiseBlendingStokesOperator > directPetscSolver( storage, maxLevel );
+#endif
    MMOCTransport< P2Function< real_t > > transport( storage, setupStorage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
    // Simulation loop
@@ -261,8 +266,7 @@ void runSimulation( int argc, char** argv )
       real_t currentResidual = std::numeric_limits< real_t >::max();
       while ( numVCycles < maxNumVCycles && currentResidual > stokesResidualTolerance )
       {
-         // stokesSolver->solve( L, u, f, maxLevel );
-         directPetscSolver.solve( L, u, f, maxLevel );
+         stokesSolver->solve( L, u, f, maxLevel );
          L.apply( u, tmp, maxLevel, Inner | NeumannBoundary );
          r.assign( {1.0, -1.0}, {f, tmp}, maxLevel, Inner | NeumannBoundary );
          currentResidual = std::sqrt( r.dotGlobal( r, maxLevel, Inner | NeumannBoundary ) / real_c( totalDoFsStokes ) );

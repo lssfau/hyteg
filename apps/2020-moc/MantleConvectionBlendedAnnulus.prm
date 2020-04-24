@@ -4,7 +4,7 @@ Parameters
   maxLevel 5;
   maxNumVCycles 1;
   stokesResidualTolerance 1e-05;
-  timesteps 1000;
+  timesteps 100;
   cflUpperBound 1.0;
 
   preSmooth 10;
@@ -16,8 +16,9 @@ Parameters
   nRad 2;
 
   initialTemperatureSteepness 10.0;
-  rayleighNumber 10000000;
+  rayleighNumber 1000;
 
   printTiming false;
   writeVTK true;
+  outputDirectory scaled-rhs-test-ra1000;
 }
