@@ -159,134 +159,6 @@ struct P2Space_elementwise
   }
 };
 
-// compare variable and constant P2 operators (debug purpose)
-void compareP2(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel, const uint_t maxLevel
-           , const uint_t max_outer_iter, const uint_t max_cg_iter, const real_t coarse_tolerance, const bool vtk
-           , c_function& exact, c_function& boundary, c_function& rhs)
-{
-  // define functions and operators
-
-  c_function zeros = [](const hyteg::Point3D&) {return 0.0;};
-  c_function ones  = [](const hyteg::Point3D&) {return 1.0;};
-  c_function xExpr = [](const hyteg::Point3D & x) {return x[0];};
-  c_function yExpr = [](const hyteg::Point3D & x) {return x[1];};
-
-  typename P2Space::Function r("r", storage, minLevel, maxLevel);
-  typename P2Space::Function f_var("f_var", storage, minLevel, maxLevel);
-  typename P2Space::Function f_const("f_const", storage, minLevel, maxLevel);
-  typename P2Space::Function f_ew("f_ew", storage, minLevel, maxLevel);
-  typename P2Space::Function u_var("u_var", storage, minLevel, maxLevel);
-  typename P2Space::Function u_const("u_const", storage, minLevel, maxLevel);
-  typename P2Space::Function u_ew("u_ew", storage, minLevel, maxLevel);
-  typename P2Space::Function L_var_u("L_var_u", storage, minLevel, maxLevel);
-  typename P2Space::Function L_const_u("L_const_u", storage, minLevel, maxLevel);
-  typename P2Space::Function L_ew_u("L_ew_u", storage, minLevel, maxLevel);
-  typename P2Space::Function u_exact("u_exact", storage, minLevel, maxLevel);
-  typename P2Space::Function err_c_M("err_c_M", storage, minLevel, maxLevel);
-  typename P2Space::Function err_c_L("err_c_L", storage, minLevel, maxLevel);
-  typename P2Space::Function err_c_solver("err_c_solver", storage, minLevel, maxLevel);
-  typename P2Space::Function err_ew_M("err_ew_M", storage, minLevel, maxLevel);
-  typename P2Space::Function err_ew_L("err_ew_L", storage, minLevel, maxLevel);
-  typename P2Space::Function err_ew_solver("err_ew_solver", storage, minLevel, maxLevel);
-  typename P2Space::Function err_var("err_var", storage, minLevel, maxLevel);
-  typename P2Space::Function err_const("err_const", storage, minLevel, maxLevel);
-  typename P2Space::Function err_ew("err_ew", storage, minLevel, maxLevel);
-  typename P2Space::Function one("1", storage, minLevel, maxLevel);
-  typename P2Space::Function tmp("tmp", storage, minLevel, maxLevel);
-  auto coordX = std::make_shared<typename P2Space::Function>("x", storage, minLevel, maxLevel);
-  auto coordY = std::make_shared<typename P2Space::Function>("y", storage, minLevel, maxLevel);
-
-  coordX->interpolate(xExpr, maxLevel, hyteg::All);
-  coordY->interpolate(yExpr, maxLevel, hyteg::All);
-
-  one.interpolate(ones, maxLevel);
-
-  u_const.interpolate(boundary, maxLevel, hyteg::DirichletBoundary);
-  u_var.interpolate(boundary, maxLevel, hyteg::DirichletBoundary);
-  u_ew.interpolate(boundary, maxLevel, hyteg::DirichletBoundary);
-
-  typename P2Space::Mass M_var(storage, minLevel, maxLevel);
-  typename P2Space_const::Mass M_const(storage, minLevel, maxLevel);
-  typename P2Space_elementwise::Mass M_ew(storage, minLevel, maxLevel);
-
-  auto L_var = P2Space::laplaceOperator(storage, minLevel, maxLevel);
-  auto L_const = P2Space_const::laplaceOperator(storage, minLevel, maxLevel);
-  auto L_ew = P2Space_elementwise::laplaceOperator(storage, minLevel, maxLevel);
-
-  u_exact.interpolate(exact, maxLevel);
-  tmp.interpolate(rhs, maxLevel);
-
-  M_const.apply(tmp, f_const, maxLevel, hyteg::All);
-  M_var.apply(tmp, f_var, maxLevel, hyteg::All);
-  M_ew.apply(tmp, f_ew, maxLevel, hyteg::All);
-  err_c_M.assign({1.0, -1.0}, {f_const, f_var}, maxLevel);
-  err_ew_M.assign({1.0, -1.0}, {f_ew, f_var}, maxLevel);
-
-  L_var->apply(u_var, L_var_u, maxLevel, hyteg::Inner);
-  L_const->apply(u_const, L_const_u, maxLevel, hyteg::Inner);
-  L_ew->apply(u_ew, L_ew_u, maxLevel, hyteg::Inner);
-  err_c_L.assign({1.0, -1.0}, {L_const_u, L_var_u}, maxLevel);
-  err_ew_L.assign({1.0, -1.0}, {L_ew_u, L_var_u}, maxLevel);
-
-  real_t npoints = one.dotGlobal(one, maxLevel);
-
-  // define solver
-
-  auto cg_var = std::make_shared<hyteg::CGSolver<typename P2Space::Laplace>>(storage, minLevel, minLevel, max_cg_iter, coarse_tolerance);
-  auto cg_const = std::make_shared<hyteg::CGSolver<typename P2Space_const::Laplace>>(storage, minLevel, minLevel, max_cg_iter, coarse_tolerance);
-  auto restrictionOperator = std::make_shared<typename P2Space::Restriction>();
-  auto prolongationOperator = std::make_shared<typename P2Space::Prolongation>();
-  auto smoother_var = std::make_shared<hyteg::GaussSeidelSmoother<typename P2Space::Laplace>>();
-  auto smoother_const = std::make_shared<hyteg::GaussSeidelSmoother<typename P2Space_const::Laplace>>();
-  GeometricMultigridSolver<typename P2Space::Laplace> laplaceSolver_var(storage, smoother_var, cg_var, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2);
-  GeometricMultigridSolver<typename P2Space_const::Laplace> laplaceSolver_const(storage, smoother_const, cg_const, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2);
-
-  auto CGsolver_var = std::make_shared<hyteg::CGSolver<typename P2Space::Laplace>>(storage, maxLevel, maxLevel, max_cg_iter, coarse_tolerance);
-  auto CGsolver_const = std::make_shared<hyteg::CGSolver<typename P2Space_const::Laplace>>(storage, maxLevel, maxLevel, max_cg_iter, coarse_tolerance);
-  auto CGsolver_ew = std::make_shared<hyteg::CGSolver<typename P2Space_elementwise::Laplace>>(storage, maxLevel, maxLevel, max_cg_iter, coarse_tolerance);
-
-  CGsolver_var->solve(*L_var,u_var,f_var,maxLevel);
-  CGsolver_const->solve(*L_const,u_const,f_const,maxLevel);
-  CGsolver_ew->solve(*L_ew,u_ew,f_ew,maxLevel);
-
-  for (uint_t k = 0; k < max_outer_iter; ++k)
-  {
-  //   // smoother_const->solve(*L_const, u_const, f_const, maxLevel);
-  //   // smoother_var->solve(*L_var, u_var, f_var, maxLevel);
-  //   laplaceSolver_const.solve(*L_const, u_const, f_const, maxLevel);
-  //   laplaceSolver_var.solve(*L_var, u_var, f_var, maxLevel);
-  }
-  err_c_solver.assign({1.0, -1.0}, {u_const, u_var}, maxLevel);
-  err_ew_solver.assign({1.0, -1.0}, {u_ew, u_var}, maxLevel);
-
-  // error
-  WALBERLA_LOG_INFO_ON_ROOT(walberla::format("error Mass: const: %10.3e,  elwise: %10.3e", std::sqrt(err_c_M.dotGlobal(err_c_M, maxLevel)),std::sqrt(err_ew_M.dotGlobal(err_ew_M, maxLevel))));
-  WALBERLA_LOG_INFO_ON_ROOT(walberla::format("error Lapl: const: %10.3e,  elwise: %10.3e", std::sqrt(err_c_L.dotGlobal(err_c_L, maxLevel)),std::sqrt(err_ew_L.dotGlobal(err_ew_L, maxLevel))));
-  WALBERLA_LOG_INFO_ON_ROOT(walberla::format("error Solver: const: %10.3e,  elwise: %10.3e", std::sqrt(err_c_solver.dotGlobal(err_c_solver, maxLevel)),std::sqrt(err_ew_solver.dotGlobal(err_ew_solver, maxLevel))));
-
-  err_var.assign({1.0, -1.0}, {u_var, u_exact}, maxLevel);
-  real_t L2_err_var = std::sqrt(err_var.dotGlobal(err_var, maxLevel) / npoints);
-  err_const.assign({1.0, -1.0}, {u_const, u_exact}, maxLevel);
-  real_t L2_err_const = std::sqrt(err_const.dotGlobal(err_const, maxLevel) / npoints);
-  err_ew.assign({1.0, -1.0}, {u_ew, u_exact}, maxLevel);
-  real_t L2_err_ew = std::sqrt(err_ew.dotGlobal(err_ew, maxLevel) / npoints);
-
-  WALBERLA_LOG_INFO_ON_ROOT(walberla::format("discrete L2 error: var: %10.3e,  const: %10.3e,  elwise: %10.3e",L2_err_var,L2_err_const,L2_err_ew ));
-
-
-  if (vtk)
-  {
-    hyteg::VTKOutput vtkOutput("../output", "PolynomialBlending", storage);
-    vtkOutput.add(err_c_M);
-    vtkOutput.add(err_c_L);
-    vtkOutput.add(err_ew_M);
-    vtkOutput.add(err_ew_L);
-    vtkOutput.add(err_var);
-    vtkOutput.add(err_const);
-    vtkOutput.add(err_ew);
-    vtkOutput.write(maxLevel, 0);
-  }
-}
 
 template<typename FE>
 void solve(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel, const uint_t maxLevel
@@ -463,9 +335,8 @@ int main(int argc, char* argv[])
   const uint_t nX = parameters.getParameter<uint_t>("nX");
   const uint_t nY = parameters.getParameter<uint_t>("nY");
   const uint_t maxPolyDegree = parameters.getParameter<uint_t>("maxPolyDegree");
-  // const uint_t maxInterpolationLevel = parameters.getParameter<uint_t>("interpolationLevel");
-  // const uint_t interpolationLevel = std::min(maxLevel, maxInterpolationLevel);
-  const uint_t interpolationLevel = parameters.getParameter<uint_t>("interpolationLevel");
+  const uint_t maxInterpolationLevel = parameters.getParameter<uint_t>("interpolationLevel");
+  const uint_t interpolationLevel = std::min(maxLevel, maxInterpolationLevel);
 
   const uint_t max_outer_iter =  parameters.getParameter<uint_t>("max_outer_iter");
   const uint_t max_cg_iter =  parameters.getParameter<uint_t>("max_cg_iter");
@@ -534,46 +405,41 @@ int main(int argc, char* argv[])
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
 
-  if (parameters.getParameter<bool>("compare_P2"))
+
+  if (polynomialOperator)
   {
-    compareP2(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, coarse_tolerance, vtk, exact, boundary, rhs);
-  }
-  else
-  {
-    if (polynomialOperator)
+    if (FE_space == 1)
     {
-      if (FE_space == 1)
-      {
-        P1Space_LSQP::interpolationLevel = interpolationLevel;
-        P1Space_LSQP::polyDegree = maxPolyDegree;
-        solve<P1Space_LSQP>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
-      }
-      else if (FE_space == 2)
-      {
-        P2Space_LSQP::interpolationLevel = interpolationLevel;
-        P2Space_LSQP::polyDegree = maxPolyDegree;
-        solve<P2Space_LSQP>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
-      }
-      else
-      {
-        WALBERLA_ABORT("The desired FE space is not implemented");
-      }
+      P1Space_LSQP::interpolationLevel = interpolationLevel;
+      P1Space_LSQP::polyDegree = maxPolyDegree;
+      solve<P1Space_LSQP>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
+    }
+    else if (FE_space == 2)
+    {
+      P2Space_LSQP::interpolationLevel = interpolationLevel;
+      P2Space_LSQP::polyDegree = maxPolyDegree;
+      solve<P2Space_LSQP>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
     }
     else
     {
-      if (FE_space == 1)
-      {
-        solve<P1Space>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
-      }
-      else if (FE_space == 2)
-      {
-        solve<P2Space>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
-      }
-      else
-      {
-        WALBERLA_ABORT("The desired FE space is not implemented");
-      }
+      WALBERLA_ABORT("The desired FE space is not implemented");
     }
   }
+  else
+  {
+    if (FE_space == 1)
+    {
+      solve<P1Space>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
+    }
+    else if (FE_space == 2)
+    {
+      solve<P2Space>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
+    }
+    else
+    {
+      WALBERLA_ABORT("The desired FE space is not implemented");
+    }
+  }
+
   return 0;
 }

@@ -1,22 +1,23 @@
 Parameters
 {
   level_h_coarse 0;
-  level_h_fine 2;
-  FE_space 2;
+  level_h_fine 9;
+  FE_space 1;
 
-  max_outer_iter 0;
-  max_cg_iter 0;
+  max_outer_iter 25;
+  max_cg_iter 1000;
   mg_tolerance 1e-14;
   coarse_tolerance 1e-14;
 
-  polynomialOperator true;
-  interpolationLevel 6;
-  maxPolyDegree 1;
+  polynomialOperator 1;
+  interpolationLevel 12;
+  maxPolyDegree 4;
 
-  blending true;
-  annulus false;
+  blending 1;
+  annulus 1;
 
-  compare_P2 false;
+  nX 8;
+  nY 1;
 
-  vtkOutput false;
+  vtkOutput 0;
 }
