@@ -833,87 +833,92 @@ class MMOCTransport
       storage_->getTimingTree()->stop( "MMOCTransport" );
    }
 
-   //   template < typename MassOperator >
-   //   void step( const FunctionType& c,
-   //              const FunctionType& ux,
-   //              const FunctionType& uy,
-   //              const FunctionType& uz,
-   //              const uint_t&       level,
-   //              const DoFType&      flag,
-   //              const real_t&       dt,
-   //              const uint_t&       innerSteps,
-   //              const MassOperator& massOperator,
-   //              const real_t&       allowedRelativeMassDifference,
-   //              const real_t&       adjustedAdvectionOffset )
-   //   {
-   //      cOld_.assign( {1.0}, {c}, level, All );
-   //
-   //      // calculate old mass
-   //      massOperator.apply( cOld_, cTmp_, level, flag );
-   //      auto massBefore = cTmp_.sumGlobal( level, flag );
-   //
-   //      integrateNodes< FunctionType >(
-   //          *storage_, c, cOld_, ux, uy, uz, dt, level, flag, innerSteps, timeSteppingSchemeConvection_, 0 );
-   //
-   //      // calculate new mass
-   //      massOperator.apply( c, cTmp_, level, flag );
-   //      auto massAfter = cTmp_.sumGlobal( level, flag );
-   //
-   //      auto relativeMassDifference = std::abs( ( massAfter - massBefore ) / massBefore );
-   //
-   //      if ( relativeMassDifference <= allowedRelativeMassDifference )
-   //         return;
-   //
-   //      // perform adjusted advection steps
-   //      integrateNodes< FunctionType >( *storage_,
-   //                                      cPlus_,
-   //                                      cOld_,
-   //                                      ux,
-   //                                      uy,
-   //                                      uz,
-   //                                      dt,
-   //                                      level,
-   //                                      flag,
-   //                                      innerSteps,
-   //                                      timeSteppingSchemeConvection_,
-   //                                      adjustedAdvectionOffset );
-   //      integrateNodes< FunctionType >( *storage_,
-   //                                      cMinus_,
-   //                                      cOld_,
-   //                                      ux,
-   //                                      uy,
-   //                                      uz,
-   //                                      dt,
-   //                                      level,
-   //                                      flag,
-   //                                      innerSteps,
-   //                                      timeSteppingSchemeConvection_,
-   //                                      -adjustedAdvectionOffset );
-   //
-   //      // max/min assign functions
-   //      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > maxAssignment =
-   //          []( const Point3D&, const std::vector< real_t >& values ) { return std::max( values[0], values[1] ); };
-   //
-   //      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > minAssignment =
-   //          []( const Point3D&, const std::vector< real_t >& values ) { return std::min( values[0], values[1] ); };
-   //
-   //      if ( massAfter <= massBefore )
-   //      {
-   //         cAdjusted_.interpolate( maxAssignment, {cPlus_, cMinus_}, level );
-   //      }
-   //      else
-   //      {
-   //         cAdjusted_.interpolate( minAssignment, {cPlus_, cMinus_}, level );
-   //      }
-   //
-   //      // calculate adjustment mass
-   //      massOperator.apply( cAdjusted_, cTmp_, level, flag );
-   //      auto massAdjusted = cTmp_.sumGlobal( level, flag );
-   //
-   //      auto theta = ( massBefore - massAdjusted ) / ( massAfter - massAdjusted );
-   //
-   //      c.assign( {theta, 1 - theta}, {c, cAdjusted_}, level, flag );
-   //   }
+   template < typename MassOperator >
+   void step( const FunctionType& c,
+              const FunctionType& ux,
+              const FunctionType& uy,
+              const FunctionType& uz,
+              const FunctionType& uxLastTimeStep,
+              const FunctionType& uyLastTimeStep,
+              const FunctionType& uzLastTimeStep,
+              const uint_t&       level,
+              const DoFType&      flag,
+              const real_t&       dt,
+              const uint_t&       innerSteps,
+              const MassOperator& massOperator,
+              const real_t&       allowedRelativeMassDifference,
+              const real_t&       dtPertubationAdjustedAdvection )
+   {
+      cPlus_.assign( {1.0}, {c}, level, All );
+      cMinus_.assign( {1.0}, {c}, level, All );
+
+      // calculate old mass
+      massOperator.apply( c, cTmp_, level, flag );
+      auto massBefore = cTmp_.sumGlobal( level, flag );
+
+      step( c, ux, uy, uz, uxLastTimeStep, uyLastTimeStep, uzLastTimeStep, level, flag, dt, innerSteps, true );
+
+      // calculate new mass
+      massOperator.apply( c, cTmp_, level, flag );
+      auto massAfter = cTmp_.sumGlobal( level, flag );
+
+      auto relativeMassDifference = std::abs( ( massAfter - massBefore ) / massBefore );
+
+      if ( relativeMassDifference <= allowedRelativeMassDifference )
+         return;
+
+      // perform adjusted advection
+      storage_->getTimingTree()->start( "MMOC with adjusted advection" );
+      step( cPlus_,
+            ux,
+            uy,
+            uz,
+            uxLastTimeStep,
+            uyLastTimeStep,
+            uzLastTimeStep,
+            level,
+            flag,
+            dt + dtPertubationAdjustedAdvection,
+            innerSteps,
+            true );
+      step( cMinus_,
+            ux,
+            uy,
+            uz,
+            uxLastTimeStep,
+            uyLastTimeStep,
+            uzLastTimeStep,
+            level,
+            flag,
+            dt - dtPertubationAdjustedAdvection,
+            innerSteps,
+            true );
+      storage_->getTimingTree()->stop( "MMOC with adjusted advection" );
+
+      // max/min assign functions
+      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > maxAssignment =
+          []( const Point3D&, const std::vector< real_t >& values ) { return std::max( values[0], values[1] ); };
+
+      std::function< real_t( const Point3D&, const std::vector< real_t >& ) > minAssignment =
+          []( const Point3D&, const std::vector< real_t >& values ) { return std::min( values[0], values[1] ); };
+
+      if ( massAfter <= massBefore )
+      {
+         cAdjusted_.interpolate( maxAssignment, {cPlus_, cMinus_}, level );
+      }
+      else
+      {
+         cAdjusted_.interpolate( minAssignment, {cPlus_, cMinus_}, level );
+      }
+
+      // calculate adjustment mass
+      massOperator.apply( cAdjusted_, cTmp_, level, flag );
+      auto massAdjusted = cTmp_.sumGlobal( level, flag );
+
+      auto theta = ( massBefore - massAdjusted ) / ( massAfter - massAdjusted );
+
+      c.assign( {theta, 1 - theta}, {c, cAdjusted_}, level, flag );
+   }
 
  private:
    const std::shared_ptr< PrimitiveStorage >             storage_;
