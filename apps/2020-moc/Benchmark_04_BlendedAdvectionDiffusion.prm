@@ -5,6 +5,8 @@ Parameters
 
   diffusivity 1e-3;
 
+  adjustedAdvection true;
+
   vtk true;
   printInterval 1;
   vtkInterval 10;

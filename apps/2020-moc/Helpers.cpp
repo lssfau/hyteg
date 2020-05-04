@@ -34,6 +34,7 @@ void solve( const MeshInfo&         meshInfo,
             DiffusionTimeIntegrator diffusionTimeIntegrator,
             bool                    enableDiffusion,
             bool                    resetParticles,
+            bool                    adjustedAdvection,
             uint_t                  numTimeSteps,
             bool                    vtk,
             const std::string&      benchmarkName,
@@ -53,6 +54,9 @@ void solve( const MeshInfo&         meshInfo,
    const real_t hMin     = MeshQuality::getMinimalEdgeLength( storage, level );
    const real_t hMax     = MeshQuality::getMaximalEdgeLength( storage, level );
 
+   const bool forcedParticleReset = adjustedAdvection || enableDiffusion;
+   resetParticles |= forcedParticleReset;
+
    typedef P2Function< real_t >                   FunctionType;
    typedef P2ElementwiseBlendingLaplaceOperator   LaplaceOperator;
    typedef P2ElementwiseBlendingMassOperator      MassOperator;
@@ -64,6 +68,7 @@ void solve( const MeshInfo&         meshInfo,
    FunctionType cSolution( "cSolution", storage, level, level );
    FunctionType cMass( "cMass", storage, level, level );
    FunctionType tmp( "tmp", storage, level, level );
+   FunctionType tmp2( "tmp2", storage, level, level );
    FunctionType u( "u", storage, level, level );
    FunctionType v( "v", storage, level, level );
    FunctionType w( "w", storage, level, level );
@@ -130,9 +135,15 @@ void solve( const MeshInfo&         meshInfo,
        << ( enableDiffusion ?
                 ( diffusionTimeIntegrator == DiffusionTimeIntegrator::ImplicitEuler ? "implicit Euler" : "Crank-Nicolson" ) :
                 "disabled" ) )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + particle reset:                               " << ( resetParticles ? "yes" : "no" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + adjusted advection:                           " << ( adjustedAdvection ? "yes" : "no" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + particle reset:                               "
+                              << ( resetParticles ? "yes" : "no" ) << ( forcedParticleReset ? " (forced)" : "" ) )
    WALBERLA_LOG_INFO_ON_ROOT( " - app settings: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + VTK:                                          " << ( vtk ? "yes" : "no" ) )
+   if ( vtk )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "   + VTK interval:                                 " << vtkInterval )
+   }
    WALBERLA_LOG_INFO_ON_ROOT( "   + print interval:                               " << printInterval )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
@@ -157,7 +168,16 @@ void solve( const MeshInfo&         meshInfo,
       u.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
       v.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
 
-      transport.step( c, u, v, w, uLast, vLast, wLast, level, Inner, dt, 1, i == 1 || resetParticles );
+      if ( adjustedAdvection )
+      {
+         const real_t vMax                         = velocityMaxMagnitude( u, v, tmp, tmp2, level, All );
+         const real_t adjustedAdvectionPertubation = 0.1 * ( hMin / vMax );
+         transport.step( c, u, v, w, uLast, vLast, wLast, level, Inner, dt, 1, M, 0.0, adjustedAdvectionPertubation );
+      }
+      else
+      {
+         transport.step( c, u, v, w, uLast, vLast, wLast, level, Inner, dt, 1, i == 1 || resetParticles );
+      }
 
       timeTotal += dt;
 

@@ -8,6 +8,7 @@ Parameters
   enableCylinder false;
 
   resetParticles true;
+  adjustedAdvection true;
   vtk true;
   printInterval 1;
   vtkInterval 1;

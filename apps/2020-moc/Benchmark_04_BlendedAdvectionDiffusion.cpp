@@ -109,6 +109,7 @@ void benchmark( int argc, char** argv )
    const uint_t numTimeSteps       = mainConf.getParameter< uint_t >( "numTimeSteps" );
    const uint_t level              = mainConf.getParameter< uint_t >( "level" );
    const real_t diffusivity              = mainConf.getParameter< real_t >( "diffusivity" );
+   const bool   adjustedAdvection  = mainConf.getParameter< bool >( "adjustedAdvection" );
    const uint_t printInterval      = mainConf.getParameter< uint_t >( "printInterval" );
    const bool   vtk                = mainConf.getParameter< bool >( "vtk" );
    const uint_t vtkInterval        = mainConf.getParameter< uint_t >( "vtkInterval" );
@@ -138,6 +139,7 @@ void benchmark( int argc, char** argv )
           DiffusionTimeIntegrator::ImplicitEuler,
           true,
           true,
+          adjustedAdvection,
           numTimeSteps,
           vtk,
           "Benchmark_04_BlendedAdvectionDiffusion",

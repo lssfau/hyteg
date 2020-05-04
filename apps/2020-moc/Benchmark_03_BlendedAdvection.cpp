@@ -137,6 +137,7 @@ void benchmark( int argc, char** argv )
    const uint_t numTimeSteps       = mainConf.getParameter< uint_t >( "numTimeSteps" );
    const uint_t level              = mainConf.getParameter< uint_t >( "level" );
    const bool   resetParticles     = mainConf.getParameter< bool >( "resetParticles" );
+   const bool   adjustedAdvection  = mainConf.getParameter< bool >( "adjustedAdvection" );
    const bool   enableCylinder     = mainConf.getParameter< bool >( "enableCylinder" );
    const bool   enableLinearCone   = mainConf.getParameter< bool >( "enableLinearCone" );
    const bool   enableGaussianCone = mainConf.getParameter< bool >( "enableGaussianCone" );
@@ -165,6 +166,7 @@ void benchmark( int argc, char** argv )
           DiffusionTimeIntegrator::ImplicitEuler,
           false,
           resetParticles,
+          adjustedAdvection,
           numTimeSteps,
           vtk,
           "Benchmark_03_BlendedAdvection",
