@@ -155,22 +155,22 @@ using P_Space = FE_Space<P, StencilType::NONE>;
 template<ElementType P>
 struct FE_Space<P, StencilType::VARIABLE> : public P_Space<P>, public OperatorHandler<StencilType::VARIABLE>
 {
-  using P_Space<P>::Function;
-  using P_Space<P>::Restriction;
-  using P_Space<P>::Prolongation;
+  using typename P_Space<P>::Function;
+  using typename P_Space<P>::Restriction;
+  using typename P_Space<P>::Prolongation;
 
-  using P_Space<P>::Mass;
+  using typename P_Space<P>::Mass;
   using Laplace = typename P_Space<P>::LaplaceVAR;
 };
 
 template<ElementType P>
 struct FE_Space<P,StencilType::LSQP> : public P_Space<P>, public OperatorHandler<StencilType::LSQP>
 {
-  using P_Space<P>::Function;
-  using P_Space<P>::Restriction;
-  using P_Space<P>::Prolongation;
+  using typename P_Space<P>::Function;
+  using typename P_Space<P>::Restriction;
+  using typename P_Space<P>::Prolongation;
 
-  using P_Space<P>::Mass;
+  using typename P_Space<P>::Mass;
   using Laplace = typename P_Space<P>::LaplaceLSQP;
 
   static void setInterpolationLevel(uint_t level)
@@ -182,11 +182,11 @@ struct FE_Space<P,StencilType::LSQP> : public P_Space<P>, public OperatorHandler
 template<ElementType P>
 struct FE_Space<P,StencilType::CONST> : public P_Space<P>, public OperatorHandler<StencilType::CONST>
 {
-  using P_Space<P>::Function;
-  using P_Space<P>::Restriction;
-  using P_Space<P>::Prolongation;
+  using typename P_Space<P>::Function;
+  using typename P_Space<P>::Restriction;
+  using typename P_Space<P>::Prolongation;
 
-  using P_Space<P>::Mass;
+  using typename P_Space<P>::Mass;
   using Laplace = typename P_Space<P>::LaplaceCONST;
 };
 
