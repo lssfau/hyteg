@@ -144,21 +144,25 @@ void P2UnsteadyDiffusionBlendingTest( const uint_t minLevel,
    P2ElementwiseBlendingLaplaceOperator   L( storage, minLevel, maxLevel );
    P2ElementwiseBlendingMassOperator      M( storage, minLevel, maxLevel );
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+   PETScManager manager;
+   auto         solver = std::make_shared< PETScLUSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, maxLevel );
+#else
    auto coarseGridSolver =
        std::make_shared< CGSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, minLevel, minLevel, 1000 );
    auto smoother =
        std::make_shared< WeightedJacobiSmoother< P2ElementwiseUnsteadyDiffusionOperator > >( storage, minLevel, maxLevel, 0.66 );
    auto restriction  = std::make_shared< P2toP2QuadraticRestriction >();
    auto prolongation = std::make_shared< P2toP2QuadraticProlongation >();
-   auto solver       = std::make_shared< GeometricMultigridSolver< P2ElementwiseUnsteadyDiffusionOperator > >(
+   auto gmgSolver       = std::make_shared< GeometricMultigridSolver< P2ElementwiseUnsteadyDiffusionOperator > >(
        storage, smoother, coarseGridSolver, restriction, prolongation, minLevel, maxLevel, 6, 6 );
-   auto solverLoop = std::make_shared< SolverLoop< P2ElementwiseUnsteadyDiffusionOperator > >( solver, 4 );
-
+   auto solver = std::make_shared< SolverLoop< P2ElementwiseUnsteadyDiffusionOperator > >( gmgSolver, 4 );
+#endif
    UnsteadyDiffusion< P2Function< real_t >,
                       P2ElementwiseUnsteadyDiffusionOperator,
                       P2ElementwiseBlendingLaplaceOperator,
                       P2ElementwiseBlendingMassOperator >
-       diffusionSolver( storage, minLevel, maxLevel, solverLoop );
+       diffusionSolver( storage, minLevel, maxLevel, solver );
 
    hyteg::VTKOutput vtkOutput( "../../output", "P2UnsteadyDiffusionBlendingTest", storage );
    vtkOutput.add( uExact );

@@ -1,6 +1,6 @@
 Parameters
 {
-  level 9;
+  level 5;
   numTimeSteps 20;
 
   enableGaussianCone true;

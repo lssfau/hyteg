@@ -173,7 +173,7 @@ void benchmark( int argc, char** argv )
    MeshInfo meshInfo = hyteg::MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, 1, 1 );
 
    const real_t tEnd = 1.5;
-   const real_t dt   = tEnd / real_c( numTimeSteps - 1 );
+   const real_t dt   = tEnd / real_c( numTimeSteps );
 
    TempSolution      cSolution( enableGaussianCone, enableLinearCone, enableCylinder );
    VelocitySolutionX uSolution( tEnd );

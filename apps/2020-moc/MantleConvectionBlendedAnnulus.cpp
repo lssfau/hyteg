@@ -185,6 +185,7 @@ void runSimulation( int argc, char** argv )
    // Functions and operators
 
    P2P1TaylorHoodFunction< real_t > u( "u", storage, minLevel, maxLevel );
+   P2P1TaylorHoodFunction< real_t > uLast( "uLast", storage, minLevel, maxLevel );
    P2P1TaylorHoodFunction< real_t > f( "f", storage, minLevel, maxLevel );
    P2P1TaylorHoodFunction< real_t > r( "r", storage, minLevel, maxLevel );
    P2P1TaylorHoodFunction< real_t > outwardNormalField( "n", storage, minLevel, maxLevel );
@@ -240,6 +241,8 @@ void runSimulation( int argc, char** argv )
 
    // Solver setup
 #ifdef HYTEG_BUILD_WITH_PETSC
+   WALBERLA_UNUSED( preSmooth );
+   WALBERLA_UNUSED( postSmooth );
    auto stokesSolver = std::make_shared< PETScLUSolver< P2P1ElementwiseBlendingStokesOperator > >( storage, maxLevel );
 #else
    auto stokesSolver = buildStokesSolver( storage, minLevel, maxLevel, preSmooth, postSmooth, 0.37, 0.66 );
@@ -255,6 +258,8 @@ void runSimulation( int argc, char** argv )
 
    for ( uint_t i = 1; i <= stepsTotal; i++ )
    {
+      uLast.assign( {1.0}, {u}, maxLevel, All );
+
       M.apply( c, f.u, maxLevel, All );
       M.apply( c, f.v, maxLevel, All );
       f.u.multElementwise( {f.u, outwardNormalField.u}, maxLevel );
@@ -280,7 +285,7 @@ void runSimulation( int argc, char** argv )
       const auto maxVelocity = velocityMaxMagnitude( u.u, u.v, tmp.u, tmp.v, maxLevel, All );
       const auto dt          = ( cflUpperBound / maxVelocity ) * hMin;
 
-      transport.step( c, u.u, u.v, u.w, maxLevel, Inner, dt, 1, true );
+      transport.step( c, u.u, u.v, u.w, uLast.u, uLast.v, uLast.w,  maxLevel, Inner, dt, 1, true );
 
       if ( writeVTK )
       {

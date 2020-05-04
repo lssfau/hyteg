@@ -58,15 +58,19 @@ enum class TimeSteppingScheme
 
 const static std::vector< std::vector< real_t > > RK_A_ExplicitEuler = {{{0}}};
 const static std::vector< real_t >                RK_b_ExplicitEuler = {1};
+const static std::vector< real_t >                RK_c_ExplicitEuler = {0};
 
 const static std::vector< std::vector< real_t > > RK_A_RK3 = {{{0, 0, 0}, {0.5, 0, 0}, {-1., 2., 0}}};
 const static std::vector< real_t >                RK_b_RK3 = {1. / 6., 2. / 3., 1. / 6.};
+const static std::vector< real_t >                RK_c_RK3 = {0, 0.5, 1.};
 
 const static std::vector< std::vector< real_t > > RK_A_Ralston = {{{0, 0, 0}, {0.5, 0, 0}, {0, 0.75, 0}}};
 const static std::vector< real_t >                RK_b_Ralston = {2. / 9., 1. / 3., 4. / 9.};
+const static std::vector< real_t >                RK_c_Ralston = {0, 0.5, 0.75};
 
 const static std::vector< std::vector< real_t > > RK_A_RK4 = {{{0, 0, 0, 0}, {0.5, 0, 0, 0}, {0, 0.5, 0, 0}, {0, 0, 1, 0}}};
 const static std::vector< real_t >                RK_b_RK4 = {1. / 6., 1. / 3., 1. / 3., 1. / 6.};
+const static std::vector< real_t >                RK_c_RK4 = {0, 0.5, 0.5, 1.};
 
 const static std::map< TimeSteppingScheme, std::vector< std::vector< real_t > > > RK_A = {
     {TimeSteppingScheme::ExplicitEuler, RK_A_ExplicitEuler},
@@ -80,7 +84,14 @@ const static std::map< TimeSteppingScheme, std::vector< real_t > > RK_b = {
     {TimeSteppingScheme::Ralston, RK_b_Ralston},
     {TimeSteppingScheme::RK4, RK_b_RK4}};
 
-inline std::vector< PrimitiveID > getNeighboringPrimitives( const PrimitiveID& primitiveID, const SetupPrimitiveStorage& setupStorage )
+const static std::map< TimeSteppingScheme, std::vector< real_t > > RK_c = {
+    {TimeSteppingScheme::ExplicitEuler, RK_c_ExplicitEuler},
+    {TimeSteppingScheme::RK3, RK_c_RK3},
+    {TimeSteppingScheme::Ralston, RK_c_Ralston},
+    {TimeSteppingScheme::RK4, RK_c_RK4}};
+
+inline std::vector< PrimitiveID > getNeighboringPrimitives( const PrimitiveID&           primitiveID,
+                                                            const SetupPrimitiveStorage& setupStorage )
 {
    std::set< PrimitiveID > neighboringPrimitives;
    if ( setupStorage.getNumberOfCells() > 0 )
@@ -114,9 +125,8 @@ inline std::vector< PrimitiveID > getNeighboringPrimitives( const PrimitiveID& p
    return std::vector< PrimitiveID >( neighboringPrimitives.begin(), neighboringPrimitives.end() );
 }
 
-
 inline void updateParticlePosition( const SetupPrimitiveStorage&                           setupStorage,
-                             walberla::convection_particles::data::ParticleStorage& particleStorage )
+                                    walberla::convection_particles::data::ParticleStorage& particleStorage )
 {
    if ( setupStorage.getNumberOfCells() == 0 )
    {
@@ -131,9 +141,9 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
          Point2D computationalLocation2D( {computationalLocation[0], computationalLocation[1]} );
 
          if ( isPointInTriangle( computationalLocation2D,
-                                    Point2D( {face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1]} ),
-                                    Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
-                                    Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
+                                 Point2D( {face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1]} ),
+                                 Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
+                                 Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
          {
             p->setContainingPrimitive( faceID );
          }
@@ -141,7 +151,7 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
          {
             // check for neighbor cells if we did not find it in its previous cell
             auto neighboringFaces = getNeighboringPrimitives( faceID, setupStorage );
-            for ( const auto & neighborFaceID : neighboringFaces )
+            for ( const auto& neighborFaceID : neighboringFaces )
             {
                face = setupStorage.getFace( neighborFaceID );
 
@@ -180,7 +190,7 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
          {
             // check for neighbor cells if we did not find it in its previous cell
             auto neighboringCells = getNeighboringPrimitives( cellID, setupStorage );
-            for ( const auto & neighborCellID : neighboringCells )
+            for ( const auto& neighborCellID : neighboringCells )
             {
                cell = setupStorage.getCell( neighborCellID );
 
@@ -209,12 +219,12 @@ inline real_t evaluateAtParticlePosition( PrimitiveStorage&                     
    if ( !storage.hasGlobalCells() )
    {
       WALBERLA_CHECK( storage.faceExistsLocally( particle.getContainingPrimitive() ) );
-      Face& face = *storage.getFace( particle.getContainingPrimitive() );
+      Face&   face = *storage.getFace( particle.getContainingPrimitive() );
       Point3D computationalLocation;
       face.getGeometryMap()->evalFinv( toPoint3D( particle.getPosition() ), computationalLocation );
-      result     = P2::macroface::evaluate( level,
+      result = P2::macroface::evaluate( level,
                                         face,
-                                            computationalLocation,
+                                        computationalLocation,
                                         function.getVertexDoFFunction().getFaceDataID(),
                                         function.getEdgeDoFFunction().getFaceDataID() );
    }
@@ -314,7 +324,7 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
          continue;
 
       Point3D physicalLocation;
-      auto primitive = setupStorage.getPrimitive( it.primitiveID() );
+      auto    primitive = setupStorage.getPrimitive( it.primitiveID() );
       primitive->getGeometryMap()->evalF( it.coordinates(), physicalLocation );
 
       auto particleIt = particleStorage.create();
@@ -390,7 +400,7 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
          continue;
 
       Point3D physicalLocation;
-      auto primitive = setupStorage.getPrimitive( it.primitiveID() );
+      auto    primitive = setupStorage.getPrimitive( it.primitiveID() );
       primitive->getGeometryMap()->evalF( it.coordinates(), physicalLocation );
 
       auto particleIt = particleStorage.create();
@@ -467,6 +477,9 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
                                  const P2Function< real_t >&                            ux,
                                  const P2Function< real_t >&                            uy,
                                  const P2Function< real_t >&                            uz,
+                                 const P2Function< real_t >&                            uxLastTimeStep,
+                                 const P2Function< real_t >&                            uyLastTimeStep,
+                                 const P2Function< real_t >&                            uzLastTimeStep,
                                  const real_t&                                          dt,
                                  const uint_t&                                          level,
                                  const DoFType&,
@@ -476,12 +489,16 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
    communication::syncFunctionBetweenPrimitives( ux, level );
    communication::syncFunctionBetweenPrimitives( uy, level );
    communication::syncFunctionBetweenPrimitives( uz, level );
+   communication::syncFunctionBetweenPrimitives( uxLastTimeStep, level );
+   communication::syncFunctionBetweenPrimitives( uyLastTimeStep, level );
+   communication::syncFunctionBetweenPrimitives( uzLastTimeStep, level );
 
    walberla::convection_particles::mpi::SyncNextNeighborsByPrimitiveID SNN;
 
    const uint_t                                rank     = uint_c( walberla::mpi::MPIManager::instance()->rank() );
    const std::vector< std::vector< real_t > >& A        = RK_A.at( timeSteppingScheme );
    const std::vector< real_t >&                b        = RK_b.at( timeSteppingScheme );
+   const std::vector< real_t >&                c        = RK_c.at( timeSteppingScheme );
    const uint_t                                rkStages = b.size();
 
    storage.getTimingTree()->start( "Sync particles" );
@@ -496,15 +513,20 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
       // RK stage 0
       // skip setting to start pos (already happened)
       // skip synchronization (already happened)
+      // assuming (true for explicit RK schemes) that c[0] == 0
 
       storage.getTimingTree()->start( "Evaluate at particle position" );
 
       std::vector< real_t >               results( {0, 0} );
-      std::vector< P2Function< real_t > > functions = {ux, uy};
+      std::vector< real_t >               resultsLastTimeStep( {0, 0} );
+      std::vector< P2Function< real_t > > functions             = {ux, uy};
+      std::vector< P2Function< real_t > > functionsLastTimeStep = {uxLastTimeStep, uyLastTimeStep};
       if ( storage.hasGlobalCells() )
       {
          results.push_back( 0 );
+         resultsLastTimeStep.push_back( 0 );
          functions.push_back( uz );
+         functionsLastTimeStep.push_back( uzLastTimeStep );
       }
 
       for ( auto p : particleStorage )
@@ -540,14 +562,17 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
          storage.getTimingTree()->stop( "Sync particles" );
 
          // evaluate velocity at current particle positions and update k[stage]
+         // we perform a linear interpolation here using the c-weights of the RK method
+         // and the "current" and "last" velocity functions
          storage.getTimingTree()->start( "Evaluate at particle position" );
          for ( auto p : particleStorage )
          {
             evaluateAtParticlePosition( storage, functions, p, level, results );
-            p->getKRef()[stage][0] = -results[0];
-            p->getKRef()[stage][1] = -results[1];
+            evaluateAtParticlePosition( storage, functionsLastTimeStep, p, level, resultsLastTimeStep );
+            p->getKRef()[stage][0] = -( ( 1.0 - c[stage] ) * results[0] + c[stage] * resultsLastTimeStep[0] );
+            p->getKRef()[stage][1] = -( ( 1.0 - c[stage] ) * results[1] + c[stage] * resultsLastTimeStep[1] );
             if ( storage.hasGlobalCells() )
-               p->getKRef()[stage][2] = -results[2];
+               p->getKRef()[stage][2] = -( ( 1.0 - c[stage] ) * results[2] + c[stage] * resultsLastTimeStep[2] );
          }
          storage.getTimingTree()->stop( "Evaluate at particle position" );
       }
@@ -765,6 +790,9 @@ class MMOCTransport
               const FunctionType& ux,
               const FunctionType& uy,
               const FunctionType& uz,
+              const FunctionType& uxLastTimeStep,
+              const FunctionType& uyLastTimeStep,
+              const FunctionType& uzLastTimeStep,
               const uint_t&       level,
               const DoFType&      flag,
               const real_t&       dt,
@@ -788,6 +816,9 @@ class MMOCTransport
                            ux,
                            uy,
                            uz,
+                           uxLastTimeStep,
+                           uyLastTimeStep,
+                           uzLastTimeStep,
                            dt,
                            level,
                            Inner,

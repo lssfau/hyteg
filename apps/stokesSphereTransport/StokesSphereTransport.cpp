@@ -172,6 +172,7 @@ void simulate( int argc, char* argv[] )
    P2P1TaylorHoodFunction< real_t > r( "r", storage, minLevel, maxLevel );
    P2P1TaylorHoodFunction< real_t > f( "f", storage, minLevel, maxLevel );
    P2P1TaylorHoodFunction< real_t > u( "u", storage, minLevel, maxLevel );
+   P2P1TaylorHoodFunction< real_t > uLastTimeStep( "uLast", storage, minLevel, maxLevel );
    P2Function< real_t >             temp( "temperature", storage, minLevel, maxLevel );
    P2Function< real_t >             tempOld( "temperature_old", storage, minLevel, maxLevel );
    P2Function< real_t >             tempTmp( "temperature_tmp", storage, minLevel, maxLevel );
@@ -328,6 +329,8 @@ void simulate( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( "##### Time step " << step << " #####" )
       WALBERLA_LOG_INFO_ON_ROOT( "" )
 
+      uLastTimeStep.assign( {1.0}, {u}, maxLevel, All );
+
       // Updating right-hand side (Boussinesq approximation)
 
       M.apply( temp, f.u, maxLevel, All );
@@ -393,7 +396,7 @@ void simulate( int argc, char* argv[] )
 
       time += dt;
 
-      transport.step( temp, u.u, u.v, u.w, maxLevel, All, dt, 1, true );
+      transport.step( temp, u.u, u.v, u.w, uLastTimeStep.u, uLastTimeStep.v, uLastTimeStep.w, maxLevel, All, dt, 1, true );
 
       timer.end();
       WALBERLA_LOG_INFO_ON_ROOT( "" )

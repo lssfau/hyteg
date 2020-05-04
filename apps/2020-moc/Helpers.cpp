@@ -67,6 +67,9 @@ void solve( const MeshInfo&         meshInfo,
    FunctionType u( "u", storage, level, level );
    FunctionType v( "v", storage, level, level );
    FunctionType w( "w", storage, level, level );
+   FunctionType uLast( "uLast", storage, level, level );
+   FunctionType vLast( "vLast", storage, level, level );
+   FunctionType wLast( "wLast", storage, level, level );
 
    UnsteadyDiffusionOperator     diffusionOperator( storage, level, level, dt, diffusivity, diffusionTimeIntegrator );
    LaplaceOperator               L( storage, level, level );
@@ -147,17 +150,20 @@ void solve( const MeshInfo&         meshInfo,
    {
       cOld.assign( {1.0}, {c}, level, All );
 
-      transport.step( c, u, v, w, level, Inner, dt, 1, i == 1 || resetParticles );
+      uLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
+      vLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
+      velocityX.incTime( dt );
+      velocityY.incTime( dt );
+      u.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
+      v.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
+
+      transport.step( c, u, v, w, uLast, vLast, wLast, level, Inner, dt, 1, i == 1 || resetParticles );
 
       timeTotal += dt;
 
       solution.incTime( dt );
-      velocityX.incTime( dt );
-      velocityY.incTime( dt );
 
       cSolution.interpolate( std::function< real_t( const Point3D& ) >( std::ref( solution ) ), level );
-      u.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
-      v.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
 
       c.interpolate( std::function< real_t( const Point3D& ) >( std::ref( solution ) ), level, DirichletBoundary );
 

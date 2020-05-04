@@ -225,7 +225,7 @@ void runTest( uint_t maxLevel, uint_t steps, uint_t timeSteppingScheme, real_t d
 
       cSolution.interpolate( solution, maxLevel, All );
 
-      transport.step( c, u, v, w, maxLevel, Inner, dt, 1 );
+      transport.step( c, u, v, w, u, v, w, maxLevel, Inner, dt, 1 );
 
       fOld.assign( {1.0}, {f}, maxLevel, All );
       cOld.assign( {1.0}, {c}, maxLevel, All );

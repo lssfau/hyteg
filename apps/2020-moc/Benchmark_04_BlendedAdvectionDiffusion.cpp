@@ -121,7 +121,7 @@ void benchmark( int argc, char** argv )
    const real_t tStart = 0.5 * pi;
    const real_t tEnd = 2.5 * pi;
 
-   const real_t dt   = (tEnd - tStart) / real_c( numTimeSteps - 1 );
+   const real_t dt   = (tEnd - tStart) / real_c( numTimeSteps );
 
    TempSolution      cSolution( diffusivity, p0, tStart );
    VelocitySolutionX uSolution;
