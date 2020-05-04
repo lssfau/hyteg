@@ -65,246 +65,301 @@ using namespace hyteg;
 
 typedef std::function<real_t(const hyteg::Point3D&)> c_function;
 
-// FE-spaces
+// ==================== FE-spaces ====================
 
-struct P1Space
+enum ElementType
 {
-  typedef hyteg::P1Function<real_t> Function;
-  typedef hyteg::P1BlendingMassOperator Mass;
-  typedef hyteg::P1BlendingLaplaceOperator Laplace;
-  typedef hyteg::P1toP1LinearRestriction Restriction;
-  typedef hyteg::P1toP1LinearProlongation Prolongation;
-
-  static std::shared_ptr<Laplace> laplaceOperator(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel, const uint_t maxLevel)
-  {
-    return std::make_shared<Laplace>(storage, minLevel, maxLevel);
-  }
+  P1    = 1,
+  P2    = 2
 };
 
-struct P1Space_LSQP
+enum StencilType
 {
-  static uint_t polyDegree;
+  NONE      = -1,
+  CONST     = 0,
+  VARIABLE  = 1,
+  LSQP      = 2
+};
+
+template <StencilType T>
+struct OperatorHandler
+{
   static uint_t interpolationLevel;
-  typedef hyteg::P1Function<real_t> Function;
-  typedef hyteg::P1BlendingMassOperator Mass;
-  typedef hyteg::P1PolynomialBlendingLaplaceOperator Laplace;
-  typedef hyteg::P1toP1LinearRestriction Restriction;
-  typedef hyteg::P1toP1LinearProlongation Prolongation;
 
-  static std::shared_ptr<Laplace> laplaceOperator(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel, const uint_t maxLevel)
+  template <class OP>
+  static std::shared_ptr<OP> make_shared(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel, const uint_t maxLevel)
   {
-    return std::make_shared<Laplace>(storage, minLevel, maxLevel, interpolationLevel, polyDegree);
+    return std::make_shared<OP>(storage, minLevel, maxLevel);
   }
-};
-uint_t P1Space_LSQP::polyDegree = 0;
-uint_t P1Space_LSQP::interpolationLevel = 0;
 
-struct P2Space
+  template <class OP>
+  static real_t setup(std::shared_ptr<OP>, const uint_t) {return 0;}
+};
+
+template<>
+uint_t OperatorHandler<StencilType::LSQP>::interpolationLevel = 0;
+
+template<>
+template<class OP>
+std::shared_ptr<OP> OperatorHandler<StencilType::LSQP>::make_shared(
+                            std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel, const uint_t maxLevel)
 {
-  typedef hyteg::P2Function<real_t> Function;
-  typedef hyteg::P2BlendingMassOperator Mass;
-  typedef hyteg::P2BlendingLaplaceOperator Laplace;
-  typedef hyteg::P2toP2QuadraticRestriction Restriction;
-  typedef hyteg::P2toP2QuadraticProlongation Prolongation;
+  return std::make_shared<OP>(storage, minLevel, maxLevel, interpolationLevel);
+}
 
-  static std::shared_ptr<Laplace> laplaceOperator(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel, const uint_t maxLevel)
-  {
-    return std::make_shared<Laplace>(storage, minLevel, maxLevel);
-  }
-};
-
-struct P2Space_LSQP
+template<>
+template <class OP>
+real_t OperatorHandler<StencilType::LSQP>::setup(std::shared_ptr<OP> op, const uint_t polyDegree)
 {
-  static uint_t polyDegree;
-  static uint_t interpolationLevel;
-  typedef hyteg::P2Function<real_t> Function;
-  typedef hyteg::P2BlendingMassOperator Mass;
-  typedef hyteg::P2PolynomialBlendingLaplaceOperator Laplace;
-  typedef hyteg::P2toP2QuadraticRestriction Restriction;
-  typedef hyteg::P2toP2QuadraticProlongation Prolongation;
+  auto start = walberla::timing::getWcTime();
+  op->interpolateStencils(polyDegree);
+  auto end = walberla::timing::getWcTime();
+  op->useDegree(polyDegree);
+  return (end - start);
+}
 
-  static std::shared_ptr<Laplace> laplaceOperator(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel, const uint_t maxLevel)
-  {
-    return std::make_shared<Laplace>(storage, minLevel, maxLevel, interpolationLevel, polyDegree);
-  }
-};
-uint_t P2Space_LSQP::polyDegree = 0;
-uint_t P2Space_LSQP::interpolationLevel = 0;
+template <ElementType P, StencilType T>
+struct FE_Space{};
 
-struct P2Space_const
+template <>
+struct FE_Space<ElementType::P1, StencilType::NONE>
 {
-  typedef hyteg::P2Function<real_t> Function;
-  typedef hyteg::P2ConstantMassOperator Mass;
-  typedef hyteg::P2ConstantLaplaceOperator Laplace;
-  typedef hyteg::P2toP2QuadraticRestriction Restriction;
-  typedef hyteg::P2toP2QuadraticProlongation Prolongation;
+  using Function = hyteg::P1Function<real_t>;
+  using Restriction = hyteg::P1toP1LinearRestriction;
+  using Prolongation = hyteg::P1toP1LinearProlongation;
 
-  static std::shared_ptr<Laplace> laplaceOperator(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel, const uint_t maxLevel)
-  {
-    return std::make_shared<Laplace>(storage, minLevel, maxLevel);
-  }
+  using Mass = hyteg::P1BlendingMassOperator;
+
+  using LaplaceCONST = hyteg::P1ConstantLaplaceOperator;
+  using LaplaceVAR = hyteg::P1BlendingLaplaceOperator;
+  using LaplaceLSQP = hyteg::P1PolynomialBlendingLaplaceOperator;
 };
 
-struct P2Space_elementwise
+template <>
+struct FE_Space<ElementType::P2, StencilType::NONE>
 {
-  typedef hyteg::P2Function<real_t> Function;
-  typedef hyteg::P2ElementwiseBlendingMassOperator Mass;
-  typedef hyteg::P2ElementwiseBlendingLaplaceOperator Laplace;
-  typedef hyteg::P2toP2QuadraticRestriction Restriction;
-  typedef hyteg::P2toP2QuadraticProlongation Prolongation;
+  using Function = hyteg::P2Function<real_t>;
+  using Restriction = hyteg::P2toP2QuadraticRestriction;
+  using Prolongation = hyteg::P2toP2QuadraticProlongation;
 
-  static std::shared_ptr<Laplace> laplaceOperator(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel, const uint_t maxLevel)
-  {
-    return std::make_shared<Laplace>(storage, minLevel, maxLevel);
-  }
+  using Mass = hyteg::P2BlendingMassOperator;
+
+  using LaplaceCONST = hyteg::P2ConstantLaplaceOperator;
+  using LaplaceVAR = hyteg::P2BlendingLaplaceOperator;
+  using LaplaceLSQP = hyteg::P2PolynomialBlendingLaplaceOperator;
 };
 
+template <ElementType P>
+using P_Space = FE_Space<P, StencilType::NONE>;
 
-template<typename FE>
-void solve(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel, const uint_t maxLevel
+template<ElementType P>
+struct FE_Space<P, StencilType::VARIABLE> : public P_Space<P>, public OperatorHandler<StencilType::VARIABLE>
+{
+  using P_Space<P>::Function;
+  using P_Space<P>::Restriction;
+  using P_Space<P>::Prolongation;
+
+  using P_Space<P>::Mass;
+  using Laplace = typename P_Space<P>::LaplaceVAR;
+};
+
+template<ElementType P>
+struct FE_Space<P,StencilType::LSQP> : public P_Space<P>, public OperatorHandler<StencilType::LSQP>
+{
+  using P_Space<P>::Function;
+  using P_Space<P>::Restriction;
+  using P_Space<P>::Prolongation;
+
+  using P_Space<P>::Mass;
+  using Laplace = typename P_Space<P>::LaplaceLSQP;
+
+  static void setInterpolationLevel(uint_t level)
+  {
+    interpolationLevel = level;
+  };
+};
+
+template<ElementType P>
+struct FE_Space<P,StencilType::CONST> : public P_Space<P>, public OperatorHandler<StencilType::CONST>
+{
+  using P_Space<P>::Function;
+  using P_Space<P>::Restriction;
+  using P_Space<P>::Prolongation;
+
+  using P_Space<P>::Mass;
+  using Laplace = typename P_Space<P>::LaplaceCONST;
+};
+
+// ================================================
+
+template <ElementType P, StencilType T>
+void solveTmpl(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel, const uint_t maxLevel
            , const uint_t max_outer_iter, const uint_t max_cg_iter, const real_t mg_tolerance, const real_t coarse_tolerance, const bool vtk
-           , c_function& exact, c_function& boundary, c_function& rhs)
+           , c_function& exact, c_function& boundary, c_function& rhs, const uint_t minPolyDegree = 0, const uint_t maxPolyDegree = 0)
 {
+  using FE = FE_Space<P,T>;
+
   // define functions and operators
-
-  c_function zeros = [](const hyteg::Point3D&) {return 0.0;};
-  c_function ones  = [](const hyteg::Point3D&) {return 1.0;};
-  c_function xExpr = [](const hyteg::Point3D & x) {return x[0];};
-  c_function yExpr = [](const hyteg::Point3D & x) {return x[1];};
-
   typename FE::Function r("r", storage, minLevel, maxLevel);
   typename FE::Function f("f", storage, minLevel, maxLevel);
   typename FE::Function u("u", storage, minLevel, maxLevel);
   typename FE::Function Lu("Lu", storage, minLevel, maxLevel);
   typename FE::Function u_exact("u_exact", storage, minLevel, maxLevel);
   typename FE::Function err("err", storage, minLevel, maxLevel);
-  typename FE::Function npoints_helper("npoints_helper", storage, minLevel, maxLevel);
+  typename FE::Function ones("ones", storage, minLevel, maxLevel);
   typename FE::Function tmp("tmp", storage, minLevel, maxLevel);
-  auto coordX = std::make_shared<typename FE::Function>("x", storage, minLevel, maxLevel);
-  auto coordY = std::make_shared<typename FE::Function>("y", storage, minLevel, maxLevel);
 
-  coordX->interpolate(xExpr, maxLevel, hyteg::All);
-  coordY->interpolate(yExpr, maxLevel, hyteg::All);
+  // helper for discrete L2 norm
+  ones.interpolate([](const hyteg::Point3D&) {return 1.0;}, maxLevel);
+  real_t npoints = ones.dotGlobal(ones, maxLevel);
 
-  WALBERLA_LOG_INFO_ON_ROOT("Interpolating boundary");
-  u.interpolate(boundary, maxLevel, hyteg::DirichletBoundary);
-
-  WALBERLA_LOG_INFO_ON_ROOT("Setting up operators");
+  // rhs
   typename FE::Mass M(storage, minLevel, maxLevel);
-
-  auto start = walberla::timing::getWcTime();
-
-  auto L = FE::laplaceOperator(storage, minLevel, maxLevel);
-
-  auto end = walberla::timing::getWcTime();
-  real_t setupTime = end - start;
-
-  WALBERLA_LOG_INFO_ON_ROOT("Interpolating exact function");
-  u_exact.interpolate(exact, maxLevel);
-  WALBERLA_LOG_INFO_ON_ROOT("Integrating rhs");
   tmp.interpolate(rhs, maxLevel);
   M.apply(tmp, f, maxLevel, hyteg::All);
 
-  npoints_helper.interpolate(ones, maxLevel);
-  real_t npoints = npoints_helper.dotGlobal(npoints_helper, maxLevel);
+  // operator
+  auto L = FE::template make_shared<typename FE::Laplace>(storage, minLevel, maxLevel);
 
+  // exact solution
+  u_exact.interpolate(exact, maxLevel);
 
-  // define solver
+  // boundary
+  u.interpolate(boundary, maxLevel, hyteg::DirichletBoundary);
 
-  auto coarseLaplaceSolver = std::make_shared<hyteg::CGSolver<typename FE::Laplace>>(storage, minLevel, minLevel, max_cg_iter, coarse_tolerance);
+    // define solver
+  auto coarseGridSolver = std::make_shared<hyteg::CGSolver<typename FE::Laplace>>(storage, minLevel, minLevel, max_cg_iter, coarse_tolerance);
   auto restrictionOperator = std::make_shared<typename FE::Restriction>();
   auto prolongationOperator = std::make_shared<typename FE::Prolongation>();
   auto smoother = std::make_shared<hyteg::GaussSeidelSmoother<typename FE::Laplace>>();
+  GeometricMultigridSolver<typename FE::Laplace> GMGSolver(storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2);
 
-  GeometricMultigridSolver<typename FE::Laplace> laplaceSolver(storage, smoother, coarseLaplaceSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2);
-
-
-  // initial state
-
-  WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
-  WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6s|%10s|%10s|%10s|%10s|%10s", "iter", "abs_res", "rel_res", "conv", "L2-error", "Cycle-Time"));
-
-  err.assign({1.0, -1.0}, {u, u_exact}, maxLevel);
-  real_t discr_l2_err = std::sqrt(err.dotGlobal(err, maxLevel) / npoints);
-
-  L->apply(u, Lu, maxLevel, hyteg::Inner);
-  r.assign({1.0, -1.0}, {f, Lu}, maxLevel, hyteg::Inner);
-  real_t begin_res = std::sqrt(r.dotGlobal(r, maxLevel, hyteg::Inner));
-  real_t abs_res_old = begin_res;
-  real_t rel_res = 1.0;
-
-  WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", 0, begin_res, rel_res, begin_res / abs_res_old, discr_l2_err,  0.0));
-
-  real_t solveTime = real_c(0.0);
-  real_t averageConvergenceRate = real_c(0.0);
-  const uint_t convergenceStartIter = 3;
-
-  uint_t i = 0;
-
-  for (; i < max_outer_iter; ++i)
+  // solve for each polynomial degree
+  for (uint_t polyDegree = minPolyDegree; polyDegree <= maxPolyDegree; ++polyDegree)
   {
-    // solve
-
-    start = walberla::timing::getWcTime();
-
-    laplaceSolver.solve(*L, u, f, maxLevel);
-    end = walberla::timing::getWcTime();
-    real_t vCycleTime = end - start;
-
-    // compute residual
-
-    L->apply(u, Lu, maxLevel, hyteg::Inner);
-    r.assign({1.0, -1.0}, { f, Lu }, maxLevel, hyteg::Inner);
-    real_t abs_res = std::sqrt(r.dotGlobal(r, maxLevel, hyteg::Inner));
-    rel_res = abs_res / begin_res;
-
-    // compute error
-
-    err.assign({1.0, -1.0}, { u, u_exact }, maxLevel);
-    discr_l2_err = std::sqrt(err.dotGlobal(err, maxLevel) / npoints);
-
-    WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e|%10.3e", i + 1, abs_res, rel_res, abs_res / abs_res_old, discr_l2_err, vCycleTime));
-
-    solveTime += vCycleTime;
-
-    // compute convergence rate
-
-    if (i >= convergenceStartIter)
+    if (T == StencilType::LSQP)
     {
-      averageConvergenceRate += abs_res / abs_res_old;
+      WALBERLA_LOG_INFO_ON_ROOT(walberla::format("Apply LSQ-fit with q = %d", polyDegree));
+    }
+    real_t setupTime = FE::setup(L, polyDegree);
+
+    // reset u
+    u.interpolate([](const hyteg::Point3D&) {return 0.0;}, maxLevel, hyteg::Inner);
+
+    // solve iteratively
+    uint_t iter = 0;
+    real_t res = 0, res_old, discr_l2_err;
+    real_t vCycleTime, solveTime;
+    real_t averageConvergenceRate = 0;
+    const uint_t convergenceStartIter = 3;
+
+    WALBERLA_LOG_INFO_ON_ROOT("Starting V cycles");
+    WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6s|%10s|%10s|%10s|%10s", "iter", "res", "conv", "L2-error", "Cycle-Time"));
+
+    while(1)
+    {
+      // compute error
+      err.assign({1.0, -1.0}, {u, u_exact}, maxLevel);
+      discr_l2_err = std::sqrt(err.dotGlobal(err, maxLevel) / npoints);
+
+      // compute residual
+      res_old = res;
+      L->apply(u, Lu, maxLevel, hyteg::Inner);
+      r.assign({1.0, -1.0}, {f, Lu}, maxLevel, hyteg::Inner);
+      res = std::sqrt(r.dotGlobal(r, maxLevel, hyteg::Inner));
+
+      // compute convergence rate
+      real_t convRate = res / res_old;
+      if (iter >= convergenceStartIter)
+      {
+        averageConvergenceRate += convRate;
+      }
+
+      WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e", iter, res, convRate, discr_l2_err, vCycleTime));
+
+      // stopping criterion
+      if (++iter > max_outer_iter || res < mg_tolerance)
+      {
+        break;
+      }
+
+      // solve
+      auto start = walberla::timing::getWcTime();
+      GMGSolver.solve(*L, u, f, maxLevel);
+      auto end = walberla::timing::getWcTime();
+      vCycleTime = end - start;
+      solveTime += vCycleTime;
     }
 
-    abs_res_old = abs_res;
+    WALBERLA_LOG_INFO_ON_ROOT("Setup time: " << std::defaultfloat << setupTime);
+    WALBERLA_LOG_INFO_ON_ROOT("Solve time " << std::defaultfloat << solveTime);
+    WALBERLA_LOG_INFO_ON_ROOT("Time to solution: " << std::defaultfloat << setupTime + solveTime);
+    WALBERLA_LOG_INFO_ON_ROOT("Avg. convergence rate: " << std::scientific << averageConvergenceRate / real_c(iter - convergenceStartIter));
+    WALBERLA_LOG_INFO_ON_ROOT("L^2 error: " << std::scientific << discr_l2_err);
+    // WALBERLA_LOG_INFO_ON_ROOT("DoFs: " << (uint_t) npoints);
 
-    // stopping criterion
-
-    if (rel_res < mg_tolerance)
+    if (vtk)
     {
-      break;
+      std::string name = "PolynomialBlending_P" + std::to_string(P);
+      switch (T)
+      {
+        case StencilType::CONST:
+          name += "const";
+          break;
+
+        case StencilType::VARIABLE:
+          name += "var";
+          break;
+
+        case StencilType::LSQP:
+          name += "poly" + std::to_string(polyDegree);
+          break;
+      }
+
+      hyteg::VTKOutput vtkOutput("../output", name, storage);
+      vtkOutput.add(u);
+      vtkOutput.add(err);
+      vtkOutput.add(r);
+      vtkOutput.write(maxLevel, 0);
     }
-  }
 
-  WALBERLA_LOG_INFO_ON_ROOT("Setup time: " << std::defaultfloat << setupTime);
-  WALBERLA_LOG_INFO_ON_ROOT("Solve time " << std::defaultfloat << solveTime);
-  WALBERLA_LOG_INFO_ON_ROOT("Time to solution: " << std::defaultfloat << setupTime + solveTime);
-  WALBERLA_LOG_INFO_ON_ROOT("Avg. convergence rate: " << std::scientific << averageConvergenceRate / real_c(i - convergenceStartIter));
-  WALBERLA_LOG_INFO_ON_ROOT("L^2 error: " << std::scientific << discr_l2_err);
-  WALBERLA_LOG_INFO_ON_ROOT("DoFs: " << (uint_t) npoints);
-
-  if (vtk)
-  {
-    hyteg::VTKOutput vtkOutput("../output", "PolynomialBlending", storage);
-    vtkOutput.add(u);
-    vtkOutput.add(err);
-    vtkOutput.add(r);
-    vtkOutput.write(maxLevel, 0);
+    if (T != StencilType::LSQP) break;
+    WALBERLA_LOG_INFO_ON_ROOT("=======================================================");
   }
 }
 
+template <ElementType P>
+void solve(const StencilType T, const uint_t interpolationLevel, std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel, const uint_t maxLevel
+           , const uint_t max_outer_iter, const uint_t max_cg_iter, const real_t mg_tolerance, const real_t coarse_tolerance, const bool vtk
+           , c_function& exact, c_function& boundary, c_function& rhs, const uint_t minPolyDegree, const uint_t maxPolyDegree)
+{
+  switch (T)
+  {
+    case CONST:
+      WALBERLA_LOG_INFO_ON_ROOT("Operatortype: Constant Stencil");
+      solveTmpl<P, CONST>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
+      break;
+
+    case VARIABLE:
+      WALBERLA_LOG_INFO_ON_ROOT("Operatortype: Variable Stencil");
+      solveTmpl<P, VARIABLE>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
+      break;
+
+    case LSQP:
+      WALBERLA_LOG_INFO_ON_ROOT("Operatortype: Surrogate Polynomial Stencil");
+      WALBERLA_LOG_INFO_ON_ROOT("Interpolation level: " << interpolationLevel);
+
+      FE_Space<P,LSQP>::setInterpolationLevel(interpolationLevel);
+      solveTmpl<P, LSQP>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs, minPolyDegree, maxPolyDegree);
+      break;
+
+    default:
+      WALBERLA_ABORT("The desired Operator Type is not supported!");
+  }
+}
 
 int main(int argc, char* argv[])
 {
-
   walberla::Environment walberlaEnv(argc, argv);
   walberla::logging::Logging::instance()->setLogLevel(walberla::logging::Logging::PROGRESS);
   walberla::MPIManager::instance()->useWorldComm();
@@ -322,18 +377,25 @@ int main(int argc, char* argv[])
     cfg = walberla::config::create(argc, argv);
   }
 
-  WALBERLA_LOG_INFO_ON_ROOT("config = " << *cfg);
+  // read parameter file
+  // WALBERLA_LOG_INFO_ON_ROOT("config = " << *cfg);
   walberla::Config::BlockHandle parameters = cfg->getOneBlock("Parameters");
 
   const uint_t minLevel = parameters.getParameter<uint_t>("level_h_coarse");
   const uint_t maxLevel = parameters.getParameter<uint_t>("level_h_fine");
-  const uint_t FE_space = parameters.getParameter<uint_t>("FE_space");
 
-  const bool polynomialOperator = parameters.getParameter<bool>("polynomialOperator");
+  const int elTypeInt = parameters.getParameter<int>("elementType");
+  const ElementType elType = ElementType(elTypeInt);
+
+  const int opTypeInt = parameters.getParameter<int>("operatorType");
+  const StencilType opType = StencilType(opTypeInt);
+
   const bool blending = parameters.getParameter<bool>("blending");
   const bool annulus = parameters.getParameter<bool>("annulus");
   const uint_t nX = parameters.getParameter<uint_t>("nX");
   const uint_t nY = parameters.getParameter<uint_t>("nY");
+
+  const uint_t minPolyDegree = parameters.getParameter<uint_t>("minPolyDegree");
   const uint_t maxPolyDegree = parameters.getParameter<uint_t>("maxPolyDegree");
   const uint_t maxInterpolationLevel = parameters.getParameter<uint_t>("interpolationLevel");
   const uint_t interpolationLevel = std::min(maxLevel, maxInterpolationLevel);
@@ -345,14 +407,6 @@ int main(int argc, char* argv[])
 
   const bool vtk = parameters.getParameter<bool>("vtkOutput");
 
- if (polynomialOperator)
-  {
-    WALBERLA_LOG_INFO_ON_ROOT("Polynomial Operator enabled");
-  }
-  else
-  {
-    WALBERLA_LOG_INFO_ON_ROOT("Polynomial Operator disabled");
-  }
 
   if (annulus)
   {
@@ -370,6 +424,7 @@ int main(int argc, char* argv[])
   {
     WALBERLA_LOG_INFO_ON_ROOT("Geometry: Rectangle");
   }
+
 
   // define functions and domain
 
@@ -404,41 +459,26 @@ int main(int argc, char* argv[])
   hyteg::loadbalancing::roundRobin(setupStorage);
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
+  size_t N = storage->getFaces().size();
+  WALBERLA_LOG_INFO_ON_ROOT("Number of Macrofaces:" << N);
+  WALBERLA_LOG_INFO_ON_ROOT("Refinement levels: " << minLevel << "->" << maxLevel);
+  WALBERLA_LOG_INFO_ON_ROOT("Number of Microfaces:" << N * (1 << (2*maxLevel)));
 
+  // choose FE space
+  switch (elType)
+  {
+    case ElementType::P1:
+      WALBERLA_LOG_INFO_ON_ROOT("Element Type: P1");
+      solve<ElementType::P1>(opType, interpolationLevel, storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs, minPolyDegree, maxPolyDegree);
+      break;
 
-  if (polynomialOperator)
-  {
-    if (FE_space == 1)
-    {
-      P1Space_LSQP::interpolationLevel = interpolationLevel;
-      P1Space_LSQP::polyDegree = maxPolyDegree;
-      solve<P1Space_LSQP>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
-    }
-    else if (FE_space == 2)
-    {
-      P2Space_LSQP::interpolationLevel = interpolationLevel;
-      P2Space_LSQP::polyDegree = maxPolyDegree;
-      solve<P2Space_LSQP>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
-    }
-    else
-    {
-      WALBERLA_ABORT("The desired FE space is not implemented");
-    }
-  }
-  else
-  {
-    if (FE_space == 1)
-    {
-      solve<P1Space>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
-    }
-    else if (FE_space == 2)
-    {
-      solve<P2Space>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
-    }
-    else
-    {
-      WALBERLA_ABORT("The desired FE space is not implemented");
-    }
+    case ElementType::P2:
+      WALBERLA_LOG_INFO_ON_ROOT("Element Type: P2");
+      solve<ElementType::P2>(opType, interpolationLevel, storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs, minPolyDegree, maxPolyDegree);
+      break;
+
+    default:
+      WALBERLA_ABORT("The desired FE space is not supported!");
   }
 
   return 0;
