@@ -88,6 +88,17 @@ inline real_t maxPeakDifference( const P2Function< real_t >& u, const P2Function
    return peakError;
 }
 
+/// Calculates and returns var(t) as an indicator for the amount of spurious oscillations:
+///
+///    var(t) := max(u_h) - min(u_h)
+///
+inline real_t spuriousOscillations( const P2Function< real_t >& u, uint_t level, DoFType flag )
+{
+   const real_t maxTemp = u.getMaxValue( level, flag );
+   const real_t minTemp = u.getMinValue( level, flag );
+   return maxTemp - minTemp;
+}
+
 template < typename MassOperator >
 inline real_t globalMass( const P2Function< real_t >& u,
                    const P2Function< real_t >& tmp,

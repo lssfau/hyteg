@@ -100,6 +100,7 @@ void solve( const MeshInfo&         meshInfo,
 
    auto       discrL2     = normL2( cError, tmp, M, level, Inner );
    auto       maxPeakDiff = maxPeakDifference( c, cSolution, level, All );
+   auto       spuriousOsc = spuriousOscillations( c, level, All );
    auto       mass        = globalMass( c, tmp, M, level, All );
    const auto initialMass = mass;
    auto       massChange  = ( mass / initialMass ) - 1.0;
@@ -147,13 +148,14 @@ void solve( const MeshInfo&         meshInfo,
    WALBERLA_LOG_INFO_ON_ROOT( "   + print interval:                               " << printInterval )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
-   WALBERLA_LOG_INFO_ON_ROOT( " timestep | time total | discr. L2 error | max peak diff. | total mass | mass change " )
-   WALBERLA_LOG_INFO_ON_ROOT( "----------+------------+-----------------+----------------+------------+-------------" )
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8s | %10.5f | %15.3e | %14.3e | %10.3e | %11.2f%% ",
+   WALBERLA_LOG_INFO_ON_ROOT( " timestep | time total | discr. L2 error | max peak diff. | spu. osc. | total mass | mass change " )
+   WALBERLA_LOG_INFO_ON_ROOT( "----------+------------+-----------------+----------------+-----------+------------+-------------" )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8s | %10.5f | %15.3e | %14.3e | %9.3e | %10.3e | %11.2f%% ",
                                                 "initial",
                                                 timeTotal,
                                                 discrL2,
                                                 maxPeakDiff,
+                                                spuriousOsc,
                                                 mass,
                                                 massChange * 100 ) )
 
@@ -196,16 +198,18 @@ void solve( const MeshInfo&         meshInfo,
 
       discrL2     = normL2( cError, tmp, M, level, Inner );
       maxPeakDiff = maxPeakDifference( c, cSolution, level, All );
+      spuriousOsc = spuriousOscillations( c, level, All );
       mass        = globalMass( c, tmp, M, level, All );
       massChange  = ( mass / initialMass ) - 1.0;
 
       if ( ( printInterval == 0 && i == numTimeSteps ) || ( printInterval > 0 && i % printInterval == 0 ) )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8d | %10.5f | %15.3e | %14.3e | %10.3e | %11.2f%% ",
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8d | %10.5f | %15.3e | %14.3e | %9.3e | %10.3e | %11.2f%% ",
                                                       i,
                                                       timeTotal,
                                                       discrL2,
                                                       maxPeakDiff,
+                                                      spuriousOsc,
                                                       mass,
                                                       massChange * 100 ) )
       }
