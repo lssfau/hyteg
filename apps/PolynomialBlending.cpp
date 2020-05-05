@@ -249,7 +249,7 @@ void solveTmpl(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel,
     // solve iteratively
     uint_t iter = 0;
     real_t res = 0, res_old, discr_l2_err;
-    real_t vCycleTime, solveTime;
+    real_t vCycleTime, solveTime = 0;
     real_t averageConvergenceRate = 0;
     const uint_t convergenceStartIter = 3;
 
@@ -392,8 +392,11 @@ int main(int argc, char* argv[])
 
   const bool blending = parameters.getParameter<bool>("blending");
   const bool annulus = parameters.getParameter<bool>("annulus");
-  const uint_t nX = parameters.getParameter<uint_t>("nX");
-  const uint_t nY = parameters.getParameter<uint_t>("nY");
+  uint_t nX = parameters.getParameter<uint_t>("nX");
+  uint_t nY = parameters.getParameter<uint_t>("nY");
+  const uint_t macroLevel = parameters.getParameter<uint_t>("macro_refinement");
+  nX = nX << macroLevel;
+  nY = nY << macroLevel;
 
   const uint_t minPolyDegree = parameters.getParameter<uint_t>("minPolyDegree");
   const uint_t maxPolyDegree = parameters.getParameter<uint_t>("maxPolyDegree");
