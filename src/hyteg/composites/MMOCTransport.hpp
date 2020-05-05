@@ -32,6 +32,7 @@
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/geometry/Intersection.hpp"
+#include "hyteg/MeshQuality.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
@@ -126,15 +127,19 @@ inline std::vector< PrimitiveID > getNeighboringPrimitives( const PrimitiveID&  
 }
 
 inline void updateParticlePosition( const SetupPrimitiveStorage&                           setupStorage,
-                                    walberla::convection_particles::data::ParticleStorage& particleStorage )
+                                    walberla::convection_particles::data::ParticleStorage& particleStorage,
+                                    const real_t&                                          particleLocationRadius )
 {
    if ( setupStorage.getNumberOfCells() == 0 )
    {
       for ( auto p : particleStorage )
       {
+         p.setOutsideDomain( 0 );
+         bool foundByPointLocation = false;
+
          // check for current cell (probability is high that we find the particle here...)
-         auto faceID = p->getContainingPrimitive();
-         auto face   = setupStorage.getFace( faceID );
+         const auto faceID = p->getContainingPrimitive();
+         const auto face   = setupStorage.getFace( faceID );
 
          Point3D computationalLocation;
          face->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocation );
@@ -146,25 +151,70 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
                                  Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
          {
             p->setContainingPrimitive( faceID );
+            foundByPointLocation = true;
          }
          else
          {
             // check for neighbor cells if we did not find it in its previous cell
-            auto neighboringFaces = getNeighboringPrimitives( faceID, setupStorage );
+            const auto neighboringFaces = getNeighboringPrimitives( faceID, setupStorage );
             for ( const auto& neighborFaceID : neighboringFaces )
             {
-               face = setupStorage.getFace( neighborFaceID );
+               const auto neighborFace = setupStorage.getFace( neighborFaceID );
 
-               if ( isPointInTriangle( computationalLocation2D,
-                                       Point2D( {face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1]} ),
-                                       Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
-                                       Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
+               if ( isPointInTriangle(
+                        computationalLocation2D,
+                        Point2D( {neighborFace->getCoordinates().at( 0 )[0], neighborFace->getCoordinates().at( 0 )[1]} ),
+                        Point2D( {neighborFace->getCoordinates().at( 1 )[0], neighborFace->getCoordinates().at( 1 )[1]} ),
+                        Point2D( {neighborFace->getCoordinates().at( 2 )[0], neighborFace->getCoordinates().at( 2 )[1]} ) ) )
                {
                   // set it to the first neighbor we found to contain the particle
                   p->setContainingPrimitive( neighborFaceID );
+                  foundByPointLocation = true;
                   continue;
                }
             }
+         }
+
+         if ( !foundByPointLocation )
+         {
+            // At this point there are still three possible scenarios regarding the location of the particle:
+            // 1. The particle is outside the neighborhood -> timestep too large, we do not care and crash.
+            // 2. The particle is outside of the entire domain -> we set the outsideDomain flag.
+            // 3. The particle is in the neighborhood patch, but floating-point errors made all point location
+            //    calculations return false. We therefore check with a larger radius.
+            if ( sphereTriangleIntersection( computationalLocation,
+                                             particleLocationRadius,
+                                             face->getCoordinates().at( 0 ),
+                                             face->getCoordinates().at( 1 ),
+                                             face->getCoordinates().at( 2 ) ) )
+            {
+               p->setContainingPrimitive( faceID );
+               foundByPointLocation = true;
+            }
+            else
+            {
+               const auto neighboringFaces = getNeighboringPrimitives( faceID, setupStorage );
+               for ( const auto& neighborFaceID : neighboringFaces )
+               {
+                  const auto neighborFace = setupStorage.getFace( neighborFaceID );
+
+                  if ( sphereTriangleIntersection( computationalLocation,
+                                                   particleLocationRadius,
+                                                   neighborFace->getCoordinates().at( 0 ),
+                                                   neighborFace->getCoordinates().at( 1 ),
+                                                   neighborFace->getCoordinates().at( 2 ) ) )
+                  {
+                     p->setContainingPrimitive( neighborFaceID );
+                     foundByPointLocation = true;
+                     continue;
+                  }
+               }
+            }
+         }
+
+         if ( !foundByPointLocation )
+         {
+            p->setOutsideDomain( 1 );
          }
       }
    }
@@ -215,6 +265,11 @@ inline real_t evaluateAtParticlePosition( PrimitiveStorage&                     
                                           const walberla::convection_particles::data::ParticleStorage::Particle& particle,
                                           const uint_t&                                                          level )
 {
+   if ( particle.getOutsideDomain() == 1 )
+   {
+      return real_c( 0 );
+   }
+
    real_t result;
    if ( !storage.hasGlobalCells() )
    {
@@ -484,7 +539,8 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
                                  const uint_t&                                          level,
                                  const DoFType&,
                                  const uint_t&             steps,
-                                 const TimeSteppingScheme& timeSteppingScheme )
+                                 const TimeSteppingScheme& timeSteppingScheme,
+                                 const real_t&             particleLocationRadius )
 {
    communication::syncFunctionBetweenPrimitives( ux, level );
    communication::syncFunctionBetweenPrimitives( uy, level );
@@ -553,7 +609,7 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
             }
             p->setPosition( evaluationPoint );
          }
-         updateParticlePosition( setupStorage, particleStorage );
+         updateParticlePosition( setupStorage, particleStorage, particleLocationRadius );
          storage.getTimingTree()->stop( "Update particle position" );
 
          // sync particles to be able to evaluate the velocity at that point
@@ -590,7 +646,7 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
          p->setPosition( finalPosition );
          p->setStartPosition( p->getPosition() );
       }
-      updateParticlePosition( setupStorage, particleStorage );
+      updateParticlePosition( setupStorage, particleStorage, particleLocationRadius );
       storage.getTimingTree()->stop( "Update particle position" );
 
       // sync particles as position was finally updated
@@ -784,7 +840,9 @@ class MMOCTransport
    , timeSteppingSchemeConvection_( timeSteppingSchemeConvection )
    , numberOfCreatedParticles_( 0 )
    , particleStorage_( 10000 )
-   {}
+   {
+      particleLocationRadius_ = 0.1 * MeshQuality::getMinimalEdgeLength( storage, maxLevel );
+   }
 
    void step( const FunctionType& c,
               const FunctionType& ux,
@@ -823,7 +881,8 @@ class MMOCTransport
                            level,
                            Inner,
                            innerSteps,
-                           timeSteppingSchemeConvection_ );
+                           timeSteppingSchemeConvection_,
+                           particleLocationRadius_ );
       storage_->getTimingTree()->stop( "Particle integration" );
 
       storage_->getTimingTree()->start( "Temperature evaluation" );
@@ -931,6 +990,7 @@ class MMOCTransport
    TimeSteppingScheme                                    timeSteppingSchemeConvection_;
    uint_t                                                numberOfCreatedParticles_;
    walberla::convection_particles::data::ParticleStorage particleStorage_;
+   real_t                                                particleLocationRadius_;
 };
 
 } // namespace hyteg

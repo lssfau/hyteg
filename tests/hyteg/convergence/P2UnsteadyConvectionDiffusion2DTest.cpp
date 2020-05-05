@@ -274,8 +274,8 @@ int main( int argc, char* argv[] )
 
    uint_t timeSteppingScheme = 0;
    uint_t maxLevel = 4;
-   runTest( maxLevel, 10, timeSteppingScheme, 1.1e-04, 8.0e-03 );
-   runTest( maxLevel, 20, timeSteppingScheme, 5.0e-05, 3.6e-03 );
+   runTest( maxLevel, 10, timeSteppingScheme, 1.4e-04, 8.0e-03 );
+   runTest( maxLevel, 20, timeSteppingScheme, 9.0e-05, 3.6e-03 );
    runTest( maxLevel, 40, timeSteppingScheme, 1.8e-05, 1.3e-03 );
    runTest( maxLevel, 80, timeSteppingScheme, 5.5e-06, 9.0e-05 );
 
