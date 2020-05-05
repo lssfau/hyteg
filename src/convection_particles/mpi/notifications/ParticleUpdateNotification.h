@@ -57,6 +57,7 @@ public:
    std::vector< walberla::convection_particles::Vec3 > k {};
    real_t finalTemperature {};
    hyteg::PrimitiveID containingPrimitive {};
+   int outsideDomain {0};
    };
 
    inline explicit ParticleUpdateNotification( const data::Particle& particle ) : particle_(particle) {}
@@ -98,6 +99,7 @@ mpi::GenericSendBuffer<T,G>& operator<<( mpi::GenericSendBuffer<T,G> & buf, cons
    buf << obj.particle_.getK();
    buf << obj.particle_.getFinalTemperature();
    buf << obj.particle_.getContainingPrimitive();
+   buf << obj.particle_.getOutsideDomain();
    return buf;
 }
 
@@ -117,6 +119,7 @@ mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buf, convecti
    buf >> objparam.k;
    buf >> objparam.finalTemperature;
    buf >> objparam.containingPrimitive;
+   buf >> objparam.outsideDomain;
    return buf;
 }
 

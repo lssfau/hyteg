@@ -124,6 +124,7 @@ void ParseMessage::operator()(int sender,
       pIt->setK(objparam.k);
       pIt->setFinalTemperature(objparam.finalTemperature);
       pIt->setContainingPrimitive(objparam.containingPrimitive);
+      pIt->setOutsideDomain(objparam.outsideDomain);
 
       domain.correctParticlePosition(pIt->getPositionRef());
 

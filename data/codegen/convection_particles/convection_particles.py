@@ -32,6 +32,7 @@ if __name__ == '__main__':
     ps.add_property("k", "std::vector< walberla::mesa_pd::Vec3 >", defValue="", syncMode="ALWAYS")
     ps.add_property("finalTemperature", "real_t", defValue="", syncMode="ALWAYS")
     ps.add_property("containingPrimitive", "hyteg::PrimitiveID", defValue="", syncMode="ALWAYS")
+    ps.add_property("outsideDomain", "int", defValue="0", syncMode="ALWAYS")
 
     mpd.add(mpi.Notifications(ps))
     mpd.add(mpi.SyncGhostOwners(ps))

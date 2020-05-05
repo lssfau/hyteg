@@ -91,6 +91,7 @@ public:
       using k_type = std::vector< walberla::convection_particles::Vec3 >;
       using finalTemperature_type = real_t;
       using containingPrimitive_type = hyteg::PrimitiveID;
+      using outsideDomain_type = int;
       using neighborState_type = std::unordered_set<walberla::mpi::MPIRank>;
 
       
@@ -161,6 +162,10 @@ public:
       containingPrimitive_type const & getContainingPrimitive() const {return storage_.getContainingPrimitive(i_);}
       containingPrimitive_type& getContainingPrimitiveRef() {return storage_.getContainingPrimitiveRef(i_);}
       void setContainingPrimitive(containingPrimitive_type const & v) { storage_.setContainingPrimitive(i_, v);}
+      
+      outsideDomain_type const & getOutsideDomain() const {return storage_.getOutsideDomain(i_);}
+      outsideDomain_type& getOutsideDomainRef() {return storage_.getOutsideDomainRef(i_);}
+      void setOutsideDomain(outsideDomain_type const & v) { storage_.setOutsideDomain(i_, v);}
       
       neighborState_type const & getNeighborState() const {return storage_.getNeighborState(i_);}
       neighborState_type& getNeighborStateRef() {return storage_.getNeighborStateRef(i_);}
@@ -243,6 +248,7 @@ public:
    using k_type = std::vector< walberla::convection_particles::Vec3 >;
    using finalTemperature_type = real_t;
    using containingPrimitive_type = hyteg::PrimitiveID;
+   using outsideDomain_type = int;
    using neighborState_type = std::unordered_set<walberla::mpi::MPIRank>;
 
    
@@ -313,6 +319,10 @@ public:
    containingPrimitive_type const & getContainingPrimitive(const size_t idx) const {return containingPrimitive_[idx];}
    containingPrimitive_type& getContainingPrimitiveRef(const size_t idx) {return containingPrimitive_[idx];}
    void setContainingPrimitive(const size_t idx, containingPrimitive_type const & v) { containingPrimitive_[idx] = v; }
+   
+   outsideDomain_type const & getOutsideDomain(const size_t idx) const {return outsideDomain_[idx];}
+   outsideDomain_type& getOutsideDomainRef(const size_t idx) {return outsideDomain_[idx];}
+   void setOutsideDomain(const size_t idx, outsideDomain_type const & v) { outsideDomain_[idx] = v; }
    
    neighborState_type const & getNeighborState(const size_t idx) const {return neighborState_[idx];}
    neighborState_type& getNeighborStateRef(const size_t idx) {return neighborState_[idx];}
@@ -426,6 +436,7 @@ public:
    std::vector<k_type> k_ {};
    std::vector<finalTemperature_type> finalTemperature_ {};
    std::vector<containingPrimitive_type> containingPrimitive_ {};
+   std::vector<outsideDomain_type> outsideDomain_ {};
    std::vector<neighborState_type> neighborState_ {};
    std::unordered_map<uid_type, size_t> uidToIdx_;
    static_assert(std::is_same<uid_type, id_t>::value,
@@ -453,6 +464,7 @@ ParticleStorage::Particle& ParticleStorage::Particle::operator=(const ParticleSt
    getKRef() = rhs.getK();
    getFinalTemperatureRef() = rhs.getFinalTemperature();
    getContainingPrimitiveRef() = rhs.getContainingPrimitive();
+   getOutsideDomainRef() = rhs.getOutsideDomain();
    getNeighborStateRef() = rhs.getNeighborState();
    return *this;
 }
@@ -477,6 +489,7 @@ ParticleStorage::Particle& ParticleStorage::Particle::operator=(ParticleStorage:
    getKRef() = std::move(rhs.getKRef());
    getFinalTemperatureRef() = std::move(rhs.getFinalTemperatureRef());
    getContainingPrimitiveRef() = std::move(rhs.getContainingPrimitiveRef());
+   getOutsideDomainRef() = std::move(rhs.getOutsideDomainRef());
    getNeighborStateRef() = std::move(rhs.getNeighborStateRef());
    return *this;
 }
@@ -502,6 +515,7 @@ void swap(ParticleStorage::Particle lhs, ParticleStorage::Particle rhs)
    std::swap(lhs.getKRef(), rhs.getKRef());
    std::swap(lhs.getFinalTemperatureRef(), rhs.getFinalTemperatureRef());
    std::swap(lhs.getContainingPrimitiveRef(), rhs.getContainingPrimitiveRef());
+   std::swap(lhs.getOutsideDomainRef(), rhs.getOutsideDomainRef());
    std::swap(lhs.getNeighborStateRef(), rhs.getNeighborStateRef());
 }
 
@@ -527,6 +541,7 @@ std::ostream& operator<<( std::ostream& os, const ParticleStorage::Particle& p )
          "k                   : " << p.getK() << "\n" <<
          "finalTemperature    : " << p.getFinalTemperature() << "\n" <<
          "containingPrimitive : " << p.getContainingPrimitive() << "\n" <<
+         "outsideDomain       : " << p.getOutsideDomain() << "\n" <<
          "neighborState       : " << p.getNeighborState() << "\n" <<
          "================================" << std::endl;
    return os;
@@ -622,6 +637,7 @@ inline ParticleStorage::iterator ParticleStorage::create(const id_t& uid)
    k_.emplace_back();
    finalTemperature_.emplace_back();
    containingPrimitive_.emplace_back();
+   outsideDomain_.emplace_back(0);
    neighborState_.emplace_back();
    uid_.back() = uid;
    uidToIdx_[uid] = uid_.size() - 1;
@@ -672,6 +688,7 @@ inline ParticleStorage::iterator ParticleStorage::erase(iterator& it)
    k_.pop_back();
    finalTemperature_.pop_back();
    containingPrimitive_.pop_back();
+   outsideDomain_.pop_back();
    neighborState_.pop_back();
    return it;
 }
@@ -709,6 +726,7 @@ inline void ParticleStorage::reserve(const size_t size)
    k_.reserve(size);
    finalTemperature_.reserve(size);
    containingPrimitive_.reserve(size);
+   outsideDomain_.reserve(size);
    neighborState_.reserve(size);
 }
 
@@ -731,6 +749,7 @@ inline void ParticleStorage::clear()
    k_.clear();
    finalTemperature_.clear();
    containingPrimitive_.clear();
+   outsideDomain_.clear();
    neighborState_.clear();
    uidToIdx_.clear();
 }
@@ -754,6 +773,7 @@ inline size_t ParticleStorage::size() const
    //WALBERLA_ASSERT_EQUAL( uid_.size(), k.size() );
    //WALBERLA_ASSERT_EQUAL( uid_.size(), finalTemperature.size() );
    //WALBERLA_ASSERT_EQUAL( uid_.size(), containingPrimitive.size() );
+   //WALBERLA_ASSERT_EQUAL( uid_.size(), outsideDomain.size() );
    //WALBERLA_ASSERT_EQUAL( uid_.size(), neighborState.size() );
    return uid_.size();
 }
@@ -1090,6 +1110,15 @@ public:
    hyteg::PrimitiveID& operator()(data::Particle& p) const {return p.getContainingPrimitiveRef();}
    hyteg::PrimitiveID& operator()(data::Particle&& p) const {return p.getContainingPrimitiveRef();}
    hyteg::PrimitiveID const & operator()(const data::Particle& p) const {return p.getContainingPrimitive();}
+};
+///Predicate that selects a certain property from a Particle
+class SelectParticleOutsideDomain
+{
+public:
+   using return_type = int;
+   int& operator()(data::Particle& p) const {return p.getOutsideDomainRef();}
+   int& operator()(data::Particle&& p) const {return p.getOutsideDomainRef();}
+   int const & operator()(const data::Particle& p) const {return p.getOutsideDomain();}
 };
 ///Predicate that selects a certain property from a Particle
 class SelectParticleNeighborState
