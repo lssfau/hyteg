@@ -232,7 +232,8 @@ void simulate( int argc, char* argv[] )
    auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< P2P1TaylorHoodStokesOperator::VelocityOperator_T > >();
    auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< P2P1TaylorHoodStokesOperator > >( storage, gaussSeidel );
    auto uzawaSmoother = std::make_shared< UzawaSmoother< P2P1TaylorHoodStokesOperator > >( storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.3 );
-   const auto uzawaRelaxationParameter = uzawaSmoother->estimateAndSetRelaxationParameter( 2, 20 );
+   const auto uzawaRelaxationParameter = estimateUzawaRelaxationParameter( storage, uzawaVelocityPreconditioner, 2, 20, 2 );
+   uzawaSmoother->setRelaxationParameter( uzawaRelaxationParameter );
    WALBERLA_LOG_INFO_ON_ROOT( "Estimated relaxation parameter for Uzawa: " << uzawaRelaxationParameter );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    auto gmgSolver = std::make_shared< GeometricMultigridSolver< P2P1TaylorHoodStokesOperator > >(

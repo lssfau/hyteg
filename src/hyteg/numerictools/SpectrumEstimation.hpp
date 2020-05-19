@@ -55,12 +55,10 @@ namespace hyteg {
   template < typename OperatorType >
   real_t estimateSpectralRadiusWithPowerIteration( OperatorType& op,
                                                    typename OperatorType::srcType &itrVec,
+                                                   typename OperatorType::srcType &auxVec,
                                                    const uint_t numIts,
                                                    const std::shared_ptr<PrimitiveStorage> &storage,
                                                    const uint_t level ) {
-
-    typedef typename OperatorType::srcType fType;
-    fType auxVec( "", storage, level, level );
 
     // scale input vector
     real_t norm = std::sqrt( itrVec.dotGlobal( itrVec, level, hyteg::All ) );

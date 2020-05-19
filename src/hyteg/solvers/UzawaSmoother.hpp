@@ -23,6 +23,7 @@
 
 #include "core/math/Random.h"
 
+#include "hyteg/composites/P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/P2P1UzawaDampingFactorEstimationOperator.hpp"
 #include "hyteg/composites/StokesOperatorTraits.hpp"
@@ -30,6 +31,32 @@
 #include "hyteg/solvers/Solver.hpp"
 
 namespace hyteg {
+
+real_t estimateUzawaRelaxationParameter( const std::shared_ptr< PrimitiveStorage >&           storage,
+                                         const std::shared_ptr< Solver< P1StokesOperator > >& velocitySmoother,
+                                         const uint_t&                                        level,
+                                         const uint_t&                                        numPowerIterations,
+                                         const uint_t&                                        numGSIterationsVelocity )
+{
+   WALBERLA_ABORT( "Not implemented" );
+}
+
+real_t estimateUzawaRelaxationParameter( const std::shared_ptr< PrimitiveStorage >&                       storage,
+                                         const std::shared_ptr< Solver< P2P1TaylorHoodStokesOperator > >& velocitySmoother,
+                                         const uint_t&                                                    level,
+                                         const uint_t&                                                    numPowerIterations,
+                                         const uint_t& numGSIterationsVelocity )
+{
+   P2P1UzawaDampingFactorEstimationOperator estimator( storage, velocitySmoother, level, level, numGSIterationsVelocity );
+   P1Function< real_t >                     iterationVector( "iterationVector", storage, level, level );
+   P1Function< real_t >                     auxVector( "auxVector", storage, level, level );
+   walberla::math::seedRandomGenerator( 42 );
+   auto randFunction = []( const Point3D& ) { return walberla::math::realRandom(); };
+   iterationVector.interpolate( randFunction, level, All );
+   const real_t estimatedRelaxationParameter =
+       estimateSpectralRadiusWithPowerIteration( estimator, iterationVector, auxVector, numPowerIterations, storage, level );
+   return estimatedRelaxationParameter;
+}
 
 template < class OperatorType >
 class UzawaSmoother : public Solver< OperatorType >
@@ -95,22 +122,6 @@ class UzawaSmoother : public Solver< OperatorType >
                    std::integral_constant< bool, has_pspg_block< OperatorType >::value >() );
    }
 
-   real_t estimateAndSetRelaxationParameter( const uint_t& level, const uint_t& numPowerIterations )
-   {
-      const bool isStableDiscretization = std::is_same< OperatorType, P2P1TaylorHoodStokesOperator >::value;
-      WALBERLA_CHECK( isStableDiscretization, "Relaxation parameter estimation only implemented for P2-P1" );
-      P2P1UzawaDampingFactorEstimationOperator estimator(
-          storage_, level, level, symmetricGSVelocity_, numGSIterationsVelocity_ );
-      P1Function< real_t > iterationVector( "iterationVector", storage_, level, level );
-      walberla::math::seedRandomGenerator( 42 );
-      auto randFunction = []( const Point3D& ) { return walberla::math::realRandom(); };
-      iterationVector.interpolate( randFunction, level, All );
-      const real_t estimatedRelaxationParameter =
-          estimateSpectralRadiusWithPowerIteration( estimator, iterationVector, numPowerIterations, storage_, level );
-      relaxParam_ = estimatedRelaxationParameter;
-      return estimatedRelaxationParameter;
-   }
-
    void setRelaxationParameter( const real_t& omega ) { relaxParam_ = omega; }
 
  private:
@@ -139,7 +150,8 @@ class UzawaSmoother : public Solver< OperatorType >
          velocitySmoother_->solve( A, x, r_, level );
       }
 
-      A.div_x.apply( x.u, r_.p, level, flag_, Replace );
+      A.pspg.apply( x.p, r_.p, level, flag_, Replace );
+      A.div_x.apply( x.u, r_.p, level, flag_, Add );
       A.div_y.apply( x.v, r_.p, level, flag_, Add );
 
       if ( hasGlobalCells_ )
@@ -149,18 +161,8 @@ class UzawaSmoother : public Solver< OperatorType >
 
       r_.p.assign( {1.0, -1.0}, {b.p, r_.p}, level, flag_ );
 
-      for ( uint_t i = 0; i < numGSIterationsPressure_; i++ )
-      {
-         if ( symmetricGSPressure_ )
-         {
-            A.pspg.smooth_sor( x.p, r_.p, relaxParam_, level, flag_ );
-            A.pspg.smooth_sor_backwards( x.p, r_.p, relaxParam_, level, flag_ );
-         }
-         else
-         {
-            A.pspg.smooth_sor( x.p, r_.p, relaxParam_, level, flag_ );
-         }
-      }
+      r_.p.assign( {relaxParam_}, {r_.p}, level, flag_ );
+      A.pspg_inv_diag_.apply( r_.p, x.p, level, flag_, Add );
    }
 
    // Tensor variant
@@ -259,7 +261,6 @@ class UzawaSmoother : public Solver< OperatorType >
    bool                                      hasGlobalCells_;
    real_t                                    relaxParam_;
    real_t                                    velocityRelaxParam_;
-   bool                                      symmetricGSVelocity_;
    uint_t                                    numGSIterationsVelocity_;
    bool                                      symmetricGSPressure_;
    uint_t                                    numGSIterationsPressure_;

@@ -84,7 +84,11 @@ Parameters
     return base_config
 
 
-def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", prm_file="parameter_file.prm", num_nodes=1, ppn=48):
+def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", prm_file="parameter_file.prm", num_nodes=1, ppn=48, petsc_detail=False):
+
+    petsc_detail_string = ""
+    if petsc_detail:
+        petsc_detail_string = "-ksp_view -ksp_monitor -log_view -mat_mumps_icntl_4 2"
 
     def partition(num_nodes):
         if num_nodes <= 16:
@@ -135,10 +139,10 @@ pwd
 ls -lha
 
 #Run the program:
-mpiexec -n $SLURM_NTASKS ./MultigridStudies 2019_supermuc/{prm_file}
+mpiexec -n $SLURM_NTASKS ./MultigridStudies 2019_supermuc/{prm_file} {petsc_detail_string}
 
 """.format(job_name=job_name, wall_clock_limit=wall_clock_limit, num_nodes=num_nodes, prm_file=prm_file, partition=partition(num_nodes),
-           constraint=constraint, ppn=ppn)
+           constraint=constraint, ppn=ppn, petsc_detail_string=petsc_detail_string)
     return base_config
 
 
@@ -284,7 +288,7 @@ def supermuc_scaling():
 
                         prm_string = supermuc_scaling_prm_file_string(**prm_string_prm_dict)
                         job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="0:30:00",
-                                                              num_nodes=num_nodes, prm_file=prm_file_name, ppn=ppn)
+                                                              num_nodes=num_nodes, prm_file=prm_file_name, ppn=ppn, petsc_detail=True)
 
                         with open(prm_file_name, "w") as f:
                             f.write(prm_string)

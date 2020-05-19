@@ -43,6 +43,7 @@ class P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFu
    , divT_y( storage, minLevel, maxLevel )
    , divT_z( storage, minLevel, maxLevel )
    , pspg( storage, minLevel, maxLevel )
+   , pspg_inv_diag_( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
@@ -84,6 +85,7 @@ class P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFu
    P1DivTyOperator           divT_y;
    P1DivTzOperator           divT_z;
    P1PSPGOperator            pspg;
+   P1PSPGInvDiagOperator     pspg_inv_diag_;
    bool                      hasGlobalCells_;
 };
 

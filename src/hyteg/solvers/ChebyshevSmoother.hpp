@@ -210,10 +210,11 @@ inline real_t estimateRadius( const OperatorType&                        A,
                               const uint_t&                              level,
                               const uint_t&                              maxIter,
                               const std::shared_ptr< PrimitiveStorage >& storage,
-                              typename OperatorType::srcType&            x )
+                              typename OperatorType::srcType&            x,
+                              typename OperatorType::srcType&            tmp )
 {
    InvDiagOperatorWrapper< OperatorType > invDiagA( storage, level, level, A );
-   return hyteg::estimateSpectralRadiusWithPowerIteration( invDiagA, x, maxIter, storage, level );
+   return hyteg::estimateSpectralRadiusWithPowerIteration( invDiagA, x, tmp, maxIter, storage, level );
 }
 
 } // namespace chebyshev
