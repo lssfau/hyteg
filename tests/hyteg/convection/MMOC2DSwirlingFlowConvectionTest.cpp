@@ -221,6 +221,9 @@ int main( int argc, char* argv[] )
    FunctionType u( "u", storage, minLevel, maxLevel );
    FunctionType v( "v", storage, minLevel, maxLevel );
    FunctionType w( "w", storage, minLevel, maxLevel );
+   FunctionType uLastTimeStep( "uLast", storage, minLevel, maxLevel );
+   FunctionType vLastTimeStep( "vLast", storage, minLevel, maxLevel );
+   FunctionType wLastTimeStep( "wLast", storage, minLevel, maxLevel );
 
    MassOperator                  M( storage, minLevel, maxLevel );
    MMOCTransport< FunctionType > transport( storage, setupStorage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
@@ -245,13 +248,16 @@ int main( int argc, char* argv[] )
 
    vtkOutput.write( maxLevel, 0 );
 
-   for ( uint_t i = 1; i <= steps + 1; i++ )
+   for ( uint_t i = 1; i <= steps; i++ )
    {
-      u.interpolate( vel_x, maxLevel );
-      v.interpolate( vel_y, maxLevel );
-      transport.step( c, u, v, w, maxLevel, Inner, dt, 1, i == 1 );
+      uLastTimeStep.interpolate( vel_x, maxLevel );
+      vLastTimeStep.interpolate( vel_y, maxLevel );
       vel_x.step();
       vel_y.step();
+      u.interpolate( vel_x, maxLevel );
+      v.interpolate( vel_y, maxLevel );
+
+      transport.step( c, u, v, w, uLastTimeStep, vLastTimeStep, wLastTimeStep, maxLevel, Inner, dt, 1, i == 1 );
 
       cError.assign( {1.0, -1.0}, {c, cInitial}, maxLevel, All );
       auto max_temp = c.getMaxMagnitude( maxLevel, All );
@@ -282,8 +288,8 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "E2 lumped:     " << walberla::format( "%5.4e", error_E2 ) );
    WALBERLA_LOG_INFO_ON_ROOT( "E2 consistent: " << walberla::format( "%5.4e", error_E2_consistent ) );
 
-   WALBERLA_CHECK_LESS( error_E1, 7.0e-05 );
-   WALBERLA_CHECK_LESS( error_E2, 6.0e-04 );
+   WALBERLA_CHECK_LESS( error_E1, 6.1e-05 );
+   WALBERLA_CHECK_LESS( error_E2, 4.0e-04 );
 
    return EXIT_SUCCESS;
 }

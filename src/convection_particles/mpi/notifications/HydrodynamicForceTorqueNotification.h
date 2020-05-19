@@ -13,7 +13,7 @@
 //  You should have received a copy of the GNU General Public License along
 //  with waLBerla (see COPYING.txt). If not, see <http://www.gnu.org/licenses/>.
 //
-//! \file ForceTorqueNotification.h
+//! \file HydrodynamicForceTorqueNotification.h
 //! \author Sebastian Eibl <sebastian.eibl@fau.de>
 //
 //======================================================================================================================
@@ -41,38 +41,38 @@ namespace convection_particles {
 /**
  * Trasmits force and torque information.
  */
-class ForceTorqueNotification
+class HydrodynamicForceTorqueNotification
 {
 public:
    struct Parameters
    {
       id_t uid_;
-      convection_particles::Vec3 force_;
-      convection_particles::Vec3 torque_;
+      convection_particles::Vec3 hydrodynamicForce_;
+      convection_particles::Vec3 hydrodynamicTorque_;
    };
 
-   inline explicit ForceTorqueNotification( const data::Particle& p ) : p_(p) {}
+   inline explicit HydrodynamicForceTorqueNotification( const data::Particle& p ) : p_(p) {}
 
    const data::Particle& p_;
 };
 
 template <>
-void reset<ForceTorqueNotification>(data::Particle& p)
+void reset<HydrodynamicForceTorqueNotification>(data::Particle& p)
 {
-   p.setForce( Vec3(real_t(0)) );
-   p.setTorque( Vec3(real_t(0)) );
+   p.setHydrodynamicForce( Vec3(real_t(0)) );
+   p.setHydrodynamicTorque( Vec3(real_t(0)) );
 }
 
-void reduce(data::Particle&& p, const ForceTorqueNotification::Parameters& objparam)
+void reduce(data::Particle&& p, const HydrodynamicForceTorqueNotification::Parameters& objparam)
 {
-   p.getForceRef() += objparam.force_;
-   p.getTorqueRef() += objparam.torque_;
+   p.getHydrodynamicForceRef() += objparam.hydrodynamicForce_;
+   p.getHydrodynamicTorqueRef() += objparam.hydrodynamicTorque_;
 }
 
-void update(data::Particle&& p, const ForceTorqueNotification::Parameters& objparam)
+void update(data::Particle&& p, const HydrodynamicForceTorqueNotification::Parameters& objparam)
 {
-   p.setForce( objparam.force_ );
-   p.setTorque( objparam.torque_ );
+   p.setHydrodynamicForce( objparam.hydrodynamicForce_ );
+   p.setHydrodynamicTorque( objparam.hydrodynamicTorque_ );
 }
 
 }  // namespace convection_particles
@@ -89,27 +89,27 @@ namespace mpi {
 
 template< typename T,    // Element type of SendBuffer
           typename G>    // Growth policy of SendBuffer
-mpi::GenericSendBuffer<T,G>& operator<<( mpi::GenericSendBuffer<T,G> & buf, const convection_particles::ForceTorqueNotification& obj )
+mpi::GenericSendBuffer<T,G>& operator<<( mpi::GenericSendBuffer<T,G> & buf, const convection_particles::HydrodynamicForceTorqueNotification& obj )
 {
    buf.addDebugMarker( "pn" );
    buf << obj.p_.getUid();
-   buf << obj.p_.getForce();
-   buf << obj.p_.getTorque();
+   buf << obj.p_.getHydrodynamicForce();
+   buf << obj.p_.getHydrodynamicTorque();
    return buf;
 }
 
 template< typename T>    // Element type  of RecvBuffer
-mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buf, convection_particles::ForceTorqueNotification::Parameters& objparam )
+mpi::GenericRecvBuffer<T>& operator>>( mpi::GenericRecvBuffer<T> & buf, convection_particles::HydrodynamicForceTorqueNotification::Parameters& objparam )
 {
    buf.readDebugMarker( "pn" );
    buf >> objparam.uid_;
-   buf >> objparam.force_;
-   buf >> objparam.torque_;
+   buf >> objparam.hydrodynamicForce_;
+   buf >> objparam.hydrodynamicTorque_;
    return buf;
 }
 
 template< >
-struct BufferSizeTrait< convection_particles::ForceTorqueNotification > {
+struct BufferSizeTrait< convection_particles::HydrodynamicForceTorqueNotification > {
    static const bool constantSize = true;
    static const uint_t size = BufferSizeTrait<id_t>::size +
                               BufferSizeTrait<convection_particles::Vec3>::size +

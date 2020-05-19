@@ -119,7 +119,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils()
          // Assemble vertexToEdge stencil
          real_t* vStencil = storage_->getFace( face.getID() )->getData( faceStencilID_ )->getPointer( level );
 
-         form_.geometryMap = face.getGeometryMap();
+         form_.setGeometryMap( face.getGeometryMap() );
 
          const Point3D faceBottomLeftCoords  = face.coords[0];
          const Point3D faceBottomRightCoords = face.coords[1];
@@ -262,7 +262,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils()
 
          horizontalMicroEdgePosition = leftCoords + ( real_c( 0 ) + 0.5 ) * dS_se;
 
-         form_.geometryMap = faceS->getGeometryMap();
+         form_.setGeometryMap( faceS->getGeometryMap() );
          P2::variablestencil::assembleVertexToEdgeStencil(
              form_,
              {horizontalMicroEdgePosition + dir_W, horizontalMicroEdgePosition + dir_E, horizontalMicroEdgePosition + dir_SE},
@@ -273,7 +273,7 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils()
 
          if ( edge.getNumNeighborFaces() == 2 )
          {
-            form_.geometryMap = faceN->getGeometryMap();
+            form_.setGeometryMap( faceN->getGeometryMap() );
             P2::variablestencil::assembleVertexToEdgeStencil(
                 form_,
                 {horizontalMicroEdgePosition + dir_W, horizontalMicroEdgePosition + dir_E, horizontalMicroEdgePosition + dir_NW},

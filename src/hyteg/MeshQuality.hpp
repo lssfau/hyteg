@@ -27,7 +27,7 @@
 namespace hyteg {
 namespace MeshQuality {
 
-real_t getMinimalEdgeLength( const std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t level )
+inline real_t getMinimalEdgeLength( const std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t level )
 {
    real_t localMin = std::numeric_limits< real_t >::max();
 
@@ -42,7 +42,7 @@ real_t getMinimalEdgeLength( const std::shared_ptr< hyteg::PrimitiveStorage >& s
    return std::pow( 2.0, -walberla::real_c( level ) ) * globalMin;
 }
 
-real_t getMaximalEdgeLength( const std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t level )
+inline real_t getMaximalEdgeLength( const std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t level )
 {
    real_t localMax = 0;
 

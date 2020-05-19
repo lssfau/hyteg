@@ -36,7 +36,11 @@ class Form
 
    virtual bool assembly3DDefined() const = 0;
 
-   std::shared_ptr< GeometryMap > geometryMap;
+   virtual void setGeometryMap( const std::shared_ptr< GeometryMap > & geometryMap ) { geometryMap_ = geometryMap; }
+
+ protected:
+
+   std::shared_ptr< GeometryMap > geometryMap_;
 };
 
 } // namespace hyteg

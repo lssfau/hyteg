@@ -265,9 +265,9 @@ static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage 
    vtu_file.close();
 }
 
-void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage >& storage,
-                                 const std::string&                         dir,
-                                 const std::string&                         filename )
+inline void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage >& storage,
+                                        const std::string&                         dir,
+                                        const std::string&                         filename )
 {
    const std::string filenameVertices = filename + "_vertices";
    const std::string filenameEdges    = filename + "_edges";
@@ -283,7 +283,7 @@ void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage >& stor
    }
 }
 
-void writePrimitiveStorageDistributionCSV( const std::shared_ptr< PrimitiveStorage >& storage, const std::string& filename )
+inline void writePrimitiveStorageDistributionCSV( const std::shared_ptr< PrimitiveStorage >& storage, const std::string& filename )
 {
    uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 

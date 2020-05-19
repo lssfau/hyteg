@@ -2,15 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from mesa_pd import Module
-import mesa_pd.collision_detection as collision_detection
 import mesa_pd.data as data
-import mesa_pd.kernel as kernel
 import mesa_pd.mpi as mpi
-import mesa_pd.vtk as vtk
 
 import argparse
-import numpy as np
-import os
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Generate all necessary files for the HyTeG convection particles module.')
@@ -37,6 +32,7 @@ if __name__ == '__main__':
     ps.add_property("k", "std::vector< walberla::mesa_pd::Vec3 >", defValue="", syncMode="ALWAYS")
     ps.add_property("finalTemperature", "real_t", defValue="", syncMode="ALWAYS")
     ps.add_property("containingPrimitive", "hyteg::PrimitiveID", defValue="", syncMode="ALWAYS")
+    ps.add_property("outsideDomain", "int", defValue="0", syncMode="ALWAYS")
 
     mpd.add(mpi.Notifications(ps))
     mpd.add(mpi.SyncGhostOwners(ps))

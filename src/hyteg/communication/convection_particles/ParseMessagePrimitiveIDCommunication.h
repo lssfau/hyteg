@@ -110,6 +110,7 @@ void ParseMessagePrimitiveIDCommunication::operator()(int sender,
       pIt->setK(objparam.k);
       pIt->setFinalTemperature(objparam.finalTemperature);
       pIt->setContainingPrimitive(objparam.containingPrimitive);
+      pIt->setOutsideDomain(objparam.outsideDomain);
 
       WALBERLA_LOG_DETAIL( "Processed PARTICLE_UPDATE_NOTIFICATION." );
 

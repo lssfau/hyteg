@@ -26,6 +26,7 @@
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
+#include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -38,10 +39,18 @@ template < class P2Form >
 class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function< real_t > >
 {
  public:
+   P2ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
+
    P2ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                           size_t                                     minLevel,
                           size_t                                     maxLevel,
-                          bool                                       needsDiagEntries = true );
+                          const P2Form&                              form );
+
+   P2ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                          size_t                                     minLevel,
+                          size_t                                     maxLevel,
+                          const P2Form&                              form,
+                          bool                                       needsDiagEntries );
 
    void apply( const P2Function< real_t >& src,
                const P2Function< real_t >& dst,
@@ -57,6 +66,16 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                     real_t                      omega,
                     size_t                      level,
                     DoFType                     flag ) const;
+
+   void smooth_gs( const P2Function< real_t >&, const P2Function< real_t >&, size_t, DoFType ) const
+   {
+      WALBERLA_ABORT( "Gauss-Seidel not implemented for P2ElementwiseOperator." )
+   }
+
+   void smooth_sor( const P2Function< real_t >&, const P2Function< real_t >&, real_t, size_t, DoFType ) const
+   {
+      WALBERLA_ABORT( "SOR not implemented for P2ElementwiseOperator." )
+   }
 
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    ///
@@ -180,6 +199,9 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                                const PetscInt* const   dstVertexIdx,
                                const PetscInt* const   dstEdgeIdx ) const;
 #endif
+
+   P2Form form_;
+
 };
 
 typedef P2ElementwiseOperator<
@@ -197,5 +219,7 @@ typedef P2ElementwiseOperator< P2Form_mass >    P2ElementwiseBlendingMassOperato
 typedef P2ElementwiseOperator< P2Form_laplace > P2ElementwiseBlendingLaplaceOperator;
 
 typedef P2ElementwiseOperator< P2Form_divKgrad > P2ElementwiseDivKGradOperator;
+
+typedef P2ElementwiseOperator< P2LinearCombinationForm > P2ElementwiseLinearCombinationOperator;
 
 } // namespace hyteg

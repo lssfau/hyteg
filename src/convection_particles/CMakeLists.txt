@@ -5,4 +5,4 @@
 #
 ###################################################################################################
 
-waLBerla_add_module( DEPENDS blockforest core stencil vtk hyteg )
+waLBerla_add_module( DEPENDS blockforest core stencil vtk )

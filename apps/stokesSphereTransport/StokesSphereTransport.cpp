@@ -172,6 +172,7 @@ void simulate( int argc, char* argv[] )
    P2P1TaylorHoodFunction< real_t > r( "r", storage, minLevel, maxLevel );
    P2P1TaylorHoodFunction< real_t > f( "f", storage, minLevel, maxLevel );
    P2P1TaylorHoodFunction< real_t > u( "u", storage, minLevel, maxLevel );
+   P2P1TaylorHoodFunction< real_t > uLastTimeStep( "uLast", storage, minLevel, maxLevel );
    P2Function< real_t >             temp( "temperature", storage, minLevel, maxLevel );
    P2Function< real_t >             tempOld( "temperature_old", storage, minLevel, maxLevel );
    P2Function< real_t >             tempTmp( "temperature_tmp", storage, minLevel, maxLevel );
@@ -204,6 +205,7 @@ void simulate( int argc, char* argv[] )
    P1toP1InjectionRestriction injectionRestriction;
 
    P2P1TaylorHoodStokesOperator L( storage, minLevel, maxLevel );
+   P2ConstantLaplaceOperator    laplace( storage, minLevel, maxLevel );
    P2ConstantMassOperator       M( storage, minLevel, maxLevel );
 
    std::function< real_t( const Point3D& ) > temperature = [rmin, rmax]( const Point3D& x ) {
@@ -239,18 +241,18 @@ void simulate( int argc, char* argv[] )
 
    MMOCTransport< P2Function< real_t > > transport( storage, setupStorage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
-   P2UnsteadyDiffusionOperator diffusionOperator( storage, minLevel, maxLevel, dt, diffusivity );
+   P2ConstantUnsteadyDiffusionOperator diffusionOperator( storage, minLevel, maxLevel, dt, diffusivity, DiffusionTimeIntegrator::ImplicitEuler );
    auto                        diffusionCoarseGridSolver =
-       std::make_shared< CGSolver< P2UnsteadyDiffusionOperator > >( storage, minLevel, maxLevel, 2000, 1e-12 );
+       std::make_shared< CGSolver< P2ConstantUnsteadyDiffusionOperator > >( storage, minLevel, maxLevel, 2000, 1e-12 );
    auto diffusionRestriction  = std::make_shared< P2toP2QuadraticRestriction >();
    auto diffusionProlongation = std::make_shared< P2toP2QuadraticProlongation >();
-   auto gsSmoother            = std::make_shared< GaussSeidelSmoother< P2UnsteadyDiffusionOperator > >();
-   auto diffusionGMGSolver    = std::make_shared< GeometricMultigridSolver< P2UnsteadyDiffusionOperator > >(
+   auto gsSmoother            = std::make_shared< GaussSeidelSmoother< P2ConstantUnsteadyDiffusionOperator > >();
+   auto diffusionGMGSolver    = std::make_shared< GeometricMultigridSolver< P2ConstantUnsteadyDiffusionOperator > >(
        storage, gsSmoother, diffusionCoarseGridSolver, diffusionRestriction, diffusionProlongation, minLevel, maxLevel, 2, 1, 0 );
    auto diffusionSolver =
-       std::make_shared< SolverLoop< P2UnsteadyDiffusionOperator > >( diffusionGMGSolver, numDiffusionVCycles );
+       std::make_shared< SolverLoop< P2ConstantUnsteadyDiffusionOperator > >( diffusionGMGSolver, numDiffusionVCycles );
 
-   UnsteadyDiffusion< P2Function< real_t >, P2UnsteadyDiffusionOperator, P2ConstantMassOperator > diffusion(
+   UnsteadyDiffusion< P2Function< real_t >, P2ConstantUnsteadyDiffusionOperator, P2ConstantLaplaceOperator, P2ConstantMassOperator > diffusion(
        storage, minLevel, maxLevel, diffusionSolver );
 
    printFunctionAllocationInfo( *storage, 1 );
@@ -328,6 +330,8 @@ void simulate( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( "##### Time step " << step << " #####" )
       WALBERLA_LOG_INFO_ON_ROOT( "" )
 
+      uLastTimeStep.assign( {1.0}, {u}, maxLevel, All );
+
       // Updating right-hand side (Boussinesq approximation)
 
       M.apply( temp, f.u, maxLevel, All );
@@ -393,7 +397,7 @@ void simulate( int argc, char* argv[] )
 
       time += dt;
 
-      transport.step( temp, u.u, u.v, u.w, maxLevel, All, dt, 1, true );
+      transport.step( temp, u.u, u.v, u.w, uLastTimeStep.u, uLastTimeStep.v, uLastTimeStep.w, maxLevel, All, dt, 1, true );
 
       timer.end();
       WALBERLA_LOG_INFO_ON_ROOT( "" )
@@ -411,7 +415,7 @@ void simulate( int argc, char* argv[] )
          timer.start();
 
          tempOld.assign( {1.0}, {temp}, maxLevel, All );
-         diffusion.step( diffusionOperator, M, temp, maxLevel, Inner | NeumannBoundary );
+         diffusion.step( diffusionOperator, laplace, M, temp, tempOld, maxLevel, Inner | NeumannBoundary );
 
          const auto residualDiffusion = calculateResidualDiffusion();
          WALBERLA_LOG_INFO_ON_ROOT( "" )

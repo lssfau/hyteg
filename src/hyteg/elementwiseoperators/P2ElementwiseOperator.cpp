@@ -25,9 +25,25 @@ namespace hyteg {
 template < class P2Form >
 P2ElementwiseOperator< P2Form >::P2ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                                         size_t                                     minLevel,
+                                                        size_t                                     maxLevel )
+    : P2ElementwiseOperator< P2Form >( storage, minLevel, maxLevel, P2Form(), true )
+{}
+
+template < class P2Form >
+P2ElementwiseOperator< P2Form >::P2ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                        size_t                                     minLevel,
                                                         size_t                                     maxLevel,
+                                                        const P2Form&                              form )
+    : P2ElementwiseOperator< P2Form >( storage, minLevel, maxLevel, form, true )
+{}
+
+template < class P2Form >
+P2ElementwiseOperator< P2Form >::P2ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                        size_t                                     minLevel,
+                                                        size_t                                     maxLevel,
+                                                        const P2Form&                              form,
                                                         bool                                       needsDiagEntries )
-: Operator( storage, minLevel, maxLevel )
+: Operator( storage, minLevel, maxLevel ), form_( form )
 {
    if ( needsDiagEntries )
    {
@@ -286,7 +302,7 @@ void P2ElementwiseOperator< P2Form >::localMatrixVectorMultiply2D( const Face&  
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 6 >  dofDataIdx;
-   P2Form                   form;
+   P2Form                   form( form_ );
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -350,7 +366,7 @@ void P2ElementwiseOperator< P2Form >::localMatrixVectorMultiply3D( const Cell&  
 
    // assemble local element matrix
    Matrix10r elMat;
-   P2Form    form;
+   P2Form form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
 
@@ -512,7 +528,7 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions2D( const
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 6 >  dofDataIdx;
-   P2Form                   form;
+   P2Form                   form( form_ );
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -563,7 +579,7 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions3D( const
 
    // assemble local element matrix
    Matrix10r elMat;
-   P2Form    form;
+   P2Form    form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
 
@@ -738,7 +754,7 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly2D( Mat&               
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 6 >  dofDataIdx;
-   P2Form                   form;
+   P2Form                   form( form_ );
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -806,7 +822,7 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly3D( Mat&               
 
    // assemble local element matrix
    Matrix10r elMat;
-   P2Form    form;
+   P2Form    form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
 
@@ -858,5 +874,8 @@ template class P2ElementwiseOperator< P2Form_mass >;
 
 // P2ElementwiseBlendingLaplaceOperator
 template class P2ElementwiseOperator< P2Form_laplace >;
+
+// P2ElementwiseLinearCombinationOperator
+template class P2ElementwiseOperator< P2LinearCombinationForm >;
 
 } // namespace hyteg

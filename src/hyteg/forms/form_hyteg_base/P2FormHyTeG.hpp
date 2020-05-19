@@ -22,10 +22,11 @@
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/types/matrix.hpp"
 #include "hyteg/types/pointnd.hpp"
+#include "hyteg/forms/P2Form.hpp"
 
 namespace hyteg {
 
-class P2FormHyTeG
+class P2FormHyTeG : public P2Form
 {
  public:
 
@@ -35,11 +36,13 @@ class P2FormHyTeG
 
    virtual void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const = 0;
 
-   void setGeometryMap( const std::shared_ptr< GeometryMap > map ) { this->geometryMap_ = map; }
+   virtual bool assemble2D() const { return true; };
 
- protected:
-   std::shared_ptr< GeometryMap > geometryMap_;
+   virtual bool assemble3D() const { return false; };
 
+   virtual bool assembly2DDefined() const { return true; };
+
+   virtual bool assembly3DDefined() const { return false; };
 };
 
 } // namespace hyteg

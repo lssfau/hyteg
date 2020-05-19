@@ -231,7 +231,7 @@ int main( int argc, char* argv[] )
 
    for ( uint_t i = 1; i <= outerSteps; i++ )
    {
-      transport.step( c, u, v, w, maxLevel, Inner, dt, innerSteps, i == 1 );
+      transport.step( c, u, v, w, u, v, w, maxLevel, Inner, dt, innerSteps, i == 1 );
 
       cError.assign( {1.0, -1.0}, {c, cInitial}, maxLevel, All );
       max_temp = c.getMaxMagnitude( maxLevel, All );

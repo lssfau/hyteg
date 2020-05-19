@@ -129,6 +129,13 @@ waLBerla_execute_test(NAME P1ChebyshevSmootherConvergenceTest)
 waLBerla_compile_test(FILES convergence/P2UnsteadyDiffusion2DTest.cpp DEPENDS hyteg core )
 waLBerla_execute_test(NAME P2UnsteadyDiffusion2DTest)
 
+waLBerla_compile_test(FILES convergence/P2UnsteadyDiffusionBlending2DTest.cpp DEPENDS hyteg core )
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+  if (HYTEG_BUILD_WITH_PETSC)
+    waLBerla_execute_test(NAME P2UnsteadyDiffusionBlending2DTest)
+  endif()
+endif()
+
 waLBerla_compile_test(FILES convergence/P2UnsteadyConvectionDiffusion2DTest.cpp DEPENDS hyteg core convection_particles )
 waLBerla_execute_test(NAME P2UnsteadyConvectionDiffusion2DTest)
 

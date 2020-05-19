@@ -1,0 +1,14 @@
+Parameters
+{
+  level 5;
+  numTimeSteps 400;
+
+  diffusivity 1e-3;
+
+  adjustedAdvection true;
+
+  vtk true;
+  printInterval 1;
+  vtkInterval 10;
+
+}

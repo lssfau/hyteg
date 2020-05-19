@@ -1,0 +1,15 @@
+Parameters
+{
+  level 7;
+  numTimeSteps 50;
+
+  enableGaussianCone true;
+  enableLinearCone false;
+  enableCylinder false;
+
+  resetParticles false;
+  adjustedAdvection true;
+  vtk false;
+  printInterval 1;
+  vtkInterval 1;
+}

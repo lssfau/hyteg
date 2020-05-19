@@ -1,0 +1,183 @@
+/*
+ * Copyright (c) 2017-2020 Nils Kohl.
+ *
+ * This file is part of HyTeG
+ * (see https://i10git.cs.fau.de/hyteg/hyteg).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include <core/Environment.h>
+#include <core/math/Constants.h>
+
+#include "hyteg/MeshQuality.hpp"
+#include "hyteg/composites/MMOCTransport.hpp"
+#include "hyteg/composites/UnsteadyDiffusion.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
+
+#include "Helpers.hpp"
+
+using walberla::real_t;
+using walberla::uint_c;
+using walberla::uint_t;
+using walberla::math::pi;
+
+namespace hyteg {
+namespace moc_benchmarks {
+
+auto r = []( const hyteg::Point3D& x, const hyteg::Point3D& x0, const real_t& r0 ) -> real_t {
+   return ( 1 / r0 ) * std::sqrt( std::pow( x[0] - x0[0], 2 ) + std::pow( x[1] - x0[1], 2 ) );
+};
+
+std::function< real_t( const hyteg::Point3D& ) > conicalBody = []( const hyteg::Point3D& x ) -> real_t {
+   const Point3D x0( {0, -0.75, 0.0} );
+   const real_t  r0 = 0.15;
+   if ( r( x, x0, r0 ) <= 1. )
+      return 1 - r( x, x0, r0 );
+   else
+      return 0.0;
+};
+
+std::function< real_t( const hyteg::Point3D& ) > gaussianCone = []( const hyteg::Point3D& x ) -> real_t {
+   const Point3D x0( {-0.75, 0.0, 0.0} );
+   const real_t  r0 = 0.15;
+   if ( r( x, x0, r0 ) <= 1. )
+      return ( 1 + std::cos( walberla::math::pi * r( x, x0, r0 ) ) ) * 0.25;
+   else
+      return 0.0;
+};
+
+std::function< real_t( const hyteg::Point3D& ) > slottedCylinder = []( const hyteg::Point3D& x ) -> real_t {
+   const Point3D x0( {0.0, 0.75, 0.0} );
+   const real_t  r0 = 0.15;
+   if ( ( r( x, x0, r0 ) <= 1. ) && ( std::abs( x[0] - x0[0] ) >= 0.025 || x[1] >= 0.85 ) )
+      return 1;
+   else
+      return 0.0;
+};
+
+
+class TempSolution : public Solution
+{
+ public:
+   TempSolution( bool enableGaussianCone, bool enableLinearCone, bool enableCylinder )
+   : enableGaussianCone_( enableGaussianCone )
+   , enableLinearCone_( enableLinearCone )
+   , enableCylinder_( enableCylinder )
+   {}
+
+   /// Evaluates the solution at a specific point.
+   real_t operator()( const Point3D& x ) const override
+   {
+      real_t val = 0;
+      if ( enableGaussianCone_ )
+         val += gaussianCone( x );
+      if ( enableLinearCone_ )
+         val += conicalBody( x );
+      if ( enableCylinder_ )
+         val += slottedCylinder( x );
+      return val;
+   }
+
+ private:
+   bool enableGaussianCone_;
+   bool enableLinearCone_;
+   bool enableCylinder_;
+};
+
+class VelocitySolutionX : public Solution
+{
+   /// Evaluates the solution at a specific point.
+   real_t operator()( const Point3D& x ) const override { return -x[1]; }
+};
+
+class VelocitySolutionY : public Solution
+{
+   /// Evaluates the solution at a specific point.
+   real_t operator()( const Point3D& x ) const override { return x[0]; }
+};
+
+void benchmark( int argc, char** argv )
+{
+   walberla::Environment env( argc, argv );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   auto cfg = std::make_shared< walberla::config::Config >();
+   if ( env.config() == nullptr )
+   {
+      auto defaultFile = "./Benchmark_03_BlendedAdvection.prm";
+      WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
+      cfg->readParameterFile( defaultFile );
+   }
+   else
+   {
+      cfg = env.config();
+   }
+
+   const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
+
+   const uint_t numTimeSteps       = mainConf.getParameter< uint_t >( "numTimeSteps" );
+   const uint_t level              = mainConf.getParameter< uint_t >( "level" );
+   const bool   resetParticles     = mainConf.getParameter< bool >( "resetParticles" );
+   const bool   adjustedAdvection  = mainConf.getParameter< bool >( "adjustedAdvection" );
+   const bool   enableCylinder     = mainConf.getParameter< bool >( "enableCylinder" );
+   const bool   enableLinearCone   = mainConf.getParameter< bool >( "enableLinearCone" );
+   const bool   enableGaussianCone = mainConf.getParameter< bool >( "enableGaussianCone" );
+   const uint_t printInterval      = mainConf.getParameter< uint_t >( "printInterval" );
+   const bool   vtk                = mainConf.getParameter< bool >( "vtk" );
+   const uint_t vtkInterval        = mainConf.getParameter< uint_t >( "vtkInterval" );
+
+
+   MeshInfo meshInfo = MeshInfo::meshAnnulus( 0.5, 1.5, MeshInfo::CROSS, 6, 2 );
+
+   const real_t tEnd = 2 * pi;
+   const real_t dt   = tEnd / real_c( numTimeSteps );
+
+   TempSolution      cSolution( enableGaussianCone, enableLinearCone, enableCylinder );
+   VelocitySolutionX uSolution;
+   VelocitySolutionY vSolution;
+
+   solve( meshInfo,
+          true,
+          cSolution,
+          uSolution,
+          vSolution,
+          dt,
+          1.0,
+          level,
+          DiffusionTimeIntegrator::ImplicitEuler,
+          false,
+          resetParticles,
+          adjustedAdvection,
+          numTimeSteps,
+          vtk,
+          "Benchmark_03_BlendedAdvection",
+          printInterval,
+          vtkInterval );
+}
+} // namespace moc_benchmarks
+} // namespace hyteg
+
+int main( int argc, char* argv[] )
+{
+   hyteg::moc_benchmarks::benchmark( argc, argv );
+   return EXIT_SUCCESS;
+}

@@ -32,20 +32,20 @@
 
 namespace hyteg {
 
-real_t estimateUzawaRelaxationParameter( const std::shared_ptr< PrimitiveStorage >&           storage,
-                                         const std::shared_ptr< Solver< P1StokesOperator > >& velocitySmoother,
-                                         const uint_t&                                        level,
-                                         const uint_t&                                        numPowerIterations,
-                                         const uint_t&                                        numGSIterationsVelocity )
+inline real_t estimateUzawaRelaxationParameter( const std::shared_ptr< PrimitiveStorage >&           storage,
+                                                const std::shared_ptr< Solver< P1StokesOperator > >& velocitySmoother,
+                                                const uint_t&                                        level,
+                                                const uint_t&                                        numPowerIterations,
+                                                const uint_t&                                        numGSIterationsVelocity )
 {
    WALBERLA_ABORT( "Not implemented" );
 }
 
-real_t estimateUzawaRelaxationParameter( const std::shared_ptr< PrimitiveStorage >&                       storage,
-                                         const std::shared_ptr< Solver< P2P1TaylorHoodStokesOperator > >& velocitySmoother,
-                                         const uint_t&                                                    level,
-                                         const uint_t&                                                    numPowerIterations,
-                                         const uint_t& numGSIterationsVelocity )
+inline real_t estimateUzawaRelaxationParameter( const std::shared_ptr< PrimitiveStorage >&                       storage,
+                                                const std::shared_ptr< Solver< P2P1TaylorHoodStokesOperator > >& velocitySmoother,
+                                                const uint_t&                                                    level,
+                                                const uint_t& numPowerIterations,
+                                                const uint_t& numGSIterationsVelocity )
 {
    P2P1UzawaDampingFactorEstimationOperator estimator( storage, velocitySmoother, level, level, numGSIterationsVelocity );
    P1Function< real_t >                     iterationVector( "iterationVector", storage, level, level );
