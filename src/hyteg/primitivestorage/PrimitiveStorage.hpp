@@ -34,6 +34,8 @@
 
 namespace hyteg {
 
+using namespace walberla::mpistubs;
+
 class SetupPrimitiveStorage;
 class Vertex;
 class Edge;
