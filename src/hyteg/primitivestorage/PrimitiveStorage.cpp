@@ -1503,6 +1503,21 @@ void PrimitiveStorage::checkConsistency()
   }
 }
 
+MPI_Comm PrimitiveStorage::splitCommunicatorByPrimitiveDistribution() const
+{
+   MPI_Comm originalComm = walberla::mpi::MPIManager::instance()->comm();
+   if ( getNumberOfEmptyProcesses() == 0 )
+   {
+      return originalComm;
+   }
+   const int includeInSubComm = getNumberOfLocalPrimitives() > 0 ? 1 : 0;
+   int       oldRank;
+   MPI_Comm_rank( originalComm, &oldRank );
+   MPI_Comm subComm;
+   MPI_Comm_split( originalComm, includeInSubComm, oldRank, &subComm );
+   return subComm;
+}
+
 
 } // namespace hyteg
 
