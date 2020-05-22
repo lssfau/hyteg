@@ -163,11 +163,12 @@ inline uint_t numberOfLocalDoFs< P2P2StokesFunctionTag >( const PrimitiveStorage
 }
 
 template < typename FunctionTag_T >
-inline uint_t numberOfGlobalDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
+inline uint_t numberOfGlobalDoFs( const PrimitiveStorage& primitiveStorage,
+                                  const uint_t&           level,
+                                  const MPI_Comm&         communicator = walberla::mpi::MPIManager::instance()->comm() )
 {
-   return walberla::mpi::allReduce( numberOfLocalDoFs< FunctionTag_T >( primitiveStorage, level ),
-                                    walberla::mpi::SUM,
-                                    walberla::mpi::MPIManager::instance()->comm() );
+   return walberla::mpi::allReduce(
+       numberOfLocalDoFs< FunctionTag_T >( primitiveStorage, level ), walberla::mpi::SUM, communicator );
 }
 
 template < typename FunctionTag_T >

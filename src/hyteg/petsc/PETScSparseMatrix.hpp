@@ -39,16 +39,16 @@ namespace hyteg {
 template < class OperatorType, template < class > class FunctionType >
 class PETScSparseMatrix
 {
- protected:
-   Mat  mat;
-   bool assembled;
-
  public:
    PETScSparseMatrix() = delete;
 
-   PETScSparseMatrix( uint_t localSize, uint_t globalSize, const char name[] = "Mat" )
+   PETScSparseMatrix( uint_t          localSize,
+                      uint_t          globalSize,
+                      const char      name[]            = "Mat",
+                      const MPI_Comm& petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
+   : petscCommunicator_( petscCommunicator )
    {
-      MatCreate( walberla::MPIManager::instance()->comm(), &mat );
+      MatCreate( petscCommunicator, &mat );
       MatSetType( mat, MATMPIAIJ );
       MatSetSizes( mat, (PetscInt) localSize, (PetscInt) localSize, (PetscInt) globalSize, (PetscInt) globalSize );
       // Roughly overestimate number of non-zero entries for faster assembly of matrix
@@ -64,7 +64,6 @@ class PETScSparseMatrix
                                          const FunctionType< PetscInt >& numerator,
                                          DoFType                         flag = All )
    {
-      //WALBERLA_LOG_INFO_ON_ROOT("Creating PETSc Matrix")
       hyteg::petsc::createMatrix< OperatorType >( op, numerator, numerator, mat, level, flag );
 
       MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
@@ -86,7 +85,7 @@ class PETScSparseMatrix
    inline void print( const std::string& name )
    {
       PetscViewer viewer;
-      PetscViewerASCIIOpen( PETSC_COMM_WORLD, name.c_str(), &viewer );
+      PetscViewerASCIIOpen( petscCommunicator_, name.c_str(), &viewer );
       PetscViewerPushFormat( viewer, PETSC_VIEWER_ASCII_MATLAB );
       //PetscViewerMatlabOpen(PETSC_COMM_WORLD,name,FILE_MODE_WRITE,&viewer);
       MatView( mat, viewer );
@@ -95,7 +94,6 @@ class PETScSparseMatrix
 
    void applyDirichletBC( const FunctionType< PetscInt >& numerator, uint_t level )
    {
-      //WALBERLA_LOG_INFO_ON_ROOT("")
       std::vector< PetscInt > ind;
       hyteg::petsc::applyDirichletBC( numerator, ind, level );
 
@@ -196,7 +194,7 @@ class PETScSparseMatrix
       Mat       B;
       PetscReal norm;
       Vec       diag;
-      MatCreate( walberla::MPIManager::instance()->comm(), &B );
+      MatCreate( petscCommunicator_, &B );
       MatSetType( B, MATMPIAIJ );
       PetscInt localSize, globalSize;
       MatGetSize( mat, &localSize, &globalSize );
@@ -204,7 +202,7 @@ class PETScSparseMatrix
       MatSetUp( B );
       MatAssemblyBegin( B, MAT_FINAL_ASSEMBLY );
       MatAssemblyEnd( B, MAT_FINAL_ASSEMBLY );
-      VecCreate( walberla::MPIManager::instance()->comm(), &diag );
+      VecCreate( petscCommunicator_, &diag );
       VecSetType( diag, VECMPI );
       VecSetSizes( diag, localSize, globalSize );
       VecSetUp( diag );
@@ -218,6 +216,11 @@ class PETScSparseMatrix
       VecDestroy( &diag );
       return norm < tol;
    }
+
+ protected:
+   MPI_Comm petscCommunicator_;
+   Mat      mat;
+   bool     assembled;
 };
 
 } // namespace hyteg

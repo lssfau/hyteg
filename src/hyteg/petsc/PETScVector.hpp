@@ -19,6 +19,8 @@
  */
 #pragma once
 
+#include "core/mpi/MPIWrapper.h"
+
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/types/flags.hpp"
 
@@ -37,25 +39,28 @@ namespace hyteg {
 template < typename ValueType, template < class > class FunctionType >
 class PETScVector
 {
- protected:
-   Vec vec;
-
  public:
    PETScVector() = delete;
 
    PETScVector( const FunctionType< ValueType >& function,
                 const FunctionType< PetscInt >&  numerator,
                 const uint_t&                    level,
-                const DoFType&                   flag = All,
-                const std::string&               name = "Vec" )
-   : PETScVector( numberOfLocalDoFs< typename FunctionType< ValueType >::Tag >( *function.getStorage(), level ), name )
+                const DoFType&                   flag              = All,
+                const std::string&               name              = "Vec",
+                const MPI_Comm&                  petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
+   : PETScVector( numberOfLocalDoFs< typename FunctionType< ValueType >::Tag >( *function.getStorage(), level ),
+                  name,
+                  petscCommunicator )
    {
       createVectorFromFunction( function, numerator, level, flag );
    }
 
-   PETScVector( uint_t localSize, const std::string& name = "Vec" )
+   PETScVector( uint_t             localSize,
+                const std::string& name              = "Vec",
+                const MPI_Comm&    petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
+   : petscCommunicator_( petscCommunicator )
    {
-      VecCreate( walberla::MPIManager::instance()->comm(), &vec );
+      VecCreate( petscCommunicator, &vec );
       VecSetType( vec, VECSTANDARD );
       VecSetSizes( vec, (PetscInt) localSize, PETSC_DECIDE );
       VecSetUp( vec );
@@ -86,7 +91,7 @@ class PETScVector
    void print( const char filename[] )
    {
       PetscViewer viewer;
-      PetscViewerASCIIOpen( PETSC_COMM_WORLD, filename, &viewer );
+      PetscViewerASCIIOpen( petscCommunicator_, filename, &viewer );
       PetscViewerPushFormat( viewer, PETSC_VIEWER_ASCII_MATLAB );
       VecView( vec, viewer );
       PetscViewerDestroy( &viewer );
@@ -95,6 +100,10 @@ class PETScVector
    inline void setName( const char name[] ) { PetscObjectSetName( (PetscObject) vec, name ); }
 
    inline Vec& get() { return vec; }
+
+ protected:
+   MPI_Comm petscCommunicator_;
+   Vec      vec;
 };
 
 } // namespace hyteg

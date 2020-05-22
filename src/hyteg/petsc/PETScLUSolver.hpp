@@ -44,11 +44,14 @@ class PETScLUSolver : public Solver< OperatorType >
 
    PETScLUSolver( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level )
    : allocatedLevel_( level )
+   , petscCommunicator_( storage->splitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
    , Amat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-           numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level ) )
-   , xVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
-   , bVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
+           numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
+           "Amat",
+           petscCommunicator_ )
+   , xVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "xVec", petscCommunicator_ )
+   , bVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "bVec", petscCommunicator_ )
 #if 0
   , inKernel( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
 #endif
@@ -56,7 +59,7 @@ class PETScLUSolver : public Solver< OperatorType >
    , verbose_( false )
    {
       num.enumerate( level );
-      KSPCreate( walberla::MPIManager::instance()->comm(), &ksp );
+      KSPCreate( petscCommunicator_, &ksp );
       KSPSetType( ksp, KSPPREONLY );
       KSPSetFromOptions( ksp );
    }
@@ -77,7 +80,7 @@ class PETScLUSolver : public Solver< OperatorType >
    void setConstantNullSpace()
    {
       MatNullSpace nullspace;
-      MatNullSpaceCreate( walberla::MPIManager::instance()->comm(), PETSC_TRUE, 0, NULL, &nullspace );
+      MatNullSpaceCreate( petscCommunicator_, PETSC_TRUE, 0, NULL, &nullspace );
       MatSetNullSpace( Amat.get(), nullspace );
    }
 
@@ -139,6 +142,7 @@ class PETScLUSolver : public Solver< OperatorType >
 
  private:
    uint_t                                                                                        allocatedLevel_;
+   MPI_Comm petscCommunicator_;
    typename OperatorType::srcType::template FunctionType< PetscInt >                             num;
    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               Amat;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
