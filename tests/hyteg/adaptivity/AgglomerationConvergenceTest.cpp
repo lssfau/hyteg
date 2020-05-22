@@ -126,6 +126,8 @@ void AgglomerationConvergenceTest( const std::string& meshFile,
    }
 #endif
 
+   WALBERLA_UNUSED( usePetscOnCoarseGrid );
+
    // now wrap the solver
    agglomerationWrapper->setSolver( coarseGridSolver );
 
