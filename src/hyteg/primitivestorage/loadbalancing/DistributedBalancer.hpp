@@ -26,12 +26,17 @@ namespace hyteg {
 namespace loadbalancing {
 namespace distributed {
 
-void parmetis( PrimitiveStorage & storage );
+/// Maps local primitive ID to target rank.
+/// Returned by all distributed load balancing implementations.
+/// Is always passed to PrimitiveStorage::migratePrimitives().
+typedef std::map< PrimitiveID::IDType, uint_t > MigrationMap_T;
+
+MigrationMap_T parmetis( PrimitiveStorage & storage );
 
 /// \brief Performs a round robin distribution  in parallel.
 ///
 /// \param storage                 the PrimitiveStorage, the primitives are distributed on
-void roundRobin( PrimitiveStorage & storage );
+MigrationMap_T roundRobin( PrimitiveStorage & storage );
 
 /// \brief Performs a round robin distribution to a subset of processes in parallel.
 ///
@@ -39,14 +44,19 @@ void roundRobin( PrimitiveStorage & storage );
 /// \param numberOfTargetProcesses if smaller than total number of processes, 
 ///                                the round robin distributes
 ///                                among the first numberOfTargetProcesses processes
-void roundRobin( PrimitiveStorage & storage, uint_t numberOfTargetProcesses );
+MigrationMap_T roundRobin( PrimitiveStorage & storage, uint_t numberOfTargetProcesses );
 
 /// \brief Distributes a second PrimitiveStorage equal to another one.
 ///
 /// \param targetDistributionStorage this PrimitiveStorage specifies the desired distribution, it is not modified
 /// \param storageToRedistribute this PrimitiveStorage is redistributed
-void copyDistribution( const PrimitiveStorage & targetDistributionStorage, PrimitiveStorage & storageToRedistribute );
+MigrationMap_T copyDistribution( const PrimitiveStorage & targetDistributionStorage, PrimitiveStorage & storageToRedistribute );
 
+/// \brief Same as copyDistribution but only creates mapping, does not perform any migration.
+///
+/// \param targetDistributionStorage this PrimitiveStorage specifies the desired distribution, it is not modified
+/// \param storageToRedistribute this PrimitiveStorage shall be redistributed, but is not modified in this function
+MigrationMap_T copyDistributionDry( const PrimitiveStorage & targetDistributionStorage, const PrimitiveStorage & storageToRedistribute );
 
 }
 }

@@ -39,7 +39,7 @@ using walberla::int64_c;
 using walberla::mpi::MPIRank;
 using namespace walberla::mpistubs;
 
-void parmetis( PrimitiveStorage & storage )
+MigrationMap_T parmetis( PrimitiveStorage & storage )
 {
   WALBERLA_CHECK_GREATER( storage.getNumberOfLocalPrimitives(), 0, "ParMeTis not supported (yet) for distributions with empty processes." );
 
@@ -247,7 +247,7 @@ void parmetis( PrimitiveStorage & storage )
   // Primitive migration //
   /////////////////////////
 
-  std::map< PrimitiveID::IDType, uint_t > migrationMap;
+  MigrationMap_T migrationMap;
   for ( uint_t partIdx = 0; partIdx < part.size(); partIdx++ )
   {
     const int64_t     parmetisID  = vtxdist[ rank ] + int64_c( partIdx );
@@ -258,49 +258,55 @@ void parmetis( PrimitiveStorage & storage )
 
   storage.migratePrimitives( migrationMap );
 
-
+   return migrationMap;
 
 }
 
 
-void roundRobin( PrimitiveStorage & storage )
+MigrationMap_T roundRobin( PrimitiveStorage & storage )
 {
-  roundRobin( storage, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+  return roundRobin( storage, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 }
 
 
-void roundRobin( PrimitiveStorage & storage, uint_t numberOfTargetProcesses )
+MigrationMap_T roundRobin( PrimitiveStorage & storage, uint_t numberOfTargetProcesses )
 {
   WALBERLA_CHECK( numberOfTargetProcesses <= uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ), "Cannot distribute to more than available processes." );
 
-  std::map< PrimitiveID::IDType, uint_t > migrationMap;
+  MigrationMap_T migrationMap;
 
-  for ( auto primitiveID : storage.getPrimitiveIDs() )
+  for ( const auto & primitiveID : storage.getPrimitiveIDs() )
   {
      migrationMap[ primitiveID.getID() ] = uint_c( primitiveID.getID() % numberOfTargetProcesses );
   }
 
   storage.migratePrimitives( migrationMap );
+  return migrationMap;
 }
 
 
-void copyDistribution( const PrimitiveStorage & targetDistributionStorage, PrimitiveStorage & storageToRedistribute )
+MigrationMap_T copyDistribution( const PrimitiveStorage & targetDistributionStorage, PrimitiveStorage & storageToRedistribute )
 {
-  std::map< PrimitiveID::IDType, uint_t > migrationMap;
-  auto primitiveRanks = targetDistributionStorage.getGlobalPrimitiveRanks();
-
-  for ( const auto & it : primitiveRanks )
-  {
-    if ( storageToRedistribute.primitiveExistsLocally( it.first ) )
-    {
-      migrationMap[ it.first.getID() ] = it.second;
-    }
-  }
-
+  MigrationMap_T migrationMap = copyDistributionDry( targetDistributionStorage, storageToRedistribute );
   storageToRedistribute.migratePrimitives( migrationMap );
+  return migrationMap;
 }
 
+MigrationMap_T copyDistributionDry( const PrimitiveStorage & targetDistributionStorage, const PrimitiveStorage & storageToRedistribute )
+{
+   MigrationMap_T migrationMap;
+   auto primitiveRanks = targetDistributionStorage.getGlobalPrimitiveRanks();
 
+   for ( const auto & it : primitiveRanks )
+   {
+      if ( storageToRedistribute.primitiveExistsLocally( it.first ) )
+      {
+         migrationMap[ it.first.getID() ] = it.second;
+      }
+   }
+
+   return migrationMap;
+}
 
 }
 }
