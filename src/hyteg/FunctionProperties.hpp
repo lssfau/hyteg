@@ -29,6 +29,7 @@ namespace hyteg {
 
 using walberla::real_c;
 using walberla::real_t;
+using namespace walberla::mpistubs;
 
 template < typename FunctionTag_T, typename PrimitiveType >
 inline uint_t numberOfInnerDoFs( const uint_t& level );
