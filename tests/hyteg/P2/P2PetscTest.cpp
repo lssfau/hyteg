@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  PETScManager petscManager;
+  hyteg::PETScManager petscManager;
 
   std::string meshFileName = "../../data/meshes/quad_16el.msh";
 

@@ -23,6 +23,8 @@
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
+namespace hyteg {
+
 class PETScManager
 {
  public:
@@ -65,5 +67,7 @@ class PETScManager
  private:
    bool finalizeOnDestruction_;
 };
+
+}
 
 #endif

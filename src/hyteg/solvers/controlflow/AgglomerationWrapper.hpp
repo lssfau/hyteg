@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Nils Kohl.
+ * Copyright (c) 2017-2020 Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -36,7 +36,7 @@ namespace hyteg {
 /// For example this can make sense in a multigrid iteration as the
 /// coarse grid solver usually solves a much smaller problem.
 ///
-/// Therefore, the problem can be re-distributed to a subset of processes
+/// Therefore, the problem is re-distributed to a subset of processes
 /// before the coarse grid solver is called and the solution is then
 /// distributed back to the original processes.
 ///
@@ -45,21 +45,22 @@ namespace hyteg {
 ///
 /// The following steps must be performed to perform agglomeration (exact code might change):
 ///
-///     1. a copy of the PrimitiveStorage must be created
-///          auto agglomerationStorage = storage->createCopy();
+/// 1. Create an instance of the agglomeration wrapper using the initial, globally distributed storage:
 ///
-///     2. the coarse grid solver must be allocated using the copied storage
-///          auto coarseGridSolver = std::make_shared< CGSolver< ... > >( agglomerationStorage, ... );
+///        auto agglomerationWrapper = std::make_shared< AgglomerationWrapper >( storage, level, <agglomerationParameters>, ... );
 ///
-///     3. the coarse grid solver must be wrapped with this wrapper
-///          auto wrappedCoarseGridSolver = std::make_shared< AgglomerationWrapper< ... > >( coarseGridSolver, agglomerationStorage ... );
+/// 2. Internally, a copy of the storage is created and distributed to a subset of processes. Use this storage to assemble
+///    the solver, e.g.:
 ///
-///     4. the wrapper is passed as the coarse grid solver to the multigrid solver
-///          auto mgSolver = std::make_shared< MGSolver< ... > >( storage, wrappedCoarseGridSolver, ... );
+///        auto coarseGridSolver = std::make_shared< MinResSolver >( agglomerationWrapper->getAgglomerationStorage(), ... );
+///        agglomerationWrapper->setSolver( coarseGridSolver );
 ///
-/// Before every coarse grid solve, the wrapper then distributes the corresponding functions to
-/// a subset of processes, calls the solver, and then distributes the solution back to the original
-/// storage.
+/// 3. Now the AgglomerationWrapper instance can be used as a coarse grid solver in massively parallel settings.
+///
+/// Notes:
+///     - do not re-partition the agglomeration storage manually, the partitioning is done by the wrapper
+///     - do not re-partition the original storage after creating this wrapper
+///     - currently the operator is constructed internally, a setter can be implemented if necessary
 ///
 template < typename OperatorType >
 class AgglomerationWrapper : public Solver< OperatorType >
@@ -67,48 +68,71 @@ class AgglomerationWrapper : public Solver< OperatorType >
  public:
    typedef typename OperatorType::srcType FunctionType;
 
-   AgglomerationWrapper( const std::shared_ptr< Solver< OperatorType > >& solver,
-                         const std::shared_ptr< PrimitiveStorage >&       agglomerationStorage,
-                         const uint_t&                                    level,
-                         const uint_t&                                    numberOfAgglomerationProcesses )
-   : solver_( solver )
-   , agglomerationStorage_( agglomerationStorage )
+   /// \brief Constructs the agglomeration wrapper.
+   ///
+   /// \param originalStorage the original PrimitiveStorage instance
+   /// \param level the refinement level that is subject to agglomeration (in MG settings usually the coarsest level)
+   /// \param numberOfAgglomerationProcesses the wrapper re-partitions to that many parallel processes, currently performing
+   ///                                       a round robin distribution
+   /// \param solveOnEmptyProcesses if false, the solve() call is only performed on processes that own primitives,
+   ///                              this might speed up certain solvers and save resources on empty processes, however,
+   ///                              some solvers might not work in this case and deadlock, use with care
+   AgglomerationWrapper( const std::shared_ptr< PrimitiveStorage >& originalStorage,
+                         const uint_t&                              level,
+                         const uint_t&                              numberOfAgglomerationProcesses,
+                         const bool&                                solveOnEmptyProcesses = true )
+   : originalStorage_( originalStorage )
    , level_( level )
    , numberOfAgglomerationProcesses_( numberOfAgglomerationProcesses )
-   , A_agglomeration( agglomerationStorage, level, level )
-   , b_agglomeration( "b_agglomeration", agglomerationStorage, level, level )
-   , x_agglomeration( "x_agglomeration", agglomerationStorage, level, level )
-   {}
+   , solveOnEmptyProcesses_( solveOnEmptyProcesses )
+   {
+      agglomerationStorage_ = originalStorage_->createCopy();
+      mapToAgglomerationStorage_ =
+          loadbalancing::distributed::roundRobin( *agglomerationStorage_, numberOfAgglomerationProcesses );
+      mapToOriginalStorage_ = loadbalancing::distributed::copyDistributionDry( *originalStorage_, *agglomerationStorage_ );
+
+      A_agglomeration_ = std::make_shared< OperatorType >( agglomerationStorage_, level, level );
+      x_agglomeration_ = std::make_shared< FunctionType >( "xAgglomeration", agglomerationStorage_, level, level );
+      b_agglomeration_ = std::make_shared< FunctionType >( "bAgglomeration", agglomerationStorage_, level, level );
+   }
+
+   std::shared_ptr< PrimitiveStorage > getAgglomerationStorage() const { return agglomerationStorage_; }
+
+   void setSolver( const std::shared_ptr< Solver< OperatorType > >& solver ) { solver_ = solver; }
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
       WALBERLA_CHECK_EQUAL( level, level_, "Agglomeration was prepared for level " << level_ );
+      WALBERLA_CHECK_NOT_NULLPTR( solver_.get(), "Solver for AgglomerationWrapper was not set." )
 
-      // asserting that the Primitive distribution is equal here
-      // copying the distribution would be more costly but safer
-      WALBERLA_CHECK( x.getStorage()->getPrimitiveIDs() == agglomerationStorage_->getPrimitiveIDs() );
+      const bool emptyProcess = agglomerationStorage_->getNumberOfLocalPrimitives() == 0;
 
-      b_agglomeration.copyFrom( b, level );
-      x_agglomeration.copyFrom( x, level );
+      b_agglomeration_->copyFrom( b, level, mapToOriginalStorage_, mapToAgglomerationStorage_ );
+      x_agglomeration_->copyFrom( x, level, mapToOriginalStorage_, mapToAgglomerationStorage_ );
 
-      loadbalancing::distributed::roundRobin( *agglomerationStorage_, numberOfAgglomerationProcesses_ );
+      if ( solveOnEmptyProcesses_ || !emptyProcess )
+      {
+         solver_->solve( *A_agglomeration_, *x_agglomeration_, *b_agglomeration_, level );
+      }
 
-      solver_->solve( A_agglomeration, x_agglomeration, b_agglomeration, level );
-
-      loadbalancing::distributed::copyDistribution( *x.getStorage(), *agglomerationStorage_ );
-
-      x.copyFrom( x_agglomeration, level );
+      x.copyFrom( *x_agglomeration_, level, mapToAgglomerationStorage_, mapToOriginalStorage_ );
    }
 
  private:
-   std::shared_ptr< Solver< OperatorType > > solver_;
-   std::shared_ptr< PrimitiveStorage >       agglomerationStorage_;
-   uint_t                                    level_;
-   uint_t                                    numberOfAgglomerationProcesses_;
+   std::shared_ptr< PrimitiveStorage > originalStorage_;
+   uint_t                              level_;
+   uint_t                              numberOfAgglomerationProcesses_;
+   bool                                solveOnEmptyProcesses_;
 
-   OperatorType A_agglomeration;
-   FunctionType b_agglomeration;
-   FunctionType x_agglomeration;
+   std::shared_ptr< PrimitiveStorage >        agglomerationStorage_;
+   loadbalancing::distributed::MigrationMap_T mapToAgglomerationStorage_;
+   loadbalancing::distributed::MigrationMap_T mapToOriginalStorage_;
+
+   std::shared_ptr< OperatorType > A_agglomeration_;
+   std::shared_ptr< FunctionType > b_agglomeration_;
+   std::shared_ptr< FunctionType > x_agglomeration_;
+
+   std::shared_ptr< Solver< OperatorType > > solver_;
 };
 
 } // namespace hyteg

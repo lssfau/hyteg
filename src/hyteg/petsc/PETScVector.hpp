@@ -19,74 +19,93 @@
  */
 #pragma once
 
-#include "hyteg/types/flags.hpp"
+#include "core/mpi/MPIWrapper.h"
+
 #include "hyteg/FunctionProperties.hpp"
+#include "hyteg/types/flags.hpp"
+
 #include "PETScWrapper.hpp"
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
-#include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/composites/petsc/P1StokesPetsc.hpp"
-#include "hyteg/p2functionspace/P2Petsc.hpp"
 #include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
 #include "hyteg/composites/petsc/P2P2StabilizedStokesPetsc.hpp"
+#include "hyteg/p1functionspace/P1Petsc.hpp"
+#include "hyteg/p2functionspace/P2Petsc.hpp"
 
 namespace hyteg {
 
-template<typename ValueType, template <class> class FunctionType>
-class PETScVector {
-protected:
+template < typename ValueType, template < class > class FunctionType >
+class PETScVector
+{
+ public:
+   PETScVector() = delete;
 
-  Vec vec;
+   PETScVector( const FunctionType< ValueType >& function,
+                const FunctionType< PetscInt >&  numerator,
+                const uint_t&                    level,
+                const DoFType&                   flag              = All,
+                const std::string&               name              = "Vec",
+                const MPI_Comm&                  petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
+   : PETScVector( numberOfLocalDoFs< typename FunctionType< ValueType >::Tag >( *function.getStorage(), level ),
+                  name,
+                  petscCommunicator )
+   {
+      createVectorFromFunction( function, numerator, level, flag );
+   }
 
+   PETScVector( uint_t             localSize,
+                const std::string& name              = "Vec",
+                const MPI_Comm&    petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
+   : petscCommunicator_( petscCommunicator )
+   {
+      VecCreate( petscCommunicator, &vec );
+      VecSetType( vec, VECSTANDARD );
+      VecSetSizes( vec, (PetscInt) localSize, PETSC_DECIDE );
+      VecSetUp( vec );
+      setName( name.c_str() );
+   }
 
-public:
-  PETScVector() = delete;
+   ~PETScVector() { VecDestroy( &vec ); }
 
-  PETScVector(const FunctionType< ValueType > & function, const FunctionType<PetscInt> & numerator, const uint_t & level, const DoFType & flag = All, const std::string& name = "Vec" )
-    : PETScVector( numberOfLocalDoFs< typename FunctionType< ValueType >::Tag >( *function.getStorage(), level ), name )
-  {
-    createVectorFromFunction(function, numerator, level, flag);
-  }
+   void createVectorFromFunction( const FunctionType< ValueType >& src,
+                                  const FunctionType< PetscInt >&  numerator,
+                                  uint_t                           level,
+                                  DoFType                          flag = All )
+   {
+      hyteg::petsc::createVectorFromFunction( src, numerator, vec, level, flag );
 
-  PETScVector(uint_t localSize, const std::string& name = "Vec") {
-    VecCreate(walberla::MPIManager::instance()->comm(), &vec);
-    VecSetType(vec, VECSTANDARD);
-    VecSetSizes(vec, (PetscInt)localSize, PETSC_DECIDE);
-    VecSetUp(vec);
-    setName(name.c_str());
-  }
+      VecAssemblyBegin( vec );
+      VecAssemblyEnd( vec );
+   }
 
-  ~PETScVector() { VecDestroy(&vec); }
+   void createFunctionFromVector( const FunctionType< ValueType >& src,
+                                  const FunctionType< PetscInt >&  numerator,
+                                  uint_t                           level,
+                                  DoFType                          flag = All )
+   {
+      hyteg::petsc::createFunctionFromVector( src, numerator, vec, level, flag );
+   }
 
-  void createVectorFromFunction(const FunctionType<ValueType> &src,const FunctionType<PetscInt> &numerator, uint_t level, DoFType flag = All) {
-     hyteg::petsc::createVectorFromFunction(src, numerator, vec, level, flag);
+   void print( const char filename[] )
+   {
+      PetscViewer viewer;
+      PetscViewerASCIIOpen( petscCommunicator_, filename, &viewer );
+      PetscViewerPushFormat( viewer, PETSC_VIEWER_ASCII_MATLAB );
+      VecView( vec, viewer );
+      PetscViewerDestroy( &viewer );
+   }
 
-    VecAssemblyBegin(vec);
-    VecAssemblyEnd(vec);
-  }
+   inline void setName( const char name[] ) { PetscObjectSetName( (PetscObject) vec, name ); }
 
-  void createFunctionFromVector(const FunctionType<ValueType> &src,const FunctionType<PetscInt> &numerator, uint_t level, DoFType flag = All){
-     hyteg::petsc::createFunctionFromVector(src, numerator, vec, level, flag);
+   inline Vec& get() { return vec; }
 
-  }
-
-  void print(const char filename[])
-  {
-    PetscViewer viewer;
-    PetscViewerASCIIOpen(PETSC_COMM_WORLD,filename,&viewer);
-    PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB );
-    VecView(vec,viewer);
-    PetscViewerDestroy(&viewer);
-  }
-
-  inline void setName(const char name[]){ PetscObjectSetName((PetscObject)vec,name); }
-
-  inline Vec& get() { return vec; }
-
-
+ protected:
+   MPI_Comm petscCommunicator_;
+   Vec      vec;
 };
 
-}
+} // namespace hyteg
 
 #endif

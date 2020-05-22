@@ -24,6 +24,7 @@
 
 #include "core/logging/Logging.h"
 #include "core/timing/TimingTree.h"
+#include "core/mpi/MPIWrapper.h"
 #include "hyteg/PrimitiveID.hpp"
 #include "hyteg/primitives/Primitive.hpp"
 #include "hyteg/primitivedata/PrimitiveDataID.hpp"
@@ -32,6 +33,8 @@
 #include <vector>
 
 namespace hyteg {
+
+using namespace walberla::mpistubs;
 
 class SetupPrimitiveStorage;
 class Vertex;
@@ -316,6 +319,29 @@ public:
   /// Must be called by all processes!
   /// Involves global communication and should therefore not be called in performance critical code.
   std::string getGlobalInfo() const;
+
+  /// \brief Returns the number of processes without any primitives.
+  ///
+  /// Involves global communication.
+  uint_t getNumberOfEmptyProcesses() const
+  {
+     const uint_t isEmpty           = getNumberOfLocalPrimitives() == 0 ? 1 : 0;
+     const uint_t numEmptyProcesses = walberla::mpi::allReduce( isEmpty, walberla::mpi::SUM );
+     return numEmptyProcesses;
+  }
+
+  /// \brief Splits the current communicator of the walberla MPI manager into two
+  ///        sub-communicators. One of them contains all processes with primitives
+  ///        and the other all processes without primitives.
+  ///
+  /// Returns either communicator depending on the number of primitives of the calling process.
+  ///
+  /// Must be called collectively.
+  ///
+  /// This is useful to obtain a subcommunicator in settings where agglomeration is performed.
+  /// Especially needed for some external libraries (e.g. PETSc).
+  ///
+  MPI_Comm splitCommunicatorByPrimitiveDistribution() const;
 
 private:
 
