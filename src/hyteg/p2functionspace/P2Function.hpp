@@ -90,6 +90,25 @@ class P2Function : public Function< P2Function< ValueType > >
    /// This method can be used safely if the other function is located on a different PrimitiveStorage.
    void copyFrom( const P2Function< ValueType >& other, const uint_t& level ) const;
 
+   /// \brief Copies all values function data from other to this.
+   ///
+   /// This method can be used safely if the other function is located on a different PrimitiveStorage.
+   /// This method also works, if the storages are distributed differently.
+   ///
+   /// \param other another function
+   /// \param level the refinement level
+   /// \param localPrimitiveIDsToRank Map that contains as keys all primitive IDs of all primitives that are local regarding the
+   ///                                storage of this function, and as values the MPI ranks of the processes that own these
+   ///                                primitives regarding the storage of the other function
+   /// \param otherPrimitiveIDsToRank Map that contains as keys all primitive IDs of all primitives that are local regarding the
+   ///                                storage of the other function, and as values the MPI ranks of the processes that own these
+   ///                                primitives regarding the storage this function lives on.
+   ///
+   void copyFrom( const P2Function< ValueType >&                 other,
+                  const uint_t&                                  level,
+                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const;
+
    void assign( const std::vector< ValueType >&                                               scalars,
                 const std::vector< std::reference_wrapper< const P2Function< ValueType > > >& functions,
                 uint_t                                                                        level,

@@ -509,6 +509,130 @@ void EdgeDoFFunction< ValueType >::copyFrom( const EdgeDoFFunction< ValueType >&
 }
 
 template < typename ValueType >
+void EdgeDoFFunction< ValueType >::copyFrom( const EdgeDoFFunction< ValueType >&            other,
+                                             const uint_t&                                  level,
+                                             const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
+                                             const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
+{
+   if ( isDummy() )
+   {
+      return;
+   }
+   this->startTiming( "Copy" );
+
+   walberla::mpi::BufferSystem bufferSystem( walberla::mpi::MPIManager::instance()->comm(), 9563 );
+   std::set< walberla::mpi::MPIRank > receiverRanks;
+   for ( auto it : localPrimitiveIDsToRank )
+   {
+      receiverRanks.insert( walberla::mpi::MPIRank( it.second ) );
+   }
+   bufferSystem.setReceiverInfo( receiverRanks, true );
+
+   for ( auto& it : other.getStorage()->getVertices() )
+   {
+      PrimitiveID::IDType otherPrimitiveID = it.first;
+      WALBERLA_CHECK_GREATER( otherPrimitiveIDsToRank.count( otherPrimitiveID ), 0 );
+      auto otherData     = it.second->getData( other.getVertexDataID() )->getPointer( level );
+      auto otherDataSize = it.second->getData( other.getVertexDataID() )->getSize( level );
+      auto targetRank    = otherPrimitiveIDsToRank.at( otherPrimitiveID );
+      bufferSystem.sendBuffer( targetRank ) << otherPrimitiveID;
+      bufferSystem.sendBuffer( targetRank ) << uint_c( 0 );
+      bufferSystem.sendBuffer( targetRank ) << otherDataSize;
+      for ( uint_t i = 0; i < otherDataSize; i++ )
+         bufferSystem.sendBuffer( targetRank ) << otherData[i];
+   }
+
+   for ( auto& it : other.getStorage()->getEdges() )
+   {
+      PrimitiveID::IDType otherPrimitiveID = it.first;
+      WALBERLA_CHECK_GREATER( otherPrimitiveIDsToRank.count( otherPrimitiveID ), 0 );
+      auto otherData     = it.second->getData( other.getEdgeDataID() )->getPointer( level );
+      auto otherDataSize = it.second->getData( other.getEdgeDataID() )->getSize( level );
+      auto targetRank    = otherPrimitiveIDsToRank.at( otherPrimitiveID );
+      bufferSystem.sendBuffer( targetRank ) << otherPrimitiveID;
+      bufferSystem.sendBuffer( targetRank ) << uint_c( 1 );
+      bufferSystem.sendBuffer( targetRank ) << otherDataSize;
+      for ( uint_t i = 0; i < otherDataSize; i++ )
+         bufferSystem.sendBuffer( targetRank ) << otherData[i];
+   }
+
+   for ( auto& it : other.getStorage()->getFaces() )
+   {
+      PrimitiveID::IDType otherPrimitiveID = it.first;
+      WALBERLA_CHECK_GREATER( otherPrimitiveIDsToRank.count( otherPrimitiveID ), 0 );
+      auto otherData     = it.second->getData( other.getFaceDataID() )->getPointer( level );
+      auto otherDataSize = it.second->getData( other.getFaceDataID() )->getSize( level );
+      auto targetRank    = otherPrimitiveIDsToRank.at( otherPrimitiveID );
+      bufferSystem.sendBuffer( targetRank ) << otherPrimitiveID;
+      bufferSystem.sendBuffer( targetRank ) << uint_c( 2 );
+      bufferSystem.sendBuffer( targetRank ) << otherDataSize;
+      for ( uint_t i = 0; i < otherDataSize; i++ )
+         bufferSystem.sendBuffer( targetRank ) << otherData[i];
+   }
+
+   for ( auto& it : other.getStorage()->getCells() )
+   {
+      PrimitiveID::IDType otherPrimitiveID = it.first;
+      WALBERLA_CHECK_GREATER( otherPrimitiveIDsToRank.count( otherPrimitiveID ), 0 );
+      auto otherData     = it.second->getData( other.getCellDataID() )->getPointer( level );
+      auto otherDataSize = it.second->getData( other.getCellDataID() )->getSize( level );
+      auto targetRank    = otherPrimitiveIDsToRank.at( otherPrimitiveID );
+      bufferSystem.sendBuffer( targetRank ) << otherPrimitiveID;
+      bufferSystem.sendBuffer( targetRank ) << uint_c( 3 );
+      bufferSystem.sendBuffer( targetRank ) << otherDataSize;
+      for ( uint_t i = 0; i < otherDataSize; i++ )
+         bufferSystem.sendBuffer( targetRank ) << otherData[i];
+   }
+
+   bufferSystem.sendAll();
+
+   for ( auto pkg = bufferSystem.begin(); pkg != bufferSystem.end(); ++pkg )
+   {
+      while ( !pkg.buffer().isEmpty() )
+      {
+         PrimitiveID::IDType otherID;
+         uint_t              primitiveType = 4;
+         uint_t              dataSize      = 0;
+         ValueType           value;
+         ValueType*          dstPointer;
+
+         pkg.buffer() >> otherID;
+         pkg.buffer() >> primitiveType;
+         pkg.buffer() >> dataSize;
+
+         WALBERLA_CHECK( this->getStorage()->primitiveExistsLocally( PrimitiveID( otherID ) ) );
+
+         switch ( primitiveType )
+         {
+         case 0:
+            dstPointer = this->getStorage()->getVertex( PrimitiveID( otherID ) )->getData( vertexDataID_ )->getPointer( level );
+            break;
+         case 1:
+            dstPointer = this->getStorage()->getEdge( PrimitiveID( otherID ) )->getData( edgeDataID_ )->getPointer( level );
+            break;
+         case 2:
+            dstPointer = this->getStorage()->getFace( PrimitiveID( otherID ) )->getData( faceDataID_ )->getPointer( level );
+            break;
+         case 3:
+            dstPointer = this->getStorage()->getCell( PrimitiveID( otherID ) )->getData( cellDataID_ )->getPointer( level );
+            break;
+         default:
+         WALBERLA_ABORT( "Invalid primitive type" )
+         }
+
+         for ( uint_t i = 0; i < dataSize; i++ )
+         {
+            pkg.buffer() >> value;
+            dstPointer[i] = value;
+         }
+      }
+   }
+
+   this->stopTiming( "Copy" );
+}
+
+
+template < typename ValueType >
 void macroFaceAssign( const uint_t&                                                              level,
                       Face&                                                                      face,
                       const std::vector< ValueType >&                                            scalars,

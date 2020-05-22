@@ -100,7 +100,28 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    /// \brief Copies all values function data from other to this.
    ///
    /// This method can be used safely if the other function is located on a different PrimitiveStorage.
+   /// Both storages must have identical distribution.
+   ///
    void copyFrom( const VertexDoFFunction< ValueType >& other, const uint_t& level ) const;
+
+   /// \brief Copies all values function data from other to this.
+   ///
+   /// This method can be used safely if the other function is located on a different PrimitiveStorage.
+   /// This method also works, if the storages are distributed differently.
+   ///
+   /// \param other another function
+   /// \param level the refinement level
+   /// \param localPrimitiveIDsToRank Map that contains as keys all primitive IDs of all primitives that are local regarding the
+   ///                                storage of this function, and as values the MPI ranks of the processes that own these
+   ///                                primitives regarding the storage of the other function
+   /// \param otherPrimitiveIDsToRank Map that contains as keys all primitive IDs of all primitives that are local regarding the
+   ///                                storage of the other function, and as values the MPI ranks of the processes that own these
+   ///                                primitives regarding the storage this function lives on.
+   ///
+   void copyFrom( const VertexDoFFunction< ValueType >&          other,
+                  const uint_t&                                  level,
+                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const;
 
    real_t evaluate( const Point3D& coordinates, uint_t level ) const;
 
