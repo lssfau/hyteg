@@ -51,7 +51,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   PETScManager manager;
+   hyteg::PETScManager manager;
 
    const std::string meshFileName  = "../../data/meshes/3D/cube_24el.msh";
    const uint_t      minLevel      = 2;
