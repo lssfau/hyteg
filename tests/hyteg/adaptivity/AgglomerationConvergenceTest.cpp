@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2020 Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -27,11 +27,14 @@
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/solvers/Solver.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
@@ -47,7 +50,8 @@ void AgglomerationConvergenceTest( const std::string& meshFile,
                                    const uint_t &     minLevel,
                                    const uint_t &     maxLevel,
                                    const real_t &     targetError,
-                                   const bool   &     localMPI )
+                                   const bool   &     localMPI,
+                                   const bool   &     usePetscOnCoarseGrid)
 {
    WALBERLA_CHECK_LESS( minLevel, maxLevel );
 
@@ -92,29 +96,48 @@ void AgglomerationConvergenceTest( const std::string& meshFile,
    vtkOutput.add( npoints_helper );
    vtkOutput.write( maxLevel, 0 );
 
+#if 1
    // Setup of the agglomeration based solver.
    // Apart from the coarse grid, everything is performed in parallel.
    // The coarse grid problem is, however, solved on a subset of processes.
    const uint_t numberOfSubsetProcesses = ( numberOfProcesses + 1 ) / 2;
    WALBERLA_LOG_INFO_ON_ROOT( "Agglomeration from " << numberOfProcesses << " to " << numberOfSubsetProcesses << " processes." )
-   auto agglomerationStorage = storage->createCopy();
+
+   bool solveOnEmptyProcesses = true;
+#ifdef HYTEG_BUILD_WITH_PETSC
+   // currently the HyTeG solvers rely on global communication, only the PETSc solve() calls can be skipped on empty processes
+   if ( usePetscOnCoarseGrid )
+      solveOnEmptyProcesses = false;
+#endif
+
+   auto agglomerationWrapper =
+       std::make_shared< AgglomerationWrapper< P2ConstantLaplaceOperator > >( storage, minLevel, numberOfSubsetProcesses, solveOnEmptyProcesses );
+   auto agglomerationStorage = agglomerationWrapper->getAgglomerationStorage();
+
+   // pass agglomeration storage to coarse grid solver
+   std::shared_ptr< Solver< P2ConstantLaplaceOperator > > coarseGridSolver;
+   auto cgSolver = std::make_shared< CGSolver< P2ConstantLaplaceOperator > >( agglomerationStorage, minLevel, minLevel );
+   cgSolver->setPrintInfo( false );
+   coarseGridSolver = cgSolver;
+#ifdef HYTEG_BUILD_WITH_PETSC
+   if ( usePetscOnCoarseGrid )
+   {
+      coarseGridSolver = std::make_shared< PETScLUSolver< P2ConstantLaplaceOperator > >( agglomerationStorage, minLevel );
+   }
+#endif
+
+   // now wrap the solver
+   agglomerationWrapper->setSolver( coarseGridSolver );
 
    auto smoother     = std::make_shared< GaussSeidelSmoother< P2ConstantLaplaceOperator > >();
    auto prolongation = std::make_shared< P2toP2QuadraticProlongation >();
    auto restriction  = std::make_shared< P2toP2QuadraticRestriction >();
-#if 1
-   // pass agglomeration storage to coarse grid solver
-   auto coarseGridSolver = std::make_shared< CGSolver< P2ConstantLaplaceOperator > >( agglomerationStorage, minLevel, minLevel );
-   coarseGridSolver->setPrintInfo( true );
-   // now wrap the solver
-   auto coarseGridSolverAgglomeration =
-       std::make_shared< AgglomerationWrapper< P2ConstantLaplaceOperator > >( coarseGridSolver, agglomerationStorage, minLevel, numberOfSubsetProcesses );
 #else
-  auto coarseGridSolverAgglomeration = std::make_shared< CGSolver< P2ConstantLaplaceOperator > >( storage, minLevel, minLevel );
+  auto agglomerationWrapper = std::make_shared< CGSolver< P2ConstantLaplaceOperator > >( storage, minLevel, minLevel );
 #endif
 
    auto solver = std::make_shared< GeometricMultigridSolver< P2ConstantLaplaceOperator > >(
-       storage, smoother, coarseGridSolverAgglomeration, restriction, prolongation, minLevel, maxLevel );
+       storage, smoother, agglomerationWrapper, restriction, prolongation, minLevel, maxLevel );
 
    real_t discr_l2_err, discr_l2_residual;
    for ( uint_t iteration = 0; iteration < numIterations; iteration++ )
@@ -142,26 +165,36 @@ void AgglomerationConvergenceTest( const std::string& meshFile,
 
 } // namespace hyteg
 
+void runTests( bool usePetsc )
+{
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/tri_1el.msh", 0, 3, 1e-7, false, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/quad_4el.msh", 0, 3, 1e-7, false, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/annulus_coarse.msh", 0, 3, 3e-7, false, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/tet_1el.msh", 0, 3, 4e-7, true, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/pyramid_2el.msh", 0, 3, 3e-6, false, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 0, 3, 1.8e-6, true, usePetsc );
+
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/tri_1el.msh", 1, 3, 1e-7, false, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/quad_4el.msh", 1, 3, 1e-7, false, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/tet_1el.msh", 1, 3, 4e-7, true, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 1, 3, 1.8e-6, true, usePetsc );
+
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/tri_1el.msh", 2, 3, 1e-7, false, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/quad_4el.msh", 2, 3, 1e-7, false, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/tet_1el.msh", 2, 3, 4e-7, true, usePetsc );
+   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 2, 3, 1.8e-6, true, usePetsc );
+}
+
 int main( int argc, char* argv[] )
 {
    walberla::Environment walberlaEnv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/tri_1el.msh", 0, 3, 1e-7, false );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/quad_4el.msh", 0, 3, 1e-7, false );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/annulus_coarse.msh", 0, 3, 3e-7, false );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/tet_1el.msh", 0, 3, 4e-7, true );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/pyramid_2el.msh", 0, 3, 3e-6, false );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 0, 3, 1.8e-6, true );
+   runTests( false );
 
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/tri_1el.msh", 1, 3, 1e-7, false );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/quad_4el.msh", 1, 3, 1e-7, false );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/tet_1el.msh", 1, 3, 4e-7, true );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 1, 3, 1.8e-6, true );
-
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/tri_1el.msh", 2, 3, 1e-7, false );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/quad_4el.msh", 2, 3, 1e-7, false );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/tet_1el.msh", 2, 3, 4e-7, true );
-   hyteg::AgglomerationConvergenceTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 2, 3, 1.8e-6, true );
+#ifdef HYTEG_BUILD_WITH_PETSC
+   hyteg::PETScManager petscManager( &argc, &argv );
+   runTests( true );
+#endif
 }
