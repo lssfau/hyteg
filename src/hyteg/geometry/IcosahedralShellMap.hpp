@@ -133,6 +133,27 @@ class IcosahedralShellMap : public GeometryMap
       // SHELL_MAP_LOG( "Mapped: " << xold << " --> " << xnew );
    }
 
+   void evalFinv( const Point3D& xPhys, Point3D& xComp ) const
+   {
+      // calculating the intersection point of the prism-parallel plane that contains xComp
+      // with the line spanned by mu * xPhys
+
+      // plane through xComp given by all points p with ( p - A' ) * n = 0
+      // where A' is the point on a ray that has distance norm(xPhys) from origin
+      // (lies on the sphere of xPhys)
+      // therefore: A' = A * (norm(xPhys) / norm(A)) where A is any point on a ray (we use A = refVertex_)
+
+      // since xComp = mu * xPhys, we insert in plane eq. and solve for mu to find xComp
+      // solve for mu:
+      //    ((mu * xPhys) - (A * (norm(xPhys) / norm(A)))) * n = 0
+      // => mu = (norm(xPhys) / norm(A)) * ( (A * n) / (xPhys * n) )
+      // let's do that
+
+      const auto A = refVertex_;
+      const auto mu = (xPhys.norm() / A.norm()) * (A.dot( prismNormal_ ) / xPhys.dot( prismNormal_ ));
+      xComp = mu * xPhys;
+   }
+
    void evalDF( const Point3D& x, Matrix2r& DFx ) const final
    {
       WALBERLA_UNUSED( x );
@@ -254,6 +275,9 @@ class IcosahedralShellMap : public GeometryMap
 
    /// distance from origin of vertex refVertex_
    real_t radRayVertex_;
+
+   /// normal of prism planes
+   Point3D prismNormal_;
 
    /// internal enumeration class for classifying tetrahedra
    enum class tetType
@@ -432,6 +456,11 @@ class IcosahedralShellMap : public GeometryMap
          SHELL_MAP_LOG( "rayVertex = " << rayVertex_ );
          SHELL_MAP_LOG( "thrVertex = " << thrVertex_ );
          SHELL_MAP_LOG( "forVertex = " << forVertex_ );
+
+         // calculate normal of prism
+         // ray, thr, and for are the three vertices spanning either the outer or inner plane
+         prismNormal_ = crossProduct(thrVertex_ - rayVertex_, forVertex_ - rayVertex_);
+         prismNormal_ /= prismNormal_.norm();
       }
    }
 
