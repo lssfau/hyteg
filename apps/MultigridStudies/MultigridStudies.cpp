@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Christoph Schwarzmeier, Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2020 Christoph Schwarzmeier, Daniel Drzisga, Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -1067,7 +1067,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       petscSolverInternalTmp->setVerbose( true );
       coarseGridSolverInternal = petscSolverInternalTmp;
 #else
-      WALBERLA_UNUSED( coarseGridSolverVelocityPreconditionerType )
+      WALBERLA_UNUSED( coarseGridSolverVelocityPreconditionerType );
       WALBERLA_ABORT( "PETSc is not enabled." )
 #endif
    }
