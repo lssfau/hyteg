@@ -31,14 +31,19 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
                                          const PetscInt maxIterations              = std::numeric_limits< PetscInt >::max(),
                                          const uint_t&  velocityPreconditionerType = 1 )
    : allocatedLevel_( level )
+   , petscCommunicator_( storage->splitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
    , Amat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-           numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level ) )
+           numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
+           "Amat",
+           petscCommunicator_ )
    , Pmat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-           numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level ) )
-   , xVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
-   , bVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
-   , nullspaceVec_( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
+           numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
+           "Pmat",
+           petscCommunicator_ )
+   , xVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "xVec", petscCommunicator_ )
+   , bVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "bVec", petscCommunicator_ )
+   , nullspaceVec_( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "nullspaceVec", petscCommunicator_ )
    , storage_( storage )
    , tolerance_( tolerance )
    , maxIterations_( maxIterations )
@@ -47,7 +52,9 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    , blockPreconditioner_( storage, level, level )
    , velocityPreconditionerType_( velocityPreconditionerType )
    , verbose_( false )
-   {}
+   {
+      num.enumerate( level );
+   }
 
    ~PETScBlockPreconditionedStokesSolver() = default;
 
@@ -55,7 +62,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    {
       nullSpaceSet_ = true;
       nullspaceVec_.createVectorFromFunction( nullspace, num, allocatedLevel_ );
-      MatNullSpaceCreate( walberla::MPIManager::instance()->comm(), PETSC_FALSE, 1, &nullspaceVec_.get(), &nullspace_ );
+      MatNullSpaceCreate( petscCommunicator_, PETSC_FALSE, 1, &nullspaceVec_.get(), &nullspace_ );
    }
 
    void setVerbose( bool verbose ) { verbose_ = verbose; }
@@ -72,7 +79,6 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       timer.start();
 
       x.getStorage()->getTimingTree()->start( "Index set setup" );
-      num.enumerate( level );
 
       // gather index sets to split matrix into block matrix
       // therefore we need the row indices of the velocity and pressure
@@ -83,20 +89,12 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
       std::sort( velocityIndices.begin(), velocityIndices.end() );
       std::sort( pressureIndices.begin(), pressureIndices.end() );
-      ISCreateGeneral( walberla::mpi::MPIManager::instance()->comm(),
-                       velocityIndices.size(),
-                       velocityIndices.data(),
-                       PETSC_COPY_VALUES,
-                       &is_[0] );
-      ISCreateGeneral( walberla::mpi::MPIManager::instance()->comm(),
-                       pressureIndices.size(),
-                       pressureIndices.data(),
-                       PETSC_COPY_VALUES,
-                       &is_[1] );
+      ISCreateGeneral( petscCommunicator_, velocityIndices.size(), velocityIndices.data(), PETSC_COPY_VALUES, &is_[0] );
+      ISCreateGeneral( petscCommunicator_, pressureIndices.size(), pressureIndices.data(), PETSC_COPY_VALUES, &is_[1] );
 
       x.getStorage()->getTimingTree()->stop( "Index set setup" );
 
-      KSPCreate( walberla::MPIManager::instance()->comm(), &ksp );
+      KSPCreate( petscCommunicator_, &ksp );
       KSPSetType( ksp, KSPMINRES );
       KSPSetTolerances( ksp, 1e-30, tolerance_, PETSC_DEFAULT, maxIterations_ );
       KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
@@ -127,56 +125,56 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
       if ( velocityPreconditionerType_ == 2 )
       {
-        KSPGetPC( ksp, &pc );
-        PCSetType( pc, PCFIELDSPLIT );
-        PCFieldSplitSetType( pc, PC_COMPOSITE_SCHUR );
-        PCFieldSplitSetSchurPre( pc, PC_FIELDSPLIT_SCHUR_PRE_SELFP, NULL );
-        PCFieldSplitSetIS( pc, "u", is_[0] );
-        PCFieldSplitSetIS( pc, "p", is_[1] );
+         KSPGetPC( ksp, &pc );
+         PCSetType( pc, PCFIELDSPLIT );
+         PCFieldSplitSetType( pc, PC_COMPOSITE_SCHUR );
+         PCFieldSplitSetSchurPre( pc, PC_FIELDSPLIT_SCHUR_PRE_SELFP, NULL );
+         PCFieldSplitSetIS( pc, "u", is_[0] );
+         PCFieldSplitSetIS( pc, "p", is_[1] );
 
-        PetscInt numSubKsps;
+         PetscInt numSubKsps;
 
-        PCSetUp( pc );
-        PCFieldSplitSchurGetSubKSP( pc, &numSubKsps, &sub_ksps_ );
+         PCSetUp( pc );
+         PCFieldSplitSchurGetSubKSP( pc, &numSubKsps, &sub_ksps_ );
 
-        KSPSetType( sub_ksps_[0], KSPCG );
-        KSPSetType( sub_ksps_[1], KSPCG );
+         KSPSetType( sub_ksps_[0], KSPCG );
+         KSPSetType( sub_ksps_[1], KSPCG );
 
-        KSPSetTolerances( sub_ksps_[0], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
-        KSPSetTolerances( sub_ksps_[1], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
+         KSPSetTolerances( sub_ksps_[0], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
+         KSPSetTolerances( sub_ksps_[1], 1e-15, 1e-15, PETSC_DEFAULT, maxIterations_ );
       }
       else
       {
-        KSPGetPC( ksp, &pc );
-        PCSetType( pc, PCFIELDSPLIT );
-        PCFieldSplitSetType( pc, PC_COMPOSITE_ADDITIVE );
-        PCFieldSplitSetIS( pc, "u", is_[0] );
-        PCFieldSplitSetIS( pc, "p", is_[1] );
+         KSPGetPC( ksp, &pc );
+         PCSetType( pc, PCFIELDSPLIT );
+         PCFieldSplitSetType( pc, PC_COMPOSITE_ADDITIVE );
+         PCFieldSplitSetIS( pc, "u", is_[0] );
+         PCFieldSplitSetIS( pc, "p", is_[1] );
 
-        PetscInt numSubKsps;
-        PC pc_u, pc_p;
-        PCFieldSplitGetSubKSP( pc, &numSubKsps, &sub_ksps_ );
+         PetscInt numSubKsps;
+         PC       pc_u, pc_p;
+         PCFieldSplitGetSubKSP( pc, &numSubKsps, &sub_ksps_ );
 
-        KSPGetPC( sub_ksps_[0], &pc_u );
-        KSPGetPC( sub_ksps_[1], &pc_p );
+         KSPGetPC( sub_ksps_[0], &pc_u );
+         KSPGetPC( sub_ksps_[1], &pc_p );
 
-        switch ( velocityPreconditionerType_ )
-        {
-          case 0:
+         switch ( velocityPreconditionerType_ )
+         {
+         case 0:
             PCSetType( pc_u, PCGAMG );
             PCGAMGSetType( pc_u, PCGAMGAGG );
             PCGAMGSetNSmooths( pc_u, 1 );
             break;
-          case 1:
+         case 1:
             PCSetType( pc_u, PCJACOBI );
             break;
-          default:
-          WALBERLA_ABORT( "Invalid velocity preconditioner for PETSc block prec MinRes solver." );
+         default:
+            WALBERLA_ABORT( "Invalid velocity preconditioner for PETSc block prec MinRes solver." );
             break;
-        }
+         }
 
-        // inv. lumped mass
-        PCSetType( pc_p, PCJACOBI );
+         // inv. lumped mass
+         PCSetType( pc_p, PCJACOBI );
       }
 
       timer.end();
@@ -196,9 +194,10 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       {
          PetscInt numKSPIterations;
          KSPGetIterationNumber( ksp, &numKSPIterations );
-         WALBERLA_LOG_INFO_ON_ROOT( "[PETScBlockPreconditionedStokesSolver] num KSP iterations: " << numKSPIterations << " | "
-                                                                                                  << "PETSc KSPSolver time: " << petscKSPTimer << " | "
-                                                                                                  << "HyTeG to PETSc setup: " << hytegToPetscSetup );
+         WALBERLA_LOG_INFO_ON_ROOT( "[PETScBlockPreconditionedStokesSolver] num KSP iterations: "
+                                    << numKSPIterations << " | "
+                                    << "PETSc KSPSolver time: " << petscKSPTimer << " | "
+                                    << "HyTeG to PETSc setup: " << hytegToPetscSetup );
       }
 
       xVec.createFunctionFromVector( x, num, level, flag_ );
@@ -285,6 +284,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    }
 
    uint_t                                                                                            allocatedLevel_;
+   MPI_Comm                                                                                          petscCommunicator_;
    typename OperatorType::srcType::template FunctionType< PetscInt >                                 num;
    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >                   Amat;
    PETScSparseMatrix< BlockPreconditioner_T, BlockPreconditioner_T::srcType::template FunctionType > Pmat;

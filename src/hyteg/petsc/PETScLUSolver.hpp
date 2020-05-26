@@ -142,7 +142,7 @@ class PETScLUSolver : public Solver< OperatorType >
 
  private:
    uint_t                                                                                        allocatedLevel_;
-   MPI_Comm petscCommunicator_;
+   MPI_Comm                                                                                      petscCommunicator_;
    typename OperatorType::srcType::template FunctionType< PetscInt >                             num;
    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               Amat;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;

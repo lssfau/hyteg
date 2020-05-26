@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Christoph Schwarzmeier, Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2020 Christoph Schwarzmeier, Daniel Drzisga, Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -65,6 +65,7 @@
 #include "hyteg/solvers/SORSmoother.hpp"
 #include "hyteg/solvers/SymmetricSORSmoother.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
+#include "hyteg/solvers/controlflow/AgglomerationWrapper.hpp"
 #include "hyteg/solvers/controlflow/TimedSolver.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
@@ -139,8 +140,12 @@ std::function< real_t( const hyteg::Point3D& ) > rhsV   = []( const hyteg::Point
 #else
 
 #if COLLIDING_FLOW
-std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& x ) { return 20 * x[0] * std::pow( x[1], 3.0 ); };
-std::function< real_t( const hyteg::Point3D& ) > bcU    = []( const hyteg::Point3D& x ) { return 20 * x[0] * std::pow( x[1], 3.0 ); };
+std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& x ) {
+   return 20 * x[0] * std::pow( x[1], 3.0 );
+};
+std::function< real_t( const hyteg::Point3D& ) > bcU = []( const hyteg::Point3D& x ) {
+   return 20 * x[0] * std::pow( x[1], 3.0 );
+};
 std::function< real_t( const hyteg::Point3D& ) > exactV = []( const hyteg::Point3D& x ) {
    return 5 * std::pow( x[0], 4.0 ) - 5 * std::pow( x[1], 4.0 );
 };
@@ -161,14 +166,10 @@ std::function< real_t( const hyteg::Point3D& ) > exactV = []( const hyteg::Point
    return -2.0 * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] );
 };
 std::function< real_t( const hyteg::Point3D& ) > bcV = []( const hyteg::Point3D& x ) {
-    return -2.0 * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] );
+   return -2.0 * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] );
 };
-std::function< real_t( const hyteg::Point3D& ) > exactW = []( const hyteg::Point3D& ) {
-    return real_c(0);
-};
-std::function< real_t( const hyteg::Point3D& ) > bcW = []( const hyteg::Point3D& ) {
-    return real_c(0);
-};
+std::function< real_t( const hyteg::Point3D& ) > exactW = []( const hyteg::Point3D& ) { return real_c( 0 ); };
+std::function< real_t( const hyteg::Point3D& ) > bcW    = []( const hyteg::Point3D& ) { return real_c( 0 ); };
 std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& x ) {
    return 2.5 * pi * std::cos( 2 * pi * x[0] ) * std::cos( pi * x[1] );
 };
@@ -176,15 +177,17 @@ std::function< real_t( const hyteg::Point3D& ) > rhsU = []( const hyteg::Point3D
 std::function< real_t( const hyteg::Point3D& ) > rhsV = []( const hyteg::Point3D& x ) {
    return -12.5 * pi * pi * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] );
 };
-std::function< real_t( const hyteg::Point3D& ) > rhsW = []( const hyteg::Point3D& ) {
-    return real_c(0);
-};
+std::function< real_t( const hyteg::Point3D& ) > rhsW = []( const hyteg::Point3D& ) { return real_c( 0 ); };
 #endif
 #endif
 
-std::function< real_t( const hyteg::Point3D& ) > shellExactU = []( const hyteg::Point3D& x ) { return -4 * std::cos( 4 * x[2] ); };
+std::function< real_t( const hyteg::Point3D& ) > shellExactU = []( const hyteg::Point3D& x ) {
+   return -4 * std::cos( 4 * x[2] );
+};
 std::function< real_t( const hyteg::Point3D& ) > shellExactV = []( const hyteg::Point3D& x ) { return 8 * std::cos( 8 * x[0] ); };
-std::function< real_t( const hyteg::Point3D& ) > shellExactW = []( const hyteg::Point3D& x ) { return -2 * std::cos( 2 * x[1] ); };
+std::function< real_t( const hyteg::Point3D& ) > shellExactW = []( const hyteg::Point3D& x ) {
+   return -2 * std::cos( 2 * x[1] );
+};
 std::function< real_t( const hyteg::Point3D& ) > shellExactP = []( const hyteg::Point3D& x ) {
    return std::sin( 4 * x[0] ) * std::sin( 8 * x[1] ) * std::sin( 2 * x[2] );
 };
@@ -778,6 +781,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       const real_t&                                        coarseResidualTolerance,
                       const uint_t&                                        coarseGridSolverType,
                       const uint_t&                                        coarseGridSolverVelocityPreconditionerType,
+                      const bool&                                          agglomeration,
+                      const uint_t&                                        agglomerationNumProcesses,
                       const bool&                                          outputVTK,
                       const uint_t&                                        skipCyclesForAvgConvRate,
                       const bool&                                          calcDiscretizationError,
@@ -934,8 +939,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
           maxNumberOfLocalDoFs< typename StokesFunction::PressureFunction_T::Tag >( *storage, level ) + maxVelocityDoFsThisLevel;
 
       WALBERLA_LOG_INFO_ON_ROOT( "  level " << std::setw( 2 ) << level << ": " << std::setw( 15 ) << dofsThisLevel
-                                            << "    (min: " << std::setw( 15 ) << minDoFsThisLevel << " | max: " << std::setw( 15 )
-                                            << maxDoFsThisLevel << ")" );
+                                            << "    (min: " << std::setw( 15 ) << minDoFsThisLevel
+                                            << " | max: " << std::setw( 15 ) << maxDoFsThisLevel << ")" );
       sqlIntegerProperties["total_dofs_level_" + std::to_string( level )] = int64_c( dofsThisLevel );
       sqlIntegerProperties["min_dofs_level_" + std::to_string( level )]   = int64_c( minDoFsThisLevel );
       sqlIntegerProperties["max_dofs_level_" + std::to_string( level )]   = int64_c( maxDoFsThisLevel );
@@ -967,14 +972,16 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    std::shared_ptr< Solver< typename StokesOperator::VelocityOperator_T > > scalarSmoother;
    if ( symmGSVelocity )
    {
-      scalarSmoother = std::make_shared< SymmetricSORSmoother< typename StokesOperator::VelocityOperator_T > >( velocitySorRelax );
+      scalarSmoother =
+          std::make_shared< SymmetricSORSmoother< typename StokesOperator::VelocityOperator_T > >( velocitySorRelax );
    }
    else
    {
       scalarSmoother = std::make_shared< SORSmoother< typename StokesOperator::VelocityOperator_T > >( velocitySorRelax );
    }
 
-   auto uzawaVelocityPreconditioner = std::make_shared< StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator > >( storage, scalarSmoother );
+   auto uzawaVelocityPreconditioner =
+       std::make_shared< StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator > >( storage, scalarSmoother );
 
    auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage,
                                                                         uzawaVelocityPreconditioner,
@@ -1006,54 +1013,87 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       WALBERLA_LOG_INFO_ON_ROOT( "" )
    }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-   // auto petscSolver = std::make_shared< PETScMinResSolver< StokesOperator > >(
-   //     storage, coarseGridMaxLevel, coarseResidualTolerance, coarseGridMaxIterations );
+   std::shared_ptr< AgglomerationWrapper< StokesOperator > > agglomerationWrapper;
+   std::shared_ptr< PrimitiveStorage > coarseGridSolverStorage = storage;
+   if ( agglomeration )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Coarse grid solver agglomeration enabled." )
+      WALBERLA_CHECK_GREATER( agglomerationNumProcesses, 0, "Cannot perform agglomeration on zero processes." )
+      const uint_t finalNumAgglomerationProcesses =
+          std::min( agglomerationNumProcesses, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      WALBERLA_LOG_INFO_ON_ROOT( "Agglomeration from " << uint_c( walberla::mpi::MPIManager::instance()->numProcesses() )
+                                                       << " to " << finalNumAgglomerationProcesses << " processes." )
+      bool solveOnEmptyProcesses = true;
+      if ( coarseGridSolverType == 0 || coarseGridSolverType == 1 )
+         solveOnEmptyProcesses = false;
 
-   std::shared_ptr< Solver< StokesOperator > > petscSolverInternal;
+      WALBERLA_LOG_INFO_ON_ROOT( "Solving on empty processes: " << ( solveOnEmptyProcesses ? "yes" : "no" ) )
+      agglomerationWrapper = std::make_shared< AgglomerationWrapper< StokesOperator > >(
+          storage, minLevel, finalNumAgglomerationProcesses, solveOnEmptyProcesses );
+      auto agglomerationStorage = agglomerationWrapper->getAgglomerationStorage();
+      coarseGridSolverStorage = agglomerationStorage;
+      WALBERLA_LOG_INFO_ON_ROOT( "" )
+   }
+
+   // coarse grid solver type:
+   // 0: MUMPS                          (PETSc)
+   // 1: block preconditioned MINRES    (PETSc)
+   // 2: MINRES                         (HyTeG)
+   // 3: pressure preconditioned MINRES (HyTeG)
+
+   std::shared_ptr< Solver< StokesOperator > > coarseGridSolverInternal;
+   WALBERLA_LOG_INFO_ON_ROOT( "Coarse grid solver:" )
    if ( coarseGridSolverType == 0 )
    {
-      auto petscSolverInternalTmp = std::make_shared< PETScLUSolver< StokesOperator > >( storage, coarseGridMaxLevel );
+      WALBERLA_LOG_INFO_ON_ROOT( "MUMPS (PETSc)" )
+#ifdef HYTEG_BUILD_WITH_PETSC
+      auto petscSolverInternalTmp = std::make_shared< PETScLUSolver< StokesOperator > >( coarseGridSolverStorage, coarseGridMaxLevel );
       petscSolverInternalTmp->setVerbose( true );
-      petscSolverInternal = petscSolverInternalTmp;
+      coarseGridSolverInternal = petscSolverInternalTmp;
+#else
+      WALBERLA_ABORT( "PETSc is not enabled." )
+#endif
    }
    else if ( coarseGridSolverType == 1 )
    {
-
+      WALBERLA_LOG_INFO_ON_ROOT( "block preconditioned MINRES (PETSc)" )
+#ifdef HYTEG_BUILD_WITH_PETSC
       auto petscSolverInternalTmp = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
-          storage,
+          coarseGridSolverStorage,
           coarseGridMaxLevel,
           coarseResidualTolerance,
           coarseGridMaxIterations,
           coarseGridSolverVelocityPreconditionerType );
       petscSolverInternalTmp->setVerbose( true );
-      petscSolverInternal = petscSolverInternalTmp;
+      coarseGridSolverInternal = petscSolverInternalTmp;
+#else
+      WALBERLA_UNUSED( coarseGridSolverVelocityPreconditionerType );
+      WALBERLA_ABORT( "PETSc is not enabled." )
+#endif
    }
    else if ( coarseGridSolverType == 2 )
    {
-      petscSolverInternal = std::make_shared< MinResSolver< StokesOperator > >(
-          storage,
-          coarseGridMaxLevel,
-          coarseGridMaxLevel,
-          coarseGridMaxIterations,
-          coarseResidualTolerance );
+      WALBERLA_LOG_INFO_ON_ROOT( "MINRES (HyTeG)" )
+      coarseGridSolverInternal = std::make_shared< MinResSolver< StokesOperator > >(
+          coarseGridSolverStorage, coarseGridMaxLevel, coarseGridMaxLevel, coarseGridMaxIterations, coarseResidualTolerance );
+   }
+   else if ( coarseGridSolverType == 3 )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "pressure preconditioned MINRES (HyTeG)" )
+      auto preconditioner = std::make_shared< StokesPressureBlockPreconditioner< StokesOperator, P1LumpedInvMassOperator > >(
+          coarseGridSolverStorage, coarseGridMaxLevel, coarseGridMaxLevel );
+      coarseGridSolverInternal = std::make_shared< MinResSolver< StokesOperator > >(
+          coarseGridSolverStorage, coarseGridMaxLevel, coarseGridMaxLevel, coarseGridMaxIterations, coarseResidualTolerance, preconditioner );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
+
+   if ( agglomeration )
+   {
+      agglomerationWrapper->setSolver( coarseGridSolverInternal );
+      coarseGridSolverInternal = agglomerationWrapper;
    }
 
-   auto petscSolver = std::make_shared< TimedSolver< StokesOperator > >( petscSolverInternal );
-
-#else
-   //   const uint_t preconditionerCGIterations = 0;
-   //
-   //   auto cgVelocity = std::make_shared< CGSolver< typename StokesOperator::VelocityOperator_T > >(
-   //       storage, minLevel, coarseGridMaxLevel, preconditionerCGIterations, 1e-14 );
-
-   auto preconditioner = std::make_shared< StokesPressureBlockPreconditioner< StokesOperator, P1LumpedInvMassOperator > >(
-       storage, minLevel, coarseGridMaxLevel ); //, 1, cgVelocity );
-   auto coarseGridSolver = std::make_shared< MinResSolver< StokesOperator > >(
-       storage, minLevel, coarseGridMaxLevel, coarseGridMaxIterations, coarseResidualTolerance, preconditioner );
-   WALBERLA_UNUSED( coarseGridSolverType );
-   WALBERLA_UNUSED( coarseGridSolverVelocityPreconditionerType );
-#endif
+   auto coarseGridSolver = std::make_shared< TimedSolver< StokesOperator > >( coarseGridSolverInternal );
 
    auto prolongationOperator = std::make_shared< Prolongation >();
    auto restrictionOperator  = std::make_shared< Restriction >( projectPressureAfterRestriction );
@@ -1061,11 +1101,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    auto multigridSolver = std::make_shared< GeometricMultigridSolver< StokesOperator > >( storage,
                                                                                           error,
                                                                                           smoother,
-#ifdef HYTEG_BUILD_WITH_PETSC
-                                                                                          petscSolver,
-#else
                                                                                           coarseGridSolver,
-#endif
                                                                                           restrictionOperator,
                                                                                           prolongationOperator,
                                                                                           minLevel,
@@ -1087,10 +1123,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       sqlRealProperties["fmg_l2_residual_p_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorP );
       timerFMGErrorCalculation.end();
       real_t fmgCoraseGridTime = 0.0;
-#ifdef HYTEG_BUILD_WITH_PETSC
-      fmgCoraseGridTime = petscSolver->getTimer().last();
-#endif
-       WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error u: " << std::scientific << _l2ErrorU
+      fmgCoraseGridTime        = coarseGridSolver->getTimer().last();
+      WALBERLA_LOG_INFO_ON_ROOT( "    fmg level " << currentLevel << ": l2 error u: " << std::scientific << _l2ErrorU
                                                   << " / l2 error p: " << std::scientific << _l2ErrorP << std::fixed
                                                   << " - time error calc: " << timerFMGErrorCalculation.last() << " sec, "
                                                   << std::fixed << " time coarse grid: " << fmgCoraseGridTime );
@@ -1135,7 +1169,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                                                     << "               --- || " << l2ResidualU << " | " << l2ResidualP
                                                     << " |                   --- ||            --- | " << std::fixed
                                                     << std::setprecision( 2 ) << std::setw( 26 ) << timeError << " | "
-                                                    << std::setw( 12 ) << timeVTK << " | " <<  std::setw( 12 ) << timeCoarseGrid << " |" );
+                                                    << std::setw( 12 ) << timeVTK << " | " << std::setw( 12 ) << timeCoarseGrid
+                                                    << " |" );
 
    long double avgl2ErrorConvergenceRateU    = 0;
    long double avgl2ResidualConvergenceRateU = 0;
@@ -1160,23 +1195,21 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    if ( numCycles == 0 )
    {
       timer.reset();
-#ifdef HYTEG_BUILD_WITH_PETSC
-      petscSolver->solve( A, u, f, maxLevel );
-      timeCoarseGrid = petscSolver->getTimer().last();
-#else
+
       coarseGridSolver->solve( A, u, f, maxLevel );
-#endif
+      timeCoarseGrid = coarseGridSolver->getTimer().last();
+
       timer.end();
       timeCycle = timer.last();
       vertexdof::projectMean( u.p, maxLevel );
       calculateErrorAndResidualStokes( maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
       vtkOutput.write( maxLevel, 1 );
-      WALBERLA_LOG_INFO_ON_ROOT( std::setw( 15 ) << 1 << " || " << std::scientific << l2ErrorU << " | " << l2ErrorP << " | "
-                                                 << "      " << l2ErrorReductionU << " || " << l2ResidualU << " | " << l2ResidualP
-                                                 << " |          " << l2ResidualReductionU << " || " << std::fixed
-                                                 << std::setprecision( 2 ) << std::setw( 14 ) << timeCycle << " | "
-                                                 << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK
-                                                 << " | " <<  std::setw( 12 ) << timeCoarseGrid << " | " );
+      WALBERLA_LOG_INFO_ON_ROOT( std::setw( 15 )
+                                 << 1 << " || " << std::scientific << l2ErrorU << " | " << l2ErrorP << " | "
+                                 << "      " << l2ErrorReductionU << " || " << l2ResidualU << " | " << l2ResidualP
+                                 << " |          " << l2ResidualReductionU << " || " << std::fixed << std::setprecision( 2 )
+                                 << std::setw( 14 ) << timeCycle << " | " << std::setw( 26 ) << timeError << " | "
+                                 << std::setw( 12 ) << timeVTK << " | " << std::setw( 12 ) << timeCoarseGrid << " | " );
 
       sqlRealPropertiesMG[1]["l2_error_u"]              = real_c( l2ErrorU );
       sqlRealPropertiesMG[1]["l2_error_reduction_u"]    = real_c( l2ErrorReductionU );
@@ -1188,8 +1221,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       sqlRealPropertiesMG[1]["l2_residual_p"]           = real_c( l2ResidualP );
       sqlRealPropertiesMG[1]["l2_residual_reduction_p"] = real_c( l2ResidualReductionP );
 
-      sqlRealPropertiesMG[1]["time_cycle"] = real_c( timeCycle );
-      sqlRealPropertiesMG[1]["time_error"] = real_c( timeError );
+      sqlRealPropertiesMG[1]["time_cycle"]       = real_c( timeCycle );
+      sqlRealPropertiesMG[1]["time_error"]       = real_c( timeError );
       sqlRealPropertiesMG[1]["time_coarse_grid"] = real_c( timeCoarseGrid );
    }
 
@@ -1215,9 +1248,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       }
 
       timer.reset();
-#ifdef HYTEG_BUILD_WITH_PETSC
-      petscSolver->getTimer().reset();
-#endif
+
+      coarseGridSolver->getTimer().reset();
+
       if ( cycle == 1 && fmgInnerCycles > 0 )
       {
          LIKWID_MARKER_START( "FMG" );
@@ -1236,9 +1269,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       }
       timer.end();
       timeCycle = timer.last();
-#ifdef HYTEG_BUILD_WITH_PETSC
-      timeCoarseGrid = petscSolver->getTimer().total();
-#endif
+
+      timeCoarseGrid = coarseGridSolver->getTimer().total();
+
       if ( cycle == 1 && fmgInnerCycles > 0 )
       {
          timeCycle -= timerFMGErrorCalculation.total();
@@ -1271,13 +1304,13 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       l2ErrorReductionP    = l2ErrorP / lastl2ErrorP;
       l2ResidualReductionP = l2ResidualP / lastl2ResidualP;
 
-      WALBERLA_LOG_INFO_ON_ROOT(
-          std::setw( 15 ) << cycle << " || " << std::scientific << l2ErrorU << " | " << l2ErrorP << " | "
-                          << "      " << l2ErrorReductionU << " || " << l2ResidualU << " | " << l2ResidualP << " |          "
-                          << l2ResidualReductionU << " || " << std::fixed << std::setprecision( 2 ) << std::setw( 14 )
-                          << timeCycle << " | " << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK
-                          << " | " <<  std::setw( 12 ) << timeCoarseGrid
-                          << " | ratio discr.err: " << ( calcDiscretizationError ? l2ErrorU / discretizationErrorU : 0.0 ) );
+      WALBERLA_LOG_INFO_ON_ROOT( std::setw( 15 ) << cycle << " || " << std::scientific << l2ErrorU << " | " << l2ErrorP << " | "
+                                                 << "      " << l2ErrorReductionU << " || " << l2ResidualU << " | " << l2ResidualP
+                                                 << " |          " << l2ResidualReductionU << " || " << std::fixed
+                                                 << std::setprecision( 2 ) << std::setw( 14 ) << timeCycle << " | "
+                                                 << std::setw( 26 ) << timeError << " | " << std::setw( 12 ) << timeVTK << " | "
+                                                 << std::setw( 12 ) << timeCoarseGrid << " | ratio discr.err: "
+                                                 << ( calcDiscretizationError ? l2ErrorU / discretizationErrorU : 0.0 ) );
 
       if ( cycle > skipCyclesForAvgConvRate )
       {
@@ -1297,8 +1330,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       sqlRealPropertiesMG[cycle]["l2_residual_p"]           = real_c( l2ResidualP );
       sqlRealPropertiesMG[cycle]["l2_residual_reduction_p"] = real_c( l2ResidualReductionP );
 
-      sqlRealPropertiesMG[cycle]["time_cycle"] = real_c( timeCycle );
-      sqlRealPropertiesMG[cycle]["time_error"] = real_c( timeError );
+      sqlRealPropertiesMG[cycle]["time_cycle"]       = real_c( timeCycle );
+      sqlRealPropertiesMG[cycle]["time_error"]       = real_c( timeError );
       sqlRealPropertiesMG[cycle]["time_coarse_grid"] = real_c( timeCoarseGrid );
 
       if ( l2ResidualU < L2residualTolerance )
@@ -1311,24 +1344,24 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    if ( numExecutedCycles > 0 )
    {
-     avgl2ErrorConvergenceRateU /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
-     avgl2ResidualConvergenceRateU /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
+      avgl2ErrorConvergenceRateU /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
+      avgl2ResidualConvergenceRateU /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
 
-     avgl2ErrorConvergenceRateP /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
-     avgl2ResidualConvergenceRateP /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
+      avgl2ErrorConvergenceRateP /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
+      avgl2ResidualConvergenceRateP /= real_c( numExecutedCycles - skipCyclesForAvgConvRate );
 
-     sqlRealProperties["avg_l2_error_conv_rate_u"] = real_c( avgl2ErrorConvergenceRateU );
-     sqlRealProperties["avg_l2_residual_conv_rate_u"] = real_c( avgl2ResidualConvergenceRateU );
+      sqlRealProperties["avg_l2_error_conv_rate_u"]    = real_c( avgl2ErrorConvergenceRateU );
+      sqlRealProperties["avg_l2_residual_conv_rate_u"] = real_c( avgl2ResidualConvergenceRateU );
 
-     sqlRealProperties["avg_l2_error_conv_rate_p"] = real_c( avgl2ErrorConvergenceRateP );
-     sqlRealProperties["avg_l2_residual_conv_rate_p"] = real_c( avgl2ResidualConvergenceRateP );
+      sqlRealProperties["avg_l2_error_conv_rate_p"]    = real_c( avgl2ErrorConvergenceRateP );
+      sqlRealProperties["avg_l2_residual_conv_rate_p"] = real_c( avgl2ResidualConvergenceRateP );
 
-     WALBERLA_LOG_INFO_ON_ROOT( "Average convergence rates:" );
-     WALBERLA_LOG_INFO_ON_ROOT( "  - l2 error u:    " << std::scientific << avgl2ErrorConvergenceRateU );
-     WALBERLA_LOG_INFO_ON_ROOT( "  - l2 residual u: " << std::scientific << avgl2ResidualConvergenceRateU );
-     WALBERLA_LOG_INFO_ON_ROOT( "  - l2 error p:    " << std::scientific << avgl2ErrorConvergenceRateP );
-     WALBERLA_LOG_INFO_ON_ROOT( "  - l2 residual p: " << std::scientific << avgl2ResidualConvergenceRateP );
-     WALBERLA_LOG_INFO_ON_ROOT( "" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Average convergence rates:" );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - l2 error u:    " << std::scientific << avgl2ErrorConvergenceRateU );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - l2 residual u: " << std::scientific << avgl2ResidualConvergenceRateU );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - l2 error p:    " << std::scientific << avgl2ErrorConvergenceRateP );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - l2 residual p: " << std::scientific << avgl2ResidualConvergenceRateP );
+      WALBERLA_LOG_INFO_ON_ROOT( "" );
    }
 }
 
@@ -1398,29 +1431,32 @@ void setup( int argc, char** argv )
    const uint_t      coarseGridMaxIterations         = mainConf.getParameter< uint_t >( "coarseGridMaxIterations" );
    const real_t      coarseGridResidualTolerance     = mainConf.getParameter< real_t >( "coarseGridResidualTolerance" );
    const uint_t      coarseGridSolverType            = mainConf.getParameter< uint_t >( "coarseGridSolverType" );
-   const uint_t      coarseGridSolverVelocityPreconditionerType = mainConf.getParameter< uint_t >( "coarseGridSolverVelocityPreconditionerType" );
-   const std::string outputBaseDirectory             = mainConf.getParameter< std::string >( "outputBaseDirectory" );
-   const bool        outputVTK                       = mainConf.getParameter< bool >( "outputVTK" );
-   const bool        outputTiming                    = mainConf.getParameter< bool >( "outputTiming" );
-   const bool        outputTimingJSON                = mainConf.getParameter< bool >( "outputTimingJSON" );
-   const std::string outputTimingJSONFile            = mainConf.getParameter< std::string >( "outputTimingJSONFile" );
-   const bool        outputSQL                       = mainConf.getParameter< bool >( "outputSQL" );
-   const bool        outputParallelSQL                       = mainConf.getParameter< bool >( "outputParallelSQL" );
-   const std::string outputSQLFile                   = mainConf.getParameter< std::string >( "outputSQLFile" );
-   const std::string sqlTag                          = mainConf.getParameter< std::string >( "sqlTag", "default" );
-   const uint_t      skipCyclesForAvgConvRate        = mainConf.getParameter< uint_t >( "skipCyclesForAvgConvRate" );
-   const std::string meshLayout                      = mainConf.getParameter< std::string >( "meshLayout" );
-   const bool        symmetricCuboidMesh             = mainConf.getParameter< bool >( "symmetricCuboidMesh" );
-   const uint_t      cyclesBeforeDC                  = mainConf.getParameter< uint_t >( "cyclesBeforeDC" );
-   const uint_t      postDCPreSmoothingSteps         = mainConf.getParameter< uint_t >( "postDCPreSmoothingSteps" );
-   const uint_t      postDCPostSmoothingSteps        = mainConf.getParameter< uint_t >( "postDCPostSmoothingSteps" );
-   const uint_t      postDCSmoothingIncrement        = mainConf.getParameter< uint_t >( "postDCSmoothingIncrement" );
+   const uint_t      coarseGridSolverVelocityPreconditionerType =
+       mainConf.getParameter< uint_t >( "coarseGridSolverVelocityPreconditionerType" );
+   const bool        agglomeration             = mainConf.getParameter< bool >( "agglomeration" );
+   const uint_t      agglomerationNumProcesses = mainConf.getParameter< uint_t >( "agglomerationNumProcesses" );
+   const std::string outputBaseDirectory       = mainConf.getParameter< std::string >( "outputBaseDirectory" );
+   const bool        outputVTK                 = mainConf.getParameter< bool >( "outputVTK" );
+   const bool        outputTiming              = mainConf.getParameter< bool >( "outputTiming" );
+   const bool        outputTimingJSON          = mainConf.getParameter< bool >( "outputTimingJSON" );
+   const std::string outputTimingJSONFile      = mainConf.getParameter< std::string >( "outputTimingJSONFile" );
+   const bool        outputSQL                 = mainConf.getParameter< bool >( "outputSQL" );
+   const bool        outputParallelSQL         = mainConf.getParameter< bool >( "outputParallelSQL" );
+   const std::string outputSQLFile             = mainConf.getParameter< std::string >( "outputSQLFile" );
+   const std::string sqlTag                    = mainConf.getParameter< std::string >( "sqlTag", "default" );
+   const uint_t      skipCyclesForAvgConvRate  = mainConf.getParameter< uint_t >( "skipCyclesForAvgConvRate" );
+   const std::string meshLayout                = mainConf.getParameter< std::string >( "meshLayout" );
+   const bool        symmetricCuboidMesh       = mainConf.getParameter< bool >( "symmetricCuboidMesh" );
+   const uint_t      cyclesBeforeDC            = mainConf.getParameter< uint_t >( "cyclesBeforeDC" );
+   const uint_t      postDCPreSmoothingSteps   = mainConf.getParameter< uint_t >( "postDCPreSmoothingSteps" );
+   const uint_t      postDCPostSmoothingSteps  = mainConf.getParameter< uint_t >( "postDCPostSmoothingSteps" );
+   const uint_t      postDCSmoothingIncrement  = mainConf.getParameter< uint_t >( "postDCSmoothingIncrement" );
 
-   const bool        meshSphericalShell              = mainConf.getParameter< bool >( "meshSphericalShell" );
-   const uint_t      shellNTan                       = mainConf.getParameter< uint_t >( "shellNTan" );
-   const uint_t      shellNRad                       = mainConf.getParameter< uint_t >( "shellNRad" );
-   const real_t      shellRMin                       = mainConf.getParameter< real_t >( "shellRMin" );
-   const real_t      shellRMax                       = mainConf.getParameter< real_t >( "shellRMax" );
+   const bool   meshSphericalShell = mainConf.getParameter< bool >( "meshSphericalShell" );
+   const uint_t shellNTan          = mainConf.getParameter< uint_t >( "shellNTan" );
+   const uint_t shellNRad          = mainConf.getParameter< uint_t >( "shellNRad" );
+   const real_t shellRMin          = mainConf.getParameter< real_t >( "shellRMin" );
+   const real_t shellRMax          = mainConf.getParameter< real_t >( "shellRMax" );
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    PETScManager petscManager( &argc, &argv );
@@ -1471,6 +1507,8 @@ void setup( int argc, char** argv )
 
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid solver type (stokes only):   " << coarseGridSolverType );
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid u prec. type (stokes only):  " << coarseGridSolverVelocityPreconditionerType );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - agglomeration:                           " << ( agglomeration ? "yes" : "no" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - agglomeration num processes:             " << agglomerationNumProcesses );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output base directory:                   " << outputBaseDirectory );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output VTK:                              " << ( outputVTK ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing:                           " << ( outputTiming ? "yes" : "no" ) );
@@ -1483,18 +1521,19 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - skip cycles for avg conv rate:           " << skipCyclesForAvgConvRate );
    if ( meshSphericalShell )
    {
-     WALBERLA_LOG_INFO_ON_ROOT( "  - sphericalShell:                          " << "yes" );
-     WALBERLA_LOG_INFO_ON_ROOT( "  - nTan:                                    " << shellNTan );
-     WALBERLA_LOG_INFO_ON_ROOT( "  - nRad:                                    " << shellNRad );
-     WALBERLA_LOG_INFO_ON_ROOT( "  - rMin:                                    " << shellRMin );
-     WALBERLA_LOG_INFO_ON_ROOT( "  - rMax:                                    " << shellRMax );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - sphericalShell:                          "
+                                 << "yes" );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - nTan:                                    " << shellNTan );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - nRad:                                    " << shellNRad );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - rMin:                                    " << shellRMin );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - rMax:                                    " << shellRMax );
    }
    else
    {
-     WALBERLA_LOG_INFO_ON_ROOT( "  - dim:                                     " << dim );
-     WALBERLA_LOG_INFO_ON_ROOT( "  - num faces per side:                      " << numFacesPerSide );
-     WALBERLA_LOG_INFO_ON_ROOT( "  - mesh layout:                             " << meshLayout );
-     WALBERLA_LOG_INFO_ON_ROOT( "  - symmetric cuboid mesh:                   " << symmetricCuboidMesh );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - dim:                                     " << dim );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - num faces per side:                      " << numFacesPerSide );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - mesh layout:                             " << meshLayout );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - symmetric cuboid mesh:                   " << symmetricCuboidMesh );
    }
    WALBERLA_LOG_INFO_ON_ROOT( "  - cycles before DC:                        "
                               << ( discretization == "P1" ? std::to_string( cyclesBeforeDC ) : "disabled" ) );
@@ -1568,112 +1607,112 @@ void setup( int argc, char** argv )
 
    std::shared_ptr< PrimitiveStorage > storage;
    {
-     if ( meshSphericalShell )
-     {
-       auto meshInfo = MeshInfo::meshSphericalShell( shellNTan, shellNRad, shellRMin, shellRMax );
+      if ( meshSphericalShell )
+      {
+         auto meshInfo = MeshInfo::meshSphericalShell( shellNTan, shellNRad, shellRMin, shellRMax );
 
-       SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
-       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+         SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
+         setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-       storage = std::make_shared< PrimitiveStorage >( setupStorage );
+         storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-       sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
-       sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
-       sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
-       sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
+         sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
+         sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
+         sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
+         sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
 
-       exactU = shellExactU;
-       exactV = shellExactV;
-       exactW = shellExactW;
+         exactU = shellExactU;
+         exactV = shellExactV;
+         exactW = shellExactW;
 
-       exactP = shellExactP;
+         exactP = shellExactP;
 
-       bcU = shellExactU;
-       bcV = shellExactV;
-       bcW = shellExactW;
+         bcU = shellExactU;
+         bcV = shellExactV;
+         bcW = shellExactW;
 
-       rhsU = shellRhsU;
-       rhsV = shellRhsV;
-       rhsW = shellRhsW;
-     }
-     else
-     {
-       MeshInfo::meshFlavour meshFlavour;
-       if ( meshLayout == "CRISS" )
-         meshFlavour = MeshInfo::CRISS;
-       else if ( meshLayout == "CRISSCROSS" )
-         meshFlavour = MeshInfo::CRISSCROSS;
-       else
-       WALBERLA_ABORT( "Invalid mesh layout." );
-
-       auto meshInfo = MeshInfo::meshRectangle( leftBottom, Point2D( { 1, 1 } ), meshFlavour, numFacesPerSide, numFacesPerSide );
-       if ( dim == 3 )
-       {
-         if ( symmetricCuboidMesh )
-         {
-           meshInfo = MeshInfo::meshSymmetricCuboid(
-           leftBottom3D, Point3D( { 1, 1, 1 } ), numFacesPerSide, numFacesPerSide, numFacesPerSide );
-         }
+         rhsU = shellRhsU;
+         rhsV = shellRhsV;
+         rhsW = shellRhsW;
+      }
+      else
+      {
+         MeshInfo::meshFlavour meshFlavour;
+         if ( meshLayout == "CRISS" )
+            meshFlavour = MeshInfo::CRISS;
+         else if ( meshLayout == "CRISSCROSS" )
+            meshFlavour = MeshInfo::CRISSCROSS;
          else
+            WALBERLA_ABORT( "Invalid mesh layout." );
+
+         auto meshInfo = MeshInfo::meshRectangle( leftBottom, Point2D( {1, 1} ), meshFlavour, numFacesPerSide, numFacesPerSide );
+         if ( dim == 3 )
          {
-           meshInfo =
-           MeshInfo::meshCuboid( leftBottom3D, Point3D( { 1, 1, 1 } ), numFacesPerSide, numFacesPerSide, numFacesPerSide );
+            if ( symmetricCuboidMesh )
+            {
+               meshInfo = MeshInfo::meshSymmetricCuboid(
+                   leftBottom3D, Point3D( {1, 1, 1} ), numFacesPerSide, numFacesPerSide, numFacesPerSide );
+            }
+            else
+            {
+               meshInfo =
+                   MeshInfo::meshCuboid( leftBottom3D, Point3D( {1, 1, 1} ), numFacesPerSide, numFacesPerSide, numFacesPerSide );
+            }
+            exactU = shellExactU;
+            exactV = shellExactV;
+            exactW = shellExactW;
+
+            exactP = shellExactP;
+
+            bcU = shellExactU;
+            bcV = shellExactV;
+            bcW = shellExactW;
+
+            rhsU = shellRhsU;
+            rhsV = shellRhsV;
+            rhsW = shellRhsW;
          }
-          exactU = shellExactU;
-          exactV = shellExactV;
-          exactW = shellExactW;
-
-          exactP = shellExactP;
-
-          bcU = shellExactU;
-          bcV = shellExactV;
-          bcW = shellExactW;
-
-          rhsU = shellRhsU;
-          rhsV = shellRhsV;
-          rhsW = shellRhsW;
-       }
-       SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
-       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+         SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
+         setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
 #if NEUMANN_PROBLEM
-       auto topBoundary = []( const Point3D& x ) {
-          const real_t eps = 1e-8;
-          return std::abs( x[1] - 1 ) < eps;
-       };
-       auto bottomBoundary = []( const Point3D& x ) {
-          const real_t eps = 1e-8;
-          return std::abs( x[1] + 1 ) < eps;
-       };
-       auto leftBoundary = []( const Point3D& x ) {
-          const real_t eps = 1e-8;
-          return std::abs( x[0] + 1 ) < eps;
-       };
-       setupStorage.setMeshBoundaryFlagsOnBoundary( 2, 0, true );
-       setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, topBoundary, true );
-       setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, bottomBoundary, true );
-       setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, leftBoundary, true );
+         auto topBoundary = []( const Point3D& x ) {
+            const real_t eps = 1e-8;
+            return std::abs( x[1] - 1 ) < eps;
+         };
+         auto bottomBoundary = []( const Point3D& x ) {
+            const real_t eps = 1e-8;
+            return std::abs( x[1] + 1 ) < eps;
+         };
+         auto leftBoundary = []( const Point3D& x ) {
+            const real_t eps = 1e-8;
+            return std::abs( x[0] + 1 ) < eps;
+         };
+         setupStorage.setMeshBoundaryFlagsOnBoundary( 2, 0, true );
+         setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, topBoundary, true );
+         setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, bottomBoundary, true );
+         setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, leftBoundary, true );
 #endif
 
 #if CONSTANTA_POISSON
-       if ( dim == 2 )
-       {
-         exact = exactConstanta2D;
-         rhs = rhsConstanta2D;
-       } else
-       {
-         exact = exactConstanta3D;
-         rhs = rhsConstanta3D;
-       }
+         if ( dim == 2 )
+         {
+            exact = exactConstanta2D;
+            rhs   = rhsConstanta2D;
+         }
+         else
+         {
+            exact = exactConstanta3D;
+            rhs   = rhsConstanta3D;
+         }
 #endif
-       storage = std::make_shared< PrimitiveStorage >( setupStorage );
+         storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-       sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
-       sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
-       sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
-       sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
-     }
-
+         sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
+         sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
+         sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
+         sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
+      }
    }
 
    timer.end();
@@ -1778,6 +1817,8 @@ void setup( int argc, char** argv )
                                                                 coarseGridResidualTolerance,
                                                                 coarseGridSolverType,
                                                                 coarseGridSolverVelocityPreconditionerType,
+                                                                agglomeration,
+                                                                agglomerationNumProcesses,
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
@@ -1821,6 +1862,8 @@ void setup( int argc, char** argv )
                                                                 coarseGridResidualTolerance,
                                                                 coarseGridSolverType,
                                                                 coarseGridSolverVelocityPreconditionerType,
+                                                                agglomeration,
+                                                                agglomerationNumProcesses,
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
@@ -1842,23 +1885,23 @@ void setup( int argc, char** argv )
 
    if ( outputTimingJSON )
    {
-     WALBERLA_LOG_INFO_ON_ROOT( "Writing JSON timing to " << outputTimingJSONFile )
-     writeTimingTreeJSON( *storage->getTimingTree(), outputTimingJSONFile );
-     WALBERLA_LOG_INFO_ON_ROOT( "Done writing JSON timing." )
+      WALBERLA_LOG_INFO_ON_ROOT( "Writing JSON timing to " << outputTimingJSONFile )
+      writeTimingTreeJSON( *storage->getTimingTree(), outputTimingJSONFile );
+      WALBERLA_LOG_INFO_ON_ROOT( "Done writing JSON timing." )
    }
 
    if ( outputSQL )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Writing SQL database to " << outputSQLFile )
 
-      const std::string          dbFile = outputSQLFile;
+      const std::string dbFile = outputSQLFile;
 
       WALBERLA_ROOT_SECTION()
       {
          WALBERLA_LOG_INFO_ON_ROOT( "Writing root SQL data (global run data) ..." )
          walberla::sqlite::SQLiteDB db( dbFile, 1 );
          sqlIntegerProperties["conv_table_for_run"] = -1;
-         uint_t runId                                      = db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
+         uint_t runId                               = db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
          for ( uint_t cycle = 0; cycle <= numCycles; cycle++ )
          {
             if ( sqlRealPropertiesMG.count( cycle ) > 0 )

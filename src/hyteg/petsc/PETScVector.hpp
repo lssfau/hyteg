@@ -69,6 +69,8 @@ class PETScVector
 
    ~PETScVector() { VecDestroy( &vec ); }
 
+   MPI_Comm getCommunicator() const { return petscCommunicator_; }
+
    void createVectorFromFunction( const FunctionType< ValueType >& src,
                                   const FunctionType< PetscInt >&  numerator,
                                   uint_t                           level,
