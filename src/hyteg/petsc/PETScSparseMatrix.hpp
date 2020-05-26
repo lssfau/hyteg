@@ -128,7 +128,8 @@ class PETScSparseMatrix
       std::vector< PetscInt > bcIndices;
       hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );
 
-      PETScVector< real_t, FunctionType > dirichletSolutionVec( dirichletSolution, numerator, level );
+      PETScVector< real_t, FunctionType > dirichletSolutionVec(
+          dirichletSolution, numerator, level, All, "dirichletSolutionVec", rhsVec.getCommunicator() );
 
       WALBERLA_ASSERT(
           isSymmetric(),
