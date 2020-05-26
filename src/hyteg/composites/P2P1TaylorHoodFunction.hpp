@@ -87,6 +87,31 @@ public:
     p.swap( other.p, level, flag );
   }
 
+   /// \brief Copies all values function data from other to this.
+   ///
+   /// This method can be used safely if the other function is located on a different PrimitiveStorage.
+   /// This method also works, if the storages are distributed differently.
+   ///
+   /// \param other another function
+   /// \param level the refinement level
+   /// \param localPrimitiveIDsToRank Map that contains as keys all primitive IDs of all primitives that are local regarding the
+   ///                                storage of this function, and as values the MPI ranks of the processes that own these
+   ///                                primitives regarding the storage of the other function
+   /// \param otherPrimitiveIDsToRank Map that contains as keys all primitive IDs of all primitives that are local regarding the
+   ///                                storage of the other function, and as values the MPI ranks of the processes that own these
+   ///                                primitives regarding the storage this function lives on.
+   ///
+   void copyFrom( const P2P1TaylorHoodFunction< ValueType >&     other,
+                  const uint_t&                                  level,
+                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
+   {
+      u.copyFrom( other.u, level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
+      v.copyFrom( other.v, level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
+      w.copyFrom( other.w, level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
+      p.copyFrom( other.p, level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
+   }
+
   void assign( const std::vector< walberla::real_t >                                                     scalars,
                const std::vector< std::reference_wrapper< const P2P1TaylorHoodFunction< ValueType > > >& functions,
                size_t                                                                                    level,
