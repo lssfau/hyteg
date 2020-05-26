@@ -41,19 +41,24 @@ class PETScMinResSolver : public Solver< OperatorType >
                       const real_t                               tolerance     = 1e-12,
                       const PetscInt                             maxIterations = std::numeric_limits< PetscInt >::max() )
    : allocatedLevel_( level )
+   , petscCommunicator_( storage->splitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
    , Amat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-           numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level ) )
+           numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
+           "Amat",
+           petscCommunicator_ )
    , AmatNonEliminatedBC( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
-                          numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level ) )
-   , xVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
-   , bVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
-   , nullspaceVec_( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ) )
+                          numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
+                          "AmatNonEliminatedBC",
+                          petscCommunicator_ )
+   , xVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "xVec", petscCommunicator_ )
+   , bVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "bVec", petscCommunicator_ )
+   , nullspaceVec_( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "nullspaceVec", petscCommunicator_ )
    , flag_( hyteg::All )
    , nullSpaceSet_( false )
    {
       num.enumerate( level );
-      KSPCreate( walberla::MPIManager::instance()->comm(), &ksp );
+      KSPCreate( petscCommunicator_, &ksp );
       KSPSetType( ksp, KSPMINRES );
       KSPSetTolerances( ksp, 1e-30, tolerance, PETSC_DEFAULT, maxIterations );
       KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
@@ -71,7 +76,7 @@ class PETScMinResSolver : public Solver< OperatorType >
    {
       nullSpaceSet_ = true;
       nullspaceVec_.createVectorFromFunction( nullspace, num, allocatedLevel_ );
-      MatNullSpaceCreate( walberla::MPIManager::instance()->comm(), PETSC_FALSE, 1, &nullspaceVec_.get(), &nullspace_ );
+      MatNullSpaceCreate( petscCommunicator_, PETSC_FALSE, 1, &nullspaceVec_.get(), &nullspace_ );
    }
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level )
@@ -105,6 +110,7 @@ class PETScMinResSolver : public Solver< OperatorType >
 
  private:
    uint_t                                                                                        allocatedLevel_;
+   MPI_Comm                                                                                      petscCommunicator_;
    typename OperatorType::srcType::template FunctionType< PetscInt >                             num;
    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               Amat;
    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               AmatNonEliminatedBC;
@@ -112,11 +118,10 @@ class PETScMinResSolver : public Solver< OperatorType >
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > bVec;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > nullspaceVec_;
 
-   KSP          ksp;
-   PC           pc;
-   MatNullSpace nullspace_;
+   KSP            ksp;
+   PC             pc;
+   MatNullSpace   nullspace_;
    hyteg::DoFType flag_;
-   //Mat F; //factored Matrix
    bool nullSpaceSet_;
 };
 
