@@ -2,6 +2,7 @@ Parameters
 {
   level 5;
   numTimeSteps 20;
+  threeDim false;
 
   enableGaussianCone true;
   enableLinearCone false;
