@@ -66,6 +66,38 @@ void solve( const MeshInfo&         meshInfo,
    const bool forcedParticleReset = adjustedAdvection || enableDiffusion;
    resetParticles |= forcedParticleReset;
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << benchmarkName )
+   WALBERLA_LOG_INFO_ON_ROOT( " - time discretization: " )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + dt:                                           " << dt )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + time steps:                                   " << numTimeSteps )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + time final:                                   " << real_c( numTimeSteps ) * dt )
+   WALBERLA_LOG_INFO_ON_ROOT( " - space discretization: " )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + dimensions:                                   " << ( storage->hasGlobalCells() ? "3" : "2" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + level:                                        " << level )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns (== particles), including boundary:  " << unknowns )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + h_min:                                        " << hMin )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + h_max:                                        " << hMax )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + blending:                                     " << ( setBlendingMap ? "yes" : "no" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( " - advection-diffusion settings: " )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + diffusivity:                                  "
+                                  << ( enableDiffusion ? std::to_string( diffusivity ) : "disabled (== 0)" ) )
+   WALBERLA_LOG_INFO_ON_ROOT(
+       "   + diffusion time integrator:                    "
+           << ( enableDiffusion ?
+                ( diffusionTimeIntegrator == DiffusionTimeIntegrator::ImplicitEuler ? "implicit Euler" : "Crank-Nicolson" ) :
+                "disabled" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + adjusted advection:                           " << ( adjustedAdvection ? "yes" : "no" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + particle reset:                               "
+                                  << ( resetParticles ? "yes" : "no" ) << ( forcedParticleReset ? " (forced)" : "" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( " - app settings: " )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + VTK:                                          " << ( vtk ? "yes" : "no" ) )
+   if ( vtk )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "   + VTK interval:                                 " << vtkInterval )
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "   + print interval:                               " << printInterval )
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
+
    typedef P2Function< real_t >                   FunctionType;
    typedef P2ElementwiseBlendingLaplaceOperator   LaplaceOperator;
    typedef P2ElementwiseBlendingMassOperator      MassOperator;
@@ -137,37 +169,6 @@ void solve( const MeshInfo&         meshInfo,
    if ( vtk )
       vtkOutput.write( level );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << benchmarkName )
-   WALBERLA_LOG_INFO_ON_ROOT( " - time discretization: " )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + dt:                                           " << dt )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + time steps:                                   " << numTimeSteps )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + time final:                                   " << real_c( numTimeSteps ) * dt )
-   WALBERLA_LOG_INFO_ON_ROOT( " - space discretization: " )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + dimensions:                                   " << ( storage->hasGlobalCells() ? "3" : "2" ) )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + level:                                        " << level )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns (== particles), including boundary:  " << unknowns )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + h_min:                                        " << hMin )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + h_max:                                        " << hMax )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + blending:                                     " << ( setBlendingMap ? "yes" : "no" ) )
-   WALBERLA_LOG_INFO_ON_ROOT( " - advection-diffusion settings: " )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + diffusivity:                                  "
-                              << ( enableDiffusion ? std::to_string( diffusivity ) : "disabled (== 0)" ) )
-   WALBERLA_LOG_INFO_ON_ROOT(
-       "   + diffusion time integrator:                    "
-       << ( enableDiffusion ?
-                ( diffusionTimeIntegrator == DiffusionTimeIntegrator::ImplicitEuler ? "implicit Euler" : "Crank-Nicolson" ) :
-                "disabled" ) )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + adjusted advection:                           " << ( adjustedAdvection ? "yes" : "no" ) )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + particle reset:                               "
-                              << ( resetParticles ? "yes" : "no" ) << ( forcedParticleReset ? " (forced)" : "" ) )
-   WALBERLA_LOG_INFO_ON_ROOT( " - app settings: " )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + VTK:                                          " << ( vtk ? "yes" : "no" ) )
-   if ( vtk )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "   + VTK interval:                                 " << vtkInterval )
-   }
-   WALBERLA_LOG_INFO_ON_ROOT( "   + print interval:                               " << printInterval )
-   WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    WALBERLA_LOG_INFO_ON_ROOT( " timestep | time total | discr. L2 error | max peak diff. | spu. osc. | total mass | mass change " )
    WALBERLA_LOG_INFO_ON_ROOT( "----------+------------+-----------------+----------------+-----------+------------+-------------" )
