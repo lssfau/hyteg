@@ -35,6 +35,7 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -143,10 +144,11 @@ class ZeroSolution : public Solution
 };
 
 void solve( const MeshInfo&         meshInfo,
-            bool                    setAnnulusMap,
+            bool                    setBlendingMap,
             Solution&               solution,
             Solution&               velocityX,
             Solution&               velocityY,
+            Solution&               velocityZ,
             real_t                  dt,
             real_t                  diffusivity,
             uint_t                  level,
@@ -156,6 +158,7 @@ void solve( const MeshInfo&         meshInfo,
             bool                    adjustedAdvection,
             uint_t                  numTimeSteps,
             bool                    vtk,
+            bool                    vtkOutputVelocity,
             const std::string&      benchmarkName,
             uint_t                  printInterval,
             uint_t                  vtkInterval );

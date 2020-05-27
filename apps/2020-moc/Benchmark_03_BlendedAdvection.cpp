@@ -115,6 +115,12 @@ class VelocitySolutionY : public Solution
    real_t operator()( const Point3D& x ) const override { return x[0]; }
 };
 
+class VelocitySolutionZ : public Solution
+{
+   /// Evaluates the solution at a specific point.
+   real_t operator()( const Point3D& ) const override { return 0; }
+};
+
 void benchmark( int argc, char** argv )
 {
    walberla::Environment env( argc, argv );
@@ -154,12 +160,14 @@ void benchmark( int argc, char** argv )
    TempSolution      cSolution( enableGaussianCone, enableLinearCone, enableCylinder );
    VelocitySolutionX uSolution;
    VelocitySolutionY vSolution;
+   VelocitySolutionZ wSolution;
 
    solve( meshInfo,
           true,
           cSolution,
           uSolution,
           vSolution,
+          wSolution,
           dt,
           1.0,
           level,
@@ -169,6 +177,7 @@ void benchmark( int argc, char** argv )
           adjustedAdvection,
           numTimeSteps,
           vtk,
+          true,
           "Benchmark_03_BlendedAdvection",
           printInterval,
           vtkInterval );

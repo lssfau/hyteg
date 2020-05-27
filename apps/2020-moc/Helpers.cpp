@@ -24,10 +24,11 @@ namespace hyteg {
 namespace moc_benchmarks {
 
 void solve( const MeshInfo&         meshInfo,
-            bool                    setAnnulusMap,
+            bool                    setBlendingMap,
             Solution&               solution,
             Solution&               velocityX,
             Solution&               velocityY,
+            Solution&               velocityZ,
             real_t                  dt,
             real_t                  diffusivity,
             uint_t                  level,
@@ -37,6 +38,7 @@ void solve( const MeshInfo&         meshInfo,
             bool                    adjustedAdvection,
             uint_t                  numTimeSteps,
             bool                    vtk,
+            bool                    vtkOutputVelocity,
             const std::string&      benchmarkName,
             uint_t                  printInterval,
             uint_t                  vtkInterval )
@@ -44,9 +46,16 @@ void solve( const MeshInfo&         meshInfo,
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   if ( setAnnulusMap )
+   if ( setBlendingMap )
    {
-      AnnulusMap::setMap( *setupStorage );
+      if ( setupStorage->getNumberOfCells() == 0 )
+      {
+         AnnulusMap::setMap( *setupStorage );
+      }
+      else
+      {
+         IcosahedralShellMap::setMap( *setupStorage );
+      }
    }
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
@@ -95,6 +104,10 @@ void solve( const MeshInfo&         meshInfo,
    cSolution.interpolate( std::function< real_t( const Point3D& ) >( std::ref( solution ) ), level );
    u.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
    v.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
+   if ( storage->hasGlobalCells() )
+   {
+      w.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityZ ) ), level );
+   }
 
    cError.assign( {1.0, -1.0}, {c, cSolution}, level, All );
 
@@ -108,8 +121,15 @@ void solve( const MeshInfo&         meshInfo,
 
    hyteg::VTKOutput vtkOutput( "./output", benchmarkName, storage, vtkInterval );
 
-   vtkOutput.add( u );
-   vtkOutput.add( v );
+   if ( vtkOutputVelocity )
+   {
+      vtkOutput.add( u );
+      vtkOutput.add( v );
+      if ( storage->hasGlobalCells() )
+      {
+         vtkOutput.add( w );
+      }
+   }
    vtkOutput.add( c );
    vtkOutput.add( cSolution );
    vtkOutput.add( cError );
@@ -123,11 +143,12 @@ void solve( const MeshInfo&         meshInfo,
    WALBERLA_LOG_INFO_ON_ROOT( "   + time steps:                                   " << numTimeSteps )
    WALBERLA_LOG_INFO_ON_ROOT( "   + time final:                                   " << real_c( numTimeSteps ) * dt )
    WALBERLA_LOG_INFO_ON_ROOT( " - space discretization: " )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + dimensions:                                   " << ( storage->hasGlobalCells() ? "3" : "2" ) )
    WALBERLA_LOG_INFO_ON_ROOT( "   + level:                                        " << level )
    WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns (== particles), including boundary:  " << unknowns )
    WALBERLA_LOG_INFO_ON_ROOT( "   + h_min:                                        " << hMin )
    WALBERLA_LOG_INFO_ON_ROOT( "   + h_max:                                        " << hMax )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + annulus blending:                             " << ( setAnnulusMap ? "yes" : "no" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + blending:                                     " << ( setBlendingMap ? "yes" : "no" ) )
    WALBERLA_LOG_INFO_ON_ROOT( " - advection-diffusion settings: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + diffusivity:                                  "
                               << ( enableDiffusion ? std::to_string( diffusivity ) : "disabled (== 0)" ) )
@@ -165,14 +186,23 @@ void solve( const MeshInfo&         meshInfo,
 
       uLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
       vLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
+      if ( storage->hasGlobalCells() )
+      {
+         wLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityZ ) ), level );
+      }
       velocityX.incTime( dt );
       velocityY.incTime( dt );
+      velocityZ.incTime( dt );
       u.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
       v.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
+      if ( storage->hasGlobalCells() )
+      {
+         w.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityZ ) ), level );
+      }
 
       if ( adjustedAdvection )
       {
-         const real_t vMax                         = velocityMaxMagnitude( u, v, tmp, tmp2, level, All );
+         const real_t vMax                         = velocityMaxMagnitude( u, v, w, tmp, tmp2, level, All );
          const real_t adjustedAdvectionPertubation = 0.1 * ( hMin / vMax );
          transport.step( c, u, v, w, uLast, vLast, wLast, level, Inner, dt, 1, M, 0.0, adjustedAdvectionPertubation );
       }

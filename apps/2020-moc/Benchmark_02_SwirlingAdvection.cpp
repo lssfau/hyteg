@@ -140,6 +140,24 @@ class VelocitySolutionY : public Solution
    real_t timeTotal_;
 };
 
+class VelocitySolutionZ : public Solution
+{
+ public:
+   explicit VelocitySolutionZ( real_t timeTotal )
+       : Solution()
+       , timeTotal_( timeTotal )
+   {}
+
+   /// Evaluates the solution at a specific point.
+   real_t operator()( const Point3D& ) const override
+   {
+      return 0;
+   }
+
+ private:
+   real_t timeTotal_;
+};
+
 void benchmark( int argc, char** argv )
 {
    walberla::Environment env( argc, argv );
@@ -179,12 +197,14 @@ void benchmark( int argc, char** argv )
    TempSolution      cSolution( enableGaussianCone, enableLinearCone, enableCylinder );
    VelocitySolutionX uSolution( tEnd );
    VelocitySolutionY vSolution( tEnd );
+   VelocitySolutionZ wSolution( tEnd );
 
    solve( meshInfo,
           false,
           cSolution,
           uSolution,
           vSolution,
+          wSolution,
           dt,
           1.0,
           level,
@@ -194,6 +214,7 @@ void benchmark( int argc, char** argv )
           adjustedAdvection,
           numTimeSteps,
           vtk,
+          true,
           "Benchmark_02_SwirlingAdvection",
           printInterval,
           vtkInterval );

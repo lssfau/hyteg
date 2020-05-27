@@ -43,7 +43,7 @@ namespace hyteg {
 namespace moc_benchmarks {
 
 auto r = []( const hyteg::Point3D& x, const hyteg::Point3D& x0, const real_t& r0 ) -> real_t {
-   return ( 1 / r0 ) * std::sqrt( std::pow( x[0] - x0[0], 2 ) + std::pow( x[1] - x0[1], 2 ) );
+   return ( 1 / r0 ) * std::sqrt( std::pow( x[0] - x0[0], 2 ) + std::pow( x[1] - x0[1], 2 ) + std::pow( x[2] - x0[2], 2 ) );
 };
 
 auto conicalBody = []( const hyteg::Point3D& x ) -> real_t {
@@ -114,6 +114,16 @@ class VelocitySolutionY : public Solution
    real_t operator()( const Point3D& x ) const override { return x[0] - 0.5; }
 };
 
+class VelocitySolutionZ : public Solution
+{
+   /// Evaluates the solution at a specific point.
+   real_t operator()( const Point3D& x ) const override
+   {
+      const auto xx = x[0] - 0.5;
+      return 0.1 * xx;
+   }
+};
+
 void benchmark( int argc, char** argv )
 {
    walberla::Environment env( argc, argv );
@@ -135,6 +145,7 @@ void benchmark( int argc, char** argv )
 
    const uint_t numTimeSteps       = mainConf.getParameter< uint_t >( "numTimeSteps" );
    const uint_t level              = mainConf.getParameter< uint_t >( "level" );
+   const bool   threeDim           = mainConf.getParameter< bool >( "threeDim" );
    const bool   resetParticles     = mainConf.getParameter< bool >( "resetParticles" );
    const bool   adjustedAdvection  = mainConf.getParameter< bool >( "adjustedAdvection" );
    const bool   enableCylinder     = mainConf.getParameter< bool >( "enableCylinder" );
@@ -144,7 +155,15 @@ void benchmark( int argc, char** argv )
    const bool   vtk                = mainConf.getParameter< bool >( "vtk" );
    const uint_t vtkInterval        = mainConf.getParameter< uint_t >( "vtkInterval" );
 
-   MeshInfo meshInfo = hyteg::MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, 1, 1 );
+   MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
+   if ( threeDim )
+   {
+      meshInfo = MeshInfo::meshCuboid( Point3D( { 0, 0, -0.5 } ), Point3D( { 1, 1, 0.5 } ), 1, 1, 1 );
+   }
+   else
+   {
+      meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1, 1 } ), MeshInfo::CRISS, 1, 1 );
+   }
 
    const real_t tEnd = 2 * walberla::math::pi;
    const real_t dt   = tEnd / real_c( numTimeSteps );
@@ -152,12 +171,14 @@ void benchmark( int argc, char** argv )
    TempSolution      cSolution( enableGaussianCone, enableLinearCone, enableCylinder );
    VelocitySolutionX uSolution;
    VelocitySolutionY vSolution;
+   VelocitySolutionZ wSolution;
 
    solve( meshInfo,
           false,
           cSolution,
           uSolution,
           vSolution,
+          wSolution,
           dt,
           1.0,
           level,
@@ -167,6 +188,7 @@ void benchmark( int argc, char** argv )
           adjustedAdvection,
           numTimeSteps,
           vtk,
+          true,
           "Benchmark_01_CircularAdvection",
           printInterval,
           vtkInterval );
