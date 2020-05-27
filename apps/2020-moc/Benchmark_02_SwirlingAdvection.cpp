@@ -175,6 +175,7 @@ class VelocitySolutionZ : public Solution
    /// Evaluates the solution at a specific point.
    real_t operator()( const Point3D& ) const override
    {
+      WALBERLA_UNUSED( timeTotal_ );
       return 0;
    }
 
