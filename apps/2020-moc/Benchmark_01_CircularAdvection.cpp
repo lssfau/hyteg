@@ -73,7 +73,6 @@ auto slottedCylinder = []( const hyteg::Point3D& x ) -> real_t {
       return 0.0;
 };
 
-
 class TempSolution : public Solution
 {
  public:
@@ -116,12 +115,25 @@ class VelocitySolutionY : public Solution
 
 class VelocitySolutionZ : public Solution
 {
+ public:
+   explicit VelocitySolutionZ( bool threeDim )
+   : threeDim_( threeDim )
+   {}
+
    /// Evaluates the solution at a specific point.
    real_t operator()( const Point3D& x ) const override
    {
+      if ( !threeDim_ )
+      {
+         return 0;
+      }
+
       const auto xx = x[0] - 0.5;
       return 0.1 * xx;
    }
+
+ private:
+   bool threeDim_;
 };
 
 void benchmark( int argc, char** argv )
@@ -158,11 +170,11 @@ void benchmark( int argc, char** argv )
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
    if ( threeDim )
    {
-      meshInfo = MeshInfo::meshCuboid( Point3D( { 0, 0, -0.5 } ), Point3D( { 1, 1, 0.5 } ), 1, 1, 1 );
+      meshInfo = MeshInfo::meshCuboid( Point3D( {0, 0, -0.5} ), Point3D( {1, 1, 0.5} ), 1, 1, 1 );
    }
    else
    {
-      meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1, 1 } ), MeshInfo::CRISS, 1, 1 );
+      meshInfo = MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, 1, 1 );
    }
 
    const real_t tEnd = 2 * walberla::math::pi;
@@ -171,7 +183,7 @@ void benchmark( int argc, char** argv )
    TempSolution      cSolution( enableGaussianCone, enableLinearCone, enableCylinder );
    VelocitySolutionX uSolution;
    VelocitySolutionY vSolution;
-   VelocitySolutionZ wSolution;
+   VelocitySolutionZ wSolution( threeDim );
 
    solve( meshInfo,
           false,
