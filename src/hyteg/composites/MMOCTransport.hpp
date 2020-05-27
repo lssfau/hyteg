@@ -222,11 +222,17 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
    {
       for ( auto p : particleStorage )
       {
+         p.setOutsideDomain( 0 );
+         bool foundByPointLocation = false;
+
          auto pointOfInterest = toPoint3D( p->getPosition() );
 
          // check for current cell (probability is high that we find the particle here...)
-         auto cellID = p->getContainingPrimitive();
-         auto cell   = setupStorage.getCell( cellID );
+         const auto cellID = p->getContainingPrimitive();
+         const auto cell   = setupStorage.getCell( cellID );
+
+         Point3D computationalLocation;
+         cell->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocation );
 
          if ( isPointInTetrahedron( pointOfInterest,
                                     cell->getCoordinates().at( 0 ),
@@ -235,6 +241,7 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
                                     cell->getCoordinates().at( 3 ) ) )
          {
             p->setContainingPrimitive( cellID );
+            foundByPointLocation = true;
          }
          else
          {
@@ -242,19 +249,64 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
             auto neighboringCells = getNeighboringPrimitives( cellID, setupStorage );
             for ( const auto& neighborCellID : neighboringCells )
             {
-               cell = setupStorage.getCell( neighborCellID );
+               const auto neighborCell = setupStorage.getCell( neighborCellID );
 
                if ( isPointInTetrahedron( pointOfInterest,
-                                          cell->getCoordinates().at( 0 ),
-                                          cell->getCoordinates().at( 1 ),
-                                          cell->getCoordinates().at( 2 ),
-                                          cell->getCoordinates().at( 3 ) ) )
+                                          neighborCell->getCoordinates().at( 0 ),
+                                          neighborCell->getCoordinates().at( 1 ),
+                                          neighborCell->getCoordinates().at( 2 ),
+                                          neighborCell->getCoordinates().at( 3 ) ) )
                {
                   // set it to the first neighbor we found to contain the particle
                   p->setContainingPrimitive( neighborCellID );
+                  foundByPointLocation = true;
                   continue;
                }
             }
+         }
+
+         if ( !foundByPointLocation )
+         {
+            // At this point there are still three possible scenarios regarding the location of the particle:
+            // 1. The particle is outside the neighborhood -> timestep too large, we do not care and crash.
+            // 2. The particle is outside of the entire domain -> we set the outsideDomain flag.
+            // 3. The particle is in the neighborhood patch, but floating-point errors made all point location
+            //    calculations return false. We therefore check with a larger radius.
+            if ( sphereTetrahedronIntersection( computationalLocation,
+                                                particleLocationRadius,
+                                                cell->getCoordinates().at( 0 ),
+                                                cell->getCoordinates().at( 1 ),
+                                                cell->getCoordinates().at( 2 ),
+                                                cell->getCoordinates().at( 3 ) ) )
+            {
+               p->setContainingPrimitive( cellID );
+               foundByPointLocation = true;
+            }
+            else
+            {
+               const auto neighboringCells = getNeighboringPrimitives( cellID, setupStorage );
+               for ( const auto& neighborCellID : neighboringCells )
+               {
+                  const auto neighborCell = setupStorage.getCell( neighborCellID );
+
+                  if ( sphereTetrahedronIntersection( computationalLocation,
+                                                      particleLocationRadius,
+                                                      neighborCell->getCoordinates().at( 0 ),
+                                                      neighborCell->getCoordinates().at( 1 ),
+                                                      neighborCell->getCoordinates().at( 2 ),
+                                                      neighborCell->getCoordinates().at( 3 ) ) )
+                  {
+                     p->setContainingPrimitive( neighborCellID );
+                     foundByPointLocation = true;
+                     continue;
+                  }
+               }
+            }
+         }
+
+         if ( !foundByPointLocation )
+         {
+            p->setOutsideDomain( 1 );
          }
       }
    }
