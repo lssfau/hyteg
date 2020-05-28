@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2020 Nils Kohl, Dominik Thoennes.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -17,23 +17,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 #pragma once
 
-#cmakedefine HYTEG_BUILD_WITH_PETSC
-#cmakedefine HYTEG_BUILD_WITH_EIGEN
-#cmakedefine HYTEG_BUILD_WITH_TRILINOS
-#cmakedefine HYTEG_USE_GENERATED_KERNELS
+#include "hyteg/HytegDefinitions.hpp"
 
-#ifdef HYTEG_USE_GENERATED_KERNELS
-namespace hyteg {
-namespace globalDefines {
-constexpr bool useGeneratedKernels = true;
-} // namespace globalDefines
-} // namespace hyteg
-#else
-namespace hyteg {
-namespace globalDefines {
-constexpr bool useGeneratedKernels = false;
-} // namesapce globalDefines
-} // namespace hyteg
+#ifdef HYTEG_BUILD_WITH_TRILINOS
+
+#include "Tpetra_Version.hpp"
+
 #endif
