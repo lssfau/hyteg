@@ -160,9 +160,12 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
             for ( const auto& neighborFaceID : neighboringFaces )
             {
                const auto neighborFace = setupStorage.getFace( neighborFaceID );
+               Point3D computationalLocationNeighbor;
+               neighborFace->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
+               Point2D computationalLocationNeighbor2D( {computationalLocationNeighbor[0], computationalLocationNeighbor[1]} );
 
                if ( isPointInTriangle(
-                        computationalLocation2D,
+                   computationalLocationNeighbor2D,
                         Point2D( {neighborFace->getCoordinates().at( 0 )[0], neighborFace->getCoordinates().at( 0 )[1]} ),
                         Point2D( {neighborFace->getCoordinates().at( 1 )[0], neighborFace->getCoordinates().at( 1 )[1]} ),
                         Point2D( {neighborFace->getCoordinates().at( 2 )[0], neighborFace->getCoordinates().at( 2 )[1]} ) ) )
@@ -197,8 +200,10 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
                for ( const auto& neighborFaceID : neighboringFaces )
                {
                   const auto neighborFace = setupStorage.getFace( neighborFaceID );
+                  Point3D computationalLocationNeighbor;
+                  neighborFace->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
 
-                  if ( sphereTriangleIntersection( computationalLocation,
+                  if ( sphereTriangleIntersection( computationalLocationNeighbor,
                                                    particleLocationRadius,
                                                    neighborFace->getCoordinates().at( 0 ),
                                                    neighborFace->getCoordinates().at( 1 ),
@@ -225,8 +230,6 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
          p.setOutsideDomain( 0 );
          bool foundByPointLocation = false;
 
-         auto pointOfInterest = toPoint3D( p->getPosition() );
-
          // check for current cell (probability is high that we find the particle here...)
          const auto cellID = p->getContainingPrimitive();
          const auto cell   = setupStorage.getCell( cellID );
@@ -234,7 +237,7 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
          Point3D computationalLocation;
          cell->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocation );
 
-         if ( isPointInTetrahedron( pointOfInterest,
+         if ( isPointInTetrahedron( computationalLocation,
                                     cell->getCoordinates().at( 0 ),
                                     cell->getCoordinates().at( 1 ),
                                     cell->getCoordinates().at( 2 ),
@@ -250,8 +253,10 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
             for ( const auto& neighborCellID : neighboringCells )
             {
                const auto neighborCell = setupStorage.getCell( neighborCellID );
+               Point3D computationalLocationNeighbor;
+               neighborCell->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
 
-               if ( isPointInTetrahedron( pointOfInterest,
+               if ( isPointInTetrahedron( computationalLocationNeighbor,
                                           neighborCell->getCoordinates().at( 0 ),
                                           neighborCell->getCoordinates().at( 1 ),
                                           neighborCell->getCoordinates().at( 2 ),
@@ -288,8 +293,10 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
                for ( const auto& neighborCellID : neighboringCells )
                {
                   const auto neighborCell = setupStorage.getCell( neighborCellID );
+                  Point3D computationalLocationNeighbor;
+                  neighborCell->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
 
-                  if ( sphereTetrahedronIntersection( computationalLocation,
+                  if ( sphereTetrahedronIntersection( computationalLocationNeighbor,
                                                       particleLocationRadius,
                                                       neighborCell->getCoordinates().at( 0 ),
                                                       neighborCell->getCoordinates().at( 1 ),
@@ -339,9 +346,11 @@ inline real_t evaluateAtParticlePosition( PrimitiveStorage&                     
    {
       WALBERLA_CHECK( storage.cellExistsLocally( particle.getContainingPrimitive() ) );
       Cell& cell = *storage.getCell( particle.getContainingPrimitive() );
+      Point3D computationalLocation;
+      cell.getGeometryMap()->evalFinv( toPoint3D( particle.getPosition() ), computationalLocation );
       result     = P2::macrocell::evaluate( level,
                                         cell,
-                                        toPoint3D( particle.getPosition() ),
+                                        computationalLocation,
                                         function.getVertexDoFFunction().getCellDataID(),
                                         function.getEdgeDoFFunction().getCellDataID() );
    }
@@ -384,8 +393,9 @@ inline void evaluateAtParticlePosition( PrimitiveStorage&                       
 
       WALBERLA_CHECK( storage.cellExistsLocally( particle.getContainingPrimitive() ) );
       Cell& cell = *storage.getCell( particle.getContainingPrimitive() );
-
-      P2::macrocell::evaluate( level, cell, toPoint3D( particle.getPosition() ), vertexDataIDs, edgeDataIDs, results );
+      Point3D computationalLocation;
+      cell.getGeometryMap()->evalFinv( toPoint3D( particle.getPosition() ), computationalLocation );
+      P2::macrocell::evaluate( level, cell, computationalLocation, vertexDataIDs, edgeDataIDs, results );
    }
 }
 
