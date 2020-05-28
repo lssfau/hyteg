@@ -240,12 +240,19 @@ inline void interpolate( const uint_t&                                          
          srcVectorYZ[k] = srcPtr[k][edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() )];
       }
 
-      cellData[edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() )]  = expr( xMicroEdgePosition, srcVectorX );
-      cellData[edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() )]  = expr( yMicroEdgePosition, srcVectorY );
-      cellData[edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() )]  = expr( zMicroEdgePosition, srcVectorZ );
-      cellData[edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() )] = expr( xyMicroEdgePosition, srcVectorXY );
-      cellData[edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() )] = expr( xzMicroEdgePosition, srcVectorXZ );
-      cellData[edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() )] = expr( yzMicroEdgePosition, srcVectorYZ );
+      Point3D xBlend, yBlend, zBlend, xyBlend, xzBlend, yzBlend;
+      cell.getGeometryMap()->evalF( xMicroEdgePosition, xBlend );
+      cell.getGeometryMap()->evalF( yMicroEdgePosition, yBlend );
+      cell.getGeometryMap()->evalF( zMicroEdgePosition, zBlend );
+      cell.getGeometryMap()->evalF( xyMicroEdgePosition, xyBlend );
+      cell.getGeometryMap()->evalF( xzMicroEdgePosition, xzBlend );
+      cell.getGeometryMap()->evalF( yzMicroEdgePosition, yzBlend );
+      cellData[edgedof::macrocell::xIndex( Level, it.x(), it.y(), it.z() )]  = expr( xBlend, srcVectorX );
+      cellData[edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() )]  = expr( yBlend, srcVectorY );
+      cellData[edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() )]  = expr( zBlend, srcVectorZ );
+      cellData[edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() )] = expr( xyBlend, srcVectorXY );
+      cellData[edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() )] = expr( xyBlend, srcVectorXZ );
+      cellData[edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() )] = expr( yzBlend, srcVectorYZ );
    }
 
    for ( const auto& it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
@@ -259,7 +266,9 @@ inline void interpolate( const uint_t&                                          
          srcVectorXYZ[k] = srcPtr[k][edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() )];
       }
 
-      cellData[edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() )] = expr( xyzMicroEdgePosition, srcVectorXYZ );
+      Point3D xyzBlend;
+      cell.getGeometryMap()->evalF( xyzMicroEdgePosition, xyzBlend );
+      cellData[edgedof::macrocell::xyzIndex( Level, it.x(), it.y(), it.z() )] = expr( xyzBlend, srcVectorXYZ );
    }
 }
 
