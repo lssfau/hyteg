@@ -2,10 +2,11 @@ Parameters
 {
   level 5;
   numTimeSteps 10;
+  threeDim false;
 
   enableGaussianCone true;
   enableLinearCone true;
-  enableCylinder false;
+  enableCylinder true;
 
   resetParticles true;
   adjustedAdvection true;

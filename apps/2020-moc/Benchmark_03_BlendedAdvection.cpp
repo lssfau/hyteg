@@ -44,7 +44,7 @@ namespace hyteg {
 namespace moc_benchmarks {
 
 auto r = []( const hyteg::Point3D& x, const hyteg::Point3D& x0, const real_t& r0 ) -> real_t {
-   return ( 1 / r0 ) * std::sqrt( std::pow( x[0] - x0[0], 2 ) + std::pow( x[1] - x0[1], 2 ) );
+   return ( 1 / r0 ) * std::sqrt( std::pow( x[0] - x0[0], 2 ) + std::pow( x[1] - x0[1], 2 ) + std::pow( x[2] - x0[2], 2 )  );
 };
 
 std::function< real_t( const hyteg::Point3D& ) > conicalBody = []( const hyteg::Point3D& x ) -> real_t {
@@ -117,8 +117,24 @@ class VelocitySolutionY : public Solution
 
 class VelocitySolutionZ : public Solution
 {
+ public:
+   explicit VelocitySolutionZ( bool threeDim )
+       : threeDim_( threeDim )
+   {}
+
    /// Evaluates the solution at a specific point.
-   real_t operator()( const Point3D& ) const override { return 0; }
+   real_t operator()( const Point3D& x ) const override
+   {
+      if ( !threeDim_ )
+      {
+         return 0;
+      }
+
+      return 0.1 * x[0];
+   }
+
+ private:
+   bool threeDim_;
 };
 
 void benchmark( int argc, char** argv )
@@ -142,6 +158,7 @@ void benchmark( int argc, char** argv )
 
    const uint_t numTimeSteps       = mainConf.getParameter< uint_t >( "numTimeSteps" );
    const uint_t level              = mainConf.getParameter< uint_t >( "level" );
+   const bool   threeDim           = mainConf.getParameter< bool >( "threeDim" );
    const bool   resetParticles     = mainConf.getParameter< bool >( "resetParticles" );
    const bool   adjustedAdvection  = mainConf.getParameter< bool >( "adjustedAdvection" );
    const bool   enableCylinder     = mainConf.getParameter< bool >( "enableCylinder" );
@@ -151,8 +168,15 @@ void benchmark( int argc, char** argv )
    const bool   vtk                = mainConf.getParameter< bool >( "vtk" );
    const uint_t vtkInterval        = mainConf.getParameter< uint_t >( "vtkInterval" );
 
-
-   MeshInfo meshInfo = MeshInfo::meshAnnulus( 0.5, 1.5, MeshInfo::CROSS, 6, 2 );
+   MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
+   if ( threeDim )
+   {
+      meshInfo = MeshInfo::meshSphericalShell( 3, 3, 0.5, 1.5 );
+   }
+   else
+   {
+      meshInfo = MeshInfo::meshAnnulus( 0.5, 1.5, MeshInfo::CROSS, 6, 2 );
+   }
 
    const real_t tEnd = 2 * pi;
    const real_t dt   = tEnd / real_c( numTimeSteps );
@@ -160,7 +184,7 @@ void benchmark( int argc, char** argv )
    TempSolution      cSolution( enableGaussianCone, enableLinearCone, enableCylinder );
    VelocitySolutionX uSolution;
    VelocitySolutionY vSolution;
-   VelocitySolutionZ wSolution;
+   VelocitySolutionZ wSolution( threeDim );
 
    solve( meshInfo,
           true,
