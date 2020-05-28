@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2020 Nils Kohl, Dominik Thoennes.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -17,23 +17,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once
 
-#cmakedefine HYTEG_BUILD_WITH_PETSC
-#cmakedefine HYTEG_BUILD_WITH_EIGEN
-#cmakedefine HYTEG_BUILD_WITH_TRILINOS
-#cmakedefine HYTEG_USE_GENERATED_KERNELS
+#include "core/Environment.h"
+#include "core/logging/Logging.h"
+#include "hyteg/trilinos/TpetraWrapper.hpp"
 
-#ifdef HYTEG_USE_GENERATED_KERNELS
-namespace hyteg {
-namespace globalDefines {
-constexpr bool useGeneratedKernels = true;
-} // namespace globalDefines
-} // namespace hyteg
-#else
-namespace hyteg {
-namespace globalDefines {
-constexpr bool useGeneratedKernels = false;
-} // namesapce globalDefines
-} // namespace hyteg
-#endif
+using walberla::real_t;
+using walberla::uint_c;
+using walberla::uint_t;
+
+int main( int argc, char* argv[] )
+{
+   walberla::Environment walberlaEnv( argc, argv );
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   WALBERLA_LOG_INFO_ON_ROOT( Tpetra::version() )
+
+   return EXIT_SUCCESS;
+}

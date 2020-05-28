@@ -613,3 +613,9 @@ waLBerla_execute_test(NAME invertElementwiseTestMPI COMMAND $<TARGET_FILE:invert
 waLBerla_compile_test(FILES fpe/CircularMapFPETest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME CircularMapFPETest)
 waLBerla_execute_test(NAME CircularMapFPETestMPI COMMAND $<TARGET_FILE:CircularMapFPETest> PROCESSES 2 )
+
+if ( HYTEG_BUILD_WITH_TRILINOS )
+## Trilinos ##
+waLBerla_compile_test(FILES trilinos/trilinosVersionTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME trilinosVersionTest)
+endif()
