@@ -32,6 +32,7 @@
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/MMOCTransport.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
+#include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"

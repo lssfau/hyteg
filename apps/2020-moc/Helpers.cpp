@@ -43,6 +43,8 @@ void solve( const MeshInfo&         meshInfo,
             uint_t                  printInterval,
             uint_t                  vtkInterval )
 {
+   const bool outputTimingJSON = true;
+
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -58,6 +60,10 @@ void solve( const MeshInfo&         meshInfo,
       }
    }
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
+
+   auto timer = storage->getTimingTree();
+   timer->start( "Total" );
+   timer->start( "Setup" );
 
    const uint_t unknowns = numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
    const real_t hMin     = MeshQuality::getMinimalEdgeLength( storage, level );
@@ -181,6 +187,10 @@ void solve( const MeshInfo&         meshInfo,
                                                 mass,
                                                 massChange * 100 ) )
 
+   timer->stop( "Setup" );
+
+   timer->start( "Simulation" );
+
    for ( uint_t i = 1; i <= numTimeSteps; i++ )
    {
       cOld.assign( {1.0}, {c}, level, All );
@@ -227,14 +237,14 @@ void solve( const MeshInfo&         meshInfo,
 
       cError.assign( {1.0, -1.0}, {c, cSolution}, level, All );
 
-      discrL2     = normL2( cError, tmp, M, level, Inner );
-      maxPeakDiff = maxPeakDifference( c, cSolution, level, All );
-      spuriousOsc = spuriousOscillations( c, level, All );
-      mass        = globalMass( c, tmp, M, level, All );
-      massChange  = ( mass / initialMass ) - 1.0;
-
       if ( ( printInterval == 0 && i == numTimeSteps ) || ( printInterval > 0 && i % printInterval == 0 ) )
       {
+         discrL2     = normL2( cError, tmp, M, level, Inner );
+         maxPeakDiff = maxPeakDifference( c, cSolution, level, All );
+         spuriousOsc = spuriousOscillations( c, level, All );
+         mass        = globalMass( c, tmp, M, level, All );
+         massChange  = ( mass / initialMass ) - 1.0;
+
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8d | %10.5f | %15.3e | %14.3e | %9.3e | %10.3e | %11.2f%% ",
                                                       i,
                                                       timeTotal,
@@ -247,6 +257,15 @@ void solve( const MeshInfo&         meshInfo,
 
       if ( vtk )
          vtkOutput.write( level, i );
+   }
+
+   timer->stop( "Simulation" );
+
+   timer->stop( "Total" );
+
+   if ( outputTimingJSON )
+   {
+      writeTimingTreeJSON( *timer, benchmarkName + "Timing.json" );
    }
 }
 

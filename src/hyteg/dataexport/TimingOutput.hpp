@@ -29,7 +29,7 @@ namespace hyteg {
 ///
 /// Notes: - involves multiple allReduces
 ///        - the TimingTree is copied - the original TimingTree is not modified
-void printTimingTree( walberla::WcTimingTree timingTree )
+inline void printTimingTree( walberla::WcTimingTree timingTree )
 {
    timingTree.synchronize();
    auto ttReduced = timingTree.getReduced().getCopyWithRemainder();
@@ -40,7 +40,7 @@ void printTimingTree( walberla::WcTimingTree timingTree )
 ///
 /// Notes: - involves multiple allReduces
 ///        - the TimingTree is copied - the original TimingTree is not modified
-void writeTimingTreeJSON( walberla::WcTimingTree timingTree, const std::string& file )
+inline void writeTimingTreeJSON( walberla::WcTimingTree timingTree, const std::string& file )
 {
    timingTree.synchronize();
    auto           ttReduced = timingTree.getReduced().getCopyWithRemainder();
