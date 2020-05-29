@@ -251,7 +251,7 @@ inline void interpolate( const uint_t&                                          
       cellData[edgedof::macrocell::yIndex( Level, it.x(), it.y(), it.z() )]  = expr( yBlend, srcVectorY );
       cellData[edgedof::macrocell::zIndex( Level, it.x(), it.y(), it.z() )]  = expr( zBlend, srcVectorZ );
       cellData[edgedof::macrocell::xyIndex( Level, it.x(), it.y(), it.z() )] = expr( xyBlend, srcVectorXY );
-      cellData[edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() )] = expr( xyBlend, srcVectorXZ );
+      cellData[edgedof::macrocell::xzIndex( Level, it.x(), it.y(), it.z() )] = expr( xzBlend, srcVectorXZ );
       cellData[edgedof::macrocell::yzIndex( Level, it.x(), it.y(), it.z() )] = expr( yzBlend, srcVectorYZ );
    }
 
