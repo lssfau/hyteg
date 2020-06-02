@@ -39,9 +39,9 @@ using walberla::uint_t;
 using namespace hyteg;
 
 /// comparing constant operator and elementwise operator Jacobi
-static void test( const std::string& meshFile, const uint_t& level, const uint_t& maxiter, const uint_t& smoother )
+static void test( const std::string& meshFile, const uint_t& level, const uint_t& maxiter )
 {
-   const bool writeVTK    = true;
+   const bool writeVTK    = false;
    const bool printTiming = true;
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
@@ -83,7 +83,7 @@ static void test( const std::string& meshFile, const uint_t& level, const uint_t
    p2functionElem.interpolate( exactFunction, level, DirichletBoundary );
    p2Exact.interpolate( exactFunction, level );
 
-   real_t begin_res, abs_res_old, rel_res, abs_res = 0;
+   real_t begin_res, abs_res_old, rel_res = 0, abs_res = 0;
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6s|%10s|%10s|%10s|%10s", "iter", "Jacobi diff", "abs_res", "rel_res", "conv" ) );
 
@@ -110,7 +110,7 @@ static void test( const std::string& meshFile, const uint_t& level, const uint_t
       error.assign( {1.0, -1.0}, {p2functionConst, p2functionElem}, level, All );
       auto jacobiDiff = std::sqrt( error.dotGlobal( error, level, Inner ) );
 
-      WALBERLA_CHECK_LESS( jacobiDiff, 1e-14, "ElemOp Jacobi produces different result than ConstOp Jacobi" );
+       WALBERLA_CHECK_LESS( jacobiDiff, 1e-13, "ElemOp Jacobi produces different result than ConstOp Jacobi" );
 
       Lconst.apply( p2functionConst, Lu, level, Inner );
       residuum.assign( {1.0, -1.0}, {rhs, Lu}, level, Inner );
@@ -144,12 +144,9 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   test( "../../data/meshes/quad_8el.msh", 4, 20, 0 );
-   test( "../../data/meshes/quad_8el.msh", 4, 20, 1 );
-   test( "../../data/meshes/3D/tet_1el.msh", 4, 20, 0 );
-   test( "../../data/meshes/3D/tet_1el.msh", 4, 20, 1 );
-   test( "../../data/meshes/3D/regular_octahedron_8el.msh", 4, 20, 0 );
-   test( "../../data/meshes/3D/regular_octahedron_8el.msh", 4, 20, 1 );
+   test( "../../data/meshes/quad_8el.msh", 4, 20 );
+   test( "../../data/meshes/3D/tet_1el.msh", 4, 20);
+   test( "../../data/meshes/3D/regular_octahedron_8el.msh", 4, 20);
 
    return 0;
 }
