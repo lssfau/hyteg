@@ -26,13 +26,13 @@
 #include <core/mpi/MPIWrapper.h>
 
 #include "hyteg/FunctionIterator.hpp"
+#include "hyteg/MeshQuality.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/communication/convection_particles/SyncNextNeighborsByPrimitiveID.h"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/geometry/Intersection.hpp"
-#include "hyteg/MeshQuality.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
@@ -160,9 +160,12 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
             for ( const auto& neighborFaceID : neighboringFaces )
             {
                const auto neighborFace = setupStorage.getFace( neighborFaceID );
+               Point3D    computationalLocationNeighbor;
+               neighborFace->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
+               Point2D computationalLocationNeighbor2D( {computationalLocationNeighbor[0], computationalLocationNeighbor[1]} );
 
                if ( isPointInTriangle(
-                        computationalLocation2D,
+                        computationalLocationNeighbor2D,
                         Point2D( {neighborFace->getCoordinates().at( 0 )[0], neighborFace->getCoordinates().at( 0 )[1]} ),
                         Point2D( {neighborFace->getCoordinates().at( 1 )[0], neighborFace->getCoordinates().at( 1 )[1]} ),
                         Point2D( {neighborFace->getCoordinates().at( 2 )[0], neighborFace->getCoordinates().at( 2 )[1]} ) ) )
@@ -170,7 +173,7 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
                   // set it to the first neighbor we found to contain the particle
                   p->setContainingPrimitive( neighborFaceID );
                   foundByPointLocation = true;
-                  continue;
+                  break;
                }
             }
          }
@@ -197,8 +200,10 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
                for ( const auto& neighborFaceID : neighboringFaces )
                {
                   const auto neighborFace = setupStorage.getFace( neighborFaceID );
+                  Point3D    computationalLocationNeighbor;
+                  neighborFace->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
 
-                  if ( sphereTriangleIntersection( computationalLocation,
+                  if ( sphereTriangleIntersection( computationalLocationNeighbor,
                                                    particleLocationRadius,
                                                    neighborFace->getCoordinates().at( 0 ),
                                                    neighborFace->getCoordinates().at( 1 ),
@@ -206,7 +211,7 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
                   {
                      p->setContainingPrimitive( neighborFaceID );
                      foundByPointLocation = true;
-                     continue;
+                     break;
                   }
                }
             }
@@ -222,39 +227,101 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
    {
       for ( auto p : particleStorage )
       {
-         auto pointOfInterest = toPoint3D( p->getPosition() );
+         p.setOutsideDomain( 0 );
+         bool foundByPointLocation = false;
 
          // check for current cell (probability is high that we find the particle here...)
-         auto cellID = p->getContainingPrimitive();
-         auto cell   = setupStorage.getCell( cellID );
+         const auto cellID = p->getContainingPrimitive();
+         const auto cell   = setupStorage.getCell( cellID );
 
-         if ( isPointInTetrahedron( pointOfInterest,
+         Point3D computationalLocation;
+         cell->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocation );
+
+         if ( isPointInTetrahedron( computationalLocation,
                                     cell->getCoordinates().at( 0 ),
                                     cell->getCoordinates().at( 1 ),
                                     cell->getCoordinates().at( 2 ),
-                                    cell->getCoordinates().at( 3 ) ) )
+                                    cell->getCoordinates().at( 3 ),
+                                    cell->getFaceInwardNormal( 0 ),
+                                    cell->getFaceInwardNormal( 1 ),
+                                    cell->getFaceInwardNormal( 2 ),
+                                    cell->getFaceInwardNormal( 3 ) ) )
          {
             p->setContainingPrimitive( cellID );
+            foundByPointLocation = true;
          }
          else
          {
             // check for neighbor cells if we did not find it in its previous cell
-            auto neighboringCells = getNeighboringPrimitives( cellID, setupStorage );
+            const auto& neighboringCells = cell->getIndirectNeighborCellIDs();
             for ( const auto& neighborCellID : neighboringCells )
             {
-               cell = setupStorage.getCell( neighborCellID );
+               const auto neighborCell = setupStorage.getCell( neighborCellID );
+               Point3D    computationalLocationNeighbor;
+               neighborCell->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
 
-               if ( isPointInTetrahedron( pointOfInterest,
-                                          cell->getCoordinates().at( 0 ),
-                                          cell->getCoordinates().at( 1 ),
-                                          cell->getCoordinates().at( 2 ),
-                                          cell->getCoordinates().at( 3 ) ) )
+               if ( isPointInTetrahedron( computationalLocationNeighbor,
+                                          neighborCell->getCoordinates().at( 0 ),
+                                          neighborCell->getCoordinates().at( 1 ),
+                                          neighborCell->getCoordinates().at( 2 ),
+                                          neighborCell->getCoordinates().at( 3 ),
+                                          neighborCell->getFaceInwardNormal( 0 ),
+                                          neighborCell->getFaceInwardNormal( 1 ),
+                                          neighborCell->getFaceInwardNormal( 2 ),
+                                          neighborCell->getFaceInwardNormal( 3 ) ) )
                {
                   // set it to the first neighbor we found to contain the particle
                   p->setContainingPrimitive( neighborCellID );
-                  continue;
+                  foundByPointLocation = true;
+                  break;
                }
             }
+         }
+
+         if ( !foundByPointLocation )
+         {
+            // At this point there are still three possible scenarios regarding the location of the particle:
+            // 1. The particle is outside the neighborhood -> timestep too large, we do not care and crash.
+            // 2. The particle is outside of the entire domain -> we set the outsideDomain flag.
+            // 3. The particle is in the neighborhood patch, but floating-point errors made all point location
+            //    calculations return false. We therefore check with a larger radius.
+            if ( sphereTetrahedronIntersection( computationalLocation,
+                                                particleLocationRadius,
+                                                cell->getCoordinates().at( 0 ),
+                                                cell->getCoordinates().at( 1 ),
+                                                cell->getCoordinates().at( 2 ),
+                                                cell->getCoordinates().at( 3 ) ) )
+            {
+               p->setContainingPrimitive( cellID );
+               foundByPointLocation = true;
+            }
+            else
+            {
+               const auto& neighboringCells = cell->getIndirectNeighborCellIDs();
+               for ( const auto& neighborCellID : neighboringCells )
+               {
+                  const auto neighborCell = setupStorage.getCell( neighborCellID );
+                  Point3D    computationalLocationNeighbor;
+                  neighborCell->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
+
+                  if ( sphereTetrahedronIntersection( computationalLocationNeighbor,
+                                                      particleLocationRadius,
+                                                      neighborCell->getCoordinates().at( 0 ),
+                                                      neighborCell->getCoordinates().at( 1 ),
+                                                      neighborCell->getCoordinates().at( 2 ),
+                                                      neighborCell->getCoordinates().at( 3 ) ) )
+                  {
+                     p->setContainingPrimitive( neighborCellID );
+                     foundByPointLocation = true;
+                     break;
+                  }
+               }
+            }
+         }
+
+         if ( !foundByPointLocation )
+         {
+            p->setOutsideDomain( 1 );
          }
       }
    }
@@ -286,10 +353,12 @@ inline real_t evaluateAtParticlePosition( PrimitiveStorage&                     
    else
    {
       WALBERLA_CHECK( storage.cellExistsLocally( particle.getContainingPrimitive() ) );
-      Cell& cell = *storage.getCell( particle.getContainingPrimitive() );
-      result     = P2::macrocell::evaluate( level,
+      Cell&   cell = *storage.getCell( particle.getContainingPrimitive() );
+      Point3D computationalLocation;
+      cell.getGeometryMap()->evalFinv( toPoint3D( particle.getPosition() ), computationalLocation );
+      result = P2::macrocell::evaluate( level,
                                         cell,
-                                        toPoint3D( particle.getPosition() ),
+                                        computationalLocation,
                                         function.getVertexDoFFunction().getCellDataID(),
                                         function.getEdgeDoFFunction().getCellDataID() );
    }
@@ -331,9 +400,10 @@ inline void evaluateAtParticlePosition( PrimitiveStorage&                       
       }
 
       WALBERLA_CHECK( storage.cellExistsLocally( particle.getContainingPrimitive() ) );
-      Cell& cell = *storage.getCell( particle.getContainingPrimitive() );
-
-      P2::macrocell::evaluate( level, cell, toPoint3D( particle.getPosition() ), vertexDataIDs, edgeDataIDs, results );
+      Cell&   cell = *storage.getCell( particle.getContainingPrimitive() );
+      Point3D computationalLocation;
+      cell.getGeometryMap()->evalFinv( toPoint3D( particle.getPosition() ), computationalLocation );
+      P2::macrocell::evaluate( level, cell, computationalLocation, vertexDataIDs, edgeDataIDs, results );
    }
 }
 

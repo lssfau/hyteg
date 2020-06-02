@@ -52,7 +52,6 @@ inline real_t distanceToPlane( const Point3D& planeVertex0,
    return inwardNormal.norm();
 }
 
-
 /// \brief Returns the normal of the passed triangle in the direction of the opposite (4th) vertex of the tet.
 ///
 /// This function may return a weird normal if the "opposing" vertex lies almost on the plane.
@@ -80,10 +79,7 @@ inline Point3D tetrahedronInwardNormal( const Point3D& planeVertex0,
    }
 }
 
-inline bool isPointInTriangle( const Point2D & pointOfInterest,
-                               const Point2D & v1,
-                               const Point2D & v2,
-                               const Point2D & v3 )
+inline bool isPointInTriangle( const Point2D& pointOfInterest, const Point2D& v1, const Point2D& v2, const Point2D& v3 )
 {
    const auto v1x     = v1[0];
    const auto v1y     = v1[1];
@@ -266,24 +262,47 @@ inline bool sphereTriangleIntersection( const Point3D& centre,
 }
 
 /// Returns true if the passed point is located in (or on) the passed tetrahedron.
+/// Optimized version if the inward normals are already pre-computed.
+inline bool isPointInTetrahedron( const Point3D& pointOfInterest,
+                                  const Point3D& tetVertex0,
+                                  const Point3D& tetVertex1,
+                                  const Point3D& tetVertex2,
+                                  const Point3D& tetVertex3,
+                                  const Point3D& faceInwardNormalOpposingVertex0,
+                                  const Point3D& faceInwardNormalOpposingVertex1,
+                                  const Point3D& faceInwardNormalOpposingVertex2,
+                                  const Point3D& faceInwardNormalOpposingVertex3 )
+{
+   const auto distFace0 = distanceToPlane( pointOfInterest, tetVertex0, faceInwardNormalOpposingVertex3 );
+   const auto distFace1 = distanceToPlane( pointOfInterest, tetVertex1, faceInwardNormalOpposingVertex2 );
+   const auto distFace2 = distanceToPlane( pointOfInterest, tetVertex2, faceInwardNormalOpposingVertex1 );
+   const auto distFace3 = distanceToPlane( pointOfInterest, tetVertex3, faceInwardNormalOpposingVertex0 );
+
+   return distFace0 >= -real_c( 1e-08 ) && distFace1 >= -real_c( 1e-08 ) && distFace2 >= -real_c( 1e-08 ) &&
+          distFace3 >= -real_c( 1e-08 );
+}
+
+/// Returns true if the passed point is located in (or on) the passed tetrahedron.
 inline bool isPointInTetrahedron( const Point3D& pointOfInterest,
                                   const Point3D& tetVertex0,
                                   const Point3D& tetVertex1,
                                   const Point3D& tetVertex2,
                                   const Point3D& tetVertex3 )
 {
-   const auto normalFace0 = tetrahedronInwardNormal( tetVertex0, tetVertex1, tetVertex2, tetVertex3 );
-   const auto normalFace1 = tetrahedronInwardNormal( tetVertex0, tetVertex1, tetVertex3, tetVertex2 );
-   const auto normalFace2 = tetrahedronInwardNormal( tetVertex0, tetVertex2, tetVertex3, tetVertex1 );
-   const auto normalFace3 = tetrahedronInwardNormal( tetVertex1, tetVertex2, tetVertex3, tetVertex0 );
+   const auto faceInwardNormalOpposingVertex0 = tetrahedronInwardNormal( tetVertex1, tetVertex2, tetVertex3, tetVertex0 );
+   const auto faceInwardNormalOpposingVertex1 = tetrahedronInwardNormal( tetVertex0, tetVertex2, tetVertex3, tetVertex1 );
+   const auto faceInwardNormalOpposingVertex2 = tetrahedronInwardNormal( tetVertex0, tetVertex1, tetVertex3, tetVertex2 );
+   const auto faceInwardNormalOpposingVertex3 = tetrahedronInwardNormal( tetVertex0, tetVertex1, tetVertex2, tetVertex3 );
 
-   const auto distFace0 = distanceToPlane( pointOfInterest, tetVertex0, normalFace0 );
-   const auto distFace1 = distanceToPlane( pointOfInterest, tetVertex0, normalFace1 );
-   const auto distFace2 = distanceToPlane( pointOfInterest, tetVertex0, normalFace2 );
-   const auto distFace3 = distanceToPlane( pointOfInterest, tetVertex1, normalFace3 );
-
-   return distFace0 >= -real_c( 1e-08 ) && distFace1 >= -real_c( 1e-08 ) && distFace2 >= -real_c( 1e-08 ) &&
-          distFace3 >= -real_c( 1e-08 );
+   return isPointInTetrahedron( pointOfInterest,
+                                tetVertex0,
+                                tetVertex1,
+                                tetVertex2,
+                                tetVertex3,
+                                faceInwardNormalOpposingVertex0,
+                                faceInwardNormalOpposingVertex1,
+                                faceInwardNormalOpposingVertex2,
+                                faceInwardNormalOpposingVertex3 );
 }
 
 /// Returns true if the passed sphere is completely located in the passed tetrahedron.
@@ -315,13 +334,19 @@ inline bool sphereTetrahedronIntersection( const Point3D& sphereCenter,
                                            const Point3D& tetVertex3 )
 {
    const auto pointInTet = isPointInTetrahedron( sphereCenter, tetVertex0, tetVertex1, tetVertex2, tetVertex3 );
-   const auto sphereInTet = isSphereCompletelyInTetrahedron( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex2, tetVertex3 );
-   const auto sphereTriangleIntersection0 = sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex2 );
-   const auto sphereTriangleIntersection1 = sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex3 );
-   const auto sphereTriangleIntersection2 = sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex2, tetVertex3 );
-   const auto sphereTriangleIntersection3 = sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex1, tetVertex2, tetVertex3 );
+   const auto sphereInTet =
+       isSphereCompletelyInTetrahedron( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex2, tetVertex3 );
+   const auto sphereTriangleIntersection0 =
+       sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex2 );
+   const auto sphereTriangleIntersection1 =
+       sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex3 );
+   const auto sphereTriangleIntersection2 =
+       sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex2, tetVertex3 );
+   const auto sphereTriangleIntersection3 =
+       sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex1, tetVertex2, tetVertex3 );
 
-   return pointInTet || sphereInTet || sphereTriangleIntersection0 || sphereTriangleIntersection1 || sphereTriangleIntersection2 || sphereTriangleIntersection3;
+   return pointInTet || sphereInTet || sphereTriangleIntersection0 || sphereTriangleIntersection1 ||
+          sphereTriangleIntersection2 || sphereTriangleIntersection3;
 }
 
 } // namespace hyteg

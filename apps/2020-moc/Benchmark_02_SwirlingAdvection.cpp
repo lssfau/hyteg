@@ -18,6 +18,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+/// The deformation test cases of this benchmark are found in
+///
+/// LeVeque, R. J. (1996).
+/// High-resolution conservative algorithms for advection in incompressible flow.
+/// SIAM Journal on Numerical Analysis, 33(2), 627-665.
+
 #include <core/Environment.h>
 #include <core/math/Constants.h>
 
@@ -102,6 +108,24 @@ class TempSolution : public Solution
    bool enableCylinder_;
 };
 
+class TempSolution3D : public Solution
+{
+ public:
+
+   /// Evaluates the solution at a specific point.
+   real_t operator()( const Point3D& x ) const override
+   {
+      if ( x[0] < 0.5 )
+      {
+         return 1;
+      }
+      else
+      {
+         return 0;
+      }
+   }
+};
+
 class VelocitySolutionX : public Solution
 {
  public:
@@ -140,6 +164,88 @@ class VelocitySolutionY : public Solution
    real_t timeTotal_;
 };
 
+class VelocitySolutionZ : public Solution
+{
+ public:
+   explicit VelocitySolutionZ( real_t timeTotal )
+       : Solution()
+       , timeTotal_( timeTotal )
+   {}
+
+   /// Evaluates the solution at a specific point.
+   real_t operator()( const Point3D& ) const override
+   {
+      WALBERLA_UNUSED( timeTotal_ );
+      return 0;
+   }
+
+ private:
+   real_t timeTotal_;
+};
+
+class VelocitySolution3DX : public Solution
+{
+ public:
+   explicit VelocitySolution3DX( real_t timeTotal )
+       : Solution()
+       , timeTotal_( timeTotal )
+   {}
+
+   /// Evaluates the solution at a specific point.
+   real_t operator()( const Point3D& x ) const override
+   {
+      return 2 * std::sin( pi * x[0] ) * std::sin( pi * x[0] ) *
+             std::sin( 2 * pi * x[1] ) *
+             std::sin( 2 * pi * x[2] ) *
+             std::cos( pi * ( currentTime_ / timeTotal_ ) );
+   }
+
+ private:
+   real_t timeTotal_;
+};
+
+class VelocitySolution3DY : public Solution
+{
+ public:
+   explicit VelocitySolution3DY( real_t timeTotal )
+       : Solution()
+       , timeTotal_( timeTotal )
+   {}
+
+   /// Evaluates the solution at a specific point.
+   real_t operator()( const Point3D& x ) const override
+   {
+      return - std::sin( 2 * pi * x[0] ) *
+             std::sin( pi * x[1] ) * std::sin( pi * x[1] ) *
+             std::sin( 2 * pi * x[2] ) *
+             std::cos( pi * ( currentTime_ / timeTotal_ ) );
+   }
+
+ private:
+   real_t timeTotal_;
+};
+
+class VelocitySolution3DZ : public Solution
+{
+ public:
+   explicit VelocitySolution3DZ( real_t timeTotal )
+       : Solution()
+       , timeTotal_( timeTotal )
+   {}
+
+   /// Evaluates the solution at a specific point.
+   real_t operator()( const Point3D& x ) const override
+   {
+      return - std::sin( 2 * pi * x[0] ) *
+             std::sin( 2 * pi * x[1] ) *
+             std::sin( pi * x[2] ) * std::sin( pi * x[2] ) *
+             std::cos( pi * ( currentTime_ / timeTotal_ ) );
+   }
+
+ private:
+   real_t timeTotal_;
+};
+
 void benchmark( int argc, char** argv )
 {
    walberla::Environment env( argc, argv );
@@ -161,6 +267,7 @@ void benchmark( int argc, char** argv )
 
    const uint_t numTimeSteps       = mainConf.getParameter< uint_t >( "numTimeSteps" );
    const uint_t level              = mainConf.getParameter< uint_t >( "level" );
+   const bool   threeDim           = mainConf.getParameter< bool >( "threeDim" );
    const bool   resetParticles     = mainConf.getParameter< bool >( "resetParticles" );
    const bool   adjustedAdvection  = mainConf.getParameter< bool >( "adjustedAdvection" );
    const bool   enableCylinder     = mainConf.getParameter< bool >( "enableCylinder" );
@@ -170,8 +277,15 @@ void benchmark( int argc, char** argv )
    const bool   vtk                = mainConf.getParameter< bool >( "vtk" );
    const uint_t vtkInterval        = mainConf.getParameter< uint_t >( "vtkInterval" );
 
-
-   MeshInfo meshInfo = hyteg::MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, 1, 1 );
+   MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
+   if ( threeDim )
+   {
+      meshInfo = MeshInfo::meshCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+   }
+   else
+   {
+      meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1, 1 } ), MeshInfo::CRISS, 1, 1 );
+   }
 
    const real_t tEnd = 1.5;
    const real_t dt   = tEnd / real_c( numTimeSteps );
@@ -179,24 +293,58 @@ void benchmark( int argc, char** argv )
    TempSolution      cSolution( enableGaussianCone, enableLinearCone, enableCylinder );
    VelocitySolutionX uSolution( tEnd );
    VelocitySolutionY vSolution( tEnd );
+   VelocitySolutionZ wSolution( tEnd );
 
-   solve( meshInfo,
-          false,
-          cSolution,
-          uSolution,
-          vSolution,
-          dt,
-          1.0,
-          level,
-          DiffusionTimeIntegrator::ImplicitEuler,
-          false,
-          resetParticles,
-          adjustedAdvection,
-          numTimeSteps,
-          vtk,
-          "Benchmark_02_SwirlingAdvection",
-          printInterval,
-          vtkInterval );
+   TempSolution3D      cSolution3D;
+   VelocitySolution3DX uSolution3D( tEnd );
+   VelocitySolution3DY vSolution3D( tEnd );
+   VelocitySolution3DZ wSolution3D( tEnd );
+
+   if ( threeDim )
+   {
+      solve( meshInfo,
+             false,
+             cSolution3D,
+             uSolution3D,
+             vSolution3D,
+             wSolution3D,
+             dt,
+             1.0,
+             level,
+             DiffusionTimeIntegrator::ImplicitEuler,
+             false,
+             resetParticles,
+             adjustedAdvection,
+             numTimeSteps,
+             vtk,
+             true,
+             "Benchmark_02_SwirlingAdvection",
+             printInterval,
+             vtkInterval );
+   }
+   else
+   {
+      solve( meshInfo,
+             false,
+             cSolution,
+             uSolution,
+             vSolution,
+             wSolution,
+             dt,
+             1.0,
+             level,
+             DiffusionTimeIntegrator::ImplicitEuler,
+             false,
+             resetParticles,
+             adjustedAdvection,
+             numTimeSteps,
+             vtk,
+             true,
+             "Benchmark_02_SwirlingAdvection",
+             printInterval,
+             vtkInterval );
+   }
+
 }
 } // namespace moc_benchmarks
 } // namespace hyteg

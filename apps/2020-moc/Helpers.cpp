@@ -24,10 +24,11 @@ namespace hyteg {
 namespace moc_benchmarks {
 
 void solve( const MeshInfo&         meshInfo,
-            bool                    setAnnulusMap,
+            bool                    setBlendingMap,
             Solution&               solution,
             Solution&               velocityX,
             Solution&               velocityY,
+            Solution&               velocityZ,
             real_t                  dt,
             real_t                  diffusivity,
             uint_t                  level,
@@ -37,18 +38,32 @@ void solve( const MeshInfo&         meshInfo,
             bool                    adjustedAdvection,
             uint_t                  numTimeSteps,
             bool                    vtk,
+            bool                    vtkOutputVelocity,
             const std::string&      benchmarkName,
             uint_t                  printInterval,
             uint_t                  vtkInterval )
 {
+   const bool outputTimingJSON = true;
+
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   if ( setAnnulusMap )
+   if ( setBlendingMap )
    {
-      AnnulusMap::setMap( *setupStorage );
+      if ( setupStorage->getNumberOfCells() == 0 )
+      {
+         AnnulusMap::setMap( *setupStorage );
+      }
+      else
+      {
+         IcosahedralShellMap::setMap( *setupStorage );
+      }
    }
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
+
+   auto timer = storage->getTimingTree();
+   timer->start( "Total" );
+   timer->start( "Setup" );
 
    const uint_t unknowns = numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
    const real_t hMin     = MeshQuality::getMinimalEdgeLength( storage, level );
@@ -56,6 +71,38 @@ void solve( const MeshInfo&         meshInfo,
 
    const bool forcedParticleReset = adjustedAdvection || enableDiffusion;
    resetParticles |= forcedParticleReset;
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << benchmarkName )
+   WALBERLA_LOG_INFO_ON_ROOT( " - time discretization: " )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + dt:                                           " << dt )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + time steps:                                   " << numTimeSteps )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + time final:                                   " << real_c( numTimeSteps ) * dt )
+   WALBERLA_LOG_INFO_ON_ROOT( " - space discretization: " )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + dimensions:                                   " << ( storage->hasGlobalCells() ? "3" : "2" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + level:                                        " << level )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns (== particles), including boundary:  " << unknowns )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + h_min:                                        " << hMin )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + h_max:                                        " << hMax )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + blending:                                     " << ( setBlendingMap ? "yes" : "no" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( " - advection-diffusion settings: " )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + diffusivity:                                  "
+                                  << ( enableDiffusion ? std::to_string( diffusivity ) : "disabled (== 0)" ) )
+   WALBERLA_LOG_INFO_ON_ROOT(
+       "   + diffusion time integrator:                    "
+           << ( enableDiffusion ?
+                ( diffusionTimeIntegrator == DiffusionTimeIntegrator::ImplicitEuler ? "implicit Euler" : "Crank-Nicolson" ) :
+                "disabled" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + adjusted advection:                           " << ( adjustedAdvection ? "yes" : "no" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + particle reset:                               "
+                                  << ( resetParticles ? "yes" : "no" ) << ( forcedParticleReset ? " (forced)" : "" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( " - app settings: " )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + VTK:                                          " << ( vtk ? "yes" : "no" ) )
+   if ( vtk )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "   + VTK interval:                                 " << vtkInterval )
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "   + print interval:                               " << printInterval )
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    typedef P2Function< real_t >                   FunctionType;
    typedef P2ElementwiseBlendingLaplaceOperator   LaplaceOperator;
@@ -95,6 +142,10 @@ void solve( const MeshInfo&         meshInfo,
    cSolution.interpolate( std::function< real_t( const Point3D& ) >( std::ref( solution ) ), level );
    u.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
    v.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
+   if ( storage->hasGlobalCells() )
+   {
+      w.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityZ ) ), level );
+   }
 
    cError.assign( {1.0, -1.0}, {c, cSolution}, level, All );
 
@@ -108,8 +159,15 @@ void solve( const MeshInfo&         meshInfo,
 
    hyteg::VTKOutput vtkOutput( "./output", benchmarkName, storage, vtkInterval );
 
-   vtkOutput.add( u );
-   vtkOutput.add( v );
+   if ( vtkOutputVelocity )
+   {
+      vtkOutput.add( u );
+      vtkOutput.add( v );
+      if ( storage->hasGlobalCells() )
+      {
+         vtkOutput.add( w );
+      }
+   }
    vtkOutput.add( c );
    vtkOutput.add( cSolution );
    vtkOutput.add( cError );
@@ -117,36 +175,6 @@ void solve( const MeshInfo&         meshInfo,
    if ( vtk )
       vtkOutput.write( level );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << benchmarkName )
-   WALBERLA_LOG_INFO_ON_ROOT( " - time discretization: " )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + dt:                                           " << dt )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + time steps:                                   " << numTimeSteps )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + time final:                                   " << real_c( numTimeSteps ) * dt )
-   WALBERLA_LOG_INFO_ON_ROOT( " - space discretization: " )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + level:                                        " << level )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns (== particles), including boundary:  " << unknowns )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + h_min:                                        " << hMin )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + h_max:                                        " << hMax )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + annulus blending:                             " << ( setAnnulusMap ? "yes" : "no" ) )
-   WALBERLA_LOG_INFO_ON_ROOT( " - advection-diffusion settings: " )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + diffusivity:                                  "
-                              << ( enableDiffusion ? std::to_string( diffusivity ) : "disabled (== 0)" ) )
-   WALBERLA_LOG_INFO_ON_ROOT(
-       "   + diffusion time integrator:                    "
-       << ( enableDiffusion ?
-                ( diffusionTimeIntegrator == DiffusionTimeIntegrator::ImplicitEuler ? "implicit Euler" : "Crank-Nicolson" ) :
-                "disabled" ) )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + adjusted advection:                           " << ( adjustedAdvection ? "yes" : "no" ) )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + particle reset:                               "
-                              << ( resetParticles ? "yes" : "no" ) << ( forcedParticleReset ? " (forced)" : "" ) )
-   WALBERLA_LOG_INFO_ON_ROOT( " - app settings: " )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + VTK:                                          " << ( vtk ? "yes" : "no" ) )
-   if ( vtk )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "   + VTK interval:                                 " << vtkInterval )
-   }
-   WALBERLA_LOG_INFO_ON_ROOT( "   + print interval:                               " << printInterval )
-   WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    WALBERLA_LOG_INFO_ON_ROOT( " timestep | time total | discr. L2 error | max peak diff. | spu. osc. | total mass | mass change " )
    WALBERLA_LOG_INFO_ON_ROOT( "----------+------------+-----------------+----------------+-----------+------------+-------------" )
@@ -159,20 +187,33 @@ void solve( const MeshInfo&         meshInfo,
                                                 mass,
                                                 massChange * 100 ) )
 
+   timer->stop( "Setup" );
+
+   timer->start( "Simulation" );
+
    for ( uint_t i = 1; i <= numTimeSteps; i++ )
    {
       cOld.assign( {1.0}, {c}, level, All );
 
       uLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
       vLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
+      if ( storage->hasGlobalCells() )
+      {
+         wLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityZ ) ), level );
+      }
       velocityX.incTime( dt );
       velocityY.incTime( dt );
+      velocityZ.incTime( dt );
       u.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
       v.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
+      if ( storage->hasGlobalCells() )
+      {
+         w.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityZ ) ), level );
+      }
 
       if ( adjustedAdvection )
       {
-         const real_t vMax                         = velocityMaxMagnitude( u, v, tmp, tmp2, level, All );
+         const real_t vMax                         = velocityMaxMagnitude( u, v, w, tmp, tmp2, level, All );
          const real_t adjustedAdvectionPertubation = 0.1 * ( hMin / vMax );
          transport.step( c, u, v, w, uLast, vLast, wLast, level, Inner, dt, 1, M, 0.0, adjustedAdvectionPertubation );
       }
@@ -196,14 +237,14 @@ void solve( const MeshInfo&         meshInfo,
 
       cError.assign( {1.0, -1.0}, {c, cSolution}, level, All );
 
-      discrL2     = normL2( cError, tmp, M, level, Inner );
-      maxPeakDiff = maxPeakDifference( c, cSolution, level, All );
-      spuriousOsc = spuriousOscillations( c, level, All );
-      mass        = globalMass( c, tmp, M, level, All );
-      massChange  = ( mass / initialMass ) - 1.0;
-
       if ( ( printInterval == 0 && i == numTimeSteps ) || ( printInterval > 0 && i % printInterval == 0 ) )
       {
+         discrL2     = normL2( cError, tmp, M, level, Inner );
+         maxPeakDiff = maxPeakDifference( c, cSolution, level, All );
+         spuriousOsc = spuriousOscillations( c, level, All );
+         mass        = globalMass( c, tmp, M, level, All );
+         massChange  = ( mass / initialMass ) - 1.0;
+
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8d | %10.5f | %15.3e | %14.3e | %9.3e | %10.3e | %11.2f%% ",
                                                       i,
                                                       timeTotal,
@@ -216,6 +257,15 @@ void solve( const MeshInfo&         meshInfo,
 
       if ( vtk )
          vtkOutput.write( level, i );
+   }
+
+   timer->stop( "Simulation" );
+
+   timer->stop( "Total" );
+
+   if ( outputTimingJSON )
+   {
+      writeTimingTreeJSON( *timer, benchmarkName + "Timing.json" );
    }
 }
 

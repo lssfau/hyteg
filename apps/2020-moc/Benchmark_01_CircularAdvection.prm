@@ -1,15 +1,16 @@
 Parameters
 {
-  level 7;
+  level 6;
   numTimeSteps 50;
+  threeDim true;
 
   enableGaussianCone true;
-  enableLinearCone false;
-  enableCylinder false;
+  enableLinearCone true;
+  enableCylinder true;
 
-  resetParticles false;
-  adjustedAdvection true;
-  vtk false;
+  resetParticles true;
+  adjustedAdvection false;
+  vtk true;
   printInterval 1;
-  vtkInterval 1;
+  vtkInterval 10;
 }
