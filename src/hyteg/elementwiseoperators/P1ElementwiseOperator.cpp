@@ -51,8 +51,12 @@ void P1ElementwiseOperator< P1Form >::apply( const P1Function< real_t >& src,
 
    if ( updateType == Replace )
    {
-      // We need to zero the destination array (including halos)
-      dst.setToZero( level );
+      // We need to zero the destination array (including halos).
+      // However, we must not zero out anything that is not flagged with the specified BCs.
+      // Therefore we first zero out everything that flagged, and then, later,
+      // the halos of the highest dim primitives.
+
+      dst.interpolate( real_c(0), level, flag );
    }
 
    // For 3D we work on cells and for 2D on faces
@@ -70,18 +74,17 @@ void P1ElementwiseOperator< P1Form >::apply( const P1Function< real_t >& src,
          real_t* srcVertexData = cell.getData( srcVertexDoFIdx )->getPointer( level );
          real_t* dstVertexData = cell.getData( dstVertexDoFIdx )->getPointer( level );
 
-         if ( updateType == Add )
-         {
-            // Zero out dst halos only - then during additive comm we skip zeroing
-            // the data on the lower-dim primitives.
+         // Zero out dst halos only
+         //
+         // This is also necessary when using update type == Add.
+         // During additive comm we then skip zeroing the data on the lower-dim primitives.
 
-            for ( const auto& idx : vertexdof::macrocell::Iterator( level ) )
+         for ( const auto& idx : vertexdof::macrocell::Iterator( level ) )
+         {
+            if ( !vertexdof::macrocell::isOnCellFace( idx, level ).empty() )
             {
-               if ( !vertexdof::macrocell::isOnCellFace( idx, level ).empty() )
-               {
-                  auto arrayIdx           = vertexdof::macrocell::index( level, idx.x(), idx.y(), idx.z() );
-                  dstVertexData[arrayIdx] = real_c( 0 );
-               }
+               auto arrayIdx           = vertexdof::macrocell::index( level, idx.x(), idx.y(), idx.z() );
+               dstVertexData[arrayIdx] = real_c( 0 );
             }
          }
 
@@ -129,18 +132,17 @@ void P1ElementwiseOperator< P1Form >::apply( const P1Function< real_t >& src,
          real_t* srcVertexData = face.getData( srcVertexDoFIdx )->getPointer( level );
          real_t* dstVertexData = face.getData( dstVertexDoFIdx )->getPointer( level );
 
-         if ( updateType == Add )
-         {
-            // Zero out dst halos only - then during additive comm we skip zeroing
-            // the data on the lower-dim primitives.
+         // Zero out dst halos only
+         //
+         // This is also necessary when using update type == Add.
+         // During additive comm we then skip zeroing the data on the lower-dim primitives.
 
-            for ( const auto& idx : vertexdof::macroface::Iterator( level ) )
+         for ( const auto& idx : vertexdof::macroface::Iterator( level ) )
+         {
+            if ( vertexdof::macroface::isVertexOnBoundary( level, idx ) )
             {
-               if ( vertexdof::macroface::isVertexOnBoundary( level, idx ) )
-               {
-                  auto arrayIdx           = vertexdof::macroface::index( level, idx.x(), idx.y() );
-                  dstVertexData[arrayIdx] = real_c( 0 );
-               }
+               auto arrayIdx           = vertexdof::macroface::index( level, idx.x(), idx.y() );
+               dstVertexData[arrayIdx] = real_c( 0 );
             }
          }
 
