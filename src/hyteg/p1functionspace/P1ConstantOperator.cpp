@@ -1345,56 +1345,22 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor(
 template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
 void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_jac( const P1Function< real_t >& dst,
                                                                                  const P1Function< real_t >& rhs,
-                                                                                 const P1Function< real_t >& tmp,
+                                                                                 const P1Function< real_t >& src,
+                                                                                 const real_t&               omega,
                                                                                  size_t                      level,
                                                                                  DoFType                     flag ) const
 {
-   WALBERLA_CHECK_GREATER_EQUAL( level, 2, "smooth_jac() not implemented for level < 2" )
-   WALBERLA_CHECK( !this->storage_->hasGlobalCells(), "smooth_jac() not implemented for macro-cells" )
+   this->startTiming( "smooth_jac" );
 
-   tmp.communicate< Vertex, Edge >( level );
-   tmp.communicate< Edge, Face >( level );
-   tmp.communicate< Face, Cell >( level );
+   // compute the current residual
+   this->apply( src, dst, level, flag );
+   dst.assign( {real_c( 1 ), real_c( -1 )}, {rhs, dst}, level, flag );
 
-   tmp.communicate< Cell, Face >( level );
-   tmp.communicate< Face, Edge >( level );
-   tmp.communicate< Edge, Vertex >( level );
+   // perform Jacobi update step
+   dst.multElementwise( {*getInverseDiagonalValues(), dst}, level, flag );
+   dst.assign( {1.0, omega}, {src, dst}, level, flag );
 
-   for ( auto& it : storage_->getVertices() )
-   {
-      Vertex& vertex = *it.second;
-
-      const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-      if ( testFlag( vertexBC, flag ) )
-      {
-         vertexdof::macrovertex::smooth_jac(
-             vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), tmp.getVertexDataID(), level );
-      }
-   }
-
-   for ( auto& it : storage_->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if ( testFlag( edgeBC, flag ) )
-      {
-         vertexdof::macroedge::smooth_jac< real_t >(
-             level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), tmp.getEdgeDataID() );
-      }
-   }
-
-   for ( auto& it : storage_->getFaces() )
-   {
-      Face& face = *it.second;
-
-      const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, flag ) )
-      {
-         vertexdof::macroface::smooth_jac< real_t >(
-             level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), tmp.getFaceDataID() );
-      }
-   }
+   this->stopTiming( "smooth_jac" );
 }
 
 template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >

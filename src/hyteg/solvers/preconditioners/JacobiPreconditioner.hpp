@@ -38,7 +38,7 @@ class JacobiPreconditioner : public Solver< OperatorType >
       for ( uint_t i = 0; i < iterations_; ++i )
       {
          tmp_.assign( {1.0}, {x}, level, flag_ );
-         A.smooth_jac( x, b, tmp_, level, flag_ );
+         A.smooth_jac( x, b, tmp_, 1.0, level, flag_ );
       }
    }
 

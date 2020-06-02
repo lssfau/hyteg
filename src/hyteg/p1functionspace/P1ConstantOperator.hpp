@@ -81,6 +81,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    void smooth_jac( const P1Function< real_t >& dst,
                     const P1Function< real_t >& rhs,
                     const P1Function< real_t >& tmp,
+                    const real_t &              relax,
                     size_t                      level,
                     DoFType                     flag ) const;
 
