@@ -50,7 +50,7 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                           size_t                                     minLevel,
                           size_t                                     maxLevel,
                           const P2Form&                              form,
-                          bool                                       needsDiagEntries );
+                          bool                                       needsInverseDiagEntries );
 
    void apply( const P2Function< real_t >& src,
                const P2Function< real_t >& dst,
@@ -58,7 +58,29 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                DoFType                     flag,
                UpdateType                  updateType = Replace ) const;
 
-   std::unique_ptr< P2Function< real_t > > diagonalValues_;
+   /// Trigger (re)computation of diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
+   void computeDiagonalOperatorValues() { computeDiagonalOperatorValues( false ); }
+
+   /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
+   void computeInverseDiagonalOperatorValues() { computeDiagonalOperatorValues( true ); }
+
+   std::shared_ptr< P2Function< real_t > > getDiagonalValues() const
+   {
+      WALBERLA_CHECK_NOT_NULLPTR(
+          diagonalValues_,
+          "Diagonal values have not been assembled, call computeDiagonalOperatorValues() to set up this function." )
+      return diagonalValues_;
+   };
+
+   std::shared_ptr< P2Function< real_t > > getInverseDiagonalValues() const
+   {
+      WALBERLA_CHECK_NOT_NULLPTR(
+          inverseDiagonalValues_,
+          "Inverse diagonal values have not been assembled, call computeInverseDiagonalOperatorValues() to set up this function." )
+      return inverseDiagonalValues_;
+   };
 
    void smooth_jac( const P2Function< real_t >& dst,
                     const P2Function< real_t >& rhs,
@@ -199,6 +221,15 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                                const PetscInt* const   dstVertexIdx,
                                const PetscInt* const   dstEdgeIdx ) const;
 #endif
+
+   /// Trigger (re)computation of diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
+   ///
+   /// \param invert if true, assembles the function carrying the inverse of the diagonal
+   void computeDiagonalOperatorValues( bool invert );
+
+   std::shared_ptr< P2Function< real_t > > diagonalValues_;
+   std::shared_ptr< P2Function< real_t > > inverseDiagonalValues_;
 
    P2Form form_;
 

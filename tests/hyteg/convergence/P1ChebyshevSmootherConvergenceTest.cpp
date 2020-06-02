@@ -24,19 +24,9 @@ using walberla::math::pi;
 
 using namespace hyteg;
 
-void setupDiagonal( const uint_t& minLevel, const uint_t& maxLevel, P1ElementwiseLaplaceOperator& laplaceOperator )
+template < typename P1LaplaceOperatorType >
+void runTest()
 {
-   for ( uint_t level = minLevel; level <= maxLevel; level += 1 )
-   {
-      laplaceOperator.computeDiagonalOperatorValues( level, true );
-   }
-}
-
-int main( int argc, char** argv )
-{
-   walberla::Environment env( argc, argv );
-   walberla::mpi::MPIManager::instance()->useWorldComm();
-
    const uint_t minLevel         = 2;
    const uint_t maxLevel         = 5;
    const uint_t max_outer_iter   = 4;
@@ -57,8 +47,8 @@ int main( int argc, char** argv )
       return ( 4 + 9 ) * pi * pi * std::sin( 2 * pi * p[0] ) * std::cos( 3 * pi * p[1] );
    };
 
-   P1ElementwiseLaplaceOperator laplaceOperator( storage, minLevel, maxLevel );
-   setupDiagonal( minLevel, maxLevel, laplaceOperator );
+   P1LaplaceOperatorType laplaceOperator( storage, minLevel, maxLevel );
+   laplaceOperator.computeInverseDiagonalOperatorValues();
 
    P1Function< real_t > eigenvector( "eigenvector", storage, minLevel, maxLevel );
    P1Function< real_t > tmp( "tmp", storage, minLevel, maxLevel );
@@ -74,23 +64,23 @@ int main( int argc, char** argv )
       P1Function< real_t > function( "function", storage, minLevel, maxLevel );
       P1Function< real_t > laplaceTimesFunction( "laplaceTimesFunction", storage, minLevel, maxLevel );
 
-      auto smoother = std::make_shared< ChebyshevSmoother< P1ElementwiseLaplaceOperator > >( storage, minLevel, maxLevel );
+      auto smoother = std::make_shared< ChebyshevSmoother< P1LaplaceOperatorType > >( storage, minLevel, maxLevel );
       smoother->setupCoefficients( order, spectralRadius );
 
-      auto coarseGridSolver = std::make_shared< CGSolver< P1ElementwiseLaplaceOperator > >(
-          storage, minLevel, minLevel, max_coarse_iter, coarse_tolerance );
+      auto coarseGridSolver =
+          std::make_shared< CGSolver< P1LaplaceOperatorType > >( storage, minLevel, minLevel, max_coarse_iter, coarse_tolerance );
       auto restrictionOperator  = std::make_shared< P1toP1LinearRestriction >();
       auto prolongationOperator = std::make_shared< P1toP1LinearProlongation >();
 
-      auto multiGridSolver = GeometricMultigridSolver< P1ElementwiseLaplaceOperator >( storage,
-                                                                                       smoother,
-                                                                                       coarseGridSolver,
-                                                                                       restrictionOperator,
-                                                                                       prolongationOperator,
-                                                                                       minLevel,
-                                                                                       maxLevel,
-                                                                                       smoothingSteps,
-                                                                                       smoothingSteps );
+      auto multiGridSolver = GeometricMultigridSolver< P1LaplaceOperatorType >( storage,
+                                                                                smoother,
+                                                                                coarseGridSolver,
+                                                                                restrictionOperator,
+                                                                                prolongationOperator,
+                                                                                minLevel,
+                                                                                maxLevel,
+                                                                                smoothingSteps,
+                                                                                smoothingSteps );
 
       // bcs
       function.interpolate( analytic_solution, maxLevel, DirichletBoundary );
@@ -114,6 +104,15 @@ int main( int argc, char** argv )
       WALBERLA_CHECK_GREATER(
           1.1 * expectedResidualValue, residualValue, "residual for chebyshev smoother of order " << order << " has changed " );
    }
+}
 
-   return EXIT_SUCCESS;
+int main( int argc, char** argv )
+{
+   walberla::Environment env( argc, argv );
+   walberla::mpi::MPIManager::instance()->useWorldComm();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Elementwise operator" )
+   runTest< P1ElementwiseLaplaceOperator >();
+   WALBERLA_LOG_INFO_ON_ROOT( "Constant operator" )
+   runTest< P1ConstantLaplaceOperator >();
 }
