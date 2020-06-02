@@ -9,6 +9,7 @@ Parameters
   // - richardson
   // - jacobi
   // - chebyshev
+  // - sor (== GaussSeidel, i.e. omega == 1)
   smootherType chebyshev;
   order 4;
   smoothingSteps 3;
