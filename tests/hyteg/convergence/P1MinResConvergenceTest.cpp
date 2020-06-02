@@ -53,6 +53,7 @@ int main( int argc, char* argv[] )
    hyteg::P1Function< real_t > npoints_helper( "npoints_helper", storage, minLevel, maxLevel );
 
    hyteg::P1ConstantLaplaceOperator L( storage, minLevel, maxLevel );
+   L.computeInverseDiagonalOperatorValues();
 
    std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& x ) -> real_t {
       return x[0] * x[0] - x[1] * x[1];
