@@ -81,8 +81,33 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    void smooth_jac( const P1Function< real_t >& dst,
                     const P1Function< real_t >& rhs,
                     const P1Function< real_t >& tmp,
+                    const real_t &              relax,
                     size_t                      level,
                     DoFType                     flag ) const;
+
+   /// Trigger (re)computation of diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
+   void computeDiagonalOperatorValues() { computeDiagonalOperatorValues( false ); }
+
+   /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
+   void computeInverseDiagonalOperatorValues() { computeDiagonalOperatorValues( true ); }
+
+   std::shared_ptr< P1Function< real_t > > getDiagonalValues() const
+   {
+      WALBERLA_CHECK_NOT_NULLPTR(
+          diagonalValues_,
+          "Diagonal values have not been assembled, call computeDiagonalOperatorValues() to set up this function." )
+      return diagonalValues_;
+   };
+
+   std::shared_ptr< P1Function< real_t > > getInverseDiagonalValues() const
+   {
+      WALBERLA_CHECK_NOT_NULLPTR(
+          inverseDiagonalValues_,
+          "Inverse diagonal values have not been assembled, call computeInverseDiagonalOperatorValues() to set up this function." )
+      return inverseDiagonalValues_;
+   };
 
    const PrimitiveDataID< StencilMemory< real_t >, Vertex >& getVertexStencilID() const { return vertexStencilID_; }
 
@@ -102,6 +127,15 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    void assembleStencils3D();
 
  private:
+   /// Trigger (re)computation of diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
+   ///
+   /// \param invert if true, assembles the function carrying the inverse of the diagonal
+   void computeDiagonalOperatorValues( bool invert );
+
+   std::shared_ptr< P1Function< real_t > > diagonalValues_;
+   std::shared_ptr< P1Function< real_t > > inverseDiagonalValues_;
+
    PrimitiveDataID< StencilMemory< real_t >, Vertex > vertexStencilID_;
    PrimitiveDataID< StencilMemory< real_t >, Edge >   edgeStencilID_;
    PrimitiveDataID< LevelWiseMemory< vertexdof::macroedge::StencilMap_T >, Edge > edgeStencil3DID_;

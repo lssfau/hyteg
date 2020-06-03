@@ -44,16 +44,18 @@ class ChebyshevSmoother : public Solver< OperatorType >
    /// Executes an iteration step of the smoother.
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
+      auto inverseDiagonalValues = A.getInverseDiagonalValues();
+
       WALBERLA_ASSERT( coefficients.size() > 0, "coefficients must be setup" );
-      WALBERLA_ASSERT_NOT_NULLPTR( A.diagonalValues_.get(), "diagonal not initialized" );
-      WALBERLA_ASSERT( A.diagonalValues_->getMaxMagnitude( level, flag_, false ) > 0, "diagonal not set" );
+      WALBERLA_ASSERT_NOT_NULLPTR( inverseDiagonalValues, "diagonal not initialized" );
+      WALBERLA_ASSERT( inverseDiagonalValues->getMaxMagnitude( level, flag_, false ) > 0, "diagonal not set" );
 
       // tmp1_ := Ax
       A.apply( x, tmp1_, level, flag_ );
       // tmp1_ := b-Ax
       tmp1_.assign( {real_t( 1. ), real_t( -1. )}, {b, tmp1_}, level, flag_ );
       // tmp1_ := D^{-1} (b-Ax)
-      tmp1_.multElementwise( {( *A.diagonalValues_ ), tmp1_}, level, flag_ );
+      tmp1_.multElementwise( {*inverseDiagonalValues, tmp1_}, level, flag_ );
       // x := x + omega_0 D^{-1} (b-Ax)
       x.assign( {1., coefficients[0]}, {x, tmp1_}, level, flag_ );
 
@@ -65,7 +67,7 @@ class ChebyshevSmoother : public Solver< OperatorType >
          // tmp2_ := A (D^{-1}A)^{k-1} D^{-1} (b-Ax)
          A.apply( tmp1_, tmp2_, level, flag_ );
          // tmp1_ := (D^{-1}A)^{k} D^{-1} (b-Ax)
-         tmp1_.multElementwise( {( *A.diagonalValues_ ), tmp2_}, level, flag_ );
+         tmp1_.multElementwise( {*inverseDiagonalValues, tmp2_}, level, flag_ );
 
          // x := x + sum_{i<k+1} omega_i (D^{-1}A)^{i} D^{-1} (b-Ax)
          x.assign( {1, coefficients[k]}, {x, tmp1_}, level, flag_ );
@@ -186,10 +188,10 @@ class InvDiagOperatorWrapper : public Operator< typename WrappedOperatorType::sr
                       DoFType                flag,
                       UpdateType             updateType = Replace ) const
    {
-      WALBERLA_ASSERT_NOT_NULLPTR( wrappedOperator_.diagonalValues_.get(), "diagonal not initialized" );
-      WALBERLA_ASSERT( wrappedOperator_.diagonalValues_->getMaxMagnitude( level, flag, false ) > 0, "diagonal not set" );
+      auto inverseDiagonalValues = wrappedOperator_.getInverseDiagonalValues();
+      WALBERLA_ASSERT( inverseDiagonalValues->getMaxMagnitude( level, flag, false ) > 0, "diagonal not set" );
       wrappedOperator_.apply( src, dst, level, flag, updateType );
-      dst.multElementwise( {( *wrappedOperator_.diagonalValues_ ), dst}, level, flag );
+      dst.multElementwise( {*inverseDiagonalValues, dst}, level, flag );
    }
 
  private:

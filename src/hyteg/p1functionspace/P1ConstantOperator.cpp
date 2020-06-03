@@ -1345,58 +1345,30 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor(
 template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
 void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_jac( const P1Function< real_t >& dst,
                                                                                  const P1Function< real_t >& rhs,
-                                                                                 const P1Function< real_t >& tmp,
+                                                                                 const P1Function< real_t >& src,
+                                                                                 const real_t&               omega,
                                                                                  size_t                      level,
                                                                                  DoFType                     flag ) const
 {
-   tmp.communicate< Vertex, Edge >( level );
-   tmp.communicate< Edge, Face >( level );
-   tmp.communicate< Face, Cell >( level );
+   this->startTiming( "smooth_jac" );
 
-   tmp.communicate< Cell, Face >( level );
-   tmp.communicate< Face, Edge >( level );
-   tmp.communicate< Edge, Vertex >( level );
+   // compute the current residual
+   this->apply( src, dst, level, flag );
+   dst.assign( {real_c( 1 ), real_c( -1 )}, {rhs, dst}, level, flag );
 
-   for ( auto& it : storage_->getVertices() )
-   {
-      Vertex& vertex = *it.second;
+   // perform Jacobi update step
+   dst.multElementwise( {*getInverseDiagonalValues(), dst}, level, flag );
+   dst.assign( {1.0, omega}, {src, dst}, level, flag );
 
-      const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-      if ( testFlag( vertexBC, flag ) )
-      {
-         vertexdof::macrovertex::smooth_jac(
-             vertex, vertexStencilID_, dst.getVertexDataID(), rhs.getVertexDataID(), tmp.getVertexDataID(), level );
-      }
-   }
-
-   for ( auto& it : storage_->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if ( testFlag( edgeBC, flag ) )
-      {
-         vertexdof::macroedge::smooth_jac< real_t >(
-             level, edge, edgeStencilID_, dst.getEdgeDataID(), rhs.getEdgeDataID(), tmp.getEdgeDataID() );
-      }
-   }
-
-   for ( auto& it : storage_->getFaces() )
-   {
-      Face& face = *it.second;
-
-      const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, flag ) )
-      {
-         vertexdof::macroface::smooth_jac< real_t >(
-             level, face, faceStencilID_, dst.getFaceDataID(), rhs.getFaceDataID(), tmp.getFaceDataID() );
-      }
-   }
+   this->stopTiming( "smooth_jac" );
 }
 
 template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
 void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::scale( real_t scalar )
 {
+   WALBERLA_CHECK_GREATER_EQUAL( minLevel_, 2, "scale() not implemented for level < 2" )
+   WALBERLA_CHECK( !this->storage_->hasGlobalCells(), "scale() not implemented for macro-cells" )
+
    for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
    {
       for ( auto& it : storage_->getFaces() )
@@ -1444,6 +1416,132 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::scale( real
          {
             vertex_stencil[i] *= scalar;
          }
+      }
+   }
+}
+
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
+void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::computeDiagonalOperatorValues( bool invert )
+{
+   std::shared_ptr< P1Function< real_t > > targetFunction;
+   if ( invert )
+   {
+      if ( !inverseDiagonalValues_ )
+      {
+         inverseDiagonalValues_ =
+             std::make_shared< P1Function< real_t > >( "inverse diagonal entries", storage_, minLevel_, maxLevel_ );
+      }
+      targetFunction = inverseDiagonalValues_;
+   }
+   else
+   {
+      if ( !diagonalValues_ )
+      {
+         diagonalValues_ = std::make_shared< P1Function< real_t > >( "diagonal entries", storage_, minLevel_, maxLevel_ );
+      }
+      targetFunction = diagonalValues_;
+   }
+
+   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+   {
+      for ( const auto& it : storage_->getVertices() )
+      {
+         auto vertex        = it.second;
+         auto stencilMemory = vertex->getData( getVertexStencilID() )->getPointer( level );
+         auto targetMemory  = vertex->getData( targetFunction->getVertexDataID() )->getPointer( level );
+         targetMemory[0]    = stencilMemory[0];
+      }
+
+      if ( level >= 1 )
+      {
+         for ( const auto& it : storage_->getEdges() )
+         {
+            auto edge          = it.second;
+            auto stencilMemory = edge->getData( getEdgeStencilID() )->getPointer( level );
+            auto stencilMap    = edge->getData( getEdgeStencil3DID() )->getData( level );
+            auto targetMemory  = edge->getData( targetFunction->getEdgeDataID() )->getPointer( level );
+
+            real_t centerValue = 0;
+            if ( storage_->hasGlobalCells() )
+            {
+               for ( uint_t neighborCellID = 0; neighborCellID < edge->getNumNeighborCells(); neighborCellID++ )
+               {
+                  for ( auto stencilIt : stencilMap[neighborCellID] )
+                  {
+                     if ( stencilIt.first == indexing::IndexIncrement( {0, 0, 0} ) )
+                     {
+                        centerValue += stencilIt.second;
+                     }
+                  }
+               }
+            }
+            else
+            {
+               centerValue = stencilMemory[vertexdof::macroedge::stencilIndexOnEdge( stencilDirection::VERTEX_C )];
+            }
+
+            for ( auto idx : vertexdof::macroedge::Iterator( level ) )
+            {
+               targetMemory[vertexdof::macroedge::index( level, idx.x() )] = centerValue;
+            }
+         }
+      }
+
+      if ( level >= 1 )
+      {
+         for ( const auto& it : storage_->getFaces() )
+         {
+            auto face          = it.second;
+            auto stencilMemory = face->getData( getFaceStencilID() )->getPointer( level );
+            auto stencilMap    = face->getData( getFaceStencil3DID() )->getData( level );
+            auto targetMemory  = face->getData( targetFunction->getFaceDataID() )->getPointer( level );
+
+            real_t centerValue = 0;
+            if ( storage_->hasGlobalCells() )
+            {
+               for ( uint_t neighborCellID = 0; neighborCellID < face->getNumNeighborCells(); neighborCellID++ )
+               {
+                  for ( auto stencilIt : stencilMap[neighborCellID] )
+                  {
+                     if ( stencilIt.first == indexing::IndexIncrement( {0, 0, 0} ) )
+                     {
+                        centerValue += stencilIt.second;
+                     }
+                  }
+               }
+            }
+            else
+            {
+               centerValue = stencilMemory[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )];
+            }
+
+            for ( auto idx : vertexdof::macroface::Iterator( level ) )
+            {
+               targetMemory [vertexdof::macroface::index( level, idx.x(), idx.y() )] = centerValue;
+            }
+         }
+      }
+
+      if ( level >= 2 )
+      {
+         for ( const auto& it : storage_->getCells() )
+         {
+            auto cell         = it.second;
+            auto stencilMap   = cell->getData( getCellStencilID() )->getData( level );
+            auto targetMemory = cell->getData( targetFunction->getCellDataID() )->getPointer( level );
+
+            real_t centerValue = stencilMap[indexing::IndexIncrement( {0, 0, 0} )];
+
+            for ( auto idx : vertexdof::macrocell::Iterator( level ) )
+            {
+               targetMemory[vertexdof::macrocell::index( level, idx.x(), idx.y(), idx.z() )] = centerValue;
+            }
+         }
+      }
+
+      if ( invert )
+      {
+         targetFunction->invertElementwise( level, All, false );
       }
    }
 }

@@ -42,17 +42,12 @@ P2ElementwiseOperator< P2Form >::P2ElementwiseOperator( const std::shared_ptr< P
                                                         size_t                                     minLevel,
                                                         size_t                                     maxLevel,
                                                         const P2Form&                              form,
-                                                        bool                                       needsDiagEntries )
+                                                        bool                                       needsInverseDiagEntries )
 : Operator( storage, minLevel, maxLevel ), form_( form )
 {
-   if ( needsDiagEntries )
+   if ( needsInverseDiagEntries )
    {
-      diagonalValues_ =
-          std::unique_ptr< P2Function< real_t > >( new P2Function< real_t >( "diagonal entries", storage, minLevel, maxLevel ) );
-      for ( uint_t level = minLevel; level <= maxLevel; level++ )
-      {
-         computeDiagonalOperatorValues( level, true );
-      }
+      computeInverseDiagonalOperatorValues();
    }
 }
 
@@ -276,7 +271,7 @@ void P2ElementwiseOperator< P2Form >::smooth_jac( const P2Function< real_t >& ds
    dst.assign( {real_c( 1 ), real_c( -1 )}, {rhs, dst}, level, flag );
 
    // perform Jacobi update step
-   dst.multElementwise( {( *diagonalValues_ ), dst}, level, flag );
+   dst.multElementwise( {*getInverseDiagonalValues(), dst}, level, flag );
    dst.assign( {1.0, omega}, {src, dst}, level, flag );
 
    this->stopTiming( "smooth_jac" );
@@ -403,113 +398,135 @@ void P2ElementwiseOperator< P2Form >::localMatrixVectorMultiply3D( const Cell&  
 }
 
 template < class P2Form >
-void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( uint_t level, bool invert )
+void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( bool invert )
 {
-   WALBERLA_ASSERT_GREATER_EQUAL( level, minLevel_ );
-   WALBERLA_ASSERT_LESS_EQUAL( level, maxLevel_ );
-   WALBERLA_ASSERT_NOT_NULLPTR( diagonalValues_.get() );
-
-   // Make sure that halos are up-to-date (can we improve communication here?)
-   communication::syncP2FunctionBetweenPrimitives( *diagonalValues_, level );
-
-   // Zero destination before performing additive computation
-   diagonalValues_->setToZero( level );
-
-   // For 3D we work on cells and for 2D on faces
-   if ( storage_->hasGlobalCells() )
+   std::shared_ptr< P2Function< real_t > > targetFunction;
+   if ( invert )
    {
-      // we only perform computations on cell primitives
-      for ( auto& macroIter : storage_->getCells() )
+      if ( !inverseDiagonalValues_ )
       {
-         Cell& cell = *macroIter.second;
-
-         // get hold of the actual numerical data
-         PrimitiveDataID< FunctionMemory< real_t >, Cell > diagVertexDoFIdx =
-             diagonalValues_->getVertexDoFFunction().getCellDataID();
-         PrimitiveDataID< FunctionMemory< real_t >, Cell > diagEdgeDoFIdx = diagonalValues_->getEdgeDoFFunction().getCellDataID();
-
-         real_t* diagVertexData = cell.getData( diagVertexDoFIdx )->getPointer( level );
-         real_t* diagEdgeData   = cell.getData( diagEdgeDoFIdx )->getPointer( level );
-
-         // loop over micro-cells
-         for ( const auto& cType : celldof::allCellTypes )
-         {
-            for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
-            {
-               computeLocalDiagonalContributions3D( cell, level, micro, cType, diagVertexData, diagEdgeData );
-            }
-         }
+         inverseDiagonalValues_ =
+             std::make_shared< P2Function< real_t > >( "inverse diagonal entries", storage_, minLevel_, maxLevel_ );
       }
-
-      // Push result to lower-dimensional primitives
-      diagonalValues_->getVertexDoFFunction().communicateAdditively< Cell, Face >( level );
-      diagonalValues_->getVertexDoFFunction().communicateAdditively< Cell, Edge >( level );
-      diagonalValues_->getVertexDoFFunction().communicateAdditively< Cell, Vertex >( level );
-      diagonalValues_->getEdgeDoFFunction().communicateAdditively< Cell, Face >( level );
-      diagonalValues_->getEdgeDoFFunction().communicateAdditively< Cell, Edge >( level );
+      targetFunction = inverseDiagonalValues_;
    }
-
    else
    {
-      // we only perform computations on face primitives
-      for ( auto& it : storage_->getFaces() )
+      if ( !diagonalValues_ )
       {
-         Face& face = *it.second;
+         diagonalValues_ = std::make_shared< P2Function< real_t > >( "diagonal entries", storage_, minLevel_, maxLevel_ );
+      }
+      targetFunction = diagonalValues_;
+   }
 
-         Point3D x0( face.coords[0] );
-         Point3D x1( face.coords[1] );
-         Point3D x2( face.coords[2] );
+   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+   {
+      // Make sure that halos are up-to-date (can we improve communication here?)
+      communication::syncP2FunctionBetweenPrimitives( *targetFunction, level );
 
-         uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
-         uint_t                   inner_rowsize = rowsize;
-         uint_t                   xIdx, yIdx;
-         Point3D                  v0, v1, v2;
-         indexing::Index          nodeIdx;
-         indexing::IndexIncrement offset;
+      // Zero destination before performing additive computation
+      targetFunction->setToZero( level );
 
-         // get hold of the actual numerical data in the two functions
-         PrimitiveDataID< FunctionMemory< real_t >, Face > vertexDoFIdx = diagonalValues_->getVertexDoFFunction().getFaceDataID();
-         PrimitiveDataID< FunctionMemory< real_t >, Face > edgeDoFIdx   = diagonalValues_->getEdgeDoFFunction().getFaceDataID();
-
-         real_t* vertexData = face.getData( vertexDoFIdx )->getPointer( level );
-         real_t* edgeData   = face.getData( edgeDoFIdx )->getPointer( level );
-
-         // now loop over micro-faces of macro-face
-         for ( yIdx = 0; yIdx < rowsize - 2; ++yIdx )
+      // For 3D we work on cells and for 2D on faces
+      if ( storage_->hasGlobalCells() )
+      {
+         // we only perform computations on cell primitives
+         for ( auto& macroIter : storage_->getCells() )
          {
-            // loop over vertices in row with two associated triangles
-            for ( xIdx = 1; xIdx < inner_rowsize - 1; ++xIdx )
+            Cell& cell = *macroIter.second;
+
+            // get hold of the actual numerical data
+            PrimitiveDataID< FunctionMemory< real_t >, Cell > diagVertexDoFIdx =
+                targetFunction->getVertexDoFFunction().getCellDataID();
+            PrimitiveDataID< FunctionMemory< real_t >, Cell > diagEdgeDoFIdx =
+                targetFunction->getEdgeDoFFunction().getCellDataID();
+
+            real_t* diagVertexData = cell.getData( diagVertexDoFIdx )->getPointer( level );
+            real_t* diagEdgeData   = cell.getData( diagEdgeDoFIdx )->getPointer( level );
+
+            // loop over micro-cells
+            for ( const auto& cType : celldof::allCellTypes )
             {
-               // we associate two elements with current micro-vertex
-               computeLocalDiagonalContributions2D( face, level, xIdx, yIdx, P2Elements::P2Face::elementN, vertexData, edgeData );
+               for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
+               {
+                  computeLocalDiagonalContributions3D( cell, level, micro, cType, diagVertexData, diagEdgeData );
+               }
+            }
+         }
+
+         // Push result to lower-dimensional primitives
+         targetFunction->getVertexDoFFunction().communicateAdditively< Cell, Face >( level );
+         targetFunction->getVertexDoFFunction().communicateAdditively< Cell, Edge >( level );
+         targetFunction->getVertexDoFFunction().communicateAdditively< Cell, Vertex >( level );
+         targetFunction->getEdgeDoFFunction().communicateAdditively< Cell, Face >( level );
+         targetFunction->getEdgeDoFFunction().communicateAdditively< Cell, Edge >( level );
+      }
+
+      else
+      {
+         // we only perform computations on face primitives
+         for ( auto& it : storage_->getFaces() )
+         {
+            Face& face = *it.second;
+
+            Point3D x0( face.coords[0] );
+            Point3D x1( face.coords[1] );
+            Point3D x2( face.coords[2] );
+
+            uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
+            uint_t                   inner_rowsize = rowsize;
+            uint_t                   xIdx, yIdx;
+            Point3D                  v0, v1, v2;
+            indexing::Index          nodeIdx;
+            indexing::IndexIncrement offset;
+
+            // get hold of the actual numerical data in the two functions
+            PrimitiveDataID< FunctionMemory< real_t >, Face > vertexDoFIdx =
+                targetFunction->getVertexDoFFunction().getFaceDataID();
+            PrimitiveDataID< FunctionMemory< real_t >, Face > edgeDoFIdx = targetFunction->getEdgeDoFFunction().getFaceDataID();
+
+            real_t* vertexData = face.getData( vertexDoFIdx )->getPointer( level );
+            real_t* edgeData   = face.getData( edgeDoFIdx )->getPointer( level );
+
+            // now loop over micro-faces of macro-face
+            for ( yIdx = 0; yIdx < rowsize - 2; ++yIdx )
+            {
+               // loop over vertices in row with two associated triangles
+               for ( xIdx = 1; xIdx < inner_rowsize - 1; ++xIdx )
+               {
+                  // we associate two elements with current micro-vertex
+                  computeLocalDiagonalContributions2D(
+                      face, level, xIdx, yIdx, P2Elements::P2Face::elementN, vertexData, edgeData );
+                  computeLocalDiagonalContributions2D(
+                      face, level, xIdx, yIdx, P2Elements::P2Face::elementNW, vertexData, edgeData );
+               }
+               --inner_rowsize;
+
+               // final micro-vertex in row has only one associated micro-face
                computeLocalDiagonalContributions2D(
                    face, level, xIdx, yIdx, P2Elements::P2Face::elementNW, vertexData, edgeData );
             }
-            --inner_rowsize;
 
-            // final micro-vertex in row has only one associated micro-face
-            computeLocalDiagonalContributions2D( face, level, xIdx, yIdx, P2Elements::P2Face::elementNW, vertexData, edgeData );
+            // top north-west micro-element not treated, yet
+            computeLocalDiagonalContributions2D( face, level, 1, yIdx, P2Elements::P2Face::elementNW, vertexData, edgeData );
          }
 
-         // top north-west micro-element not treated, yet
-         computeLocalDiagonalContributions2D( face, level, 1, yIdx, P2Elements::P2Face::elementNW, vertexData, edgeData );
+         // Push result to lower-dimensional primitives
+         targetFunction->getVertexDoFFunction().communicateAdditively< Face, Edge >( level );
+         targetFunction->getVertexDoFFunction().communicateAdditively< Face, Vertex >( level );
+         targetFunction->getEdgeDoFFunction().communicateAdditively< Face, Edge >( level );
+
+         // Retrieve assembled data values
+         targetFunction->getVertexDoFFunction().communicate< Vertex, Edge >( level );
+         targetFunction->getVertexDoFFunction().communicate< Edge, Face >( level );
+         targetFunction->getEdgeDoFFunction().communicate< Edge, Face >( level );
       }
-
-      // Push result to lower-dimensional primitives
-      diagonalValues_->getVertexDoFFunction().communicateAdditively< Face, Edge >( level );
-      diagonalValues_->getVertexDoFFunction().communicateAdditively< Face, Vertex >( level );
-      diagonalValues_->getEdgeDoFFunction().communicateAdditively< Face, Edge >( level );
-
-      // Retrieve assembled data values
-      diagonalValues_->getVertexDoFFunction().communicate< Vertex, Edge >( level );
-      diagonalValues_->getVertexDoFFunction().communicate< Edge, Face >( level );
-      diagonalValues_->getEdgeDoFFunction().communicate< Edge, Face >( level );
 
       // Invert values if desired (note: using false below means we only invert in the interior of the primitives,
       // the values in the halos are untouched; should be okay for using diagonalValue_ in smoothers)
       if ( invert )
       {
-         diagonalValues_->invertElementwise( level, All, false );
+         targetFunction->invertElementwise( level, All, false );
       }
    }
 }

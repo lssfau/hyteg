@@ -37,6 +37,7 @@
 #include "hyteg/solvers/ChebyshevSmoother.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
+#include "hyteg/solvers/SORSmoother.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -47,10 +48,10 @@ using namespace hyteg;
 
 namespace hyteg {
 
-class P1JacobiSmoother : public Solver< P1ElementwiseLaplaceOperator >
+class P1JacobiSmoother : public Solver< P1ConstantLaplaceOperator >
 {
  public:
-   using FunctionType = typename P1ElementwiseLaplaceOperator::srcType;
+   using FunctionType = typename P1ConstantLaplaceOperator::srcType;
 
    P1JacobiSmoother( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : flag_( hyteg::Inner | hyteg::NeumannBoundary )
@@ -60,9 +61,9 @@ class P1JacobiSmoother : public Solver< P1ElementwiseLaplaceOperator >
 
    void setWeight( const real_t& weight ) { weight_ = weight; }
 
-   void solve( const P1ElementwiseLaplaceOperator&                   A,
-               const typename P1ElementwiseLaplaceOperator::srcType& x,
-               const typename P1ElementwiseLaplaceOperator::dstType& b,
+   void solve( const P1ConstantLaplaceOperator&                   A,
+               const typename P1ConstantLaplaceOperator::srcType& x,
+               const typename P1ConstantLaplaceOperator::dstType& b,
                const walberla::uint_t                                level ) override
    {
       tmp_.assign( {1.0}, {x}, level, hyteg::All );
@@ -75,10 +76,10 @@ class P1JacobiSmoother : public Solver< P1ElementwiseLaplaceOperator >
    real_t       weight_;
 };
 
-class P1RichardsonSmoother : public Solver< P1ElementwiseLaplaceOperator >
+class P1RichardsonSmoother : public Solver< P1ConstantLaplaceOperator >
 {
  public:
-   using FunctionType = typename P1ElementwiseLaplaceOperator::srcType;
+   using FunctionType = typename P1ConstantLaplaceOperator::srcType;
 
    P1RichardsonSmoother( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : flag_( hyteg::Inner | hyteg::NeumannBoundary )
@@ -88,9 +89,9 @@ class P1RichardsonSmoother : public Solver< P1ElementwiseLaplaceOperator >
 
    void setWeight( const real_t& weight ) { weight_ = weight; }
 
-   void solve( const P1ElementwiseLaplaceOperator&                   A,
-               const typename P1ElementwiseLaplaceOperator::srcType& x,
-               const typename P1ElementwiseLaplaceOperator::dstType& b,
+   void solve( const P1ConstantLaplaceOperator&                   A,
+               const typename P1ConstantLaplaceOperator::srcType& x,
+               const typename P1ConstantLaplaceOperator::dstType& b,
                const walberla::uint_t                                level ) override
    {
       tmp_.assign( {1.0}, {x}, level, hyteg::All );
@@ -117,20 +118,12 @@ class P1RichardsonSmoother : public Solver< P1ElementwiseLaplaceOperator >
    real_t       weight_;
 };
 
-void setupDiagonal( const uint_t& minLevel, const uint_t& maxLevel, P1ElementwiseLaplaceOperator& laplaceOperator )
-{
-   for ( uint_t level = minLevel; level <= maxLevel; level += 1 )
-   {
-      laplaceOperator.computeDiagonalOperatorValues( level, true );
-   }
-}
-
-std::shared_ptr< Solver< P1ElementwiseLaplaceOperator > > setupSmoother( const std::shared_ptr< PrimitiveStorage >& storage,
+std::shared_ptr< Solver< P1ConstantLaplaceOperator > > setupSmoother( const std::shared_ptr< PrimitiveStorage >& storage,
                                                                          const uint_t&                              minLevel,
                                                                          const uint_t&                              maxLevel,
                                                                          const std::string&                         smootherType,
                                                                          const uint_t&                              order,
-                                                                         P1ElementwiseLaplaceOperator& laplaceOperator,
+                                                                         P1ConstantLaplaceOperator& laplaceOperator,
                                                                          P1Function< real_t >          function,
                                                                          P1Function< real_t >          tmpFunction )
 {
@@ -143,17 +136,22 @@ std::shared_ptr< Solver< P1ElementwiseLaplaceOperator > > setupSmoother( const s
    }
    else if ( smootherType == "jacobi" )
    {
-      setupDiagonal( minLevel, maxLevel, laplaceOperator );
+      laplaceOperator.computeInverseDiagonalOperatorValues();
       auto smoother = std::make_shared< P1JacobiSmoother >( storage, minLevel, maxLevel );
       smoother->setWeight( 2. / 3. );
       return smoother;
    }
    else if ( smootherType == "chebyshev" )
    {
-      setupDiagonal( minLevel, maxLevel, laplaceOperator );
-      auto       smoother = std::make_shared< ChebyshevSmoother< P1ElementwiseLaplaceOperator > >( storage, minLevel, maxLevel );
+      laplaceOperator.computeInverseDiagonalOperatorValues();
+      auto       smoother = std::make_shared< ChebyshevSmoother< P1ConstantLaplaceOperator > >( storage, minLevel, maxLevel );
       const auto spectralRadius = chebyshev::estimateRadius( laplaceOperator, minLevel, 100, storage, function, tmpFunction );
       smoother->setupCoefficients( order, spectralRadius );
+      return smoother;
+   }
+   else if ( smootherType == "sor" )
+   {
+      auto smoother = std::make_shared< SORSmoother< P1ConstantLaplaceOperator > >( 1.0 );
       return smoother;
    }
    else
@@ -202,7 +200,7 @@ int main( int argc, char** argv )
    P1Function< real_t > function( "function", storage, minLevel, maxLevel );
    P1Function< real_t > laplaceTimesFunction( "laplaceTimesFunction", storage, minLevel, maxLevel );
 
-   P1ElementwiseLaplaceOperator laplaceOperator( storage, minLevel, maxLevel );
+   P1ConstantLaplaceOperator laplaceOperator( storage, minLevel, maxLevel );
 
    const auto calculateResiduum = [&]() -> real_t {
       laplaceOperator.apply( function, laplaceTimesFunction, maxLevel, Inner );
@@ -234,12 +232,12 @@ int main( int argc, char** argv )
    eigenvector.interpolate( analytic_solution, minLevel, DirichletBoundary );
    auto smoother = setupSmoother( storage, minLevel, maxLevel, smootherType, order, laplaceOperator, eigenvector, tmp );
 
-   auto coarseGridSolver = std::make_shared< CGSolver< P1ElementwiseLaplaceOperator > >(
+   auto coarseGridSolver = std::make_shared< CGSolver< P1ConstantLaplaceOperator > >(
        storage, minLevel, minLevel, max_coarse_iter, coarse_tolerance );
    auto restrictionOperator  = std::make_shared< P1toP1LinearRestriction >();
    auto prolongationOperator = std::make_shared< P1toP1LinearProlongation >();
 
-   auto multiGridSolver = GeometricMultigridSolver< P1ElementwiseLaplaceOperator >( storage,
+   auto multiGridSolver = GeometricMultigridSolver< P1ConstantLaplaceOperator >( storage,
                                                                                     smoother,
                                                                                     coarseGridSolver,
                                                                                     restrictionOperator,

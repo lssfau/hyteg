@@ -48,6 +48,9 @@ waLBerla_execute_test(NAME P1StokesBlockCGTest)
 waLBerla_compile_test(FILES convergence/P1GSConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1GSConvergenceTest)
 
+waLBerla_compile_test(FILES convergence/P1JacobiConvergenceTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P1JacobiConvergenceTest)
+
 waLBerla_compile_test(FILES convergence/P1MinResConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1MinResConvergenceTest)
 

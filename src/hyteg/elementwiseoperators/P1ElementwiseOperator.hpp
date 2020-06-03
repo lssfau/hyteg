@@ -41,15 +41,13 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
    P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                           size_t                                     minLevel,
                           size_t                                     maxLevel,
-                          bool                                       needsDiagEntries = true );
+                          bool                                       needsInverseDiagEntries = true );
 
    void apply( const P1Function< real_t >& src,
                const P1Function< real_t >& dst,
                size_t                      level,
                DoFType                     flag,
                UpdateType                  updateType = Replace ) const;
-
-   std::unique_ptr< P1Function< real_t > > diagonalValues_;
 
    void smooth_jac( const P1Function< real_t >& dst,
                     const P1Function< real_t >& rhs,
@@ -76,10 +74,28 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
 #endif
 
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
-   ///
-   /// \param level   grid level on which the computation should be run
-   /// \param invert  flag, if true, inverse values will be computed and stored
-   void computeDiagonalOperatorValues( uint_t level, bool invert );
+   /// Allocates the required memory if the function was not yet allocated.
+   void computeDiagonalOperatorValues() { computeDiagonalOperatorValues( false ); }
+
+   /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
+   void computeInverseDiagonalOperatorValues() { computeDiagonalOperatorValues( true ); }
+
+   std::shared_ptr< P1Function< real_t > > getDiagonalValues() const
+   {
+      WALBERLA_CHECK_NOT_NULLPTR(
+          diagonalValues_,
+          "Diagonal values have not been assembled, call computeDiagonalOperatorValues() to set up this function." )
+      return diagonalValues_;
+   };
+
+   std::shared_ptr< P1Function< real_t > > getInverseDiagonalValues() const
+   {
+      WALBERLA_CHECK_NOT_NULLPTR(
+          inverseDiagonalValues_,
+          "Inverse diagonal values have not been assembled, call computeInverseDiagonalOperatorValues() to set up this function." )
+      return inverseDiagonalValues_;
+   };
 
  private:
    /// compute product of element local vector with element matrix
@@ -164,6 +180,16 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                                const PetscInt* const   srcIdx,
                                const PetscInt* const   dstIdx ) const;
 #endif
+
+   /// Trigger (re)computation of diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
+   ///
+   /// \param invert if true, assembles the function carrying the inverse of the diagonal
+   void computeDiagonalOperatorValues( bool invert );
+
+   std::shared_ptr< P1Function< real_t > > diagonalValues_;
+   std::shared_ptr< P1Function< real_t > > inverseDiagonalValues_;
+
 };
 
 typedef P1ElementwiseOperator<
