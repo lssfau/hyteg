@@ -99,12 +99,6 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
       WALBERLA_ABORT( "SOR not implemented for P2ElementwiseOperator." )
    }
 
-   /// Trigger (re)computation of diagonal matrix entries (central operator weights)
-   ///
-   /// \param level   grid level on which the computation should be run
-   /// \param invert  flag, if true, inverse values will be computed and stored
-   void computeDiagonalOperatorValues( uint_t level, bool invert );
-
 #ifdef HYTEG_BUILD_WITH_PETSC
    /// Assemble operator as sparse matrix for PETSc
    ///
