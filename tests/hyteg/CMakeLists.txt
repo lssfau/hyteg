@@ -623,5 +623,8 @@ waLBerla_execute_test(NAME CircularMapFPETestMPI COMMAND $<TARGET_FILE:CircularM
 if ( HYTEG_BUILD_WITH_TRILINOS )
 ## Trilinos ##
 waLBerla_compile_test(FILES trilinos/TrilinosVersionTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME trilinosVersionTest)
+waLBerla_execute_test(NAME TrilinosVersionTest)
+
+waLBerla_compile_test(FILES trilinos/TrilinosSparseMatrixTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME TrilinosSparseMatrixTest)
 endif()
