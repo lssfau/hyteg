@@ -33,6 +33,7 @@
 #include "hyteg/composites/petsc/P2P2StabilizedStokesPetsc.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/p2functionspace/P2Petsc.hpp"
+#include "hyteg/petsc/PETScVectorProxy.hpp"
 
 namespace hyteg {
 
@@ -76,7 +77,8 @@ class PETScVector
                                   uint_t                           level,
                                   DoFType                          flag = All )
    {
-      hyteg::petsc::createVectorFromFunction( src, numerator, vec, level, flag );
+      auto proxy = std::make_shared< PETScVectorProxy >( vec );
+      hyteg::petsc::createVectorFromFunction( src, numerator, proxy, level, flag );
 
       VecAssemblyBegin( vec );
       VecAssemblyEnd( vec );
@@ -87,7 +89,8 @@ class PETScVector
                                   uint_t                           level,
                                   DoFType                          flag = All )
    {
-      hyteg::petsc::createFunctionFromVector( src, numerator, vec, level, flag );
+      auto proxy = std::make_shared< PETScVectorProxy >( vec );
+      hyteg::petsc::createFunctionFromVector( src, numerator, proxy, level, flag );
    }
 
    void print( const char filename[] )

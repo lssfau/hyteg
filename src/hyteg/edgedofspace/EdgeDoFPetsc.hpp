@@ -27,6 +27,7 @@
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 namespace hyteg {
 namespace edgedof {
@@ -38,7 +39,7 @@ using walberla::uint_t;
 
 inline void createVectorFromFunction(const EdgeDoFFunction<PetscScalar> &function,
                                      const EdgeDoFFunction<PetscInt> &numerator,
-                                     Vec &vec,
+                                     const std::shared_ptr< VectorProxy > &vec,
                                      uint_t level,
                                      DoFType flag) {
 
@@ -72,7 +73,7 @@ inline void createVectorFromFunction(const EdgeDoFFunction<PetscScalar> &functio
 
 inline void createFunctionFromVector(const EdgeDoFFunction<PetscScalar> &function,
                                      const EdgeDoFFunction<PetscInt> &numerator,
-                                     Vec &vec,
+                                     const std::shared_ptr< VectorProxy > &vec,
                                      uint_t level,
                                      DoFType flag) {
   function.startCommunication<Vertex, Edge>( level );

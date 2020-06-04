@@ -23,13 +23,14 @@
 #include "hyteg/composites/P1StokesBlockPreconditioner.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 namespace hyteg {
 namespace petsc {
 
 inline void createVectorFromFunction(const P1StokesFunction<PetscScalar> &function,
                                      const P1StokesFunction<PetscInt> &numerator,
-                                     Vec &vec,
+                                     const std::shared_ptr< VectorProxy > &vec,
                                      uint_t level,
                                      DoFType flag) {
   createVectorFromFunction(function.u, numerator.u, vec, level, flag);
@@ -43,7 +44,7 @@ inline void createVectorFromFunction(const P1StokesFunction<PetscScalar> &functi
 
 inline void createFunctionFromVector(const P1StokesFunction<PetscScalar> &function,
                                      const P1StokesFunction<PetscInt> &numerator,
-                                     Vec &vec,
+                                     const std::shared_ptr< VectorProxy > &vec,
                                      uint_t level,
                                      DoFType flag) {
   createFunctionFromVector(function.u, numerator.u, vec, level, flag);

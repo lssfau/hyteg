@@ -39,6 +39,7 @@
 #include "hyteg/Algorithms.hpp"
 #include "hyteg/LevelWiseMemory.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 namespace hyteg {
 namespace vertexdof {
@@ -1195,7 +1196,7 @@ inline void createVectorFromFunction( const uint_t&                             
                                       Face&                                                       face,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId,
                                       const PrimitiveDataID< FunctionMemory< PetscInt >, Face >&  numeratorId,
-                                      Vec&                                                        vec )
+                                      const std::shared_ptr< VectorProxy >&                       vec )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( Level );
    uint_t inner_rowsize = rowsize;
@@ -1203,16 +1204,13 @@ inline void createVectorFromFunction( const uint_t&                             
    auto src       = face.getData( srcId )->getPointer( Level );
    auto numerator = face.getData( numeratorId )->getPointer( Level );
 
-   for( uint_t i = 1; i < rowsize - 2; ++i )
+   for ( uint_t i = 1; i < rowsize - 2; ++i )
    {
-      for( uint_t j = 1; j < inner_rowsize - 2; ++j )
+      for ( uint_t j = 1; j < inner_rowsize - 2; ++j )
       {
          PetscInt numeratorInt = numerator[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
-         VecSetValues( vec,
-                       1,
-                       &numeratorInt,
-                       &src[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )],
-                       INSERT_VALUES );
+         vec->setValue( uint_c( numeratorInt ),
+                        src[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] );
       }
       --inner_rowsize;
    }
@@ -1223,7 +1221,7 @@ inline void createFunctionFromVector( const uint_t&                             
                                       Face&                                                       face,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId,
                                       const PrimitiveDataID< FunctionMemory< PetscInt >, Face >&  numeratorId,
-                                      Vec&                                                        vec )
+                                      const std::shared_ptr< VectorProxy >&                       vec )
 {
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( Level );
    uint_t inner_rowsize = rowsize;
@@ -1231,13 +1229,13 @@ inline void createFunctionFromVector( const uint_t&                             
    auto src       = face.getData( srcId )->getPointer( Level );
    auto numerator = face.getData( numeratorId )->getPointer( Level );
 
-   for( uint_t i = 1; i < rowsize - 2; ++i )
+   for ( uint_t i = 1; i < rowsize - 2; ++i )
    {
-      for( uint_t j = 1; j < inner_rowsize - 2; ++j )
+      for ( uint_t j = 1; j < inner_rowsize - 2; ++j )
       {
          PetscInt numeratorInt = numerator[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
-         VecGetValues(
-             vec, 1, &numeratorInt, &src[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] );
+         src[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )] =
+             vec->getValue( uint_c( numeratorInt ) );
       }
       --inner_rowsize;
    }

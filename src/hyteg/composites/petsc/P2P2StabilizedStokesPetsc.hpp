@@ -22,13 +22,14 @@
 #include "hyteg/composites/P2P2StokesFunction.hpp"
 #include "hyteg/p2functionspace/P2Petsc.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 namespace hyteg {
 namespace petsc {
 
 inline void createVectorFromFunction( const P2P2StokesFunction< PetscScalar >& function,
                                       const P2P2StokesFunction< PetscInt >&    numerator,
-                                      Vec&                                     vec,
+                                      const std::shared_ptr< VectorProxy >&    vec,
                                       uint_t                                   level,
                                       DoFType                                  flag )
 {
@@ -43,7 +44,7 @@ inline void createVectorFromFunction( const P2P2StokesFunction< PetscScalar >& f
 
 inline void createFunctionFromVector( const P2P2StokesFunction< PetscScalar >& function,
                                       const P2P2StokesFunction< PetscInt >&    numerator,
-                                      Vec&                                     vec,
+                                      const std::shared_ptr< VectorProxy >&    vec,
                                       uint_t                                   level,
                                       DoFType                                  flag )
 {

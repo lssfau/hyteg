@@ -24,6 +24,7 @@
 #include "hyteg/p1functionspace/VertexDoFMemory.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 #ifdef DEBUG_ELEMENTWISE
 #include "hyteg/format.hpp"
@@ -364,25 +365,24 @@ template < typename ValueType >
 inline void createVectorFromFunction( const Vertex&                                                 vertex,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
                                       const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >&  numeratorId,
-                                      Vec&                                                          vec,
+                                      const std::shared_ptr< VectorProxy >&                         vec,
                                       uint_t                                                        level )
 {
    auto     src       = vertex.getData( srcId )->getPointer( level );
    PetscInt numerator = vertex.getData( numeratorId )->getPointer( level )[0];
 
-   VecSetValues( vec, 1, &numerator, src, INSERT_VALUES );
+   vec->setValue( uint_c( numerator ), src[0] );
 }
 
 template < typename ValueType >
 inline void createFunctionFromVector( Vertex&                                                       vertex,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
                                       const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >&  numeratorId,
-                                      Vec&                                                          vec,
+                                      const std::shared_ptr< VectorProxy >&                         vec,
                                       uint_t                                                        level )
 {
-   PetscInt numerator = vertex.getData( numeratorId )->getPointer( level )[0];
-
-   VecGetValues( vec, 1, &numerator, vertex.getData( srcId )->getPointer( level ) );
+   PetscInt numerator                              = vertex.getData( numeratorId )->getPointer( level )[0];
+   vertex.getData( srcId )->getPointer( level )[0] = vec->getValue( uint_c( numerator ) );
 }
 
 inline void applyDirichletBC( Vertex&                                                      vertex,

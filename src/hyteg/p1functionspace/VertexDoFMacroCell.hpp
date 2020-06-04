@@ -37,6 +37,7 @@
 #include "hyteg/LevelWiseMemory.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 namespace hyteg {
 namespace vertexdof {
@@ -713,38 +714,42 @@ inline void saveOperator( const uint_t&                                         
    }
 }
 
-template< typename ValueType >
-inline void createVectorFromFunction(const uint_t & Level, Cell & cell,
-                              const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId,
-                              const PrimitiveDataID<FunctionMemory< PetscInt >, Cell> &numeratorId,
-                              Vec& vec)
+template < typename ValueType >
+inline void createVectorFromFunction( const uint_t&                                               Level,
+                                      Cell&                                                       cell,
+                                      const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId,
+                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Cell >&  numeratorId,
+                                      const std::shared_ptr< VectorProxy >&                       vec )
 {
+   auto src       = cell.getData( srcId )->getPointer( Level );
+   auto numerator = cell.getData( numeratorId )->getPointer( Level );
 
-  auto src = cell.getData(srcId)->getPointer( Level );
-  auto numerator = cell.getData(numeratorId)->getPointer( Level );
-
-  for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
-  {
-      PetscInt numeratorInt = numerator[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C)];
-      VecSetValues(vec,1,&numeratorInt,&src[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C)],INSERT_VALUES);
-  }
+   for ( const auto& it : vertexdof::macrocell::Iterator( Level, 1 ) )
+   {
+      PetscInt numeratorInt =
+          numerator[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )];
+      vec->setValue( uint_c( numeratorInt ),
+                     src[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )] );
+   }
 }
 
-
-template< typename ValueType >
-inline void createFunctionFromVector(const uint_t & Level, Cell & cell,
-                                         const PrimitiveDataID<FunctionMemory< ValueType >, Cell> &srcId,
-                                         const PrimitiveDataID<FunctionMemory< PetscInt >, Cell> &numeratorId,
-                                         Vec& vec)
+template < typename ValueType >
+inline void createFunctionFromVector( const uint_t&                                               Level,
+                                      Cell&                                                       cell,
+                                      const PrimitiveDataID< FunctionMemory< ValueType >, Cell >& srcId,
+                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Cell >&  numeratorId,
+                                      const std::shared_ptr< VectorProxy >&                       vec )
 {
-  auto src = cell.getData(srcId)->getPointer( Level );
-  auto numerator = cell.getData(numeratorId)->getPointer( Level );
+   auto src       = cell.getData( srcId )->getPointer( Level );
+   auto numerator = cell.getData( numeratorId )->getPointer( Level );
 
-  for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
-  {
-      PetscInt numeratorInt = numerator[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C)];
-      VecGetValues(vec,1,&numeratorInt,&src[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C)]);
-  }
+   for ( const auto& it : vertexdof::macrocell::Iterator( Level, 1 ) )
+   {
+      PetscInt numeratorInt =
+          numerator[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )];
+      src[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )] =
+          vec->getValue( uint_c( numeratorInt ) );
+   }
 }
 
 #endif

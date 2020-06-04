@@ -26,17 +26,18 @@
 #include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroVertex.hpp>
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
 namespace hyteg {
 namespace petsc {
 
-inline void createVectorFromFunction( const P1Function< PetscScalar >& function,
-                                      const P1Function< PetscInt >&    numerator,
-                                      Vec&                             vec,
-                                      uint_t                           level,
-                                      DoFType                          flag )
+inline void createVectorFromFunction( const P1Function< PetscScalar >&      function,
+                                      const P1Function< PetscInt >&         numerator,
+                                      const std::shared_ptr< VectorProxy >& vec,
+                                      uint_t                                level,
+                                      DoFType                               flag )
 {
    for ( auto& it : function.getStorage()->getVertices() )
    {
@@ -87,11 +88,11 @@ inline void createVectorFromFunction( const P1Function< PetscScalar >& function,
    }
 }
 
-inline void createFunctionFromVector( const P1Function< PetscScalar >& function,
-                                      const P1Function< PetscInt >&    numerator,
-                                      Vec&                             vec,
-                                      uint_t                           level,
-                                      DoFType                          flag )
+inline void createFunctionFromVector( const P1Function< PetscScalar >&      function,
+                                      const P1Function< PetscInt >&         numerator,
+                                      const std::shared_ptr< VectorProxy >& vec,
+                                      uint_t                                level,
+                                      DoFType                               flag )
 {
    for ( auto& it : function.getStorage()->getVertices() )
    {

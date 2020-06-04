@@ -31,6 +31,7 @@
 #include "hyteg/Algorithms.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 #include "core/math/KahanSummation.h"
 #include "core/DataTypes.h"
@@ -755,33 +756,40 @@ inline void saveOperator( const uint_t&                                         
    }
 }
 
-template< typename ValueType >
-inline void createVectorFromFunction(const uint_t & level, Edge &edge,
-                                     const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
-                                     const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId,
-                                     Vec& vec) {
-  PetscInt rowsize = (PetscInt) levelinfo::num_microvertices_per_edge(level);
+template < typename ValueType >
+inline void createVectorFromFunction( const uint_t&                                               level,
+                                      Edge&                                                       edge,
+                                      const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId,
+                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >&  numeratorId,
+                                      const std::shared_ptr< VectorProxy >&                       vec )
+{
+   PetscInt rowsize = (PetscInt) levelinfo::num_microvertices_per_edge( level );
 
-  auto src = edge.getData(srcId)->getPointer( level );
-  auto numerator = edge.getData(numeratorId)->getPointer( level );
+   auto src       = edge.getData( srcId )->getPointer( level );
+   auto numerator = edge.getData( numeratorId )->getPointer( level );
 
-  VecSetValues(vec,rowsize-2,&numerator[1],&src[1],INSERT_VALUES);
+   for ( uint_t i = 1; i < uint_c( rowsize - 1 ); i++ )
+   {
+      vec->setValue( numerator[i], src[i] );
+   }
 }
 
+template < typename ValueType >
+inline void createFunctionFromVector( const uint_t&                                               level,
+                                      Edge&                                                       edge,
+                                      const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId,
+                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >&  numeratorId,
+                                      const std::shared_ptr< VectorProxy >&                       vec )
+{
+   PetscInt rowsize = (PetscInt) levelinfo::num_microvertices_per_edge( level );
 
-template< typename ValueType >
-inline void createFunctionFromVector(const uint_t & level, Edge &edge,
-                                         const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
-                                         const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId,
-                                         Vec& vec) {
-  PetscInt rowsize = (PetscInt) levelinfo::num_microvertices_per_edge(level);
+   auto numerator = edge.getData( numeratorId )->getPointer( level );
 
-  auto numerator = edge.getData(numeratorId)->getPointer( level );
-
-  VecGetValues(vec,rowsize-2,&numerator[1],&edge.getData(srcId)->getPointer( level )[1]);
+   for ( uint_t i = 1; i < uint_c( rowsize - 1 ); i++ )
+   {
+      edge.getData( srcId )->getPointer( level )[i] = vec->getValue( numerator[i] );
+   }
 }
-
-
 
 inline void applyDirichletBC(const uint_t & level, Edge &edge,std::vector<PetscInt> &mat,
                                  const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId){
