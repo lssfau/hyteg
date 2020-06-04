@@ -22,6 +22,7 @@
 
 #include "core/DataTypes.h"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFApply.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 namespace hyteg {
 namespace VertexDoFToEdgeDoF {
@@ -36,7 +37,7 @@ inline void saveEdgeOperator( const uint_t & Level, const Edge & edge,
                               const PrimitiveDataID< StencilMemory< real_t >, Edge>    & operatorId,
                               const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & srcId,
                               const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & dstId,
-                              Mat & mat )
+                              const std::shared_ptr< SparseMatrixProxy > & mat )
 {
   const real_t * opr_data = edge.getData(operatorId)->getPointer( Level );
   const PetscInt * src      = edge.getData(srcId)->getPointer( Level );
@@ -52,13 +53,13 @@ inline void saveEdgeOperator( const uint_t & Level, const Edge & edge,
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromHorizontalEdgeDoF )
     {
       srcInt = src[vertexdof::macroedge::indexFromHorizontalEdge( Level, it.col(), neighbor )];
-      MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ], ADD_VALUES );
+      mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ] );
     }
 
     for ( const auto & neighbor : vertexdof::macroedge::neighborsOnSouthFaceFromHorizontalEdgeDoF )
     {
       srcInt = src[vertexdof::macroedge::indexFromHorizontalEdge( Level, it.col(), neighbor )];
-      MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ], ADD_VALUES );
+      mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ] );
     }
 
     if( edge.getNumNeighborFaces() == 2 )
@@ -66,7 +67,7 @@ inline void saveEdgeOperator( const uint_t & Level, const Edge & edge,
       for ( const auto & neighbor : vertexdof::macroedge::neighborsOnNorthFaceFromHorizontalEdgeDoF )
       {
         srcInt = src[vertexdof::macroedge::indexFromHorizontalEdge( Level, it.col(), neighbor )];
-        MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ], ADD_VALUES );
+        mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ] );
       }
     }
   }
@@ -78,7 +79,7 @@ inline void saveEdgeOperator3D( const uint_t & level, const Edge & edge,
                                 const PrimitiveDataID<LevelWiseMemory< MacroEdgeStencilMap_T >, Edge > & operatorId,
                                 const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & srcId,
                                 const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & dstId,
-                                Mat & mat )
+                                const std::shared_ptr< SparseMatrixProxy > & mat )
 {
   auto opr_data = edge.getData(operatorId)->getData( level );
   auto src  = edge.getData(srcId)->getPointer( level );
@@ -146,7 +147,7 @@ inline void saveEdgeOperator3D( const uint_t & level, const Edge & edge,
         }
 
         const auto srcInt = src[ leafArrayIndexOnEdge ];
-        MatSetValues( mat, 1, &dstInt, 1, &srcInt, &stencilWeight, ADD_VALUES );
+        mat->addValue( uint_c( dstInt ), uint_c( srcInt ), stencilWeight );
       }
     }
   }
@@ -157,7 +158,7 @@ inline void saveFaceOperator( const uint_t & Level, const Face & face,
                               const PrimitiveDataID< StencilMemory< real_t >, Face>    & operatorId,
                               const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & srcId,
                               const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & dstId,
-                              Mat & mat )
+                              const std::shared_ptr< SparseMatrixProxy > & mat )
 {
   const real_t * opr_data = face.getData(operatorId)->getPointer( Level );
   const PetscInt * src      = face.getData(srcId)->getPointer( Level );
@@ -174,7 +175,7 @@ inline void saveFaceOperator( const uint_t & Level, const Face & face,
       for ( const auto & neighbor : vertexdof::macroface::neighborsFromHorizontalEdge )
       {
         srcInt = src[vertexdof::macroface::indexFromHorizontalEdge( Level, it.col(), it.row(), neighbor )];
-        MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ], ADD_VALUES );
+        mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[ vertexdof::stencilIndexFromHorizontalEdge( neighbor ) ] );
       }
     }
 
@@ -184,7 +185,7 @@ inline void saveFaceOperator( const uint_t & Level, const Face & face,
       for ( const auto & neighbor : vertexdof::macroface::neighborsFromVerticalEdge )
       {
         srcInt = src[vertexdof::macroface::indexFromVerticalEdge( Level, it.col(), it.row(), neighbor )];
-        MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromVerticalEdge( neighbor ) ], ADD_VALUES );
+        mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[ vertexdof::stencilIndexFromVerticalEdge( neighbor ) ] );
       }
     }
 
@@ -194,7 +195,7 @@ inline void saveFaceOperator( const uint_t & Level, const Face & face,
       for ( const auto & neighbor : vertexdof::macroface::neighborsFromDiagonalEdge )
       {
         srcInt = src[vertexdof::macroface::indexFromDiagonalEdge( Level, it.col(), it.row(), neighbor )];
-        MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[ vertexdof::stencilIndexFromDiagonalEdge( neighbor ) ], ADD_VALUES );
+        mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[ vertexdof::stencilIndexFromDiagonalEdge( neighbor ) ] );
       }
     }
 
@@ -207,7 +208,7 @@ inline void saveFaceOperator3D( const uint_t & level, const Face & face,
                                 const PrimitiveDataID< LevelWiseMemory< MacroFaceStencilMap_T >, Face > & operatorId,
                                 const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & srcId,
                                 const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & dstId,
-                                Mat & mat )
+                                const std::shared_ptr< SparseMatrixProxy > & mat )
 {
   auto opr_data = face.getData(operatorId)->getData( level );
   auto src  = face.getData(srcId)->getPointer( level );
@@ -256,7 +257,7 @@ inline void saveFaceOperator3D( const uint_t & level, const Face & face,
           }
 
           const auto srcInt = src[ leafArrayIndexInFace ];
-          MatSetValues( mat, 1, &dstInt, 1, &srcInt, &stencilWeight, ADD_VALUES );
+          mat->addValue( uint_c( dstInt ), uint_c( srcInt ), stencilWeight );
         }
       }
     }
@@ -268,7 +269,7 @@ inline void saveCellOperator( const uint_t & Level, const Cell & cell,
                               const PrimitiveDataID<LevelWiseMemory< MacroCellStencilMap_T >, Cell> & operatorId,
                               const PrimitiveDataID< FunctionMemory< PetscInt >, Cell> & srcId,
                               const PrimitiveDataID< FunctionMemory< PetscInt >, Cell> & dstId,
-                              Mat & mat )
+                              const std::shared_ptr< SparseMatrixProxy > & mat )
 {
   auto opr_data = cell.getData( operatorId )->getData( Level );
   const PetscInt *src = cell.getData( srcId )->getPointer( Level );
@@ -303,7 +304,7 @@ inline void saveCellOperator( const uint_t & Level, const Cell & cell,
         const auto   srcIdx      = it + neighbor;
         const auto   srcArrayIdx = vertexdof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z() );
         const auto   srcInt      = src[ srcArrayIdx ];
-        MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[centerOrientation][neighbor], ADD_VALUES );
+        mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[centerOrientation][neighbor] );
       }
     }
   }
@@ -322,7 +323,7 @@ inline void saveCellOperator( const uint_t & Level, const Cell & cell,
       const auto   srcIdx      = it + neighbor;
       const auto   srcArrayIdx = vertexdof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z() );
       const auto   srcInt      = src[ srcArrayIdx ];
-      MatSetValues( mat, 1, &dstInt, 1, &srcInt, &opr_data[centerOrientation][neighbor], ADD_VALUES );
+      mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[centerOrientation][neighbor] );
     }
   }
 }
@@ -331,7 +332,7 @@ template < class OperatorType >
 inline void createMatrix( const OperatorType&                opr,
                           const P1Function< PetscInt >&      src,
                           const EdgeDoFFunction< PetscInt >& dst,
-                          Mat&                               mat,
+                          const std::shared_ptr< SparseMatrixProxy >&                               mat,
                           size_t                             level,
                           DoFType                            flag )
 {

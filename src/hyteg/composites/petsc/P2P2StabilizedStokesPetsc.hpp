@@ -21,6 +21,7 @@
 
 #include "hyteg/composites/P2P2StokesFunction.hpp"
 #include "hyteg/p2functionspace/P2Petsc.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 namespace hyteg {
 namespace petsc {
@@ -67,12 +68,12 @@ inline void applyDirichletBC( const P2P2StokesFunction< PetscInt >& numerator, s
 }
 
 template < class OperatorType >
-inline void createMatrix( const OperatorType&                   opr,
-                          const P2P2StokesFunction< PetscInt >& src,
-                          const P2P2StokesFunction< PetscInt >& dst,
-                          Mat&                                  mat,
-                          size_t                                level,
-                          DoFType                               flag )
+inline void createMatrix( const OperatorType&                         opr,
+                          const P2P2StokesFunction< PetscInt >&       src,
+                          const P2P2StokesFunction< PetscInt >&       dst,
+                          const std::shared_ptr< SparseMatrixProxy >& mat,
+                          size_t                                      level,
+                          DoFType                                     flag )
 {
    createMatrix( opr.A, src.u, dst.u, mat, level, flag );
    createMatrix( opr.divT_x, src.p, dst.u, mat, level, flag );

@@ -23,6 +23,7 @@
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/p1functionspace/VertexDoFMemory.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 #ifdef DEBUG_ELEMENTWISE
 #include "hyteg/format.hpp"
@@ -346,14 +347,17 @@ inline void saveOperator( Vertex&                                               
                           const PrimitiveDataID< StencilMemory< real_t >, Vertex >&    operatorId,
                           const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& srcId,
                           const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& dstId,
-                          Mat&                                                         mat,
+                          const std::shared_ptr< SparseMatrixProxy >&                                                         mat,
                           uint_t                                                       level )
 {
    auto opr_data = vertex.getData( operatorId )->getPointer( level );
    auto src      = vertex.getData( srcId )->getPointer( level );
    auto dst      = vertex.getData( dstId )->getPointer( level );
 
-   MatSetValues( mat, 1, dst, ( PetscInt )( vertex.getNumNeighborEdges() + 1 ), src, opr_data, ADD_VALUES );
+   for ( uint_t i = 0; i < vertex.getNumNeighborEdges() + 1; i++ )
+   {
+      mat->addValue( uint_c( dst[0] ), uint_c( src[i] ), opr_data[i] );
+   }
 }
 
 template < typename ValueType >

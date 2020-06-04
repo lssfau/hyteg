@@ -24,6 +24,7 @@
 #include <hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFPetsc.hpp>
 #include <hyteg/p1functionspace/P1Petsc.hpp>
 #include <hyteg/p2functionspace/P2Function.hpp>
+#include <hyteg/sparseassembly/SparseMatrixProxy.hpp>
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
@@ -60,7 +61,7 @@ template < class OperatorType >
 inline void createMatrix( const OperatorType&           opr,
                           const P2Function< PetscInt >& src,
                           const P2Function< PetscInt >& dst,
-                          Mat&                          mat,
+                          const std::shared_ptr< SparseMatrixProxy >&                          mat,
                           uint_t                        level,
                           DoFType                       flag )
 {

@@ -23,6 +23,7 @@
 #include "hyteg/p2functionspace/P2Petsc.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
@@ -71,7 +72,7 @@ template < class OperatorType >
 inline void createMatrix( const OperatorType&                       opr,
                           const P2P1TaylorHoodFunction< PetscInt >& src,
                           const P2P1TaylorHoodFunction< PetscInt >& dst,
-                          Mat&                                      mat,
+                          const std::shared_ptr< SparseMatrixProxy >&                                      mat,
                           size_t                                    level,
                           DoFType                                   flag )
 {
@@ -105,7 +106,7 @@ template <>
 inline void createMatrix< P2P1TaylorHoodStokesBlockPreconditioner >( const P2P1TaylorHoodStokesBlockPreconditioner& opr,
                                                                      const P2P1TaylorHoodFunction< PetscInt >&      src,
                                                                      const P2P1TaylorHoodFunction< PetscInt >&      dst,
-                                                                     Mat&                                           mat,
+                                                                     const std::shared_ptr< SparseMatrixProxy >&    mat,
                                                                      size_t                                         level,
                                                                      DoFType                                        flag )
 {

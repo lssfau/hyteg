@@ -36,6 +36,7 @@
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
 #include "hyteg/LevelWiseMemory.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 namespace hyteg {
 namespace vertexdof {
@@ -685,31 +686,32 @@ inline ValueType getMaxMagnitude( const uint_t & level, Cell &cell, const Primit
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
-inline void saveOperator(const uint_t & Level, Cell & cell, const PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T > , Cell>& operatorId,
-                              const PrimitiveDataID<FunctionMemory< PetscInt >, Cell> &srcId,
-                              const PrimitiveDataID<FunctionMemory< PetscInt >, Cell> &dstId, Mat& mat)
+inline void saveOperator( const uint_t&                                                                         Level,
+                          Cell&                                                                                 cell,
+                          const PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell >& operatorId,
+                          const PrimitiveDataID< FunctionMemory< PetscInt >, Cell >&                            srcId,
+                          const PrimitiveDataID< FunctionMemory< PetscInt >, Cell >&                            dstId,
+                          const std::shared_ptr< SparseMatrixProxy >&                                           mat )
 {
+   auto opr_data = cell.getData( operatorId )->getData( Level );
+   auto src      = cell.getData( srcId )->getPointer( Level );
+   auto dst      = cell.getData( dstId )->getPointer( Level );
 
-  auto opr_data = cell.getData(operatorId)->getData( Level );
-  auto src = cell.getData(srcId)->getPointer( Level );
-  auto dst = cell.getData(dstId)->getPointer( Level );
+   for ( const auto& it : vertexdof::macrocell::Iterator( Level, 1 ) )
+   {
+      PetscInt srcInt = src[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )];
+      PetscInt dstInt = dst[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )];
 
-  for ( const auto & it : vertexdof::macrocell::Iterator( Level, 1 ) )
-  {
-      PetscInt srcInt = src[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C)];
-      PetscInt dstInt = dst[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C)];
+      mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[{0, 0, 0}] );
 
-      MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[ { 0, 0, 0 } ] ,ADD_VALUES);
+      for ( const auto& neighbor : vertexdof::macrocell::neighborsWithoutCenter )
+      {
+         srcInt = src[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), neighbor )];
 
-      for ( const auto & neighbor : vertexdof::macrocell::neighborsWithoutCenter ) {
-        srcInt = src[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), neighbor)];
-
-        MatSetValues(mat,1,&dstInt,1,&srcInt,&opr_data[vertexdof::logicalIndexOffsetFromVertex(neighbor)] ,ADD_VALUES);
+         mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[vertexdof::logicalIndexOffsetFromVertex( neighbor )] );
       }
-  }
+   }
 }
-
-
 
 template< typename ValueType >
 inline void createVectorFromFunction(const uint_t & Level, Cell & cell,

@@ -484,13 +484,13 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions3D( const
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
-// Assemble operator as sparse matrix for PETSc
+// Assemble operator as sparse matrix
 template < class P1Form >
-void P1ElementwiseOperator< P1Form >::assembleLocalMatrix( Mat&                          mat,
-                                                           const P1Function< PetscInt >& src,
-                                                           const P1Function< PetscInt >& dst,
-                                                           uint_t                        level,
-                                                           DoFType                       flag ) const
+void P1ElementwiseOperator< P1Form >::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                           const P1Function< PetscInt >&               src,
+                                                           const P1Function< PetscInt >&               dst,
+                                                           uint_t                                      level,
+                                                           DoFType                                     flag ) const
 {
    // We currently ignore the flag provided!
    WALBERLA_UNUSED( flag );
@@ -570,14 +570,14 @@ void P1ElementwiseOperator< P1Form >::assembleLocalMatrix( Mat&                 
 }
 
 template < class P1Form >
-void P1ElementwiseOperator< P1Form >::localMatrixAssembly2D( Mat&                                       mat,
-                                                             const Face&                                face,
-                                                             const uint_t                               level,
-                                                             const uint_t                               xIdx,
-                                                             const uint_t                               yIdx,
-                                                             const P1Elements::P1Elements2D::P1Element& element,
-                                                             const PetscInt* const                      srcIdx,
-                                                             const PetscInt* const                      dstIdx ) const
+void P1ElementwiseOperator< P1Form >::localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                             const Face&                                 face,
+                                                             const uint_t                                level,
+                                                             const uint_t                                xIdx,
+                                                             const uint_t                                yIdx,
+                                                             const P1Elements::P1Elements2D::P1Element&  element,
+                                                             const PetscInt* const                       srcIdx,
+                                                             const PetscInt* const                       dstIdx ) const
 {
    Matrix3r                 elMat;
    indexing::Index          nodeIdx;
@@ -603,30 +603,35 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly2D( Mat&               
    dofDataIdx[1] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[1] );
    dofDataIdx[2] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[2] );
 
-   PetscInt rowIdx[3];
-   rowIdx[0] = dstIdx[dofDataIdx[0]];
-   rowIdx[1] = dstIdx[dofDataIdx[1]];
-   rowIdx[2] = dstIdx[dofDataIdx[2]];
+   std::vector< uint_t > rowIdx( 3 );
+   rowIdx[0] = uint_c( dstIdx[dofDataIdx[0]] );
+   rowIdx[1] = uint_c( dstIdx[dofDataIdx[1]] );
+   rowIdx[2] = uint_c( dstIdx[dofDataIdx[2]] );
 
-   PetscInt colIdx[3];
-   colIdx[0] = srcIdx[dofDataIdx[0]];
-   colIdx[1] = srcIdx[dofDataIdx[1]];
-   colIdx[2] = srcIdx[dofDataIdx[2]];
+   std::vector< uint_t > colIdx( 3 );
+   colIdx[0] = uint_c( srcIdx[dofDataIdx[0]] );
+   colIdx[1] = uint_c( srcIdx[dofDataIdx[1]] );
+   colIdx[2] = uint_c( srcIdx[dofDataIdx[2]] );
+
+   const uint_t elMatSize = 9;
+   std::vector< real_t > blockMatData( elMatSize );
+   for ( uint_t i = 0; i < elMatSize; i++ )
+   {
+      blockMatData[i] = elMat.data()[i];
+   }
 
    // add local matrix into global matrix
-   PetscErrorCode ierr = MatSetValues( mat, 3, rowIdx, 3, colIdx, elMat.data(), ADD_VALUES );
-   WALBERLA_ASSERT_EQUAL( ierr, 0 )
-   WALBERLA_UNUSED( ierr );
+   mat->addValues( rowIdx, colIdx, blockMatData );
 }
 
 template < class P1Form >
-void P1ElementwiseOperator< P1Form >::localMatrixAssembly3D( Mat&                    mat,
-                                                             const Cell&             cell,
-                                                             const uint_t            level,
-                                                             const indexing::Index&  microCell,
-                                                             const celldof::CellType cType,
-                                                             const PetscInt* const   srcIdx,
-                                                             const PetscInt* const   dstIdx ) const
+void P1ElementwiseOperator< P1Form >::localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                             const Cell&                                 cell,
+                                                             const uint_t                                level,
+                                                             const indexing::Index&                      microCell,
+                                                             const celldof::CellType                     cType,
+                                                             const PetscInt* const                       srcIdx,
+                                                             const PetscInt* const                       dstIdx ) const
 {
    // determine coordinates of vertices of micro-element
    std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
@@ -646,18 +651,23 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly3D( Mat&               
    std::array< uint_t, 4 > vertexDoFDataIdx;
    vertexdof::getVertexDoFDataIndicesFromMicroCell( microCell, cType, level, vertexDoFDataIdx );
 
-   PetscInt rowIdx[4];
-   PetscInt colIdx[4];
+   std::vector< uint_t > rowIdx( 4 );
+   std::vector< uint_t > colIdx( 4 );
    for ( uint_t k = 0; k < 4; ++k )
    {
-      rowIdx[k] = dstIdx[vertexDoFDataIdx[k]];
-      colIdx[k] = srcIdx[vertexDoFDataIdx[k]];
+      rowIdx[k] = uint_c( dstIdx[vertexDoFDataIdx[k]] );
+      colIdx[k] = uint_c( srcIdx[vertexDoFDataIdx[k]] );
+   }
+
+   const uint_t elMatSize = 16;
+   std::vector< real_t > blockMatData( elMatSize );
+   for ( uint_t i = 0; i < elMatSize; i++ )
+   {
+      blockMatData[i] = elMat.data()[i];
    }
 
    // add local matrix into global matrix
-   PetscErrorCode ierr = MatSetValues( mat, 4, rowIdx, 4, colIdx, elMat.data(), ADD_VALUES );
-   WALBERLA_ASSERT_EQUAL( ierr, 0 )
-   WALBERLA_UNUSED( ierr );
+   mat->addValues( rowIdx, colIdx, blockMatData );
 }
 
 #endif

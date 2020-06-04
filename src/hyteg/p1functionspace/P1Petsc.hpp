@@ -25,6 +25,7 @@
 #include <hyteg/p1functionspace/VertexDoFMacroEdge.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroVertex.hpp>
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
@@ -187,12 +188,12 @@ inline void applyDirichletBC( const P1Function< PetscInt >& numerator, std::vect
 }
 
 template < class OperatorType >
-inline void createMatrix( const OperatorType&           opr,
-                          const P1Function< PetscInt >& src,
-                          const P1Function< PetscInt >& dst,
-                          Mat&                          mat,
-                          size_t                        level,
-                          DoFType                       flag )
+inline void createMatrix( const OperatorType&                         opr,
+                          const P1Function< PetscInt >&               src,
+                          const P1Function< PetscInt >&               dst,
+                          const std::shared_ptr< SparseMatrixProxy >& mat,
+                          size_t                                      level,
+                          DoFType                                     flag )
 {
    const auto storage = src.getStorage();
 

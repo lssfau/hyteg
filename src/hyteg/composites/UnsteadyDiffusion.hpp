@@ -40,6 +40,7 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/Solver.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 namespace hyteg {
 
@@ -167,12 +168,12 @@ typedef P2UnsteadyDiffusionOperator< P2ElementwiseOperator, P2Form_laplace, P2Fo
 #ifdef HYTEG_BUILD_WITH_PETSC
 namespace petsc {
 template <>
-inline void createMatrix< P2ConstantUnsteadyDiffusionOperator >( const P2ConstantUnsteadyDiffusionOperator& opr,
-                                                                 const P2Function< PetscInt >&              src,
-                                                                 const P2Function< PetscInt >&              dst,
-                                                                 Mat&                                       mat,
-                                                                 uint_t                                     level,
-                                                                 DoFType                                    flag )
+inline void createMatrix< P2ConstantUnsteadyDiffusionOperator >( const P2ConstantUnsteadyDiffusionOperator&  opr,
+                                                                 const P2Function< PetscInt >&               src,
+                                                                 const P2Function< PetscInt >&               dst,
+                                                                 const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                                 uint_t                                      level,
+                                                                 DoFType                                     flag )
 {
    createMatrix( opr.getOperator(), src, dst, mat, level, flag );
 }
@@ -181,7 +182,7 @@ template <>
 inline void createMatrix< P2ElementwiseUnsteadyDiffusionOperator >( const P2ElementwiseUnsteadyDiffusionOperator& opr,
                                                                     const P2Function< PetscInt >&                 src,
                                                                     const P2Function< PetscInt >&                 dst,
-                                                                    Mat&                                          mat,
+                                                                    const std::shared_ptr< SparseMatrixProxy >&   mat,
                                                                     uint_t                                        level,
                                                                     DoFType                                       flag )
 {

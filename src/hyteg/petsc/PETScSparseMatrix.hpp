@@ -32,6 +32,7 @@
 #include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/p2functionspace/P2Petsc.hpp"
 #include "hyteg/petsc/PETScVector.hpp"
+#include "hyteg/petsc/PETScSparseMatrixProxy.hpp"
 
 namespace hyteg {
 
@@ -64,7 +65,8 @@ class PETScSparseMatrix
                                          const FunctionType< PetscInt >& numerator,
                                          DoFType                         flag = All )
    {
-      hyteg::petsc::createMatrix< OperatorType >( op, numerator, numerator, mat, level, flag );
+      auto proxy = std::make_shared< PETScSparseMatrixProxy >( mat );
+      hyteg::petsc::createMatrix< OperatorType >( op, numerator, numerator, proxy, level, flag );
 
       MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
       MatAssemblyEnd( mat, MAT_FINAL_ASSEMBLY );
