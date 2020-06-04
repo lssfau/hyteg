@@ -26,6 +26,7 @@
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/trilinos/TrilinosVector.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -50,12 +51,17 @@ int main( int argc, char* argv[] )
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
    P1ConstantLaplaceOperator laplacian( storage, level, level );
+   P1Function< real_t >      x( "x", storage, level, level );
    P1Function< PetscInt >    numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
 
    trilinos::TrilinosSparseMatrix< P1ConstantLaplaceOperator, P1Function > matrix( laplacian, storage, level, numerator );
    auto                                                                    matrixString = matrix.to_string();
    WALBERLA_LOG_INFO_ON_ROOT( matrixString );
+
+   trilinos::TrilinosVector< P1Function > vector( x, storage, level, numerator );
+   auto                                   vectorString = vector.to_string();
+   WALBERLA_LOG_INFO_ON_ROOT( vectorString );
 
    return EXIT_SUCCESS;
 }
