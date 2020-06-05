@@ -630,4 +630,7 @@ waLBerla_execute_test(NAME TrilinosVectorTest)
 
 waLBerla_compile_test(FILES trilinos/TrilinosSparseMatrixTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME TrilinosSparseMatrixTest)
+
+waLBerla_compile_test(FILES trilinos/TrilinosDirectSolverTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME TrilinosDirectSolverTest)
 endif()

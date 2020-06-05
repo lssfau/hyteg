@@ -87,6 +87,38 @@ class TrilinosSparseMatrix
       crsMatrix_->fillComplete();
    }
 
+   /// \brief Modifies the system matrix to conform to the underlying Dirichlet problem.
+   ///
+   /// Sets the diagonal entry of all rows that correspond to DoFs on a Dirichlet boundary to 1.
+   void applyDirichletBoundaryConditions( const FunctionType< PetscInt >& numerator )
+   {
+      if ( crsMatrix_->isFillComplete() )
+      {
+         crsMatrix_->resumeFill();
+      }
+      std::vector< PetscInt > dirichletRowIndices;
+      hyteg::petsc::applyDirichletBC( numerator, dirichletRowIndices, level_ );
+
+      for ( auto row : dirichletRowIndices )
+      {
+         Teuchos::ArrayView< const MatrixType::global_ordinal_type > columnIndices;
+         crsMatrix_->getCrsGraph()->getGlobalRowView( row, columnIndices );
+         for ( auto col : columnIndices )
+         {
+            real_t val = 0;
+            if ( row == col )
+            {
+               val = 1.0;
+            }
+            crsMatrix_->replaceGlobalValues( row,
+                                             Teuchos::tuple< Tpetra::Vector<>::global_ordinal_type >( col ),
+                                             Teuchos::tuple< Tpetra::Vector<>::scalar_type >( val ) );
+         }
+      }
+      crsMatrix_->fillComplete();
+   }
+
+   /// \brief Performs a matrix-vector multiplication in Trilinos.
    void apply( const TrilinosVector< FunctionType, MatrixScalarType >& src,
                TrilinosVector< FunctionType, MatrixScalarType >&       dst )
    {
