@@ -65,15 +65,18 @@ void testSparseMatrix()
    src.w.interpolate( f, level, All );
    src.p.interpolate( f, level, All );
 
-   trilinos::TrilinosSparseMatrix< OperatorType, P2P1TaylorHoodFunction > matrix( op, storage, level, numerator );
-   auto                                                                   matrixString = matrix.to_string();
+   trilinos::TrilinosSparseMatrix< OperatorType, P2P1TaylorHoodFunction > matrix( storage, level );
+   matrix.assembleSystem( op, numerator );
+   auto matrixString = matrix.to_string();
    WALBERLA_LOG_INFO_ON_ROOT( matrixString );
 
-   trilinos::TrilinosVector< P2P1TaylorHoodFunction > vectorSrc( src, storage, level, numerator );
-   trilinos::TrilinosVector< P2P1TaylorHoodFunction > vectorDst( dstTrilinos, storage, level, numerator );
+   trilinos::TrilinosVector< P2P1TaylorHoodFunction > vectorSrc( storage, level );
+   vectorSrc.fillFromFunction( src, numerator );
+   trilinos::TrilinosVector< P2P1TaylorHoodFunction > vectorDst( storage, level );
+   vectorDst.fillFromFunction( dstTrilinos, numerator );
    matrix.apply( vectorSrc, vectorDst );
 
-   vectorDst.createFunctionFromVector( dstTrilinos, numerator, level );
+   vectorDst.writeToFunction( dstTrilinos, numerator );
 
    op.apply( src, dstHyteg, level, All );
 

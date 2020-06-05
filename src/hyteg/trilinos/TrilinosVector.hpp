@@ -51,11 +51,11 @@ class TrilinosVector
    typedef Tpetra::Map<>    MapType;
    typedef Tpetra::Vector<> VectorType;
 
-   TrilinosVector( const FunctionType< FunctionScalarType >&  function,
-                   const std::shared_ptr< PrimitiveStorage >& storage,
-                   const uint_t&                              level,
-                   const FunctionType< PetscInt >&            numerator,
-                   DoFType                                    flag = All )
+   /// \brief Allocates the Trilinos vector data structure.
+   ///
+   /// Meaningful values have to be written to the vector through the assemble() call.
+   TrilinosVector( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level )
+   : level_( level )
    {
       trilinosCommunicatorRaw_ = walberla::mpi::MPIManager::instance()->comm();
       trilinosCommunicator_    = rcp( new Teuchos::MpiComm< int >( trilinosCommunicatorRaw_ ) );
@@ -65,20 +65,24 @@ class TrilinosVector
 
       rowMap_ = rcp( new MapType( Tpetra::global_size_t( numGlobalUnknowns ), 0, trilinosCommunicator_ ) );
       vector_ = rcp( new VectorType( rowMap_ ) );
+   }
 
+   void fillFromFunction( const FunctionType< FunctionScalarType >& function,
+                          const FunctionType< PetscInt >&           numerator,
+                          DoFType                                   flag = All )
+   {
       auto proxy = std::make_shared< TrilinosVectorProxy >( vector_ );
-      hyteg::petsc::createVectorFromFunction( function, numerator, proxy, level, flag );
+      hyteg::petsc::createVectorFromFunction( function, numerator, proxy, level_, flag );
    }
 
    RCP< VectorType > getTpetraVector() const { return vector_; }
 
-   void createFunctionFromVector( const FunctionType< FunctionScalarType >& function,
-                                  const FunctionType< PetscInt >&           numerator,
-                                  uint_t                                    level,
-                                  DoFType                                   flag = All )
+   void writeToFunction( const FunctionType< FunctionScalarType >& function,
+                         const FunctionType< PetscInt >&           numerator,
+                         DoFType                                   flag = All )
    {
       auto proxy = std::make_shared< TrilinosVectorProxy >( vector_ );
-      hyteg::petsc::createFunctionFromVector( function, numerator, proxy, level, flag );
+      hyteg::petsc::createFunctionFromVector( function, numerator, proxy, level_, flag );
    }
 
    /// \brief Returns a string representation of this vector.
@@ -96,6 +100,7 @@ class TrilinosVector
    RCP< const Teuchos::Comm< int > > trilinosCommunicator_;
    RCP< const MapType >              rowMap_;
    RCP< VectorType >                 vector_;
+   uint_t                            level_;
 };
 
 } // namespace trilinos

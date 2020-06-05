@@ -65,8 +65,9 @@ int main( int argc, char* argv[] )
    xOriginal.w.interpolate( f, level, All );
    xOriginal.p.interpolate( f, level, All );
 
-   trilinos::TrilinosVector< P2P1TaylorHoodFunction > vector( xOriginal, storage, level, numerator );
-   vector.createFunctionFromVector( xTrilinos, numerator, level );
+   trilinos::TrilinosVector< P2P1TaylorHoodFunction > vector( storage, level );
+   vector.fillFromFunction( xOriginal, numerator );
+   vector.writeToFunction( xTrilinos, numerator );
 
    error.assign( {1.0, -1.0}, {xTrilinos, xOriginal}, level );
    const auto maxMagnitudeU = error.u.getMaxMagnitude( level );

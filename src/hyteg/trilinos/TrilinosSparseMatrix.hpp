@@ -52,11 +52,13 @@ class TrilinosSparseMatrix
    typedef Tpetra::Map<>       MapType;
    typedef Tpetra::CrsMatrix<> MatrixType;
 
-   TrilinosSparseMatrix( const OperatorType&                        op,
-                         const std::shared_ptr< PrimitiveStorage >& storage,
-                         const uint_t&                              level,
-                         const FunctionType< PetscInt >&            numerator,
-                         DoFType                                    flag = All )
+   /// \brief Allocates the parallel sparse matrix data structure.
+   ///
+   /// This constructor may only pre-allocate memory, not even the non-zero
+   /// structure is determined. A subsequent call to assembleSystem() is necessary.
+   ///
+   TrilinosSparseMatrix( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level )
+   : level_( level )
    {
       trilinosCommunicatorRaw_ = walberla::mpi::MPIManager::instance()->comm();
       trilinosCommunicator_    = rcp( new Teuchos::MpiComm< int >( trilinosCommunicatorRaw_ ) );
@@ -67,16 +69,28 @@ class TrilinosSparseMatrix
 
       rowMap_    = rcp( new MapType( Tpetra::global_size_t( numGlobalUnknowns ), 0, trilinosCommunicator_ ) );
       crsMatrix_ = rcp( new MatrixType( rowMap_, maxEntriesPerRow ) );
+   }
 
+   /// \brief Assembles the sparse matrix from the passed operator.
+   ///
+   /// This routine assembles the "Neumann" system. To incorporate Dirichlet boundary
+   /// conditions, subsequent calls to applyDirichletBoundaryConditions*() must follow.
+   void assembleSystem( const OperatorType& op, const FunctionType< PetscInt >& numerator )
+   {
+      if ( crsMatrix_->isFillComplete() )
+      {
+         crsMatrix_->resumeFill();
+      }
+      crsMatrix_->setAllToScalar( 0 );
       auto proxy = std::make_shared< TrilinosSparseMatrixProxy >( crsMatrix_ );
-      hyteg::petsc::createMatrix( op, numerator, numerator, proxy, level, flag );
+      hyteg::petsc::createMatrix( op, numerator, numerator, proxy, level_, All );
       crsMatrix_->fillComplete();
    }
 
    void apply( const TrilinosVector< FunctionType, MatrixScalarType >& src,
                TrilinosVector< FunctionType, MatrixScalarType >&       dst )
    {
-      crsMatrix_->apply( *(src.getTpetraVector()), *(dst.getTpetraVector()) );
+      crsMatrix_->apply( *( src.getTpetraVector() ), *( dst.getTpetraVector() ) );
    }
 
    /// \brief Returns a string representation of this matrix.
@@ -89,11 +103,14 @@ class TrilinosSparseMatrix
       return ss.str();
    }
 
+   RCP< MatrixType > getTpetraMatrix() const { return crsMatrix_; }
+
  private:
    MPI_Comm                          trilinosCommunicatorRaw_;
    RCP< const Teuchos::Comm< int > > trilinosCommunicator_;
    RCP< const MapType >              rowMap_;
    RCP< MatrixType >                 crsMatrix_;
+   uint_t                            level_;
 };
 
 } // namespace trilinos
