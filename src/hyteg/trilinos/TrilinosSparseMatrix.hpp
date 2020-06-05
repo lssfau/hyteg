@@ -34,6 +34,7 @@
 #include "hyteg/trilinos/TeuchosWrapper.hpp"
 #include "hyteg/trilinos/TpetraWrapper.hpp"
 #include "hyteg/trilinos/TrilinosSparseMatrixProxy.hpp"
+#include "hyteg/trilinos/TrilinosVector.hpp"
 
 namespace hyteg {
 namespace trilinos {
@@ -48,6 +49,9 @@ template < typename OperatorType, template < class > class FunctionType, typenam
 class TrilinosSparseMatrix
 {
  public:
+   typedef Tpetra::Map<>       MapType;
+   typedef Tpetra::CrsMatrix<> MatrixType;
+
    TrilinosSparseMatrix( const OperatorType&                        op,
                          const std::shared_ptr< PrimitiveStorage >& storage,
                          const uint_t&                              level,
@@ -69,6 +73,12 @@ class TrilinosSparseMatrix
       crsMatrix_->fillComplete();
    }
 
+   void apply( const TrilinosVector< FunctionType, MatrixScalarType >& src,
+               TrilinosVector< FunctionType, MatrixScalarType >&       dst )
+   {
+      crsMatrix_->apply( *(src.getTpetraVector()), *(dst.getTpetraVector()) );
+   }
+
    /// \brief Returns a string representation of this matrix.
    ///
    /// Must be called collectively by all processes.
@@ -80,13 +90,6 @@ class TrilinosSparseMatrix
    }
 
  private:
-   typedef MatrixScalarType                            ST;
-   typedef unsigned                                    LO;
-   typedef unsigned                                    GO;
-   typedef KokkosClassic::DefaultNode::DefaultNodeType NT;
-   typedef Tpetra::Map<>                               MapType;
-   typedef Tpetra::CrsMatrix<>                         MatrixType;
-
    MPI_Comm                          trilinosCommunicatorRaw_;
    RCP< const Teuchos::Comm< int > > trilinosCommunicator_;
    RCP< const MapType >              rowMap_;

@@ -625,6 +625,9 @@ if ( HYTEG_BUILD_WITH_TRILINOS )
 waLBerla_compile_test(FILES trilinos/TrilinosVersionTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME TrilinosVersionTest)
 
+waLBerla_compile_test(FILES trilinos/TrilinosVectorTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME TrilinosVectorTest)
+
 waLBerla_compile_test(FILES trilinos/TrilinosSparseMatrixTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME TrilinosSparseMatrixTest)
 endif()

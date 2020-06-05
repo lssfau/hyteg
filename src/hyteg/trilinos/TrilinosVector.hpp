@@ -48,6 +48,9 @@ template < template < class > class FunctionType, typename FunctionScalarType = 
 class TrilinosVector
 {
  public:
+   typedef Tpetra::Map<>    MapType;
+   typedef Tpetra::Vector<> VectorType;
+
    TrilinosVector( const FunctionType< FunctionScalarType >&  function,
                    const std::shared_ptr< PrimitiveStorage >& storage,
                    const uint_t&                              level,
@@ -67,6 +70,17 @@ class TrilinosVector
       hyteg::petsc::createVectorFromFunction( function, numerator, proxy, level, flag );
    }
 
+   RCP< VectorType > getTpetraVector() const { return vector_; }
+
+   void createFunctionFromVector( const FunctionType< FunctionScalarType >& function,
+                                  const FunctionType< PetscInt >&           numerator,
+                                  uint_t                                    level,
+                                  DoFType                                   flag = All )
+   {
+      auto proxy = std::make_shared< TrilinosVectorProxy >( vector_ );
+      hyteg::petsc::createFunctionFromVector( function, numerator, proxy, level, flag );
+   }
+
    /// \brief Returns a string representation of this vector.
    ///
    /// Must be called collectively by all processes.
@@ -78,9 +92,6 @@ class TrilinosVector
    }
 
  private:
-   typedef Tpetra::Map<>    MapType;
-   typedef Tpetra::Vector<> VectorType;
-
    MPI_Comm                          trilinosCommunicatorRaw_;
    RCP< const Teuchos::Comm< int > > trilinosCommunicator_;
    RCP< const MapType >              rowMap_;

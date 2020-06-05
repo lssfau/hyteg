@@ -31,26 +31,25 @@ using walberla::uint_t;
 class TrilinosSparseMatrixProxy : public SparseMatrixProxy
 {
  public:
-   TrilinosSparseMatrixProxy( const RCP< Tpetra::CrsMatrix<> >& mat )
+   explicit TrilinosSparseMatrixProxy( const RCP< Tpetra::CrsMatrix<> >& mat )
    : mat_( mat )
    {}
 
-   void addValue( uint_t row, uint_t col, real_t value )
+   void addValue( uint_t row, uint_t col, real_t value ) override
    {
       mat_->insertGlobalValues( row,
                                 Teuchos::tuple< Tpetra::Vector<>::global_ordinal_type >( col ),
                                 Teuchos::tuple< Tpetra::Vector<>::scalar_type >( value ) );
    }
 
-   void addValues( const std::vector< uint_t >& rows, const std::vector< uint_t >& cols, const std::vector< real_t >& values )
+   void addValues( const std::vector< uint_t >& rows, const std::vector< uint_t >& cols, const std::vector< real_t >& values ) override
    {
-      WALBERLA_ASSERT_EQUAL( rows.size(), cols.size() );
       WALBERLA_ASSERT_EQUAL( values.size(), rows.size() * cols.size() );
       for ( uint_t i = 0; i < rows.size(); i++ )
       {
          for ( uint_t j = 0; j < cols.size(); j++ )
          {
-            addValue( i, j, values[i * cols.size() + j] );
+            addValue( rows[i], cols[j], values[i * cols.size() + j] );
          }
       }
    }

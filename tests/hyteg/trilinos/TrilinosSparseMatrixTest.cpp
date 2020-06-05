@@ -23,7 +23,10 @@
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
 
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/trilinos/TrilinosVector.hpp"
@@ -34,12 +37,9 @@ using walberla::uint_t;
 
 using namespace hyteg;
 
-int main( int argc, char* argv[] )
+template < typename OperatorType >
+void testSparseMatrix()
 {
-   walberla::Environment walberlaEnv( argc, argv );
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
-   walberla::MPIManager::instance()->useWorldComm();
-
    WALBERLA_LOG_INFO_ON_ROOT( Tpetra::version() )
 
    const uint_t level = 3;
@@ -50,18 +50,56 @@ int main( int argc, char* argv[] )
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
-   P1ConstantLaplaceOperator laplacian( storage, level, level );
-   P1Function< real_t >      x( "x", storage, level, level );
-   P1Function< PetscInt >    numerator( "numerator", storage, level, level );
+   OperatorType                       op( storage, level, level );
+   P2P1TaylorHoodFunction< real_t >   src( "src", storage, level, level );
+   P2P1TaylorHoodFunction< real_t >   dstTrilinos( "dstTrilinos", storage, level, level );
+   P2P1TaylorHoodFunction< real_t >   dstHyteg( "dstHyteg", storage, level, level );
+   P2P1TaylorHoodFunction< real_t >   error( "error", storage, level, level );
+   P2P1TaylorHoodFunction< PetscInt > numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
 
-   trilinos::TrilinosSparseMatrix< P1ConstantLaplaceOperator, P1Function > matrix( laplacian, storage, level, numerator );
-   auto                                                                    matrixString = matrix.to_string();
+   auto f = []( const Point3D& p ) -> real_t { return std::sin( p[0] ) + 0.5 * p[1]; };
+
+   src.u.interpolate( f, level, All );
+   src.v.interpolate( f, level, All );
+   src.w.interpolate( f, level, All );
+   src.p.interpolate( f, level, All );
+
+   trilinos::TrilinosSparseMatrix< OperatorType, P2P1TaylorHoodFunction > matrix( op, storage, level, numerator );
+   auto                                                                   matrixString = matrix.to_string();
    WALBERLA_LOG_INFO_ON_ROOT( matrixString );
 
-   trilinos::TrilinosVector< P1Function > vector( x, storage, level, numerator );
-   auto                                   vectorString = vector.to_string();
-   WALBERLA_LOG_INFO_ON_ROOT( vectorString );
+   trilinos::TrilinosVector< P2P1TaylorHoodFunction > vectorSrc( src, storage, level, numerator );
+   trilinos::TrilinosVector< P2P1TaylorHoodFunction > vectorDst( dstTrilinos, storage, level, numerator );
+   matrix.apply( vectorSrc, vectorDst );
+
+   vectorDst.createFunctionFromVector( dstTrilinos, numerator, level );
+
+   op.apply( src, dstHyteg, level, All );
+
+   error.assign( {1.0, -1.0}, {dstTrilinos, dstHyteg}, level, All );
+
+   const auto maxMagnitudeU = error.u.getMaxMagnitude( level );
+   const auto maxMagnitudeV = error.v.getMaxMagnitude( level );
+   const auto maxMagnitudeW = error.w.getMaxMagnitude( level );
+   const auto maxMagnitudeP = error.p.getMaxMagnitude( level );
+
+   WALBERLA_CHECK_LESS( maxMagnitudeU, 1e-14 );
+   WALBERLA_CHECK_LESS( maxMagnitudeV, 1e-14 );
+   WALBERLA_CHECK_LESS( maxMagnitudeW, 1e-14 );
+   WALBERLA_CHECK_LESS( maxMagnitudeP, 1e-14 );
+}
+
+int main( int argc, char* argv[] )
+{
+   walberla::Environment walberlaEnv( argc, argv );
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "CC" )
+   testSparseMatrix< hyteg::P2P1TaylorHoodStokesOperator >();
+   WALBERLA_LOG_INFO_ON_ROOT( "element-wise" )
+   testSparseMatrix< hyteg::P2P1ElementwiseBlendingStokesOperator >();
 
    return EXIT_SUCCESS;
 }
