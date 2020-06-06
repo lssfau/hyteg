@@ -334,5 +334,9 @@ int main( int argc, char** argv )
    compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >, P2Form_mass, Matrix10r, 3 >(
        theTet, 1e-8 ); // why the large difference? is our FEniCS form under-integrating?
 
+   logSectionHeader( "P2 Laplace Forms (3D)" );
+   compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >, P2Form_laplace, Matrix10r, 3 >(
+       theTet, 2e-14 );
+
    return EXIT_SUCCESS;
 }

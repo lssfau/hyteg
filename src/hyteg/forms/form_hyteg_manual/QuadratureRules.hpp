@@ -86,6 +86,9 @@ static const std::array< Point3D, 4 > T3_points = {Point3D( {( 5.0 - 1.0 * std::
 static const std::array< real_t, 4 > T3_weights = {1.0 / 24.0, 1.0 / 24.0, 1.0 / 24.0, 1.0 / 24.0};
 
 /// 3DT-4: exact for polynomial integrands up to order 5
+//
+// Reference does not provide more digits after the decimal point
+//
 static const std::array< real_t, 14 > T4_weights = {0.01878132000000,
                                                     0.01878132000000,
                                                     0.01878132000000,

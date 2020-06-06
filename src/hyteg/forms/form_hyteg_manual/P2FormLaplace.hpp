@@ -161,7 +161,238 @@ class P2Form_laplace : public P2FormHyTeG
 
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const final
    {
-      WALBERLA_ABORT( "P2FormLaplace not implemented for 3D, yet." );
+
+#define DX1N0 ( L2 + L3 + L4 - 3.0 * L1 )
+#define DX2N0 ( L2 + L3 + L4 - 3.0 * L1 )
+#define DX3N0 ( L2 + L3 + L4 - 3.0 * L1 )
+
+#define DX1N1 ( 4.0 * L2 - 1.0 )
+#define DX2N1 ( 0.0 )
+#define DX3N1 ( 0.0 )
+
+#define DX1N2 ( 0.0 )
+#define DX2N2 ( 4.0 * L3 - 1.0 )
+#define DX3N2 ( 0.0 )
+
+#define DX1N3 ( 0.0 )
+#define DX2N3 ( 0.0 )
+#define DX3N3 ( 4.0 * L4 - 1.0 )
+
+#define DX1N4 ( 0.0 )
+#define DX2N4 ( 4.0 * L4 )
+#define DX3N4 ( 4.0 * L3 )
+
+#define DX1N5 ( 4.0 * L4 )
+#define DX2N5 ( 0.0 )
+#define DX3N5 ( 4.0 * L2 )
+
+#define DX1N6 ( 4.0 * L3 )
+#define DX2N6 ( 4.0 * L2 )
+#define DX3N6 ( 0.0 )
+
+#define DX1N7 ( - 4.0 * L4 )
+#define DX2N7 ( - 4.0 * L4 )
+#define DX3N7 ( 4.0 * ( L1 - L4 ) )
+
+#define DX1N8 ( - 4.0 * L3 )
+#define DX2N8 ( 4.0 * ( L1 - L3 ) )
+#define DX3N8 ( - 4.0 * L3 )
+
+#define DX1N9 ( 4.0 * ( L1 - L2 ) )
+#define DX2N9 ( - 4.0 * L2 )
+#define DX3N9 ( - 4.0 * L2 )
+
+// Select cubature rule
+#define CUBAPOINTS cubature::T3_points
+#define CUBAWEIGHTS cubature::T3_weights
+
+// Executing quadrature rule
+#define INTEGRATE3D( i, j )                                                                                     \
+   elMat( i, j ) = 0.0;                                                                                         \
+   for ( uint_t k = 0; k < CUBAWEIGHTS.size(); k++ )                                                            \
+   {                                                                                                            \
+     real_t L2 = CUBAPOINTS[k][0];                                                                              \
+     real_t L3 = CUBAPOINTS[k][1];                                                                              \
+     real_t L4 = CUBAPOINTS[k][2];                                                                              \
+     real_t L1 = 1.0 - L2 - L3 - L4;                                                                            \
+     mappedPt[0] = ( coords[1][0] - coords[0][0] ) * L2 + ( coords[2][0] - coords[0][0] ) * L3 + ( coords[3][0] - coords[0][0] ) * L4 + coords[0][0]; \
+     mappedPt[1] = ( coords[1][1] - coords[0][1] ) * L2 + ( coords[2][1] - coords[0][1] ) * L3 + ( coords[3][1] - coords[0][1] ) * L4 + coords[0][1]; \
+     mappedPt[2] = ( coords[1][2] - coords[0][2] ) * L2 + ( coords[2][2] - coords[0][2] ) * L3 + ( coords[3][2] - coords[0][2] ) * L4 + coords[0][2]; \
+                                                                                                                \
+     real_t tmp27 = DX3N ## i*tmp26;                                                                            \
+     real_t tmp31 = DX3N ## j*tmp26;                                                                            \
+                                                                                                                \
+     real_t aux = (tmp13*tmp18*(DX1N ## i*tmp30 + DX2N ## i*tmp25 - tmp27)*(DX1N ## j*tmp30 + DX2N ## j*tmp25 - tmp31) + tmp13*(DX1N ## i*tmp33 - DX2N ## i*tmp32 + tmp23*tmp27)*(DX1N ## j*tmp33 - DX2N ## j*tmp32 + tmp23*tmp31) + (-DX1N ## i*tmp36 + DX2N ## i*tmp35 - tmp27*tmp34)*(-DX1N ## j*tmp36 + DX2N ## j*tmp35 - tmp31*tmp34))/(tmp13*tmp18*pow(tmp24, 2));                                                          \
+                                                                                                                \
+     real_t detDPsi = 1.0;                                                                                      \
+                                                                                                                \
+     elMat( i, j ) += CUBAWEIGHTS[k] * detJacPhiInv * detDPsi * aux;                                            \
+   }                                                                                                            \
+   elMat( j, i ) = elMat( i, j )
+
+      // compute Jacobian determinant of inverse pull-back mapping
+      // and location independent auxilliary values
+      real_t tmp0 = -coords[0][0];
+      real_t tmp1 = tmp0 + coords[1][0];
+      real_t tmp2 = -coords[0][1];
+      real_t tmp3 = tmp2 + coords[2][1];
+      real_t tmp4 = -coords[0][2];
+      real_t tmp5 = tmp4 + coords[3][2];
+      real_t tmp6 = tmp0 + coords[2][0];
+      real_t tmp7 = tmp2 + coords[3][1];
+      real_t tmp8 = tmp4 + coords[1][2];
+      real_t tmp9 = tmp0 + coords[3][0];
+      real_t tmp10 = tmp2 + coords[1][1];
+      real_t tmp11 = tmp4 + coords[2][2];
+      real_t tmp12 = coords[0][0] - coords[1][0];
+      real_t tmp13 = tmp12 * tmp12;
+      real_t tmp14 = tmp12*(coords[0][1] - coords[2][1]);
+      real_t tmp15 = coords[0][0] - coords[2][0];
+      real_t tmp16 = coords[0][1] - coords[1][1];
+      real_t tmp17 = tmp14 - tmp15*tmp16;
+      real_t tmp18 = tmp17 * tmp17;
+      real_t tmp19 = coords[0][0] - coords[3][0];
+      real_t tmp20 = coords[0][2] - coords[1][2];
+      real_t tmp21 = tmp12*(coords[0][2] - coords[3][2]) - tmp19*tmp20;
+      real_t tmp22 = tmp12*(coords[0][1] - coords[3][1]) - tmp16*tmp19;
+      real_t tmp23 = tmp12*(coords[0][2] - coords[2][2]) - tmp15*tmp20;
+      real_t tmp24 = tmp17*tmp21 - tmp22*tmp23;
+      real_t tmp25 = tmp12*tmp22;
+      real_t tmp26 = tmp12*tmp17;
+      real_t tmp28 = tmp17*tmp19;
+      real_t tmp29 = tmp15*tmp22;
+      real_t tmp30 = tmp28 - tmp29;
+      real_t tmp32 = tmp12*tmp17*tmp21;
+      real_t tmp33 = tmp15*tmp24 + tmp23*(-tmp28 + tmp29);
+      real_t tmp34 = tmp16*tmp23 - tmp17*tmp20;
+      real_t tmp35 = tmp12*(tmp16*tmp24 + tmp22*tmp34);
+      real_t tmp36 = tmp14*tmp24 - tmp30*tmp34;
+      real_t detJacPhiInv = -tmp1*tmp11*tmp7 + tmp1*tmp3*tmp5 + tmp10*tmp11*tmp9 - tmp10*tmp5*tmp6 - tmp3*tmp8*tmp9 + tmp6*tmp7*tmp8;
+      detJacPhiInv = std::abs( detJacPhiInv );
+
+      // Cubature point mapped to computational tetrahedron
+      Point3D mappedPt;
+
+      // dummy matrix for evaluation of Jacobian of 3D map
+      Matrix3r dummy;
+
+      // Zeroth row
+      INTEGRATE3D( 0, 0 );
+      INTEGRATE3D( 0, 1 );
+      INTEGRATE3D( 0, 2 );
+      INTEGRATE3D( 0, 3 );
+      INTEGRATE3D( 0, 4 );
+      INTEGRATE3D( 0, 5 );
+      INTEGRATE3D( 0, 6 );
+      INTEGRATE3D( 0, 7 );
+      INTEGRATE3D( 0, 8 );
+      INTEGRATE3D( 0, 9 );
+
+      // First row
+      INTEGRATE3D( 1, 1 );
+      INTEGRATE3D( 1, 2 );
+      INTEGRATE3D( 1, 3 );
+      INTEGRATE3D( 1, 4 );
+      INTEGRATE3D( 1, 5 );
+      INTEGRATE3D( 1, 6 );
+      INTEGRATE3D( 1, 7 );
+      INTEGRATE3D( 1, 8 );
+      INTEGRATE3D( 1, 9 );
+
+      // Second row
+      INTEGRATE3D( 2, 2 );
+      INTEGRATE3D( 2, 3 );
+      INTEGRATE3D( 2, 4 );
+      INTEGRATE3D( 2, 5 );
+      INTEGRATE3D( 2, 6 );
+      INTEGRATE3D( 2, 7 );
+      INTEGRATE3D( 2, 8 );
+      INTEGRATE3D( 2, 9 );
+
+      // Third row
+      INTEGRATE3D( 3, 3 );
+      INTEGRATE3D( 3, 4 );
+      INTEGRATE3D( 3, 5 );
+      INTEGRATE3D( 3, 6 );
+      INTEGRATE3D( 3, 7 );
+      INTEGRATE3D( 3, 8 );
+      INTEGRATE3D( 3, 9 );
+
+      // Fourth row
+      INTEGRATE3D( 4, 4 );
+      INTEGRATE3D( 4, 5 );
+      INTEGRATE3D( 4, 6 );
+      INTEGRATE3D( 4, 7 );
+      INTEGRATE3D( 4, 8 );
+      INTEGRATE3D( 4, 9 );
+
+      // Fifth row
+      INTEGRATE3D( 5, 5 );
+      INTEGRATE3D( 5, 6 );
+      INTEGRATE3D( 5, 7 );
+      INTEGRATE3D( 5, 8 );
+      INTEGRATE3D( 5, 9 );
+
+      // Sixth row
+      INTEGRATE3D( 6, 6 );
+      INTEGRATE3D( 6, 7 );
+      INTEGRATE3D( 6, 8 );
+      INTEGRATE3D( 6, 9 );
+
+      // Seventh row
+      INTEGRATE3D( 7, 7 );
+      INTEGRATE3D( 7, 8 );
+      INTEGRATE3D( 7, 9 );
+
+      // Eighth row
+      INTEGRATE3D( 8, 8 );
+      INTEGRATE3D( 8, 9 );
+
+      // Ninth row
+      INTEGRATE3D( 9, 9 );
+
+#undef DX1N0
+#undef DX2N0
+#undef DX3N0
+
+#undef DX1N1
+#undef DX2N1
+#undef DX3N1
+
+#undef DX1N2
+#undef DX2N2
+#undef DX3N2
+
+#undef DX1N3
+#undef DX2N3
+#undef DX3N3
+
+#undef DX1N4
+#undef DX2N4
+#undef DX3N4
+
+#undef DX1N5
+#undef DX2N5
+#undef DX3N5
+
+#undef DX1N6
+#undef DX2N6
+#undef DX3N6
+
+#undef DX1N7
+#undef DX2N7
+#undef DX3N7
+
+#undef DX1N8
+#undef DX2N8
+#undef DX3N8
+
+#undef DX1N9
+#undef DX2N9
+#undef DX3N9
+
+#undef INTEGRATE3D
+
    };
 };
 
