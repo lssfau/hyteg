@@ -45,6 +45,7 @@ using walberla::uint_t;
 #include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2ToP1FormDiv.hpp"
 #include "hyteg/geometry/AffineMap2D.hpp"
+#include "hyteg/geometry/AffineMap3D.hpp"
 #include "hyteg/geometry/IdentityMap.hpp"
 
 using namespace hyteg;
@@ -112,6 +113,7 @@ void compareForms( const std::array< Point3D, dim + 1 >& element,
    WALBERLA_CHECK_LESS_EQUAL( error, tol );
 }
 
+
 template < class FormFEniCS, class FormHyTeG, typename matType, uint_t dim >
 void compareScaled( const std::array< Point3D, dim + 1 >& element,
                     real_t                                tol,
@@ -120,6 +122,7 @@ void compareScaled( const std::array< Point3D, dim + 1 >& element,
 {
    compareForms< FormFEniCS, FormHyTeG, matType, dim >( element, tol, map, scaleFactor );
 }
+
 
 void run2DTestsWithoutBlending()
 {
@@ -297,6 +300,58 @@ void run2DTestsWithAffineMap()
        triangle, 5e-14, map, real_c( 1 ) );
 }
 
+
+void run3DTestsWithoutBlending()
+{
+   // define our test tetrahedron
+   std::array< Point3D, 4 > theTet{
+       Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 1.0, 0.0} ), Point3D( {-1.0, 0.5, 0.0} ), Point3D( {0.3, 0.21, -1.2} )};
+   // std::array<Point3D,4> theTet{ Point3D({0.0, 0.0, 0.0}), Point3D({1.0, 0.0, 0.0}), Point3D({0.0, 1.0, 0.0}), Point3D({0.0, 0.0, 1.0}) };
+
+   logSectionHeader( "P1 Mass Forms (3D)" );
+   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >( theTet,
+                                                                                                                          1e-15 );
+
+   logSectionHeader( "P2 Mass Forms (3D)" );
+   compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >, P2Form_mass, Matrix10r, 3 >(
+       theTet, 1e-8 ); // need to improve our cubature !!!
+
+   logSectionHeader( "P2 Laplace Forms (3D)" );
+   compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >, P2Form_laplace, Matrix10r, 3 >(
+       theTet, 2e-14 );
+}
+
+
+void run3DTestsWithAffineMap()
+{
+   // define our affine map
+   Matrix3r mat;
+   mat( 0, 0 ) = real_c( 2.0 );
+   mat( 1, 1 ) = real_c( 1.0 );
+   mat( 2, 2 ) = real_c( std::exp(1.0) );
+   // mat( 2, 2 ) = real_c( std::exp( 1.0 ) );
+   Point3D vec( {-7.0, 3.0, 2.0} );
+   auto    map = std::make_shared< AffineMap3D >( mat, vec );
+
+   // define our test tetrahedron
+   std::array< Point3D, 4 > theTet{
+       Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 1.0, 0.0} ), Point3D( {-1.0, 0.5, 0.0} ), Point3D( {0.3, 0.21, -1.2} )};
+
+   logSectionHeader( "P1 Mass Forms (3D)" );
+   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >( theTet,
+                                                                                                                          2e-15, map,
+                                                                                                                          mat(0,0)*mat(2,2) );
+
+   logSectionHeader( "P2 Mass Forms (3D)" );
+   compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >, P2Form_mass, Matrix10r, 3 >(
+       theTet, 1e-7, map, mat(0,0)*mat(2,2) );  // need to improve our cubature !!!
+
+   // logSectionHeader( "P2 Laplace Forms (3D)" );
+   // compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >, P2Form_laplace, Matrix10r, 3 >(
+   //    theTet, 2e-14, map );
+}
+
+
 int main( int argc, char** argv )
 {
    // abort in case of common floating-point exceptions
@@ -319,24 +374,10 @@ int main( int argc, char** argv )
    //  3D Testing
    // ------------
    logSectionHeader( "3D TESTS W/O BLENDING", "=" );
+   run3DTestsWithoutBlending();
 
-   // define our test tetrahedron
-   std::array< Point3D, 4 > theTet{
-       Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 1.0, 0.0} ), Point3D( {-1.0, 0.5, 0.0} ), Point3D( {0.3, 0.21, -1.2} )};
-   // std::array<Point3D,4> theTet{ Point3D({0.0, 0.0, 0.0}), Point3D({1.0, 0.0, 0.0}), Point3D({0.0, 1.0, 0.0}), Point3D({0.0, 0.0, 1.0}) };
-
-   logSectionHeader( "P1 Mass Forms (3D)" );
-   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >( theTet,
-                                                                                                                          1e-8 );
-   // 4 >( theTet, 1e-15 ); only works for lower-order quadrature rule in HyTeG form
-
-   logSectionHeader( "P2 Mass Forms (3D)" );
-   compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >, P2Form_mass, Matrix10r, 3 >(
-       theTet, 1e-8 ); // why the large difference? is our FEniCS form under-integrating?
-
-   logSectionHeader( "P2 Laplace Forms (3D)" );
-   compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >, P2Form_laplace, Matrix10r, 3 >(
-       theTet, 2e-14 );
+   logSectionHeader( "3D TESTS W/ BLENDING", "=" );
+   run3DTestsWithAffineMap();
 
    return EXIT_SUCCESS;
 }
