@@ -62,7 +62,7 @@ class TrilinosDirectSolver : public Solver< OperatorType >
       std::string solverTypeString = "MUMPS";
 
       solver_ = Amesos2::create< typename TrilinosSparseMatrix< OperatorType, FunctionTemplate >::MatrixType,
-                                 typename TrilinosVector< FunctionTemplate >::VectorType >>
+                                 typename TrilinosVector< FunctionTemplate >::VectorType >
                 ( solverTypeString, ATrilinos_.getTpetraMatrix(), xTrilinos_.getTpetraVector(), bTrilinos_.getTpetraVector() );
    }
 
