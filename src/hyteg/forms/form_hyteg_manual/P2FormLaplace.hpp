@@ -206,6 +206,8 @@ class P2Form_laplace : public P2FormHyTeG
 #define CUBAPOINTS cubature::T3_points
 #define CUBAWEIGHTS cubature::T3_weights
 
+// #define P2_FORM_LAPLACE_WO_BLENDING
+#ifdef P2_FORM_LAPLACE_WO_BLENDING
 // Executing quadrature rule
 #define INTEGRATE3D( i, j )                                                                                     \
    elMat( i, j ) = 0.0;                                                                                         \
@@ -269,6 +271,111 @@ class P2Form_laplace : public P2FormHyTeG
       real_t tmp36 = tmp14*tmp24 - tmp30*tmp34;
       real_t detJacPhiInv = -tmp1*tmp11*tmp7 + tmp1*tmp3*tmp5 + tmp10*tmp11*tmp9 - tmp10*tmp5*tmp6 - tmp3*tmp8*tmp9 + tmp6*tmp7*tmp8;
       detJacPhiInv = std::abs( detJacPhiInv );
+
+#else
+
+// Executing quadrature rule
+#define INTEGRATE3D( i, j )                                             \
+      elMat( i, j ) = 0.0;                                              \
+      for ( uint_t k = 0; k < CUBAWEIGHTS.size(); k++ )                 \
+        {                                                               \
+          real_t L2 = CUBAPOINTS[k][0];                                 \
+          real_t L3 = CUBAPOINTS[k][1];                                 \
+          real_t L4 = CUBAPOINTS[k][2];                                 \
+          real_t L1 = 1.0 - L2 - L3 - L4;                               \
+          mappedPt[0] = ( coords[1][0] - coords[0][0] ) * L2 + ( coords[2][0] - coords[0][0] ) * L3 + ( coords[3][0] - coords[0][0] ) * L4 + coords[0][0]; \
+          mappedPt[1] = ( coords[1][1] - coords[0][1] ) * L2 + ( coords[2][1] - coords[0][1] ) * L3 + ( coords[3][1] - coords[0][1] ) * L4 + coords[0][1]; \
+          mappedPt[2] = ( coords[1][2] - coords[0][2] ) * L2 + ( coords[2][2] - coords[0][2] ) * L3 + ( coords[3][2] - coords[0][2] ) * L4 + coords[0][2]; \
+          Matrix3r DPsi;                                                \
+          geometryMap_->evalDF( mappedPt, DPsi );                       \
+                                                                        \
+     real_t tmp17 = DPsi(0,1)*DPsi(1,0);                                \
+     real_t tmp18 = DPsi(1,1)*DPsi(0,0) - tmp17;                        \
+     real_t tmp19 = DPsi(0,2)*DPsi(2,0);                                \
+     real_t tmp20 = DPsi(0,1)*DPsi(2,0);                                \
+     real_t tmp21 = DPsi(2,1)*DPsi(0,0) - tmp20;                        \
+     real_t tmp22 = -DPsi(0,2)*DPsi(1,0) + DPsi(1,2)*DPsi(0,0);         \
+     real_t tmp23 = tmp21*tmp22;                                        \
+     real_t tmp24 = tmp18*(DPsi(2,2)*DPsi(0,0) - tmp19) - tmp23;        \
+     real_t tmp25 = 1.0/tmp24;                                          \
+     real_t tmp26 = -tmp10*tmp11 + tmp13;                               \
+     real_t tmp27 = tmp12*tmp3 - tmp7*tmp9;                             \
+     real_t tmp28 = tmp16*(tmp1*tmp3 - tmp15) - tmp26*tmp27;            \
+     real_t tmp29 = 1.0/tmp28;                                          \
+     real_t tmp30 = DPsi(0,0)*tmp18*tmp25*tmp29*tmp3;                   \
+     real_t tmp31 = tmp27*tmp3;                                         \
+     real_t tmp32 = -DPsi(0,1)*tmp22 + DPsi(0,2)*tmp18;                 \
+     real_t tmp33 = coords[0][1] - coords[1][1];                        \
+     real_t tmp34 = tmp16*(coords[0][2] - coords[1][2]) - tmp27*tmp33;  \
+     real_t tmp35 = DPsi(0,0)*tmp22*tmp25*tmp29*tmp31 + tmp16*tmp30 - tmp25*tmp29*tmp32*tmp34; \
+     real_t tmp36 = tmp28*tmp3;                                         \
+     real_t tmp37 = tmp26*tmp27*tmp3 + tmp36;                           \
+     real_t tmp38 = 1.0/tmp16;                                          \
+     real_t tmp39 = DPsi(0,0)*tmp22*tmp25*tmp29*tmp38;                  \
+     real_t tmp40 = -tmp26*tmp34 + tmp28*tmp33;                         \
+     real_t tmp41 = -tmp25*tmp29*tmp32*tmp38*tmp40 - tmp26*tmp30 - tmp37*tmp39; \
+     real_t tmp42 = tmp10*tmp16 - tmp26*tmp7;                           \
+     real_t tmp43 = 1.0/tmp3;                                           \
+     real_t tmp44 = tmp31*tmp42 - tmp36*tmp7;                           \
+     real_t tmp45 = tmp28*(tmp16 - tmp33*tmp7) - tmp34*tmp42;           \
+     real_t tmp46 = -DPsi(0,0)*tmp18*tmp25*tmp29*tmp42 - tmp25*tmp29*tmp32*tmp38*tmp43*tmp45 - tmp39*tmp43*tmp44; \
+     real_t tmp47 = DPsi(0,0)*tmp21*tmp25*tmp29*tmp3;                   \
+     real_t tmp48 = DPsi(0,0)*tmp24;                                    \
+     real_t tmp49 = DPsi(0,0)*tmp23 + tmp48;                            \
+     real_t tmp50 = 1.0/tmp18;                                          \
+     real_t tmp51 = tmp25*tmp27*tmp29*tmp3*tmp50;                       \
+     real_t tmp52 = DPsi(0,0)*tmp21;                                    \
+     real_t tmp53 = -DPsi(0,1)*tmp48 + tmp32*tmp52;                     \
+     real_t tmp54 = 1.0/DPsi(0,0);                                      \
+     real_t tmp55 = tmp25*tmp29*tmp34*tmp50*tmp54;                      \
+     real_t tmp56 = -tmp16*tmp47 - tmp49*tmp51 + tmp53*tmp55;           \
+     real_t tmp57 = tmp25*tmp29*tmp37*tmp38*tmp50;                      \
+     real_t tmp58 = tmp25*tmp29*tmp38*tmp40*tmp50*tmp54;                \
+     real_t tmp59 = tmp26*tmp47 + tmp49*tmp57 + tmp53*tmp58;            \
+     real_t tmp60 = tmp25*tmp29*tmp42;                                  \
+     real_t tmp61 = tmp25*tmp29*tmp38*tmp43*tmp44*tmp50;                \
+     real_t tmp62 = tmp25*tmp29*tmp38*tmp43*tmp45*tmp50*tmp54;          \
+     real_t tmp63 = tmp49*tmp61 + tmp52*tmp60 + tmp53*tmp62;            \
+     real_t tmp64 = DPsi(1,0)*tmp21 - DPsi(2,0)*tmp18;                  \
+     real_t tmp65 = tmp25*tmp29*tmp3*tmp64;                             \
+     real_t tmp66 = -DPsi(1,0)*tmp24 - tmp22*tmp64;                     \
+     real_t tmp67 = DPsi(1,1)*DPsi(0,0)*tmp24 - tmp32*tmp64;            \
+     real_t tmp68 = tmp16*tmp65 - tmp51*tmp66 + tmp55*tmp67;            \
+     real_t tmp69 = -tmp26*tmp65 + tmp57*tmp66 + tmp58*tmp67;           \
+     real_t tmp70 = -tmp60*tmp64 + tmp61*tmp66 + tmp62*tmp67;           \
+                                                                        \
+     real_t aux = (DX1N ## i*tmp46 + DX2N ## i*tmp41 + DX3N ## i*tmp35)*(DX1N ## j*tmp46 + DX2N ## j*tmp41 + DX3N ## j*tmp35) + (DX1N ## i*tmp63 + DX2N ## i*tmp59 + DX3N ## i*tmp56)*(DX1N ## j*tmp63 + DX2N ## j*tmp59 + DX3N ## j*tmp56) + (DX1N ## i*tmp70 + DX2N ## i*tmp69 + DX3N ## i*tmp68)*(DX1N ## j*tmp70 + DX2N ## j*tmp69 + DX3N ## j*tmp68); \
+                                                                                                                \
+     real_t detDPsi = DPsi(0,2)*DPsi(2,1)*DPsi(1,0) + DPsi(1,1)*DPsi(2,2)*DPsi(0,0) - DPsi(1,1)*tmp19 - DPsi(1,2)*DPsi(2,1)*DPsi(0,0) + DPsi(1,2)*tmp20 - DPsi(2,2)*tmp17; \
+     detDPsi = std::abs( detDPsi );                                     \
+                                                                        \
+     elMat( i, j ) += CUBAWEIGHTS[k] * detJacPhiInv * detDPsi * aux;    \
+   }                                                                    \
+   elMat( j, i ) = elMat( i, j )
+
+      // compute Jacobian determinant of inverse pull-back mapping
+      // and location independent auxilliary values
+      real_t tmp0 = -coords[0][2];
+      real_t tmp1 = tmp0 + coords[3][2];
+      real_t tmp2 = -coords[0][0];
+      real_t tmp3 = tmp2 + coords[1][0];
+      real_t tmp4 = -coords[0][1];
+      real_t tmp5 = tmp4 + coords[2][1];
+      real_t tmp6 = tmp3*tmp5;
+      real_t tmp7 = tmp2 + coords[2][0];
+      real_t tmp8 = tmp4 + coords[3][1];
+      real_t tmp9 = tmp0 + coords[1][2];
+      real_t tmp10 = tmp2 + coords[3][0];
+      real_t tmp11 = tmp4 + coords[1][1];
+      real_t tmp12 = tmp0 + coords[2][2];
+      real_t tmp13 = tmp3*tmp8;
+      real_t tmp14 = tmp11*tmp7;
+      real_t tmp15 = tmp10*tmp9;
+      real_t tmp16 = -tmp14 + tmp6;
+
+      real_t detJacPhiInv = -tmp1*tmp14 + tmp1*tmp6 + tmp10*tmp11*tmp12 - tmp12*tmp13 - tmp15*tmp5 + tmp7*tmp8*tmp9;
+      detJacPhiInv = std::abs( detJacPhiInv );
+#endif
 
       // Cubature point mapped to computational tetrahedron
       Point3D mappedPt;
