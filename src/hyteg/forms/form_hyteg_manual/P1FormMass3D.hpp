@@ -36,10 +36,10 @@ public:
   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const final {
 
 // Select quadrature rule
-// #define CUBAPOINTS cubature::T4_points
-// #define CUBAWEIGHTS cubature::T4_weights
-#define CUBAPOINTS cubature::T3_points
-#define CUBAWEIGHTS cubature::T3_weights
+#define CUBAPOINTS cubature::T4_points
+#define CUBAWEIGHTS cubature::T4_weights
+// #define CUBAPOINTS cubature::T3_points
+// #define CUBAWEIGHTS cubature::T3_weights
 
 // Shape functions on unit tetrahedron
 #define SF_N0 L1
