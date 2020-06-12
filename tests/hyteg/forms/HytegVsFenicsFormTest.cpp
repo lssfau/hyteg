@@ -326,10 +326,23 @@ void run3DTestsWithAffineMap()
 {
    // define our affine map
    Matrix3r mat;
-   mat( 0, 0 ) = real_c( 2.0 );
-   mat( 1, 1 ) = real_c( 1.0 );
-   mat( 2, 2 ) = real_c( std::exp(1.0) );
-   // mat( 2, 2 ) = real_c( std::exp( 1.0 ) );
+
+   // simple scaling
+   // mat( 0, 0 ) = real_c( 2.0 );
+   // mat( 1, 1 ) = real_c( 1.0 );
+   // mat( 2, 2 ) = real_c( std::exp(1.0) );
+
+   // more interesting variant (rotation around x-axis, y-axis and scaling of z-component)
+   mat(0,0) = +8.660254037844387e-01;
+   mat(0,1) = -1.545084971874737e-01;
+   mat(0,2) = -9.510565162951534e-01;
+   mat(1,0) = +0.000000000000000e+00;
+   mat(1,1) = +9.510565162951535e-01;
+   mat(1,2) = -6.180339887498948e-01;
+   mat(2,0) = +4.999999999999999e-01;
+   mat(2,1) = +2.676165673298174e-01;
+   mat(2,2) = +1.647278207092664e+00;
+
    Point3D vec( {-7.0, 3.0, 2.0} );
    auto    map = std::make_shared< AffineMap3D >( mat, vec );
 
@@ -339,12 +352,12 @@ void run3DTestsWithAffineMap()
 
    logSectionHeader( "P1 Mass Forms (3D)" );
    compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >( theTet,
-                                                                                                                          2e-15, map,
-                                                                                                                          mat(0,0)*mat(2,2) );
+                                                                                                                          1e-15, map,
+                                                                                                                          2.0 );
 
    logSectionHeader( "P2 Mass Forms (3D)" );
    compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >, P2Form_mass, Matrix10r, 3 >(
-       theTet, 1e-7, map, mat(0,0)*mat(2,2) );  // need to improve our cubature !!!
+       theTet, 5e-8, map, 2.0 );  // need to improve our cubature !!!
 
    // logSectionHeader( "P2 Laplace Forms (3D)" );
    // compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >, P2Form_laplace, Matrix10r, 3 >(
