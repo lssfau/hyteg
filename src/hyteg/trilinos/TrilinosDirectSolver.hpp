@@ -22,6 +22,8 @@
 
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/trilinos/Amesos2Wrapper.hpp"
+#include "hyteg/trilinos/TeuchosWrapper.hpp"
+#include "hyteg/trilinos/TpetraWrapper.hpp"
 #include "hyteg/trilinos/TrilinosSparseMatrix.hpp"
 #include "hyteg/trilinos/TrilinosVector.hpp"
 
@@ -35,8 +37,15 @@ using Teuchos::rcp;
 
 enum class TrilinosDirectSolverType
 {
-   MUMPS
+   KLU,
+   MUMPS,
+   UMFPACK
 };
+
+const std::map< TrilinosDirectSolverType, std::string > TrilinosDirectSolverTypeToString{
+    {TrilinosDirectSolverType::KLU, "klu"},
+    {TrilinosDirectSolverType::MUMPS, "mumps"},
+    {TrilinosDirectSolverType::UMFPACK, "umfpack"}};
 
 /// \brief Solver interface that wraps the Trilinos package Amesos2 that implements various sparse direct solvers.
 template < typename OperatorType >
@@ -59,11 +68,6 @@ class TrilinosDirectSolver : public Solver< OperatorType >
    , flag_( flag )
    {
       numerator_.enumerate( level );
-      std::string solverTypeString = "MUMPS";
-
-      solver_ = Amesos2::create< typename TrilinosSparseMatrix< OperatorType, FunctionTemplate >::MatrixType,
-                                 typename TrilinosVector< FunctionTemplate >::VectorType >
-                ( solverTypeString, ATrilinos_.getTpetraMatrix(), xTrilinos_.getTpetraVector(), bTrilinos_.getTpetraVector() );
    }
 
    void solve( const OperatorType&                   A,
@@ -74,13 +78,15 @@ class TrilinosDirectSolver : public Solver< OperatorType >
       WALBERLA_CHECK_EQUAL( level, level_, "Cannot employ Trilinos direct solver on level " << level );
 
       // assemble the sparse system
-      ATrilinos_.assembleSystem( A, numerator_, flag_ );
+      ATrilinos_.assembleSystem( A, numerator_ );
       ATrilinos_.applyDirichletBoundaryConditions( numerator_ );
 
       // copy the vectors
       bTrilinos_.fillFromFunction( b, numerator_, flag_ );
       bTrilinos_.fillFromFunction( x, numerator_, DirichletBoundary );
       xTrilinos_.fillFromFunction( x, numerator_ );
+
+      createSolver();
 
       solver_->symbolicFactorization().numericFactorization().solve();
 
@@ -89,6 +95,18 @@ class TrilinosDirectSolver : public Solver< OperatorType >
    }
 
  private:
+
+   void createSolver()
+   {
+      WALBERLA_CHECK( TrilinosDirectSolverTypeToString.count( solverType_ ) == 1, "Direct solver type not supported by HyTeG." )
+      std::string solverTypeString = TrilinosDirectSolverTypeToString.at( solverType_ );
+      WALBERLA_CHECK( Amesos2::query( solverTypeString ), "Direct solver type not supported by Trilinos build." )
+
+      solver_ = Amesos2::create< typename TrilinosSparseMatrix< OperatorType, FunctionTemplate >::MatrixType,
+          typename TrilinosVector< FunctionTemplate >::VectorType >(
+          solverTypeString, ATrilinos_.getTpetraMatrix(), xTrilinos_.getTpetraVector(), bTrilinos_.getTpetraVector() );
+   }
+
    TrilinosDirectSolverType solverType_;
    uint_t                   level_;
 
