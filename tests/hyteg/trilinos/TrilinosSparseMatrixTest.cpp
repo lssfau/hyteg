@@ -30,6 +30,8 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/trilinos/TrilinosVector.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScSparseMatrix.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -68,7 +70,6 @@ void testSparseMatrix()
    trilinos::TrilinosSparseMatrix< OperatorType, P2P1TaylorHoodFunction > matrix( storage, level );
    matrix.assembleSystem( op, numerator );
    auto matrixString = matrix.to_string();
-   WALBERLA_LOG_INFO_ON_ROOT( matrixString );
 
    trilinos::TrilinosVector< P2P1TaylorHoodFunction > vectorSrc( storage, level );
    vectorSrc.fillFromFunction( src, numerator );
@@ -93,6 +94,41 @@ void testSparseMatrix()
    WALBERLA_CHECK_LESS( maxMagnitudeP, 1e-14 );
 }
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+template< typename OperatorType >
+void compareSparseMatrixMatlabOutput()
+{
+   PETScManager manager;
+
+   WALBERLA_LOG_INFO_ON_ROOT( Tpetra::version() )
+
+   const uint_t level = 3;
+
+   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, 1, 1 );
+   auto     setupStorage =
+       std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
+
+   OperatorType op( storage, level, level );
+   P2P1TaylorHoodFunction< PetscInt > numerator( "numerator", storage, level, level );
+   numerator.enumerate( level );
+
+   trilinos::TrilinosSparseMatrix< OperatorType, P2P1TaylorHoodFunction > trilinosMatrix( storage, level );
+   trilinosMatrix.assembleSystem( op, numerator );
+   trilinosMatrix.applyDirichletBoundaryConditions( numerator );
+   trilinosMatrix.exportToMatlabFormat( "../../output/TrilinosMatlabExport.m", "MyTrilinosMatrix" );
+
+
+   PETScSparseMatrix< OperatorType, P2P1TaylorHoodFunction > petscMatrix( storage, level );
+   petscMatrix.createMatrixFromOperator( op, level, numerator );
+   petscMatrix.applyDirichletBC( numerator, level );
+   petscMatrix.print( "../../output/PetscMatlabExport.m" );
+
+
+}
+#endif
+
 int main( int argc, char* argv[] )
 {
    walberla::Environment walberlaEnv( argc, argv );
@@ -103,6 +139,10 @@ int main( int argc, char* argv[] )
    testSparseMatrix< hyteg::P2P1TaylorHoodStokesOperator >();
    WALBERLA_LOG_INFO_ON_ROOT( "element-wise" )
    testSparseMatrix< hyteg::P2P1ElementwiseBlendingStokesOperator >();
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+   compareSparseMatrixMatlabOutput< hyteg::P2P1TaylorHoodStokesOperator >();
+#endif
 
    return EXIT_SUCCESS;
 }
