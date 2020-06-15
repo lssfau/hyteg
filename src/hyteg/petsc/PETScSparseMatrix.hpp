@@ -31,8 +31,8 @@
 #include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/p2functionspace/P2Petsc.hpp"
-#include "hyteg/petsc/PETScVector.hpp"
 #include "hyteg/petsc/PETScSparseMatrixProxy.hpp"
+#include "hyteg/petsc/PETScVector.hpp"
 
 namespace hyteg {
 
@@ -57,6 +57,16 @@ class PETScSparseMatrix
       setName( name );
       reset();
    }
+
+   PETScSparseMatrix( const std::shared_ptr< PrimitiveStorage >& storage,
+                      const uint_t&                              level,
+                      const char                                 name[] = "Mat",
+                      const MPI_Comm& petscCommunicator                 = walberla::mpi::MPIManager::instance()->comm() )
+   : PETScSparseMatrix( numberOfLocalDoFs< typename OperatorType::dstType::Tag >( *storage, level ),
+                        numberOfGlobalDoFs< typename OperatorType::dstType::Tag >( *storage, level, petscCommunicator ),
+                        name,
+                        petscCommunicator )
+   {}
 
    virtual ~PETScSparseMatrix() { MatDestroy( &mat ); }
 
