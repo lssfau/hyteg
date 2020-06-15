@@ -245,7 +245,7 @@ void run2DTestsWithAffineMap()
 
    logSectionHeader( "P1 Mass Forms" );
    compareUsingAffineMap< P1FenicsForm< p1_mass_cell_integral_0_otherwise, fenics::NoAssemble >, P1Form_mass, Matrix3r, 2 >(
-       triangle, 3e-15, map );
+       triangle, 2e-15, map );
 
    logSectionHeader( "P2 Mass Forms" );
    compareUsingAffineMap< P2FenicsForm< p2_mass_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_mass, Matrix6r, 2 >(
@@ -324,8 +324,7 @@ void run3DTestsWithoutBlending()
 
    logSectionHeader( "P1 Mass Forms (3D)" );
    compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >( theTet,
-                                                                                                                          1e-8 );
-   // works to 3D-T3 cubature 1e-15 );
+                                                                                                                          1e-15 );
 
    logSectionHeader( "P2 Mass Forms (3D)" );
    compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >, P2Form_mass, Matrix10r, 3 >(
@@ -373,9 +372,7 @@ void run3DTestsWithAffineMap()
    std::array< Point3D, 4 > theTet{ v1, v2, v3, v4 };
 
    logSectionHeader( "P1 Mass Forms (3D)" );
-   // works only for 3D-T3
-   // compareUsingAffineMap< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >( theTet, 5e-15, map );
-   compareUsingAffineMap< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >( theTet, 2e-8, map );
+   compareUsingAffineMap< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >( theTet, 5e-15, map );
 
    logSectionHeader( "P2 Mass Forms (3D)" );
    compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >, P2Form_mass, Matrix10r, 3 >( theTet, 5e-7, map );  // need to improve our cubature !!!
