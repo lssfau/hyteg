@@ -31,24 +31,26 @@ using walberla::uint_t;
 using Teuchos::RCP;
 using Teuchos::rcp;
 
+template< typename TpetraVectorType >
 class TrilinosVectorProxy : public VectorProxy
 {
  public:
-   TrilinosVectorProxy( const RCP< Tpetra::Vector<> >& vec )
+
+   explicit TrilinosVectorProxy( const RCP< TpetraVectorType >& vec )
    : vec_( vec )
    {}
 
-   void setValue( uint_t idx, real_t value ) { vec_->replaceGlobalValue( idx, value ); }
+   void setValue( uint_t idx, real_t value ) override { vec_->replaceGlobalValue( idx, 0, value ); }
 
-   real_t getValue( uint_t idx ) const
+   real_t getValue( uint_t idx ) const override
    {
       const auto             map        = vec_->getMap();
       const auto             localIndex = map->getLocalElement( idx );
-      return vec_->getData().operator[]( localIndex );
+      return vec_->getData( 0 ).operator[]( localIndex );
    }
 
  private:
-   RCP< Tpetra::Vector<> > vec_;
+   RCP< TpetraVectorType > vec_;
 };
 
 } // namespace hyteg

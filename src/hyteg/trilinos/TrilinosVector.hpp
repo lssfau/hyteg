@@ -48,8 +48,10 @@ template < template < class > class FunctionType, typename FunctionScalarType = 
 class TrilinosVector
 {
  public:
-   typedef Tpetra::Map<>    MapType;
-   typedef Tpetra::Vector<> VectorType;
+   typedef Tpetra::Map<>                                     MapType;
+   typedef Tpetra::Map<>::local_ordinal_type                 LO;
+   typedef Tpetra::Map<>::global_ordinal_type                GO;
+   typedef Tpetra::MultiVector< FunctionScalarType, LO, GO > VectorType;
 
    /// \brief Allocates the Trilinos vector data structure.
    ///
@@ -64,14 +66,14 @@ class TrilinosVector
           numberOfGlobalDoFs< typename FunctionType< FunctionScalarType >::Tag >( *storage, level, trilinosCommunicatorRaw_ );
 
       rowMap_ = rcp( new MapType( Tpetra::global_size_t( numGlobalUnknowns ), 0, trilinosCommunicator_ ) );
-      vector_ = rcp( new VectorType( rowMap_ ) );
+      vector_ = rcp( new VectorType( rowMap_, 1 ) );
    }
 
    void fillFromFunction( const FunctionType< FunctionScalarType >& function,
                           const FunctionType< PetscInt >&           numerator,
                           DoFType                                   flag = All )
    {
-      auto proxy = std::make_shared< TrilinosVectorProxy >( vector_ );
+      auto proxy = std::make_shared< TrilinosVectorProxy< VectorType > >( vector_ );
       hyteg::petsc::createVectorFromFunction( function, numerator, proxy, level_, flag );
    }
 
@@ -81,7 +83,7 @@ class TrilinosVector
                          const FunctionType< PetscInt >&           numerator,
                          DoFType                                   flag = All )
    {
-      auto proxy = std::make_shared< TrilinosVectorProxy >( vector_ );
+      auto proxy = std::make_shared< TrilinosVectorProxy< VectorType > >( vector_ );
       hyteg::petsc::createFunctionFromVector( function, numerator, proxy, level_, flag );
    }
 

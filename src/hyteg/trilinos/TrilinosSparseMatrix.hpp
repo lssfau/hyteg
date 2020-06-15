@@ -21,6 +21,7 @@
 #pragma once
 
 #include "core/DataTypes.h"
+#include "core/Format.hpp"
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/FunctionProperties.hpp"
@@ -49,8 +50,10 @@ template < typename OperatorType, template < class > class FunctionType, typenam
 class TrilinosSparseMatrix
 {
  public:
-   typedef Tpetra::Map<>       MapType;
-   typedef Tpetra::CrsMatrix<> MatrixType;
+   typedef Tpetra::Map<>                                 MapType;
+   typedef Tpetra::Map<>::local_ordinal_type             LO;
+   typedef Tpetra::Map<>::global_ordinal_type            GO;
+   typedef Tpetra::CrsMatrix< MatrixScalarType, LO, GO > MatrixType;
 
    /// \brief Allocates the parallel sparse matrix data structure.
    ///
@@ -63,12 +66,12 @@ class TrilinosSparseMatrix
       trilinosCommunicatorRaw_ = walberla::mpi::MPIManager::instance()->comm();
       trilinosCommunicator_    = rcp( new Teuchos::MpiComm< int >( trilinosCommunicatorRaw_ ) );
 
-      const uint_t numGlobalUnknowns =
-          numberOfGlobalDoFs< typename OperatorType::dstType::Tag >( *storage, level, trilinosCommunicatorRaw_ );
+      numGlobalUnknowns_ = numberOfGlobalDoFs< typename OperatorType::dstType::Tag >( *storage, level, trilinosCommunicatorRaw_ );
       const size_t maxEntriesPerRow = 100; // only a hint, not restriction
 
-      rowMap_    = rcp( new MapType( Tpetra::global_size_t( numGlobalUnknowns ), 0, trilinosCommunicator_ ) );
-      crsMatrix_ = rcp( new MatrixType( rowMap_, maxEntriesPerRow ) );
+      rowMap_    = rcp( new MapType( Tpetra::global_size_t( numGlobalUnknowns_ ), 0, trilinosCommunicator_ ) );
+      crsMatrix_ = rcp(
+          new MatrixType( rowMap_, maxEntriesPerRow ) );
    }
 
    /// \brief Assembles the sparse matrix from the passed operator.
@@ -81,8 +84,15 @@ class TrilinosSparseMatrix
       {
          crsMatrix_->resumeFill();
       }
-      crsMatrix_->setAllToScalar( 0 );
+
       auto proxy = std::make_shared< TrilinosSparseMatrixProxy >( crsMatrix_ );
+      // We insert zeros on the diagonal to be able to later modify the diagonal values in case
+      // there is a zero in the original system. It seems like we cannot insert values later on
+      // after calling fillComplete() (?).
+      for ( uint_t idx = 0; idx < numGlobalUnknowns_; idx++ )
+      {
+         proxy->addValue( idx, idx, 0 );
+      }
       hyteg::petsc::createMatrix( op, numerator, numerator, proxy, level_, All );
       crsMatrix_->fillComplete();
    }
@@ -92,29 +102,55 @@ class TrilinosSparseMatrix
    /// Sets the diagonal entry of all rows that correspond to DoFs on a Dirichlet boundary to 1.
    void applyDirichletBoundaryConditions( const FunctionType< PetscInt >& numerator )
    {
+      std::vector< PetscInt > dirichletRowIndices;
+      hyteg::petsc::applyDirichletBC( numerator, dirichletRowIndices, level_ );
+
+      zeroRows( dirichletRowIndices, 1.0 );
+   }
+
+   /// \brief Zeroes all entries of the specified matrix row but the diagonal value, which is set to the passed value.
+   ///
+   /// Can be used for asymmetric pinning if the nullspace of the operator is not zero.
+   ///
+   /// \param row the global row index of the row that shall be zeroed
+   /// \param diagonalValue the value to be put on the diagonal (set to 0.0 to zero entire row)
+   void zeroRow( const PetscInt& row, const MatrixScalarType& diagonalValue = 1.0 ) { zeroRows( {row}, diagonalValue ); }
+
+   /// \brief Zeroes all entries of the specified matrix rows but the diagonal values, which are set to the passed value.
+   ///
+   /// Can be used for asymmetric pinning if the nullspace of the operator is not zero.
+   ///
+   /// \param rows the global row indices of the rows that shall be zeroed
+   /// \param diagonalValue the value to be put on the diagonal (set to 0.0 to zero entire row)
+   void zeroRows( const std::vector< PetscInt >& rows, const MatrixScalarType& diagonalValue = 1.0 )
+   {
+      WALBERLA_CHECK( crsMatrix_->hasColMap(), "Trilinos matrix was not assembled correctly." );
+      RCP< const MapType > rowMap    = crsMatrix_->getRowMap();
+      RCP< const MapType > columnMap = crsMatrix_->getColMap();
+
       if ( crsMatrix_->isFillComplete() )
       {
          crsMatrix_->resumeFill();
       }
-      std::vector< PetscInt > dirichletRowIndices;
-      hyteg::petsc::applyDirichletBC( numerator, dirichletRowIndices, level_ );
 
-      for ( auto row : dirichletRowIndices )
+      for ( auto row : rows )
       {
-         Teuchos::ArrayView< const MatrixType::global_ordinal_type > columnIndices;
-         crsMatrix_->getCrsGraph()->getGlobalRowView( row, columnIndices );
-         for ( auto col : columnIndices )
+         if ( !rowMap->isNodeGlobalElement( row ) )
+            continue;
+
+         auto                                         localRow = rowMap->getLocalElement( GO( row ) );
+         Teuchos::ArrayView< const LO >               columnIndicesView;
+         Teuchos::ArrayView< const MatrixScalarType > columnValuesView;
+         crsMatrix_->getLocalRowView( localRow, columnIndicesView, columnValuesView );
+         for ( const auto& localCol : columnIndicesView )
          {
-            real_t val = 0;
-            if ( row == col )
-            {
-               val = 1.0;
-            }
-            crsMatrix_->replaceGlobalValues( row,
-                                             Teuchos::tuple< Tpetra::Vector<>::global_ordinal_type >( col ),
-                                             Teuchos::tuple< Tpetra::Vector<>::scalar_type >( val ) );
+            auto col = columnMap->getGlobalElement( localCol );
+            if ( row != col )
+               crsMatrix_->replaceGlobalValues( row, Teuchos::tuple< GO >( col ), Teuchos::tuple< MatrixScalarType >( 0 ) );
          }
+         crsMatrix_->replaceGlobalValues( row, Teuchos::tuple< GO >( row ), Teuchos::tuple< MatrixScalarType >( diagonalValue ) );
       }
+
       crsMatrix_->fillComplete();
    }
 
@@ -131,8 +167,51 @@ class TrilinosSparseMatrix
    std::string to_string() const
    {
       std::stringstream ss;
-      crsMatrix_->print( ss );
+      ss << Teuchos::describe( *crsMatrix_, Teuchos::EVerbosityLevel::VERB_EXTREME );
       return ss.str();
+   }
+
+   /// \brief Exports the matrix into a Matlab file. When resulting script is executed, the matrix appears
+   ///        in the Matlab workspace.
+   void exportToMatlabFormat( const std::string& filePath, const std::string& matlabVariableName = "Mat" )
+   {
+      WALBERLA_CHECK_EQUAL( walberla::mpi::MPIManager::instance()->numProcesses(),
+                            1,
+                            "Trilinos sparse matrix Matlab output currently only supported for serial runs." )
+
+      std::ofstream out( filePath );
+      out << matlabVariableName << " = zeros(" << crsMatrix_->getGlobalNumEntries() << ",3);" << std::endl;
+      out << matlabVariableName << " = [" << std::endl;
+
+      for ( size_t r = 0; r < crsMatrix_->getNodeNumRows(); ++r )
+      {
+         const size_t nE  = crsMatrix_->getNumEntriesInLocalRow( r );
+         GO           gid = crsMatrix_->getRowMap()->getGlobalElement( r );
+         if ( crsMatrix_->isGloballyIndexed() )
+         {
+            Teuchos::ArrayView< const GO >               rowinds;
+            Teuchos::ArrayView< const MatrixScalarType > rowvals;
+            crsMatrix_->getGlobalRowView( gid, rowinds, rowvals );
+            for ( size_t j = 0; j < nE; ++j )
+            {
+               out << gid + 1 << ", " << rowinds[j] + 1 << ", " << walberla::format( "%23.16e", rowvals[j] ) << std::endl;
+            }
+         }
+         else if ( crsMatrix_->isLocallyIndexed() )
+         {
+            Teuchos::ArrayView< const LO >               rowinds;
+            Teuchos::ArrayView< const MatrixScalarType > rowvals;
+            crsMatrix_->getLocalRowView( r, rowinds, rowvals );
+            for ( size_t j = 0; j < nE; ++j )
+            {
+               out << gid + 1 << ", " << crsMatrix_->getColMap()->getGlobalElement( rowinds[j] ) + 1 << ", "
+                   << walberla::format( "%23.16e", rowvals[j] ) << std::endl;
+            }
+         }
+      }
+
+      out << "];" << std::endl;
+      out << matlabVariableName << " = spconvert(" << matlabVariableName << ");";
    }
 
    RCP< MatrixType > getTpetraMatrix() const { return crsMatrix_; }
@@ -143,6 +222,7 @@ class TrilinosSparseMatrix
    RCP< const MapType >              rowMap_;
    RCP< MatrixType >                 crsMatrix_;
    uint_t                            level_;
+   uint_t                            numGlobalUnknowns_;
 };
 
 } // namespace trilinos
