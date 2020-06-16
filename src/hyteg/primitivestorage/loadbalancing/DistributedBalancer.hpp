@@ -46,6 +46,20 @@ MigrationMap_T roundRobin( PrimitiveStorage & storage );
 ///                                among the first numberOfTargetProcesses processes
 MigrationMap_T roundRobin( PrimitiveStorage & storage, uint_t numberOfTargetProcesses );
 
+/// \brief Performs a round robin distribution to a subset of processes in parallel.
+///
+/// \param storage the PrimitiveStorage, the primitives are distributed on
+/// \param minRank lowest included rank in the distribution
+/// \param maxRank highest included rank in the distribution
+MigrationMap_T roundRobin( PrimitiveStorage & storage, uint_t minRank, uint_t maxRank );
+
+/// \brief Performs a round robin distribution to a subset of processes in parallel.
+///
+/// \param storage the PrimitiveStorage, the primitives are distributed on
+/// \param interval the distribution happens on every interval'th process, e.g. if interval == 24,
+///                 the storage is distributed among rank 0, 24, 48, ...
+MigrationMap_T roundRobinInterval( PrimitiveStorage & storage, uint_t interval );
+
 /// \brief Distributes a second PrimitiveStorage equal to another one.
 ///
 /// \param targetDistributionStorage this PrimitiveStorage specifies the desired distribution, it is not modified

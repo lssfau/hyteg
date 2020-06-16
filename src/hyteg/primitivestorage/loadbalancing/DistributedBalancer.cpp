@@ -271,19 +271,39 @@ MigrationMap_T roundRobin( PrimitiveStorage & storage )
 
 MigrationMap_T roundRobin( PrimitiveStorage & storage, uint_t numberOfTargetProcesses )
 {
-  WALBERLA_CHECK( numberOfTargetProcesses <= uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ), "Cannot distribute to more than available processes." );
-
-  MigrationMap_T migrationMap;
-
-  for ( const auto & primitiveID : storage.getPrimitiveIDs() )
-  {
-     migrationMap[ primitiveID.getID() ] = uint_c( primitiveID.getID() % numberOfTargetProcesses );
-  }
-
-  storage.migratePrimitives( migrationMap );
-  return migrationMap;
+  return roundRobin( storage, 0, numberOfTargetProcesses - 1 );
 }
 
+MigrationMap_T roundRobin( PrimitiveStorage & storage, uint_t minRank, uint_t maxRank )
+{
+   WALBERLA_CHECK_LESS_EQUAL( minRank, maxRank );
+   WALBERLA_CHECK( maxRank < uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ), "Cannot distribute to more than available processes." );
+
+   MigrationMap_T migrationMap;
+
+   for ( const auto & primitiveID : storage.getPrimitiveIDs() )
+   {
+      migrationMap[ primitiveID.getID() ] = minRank + uint_c( primitiveID.getID() % (maxRank - minRank + 1) );
+   }
+
+   storage.migratePrimitives( migrationMap );
+   return migrationMap;
+}
+
+MigrationMap_T roundRobinInterval( PrimitiveStorage& storage, uint_t interval )
+{
+   MigrationMap_T migrationMap;
+
+   const uint_t modulo = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) -
+                         ( uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) % interval );
+   for ( const auto& primitiveID : storage.getPrimitiveIDs() )
+   {
+      migrationMap[primitiveID.getID()] = ( uint_c( primitiveID.getID() ) * interval ) % modulo;
+   }
+
+   storage.migratePrimitives( migrationMap );
+   return migrationMap;
+}
 
 MigrationMap_T copyDistribution( const PrimitiveStorage & targetDistributionStorage, PrimitiveStorage & storageToRedistribute )
 {
