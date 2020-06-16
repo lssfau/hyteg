@@ -527,6 +527,11 @@ waLBerla_execute_test(NAME AgglomerationConvergenceTest2 COMMAND $<TARGET_FILE:A
 waLBerla_execute_test(NAME AgglomerationConvergenceTest3 COMMAND $<TARGET_FILE:AgglomerationConvergenceTest> PROCESSES 3 )
 waLBerla_execute_test(NAME AgglomerationConvergenceTest4 COMMAND $<TARGET_FILE:AgglomerationConvergenceTest> PROCESSES 4 )
 
+if( HYTEG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES adaptivity/AgglomerationSupermanFactorizationTest.cpp DEPENDS hyteg core)
+  waLBerla_execute_test(NAME AgglomerationSupermanFactorizationTest4 COMMAND $<TARGET_FILE:AgglomerationSupermanFactorizationTest> PROCESSES 4 )
+endif()
+
 if( WALBERLA_BUILD_WITH_PARMETIS )
   waLBerla_compile_test(FILES adaptivity/ParMetisTestHyteg.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME ParMetisTestHyteg1 COMMAND $<TARGET_FILE:ParMetisTestHyteg> )
