@@ -1029,7 +1029,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
       WALBERLA_LOG_INFO_ON_ROOT( "Solving on empty processes: " << ( solveOnEmptyProcesses ? "yes" : "no" ) )
       agglomerationWrapper = std::make_shared< AgglomerationWrapper< StokesOperator > >(
-          storage, minLevel, finalNumAgglomerationProcesses, solveOnEmptyProcesses );
+          storage, minLevel, solveOnEmptyProcesses );
+      agglomerationWrapper->setStrategyContinuousProcesses( 0, finalNumAgglomerationProcesses );
       auto agglomerationStorage = agglomerationWrapper->getAgglomerationStorage();
       coarseGridSolverStorage = agglomerationStorage;
       WALBERLA_LOG_INFO_ON_ROOT( "" )

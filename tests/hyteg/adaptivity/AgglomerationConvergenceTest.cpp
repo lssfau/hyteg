@@ -111,7 +111,8 @@ void AgglomerationConvergenceTest( const std::string& meshFile,
 #endif
 
    auto agglomerationWrapper =
-       std::make_shared< AgglomerationWrapper< P2ConstantLaplaceOperator > >( storage, minLevel, numberOfSubsetProcesses, solveOnEmptyProcesses );
+       std::make_shared< AgglomerationWrapper< P2ConstantLaplaceOperator > >( storage, minLevel, solveOnEmptyProcesses );
+   agglomerationWrapper->setStrategyContinuousProcesses( 0, numberOfSubsetProcesses - 1 );
    auto agglomerationStorage = agglomerationWrapper->getAgglomerationStorage();
 
    // pass agglomeration storage to coarse grid solver
