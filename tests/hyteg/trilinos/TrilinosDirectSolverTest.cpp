@@ -48,8 +48,7 @@ void trilinosSolveScalarTest( const uint_t&   solverType,
                               const uint_t&   level,
                               const MeshInfo& meshInfo,
                               const real_t&   resEps,
-                              const real_t&   errEpsUSum,
-                              const real_t&   errEpsP )
+                              const real_t&   errEps )
 {
    WALBERLA_UNUSED( blockPreconditionerType );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -76,7 +75,7 @@ void trilinosSolveScalarTest( const uint_t&   solverType,
    P2ConstantMassOperator    M( storage, level, level );
 
    std::function< real_t( const Point3D& ) > exact = []( const Point3D& xx ) {
-      return ( 1.0 / 2.0 ) * std::sin( 2 * xx[0] ) * std::sinh( xx[1] ) * std::cos(xx[2]);
+      return ( 1.0 / 2.0 ) * std::sin( 2 * xx[0] ) * std::sinh( xx[1] ) * std::cos( xx[2] );
    };
 
    std::function< real_t( const Point3D& ) > rhs = []( const Point3D& xx ) {
@@ -95,19 +94,19 @@ void trilinosSolveScalarTest( const uint_t&   solverType,
    vtkOutput.add( b );
    vtkOutput.write( level, 0 );
 
-   uint_t localDoFs         = numberOfLocalDoFs< P2FunctionTag >( *storage, level );
-   uint_t globalDoFs        = numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
+   uint_t localDoFs  = numberOfLocalDoFs< P2FunctionTag >( *storage, level );
+   uint_t globalDoFs = numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
 
    WALBERLA_LOG_INFO( "localDoFs: " << localDoFs << " globalDoFs: " << globalDoFs );
 
    trilinos::TrilinosDirectSolver< P2ConstantLaplaceOperator > solver_0(
-       trilinos::TrilinosDirectSolverType::KLU, storage, level, Inner | NeumannBoundary );
+       trilinos::TrilinosDirectSolverType::MUMPS, storage, level, Inner | NeumannBoundary );
 
    walberla::WcTimer timer;
    switch ( solverType )
    {
    case 0:
-      WALBERLA_LOG_INFO_ON_ROOT( "KLU ..." )
+      WALBERLA_LOG_INFO_ON_ROOT( "MUMPS ..." )
       solver_0.solve( A, x, b, level );
       break;
    default:
@@ -121,20 +120,18 @@ void trilinosSolveScalarTest( const uint_t&   solverType,
    A.apply( x, btmp, level, Inner );
    residuum.assign( {1.0, -1.0}, {b, btmp}, level, Inner );
 
-
    err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
-   real_t discr_l2_err     = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs );
-   real_t residuum_l2    = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs );
+   real_t discr_l2_err = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs );
+   real_t residuum_l2  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs );
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
    WALBERLA_LOG_INFO_ON_ROOT( "residuum = " << residuum_l2 );
 
    vtkOutput.write( level, 1 );
 
-//   WALBERLA_CHECK_LESS( residuum_l2_1, resEps );
-//   WALBERLA_CHECK_LESS( discr_l2_err_1_u + discr_l2_err_1_v, errEpsUSum );
-//   WALBERLA_CHECK_LESS( discr_l2_err_1_p, errEpsP );
+   WALBERLA_CHECK_LESS( residuum_l2, resEps );
+   WALBERLA_CHECK_LESS( discr_l2_err, errEps );
 
    auto tt = storage->getTimingTree()->getReduced().getCopyWithRemainder();
    // WALBERLA_LOG_INFO_ON_ROOT( tt );
@@ -303,18 +300,17 @@ int main( int argc, char* argv[] )
 {
    walberla::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
-   //
-   //   trilinosSolveTest(
-   //       0, 0, 4, MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, 1, 1 ), 2.9e-12, 0.021, 0.33 );
 
-   trilinosSolveScalarTest(
-       0, 0, 3, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
-   //   trilinosSolveTest(
-   //       1, 0, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
-   //   trilinosSolveTest(
-   //       2, 0, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
-   //   trilinosSolveTest(
-   //       2, 1, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
+   trilinosSolveScalarTest( 0, 0, 3, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 1e-14, 1e-04 );
+
+//   trilinosSolveStokesTest(
+//       0, 0, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
+//   trilinosSolveStokesTest(
+//       1, 0, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
+//   trilinosSolveStokesTest(
+//       2, 0, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
+//   trilinosSolveStokesTest(
+//       2, 1, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
 
    return EXIT_SUCCESS;
 }
