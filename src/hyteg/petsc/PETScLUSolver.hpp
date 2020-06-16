@@ -43,7 +43,8 @@ class PETScLUSolver : public Solver< OperatorType >
    typedef typename OperatorType::srcType FunctionType;
 
    PETScLUSolver( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level )
-   : allocatedLevel_( level )
+   : storage_( storage )
+   , allocatedLevel_( level )
    , petscCommunicator_( storage->splitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
    , Amat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
@@ -57,6 +58,7 @@ class PETScLUSolver : public Solver< OperatorType >
 #endif
    , flag_( hyteg::All )
    , verbose_( false )
+   , manualAssemblyAndFactorization_( false )
    {
       num.enumerate( level );
       KSPCreate( petscCommunicator_, &ksp );
@@ -86,61 +88,92 @@ class PETScLUSolver : public Solver< OperatorType >
 
    void setVerbose( bool verbose ) { verbose_ = verbose; }
 
+   /// \brief If set to true, no assembly and no factorization will happen during the solve() call.
+   ///        For successful solution of the system, assembleAndFactorize() has to be called before
+   ///        the first solve() and after each modification of the operator.
+   void setManualAssemblyAndFactorization( bool manualAssemblyAndFactorization )
+   {
+      manualAssemblyAndFactorization_ = manualAssemblyAndFactorization;
+   }
+
+   /// \brief If set to true, the operator is reassembled for every solve / manual assembly call.
+   ///        Default is false.
+   void reassembleMatrix( bool reassembleMatrix ) { reassembleMatrix_ = reassembleMatrix; }
+
+   void assembleAndFactorize( const OperatorType& A )
+   {
+      storage_->getTimingTree()->start( "Matrix assembly" );
+
+      bool matrixAssembledForTheFirstTime;
+      if ( reassembleMatrix_ )
+      {
+         Amat.zeroEntries();
+         Amat.createMatrixFromOperator( A, allocatedLevel_, num, All );
+         matrixAssembledForTheFirstTime = true;
+      }
+      else
+      {
+         matrixAssembledForTheFirstTime = Amat.createMatrixFromOperatorOnce( A, allocatedLevel_, num, All );
+      }
+
+      storage_->getTimingTree()->stop( "Matrix assembly" );
+
+      if ( matrixAssembledForTheFirstTime )
+      {
+         Amat.applyDirichletBC( num, allocatedLevel_ );
+
+         KSPSetOperators( ksp, Amat.get(), Amat.get() );
+         KSPGetPC( ksp, &pc );
+         PCSetType( pc, PCLU );
+         HYTEG_PCFactorSetMatSolverType( pc, MATSOLVERMUMPS );
+         storage_->getTimingTree()->start( "Factorization" );
+         PCSetUp( pc );
+         storage_->getTimingTree()->stop( "Factorization" );
+      }
+   }
+
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level )
    {
       WALBERLA_CHECK_EQUAL( level, allocatedLevel_ );
 
       walberla::WcTimer timer;
 
-      x.getStorage()->getTimingTree()->start( "PETSc LU Solver" );
-      x.getStorage()->getTimingTree()->start( "Setup" );
-      timer.start();
+      storage_->getTimingTree()->start( "PETSc LU Solver" );
+      storage_->getTimingTree()->start( "Setup" );
 
-      x.getStorage()->getTimingTree()->start( "RHS vector setup" );
+      storage_->getTimingTree()->start( "RHS vector setup" );
       b.assign( {1.0}, {x}, level, DirichletBoundary );
 
       bVec.createVectorFromFunction( b, num, level, All );
-      x.getStorage()->getTimingTree()->stop( "RHS vector setup" );
+      storage_->getTimingTree()->stop( "RHS vector setup" );
 
-      x.getStorage()->getTimingTree()->start( "Matrix assembly and solver setup" );
-      const bool matrixAssembledForTheFirstTime = Amat.createMatrixFromOperatorOnce( A, level, num, All );
-
-      if ( matrixAssembledForTheFirstTime )
+      if ( !manualAssemblyAndFactorization_ )
       {
-         Amat.applyDirichletBC( num, level );
-         KSPSetOperators( ksp, Amat.get(), Amat.get() );
-
-         KSPGetPC( ksp, &pc );
-         PCSetType( pc, PCLU );
-         HYTEG_PCFactorSetMatSolverType( pc, MATSOLVERMUMPS );
-         //PCFactorSetUpMatSolverPackage(pc); /* call MatGetFactor() to create F */
-         //PCFactorGetMatrix(pc,&F);
+         assembleAndFactorize( A );
       }
-      x.getStorage()->getTimingTree()->stop( "Matrix assembly and solver setup" );
-      timer.end();
-      const double hytegToPetscSetup = timer.last();
-      x.getStorage()->getTimingTree()->stop( "Setup" );
 
-      x.getStorage()->getTimingTree()->start( "Solver" );
+      storage_->getTimingTree()->stop( "Setup" );
+
+      storage_->getTimingTree()->start( "Solver" );
       timer.start();
       KSPSolve( ksp, bVec.get(), xVec.get() );
       timer.end();
       const double petscKSPTimer = timer.last();
-      x.getStorage()->getTimingTree()->stop( "Solver" );
+      storage_->getTimingTree()->stop( "Solver" );
 
       xVec.createFunctionFromVector( x, num, level, flag_ );
 
       if ( verbose_ )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "[PETScLUSolver] "
-                                    << "PETSc KSPSolver time: " << petscKSPTimer << " | "
-                                    << "HyTeG to PETSc setup: " << hytegToPetscSetup );
+                                    << "PETSc KSPSolver time: " << petscKSPTimer );
       }
 
-      x.getStorage()->getTimingTree()->stop( "PETSc LU Solver" );
+      storage_->getTimingTree()->stop( "PETSc LU Solver" );
    }
 
  private:
+   std::shared_ptr< PrimitiveStorage >                                                           storage_;
    uint_t                                                                                        allocatedLevel_;
    MPI_Comm                                                                                      petscCommunicator_;
    typename OperatorType::srcType::template FunctionType< PetscInt >                             num;
@@ -156,6 +189,8 @@ class PETScLUSolver : public Solver< OperatorType >
    hyteg::DoFType flag_;
    bool           verbose_;
    //Mat F; //factored Matrix
+   bool manualAssemblyAndFactorization_;
+   bool reassembleMatrix_;
 };
 
 } // namespace hyteg
