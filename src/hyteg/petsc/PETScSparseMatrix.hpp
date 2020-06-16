@@ -109,6 +109,11 @@ class PETScSparseMatrix
       std::vector< PetscInt > ind;
       hyteg::petsc::applyDirichletBC( numerator, ind, level );
 
+      // This is required as the implementation of MatZeroRows() checks (for performance reasons?!)
+      // if there are zero diagonals in the matrix. If there are, the function halts.
+      // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
+      MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
+
       MatZeroRows( mat, ind.size(), ind.data(), 1.0, 0, 0 );
 
       MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
