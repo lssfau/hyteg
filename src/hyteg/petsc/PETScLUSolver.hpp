@@ -36,6 +36,12 @@
 
 namespace hyteg {
 
+enum class PETScDirectSolverType
+{
+   MUMPS,
+   SUPER_LU
+};
+
 template < class OperatorType >
 class PETScLUSolver : public Solver< OperatorType >
 {
@@ -60,6 +66,7 @@ class PETScLUSolver : public Solver< OperatorType >
    , verbose_( false )
    , manualAssemblyAndFactorization_( false )
    , reassembleMatrix_( false )
+   , solverType_( PETScDirectSolverType::MUMPS )
    {
       num.enumerate( level );
       KSPCreate( petscCommunicator_, &ksp );
@@ -79,6 +86,8 @@ class PETScLUSolver : public Solver< OperatorType >
     MatSetNullSpace( Amat.get(), nullspace );
   }
 #endif
+
+   void setDirectSolverType( PETScDirectSolverType solverType ) { solverType_ = solverType; }
 
    void setConstantNullSpace()
    {
@@ -126,7 +135,19 @@ class PETScLUSolver : public Solver< OperatorType >
          KSPSetOperators( ksp, Amat.get(), Amat.get() );
          KSPGetPC( ksp, &pc );
          PCSetType( pc, PCLU );
-         HYTEG_PCFactorSetMatSolverType( pc, MATSOLVERMUMPS );
+         MatSolverType petscSolverType;
+         switch ( solverType_ )
+         {
+         case PETScDirectSolverType::MUMPS:
+            petscSolverType = MATSOLVERMUMPS;
+            break;
+         case PETScDirectSolverType::SUPER_LU:
+            petscSolverType = MATSOLVERSUPERLU_DIST;
+            break;
+         default:
+            WALBERLA_ABORT( "Invalid PETSc solver type." )
+         }
+         HYTEG_PCFactorSetMatSolverType( pc, petscSolverType );
          storage_->getTimingTree()->start( "Factorization" );
          PCSetUp( pc );
          storage_->getTimingTree()->stop( "Factorization" );
@@ -148,10 +169,13 @@ class PETScLUSolver : public Solver< OperatorType >
       bVec.createVectorFromFunction( b, num, level, All );
       storage_->getTimingTree()->stop( "RHS vector setup" );
 
+      timer.start();
       if ( !manualAssemblyAndFactorization_ )
       {
          assembleAndFactorize( A );
       }
+      timer.end();
+      const double matrixAssemblyAndFactorizationTime = timer.last();
 
       storage_->getTimingTree()->stop( "Setup" );
 
@@ -167,7 +191,8 @@ class PETScLUSolver : public Solver< OperatorType >
       if ( verbose_ )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "[PETScLUSolver] "
-                                    << "PETSc KSPSolver time: " << petscKSPTimer );
+                                    << "PETSc KSPSolver time: " << petscKSPTimer
+                                    << ", assembly and fact time: " << matrixAssemblyAndFactorizationTime );
       }
 
       storage_->getTimingTree()->stop( "PETSc LU Solver" );
@@ -190,8 +215,9 @@ class PETScLUSolver : public Solver< OperatorType >
    hyteg::DoFType flag_;
    bool           verbose_;
    //Mat F; //factored Matrix
-   bool manualAssemblyAndFactorization_;
-   bool reassembleMatrix_;
+   bool                  manualAssemblyAndFactorization_;
+   bool                  reassembleMatrix_;
+   PETScDirectSolverType solverType_;
 };
 
 } // namespace hyteg
