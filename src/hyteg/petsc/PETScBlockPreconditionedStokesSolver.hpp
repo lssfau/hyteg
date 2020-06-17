@@ -32,7 +32,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
                                          const PetscInt maxIterations              = std::numeric_limits< PetscInt >::max(),
                                          const uint_t&  velocityPreconditionerType = 1 )
    : allocatedLevel_( level )
-   , petscCommunicator_( storage->splitCommunicatorByPrimitiveDistribution() )
+   , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
    , Amat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
            numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),

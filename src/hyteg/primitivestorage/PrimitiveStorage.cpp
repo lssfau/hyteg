@@ -268,6 +268,8 @@ primitiveDataHandlers_( 0 ), modificationStamp_( 0 ), timingTree_( timingTree ),
     }
   }
 
+  splitCommunicatorByPrimitiveDistribution();
+
 #ifndef NDEBUG
   checkConsistency();
 #endif
@@ -324,6 +326,7 @@ std::shared_ptr< PrimitiveStorage > PrimitiveStorage::createCopy() const
 
    copiedStorage->neighborRanks_ = neighborRanks_;
    copiedStorage->hasGlobalCells_ = hasGlobalCells_;
+   copiedStorage->splitComm_ = splitComm_;
 
    return copiedStorage;
 }
@@ -1035,6 +1038,8 @@ void PrimitiveStorage::migratePrimitives( const std::map< PrimitiveID::IDType, u
     }
   }
 
+  splitCommunicatorByPrimitiveDistribution();
+
   wasModified();
 
 #ifndef NDEBUG
@@ -1503,19 +1508,19 @@ void PrimitiveStorage::checkConsistency()
   }
 }
 
-MPI_Comm PrimitiveStorage::splitCommunicatorByPrimitiveDistribution() const
+void PrimitiveStorage::splitCommunicatorByPrimitiveDistribution()
 {
    MPI_Comm originalComm = walberla::mpi::MPIManager::instance()->comm();
    if ( getNumberOfEmptyProcesses() == 0 )
    {
-      return originalComm;
+      splitComm_ = originalComm;
    }
    const int includeInSubComm = getNumberOfLocalPrimitives() > 0 ? 1 : 0;
    int       oldRank;
    MPI_Comm_rank( originalComm, &oldRank );
    MPI_Comm subComm;
    MPI_Comm_split( originalComm, includeInSubComm, oldRank, &subComm );
-   return subComm;
+   splitComm_ = subComm;
 }
 
 

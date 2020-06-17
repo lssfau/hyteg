@@ -360,12 +360,15 @@ class PrimitiveStorage : private walberla::NonCopyable
    ///
    /// Returns either communicator depending on the number of primitives of the calling process.
    ///
-   /// Must be called collectively.
+   /// Does not have to be called collectively!
    ///
    /// This is useful to obtain a subcommunicator in settings where agglomeration is performed.
    /// Especially needed for some external libraries (e.g. PETSc).
    ///
-   MPI_Comm splitCommunicatorByPrimitiveDistribution() const;
+   MPI_Comm getSplitCommunicatorByPrimitiveDistribution() const
+   {
+      return splitComm_;
+   }
 
  private:
    // needed to differentiate when migrating primitives
@@ -377,6 +380,19 @@ class PrimitiveStorage : private walberla::NonCopyable
       CELL,
       INVALID
    };
+
+   /// \brief Splits the current communicator of the walberla MPI manager into two
+   ///        sub-communicators. One of them contains all processes with primitives
+   ///        and the other all processes without primitives.
+   ///
+   /// Returns either communicator depending on the number of primitives of the calling process.
+   ///
+   /// Must be called collectively.
+   ///
+   /// This is useful to obtain a subcommunicator in settings where agglomeration is performed.
+   /// Especially needed for some external libraries (e.g. PETSc).
+   ///
+   void splitCommunicatorByPrimitiveDistribution();
 
    /// Returns the primitive type of a local primitive.
    /// Returns invalid if the primitive is not locally availably.
@@ -520,6 +536,12 @@ class PrimitiveStorage : private walberla::NonCopyable
    std::shared_ptr< walberla::WcTimingTree > timingTree_;
 
    bool hasGlobalCells_;
+
+   /// This comm is identical for
+   /// - all processes that own primitives locally
+   /// - all processes that do not own any primitives locally.
+   /// Is refreshed by calling splitCommunicatorByPrimitiveDistribution().
+   MPI_Comm splitComm_;
 };
 
 ////////////////////////////////////////////////

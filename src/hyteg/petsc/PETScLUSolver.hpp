@@ -51,7 +51,7 @@ class PETScLUSolver : public Solver< OperatorType >
    PETScLUSolver( const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level )
    : storage_( storage )
    , allocatedLevel_( level )
-   , petscCommunicator_( storage->splitCommunicatorByPrimitiveDistribution() )
+   , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
    , Amat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
            numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),

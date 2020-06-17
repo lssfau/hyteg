@@ -41,7 +41,7 @@ class PETScMinResSolver : public Solver< OperatorType >
                       const real_t                               tolerance     = 1e-12,
                       const PetscInt                             maxIterations = std::numeric_limits< PetscInt >::max() )
    : allocatedLevel_( level )
-   , petscCommunicator_( storage->splitCommunicatorByPrimitiveDistribution() )
+   , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
    , Amat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
            numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
