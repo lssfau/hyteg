@@ -1047,6 +1047,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    WALBERLA_LOG_INFO_ON_ROOT( "Coarse grid solver:" )
    if ( coarseGridSolverType == 0 || coarseGridSolverType == 4 )
    {
+#ifdef HYTEG_BUILD_WITH_PETSC
       PETScDirectSolverType solverType;
       if ( coarseGridSolverType == 0 )
       {
@@ -1058,7 +1059,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
          WALBERLA_LOG_INFO_ON_ROOT( "SuperLU_Dist (PETSc)" )
          solverType = PETScDirectSolverType::SUPER_LU;
       }
-#ifdef HYTEG_BUILD_WITH_PETSC
+
       auto petscSolverInternalTmp = std::make_shared< PETScLUSolver< StokesOperator > >( coarseGridSolverStorage, coarseGridMaxLevel );
       petscSolverInternalTmp->setVerbose( true );
       petscSolverInternalTmp->setDirectSolverType( solverType );
