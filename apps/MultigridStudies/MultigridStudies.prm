@@ -13,7 +13,7 @@ Parameters
 
     meshLayout CRISSCROSS;
     symmetricCuboidMesh true;
-    numCycles 3;
+    numCycles 5;
     cycleType V;
     fmgInnerCycles 0; // 0 == no fmg
 
@@ -39,14 +39,14 @@ Parameters
     projectPressureAfterRestriction true;
     calculateDiscretizationError false;
     coarseGridMaxIterations 20000;
-    coarseGridResidualTolerance 1e-12;
+    coarseGridResidualTolerance 1e-04;
 
     // 0: MUMPS                          (PETSc)
     // 1: block preconditioned MINRES    (PETSc)
     // 2: MINRES                         (HyTeG)
     // 3: pressure preconditioned MINRES (HyTeG)
     // 4: SuperLU (dist)                 (PETSc)
-    coarseGridSolverType 1;
+    coarseGridSolverType 0;
 
     // for solver type 1:
     // 0: PCGAMG
@@ -55,9 +55,9 @@ Parameters
     // 3: HYPRE
     coarseGridSolverVelocityPreconditionerType 3;
 
-    agglomeration false;
-    agglomerationStrategy bulk;   // dedicated, bulk, or interval
-    agglomerationNumProcesses 2;
+    agglomeration true;
+    agglomerationStrategy dedicated;   // dedicated, bulk, or interval
+    agglomerationNumProcesses 3;
     agglomerationInterval 3;
 
     cyclesBeforeDC 0;
@@ -69,7 +69,8 @@ Parameters
     outputVTK false;
     outputTiming false;
     outputTimingJSON true;
-    outputTimingJSONFile timing-gen-macro-edge-sor.json;
+    outputTimingJSONFile timing.json;
+    outputAgglomerationTimingJSONFile timing_agglomeration.json;
     outputSQL true;
     outputParallelSQL false;
     outputSQLFile database.db;

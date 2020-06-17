@@ -785,6 +785,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       const std::string&                                   agglomerationStrategy,
                       const uint_t&                                        agglomerationNumProcesses,
                       const uint_t&                                        agglomerationInterval,
+                      const std::string&                                   agglomerationTimingJSONFile,
                       const bool&                                          outputVTK,
                       const uint_t&                                        skipCyclesForAvgConvRate,
                       const bool&                                          calcDiscretizationError,
@@ -1291,8 +1292,21 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    }
 
    uint_t numExecutedCycles = 0;
+
+   storage->getTimingTree()->start( "Cycles" );
+   if ( agglomeration )
+   {
+      agglomerationWrapper->getAgglomerationStorage()->getTimingTree()->start( "Cycles" );
+   }
+
    for ( uint_t cycle = 1; cycle <= numCycles; cycle++ )
    {
+      storage->getTimingTree()->start( "Cycle " + std::to_string( cycle ) );
+      if ( agglomeration )
+      {
+         agglomerationWrapper->getAgglomerationStorage()->getTimingTree()->start( "Cycle " + std::to_string( cycle ) );
+      }
+
       const long double lastl2ErrorU    = l2ErrorU;
       const long double lastl2ResidualU = l2ResidualU;
 
@@ -1407,6 +1421,18 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
          WALBERLA_LOG_INFO_ON_ROOT( "l2 residual (u) dropped below tolerance." )
          break;
       }
+
+      storage->getTimingTree()->stop( "Cycle " + std::to_string( cycle ) );
+      if ( agglomeration )
+      {
+         agglomerationWrapper->getAgglomerationStorage()->getTimingTree()->stop( "Cycle " + std::to_string( cycle ) );
+      }
+   }
+
+   storage->getTimingTree()->stop( "Cycles" );
+   if ( agglomeration )
+   {
+      agglomerationWrapper->getAgglomerationStorage()->getTimingTree()->stop( "Cycles" );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -1430,6 +1456,11 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       WALBERLA_LOG_INFO_ON_ROOT( "  - l2 error p:    " << std::scientific << avgl2ErrorConvergenceRateP );
       WALBERLA_LOG_INFO_ON_ROOT( "  - l2 residual p: " << std::scientific << avgl2ResidualConvergenceRateP );
       WALBERLA_LOG_INFO_ON_ROOT( "" );
+   }
+
+   if ( agglomeration )
+   {
+      writeTimingTreeJSON( *agglomerationWrapper->getAgglomerationStorage()->getTimingTree(), agglomerationTimingJSONFile );
    }
 }
 
@@ -1510,17 +1541,20 @@ void setup( int argc, char** argv )
    const bool        outputTiming              = mainConf.getParameter< bool >( "outputTiming" );
    const bool        outputTimingJSON          = mainConf.getParameter< bool >( "outputTimingJSON" );
    const std::string outputTimingJSONFile      = mainConf.getParameter< std::string >( "outputTimingJSONFile" );
-   const bool        outputSQL                 = mainConf.getParameter< bool >( "outputSQL" );
-   const bool        outputParallelSQL         = mainConf.getParameter< bool >( "outputParallelSQL" );
-   const std::string outputSQLFile             = mainConf.getParameter< std::string >( "outputSQLFile" );
-   const std::string sqlTag                    = mainConf.getParameter< std::string >( "sqlTag", "default" );
-   const uint_t      skipCyclesForAvgConvRate  = mainConf.getParameter< uint_t >( "skipCyclesForAvgConvRate" );
-   const std::string meshLayout                = mainConf.getParameter< std::string >( "meshLayout" );
-   const bool        symmetricCuboidMesh       = mainConf.getParameter< bool >( "symmetricCuboidMesh" );
-   const uint_t      cyclesBeforeDC            = mainConf.getParameter< uint_t >( "cyclesBeforeDC" );
-   const uint_t      postDCPreSmoothingSteps   = mainConf.getParameter< uint_t >( "postDCPreSmoothingSteps" );
-   const uint_t      postDCPostSmoothingSteps  = mainConf.getParameter< uint_t >( "postDCPostSmoothingSteps" );
-   const uint_t      postDCSmoothingIncrement  = mainConf.getParameter< uint_t >( "postDCSmoothingIncrement" );
+   const std::string outputAgglomerationTimingJSONFile =
+       mainConf.getParameter< std::string >( "outputAgglomerationTimingJSONFile" );
+
+   const bool        outputSQL                = mainConf.getParameter< bool >( "outputSQL" );
+   const bool        outputParallelSQL        = mainConf.getParameter< bool >( "outputParallelSQL" );
+   const std::string outputSQLFile            = mainConf.getParameter< std::string >( "outputSQLFile" );
+   const std::string sqlTag                   = mainConf.getParameter< std::string >( "sqlTag", "default" );
+   const uint_t      skipCyclesForAvgConvRate = mainConf.getParameter< uint_t >( "skipCyclesForAvgConvRate" );
+   const std::string meshLayout               = mainConf.getParameter< std::string >( "meshLayout" );
+   const bool        symmetricCuboidMesh      = mainConf.getParameter< bool >( "symmetricCuboidMesh" );
+   const uint_t      cyclesBeforeDC           = mainConf.getParameter< uint_t >( "cyclesBeforeDC" );
+   const uint_t      postDCPreSmoothingSteps  = mainConf.getParameter< uint_t >( "postDCPreSmoothingSteps" );
+   const uint_t      postDCPostSmoothingSteps = mainConf.getParameter< uint_t >( "postDCPostSmoothingSteps" );
+   const uint_t      postDCSmoothingIncrement = mainConf.getParameter< uint_t >( "postDCSmoothingIncrement" );
 
    const bool   meshSphericalShell = mainConf.getParameter< bool >( "meshSphericalShell" );
    const uint_t shellNTan          = mainConf.getParameter< uint_t >( "shellNTan" );
@@ -1583,6 +1617,7 @@ void setup( int argc, char** argv )
       WALBERLA_LOG_INFO_ON_ROOT( "  - agglomerationStrategy:                   " << agglomerationStrategy );
       WALBERLA_LOG_INFO_ON_ROOT( "  - agglomeration num processes:             " << agglomerationNumProcesses );
       WALBERLA_LOG_INFO_ON_ROOT( "  - agglomeration process interval:          " << agglomerationInterval );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - agglomeration timing output file:        " << outputAgglomerationTimingJSONFile );
    }
    WALBERLA_LOG_INFO_ON_ROOT( "  - output base directory:                   " << outputBaseDirectory );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output VTK:                              " << ( outputVTK ? "yes" : "no" ) );
@@ -1896,6 +1931,7 @@ void setup( int argc, char** argv )
                                                                 agglomerationStrategy,
                                                                 agglomerationNumProcesses,
                                                                 agglomerationInterval,
+                                                                outputAgglomerationTimingJSONFile,
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
@@ -1943,6 +1979,7 @@ void setup( int argc, char** argv )
                                                                 agglomerationStrategy,
                                                                 agglomerationNumProcesses,
                                                                 agglomerationInterval,
+                                                                outputAgglomerationTimingJSONFile,
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
