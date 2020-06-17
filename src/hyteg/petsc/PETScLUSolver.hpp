@@ -59,6 +59,7 @@ class PETScLUSolver : public Solver< OperatorType >
    , flag_( hyteg::All )
    , verbose_( false )
    , manualAssemblyAndFactorization_( false )
+   , reassembleMatrix_( false )
    {
       num.enumerate( level );
       KSPCreate( petscCommunicator_, &ksp );
