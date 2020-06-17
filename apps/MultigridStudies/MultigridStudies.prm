@@ -13,9 +13,9 @@ Parameters
 
     meshLayout CRISSCROSS;
     symmetricCuboidMesh true;
-    numCycles 1;
+    numCycles 3;
     cycleType V;
-    fmgInnerCycles 1; // 0 == no fmg
+    fmgInnerCycles 0; // 0 == no fmg
 
     // CRISSCROSS: ~0.4
     // CRISS:    : P1: ? , P2: ~0.72
@@ -33,7 +33,7 @@ Parameters
     postSmoothingSteps 3;
     smoothingIncrement 2;
     minLevel 2;
-    maxLevel 7; // P1 level, P2 level is automatically reduced by 1
+    maxLevel 5; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-16;
     projectPressureAfterRestriction true;
@@ -45,16 +45,18 @@ Parameters
     // 1: block preconditioned MINRES    (PETSc)
     // 2: MINRES                         (HyTeG)
     // 3: pressure preconditioned MINRES (HyTeG)
-    coarseGridSolverType 1;
+    // 4: SuperLU (dist)                 (PETSc)
+    coarseGridSolverType 4;
 
     // for solver type 1:
     // 0: PCGAMG
     // 1: PCJACOBI
     // 2: Schur complement
-    coarseGridSolverVelocityPreconditionerType 1;
+    // 3: HYPRE
+    coarseGridSolverVelocityPreconditionerType 3;
 
-    agglomeration false;
-    agglomerationNumProcesses 2;
+    agglomeration true;
+    agglomerationNumProcesses 4;
 
     cyclesBeforeDC 0;
     postDCPreSmoothingSteps 3;

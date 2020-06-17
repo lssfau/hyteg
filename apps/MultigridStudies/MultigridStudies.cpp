@@ -1030,7 +1030,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       WALBERLA_LOG_INFO_ON_ROOT( "Solving on empty processes: " << ( solveOnEmptyProcesses ? "yes" : "no" ) )
       agglomerationWrapper = std::make_shared< AgglomerationWrapper< StokesOperator > >(
           storage, minLevel, solveOnEmptyProcesses );
-      agglomerationWrapper->setStrategyContinuousProcesses( 0, finalNumAgglomerationProcesses );
+      agglomerationWrapper->setStrategyContinuousProcesses( 0, finalNumAgglomerationProcesses - 1 );
       auto agglomerationStorage = agglomerationWrapper->getAgglomerationStorage();
       coarseGridSolverStorage = agglomerationStorage;
       WALBERLA_LOG_INFO_ON_ROOT( "" )
@@ -1041,15 +1041,27 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    // 1: block preconditioned MINRES    (PETSc)
    // 2: MINRES                         (HyTeG)
    // 3: pressure preconditioned MINRES (HyTeG)
+   // 4: SuperLU_Dist                   (PETSc)
 
    std::shared_ptr< Solver< StokesOperator > > coarseGridSolverInternal;
    WALBERLA_LOG_INFO_ON_ROOT( "Coarse grid solver:" )
-   if ( coarseGridSolverType == 0 )
+   if ( coarseGridSolverType == 0 || coarseGridSolverType == 4 )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "MUMPS (PETSc)" )
+      PETScDirectSolverType solverType;
+      if ( coarseGridSolverType == 0 )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "MUMPS (PETSc)" )
+         solverType = PETScDirectSolverType::MUMPS;
+      }
+      else
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "SuperLU_Dist (PETSc)" )
+         solverType = PETScDirectSolverType::SUPER_LU;
+      }
 #ifdef HYTEG_BUILD_WITH_PETSC
       auto petscSolverInternalTmp = std::make_shared< PETScLUSolver< StokesOperator > >( coarseGridSolverStorage, coarseGridMaxLevel );
       petscSolverInternalTmp->setVerbose( true );
+      petscSolverInternalTmp->setDirectSolverType( solverType );
       coarseGridSolverInternal = petscSolverInternalTmp;
 #else
       WALBERLA_ABORT( "PETSc is not enabled." )
