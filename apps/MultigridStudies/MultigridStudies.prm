@@ -33,7 +33,7 @@ Parameters
     postSmoothingSteps 3;
     smoothingIncrement 2;
     minLevel 2;
-    maxLevel 5; // P1 level, P2 level is automatically reduced by 1
+    maxLevel 6; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-16;
     projectPressureAfterRestriction true;
@@ -46,7 +46,7 @@ Parameters
     // 2: MINRES                         (HyTeG)
     // 3: pressure preconditioned MINRES (HyTeG)
     // 4: SuperLU (dist)                 (PETSc)
-    coarseGridSolverType 4;
+    coarseGridSolverType 1;
 
     // for solver type 1:
     // 0: PCGAMG
@@ -55,8 +55,10 @@ Parameters
     // 3: HYPRE
     coarseGridSolverVelocityPreconditionerType 3;
 
-    agglomeration true;
-    agglomerationNumProcesses 4;
+    agglomeration false;
+    agglomerationStrategy bulk;   // dedicated, bulk, or interval
+    agglomerationNumProcesses 2;
+    agglomerationInterval 3;
 
     cyclesBeforeDC 0;
     postDCPreSmoothingSteps 3;

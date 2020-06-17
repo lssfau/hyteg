@@ -782,7 +782,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       const uint_t&                                        coarseGridSolverType,
                       const uint_t&                                        coarseGridSolverVelocityPreconditionerType,
                       const bool&                                          agglomeration,
+                      const std::string&                                   agglomerationStrategy,
                       const uint_t&                                        agglomerationNumProcesses,
+                      const uint_t&                                        agglomerationInterval,
                       const bool&                                          outputVTK,
                       const uint_t&                                        skipCyclesForAvgConvRate,
                       const bool&                                          calcDiscretizationError,
@@ -1014,11 +1016,18 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    }
 
    std::shared_ptr< AgglomerationWrapper< StokesOperator > > agglomerationWrapper;
-   std::shared_ptr< PrimitiveStorage > coarseGridSolverStorage = storage;
+   std::shared_ptr< PrimitiveStorage >                       coarseGridSolverStorage = storage;
+
+   bool                    dedicatedAgglomeration              = false;
+   std::function< void() > dedicatedAgglomerationFactorization = [] {};
+
+   bool isAgglomerationProcess = false;
+
    if ( agglomeration )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Coarse grid solver agglomeration enabled." )
       WALBERLA_CHECK_GREATER( agglomerationNumProcesses, 0, "Cannot perform agglomeration on zero processes." )
+      WALBERLA_CHECK_GREATER( agglomerationInterval, 0, "Cannot perform agglomeration with interval 0." )
       const uint_t finalNumAgglomerationProcesses =
           std::min( agglomerationNumProcesses, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       WALBERLA_LOG_INFO_ON_ROOT( "Agglomeration from " << uint_c( walberla::mpi::MPIManager::instance()->numProcesses() )
@@ -1028,11 +1037,39 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
          solveOnEmptyProcesses = false;
 
       WALBERLA_LOG_INFO_ON_ROOT( "Solving on empty processes: " << ( solveOnEmptyProcesses ? "yes" : "no" ) )
-      agglomerationWrapper = std::make_shared< AgglomerationWrapper< StokesOperator > >(
-          storage, minLevel, solveOnEmptyProcesses );
-      agglomerationWrapper->setStrategyContinuousProcesses( 0, finalNumAgglomerationProcesses - 1 );
+
+      if ( agglomerationStrategy == "dedicated" )
+      {
+         dedicatedAgglomeration = true;
+         loadbalancing::distributed::roundRobin(
+             *storage, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - finalNumAgglomerationProcesses );
+      }
+
+      agglomerationWrapper =
+          std::make_shared< AgglomerationWrapper< StokesOperator > >( storage, minLevel, solveOnEmptyProcesses );
+
+      if ( dedicatedAgglomeration )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT(
+             "Dedicated agglomeration: performing factorization in parallel on subset of processes during first leg of v-cycle." )
+         agglomerationWrapper->setStrategyContinuousProcesses(
+             uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - finalNumAgglomerationProcesses,
+             uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - 1 );
+      }
+      else if ( agglomerationStrategy == "bulk" )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Bulk agglomeration: performing coarse grid solve on continuous subset of processes." )
+         agglomerationWrapper->setStrategyContinuousProcesses( 0, finalNumAgglomerationProcesses - 1 );
+      }
+      else if ( agglomerationStrategy == "interval" )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Interval agglomeration: performing coarse grid solve on spread out subset of processes." )
+         agglomerationWrapper->setStrategyEveryNthProcess( agglomerationInterval, finalNumAgglomerationProcesses );
+      }
+
+      isAgglomerationProcess    = agglomerationWrapper->isAgglomerationProcess();
       auto agglomerationStorage = agglomerationWrapper->getAgglomerationStorage();
-      coarseGridSolverStorage = agglomerationStorage;
+      coarseGridSolverStorage   = agglomerationStorage;
       WALBERLA_LOG_INFO_ON_ROOT( "" )
    }
 
@@ -1060,9 +1097,18 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
          solverType = PETScDirectSolverType::SUPER_LU;
       }
 
-      auto petscSolverInternalTmp = std::make_shared< PETScLUSolver< StokesOperator > >( coarseGridSolverStorage, coarseGridMaxLevel );
+      auto petscSolverInternalTmp =
+          std::make_shared< PETScLUSolver< StokesOperator > >( coarseGridSolverStorage, coarseGridMaxLevel );
       petscSolverInternalTmp->setVerbose( true );
       petscSolverInternalTmp->setDirectSolverType( solverType );
+      if ( agglomeration && dedicatedAgglomeration && isAgglomerationProcess )
+      {
+         petscSolverInternalTmp->setManualAssemblyAndFactorization( true );
+         petscSolverInternalTmp->reassembleMatrix( false );
+         dedicatedAgglomerationFactorization = [agglomerationWrapper, petscSolverInternalTmp] {
+            petscSolverInternalTmp->assembleAndFactorize( *agglomerationWrapper->getAgglomerationOperator() );
+         };
+      }
       coarseGridSolverInternal = petscSolverInternalTmp;
 #else
       WALBERLA_ABORT( "PETSc is not enabled." )
@@ -1096,8 +1142,12 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       WALBERLA_LOG_INFO_ON_ROOT( "pressure preconditioned MINRES (HyTeG)" )
       auto preconditioner = std::make_shared< StokesPressureBlockPreconditioner< StokesOperator, P1LumpedInvMassOperator > >(
           coarseGridSolverStorage, coarseGridMaxLevel, coarseGridMaxLevel );
-      coarseGridSolverInternal = std::make_shared< MinResSolver< StokesOperator > >(
-          coarseGridSolverStorage, coarseGridMaxLevel, coarseGridMaxLevel, coarseGridMaxIterations, coarseResidualTolerance, preconditioner );
+      coarseGridSolverInternal = std::make_shared< MinResSolver< StokesOperator > >( coarseGridSolverStorage,
+                                                                                     coarseGridMaxLevel,
+                                                                                     coarseGridMaxLevel,
+                                                                                     coarseGridMaxIterations,
+                                                                                     coarseResidualTolerance,
+                                                                                     preconditioner );
    }
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
@@ -1278,6 +1328,10 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       else
       {
          LIKWID_MARKER_START( "VCYCLE" );
+         if ( agglomeration && dedicatedAgglomeration && isAgglomerationProcess )
+         {
+            dedicatedAgglomerationFactorization();
+         }
          multigridSolver->solve( A, u, f, maxLevel );
          LIKWID_MARKER_STOP( "VCYCLE" );
       }
@@ -1448,7 +1502,9 @@ void setup( int argc, char** argv )
    const uint_t      coarseGridSolverVelocityPreconditionerType =
        mainConf.getParameter< uint_t >( "coarseGridSolverVelocityPreconditionerType" );
    const bool        agglomeration             = mainConf.getParameter< bool >( "agglomeration" );
+   const std::string agglomerationStrategy     = mainConf.getParameter< std::string >( "agglomerationStrategy" );
    const uint_t      agglomerationNumProcesses = mainConf.getParameter< uint_t >( "agglomerationNumProcesses" );
+   const uint_t      agglomerationInterval     = mainConf.getParameter< uint_t >( "agglomerationInterval" );
    const std::string outputBaseDirectory       = mainConf.getParameter< std::string >( "outputBaseDirectory" );
    const bool        outputVTK                 = mainConf.getParameter< bool >( "outputVTK" );
    const bool        outputTiming              = mainConf.getParameter< bool >( "outputTiming" );
@@ -1522,7 +1578,12 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid solver type (stokes only):   " << coarseGridSolverType );
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid u prec. type (stokes only):  " << coarseGridSolverVelocityPreconditionerType );
    WALBERLA_LOG_INFO_ON_ROOT( "  - agglomeration:                           " << ( agglomeration ? "yes" : "no" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - agglomeration num processes:             " << agglomerationNumProcesses );
+   if ( agglomeration )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "  - agglomerationStrategy:                   " << agglomerationStrategy );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - agglomeration num processes:             " << agglomerationNumProcesses );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - agglomeration process interval:          " << agglomerationInterval );
+   }
    WALBERLA_LOG_INFO_ON_ROOT( "  - output base directory:                   " << outputBaseDirectory );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output VTK:                              " << ( outputVTK ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing:                           " << ( outputTiming ? "yes" : "no" ) );
@@ -1832,7 +1893,9 @@ void setup( int argc, char** argv )
                                                                 coarseGridSolverType,
                                                                 coarseGridSolverVelocityPreconditionerType,
                                                                 agglomeration,
+                                                                agglomerationStrategy,
                                                                 agglomerationNumProcesses,
+                                                                agglomerationInterval,
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
@@ -1877,7 +1940,9 @@ void setup( int argc, char** argv )
                                                                 coarseGridSolverType,
                                                                 coarseGridSolverVelocityPreconditionerType,
                                                                 agglomeration,
+                                                                agglomerationStrategy,
                                                                 agglomerationNumProcesses,
+                                                                agglomerationInterval,
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
