@@ -25,6 +25,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    ///                                   - 0: PCGAMG
    ///                                   - 1: PCJACOBI
    ///                                   - 2: Schur complement
+   ///                                   - 3: Hypre (BoomerAMG)
    PETScBlockPreconditionedStokesSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                                          const uint_t&                              level,
                                          const real_t                               tolerance = 1e-12,
@@ -168,6 +169,10 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
          case 1:
             PCSetType( pc_u, PCJACOBI );
             break;
+         case 3: {
+            PCSetType( pc_u, PCHYPRE );
+            break;
+         }
          default:
             WALBERLA_ABORT( "Invalid velocity preconditioner for PETSc block prec MinRes solver." );
             break;
