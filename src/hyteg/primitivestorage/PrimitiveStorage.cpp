@@ -1511,6 +1511,13 @@ void PrimitiveStorage::checkConsistency()
 void PrimitiveStorage::splitCommunicatorByPrimitiveDistribution()
 {
    MPI_Comm originalComm = walberla::mpi::MPIManager::instance()->comm();
+
+   WALBERLA_NON_MPI_SECTION()
+   {
+      splitComm_ = originalComm;
+      return;
+   }
+
    if ( getNumberOfEmptyProcesses() == 0 )
    {
       splitComm_ = originalComm;
