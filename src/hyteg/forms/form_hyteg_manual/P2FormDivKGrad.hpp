@@ -31,24 +31,11 @@ class P2Form_divKgrad : public P2FormHyTeG
  public:
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const final
    {
-// Shape functions on unit triangle
-#define DetaN0 ( 1.0 - 4.0 * L1 )
-#define DxiN0 ( 1.0 - 4.0 * L1 )
 
-#define DetaN1 ( 4.0 * L2 - 1.0 )
-#define DxiN1 ( 0.0 )
-
-#define DetaN2 ( 0.0 )
-#define DxiN2 ( 4.0 * L3 - 1.0 )
-
-#define DetaN3 ( 4.0 * L3 )
-#define DxiN3 ( 4.0 * L2 )
-
-#define DetaN4 ( -4.0 * L3 )
-#define DxiN4 ( 4.0 * ( L1 - L3 ) )
-
-#define DetaN5 ( 4.0 * ( L1 - L2 ) )
-#define DxiN5 ( -4.0 * L2 )
+// Derivatives of P2 shape functions on unit triangle
+#define DEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef DEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
 
 // Select quadrature rule
 #define QUADPOINTS quadrature::D5_points
@@ -65,8 +52,8 @@ class P2Form_divKgrad : public P2FormHyTeG
       mappedPt[0] = ( coords[1][0] - coords[0][0] ) * L2 + ( coords[2][0] - coords[0][0] ) * L3 + coords[0][0]; \
       mappedPt[1] = ( coords[1][1] - coords[0][1] ) * L2 + ( coords[2][1] - coords[0][1] ) * L3 + coords[0][1]; \
       real_t aux  = callback( mappedPt );                                                                       \
-      real_t tmp6 = ( ( DetaN##i * tmp1 - DxiN##i * tmp3 ) * ( DetaN##j * tmp1 - DxiN##j * tmp3 ) +             \
-                      ( DetaN##i * tmp2 - DxiN##i * tmp0 ) * ( DetaN##j * tmp2 - DxiN##j * tmp0 ) ) *           \
+      real_t tmp6 = ( ( DxiN##i * tmp1 - DetaN##i * tmp3 ) * ( DxiN##j * tmp1 - DetaN##j * tmp3 ) +             \
+                      ( DxiN##i * tmp2 - DetaN##i * tmp0 ) * ( DxiN##j * tmp2 - DetaN##j * tmp0 ) ) *           \
                     tmp5;                                                                                       \
       elMat( i, j ) += QUADWEIGHTS[k] * detJacPhiInv * tmp6 * aux;                                              \
    }                                                                                                            \
@@ -130,18 +117,10 @@ class P2Form_divKgrad : public P2FormHyTeG
       // -----------
       INTEGRATE2D( 5, 5 );
 
-#undef DetaN0
-#undef DetaN1
-#undef DetaN2
-#undef DetaN3
-#undef DetaN4
-#undef DetaN5
-#undef DxiN0
-#undef DxiN1
-#undef DxiN2
-#undef DxiN3
-#undef DxiN4
-#undef DxiN5
+#define UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+
 #undef INTEGRATE2D
    };
 

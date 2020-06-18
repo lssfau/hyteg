@@ -30,24 +30,11 @@ class P2Form_laplace : public P2FormHyTeG
  public:
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const final
    {
-// Shape functions on unit triangle
-#define DetaN0 ( 1.0 - 4.0 * L1 )
-#define DxiN0 ( 1.0 - 4.0 * L1 )
 
-#define DetaN1 ( 4.0 * L2 - 1.0 )
-#define DxiN1 ( 0.0 )
-
-#define DetaN2 ( 0.0 )
-#define DxiN2 ( 4.0 * L3 - 1.0 )
-
-#define DetaN3 ( 4.0 * L3 )
-#define DxiN3 ( 4.0 * L2 )
-
-#define DetaN4 ( -4.0 * L3 )
-#define DxiN4 ( 4.0 * ( L1 - L3 ) )
-
-#define DetaN5 ( 4.0 * ( L1 - L2 ) )
-#define DxiN5 ( -4.0 * L2 )
+// Derivatives of shape functions on unit triangle
+#define DEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef DEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
 
 // Select quadrature rule
 #define QUADPOINTS quadrature::D5_points
@@ -76,8 +63,8 @@ class P2Form_laplace : public P2FormHyTeG
                                                                                                                 \
       real_t detDPsi = std::abs( aux3 );                                                                        \
                                                                                                                 \
-      real_t aux5 = ( ( -DetaN##i * tmp5 + DxiN##i * tmp4 ) * ( -DetaN##j * tmp5 + DxiN##j * tmp4 ) +           \
-                      ( DetaN##i * tmp6 - DxiN##i * tmp7 ) * ( DetaN##j * tmp6 - DxiN##j * tmp7 ) ) /           \
+      real_t aux5 = ( ( -DxiN##i * tmp5 + DetaN##i * tmp4 ) * ( -DxiN##j * tmp5 + DetaN##j * tmp4 ) +           \
+                      ( DxiN##i * tmp6 - DetaN##i * tmp7 ) * ( DxiN##j * tmp6 - DetaN##j * tmp7 ) ) /           \
                     ( aux4 * aux2 );                                                                            \
                                                                                                                 \
       elMat( i, j ) += QUADWEIGHTS[k] * detJacPhiInv * detDPsi * aux5;                                          \
@@ -144,63 +131,20 @@ class P2Form_laplace : public P2FormHyTeG
       // -----------
       INTEGRATE2D( 5, 5 );
 
-#undef DetaN0
-#undef DetaN1
-#undef DetaN2
-#undef DetaN3
-#undef DetaN4
-#undef DetaN5
-#undef DxiN0
-#undef DxiN1
-#undef DxiN2
-#undef DxiN3
-#undef DxiN4
-#undef DxiN5
+#define UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+
 #undef INTEGRATE2D
    };
 
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const final
    {
 
-#define DX1N0 ( L2 + L3 + L4 - 3.0 * L1 )
-#define DX2N0 ( L2 + L3 + L4 - 3.0 * L1 )
-#define DX3N0 ( L2 + L3 + L4 - 3.0 * L1 )
-
-#define DX1N1 ( 4.0 * L2 - 1.0 )
-#define DX2N1 ( 0.0 )
-#define DX3N1 ( 0.0 )
-
-#define DX1N2 ( 0.0 )
-#define DX2N2 ( 4.0 * L3 - 1.0 )
-#define DX3N2 ( 0.0 )
-
-#define DX1N3 ( 0.0 )
-#define DX2N3 ( 0.0 )
-#define DX3N3 ( 4.0 * L4 - 1.0 )
-
-#define DX1N4 ( 0.0 )
-#define DX2N4 ( 4.0 * L4 )
-#define DX3N4 ( 4.0 * L3 )
-
-#define DX1N5 ( 4.0 * L4 )
-#define DX2N5 ( 0.0 )
-#define DX3N5 ( 4.0 * L2 )
-
-#define DX1N6 ( 4.0 * L3 )
-#define DX2N6 ( 4.0 * L2 )
-#define DX3N6 ( 0.0 )
-
-#define DX1N7 ( - 4.0 * L4 )
-#define DX2N7 ( - 4.0 * L4 )
-#define DX3N7 ( 4.0 * ( L1 - L4 ) )
-
-#define DX1N8 ( - 4.0 * L3 )
-#define DX2N8 ( 4.0 * ( L1 - L3 ) )
-#define DX3N8 ( - 4.0 * L3 )
-
-#define DX1N9 ( 4.0 * ( L1 - L2 ) )
-#define DX2N9 ( - 4.0 * L2 )
-#define DX3N9 ( - 4.0 * L2 )
+// Derivatives of shape functions on unit triangle
+#define DEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TET
+#include "ShapeFunctionMacros.hpp"
+#undef DEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TET
 
 // Select cubature rule
 #define CUBAPOINTS cubature::T3_points
@@ -458,45 +402,9 @@ class P2Form_laplace : public P2FormHyTeG
       // Ninth row
       INTEGRATE3D( 9, 9 );
 
-#undef DX1N0
-#undef DX2N0
-#undef DX3N0
-
-#undef DX1N1
-#undef DX2N1
-#undef DX3N1
-
-#undef DX1N2
-#undef DX2N2
-#undef DX3N2
-
-#undef DX1N3
-#undef DX2N3
-#undef DX3N3
-
-#undef DX1N4
-#undef DX2N4
-#undef DX3N4
-
-#undef DX1N5
-#undef DX2N5
-#undef DX3N5
-
-#undef DX1N6
-#undef DX2N6
-#undef DX3N6
-
-#undef DX1N7
-#undef DX2N7
-#undef DX3N7
-
-#undef DX1N8
-#undef DX2N8
-#undef DX3N8
-
-#undef DX1N9
-#undef DX2N9
-#undef DX3N9
+#define UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TET
+#include "ShapeFunctionMacros.hpp"
+#undef UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TET
 
 #undef INTEGRATE3D
 

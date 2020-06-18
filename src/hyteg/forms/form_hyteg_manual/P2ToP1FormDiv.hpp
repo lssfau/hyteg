@@ -49,28 +49,14 @@ class P2ToP1Form_div< 0 > : public P2ToP1FormHyTeG
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrixr< 3, 6 >& elMat ) const final
    {
 // Derivatives of P2 shape functions on unit triangle
-#define DxiN0 ( 1.0 - 4.0 * L1 )
-#define DetaN0 ( 1.0 - 4.0 * L1 )
-
-#define DxiN1 ( 4.0 * L2 - 1.0 )
-#define DetaN1 ( 0.0 )
-
-#define DxiN2 ( 0.0 )
-#define DetaN2 ( 4.0 * L3 - 1.0 )
-
-#define DxiN3 ( 4.0 * L3 )
-#define DetaN3 ( 4.0 * L2 )
-
-#define DxiN4 ( -4.0 * L3 )
-#define DetaN4 ( 4.0 * ( L1 - L3 ) )
-
-#define DxiN5 ( 4.0 * ( L1 - L2 ) )
-#define DetaN5 ( -4.0 * L2 )
+#define DEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef DEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
 
 // P1 shape functions on unit triangle
-#define SF_M0 L1
-#define SF_M1 L2
-#define SF_M2 L3
+#define DEFINE_P1_SHAPE_FUNCTIONS_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef DEFINE_P1_SHAPE_FUNCTIONS_TRIANGLE
 
 // Select quadrature rule
 #define QUADPOINTS quadrature::D5_points
@@ -145,27 +131,39 @@ class P2ToP1Form_div< 0 > : public P2ToP1FormHyTeG
       INTEGRATE2D( 2, 4 );
       INTEGRATE2D( 2, 5 );
 
-#undef DetaN0
-#undef DetaN1
-#undef DetaN2
-#undef DetaN3
-#undef DetaN4
-#undef DetaN5
-#undef DxiN0
-#undef DxiN1
-#undef DxiN2
-#undef DxiN3
-#undef DxiN4
-#undef DxiN5
-#undef SF_M0
-#undef SF_M1
-#undef SF_M2
+#define UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+
+#define UNDEFINE_P1_SHAPE_FUNCTIONS_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef UNDEFINE_P1_SHAPE_FUNCTIONS_TRIANGLE
+
 #undef INTEGRATE2D
    };
 
+
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrixr< 4, 10 >& elMat ) const final
    {
+
+#define DEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TET
+#include "ShapeFunctionMacros.hpp"
+#undef DEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TET
+
+#define DEFINE_P1_SHAPE_FUNCTIONS_TET
+#include "ShapeFunctionMacros.hpp"
+#undef DEFINE_P1_SHAPE_FUNCTIONS_TET
+
       WALBERLA_ABORT( "P2ToP1Form_div not implemented for 3D, yet." );
+
+#define UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TET
+#include "ShapeFunctionMacros.hpp"
+#undef UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TET
+
+#define UNDEFINE_P1_SHAPE_FUNCTIONS_TET
+#include "ShapeFunctionMacros.hpp"
+#undef UNDEFINE_P1_SHAPE_FUNCTIONS_TET
+
    };
 };
 
@@ -178,29 +176,16 @@ class P2ToP1Form_div< 1 > : public P2ToP1FormHyTeG
  public:
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrixr< 3, 6 >& elMat ) const final
    {
+
 // Derivatives of P2 shape functions on unit triangle
-#define DxiN0 ( 1.0 - 4.0 * L1 )
-#define DetaN0 ( 1.0 - 4.0 * L1 )
-
-#define DxiN1 ( 4.0 * L2 - 1.0 )
-#define DetaN1 ( 0.0 )
-
-#define DxiN2 ( 0.0 )
-#define DetaN2 ( 4.0 * L3 - 1.0 )
-
-#define DxiN3 ( 4.0 * L3 )
-#define DetaN3 ( 4.0 * L2 )
-
-#define DxiN4 ( -4.0 * L3 )
-#define DetaN4 ( 4.0 * ( L1 - L3 ) )
-
-#define DxiN5 ( 4.0 * ( L1 - L2 ) )
-#define DetaN5 ( -4.0 * L2 )
+#define DEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef DEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
 
 // P1 shape functions on unit triangle
-#define SF_M0 L1
-#define SF_M1 L2
-#define SF_M2 L3
+#define DEFINE_P1_SHAPE_FUNCTIONS_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef DEFINE_P1_SHAPE_FUNCTIONS_TRIANGLE
 
 // Select quadrature rule
 #define QUADPOINTS quadrature::D5_points
@@ -275,21 +260,14 @@ class P2ToP1Form_div< 1 > : public P2ToP1FormHyTeG
       INTEGRATE2D( 2, 4 );
       INTEGRATE2D( 2, 5 );
 
-#undef DetaN0
-#undef DetaN1
-#undef DetaN2
-#undef DetaN3
-#undef DetaN4
-#undef DetaN5
-#undef DxiN0
-#undef DxiN1
-#undef DxiN2
-#undef DxiN3
-#undef DxiN4
-#undef DxiN5
-#undef SF_M0
-#undef SF_M1
-#undef SF_M2
+#define UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+
+#define UNDEFINE_P1_SHAPE_FUNCTIONS_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef UNDEFINE_P1_SHAPE_FUNCTIONS_TRIANGLE
+
 #undef INTEGRATE2D
    };
 

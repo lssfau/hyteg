@@ -49,32 +49,16 @@ class P2Form_divt< 0 > : public P2FormHyTeG
  public:
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const final
    {
+
 // Derivatives of P2 shape functions on unit triangle
-#define DxiN0 ( 1.0 - 4.0 * L1 )
-#define DetaN0 ( 1.0 - 4.0 * L1 )
-
-#define DxiN1 ( 4.0 * L2 - 1.0 )
-#define DetaN1 ( 0.0 )
-
-#define DxiN2 ( 0.0 )
-#define DetaN2 ( 4.0 * L3 - 1.0 )
-
-#define DxiN3 ( 4.0 * L3 )
-#define DetaN3 ( 4.0 * L2 )
-
-#define DxiN4 ( -4.0 * L3 )
-#define DetaN4 ( 4.0 * ( L1 - L3 ) )
-
-#define DxiN5 ( 4.0 * ( L1 - L2 ) )
-#define DetaN5 ( -4.0 * L2 )
+#define DEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef DEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
 
 // P2 shape functions on unit triangle
-#define SF_M0 ( L1 * ( 2.0 * L1 - 1.0 ) )
-#define SF_M1 ( L2 * ( 2.0 * L2 - 1.0 ) )
-#define SF_M2 ( L3 * ( 2.0 * L3 - 1.0 ) )
-#define SF_M3 ( 4.0 * L2 * L3 )
-#define SF_M4 ( 4.0 * L1 * L3 )
-#define SF_M5 ( 4.0 * L1 * L2 )
+#define DEFINE_P2_SHAPE_FUNCTIONS_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef DEFINE_P2_SHAPE_FUNCTIONS_TRIANGLE
 
 // Select quadrature rule
 #define QUADPOINTS quadrature::D5_points
@@ -101,7 +85,7 @@ class P2Form_divt< 0 > : public P2FormHyTeG
                                                                                                                 \
       real_t aux6 = ( DPsi( 1, 1 ) * aux4 - DPsi( 1, 0 ) * aux5 ) / detDPsi;                                    \
                                                                                                                 \
-      elMat( i, j ) -= QUADWEIGHTS[k] * detJacPhiInv * aux6 * std::abs( detDPsi ) * SF_M##j;                    \
+      elMat( i, j ) -= QUADWEIGHTS[k] * detJacPhiInv * aux6 * std::abs( detDPsi ) * SF_N##j;                    \
    }
 
       // compute Jacobian determinant of inverse pull-back mapping
@@ -161,24 +145,14 @@ class P2Form_divt< 0 > : public P2FormHyTeG
       INTEGRATE2D( 5, 4 );
       INTEGRATE2D( 5, 5 );
 
-#undef DetaN0
-#undef DetaN1
-#undef DetaN2
-#undef DetaN3
-#undef DetaN4
-#undef DetaN5
-#undef DxiN0
-#undef DxiN1
-#undef DxiN2
-#undef DxiN3
-#undef DxiN4
-#undef DxiN5
-#undef SF_M0
-#undef SF_M1
-#undef SF_M2
-#undef SF_M3
-#undef SF_M4
-#undef SF_M5
+#define UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+
+#define UNDEFINE_P2_SHAPE_FUNCTIONS_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef UNDEFINE_P2_SHAPE_FUNCTIONS_TRIANGLE
+
 #undef INTEGRATE2D
    };
 
@@ -197,32 +171,16 @@ class P2Form_divt< 1 > : public P2FormHyTeG
  public:
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const final
    {
+
 // Derivatives of P2 shape functions on unit triangle
-#define DxiN0 ( 1.0 - 4.0 * L1 )
-#define DetaN0 ( 1.0 - 4.0 * L1 )
-
-#define DxiN1 ( 4.0 * L2 - 1.0 )
-#define DetaN1 ( 0.0 )
-
-#define DxiN2 ( 0.0 )
-#define DetaN2 ( 4.0 * L3 - 1.0 )
-
-#define DxiN3 ( 4.0 * L3 )
-#define DetaN3 ( 4.0 * L2 )
-
-#define DxiN4 ( -4.0 * L3 )
-#define DetaN4 ( 4.0 * ( L1 - L3 ) )
-
-#define DxiN5 ( 4.0 * ( L1 - L2 ) )
-#define DetaN5 ( -4.0 * L2 )
+#define DEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef DEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
 
 // P2 shape functions on unit triangle
-#define SF_M0 ( L1 * ( 2.0 * L1 - 1.0 ) )
-#define SF_M1 ( L2 * ( 2.0 * L2 - 1.0 ) )
-#define SF_M2 ( L3 * ( 2.0 * L3 - 1.0 ) )
-#define SF_M3 ( 4.0 * L2 * L3 )
-#define SF_M4 ( 4.0 * L1 * L3 )
-#define SF_M5 ( 4.0 * L1 * L2 )
+#define DEFINE_P2_SHAPE_FUNCTIONS_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef DEFINE_P2_SHAPE_FUNCTIONS_TRIANGLE
 
 // Select quadrature rule
 #define QUADPOINTS quadrature::D5_points
@@ -249,7 +207,7 @@ class P2Form_divt< 1 > : public P2FormHyTeG
                                                                                                                 \
       real_t aux6 = ( DPsi( 0, 0 ) * aux5 - DPsi( 0, 1 ) * aux4 ) / detDPsi;                                    \
                                                                                                                 \
-      elMat( i, j ) -= QUADWEIGHTS[k] * detJacPhiInv * aux6 * std::abs( detDPsi ) * SF_M##j;                    \
+      elMat( i, j ) -= QUADWEIGHTS[k] * detJacPhiInv * aux6 * std::abs( detDPsi ) * SF_N##j;                    \
    }
 
       // compute Jacobian determinant of inverse pull-back mapping
@@ -309,24 +267,14 @@ class P2Form_divt< 1 > : public P2FormHyTeG
       INTEGRATE2D( 5, 4 );
       INTEGRATE2D( 5, 5 );
 
-#undef DetaN0
-#undef DetaN1
-#undef DetaN2
-#undef DetaN3
-#undef DetaN4
-#undef DetaN5
-#undef DxiN0
-#undef DxiN1
-#undef DxiN2
-#undef DxiN3
-#undef DxiN4
-#undef DxiN5
-#undef SF_M0
-#undef SF_M1
-#undef SF_M2
-#undef SF_M3
-#undef SF_M4
-#undef SF_M5
+#define UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TRIANGLE
+
+#define UNDEFINE_P2_SHAPE_FUNCTIONS_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef UNDEFINE_P2_SHAPE_FUNCTIONS_TRIANGLE
+
 #undef INTEGRATE2D
    };
 
