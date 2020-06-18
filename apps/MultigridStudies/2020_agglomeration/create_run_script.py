@@ -1,5 +1,6 @@
 import time
 import datetime
+import os
 
 
 def supermuc_scaling_prm_file_string(discretization="P2", mesh_spherical_shell=False, num_faces_per_side=1, ntan=2, nrad=2,
@@ -99,7 +100,7 @@ Parameters
     return base_config
 
 
-def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", prm_file="parameter_file.prm", num_nodes=1, ppn=48, petsc_detail=False):
+def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", prm_file="parameter_file.prm", num_nodes=1, ppn=48, petsc_detail=False, script_dir="."):
 
     petsc_detail_string = ""
     if petsc_detail:
@@ -143,6 +144,8 @@ def supermuc_job_file_string(job_name="hyteg_job", wall_clock_limit="1:00:00", p
 #SBATCH --ntasks-per-node={ppn}
 {constraint}
 
+cd ..
+
 module load slurm_setup
 
 source load_modules.sh
@@ -154,10 +157,10 @@ pwd
 ls -lha
 
 #Run the program:
-mpiexec -n $SLURM_NTASKS ./MultigridStudies 2020_agglomeration/{prm_file} {petsc_detail_string}
+mpiexec -n $SLURM_NTASKS ./MultigridStudies 2020_agglomeration/{script_dir}/{prm_file} {petsc_detail_string}
 
 """.format(job_name=job_name, wall_clock_limit=wall_clock_limit, num_nodes=num_nodes, prm_file=prm_file, partition=partition(num_nodes),
-           constraint=constraint, ppn=ppn, petsc_detail_string=petsc_detail_string)
+           constraint=constraint, ppn=ppn, petsc_detail_string=petsc_detail_string, script_dir=script_dir)
     return base_config
 
 
@@ -260,6 +263,7 @@ def supermuc_scaling():
     }
 
     some_id = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H-%M-%S')
+    os.mkdir(some_id)
 
     coarse_grid_solver_string = {
         (0, 0): "MUMPS",
@@ -316,11 +320,12 @@ def supermuc_scaling():
 
                             prm_string = supermuc_scaling_prm_file_string(**prm_string_prm_dict)
                             job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="0:30:00",
-                                                                  num_nodes=num_nodes, prm_file=prm_file_name, ppn=ppn, petsc_detail=True)
+                                                                  num_nodes=num_nodes, prm_file=prm_file_name, ppn=ppn, petsc_detail=True,
+                                                                  script_dir=some_id)
 
-                            with open(prm_file_name, "w") as f:
+                            with open(os.path.join(some_id, prm_file_name), "w") as f:
                                 f.write(prm_string)
-                            with open(job_file_name, "w") as f:
+                            with open(os.path.join(some_id, job_file_name), "w") as f:
                                 f.write(job_string)
 
 if __name__ == "__main__":
