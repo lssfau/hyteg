@@ -167,9 +167,9 @@ def supermuc_scaling():
         "weak": {
             "P2": {
                 "discretization": "P2",
-                "fmg_r": 1,
+                "fmg_r": 0,
                 "max_level": 8,
-                "num_cycles": 1,
+                "num_cycles": 5,
                 "pre": 3,
                 "post": 3,
                 "num_gs_velocity": 2,
