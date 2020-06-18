@@ -154,7 +154,7 @@ pwd
 ls -lha
 
 #Run the program:
-mpiexec -n $SLURM_NTASKS ./MultigridStudies 2019_supermuc/{prm_file} {petsc_detail_string}
+mpiexec -n $SLURM_NTASKS ./MultigridStudies 2020_agglomeration/{prm_file} {petsc_detail_string}
 
 """.format(job_name=job_name, wall_clock_limit=wall_clock_limit, num_nodes=num_nodes, prm_file=prm_file, partition=partition(num_nodes),
            constraint=constraint, ppn=ppn, petsc_detail_string=petsc_detail_string)
