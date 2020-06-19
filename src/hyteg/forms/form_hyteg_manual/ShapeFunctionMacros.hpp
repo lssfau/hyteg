@@ -168,3 +168,47 @@
 #define DX3N9 ( - 4.0 * L2 )
 
 #endif
+
+#ifdef UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TET
+
+#define DX1N0
+#define DX2N0
+#define DX3N0
+
+#define DX1N1
+#define DX2N1
+#define DX3N1
+
+#define DX1N2
+#define DX2N2
+#define DX3N2
+
+#define DX1N3
+#define DX2N3
+#define DX3N3
+
+#define DX1N4
+#define DX2N4
+#define DX3N4
+
+#define DX1N5
+#define DX2N5
+#define DX3N5
+
+#define DX1N6
+#define DX2N6
+#define DX3N6
+
+#define DX1N7
+#define DX2N7
+#define DX3N7
+
+#define DX1N8
+#define DX2N8
+#define DX3N8
+
+#define DX1N9
+#define DX2N9
+#define DX3N9
+
+#endif
