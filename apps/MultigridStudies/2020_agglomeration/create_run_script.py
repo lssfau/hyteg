@@ -277,6 +277,12 @@ def supermuc_scaling():
         {"agglomeration": True, "agglomeration_strategy": "bulk", "agglomeration_num_processes": 48},
         {"agglomeration": True, "agglomeration_strategy": "interval", "agglomeration_num_processes": 48},
         {"agglomeration": True, "agglomeration_strategy": "dedicated", "agglomeration_num_processes": 48},
+        {"agglomeration": True, "agglomeration_strategy": "bulk", "agglomeration_num_processes": 96},
+        {"agglomeration": True, "agglomeration_strategy": "interval", "agglomeration_num_processes": 96},
+        {"agglomeration": True, "agglomeration_strategy": "dedicated", "agglomeration_num_processes": 96},
+        {"agglomeration": True, "agglomeration_strategy": "bulk", "agglomeration_num_processes": 192},
+        {"agglomeration": True, "agglomeration_strategy": "interval", "agglomeration_num_processes": 192},
+        {"agglomeration": True, "agglomeration_strategy": "dedicated", "agglomeration_num_processes": 192},
     ]
 
     for discretization in ["P2"]:
