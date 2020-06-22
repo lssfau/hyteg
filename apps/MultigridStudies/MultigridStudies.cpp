@@ -810,6 +810,23 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       }
    }
 
+   bool         dedicatedAgglomeration = false;
+   const uint_t finalNumAgglomerationProcesses =
+       std::min( agglomerationNumProcesses, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   if ( agglomeration && agglomerationStrategy == "dedicated" )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT(
+          "Dedicated agglomeration: performing factorization in parallel on subset of processes during first leg of v-cycle." )
+      dedicatedAgglomeration = true;
+      const auto numRemainingProcesses =
+          uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - finalNumAgglomerationProcesses;
+      WALBERLA_LOG_INFO_ON_ROOT( "Performing primitive re-distribution to " << numRemainingProcesses << " processes ..." )
+      loadbalancing::distributed::roundRobin( *storage, numRemainingProcesses );
+      WALBERLA_LOG_INFO_ON_ROOT( "Done." )
+      WALBERLA_LOG_INFO_ON_ROOT( "" )
+
+   }
+
    WALBERLA_LOG_INFO_ON_ROOT( "Allocating functions ..." );
    timer.reset();
    StokesFunction u( "u", storage, minLevel, maxLevel );
@@ -1019,7 +1036,6 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    std::shared_ptr< AgglomerationWrapper< StokesOperator > > agglomerationWrapper;
    std::shared_ptr< PrimitiveStorage >                       coarseGridSolverStorage = storage;
 
-   bool                    dedicatedAgglomeration              = false;
    std::function< void() > dedicatedAgglomerationFactorization = [] {};
 
    bool isAgglomerationProcess = false;
@@ -1029,8 +1045,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       WALBERLA_LOG_INFO_ON_ROOT( "Coarse grid solver agglomeration enabled." )
       WALBERLA_CHECK_GREATER( agglomerationNumProcesses, 0, "Cannot perform agglomeration on zero processes." )
       WALBERLA_CHECK_GREATER( agglomerationInterval, 0, "Cannot perform agglomeration with interval 0." )
-      const uint_t finalNumAgglomerationProcesses =
-          std::min( agglomerationNumProcesses, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
       WALBERLA_LOG_INFO_ON_ROOT( "Agglomeration from " << uint_c( walberla::mpi::MPIManager::instance()->numProcesses() )
                                                        << " to " << finalNumAgglomerationProcesses << " processes." )
       bool solveOnEmptyProcesses = true;
@@ -1039,23 +1054,22 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
       WALBERLA_LOG_INFO_ON_ROOT( "Solving on empty processes: " << ( solveOnEmptyProcesses ? "yes" : "no" ) )
 
-      if ( agglomerationStrategy == "dedicated" )
-      {
-         dedicatedAgglomeration = true;
-         loadbalancing::distributed::roundRobin(
-             *storage, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - finalNumAgglomerationProcesses );
-      }
-
+      WALBERLA_LOG_INFO_ON_ROOT( "Setting up agglomeration primitive storage ..." )
       agglomerationWrapper =
           std::make_shared< AgglomerationWrapper< StokesOperator > >( storage, minLevel, solveOnEmptyProcesses );
 
+      WALBERLA_LOG_INFO_ON_ROOT( "Re-distribution of agglomeration primitive storage  ..." )
       if ( dedicatedAgglomeration )
       {
-         WALBERLA_LOG_INFO_ON_ROOT(
-             "Dedicated agglomeration: performing factorization in parallel on subset of processes during first leg of v-cycle." )
-         agglomerationWrapper->setStrategyContinuousProcesses(
-             uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - finalNumAgglomerationProcesses,
-             uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - 1 );
+         const auto minProcess = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - finalNumAgglomerationProcesses;
+         const auto maxProcess = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - 1;
+         WALBERLA_LOG_INFO_ON_ROOT( "Re-distribution of agglomeration primitive storage from rank " << minProcess << " to rank "
+                                                                                                    << maxProcess << " ..." )
+         agglomerationWrapper->setStrategyContinuousProcesses( minProcess, maxProcess );
+
+         WALBERLA_LOG_INFO_ON_ROOT( "Primitive distribution due to dedicated agglomeration:" )
+         auto globalInfo = storage->getGlobalInfo();
+         WALBERLA_LOG_INFO_ON_ROOT( globalInfo );
       }
       else if ( agglomerationStrategy == "bulk" )
       {
