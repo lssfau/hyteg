@@ -12,3 +12,4 @@ waLBerla_add_executable( NAME MultigridStudies
 add_subdirectory(2019_constanta)
 add_subdirectory(2019_tme)
 add_subdirectory(2019_supermuc)
+add_subdirectory(2020_agglomeration)

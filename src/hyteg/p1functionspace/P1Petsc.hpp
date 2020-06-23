@@ -25,17 +25,19 @@
 #include <hyteg/p1functionspace/VertexDoFMacroEdge.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroVertex.hpp>
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
 namespace hyteg {
 namespace petsc {
 
-inline void createVectorFromFunction( const P1Function< PetscScalar >& function,
-                                      const P1Function< PetscInt >&    numerator,
-                                      Vec&                             vec,
-                                      uint_t                           level,
-                                      DoFType                          flag )
+inline void createVectorFromFunction( const P1Function< PetscScalar >&      function,
+                                      const P1Function< PetscInt >&         numerator,
+                                      const std::shared_ptr< VectorProxy >& vec,
+                                      uint_t                                level,
+                                      DoFType                               flag )
 {
    for ( auto& it : function.getStorage()->getVertices() )
    {
@@ -86,11 +88,11 @@ inline void createVectorFromFunction( const P1Function< PetscScalar >& function,
    }
 }
 
-inline void createFunctionFromVector( const P1Function< PetscScalar >& function,
-                                      const P1Function< PetscInt >&    numerator,
-                                      Vec&                             vec,
-                                      uint_t                           level,
-                                      DoFType                          flag )
+inline void createFunctionFromVector( const P1Function< PetscScalar >&      function,
+                                      const P1Function< PetscInt >&         numerator,
+                                      const std::shared_ptr< VectorProxy >& vec,
+                                      uint_t                                level,
+                                      DoFType                               flag )
 {
    for ( auto& it : function.getStorage()->getVertices() )
    {
@@ -187,12 +189,12 @@ inline void applyDirichletBC( const P1Function< PetscInt >& numerator, std::vect
 }
 
 template < class OperatorType >
-inline void createMatrix( const OperatorType&           opr,
-                          const P1Function< PetscInt >& src,
-                          const P1Function< PetscInt >& dst,
-                          Mat&                          mat,
-                          size_t                        level,
-                          DoFType                       flag )
+inline void createMatrix( const OperatorType&                         opr,
+                          const P1Function< PetscInt >&               src,
+                          const P1Function< PetscInt >&               dst,
+                          const std::shared_ptr< SparseMatrixProxy >& mat,
+                          size_t                                      level,
+                          DoFType                                     flag )
 {
    const auto storage = src.getStorage();
 

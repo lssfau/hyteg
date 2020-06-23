@@ -30,6 +30,8 @@
 #include "hyteg/primitives/Cell.hpp"
 #include "hyteg/Algorithms.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 #include "core/math/KahanSummation.h"
 #include "core/DataTypes.h"
@@ -694,84 +696,100 @@ inline ValueType getMinValue( const uint_t & level, Edge &edge, const PrimitiveD
 
 
 #ifdef HYTEG_BUILD_WITH_PETSC
-inline void saveOperator( const uint_t & level, Edge &edge,
-                          const PrimitiveStorage & storage,
-                          const PrimitiveDataID< StencilMemory< real_t >, Edge> &operatorId,
-                          const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &srcId,
-                          const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &dstId, Mat& mat )
+inline void saveOperator( const uint_t&                                              level,
+                          Edge&                                                      edge,
+                          const PrimitiveStorage&                                    storage,
+                          const PrimitiveDataID< StencilMemory< real_t >, Edge >&    operatorId,
+                          const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& srcId,
+                          const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& dstId,
+                          const std::shared_ptr< SparseMatrixProxy >&                mat )
 {
+   size_t rowsize = levelinfo::num_microvertices_per_edge( level );
 
-  size_t rowsize = levelinfo::num_microvertices_per_edge(level);
+   auto opr_data = edge.getData( operatorId )->getPointer( level );
+   auto src      = edge.getData( srcId )->getPointer( level );
+   auto dst      = edge.getData( dstId )->getPointer( level );
 
-  auto opr_data = edge.getData(operatorId)->getPointer( level );
-  auto src = edge.getData(srcId)->getPointer( level );
-  auto dst = edge.getData(dstId)->getPointer( level );
+   for ( uint_t i = 1; i < rowsize - 1; ++i )
+   {
+      PetscInt dstint = dst[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+      PetscInt srcint = src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+      mat->addValue(
+          uint_c( dstint ), uint_c( srcint ), opr_data[vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C )] );
 
-
-  for (uint_t i = 1; i < rowsize - 1; ++i) {
-    PetscInt dstint = dst[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
-    PetscInt srcint = src[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
-    //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, VERTEX_C)], opr_data[VERTEX_C]);
-    MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::stencilIndexFromVertex( stencilDirection::VERTEX_C ) ] ,ADD_VALUES);         //TODO: Make this more efficient by grouping all of them in an array
-
-    for ( const auto & neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF ) {
-      srcint = src[vertexdof::macroedge::indexFromVertex( level, i, neighbor )];
-      //out << fmt::format("{}\t{}\t{}\n", dst[index<Level>(i, VERTEX_C)], src[index<Level>(i, neighbor)], opr_data[neighbor]);
-      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::stencilIndexFromVertex( neighbor ) ] ,ADD_VALUES);
-    }
-
-    for ( uint_t neighborFace = 0; neighborFace < edge.getNumNeighborFaces(); neighborFace++ )
-    {
-      srcint = src[vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, stencilDirection::VERTEX_W )];
-      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_W, neighborFace )] ,ADD_VALUES);
-      srcint = src[vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, stencilDirection::VERTEX_E )];
-      MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_E, neighborFace )] ,ADD_VALUES);
-    }
-
-    for ( uint_t neighborCellID = 0; neighborCellID < edge.getNumNeighborCells(); neighborCellID++ )
-    {
-      const auto & neighborCell = *(storage.getCell( edge.neighborCells().at(neighborCellID) ));
-      const auto localEdgeIDOnNeighborCell = neighborCell.getLocalEdgeID( edge.getID() );
-      if ( localEdgeIDOnNeighborCell == 1 || localEdgeIDOnNeighborCell == 4 )
+      for ( const auto& neighbor : vertexdof::macroedge::neighborsOnEdgeFromVertexDoF )
       {
-        // Since the functions we access here carry the petsc vector indices, we cannot simply also loop over
-        // ghost layer DoFs that do not exist. In the apply kernel this is okay, as we only add zeros in that case.
-        // Therefore we check if there are inner vertices - this only applies for macro-edge IDs 1 and 4.
-        srcint = src[vertexdof::macroedge::indexFromVertexOnNeighborCell( level, i, neighborCellID, edge.getNumNeighborFaces() )];
-        MatSetValues(mat,1,&dstint,1,&srcint,&opr_data[ vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCellID, edge.getNumNeighborFaces() ) ] ,ADD_VALUES);
+         srcint = src[vertexdof::macroedge::indexFromVertex( level, i, neighbor )];
+         mat->addValue( uint_c( dstint ), uint_c( srcint ), opr_data[vertexdof::stencilIndexFromVertex( neighbor )] );
       }
-    }
-  }
+
+      for ( uint_t neighborFace = 0; neighborFace < edge.getNumNeighborFaces(); neighborFace++ )
+      {
+         srcint = src[vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, stencilDirection::VERTEX_W )];
+         mat->addValue( uint_c( dstint ),
+                        uint_c( srcint ),
+                        opr_data[vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_W, neighborFace )] );
+
+         srcint = src[vertexdof::macroedge::indexFromVertexOnNeighborFace( level, i, neighborFace, stencilDirection::VERTEX_E )];
+         mat->addValue( uint_c( dstint ),
+                        uint_c( srcint ),
+                        opr_data[vertexdof::macroedge::stencilIndexOnNeighborFace( stencilDirection::VERTEX_E, neighborFace )] );
+      }
+
+      for ( uint_t neighborCellID = 0; neighborCellID < edge.getNumNeighborCells(); neighborCellID++ )
+      {
+         const auto& neighborCell              = *( storage.getCell( edge.neighborCells().at( neighborCellID ) ) );
+         const auto  localEdgeIDOnNeighborCell = neighborCell.getLocalEdgeID( edge.getID() );
+         if ( localEdgeIDOnNeighborCell == 1 || localEdgeIDOnNeighborCell == 4 )
+         {
+            // Since the functions we access here carry the petsc vector indices, we cannot simply also loop over
+            // ghost layer DoFs that do not exist. In the apply kernel this is okay, as we only add zeros in that case.
+            // Therefore we check if there are inner vertices - this only applies for macro-edge IDs 1 and 4.
+            srcint =
+                src[vertexdof::macroedge::indexFromVertexOnNeighborCell( level, i, neighborCellID, edge.getNumNeighborFaces() )];
+            mat->addValue(
+                uint_c( dstint ),
+                uint_c( srcint ),
+                opr_data[vertexdof::macroedge::stencilIndexOnNeighborCell( neighborCellID, edge.getNumNeighborFaces() )] );
+         }
+      }
+   }
 }
 
+template < typename ValueType >
+inline void createVectorFromFunction( const uint_t&                                               level,
+                                      Edge&                                                       edge,
+                                      const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId,
+                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >&  numeratorId,
+                                      const std::shared_ptr< VectorProxy >&                       vec )
+{
+   PetscInt rowsize = (PetscInt) levelinfo::num_microvertices_per_edge( level );
 
-template< typename ValueType >
-inline void createVectorFromFunction(const uint_t & level, Edge &edge,
-                                     const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
-                                     const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId,
-                                     Vec& vec) {
-  PetscInt rowsize = (PetscInt) levelinfo::num_microvertices_per_edge(level);
+   auto src       = edge.getData( srcId )->getPointer( level );
+   auto numerator = edge.getData( numeratorId )->getPointer( level );
 
-  auto src = edge.getData(srcId)->getPointer( level );
-  auto numerator = edge.getData(numeratorId)->getPointer( level );
-
-  VecSetValues(vec,rowsize-2,&numerator[1],&src[1],INSERT_VALUES);
+   for ( uint_t i = 1; i < uint_c( rowsize - 1 ); i++ )
+   {
+      vec->setValue( numerator[i], src[i] );
+   }
 }
 
+template < typename ValueType >
+inline void createFunctionFromVector( const uint_t&                                               level,
+                                      Edge&                                                       edge,
+                                      const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId,
+                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >&  numeratorId,
+                                      const std::shared_ptr< VectorProxy >&                       vec )
+{
+   PetscInt rowsize = (PetscInt) levelinfo::num_microvertices_per_edge( level );
 
-template< typename ValueType >
-inline void createFunctionFromVector(const uint_t & level, Edge &edge,
-                                         const PrimitiveDataID<FunctionMemory< ValueType >, Edge> &srcId,
-                                         const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId,
-                                         Vec& vec) {
-  PetscInt rowsize = (PetscInt) levelinfo::num_microvertices_per_edge(level);
+   auto numerator = edge.getData( numeratorId )->getPointer( level );
 
-  auto numerator = edge.getData(numeratorId)->getPointer( level );
-
-  VecGetValues(vec,rowsize-2,&numerator[1],&edge.getData(srcId)->getPointer( level )[1]);
+   for ( uint_t i = 1; i < uint_c( rowsize - 1 ); i++ )
+   {
+      edge.getData( srcId )->getPointer( level )[i] = vec->getValue( numerator[i] );
+   }
 }
-
-
 
 inline void applyDirichletBC(const uint_t & level, Edge &edge,std::vector<PetscInt> &mat,
                                  const PrimitiveDataID<FunctionMemory< PetscInt >, Edge> &numeratorId){

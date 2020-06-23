@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Nils Kohl, Dominik Thoennes.
+ * Copyright (c) 2017-2020 Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,16 +20,21 @@
 
 #pragma once
 
-#include "hyteg/HytegDefinitions.hpp"
+namespace hyteg {
 
-#ifdef HYTEG_BUILD_WITH_TRILINOS
+using walberla::uint_t;
 
-#include "Tpetra_Core.hpp"
-#include "Tpetra_CrsMatrix.hpp"
-#include "Tpetra_DistObject.hpp"
-#include "Tpetra_Map.hpp"
-#include "Tpetra_MultiVector.hpp"
-#include "Tpetra_Vector.hpp"
-#include "Tpetra_Version.hpp"
+/// \brief This class serves as a proxy for the assembly of sparse matrices, especially for external formats/libraries.
+class SparseMatrixProxy
+{
+ public:
 
-#endif
+   /// \brief Adds the passed value on the existing value in the matrix, or sets it to the value if no value exists.
+   virtual void addValue( uint_t row, uint_t col, real_t value ) = 0;
+
+   /// \brief Adds a "block" of values to the sparse matrix at once.
+   virtual void
+       addValues( const std::vector< uint_t >& rows, const std::vector< uint_t >& cols, const std::vector< real_t >& values ) = 0;
+};
+
+} // namespace hyteg

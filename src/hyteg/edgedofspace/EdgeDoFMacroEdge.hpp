@@ -39,6 +39,7 @@
 #include "hyteg/primitives/Face.hpp"
 #include "hyteg/HytegDefinitions.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 namespace hyteg {
 namespace edgedof {
@@ -581,7 +582,7 @@ inline void createVectorFromFunction( const uint_t&                             
                                       Edge&                                                       edge,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId,
                                       const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >&  numeratorId,
-                                      Vec&                                                        vec )
+                                      const std::shared_ptr< VectorProxy >&                       vec )
 {
    auto src       = edge.getData( srcId )->getPointer( Level );
    auto numerator = edge.getData( numeratorId )->getPointer( Level );
@@ -589,7 +590,7 @@ inline void createVectorFromFunction( const uint_t&                             
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
       const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
-      VecSetValues( vec, 1, &numerator[idx], &src[idx], INSERT_VALUES );
+      vec->setValue( numerator[idx], src[idx] );
    }
 }
 
@@ -598,7 +599,7 @@ inline void createFunctionFromVector( const uint_t&                             
                                       Edge&                                                       edge,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId,
                                       const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >&  numeratorId,
-                                      Vec&                                                        vec )
+                                      const std::shared_ptr< VectorProxy >&                       vec )
 {
    auto src       = edge.getData( srcId )->getPointer( Level );
    auto numerator = edge.getData( numeratorId )->getPointer( Level );
@@ -606,7 +607,7 @@ inline void createFunctionFromVector( const uint_t&                             
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
       const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
-      VecGetValues( vec, 1, &numerator[idx], &src[idx] );
+      src[idx] = vec->getValue( numerator[idx] );
    }
 }
 

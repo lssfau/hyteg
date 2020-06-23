@@ -26,6 +26,8 @@
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 namespace hyteg {
 namespace edgedof {
@@ -37,7 +39,7 @@ using walberla::uint_t;
 
 inline void createVectorFromFunction(const EdgeDoFFunction<PetscScalar> &function,
                                      const EdgeDoFFunction<PetscInt> &numerator,
-                                     Vec &vec,
+                                     const std::shared_ptr< VectorProxy > &vec,
                                      uint_t level,
                                      DoFType flag) {
 
@@ -71,7 +73,7 @@ inline void createVectorFromFunction(const EdgeDoFFunction<PetscScalar> &functio
 
 inline void createFunctionFromVector(const EdgeDoFFunction<PetscScalar> &function,
                                      const EdgeDoFFunction<PetscInt> &numerator,
-                                     Vec &vec,
+                                     const std::shared_ptr< VectorProxy > &vec,
                                      uint_t level,
                                      DoFType flag) {
   function.startCommunication<Vertex, Edge>( level );
@@ -136,7 +138,7 @@ inline void saveEdgeOperator( const uint_t & Level, const Edge & edge,
                               const PrimitiveDataID< StencilMemory< real_t >, Edge>    & operatorId,
                               const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & srcId,
                               const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & dstId,
-                              Mat & mat )
+                              const std::shared_ptr< SparseMatrixProxy > & mat )
 {
   using namespace hyteg::edgedof::macroedge;
   size_t rowsize = levelinfo::num_microedges_per_edge(Level);
@@ -153,16 +155,16 @@ inline void saveEdgeOperator( const uint_t & Level, const Edge & edge,
 
     for(uint_t k = 0; k < neighborsOnEdgeFromHorizontalEdge.size(); ++k){
       srcInt = src[indexFromHorizontalEdge( Level, i, neighborsOnEdgeFromHorizontalEdge[k] )];
-      MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[hyteg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnEdgeFromHorizontalEdge[k])], ADD_VALUES);
+      mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[hyteg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnEdgeFromHorizontalEdge[k])] );
     }
     for(uint_t k = 0; k < neighborsOnSouthFaceFromHorizontalEdge.size(); ++k){
       srcInt = src[indexFromHorizontalEdge( Level, i, neighborsOnSouthFaceFromHorizontalEdge[k] )];
-      MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[hyteg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnSouthFaceFromHorizontalEdge[k])], ADD_VALUES);
+       mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[hyteg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnSouthFaceFromHorizontalEdge[k])] );
     }
     if(edge.getNumNeighborFaces() == 2){
       for(uint_t k = 0; k < neighborsOnNorthFaceFromHorizontalEdge.size(); ++k){
         srcInt = src[indexFromHorizontalEdge( Level, i, neighborsOnNorthFaceFromHorizontalEdge[k] )];
-        MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[hyteg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnNorthFaceFromHorizontalEdge[k])], ADD_VALUES);
+         mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[hyteg::edgedof::stencilIndexFromHorizontalEdge(neighborsOnNorthFaceFromHorizontalEdge[k])] );
       }
     }
   }
@@ -174,7 +176,7 @@ inline void saveEdgeOperator3D( const uint_t & level, const Edge & edge,
                                 const PrimitiveDataID<LevelWiseMemory< macroedge::StencilMap_T >, Edge > & operatorId,
                                 const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & srcId,
                                 const PrimitiveDataID< FunctionMemory< PetscInt >, Edge> & dstId,
-                                Mat & mat )
+                                const std::shared_ptr< SparseMatrixProxy > & mat )
 {
   auto opr_data = edge.getData(operatorId)->getData( level );
   auto src  = edge.getData(srcId)->getPointer( level );
@@ -269,7 +271,7 @@ inline void saveEdgeOperator3D( const uint_t & level, const Edge & edge,
           }
 
           const auto srcInt = src[ leafArrayIndexOnEdge ];
-          MatSetValues(mat, 1, &dstInt, 1, &srcInt, &stencilWeight, ADD_VALUES);
+          mat->addValue( uint_c( dstInt ), uint_c( srcInt ), stencilWeight );
         }
       }
     }
@@ -281,7 +283,7 @@ inline void saveFaceOperator( const uint_t & Level, const Face & face,
                               const PrimitiveDataID< StencilMemory< real_t >, Face>    & operatorId,
                               const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & srcId,
                               const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & dstId,
-                              Mat & mat )
+                              const std::shared_ptr< SparseMatrixProxy > & mat )
 {
   real_t * opr_data = face.getData(operatorId)->getPointer( Level );
   PetscInt * src      = face.getData(srcId)->getPointer( Level );
@@ -298,21 +300,21 @@ inline void saveFaceOperator( const uint_t & Level, const Face & face,
       dstInt = dst[indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )];
       for(uint_t k = 0; k < neighborsFromHorizontalEdge.size(); ++k){
         srcInt = src[indexFromHorizontalEdge( Level, it.col(), it.row(), neighborsFromHorizontalEdge[k] )];
-        MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[edgedof::stencilIndexFromHorizontalEdge(neighborsFromHorizontalEdge[k])], ADD_VALUES);
+        mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[edgedof::stencilIndexFromHorizontalEdge(neighborsFromHorizontalEdge[k])] );
       }
     }
     if( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1)) {
       dstInt = dst[indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )];
       for(uint_t k = 0; k < neighborsFromDiagonalEdge.size(); ++k){
         srcInt = src[indexFromDiagonalEdge( Level, it.col(), it.row(), neighborsFromDiagonalEdge[k] )];
-        MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[edgedof::stencilIndexFromDiagonalEdge(neighborsFromDiagonalEdge[k])], ADD_VALUES);
+        mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[edgedof::stencilIndexFromDiagonalEdge(neighborsFromDiagonalEdge[k])] );
       }
     }
     if( it.col() != 0) {
       dstInt = dst[indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )];
       for(uint_t k = 0; k < neighborsFromVerticalEdge.size(); ++k){
         srcInt = src[indexFromVerticalEdge( Level, it.col(), it.row(), neighborsFromVerticalEdge[k] )];
-        MatSetValues(mat, 1, &dstInt, 1, &srcInt, &opr_data[edgedof::stencilIndexFromVerticalEdge(neighborsFromVerticalEdge[k])], ADD_VALUES);
+        mat->addValue( uint_c( dstInt ), uint_c( srcInt ), opr_data[edgedof::stencilIndexFromVerticalEdge(neighborsFromVerticalEdge[k])] );
       }
     }
   }
@@ -323,7 +325,7 @@ inline void saveFaceOperator3D( const uint_t & level, const Face & face,
                                 const PrimitiveDataID< LevelWiseMemory< macroface::StencilMap_T >, Face > & operatorId,
                                 const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & srcId,
                                 const PrimitiveDataID< FunctionMemory< PetscInt >, Face> & dstId,
-                                Mat & mat )
+                                const std::shared_ptr< SparseMatrixProxy > & mat )
 {
   auto opr_data = face.getData(operatorId)->getData( level );
   auto src      = face.getData(srcId)->getPointer( level );
@@ -378,7 +380,7 @@ inline void saveFaceOperator3D( const uint_t & level, const Face & face,
             }
 
             const auto srcInt = src[ leafArrayIndexInFace ];
-            MatSetValues(mat, 1, &dstInt, 1, &srcInt, &stencilWeight, ADD_VALUES);
+            mat->addValue( uint_c( dstInt ), uint_c( srcInt ), stencilWeight );
           }
         }
       }
@@ -391,7 +393,7 @@ inline void saveCellOperator( const uint_t & Level, const Cell & cell,
                               const PrimitiveDataID< LevelWiseMemory< macrocell::StencilMap_T >, Cell> &operatorId,
                               const PrimitiveDataID< FunctionMemory< PetscInt >, Cell> & srcId,
                               const PrimitiveDataID< FunctionMemory< PetscInt >, Cell> & dstId,
-                              Mat & mat )
+                              const std::shared_ptr< SparseMatrixProxy > & mat )
 {
   auto srcData = cell.getData( srcId )->getPointer( Level );
   auto dstData = cell.getData( dstId )->getPointer( Level );
@@ -428,7 +430,7 @@ inline void saveCellOperator( const uint_t & Level, const Cell & cell,
           const auto   srcArrayIdx   = edgedof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z(), leafOrientation );
           const auto   srcInt        = srcData[ srcArrayIdx ];
           const real_t stencilWeight = opr_data[centerOrientation][leafOrientation][neighbor];
-          MatSetValues(mat, 1, &dstInt, 1, &srcInt, &stencilWeight, ADD_VALUES);
+          mat->addValue( uint_c( dstInt ), uint_c( srcInt ), stencilWeight );
         }
       }
     }
@@ -450,7 +452,7 @@ inline void saveCellOperator( const uint_t & Level, const Cell & cell,
         const auto   srcArrayIdx   = edgedof::macrocell::index( Level, srcIdx.x(), srcIdx.y(), srcIdx.z(), leafOrientation );
         const auto   srcInt        = srcData[ srcArrayIdx ];
         const real_t stencilWeight = opr_data[centerOrientation][leafOrientation][neighbor];
-        MatSetValues(mat, 1, &dstInt, 1, &srcInt, &stencilWeight, ADD_VALUES);
+        mat->addValue( uint_c( dstInt ), uint_c( srcInt ), stencilWeight );
       }
     }
   }
@@ -460,7 +462,7 @@ template < class OperatorType >
 inline void createMatrix( const OperatorType&                opr,
                           const EdgeDoFFunction< PetscInt >& src,
                           const EdgeDoFFunction< PetscInt >& dst,
-                          Mat&                               mat,
+                          const std::shared_ptr< SparseMatrixProxy >&                               mat,
                           size_t                             level,
                           DoFType                            flag )
 {

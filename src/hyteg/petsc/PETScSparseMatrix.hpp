@@ -31,6 +31,7 @@
 #include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/p2functionspace/P2Petsc.hpp"
+#include "hyteg/petsc/PETScSparseMatrixProxy.hpp"
 #include "hyteg/petsc/PETScVector.hpp"
 
 namespace hyteg {
@@ -57,6 +58,16 @@ class PETScSparseMatrix
       reset();
    }
 
+   PETScSparseMatrix( const std::shared_ptr< PrimitiveStorage >& storage,
+                      const uint_t&                              level,
+                      const char                                 name[] = "Mat",
+                      const MPI_Comm& petscCommunicator                 = walberla::mpi::MPIManager::instance()->comm() )
+   : PETScSparseMatrix( numberOfLocalDoFs< typename OperatorType::dstType::Tag >( *storage, level ),
+                        numberOfGlobalDoFs< typename OperatorType::dstType::Tag >( *storage, level, petscCommunicator ),
+                        name,
+                        petscCommunicator )
+   {}
+
    virtual ~PETScSparseMatrix() { MatDestroy( &mat ); }
 
    inline void createMatrixFromOperator( const OperatorType&             op,
@@ -64,7 +75,8 @@ class PETScSparseMatrix
                                          const FunctionType< PetscInt >& numerator,
                                          DoFType                         flag = All )
    {
-      hyteg::petsc::createMatrix< OperatorType >( op, numerator, numerator, mat, level, flag );
+      auto proxy = std::make_shared< PETScSparseMatrixProxy >( mat );
+      hyteg::petsc::createMatrix< OperatorType >( op, numerator, numerator, proxy, level, flag );
 
       MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
       MatAssemblyEnd( mat, MAT_FINAL_ASSEMBLY );
@@ -96,6 +108,11 @@ class PETScSparseMatrix
    {
       std::vector< PetscInt > ind;
       hyteg::petsc::applyDirichletBC( numerator, ind, level );
+
+      // This is required as the implementation of MatZeroRows() checks (for performance reasons?!)
+      // if there are zero diagonals in the matrix. If there are, the function halts.
+      // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
+      MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
       MatZeroRows( mat, ind.size(), ind.data(), 1.0, 0, 0 );
 

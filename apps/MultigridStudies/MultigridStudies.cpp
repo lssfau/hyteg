@@ -782,7 +782,10 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       const uint_t&                                        coarseGridSolverType,
                       const uint_t&                                        coarseGridSolverVelocityPreconditionerType,
                       const bool&                                          agglomeration,
+                      const std::string&                                   agglomerationStrategy,
                       const uint_t&                                        agglomerationNumProcesses,
+                      const uint_t&                                        agglomerationInterval,
+                      const std::string&                                   agglomerationTimingJSONFile,
                       const bool&                                          outputVTK,
                       const uint_t&                                        skipCyclesForAvgConvRate,
                       const bool&                                          calcDiscretizationError,
@@ -805,6 +808,23 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       {
          WALBERLA_LOG_WARNING_ON_ROOT( "DC enabled, but only works with P1-P1-stab discretization!" )
       }
+   }
+
+   bool         dedicatedAgglomeration = false;
+   const uint_t finalNumAgglomerationProcesses =
+       std::min( agglomerationNumProcesses, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   if ( agglomeration && agglomerationStrategy == "dedicated" )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT(
+          "Dedicated agglomeration: performing factorization in parallel on subset of processes during first leg of v-cycle." )
+      dedicatedAgglomeration = true;
+      const auto numRemainingProcesses =
+          uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - finalNumAgglomerationProcesses;
+      WALBERLA_LOG_INFO_ON_ROOT( "Performing primitive re-distribution to " << numRemainingProcesses << " processes ..." )
+      loadbalancing::distributed::roundRobin( *storage, numRemainingProcesses );
+      WALBERLA_LOG_INFO_ON_ROOT( "Done." )
+      WALBERLA_LOG_INFO_ON_ROOT( "" )
+
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "Allocating functions ..." );
@@ -1014,13 +1034,18 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    }
 
    std::shared_ptr< AgglomerationWrapper< StokesOperator > > agglomerationWrapper;
-   std::shared_ptr< PrimitiveStorage > coarseGridSolverStorage = storage;
+   std::shared_ptr< PrimitiveStorage >                       coarseGridSolverStorage = storage;
+
+   std::function< void() > dedicatedAgglomerationFactorization = [] {};
+
+   bool isAgglomerationProcess = false;
+
    if ( agglomeration )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Coarse grid solver agglomeration enabled." )
       WALBERLA_CHECK_GREATER( agglomerationNumProcesses, 0, "Cannot perform agglomeration on zero processes." )
-      const uint_t finalNumAgglomerationProcesses =
-          std::min( agglomerationNumProcesses, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      WALBERLA_CHECK_GREATER( agglomerationInterval, 0, "Cannot perform agglomeration with interval 0." )
+
       WALBERLA_LOG_INFO_ON_ROOT( "Agglomeration from " << uint_c( walberla::mpi::MPIManager::instance()->numProcesses() )
                                                        << " to " << finalNumAgglomerationProcesses << " processes." )
       bool solveOnEmptyProcesses = true;
@@ -1028,10 +1053,38 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
          solveOnEmptyProcesses = false;
 
       WALBERLA_LOG_INFO_ON_ROOT( "Solving on empty processes: " << ( solveOnEmptyProcesses ? "yes" : "no" ) )
-      agglomerationWrapper = std::make_shared< AgglomerationWrapper< StokesOperator > >(
-          storage, minLevel, finalNumAgglomerationProcesses, solveOnEmptyProcesses );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "Setting up agglomeration primitive storage ..." )
+      agglomerationWrapper =
+          std::make_shared< AgglomerationWrapper< StokesOperator > >( storage, minLevel, solveOnEmptyProcesses );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "Re-distribution of agglomeration primitive storage  ..." )
+      if ( dedicatedAgglomeration )
+      {
+         const auto minProcess = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - finalNumAgglomerationProcesses;
+         const auto maxProcess = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - 1;
+         WALBERLA_LOG_INFO_ON_ROOT( "Re-distribution of agglomeration primitive storage from rank " << minProcess << " to rank "
+                                                                                                    << maxProcess << " ..." )
+         agglomerationWrapper->setStrategyContinuousProcesses( minProcess, maxProcess );
+
+         WALBERLA_LOG_INFO_ON_ROOT( "Primitive distribution due to dedicated agglomeration:" )
+         auto globalInfo = storage->getGlobalInfo();
+         WALBERLA_LOG_INFO_ON_ROOT( globalInfo );
+      }
+      else if ( agglomerationStrategy == "bulk" )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Bulk agglomeration: performing coarse grid solve on continuous subset of processes." )
+         agglomerationWrapper->setStrategyContinuousProcesses( 0, finalNumAgglomerationProcesses - 1 );
+      }
+      else if ( agglomerationStrategy == "interval" )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Interval agglomeration: performing coarse grid solve on spread out subset of processes." )
+         agglomerationWrapper->setStrategyEveryNthProcess( agglomerationInterval, finalNumAgglomerationProcesses );
+      }
+
+      isAgglomerationProcess    = agglomerationWrapper->isAgglomerationProcess();
       auto agglomerationStorage = agglomerationWrapper->getAgglomerationStorage();
-      coarseGridSolverStorage = agglomerationStorage;
+      coarseGridSolverStorage   = agglomerationStorage;
       WALBERLA_LOG_INFO_ON_ROOT( "" )
    }
 
@@ -1040,15 +1093,37 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    // 1: block preconditioned MINRES    (PETSc)
    // 2: MINRES                         (HyTeG)
    // 3: pressure preconditioned MINRES (HyTeG)
+   // 4: SuperLU_Dist                   (PETSc)
 
    std::shared_ptr< Solver< StokesOperator > > coarseGridSolverInternal;
    WALBERLA_LOG_INFO_ON_ROOT( "Coarse grid solver:" )
-   if ( coarseGridSolverType == 0 )
+   if ( coarseGridSolverType == 0 || coarseGridSolverType == 4 )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "MUMPS (PETSc)" )
 #ifdef HYTEG_BUILD_WITH_PETSC
-      auto petscSolverInternalTmp = std::make_shared< PETScLUSolver< StokesOperator > >( coarseGridSolverStorage, coarseGridMaxLevel );
+      PETScDirectSolverType solverType;
+      if ( coarseGridSolverType == 0 )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "MUMPS (PETSc)" )
+         solverType = PETScDirectSolverType::MUMPS;
+      }
+      else
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "SuperLU_Dist (PETSc)" )
+         solverType = PETScDirectSolverType::SUPER_LU;
+      }
+
+      auto petscSolverInternalTmp =
+          std::make_shared< PETScLUSolver< StokesOperator > >( coarseGridSolverStorage, coarseGridMaxLevel );
       petscSolverInternalTmp->setVerbose( true );
+      petscSolverInternalTmp->setDirectSolverType( solverType );
+      if ( agglomeration && dedicatedAgglomeration && isAgglomerationProcess )
+      {
+         petscSolverInternalTmp->setManualAssemblyAndFactorization( true );
+         petscSolverInternalTmp->reassembleMatrix( false );
+         dedicatedAgglomerationFactorization = [agglomerationWrapper, petscSolverInternalTmp] {
+            petscSolverInternalTmp->assembleAndFactorize( *agglomerationWrapper->getAgglomerationOperator() );
+         };
+      }
       coarseGridSolverInternal = petscSolverInternalTmp;
 #else
       WALBERLA_ABORT( "PETSc is not enabled." )
@@ -1082,8 +1157,12 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       WALBERLA_LOG_INFO_ON_ROOT( "pressure preconditioned MINRES (HyTeG)" )
       auto preconditioner = std::make_shared< StokesPressureBlockPreconditioner< StokesOperator, P1LumpedInvMassOperator > >(
           coarseGridSolverStorage, coarseGridMaxLevel, coarseGridMaxLevel );
-      coarseGridSolverInternal = std::make_shared< MinResSolver< StokesOperator > >(
-          coarseGridSolverStorage, coarseGridMaxLevel, coarseGridMaxLevel, coarseGridMaxIterations, coarseResidualTolerance, preconditioner );
+      coarseGridSolverInternal = std::make_shared< MinResSolver< StokesOperator > >( coarseGridSolverStorage,
+                                                                                     coarseGridMaxLevel,
+                                                                                     coarseGridMaxLevel,
+                                                                                     coarseGridMaxIterations,
+                                                                                     coarseResidualTolerance,
+                                                                                     preconditioner );
    }
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
@@ -1227,8 +1306,21 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    }
 
    uint_t numExecutedCycles = 0;
+
+   storage->getTimingTree()->start( "Cycles" );
+   if ( agglomeration )
+   {
+      agglomerationWrapper->getAgglomerationStorage()->getTimingTree()->start( "Cycles" );
+   }
+
    for ( uint_t cycle = 1; cycle <= numCycles; cycle++ )
    {
+      storage->getTimingTree()->start( "Cycle " + std::to_string( cycle ) );
+      if ( agglomeration )
+      {
+         agglomerationWrapper->getAgglomerationStorage()->getTimingTree()->start( "Cycle " + std::to_string( cycle ) );
+      }
+
       const long double lastl2ErrorU    = l2ErrorU;
       const long double lastl2ResidualU = l2ResidualU;
 
@@ -1264,6 +1356,10 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       else
       {
          LIKWID_MARKER_START( "VCYCLE" );
+         if ( agglomeration && dedicatedAgglomeration && isAgglomerationProcess )
+         {
+            dedicatedAgglomerationFactorization();
+         }
          multigridSolver->solve( A, u, f, maxLevel );
          LIKWID_MARKER_STOP( "VCYCLE" );
       }
@@ -1339,6 +1435,18 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
          WALBERLA_LOG_INFO_ON_ROOT( "l2 residual (u) dropped below tolerance." )
          break;
       }
+
+      storage->getTimingTree()->stop( "Cycle " + std::to_string( cycle ) );
+      if ( agglomeration )
+      {
+         agglomerationWrapper->getAgglomerationStorage()->getTimingTree()->stop( "Cycle " + std::to_string( cycle ) );
+      }
+   }
+
+   storage->getTimingTree()->stop( "Cycles" );
+   if ( agglomeration )
+   {
+      agglomerationWrapper->getAgglomerationStorage()->getTimingTree()->stop( "Cycles" );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -1362,6 +1470,11 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       WALBERLA_LOG_INFO_ON_ROOT( "  - l2 error p:    " << std::scientific << avgl2ErrorConvergenceRateP );
       WALBERLA_LOG_INFO_ON_ROOT( "  - l2 residual p: " << std::scientific << avgl2ResidualConvergenceRateP );
       WALBERLA_LOG_INFO_ON_ROOT( "" );
+   }
+
+   if ( agglomeration )
+   {
+      writeTimingTreeJSON( *agglomerationWrapper->getAgglomerationStorage()->getTimingTree(), agglomerationTimingJSONFile );
    }
 }
 
@@ -1434,23 +1547,28 @@ void setup( int argc, char** argv )
    const uint_t      coarseGridSolverVelocityPreconditionerType =
        mainConf.getParameter< uint_t >( "coarseGridSolverVelocityPreconditionerType" );
    const bool        agglomeration             = mainConf.getParameter< bool >( "agglomeration" );
+   const std::string agglomerationStrategy     = mainConf.getParameter< std::string >( "agglomerationStrategy" );
    const uint_t      agglomerationNumProcesses = mainConf.getParameter< uint_t >( "agglomerationNumProcesses" );
+   const uint_t      agglomerationInterval     = mainConf.getParameter< uint_t >( "agglomerationInterval" );
    const std::string outputBaseDirectory       = mainConf.getParameter< std::string >( "outputBaseDirectory" );
    const bool        outputVTK                 = mainConf.getParameter< bool >( "outputVTK" );
    const bool        outputTiming              = mainConf.getParameter< bool >( "outputTiming" );
    const bool        outputTimingJSON          = mainConf.getParameter< bool >( "outputTimingJSON" );
    const std::string outputTimingJSONFile      = mainConf.getParameter< std::string >( "outputTimingJSONFile" );
-   const bool        outputSQL                 = mainConf.getParameter< bool >( "outputSQL" );
-   const bool        outputParallelSQL         = mainConf.getParameter< bool >( "outputParallelSQL" );
-   const std::string outputSQLFile             = mainConf.getParameter< std::string >( "outputSQLFile" );
-   const std::string sqlTag                    = mainConf.getParameter< std::string >( "sqlTag", "default" );
-   const uint_t      skipCyclesForAvgConvRate  = mainConf.getParameter< uint_t >( "skipCyclesForAvgConvRate" );
-   const std::string meshLayout                = mainConf.getParameter< std::string >( "meshLayout" );
-   const bool        symmetricCuboidMesh       = mainConf.getParameter< bool >( "symmetricCuboidMesh" );
-   const uint_t      cyclesBeforeDC            = mainConf.getParameter< uint_t >( "cyclesBeforeDC" );
-   const uint_t      postDCPreSmoothingSteps   = mainConf.getParameter< uint_t >( "postDCPreSmoothingSteps" );
-   const uint_t      postDCPostSmoothingSteps  = mainConf.getParameter< uint_t >( "postDCPostSmoothingSteps" );
-   const uint_t      postDCSmoothingIncrement  = mainConf.getParameter< uint_t >( "postDCSmoothingIncrement" );
+   const std::string outputAgglomerationTimingJSONFile =
+       mainConf.getParameter< std::string >( "outputAgglomerationTimingJSONFile" );
+
+   const bool        outputSQL                = mainConf.getParameter< bool >( "outputSQL" );
+   const bool        outputParallelSQL        = mainConf.getParameter< bool >( "outputParallelSQL" );
+   const std::string outputSQLFile            = mainConf.getParameter< std::string >( "outputSQLFile" );
+   const std::string sqlTag                   = mainConf.getParameter< std::string >( "sqlTag", "default" );
+   const uint_t      skipCyclesForAvgConvRate = mainConf.getParameter< uint_t >( "skipCyclesForAvgConvRate" );
+   const std::string meshLayout               = mainConf.getParameter< std::string >( "meshLayout" );
+   const bool        symmetricCuboidMesh      = mainConf.getParameter< bool >( "symmetricCuboidMesh" );
+   const uint_t      cyclesBeforeDC           = mainConf.getParameter< uint_t >( "cyclesBeforeDC" );
+   const uint_t      postDCPreSmoothingSteps  = mainConf.getParameter< uint_t >( "postDCPreSmoothingSteps" );
+   const uint_t      postDCPostSmoothingSteps = mainConf.getParameter< uint_t >( "postDCPostSmoothingSteps" );
+   const uint_t      postDCSmoothingIncrement = mainConf.getParameter< uint_t >( "postDCSmoothingIncrement" );
 
    const bool   meshSphericalShell = mainConf.getParameter< bool >( "meshSphericalShell" );
    const uint_t shellNTan          = mainConf.getParameter< uint_t >( "shellNTan" );
@@ -1508,7 +1626,13 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid solver type (stokes only):   " << coarseGridSolverType );
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid u prec. type (stokes only):  " << coarseGridSolverVelocityPreconditionerType );
    WALBERLA_LOG_INFO_ON_ROOT( "  - agglomeration:                           " << ( agglomeration ? "yes" : "no" ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "  - agglomeration num processes:             " << agglomerationNumProcesses );
+   if ( agglomeration )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "  - agglomerationStrategy:                   " << agglomerationStrategy );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - agglomeration num processes:             " << agglomerationNumProcesses );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - agglomeration process interval:          " << agglomerationInterval );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - agglomeration timing output file:        " << outputAgglomerationTimingJSONFile );
+   }
    WALBERLA_LOG_INFO_ON_ROOT( "  - output base directory:                   " << outputBaseDirectory );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output VTK:                              " << ( outputVTK ? "yes" : "no" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "  - output timing:                           " << ( outputTiming ? "yes" : "no" ) );
@@ -1818,7 +1942,10 @@ void setup( int argc, char** argv )
                                                                 coarseGridSolverType,
                                                                 coarseGridSolverVelocityPreconditionerType,
                                                                 agglomeration,
+                                                                agglomerationStrategy,
                                                                 agglomerationNumProcesses,
+                                                                agglomerationInterval,
+                                                                outputAgglomerationTimingJSONFile,
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,
@@ -1863,7 +1990,10 @@ void setup( int argc, char** argv )
                                                                 coarseGridSolverType,
                                                                 coarseGridSolverVelocityPreconditionerType,
                                                                 agglomeration,
+                                                                agglomerationStrategy,
                                                                 agglomerationNumProcesses,
+                                                                agglomerationInterval,
+                                                                outputAgglomerationTimingJSONFile,
                                                                 outputVTK,
                                                                 skipCyclesForAvgConvRate,
                                                                 calculateDiscretizationError,

@@ -24,12 +24,9 @@
 
 #ifdef HYTEG_BUILD_WITH_TRILINOS
 
-#include "Tpetra_Core.hpp"
-#include "Tpetra_CrsMatrix.hpp"
-#include "Tpetra_DistObject.hpp"
-#include "Tpetra_Map.hpp"
-#include "Tpetra_MultiVector.hpp"
-#include "Tpetra_Vector.hpp"
-#include "Tpetra_Version.hpp"
+#include "Teuchos_Array.hpp"
+#include "Teuchos_ScalarTraits.hpp"
+#include "Teuchos_RCP.hpp"
+#include "Teuchos_DefaultMpiComm.hpp"
 
 #endif

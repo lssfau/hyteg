@@ -22,10 +22,11 @@
 #include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
-#include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
@@ -34,24 +35,24 @@ namespace petsc {
 
 /// Version of createMatrix function for P1ElementwiseOperators
 template < class ElemOp, class FormType >
-inline void createMatrix( const P1ElementwiseOperator< FormType >& opr,
-                          const P1Function< PetscInt >&            src,
-                          const P1Function< PetscInt >&            dst,
-                          Mat&                                     mat,
-                          uint_t                                   level,
-                          DoFType                                  flag )
+inline void createMatrix( const P1ElementwiseOperator< FormType >&    opr,
+                          const P1Function< PetscInt >&               src,
+                          const P1Function< PetscInt >&               dst,
+                          const std::shared_ptr< SparseMatrixProxy >& mat,
+                          uint_t                                      level,
+                          DoFType                                     flag )
 {
    opr.assembleLocalMatrix( mat, src, dst, level, flag );
 }
 
 /// Version of createMatrix function for P2ElementwiseOperators
 template < class ElemOp, class FormType >
-inline void createMatrix( const P2ElementwiseOperator< FormType >& opr,
-                          const P2Function< PetscInt >&            src,
-                          const P2Function< PetscInt >&            dst,
-                          Mat&                                     mat,
-                          uint_t                                   level,
-                          DoFType                                  flag )
+inline void createMatrix( const P2ElementwiseOperator< FormType >&    opr,
+                          const P2Function< PetscInt >&               src,
+                          const P2Function< PetscInt >&               dst,
+                          const std::shared_ptr< SparseMatrixProxy >& mat,
+                          uint_t                                      level,
+                          DoFType                                     flag )
 {
    opr.assembleLocalMatrix( mat, src, dst, level, flag );
 }
@@ -61,7 +62,7 @@ template <>
 inline void createMatrix( const P2P1ElementwiseConstantCoefficientStokesOperator& opr,
                           const P2P1TaylorHoodFunction< PetscInt >&               src,
                           const P2P1TaylorHoodFunction< PetscInt >&               dst,
-                          Mat&                                                    mat,
+                          const std::shared_ptr< SparseMatrixProxy >&             mat,
                           uint_t                                                  level,
                           DoFType                                                 flag )
 {
@@ -85,11 +86,11 @@ inline void createMatrix( const P2P1ElementwiseConstantCoefficientStokesOperator
 /// Version of createMatrix function for P2P1ElementwiseBlendingStokesOperator
 template <>
 inline void createMatrix( const P2P1ElementwiseBlendingStokesOperator& opr,
-                          const P2P1TaylorHoodFunction< PetscInt >&               src,
-                          const P2P1TaylorHoodFunction< PetscInt >&               dst,
-                          Mat&                                                    mat,
-                          uint_t                                                  level,
-                          DoFType                                                 flag )
+                          const P2P1TaylorHoodFunction< PetscInt >&    src,
+                          const P2P1TaylorHoodFunction< PetscInt >&    dst,
+                          const std::shared_ptr< SparseMatrixProxy >&  mat,
+                          uint_t                                       level,
+                          DoFType                                      flag )
 {
    opr.A.assembleLocalMatrix( mat, src.u, dst.u, level, flag );
    opr.A.assembleLocalMatrix( mat, src.v, dst.v, level, flag );

@@ -32,6 +32,7 @@
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/primitives/Cell.hpp"
 #include "hyteg/primitives/Face.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 namespace hyteg {
 namespace edgedof {
@@ -1016,7 +1017,7 @@ inline void createVectorFromFunction( const uint_t&                             
                                       Face&                                                       face,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId,
                                       const PrimitiveDataID< FunctionMemory< PetscInt >, Face >&  numeratorId,
-                                      Vec&                                                        vec )
+                                      const std::shared_ptr< VectorProxy >&                       vec )
 {
    auto src       = face.getData( srcId )->getPointer( Level );
    auto numerator = face.getData( numeratorId )->getPointer( Level );
@@ -1027,21 +1028,21 @@ inline void createVectorFromFunction( const uint_t&                             
       if ( it.row() != 0 )
       {
          const uint_t idx = edgedof::macroface::horizontalIndex( Level, it.col(), it.row() );
-         VecSetValues( vec, 1, &numerator[idx], &src[idx], INSERT_VALUES );
+         vec->setValue( uint_c( numerator[idx] ), src[idx] );
       }
 
       // Do not read vertical DoFs at left border
       if ( it.col() != 0 )
       {
          const uint_t idx = edgedof::macroface::verticalIndex( Level, it.col(), it.row() );
-         VecSetValues( vec, 1, &numerator[idx], &src[idx], INSERT_VALUES );
+         vec->setValue( uint_c( numerator[idx] ), src[idx] );
       }
 
       // Do not read diagonal DoFs at diagonal border
       if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
       {
          const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row() );
-         VecSetValues( vec, 1, &numerator[idx], &src[idx], INSERT_VALUES );
+         vec->setValue( uint_c( numerator[idx] ), src[idx] );
       }
    }
 }
@@ -1051,7 +1052,7 @@ inline void createFunctionFromVector( const uint_t&                             
                                       Face&                                                       face,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId,
                                       const PrimitiveDataID< FunctionMemory< PetscInt >, Face >&  numeratorId,
-                                      Vec&                                                        vec )
+                                      const std::shared_ptr< VectorProxy >&                       vec )
 {
    auto src       = face.getData( srcId )->getPointer( Level );
    auto numerator = face.getData( numeratorId )->getPointer( Level );
@@ -1062,21 +1063,21 @@ inline void createFunctionFromVector( const uint_t&                             
       if ( it.row() != 0 )
       {
          const uint_t idx = edgedof::macroface::horizontalIndex( Level, it.col(), it.row() );
-         VecGetValues( vec, 1, &numerator[idx], &src[idx] );
+         src[idx] = vec->getValue( uint_c( numerator[idx] ) );
       }
 
       // Do not read vertical DoFs at left border
       if ( it.col() != 0 )
       {
          const uint_t idx = edgedof::macroface::verticalIndex( Level, it.col(), it.row() );
-         VecGetValues( vec, 1, &numerator[idx], &src[idx] );
+         src[idx] = vec->getValue( uint_c( numerator[idx] ) );
       }
 
       // Do not read diagonal DoFs at diagonal border
       if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
       {
          const uint_t idx = edgedof::macroface::diagonalIndex( Level, it.col(), it.row() );
-         VecGetValues( vec, 1, &numerator[idx], &src[idx] );
+         src[idx] = vec->getValue( uint_c( numerator[idx] ) );
       }
    }
 }

@@ -24,27 +24,29 @@
 #include <hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFPetsc.hpp>
 #include <hyteg/p1functionspace/P1Petsc.hpp>
 #include <hyteg/p2functionspace/P2Function.hpp>
+#include <hyteg/sparseassembly/SparseMatrixProxy.hpp>
+#include <hyteg/sparseassembly/VectorProxy.hpp>
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
 namespace hyteg {
 namespace petsc {
 
-inline void createVectorFromFunction( const P2Function< PetscScalar >& function,
-                                      const P2Function< PetscInt >&    numerator,
-                                      Vec&                             vec,
-                                      uint_t                           level,
-                                      DoFType                          flag )
+inline void createVectorFromFunction( const P2Function< PetscScalar >&      function,
+                                      const P2Function< PetscInt >&         numerator,
+                                      const std::shared_ptr< VectorProxy >& vec,
+                                      uint_t                                level,
+                                      DoFType                               flag )
 {
    createVectorFromFunction( function.getVertexDoFFunction(), numerator.getVertexDoFFunction(), vec, level, flag );
    edgedof::createVectorFromFunction( function.getEdgeDoFFunction(), numerator.getEdgeDoFFunction(), vec, level, flag );
 }
 
-inline void createFunctionFromVector( const P2Function< PetscScalar >& function,
-                                      const P2Function< PetscInt >&    numerator,
-                                      Vec&                             vec,
-                                      uint_t                           level,
-                                      DoFType                          flag )
+inline void createFunctionFromVector( const P2Function< PetscScalar >&      function,
+                                      const P2Function< PetscInt >&         numerator,
+                                      const std::shared_ptr< VectorProxy >& vec,
+                                      uint_t                                level,
+                                      DoFType                               flag )
 {
    createFunctionFromVector( function.getVertexDoFFunction(), numerator.getVertexDoFFunction(), vec, level, flag );
    edgedof::createFunctionFromVector( function.getEdgeDoFFunction(), numerator.getEdgeDoFFunction(), vec, level, flag );
@@ -60,7 +62,7 @@ template < class OperatorType >
 inline void createMatrix( const OperatorType&           opr,
                           const P2Function< PetscInt >& src,
                           const P2Function< PetscInt >& dst,
-                          Mat&                          mat,
+                          const std::shared_ptr< SparseMatrixProxy >&                          mat,
                           uint_t                        level,
                           DoFType                       flag )
 {

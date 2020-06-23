@@ -331,11 +331,11 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixVectorMultiply3D( const
 
 // Assemble operator as sparse matrix for PETSc
 template < class P1toP2Form >
-void P1ToP2ElementwiseOperator< P1toP2Form >::assembleLocalMatrix( Mat&                          mat,
-                                                                   const P1Function< PetscInt >& src,
-                                                                   const P2Function< PetscInt >& dst,
-                                                                   uint_t                        level,
-                                                                   DoFType                       flag ) const
+void P1ToP2ElementwiseOperator< P1toP2Form >::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                                   const P1Function< PetscInt >&               src,
+                                                                   const P2Function< PetscInt >&               dst,
+                                                                   uint_t                                      level,
+                                                                   DoFType                                     flag ) const
 {
    // We currently ignore the flag provided!
    WALBERLA_UNUSED( flag );
@@ -440,15 +440,15 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::assembleLocalMatrix( Mat&         
 }
 
 template < class P1toP2Form >
-void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly2D( Mat&                         mat,
-                                                                     const Face&                  face,
-                                                                     const uint_t                 level,
-                                                                     const uint_t                 xIdx,
-                                                                     const uint_t                 yIdx,
-                                                                     const P2Elements::P2Element& element,
-                                                                     const PetscInt* const        srcVertexIdx,
-                                                                     const PetscInt* const        dstVertexIdx,
-                                                                     const PetscInt* const        dstEdgeIdx ) const
+void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                                     const Face&                                 face,
+                                                                     const uint_t                                level,
+                                                                     const uint_t                                xIdx,
+                                                                     const uint_t                                yIdx,
+                                                                     const P2Elements::P2Element&                element,
+                                                                     const PetscInt* const                       srcVertexIdx,
+                                                                     const PetscInt* const                       dstVertexIdx,
+                                                                     const PetscInt* const dstEdgeIdx ) const
 
 {
    Matrixr< 6, 3 >          elMat;
@@ -479,35 +479,40 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly2D( Mat&       
    dofDataIdx[4] = edgedof::macroface::indexFromVertex( level, xIdx, yIdx, element[5] );
    dofDataIdx[5] = edgedof::macroface::indexFromVertex( level, xIdx, yIdx, element[3] );
 
-   PetscInt rowIdx[6];
-   rowIdx[0] = dstVertexIdx[dofDataIdx[0]];
-   rowIdx[1] = dstVertexIdx[dofDataIdx[1]];
-   rowIdx[2] = dstVertexIdx[dofDataIdx[2]];
+   std::vector< uint_t > rowIdx( 6 );
+   rowIdx[0] = uint_c( dstVertexIdx[dofDataIdx[0]] );
+   rowIdx[1] = uint_c( dstVertexIdx[dofDataIdx[1]] );
+   rowIdx[2] = uint_c( dstVertexIdx[dofDataIdx[2]] );
 
-   rowIdx[3] = dstEdgeIdx[dofDataIdx[3]];
-   rowIdx[4] = dstEdgeIdx[dofDataIdx[4]];
-   rowIdx[5] = dstEdgeIdx[dofDataIdx[5]];
+   rowIdx[3] = uint_c( dstEdgeIdx[dofDataIdx[3]] );
+   rowIdx[4] = uint_c( dstEdgeIdx[dofDataIdx[4]] );
+   rowIdx[5] = uint_c( dstEdgeIdx[dofDataIdx[5]] );
 
-   PetscInt colIdx[3];
-   colIdx[0] = srcVertexIdx[dofDataIdx[0]];
-   colIdx[1] = srcVertexIdx[dofDataIdx[1]];
-   colIdx[2] = srcVertexIdx[dofDataIdx[2]];
+   std::vector< uint_t > colIdx( 3 );
+   colIdx[0] = uint_c( srcVertexIdx[dofDataIdx[0]] );
+   colIdx[1] = uint_c( srcVertexIdx[dofDataIdx[1]] );
+   colIdx[2] = uint_c( srcVertexIdx[dofDataIdx[2]] );
+
+   const uint_t elMatSize = 6 * 3;
+   std::vector< real_t > blockMatData( elMatSize );
+   for ( uint_t i = 0; i < elMatSize; i++ )
+   {
+      blockMatData[i] = elMat.data()[i];
+   }
 
    // add local matrix into global matrix
-   PetscErrorCode ierr = MatSetValues( mat, 6, rowIdx, 3, colIdx, elMat.data(), ADD_VALUES );
-   WALBERLA_ASSERT_EQUAL( ierr, 0 )
-   WALBERLA_UNUSED( ierr );
+   mat->addValues( rowIdx, colIdx, blockMatData );
 }
 
 template < class P1toP2Form >
-void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly3D( Mat&                    mat,
-                                                                     const Cell&             cell,
-                                                                     const uint_t            level,
-                                                                     const indexing::Index&  microCell,
-                                                                     const celldof::CellType cType,
-                                                                     const PetscInt* const   srcVertexIdx,
-                                                                     const PetscInt* const   dstVertexIdx,
-                                                                     const PetscInt* const   dstEdgeIdx ) const
+void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                                     const Cell&                                 cell,
+                                                                     const uint_t                                level,
+                                                                     const indexing::Index&                      microCell,
+                                                                     const celldof::CellType                     cType,
+                                                                     const PetscInt* const                       srcVertexIdx,
+                                                                     const PetscInt* const                       dstVertexIdx,
+                                                                     const PetscInt* const dstEdgeIdx ) const
 {
    // determine coordinates of vertices of micro-element
    std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
@@ -530,23 +535,29 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly3D( Mat&       
    std::array< uint_t, 6 > edgeDoFIndices;
    edgedof::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
 
-   PetscInt rowIdx[10];
-   PetscInt colIdx[4];
+   std::vector< uint_t > rowIdx( 10 );
+   std::vector< uint_t > colIdx(  4 );
 
    for ( uint_t k = 0; k < 4; ++k )
    {
-      rowIdx[k] = dstVertexIdx[vertexDoFIndices[k]];
-      colIdx[k] = srcVertexIdx[vertexDoFIndices[k]];
+      rowIdx[k] = uint_c( dstVertexIdx[vertexDoFIndices[k]] );
+      colIdx[k] = uint_c( srcVertexIdx[vertexDoFIndices[k]] );
    }
    for ( uint_t k = 4; k < 10; ++k )
    {
-      rowIdx[k] = dstEdgeIdx[edgeDoFIndices[k - 4]];
+      rowIdx[k] = uint_c( dstEdgeIdx[edgeDoFIndices[k - 4]] );
+   }
+
+   const uint_t elMatSize = 10 * 4;
+   std::vector< real_t > blockMatData( elMatSize );
+   for ( uint_t i = 0; i < elMatSize; i++ )
+   {
+      blockMatData[i] = elMat.data()[i];
    }
 
    // add local matrix into global matrix
-   PetscErrorCode ierr = MatSetValues( mat, 10, rowIdx, 4, colIdx, elMat.data(), ADD_VALUES );
-   WALBERLA_ASSERT_EQUAL( ierr, 0 )
-   WALBERLA_UNUSED( ierr );
+   mat->addValues( rowIdx, colIdx, blockMatData );
+
 }
 
 #endif

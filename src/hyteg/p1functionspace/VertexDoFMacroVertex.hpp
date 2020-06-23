@@ -23,6 +23,8 @@
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/p1functionspace/VertexDoFMemory.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 #ifdef DEBUG_ELEMENTWISE
 #include "hyteg/format.hpp"
@@ -346,39 +348,41 @@ inline void saveOperator( Vertex&                                               
                           const PrimitiveDataID< StencilMemory< real_t >, Vertex >&    operatorId,
                           const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& srcId,
                           const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& dstId,
-                          Mat&                                                         mat,
+                          const std::shared_ptr< SparseMatrixProxy >&                                                         mat,
                           uint_t                                                       level )
 {
    auto opr_data = vertex.getData( operatorId )->getPointer( level );
    auto src      = vertex.getData( srcId )->getPointer( level );
    auto dst      = vertex.getData( dstId )->getPointer( level );
 
-   MatSetValues( mat, 1, dst, ( PetscInt )( vertex.getNumNeighborEdges() + 1 ), src, opr_data, ADD_VALUES );
+   for ( uint_t i = 0; i < vertex.getNumNeighborEdges() + 1; i++ )
+   {
+      mat->addValue( uint_c( dst[0] ), uint_c( src[i] ), opr_data[i] );
+   }
 }
 
 template < typename ValueType >
 inline void createVectorFromFunction( const Vertex&                                                 vertex,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
                                       const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >&  numeratorId,
-                                      Vec&                                                          vec,
+                                      const std::shared_ptr< VectorProxy >&                         vec,
                                       uint_t                                                        level )
 {
    auto     src       = vertex.getData( srcId )->getPointer( level );
    PetscInt numerator = vertex.getData( numeratorId )->getPointer( level )[0];
 
-   VecSetValues( vec, 1, &numerator, src, INSERT_VALUES );
+   vec->setValue( uint_c( numerator ), src[0] );
 }
 
 template < typename ValueType >
 inline void createFunctionFromVector( Vertex&                                                       vertex,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
                                       const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >&  numeratorId,
-                                      Vec&                                                          vec,
+                                      const std::shared_ptr< VectorProxy >&                         vec,
                                       uint_t                                                        level )
 {
-   PetscInt numerator = vertex.getData( numeratorId )->getPointer( level )[0];
-
-   VecGetValues( vec, 1, &numerator, vertex.getData( srcId )->getPointer( level ) );
+   PetscInt numerator                              = vertex.getData( numeratorId )->getPointer( level )[0];
+   vertex.getData( srcId )->getPointer( level )[0] = vec->getValue( uint_c( numerator ) );
 }
 
 inline void applyDirichletBC( Vertex&                                                      vertex,

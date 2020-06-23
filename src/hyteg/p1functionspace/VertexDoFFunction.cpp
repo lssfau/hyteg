@@ -1411,7 +1411,7 @@ ValueType VertexDoFFunction< ValueType >::sumGlobal( const uint_t& level, const 
 {
    ValueType sum = sumLocal( level, flag, absolute );
    this->startTiming( "Sum (reduce)" );
-   walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+   walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, this->getStorage()->getSplitCommunicatorByPrimitiveDistribution() );
    this->stopTiming( "Sum (reduce)" );
    return sum;
 }

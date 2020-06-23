@@ -23,38 +23,42 @@
 #include "hyteg/p2functionspace/P2Petsc.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
 namespace hyteg {
 namespace petsc {
 
-inline void createVectorFromFunction(const P2P1TaylorHoodFunction<PetscScalar> &function,
-                                     const P2P1TaylorHoodFunction<PetscInt> &numerator,
-                                     Vec &vec,
-                                     uint_t level,
-                                     DoFType flag) {
-  createVectorFromFunction(function.u, numerator.u, vec, level, flag);
-  createVectorFromFunction(function.v, numerator.v, vec, level, flag);
-  if ( function.u.getStorage()->hasGlobalCells() )
-  {
-    createVectorFromFunction(function.w, numerator.w, vec, level, flag);
-  }
-  createVectorFromFunction(function.p, numerator.p, vec, level, flag);
+inline void createVectorFromFunction( const P2P1TaylorHoodFunction< PetscScalar >& function,
+                                      const P2P1TaylorHoodFunction< PetscInt >&    numerator,
+                                      const std::shared_ptr< VectorProxy >&        vec,
+                                      uint_t                                       level,
+                                      DoFType                                      flag )
+{
+   createVectorFromFunction( function.u, numerator.u, vec, level, flag );
+   createVectorFromFunction( function.v, numerator.v, vec, level, flag );
+   if ( function.u.getStorage()->hasGlobalCells() )
+   {
+      createVectorFromFunction( function.w, numerator.w, vec, level, flag );
+   }
+   createVectorFromFunction( function.p, numerator.p, vec, level, flag );
 }
 
-inline void createFunctionFromVector(const P2P1TaylorHoodFunction<PetscScalar> &function,
-                                     const P2P1TaylorHoodFunction<PetscInt> &numerator,
-                                     Vec &vec,
-                                     uint_t level,
-                                     DoFType flag) {
-  createFunctionFromVector(function.u, numerator.u, vec, level, flag);
-  createFunctionFromVector(function.v, numerator.v, vec, level, flag);
-  if ( function.u.getStorage()->hasGlobalCells() )
-  {
-    createFunctionFromVector(function.w, numerator.w, vec, level, flag);
-  }
-  createFunctionFromVector(function.p, numerator.p, vec, level, flag);
+inline void createFunctionFromVector( const P2P1TaylorHoodFunction< PetscScalar >& function,
+                                      const P2P1TaylorHoodFunction< PetscInt >&    numerator,
+                                      const std::shared_ptr< VectorProxy >&        vec,
+                                      uint_t                                       level,
+                                      DoFType                                      flag )
+{
+   createFunctionFromVector( function.u, numerator.u, vec, level, flag );
+   createFunctionFromVector( function.v, numerator.v, vec, level, flag );
+   if ( function.u.getStorage()->hasGlobalCells() )
+   {
+      createFunctionFromVector( function.w, numerator.w, vec, level, flag );
+   }
+   createFunctionFromVector( function.p, numerator.p, vec, level, flag );
 }
 
 inline void applyDirichletBC(const P2P1TaylorHoodFunction<PetscInt> &numerator, std::vector<PetscInt> &mat, uint_t level) {
@@ -71,7 +75,7 @@ template < class OperatorType >
 inline void createMatrix( const OperatorType&                       opr,
                           const P2P1TaylorHoodFunction< PetscInt >& src,
                           const P2P1TaylorHoodFunction< PetscInt >& dst,
-                          Mat&                                      mat,
+                          const std::shared_ptr< SparseMatrixProxy >&                                      mat,
                           size_t                                    level,
                           DoFType                                   flag )
 {
@@ -105,7 +109,7 @@ template <>
 inline void createMatrix< P2P1TaylorHoodStokesBlockPreconditioner >( const P2P1TaylorHoodStokesBlockPreconditioner& opr,
                                                                      const P2P1TaylorHoodFunction< PetscInt >&      src,
                                                                      const P2P1TaylorHoodFunction< PetscInt >&      dst,
-                                                                     Mat&                                           mat,
+                                                                     const std::shared_ptr< SparseMatrixProxy >&    mat,
                                                                      size_t                                         level,
                                                                      DoFType                                        flag )
 {
