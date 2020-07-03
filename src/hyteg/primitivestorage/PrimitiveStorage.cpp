@@ -761,10 +761,7 @@ std::map< PrimitiveID, uint_t > PrimitiveStorage::getGlobalPrimitiveRanks() cons
 
 void PrimitiveStorage::migratePrimitives( const MigrationInfo& migrationInfo )
 {
-   WALBERLA_DEBUG_SECTION()
-   {
-      checkConsistency();
-   }
+   WALBERLA_DEBUG_SECTION() { checkConsistency(); }
 
    const auto& primitivesToMigrate = migrationInfo.getMap();
 
@@ -772,7 +769,7 @@ void PrimitiveStorage::migratePrimitives( const MigrationInfo& migrationInfo )
 
    WALBERLA_DEBUG_SECTION()
    {
-      for ( const auto & it : primitivesToMigrate )
+      for ( const auto& it : primitivesToMigrate )
       {
          WALBERLA_CHECK( primitiveExistsLocally( it.first ) );
       }
@@ -800,7 +797,7 @@ void PrimitiveStorage::migratePrimitives( const MigrationInfo& migrationInfo )
 
    // Neighborhood rank update: step 1
    MigrationMap_T localPrimitiveToFutureRankMap;
-   for ( const auto & pID : getPrimitiveIDs() )
+   for ( const auto& pID : getPrimitiveIDs() )
    {
       if ( primitivesToMigrate.count( pID.getID() ) > 0 )
       {
@@ -815,8 +812,14 @@ void PrimitiveStorage::migratePrimitives( const MigrationInfo& migrationInfo )
    // Neighborhood rank update: step 2
    walberla::mpi::BufferSystem neighborhoodBufferSystem( walberla::mpi::MPIManager::instance()->comm() );
    std::set< uint_t >          neighborRanks;
+   std::set< MPIRank >         neighborRanksInt;
+
    getNeighboringRanks( neighborRanks );
-   neighborhoodBufferSystem.setReceiverInfo( std::begin( neighborRanks ), std::end( neighborRanks ), true );
+   for ( auto r : neighborRanks )
+   {
+      neighborRanksInt.insert( MPIRank( r ) );
+   }
+   neighborhoodBufferSystem.setReceiverInfo( std::begin( neighborRanksInt ), std::end( neighborRanksInt ), true );
 
    for ( auto r : neighborRanks )
    {
@@ -1082,10 +1085,7 @@ void PrimitiveStorage::migratePrimitives( const MigrationInfo& migrationInfo )
 
    wasModified();
 
-   WALBERLA_DEBUG_SECTION()
-   {
-      checkConsistency();
-   }
+   WALBERLA_DEBUG_SECTION() { checkConsistency(); }
 }
 
 void PrimitiveStorage::getNeighboringRanks( std::set< uint_t >& neighboringRanks ) const
