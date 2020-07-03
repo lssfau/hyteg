@@ -1063,7 +1063,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       {
          const auto minProcess = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - finalNumAgglomerationProcesses;
          const auto maxProcess = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - 1;
-         WALBERLA_LOG_INFO_ON_ROOT( "Re-distribution of agglomeration primitive storage from rank " << minProcess << " to rank "
+         WALBERLA_LOG_INFO_ON_ROOT( "Re-distribution of agglomeration primitive storage to ranks " << minProcess << " - "
                                                                                                     << maxProcess << " ..." )
          agglomerationWrapper->setStrategyContinuousProcesses( minProcess, maxProcess );
 
