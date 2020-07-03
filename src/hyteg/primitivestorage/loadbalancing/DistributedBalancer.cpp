@@ -405,8 +405,6 @@ MigrationInfo reverseDistributionDry( const MigrationInfo& originalMigrationInfo
 
    MigrationInfo migrationInfo( migrationMap, numReceivingPrimitivesInverseMapping );
 
-   WALBERLA_LOG_DEVEL( migrationInfo );
-
    return migrationInfo;
 }
 
