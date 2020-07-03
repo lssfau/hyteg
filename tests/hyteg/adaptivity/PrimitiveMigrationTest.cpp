@@ -79,7 +79,7 @@ static void testPrimitiveMigration()
 
    //WALBERLA_LOG_INFO_ON_ROOT( setupStorage );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Building PrimitiveStorage" );
+   WALBERLA_LOG_INFO( "Building PrimitiveStorage" );
 
    std::shared_ptr< PrimitiveStorage > storage( new PrimitiveStorage( setupStorage ) );
 
@@ -94,15 +94,18 @@ static void testPrimitiveMigration()
       std::vector< PrimitiveID > primitiveIDs;
       storage->getPrimitiveIDsGenerically< Primitive >( primitiveIDs );
 
-      std::map< PrimitiveID::IDType, uint_t > migrationInfo;
+      std::map< PrimitiveID::IDType, uint_t > migrationMap;
       uint_t                                  lel = 0;
       for( const auto& id : primitiveIDs )
       {
          uint_t targetRank = ++lel % numProcesses;
          // WALBERLA_LOG_INFO( "Migrating " << id.getID() << " to rank " << targetRank );
-         migrationInfo[id.getID()] = targetRank;
+         migrationMap[id.getID()] = targetRank;
       }
 
+      const auto numReceivingPrimitives = getNumReceivingPrimitives( migrationMap );
+      const MigrationInfo migrationInfo( migrationMap, numReceivingPrimitives );
+      WALBERLA_LOG_INFO( migrationInfo )
       storage->migratePrimitives( migrationInfo );
 
       PrimitiveStorage::PrimitiveMap primitives;
@@ -127,7 +130,7 @@ static void testPrimitiveMigrationMaps()
 
   loadbalancing::roundRobin( setupStorage );
 
-  WALBERLA_LOG_INFO_ON_ROOT( "Building PrimitiveStorage" );
+  WALBERLA_LOG_INFO( "Building PrimitiveStorage" );
 
   std::shared_ptr< PrimitiveStorage > storage( new PrimitiveStorage( setupStorage ) );
 
@@ -152,22 +155,25 @@ static void testPrimitiveMigrationMaps()
   }
 
   WALBERLA_MPI_BARRIER()
-  WALBERLA_LOG_INFO_ON_ROOT( "Migration..." )
+  WALBERLA_LOG_INFO( "Migration..." )
 
   WALBERLA_MPI_SECTION()
   {
     std::vector< PrimitiveID > primitiveIDs;
     storage->getPrimitiveIDsGenerically< Primitive >( primitiveIDs );
 
-    std::map< PrimitiveID::IDType, uint_t > migrationInfo;
+    std::map< PrimitiveID::IDType, uint_t > migrationMap;
     uint_t                                  lel = 0;
     for( const auto& id : primitiveIDs )
     {
       uint_t targetRank = ++lel % numProcesses;
       // WALBERLA_LOG_INFO( "Migrating " << id.getID() << " to rank " << targetRank );
-      migrationInfo[id.getID()] = targetRank;
+      migrationMap[id.getID()] = targetRank;
     }
 
+    const auto numReceivingPrimitives = getNumReceivingPrimitives( migrationMap );
+    const MigrationInfo migrationInfo( migrationMap, numReceivingPrimitives );
+    WALBERLA_LOG_INFO( migrationInfo );
     storage->migratePrimitives( migrationInfo );
 
     for ( auto it : storage->getCells() )

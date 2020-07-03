@@ -40,6 +40,8 @@ namespace hyteg {
 
 void AgglomerationMatMulTest( const std::string& meshFile, const uint_t level, const bool localMPI )
 {
+  WALBERLA_LOG_INFO_ON_ROOT( "######### mesh file " << meshFile << " ########################" )
+
   const auto            meshInfo = MeshInfo::fromGmshFile( meshFile );
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -99,7 +101,7 @@ void AgglomerationMatMulTest( const std::string& meshFile, const uint_t level, c
 
   u_agglomeration.copyFrom( u, level );
 
-  loadbalancing::distributed::roundRobin( *agglomerationStorage, numberOfSubsetProcesses );
+  const auto migrationInfo = loadbalancing::distributed::roundRobin( *agglomerationStorage, numberOfSubsetProcesses );
 
   WALBERLA_LOG_INFO_ON_ROOT( "Storage after agglomeration:" )
   auto globalInfoAfter = agglomerationStorage->getGlobalInfo();
@@ -107,7 +109,7 @@ void AgglomerationMatMulTest( const std::string& meshFile, const uint_t level, c
 
   L_agglomeration.apply( u_agglomeration, f_agglomeration, level, All );
 
-  loadbalancing::distributed::copyDistribution( *storage, *agglomerationStorage );
+  loadbalancing::distributed::reverseDistribution( migrationInfo, *agglomerationStorage );
 
   f_after_migration.copyFrom( f_agglomeration, level );
 

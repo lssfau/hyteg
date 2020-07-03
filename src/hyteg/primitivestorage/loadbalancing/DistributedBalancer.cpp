@@ -30,12 +30,15 @@
 #include "core/mpi/Gatherv.h"
 #include "core/mpi/MPIWrapper.h"
 
+#include "hyteg/communication/PackageBufferSystem.hpp"
+
 namespace hyteg {
 namespace loadbalancing {
 namespace distributed {
 
 using walberla::int64_c;
 using walberla::int64_t;
+using walberla::int_c;
 using walberla::mpi::MPIRank;
 using namespace walberla::mpistubs;
 
@@ -272,87 +275,139 @@ MigrationMap_T parmetis( PrimitiveStorage& storage )
       migrationMap[primitiveID.getID()] = uint_c( part[partIdx] );
    }
 
-   storage.migratePrimitives( migrationMap );
+   const auto numReceivingPrimitives = getNumReceivingPrimitives( migrationMap );
+
+   MigrationInfo migrationInfo( migrationMap, numReceivingPrimitives );
+   storage.migratePrimitives( migrationInfo );
 
    return migrationMap;
 }
 
-MigrationMap_T roundRobin( PrimitiveStorage& storage )
+MigrationInfo roundRobin( PrimitiveStorage& storage )
 {
    return roundRobin( storage, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 }
 
-MigrationMap_T roundRobin( PrimitiveStorage& storage, uint_t numberOfTargetProcesses )
+MigrationInfo roundRobin( PrimitiveStorage& storage, uint_t numberOfTargetProcesses )
 {
    return roundRobin( storage, 0, numberOfTargetProcesses - 1 );
 }
 
-MigrationMap_T roundRobin( PrimitiveStorage& storage, uint_t minRank, uint_t maxRank )
+MigrationInfo roundRobin( PrimitiveStorage& storage, uint_t minRank, uint_t maxRank )
 {
    WALBERLA_CHECK_LESS_EQUAL( minRank, maxRank );
    WALBERLA_CHECK( maxRank < uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ),
                    "Cannot distribute to more than available processes." );
 
+   const uint_t numReceivingProcesses = maxRank - minRank + 1;
+   const uint_t rank                  = uint_c( walberla::mpi::MPIManager::instance()->rank() );
+
    MigrationMap_T migrationMap;
+   uint_t         numReceivingPrimitives = 0;
 
    for ( const auto& primitiveID : storage.getPrimitiveIDs() )
    {
-      migrationMap[primitiveID.getID()] = minRank + uint_c( primitiveID.getID() % ( maxRank - minRank + 1 ) );
+      const uint_t targetRank           = minRank + uint_c( primitiveID.getID() % numReceivingProcesses );
+      migrationMap[primitiveID.getID()] = targetRank;
    }
 
-   storage.migratePrimitives( migrationMap );
-   return migrationMap;
+   const uint_t numPrimitives = storage.getNumberOfGlobalPrimitives();
+
+   if ( rank >= minRank && rank <= maxRank )
+   {
+      numReceivingPrimitives += numPrimitives / numReceivingProcesses;
+      if ( numPrimitives % numReceivingProcesses > rank - minRank )
+      {
+         numReceivingPrimitives++;
+      }
+   }
+
+   MigrationInfo migrationInfo( migrationMap, uint_c( numReceivingPrimitives ) );
+
+   storage.migratePrimitives( migrationInfo );
+   return migrationInfo;
 }
 
-MigrationMap_T roundRobinInterval( PrimitiveStorage& storage, uint_t interval )
+MigrationInfo roundRobinInterval( PrimitiveStorage& storage, uint_t interval )
 {
    return roundRobinInterval(
        storage, interval, ( uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) / interval ) * interval );
 }
 
-MigrationMap_T roundRobinInterval( PrimitiveStorage& storage, uint_t interval, uint_t numProcesses )
+MigrationInfo roundRobinInterval( PrimitiveStorage& storage, uint_t interval, uint_t numProcesses )
 {
    WALBERLA_CHECK_GREATER( interval, 0, "Process interval must be larger than zero." );
    WALBERLA_CHECK_LESS_EQUAL( interval * numProcesses,
                               uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ),
                               "Cannot fit " << numProcesses << " processes with interval " << interval << " into total of "
-                                            << uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) << " processes.");
+                                            << uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) << " processes." );
+
+   const uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
    MigrationMap_T migrationMap;
+   uint_t         numReceivingPrimitives = 0;
 
    const uint_t modulo = interval * numProcesses;
 
    for ( const auto& primitiveID : storage.getPrimitiveIDs() )
    {
-      migrationMap[primitiveID.getID()] = ( uint_c( primitiveID.getID() ) * interval ) % modulo;
+      const uint_t targetRank           = ( uint_c( primitiveID.getID() ) * interval ) % modulo;
+      migrationMap[primitiveID.getID()] = targetRank;
    }
 
-   storage.migratePrimitives( migrationMap );
-   return migrationMap;
-}
+   const uint_t numPrimitives = storage.getNumberOfGlobalPrimitives();
 
-MigrationMap_T copyDistribution( const PrimitiveStorage& targetDistributionStorage, PrimitiveStorage& storageToRedistribute )
-{
-   MigrationMap_T migrationMap = copyDistributionDry( targetDistributionStorage, storageToRedistribute );
-   storageToRedistribute.migratePrimitives( migrationMap );
-   return migrationMap;
-}
-
-MigrationMap_T copyDistributionDry( const PrimitiveStorage& targetDistributionStorage,
-                                    const PrimitiveStorage& storageToRedistribute )
-{
-   MigrationMap_T migrationMap;
-   auto           primitiveRanks = targetDistributionStorage.getGlobalPrimitiveRanks();
-
-   for ( const auto& it : primitiveRanks )
+   if ( rank % interval == 0 && rank / interval < numProcesses )
    {
-      if ( storageToRedistribute.primitiveExistsLocally( it.first ) )
+      numReceivingPrimitives += numPrimitives / numProcesses;
+      if ( numPrimitives % numProcesses > rank / interval )
       {
-         migrationMap[it.first.getID()] = it.second;
+         numReceivingPrimitives++;
       }
    }
 
-   return migrationMap;
+   MigrationInfo migrationInfo( migrationMap, uint_c( numReceivingPrimitives ) );
+
+   storage.migratePrimitives( migrationInfo );
+   return migrationInfo;
+}
+
+MigrationInfo reverseDistribution( const MigrationInfo& originalMigrationInfo, PrimitiveStorage& storageToRedistribute )
+{
+   MigrationInfo migrationInfo = reverseDistributionDry( originalMigrationInfo );
+   storageToRedistribute.migratePrimitives( migrationInfo );
+   return migrationInfo;
+}
+
+MigrationInfo reverseDistributionDry( const MigrationInfo& originalMigrationInfo )
+{
+   MigrationMap_T migrationMap;
+   const uint_t   numReceivingPrimitivesInverseMapping = originalMigrationInfo.getMap().size();
+
+   // send messages along the original migration info to build the inverse mapping
+   PackageBufferSystem bs( walberla::mpi::MPIManager::instance()->comm(), originalMigrationInfo.getNumReceivingPrimitives() );
+
+   for ( const auto& it : originalMigrationInfo.getMap() )
+   {
+      bs.getPackageSendBuffer( it.second ) << it.first;
+   }
+
+   bs.sendAll();
+
+   while ( !bs.allPackagesReceived() )
+   {
+      auto                package = bs.getNextPackage();
+      auto&               buffer  = package.buffer();
+      PrimitiveID::IDType pID;
+      buffer >> pID;
+      migrationMap[pID] = uint_c( package.senderRank() );
+   }
+
+   MigrationInfo migrationInfo( migrationMap, numReceivingPrimitivesInverseMapping );
+
+   WALBERLA_LOG_DEVEL( migrationInfo );
+
+   return migrationInfo;
 }
 
 } // namespace distributed

@@ -94,33 +94,38 @@ class AgglomerationWrapper : public Solver< OperatorType >
    , isAgglomerationProcess_( false )
    {}
 
-   void setStrategyContinuousProcesses( const uint_t & minRank, const uint_t & maxRank )
+   void setStrategyContinuousProcesses( const uint_t& minRank, const uint_t& maxRank )
    {
       WALBERLA_CHECK( !isStrategySet_ );
 
-      agglomerationStorage_ = originalStorage_->createCopy();
-      mapToAgglomerationStorage_ =
-          loadbalancing::distributed::roundRobin( *agglomerationStorage_, minRank, maxRank );
-      isAgglomerationProcess_ = uint_c( walberla::mpi::MPIManager::instance()->rank() ) >= minRank && uint_c( walberla::mpi::MPIManager::instance()->rank() ) <= maxRank;
-      finalizeAgglomerationStrategy();
+      agglomerationStorage_                = originalStorage_->createCopy();
+      migrationInfoToAgglomerationStorage_ = loadbalancing::distributed::roundRobin( *agglomerationStorage_, minRank, maxRank );
+      isAgglomerationProcess_              = uint_c( walberla::mpi::MPIManager::instance()->rank() ) >= minRank &&
+                                uint_c( walberla::mpi::MPIManager::instance()->rank() ) <= maxRank;
+      finalizeAgglomerationStrategy( migrationInfoToAgglomerationStorage_ );
    }
 
-   void setStrategyEveryNthProcess( const uint_t & interval, const uint_t & numProcesses )
+   void setStrategyEveryNthProcess( const uint_t& interval, const uint_t& numProcesses )
    {
       WALBERLA_CHECK( !isStrategySet_ );
 
       agglomerationStorage_ = originalStorage_->createCopy();
-      mapToAgglomerationStorage_ =
+      migrationInfoToAgglomerationStorage_ =
           loadbalancing::distributed::roundRobinInterval( *agglomerationStorage_, interval, numProcesses );
-      isAgglomerationProcess_ = uint_c( walberla::mpi::MPIManager::instance()->rank() ) % interval == 0 && uint_c( walberla::mpi::MPIManager::instance()->rank() ) / interval < numProcesses;
-      finalizeAgglomerationStrategy();
+      isAgglomerationProcess_ = uint_c( walberla::mpi::MPIManager::instance()->rank() ) % interval == 0 &&
+                                uint_c( walberla::mpi::MPIManager::instance()->rank() ) / interval < numProcesses;
+      finalizeAgglomerationStrategy( migrationInfoToAgglomerationStorage_ );
    }
 
    std::shared_ptr< PrimitiveStorage > getAgglomerationStorage() const { return agglomerationStorage_; }
 
    std::shared_ptr< OperatorType > getAgglomerationOperator() const { return A_agglomeration_; }
 
-   bool isAgglomerationProcess() const { WALBERLA_CHECK( isStrategySet_ ); return isAgglomerationProcess_; }
+   bool isAgglomerationProcess() const
+   {
+      WALBERLA_CHECK( isStrategySet_ );
+      return isAgglomerationProcess_;
+   }
 
    void setSolver( const std::shared_ptr< Solver< OperatorType > >& solver ) { solver_ = solver; }
 
@@ -132,22 +137,24 @@ class AgglomerationWrapper : public Solver< OperatorType >
 
       const bool emptyProcess = agglomerationStorage_->getNumberOfLocalPrimitives() == 0;
 
-      b_agglomeration_->copyFrom( b, level, mapToOriginalStorage_, mapToAgglomerationStorage_ );
-      x_agglomeration_->copyFrom( x, level, mapToOriginalStorage_, mapToAgglomerationStorage_ );
+      b_agglomeration_->copyFrom(
+          b, level, migrationInfoToOriginalStorage_.getMap(), migrationInfoToAgglomerationStorage_.getMap() );
+      x_agglomeration_->copyFrom(
+          x, level, migrationInfoToOriginalStorage_.getMap(), migrationInfoToAgglomerationStorage_.getMap() );
 
       if ( solveOnEmptyProcesses_ || !emptyProcess )
       {
          solver_->solve( *A_agglomeration_, *x_agglomeration_, *b_agglomeration_, level );
       }
 
-      x.copyFrom( *x_agglomeration_, level, mapToAgglomerationStorage_, mapToOriginalStorage_ );
+      x.copyFrom(
+          *x_agglomeration_, level, migrationInfoToAgglomerationStorage_.getMap(), migrationInfoToOriginalStorage_.getMap() );
    }
 
  private:
-
-   void finalizeAgglomerationStrategy()
+   void finalizeAgglomerationStrategy( const MigrationInfo& originalMigrationInfo )
    {
-      mapToOriginalStorage_ = loadbalancing::distributed::copyDistributionDry( *originalStorage_, *agglomerationStorage_ );
+      migrationInfoToOriginalStorage_ = loadbalancing::distributed::reverseDistributionDry( originalMigrationInfo );
 
       A_agglomeration_ = std::make_shared< OperatorType >( agglomerationStorage_, level_, level_ );
       x_agglomeration_ = std::make_shared< FunctionType >( "xAgglomeration", agglomerationStorage_, level_, level_ );
@@ -159,12 +166,12 @@ class AgglomerationWrapper : public Solver< OperatorType >
    std::shared_ptr< PrimitiveStorage > originalStorage_;
    uint_t                              level_;
    bool                                solveOnEmptyProcesses_;
-   bool isStrategySet_;
-   bool isAgglomerationProcess_;
+   bool                                isStrategySet_;
+   bool                                isAgglomerationProcess_;
 
-   std::shared_ptr< PrimitiveStorage >        agglomerationStorage_;
-   loadbalancing::distributed::MigrationMap_T mapToAgglomerationStorage_;
-   loadbalancing::distributed::MigrationMap_T mapToOriginalStorage_;
+   std::shared_ptr< PrimitiveStorage > agglomerationStorage_;
+   MigrationInfo                       migrationInfoToAgglomerationStorage_;
+   MigrationInfo                       migrationInfoToOriginalStorage_;
 
    std::shared_ptr< OperatorType > A_agglomeration_;
    std::shared_ptr< FunctionType > b_agglomeration_;
