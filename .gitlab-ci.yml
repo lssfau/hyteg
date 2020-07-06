@@ -804,6 +804,8 @@ coverage:
    artifacts:
       paths:
          - coverage/
+      reports:
+        cobertura: coverage/coverage.xml
    tags:
       - docker
    variables:
