@@ -47,7 +47,7 @@
 namespace hyteg {
 
 template < class EdgeDoFToVertexDoFForm >
-class EdgeDoFToVertexDoFOperator : public Operator< hyteg::EdgeDoFFunction< real_t >, hyteg::P1Function< real_t > >
+class EdgeDoFToVertexDoFOperator final : public Operator< hyteg::EdgeDoFFunction< real_t >, hyteg::P1Function< real_t > >
 {
  public:
    EdgeDoFToVertexDoFOperator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -57,7 +57,7 @@ class EdgeDoFToVertexDoFOperator : public Operator< hyteg::EdgeDoFFunction< real
                                const size_t&                              minLevel,
                                const size_t&                              maxLevel,
                                const EdgeDoFToVertexDoFForm&              form );
-   ~EdgeDoFToVertexDoFOperator() final = default;
+   ~EdgeDoFToVertexDoFOperator() = default;
 
    void apply( const EdgeDoFFunction< real_t >& src,
                const P1Function< double >&      dst,
