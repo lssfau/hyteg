@@ -23,12 +23,14 @@
 #include <vector>
 
 #include "core/DataTypes.h"
-#include "core/logging//Logging.h"
-#include "core/mpi/SendBuffer.h"
+#include "core/logging/Logging.h"
+#include "core/mpi/MPIWrapper.h"
 #include "core/mpi/RecvBuffer.h"
+#include "core/mpi/SendBuffer.h"
 
 namespace hyteg {
 
+using namespace walberla::mpistubs;
 using walberla::int_c;
 using walberla::uint_c;
 using walberla::uint_t;
@@ -39,7 +41,6 @@ template < typename RecvBuffer_T = walberla::mpi::RecvBuffer, typename SendBuffe
 class GenericPackageBufferSystem
 {
  public:
-
    /// \brief Constructs a new PackageBufferSystem
    ///
    /// \param comm The MPI communicator to work on.
@@ -89,10 +90,7 @@ class GenericPackageBufferSystem
       return sendInfos_.back().buffer;
    }
 
-   SendBuffer_T& getPackageSendBuffer( uint_t targetRank )
-   {
-      return getPackageSendBuffer( MPIRank( targetRank ) );
-   }
+   SendBuffer_T& getPackageSendBuffer( uint_t targetRank ) { return getPackageSendBuffer( MPIRank( targetRank ) ); }
 
    /// \brief Sends all packages.
    ///
@@ -102,6 +100,11 @@ class GenericPackageBufferSystem
    void sendAll()
    {
       allPackagesSent_ = true;
+
+      WALBERLA_NON_MPI_SECTION()
+      {
+         return;
+      }
 
       MPI_Request request;
 
@@ -128,6 +131,20 @@ class GenericPackageBufferSystem
    PackageRecvInfo getNextPackage()
    {
       WALBERLA_CHECK( !allPackagesReceived() );
+
+      WALBERLA_NON_MPI_SECTION()
+      {
+         PackageSendInfo& sendInfo   = sendInfos_[numPackagesReceived_];
+         const auto       senderRank = walberla::mpi::MPIManager::instance()->rank();
+         WALBERLA_CHECK_EQUAL( sendInfo.targetRank, senderRank );
+         PackageRecvInfo recvInfo;
+
+         recvInfo.buffer()    = RecvBuffer_T( sendInfo.buffer );
+         recvInfo.senderRank_ = senderRank;
+         recvInfo.size_       = sendInfo.buffer.size();
+         numPackagesReceived_++;
+         return recvInfo;
+      }
 
       PackageRecvInfo recvInfo;
 
