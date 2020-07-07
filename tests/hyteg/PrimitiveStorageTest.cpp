@@ -105,7 +105,7 @@ static void testPrimitiveStorage()
 	WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 0 );
 	WALBERLA_CHECK_GREATER( it.second->getNumHigherDimNeighbors(), 0 );
   }
-  for ( const auto it : storage->getEdges() )
+  for ( const auto & it : storage->getEdges() )
   {
     WALBERLA_CHECK_EQUAL( it.second->getNumLowerDimNeighbors(), 2 );
     WALBERLA_CHECK_GREATER( it.second->getNumHigherDimNeighbors(), 0 );

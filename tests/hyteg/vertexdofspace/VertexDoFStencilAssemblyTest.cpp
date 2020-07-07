@@ -182,7 +182,7 @@ static void testVertexDoFStencilAssembly()
 
         for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++ )
         {
-          for ( const auto itStencil : macroFaceStencilOnLevel[level][neighborCellID] )
+          for ( const auto & itStencil : macroFaceStencilOnLevel[level][neighborCellID] )
           {
             const auto direction = itStencil.first;
             const auto weight = itStencil.second;

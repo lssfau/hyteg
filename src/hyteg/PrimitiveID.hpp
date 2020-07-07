@@ -36,7 +36,7 @@ using walberla::uint_t;
 using walberla::math::uintMSBPosition;
 using walberla::numeric_cast;
 using walberla::blockforest::uintToBitString;
-using walberla::UINT_BYTES;
+using walberla::math::UINT_BYTES;
 
 //**********************************************************************************************************************
 /*!

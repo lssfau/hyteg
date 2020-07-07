@@ -111,7 +111,7 @@ std::vector< uint_t > SetupPrimitiveStorageConvectionParticlesInterface::getNeig
          for ( const auto& neighborVertexID : face->neighborVertices() )
          {
             auto neighborVertex = setupStorage_->getVertex( neighborVertexID );
-            for ( const auto neighborFaceID : neighborVertex->neighborFaces() )
+            for ( const auto &neighborFaceID : neighborVertex->neighborFaces() )
             {
                neighborProcesses.insert( setupStorage_->getTargetRank( neighborFaceID ) );
             }
@@ -127,7 +127,7 @@ std::vector< uint_t > SetupPrimitiveStorageConvectionParticlesInterface::getNeig
          for ( const auto& neighborVertexID : cell->neighborVertices() )
          {
             auto neighborVertex = setupStorage_->getVertex( neighborVertexID );
-            for ( const auto neighborCellID : neighborVertex->neighborCells() )
+            for ( const auto &neighborCellID : neighborVertex->neighborCells() )
             {
                neighborProcesses.insert( setupStorage_->getTargetRank( neighborCellID ) );
             }

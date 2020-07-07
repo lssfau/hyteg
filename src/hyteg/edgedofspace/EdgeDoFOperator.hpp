@@ -34,7 +34,7 @@
 namespace hyteg {
 
 template < class EdgeDoFForm >
-class EdgeDoFOperator : public Operator< hyteg::EdgeDoFFunction< real_t >, hyteg::EdgeDoFFunction< real_t > >
+class EdgeDoFOperator final : public Operator< hyteg::EdgeDoFFunction< real_t >, hyteg::EdgeDoFFunction< real_t > >
 {
  public:
    EdgeDoFOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
@@ -42,7 +42,7 @@ class EdgeDoFOperator : public Operator< hyteg::EdgeDoFFunction< real_t >, hyteg
                     size_t                                     minLevel,
                     size_t                                     maxLevel,
                     const EdgeDoFForm&                         form );
-   ~EdgeDoFOperator() final = default;
+   ~EdgeDoFOperator() = default;
 
    void apply( const EdgeDoFFunction< real_t >& src,
                const EdgeDoFFunction< real_t >& dst,
