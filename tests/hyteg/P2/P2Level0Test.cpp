@@ -161,7 +161,7 @@ void P2Level0InterpolateTest()
 
       WALBERLA_CHECK_EQUAL( macroEdgeEdgeDoFDataSize, 1 + 2 * edge->getNumNeighborFaces() + 1 * edge->getNumNeighborCells() );
 
-      for ( const auto faceID : edge->neighborFaces() )
+      for ( const auto & faceID : edge->neighborFaces() )
       {
          auto face = storage->getFace( faceID );
 
@@ -182,7 +182,7 @@ void P2Level0InterpolateTest()
          WALBERLA_CHECK_FLOAT_EQUAL( glValue1, realValue1 );
       }
 
-      for ( const auto cellID : edge->neighborCells() )
+      for ( const auto & cellID : edge->neighborCells() )
       {
          // now check opposite edge
          auto cell         = storage->getCell( cellID );
