@@ -83,7 +83,10 @@ static void testFunctionMemorySerialization()
   {
     primitivesToMigrate[ id.getID() ] = (rank + numProcesses / 2) % numProcesses;
   }
-  storage->migratePrimitives( primitivesToMigrate );
+
+  const auto numReceivingPrimitives = getNumReceivingPrimitives( primitivesToMigrate );
+  const MigrationInfo migrationInfo( primitivesToMigrate, numReceivingPrimitives );
+  storage->migratePrimitives( migrationInfo );
 
   WALBERLA_LOG_INFO( "Number of local primitives (after migration): " << storage->getNumberOfLocalPrimitives() );
 

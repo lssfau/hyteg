@@ -50,7 +50,7 @@ static void testPrimitiveStorageCopy( const MeshInfo& mesh )
 
    WALBERLA_CHECK( storage->getPrimitiveIDs() == copiedStorage->getPrimitiveIDs() );
 
-   loadbalancing::distributed::roundRobin( *copiedStorage, 1 );
+   const auto migrationInfo = loadbalancing::distributed::roundRobin( *copiedStorage, 1 );
 
    if ( rank == 0 )
    {
@@ -61,7 +61,12 @@ static void testPrimitiveStorageCopy( const MeshInfo& mesh )
       WALBERLA_CHECK_EQUAL( copiedStorage->getNumberOfLocalPrimitives(), 0 );
    }
 
-   loadbalancing::distributed::copyDistribution( *storage, *copiedStorage );
+   WALBERLA_LOG_DEVEL("before copy dist")
+   WALBERLA_MPI_BARRIER()
+
+   WALBERLA_LOG_DEVEL( migrationInfo );
+
+   loadbalancing::distributed::reverseDistribution( migrationInfo, *copiedStorage );
 
    WALBERLA_CHECK( storage->getPrimitiveIDs() == copiedStorage->getPrimitiveIDs() );
 

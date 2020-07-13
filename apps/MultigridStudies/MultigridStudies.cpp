@@ -820,8 +820,10 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       dedicatedAgglomeration = true;
       const auto numRemainingProcesses =
           uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - finalNumAgglomerationProcesses;
-      WALBERLA_LOG_INFO_ON_ROOT( "Performing primitive re-distribution to " << numRemainingProcesses << " processes ..." )
-      loadbalancing::distributed::roundRobin( *storage, numRemainingProcesses );
+      const auto minRank = finalNumAgglomerationProcesses;
+      const auto maxRank = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - 1;
+      WALBERLA_LOG_INFO_ON_ROOT( "Performing primitive re-distribution to " << numRemainingProcesses << " processes  (ranks " << minRank << " .. " << maxRank << ") ..." )
+      loadbalancing::distributed::roundRobin( *storage, minRank, maxRank );
       WALBERLA_LOG_INFO_ON_ROOT( "Done." )
       WALBERLA_LOG_INFO_ON_ROOT( "" )
 
@@ -1061,9 +1063,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       WALBERLA_LOG_INFO_ON_ROOT( "Re-distribution of agglomeration primitive storage  ..." )
       if ( dedicatedAgglomeration )
       {
-         const auto minProcess = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - finalNumAgglomerationProcesses;
-         const auto maxProcess = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - 1;
-         WALBERLA_LOG_INFO_ON_ROOT( "Re-distribution of agglomeration primitive storage from rank " << minProcess << " to rank "
+         const auto minProcess = 0;
+         const auto maxProcess = finalNumAgglomerationProcesses - 1;
+         WALBERLA_LOG_INFO_ON_ROOT( "Re-distribution of agglomeration primitive storage to ranks " << minProcess << " - "
                                                                                                     << maxProcess << " ..." )
          agglomerationWrapper->setStrategyContinuousProcesses( minProcess, maxProcess );
 

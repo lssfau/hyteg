@@ -42,6 +42,72 @@ class Edge;
 class Face;
 class Cell;
 
+typedef std::map< PrimitiveID::IDType, uint_t > MigrationMap_T;
+
+/// \brief Returns on each process the number of expected primitives after migration.
+///
+/// Use with care, this function involves very expensive global communication and
+/// should only be used in small scale applications or for testing purposes.
+///
+/// Usually, the number of receiving primitives should be calculated
+/// individually for each distribution strategy for performance reasons.
+inline uint_t getNumReceivingPrimitives(const MigrationMap_T & migrationMap )
+{
+   const auto rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
+   std::vector< uint_t > expectedPrimitives( uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ), 0 );
+   for ( const auto & it : migrationMap )
+   {
+      expectedPrimitives[it.second]++;
+   }
+
+   walberla::mpi::allReduceInplace(expectedPrimitives, walberla::mpi::SUM );
+
+   return expectedPrimitives[rank];
+}
+
+/// Returned by all distributed load balancing implementations.
+/// To be passed to PrimitiveStorage::migratePrimitives( ... ).
+class MigrationInfo
+{
+ public:
+
+   MigrationInfo() : numReceivingPrimitives_( 0 ) {}
+
+   /// \brief Constructs migration info to be passed to a PrimitiveStorage.
+   ///
+   /// \param map                    Maps all local PrimitiveIDs that shall be migrated to target ranks,
+   ///                               target rank may also include own rank.
+   /// \param numReceivingPrimitives Number of Primitives that are expected to be received during migration,
+   ///                               This number MUST contain primitives that are already local (i.e. this number
+   ///                               is equal to the number of local primitives after migration).
+   ///
+   MigrationInfo( const MigrationMap_T& map, uint_t numReceivingPrimitives )
+       : map_( map )
+       , numReceivingPrimitives_( numReceivingPrimitives )
+   {}
+
+   /// Returns the mapping (local ID -> receiving process) for the primitive migration
+   const MigrationMap_T& getMap() const { return map_; }
+   /// Returns the number of primitives that this process will own after the migration.
+   uint_t getNumReceivingPrimitives() const { return numReceivingPrimitives_; }
+
+ private:
+   MigrationMap_T map_;
+   uint_t         numReceivingPrimitives_;
+};
+
+inline std::ostream& operator<<(std::ostream &os, const MigrationInfo & migrationInfo)
+{
+   os << "MigrationInfo:\n";
+   os << "Expecting " << migrationInfo.getNumReceivingPrimitives() << " primitives.\n";
+   for ( const auto & it : migrationInfo.getMap() )
+   {
+      os << "pID " << it.first << " -> rank " << it.second << "\n";
+   }
+   return os;
+}
+
+
 class PrimitiveStorage : private walberla::NonCopyable
 {
  public:
@@ -215,6 +281,9 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Fills the passed vector with the IDs of the locally existing cells
    void getCellIDs( std::vector< PrimitiveID >& cellIDs ) const;
 
+   /// Fills the passed vector with the IDs of the neighboring / non-local / ghost primitives
+   void getNeighboringPrimitiveIDs( std::vector< PrimitiveID >& primitiveIDs ) const;
+
    /// Fills the passed vector with the IDs of the neighboring / non-local / ghost vertices
    void getNeighboringVertexIDs( std::vector< PrimitiveID >& vertexIDs ) const;
 
@@ -276,6 +345,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    uint_t getNeighborPrimitiveRank( const PrimitiveID& id ) const
    {
       WALBERLA_ASSERT( primitiveExistsInNeighborhood( id ) );
+      WALBERLA_ASSERT_GREATER( neighborRanks_.count( id.getID() ), 0 )
       return neighborRanks_.at( id.getID() );
    }
 
@@ -318,13 +388,14 @@ class PrimitiveStorage : private walberla::NonCopyable
    }
    ///@}
 
-   /// Migrates the passed (local!) primitives to the respective target process.
-   /// Must be called collectively, even if a processes does not send any primitives (pass empty map).
+   /// Migrates the passed local primitives to the respective target process.
+   /// Must be called collectively, even if a processes does not send any primitives.
    /// Calls the serialization and deserialization methods of the data handling instances of all registered data items
    /// in order to transport the data over MPI.
    /// Automatically refreshes the neighborhood information.
-   /// \param primitivesToMigrate key: primitive to migrate, value: target process
-   void migratePrimitives( const std::map< PrimitiveID::IDType, uint_t >& primitivesToMigrate );
+   /// \param migrationInfo initialized with a map that maps all local primitives to a target process, and the number of expected
+   ///                      primitives after migration
+   void migratePrimitives( const MigrationInfo & migrationInfo );
 
    /// \brief Returns the global Primitive rank assignment.
    std::map< PrimitiveID, uint_t > getGlobalPrimitiveRanks() const;
@@ -343,6 +414,14 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Must be called by all processes!
    /// Involves global communication and should therefore not be called in performance critical code.
    std::string getGlobalInfo() const;
+
+   /// \brief Returns the global number of primitives.
+   ///
+   /// Involves global communication.
+   uint_t getNumberOfGlobalPrimitives() const
+   {
+      return walberla::mpi::allReduce( getNumberOfLocalPrimitives(), walberla::mpi::SUM );
+   }
 
    /// \brief Returns the number of processes without any primitives.
    ///

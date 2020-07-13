@@ -5,6 +5,7 @@ module load devEnv/GCC
 
 module load boost
 module load petsc
+module load cmake
 
 export CC=gcc
 export CXX=g++

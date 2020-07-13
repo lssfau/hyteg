@@ -21,22 +21,19 @@
 #pragma once
 
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "core/mpi/MPIWrapper.h"
 
 namespace hyteg {
 namespace loadbalancing {
 namespace distributed {
 
-/// Maps local primitive ID to target rank.
-/// Returned by all distributed load balancing implementations.
-/// Is always passed to PrimitiveStorage::migratePrimitives().
-typedef std::map< PrimitiveID::IDType, uint_t > MigrationMap_T;
 
 MigrationMap_T parmetis( PrimitiveStorage & storage );
 
 /// \brief Performs a round robin distribution  in parallel.
 ///
 /// \param storage                 the PrimitiveStorage, the primitives are distributed on
-MigrationMap_T roundRobin( PrimitiveStorage & storage );
+MigrationInfo roundRobin( PrimitiveStorage & storage );
 
 /// \brief Performs a round robin distribution to a subset of processes in parallel.
 ///
@@ -44,21 +41,21 @@ MigrationMap_T roundRobin( PrimitiveStorage & storage );
 /// \param numberOfTargetProcesses if smaller than total number of processes, 
 ///                                the round robin distributes
 ///                                among the first numberOfTargetProcesses processes
-MigrationMap_T roundRobin( PrimitiveStorage & storage, uint_t numberOfTargetProcesses );
+MigrationInfo roundRobin( PrimitiveStorage & storage, uint_t numberOfTargetProcesses );
 
 /// \brief Performs a round robin distribution to a subset of processes in parallel.
 ///
 /// \param storage the PrimitiveStorage, the primitives are distributed on
 /// \param minRank lowest included rank in the distribution
 /// \param maxRank highest included rank in the distribution
-MigrationMap_T roundRobin( PrimitiveStorage & storage, uint_t minRank, uint_t maxRank );
+MigrationInfo roundRobin( PrimitiveStorage & storage, uint_t minRank, uint_t maxRank );
 
 /// \brief Performs a round robin distribution to a subset of processes in parallel.
 ///
 /// \param storage the PrimitiveStorage, the primitives are distributed on
 /// \param interval the distribution happens on every interval'th process, e.g. if interval == 24,
 ///                 the storage is distributed among rank 0, 24, 48, ...
-MigrationMap_T roundRobinInterval( PrimitiveStorage & storage, uint_t interval );
+MigrationInfo roundRobinInterval( PrimitiveStorage & storage, uint_t interval );
 
 /// \brief Performs a round robin distribution to a subset of processes in parallel.
 ///
@@ -66,19 +63,18 @@ MigrationMap_T roundRobinInterval( PrimitiveStorage & storage, uint_t interval )
 /// \param interval     the distribution happens on every interval'th process, e.g. if interval == 24,
 ///                     the storage is distributed among rank 0, 24, 48, ...
 /// \param numProcesses number of processes that will obtain primitives
-MigrationMap_T roundRobinInterval( PrimitiveStorage & storage, uint_t interval, uint_t numProcesses );
+MigrationInfo roundRobinInterval( PrimitiveStorage & storage, uint_t interval, uint_t numProcesses );
 
-/// \brief Distributes a second PrimitiveStorage equal to another one.
+/// \brief Reverses the previous distribution previously performed by some load balancing algorithm.
 ///
-/// \param targetDistributionStorage this PrimitiveStorage specifies the desired distribution, it is not modified
+/// \param originalMigrationInfo the MigrationInfo that was calculated by the previous algorithm
 /// \param storageToRedistribute this PrimitiveStorage is redistributed
-MigrationMap_T copyDistribution( const PrimitiveStorage & targetDistributionStorage, PrimitiveStorage & storageToRedistribute );
+MigrationInfo reverseDistribution( const MigrationInfo & originalMigrationInfo, PrimitiveStorage& storageToRedistribute );
 
-/// \brief Same as copyDistribution but only creates mapping, does not perform any migration.
+/// \brief Same as reverseDistribution() but does not perform the actual migration.
 ///
-/// \param targetDistributionStorage this PrimitiveStorage specifies the desired distribution, it is not modified
-/// \param storageToRedistribute this PrimitiveStorage shall be redistributed, but is not modified in this function
-MigrationMap_T copyDistributionDry( const PrimitiveStorage & targetDistributionStorage, const PrimitiveStorage & storageToRedistribute );
+/// \param originalMigrationInfo the MigrationInfo that was calculated by the previous algorithm
+MigrationInfo reverseDistributionDry( const MigrationInfo & originalMigrationInfo );
 
 }
 }

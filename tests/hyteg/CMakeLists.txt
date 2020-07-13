@@ -539,6 +539,12 @@ if( WALBERLA_BUILD_WITH_PARMETIS )
   waLBerla_execute_test(NAME ParMetisTestHyteg8 COMMAND $<TARGET_FILE:ParMetisTestHyteg> PROCESSES 8 )
 endif()
 
+waLBerla_compile_test(FILES PackageBufferSystemTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME PackageBufferSystemTest1 COMMAND $<TARGET_FILE:PackageBufferSystemTest> )
+waLBerla_execute_test(NAME PackageBufferSystemTest2 COMMAND $<TARGET_FILE:PackageBufferSystemTest> PROCESSES 2 )
+waLBerla_execute_test(NAME PackageBufferSystemTest3 COMMAND $<TARGET_FILE:PackageBufferSystemTest> PROCESSES 3 )
+waLBerla_execute_test(NAME PackageBufferSystemTest4 COMMAND $<TARGET_FILE:PackageBufferSystemTest> PROCESSES 4 )
+
 waLBerla_compile_test(FILES MeshInfoTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME MeshInfoTest1 COMMAND $<TARGET_FILE:MeshInfoTest> )
 waLBerla_execute_test(NAME MeshInfoTest2 COMMAND $<TARGET_FILE:MeshInfoTest> PROCESSES 2 )
