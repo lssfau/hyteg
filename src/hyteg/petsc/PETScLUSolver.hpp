@@ -57,6 +57,14 @@ class PETScLUSolver : public Solver< OperatorType >
            numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
            "Amat",
            petscCommunicator_ )
+   , AmatUnsymmetric( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
+                      numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
+                      "AmatUnsymmetric",
+                      petscCommunicator_ )
+   , AmatTmp( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
+              numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
+              "AmatTmp",
+              petscCommunicator_ )
    , xVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "xVec", petscCommunicator_ )
    , bVec( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "bVec", petscCommunicator_ )
 #if 0
@@ -66,6 +74,7 @@ class PETScLUSolver : public Solver< OperatorType >
    , verbose_( false )
    , manualAssemblyAndFactorization_( false )
    , reassembleMatrix_( false )
+   , assumeSymmetry_( true )
    , solverType_( PETScDirectSolverType::MUMPS )
    {
       num.enumerate( level );
@@ -98,6 +107,9 @@ class PETScLUSolver : public Solver< OperatorType >
 
    void setVerbose( bool verbose ) { verbose_ = verbose; }
 
+   /// \brief If set to true, the symmetry of the operator is exploited by the solver.
+   void assumeSymmetry( bool assumeSymmetry ) { assumeSymmetry_ = assumeSymmetry; }
+
    /// \brief If set to true, no assembly and no factorization will happen during the solve() call.
    ///        For successful solution of the system, assembleAndFactorize() has to be called before
    ///        the first solve() and after each modification of the operator.
@@ -117,24 +129,47 @@ class PETScLUSolver : public Solver< OperatorType >
       bool matrixAssembledForTheFirstTime;
       if ( reassembleMatrix_ )
       {
-         Amat.zeroEntries();
-         Amat.createMatrixFromOperator( A, allocatedLevel_, num, All );
+         AmatUnsymmetric.zeroEntries();
+         AmatUnsymmetric.createMatrixFromOperator( A, allocatedLevel_, num, All );
          matrixAssembledForTheFirstTime = true;
       }
       else
       {
-         matrixAssembledForTheFirstTime = Amat.createMatrixFromOperatorOnce( A, allocatedLevel_, num, All );
+         matrixAssembledForTheFirstTime = AmatUnsymmetric.createMatrixFromOperatorOnce( A, allocatedLevel_, num, All );
       }
 
       storage_->getTimingTree()->stop( "Matrix assembly" );
 
       if ( matrixAssembledForTheFirstTime )
       {
-         Amat.applyDirichletBC( num, allocatedLevel_ );
+         Amat.zeroEntries();
+         Amat.createMatrixFromOperator( A, allocatedLevel_, num, All );
+         AmatTmp.zeroEntries();
+         AmatTmp.createMatrixFromOperator( A, allocatedLevel_, num, All );
+
+         MatCopy( AmatUnsymmetric.get(), Amat.get(), DIFFERENT_NONZERO_PATTERN );
+
+         if ( assumeSymmetry_ )
+         {
+            Amat.applyDirichletBCSymmetrically( num, allocatedLevel_ );
+         }
+         else
+         {
+            Amat.applyDirichletBC( num, allocatedLevel_ );
+         }
 
          KSPSetOperators( ksp, Amat.get(), Amat.get() );
          KSPGetPC( ksp, &pc );
-         PCSetType( pc, PCLU );
+
+         if ( assumeSymmetry_ )
+         {
+            PCSetType( pc, PCCHOLESKY );
+         }
+         else
+         {
+            PCSetType( pc, PCLU );
+         }
+
          MatSolverType petscSolverType;
          switch ( solverType_ )
          {
@@ -163,12 +198,6 @@ class PETScLUSolver : public Solver< OperatorType >
       storage_->getTimingTree()->start( "PETSc LU Solver" );
       storage_->getTimingTree()->start( "Setup" );
 
-      storage_->getTimingTree()->start( "RHS vector setup" );
-      b.assign( {1.0}, {x}, level, DirichletBoundary );
-
-      bVec.createVectorFromFunction( b, num, level, All );
-      storage_->getTimingTree()->stop( "RHS vector setup" );
-
       timer.start();
       if ( !manualAssemblyAndFactorization_ )
       {
@@ -176,6 +205,20 @@ class PETScLUSolver : public Solver< OperatorType >
       }
       timer.end();
       const double matrixAssemblyAndFactorizationTime = timer.last();
+
+      storage_->getTimingTree()->start( "RHS vector setup" );
+
+      b.assign( {1.0}, {x}, level, DirichletBoundary );
+      bVec.createVectorFromFunction( b, num, level, All );
+
+      if ( assumeSymmetry_ )
+      {
+         AmatTmp.zeroEntries();
+         MatCopy( AmatUnsymmetric.get(), AmatTmp.get(), DIFFERENT_NONZERO_PATTERN );
+         AmatTmp.applyDirichletBCSymmetrically( x, num, bVec, allocatedLevel_ );
+      }
+
+      storage_->getTimingTree()->stop( "RHS vector setup" );
 
       storage_->getTimingTree()->stop( "Setup" );
 
@@ -204,6 +247,8 @@ class PETScLUSolver : public Solver< OperatorType >
    MPI_Comm                                                                                      petscCommunicator_;
    typename OperatorType::srcType::template FunctionType< PetscInt >                             num;
    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               Amat;
+   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               AmatUnsymmetric;
+   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               AmatTmp;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > bVec;
 #if 0
@@ -217,6 +262,7 @@ class PETScLUSolver : public Solver< OperatorType >
    //Mat F; //factored Matrix
    bool                  manualAssemblyAndFactorization_;
    bool                  reassembleMatrix_;
+   bool                  assumeSymmetry_;
    PETScDirectSolverType solverType_;
 };
 
