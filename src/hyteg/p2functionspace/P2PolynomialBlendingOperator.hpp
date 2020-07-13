@@ -375,6 +375,7 @@ class P2PolynomialBlendingOperator : public Operator<P2Function<real_t>, P2Funct
 };
 
 typedef P2PolynomialBlendingOperator<P2Form_laplace, OperatorType::EVEN> P2PolynomialBlendingLaplaceOperator;
+typedef P2PolynomialBlendingOperator<P2Form_divKgrad, OperatorType::EVEN> P2PolynomialDivKgradOperator;
 typedef P2PolynomialBlendingOperator<P2Form_mass, OperatorType::MASS>    P2PolynomialBlendingMassOperator;
 
 } // namespace hyteg

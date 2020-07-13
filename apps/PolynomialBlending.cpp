@@ -278,8 +278,14 @@ void solveTmpl(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel,
       WALBERLA_LOG_INFO_ON_ROOT(walberla::format("%6d|%10.3e|%10.3e|%10.3e|%10.3e", iter, res, convRate, discr_l2_err, vCycleTime));
 
       // stopping criterion
-      if (++iter > max_outer_iter || res < mg_tolerance)
+      if (++iter > max_outer_iter || (iter > convergenceStartIter && convRate > 0.999))
       {
+        WALBERLA_LOG_INFO_ON_ROOT("Ending multigrid without reaching desired tolerance!");
+        break;
+      }
+      if (res < mg_tolerance)
+      {
+        WALBERLA_LOG_INFO_ON_ROOT("Multigrid converged!");
         break;
       }
 

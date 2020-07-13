@@ -32,6 +32,7 @@
 
 #include <hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp>
 #include <hyteg/forms/form_hyteg_manual/P2FormMass.hpp>
+#include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 
 #include <hyteg/communication/Syncing.hpp>
 #include <hyteg/types/pointnd.hpp>
@@ -169,6 +170,7 @@ class P2VariableOperator : public Operator<P2Function<real_t>, P2Function<real_t
    }
 };
 typedef P2VariableOperator<P2Form_laplace> P2BlendingLaplaceOperator;
+typedef P2VariableOperator<P2Form_divKgrad> P2divKgradOperator;
 typedef P2VariableOperator<P2Form_mass>    P2BlendingMassOperator;
 
 } // namespace hyteg
