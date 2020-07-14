@@ -9,7 +9,8 @@ def supermuc_scaling_prm_file_string(discretization="P2", mesh_spherical_shell=F
                                      db_file="database.db", coarse_grid_tol=1e-10,
                                      coarse_grid_solver_type=1, coarse_grid_preconditioner_type=1,
                                      agglomeration=False, agglomeration_strategy='bulk',
-                                     agglomeration_num_processes=4, agglomeration_interval=48):
+                                     agglomeration_num_processes=4, agglomeration_interval=48,
+                                     block_low_rank=False, block_low_rank_tolerance=1e-3):
 
     base_config = """
 Parameters
@@ -68,6 +69,10 @@ Parameters
     // 3: HYPRE
     coarseGridSolverVelocityPreconditionerType {coarse_grid_preconditioner_type};
 
+    // BLR options for MUMPS
+    blockLowRank {block_low_rank};
+    blockLowRankTolerance {block_low_rank_tolerance};
+
     agglomeration {agglomeration};
     agglomerationStrategy {agglomeration_strategy};   // dedicated, bulk, or interval
     agglomerationNumProcesses {agglomeration_num_processes};
@@ -96,7 +101,8 @@ Parameters
            coarse_grid_tol=coarse_grid_tol, coarse_grid_solver_type=coarse_grid_solver_type,
            coarse_grid_preconditioner_type=coarse_grid_preconditioner_type,
            agglomeration=agglomeration, agglomeration_strategy=agglomeration_strategy,
-           agglomeration_num_processes=agglomeration_num_processes, agglomeration_interval=agglomeration_interval)
+           agglomeration_num_processes=agglomeration_num_processes, agglomeration_interval=agglomeration_interval,
+           block_low_rank=block_low_rank, block_low_rank_tolerance=block_low_rank_tolerance)
     return base_config
 
 
@@ -272,6 +278,12 @@ def supermuc_scaling():
         (4, 0): "SuperLU"
     }
 
+    blr_settings = {
+        0: [(False, 0), (True, 1e-3), (True, 1e-5)],
+        1: [(False, 0)],
+        4: [(False, 0)],
+    }
+
     agglomeration_parameters = [
         {"agglomeration": False},
         {"agglomeration": True, "agglomeration_strategy": "bulk", "agglomeration_num_processes": 48},
@@ -283,6 +295,9 @@ def supermuc_scaling():
         {"agglomeration": True, "agglomeration_strategy": "bulk", "agglomeration_num_processes": 192},
         {"agglomeration": True, "agglomeration_strategy": "interval", "agglomeration_num_processes": 192},
         {"agglomeration": True, "agglomeration_strategy": "dedicated", "agglomeration_num_processes": 192},
+        {"agglomeration": True, "agglomeration_strategy": "bulk", "agglomeration_num_processes": 384},
+        {"agglomeration": True, "agglomeration_strategy": "interval", "agglomeration_num_processes": 384},
+        {"agglomeration": True, "agglomeration_strategy": "dedicated", "agglomeration_num_processes": 384},
     ]
 
     for discretization in ["P2"]:
@@ -290,49 +305,56 @@ def supermuc_scaling():
             for coarse_grid_tol in [1e-12]:
                 for coarse_grid_solver_type, coarse_grid_preconditioner_type in coarse_grid_solver_string.keys():
                     for agglomeration_parameter_set in agglomeration_parameters:
-                        if "weak_large" in scaling_type:
-                            ppn = 24
-                        else:
-                            ppn = 48
+                        for blr, blr_tol in blr_settings[coarse_grid_solver_type]:
+                            if "weak_large" in scaling_type:
+                                ppn = 24
+                            else:
+                                ppn = 48
 
-                        base_config = cube_base_config_fmg[scaling_type][discretization]
-                        base_config["coarse_grid_tol"] = coarse_grid_tol
-                        base_config["coarse_grid_solver_type"] = coarse_grid_solver_type
-                        base_config["coarse_grid_preconditioner_type"] = coarse_grid_preconditioner_type
-                        base_config.update(agglomeration_parameter_set)
-                        agglomeration_string = "agg_" + (agglomeration_parameter_set["agglomeration_strategy"] + \
-                                                         str(agglomeration_parameter_set["agglomeration_num_processes"]) if agglomeration_parameter_set["agglomeration"] else "none")
-                        node_dep_parameters = node_dep_parameters_cube[scaling_type]
+                            base_config = cube_base_config_fmg[scaling_type][discretization]
+                            base_config["coarse_grid_tol"] = coarse_grid_tol
+                            base_config["coarse_grid_solver_type"] = coarse_grid_solver_type
+                            base_config["coarse_grid_preconditioner_type"] = coarse_grid_preconditioner_type
+                            base_config["block_low_rank"] = blr
+                            base_config["block_low_rank_tolerance"] = blr_tol
+                            base_config.update(agglomeration_parameter_set)
+                            agglomeration_string = "agg_" + (agglomeration_parameter_set["agglomeration_strategy"] + \
+                                                             str(agglomeration_parameter_set["agglomeration_num_processes"]) if agglomeration_parameter_set["agglomeration"] else "none")
+                            node_dep_parameters = node_dep_parameters_cube[scaling_type]
 
-                        for num_nodes, prms in node_dep_parameters.items():
-                            # some_id = str(uuid4())
+                            blr_string = ""
+                            if coarse_grid_solver_type == 0:
+                                blr_string = "_BLR_{:.2e}".format(blr_tol)
 
-                            job_name = "mg_studies_{}_{}_cgstype_{}_cgtol_{:.2e}_{}nodes_{}_{}".format(
-                                scaling_type, discretization, coarse_grid_solver_string[(coarse_grid_solver_type, coarse_grid_preconditioner_type)],
-                                coarse_grid_tol, num_nodes, agglomeration_string, some_id)
-                            prm_file_name = job_name + ".prm"
-                            job_file_name = job_name + ".job"
+                            for num_nodes, prms in node_dep_parameters.items():
+                                # some_id = str(uuid4())
 
-                            timing_file = job_name + ".json"
-                            agglomeration_timing_file = job_name + "_agglomeration.json"
-                            db_file = job_name + ".db"
+                                job_name = "mg_studies_{}_{}_cgstype_{}_cgtol_{:.2e}_{}nodes_{}_{}".format(
+                                    scaling_type, discretization, coarse_grid_solver_string[(coarse_grid_solver_type, coarse_grid_preconditioner_type)] + blr_string,
+                                    coarse_grid_tol, num_nodes, agglomeration_string, some_id)
+                                prm_file_name = job_name + ".prm"
+                                job_file_name = job_name + ".job"
 
-                            prm_string_prm_dict = {}
-                            prm_string_prm_dict.update(base_config)
-                            prm_string_prm_dict.update(prms)
-                            prm_string_prm_dict["timing_file"] = timing_file
-                            prm_string_prm_dict["agglomeration_timing_file"] = agglomeration_timing_file
-                            prm_string_prm_dict["db_file"] = db_file
+                                timing_file = job_name + ".json"
+                                agglomeration_timing_file = job_name + "_agglomeration.json"
+                                db_file = job_name + ".db"
 
-                            prm_string = supermuc_scaling_prm_file_string(**prm_string_prm_dict)
-                            job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="0:30:00",
-                                                                  num_nodes=num_nodes, prm_file=prm_file_name, ppn=ppn, petsc_detail=True,
-                                                                  script_dir=some_id)
+                                prm_string_prm_dict = {}
+                                prm_string_prm_dict.update(base_config)
+                                prm_string_prm_dict.update(prms)
+                                prm_string_prm_dict["timing_file"] = timing_file
+                                prm_string_prm_dict["agglomeration_timing_file"] = agglomeration_timing_file
+                                prm_string_prm_dict["db_file"] = db_file
 
-                            with open(os.path.join(some_id, prm_file_name), "w") as f:
-                                f.write(prm_string)
-                            with open(os.path.join(some_id, job_file_name), "w") as f:
-                                f.write(job_string)
+                                prm_string = supermuc_scaling_prm_file_string(**prm_string_prm_dict)
+                                job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="0:30:00",
+                                                                      num_nodes=num_nodes, prm_file=prm_file_name, ppn=ppn, petsc_detail=True,
+                                                                      script_dir=some_id)
+
+                                with open(os.path.join(some_id, prm_file_name), "w") as f:
+                                    f.write(prm_string)
+                                with open(os.path.join(some_id, job_file_name), "w") as f:
+                                    f.write(job_string)
 
 if __name__ == "__main__":
     supermuc_scaling()
