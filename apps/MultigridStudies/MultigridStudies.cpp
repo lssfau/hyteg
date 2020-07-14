@@ -803,6 +803,10 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    walberla::WcTimer timer;
 
    WALBERLA_UNUSED( sqlStringProperties );
+#ifndef HYTEG_BUILD_WITH_PETSC
+   WALBERLA_UNUSED( blockLowRank );
+   WALBERLA_UNUSED( blockLowRankTolerance );
+#endif
 
    if ( cyclesBeforeDC > 0 )
    {
