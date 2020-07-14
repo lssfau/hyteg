@@ -122,6 +122,9 @@ class PETScLUSolver : public Solver< OperatorType >
    ///        Default is false.
    void reassembleMatrix( bool reassembleMatrix ) { reassembleMatrix_ = reassembleMatrix; }
 
+   void setMUMPSIcntrl( uint_t key, uint_t value ) { mumpsIcntrl_[key] = value; }
+   void setMUMPSCntrl( uint_t key, real_t value ) { mumpsCntrl_[key] = value; }
+
    void assembleAndFactorize( const OperatorType& A )
    {
       storage_->getTimingTree()->start( "Matrix assembly" );
@@ -183,6 +186,20 @@ class PETScLUSolver : public Solver< OperatorType >
             WALBERLA_ABORT( "Invalid PETSc solver type." )
          }
          HYTEG_PCFactorSetMatSolverType( pc, petscSolverType );
+
+         if ( solverType_ == PETScDirectSolverType::MUMPS )
+         {
+            PCFactorSetUpMatSolverType( pc );
+            PCFactorGetMatrix( pc, &F );
+            for ( auto it : mumpsIcntrl_ )
+            {
+               MatMumpsSetIcntl( F, it.first, it.second );
+            }
+            for ( auto it : mumpsCntrl_ )
+            {
+               MatMumpsSetCntl( F, it.first, it.second );
+            }
+         }
          storage_->getTimingTree()->start( "Factorization" );
          PCSetUp( pc );
          storage_->getTimingTree()->stop( "Factorization" );
@@ -255,15 +272,17 @@ class PETScLUSolver : public Solver< OperatorType >
   PETScVector<typename FunctionType::valueType, OperatorType::srcType::template FunctionType> inKernel;
 #endif
 
-   KSP            ksp;
-   PC             pc;
-   hyteg::DoFType flag_;
-   bool           verbose_;
-   //Mat F; //factored Matrix
-   bool                  manualAssemblyAndFactorization_;
-   bool                  reassembleMatrix_;
-   bool                  assumeSymmetry_;
-   PETScDirectSolverType solverType_;
+   KSP                        ksp;
+   PC                         pc;
+   hyteg::DoFType             flag_;
+   bool                       verbose_;
+   Mat                        F; //factored Matrix
+   bool                       manualAssemblyAndFactorization_;
+   bool                       reassembleMatrix_;
+   bool                       assumeSymmetry_;
+   PETScDirectSolverType      solverType_;
+   std::map< uint_t, uint_t > mumpsIcntrl_;
+   std::map< uint_t, real_t > mumpsCntrl_;
 };
 
 } // namespace hyteg

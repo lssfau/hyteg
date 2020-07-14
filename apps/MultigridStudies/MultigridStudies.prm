@@ -13,7 +13,7 @@ Parameters
 
     meshLayout CRISSCROSS;
     symmetricCuboidMesh true;
-    numCycles 5;
+    numCycles 0;
     cycleType V;
     fmgInnerCycles 0; // 0 == no fmg
 
@@ -32,8 +32,8 @@ Parameters
     preSmoothingSteps 3;
     postSmoothingSteps 3;
     smoothingIncrement 2;
-    minLevel 2;
-    maxLevel 6; // P1 level, P2 level is automatically reduced by 1
+    minLevel 3;
+    maxLevel 5; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-16;
     projectPressureAfterRestriction true;
@@ -55,7 +55,11 @@ Parameters
     // 3: HYPRE
     coarseGridSolverVelocityPreconditionerType 3;
 
-    agglomeration true;
+    // BLR options for MUMPS
+    blockLowRank false;
+    blockLowRankTolerance 1e-3;
+
+    agglomeration false;
     agglomerationStrategy dedicated;   // dedicated, bulk, or interval
     agglomerationNumProcesses 3;
     agglomerationInterval 3;

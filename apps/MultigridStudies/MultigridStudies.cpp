@@ -781,6 +781,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
                       const real_t&                                        coarseResidualTolerance,
                       const uint_t&                                        coarseGridSolverType,
                       const uint_t&                                        coarseGridSolverVelocityPreconditionerType,
+                      const bool&                                          blockLowRank,
+                      const real_t&                                        blockLowRankTolerance,
                       const bool&                                          agglomeration,
                       const std::string&                                   agglomerationStrategy,
                       const uint_t&                                        agglomerationNumProcesses,
@@ -822,11 +824,11 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
           uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - finalNumAgglomerationProcesses;
       const auto minRank = finalNumAgglomerationProcesses;
       const auto maxRank = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - 1;
-      WALBERLA_LOG_INFO_ON_ROOT( "Performing primitive re-distribution to " << numRemainingProcesses << " processes  (ranks " << minRank << " .. " << maxRank << ") ..." )
+      WALBERLA_LOG_INFO_ON_ROOT( "Performing primitive re-distribution to " << numRemainingProcesses << " processes  (ranks "
+                                                                            << minRank << " .. " << maxRank << ") ..." )
       loadbalancing::distributed::roundRobin( *storage, minRank, maxRank );
       WALBERLA_LOG_INFO_ON_ROOT( "Done." )
       WALBERLA_LOG_INFO_ON_ROOT( "" )
-
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "Allocating functions ..." );
@@ -1066,7 +1068,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
          const auto minProcess = 0;
          const auto maxProcess = finalNumAgglomerationProcesses - 1;
          WALBERLA_LOG_INFO_ON_ROOT( "Re-distribution of agglomeration primitive storage to ranks " << minProcess << " - "
-                                                                                                    << maxProcess << " ..." )
+                                                                                                   << maxProcess << " ..." )
          agglomerationWrapper->setStrategyContinuousProcesses( minProcess, maxProcess );
 
          WALBERLA_LOG_INFO_ON_ROOT( "Primitive distribution due to dedicated agglomeration:" )
@@ -1116,6 +1118,13 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
       auto petscSolverInternalTmp =
           std::make_shared< PETScLUSolver< StokesOperator > >( coarseGridSolverStorage, coarseGridMaxLevel );
+
+      if ( blockLowRank )
+      {
+         petscSolverInternalTmp->setMUMPSIcntrl( 35, 1 );                   // activate BLR
+         petscSolverInternalTmp->setMUMPSCntrl( 7, blockLowRankTolerance ); // BLR tolerance
+      }
+
       petscSolverInternalTmp->setVerbose( true );
       petscSolverInternalTmp->setDirectSolverType( solverType );
       if ( agglomeration && dedicatedAgglomeration && isAgglomerationProcess )
@@ -1548,6 +1557,9 @@ void setup( int argc, char** argv )
    const uint_t      coarseGridSolverType            = mainConf.getParameter< uint_t >( "coarseGridSolverType" );
    const uint_t      coarseGridSolverVelocityPreconditionerType =
        mainConf.getParameter< uint_t >( "coarseGridSolverVelocityPreconditionerType" );
+   const bool   blockLowRank          = mainConf.getParameter< bool >( "blockLowRank" );
+   const real_t blockLowRankTolerance = mainConf.getParameter< real_t >( "blockLowRankTolerance" );
+
    const bool        agglomeration             = mainConf.getParameter< bool >( "agglomeration" );
    const std::string agglomerationStrategy     = mainConf.getParameter< std::string >( "agglomerationStrategy" );
    const uint_t      agglomerationNumProcesses = mainConf.getParameter< uint_t >( "agglomerationNumProcesses" );
@@ -1627,6 +1639,8 @@ void setup( int argc, char** argv )
 
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid solver type (stokes only):   " << coarseGridSolverType );
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid u prec. type (stokes only):  " << coarseGridSolverVelocityPreconditionerType );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - BLR:                                     " << ( blockLowRank ? "enabled" : "disabled" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - BLR tolerance:                           " << blockLowRankTolerance );
    WALBERLA_LOG_INFO_ON_ROOT( "  - agglomeration:                           " << ( agglomeration ? "yes" : "no" ) );
    if ( agglomeration )
    {
@@ -1943,6 +1957,8 @@ void setup( int argc, char** argv )
                                                                 coarseGridResidualTolerance,
                                                                 coarseGridSolverType,
                                                                 coarseGridSolverVelocityPreconditionerType,
+                                                                blockLowRank,
+                                                                blockLowRankTolerance,
                                                                 agglomeration,
                                                                 agglomerationStrategy,
                                                                 agglomerationNumProcesses,
@@ -1991,6 +2007,8 @@ void setup( int argc, char** argv )
                                                                 coarseGridResidualTolerance,
                                                                 coarseGridSolverType,
                                                                 coarseGridSolverVelocityPreconditionerType,
+                                                                blockLowRank,
+                                                                blockLowRankTolerance,
                                                                 agglomeration,
                                                                 agglomerationStrategy,
                                                                 agglomerationNumProcesses,
