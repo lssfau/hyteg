@@ -137,6 +137,8 @@ class AgglomerationWrapper : public Solver< OperatorType >
 
       const bool emptyProcess = agglomerationStorage_->getNumberOfLocalPrimitives() == 0;
 
+      WALBERLA_MPI_BARRIER();
+
       b_agglomeration_->copyFrom(
           b, level, migrationInfoToOriginalStorage_.getMap(), migrationInfoToAgglomerationStorage_.getMap() );
       x_agglomeration_->copyFrom(
