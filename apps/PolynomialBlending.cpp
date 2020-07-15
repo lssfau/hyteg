@@ -206,12 +206,7 @@ void solveTmpl(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel,
   typename FE::Function Lu("Lu", storage, minLevel, maxLevel);
   typename FE::Function u_exact("u_exact", storage, minLevel, maxLevel);
   typename FE::Function err("err", storage, minLevel, maxLevel);
-  typename FE::Function ones("ones", storage, minLevel, maxLevel);
   typename FE::Function tmp("tmp", storage, minLevel, maxLevel);
-
-  // helper for discrete L2 norm
-  ones.interpolate([](const hyteg::Point3D&) {return 1.0;}, maxLevel);
-  real_t npoints = ones.dotGlobal(ones, maxLevel);
 
   // rhs
   typename FE::Mass M(storage, minLevel, maxLevel);
@@ -232,7 +227,7 @@ void solveTmpl(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel,
   auto restrictionOperator = std::make_shared<typename FE::Restriction>();
   auto prolongationOperator = std::make_shared<typename FE::Prolongation>();
   auto smoother = std::make_shared<hyteg::GaussSeidelSmoother<typename FE::Laplace>>();
-  GeometricMultigridSolver<typename FE::Laplace> GMGSolver(storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2);
+  GeometricMultigridSolver<typename FE::Laplace> GMGSolver(storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 3, 3);
 
   // solve for each polynomial degree
   for (uint_t polyDegree = minPolyDegree; polyDegree <= maxPolyDegree; ++polyDegree)
@@ -260,13 +255,15 @@ void solveTmpl(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel,
     {
       // compute error
       err.assign({1.0, -1.0}, {u, u_exact}, maxLevel);
-      discr_l2_err = std::sqrt(err.dotGlobal(err, maxLevel) / npoints);
+      M.apply(err, tmp, maxLevel, hyteg::All, Replace);
+      discr_l2_err = std::sqrt(err.dotGlobal(tmp, maxLevel));
 
       // compute residual
       res_old = res;
-      L->apply(u, Lu, maxLevel, hyteg::Inner);
+      L->apply(u, Lu, maxLevel, hyteg::Inner, Replace);
       r.assign({1.0, -1.0}, {f, Lu}, maxLevel, hyteg::Inner);
-      res = std::sqrt(r.dotGlobal(r, maxLevel, hyteg::Inner));
+      M.apply(r, tmp, maxLevel, hyteg::All, Replace);
+      res = std::sqrt(r.dotGlobal(tmp, maxLevel, hyteg::Inner));
 
       // compute convergence rate
       real_t convRate = res / res_old;
