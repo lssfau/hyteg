@@ -465,10 +465,8 @@ int main(int argc, char* argv[])
   hyteg::loadbalancing::roundRobin(setupStorage);
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
-  size_t N = storage->getFaces().size();
-  WALBERLA_LOG_INFO_ON_ROOT("Number of Macrofaces:" << N);
+  WALBERLA_LOG_INFO_ON_ROOT(storage->getGlobalInfo());
   WALBERLA_LOG_INFO_ON_ROOT("Refinement levels: " << minLevel << "->" << maxLevel);
-  WALBERLA_LOG_INFO_ON_ROOT("Number of Microfaces:" << N * (1 << (2*maxLevel)));
 
   // choose FE space
   switch (elType)
