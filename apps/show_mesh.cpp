@@ -50,6 +50,7 @@ void showUsage()
              << " 5) by meshing a thick spherical shell (w/ or w/o blending)\n"
              << " 6) by meshing a rectangular cuboid\n\n"
              << " 7) by meshing a symmetric rectangular cuboid\n\n"
+             << " 8) by meshing a T-domain using the cubed domain generator\n\n"
              << " This is steered by choosing one of the options below:\n\n"
              << "  --file <name of Gmsh file>\n"
              << "  --rect [criss|cross|crisscross|diamond]\n"
@@ -58,7 +59,8 @@ void showUsage()
              << "  --spherical-shell [ntan]\n"
              << "  --blended-spherical-shell [ntan]\n"
              << "  --cuboid [nHint]\n"
-             << "  --symm-cuboid [nSubCubes]\n\n"
+             << "  --symm-cuboid [nSubCubes]\n"
+             << "  --t-domain [nCubesInEachDirection]\n\n"
              << " The generated base mesh will be tested be doing two levels of refinement.\n"
              << " Then it will be exported to a VTU file for visualisation.\n\n"
              << " Also visualization of the domain partitioning, mesh boundary flags and MPI rank assignment will be output.\n"
@@ -81,7 +83,8 @@ int main( int argc, char* argv[] )
       FACE_CHAIN,
       SPHERICAL_SHELL,
       CUBOID,
-      SYMM_CUBOID
+      SYMM_CUBOID,
+      T_DOMAIN
    } meshDomainType;
    meshDomainType        meshDomain;
    MeshInfo::meshFlavour rectMeshType = MeshInfo::CROSS;
@@ -178,6 +181,11 @@ int main( int argc, char* argv[] )
      nHint       = uint_c( std::stoi( argv[2] ) );
      meshDomain  = SYMM_CUBOID;
      vtkFileName = std::string( "symmCuboidMesh" );
+   } else if( strcmp( argv[1], "--t-domain" ) == 0 )
+   {
+      nHint       = uint_c( std::stoi( argv[2] ) );
+      meshDomain  = T_DOMAIN;
+      vtkFileName = std::string( "tDomain" );
    } else
    {
       WALBERLA_ABORT( "Could not understand command-line args!" );
@@ -257,7 +265,19 @@ int main( int argc, char* argv[] )
                                                               Point3D( {  1.0,  1.0,  1.0 } ),
                                                               nHint, nHint, nHint ) );
       break;
-
+     case T_DOMAIN:
+     {
+        std::vector< std::array< int, 3 > > cubes;
+        cubes.push_back( {0, 0, 0} );
+        for ( int i = 0; i <= walberla::int_c( nHint ); i++ )
+        {
+           cubes.push_back( {-i, 0, 0} );
+           cubes.push_back( {0, i, 0} );
+           cubes.push_back( {0, -i, 0} );
+        }
+        meshInfo = new MeshInfo( MeshInfo::meshCubedDomain( cubes ) );
+        break;
+     }
    }
 
    // ----------------

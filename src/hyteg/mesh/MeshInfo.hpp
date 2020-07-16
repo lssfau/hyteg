@@ -433,7 +433,13 @@ public:
   static MeshInfo meshSymmetricCuboid( const Point3D lowerLeftFront, const Point3D upperRightBack,
                                        uint_t numCubesX, uint_t numCubesY, uint_t numCubesZ );
 
-  /// Returns vertices of the mesh
+  /// Constructs a cubed domain from a list of cube "coordinates".
+  ///
+  /// \param cubeCoordinates contains the x, y, and z coordinates of all cubes that shall be meshed
+  static MeshInfo meshCubedDomain( const std::vector< std::array< int, 3 > >& cubeCoordinates );
+
+
+   /// Returns vertices of the mesh
   const VertexContainer & getVertices() const { return vertices_; };
 
   /// Returns edges of the mesh
