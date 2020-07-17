@@ -48,17 +48,13 @@ MeshInfo MeshInfo::meshCubedDomain( const std::vector< std::array< int, 3 > >& c
 
    int xMax = std::numeric_limits< int >::min();
    int yMax = std::numeric_limits< int >::min();
-   int zMax = std::numeric_limits< int >::min();
    int xMin = std::numeric_limits< int >::max();
    int yMin = std::numeric_limits< int >::max();
    int zMin = std::numeric_limits< int >::max();
    for ( const auto& it : cubeCoordinates )
    {
-      WALBERLA_LOG_INFO( "contains cube: " << it.at(0) << ", " << it.at(1) << ", " << it.at(2) );
-
       xMax = std::max( it.at( 0 ), xMax );
       yMax = std::max( it.at( 1 ), yMax );
-      zMax = std::max( it.at( 2 ), zMax );
       xMin = std::min( it.at( 0 ), xMin );
       yMin = std::min( it.at( 1 ), yMin );
       zMin = std::min( it.at( 2 ), zMin );
@@ -67,20 +63,12 @@ MeshInfo MeshInfo::meshCubedDomain( const std::vector< std::array< int, 3 > >& c
    // increment since we need largest "outer" vertices of cubes
    xMax++;
    yMax++;
-   zMax++;
 
    WALBERLA_ASSERT_GREATER_EQUAL( xMax - xMin, 0 );
    WALBERLA_ASSERT_GREATER_EQUAL( yMax - yMin, 0 );
-   WALBERLA_ASSERT_GREATER_EQUAL( zMax - zMin, 0 );
 
    const uint_t nx = uint_c( xMax - xMin ) + 1;
    const uint_t ny = uint_c( yMax - yMin ) + 1;
-
-   WALBERLA_LOG_INFO( "nx " << nx );
-   WALBERLA_LOG_INFO( "ny " << ny );
-   WALBERLA_LOG_INFO( "xMin " << xMin );
-   WALBERLA_LOG_INFO( "yMin " << yMin );
-   WALBERLA_LOG_INFO( "zMin " << zMin );
 
    // compute vertices and insert them
    for ( const auto& it : cubeCoordinates )
@@ -93,8 +81,6 @@ MeshInfo MeshInfo::meshCubedDomain( const std::vector< std::array< int, 3 > >& c
             for ( int zInc = 0; zInc <= 1; zInc++ )
             {
                const auto vertexID = calculateVertexID( x + xInc, y + yInc, z + zInc, xMin, yMin, zMin, nx, ny );
-               WALBERLA_LOG_INFO( "trying to insert vertex: " << x + xInc << ", " << y + yInc << ", " << z + zInc << "  ... id  " << vertexID );
-
 
                if ( meshInfo.vertices_.count( vertexID ) == 0 )
                {
@@ -103,14 +89,9 @@ MeshInfo MeshInfo::meshCubedDomain( const std::vector< std::array< int, 3 > >& c
                   const auto zPos              = static_cast< real_t >( z + zInc ) * cubeSideLength;
                   const Point3D vertexCoords( {xPos, yPos, zPos} );
                   meshInfo.vertices_[vertexID] = MeshInfo::Vertex( vertexID, vertexCoords, 0 );
-
-                  WALBERLA_LOG_INFO( "v( " << vertexCoords << " ) inserted (id " << vertexID << ")" );
                }
             }
    }
-
-   WALBERLA_LOG_INFO( "all vertices inserted" );
-
 
    // mapping of tetrahedron to vertices of local cell (this is standard
    // hexahedron numbering)
