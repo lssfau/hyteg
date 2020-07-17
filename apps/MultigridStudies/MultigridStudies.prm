@@ -1,18 +1,60 @@
 Parameters
 {
     equation stokes;
-    dim 3;
-    numFacesPerSide 1;
-    discretization P2;
 
-    meshSphericalShell false;
+    // meshes
+    // dim == 2:
+    //  square:        square
+    // dim == 3:
+    //  symmetricCube:  symmetric cube with 24 tets
+    //  cube:           cube with 6 tets
+    //  sphericalShell: spherical shell
+    //  tDomain:        T-shaped domain
+    meshType tDomain;
+
+    // parameters for square
+    meshLayout CRISSCROSS;
+
+    // parameters for symmetric cube and cube
+    numEdgesPerSide 1;
+
+    // parameters for spherical shell
     shellNTan 3;
     shellNRad 2;
     shellRMin 0.5;
     shellRMax 1.0;
 
-    meshLayout CRISSCROSS;
-    symmetricCuboidMesh true;
+    // parameters for T-domain
+    //
+    // top down view
+    //
+    //       out
+    //       #
+    // in    #     diam   = 1
+    // #######     height = 6 // height minus junction
+    //       #     width  = 2 // one sided distance from junction
+    //       #
+    //       out
+    //
+    //     out
+    //     ##
+    //     ##
+    // in  ##     diam   = 2
+    // ######     height = 4 // height minus junction
+    // ######     width  = 3 // one sided distance from junction
+    //     ##
+    //     ##
+    //     ##
+    //     out
+    //
+    // height == width == 0 gives only junction with specified diameter (cube w/ diam^3 cubes)
+    //
+    tDomainDiameter 1; // number of cubes in "diameter", > 0 please
+    tDomainHeight   6;
+    tDomainWidth    2;
+
+    discretization P2;
+
     numCycles 0;
     cycleType V;
     fmgInnerCycles 0; // 0 == no fmg
@@ -33,10 +75,10 @@ Parameters
     postSmoothingSteps 3;
     smoothingIncrement 2;
     minLevel 3;
-    maxLevel 5; // P1 level, P2 level is automatically reduced by 1
+    maxLevel 4; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-16;
-    projectPressureAfterRestriction true;
+    projectPressureAfterRestriction false;
     calculateDiscretizationError false;
     coarseGridMaxIterations 20000;
     coarseGridResidualTolerance 1e-04;
@@ -53,14 +95,14 @@ Parameters
     // 1: PCJACOBI
     // 2: Schur complement
     // 3: HYPRE
-    coarseGridSolverVelocityPreconditionerType 3;
+    coarseGridSolverVelocityPreconditionerType 1;
 
     // BLR options for MUMPS
     blockLowRank false;
     blockLowRankTolerance 1e-3;
 
     agglomeration false;
-    agglomerationStrategy dedicated;   // dedicated, bulk, or interval
+    agglomerationStrategy bulk;   // dedicated, bulk, or interval
     agglomerationNumProcesses 3;
     agglomerationInterval 3;
 
@@ -70,7 +112,7 @@ Parameters
     postDCSmoothingIncrement 2;
 
     outputBaseDirectory .;
-    outputVTK false;
+    outputVTK true;
     outputTiming false;
     outputTimingJSON true;
     outputTimingJSONFile timing.json;
