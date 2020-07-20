@@ -267,15 +267,15 @@ int main( int argc, char* argv[] )
       break;
      case T_DOMAIN:
      {
-        std::vector< std::array< int, 3 > > cubes;
-        cubes.push_back( {0, 0, 0} );
+        std::set< std::array< int, 3 > > cubes;
+        cubes.insert( {0, 0, 0} );
         for ( int i = 0; i <= walberla::int_c( nHint ); i++ )
         {
-           cubes.push_back( {-i, 0, 0} );
-           cubes.push_back( {0, i, 0} );
-           cubes.push_back( {0, -i, 0} );
+           cubes.insert( {-i, 0, 0} );
+           cubes.insert( {0, i, 0} );
+           cubes.insert( {0, -i, 0} );
         }
-        meshInfo = new MeshInfo( MeshInfo::meshCubedDomain( cubes ) );
+        meshInfo = new MeshInfo( MeshInfo::meshCubedDomain( cubes, 1 ) );
         break;
      }
    }

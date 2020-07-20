@@ -436,8 +436,8 @@ public:
   /// Constructs a cubed domain from a list of cube "coordinates".
   ///
   /// \param cubeCoordinates contains the x, y, and z coordinates of all cubes that shall be meshed
-  static MeshInfo meshCubedDomain( const std::vector< std::array< int, 3 > >& cubeCoordinates );
-
+  /// \param cubeType 0: "smallest" possible cubes with 6 tetrahedrons, 1: 24 tets per cube, has inner edges at all vertices
+  static MeshInfo meshCubedDomain( const std::set< std::array< int, 3 > >& cubeCoordinates, int cubeType = 0 );
 
    /// Returns vertices of the mesh
   const VertexContainer & getVertices() const { return vertices_; };
