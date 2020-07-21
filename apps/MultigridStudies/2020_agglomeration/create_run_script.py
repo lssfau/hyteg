@@ -10,25 +10,65 @@ def supermuc_scaling_prm_file_string(discretization="P2", mesh_spherical_shell=F
                                      coarse_grid_solver_type=1, coarse_grid_preconditioner_type=1,
                                      agglomeration=False, agglomeration_strategy='bulk',
                                      agglomeration_num_processes=4, agglomeration_interval=48,
-                                     block_low_rank=False, block_low_rank_tolerance=1e-3):
+                                     block_low_rank=False, block_low_rank_tolerance=1e-3,
+                                     mesh_type='symmetricCube', t_domain_diameter=2, t_domain_height=100, t_domain_width=25):
 
     base_config = """
 Parameters
 {{
     equation stokes;
-    dim 3;
-    numFacesPerSide {num_faces_per_side};
+    
+    // meshes
+    // dim == 2:
+    //  square:        square
+    // dim == 3:
+    //  symmetricCube:  symmetric cube with 24 tets
+    //  cube:           cube with 6 tets
+    //  sphericalShell: spherical shell
+    //  tDomain:        T-shaped domain
+    meshType {mesh_type};
+
+    
+    numEdgesPerSide {num_faces_per_side};
     discretization {discretization};
 
     // number of tets = 60 * (ntan-1) * (ntan-1) * (nrad-1)
-    meshSphericalShell {mesh_spherical_shell};
     shellNTan {ntan};
     shellNRad {nrad};
     shellRMin 0.55;
     shellRMax 1.0;
+    
+    // parameters for T-domain
+    //
+    // top down view
+    //
+    //       out
+    //       #
+    // in    #     diam   = 1
+    // #######     height = 6 // height minus junction
+    //       #     width  = 2 // one sided distance from junction
+    //       #
+    //       out
+    //
+    //     out
+    //     ##
+    //     ##
+    // in  ##     diam   = 2
+    // ######     height = 4 // height minus junction
+    // ######     width  = 3 // one sided distance from junction
+    //     ##
+    //     ##
+    //     ##
+    //     out
+    //
+    // height == width == 0 gives only junction with specified diameter (cube w/ diam^3 cubes)
+    //
+    tDomainDiameter {t_domain_diameter}; // number of cubes in "diameter", > 0 please
+    tDomainHeight   {t_domain_height};
+    tDomainWidth    {t_domain_width};
 
     meshLayout CRISSCROSS;
-    symmetricCuboidMesh true;
+    
     numCycles {num_cycles};
     cycleType V;
     fmgInnerCycles {fmg_r}; // 0 == no fmg
@@ -102,7 +142,8 @@ Parameters
            coarse_grid_preconditioner_type=coarse_grid_preconditioner_type,
            agglomeration=agglomeration, agglomeration_strategy=agglomeration_strategy,
            agglomeration_num_processes=agglomeration_num_processes, agglomeration_interval=agglomeration_interval,
-           block_low_rank=block_low_rank, block_low_rank_tolerance=block_low_rank_tolerance)
+           block_low_rank=block_low_rank, block_low_rank_tolerance=block_low_rank_tolerance,
+           mesh_type=mesh_type, t_domain_diameter=t_domain_diameter, t_domain_height=t_domain_height, t_domain_width=t_domain_width)
     return base_config
 
 
@@ -205,6 +246,7 @@ def supermuc_scaling():
     cube_base_config_fmg["weak_large_3072_27fps"] = cube_base_config_fmg["weak"]
     cube_base_config_fmg["weak_large_3072_28fps"] = cube_base_config_fmg["weak"]
     cube_base_config_fmg["weak_large_3072_29fps"] = cube_base_config_fmg["weak"]
+    cube_base_config_fmg["weak_fast_tdomain"] = cube_base_config_fmg["weak"]
 
     node_dep_parameters_cube = {
         "weak": {
@@ -265,6 +307,13 @@ def supermuc_scaling():
             24: {"num_faces_per_side": 6},
             48: {"num_faces_per_side": 6},
             96: {"num_faces_per_side": 6},
+        },
+        "weak_fast_tdomain": {
+            192: {"mesh_type": 'tDomain', "t_domain_diameter": 2, "t_domain_height": 100, "t_domain_width": 25},
+            384: {"mesh_type": 'tDomain', "t_domain_diameter": 2, "t_domain_height": 200, "t_domain_width": 50},
+            768: {"mesh_type": 'tDomain', "t_domain_diameter": 2, "t_domain_height": 400, "t_domain_width": 100},
+            1536: {"mesh_type": 'tDomain', "t_domain_diameter": 2, "t_domain_height": 800, "t_domain_width": 200},
+            3072: {"mesh_type": 'tDomain', "t_domain_diameter": 2, "t_domain_height": 1600, "t_domain_width": 400},
         }
     }
 
@@ -301,7 +350,7 @@ def supermuc_scaling():
     ]
 
     for discretization in ["P2"]:
-        for scaling_type in ["weak_fast"]:
+        for scaling_type in ["weak_fast_tdomain"]:
             for coarse_grid_tol in [1e-12]:
                 for coarse_grid_solver_type, coarse_grid_preconditioner_type in coarse_grid_solver_string.keys():
                     for agglomeration_parameter_set in agglomeration_parameters:
