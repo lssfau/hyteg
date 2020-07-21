@@ -18,6 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cmath>
+
 #include "core/Environment.h"
 #include "core/Hostname.h"
 #include "core/config/Config.h"
@@ -262,7 +264,8 @@ void calculateErrorAndResidualStokes( const uint_t&                             
                                       const std::function< real_t( const Point3D& ) >& exactU,
                                       const std::function< real_t( const Point3D& ) >& exactV,
                                       const std::function< real_t( const Point3D& ) >& exactW,
-                                      const std::function< real_t( const Point3D& ) >& exactP )
+                                      const std::function< real_t( const Point3D& ) >& exactP,
+                                      const bool& projectPressure )
 {
    auto numU = numberOfGlobalDoFs< typename Function::VelocityFunction_T::Tag >( *u.u.getStorage(), level );
    auto numP = numberOfGlobalDoFs< typename Function::PressureFunction_T::Tag >( *u.p.getStorage(), level );
@@ -297,7 +300,10 @@ void calculateErrorAndResidualStokes( const uint_t&                             
    error.p.interpolate( exactP, level, All );
    error.assign( {1.0, -1.0}, {error, u}, level, All );
 
-   vertexdof::projectMean( error.p, level );
+   if ( projectPressure )
+   {
+      vertexdof::projectMean( error.p, level );
+   }
 
    real_t sumVelocityErrorDot = 0.0;
    sumVelocityErrorDot += error.u.dotGlobal( error.u, level, Inner | NeumannBoundary );
@@ -363,7 +369,8 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
                                          const std::function< real_t( const Point3D& ) >& exactP,
                                          const std::function< real_t( const Point3D& ) >& rhsU,
                                          const std::function< real_t( const Point3D& ) >& rhsV,
-                                         const std::function< real_t( const Point3D& ) >& rhsW )
+                                         const std::function< real_t( const Point3D& ) >& rhsW,
+                                         const bool & projectPressure)
 {
    StokesFunction u( "u", storage, level, level );
    StokesFunction f( "f", storage, level, level );
@@ -399,7 +406,10 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
 #endif
    solver->solve( A, u, f, level );
 
-   vertexdof::projectMean( u.p, level );
+   if ( projectPressure )
+   {
+      vertexdof::projectMean( u.p, level );
+   }
 
    long double l2ResidualU;
    long double l2ResidualP;
@@ -416,7 +426,8 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
                                     exactU,
                                     exactV,
                                     exactW,
-                                    exactP );
+                                    exactP,
+                                    projectPressure );
 }
 
 template < typename Function,
@@ -827,6 +838,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
                       const uint_t&                                           preSmoothingSteps,
                       const uint_t&                                           postSmoothingSteps,
                       const uint_t&                                           smoothingIncrement,
+                      const bool&                                             projectPressure,
                       const bool&                                             projectPressureAfterRestriction,
                       const uint_t&                                           coarseGridMaxIterations,
                       const real_t&                                           coarseResidualTolerance,
@@ -983,7 +995,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
          calculateDiscretizationErrorStokes< StokesFunction, StokesOperator, MassOperator >(
-             storage, level, discretizationErrorU, discretizationErrorP, exactU, exactV, exactW, exactP, rhsU, rhsV, rhsW );
+             storage, level, discretizationErrorU, discretizationErrorP, exactU, exactV, exactW, exactP, rhsU, rhsV, rhsW, projectPressure );
          WALBERLA_LOG_INFO_ON_ROOT( "  level " << std::setw( 2 ) << level << ": " << std::scientific << discretizationErrorU
                                                << " | " << discretizationErrorP );
          sqlRealProperties["l2_discr_error_u_level_" + std::to_string( level )] = real_c( discretizationErrorU );
@@ -1262,7 +1274,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
       timerFMGErrorCalculation.start();
       long double _l2ErrorU, _l2ErrorP, _l2ResidualU, _l2ResidualP;
       calculateErrorAndResidualStokes(
-          currentLevel, A, u, f, error, _l2ErrorU, _l2ErrorP, _l2ResidualU, _l2ResidualP, exactU, exactV, exactW, exactP );
+          currentLevel, A, u, f, error, _l2ErrorU, _l2ErrorP, _l2ResidualU, _l2ResidualP, exactU, exactV, exactW, exactP, projectPressure );
       sqlRealProperties["fmg_l2_error_u_level_" + std::to_string( currentLevel )]    = real_c( _l2ErrorU );
       sqlRealProperties["fmg_l2_error_p_level_" + std::to_string( currentLevel )]    = real_c( _l2ErrorP );
       sqlRealProperties["fmg_l2_residual_u_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorU );
@@ -1300,7 +1312,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
 
    timer.reset();
    calculateErrorAndResidualStokes(
-       maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP, exactU, exactV, exactW, exactP );
+       maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP, exactU, exactV, exactW, exactP, projectPressure );
    timer.end();
    timeError = timer.last();
 
@@ -1348,9 +1360,12 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
 
       timer.end();
       timeCycle = timer.last();
-      vertexdof::projectMean( u.p, maxLevel );
+      if ( projectPressure )
+      {
+         vertexdof::projectMean( u.p, maxLevel );
+      }
       calculateErrorAndResidualStokes(
-          maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP, exactU, exactV, exactW, exactP );
+          maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP, exactU, exactV, exactW, exactP, projectPressure );
       vtkOutput.write( maxLevel, 1 );
       WALBERLA_LOG_INFO_ON_ROOT( std::setw( 15 )
                                  << 1 << " || " << std::scientific << l2ErrorU << " | " << l2ErrorP << " | "
@@ -1444,12 +1459,14 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
 
       numExecutedCycles++;
 
-      if ( !NEUMANN_PROBLEM )
+      if ( projectPressure )
+      {
          vertexdof::projectMean( u.p, maxLevel );
+      }
 
       timer.reset();
       calculateErrorAndResidualStokes(
-          maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP, exactU, exactV, exactW, exactP );
+          maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP, exactU, exactV, exactW, exactP, projectPressure );
       timer.end();
       timeError = timer.last();
       if ( cycle == 1 && fmgInnerCycles > 0 )
@@ -1469,6 +1486,11 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
       l2ResidualReductionU = l2ResidualU / lastl2ResidualU;
       l2ErrorReductionP    = l2ErrorP / lastl2ErrorP;
       l2ResidualReductionP = l2ResidualP / lastl2ResidualP;
+
+      if ( !std::isfinite( l2ErrorReductionU ) )
+      {
+         l2ErrorReductionU = 0;
+      }
 
       WALBERLA_LOG_INFO_ON_ROOT( std::setw( 15 ) << cycle << " || " << std::scientific << l2ErrorU << " | " << l2ErrorP << " | "
                                                  << "      " << l2ErrorReductionU << " || " << l2ResidualU << " | " << l2ResidualP
@@ -1806,6 +1828,8 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "Setting up domain ..." );
    timer.reset();
 
+   bool projectPressure = true;
+
    Point2D leftBottom( {0, 0} );
    Point3D leftBottom3D( {0, 0, 0} );
 
@@ -1852,7 +1876,9 @@ void setup( int argc, char** argv )
    }
    else if ( meshType == MeshType::T_DOMAIN )
    {
-      std::vector< std::array< int, 3 > > cubes;
+      projectPressure = false;
+
+      std::set< std::array< int, 3 > > cubes;
 
       // junction cube
       WALBERLA_CHECK_GREATER( tDomainDiameter, 0 )
@@ -1862,7 +1888,7 @@ void setup( int argc, char** argv )
          {
             for ( int k = 0; k < int_c( tDomainDiameter ); k++ )
             {
-               cubes.push_back( {i, j, k} );
+               cubes.insert( {i, j, k} );
             }
          }
       }
@@ -1874,7 +1900,7 @@ void setup( int argc, char** argv )
          {
             for ( int k = 0; k < int_c( tDomainDiameter ); k++ )
             {
-               cubes.push_back( {h, j, k} );
+               cubes.insert( {h, j, k} );
             }
          }
       }
@@ -1886,14 +1912,13 @@ void setup( int argc, char** argv )
          {
             for ( int k = 0; k < int_c( tDomainDiameter ); k++ )
             {
-               cubes.push_back( {i, -( w + 1 ), k} );
-               cubes.push_back( {i, w + int_c( tDomainDiameter ), k} );
+               cubes.insert( {i, -( w + 1 ), k} );
+               cubes.insert( {i, w + int_c( tDomainDiameter ), k} );
             }
          }
       }
 
-      // auto meshInfo = MeshInfo::meshCubedDomain( cubes );
-      auto meshInfo = MeshInfo::meshSymmetricCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
+      auto meshInfo = MeshInfo::meshCubedDomain( cubes, 1 );
 
       SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -2052,6 +2077,8 @@ void setup( int argc, char** argv )
       setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
 #if NEUMANN_PROBLEM
+      projectPressure = true;
+
       auto topBoundary = []( const Point3D& x ) {
          const real_t eps = 1e-8;
          return std::abs( x[1] - 1 ) < eps;
@@ -2186,6 +2213,7 @@ void setup( int argc, char** argv )
                                                                 preSmoothingSteps,
                                                                 postSmoothingSteps,
                                                                 smoothingIncrement,
+                                                                projectPressure,
                                                                 projectPressureAfterRestriction,
                                                                 coarseGridMaxIterations,
                                                                 coarseGridResidualTolerance,
@@ -2243,6 +2271,7 @@ void setup( int argc, char** argv )
                                                                 preSmoothingSteps,
                                                                 postSmoothingSteps,
                                                                 smoothingIncrement,
+                                                                projectPressure,
                                                                 projectPressureAfterRestriction,
                                                                 coarseGridMaxIterations,
                                                                 coarseGridResidualTolerance,
