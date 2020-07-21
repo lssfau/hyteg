@@ -1,7 +1,8 @@
 Parameters
 {
   level_h_coarse 2;
-  level_h_fine 2;  elementType 2;
+  level_h_fine 4;
+  elementType 2;
   operatorType 1; # 0=constant, 1=variable, 2=polynomial;
 
   # parameters for surrogate polynomials;

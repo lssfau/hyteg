@@ -448,10 +448,16 @@ int main(int argc, char* argv[])
     real_t innerRadius = 1.0;
     real_t outerRadius = 2.0;
     real_t middle = (outerRadius + innerRadius) / 2.0;
-
-    exact = [](const hyteg::Point3D & x) {return sin(x[0] * x[0] + x[1] * x[1]);};
-    boundary = [circleCenter, innerRadius, outerRadius, middle](const hyteg::Point3D & x) {return ((x - circleCenter).norm() < middle) ? sin(innerRadius * innerRadius) : sin(outerRadius * outerRadius);};
-    rhs = [](const hyteg::Point3D & x) {return - 4 * cos(x[0] * x[0] + x[1] * x[1]) + 4 * (x[0] * x[0] + x[1] * x[1]) * sin(x[0] * x[0] + x[1] * x[1]);};
+    real_t freq = 5.0;
+    exact = [freq](const hyteg::Point3D & x) {return sin(freq * (x[0] * x[0] + x[1] * x[1]));};
+    boundary = [freq,circleCenter, innerRadius, outerRadius, middle](const hyteg::Point3D & x) {
+        real_t R = ((x - circleCenter).norm() < middle) ? innerRadius : outerRadius;
+        return sin(freq*R*R);
+      };
+    rhs = [freq](const hyteg::Point3D & x) {
+      real_t r = freq * (x[0] * x[0] + x[1] * x[1]);
+      return 4 * freq * (r * sin(r) - cos(r));
+      };
 
     meshInfo = MeshInfo::meshAnnulus(innerRadius, outerRadius, MeshInfo::CRISS, nX, nY);
   }
@@ -465,7 +471,7 @@ int main(int argc, char* argv[])
   hyteg::loadbalancing::roundRobin(setupStorage);
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
-  WALBERLA_LOG_INFO_ON_ROOT(storage->getGlobalInfo());
+  // WALBERLA_LOG_INFO_ON_ROOT(storage->getGlobalInfo());
   WALBERLA_LOG_INFO_ON_ROOT("Refinement levels: " << minLevel << "->" << maxLevel);
 
   // choose FE space
