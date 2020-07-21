@@ -1,19 +1,21 @@
 Parameters
 {
   level_h_coarse 2;
-  level_h_fine 8;
-  elementType 1; # only P2 supported;
-  operatorType 1; # 1=variable, 2=polynomial;
+  level_h_fine 4;
+  elementType 2; # only P2 supported;
+  operatorType 2; # 1=variable, 2=polynomial;
 
   # parameters for surrogate polynomials;
   interpolationLevel 99;
-  minPolyDegree 1;
-  maxPolyDegree 3;
+  minPolyDegree 12;
+  maxPolyDegree 12;
 
   max_outer_iter 45;
   max_cg_iter 1000;
   mg_tolerance 1e-15;
   coarse_tolerance 1e-15;
 
-  vtkOutput 0;
+  discontinuous_k 1; # else: smooth k;
+
+  vtkOutput 1;
 }
