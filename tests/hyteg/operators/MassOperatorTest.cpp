@@ -25,6 +25,7 @@
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/geometry/AffineMap2D.hpp"
+#include "hyteg/geometry/AffineMap3D.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/CircularMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
@@ -309,6 +310,30 @@ int main( int argc, char** argv )
    checkArea< P1ElementwiseBlendingMassOperator3D >( primStore, 1.0, "P1ElementwiseBlendingMassOperator3D", 2, 6e-8 );
    checkArea< P2ElementwiseBlendingMassOperator >( primStore, 1.0, "P2ElementwiseBlendingMassOperator", 2, 6e-8 );
 
+   // Test with affine mapping
+   logSectionHeader( "Testing with BLENDING( UNIT CUBE with AffineMap )" );
+
+   setStore =
+       std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+   // define our affine map
+   Matrix3r matAffineMap;
+   matAffineMap(0,0) = +8.660254037844387e-01;
+   matAffineMap(0,1) = -1.545084971874737e-01;
+   matAffineMap(0,2) = -9.510565162951534e-01;
+   matAffineMap(1,0) = +0.000000000000000e+00;
+   matAffineMap(1,1) = +9.510565162951535e-01;
+   matAffineMap(1,2) = -6.180339887498948e-01;
+   matAffineMap(2,0) = +4.999999999999999e-01;
+   matAffineMap(2,1) = +2.676165673298174e-01;
+   matAffineMap(2,2) = +1.647278207092664e+00;
+   Point3D vecAffineMap( {-7.0, 3.0, 2.0} );
+   AffineMap3D::setMap( *setStore.get(), matAffineMap, vecAffineMap );
+   primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
+
+   checkArea< P1ElementwiseBlendingMassOperator3D >( primStore, 2.0, "P1ElementwiseBlendingMassOperator3D", 2, 6e-8 );
+   checkArea< P2ElementwiseBlendingMassOperator >( primStore, 2.0, "P2ElementwiseBlendingMassOperator", 2, 6e-8 );
+
    // Test with thick spherical shell
    logSectionHeader( "Testing with BLENDING( Thick Spherical Shell -- IcosahedralShellMap )" );
    meshInfo = MeshInfo::meshSphericalShell( 2, 2, 1.0, 2.0 );
@@ -318,9 +343,9 @@ int main( int argc, char** argv )
    primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
 
    checkArea< P1ElementwiseBlendingMassOperator3D >(
-       primStore, 4.0 / 3.0 * pi * 7.0, "P1ElementwiseBlendingMassOperator3D", 2, 2e-6 );
+       primStore, 4.0 / 3.0 * pi * 7.0, "P1ElementwiseBlendingMassOperator3D", 2, 5e-6 );
    checkArea< P2ElementwiseBlendingMassOperator >(
-       primStore, 4.0 / 3.0 * pi * 7.0, "P2ElementwiseBlendingMassOperator", 2, 2e-6 );
+       primStore, 4.0 / 3.0 * pi * 7.0, "P2ElementwiseBlendingMassOperator", 2, 5e-6 );
 
    return EXIT_SUCCESS;
 }
