@@ -42,10 +42,9 @@ public:
 // #define CUBAWEIGHTS cubature::T3_weights
 
 // Shape functions on unit tetrahedron
-#define SF_N0 L1
-#define SF_N1 L2
-#define SF_N2 L3
-#define SF_N3 L4
+#define DEFINE_P1_SHAPE_FUNCTIONS_TET
+#include "ShapeFunctionMacros.hpp"
+#undef DEFINE_P1_SHAPE_FUNCTIONS_TET
 
 // Executing quadrature rule
 #define INTEGRATE3D(i,j)                                                                                                                             \
@@ -59,7 +58,7 @@ public:
     mappedPt[1] = ( coords[1][1] - coords[0][1] ) * L2 + ( coords[2][1] - coords[0][1] ) * L3 + ( coords[3][1] - coords[0][1] ) * L4 + coords[0][1]; \
     mappedPt[2] = ( coords[1][2] - coords[0][2] ) * L2 + ( coords[2][2] - coords[0][2] ) * L3 + ( coords[3][2] - coords[0][2] ) * L4 + coords[0][2]; \
     real_t detDPsi = std::abs( geometryMap_->evalDF( mappedPt, dummy ) );                                                                            \
-    elMat(i,j) += CUBAWEIGHTS[k] * detJacPhiInv * detDPsi * SF_N ## i * SF_N ## j;                                                                   \
+    elMat(i,j) += CUBAWEIGHTS[k] * detJacPhiInv * detDPsi * SF_M ## i * SF_M ## j;                                                                   \
   }                                                                                                                                                  \
   elMat(j,i) = elMat(i,j);
 
@@ -112,10 +111,10 @@ public:
     // -----------
     INTEGRATE3D(3,3)
 
-#undef SF_N0
-#undef SF_N1
-#undef SF_N2
-#undef SF_N3
+#define UNDEFINE_P1_SHAPE_FUNCTIONS_TET
+#include "ShapeFunctionMacros.hpp"
+#undef UNDEFINE_P1_SHAPE_FUNCTIONS_TET
+
 #undef CUBAPOINTS
 #undef CUBAWEIGHTS
 #undef INTEGRATE3D

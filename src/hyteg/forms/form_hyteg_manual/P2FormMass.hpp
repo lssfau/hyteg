@@ -32,12 +32,9 @@ public:
   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const final {
 
 // Shape functions on unit triangle
-#define SF_N0 ( L1 * ( 2.0 * L1 - 1.0 ) )
-#define SF_N1 ( L2 * ( 2.0 * L2 - 1.0 ) )
-#define SF_N2 ( L3 * ( 2.0 * L3 - 1.0 ) )
-#define SF_N3 ( 4.0 * L2 * L3 )
-#define SF_N4 ( 4.0 * L1 * L3 )
-#define SF_N5 ( 4.0 * L1 * L2 )
+#define DEFINE_P2_SHAPE_FUNCTIONS_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef DEFINE_P2_SHAPE_FUNCTIONS_TRIANGLE
 
 // Debugging FPE problem with CircularMap
 // #define FPE_DEBUG( cc ) WALBERLA_LOG_INFO_ON_ROOT( "Mapped point: " << cc )
@@ -118,12 +115,10 @@ public:
     // -----------
     INTEGRATE2D(5,5);
 
-#undef SF_N0
-#undef SF_N1
-#undef SF_N2
-#undef SF_N3
-#undef SF_N4
-#undef SF_N5
+#define UNDEFINE_P2_SHAPE_FUNCTIONS_TRIANGLE
+#include "ShapeFunctionMacros.hpp"
+#undef UNDEFINE_P2_SHAPE_FUNCTIONS_TRIANGLE
+
 #undef INTEGRATE2D
   };
 
@@ -134,16 +129,9 @@ public:
 #define CUBAWEIGHTS cubature::T4_weights
 
 // Shape functions on unit tetrahedron
-#define SF_N0 ( L1 * ( 2.0 * L1 - 1.0 ) )
-#define SF_N1 ( L2 * ( 2.0 * L2 - 1.0 ) )
-#define SF_N2 ( L3 * ( 2.0 * L3 - 1.0 ) )
-#define SF_N3 ( L4 * ( 2.0 * L4 - 1.0 ) )
-#define SF_N4 ( 4.0 * L3 * L4 )
-#define SF_N5 ( 4.0 * L2 * L4 )
-#define SF_N6 ( 4.0 * L2 * L3 )
-#define SF_N7 ( 4.0 * L1 * L4 )
-#define SF_N8 ( 4.0 * L1 * L3 )
-#define SF_N9 ( 4.0 * L1 * L2 )
+#define DEFINE_P2_SHAPE_FUNCTIONS_TET
+#include "ShapeFunctionMacros.hpp"
+#undef DEFINE_P2_SHAPE_FUNCTIONS_TET
 
 // Executing quadrature rule
 #define INTEGRATE3D(i,j)                                                                                                                             \
@@ -248,16 +236,10 @@ public:
 
     INTEGRATE3D(9,9);
 
-#undef SF_N0
-#undef SF_N1
-#undef SF_N2
-#undef SF_N3
-#undef SF_N4
-#undef SF_N5
-#undef SF_N6
-#undef SF_N7
-#undef SF_N8
-#undef SF_N9
+#define UNDEFINE_P2_SHAPE_FUNCTIONS_TET
+#include "ShapeFunctionMacros.hpp"
+#undef UNDEFINE_P2_SHAPE_FUNCTIONS_TET
+
 #undef INTEGRATE3D
 #undef CUBAPOINTS
 #undef CUBAWEIGHTS
