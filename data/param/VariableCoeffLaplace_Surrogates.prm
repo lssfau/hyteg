@@ -1,9 +1,9 @@
 Parameters
 {
   level_h_coarse 2;
-  level_h_fine 4;
+  level_h_fine 5;
   elementType 2; # only P2 supported;
-  operatorType 2; # 1=variable, 2=polynomial;
+  operatorType 1; # 1=variable, 2=polynomial;
 
   # parameters for surrogate polynomials;
   interpolationLevel 99;
@@ -15,7 +15,9 @@ Parameters
   mg_tolerance 1e-15;
   coarse_tolerance 1e-15;
 
-  discontinuous_k 1; # else: smooth k;
+  discontinuous_k 0; # else: smooth k;
+  alpha 1; # alpha->inf => k->step;
+  phi 6; # increase phi to decrease smoothness of u;
 
-  vtkOutput 1;
+  vtkOutput 0;
 }

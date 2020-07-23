@@ -408,6 +408,8 @@ int main(int argc, char* argv[])
   const bool vtk = parameters.getParameter<bool>("vtkOutput");
 
   const bool discontinuousK = parameters.getParameter<bool>("discontinuous_k");
+  const real_t alpha = parameters.getParameter<real_t>("alpha");
+  const real_t phi = parameters.getParameter<real_t>("phi");
 
   // define functions and domain
   if (discontinuousK)
@@ -419,10 +421,20 @@ int main(int argc, char* argv[])
     WALBERLA_LOG_INFO_ON_ROOT("smooth k, single macro-element");
   }
   // case: smooth k, domain = triangle
-  c_function exact = [](const hyteg::Point3D & x) {return sin(x[0])*sinh(x[1]);};
+  // c_function exact = [](const hyteg::Point3D & x) {return sin(x[0])*sinh(x[1]);};
+  // c_function boundary = exact;
+  // c_function rhs = [](const hyteg::Point3D & x) {return - cos(x[0])*cos(x[0]) * sinh(x[1]);};
+  // c_function k = [](const hyteg::Point3D & x) {return 2.0 +  sin(x[0]);};
+  c_function exact = [phi](const hyteg::Point3D& x) { return sin(phi*PI*x[0])*sinh(PI*x[1]); };
   c_function boundary = exact;
-  c_function rhs = [](const hyteg::Point3D & x) {return - cos(x[0])*cos(x[0]) * sinh(x[1]);};
-  c_function k = [](const hyteg::Point3D & x) {return 2.0 +  sin(x[0]);};
+  c_function k = [alpha](const hyteg::Point3D& x) { return tanh(alpha*(x[0] - 0.5)) + 2; };
+  c_function rhs = [phi,alpha](const hyteg::Point3D& x) {
+    real_t t0 = tanh(alpha*(x[0] - 0.5));
+    real_t t1 = phi*alpha * (t0*t0 - 1) * cos(phi*PI*x[0]);
+    real_t t2 = (phi*phi - 1) * PI * (t0 + 2) * sin(phi*PI*x[0]);
+    return PI * (t1 + t2) * sinh(PI*x[1]);
+  };
+
   MeshInfo meshInfo = MeshInfo::fromGmshFile("../data/meshes/tri_1el.msh");
 
   // case discontinuous k, domain = square (main-singularity)

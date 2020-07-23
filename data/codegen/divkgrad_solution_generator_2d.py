@@ -10,6 +10,13 @@ import random
 
 x, y = symbols('x y')
 
+def smooth_jump():
+    α,φ = symbols('alpha phi')
+    k = 2+tanh(α*(x-0.5));
+    u = sin(φ*pi*x)*sinh(pi*y)
+    return (k,u)
+
+
 def basic_example():
     k = 1 + 3*x + 4*y + 7*x**2
     u = sin(x)*sinh(y)
