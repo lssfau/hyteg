@@ -66,7 +66,7 @@ class TempSolution : public Solution
  private:
    real_t r( const Point3D& p, const real_t& x_hat, const real_t& y_hat ) const
    {
-      return std::sqrt( std::pow( p[0] - x_hat, 2 ) + std::pow( p[1] - y_hat, 2 ) );
+      return std::sqrt( std::pow( p[0] - x_hat, 2 ) + std::pow( p[1] - y_hat, 2 ) + std::pow( p[2], 2 ) );
    }
 
  private:
@@ -113,15 +113,24 @@ void benchmark( int argc, char** argv )
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
    const uint_t numTimeSteps       = mainConf.getParameter< uint_t >( "numTimeSteps" );
+   const bool   threeDim           = mainConf.getParameter< bool >( "threeDim" );
    const uint_t level              = mainConf.getParameter< uint_t >( "level" );
    const real_t diffusivity              = mainConf.getParameter< real_t >( "diffusivity" );
    const bool   adjustedAdvection  = mainConf.getParameter< bool >( "adjustedAdvection" );
    const uint_t printInterval      = mainConf.getParameter< uint_t >( "printInterval" );
    const bool   vtk                = mainConf.getParameter< bool >( "vtk" );
    const uint_t vtkInterval        = mainConf.getParameter< uint_t >( "vtkInterval" );
+   const bool   verbose            = mainConf.getParameter< bool >( "verbose" );
 
-
-   MeshInfo meshInfo = MeshInfo::meshAnnulus( 0.5, 1.5, MeshInfo::CROSS, 6, 2 );
+   MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
+   if ( threeDim )
+   {
+      meshInfo = MeshInfo::meshSphericalShell( 3, 3, 0.5, 1.5 );
+   }
+   else
+   {
+      meshInfo = MeshInfo::meshAnnulus( 0.5, 1.5, MeshInfo::CROSS, 6, 2 );
+   }
 
    const Point3D p0( { 0, 1, 0 } );
 
@@ -153,7 +162,8 @@ void benchmark( int argc, char** argv )
           true,
           "Benchmark_04_BlendedAdvectionDiffusion",
           printInterval,
-          vtkInterval );
+          vtkInterval,
+          verbose );
 }
 } // namespace moc_benchmarks
 } // namespace hyteg

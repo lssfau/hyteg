@@ -204,7 +204,8 @@ void benchmark( int argc, char** argv )
           true,
           "Benchmark_03_BlendedAdvection",
           printInterval,
-          vtkInterval );
+          vtkInterval,
+          false );
 }
 } // namespace moc_benchmarks
 } // namespace hyteg

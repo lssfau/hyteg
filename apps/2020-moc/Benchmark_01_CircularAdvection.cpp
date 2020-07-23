@@ -203,7 +203,8 @@ void benchmark( int argc, char** argv )
           true,
           "Benchmark_01_CircularAdvection",
           printInterval,
-          vtkInterval );
+          vtkInterval,
+          false );
 }
 } // namespace moc_benchmarks
 } // namespace hyteg

@@ -320,7 +320,8 @@ void benchmark( int argc, char** argv )
              true,
              "Benchmark_02_SwirlingAdvection",
              printInterval,
-             vtkInterval );
+             vtkInterval,
+             false );
    }
    else
    {
@@ -342,7 +343,8 @@ void benchmark( int argc, char** argv )
              true,
              "Benchmark_02_SwirlingAdvection",
              printInterval,
-             vtkInterval );
+             vtkInterval,
+             false );
    }
 
 }

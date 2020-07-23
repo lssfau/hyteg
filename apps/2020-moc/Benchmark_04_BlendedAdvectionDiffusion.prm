@@ -1,14 +1,16 @@
 Parameters
 {
-  level 5;
-  numTimeSteps 400;
+  level 4;
+  numTimeSteps 200;
+  threeDim true;
 
   diffusivity 1e-3;
 
-  adjustedAdvection true;
+  adjustedAdvection false;
 
   vtk true;
-  printInterval 1;
+  printInterval 10;
   vtkInterval 10;
+  verbose true;
 
 }
