@@ -25,6 +25,7 @@ namespace moc_benchmarks {
 
 using walberla::int_c;
 
+#if 0
 static std::string getDateTimeID()
 {
    std::vector< char > cTimeString( 64 );
@@ -40,6 +41,7 @@ static std::string getDateTimeID()
    std::string timeString( cTimeString.data() );
    return timeString;
 }
+#endif
 
 void solve( const MeshInfo&         meshInfo,
             bool                    setBlendingMap,
@@ -60,7 +62,8 @@ void solve( const MeshInfo&         meshInfo,
             const std::string&      benchmarkName,
             uint_t                  printInterval,
             uint_t                  vtkInterval,
-            bool                    verbose )
+            bool                    verbose,
+            std::string             dbFile )
 {
    walberla::WcTimer localTimer;
 
@@ -123,12 +126,10 @@ void solve( const MeshInfo&         meshInfo,
       WALBERLA_LOG_INFO_ON_ROOT( "   + VTK interval:                                 " << vtkInterval )
    }
    WALBERLA_LOG_INFO_ON_ROOT( "   + print interval:                               " << printInterval )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + database file:                                " << dbFile )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
-   const auto dateTimeID = getDateTimeID();
-   WALBERLA_LOG_INFO_ON_ROOT( "Database ID: " << dateTimeID );
-   WALBERLA_LOG_INFO_ON_ROOT( "" );
-   walberla::sqlite::SQLiteDB                 db( "./db/" + benchmarkName + "_" + dateTimeID + ".db" );
+   walberla::sqlite::SQLiteDB                 db( dbFile );
    std::map< std::string, walberla::int64_t > sqlIntegerProperties;
    std::map< std::string, double >            sqlRealProperties;
    std::map< std::string, std::string >       sqlStringProperties;
@@ -234,17 +235,20 @@ void solve( const MeshInfo&         meshInfo,
                                                 mass,
                                                 massChange * 100 ) )
 
-   sqlRealProperties["sim_time"]     = timeTotal;
-   sqlRealProperties["error_l2"]     = discrL2;
-   sqlRealProperties["error_peak"]   = maxPeakDiff;
-   sqlRealProperties["spurious_osc"] = spuriousOsc;
-   sqlRealProperties["mass"]         = mass;
-   sqlRealProperties["mass_change"]  = massChange;
+   WALBERLA_ROOT_SECTION()
+   {
+      sqlRealProperties["sim_time"]     = timeTotal;
+      sqlRealProperties["error_l2"]     = discrL2;
+      sqlRealProperties["error_peak"]   = maxPeakDiff;
+      sqlRealProperties["spurious_osc"] = spuriousOsc;
+      sqlRealProperties["mass"]         = mass;
+      sqlRealProperties["mass_change"]  = massChange;
 
-   db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
-   sqlRealProperties.clear();
-   sqlIntegerProperties.clear();
-   sqlStringProperties.clear();
+      db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
+      sqlRealProperties.clear();
+      sqlIntegerProperties.clear();
+      sqlStringProperties.clear();
+   }
 
    timer->stop( "Setup" );
 
@@ -336,19 +340,22 @@ void solve( const MeshInfo&         meshInfo,
       if ( vtk )
          vtkOutput.write( level, i );
 
-      sqlIntegerProperties["ts"]              = int_c( i );
-      sqlRealProperties["sim_time"]           = timeTotal;
-      sqlRealProperties["error_l2"]           = discrL2;
-      sqlRealProperties["error_peak"]         = maxPeakDiff;
-      sqlRealProperties["spurious_osc"]       = spuriousOsc;
-      sqlRealProperties["mass"]               = mass;
-      sqlRealProperties["mass_change"]        = massChange;
-      sqlRealProperties["run_time_advection"] = advectionTimeStepRunTime;
+      WALBERLA_ROOT_SECTION()
+      {
+         sqlIntegerProperties["ts"]              = int_c( i );
+         sqlRealProperties["sim_time"]           = timeTotal;
+         sqlRealProperties["error_l2"]           = discrL2;
+         sqlRealProperties["error_peak"]         = maxPeakDiff;
+         sqlRealProperties["spurious_osc"]       = spuriousOsc;
+         sqlRealProperties["mass"]               = mass;
+         sqlRealProperties["mass_change"]        = massChange;
+         sqlRealProperties["run_time_advection"] = advectionTimeStepRunTime;
 
-      db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
-      sqlRealProperties.clear();
-      sqlIntegerProperties.clear();
-      sqlStringProperties.clear();
+         db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
+         sqlRealProperties.clear();
+         sqlIntegerProperties.clear();
+         sqlStringProperties.clear();
+      }
    }
 
    timer->stop( "Simulation" );

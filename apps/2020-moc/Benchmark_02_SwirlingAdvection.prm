@@ -13,5 +13,5 @@ Parameters
   vtk false;
   printInterval 1;
   vtkInterval 1;
-
+  dbFile Benchmark_02_SwirlingAdvection.db;
 }

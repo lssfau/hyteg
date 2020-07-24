@@ -10,7 +10,8 @@ Parameters
 
   resetParticles true;
   adjustedAdvection false;
-  vtk true;
-  printInterval 1;
+  vtk false;
+  printInterval 100;
   vtkInterval 10;
+  dbFile Benchmark_01_CircularAdvection.db;
 }

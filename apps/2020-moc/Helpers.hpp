@@ -165,7 +165,8 @@ void solve( const MeshInfo&         meshInfo,
             const std::string&      benchmarkName,
             uint_t                  printInterval,
             uint_t                  vtkInterval,
-            bool                    verbose );
+            bool                    verbose,
+            std::string             dbFile );
 
 
 } // namespace moc_benchmarks

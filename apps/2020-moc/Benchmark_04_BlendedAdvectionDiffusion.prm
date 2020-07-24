@@ -12,5 +12,6 @@ Parameters
   printInterval 10;
   vtkInterval 10;
   verbose true;
+  dbFile Benchmark_04_BlendedAdvectionDiffusion.db;
 
 }
