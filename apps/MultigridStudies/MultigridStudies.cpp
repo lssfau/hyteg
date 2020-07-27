@@ -1938,7 +1938,7 @@ void setup( int argc, char** argv )
 
       std::set< std::array< int, 3 > > cubes;
 
-      // junction cube
+      WALBERLA_CHECK_EQUAL( tDomainNumJunctions, 1, "Outflow boundaries are not yet specified correctly for multiple junctions" );
       WALBERLA_CHECK_GREATER( tDomainDiameter, 0 )
 
       // height
@@ -1973,7 +1973,6 @@ void setup( int argc, char** argv )
          }
       }
 
-
       auto meshInfo = MeshInfo::meshCubedDomain( cubes, 1 );
 
       SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
@@ -1986,6 +1985,22 @@ void setup( int argc, char** argv )
       };
 
       auto outFlow2 = [eps, tDomainWidth]( const Point3D& p ) { return std::abs( p[1] + real_c( tDomainWidth ) ) < eps; };
+
+      auto surroundingEdgesTop = [eps, tDomainDiameter]( const Point3D& p ) {
+         return std::abs( p[2] - real_c( tDomainDiameter ) ) < eps;
+      };
+
+      auto surroundingEdgesBottom = [eps]( const Point3D& p ) { return std::abs( p[2] ) < 1e-8; };
+
+      auto surroundingEdgesFar = [eps, tDomainHeight]( const Point3D& p ) {
+         return std::abs( p[0] - real_c( tDomainHeight ) ) < eps;
+      };
+
+      auto surroundingEdgesNear = [eps, tDomainDiameter, tDomainHeight, tDomainWidth]( const Point3D& p ) {
+         return std::abs( p[0] - real_c( tDomainHeight - tDomainDiameter ) ) < eps &&
+                ( std::abs( p[1] - real_c( tDomainDiameter + tDomainWidth ) ) < eps ||
+                  std::abs( p[1] + real_c( tDomainWidth ) ) < eps );
+      };
 
       auto inflowBC = [eps, tDomainDiameter, tDomainHeight]( const hyteg::Point3D& p ) {
          if ( std::abs( p[0] ) < eps )
@@ -2009,10 +2024,10 @@ void setup( int argc, char** argv )
       setupStorage.setMeshBoundaryFlagsByVertexLocation( 2, outFlow1, true );
       setupStorage.setMeshBoundaryFlagsByVertexLocation( 2, outFlow2, true );
       // vertices shall not have outflow condition
-//      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesBottom, true );
-//      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesTop, true );
-//      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesFar, true );
-//      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesNear, true );
+      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesBottom, true );
+      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesTop, true );
+      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesFar, true );
+      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesNear, true );
 
 #if 0
       // test
@@ -2053,7 +2068,7 @@ void setup( int argc, char** argv )
       {
          for ( int col = 0; col < int_c( snakeRowLength ); col++ )
          {
-            cubes.insert( { col, 2 * row, 0 } );
+            cubes.insert( {col, 2 * row, 0} );
          }
       }
 
@@ -2061,37 +2076,37 @@ void setup( int argc, char** argv )
       {
          if ( row % 2 == 0 )
          {
-            cubes.insert( { int_c( snakeRowLength ) - 1, 2 * row + 1, 0 } );
+            cubes.insert( {int_c( snakeRowLength ) - 1, 2 * row + 1, 0} );
          }
          else
          {
-            cubes.insert( { 0, 2 * row + 1, 0 } );
+            cubes.insert( {0, 2 * row + 1, 0} );
          }
       }
 
       const auto eps = 1e-3;
 
       auto inflowBC = [eps]( const hyteg::Point3D& p ) {
-        if ( std::abs( p[0] ) < eps && p[1] > - eps && p[1] < 1 + eps )
-        {
-           const Point3D center( {0, 0.5, 0.5} );
-           const auto    radius  = 0.5;
-           const auto    shifted = ( p - center ) / radius;
+         if ( std::abs( p[0] ) < eps && p[1] > -eps && p[1] < 1 + eps )
+         {
+            const Point3D center( {0, 0.5, 0.5} );
+            const auto    radius  = 0.5;
+            const auto    shifted = ( p - center ) / radius;
 #if 0
            return ( 1 - ( shifted[1] * shifted[1] ) ) * ( 1 - ( shifted[2] * shifted[2] ) );
 #else
-           return ( 1 - std::sin( 0.5 * pi * shifted[1] * shifted[1] ) ) *
-                  ( 1 - std::sin( 0.5 * pi * shifted[2] * shifted[2] ) );
+            return ( 1 - std::sin( 0.5 * pi * shifted[1] * shifted[1] ) ) *
+                   ( 1 - std::sin( 0.5 * pi * shifted[2] * shifted[2] ) );
 #endif
-        }
-        else
-        {
-           return 0.0;
-        }
+         }
+         else
+         {
+            return 0.0;
+         }
       };
 
       auto outFlow = [eps, snakeNumRows]( const Point3D& p ) {
-        return std::abs( p[0] ) < eps && p[1] > 2 * real_c( snakeNumRows - 1 ) - eps;
+         return std::abs( p[0] ) < eps && p[1] > 2 * real_c( snakeNumRows - 1 ) - eps;
       };
 
       auto meshInfo = MeshInfo::meshCubedDomain( cubes, 1 );
@@ -2117,7 +2132,6 @@ void setup( int argc, char** argv )
       sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
       sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
       sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
-
    }
    else if ( meshType == MeshType::CUBE )
    {
