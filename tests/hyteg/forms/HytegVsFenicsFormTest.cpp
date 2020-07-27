@@ -318,9 +318,9 @@ void run2DTestsWithAffineMap()
 void run3DTestsWithoutBlending()
 {
    // define our test tetrahedron
-   std::array< Point3D, 4 > theTet{
-     Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 1.0, 0.0} ), Point3D( {-1.0, 0.5, 0.0} ), Point3D( {0.3, 0.21, -1.2} )};
-   // std::array<Point3D,4> theTet{ Point3D({0.0, 0.0, 0.0}), Point3D({1.0, 0.0, 0.0}), Point3D({0.0, 1.0, 0.0}), Point3D({0.0, 0.0, 1.0}) };
+   // std::array< Point3D, 4 > theTet{
+   // Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 1.0, 0.0} ), Point3D( {-1.0, 0.5, 0.0} ), Point3D( {0.3, 0.21, -1.2} )};
+   std::array<Point3D,4> theTet{ Point3D({0.0, 0.0, 0.0}), Point3D({1.0, 0.0, 0.0}), Point3D({0.0, 1.0, 0.0}), Point3D({0.0, 0.0, 1.0}) };
 
    logSectionHeader( "P1 Mass Forms (3D)" );
    compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >( theTet,
@@ -333,6 +333,21 @@ void run3DTestsWithoutBlending()
    logSectionHeader( "P2 Laplace Forms (3D)" );
    compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >, P2Form_laplace, Matrix10r, 3 >(
        theTet, 3e-14 );
+
+   logSectionHeader( "P2ToP1 DivX Forms (3D)" );
+   compareForms< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise >,
+                 P2ToP1Form_div< 0 >,
+                 Matrixr< 4, 10 >, 3 >( theTet, 1.2e-14 );
+
+   logSectionHeader( "P2ToP1 DivY Forms (3D)" );
+   compareForms< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise >,
+                 P2ToP1Form_div< 1 >,
+                 Matrixr< 4, 10 >, 3 >( theTet, 1.2e-14 );
+
+   logSectionHeader( "P2ToP1 DivZ Forms (3D)" );
+   compareForms< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise >,
+                 P2ToP1Form_div< 2 >,
+                 Matrixr< 4, 10 >, 3 >( theTet, 1.2e-14 );
 }
 
 
