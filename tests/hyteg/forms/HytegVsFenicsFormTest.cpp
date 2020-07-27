@@ -353,6 +353,24 @@ void run3DTestsWithoutBlending()
                  P2ToP1Form_div< 2 >,
                  Matrixr< 4, 10 >,
                  3 >( theTet, 1e-14 );
+
+   logSectionHeader( "P1ToP2 DivX^T Forms (3D)" );
+   compareForms< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise >,
+                 P1ToP2Form_divt< 0 >,
+                 Matrixr< 10, 4 >,
+                 3 >( theTet, 1e-14 );
+
+   logSectionHeader( "P1ToP2 DivY^T Forms (3D)" );
+   compareForms< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise >,
+                 P1ToP2Form_divt< 1 >,
+                 Matrixr< 10, 4 >,
+                 3 >( theTet, 1e-14 );
+
+   logSectionHeader( "P1ToP2 DivZ^T Forms (3D)" );
+   compareForms< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise >,
+                 P1ToP2Form_divt< 2 >,
+                 Matrixr< 10, 4 >,
+                 3 >( theTet, 1e-14 );
 }
 
 void run3DTestsWithAffineMap()

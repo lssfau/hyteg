@@ -399,7 +399,6 @@ class P2ToP1Form_div< 1 > : public P2ToP1FormHyTeG
    // ---------
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrixr< 4, 10 >& elMat ) const final
    {
-     // WALBERLA_ABORT( "P2ToP1Form_div<1> not implemented for 3D, yet." );
 
 // Set shape functions and their derivatives
 #define DEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TET
