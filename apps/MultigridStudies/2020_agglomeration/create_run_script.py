@@ -318,15 +318,15 @@ def supermuc_scaling():
         },
         "weak_fast_tdomain": {
             192: {"mesh_type": 'tDomain', "t_domain_diameter": 1, "t_domain_height": 600, "t_domain_width": 2,
-                  "tDomainNumJunctions": 1, "project_pressure_after_restriction": False},
+                  "t_domain_num_junctions": 1, "project_pressure_after_restriction": False},
             384: {"mesh_type": 'tDomain', "t_domain_diameter": 1, "t_domain_height": 1200, "t_domain_width": 2,
-                  "tDomainNumJunctions": 1, "project_pressure_after_restriction": False},
+                  "t_domain_num_junctions": 1, "project_pressure_after_restriction": False},
             768: {"mesh_type": 'tDomain', "t_domain_diameter": 1, "t_domain_height": 2400, "t_domain_width": 2,
-                  "tDomainNumJunctions": 1, "project_pressure_after_restriction": False},
+                  "t_domain_num_junctions": 1, "project_pressure_after_restriction": False},
             1536: {"mesh_type": 'tDomain', "t_domain_diameter": 1, "t_domain_height": 4800, "t_domain_width": 2,
-                   "tDomainNumJunctions": 1, "project_pressure_after_restriction": False},
+                   "t_domain_num_junctions": 1, "project_pressure_after_restriction": False},
             3072: {"mesh_type": 'tDomain', "t_domain_diameter": 1, "t_domain_height": 9600, "t_domain_width": 2,
-                   "tDomainNumJunctions": 1, "project_pressure_after_restriction": False},
+                   "t_domain_num_junctions": 1, "project_pressure_after_restriction": False},
         }
     }
 
