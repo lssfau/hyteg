@@ -171,14 +171,29 @@ class P2ToP1Form_div< 0 > : public P2ToP1FormHyTeG
       real_t L4 = CUBAPOINTS[k][2];                  \
       real_t L1 = 1.0 - L2 - L3 - L4;                \
                                                      \
-      real_t dy = DX1N ## j*(tmp12 + tmp13 - tmp14 - coords[2][1]*coords[0][2] + coords[2][1]*coords[3][2] - coords[3][1]*coords[2][2]) + DX2N ## j*(-tmp13 + tmp14 + tmp15 - tmp16 - coords[1][1]*coords[3][2] + coords[3][1]*coords[1][2]) + DX3N ## j*(-tmp12 - tmp15 + tmp16 + coords[1][1]*coords[2][2] + coords[2][1]*coords[0][2] - coords[2][1]*coords[1][2]); \
+      mappedPt[0] = ( coords[1][0] - coords[0][0] ) * L2 + ( coords[2][0] - coords[0][0] ) * L3 + ( coords[3][0] - coords[0][0] ) * L4 + coords[0][0]; \
+      mappedPt[1] = ( coords[1][1] - coords[0][1] ) * L2 + ( coords[2][1] - coords[0][1] ) * L3 + ( coords[3][1] - coords[0][1] ) * L4 + coords[0][1]; \
+      mappedPt[2] = ( coords[1][2] - coords[0][2] ) * L2 + ( coords[2][2] - coords[0][2] ) * L3 + ( coords[3][2] - coords[0][2] ) * L4 + coords[0][2]; \
                                                      \
-      elMat( i, j ) -= CUBAWEIGHTS[k] * detPfac * dy * SF_M##i; \
+      Matrix3r DPsi;                                 \
+      geometryMap_->evalDF( mappedPt, DPsi );        \
+                                                     \
+      real_t tmp12 = DPsi(1,1)*DPsi(2,2);            \
+      real_t tmp13 = DPsi(1,2)*DPsi(2,0);            \
+      real_t tmp14 = DPsi(1,0)*DPsi(2,1);            \
+      real_t tmp15 = DPsi(1,2)*DPsi(2,1);            \
+      real_t tmp16 = DPsi(1,0)*DPsi(2,2);            \
+      real_t tmp17 = DPsi(1,1)*DPsi(2,0);            \
+      real_t tmp18 = tmp14 - tmp17;                  \
+      real_t tmp23 = tmp13 - tmp16;                  \
+      real_t tmp28 = tmp12 - tmp15;                  \
+                                                     \
+      real_t diff = DX1N ## j*(tmp18*(tmp19 + tmp20 - tmp21 - tmp22 + coords[2][0]*coords[3][1] - coords[3][0]*coords[2][1]) + tmp23*(tmp24 + tmp25 - tmp26 - tmp27 - coords[2][0]*coords[3][2] + coords[3][0]*coords[2][2]) + tmp28*(tmp29 + tmp30 - tmp31 - coords[2][1]*coords[0][2] + coords[2][1]*coords[3][2] - coords[3][1]*coords[2][2])) + DX2N ## j*(tmp18*(-tmp20 + tmp21 + tmp32 - tmp33 - coords[1][0]*coords[3][1] + coords[3][0]*coords[1][1]) + tmp23*(-tmp24 + tmp27 + tmp34 - tmp35 + coords[1][0]*coords[3][2] - coords[3][0]*coords[1][2]) + tmp28*(-tmp30 + tmp31 + tmp36 - tmp37 - coords[1][1]*coords[3][2] + coords[3][1]*coords[1][2])) + DX3N ## j*(tmp18*(-tmp19 + tmp22 - tmp32 + tmp33 + coords[1][0]*coords[2][1] - coords[2][0]*coords[1][1]) + tmp23*(-tmp25 + tmp26 - tmp34 + tmp35 - coords[1][0]*coords[2][2] + coords[2][0]*coords[1][2]) + tmp28*(-tmp29 - tmp36 + tmp37 + coords[1][1]*coords[2][2] + coords[2][1]*coords[0][2] - coords[2][1]*coords[1][2])); \
+                                                     \
+      real_t detQ = DPsi(0,0)*tmp12 - DPsi(0,0)*tmp15 + DPsi(0,1)*tmp13 - DPsi(0,1)*tmp16 + DPsi(0,2)*tmp14 - DPsi(0,2)*tmp17; \
+      real_t detQfac = std::abs( detQ ) / detQ;      \
+      elMat( i, j ) -= CUBAWEIGHTS[k] * detPfac * detQfac * diff * SF_M##i; \
    }
-
-     // mappedPt[0] = ( coords[1][0] - coords[0][0] ) * L2 + ( coords[2][0] - coords[0][0] ) * L3 + ( coords[3][0] - coords[0][0] ) * L4 + coords[0][0]; \
-     // mappedPt[1] = ( coords[1][1] - coords[0][1] ) * L2 + ( coords[2][1] - coords[0][1] ) * L3 + ( coords[3][1] - coords[0][1] ) * L4 + coords[0][1]; \
-     // mappedPt[2] = ( coords[1][2] - coords[0][2] ) * L2 + ( coords[2][2] - coords[0][2] ) * L3 + ( coords[3][2] - coords[0][2] ) * L4 + coords[0][2]; \
 
      // Quadrature point mapped to computational triangle
      Point3D mappedPt;
@@ -196,13 +211,25 @@ class P2ToP1Form_div< 0 > : public P2ToP1FormHyTeG
      real_t tmp9 = tmp0 + coords[3][0];
      real_t tmp10 = tmp2 + coords[1][1];
      real_t tmp11 = tmp4 + coords[2][2];
-     real_t tmp12 = coords[0][1]*coords[2][2];
-     real_t tmp13 = coords[3][1]*coords[0][2];
-     real_t tmp14 = coords[0][1]*coords[3][2];
-     real_t tmp15 = coords[1][1]*coords[0][2];
-     real_t tmp16 = coords[0][1]*coords[1][2];
+     real_t tmp19 = coords[0][0]*coords[2][1];
+     real_t tmp20 = coords[3][0]*coords[0][1];
+     real_t tmp21 = coords[0][0]*coords[3][1];
+     real_t tmp22 = coords[2][0]*coords[0][1];
+     real_t tmp24 = coords[0][0]*coords[3][2];
+     real_t tmp25 = coords[2][0]*coords[0][2];
+     real_t tmp26 = coords[0][0]*coords[2][2];
+     real_t tmp27 = coords[3][0]*coords[0][2];
+     real_t tmp29 = coords[0][1]*coords[2][2];
+     real_t tmp30 = coords[3][1]*coords[0][2];
+     real_t tmp31 = coords[0][1]*coords[3][2];
+     real_t tmp32 = coords[1][0]*coords[0][1];
+     real_t tmp33 = coords[0][0]*coords[1][1];
+     real_t tmp34 = coords[0][0]*coords[1][2];
+     real_t tmp35 = coords[1][0]*coords[0][2];
+     real_t tmp36 = coords[1][1]*coords[0][2];
+     real_t tmp37 = coords[0][1]*coords[1][2];
 
-     real_t detP =  -tmp1*tmp11*tmp7 + tmp1*tmp3*tmp5 + tmp10*tmp11*tmp9 - tmp10*tmp5*tmp6 - tmp3*tmp8*tmp9 + tmp6*tmp7*tmp8;
+     real_t detP = -tmp1*tmp11*tmp7 + tmp1*tmp3*tmp5 + tmp10*tmp11*tmp9 - tmp10*tmp5*tmp6 - tmp3*tmp8*tmp9 + tmp6*tmp7*tmp8;
      real_t detPfac = std::abs( detP ) / detP;
 
      INTEGRATE3D( 0, 0 );
@@ -395,14 +422,29 @@ class P2ToP1Form_div< 1 > : public P2ToP1FormHyTeG
       real_t L4 = CUBAPOINTS[k][2];                  \
       real_t L1 = 1.0 - L2 - L3 - L4;                \
                                                      \
-      real_t dy = DX1N ## j*(tmp12 + tmp13 - tmp14 - tmp15 - coords[2][0]*coords[3][2] + coords[3][0]*coords[2][2]) + DX2N ## j*(-tmp12 + tmp15 + tmp16 - tmp17 + coords[1][0]*coords[3][2] - coords[3][0]*coords[1][2]) + DX3N ## j*(-tmp13 + tmp14 - tmp16 + tmp17 - coords[1][0]*coords[2][2] + coords[2][0]*coords[1][2]); \
+      mappedPt[0] = ( coords[1][0] - coords[0][0] ) * L2 + ( coords[2][0] - coords[0][0] ) * L3 + ( coords[3][0] - coords[0][0] ) * L4 + coords[0][0]; \
+      mappedPt[1] = ( coords[1][1] - coords[0][1] ) * L2 + ( coords[2][1] - coords[0][1] ) * L3 + ( coords[3][1] - coords[0][1] ) * L4 + coords[0][1]; \
+      mappedPt[2] = ( coords[1][2] - coords[0][2] ) * L2 + ( coords[2][2] - coords[0][2] ) * L3 + ( coords[3][2] - coords[0][2] ) * L4 + coords[0][2]; \
                                                      \
-      elMat( i, j ) -= CUBAWEIGHTS[k] * detPfac * dy * SF_M##i; \
+      Matrix3r DPsi;                                 \
+      geometryMap_->evalDF( mappedPt, DPsi );        \
+                                                     \
+      real_t tmp12 = DPsi(0,0)*DPsi(2,2);            \
+      real_t tmp13 = DPsi(0,1)*DPsi(2,0);            \
+      real_t tmp14 = DPsi(0,2)*DPsi(2,1);            \
+      real_t tmp15 = DPsi(0,0)*DPsi(2,1);            \
+      real_t tmp16 = DPsi(0,1)*DPsi(2,2);            \
+      real_t tmp17 = DPsi(0,2)*DPsi(2,0);            \
+      real_t tmp18 = tmp13 - tmp15;                  \
+      real_t tmp23 = tmp12 - tmp17;                  \
+      real_t tmp28 = tmp14 - tmp16;                  \
+                                                     \
+      real_t diff = DX1N ## j*(tmp18*(tmp19 + tmp20 - tmp21 - tmp22 + coords[2][0]*coords[3][1] - coords[3][0]*coords[2][1]) + tmp23*(tmp24 + tmp25 - tmp26 - tmp27 - coords[2][0]*coords[3][2] + coords[3][0]*coords[2][2]) + tmp28*(tmp29 + tmp30 - tmp31 - coords[2][1]*coords[0][2] + coords[2][1]*coords[3][2] - coords[3][1]*coords[2][2])) + DX2N ## j*(tmp18*(-tmp20 + tmp21 + tmp32 - tmp33 - coords[1][0]*coords[3][1] + coords[3][0]*coords[1][1]) + tmp23*(-tmp24 + tmp27 + tmp34 - tmp35 + coords[1][0]*coords[3][2] - coords[3][0]*coords[1][2]) + tmp28*(-tmp30 + tmp31 + tmp36 - tmp37 - coords[1][1]*coords[3][2] + coords[3][1]*coords[1][2])) + DX3N ## j*(tmp18*(-tmp19 + tmp22 - tmp32 + tmp33 + coords[1][0]*coords[2][1] - coords[2][0]*coords[1][1]) + tmp23*(-tmp25 + tmp26 - tmp34 + tmp35 - coords[1][0]*coords[2][2] + coords[2][0]*coords[1][2]) + tmp28*(-tmp29 - tmp36 + tmp37 + coords[1][1]*coords[2][2] + coords[2][1]*coords[0][2] - coords[2][1]*coords[1][2])); \
+                                                     \
+      real_t detQ = DPsi(1,0)*tmp14 - DPsi(1,0)*tmp16 + DPsi(1,1)*tmp12 - DPsi(1,1)*tmp17 + DPsi(1,2)*tmp13 - DPsi(1,2)*tmp15; \
+      real_t detQfac = std::abs( detQ ) / detQ;      \
+      elMat( i, j ) -= CUBAWEIGHTS[k] * detPfac * detQfac * diff * SF_M##i; \
    }
-
-     // mappedPt[0] = ( coords[1][0] - coords[0][0] ) * L2 + ( coords[2][0] - coords[0][0] ) * L3 + ( coords[3][0] - coords[0][0] ) * L4 + coords[0][0]; \
-     // mappedPt[1] = ( coords[1][1] - coords[0][1] ) * L2 + ( coords[2][1] - coords[0][1] ) * L3 + ( coords[3][1] - coords[0][1] ) * L4 + coords[0][1]; \
-     // mappedPt[2] = ( coords[1][2] - coords[0][2] ) * L2 + ( coords[2][2] - coords[0][2] ) * L3 + ( coords[3][2] - coords[0][2] ) * L4 + coords[0][2]; \
 
      // Quadrature point mapped to computational triangle
      Point3D mappedPt;
@@ -420,12 +462,23 @@ class P2ToP1Form_div< 1 > : public P2ToP1FormHyTeG
      real_t tmp9 = tmp0 + coords[3][0];
      real_t tmp10 = tmp2 + coords[1][1];
      real_t tmp11 = tmp4 + coords[2][2];
-     real_t tmp12 = coords[0][0]*coords[3][2];
-     real_t tmp13 = coords[2][0]*coords[0][2];
-     real_t tmp14 = coords[0][0]*coords[2][2];
-     real_t tmp15 = coords[3][0]*coords[0][2];
-     real_t tmp16 = coords[0][0]*coords[1][2];
-     real_t tmp17 = coords[1][0]*coords[0][2];
+     real_t tmp19 = coords[0][0]*coords[2][1];
+     real_t tmp20 = coords[3][0]*coords[0][1];
+     real_t tmp21 = coords[0][0]*coords[3][1];
+     real_t tmp22 = coords[2][0]*coords[0][1];
+     real_t tmp24 = coords[0][0]*coords[3][2];
+     real_t tmp25 = coords[2][0]*coords[0][2];
+     real_t tmp26 = coords[0][0]*coords[2][2];
+     real_t tmp27 = coords[3][0]*coords[0][2];
+     real_t tmp29 = coords[0][1]*coords[2][2];
+     real_t tmp30 = coords[3][1]*coords[0][2];
+     real_t tmp31 = coords[0][1]*coords[3][2];
+     real_t tmp32 = coords[1][0]*coords[0][1];
+     real_t tmp33 = coords[0][0]*coords[1][1];
+     real_t tmp34 = coords[0][0]*coords[1][2];
+     real_t tmp35 = coords[1][0]*coords[0][2];
+     real_t tmp36 = coords[1][1]*coords[0][2];
+     real_t tmp37 = coords[0][1]*coords[1][2];
 
      real_t detP = -tmp1*tmp11*tmp7 + tmp1*tmp3*tmp5 + tmp10*tmp11*tmp9 - tmp10*tmp5*tmp6 - tmp3*tmp8*tmp9 + tmp6*tmp7*tmp8;
      real_t detPfac = std::abs( detP ) / detP;
@@ -530,14 +583,29 @@ class P2ToP1Form_div< 2 > : public P2ToP1FormHyTeG
       real_t L4 = CUBAPOINTS[k][2];                  \
       real_t L1 = 1.0 - L2 - L3 - L4;                \
                                                      \
-      real_t dy = DX1N ## j*(tmp12 + tmp13 - tmp14 - tmp15 + coords[2][0]*coords[3][1] - coords[3][0]*coords[2][1]) + DX2N ## j*(-tmp13 + tmp14 + tmp16 - tmp17 - coords[1][0]*coords[3][1] + coords[3][0]*coords[1][1]) + DX3N ## j*(-tmp12 + tmp15 - tmp16 + tmp17 + coords[1][0]*coords[2][1] - coords[2][0]*coords[1][1]); \
+      mappedPt[0] = ( coords[1][0] - coords[0][0] ) * L2 + ( coords[2][0] - coords[0][0] ) * L3 + ( coords[3][0] - coords[0][0] ) * L4 + coords[0][0]; \
+      mappedPt[1] = ( coords[1][1] - coords[0][1] ) * L2 + ( coords[2][1] - coords[0][1] ) * L3 + ( coords[3][1] - coords[0][1] ) * L4 + coords[0][1]; \
+      mappedPt[2] = ( coords[1][2] - coords[0][2] ) * L2 + ( coords[2][2] - coords[0][2] ) * L3 + ( coords[3][2] - coords[0][2] ) * L4 + coords[0][2]; \
                                                      \
-      elMat( i, j ) -= CUBAWEIGHTS[k] * detPfac * dy * SF_M##i; \
+      Matrix3r DPsi;                                 \
+      geometryMap_->evalDF( mappedPt, DPsi );        \
+                                                     \
+      real_t tmp12 = DPsi(0,0)*DPsi(1,1);            \
+      real_t tmp13 = DPsi(0,1)*DPsi(1,2);            \
+      real_t tmp14 = DPsi(0,2)*DPsi(1,0);            \
+      real_t tmp15 = DPsi(0,0)*DPsi(1,2);            \
+      real_t tmp16 = DPsi(0,1)*DPsi(1,0);            \
+      real_t tmp17 = DPsi(0,2)*DPsi(1,1);            \
+      real_t tmp18 = tmp12 - tmp16;                  \
+      real_t tmp23 = tmp14 - tmp15;                  \
+      real_t tmp28 = tmp13 - tmp17;                  \
+                                                     \
+      real_t diff = DX1N ## j*(tmp18*(tmp19 + tmp20 - tmp21 - tmp22 + coords[2][0]*coords[3][1] - coords[3][0]*coords[2][1]) + tmp23*(tmp24 + tmp25 - tmp26 - tmp27 - coords[2][0]*coords[3][2] + coords[3][0]*coords[2][2]) + tmp28*(tmp29 + tmp30 - tmp31 - coords[2][1]*coords[0][2] + coords[2][1]*coords[3][2] - coords[3][1]*coords[2][2])) + DX2N ## j*(tmp18*(-tmp20 + tmp21 + tmp32 - tmp33 - coords[1][0]*coords[3][1] + coords[3][0]*coords[1][1]) + tmp23*(-tmp24 + tmp27 + tmp34 - tmp35 + coords[1][0]*coords[3][2] - coords[3][0]*coords[1][2]) + tmp28*(-tmp30 + tmp31 + tmp36 - tmp37 - coords[1][1]*coords[3][2] + coords[3][1]*coords[1][2])) + DX3N ## j*(tmp18*(-tmp19 + tmp22 - tmp32 + tmp33 + coords[1][0]*coords[2][1] - coords[2][0]*coords[1][1]) + tmp23*(-tmp25 + tmp26 - tmp34 + tmp35 - coords[1][0]*coords[2][2] + coords[2][0]*coords[1][2]) + tmp28*(-tmp29 - tmp36 + tmp37 + coords[1][1]*coords[2][2] + coords[2][1]*coords[0][2] - coords[2][1]*coords[1][2])); \
+                                                     \
+      real_t detQ = DPsi(2,0)*tmp13 - DPsi(2,0)*tmp17 + DPsi(2,1)*tmp14 - DPsi(2,1)*tmp15 + DPsi(2,2)*tmp12 - DPsi(2,2)*tmp16; \
+      real_t detQfac = std::abs( detQ ) / detQ;      \
+      elMat( i, j ) -= CUBAWEIGHTS[k] * detPfac * detQfac * diff * SF_M##i; \
    }
-
-     // mappedPt[0] = ( coords[1][0] - coords[0][0] ) * L2 + ( coords[2][0] - coords[0][0] ) * L3 + ( coords[3][0] - coords[0][0] ) * L4 + coords[0][0]; \
-     // mappedPt[1] = ( coords[1][1] - coords[0][1] ) * L2 + ( coords[2][1] - coords[0][1] ) * L3 + ( coords[3][1] - coords[0][1] ) * L4 + coords[0][1]; \
-     // mappedPt[2] = ( coords[1][2] - coords[0][2] ) * L2 + ( coords[2][2] - coords[0][2] ) * L3 + ( coords[3][2] - coords[0][2] ) * L4 + coords[0][2]; \
 
      // Quadrature point mapped to computational triangle
      Point3D mappedPt;
@@ -555,12 +623,23 @@ class P2ToP1Form_div< 2 > : public P2ToP1FormHyTeG
      real_t tmp9 = tmp0 + coords[3][0];
      real_t tmp10 = tmp2 + coords[1][1];
      real_t tmp11 = tmp4 + coords[2][2];
-     real_t tmp12 = coords[0][0]*coords[2][1];
-     real_t tmp13 = coords[3][0]*coords[0][1];
-     real_t tmp14 = coords[0][0]*coords[3][1];
-     real_t tmp15 = coords[2][0]*coords[0][1];
-     real_t tmp16 = coords[1][0]*coords[0][1];
-     real_t tmp17 = coords[0][0]*coords[1][1];
+     real_t tmp19 = coords[0][0]*coords[2][1];
+     real_t tmp20 = coords[3][0]*coords[0][1];
+     real_t tmp21 = coords[0][0]*coords[3][1];
+     real_t tmp22 = coords[2][0]*coords[0][1];
+     real_t tmp24 = coords[0][0]*coords[3][2];
+     real_t tmp25 = coords[2][0]*coords[0][2];
+     real_t tmp26 = coords[0][0]*coords[2][2];
+     real_t tmp27 = coords[3][0]*coords[0][2];
+     real_t tmp29 = coords[0][1]*coords[2][2];
+     real_t tmp30 = coords[3][1]*coords[0][2];
+     real_t tmp31 = coords[0][1]*coords[3][2];
+     real_t tmp32 = coords[1][0]*coords[0][1];
+     real_t tmp33 = coords[0][0]*coords[1][1];
+     real_t tmp34 = coords[0][0]*coords[1][2];
+     real_t tmp35 = coords[1][0]*coords[0][2];
+     real_t tmp36 = coords[1][1]*coords[0][2];
+     real_t tmp37 = coords[0][1]*coords[1][2];
 
      real_t detP = -tmp1*tmp11*tmp7 + tmp1*tmp3*tmp5 + tmp10*tmp11*tmp9 - tmp10*tmp5*tmp6 - tmp3*tmp8*tmp9 + tmp6*tmp7*tmp8;
      real_t detPfac = std::abs( detP ) / detP;

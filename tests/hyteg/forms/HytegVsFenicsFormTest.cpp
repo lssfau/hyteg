@@ -78,9 +78,9 @@ real_t
 template < class FormFEniCS, class FormHyTeG, typename matType, uint_t dim >
 void compareForms( const std::array< Point3D, dim + 1 >& element,
                    real_t                                tol,
-                   std::shared_ptr< GeometryMap >        map         = nullptr,
-                   real_t                                scaleFactor = real_c( 1 ),
-                   bool applyMapToElement = false )
+                   std::shared_ptr< GeometryMap >        map               = nullptr,
+                   real_t                                scaleFactor       = real_c( 1 ),
+                   bool                                  applyMapToElement = false )
 {
    bool wBlending = true;
 
@@ -98,10 +98,12 @@ void compareForms( const std::array< Point3D, dim + 1 >& element,
    // apply blending to element fed to FEniCS (useful for the tests with
    // an affine mapping)
    std::array< Point3D, dim + 1 > elementForFenics = element;
-   if( applyMapToElement ) {
-     for( uint_t k = 0; k <= dim; ++k ) {
-       map->evalF( element[k], elementForFenics[k] );
-     }
+   if ( applyMapToElement )
+   {
+      for ( uint_t k = 0; k <= dim; ++k )
+      {
+         map->evalF( element[k], elementForFenics[k] );
+      }
    }
 
    // assemble element matrices
@@ -124,7 +126,6 @@ void compareForms( const std::array< Point3D, dim + 1 >& element,
    WALBERLA_CHECK_LESS_EQUAL( error, tol );
 }
 
-
 template < class FormFEniCS, class FormHyTeG, typename matType, uint_t dim >
 void compareScaled( const std::array< Point3D, dim + 1 >& element,
                     real_t                                tol,
@@ -134,15 +135,11 @@ void compareScaled( const std::array< Point3D, dim + 1 >& element,
    compareForms< FormFEniCS, FormHyTeG, matType, dim >( element, tol, map, scaleFactor, false );
 }
 
-
 template < class FormFEniCS, class FormHyTeG, typename matType, uint_t dim >
-void compareUsingAffineMap( const std::array< Point3D, dim + 1 >& element,
-                            real_t                                tol,
-                            std::shared_ptr< GeometryMap >        map )
+void compareUsingAffineMap( const std::array< Point3D, dim + 1 >& element, real_t tol, std::shared_ptr< GeometryMap > map )
 {
    compareForms< FormFEniCS, FormHyTeG, matType, dim >( element, tol, map, 0.0, true );
 }
-
 
 void run2DTestsWithoutBlending()
 {
@@ -231,11 +228,11 @@ void run2DTestsWithAffineMap()
 {
    // define our affine map (rotation + scaling + shift)
    Matrix2r mat;
-   real_t phi = 2.0 / 9.0 * pi;
-   mat(0,0) = +std::cos( phi );
-   mat(0,1) = -std::sin( phi );
-   mat(1,0) = +std::sin( phi ) * 2.25;
-   mat(1,1) = +std::cos( phi ) * 2.25;
+   real_t   phi = 2.0 / 9.0 * pi;
+   mat( 0, 0 )  = +std::cos( phi );
+   mat( 0, 1 )  = -std::sin( phi );
+   mat( 1, 0 )  = +std::sin( phi ) * 2.25;
+   mat( 1, 1 )  = +std::cos( phi ) * 2.25;
    Point2D vec( {-7.0, 3.0} );
    auto    map = std::make_shared< AffineMap2D >( mat, vec );
 
@@ -253,15 +250,15 @@ void run2DTestsWithAffineMap()
 
    logSectionHeader( "P2ToP1 DivX Forms" );
    compareUsingAffineMap< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, fenics::NoAssemble >,
-                  P2ToP1Form_div< 0 >,
-                  Matrixr< 3, 6 >,
-                  2 >( triangle, 3.5e-14, map );
+                          P2ToP1Form_div< 0 >,
+                          Matrixr< 3, 6 >,
+                          2 >( triangle, 3.5e-14, map );
 
    logSectionHeader( "P2ToP1 DivY Forms" );
    compareUsingAffineMap< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_1_otherwise, fenics::NoAssemble >,
-                  P2ToP1Form_div< 1 >,
-                  Matrixr< 3, 6 >,
-                  2 >( triangle, 5e-14, map );
+                          P2ToP1Form_div< 1 >,
+                          Matrixr< 3, 6 >,
+                          2 >( triangle, 5e-14, map );
 
    logSectionHeader( "P1 DivX Forms" );
    compareUsingAffineMap< P1FenicsForm< p1_div_cell_integral_0_otherwise, fenics::NoAssemble >, P1Form_div_1, Matrix3r, 2 >(
@@ -297,30 +294,35 @@ void run2DTestsWithAffineMap()
 
    logSectionHeader( "P1ToP2 DivX^T Forms" );
    compareUsingAffineMap< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, fenics::NoAssemble >,
-                  P1ToP2Form_divt< 0 >,
-                  Matrixr< 6, 3 >,
-                  2 >( triangle, 5e-14, map );
+                          P1ToP2Form_divt< 0 >,
+                          Matrixr< 6, 3 >,
+                          2 >( triangle, 5e-14, map );
 
    logSectionHeader( "P1ToP2 DivY^T Forms" );
    compareUsingAffineMap< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, fenics::NoAssemble >,
-                  P1ToP2Form_divt< 1 >,
-                  Matrixr< 6, 3 >,
-                  2 >( triangle, 5e-14, map );
+                          P1ToP2Form_divt< 1 >,
+                          Matrixr< 6, 3 >,
+                          2 >( triangle, 5e-14, map );
 
    logSectionHeader( "P1 Diffusion Forms" );
-   compareUsingAffineMap< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >, P1Form_laplace, Matrix3r, 2 >( triangle, 3e-15, map );
+   compareUsingAffineMap< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >,
+                          P1Form_laplace,
+                          Matrix3r,
+                          2 >( triangle, 3e-15, map );
 
    logSectionHeader( "P2 Laplace Form" );
-   compareUsingAffineMap< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_laplace, Matrix6r, 2 >( triangle, 1e-13, map );
+   compareUsingAffineMap< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >,
+                          P2Form_laplace,
+                          Matrix6r,
+                          2 >( triangle, 1e-13, map );
 }
-
 
 void run3DTestsWithoutBlending()
 {
    // define our test tetrahedron
-   // std::array< Point3D, 4 > theTet{
-   // Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 1.0, 0.0} ), Point3D( {-1.0, 0.5, 0.0} ), Point3D( {0.3, 0.21, -1.2} )};
-   std::array<Point3D,4> theTet{ Point3D({0.0, 0.0, 0.0}), Point3D({1.0, 0.0, 0.0}), Point3D({0.0, 1.0, 0.0}), Point3D({0.0, 0.0, 1.0}) };
+   std::array< Point3D, 4 > theTet{
+       Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 1.0, 0.0} ), Point3D( {-1.0, 0.5, 0.0} ), Point3D( {0.3, 0.21, -1.2} )};
+   // std::array<Point3D,4> theTet{ Point3D({0.0, 0.0, 0.0}), Point3D({1.0, 0.0, 0.0}), Point3D({0.0, 1.0, 0.0}), Point3D({0.0, 0.0, 1.0}) };
 
    logSectionHeader( "P1 Mass Forms (3D)" );
    compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >( theTet,
@@ -337,19 +339,21 @@ void run3DTestsWithoutBlending()
    logSectionHeader( "P2ToP1 DivX Forms (3D)" );
    compareForms< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise >,
                  P2ToP1Form_div< 0 >,
-                 Matrixr< 4, 10 >, 3 >( theTet, 1.2e-14 );
+                 Matrixr< 4, 10 >,
+                 3 >( theTet, 1e-14 );
 
    logSectionHeader( "P2ToP1 DivY Forms (3D)" );
    compareForms< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise >,
                  P2ToP1Form_div< 1 >,
-                 Matrixr< 4, 10 >, 3 >( theTet, 1.2e-14 );
+                 Matrixr< 4, 10 >,
+                 3 >( theTet, 1e-14 );
 
    logSectionHeader( "P2ToP1 DivZ Forms (3D)" );
    compareForms< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise >,
                  P2ToP1Form_div< 2 >,
-                 Matrixr< 4, 10 >, 3 >( theTet, 1.2e-14 );
+                 Matrixr< 4, 10 >,
+                 3 >( theTet, 1e-14 );
 }
-
 
 void run3DTestsWithAffineMap()
 {
@@ -359,20 +363,20 @@ void run3DTestsWithAffineMap()
    // simple scaling
    mat( 0, 0 ) = real_c( 2.0 );
    mat( 1, 1 ) = real_c( 1.0 );
-   mat( 2, 2 ) = real_c( std::exp(1.0) );
+   mat( 2, 2 ) = real_c( std::exp( 1.0 ) );
 
    // more interesting variant (rotation around x-axis, y-axis and scaling of z-component)
 #define CHALLENGING
 #ifdef CHALLENGING
-   mat(0,0) = +8.660254037844387e-01;
-   mat(0,1) = -1.545084971874737e-01;
-   mat(0,2) = -9.510565162951534e-01;
-   mat(1,0) = +0.000000000000000e+00;
-   mat(1,1) = +9.510565162951535e-01;
-   mat(1,2) = -6.180339887498948e-01;
-   mat(2,0) = +4.999999999999999e-01;
-   mat(2,1) = +2.676165673298174e-01;
-   mat(2,2) = +1.647278207092664e+00;
+   mat( 0, 0 ) = +8.660254037844387e-01;
+   mat( 0, 1 ) = -1.545084971874737e-01;
+   mat( 0, 2 ) = -9.510565162951534e-01;
+   mat( 1, 0 ) = +0.000000000000000e+00;
+   mat( 1, 1 ) = +9.510565162951535e-01;
+   mat( 1, 2 ) = -6.180339887498948e-01;
+   mat( 2, 0 ) = +4.999999999999999e-01;
+   mat( 2, 1 ) = +2.676165673298174e-01;
+   mat( 2, 2 ) = +1.647278207092664e+00;
 #endif
 #undef CHALLENGING
 
@@ -380,22 +384,44 @@ void run3DTestsWithAffineMap()
    auto    map = std::make_shared< AffineMap3D >( mat, vec );
 
    // define our test tetrahedrons
-   Point3D v1( { 0.0, 0.00,  0.0} );
-   Point3D v2( { 1.0, 1.00,  0.0} );
-   Point3D v3( {-1.0, 0.50,  0.0} );
-   Point3D v4( { 0.3, 0.21, -1.2} );
-   std::array< Point3D, 4 > theTet{ v1, v2, v3, v4 };
+   Point3D                  v1( {0.0, 0.00, 0.0} );
+   Point3D                  v2( {1.0, 1.00, 0.0} );
+   Point3D                  v3( {-1.0, 0.50, 0.0} );
+   Point3D                  v4( {0.3, 0.21, -1.2} );
+   std::array< Point3D, 4 > theTet{v1, v2, v3, v4};
 
    logSectionHeader( "P1 Mass Forms (3D)" );
-   compareUsingAffineMap< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >( theTet, 5e-15, map );
+   compareUsingAffineMap< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >(
+       theTet, 5e-15, map );
 
    logSectionHeader( "P2 Mass Forms (3D)" );
-   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >, P2Form_mass, Matrix10r, 3 >( theTet, 5e-7, map );  // need to improve our cubature !!!
+   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >, P2Form_mass, Matrix10r, 3 >(
+       theTet, 5e-7, map ); // need to improve our cubature !!!
 
    logSectionHeader( "P2 Laplace Forms (3D)" );
-   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >, P2Form_laplace, Matrix10r, 3 >( theTet, 5e-14, map );
-}
+   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >,
+                          P2Form_laplace,
+                          Matrix10r,
+                          3 >( theTet, 5e-14, map );
 
+   logSectionHeader( "P2ToP1 DivX Forms (3D)" );
+   compareUsingAffineMap< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise >,
+                          P2ToP1Form_div< 0 >,
+                          Matrixr< 4, 10 >,
+                          3 >( theTet, 1e-14, map );
+
+   logSectionHeader( "P2ToP1 DivY Forms (3D)" );
+   compareUsingAffineMap< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise >,
+                          P2ToP1Form_div< 1 >,
+                          Matrixr< 4, 10 >,
+                          3 >( theTet, 1e-14, map );
+
+   logSectionHeader( "P2ToP1 DivZ Forms (3D)" );
+   compareUsingAffineMap< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise >,
+                          P2ToP1Form_div< 2 >,
+                          Matrixr< 4, 10 >,
+                          3 >( theTet, 1e-14, map );
+}
 
 int main( int argc, char** argv )
 {
