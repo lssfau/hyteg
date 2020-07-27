@@ -12,7 +12,8 @@ def supermuc_scaling_prm_file_string(discretization="P2", mesh_spherical_shell=F
                                      agglomeration_num_processes=4, agglomeration_interval=48,
                                      block_low_rank=False, block_low_rank_tolerance=1e-3,
                                      mesh_type='symmetricCube', t_domain_diameter=2, t_domain_height=100,
-                                     t_domain_width=25, project_pressure_after_restriction=True):
+                                     t_domain_width=25, t_domain_num_junctions=1,
+                                     project_pressure_after_restriction=True):
 
     base_config = """
 Parameters
@@ -67,6 +68,10 @@ Parameters
     tDomainDiameter {t_domain_diameter}; // number of cubes in "diameter", > 0 please
     tDomainHeight   {t_domain_height};
     tDomainWidth    {t_domain_width};
+    tDomainNumJunctions {t_domain_num_junctions};
+    
+    snakeNumRows 5;
+    snakeRowLength 5;
 
     meshLayout CRISSCROSS;
     
@@ -145,7 +150,8 @@ Parameters
            agglomeration_num_processes=agglomeration_num_processes, agglomeration_interval=agglomeration_interval,
            block_low_rank=block_low_rank, block_low_rank_tolerance=block_low_rank_tolerance,
            mesh_type=mesh_type, t_domain_diameter=t_domain_diameter, t_domain_height=t_domain_height,
-           t_domain_width=t_domain_width, project_pressure_after_restriction=project_pressure_after_restriction)
+           t_domain_width=t_domain_width, t_domain_num_junctions=t_domain_num_junctions,
+           project_pressure_after_restriction=project_pressure_after_restriction)
     return base_config
 
 
@@ -311,16 +317,16 @@ def supermuc_scaling():
             96: {"num_faces_per_side": 6},
         },
         "weak_fast_tdomain": {
-            192: {"mesh_type": 'tDomain', "t_domain_diameter": 2, "t_domain_height": 100, "t_domain_width": 25,
-                  "project_pressure_after_restriction": False},
-            384: {"mesh_type": 'tDomain', "t_domain_diameter": 2, "t_domain_height": 200, "t_domain_width": 50,
-                  "project_pressure_after_restriction": False},
-            768: {"mesh_type": 'tDomain', "t_domain_diameter": 2, "t_domain_height": 400, "t_domain_width": 100,
-                  "project_pressure_after_restriction": False},
-            1536: {"mesh_type": 'tDomain', "t_domain_diameter": 2, "t_domain_height": 800, "t_domain_width": 200,
-                   "project_pressure_after_restriction": False},
-            3072: {"mesh_type": 'tDomain', "t_domain_diameter": 2, "t_domain_height": 1600, "t_domain_width": 400,
-                   "project_pressure_after_restriction": False},
+            192: {"mesh_type": 'tDomain', "t_domain_diameter": 1, "t_domain_height": 600, "t_domain_width": 2,
+                  "tDomainNumJunctions": 1, "project_pressure_after_restriction": False},
+            384: {"mesh_type": 'tDomain', "t_domain_diameter": 1, "t_domain_height": 1200, "t_domain_width": 2,
+                  "tDomainNumJunctions": 1, "project_pressure_after_restriction": False},
+            768: {"mesh_type": 'tDomain', "t_domain_diameter": 1, "t_domain_height": 2400, "t_domain_width": 2,
+                  "tDomainNumJunctions": 1, "project_pressure_after_restriction": False},
+            1536: {"mesh_type": 'tDomain', "t_domain_diameter": 1, "t_domain_height": 4800, "t_domain_width": 2,
+                   "tDomainNumJunctions": 1, "project_pressure_after_restriction": False},
+            3072: {"mesh_type": 'tDomain', "t_domain_diameter": 1, "t_domain_height": 9600, "t_domain_width": 2,
+                   "tDomainNumJunctions": 1, "project_pressure_after_restriction": False},
         }
     }
 

@@ -210,7 +210,8 @@ enum class MeshType
    CUBE,
    SYMMETRIC_CUBE,
    SPHERICAL_SHELL,
-   T_DOMAIN
+   T_DOMAIN,
+   SNAKE
 };
 
 const std::map< std::string, MeshType > meshTypeStrings = {
@@ -219,6 +220,7 @@ const std::map< std::string, MeshType > meshTypeStrings = {
     {"symmetricCube", MeshType::SYMMETRIC_CUBE},
     {"sphericalShell", MeshType::SPHERICAL_SHELL},
     {"tDomain", MeshType::T_DOMAIN},
+    {"snake", MeshType::SNAKE},
 };
 
 template < typename Function, typename LaplaceOperator, typename MassOperator >
@@ -265,7 +267,7 @@ void calculateErrorAndResidualStokes( const uint_t&                             
                                       const std::function< real_t( const Point3D& ) >& exactV,
                                       const std::function< real_t( const Point3D& ) >& exactW,
                                       const std::function< real_t( const Point3D& ) >& exactP,
-                                      const bool& projectPressure )
+                                      const bool&                                      projectPressure )
 {
    auto numU = numberOfGlobalDoFs< typename Function::VelocityFunction_T::Tag >( *u.u.getStorage(), level );
    auto numP = numberOfGlobalDoFs< typename Function::PressureFunction_T::Tag >( *u.p.getStorage(), level );
@@ -370,7 +372,7 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
                                          const std::function< real_t( const Point3D& ) >& rhsU,
                                          const std::function< real_t( const Point3D& ) >& rhsV,
                                          const std::function< real_t( const Point3D& ) >& rhsW,
-                                         const bool & projectPressure)
+                                         const bool&                                      projectPressure )
 {
    StokesFunction u( "u", storage, level, level );
    StokesFunction f( "f", storage, level, level );
@@ -994,8 +996,18 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
       WALBERLA_LOG_INFO_ON_ROOT( "l2 discretization error ( u | p ) per level:" );
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
-         calculateDiscretizationErrorStokes< StokesFunction, StokesOperator, MassOperator >(
-             storage, level, discretizationErrorU, discretizationErrorP, exactU, exactV, exactW, exactP, rhsU, rhsV, rhsW, projectPressure );
+         calculateDiscretizationErrorStokes< StokesFunction, StokesOperator, MassOperator >( storage,
+                                                                                             level,
+                                                                                             discretizationErrorU,
+                                                                                             discretizationErrorP,
+                                                                                             exactU,
+                                                                                             exactV,
+                                                                                             exactW,
+                                                                                             exactP,
+                                                                                             rhsU,
+                                                                                             rhsV,
+                                                                                             rhsW,
+                                                                                             projectPressure );
          WALBERLA_LOG_INFO_ON_ROOT( "  level " << std::setw( 2 ) << level << ": " << std::scientific << discretizationErrorU
                                                << " | " << discretizationErrorP );
          sqlRealProperties["l2_discr_error_u_level_" + std::to_string( level )] = real_c( discretizationErrorU );
@@ -1273,8 +1285,20 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
    auto postCycle = [&]( uint_t currentLevel ) {
       timerFMGErrorCalculation.start();
       long double _l2ErrorU, _l2ErrorP, _l2ResidualU, _l2ResidualP;
-      calculateErrorAndResidualStokes(
-          currentLevel, A, u, f, error, _l2ErrorU, _l2ErrorP, _l2ResidualU, _l2ResidualP, exactU, exactV, exactW, exactP, projectPressure );
+      calculateErrorAndResidualStokes( currentLevel,
+                                       A,
+                                       u,
+                                       f,
+                                       error,
+                                       _l2ErrorU,
+                                       _l2ErrorP,
+                                       _l2ResidualU,
+                                       _l2ResidualP,
+                                       exactU,
+                                       exactV,
+                                       exactW,
+                                       exactP,
+                                       projectPressure );
       sqlRealProperties["fmg_l2_error_u_level_" + std::to_string( currentLevel )]    = real_c( _l2ErrorU );
       sqlRealProperties["fmg_l2_error_p_level_" + std::to_string( currentLevel )]    = real_c( _l2ErrorP );
       sqlRealProperties["fmg_l2_residual_u_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorU );
@@ -1364,8 +1388,20 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
       {
          vertexdof::projectMean( u.p, maxLevel );
       }
-      calculateErrorAndResidualStokes(
-          maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP, exactU, exactV, exactW, exactP, projectPressure );
+      calculateErrorAndResidualStokes( maxLevel,
+                                       A,
+                                       u,
+                                       f,
+                                       error,
+                                       l2ErrorU,
+                                       l2ErrorP,
+                                       l2ResidualU,
+                                       l2ResidualP,
+                                       exactU,
+                                       exactV,
+                                       exactW,
+                                       exactP,
+                                       projectPressure );
       vtkOutput.write( maxLevel, 1 );
       WALBERLA_LOG_INFO_ON_ROOT( std::setw( 15 )
                                  << 1 << " || " << std::scientific << l2ErrorU << " | " << l2ErrorP << " | "
@@ -1465,8 +1501,20 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
       }
 
       timer.reset();
-      calculateErrorAndResidualStokes(
-          maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP, exactU, exactV, exactW, exactP, projectPressure );
+      calculateErrorAndResidualStokes( maxLevel,
+                                       A,
+                                       u,
+                                       f,
+                                       error,
+                                       l2ErrorU,
+                                       l2ErrorP,
+                                       l2ResidualU,
+                                       l2ResidualP,
+                                       exactU,
+                                       exactV,
+                                       exactW,
+                                       exactP,
+                                       projectPressure );
       timer.end();
       timeError = timer.last();
       if ( cycle == 1 && fmgInnerCycles > 0 )
@@ -1669,9 +1717,13 @@ void setup( int argc, char** argv )
    const real_t shellRMin = mainConf.getParameter< real_t >( "shellRMin" );
    const real_t shellRMax = mainConf.getParameter< real_t >( "shellRMax" );
 
-   const uint_t tDomainDiameter = mainConf.getParameter< uint_t >( "tDomainDiameter" );
-   const uint_t tDomainHeight   = mainConf.getParameter< uint_t >( "tDomainHeight" );
-   const uint_t tDomainWidth    = mainConf.getParameter< uint_t >( "tDomainWidth" );
+   const uint_t tDomainDiameter     = mainConf.getParameter< uint_t >( "tDomainDiameter" );
+   const uint_t tDomainHeight       = mainConf.getParameter< uint_t >( "tDomainHeight" );
+   const uint_t tDomainWidth        = mainConf.getParameter< uint_t >( "tDomainWidth" );
+   const uint_t tDomainNumJunctions = mainConf.getParameter< uint_t >( "tDomainNumJunctions" );
+
+   const uint_t snakeNumRows   = mainConf.getParameter< uint_t >( "snakeNumRows" );
+   const uint_t snakeRowLength = mainConf.getParameter< uint_t >( "snakeRowLength" );
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    PETScManager petscManager( &argc, &argv );
@@ -1766,6 +1818,12 @@ void setup( int argc, char** argv )
       WALBERLA_LOG_INFO_ON_ROOT( "  - T-domain diameter:                       " << tDomainDiameter );
       WALBERLA_LOG_INFO_ON_ROOT( "  - T-domain height:                         " << tDomainHeight );
       WALBERLA_LOG_INFO_ON_ROOT( "  - T-domain width:                          " << tDomainWidth );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - T-domain num junctions:                  " << tDomainNumJunctions );
+   }
+   else if ( meshType == MeshType::SNAKE )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "  - snake-domain num rows:                   " << snakeNumRows );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - snake-domain row length:                 " << snakeRowLength );
    }
    WALBERLA_LOG_INFO_ON_ROOT( "  - cycles before DC:                        "
                               << ( discretization == "P1" ? std::to_string( cyclesBeforeDC ) : "disabled" ) );
@@ -1882,19 +1940,9 @@ void setup( int argc, char** argv )
 
       // junction cube
       WALBERLA_CHECK_GREATER( tDomainDiameter, 0 )
-      for ( int i = 0; i < int_c( tDomainDiameter ); i++ )
-      {
-         for ( int j = 0; j < int_c( tDomainDiameter ); j++ )
-         {
-            for ( int k = 0; k < int_c( tDomainDiameter ); k++ )
-            {
-               cubes.insert( {i, j, k} );
-            }
-         }
-      }
 
       // height
-      for ( int h = -1; h >= -int_c( tDomainHeight ); h-- )
+      for ( int h = 0; h < int_c( tDomainHeight ); h++ )
       {
          for ( int j = 0; j < int_c( tDomainDiameter ); j++ )
          {
@@ -1905,18 +1953,26 @@ void setup( int argc, char** argv )
          }
       }
 
-      // width
-      for ( int w = 0; w < int_c( tDomainWidth ); w++ )
+      const auto segmentLength = int_c( tDomainHeight / tDomainNumJunctions );
+
+      for ( int junc = 0; junc < int_c( tDomainNumJunctions ); junc++ )
       {
-         for ( int i = 0; i < int_c( tDomainDiameter ); i++ )
+         const auto juncBaseX = int_c( tDomainHeight ) - junc * segmentLength - int_c( tDomainDiameter );
+
+         // width
+         for ( int w = 0; w < int_c( tDomainWidth ); w++ )
          {
-            for ( int k = 0; k < int_c( tDomainDiameter ); k++ )
+            for ( int i = 0; i < int_c( tDomainDiameter ); i++ )
             {
-               cubes.insert( {i, -( w + 1 ), k} );
-               cubes.insert( {i, w + int_c( tDomainDiameter ), k} );
+               for ( int k = 0; k < int_c( tDomainDiameter ); k++ )
+               {
+                  cubes.insert( {juncBaseX + i, -( w + 1 ), k} );
+                  cubes.insert( {juncBaseX + i, w + int_c( tDomainDiameter ), k} );
+               }
             }
          }
       }
+
 
       auto meshInfo = MeshInfo::meshCubedDomain( cubes, 1 );
 
@@ -1931,28 +1987,18 @@ void setup( int argc, char** argv )
 
       auto outFlow2 = [eps, tDomainWidth]( const Point3D& p ) { return std::abs( p[1] + real_c( tDomainWidth ) ) < eps; };
 
-      auto surroundingEdgesTop = [eps, tDomainDiameter]( const Point3D& p ) {
-         return std::abs( p[2] - real_c( tDomainDiameter ) ) < eps;
-      };
-
-      auto surroundingEdgesBottom = [eps]( const Point3D& p ) { return std::abs( p[2] ) < 1e-8; };
-
-      auto surroundingEdgesFar = [eps, tDomainDiameter]( const Point3D& p ) {
-         return std::abs( p[0] - real_c( tDomainDiameter ) ) < eps;
-      };
-
-      auto surroundingEdgesNear = [eps, tDomainDiameter, tDomainWidth]( const Point3D& p ) {
-         return std::abs( p[0] ) < eps && ( std::abs( p[1] - real_c( tDomainDiameter + tDomainWidth ) ) < eps ||
-                                            std::abs( p[1] + real_c( tDomainWidth ) ) < eps );
-      };
-
       auto inflowBC = [eps, tDomainDiameter, tDomainHeight]( const hyteg::Point3D& p ) {
-         if ( std::abs( p[0] + real_c( tDomainHeight ) ) < eps )
+         if ( std::abs( p[0] ) < eps )
          {
-            const Point3D center( {-real_c( tDomainHeight ), 0.5 * real_c( tDomainDiameter ), 0.5 * real_c( tDomainDiameter )} );
+            const Point3D center( {0, 0.5 * real_c( tDomainDiameter ), 0.5 * real_c( tDomainDiameter )} );
             const auto    radius  = 0.5 * real_c( tDomainDiameter );
             const auto    shifted = ( p - center ) / radius;
+#if 0
             return ( 1 - ( shifted[1] * shifted[1] ) ) * ( 1 - ( shifted[2] * shifted[2] ) );
+#else
+            return ( 1 - std::sin( 0.5 * pi * shifted[1] * shifted[1] ) ) *
+                   ( 1 - std::sin( 0.5 * pi * shifted[2] * shifted[2] ) );
+#endif
          }
          else
          {
@@ -1963,10 +2009,10 @@ void setup( int argc, char** argv )
       setupStorage.setMeshBoundaryFlagsByVertexLocation( 2, outFlow1, true );
       setupStorage.setMeshBoundaryFlagsByVertexLocation( 2, outFlow2, true );
       // vertices shall not have outflow condition
-      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesBottom, true );
-      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesTop, true );
-      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesFar, true );
-      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesNear, true );
+//      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesBottom, true );
+//      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesTop, true );
+//      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesFar, true );
+//      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesNear, true );
 
 #if 0
       // test
@@ -1995,6 +2041,83 @@ void setup( int argc, char** argv )
       sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
       sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
       sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
+   }
+   else if ( meshType == MeshType::SNAKE )
+   {
+      WALBERLA_CHECK_EQUAL( snakeNumRows % 2, 0, "Snake-domain must have even number of rows" );
+      projectPressure = false;
+
+      std::set< std::array< int, 3 > > cubes;
+
+      for ( int row = 0; row < int_c( snakeNumRows ); row++ )
+      {
+         for ( int col = 0; col < int_c( snakeRowLength ); col++ )
+         {
+            cubes.insert( { col, 2 * row, 0 } );
+         }
+      }
+
+      for ( int row = 0; row < int_c( snakeNumRows - 1 ); row++ )
+      {
+         if ( row % 2 == 0 )
+         {
+            cubes.insert( { int_c( snakeRowLength ) - 1, 2 * row + 1, 0 } );
+         }
+         else
+         {
+            cubes.insert( { 0, 2 * row + 1, 0 } );
+         }
+      }
+
+      const auto eps = 1e-3;
+
+      auto inflowBC = [eps]( const hyteg::Point3D& p ) {
+        if ( std::abs( p[0] ) < eps && p[1] > - eps && p[1] < 1 + eps )
+        {
+           const Point3D center( {0, 0.5, 0.5} );
+           const auto    radius  = 0.5;
+           const auto    shifted = ( p - center ) / radius;
+#if 0
+           return ( 1 - ( shifted[1] * shifted[1] ) ) * ( 1 - ( shifted[2] * shifted[2] ) );
+#else
+           return ( 1 - std::sin( 0.5 * pi * shifted[1] * shifted[1] ) ) *
+                  ( 1 - std::sin( 0.5 * pi * shifted[2] * shifted[2] ) );
+#endif
+        }
+        else
+        {
+           return 0.0;
+        }
+      };
+
+      auto outFlow = [eps, snakeNumRows]( const Point3D& p ) {
+        return std::abs( p[0] ) < eps && p[1] > 2 * real_c( snakeNumRows - 1 ) - eps;
+      };
+
+      auto meshInfo = MeshInfo::meshCubedDomain( cubes, 1 );
+
+      SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+      setupStorage.setMeshBoundaryFlagsByVertexLocation( 2, outFlow, true );
+
+      const auto zero = []( const Point3D& ) { return 0; };
+
+      exactU = inflowBC;
+      exactV = zero;
+      exactW = zero;
+      exactP = zero;
+
+      rhsU = zero;
+      rhsV = zero;
+      rhsW = zero;
+
+      storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+      sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
+      sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
+      sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
+      sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
+
    }
    else if ( meshType == MeshType::CUBE )
    {

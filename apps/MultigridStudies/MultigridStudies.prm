@@ -10,7 +10,8 @@ Parameters
     //  cube:           cube with 6 tets
     //  sphericalShell: spherical shell
     //  tDomain:        T-shaped domain
-    meshType tDomain;
+    //  snake:          snake-shaped domain
+    meshType snake;
 
     // parameters for square
     meshLayout CRISSCROSS;
@@ -49,9 +50,13 @@ Parameters
     //
     // height == width == 0 gives only junction with specified diameter (cube w/ diam^3 cubes)
     //
-    tDomainDiameter 1; // number of cubes in "diameter", > 0 please
-    tDomainHeight   6;
-    tDomainWidth    2;
+    tDomainDiameter     1; // number of cubes in "diameter", > 0 please
+    tDomainHeight       600;
+    tDomainWidth        2;
+    tDomainNumJunctions 1;
+
+    snakeNumRows 24;
+    snakeRowLength 24;
 
     discretization P2;
 
@@ -74,21 +79,21 @@ Parameters
     preSmoothingSteps 3;
     postSmoothingSteps 3;
     smoothingIncrement 2;
-    minLevel 3;
-    maxLevel 4; // P1 level, P2 level is automatically reduced by 1
+    minLevel 0;
+    maxLevel 1; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-16;
     projectPressureAfterRestriction false;
     calculateDiscretizationError false;
     coarseGridMaxIterations 20000;
-    coarseGridResidualTolerance 1e-04;
+    coarseGridResidualTolerance 1e-05;
 
     // 0: MUMPS                          (PETSc)
     // 1: block preconditioned MINRES    (PETSc)
     // 2: MINRES                         (HyTeG)
     // 3: pressure preconditioned MINRES (HyTeG)
     // 4: SuperLU (dist)                 (PETSc)
-    coarseGridSolverType 0;
+    coarseGridSolverType 1;
 
     // for solver type 1:
     // 0: PCGAMG
@@ -98,8 +103,8 @@ Parameters
     coarseGridSolverVelocityPreconditionerType 1;
 
     // BLR options for MUMPS
-    blockLowRank false;
-    blockLowRankTolerance 1e-3;
+    blockLowRank true;
+    blockLowRankTolerance 1e-5;
 
     agglomeration false;
     agglomerationStrategy bulk;   // dedicated, bulk, or interval
