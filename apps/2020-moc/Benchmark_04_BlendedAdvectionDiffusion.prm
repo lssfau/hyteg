@@ -1,17 +1,22 @@
 Parameters
 {
-  level 4;
-  numTimeSteps 200;
-  threeDim true;
+  level 5;
+  numTimeSteps 63;
+  threeDim false;
 
+  // tStart will be set to keep
+  // tStart * diffusivity = 1e-3 * 0.5 * pi
+  // if diffusivity is negative, MOC w/o re-init is used
   diffusivity 1e-3;
 
   adjustedAdvection false;
+  resetParticles false;
+  rotationOnly false;
 
   vtk true;
-  printInterval 10;
+  printInterval 1;
   vtkInterval 10;
-  verbose true;
+  verbose false;
   dbFile Benchmark_04_BlendedAdvectionDiffusion.db;
 
 }

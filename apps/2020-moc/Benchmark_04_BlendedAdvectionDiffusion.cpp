@@ -43,13 +43,17 @@ using walberla::math::pi;
 namespace hyteg {
 namespace moc_benchmarks {
 
+const real_t INITIAL_DIFFUSIVITY_TIME_PRODUCT = 1e-03 * 2 * pi;
+
+
 class TempSolution : public Solution
 {
  public:
-   TempSolution( real_t diffusivity, Point3D p0, real_t t0 )
+   TempSolution( real_t diffusivity, Point3D p0, real_t t0, bool rotationOnly )
    : Solution( t0 )
    , diffusivity_( diffusivity )
    , p0_( p0 )
+   , rotationOnly_( rotationOnly )
    {}
 
    real_t operator()( const Point3D& x ) const override
@@ -71,6 +75,7 @@ class TempSolution : public Solution
  private:
    real_t  diffusivity_;
    Point3D p0_;
+   bool    rotationOnly_;
 };
 
 class VelocitySolutionX : public Solution
@@ -114,6 +119,8 @@ void benchmark( int argc, char** argv )
    const bool        threeDim          = mainConf.getParameter< bool >( "threeDim" );
    const uint_t      level             = mainConf.getParameter< uint_t >( "level" );
    const real_t      diffusivity       = mainConf.getParameter< real_t >( "diffusivity" );
+   const bool        rotationOnly      = mainConf.getParameter< bool >( "rotationOnly" );
+   const bool        resetParticles    = mainConf.getParameter< bool >( "resetParticles" );
    const bool        adjustedAdvection = mainConf.getParameter< bool >( "adjustedAdvection" );
    const uint_t      printInterval     = mainConf.getParameter< uint_t >( "printInterval" );
    const bool        vtk               = mainConf.getParameter< bool >( "vtk" );
@@ -133,12 +140,12 @@ void benchmark( int argc, char** argv )
 
    const Point3D p0( {0, 1, 0} );
 
-   const real_t tStart = 0.5 * pi;
-   const real_t tEnd   = 2.5 * pi;
+   const real_t tStart = INITIAL_DIFFUSIVITY_TIME_PRODUCT / diffusivity;
+   const real_t tEnd   = tStart + 2.0 * pi;
 
    const real_t dt = ( tEnd - tStart ) / real_c( numTimeSteps );
 
-   TempSolution      cSolution( diffusivity, p0, tStart );
+   TempSolution      cSolution( diffusivity, p0, tStart, rotationOnly );
    VelocitySolutionX uSolution;
    VelocitySolutionY vSolution;
    VelocitySolutionZ wSolution;
@@ -153,8 +160,9 @@ void benchmark( int argc, char** argv )
           diffusivity,
           level,
           DiffusionTimeIntegrator::ImplicitEuler,
-          true,
-          true,
+          !rotationOnly,
+          !rotationOnly || resetParticles,
+          1,
           adjustedAdvection,
           numTimeSteps,
           vtk,

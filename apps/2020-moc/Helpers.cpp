@@ -55,6 +55,7 @@ void solve( const MeshInfo&         meshInfo,
             DiffusionTimeIntegrator diffusionTimeIntegrator,
             bool                    enableDiffusion,
             bool                    resetParticles,
+            uint_t                  resetParticlesInterval,
             bool                    adjustedAdvection,
             uint_t                  numTimeSteps,
             bool                    vtk,
@@ -83,7 +84,14 @@ void solve( const MeshInfo&         meshInfo,
          IcosahedralShellMap::setMap( *setupStorage );
       }
    }
+
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
+
+   if ( vtk )
+   {
+      writeDomainPartitioningVTK( storage, "vtk/", benchmarkName + "_domain" );
+   }
+
 
    auto timer = storage->getTimingTree();
    timer->start( "Total" );
@@ -93,8 +101,17 @@ void solve( const MeshInfo&         meshInfo,
    const real_t hMin     = MeshQuality::getMinimalEdgeLength( storage, level );
    const real_t hMax     = MeshQuality::getMaximalEdgeLength( storage, level );
 
+   if ( !resetParticles )
+   {
+      resetParticlesInterval = numTimeSteps + 1;
+   }
+
    const bool forcedParticleReset = adjustedAdvection || enableDiffusion;
-   resetParticles |= forcedParticleReset;
+   if ( forcedParticleReset )
+   {
+      resetParticles         = true;
+      resetParticlesInterval = 1;
+   }
 
    WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << benchmarkName )
    WALBERLA_LOG_INFO_ON_ROOT( " - time discretization: " )
@@ -119,6 +136,10 @@ void solve( const MeshInfo&         meshInfo,
    WALBERLA_LOG_INFO_ON_ROOT( "   + adjusted advection:                           " << ( adjustedAdvection ? "yes" : "no" ) )
    WALBERLA_LOG_INFO_ON_ROOT( "   + particle reset:                               "
                               << ( resetParticles ? "yes" : "no" ) << ( forcedParticleReset ? " (forced)" : "" ) )
+   if ( resetParticles )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "   + particle reset interval:                      " << resetParticlesInterval );
+   }
    WALBERLA_LOG_INFO_ON_ROOT( " - app settings: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + VTK:                                          " << ( vtk ? "yes" : "no" ) )
    if ( vtk )
@@ -134,22 +155,23 @@ void solve( const MeshInfo&         meshInfo,
    std::map< std::string, double >            sqlRealProperties;
    std::map< std::string, std::string >       sqlStringProperties;
 
-   sqlIntegerProperties["ts"]                   = 0;
-   sqlRealProperties["dt"]                      = dt;
-   sqlIntegerProperties["num_ts"]               = int_c( numTimeSteps );
-   sqlIntegerProperties["level"]                = int_c( level );
-   sqlIntegerProperties["unknowns"]             = int_c( unknowns );
-   sqlRealProperties["h_min"]                   = hMin;
-   sqlRealProperties["h_max"]                   = hMax;
-   sqlIntegerProperties["num_macro_cells"]      = int_c( setupStorage->getNumberOfCells() );
-   sqlIntegerProperties["num_macro_faces"]      = int_c( setupStorage->getNumberOfFaces() );
-   sqlIntegerProperties["num_macro_edges"]      = int_c( setupStorage->getNumberOfEdges() );
-   sqlIntegerProperties["num_macro_vertices"]   = int_c( setupStorage->getNumberOfVertices() );
-   sqlIntegerProperties["num_macro_primitives"] = int_c( setupStorage->getNumberOfPrimitives() );
-   sqlRealProperties["diffusivity"]             = diffusivity;
-   sqlIntegerProperties["pure_advection"]       = !enableDiffusion;
-   sqlIntegerProperties["adjusted_advection"]   = adjustedAdvection;
-   sqlIntegerProperties["particle_reset"]       = resetParticles;
+   sqlIntegerProperties["ts"]                      = 0;
+   sqlRealProperties["dt"]                         = dt;
+   sqlIntegerProperties["num_ts"]                  = int_c( numTimeSteps );
+   sqlIntegerProperties["level"]                   = int_c( level );
+   sqlIntegerProperties["unknowns"]                = int_c( unknowns );
+   sqlRealProperties["h_min"]                      = hMin;
+   sqlRealProperties["h_max"]                      = hMax;
+   sqlIntegerProperties["num_macro_cells"]         = int_c( setupStorage->getNumberOfCells() );
+   sqlIntegerProperties["num_macro_faces"]         = int_c( setupStorage->getNumberOfFaces() );
+   sqlIntegerProperties["num_macro_edges"]         = int_c( setupStorage->getNumberOfEdges() );
+   sqlIntegerProperties["num_macro_vertices"]      = int_c( setupStorage->getNumberOfVertices() );
+   sqlIntegerProperties["num_macro_primitives"]    = int_c( setupStorage->getNumberOfPrimitives() );
+   sqlRealProperties["diffusivity"]                = diffusivity;
+   sqlIntegerProperties["pure_advection"]          = !enableDiffusion;
+   sqlIntegerProperties["adjusted_advection"]      = adjustedAdvection;
+   sqlIntegerProperties["particle_reset"]          = resetParticles;
+   sqlIntegerProperties["particle_reset_interval"] = int_c( resetParticlesInterval );
 
    typedef P2Function< real_t >                   FunctionType;
    typedef P2ElementwiseBlendingLaplaceOperator   LaplaceOperator;
@@ -176,10 +198,10 @@ void solve( const MeshInfo&         meshInfo,
    MMOCTransport< FunctionType > transport( storage, setupStorage, level, level, TimeSteppingScheme::RK4 );
 
    //#ifdef HYTEG_BUILD_WITH_PETSC
-   //   PETScManager manager;
-   //   auto         solver = std::make_shared< PETScMinResSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, 1e-06 );
+   PETScManager manager;
+   auto         solver = std::make_shared< PETScMinResSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, 1e-06 );
    //#else
-   auto solver = std::make_shared< CGSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, level );
+   //   auto solver = std::make_shared< CGSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, level );
    //#endif
 
    UnsteadyDiffusion< FunctionType, UnsteadyDiffusionOperator, LaplaceOperator, MassOperator > diffusionSolver(
@@ -203,6 +225,7 @@ void solve( const MeshInfo&         meshInfo,
    const auto initialMass = mass;
    auto       massChange  = ( mass / initialMass ) - 1.0;
    real_t     timeTotal   = 0;
+   real_t     vMax        = velocityMaxMagnitude( u, v, w, tmp, tmp2, level, All );
 
    hyteg::VTKOutput vtkOutput( "./vtk", benchmarkName, storage, vtkInterval );
 
@@ -223,17 +246,18 @@ void solve( const MeshInfo&         meshInfo,
       vtkOutput.write( level );
 
    WALBERLA_LOG_INFO_ON_ROOT(
-       " timestep | time total | discr. L2 error | max peak diff. | spu. osc. | total mass | mass change " )
+       " timestep | time total | discr. L2 error | max peak diff. | spu. osc. | total mass | mass change | vel max mag " )
    WALBERLA_LOG_INFO_ON_ROOT(
-       "----------+------------+-----------------+----------------+-----------+------------+-------------" )
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8s | %10.5f | %15.3e | %14.3e | %9.3e | %10.3e | %11.2f%% ",
+       "----------+------------+-----------------+----------------+-----------+------------+-------------+------------ " )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8s | %10.5f | %15.3e | %14.3e | %9.3e | %10.3e | %10.2f%% | %10.3e ",
                                                 "initial",
                                                 timeTotal,
                                                 discrL2,
                                                 maxPeakDiff,
                                                 spuriousOsc,
                                                 mass,
-                                                massChange * 100 ) )
+                                                massChange * 100,
+                                                vMax ) )
 
    WALBERLA_ROOT_SECTION()
    {
@@ -243,6 +267,7 @@ void solve( const MeshInfo&         meshInfo,
       sqlRealProperties["spurious_osc"] = spuriousOsc;
       sqlRealProperties["mass"]         = mass;
       sqlRealProperties["mass_change"]  = massChange;
+      sqlRealProperties["v_max"]        = vMax;
 
       db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
       sqlRealProperties.clear();
@@ -285,9 +310,10 @@ void solve( const MeshInfo&         meshInfo,
 
       real_t advectionTimeStepRunTime;
 
+      vMax = velocityMaxMagnitude( u, v, w, tmp, tmp2, level, All );
+
       if ( adjustedAdvection )
       {
-         const real_t vMax                         = velocityMaxMagnitude( u, v, w, tmp, tmp2, level, All );
          const real_t adjustedAdvectionPertubation = 0.1 * ( hMin / vMax );
          localTimer.start();
          transport.step( c, u, v, w, uLast, vLast, wLast, level, Inner, dt, 1, M, 0.0, adjustedAdvectionPertubation );
@@ -297,7 +323,18 @@ void solve( const MeshInfo&         meshInfo,
       else
       {
          localTimer.start();
-         transport.step( c, u, v, w, uLast, vLast, wLast, level, Inner, dt, 1, i == 1 || resetParticles );
+         transport.step( c,
+                         u,
+                         v,
+                         w,
+                         uLast,
+                         vLast,
+                         wLast,
+                         level,
+                         Inner,
+                         dt,
+                         1,
+                         i == 1 || ( resetParticles && i % resetParticlesInterval == 0 ) );
          localTimer.end();
          advectionTimeStepRunTime = localTimer.last();
       }
@@ -327,14 +364,15 @@ void solve( const MeshInfo&         meshInfo,
          mass        = globalMass( c, tmp, M, level, All );
          massChange  = ( mass / initialMass ) - 1.0;
 
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8d | %10.5f | %15.3e | %14.3e | %9.3e | %10.3e | %11.2f%% ",
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8d | %10.5f | %15.3e | %14.3e | %9.3e | %10.3e | %10.2f%% | %10.3e",
                                                       i,
                                                       timeTotal,
                                                       discrL2,
                                                       maxPeakDiff,
                                                       spuriousOsc,
                                                       mass,
-                                                      massChange * 100 ) )
+                                                      massChange * 100,
+                                                      vMax ) )
       }
 
       if ( vtk )
@@ -350,6 +388,7 @@ void solve( const MeshInfo&         meshInfo,
          sqlRealProperties["mass"]               = mass;
          sqlRealProperties["mass_change"]        = massChange;
          sqlRealProperties["run_time_advection"] = advectionTimeStepRunTime;
+         sqlRealProperties["v_max"]              = vMax;
 
          db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
          sqlRealProperties.clear();

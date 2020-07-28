@@ -1,16 +1,17 @@
 Parameters
 {
-  level 5;
-  numTimeSteps 20;
-  threeDim false;
+  level 4;
+  numTimeSteps 15;
+  threeDim true;
 
   enableGaussianCone true;
   enableLinearCone false;
   enableCylinder false;
 
-  resetParticles true;
-  adjustedAdvection true;
-  vtk false;
+  resetParticles false;
+  resetParticlesInterval 1;
+  adjustedAdvection false;
+  vtk true;
   printInterval 1;
   vtkInterval 1;
   dbFile Benchmark_02_SwirlingAdvection.db;

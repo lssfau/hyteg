@@ -258,18 +258,19 @@ void benchmark( int argc, char** argv )
 
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
-   const uint_t      numTimeSteps       = mainConf.getParameter< uint_t >( "numTimeSteps" );
-   const uint_t      level              = mainConf.getParameter< uint_t >( "level" );
-   const bool        threeDim           = mainConf.getParameter< bool >( "threeDim" );
-   const bool        resetParticles     = mainConf.getParameter< bool >( "resetParticles" );
-   const bool        adjustedAdvection  = mainConf.getParameter< bool >( "adjustedAdvection" );
-   const bool        enableCylinder     = mainConf.getParameter< bool >( "enableCylinder" );
-   const bool        enableLinearCone   = mainConf.getParameter< bool >( "enableLinearCone" );
-   const bool        enableGaussianCone = mainConf.getParameter< bool >( "enableGaussianCone" );
-   const uint_t      printInterval      = mainConf.getParameter< uint_t >( "printInterval" );
-   const bool        vtk                = mainConf.getParameter< bool >( "vtk" );
-   const uint_t      vtkInterval        = mainConf.getParameter< uint_t >( "vtkInterval" );
-   const std::string dbFile             = mainConf.getParameter< std::string >( "dbFile" );
+   const uint_t      numTimeSteps           = mainConf.getParameter< uint_t >( "numTimeSteps" );
+   const uint_t      level                  = mainConf.getParameter< uint_t >( "level" );
+   const bool        threeDim               = mainConf.getParameter< bool >( "threeDim" );
+   const bool        resetParticles         = mainConf.getParameter< bool >( "resetParticles" );
+   const uint_t      resetParticlesInterval = mainConf.getParameter< uint_t >( "resetParticlesInterval" );
+   const bool        adjustedAdvection      = mainConf.getParameter< bool >( "adjustedAdvection" );
+   const bool        enableCylinder         = mainConf.getParameter< bool >( "enableCylinder" );
+   const bool        enableLinearCone       = mainConf.getParameter< bool >( "enableLinearCone" );
+   const bool        enableGaussianCone     = mainConf.getParameter< bool >( "enableGaussianCone" );
+   const uint_t      printInterval          = mainConf.getParameter< uint_t >( "printInterval" );
+   const bool        vtk                    = mainConf.getParameter< bool >( "vtk" );
+   const uint_t      vtkInterval            = mainConf.getParameter< uint_t >( "vtkInterval" );
+   const std::string dbFile                 = mainConf.getParameter< std::string >( "dbFile" );
 
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
    if ( threeDim )
@@ -308,6 +309,7 @@ void benchmark( int argc, char** argv )
              DiffusionTimeIntegrator::ImplicitEuler,
              false,
              resetParticles,
+             resetParticlesInterval,
              adjustedAdvection,
              numTimeSteps,
              vtk,
@@ -332,6 +334,7 @@ void benchmark( int argc, char** argv )
              DiffusionTimeIntegrator::ImplicitEuler,
              false,
              resetParticles,
+             resetParticlesInterval,
              adjustedAdvection,
              numTimeSteps,
              vtk,
