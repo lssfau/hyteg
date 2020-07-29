@@ -15,7 +15,6 @@ Parameters
   mg_tolerance 1e-15;
   coarse_tolerance 1e-15;
 
-  discontinuous_k 0; # else: smooth k;
   alpha 1; # alpha->inf => k->step;
   phi 6; # increase phi to decrease smoothness of u;
 

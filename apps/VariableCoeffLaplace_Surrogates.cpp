@@ -407,19 +407,10 @@ int main(int argc, char* argv[])
 
   const bool vtk = parameters.getParameter<bool>("vtkOutput");
 
-  const bool discontinuousK = parameters.getParameter<bool>("discontinuous_k");
   const real_t alpha = parameters.getParameter<real_t>("alpha");
   const real_t phi = parameters.getParameter<real_t>("phi");
 
   // define functions and domain
-  if (discontinuousK)
-  {
-    WALBERLA_LOG_INFO_ON_ROOT("k discontinuous (main-singularity)");
-  }
-  else
-  {
-    WALBERLA_LOG_INFO_ON_ROOT("smooth k, single macro-element");
-  }
   // case: smooth k, domain = triangle
   // c_function exact = [](const hyteg::Point3D & x) {return sin(x[0])*sinh(x[1]);};
   // c_function boundary = exact;
@@ -436,51 +427,6 @@ int main(int argc, char* argv[])
   };
 
   MeshInfo meshInfo = MeshInfo::fromGmshFile("../data/meshes/tri_1el.msh");
-
-  // case discontinuous k, domain = square (main-singularity)
-  if (discontinuousK)
-  {
-    k = [](const hyteg::Point3D & x) {return (x[0]*x[1] < 0)? 1 : 5;};
-    rhs = [](const hyteg::Point3D &) {return 0;};
-    real_t a[4] = {0.4472135955,-0.7453559925,-0.9441175905,-2.401702643};
-    real_t b[4] = {1.0,2.333333333,0.55555555555,-0.4814814814};
-    real_t delta = 0.5354409456;
-    exact = [a,b,delta](const hyteg::Point3D & x){
-      // domain partition
-      int i;
-      if (x[1] >= 0)
-      {
-        i = (x[0] > 0)? 0 : 1;
-      }
-      else
-      {
-        i = (x[0] < 0)? 2 : 3;
-      }
-
-      // radius
-      real_t r = std::sqrt(x[0]*x[0]+x[1]*x[1]);
-
-      // angle
-      real_t theta;
-      if (std::abs(x[0]) < 1E-16)
-      {
-        theta = (x[1] > 0)? PI/2. : -PI/2.;
-      }
-      else
-      {
-        theta = std::atan(x[1]/x[0]);
-        if (x[0] < 0)
-          theta += PI;
-      }
-      if (theta < 0) theta += 2*PI;
-
-      return std::pow(r,delta) * (a[i]*sin(delta*theta) + b[i]*cos(delta*theta));
-    };
-    boundary = exact;
-
-    meshInfo = MeshInfo::meshRectangle(Point2D({-1.0, -1.0}), Point2D({1.0, 1.0}), MeshInfo::CRISS, 1, 1);
-  }
-
   P2Form_divKgrad::callback = k;
 
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
@@ -489,9 +435,7 @@ int main(int argc, char* argv[])
   hyteg::loadbalancing::roundRobin(setupStorage);
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
-  // size_t N = storage->getFaces().size();
   WALBERLA_LOG_INFO_ON_ROOT("Refinement levels: " << minLevel << "->" << maxLevel);
-  // WALBERLA_LOG_INFO_ON_ROOT("Number of Microfaces:" << N * (1 << (2*maxLevel)));
   WALBERLA_LOG_INFO_ON_ROOT("h_L = 1/" << (1 << maxLevel));
 
   // choose FE space
