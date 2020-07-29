@@ -37,7 +37,7 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2VariableOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
-#include "hyteg/p2functionspace/P2PolynomialBlendingOperator.hpp"
+#include "hyteg/p2functionspace/P2SurrogateOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
@@ -146,7 +146,7 @@ struct FE_Space<ElementType::P2, StencilType::NONE>
 
   using LaplaceCONST = hyteg::P2ConstantLaplaceOperator;
   using LaplaceVAR = hyteg::P2BlendingLaplaceOperator;
-  using LaplaceLSQP = hyteg::P2PolynomialBlendingLaplaceOperator;
+  using LaplaceLSQP = hyteg::P2SurrogateLaplaceOperator;
 };
 
 template <ElementType P>

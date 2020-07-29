@@ -24,9 +24,6 @@
 
 #include <hyteg/p1functionspace/VertexDoFFunction.hpp>
 #include <hyteg/p2functionspace/P2Function.hpp>
-#include <hyteg/p2functionspace/P2MacroFace.hpp>
-#include <hyteg/p2functionspace/P2MacroEdge.hpp>
-#include <hyteg/p2functionspace/P2MacroVertex.hpp>
 
 #include <hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp>
 

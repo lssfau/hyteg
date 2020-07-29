@@ -27,15 +27,7 @@
 
 #include <hyteg/p2functionspace/polynomial/P2PolynomialDataHandling.hpp>
 
-#ifdef _MSC_VER
-   #pragma warning( push, 0 )
-#endif
-
 #include "variablestencil/P2VariableStencilCommon.hpp"
-
-#ifdef _MSC_VER
-   #pragma warning( pop )
-#endif
 
 #include <hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp>
 #include <hyteg/forms/form_hyteg_manual/P2FormMass.hpp>
@@ -44,15 +36,12 @@
 
 #include <hyteg/p1functionspace/VertexDoFFunction.hpp>
 #include <hyteg/p2functionspace/P2Function.hpp>
-#include <hyteg/p2functionspace/P2MacroFace.hpp>
-#include <hyteg/p2functionspace/P2MacroEdge.hpp>
-#include <hyteg/p2functionspace/P2MacroVertex.hpp>
 #include <hyteg/p2functionspace/polynomial/P2MacroFacePolynomial.hpp>
 
 namespace hyteg {
 
 template <class P2Form, OperatorType OprType>
-class P2PolynomialBlendingOperator : public Operator<P2Function<real_t>, P2Function<real_t>>
+class P2SurrogateOperator : public Operator<P2Function<real_t>, P2Function<real_t>>
 {
  public:
    using EdgeInterpolator = LSQPInterpolator<MonomialBasis2D, LSQPType::EDGE_ALL>;
@@ -86,7 +75,7 @@ class P2PolynomialBlendingOperator : public Operator<P2Function<real_t>, P2Funct
       std::array<std::shared_ptr<Interpolatortype>, N> data_;
    };
 
-   P2PolynomialBlendingOperator(const std::shared_ptr<PrimitiveStorage>& storage,
+   P2SurrogateOperator(const std::shared_ptr<PrimitiveStorage>& storage,
                                 uint_t minLevel, uint_t maxLevel, uint_t interpolationLevel)
       : Operator(storage, minLevel, maxLevel)
       , interpolationLevel_(interpolationLevel)
@@ -100,15 +89,15 @@ class P2PolynomialBlendingOperator : public Operator<P2Function<real_t>, P2Funct
       }
    }
 
-   P2PolynomialBlendingOperator(const std::shared_ptr<PrimitiveStorage>& storage,
+   P2SurrogateOperator(const std::shared_ptr<PrimitiveStorage>& storage,
                                 uint_t minLevel, uint_t maxLevel, uint_t interpolationLevel, uint_t polyDegree)
-      : P2PolynomialBlendingOperator(storage, minLevel, maxLevel, interpolationLevel)
+      : P2SurrogateOperator(storage, minLevel, maxLevel, interpolationLevel)
    {
       interpolateStencils(polyDegree);
       useDegree(polyDegree);
    }
 
-   ~P2PolynomialBlendingOperator() {}
+   ~P2SurrogateOperator() {}
 
    void interpolateStencils(uint_t polyDegree)
    {
@@ -374,8 +363,8 @@ class P2PolynomialBlendingOperator : public Operator<P2Function<real_t>, P2Funct
    std::map<uint_t, PrimitiveDataID<P2::FacePolynomialMemory, Face>> polynomialIDs_;
 };
 
-typedef P2PolynomialBlendingOperator<P2Form_laplace, OperatorType::EVEN> P2PolynomialBlendingLaplaceOperator;
-typedef P2PolynomialBlendingOperator<P2Form_divKgrad, OperatorType::EVEN> P2PolynomialDivKgradOperator;
-typedef P2PolynomialBlendingOperator<P2Form_mass, OperatorType::MASS>    P2PolynomialBlendingMassOperator;
+typedef P2SurrogateOperator<P2Form_laplace, OperatorType::EVEN> P2SurrogateLaplaceOperator;
+typedef P2SurrogateOperator<P2Form_divKgrad, OperatorType::EVEN> P2SurrogateDivKgradOperator;
+typedef P2SurrogateOperator<P2Form_mass, OperatorType::MASS>    P2SurrogateMassOperator;
 
 } // namespace hyteg
