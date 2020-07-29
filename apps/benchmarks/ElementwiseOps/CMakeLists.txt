@@ -11,3 +11,6 @@ waLBerla_add_executable( NAME StencilScalingBenchmark
         DEPENDS hyteg core)
 endif()
 
+waLBerla_add_executable( NAME ElementwiseVSConstant
+      FILES ElementwiseVSConstant.cpp
+      DEPENDS hyteg core)
