@@ -232,8 +232,8 @@ int main( int argc, char** argv )
    hyteg::P2Function< double > diff( "diff", storage, minLevel, maxLevel );
 
    hyteg::P2ConstantLaplaceOperator    constantOperator( storage, minLevel, maxLevel );
-   hyteg::P2ElementwiseLaplaceOperator elementWiseOperator( storage, minLevel, maxLevel );
-   //hyteg::P2ElementwiseBlendingLaplaceOperator elementWiseOperator( storage, minLevel, maxLevel );
+   //hyteg::P2ElementwiseLaplaceOperator elementWiseOperator( storage, minLevel, maxLevel );
+   hyteg::P2ElementwiseBlendingLaplaceOperator elementWiseOperator( storage, minLevel, maxLevel );
 
    src.interpolate( exact, benchLevel, hyteg::All );
    dstConst.interpolate( zeros, benchLevel, hyteg::All );
