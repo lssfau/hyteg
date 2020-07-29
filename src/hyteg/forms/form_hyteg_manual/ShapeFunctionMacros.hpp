@@ -171,44 +171,44 @@
 
 #ifdef UNDEFINE_P2_SHAPE_FUNCTION_DERIVATIVES_TET
 
-#define DX1N0
-#define DX2N0
-#define DX3N0
+#undef DX1N0
+#undef DX2N0
+#undef DX3N0
 
-#define DX1N1
-#define DX2N1
-#define DX3N1
+#undef DX1N1
+#undef DX2N1
+#undef DX3N1
 
-#define DX1N2
-#define DX2N2
-#define DX3N2
+#undef DX1N2
+#undef DX2N2
+#undef DX3N2
 
-#define DX1N3
-#define DX2N3
-#define DX3N3
+#undef DX1N3
+#undef DX2N3
+#undef DX3N3
 
-#define DX1N4
-#define DX2N4
-#define DX3N4
+#undef DX1N4
+#undef DX2N4
+#undef DX3N4
 
-#define DX1N5
-#define DX2N5
-#define DX3N5
+#undef DX1N5
+#undef DX2N5
+#undef DX3N5
 
-#define DX1N6
-#define DX2N6
-#define DX3N6
+#undef DX1N6
+#undef DX2N6
+#undef DX3N6
 
-#define DX1N7
-#define DX2N7
-#define DX3N7
+#undef DX1N7
+#undef DX2N7
+#undef DX3N7
 
-#define DX1N8
-#define DX2N8
-#define DX3N8
+#undef DX1N8
+#undef DX2N8
+#undef DX3N8
 
-#define DX1N9
-#define DX2N9
-#define DX3N9
+#undef DX1N9
+#undef DX2N9
+#undef DX3N9
 
 #endif
