@@ -24,6 +24,7 @@
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_generated/p2_polar_laplacian.h"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
+#include "hyteg/forms/form_hyteg_manual/P2FormDivKGradBlending.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
@@ -245,6 +246,7 @@ typedef P2ElementwiseOperator< P2Form_mass >    P2ElementwiseBlendingMassOperato
 typedef P2ElementwiseOperator< P2Form_laplace > P2ElementwiseBlendingLaplaceOperator;
 
 typedef P2ElementwiseOperator< P2Form_divKgrad > P2ElementwiseDivKGradOperator;
+typedef P2ElementwiseOperator< P2Form_divKgradBlending > P2ElementwiseDivKGradBlendingOperator;
 
 typedef P2ElementwiseOperator< P2LinearCombinationForm > P2ElementwiseLinearCombinationOperator;
 

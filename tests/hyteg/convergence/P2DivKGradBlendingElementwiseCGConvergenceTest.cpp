@@ -32,9 +32,10 @@
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg//geometry/IcosahedralShellMap.hpp"
-#include "hyteg/petsc/PETScMinResSolver.hpp"
-#include "hyteg/petsc/PETScLUSolver.hpp"
-#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg//geometry/AnnulusMap.hpp"
+//#include "hyteg/petsc/PETScMinResSolver.hpp"
+//#include "hyteg/petsc/PETScLUSolver.hpp"
+//#include "hyteg/petsc/PETScManager.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -52,7 +53,7 @@ void P2DivKGradBlendingElementwiseCGTest()
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
    writeDomainPartitioningVTK( storage, "../../output", "P2DivKGradBlendingElementwiseCGTest_domain" );
 
-   hyteg::P2ElementwiseBlendingLaplaceOperator L( storage, level, level );
+   hyteg::P2ElementwiseDivKGradBlendingOperator L( storage, level, level );
 
    hyteg::P2Function< real_t > r( "r", storage, level, level );
    hyteg::P2Function< real_t > f( "f", storage, level, level );
@@ -70,7 +71,7 @@ void P2DivKGradBlendingElementwiseCGTest()
    communication::syncP2FunctionBetweenPrimitives( u, level ); 
 
 
-   auto solver = hyteg::CGSolver< hyteg::P2ElementwiseBlendingLaplaceOperator >( storage, level, level );
+   auto solver = hyteg::CGSolver< hyteg::P2ElementwiseDivKGradBlendingOperator >( storage, level, level );
    solver.setPrintInfo( true );
    // auto solver = std::make_shared< PETScLUSolver< hyteg::P2ElementwiseBlendingLaplaceOperator > >( storage, level );
 
@@ -95,7 +96,7 @@ void P2DivKGradBlendingElementwiseCGTest()
 
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err << " (level " << level << ", " << "unknowns incl boundary: " << npoints << ")" );
-   WALBERLA_CHECK_LESS( discr_l2_err, 1e-05 );
+   WALBERLA_CHECK_LESS( discr_l2_err, 3.5e-05 );
 }
 
 } // namespace hyteg
@@ -106,6 +107,6 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::PETScManager manager( &argc, &argv );
+//   hyteg::PETScManager manager( &argc, &argv );
    hyteg::P2DivKGradBlendingElementwiseCGTest();
 }
