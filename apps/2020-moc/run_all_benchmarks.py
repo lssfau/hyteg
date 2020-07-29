@@ -7,6 +7,7 @@ import subprocess
 executables = {
     1: 'Benchmark_01_CircularAdvection',
     2: 'Benchmark_02_SwirlingAdvection',
+    4: 'Benchmark_04_BlendedAdvectionDiffusion',
 }
 
 parameterizations = {
@@ -104,6 +105,6 @@ def run_all_configs(benchmark_id):
         with open(out_file, 'w') as f:
             f.write(completed_process.stdout)
 
-run_all_configs(1)
-run_all_configs(2)
+#run_all_configs(1)
+#run_all_configs(2)
 run_all_configs(4)
