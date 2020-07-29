@@ -21,12 +21,12 @@
 
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_generated/p2_polar_laplacian.h"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
-#include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -117,6 +117,8 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                              DoFType                                     flag ) const;
 #endif
 
+   P2Form getForm() const;
+
  private:
    /// compute product of element local vector with element matrix
    ///
@@ -140,27 +142,6 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                                      const real_t* const          srcEdgeData,
                                      real_t* const                dstVertexData,
                                      real_t* const                dstEdgeData ) const;
-
-   /// compute product of element local vector with element matrix
-   ///
-   /// \param cell           cell primitive we operate on
-   /// \param level          level on which we operate in mesh hierarchy
-   /// \param microCell      index associated with the current element = micro-cell
-   /// \param cType          type of micro-cell (WHITE_UP, BLUE_DOWN, ...)
-   /// \param srcVertexData  pointer to DoF data on micro-vertices (for reading data)
-   /// \param srcEdgeData    pointer to DoF data on micro-edges (for reading data)
-   /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
-   /// \param dstEdgeData    pointer to DoF data on micro-edges (for writing data)
-   ///
-   /// \note The src and dst data arrays must not be identical.
-   void localMatrixVectorMultiply3D( const Cell&             cell,
-                                     const uint_t            level,
-                                     const indexing::Index&  microCell,
-                                     const celldof::CellType cType,
-                                     const real_t* const     srcVertexData,
-                                     const real_t* const     srcEdgeData,
-                                     real_t* const           dstVertexData,
-                                     real_t* const           dstEdgeData ) const;
 
    /// Compute contributions to operator diagonal for given micro-face
    ///
@@ -227,8 +208,30 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
    std::shared_ptr< P2Function< real_t > > inverseDiagonalValues_;
 
    P2Form form_;
-
 };
+
+/// compute product of element local vector with element matrix
+///
+/// \param cell           cell primitive we operate on
+/// \param level          level on which we operate in mesh hierarchy
+/// \param microCell      index associated with the current element = micro-cell
+/// \param cType          type of micro-cell (WHITE_UP, BLUE_DOWN, ...)
+/// \param srcVertexData  pointer to DoF data on micro-vertices (for reading data)
+/// \param srcEdgeData    pointer to DoF data on micro-edges (for reading data)
+/// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
+/// \param dstEdgeData    pointer to DoF data on micro-edges (for writing data)
+///
+/// \note The src and dst data arrays must not be identical.
+template < class P2Form >
+void localMatrixVectorMultiply3D( const Cell&            cell,
+                                  uint_t                 level,
+                                  const indexing::Index& microCell,
+                                  celldof::CellType      cType,
+                                  const real_t* const    srcVertexData,
+                                  const real_t* const    srcEdgeData,
+                                  real_t* const          dstVertexData,
+                                  real_t* const          dstEdgeData,
+                                  P2Form                 form );
 
 typedef P2ElementwiseOperator<
     P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >
