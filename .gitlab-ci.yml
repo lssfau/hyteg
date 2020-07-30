@@ -737,7 +737,7 @@ clang_10.0_eigen_petsc:
 ###############################################################################
 
 pages:
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/ubuntu:18.04
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
   script:
    - export CCACHE_BASEDIR=$CI_PROJECT_DIR
    - cd $CI_PROJECT_DIR/doc
