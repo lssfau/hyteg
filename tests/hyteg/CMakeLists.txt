@@ -399,6 +399,9 @@ if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_execute_test(NAME P2PetscApplyTest8 COMMAND $<TARGET_FILE:P2PetscApplyTest> PROCESSES 8)
 endif()
 
+waLBerla_compile_test(FILES composites/ConcatenatedOperator.cpp DEPENDS hyteg core )
+waLBerla_execute_test(NAME ConcatenatedOperator )
+
 ## composites ##
 if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES composites/P1P1StokesPetscApplyTest.cpp DEPENDS hyteg core )
