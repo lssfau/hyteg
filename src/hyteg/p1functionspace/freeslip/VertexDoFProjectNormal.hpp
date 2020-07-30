@@ -28,6 +28,7 @@
 #include "hyteg/p1functionspace/P1Elements.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/polynomial/PolynomialEvaluator.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 
 using walberla::uint_t;
 using walberla::real_c;
@@ -36,6 +37,56 @@ namespace hyteg {
 namespace vertexdof {
 
 namespace macroface {
+
+template < typename ValueType >
+inline void projectNormal3D(uint_t level, const Face &face, const std::shared_ptr<PrimitiveStorage> &storage, const std::function<void(const Point3D&, Point3D& )>& normal_function, const PrimitiveDataID<FunctionMemory<ValueType>, Face> &dstIdU, const PrimitiveDataID<FunctionMemory<ValueType>, Face> &dstIdV, const PrimitiveDataID<FunctionMemory<ValueType>, Face> &dstIdW) {
+
+   if( face.getNumNeighborCells() == 2 ) {
+      WALBERLA_ABORT("Cannot project normals if not a boundary face");
+   }
+
+   auto dstU = face.getData( dstIdU )->getPointer( level );
+   auto dstV = face.getData( dstIdV )->getPointer( level );
+   auto dstW = face.getData( dstIdW )->getPointer( level );
+
+   Point3D normal;
+   Matrix3r projection;
+   Point3D in;
+   Point3D out;
+
+   Point3D x;
+   Point3D xPhy;
+
+   for( const auto& it : vertexdof::macroface::Iterator( level, 1 ) )
+   {
+      x = coordinateFromIndex( level, face, it );
+      face.getGeometryMap()->evalF( x, xPhy );
+
+      normal_function(xPhy, normal);
+
+      projection(0,0) = 1.0 - normal[0] * normal[0];
+      projection(0,1) = - normal[0] * normal[1];
+      projection(0,2) = - normal[0] * normal[2];
+      projection(1,0) = projection(0,1);
+      projection(1,1) = 1.0 - normal[1] * normal[1];
+      projection(1,2) = - normal[1] * normal[2];
+      projection(2,0) = projection(0,2);
+      projection(2,1) = projection(1,2);
+      projection(2,2) = 1.0 - normal[2] * normal[2];
+
+      const uint_t idx = vertexdof::macroface::indexFromVertex( level, it.x(), it.y(), stencilDirection::VERTEX_C );
+
+      in[0] = dstU[idx];
+      in[1] = dstV[idx];
+      in[2] = dstW[idx];
+
+      out = projection.mul(in);
+
+      dstU[idx] = out[0];
+      dstV[idx] = out[1];
+      dstW[idx] = out[2];
+   }
+}
 
 } // namespace macroface
 

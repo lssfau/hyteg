@@ -38,7 +38,7 @@ class P1ProjectNormalOperator : public Operator< P1StokesFunction< real_t >, P1S
                DoFType                           flag) const;
 
  private:
-   const std::function<void(const Point3D&, Point3D& )>& normal_function_;
+   const std::function<void(const Point3D&, Point3D& )> normal_function_;
 };
 
 } // namespace hyteg

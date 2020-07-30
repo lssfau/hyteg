@@ -30,13 +30,14 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/geometry/IcosahedralShellMap.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
 
 using namespace hyteg;
 
-static void testProjectNormal( )
+static void testProjectNormal2D( )
 {
    const bool   writeVTK   = true;
    const real_t errorLimit = 1e-13;
@@ -49,7 +50,7 @@ static void testProjectNormal( )
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
    if ( writeVTK )
-      writeDomainPartitioningVTK( storage, "../../output", "P1ProjectNormalTest_Domain" );
+      writeDomainPartitioningVTK( storage, "../../output", "P1ProjectNormalTest2D_Domain" );
 
    auto normal_function = []( const Point3D& p, Point3D& n ) -> void {
      real_t norm = p.norm();
@@ -62,7 +63,43 @@ static void testProjectNormal( )
 
    P1StokesFunction< real_t > u( "u", storage, level, level );
 
-   VTKOutput vtkOutput( "../../output", "P1ProjectNormalTest", storage );
+   VTKOutput vtkOutput( "../../output", "P1ProjectNormalTest2D", storage );
+   vtkOutput.add( u );
+
+   u.interpolate( 1, level );
+   projectNormalOperator.apply( u, level, Boundary );
+
+   if ( writeVTK )
+      vtkOutput.write( level, 0 );
+}
+
+static void testProjectNormal3D( )
+{
+   const bool   writeVTK   = true;
+   const real_t errorLimit = 1e-13;
+   const int level = 3;
+
+   auto meshInfo = MeshInfo::meshSphericalShell( 5, 2, 0.5, 1.0 );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   IcosahedralShellMap::setMap( setupStorage );
+   const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   if ( writeVTK )
+      writeDomainPartitioningVTK( storage, "../../output", "P1ProjectNormalTest3D_Domain" );
+
+   auto normal_function = []( const Point3D& p, Point3D& n ) -> void {
+     real_t norm = p.norm();
+     real_t sign = (norm > 0.75) ? 1.0 : -1.0;
+
+     n = sign/norm * p;
+   };
+
+   P1ProjectNormalOperator projectNormalOperator( storage, level, level, normal_function );
+
+   P1StokesFunction< real_t > u( "u", storage, level, level );
+
+   VTKOutput vtkOutput( "../../output", "P1ProjectNormalTest3D", storage );
    vtkOutput.add( u );
 
    u.interpolate( 1, level );
@@ -78,6 +115,8 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   testProjectNormal( );
+   testProjectNormal2D( );
+   testProjectNormal3D( );
+
    return 0;
 }

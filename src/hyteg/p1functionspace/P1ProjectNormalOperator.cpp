@@ -76,7 +76,7 @@ void P1ProjectNormalOperator::apply( const P1StokesFunction< real_t >& dst,
       const DoFType vertexBC = dst.u.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if ( testFlag( vertexBC, flag ) )
       {
-         WALBERLA_ABORT("macro-vertex project normal not implemented");
+//         WALBERLA_ABORT("macro-vertex project normal not implemented");
       }
    }
 
@@ -95,7 +95,7 @@ void P1ProjectNormalOperator::apply( const P1StokesFunction< real_t >& dst,
        {
           if ( storage_->hasGlobalCells() )
           {
-             WALBERLA_ABORT("macro-edge project normal not implemented in 3D");
+//             WALBERLA_ABORT("macro-edge project normal not implemented in 3D");
           }
           else
           {
@@ -120,7 +120,7 @@ void P1ProjectNormalOperator::apply( const P1StokesFunction< real_t >& dst,
          {
             if ( storage_->hasGlobalCells() )
             {
-               WALBERLA_ABORT("macro-face project normal not implemented");
+               vertexdof::macroface::projectNormal3D< real_t >(level, face, storage_, normal_function_, dst.u.getFaceDataID(), dst.v.getFaceDataID(), dst.w.getFaceDataID() );
             }
          }
       }
