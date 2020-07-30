@@ -47,6 +47,8 @@ class ConcatenatedOperator : public Operator< typename OpType1::srcType, typenam
    , op1_( op1 )
    , op2_( op2 )
    , tmp_( "concatenated_operator_tmp", op1->getStorage(), op1->getMinLevel(), op1->getMaxLevel() )
+   , diagonalValues_( nullptr )
+   , inverseDiagonalValues_( nullptr )
    {
       checkStaticPreconditions();
    }
@@ -60,6 +62,8 @@ class ConcatenatedOperator : public Operator< typename OpType1::srcType, typenam
    , op1_( op1 )
    , op2_( op2 )
    , tmp_( tmp )
+   , diagonalValues_( nullptr )
+   , inverseDiagonalValues_( nullptr )
    {
       checkStaticPreconditions();
    }
@@ -78,17 +82,51 @@ class ConcatenatedOperator : public Operator< typename OpType1::srcType, typenam
 
    std::shared_ptr< typename OpType1::srcType > getDiagonalValues() const
    {
-      checkStaticAllTypesEqualPrecondition();
-      // TODO: Calculate this with the tmp_ function, op1_.getDiagonalValues() and op2_.getDiagonalValues().
-      WALBERLA_ABORT( "ConcatenatedOperator::getDiagonalValues was not implemented yet" );
+      WALBERLA_CHECK_NOT_NULLPTR(
+          diagonalValues_,
+          "Diagonal values have not been assembled, call computeDiagonalOperatorValues() to set up this function." )
+      return diagonalValues_;
    };
 
    std::shared_ptr< typename OpType1::srcType > getInverseDiagonalValues() const
    {
-      checkStaticAllTypesEqualPrecondition();
-      // TODO: Calculate this with the tmp_ function, op1_.getDiagonalValues() and op2_.getDiagonalValues() and then inverting.
-      WALBERLA_ABORT( "ConcatenatedOperator::getDiagonalValues was not implemented yet" );
+      WALBERLA_CHECK_NOT_NULLPTR(
+          inverseDiagonalValues_,
+          "Inverse diagonal values have not been assembled, call computeInverseDiagonalOperatorValues() to set up this function." )
+      return inverseDiagonalValues_;
    };
+
+   /// Trigger (re)computation of diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
+   void computeDiagonalOperatorValues()
+   {
+      if ( diagonalValues_ == nullptr )
+         diagonalValues_ = std::make_shared< typename OpType1::srcType >(
+             "inverse diagonal", op1_->getStorage(), op1_->getMinLevel(), op1_->getMaxLevel() );
+
+      op1_->computeDiagonalOperatorValues();
+      op2_->computeDiagonalOperatorValues();
+      for ( uint_t level = op1_->getMinLevel(); level <= op1_->getMaxLevel(); level += 1 )
+         diagonalValues_->multElementwise( { *op1_->getDiagonalValues(), *op2_->getDiagonalValues() }, level, All );
+   }
+
+   /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
+   /// Allocates the required memory if the function was not yet allocated.
+   void computeInverseDiagonalOperatorValues()
+   {
+      if ( inverseDiagonalValues_ == nullptr )
+         inverseDiagonalValues_ = std::make_shared< typename OpType1::srcType >(
+             "inverse diagonal", op1_->getStorage(), op1_->getMinLevel(), op1_->getMaxLevel() );
+      op1_->computeDiagonalOperatorValues();
+      op2_->computeDiagonalOperatorValues();
+      for ( uint_t level = op1_->getMinLevel(); level <= op1_->getMaxLevel(); level += 1 )
+      {
+         inverseDiagonalValues_->multElementwise( { *op1_->getDiagonalValues(), *op2_->getDiagonalValues() }, level, All );
+         // invert:
+         inverseDiagonalValues_->interpolateExtended(
+             []( auto, auto val ) { return 1. / val[0]; }, { *inverseDiagonalValues_, *inverseDiagonalValues_ }, level, All );
+      }
+   }
 
  private:
    void checkStaticPreconditions()
@@ -108,6 +146,9 @@ class ConcatenatedOperator : public Operator< typename OpType1::srcType, typenam
    std::shared_ptr< OpType1 > op1_;
    std::shared_ptr< OpType2 > op2_;
    typename OpType1::dstType  tmp_;
+
+   std::shared_ptr< typename OpType1::dstType > diagonalValues_;
+   std::shared_ptr< typename OpType1::dstType > inverseDiagonalValues_;
 };
 
 } // namespace hyteg
