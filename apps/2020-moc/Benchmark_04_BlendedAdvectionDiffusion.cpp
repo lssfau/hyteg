@@ -33,7 +33,7 @@
 #include "hyteg/primitivestorage/Visualization.hpp"
 
 #include "Helpers.hpp"
-#include "convection_particles/hyteg_coupling/MMOCTransport.hpp"
+#include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

@@ -51,7 +51,7 @@
 #include "hyteg/solvers/UzawaSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
-#include "convection_particles/hyteg_coupling/MMOCTransport.hpp"
+#include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 
 using walberla::real_c;
 using walberla::real_t;

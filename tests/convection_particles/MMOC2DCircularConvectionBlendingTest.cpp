@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2020 Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,10 +20,11 @@
 
 #include <core/Environment.h>
 #include <core/math/Constants.h>
+#include <hyteg/geometry/AnnulusMap.hpp>
 
 #include "hyteg/MeshQuality.hpp"
-#include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
@@ -32,7 +33,7 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 
-#include "convection_particles/hyteg_coupling/MMOCTransport.hpp"
+#include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -40,34 +41,42 @@ using walberla::uint_t;
 
 using namespace hyteg;
 
+/// Comparison of the HyTeG MMOC scheme with the solvers in Kuzmin 2010: A Guide to Numerical Methodsfor Transport Equations
+/// Setting from transport tutorial section 4.4.6.1: Solid Body Rotation
+
+/// Error definitions in section 4.4.6: Numerical examples
+
+typedef P2Function< real_t >   FunctionType;
+typedef P2ElementwiseBlendingMassOperator MassOperator;
+
 
 real_t errorE1( const uint_t&                   level,
-                const P2Function< real_t >&     c,
-                const P2Function< real_t >&     solution,
-                const P2Function< real_t >&     tmp0,
-                const P2Function< real_t >&     tmp1,
-                const P2ConstantRowSumOperator& lumpedMass )
+                const FunctionType&     c,
+                const FunctionType&     solution,
+                const FunctionType&     tmp0,
+                const FunctionType&     tmp1,
+                const MassOperator &  mass )
 {
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > E1 =
        []( const Point3D&, const std::vector< real_t >& values ) { return std::abs( values[0] - values[1] ); };
 
    tmp0.interpolate( E1, {solution, c}, level, All );
-   lumpedMass.apply( tmp0, tmp1, level, All );
+   mass.apply( tmp0, tmp1, level, All );
    return tmp1.sumGlobal( level, All );
 }
 
 real_t errorE2( const uint_t&                   level,
-                const P2Function< real_t >&     c,
-                const P2Function< real_t >&     solution,
-                const P2Function< real_t >&     tmp0,
-                const P2Function< real_t >&     tmp1,
-                const P2ConstantRowSumOperator& lumpedMass )
+                const FunctionType&     c,
+                const FunctionType&     solution,
+                const FunctionType&     tmp0,
+                const FunctionType&     tmp1,
+                const MassOperator&  mass )
 {
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > E2 =
        []( const Point3D&, const std::vector< real_t >& values ) { return std::pow( std::abs( values[0] - values[1] ), 2 ); };
 
    tmp0.interpolate( E2, {solution, c}, level, All );
-   lumpedMass.apply( tmp0, tmp1, level, All );
+   mass.apply( tmp0, tmp1, level, All );
    return std::sqrt( tmp1.sumGlobal( level, All ) );
 }
 
@@ -76,29 +85,35 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   MeshInfo meshInfo = hyteg::MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
+   // MeshInfo meshInfo = MeshInfo::meshAnnulus( 0.5, 1.5, 0.0, 2.0 * walberla::math::pi, MeshInfo::CROSS, 6, 2 );
+   MeshInfo meshInfo = MeshInfo::meshAnnulus( 0.5, 1.5, MeshInfo::CROSS, 6, 2 );
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage );
+
+   for ( auto it : setupStorage->getFaces() )
+   {
+      Face& face = *it.second;
+      setupStorage->setGeometryMap( face.getID(), std::make_shared< AnnulusMap >( face ) );
+   }
+   for ( auto it : setupStorage->getEdges() )
+   {
+      Edge& edge = *it.second;
+      setupStorage->setGeometryMap( edge.getID(), std::make_shared< AnnulusMap >( edge, *setupStorage ) );
+   }
+
+   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
    storage->getTimingTree()->start( "Total" );
 
    const uint_t minLevel   = 2;
-   const uint_t maxLevel   = 4;
-
+   const uint_t maxLevel   = 5;
    const real_t hMin       = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    const real_t hMax       = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
    const real_t tEnd       = 2 * walberla::math::pi;
-   const real_t dt         = tEnd / 60.;
-   const uint_t stepsTotal = 2; // uint_c( tEnd / dt );
+   const real_t dt         = tEnd / 150;
+   const uint_t stepsTotal = uint_c( tEnd / dt );
 
-   const uint_t outerSteps = 2; // 60;
+   const uint_t outerSteps = 15;
    const uint_t innerSteps = stepsTotal / outerSteps;
-
-   const bool vtk = false;
-
-   const auto unknowns = numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel );
-   WALBERLA_LOG_INFO_ON_ROOT( unknowns )
 
    WALBERLA_LOG_INFO_ON_ROOT( "Circular convection" )
    WALBERLA_LOG_INFO_ON_ROOT( " - dt:                                           " << dt )
@@ -110,11 +125,11 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    auto r = []( const hyteg::Point3D& x, const hyteg::Point3D& x0, const real_t& r0 ) -> real_t {
-     return ( 1 / r0 ) * std::sqrt( std::pow( x[0] - x0[0], 2 ) + std::pow( x[1] - x0[1], 2 ) + std::pow( x[2] - x0[2], 2 ) );
+     return ( 1 / r0 ) * std::sqrt( std::pow( x[0] - x0[0], 2 ) + std::pow( x[1] - x0[1], 2 ) );
    };
 
    std::function< real_t( const hyteg::Point3D& ) > conicalBody = [&]( const hyteg::Point3D& x ) -> real_t {
-     const Point3D x0( {0.5, 0.25, 0.5} );
+     const Point3D x0( {0, -0.75, 0.0} );
      const real_t  r0 = 0.15;
      if ( r( x, x0, r0 ) <= 1. )
         return 1 - r( x, x0, r0 );
@@ -123,7 +138,7 @@ int main( int argc, char* argv[] )
    };
 
    std::function< real_t( const hyteg::Point3D& ) > gaussianCone = [&]( const hyteg::Point3D& x ) -> real_t {
-     const Point3D x0( {0.25, 0.5, 0.5} );
+     const Point3D x0( {-0.75, 0.0, 0.0} );
      const real_t  r0 = 0.15;
      if ( r( x, x0, r0 ) <= 1. )
         return ( 1 + std::cos( walberla::math::pi * r( x, x0, r0 ) ) ) * 0.25;
@@ -132,7 +147,7 @@ int main( int argc, char* argv[] )
    };
 
    std::function< real_t( const hyteg::Point3D& ) > slottedCylinder = [&]( const hyteg::Point3D& x ) -> real_t {
-     const Point3D x0( {0.5, 0.75, 0.5} );
+     const Point3D x0( {0.0, 0.75, 0.0} );
      const real_t  r0 = 0.15;
      if ( ( r( x, x0, r0 ) <= 1. ) && ( std::abs( x[0] - x0[0] ) >= 0.025 || x[1] >= 0.85 ) )
         return 1;
@@ -145,17 +160,15 @@ int main( int argc, char* argv[] )
    };
 
    auto vel_x = []( const hyteg::Point3D& x ) -> real_t {
-        return 0.5 - x[1];
+         return - x[1];
    };
 
    auto vel_y = []( const hyteg::Point3D& x ) -> real_t {
-        return x[0] - 0.5;
+         return x[0];
    };
 
-   writeDomainPartitioningVTK( storage, "../../output", "MMOC3DCircularConvectionTest_Domain" );
+   writeDomainPartitioningVTK( storage, "../../output", "MMOC2DCircularConvectionBlendingTest_Domain" );
 
-   typedef P2Function< real_t >   FunctionType;
-   typedef P2ConstantMassOperator MassOperator;
 
    FunctionType c( "c", storage, minLevel, maxLevel );
    FunctionType cInitial( "cInitial", storage, minLevel, maxLevel );
@@ -174,25 +187,23 @@ int main( int argc, char* argv[] )
 
    u.interpolate( vel_x, maxLevel );
    v.interpolate( vel_y, maxLevel );
-   w.interpolate( 0, maxLevel );
    c.interpolate( initialBodies, maxLevel );
    cInitial.interpolate( initialBodies, maxLevel );
 
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > magnitude = []( const Point3D&,
                                                                                            const std::vector< real_t >& values ) {
-     return Point3D( {values[0], values[1], values[2]} ).norm();
+      return Point3D( {values[0], values[1], 0} ).norm();
    };
 
-   velocityMagnitude.interpolate( magnitude, {u, v, w}, maxLevel, All );
+   velocityMagnitude.interpolate( magnitude, {u, v}, maxLevel, All );
 
-   hyteg::VTKOutput vtkOutput( "../../output", "MMOC3DCircularConvectionTest", storage );
-
-   vtkOutput.add( u );
-   vtkOutput.add( v );
-   vtkOutput.add( w );
-   vtkOutput.add( c );
-   vtkOutput.add( cError );
-   vtkOutput.add( cInitial );
+//   VTKOutput vtkOutput( "../../output", "MMOC2DCircularConvectionBlendingTest", storage );
+//
+//   vtkOutput.add( u );
+//   vtkOutput.add( v );
+//   vtkOutput.add( c );
+//   vtkOutput.add( cError );
+//   vtkOutput.add( cInitial );
 
    WALBERLA_LOG_INFO_ON_ROOT( " outer step | timestep | max temperature | total mass | mass lost since last outer step " )
    WALBERLA_LOG_INFO_ON_ROOT( "------------+----------+-----------------+------------+---------------------------------" )
@@ -202,8 +213,7 @@ int main( int argc, char* argv[] )
    M.apply( c, cMass, maxLevel, All );
    auto total_mass = cMass.sumGlobal( maxLevel );
 
-   if ( vtk )
-      vtkOutput.write( maxLevel );
+//   vtkOutput.write( maxLevel );
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %10d | %8d | %15.3e | %10.3e | %30.2f%% ", 0, 0, max_temp, total_mass, 0, 0. ) )
 
@@ -216,33 +226,26 @@ int main( int argc, char* argv[] )
       M.apply( c, cMass, maxLevel, All );
       auto total_mass_new  = cMass.sumGlobal( maxLevel );
       auto total_mass_lost = 1.0 - ( total_mass_new / total_mass );
+      // WALBERLA_CHECK_LESS( std::abs( total_mass_lost ), 1e-12 );
       total_mass           = total_mass_new;
 
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
           " %10d | %8d | %15.3e | %10.3e | %30.2f%% ", i, i * innerSteps, max_temp, total_mass, total_mass_lost * 100. ) )
 
-      if ( vtk )
-         vtkOutput.write( maxLevel, i * innerSteps );
+//      vtkOutput.write( maxLevel, i );
    }
 
-   auto p2MassFormFenics =
-       std::make_shared< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >();
-   P2RowSumForm                       rowSumMass( p2MassFormFenics );
-   P2ConstantOperator< P2RowSumForm > MLumped( storage, minLevel, maxLevel, rowSumMass );
-
-   auto error_E1 = errorE1( maxLevel, c, cInitial, tmp0, tmp1, MLumped );
-   auto error_E2 = errorE2( maxLevel, c, cInitial, tmp0, tmp1, MLumped );
+   auto error_E1 = errorE1( maxLevel, c, cInitial, tmp0, tmp1, M );
+   auto error_E2 = errorE2( maxLevel, c, cInitial, tmp0, tmp1, M );
 
    WALBERLA_LOG_INFO_ON_ROOT( "E1: " << walberla::format( "%5.4e", error_E1 ) );
    WALBERLA_LOG_INFO_ON_ROOT( "E2: " << walberla::format( "%5.4e", error_E2 ) );
 
-   // WALBERLA_CHECK_LESS( error_E1, 1.2e-03 );
-   // WALBERLA_CHECK_LESS( error_E2, 1.2e-02 );
+   WALBERLA_CHECK_LESS( error_E1, 9.0e-07 );
+   WALBERLA_CHECK_LESS( error_E2, 6.0e-06 );
 
    storage->getTimingTree()->stop( "Total" );
    WALBERLA_LOG_INFO_ON_ROOT( storage->getTimingTree()->getCopyWithRemainder() );
-
-   writeTimingTreeJSON( *storage->getTimingTree(), "/tmp/mmoc_timing.json" );
 
    return EXIT_SUCCESS;
 }

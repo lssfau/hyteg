@@ -1,8 +1,8 @@
 
 ###################################################################################################
 #
-# Module rigid particle dynamics (RPD)
+# Module to couple convection_particles to hyteg
 #
 ###################################################################################################
 
-waLBerla_add_module( DEPENDS blockforest core stencil vtk hyteg coupling_hyteg_convection_particles)
+waLBerla_add_module( DEPENDS core hyteg convection_particles)

@@ -30,7 +30,6 @@
 #include <convection_particles/data/Flags.h>
 #include <convection_particles/data/ParticleStorage.h>
 #include <convection_particles/domain/IDomain.h>
-#include <convection_particles/hyteg_coupling/communication/ParseMessagePrimitiveIDCommunication.h>
 #include <convection_particles/mpi/notifications/PackNotification.h>
 #include <convection_particles/mpi/notifications/ParticleGhostCopyNotification.h>
 #include <convection_particles/mpi/notifications/ParticleMigrationNotification.h>
@@ -40,6 +39,7 @@
 #include <core/logging/Logging.h>
 #include <core/mpi/BufferSystem.h>
 #include <hyteg/primitivestorage/SetupPrimitiveStorage.hpp>
+#include <coupling_hyteg_convection_particles/communication/ParseMessagePrimitiveIDCommunication.h>
 
 namespace walberla {
 namespace convection_particles {

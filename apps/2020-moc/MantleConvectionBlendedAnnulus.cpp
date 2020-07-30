@@ -53,7 +53,7 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
-#include "convection_particles/hyteg_coupling/MMOCTransport.hpp"
+#include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 
 /// In this benchmark we employ the Boussinesq-approximation and solve the constant-coefficient
 /// Stokes eqn. coupled with velocity driven temperature transport.

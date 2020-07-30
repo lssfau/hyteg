@@ -20,11 +20,9 @@
 
 #include <core/Environment.h>
 #include <core/math/Constants.h>
-#include <hyteg/geometry/AnnulusMap.hpp>
 
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
@@ -33,7 +31,7 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 
-#include "convection_particles/hyteg_coupling/MMOCTransport.hpp"
+#include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -46,16 +44,42 @@ using namespace hyteg;
 
 /// Error definitions in section 4.4.6: Numerical examples
 
-typedef P2Function< real_t >   FunctionType;
-typedef P2ElementwiseBlendingMassOperator MassOperator;
+real_t errorE1( const uint_t&                   level,
+                const P2Function< real_t >&     c,
+                const P2Function< real_t >&     solution,
+                const P2Function< real_t >&     tmp0,
+                const P2Function< real_t >&     tmp1,
+                const P2ConstantRowSumOperator& lumpedMass )
+{
+   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > E1 =
+       []( const Point3D&, const std::vector< real_t >& values ) { return std::abs( values[0] - values[1] ); };
 
+   tmp0.interpolate( E1, {solution, c}, level, All );
+   lumpedMass.apply( tmp0, tmp1, level, All );
+   return tmp1.sumGlobal( level, All );
+}
+
+real_t errorE2( const uint_t&                   level,
+                const P2Function< real_t >&     c,
+                const P2Function< real_t >&     solution,
+                const P2Function< real_t >&     tmp0,
+                const P2Function< real_t >&     tmp1,
+                const P2ConstantRowSumOperator& lumpedMass )
+{
+   std::function< real_t( const Point3D&, const std::vector< real_t >& ) > E2 =
+       []( const Point3D&, const std::vector< real_t >& values ) { return std::pow( std::abs( values[0] - values[1] ), 2 ); };
+
+   tmp0.interpolate( E2, {solution, c}, level, All );
+   lumpedMass.apply( tmp0, tmp1, level, All );
+   return std::sqrt( tmp1.sumGlobal( level, All ) );
+}
 
 real_t errorE1( const uint_t&                   level,
-                const FunctionType&     c,
-                const FunctionType&     solution,
-                const FunctionType&     tmp0,
-                const FunctionType&     tmp1,
-                const MassOperator &  mass )
+                const P2Function< real_t >&     c,
+                const P2Function< real_t >&     solution,
+                const P2Function< real_t >&     tmp0,
+                const P2Function< real_t >&     tmp1,
+                const P2ConstantMassOperator &  mass )
 {
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > E1 =
        []( const Point3D&, const std::vector< real_t >& values ) { return std::abs( values[0] - values[1] ); };
@@ -66,11 +90,11 @@ real_t errorE1( const uint_t&                   level,
 }
 
 real_t errorE2( const uint_t&                   level,
-                const FunctionType&     c,
-                const FunctionType&     solution,
-                const FunctionType&     tmp0,
-                const FunctionType&     tmp1,
-                const MassOperator&  mass )
+                const P2Function< real_t >&     c,
+                const P2Function< real_t >&     solution,
+                const P2Function< real_t >&     tmp0,
+                const P2Function< real_t >&     tmp1,
+                const P2ConstantMassOperator&  mass )
 {
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > E2 =
        []( const Point3D&, const std::vector< real_t >& values ) { return std::pow( std::abs( values[0] - values[1] ), 2 ); };
@@ -85,22 +109,9 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   // MeshInfo meshInfo = MeshInfo::meshAnnulus( 0.5, 1.5, 0.0, 2.0 * walberla::math::pi, MeshInfo::CROSS, 6, 2 );
-   MeshInfo meshInfo = MeshInfo::meshAnnulus( 0.5, 1.5, MeshInfo::CROSS, 6, 2 );
+   MeshInfo meshInfo = hyteg::MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, 1, 1 );
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-
-   for ( auto it : setupStorage->getFaces() )
-   {
-      Face& face = *it.second;
-      setupStorage->setGeometryMap( face.getID(), std::make_shared< AnnulusMap >( face ) );
-   }
-   for ( auto it : setupStorage->getEdges() )
-   {
-      Edge& edge = *it.second;
-      setupStorage->setGeometryMap( edge.getID(), std::make_shared< AnnulusMap >( edge, *setupStorage ) );
-   }
-
-   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
+   auto storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage );
 
    storage->getTimingTree()->start( "Total" );
 
@@ -125,50 +136,52 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    auto r = []( const hyteg::Point3D& x, const hyteg::Point3D& x0, const real_t& r0 ) -> real_t {
-     return ( 1 / r0 ) * std::sqrt( std::pow( x[0] - x0[0], 2 ) + std::pow( x[1] - x0[1], 2 ) );
+      return ( 1 / r0 ) * std::sqrt( std::pow( x[0] - x0[0], 2 ) + std::pow( x[1] - x0[1], 2 ) );
    };
 
    std::function< real_t( const hyteg::Point3D& ) > conicalBody = [&]( const hyteg::Point3D& x ) -> real_t {
-     const Point3D x0( {0, -0.75, 0.0} );
-     const real_t  r0 = 0.15;
-     if ( r( x, x0, r0 ) <= 1. )
-        return 1 - r( x, x0, r0 );
-     else
-        return 0.0;
+      const Point3D x0( {0.5, 0.25, 0.0} );
+      const real_t  r0 = 0.15;
+      if ( r( x, x0, r0 ) <= 1. )
+         return 1 - r( x, x0, r0 );
+      else
+         return 0.0;
    };
 
    std::function< real_t( const hyteg::Point3D& ) > gaussianCone = [&]( const hyteg::Point3D& x ) -> real_t {
-     const Point3D x0( {-0.75, 0.0, 0.0} );
-     const real_t  r0 = 0.15;
-     if ( r( x, x0, r0 ) <= 1. )
-        return ( 1 + std::cos( walberla::math::pi * r( x, x0, r0 ) ) ) * 0.25;
-     else
-        return 0.0;
+      const Point3D x0( {0.25, 0.5, 0.0} );
+      const real_t  r0 = 0.15;
+      if ( r( x, x0, r0 ) <= 1. )
+         return ( 1 + std::cos( walberla::math::pi * r( x, x0, r0 ) ) ) * 0.25;
+      else
+         return 0.0;
    };
 
    std::function< real_t( const hyteg::Point3D& ) > slottedCylinder = [&]( const hyteg::Point3D& x ) -> real_t {
-     const Point3D x0( {0.0, 0.75, 0.0} );
-     const real_t  r0 = 0.15;
-     if ( ( r( x, x0, r0 ) <= 1. ) && ( std::abs( x[0] - x0[0] ) >= 0.025 || x[1] >= 0.85 ) )
-        return 1;
-     else
-        return 0.0;
+      const Point3D x0( {0.5, 0.75, 0.0} );
+      const real_t  r0 = 0.15;
+      if ( ( r( x, x0, r0 ) <= 1. ) && ( std::abs( x[0] - x0[0] ) >= 0.025 || x[1] >= 0.85 ) )
+         return 1;
+      else
+         return 0.0;
    };
 
    std::function< real_t( const hyteg::Point3D& ) > initialBodies = [&]( const hyteg::Point3D& x ) -> real_t {
-     return conicalBody( x ) + gaussianCone( x ) + slottedCylinder( x );
+      return conicalBody( x ) + gaussianCone( x ) + slottedCylinder( x );
    };
 
    auto vel_x = []( const hyteg::Point3D& x ) -> real_t {
-         return - x[1];
+         return 0.5 - x[1];
    };
 
    auto vel_y = []( const hyteg::Point3D& x ) -> real_t {
-         return x[0];
+         return x[0] - 0.5;
    };
 
-   writeDomainPartitioningVTK( storage, "../../output", "MMOC2DCircularConvectionBlendingTest_Domain" );
+   writeDomainPartitioningVTK( storage, "../../output", "MMOC2DCircularConvectionTest_Domain" );
 
+   typedef P2Function< real_t >   FunctionType;
+   typedef P2ConstantMassOperator MassOperator;
 
    FunctionType c( "c", storage, minLevel, maxLevel );
    FunctionType cInitial( "cInitial", storage, minLevel, maxLevel );
@@ -197,7 +210,7 @@ int main( int argc, char* argv[] )
 
    velocityMagnitude.interpolate( magnitude, {u, v}, maxLevel, All );
 
-//   VTKOutput vtkOutput( "../../output", "MMOC2DCircularConvectionBlendingTest", storage );
+//   hyteg::VTKOutput vtkOutput( "../../output", "MMOC2DCircularConvectionTest", storage );
 //
 //   vtkOutput.add( u );
 //   vtkOutput.add( v );
@@ -235,14 +248,24 @@ int main( int argc, char* argv[] )
 //      vtkOutput.write( maxLevel, i );
    }
 
-   auto error_E1 = errorE1( maxLevel, c, cInitial, tmp0, tmp1, M );
-   auto error_E2 = errorE2( maxLevel, c, cInitial, tmp0, tmp1, M );
+   auto p2MassFormFenics =
+       std::make_shared< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >();
+   P2RowSumForm                       rowSumMass( p2MassFormFenics );
+   P2ConstantOperator< P2RowSumForm > MLumped( storage, minLevel, maxLevel, rowSumMass );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "E1: " << walberla::format( "%5.4e", error_E1 ) );
-   WALBERLA_LOG_INFO_ON_ROOT( "E2: " << walberla::format( "%5.4e", error_E2 ) );
+   auto error_E1 = errorE1( maxLevel, c, cInitial, tmp0, tmp1, MLumped );
+   auto error_E2 = errorE2( maxLevel, c, cInitial, tmp0, tmp1, MLumped );
+   auto error_E1_consistent = errorE1( maxLevel, c, cInitial, tmp0, tmp1, M );
+   auto error_E2_consistent = errorE2( maxLevel, c, cInitial, tmp0, tmp1, M );
 
-   WALBERLA_CHECK_LESS( error_E1, 9.0e-07 );
-   WALBERLA_CHECK_LESS( error_E2, 6.0e-06 );
+   WALBERLA_LOG_INFO_ON_ROOT( "E1 lumped:     " << walberla::format( "%5.4e", error_E1 ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "E1 consistent: " << walberla::format( "%5.4e", error_E1_consistent ) );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "E2 lumped:     " << walberla::format( "%5.4e", error_E2 ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "E2 consistent: " << walberla::format( "%5.4e", error_E2_consistent ) );
+
+   WALBERLA_CHECK_LESS( error_E1, 9.0e-08 );
+   WALBERLA_CHECK_LESS( error_E2, 4.0e-07 );
 
    storage->getTimingTree()->stop( "Total" );
    WALBERLA_LOG_INFO_ON_ROOT( storage->getTimingTree()->getCopyWithRemainder() );

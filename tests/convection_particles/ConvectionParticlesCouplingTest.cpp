@@ -27,7 +27,7 @@
 #include <core/mpi/MPIManager.h>
 
 #include <hyteg/primitivestorage/SetupPrimitiveStorage.hpp>
-#include <hyteg/primitivestorage/convection_particles_coupling/SetupPrimitiveStorageConvectionParticlesInterface.hpp>
+#include "coupling_hyteg_convection_particles/setupPrimitiveStorage/SetupPrimitiveStorageConvectionParticlesInterface.hpp"
 
 #include <hyteg/geometry/Intersection.hpp>
 

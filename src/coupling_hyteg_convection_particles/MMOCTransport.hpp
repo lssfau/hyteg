@@ -20,11 +20,6 @@
 
 #pragma once
 
-#include "convection_particles/data/ParticleStorage.h"
-#include "convection_particles/mpi/SyncNextNeighborsNoGhosts.h"
-#include "convection_particles/hyteg_coupling/communication/SyncNextNeighborsByPrimitiveID.h"
-#include "convection_particles/hyteg_coupling/setupPrimitiveStorage/SetupPrimitiveStorageConvectionParticlesInterface.hpp"
-
 #include "core/math/MatrixMxN.h"
 #include "core/mpi/MPIWrapper.h"
 
@@ -44,6 +39,11 @@
 #include "hyteg/p2functionspace/P2MacroCell.hpp"
 #include "hyteg/p2functionspace/P2MacroFace.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "coupling_hyteg_convection_particles/communication/SyncNextNeighborsByPrimitiveID.h"
+#include "coupling_hyteg_convection_particles/setupPrimitiveStorage/SetupPrimitiveStorageConvectionParticlesInterface.hpp"
+
+#include "convection_particles/data/ParticleStorage.h"
+#include "convection_particles/mpi/SyncNextNeighborsNoGhosts.h"
 
 namespace hyteg {
 
