@@ -70,7 +70,7 @@ inline void applyStencil_DoF(const uint_t level, const hyteg::indexing::Index& i
       }
 
       /// edge to vertex
-      for (const auto& dir : edgedof::macroface::neighborsFromVertex)
+      if (srcEdgeDoF) for (const auto& dir : edgedof::macroface::neighborsFromVertex)
       {
          tmp += srcEdgeDoF[edgedof::macroface::indexFromVertex(level, i, j, dir)] *
                 EtVStencil[edgedof::stencilIndexFromVertex(dir)];
@@ -80,7 +80,7 @@ inline void applyStencil_DoF(const uint_t level, const hyteg::indexing::Index& i
    }
 
    // HORIZONTAL EDGE DoF
-   if (!edgedof::macroface::isHorizontalEdgeOnBoundary(level, idx))
+   if (dstEdgeDoF && !edgedof::macroface::isHorizontalEdgeOnBoundary(level, idx))
    {
       if (update == Replace)
       {
@@ -99,7 +99,7 @@ inline void applyStencil_DoF(const uint_t level, const hyteg::indexing::Index& i
       }
 
       /// edge to edge
-      for (const auto& dir : edgedof::macroface::neighborsFromHorizontalEdge)
+      if (srcEdgeDoF) for (const auto& dir : edgedof::macroface::neighborsFromHorizontalEdge)
       {
          tmp += srcEdgeDoF[edgedof::macroface::indexFromHorizontalEdge(level, i, j, dir)] *
                 EtEStencil[edgedof::stencilIndexFromHorizontalEdge(dir)];
@@ -109,7 +109,7 @@ inline void applyStencil_DoF(const uint_t level, const hyteg::indexing::Index& i
    }
 
    // VERTICAL EDGE DoF
-   if (!edgedof::macroface::isVerticalEdgeOnBoundary(level, idx))
+   if (dstEdgeDoF && !edgedof::macroface::isVerticalEdgeOnBoundary(level, idx))
    {
       if (update == Replace)
       {
@@ -128,7 +128,7 @@ inline void applyStencil_DoF(const uint_t level, const hyteg::indexing::Index& i
       }
 
       /// edge to edge
-      for (const auto& dir : edgedof::macroface::neighborsFromVerticalEdge)
+      if (srcEdgeDoF) for (const auto& dir : edgedof::macroface::neighborsFromVerticalEdge)
       {
          tmp += srcEdgeDoF[edgedof::macroface::indexFromVerticalEdge(level, i, j, dir)] *
                 EtEStencil[edgedof::stencilIndexFromVerticalEdge(dir)];
@@ -138,7 +138,7 @@ inline void applyStencil_DoF(const uint_t level, const hyteg::indexing::Index& i
    }
 
    // DIAGONAL EDGE DoF
-   if (!edgedof::macroface::isDiagonalEdgeOnBoundary(level, idx))
+   if (dstEdgeDoF && !edgedof::macroface::isDiagonalEdgeOnBoundary(level, idx))
    {
       if (update == Replace)
       {
@@ -157,7 +157,7 @@ inline void applyStencil_DoF(const uint_t level, const hyteg::indexing::Index& i
       }
 
       /// edge to edge
-      for (const auto& dir : edgedof::macroface::neighborsFromDiagonalEdge)
+      if (srcEdgeDoF) for (const auto& dir : edgedof::macroface::neighborsFromDiagonalEdge)
       {
          tmp += srcEdgeDoF[edgedof::macroface::indexFromDiagonalEdge(level, i, j, dir)] *
                 EtEStencil[edgedof::stencilIndexFromDiagonalEdge(dir)];
