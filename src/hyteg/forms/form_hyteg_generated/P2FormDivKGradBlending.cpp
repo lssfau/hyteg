@@ -18,7 +18,7 @@
  * along with this progra m. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hyteg/forms/form_hyteg_manual/P2FormDivKGradBlending.hpp"
+#include "hyteg/forms/form_hyteg_generated/P2FormDivKGradBlending.hpp"
 
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/types/matrix.hpp"
