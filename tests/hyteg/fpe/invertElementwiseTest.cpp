@@ -43,9 +43,10 @@ void logSectionHeader( const char* header )
 
 int main( int argc, char** argv )
 {
+#ifndef __APPLE__
    // should work with Intel and GCC compiler
    feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
-
+#endif
    // environment stuff
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
