@@ -76,7 +76,8 @@ void P1ProjectNormalOperator::apply( const P1StokesFunction< real_t >& dst,
       const DoFType vertexBC = dst.u.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if ( testFlag( vertexBC, flag ) )
       {
-         WALBERLA_ABORT("macro-vertex project normal not implemented");
+         // WALBERLA_ABORT("macro-vertex project normal not implemented");
+         vertexdof::macrovertex::projectNormal2D< real_t >(level, vertex, storage_, normal_function_, dst.u.getVertexDataID(), dst.v.getVertexDataID() );
       }
    }
 

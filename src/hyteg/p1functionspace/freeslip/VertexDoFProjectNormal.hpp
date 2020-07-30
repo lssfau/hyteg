@@ -92,6 +92,37 @@ inline void projectNormal2D(uint_t level, const Edge &edge, const std::shared_pt
 
 namespace macrovertex {
 
+template < typename ValueType >
+inline void projectNormal2D(uint_t level, const Vertex & vertex, const std::shared_ptr<PrimitiveStorage> &storage, const std::function<void(const Point3D&, Point3D& )>& normal_function, const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &dstIdU, const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &dstIdV)
+{
+   // TODO: Way to check that this is a boundary vertex?
+
+   auto dstU = vertex.getData( dstIdU )->getPointer( level );
+   auto dstV = vertex.getData( dstIdV )->getPointer( level );
+
+   Face* faceS = storage->getFace( vertex.neighborFaces()[0] );
+
+   Point3D xPhy;
+   faceS->getGeometryMap()->evalF(vertex.getCoordinates(), xPhy);
+
+   Point3D normal;
+   normal_function(xPhy, normal);
+
+   Matrix2r projection;
+   projection(0,0) = 1.0 - normal[0] * normal[0];
+   projection(0,1) = - normal[0] * normal[1];
+   projection(1,0) = projection(0,1);
+   projection(1,1) = 1.0 - normal[1] * normal[1];
+
+   Point2D in;
+   in[0] = *dstU;
+   in[1] = *dstV;
+   Point2D out = projection.mul(in);
+
+   *dstU = out[0];
+   *dstV = out[1];
+}
+
 } // namespace macrovertex
 
 } // namespace vertexdof
