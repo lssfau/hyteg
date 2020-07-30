@@ -31,7 +31,6 @@
 
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/MeshQuality.hpp"
-#include "hyteg/composites/MMOCTransport.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
@@ -60,6 +59,8 @@
 #include "hyteg/solvers/controlflow/SolverLoop.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
+
+#include "convection_particles/hyteg_coupling/MMOCTransport.hpp"
 
 namespace hyteg {
 namespace moc_benchmarks {

@@ -28,7 +28,6 @@
 #include <core/math/Constants.h>
 
 #include "hyteg/MeshQuality.hpp"
-#include "hyteg/composites/MMOCTransport.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -40,6 +39,7 @@
 #include "hyteg/primitivestorage/Visualization.hpp"
 
 #include "Helpers.hpp"
+#include "convection_particles/hyteg_coupling/MMOCTransport.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

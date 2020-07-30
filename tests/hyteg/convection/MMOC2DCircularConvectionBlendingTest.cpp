@@ -23,8 +23,8 @@
 #include <hyteg/geometry/AnnulusMap.hpp>
 
 #include "hyteg/MeshQuality.hpp"
-#include "hyteg/composites/MMOCTransport.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
@@ -32,7 +32,8 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+
+#include "convection_particles/hyteg_coupling/MMOCTransport.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
