@@ -95,7 +95,7 @@ void P1ProjectNormalOperator::apply( const P1StokesFunction< real_t >& dst,
        {
           if ( storage_->hasGlobalCells() )
           {
-//             WALBERLA_ABORT("macro-edge project normal not implemented in 3D");
+             vertexdof::macroedge::projectNormal3D< real_t >(level, edge, storage_, normal_function_, dst.u.getEdgeDataID(), dst.v.getEdgeDataID(), dst.w.getEdgeDataID() );
           }
           else
           {
