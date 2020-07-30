@@ -76,7 +76,14 @@ void P1ProjectNormalOperator::apply( const P1StokesFunction< real_t >& dst,
       const DoFType vertexBC = dst.u.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if ( testFlag( vertexBC, flag ) )
       {
-         vertexdof::macrovertex::projectNormal2D< real_t >(level, vertex, storage_, normal_function_, dst.u.getVertexDataID(), dst.v.getVertexDataID() );
+         if ( storage_->hasGlobalCells() )
+         {
+            vertexdof::macrovertex::projectNormal3D< real_t >(level, vertex, storage_, normal_function_, dst.u.getVertexDataID(), dst.v.getVertexDataID(), dst.w.getVertexDataID() );
+         }
+         else
+         {
+            vertexdof::macrovertex::projectNormal2D< real_t >(level, vertex, storage_, normal_function_, dst.u.getVertexDataID(), dst.v.getVertexDataID() );
+         }
       }
    }
 
