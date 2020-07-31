@@ -102,10 +102,10 @@ int main( int argc, char* argv[] )
    auto noslip = [=](auto p) { return p[1] >= +channelHeight-1e-14; };
    auto freeslip = [=](auto p) { return p[1] <= 1e-14; };
 
-   setupStorage.setMeshBoundaryFlagsByVertexLocation(3, freeslip);
    setupStorage.setMeshBoundaryFlagsByVertexLocation(2, outflow);
    setupStorage.setMeshBoundaryFlagsByVertexLocation(1, noslip);
    setupStorage.setMeshBoundaryFlagsByVertexLocation(1, inflow);
+   setupStorage.setMeshBoundaryFlagsByVertexLocation(3, freeslip);
 
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
 
@@ -154,7 +154,8 @@ int main( int argc, char* argv[] )
 
    using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1StokesOperator, hyteg::P1ProjectNormalOperator >;
    auto stokes = std::make_shared< hyteg::P1StokesOperator > ( storage, minLevel, maxLevel );
-   auto normals = [](auto, auto n) { n[0] = 0; n[1] = -1; };
+   auto normals = [](auto, Point3D & n) { n = Point3D({0, -1}); };
+   // auto normals = [](auto, Point3D & n) { n[0] = 0; n[1] = -1;  };
    auto projection = std::make_shared< hyteg::P1ProjectNormalOperator > ( storage, minLevel, maxLevel, normals );
    StokesOperator L( stokes, projection, FreeslipBoundary );
    // hyteg::P1StokesOperator L ( storage, minLevel, maxLevel );
@@ -163,19 +164,18 @@ int main( int argc, char* argv[] )
    // MinResSolver< hyteg::P1StokesOperator > solver( storage, minLevel, maxLevel, 100 );
 
 
-   hyteg::P1StokesFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel );
-   tmp.u.interpolate([]( auto & p ){ return (p[0]+2)*(p[1] + 2)*(p[1]+2); }, maxLevel, All);
-   tmp.v.interpolate([]( auto & p ){ return (p[0]+2)*(p[1] + 2)*(p[1]+2); }, maxLevel, All);
+   //hyteg::P1StokesFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel );
+   //tmp.u.interpolate([]( auto & p ){ return (p[0]+2)*(p[1] + 2)*(p[1]+2); }, maxLevel, All);
+   //tmp.v.interpolate([]( auto & p ){ return (p[0]+2)*(p[1] + 2)*(p[1]+2); }, maxLevel, All);
    //L.apply(tmp, u, maxLevel, Inner | NeumannBoundary | FreeslipBoundary );
 
-   u.u.interpolate([]( auto & p ){ return (p[0]+2)*(p[1] + 2)*(p[1]+2); }, maxLevel, All);
-   u.v.interpolate([]( auto & p ){ return (p[0]+2)*(p[1] + 2)*(p[1]+2); }, maxLevel, All);
-   projection->apply(u, maxLevel, FreeslipBoundary);
+   // u.u.interpolate([]( auto & p ){ return (p[0]+2)*(p[1] + 2)*(p[1]+2); }, maxLevel, All);
+   // u.v.interpolate([]( auto & p ){ return (p[0]+2)*(p[1] + 2)*(p[1]+2); }, maxLevel, All);
+   // projection->apply(u, maxLevel, FreeslipBoundary);
+   // projection->apply(u, maxLevel, DirichletBoundary | NeumannBoundary | FreeslipBoundary );
+   // projection->apply(u, maxLevel, DirichletBoundary | NeumannBoundary | FreeslipBoundary );
 
    vtkOutput.write(maxLevel);
-
-   return 0;
-
 
    solver.solve(L, u, f, maxLevel);
 
