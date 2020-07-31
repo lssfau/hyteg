@@ -443,9 +443,10 @@ void run3DTestsWithAffineMap()
 
 int main( int argc, char** argv )
 {
+#ifndef __APPLE__
    // abort in case of common floating-point exceptions
    feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
-
+#endif
    // environment stuff
    walberla::mpi::Environment MPIenv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
