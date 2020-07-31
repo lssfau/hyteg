@@ -1058,7 +1058,7 @@ benchmark_ClangBuildAnalyzer:
       - mkdir -p ~/.config/matplotlib
       - echo backend:Agg > ~/.config/matplotlib/matplotlibrc
       - cat $DOCKER_IMAGE_NAME.txt
-      - python3 createLevelScalingPlot.py $DOCKER_IMAGE_NAME.txt 2 15 --perfgroup "DP MFLOP/s STAT"
+      - python3 createLevelScalingPlot.py $DOCKER_IMAGE_NAME.txt 2 15 --perfgroup "DP [MFLOP/s] STAT"
    tags:
       - docker-benchmark
    variables:
