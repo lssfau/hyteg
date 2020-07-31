@@ -49,11 +49,10 @@ const real_t INITIAL_DIFFUSIVITY_TIME_PRODUCT = 1e-03 * 2 * pi;
 class TempSolution : public Solution
 {
  public:
-   TempSolution( real_t diffusivity, Point3D p0, real_t t0, bool rotationOnly )
+   TempSolution( real_t diffusivity, Point3D p0, real_t t0 )
    : Solution( t0 )
    , diffusivity_( diffusivity )
    , p0_( p0 )
-   , rotationOnly_( rotationOnly )
    {}
 
    real_t operator()( const Point3D& x ) const override
@@ -144,7 +143,7 @@ void benchmark( int argc, char** argv )
 
    const real_t dt = ( tEnd - tStart ) / real_c( numTimeSteps );
 
-   TempSolution      cSolution( diffusivity, p0, tStart, rotationOnly );
+   TempSolution      cSolution( diffusivity, p0, tStart );
    VelocitySolutionX uSolution;
    VelocitySolutionY vSolution;
    VelocitySolutionZ wSolution;
