@@ -221,6 +221,45 @@ inline void projectNormal2D(uint_t level, const Vertex & vertex, const std::shar
    *dstV = out[1];
 }
 
+template < typename ValueType >
+inline void projectNormal3D(uint_t level, const Vertex &vertex, const std::shared_ptr<PrimitiveStorage> &storage, const std::function<void(const Point3D&, Point3D& )>& normal_function, const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &dstIdU, const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &dstIdV, const PrimitiveDataID<FunctionMemory<ValueType>, Vertex> &dstIdW) {
+
+   auto dstU = vertex.getData( dstIdU )->getPointer( level );
+   auto dstV = vertex.getData( dstIdV )->getPointer( level );
+   auto dstW = vertex.getData( dstIdW )->getPointer( level );
+
+   Point3D normal;
+   Matrix3r projection;
+   Point3D in;
+   Point3D out;
+
+   Point3D x = vertex.getCoordinates();
+   Point3D xPhy;
+   vertex.getGeometryMap()->evalF( x, xPhy );
+
+   normal_function(xPhy, normal);
+
+   projection(0,0) = 1.0 - normal[0] * normal[0];
+   projection(0,1) = - normal[0] * normal[1];
+   projection(0,2) = - normal[0] * normal[2];
+   projection(1,0) = projection(0,1);
+   projection(1,1) = 1.0 - normal[1] * normal[1];
+   projection(1,2) = - normal[1] * normal[2];
+   projection(2,0) = projection(0,2);
+   projection(2,1) = projection(1,2);
+   projection(2,2) = 1.0 - normal[2] * normal[2];
+
+   in[0] = dstU[0];
+   in[1] = dstV[0];
+   in[2] = dstW[0];
+
+   out = projection.mul(in);
+
+   dstU[0] = out[0];
+   dstV[0] = out[1];
+   dstW[0] = out[2];
+}
+
 } // namespace macrovertex
 
 } // namespace vertexdof
