@@ -29,16 +29,19 @@ namespace hyteg {
 ///
 /// Usage Example:
 /// auto laplace = std::make_shared< P1ConstantLaplaceOperator >( storage, level, level );
-/// StrongFreeSlipWrapper< P1ConstantLaplaceOperator > wrapper( laplace );
+/// auto projection = std::make_shared< P1ProjectNormalOperator > ( storage, level, level, normal );
+/// StrongFreeSlipWrapper< P1ConstantLaplaceOperator > wrapper( laplace, projection );
 /// auto solver = std::make_shared< CGSolver< decltype(wrapper) > >( storage, minLevel, minLevel, max_coarse_iter, coarse_tolerance );
 ///
-template < typename OpType >
+template < typename OpType, typename ProjOpType >
 class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typename OpType::dstType >
 {
  public:
-   StrongFreeSlipWrapper( std::shared_ptr< OpType > op )
+   StrongFreeSlipWrapper( std::shared_ptr< OpType > op, std::shared_ptr< ProjOpType > projOp, DoFType projFlag )
    : Operator< typename OpType::srcType, typename OpType::dstType >( op->getStorage(), op->getMinLevel(), op->getMaxLevel() )
    , op_( op )
+   , projOp_( projOp )
+   , projFlag_( projFlag )
    , diagonalValues_( nullptr )
    , inverseDiagonalValues_( nullptr )
    {}
@@ -51,10 +54,8 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
    {
       WALBERLA_CHECK( updateType == Replace, "Operator concatenation only supported for updateType Replace" );
 
-      op_->apply( src, dst, level, flag, updateType );
-
-      // TODO: Apply free-slip operator
-      WALBERLA_ABORT( "Free-slip application was not implemented yet." )
+      op_->apply( src, dst, level, flag );
+      projOp_->apply( dst, level, projFlag_ );
    }
 
    std::shared_ptr< typename OpType::srcType > getDiagonalValues() const
@@ -86,6 +87,9 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
 
  private:
    std::shared_ptr< OpType > op_;
+   std::shared_ptr< ProjOpType > projOp_;
+
+   DoFType projFlag_;
 
    std::shared_ptr< typename OpType::dstType > diagonalValues_;
    std::shared_ptr< typename OpType::dstType > inverseDiagonalValues_;
