@@ -48,9 +48,10 @@ public:
   /// -------------------|-------
   ///                  1 | Dirichlet
   ///                  2 | Neumann
+  ///                  3 | Free slip
   ///              other | Domain
   ///
-  static BoundaryCondition create012BC();
+  static BoundaryCondition create0123BC();
   static BoundaryCondition createAllInnerBC();
 
   /// Creates a \ref BoundaryCondition.
@@ -84,6 +85,11 @@ public:
   BoundaryUID createNeumannBC  ( const std::string & name, const uint_t &                meshBoundaryFlag  );
   /// Assigns multiple mesh boundary flags to a Neumann BC.
   BoundaryUID createNeumannBC  ( const std::string & name, const std::vector< uint_t > & meshBoundaryFlags );
+
+   /// Assigns one mesh boundary flag to a free slip BC.
+   BoundaryUID createFreeslipBC  ( const std::string & name, const uint_t &                meshBoundaryFlag  );
+   /// Assigns multiple mesh boundary flags to a free slip BC.
+   BoundaryUID createFreeslipBC  ( const std::string & name, const std::vector< uint_t > & meshBoundaryFlags );
 
   /// Returns the boundary type that is assigned to the passed mesh boundary flag integer.
   DoFType getBoundaryType( const uint_t & meshBoundaryFlag ) const;

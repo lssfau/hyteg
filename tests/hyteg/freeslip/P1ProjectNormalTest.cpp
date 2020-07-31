@@ -45,7 +45,7 @@ static void testProjectNormal2D( )
 
    const auto  meshInfo = MeshInfo::meshAnnulus(0.5, 1.0, MeshInfo::CRISS, 6, 6);
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 3, 0, true );
    AnnulusMap::setMap( setupStorage );
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -67,7 +67,7 @@ static void testProjectNormal2D( )
    vtkOutput.add( u );
 
    u.interpolate( 1, level );
-   projectNormalOperator.apply( u, level, Boundary );
+   projectNormalOperator.apply( u, level, FreeslipBoundary );
 
    if ( writeVTK )
       vtkOutput.write( level, 0 );
@@ -81,7 +81,7 @@ static void testProjectNormal3D( )
 
    auto meshInfo = MeshInfo::meshSphericalShell( 5, 2, 0.5, 1.0 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 3, 0, true );
    IcosahedralShellMap::setMap( setupStorage );
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
@@ -103,7 +103,7 @@ static void testProjectNormal3D( )
    vtkOutput.add( u );
 
    u.interpolate( 1, level );
-   projectNormalOperator.apply( u, level, Boundary );
+   projectNormalOperator.apply( u, level, FreeslipBoundary );
 
    if ( writeVTK )
       vtkOutput.write( level, 0 );
