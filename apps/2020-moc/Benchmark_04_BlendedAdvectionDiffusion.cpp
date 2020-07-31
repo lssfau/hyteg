@@ -75,7 +75,6 @@ class TempSolution : public Solution
  private:
    real_t  diffusivity_;
    Point3D p0_;
-   bool    rotationOnly_;
 };
 
 class VelocitySolutionX : public Solution
