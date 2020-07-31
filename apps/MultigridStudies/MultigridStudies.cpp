@@ -1990,7 +1990,7 @@ void setup( int argc, char** argv )
          return std::abs( p[2] - real_c( tDomainDiameter ) ) < eps;
       };
 
-      auto surroundingEdgesBottom = [eps]( const Point3D& p ) { return std::abs( p[2] ) < 1e-8; };
+      auto surroundingEdgesBottom = []( const Point3D& p ) { return std::abs( p[2] ) < 1e-8; };
 
       auto surroundingEdgesFar = [eps, tDomainHeight]( const Point3D& p ) {
          return std::abs( p[0] - real_c( tDomainHeight ) ) < eps;
@@ -2002,7 +2002,7 @@ void setup( int argc, char** argv )
                   std::abs( p[1] + real_c( tDomainWidth ) ) < eps );
       };
 
-      auto inflowBC = [eps, tDomainDiameter, tDomainHeight]( const hyteg::Point3D& p ) {
+      auto inflowBC = [eps, tDomainDiameter]( const hyteg::Point3D& p ) {
          if ( std::abs( p[0] ) < eps )
          {
             const Point3D center( {0, 0.5 * real_c( tDomainDiameter ), 0.5 * real_c( tDomainDiameter )} );
