@@ -1,0 +1,17 @@
+Parameters
+{
+  minLevel 2;
+  maxLevel 2;
+
+  /// solver can be uzawa, minres
+  // solver uzawa;
+
+  /// output
+  printGlobalStorageInfo true;
+  printParameters true;
+  printDoFCount true;
+  printFunctionCount true;
+  printTiming false;
+  writeDomainVTK true;
+  VTKOutput true;
+}
