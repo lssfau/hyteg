@@ -26,14 +26,23 @@
 namespace hyteg {
 
 /// Concatenates a HyTeG operators with the strong free-slip boundary operator.
+/// This allows us to enforce a strong free-slip boundary condition, without modifying the operators directly.
 ///
 /// Usage Example:
-/// auto laplace = std::make_shared< P1ConstantLaplaceOperator >( storage, level, level );
-/// auto projection = std::make_shared< P1ProjectNormalOperator > ( storage, level, level, normal );
-/// StrongFreeSlipWrapper< P1ConstantLaplaceOperator > wrapper( laplace, projection );
-/// auto solver = std::make_shared< CGSolver< decltype(wrapper) > >( storage, minLevel, minLevel, max_coarse_iter, coarse_tolerance );
+/// \code
+///     using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1StokesOperator, hyteg::P1ProjectNormalOperator, true >;
+///     auto stokes = std::make_shared< hyteg::P1StokesOperator > ( storage, minLevel, maxLevel );
+///     auto normals = [](auto, Point3D & n) { n = Point3D({0, -1}); };
+///     auto projection = std::make_shared< hyteg::P1ProjectNormalOperator > ( storage, minLevel, maxLevel, normals );
+///     StokesOperator L( stokes, projection, FreeslipBoundary );
 ///
-template < typename OpType, typename ProjOpType >
+///     auto solver = hyteg::solvertemplates::stokesMinResSolver< StokesOperator >( storage, maxLevel, 1e-6, 1000 );
+/// \endcode
+///
+/// \tparam OpType          Type of operator on which we want to impose free-slip.
+/// \tparam ProjOpType      Type of the normal projection operator, which enforces free slip
+/// \tparam PreProjection   Should the projection operator also already be applied to the src vector? This is not necessary if it is already consistent!
+template < typename OpType, typename ProjOpType, bool PreProjection = false >
 class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typename OpType::dstType >
 {
  public:
@@ -42,8 +51,9 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
    , op_( op )
    , projOp_( projOp )
    , projFlag_( projFlag )
-   , diagonalValues_( nullptr )
-   , inverseDiagonalValues_( nullptr )
+   , tmp_( PreProjection ?
+               std::make_shared< typename OpType::srcType >( "tmp", op->getStorage(), op->getMinLevel(), op->getMaxLevel() ) :
+               nullptr )
    {}
 
    void apply( const typename OpType::srcType& src,
@@ -54,45 +64,27 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
    {
       WALBERLA_CHECK( updateType == Replace, "Operator concatenation only supported for updateType Replace" );
 
-      op_->apply( src, dst, level, flag );
+      if ( PreProjection )
+      {
+         tmp_->assign( { 1 }, { src }, level, All );
+         projOp_->apply( *tmp_, level, projFlag_ );
+         op_->apply( *tmp_, dst, level, flag );
+      }
+      else
+      {
+         op_->apply( src, dst, level, flag );
+      }
+
       projOp_->apply( dst, level, projFlag_ );
    }
 
-   std::shared_ptr< typename OpType::srcType > getDiagonalValues() const
-   {
-      WALBERLA_CHECK_NOT_NULLPTR(
-          diagonalValues_,
-          "Diagonal values have not been assembled, call computeDiagonalOperatorValues() to set up this function." )
-      return diagonalValues_;
-   };
-
-   std::shared_ptr< typename OpType::srcType > getInverseDiagonalValues() const
-   {
-      WALBERLA_CHECK_NOT_NULLPTR(
-          inverseDiagonalValues_,
-          "Inverse diagonal values have not been assembled, call computeInverseDiagonalOperatorValues() to set up this function." )
-      return inverseDiagonalValues_;
-   };
-
-   /// Trigger (re)computation of diagonal matrix entries (central operator weights)
-   /// Allocates the required memory if the function was not yet allocated.
-   void computeDiagonalOperatorValues() { WALBERLA_ABORT( "computeDiagonalOperatorValues is not implemented yet." ) }
-
-   /// Trigger (re)computation of inverse diagonal matrix entries (central operator weights)
-   /// Allocates the required memory if the function was not yet allocated.
-   void computeInverseDiagonalOperatorValues()
-   {
-      WALBERLA_ABORT( "computeInverseDiagonalOperatorValues is not implemented yet." )
-   }
-
  private:
-   std::shared_ptr< OpType > op_;
+   std::shared_ptr< OpType >     op_;
    std::shared_ptr< ProjOpType > projOp_;
 
    DoFType projFlag_;
 
-   std::shared_ptr< typename OpType::dstType > diagonalValues_;
-   std::shared_ptr< typename OpType::dstType > inverseDiagonalValues_;
+   std::shared_ptr< typename OpType::dstType > tmp_;
 };
 
 } // namespace hyteg

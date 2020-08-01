@@ -25,34 +25,19 @@
 #include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/config/Config.h"
-#include "core/math/Constants.h"
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P1StokesOperator.hpp"
-#include "hyteg/composites/P1Transport.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
-#include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
-#include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
-#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/petsc/PETScLUSolver.hpp"
-#include "hyteg/petsc/PETScManager.hpp"
-#include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
-#include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
-#include "hyteg/solvers/UzawaSmoother.hpp"
-#include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
-#include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
@@ -162,7 +147,6 @@ int main( int argc, char* argv[] )
    StokesOperator L( stokes, projection, FreeslipBoundary );
 
    auto solver = hyteg::solvertemplates::stokesMinResSolver< StokesOperator >( storage, maxLevel, 1e-6, 1000 );
-
    solver->solve(L, u, f, maxLevel);
 
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
