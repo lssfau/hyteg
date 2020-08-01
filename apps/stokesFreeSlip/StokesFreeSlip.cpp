@@ -20,6 +20,7 @@
 #include <cmath>
 #include <hyteg/composites/StrongFreeSlipWrapper.hpp>
 #include <hyteg/p1functionspace/P1ProjectNormalOperator.hpp>
+#include <hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp>
 
 #include "core/DataTypes.h"
 #include "core/Environment.h"
@@ -90,7 +91,9 @@ int main( int argc, char* argv[] )
    Point2D left({ -channelLength/2, 0 });
    Point2D right({channelLength/2, channelHeight});
 
-   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::meshRectangle( left, right, MeshInfo::CROSS, 4, 4 );
+   const uint_t ny = 4;
+   const uint_t nx = ny * static_cast< uint_t >(channelLength/channelHeight);
+   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::meshRectangle( left, right, MeshInfo::CROSS, nx, ny );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    hyteg::loadbalancing::roundRobin( setupStorage );
 
@@ -103,9 +106,9 @@ int main( int argc, char* argv[] )
    auto freeslip = [=](auto p) { return p[1] <= 1e-14; };
 
    setupStorage.setMeshBoundaryFlagsByVertexLocation(2, outflow);
+   setupStorage.setMeshBoundaryFlagsByVertexLocation(3, freeslip);
    setupStorage.setMeshBoundaryFlagsByVertexLocation(1, noslip);
    setupStorage.setMeshBoundaryFlagsByVertexLocation(1, inflow);
-   setupStorage.setMeshBoundaryFlagsByVertexLocation(3, freeslip);
 
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
 
@@ -155,29 +158,12 @@ int main( int argc, char* argv[] )
    using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1StokesOperator, hyteg::P1ProjectNormalOperator >;
    auto stokes = std::make_shared< hyteg::P1StokesOperator > ( storage, minLevel, maxLevel );
    auto normals = [](auto, Point3D & n) { n = Point3D({0, -1}); };
-   // auto normals = [](auto, Point3D & n) { n[0] = 0; n[1] = -1;  };
    auto projection = std::make_shared< hyteg::P1ProjectNormalOperator > ( storage, minLevel, maxLevel, normals );
    StokesOperator L( stokes, projection, FreeslipBoundary );
-   // hyteg::P1StokesOperator L ( storage, minLevel, maxLevel );
 
-   MinResSolver< StokesOperator > solver( storage, minLevel, maxLevel, 100 );
-   // MinResSolver< hyteg::P1StokesOperator > solver( storage, minLevel, maxLevel, 100 );
+   auto solver = hyteg::solvertemplates::stokesMinResSolver< StokesOperator >( storage, maxLevel, 1e-6, 1000 );
 
-
-   //hyteg::P1StokesFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel );
-   //tmp.u.interpolate([]( auto & p ){ return (p[0]+2)*(p[1] + 2)*(p[1]+2); }, maxLevel, All);
-   //tmp.v.interpolate([]( auto & p ){ return (p[0]+2)*(p[1] + 2)*(p[1]+2); }, maxLevel, All);
-   //L.apply(tmp, u, maxLevel, Inner | NeumannBoundary | FreeslipBoundary );
-
-   // u.u.interpolate([]( auto & p ){ return (p[0]+2)*(p[1] + 2)*(p[1]+2); }, maxLevel, All);
-   // u.v.interpolate([]( auto & p ){ return (p[0]+2)*(p[1] + 2)*(p[1]+2); }, maxLevel, All);
-   // projection->apply(u, maxLevel, FreeslipBoundary);
-   // projection->apply(u, maxLevel, DirichletBoundary | NeumannBoundary | FreeslipBoundary );
-   // projection->apply(u, maxLevel, DirichletBoundary | NeumannBoundary | FreeslipBoundary );
-
-   vtkOutput.write(maxLevel);
-
-   solver.solve(L, u, f, maxLevel);
+   solver->solve(L, u, f, maxLevel);
 
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
