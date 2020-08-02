@@ -197,12 +197,12 @@ void solve( const MeshInfo&         meshInfo,
    MassOperator                  M( storage, level, level );
    MMOCTransport< FunctionType > transport( storage, setupStorage, level, level, TimeSteppingScheme::RK4 );
 
-   //#ifdef HYTEG_BUILD_WITH_PETSC
+#ifdef HYTEG_BUILD_WITH_PETSC
    PETScManager manager;
    auto         solver = std::make_shared< PETScMinResSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, 1e-06 );
-   //#else
-   //   auto solver = std::make_shared< CGSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, level );
-   //#endif
+#else
+   auto solver = std::make_shared< CGSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, level );
+#endif
 
    UnsteadyDiffusion< FunctionType, UnsteadyDiffusionOperator, LaplaceOperator, MassOperator > diffusionSolver(
        storage, level, level, solver );
