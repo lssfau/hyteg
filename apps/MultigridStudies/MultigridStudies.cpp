@@ -1204,6 +1204,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
          petscSolverInternalTmp->setMUMPSCntrl( 7, blockLowRankTolerance ); // BLR tolerance
       }
 
+      // allocate more memory
+      petscSolverInternalTmp->setMUMPSIcntrl( 14, 200 );
+
       petscSolverInternalTmp->setVerbose( true );
       petscSolverInternalTmp->setDirectSolverType( solverType );
       if ( agglomeration && dedicatedAgglomeration && isAgglomerationProcess )
