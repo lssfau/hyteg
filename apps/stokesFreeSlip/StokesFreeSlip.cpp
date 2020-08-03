@@ -26,7 +26,7 @@
 
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
-#include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/composites/P1BlendingStokesOperator.hpp"
 #include "hyteg/composites/StrongFreeSlipWrapper.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
@@ -227,8 +227,9 @@ int main( int argc, char* argv[] )
       vtkOutput.add( u );
    }
 
-   using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1StokesOperator, hyteg::P1ProjectNormalOperator >;
-   auto stokes          = std::make_shared< hyteg::P1StokesOperator >( storage, minLevel, maxLevel );
+   // using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1StokesOperator, hyteg::P1ProjectNormalOperator >;
+   using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1BlendingStokesOperator, hyteg::P1ProjectNormalOperator >;
+   auto stokes          = std::make_shared< hyteg::P1BlendingStokesOperator >( storage, minLevel, maxLevel );
    auto normalsRect     = []( auto, Point3D& n ) { n = Point3D( { 0, -1 } ); };
    auto normalsAnn      = [=]( Point3D p, Point3D& n ) { n = Point3D( { p[0] / rmax, p[1] / rmax } ); };
 
