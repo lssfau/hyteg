@@ -242,7 +242,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( " timestep | max temperature | total mass | mass lost since last outer step " )
    WALBERLA_LOG_INFO_ON_ROOT( "----------+-----------------+------------+---------------------------------" )
 
-   real_t total_mass;
+   real_t total_mass = 0.0;
 
    cError.assign( {1.0, -1.0}, {c, cInitial}, maxLevel, All );
 
