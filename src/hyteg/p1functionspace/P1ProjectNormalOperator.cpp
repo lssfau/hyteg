@@ -23,48 +23,49 @@
 
 namespace hyteg {
 
-P1ProjectNormalOperator::P1ProjectNormalOperator(
-    const std::shared_ptr< PrimitiveStorage >& storage,
-    size_t                                     minLevel,
-    size_t                                     maxLevel,
-    const std::function<void(const Point3D&, Point3D& )>& normal_function)
-: Operator( storage, minLevel, maxLevel ), normal_function_(normal_function)
-{
-}
+P1ProjectNormalOperator::P1ProjectNormalOperator( const std::shared_ptr< PrimitiveStorage >&               storage,
+                                                  size_t                                                   minLevel,
+                                                  size_t                                                   maxLevel,
+                                                  const std::function< void( const Point3D&, Point3D& ) >& normal_function )
+: Operator( storage, minLevel, maxLevel )
+, normal_function_( normal_function )
+{}
 
-void P1ProjectNormalOperator::apply( const P1StokesFunction< real_t >& dst,
-                                     size_t                            level,
-                                     DoFType                           flag) const
+void P1ProjectNormalOperator::apply( const P1Function< real_t >& dst_u,
+                                     const P1Function< real_t >& dst_v,
+                                     const P1Function< real_t >& dst_w,
+                                     size_t                      level,
+                                     DoFType                     flag ) const
 {
    this->startTiming( "Apply" );
-   dst.u.communicate< Vertex, Edge >( level );
-   dst.u.communicate< Edge, Face >( level );
-   dst.u.communicate< Face, Cell >( level );
+   dst_u.communicate< Vertex, Edge >( level );
+   dst_u.communicate< Edge, Face >( level );
+   dst_u.communicate< Face, Cell >( level );
 
-   dst.v.communicate< Vertex, Edge >( level );
-   dst.v.communicate< Edge, Face >( level );
-   dst.v.communicate< Face, Cell >( level );
+   dst_v.communicate< Vertex, Edge >( level );
+   dst_v.communicate< Edge, Face >( level );
+   dst_v.communicate< Face, Cell >( level );
 
    if ( storage_->hasGlobalCells() )
    {
-      dst.w.communicate< Vertex, Edge >( level );
-      dst.w.communicate< Edge, Face >( level );
-      dst.w.communicate< Face, Cell >( level );
+      dst_w.communicate< Vertex, Edge >( level );
+      dst_w.communicate< Edge, Face >( level );
+      dst_w.communicate< Face, Cell >( level );
    }
 
-   dst.u.communicate< Cell, Face >( level );
-   dst.u.communicate< Face, Edge >( level );
-   dst.u.communicate< Edge, Vertex >( level );
+   dst_u.communicate< Cell, Face >( level );
+   dst_u.communicate< Face, Edge >( level );
+   dst_u.communicate< Edge, Vertex >( level );
 
-   dst.v.communicate< Cell, Face >( level );
-   dst.v.communicate< Face, Edge >( level );
-   dst.v.communicate< Edge, Vertex >( level );
+   dst_v.communicate< Cell, Face >( level );
+   dst_v.communicate< Face, Edge >( level );
+   dst_v.communicate< Edge, Vertex >( level );
 
    if ( storage_->hasGlobalCells() )
    {
-      dst.w.communicate< Cell, Face >( level );
-      dst.w.communicate< Face, Edge >( level );
-      dst.w.communicate< Edge, Vertex >( level );
+      dst_w.communicate< Cell, Face >( level );
+      dst_w.communicate< Face, Edge >( level );
+      dst_w.communicate< Edge, Vertex >( level );
    }
 
    this->timingTree_->start( "Macro-Vertex" );
@@ -73,16 +74,23 @@ void P1ProjectNormalOperator::apply( const P1StokesFunction< real_t >& dst,
    {
       Vertex& vertex = *it.second;
 
-      const DoFType vertexBC = dst.u.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+      const DoFType vertexBC = dst_u.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if ( testFlag( vertexBC, flag ) )
       {
          if ( storage_->hasGlobalCells() )
          {
-            vertexdof::macrovertex::projectNormal3D< real_t >(level, vertex, storage_, normal_function_, dst.u.getVertexDataID(), dst.v.getVertexDataID(), dst.w.getVertexDataID() );
+            vertexdof::macrovertex::projectNormal3D< real_t >( level,
+                                                               vertex,
+                                                               storage_,
+                                                               normal_function_,
+                                                               dst_u.getVertexDataID(),
+                                                               dst_v.getVertexDataID(),
+                                                               dst_w.getVertexDataID() );
          }
          else
          {
-            vertexdof::macrovertex::projectNormal2D< real_t >(level, vertex, storage_, normal_function_, dst.u.getVertexDataID(), dst.v.getVertexDataID() );
+            vertexdof::macrovertex::projectNormal2D< real_t >(
+                level, vertex, storage_, normal_function_, dst_u.getVertexDataID(), dst_v.getVertexDataID() );
          }
       }
    }
@@ -93,23 +101,25 @@ void P1ProjectNormalOperator::apply( const P1StokesFunction< real_t >& dst,
 
    if ( level >= 1 )
    {
-     for ( const auto & it : storage_->getEdges())
-     {
-       Edge & edge = *it.second;
+      for ( const auto& it : storage_->getEdges() )
+      {
+         Edge& edge = *it.second;
 
-       const DoFType edgeBC = dst.u.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag());
-       if ( testFlag( edgeBC, flag ))
-       {
-          if ( storage_->hasGlobalCells() )
-          {
-             vertexdof::macroedge::projectNormal3D< real_t >(level, edge, storage_, normal_function_, dst.u.getEdgeDataID(), dst.v.getEdgeDataID(), dst.w.getEdgeDataID() );
-          }
-          else
-          {
-             vertexdof::macroedge::projectNormal2D< real_t >(level, edge, storage_, normal_function_, dst.u.getEdgeDataID(), dst.v.getEdgeDataID() );
-          }
-       }
-     }
+         const DoFType edgeBC = dst_u.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if ( testFlag( edgeBC, flag ) )
+         {
+            if ( storage_->hasGlobalCells() )
+            {
+               vertexdof::macroedge::projectNormal3D< real_t >(
+                   level, edge, storage_, normal_function_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID(), dst_w.getEdgeDataID() );
+            }
+            else
+            {
+               vertexdof::macroedge::projectNormal2D< real_t >(
+                   level, edge, storage_, normal_function_, dst_u.getEdgeDataID(), dst_v.getEdgeDataID() );
+            }
+         }
+      }
    }
 
    this->timingTree_->stop( "Macro-Edge" );
@@ -122,12 +132,13 @@ void P1ProjectNormalOperator::apply( const P1StokesFunction< real_t >& dst,
       {
          Face& face = *it.second;
 
-         const DoFType faceBC = dst.u.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         const DoFType faceBC = dst_u.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
          if ( testFlag( faceBC, flag ) )
          {
             if ( storage_->hasGlobalCells() )
             {
-               vertexdof::macroface::projectNormal3D< real_t >(level, face, storage_, normal_function_, dst.u.getFaceDataID(), dst.v.getFaceDataID(), dst.w.getFaceDataID() );
+               vertexdof::macroface::projectNormal3D< real_t >(
+                   level, face, storage_, normal_function_, dst_u.getFaceDataID(), dst_v.getFaceDataID(), dst_w.getFaceDataID() );
             }
          }
       }
@@ -136,6 +147,11 @@ void P1ProjectNormalOperator::apply( const P1StokesFunction< real_t >& dst,
    this->timingTree_->stop( "Macro-Face" );
 
    this->stopTiming( "Apply" );
+}
+
+void P1ProjectNormalOperator::apply( const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const
+{
+   apply( dst.u, dst.v, dst.w, level, flag );
 }
 
 } // namespace hyteg

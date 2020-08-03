@@ -26,19 +26,26 @@ namespace hyteg {
 
 using walberla::real_t;
 
-class P1ProjectNormalOperator : public Operator< P1StokesFunction< real_t >, P1StokesFunction< real_t > >
+class P1ProjectNormalOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
  public:
-   P1ProjectNormalOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const std::function<void(const Point3D&, Point3D& )>& normal_function );
+   P1ProjectNormalOperator( const std::shared_ptr< PrimitiveStorage >&               storage,
+                            size_t                                                   minLevel,
+                            size_t                                                   maxLevel,
+                            const std::function< void( const Point3D&, Point3D& ) >& normal_function );
 
    ~P1ProjectNormalOperator() override = default;
 
-   void apply( const P1StokesFunction< real_t >& dst,
-               size_t                            level,
-               DoFType                           flag) const;
+   void apply( const P1Function< real_t >& dst_u,
+               const P1Function< real_t >& dst_v,
+               const P1Function< real_t >& dst_w,
+               size_t                      level,
+               DoFType                     flag ) const;
+
+   void apply( const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const;
 
  private:
-   const std::function<void(const Point3D&, Point3D& )> normal_function_;
+   const std::function< void( const Point3D&, Point3D& ) > normal_function_;
 };
 
 } // namespace hyteg
