@@ -79,9 +79,9 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
    WALBERLA_CHECK_LESS( discr_l2_err, 1.2e-5 );
 
-   hyteg::VTKOutput vtkOutput( "../../output", "P2CGConvergenceTest", storage );
-   vtkOutput.add( u );
-   vtkOutput.write( level );
+//   hyteg::VTKOutput vtkOutput( "../../output", "P2CGConvergenceTest", storage );
+//   vtkOutput.add( u );
+//   vtkOutput.write( level );
 
    walberla::WcTimingTree tt = storage->getTimingTree()->getReduced();
    WALBERLA_LOG_INFO_ON_ROOT( tt );

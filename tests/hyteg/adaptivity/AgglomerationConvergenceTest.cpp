@@ -87,14 +87,14 @@ void AgglomerationConvergenceTest( const std::string& meshFile,
    u.interpolate( exact, maxLevel, hyteg::DirichletBoundary );
    u_exact.interpolate( exact, maxLevel );
 
-   hyteg::VTKOutput vtkOutput( "../../output", "AgglomerationConvergenceTest", storage );
-   vtkOutput.add( u );
-   vtkOutput.add( u_exact );
-   vtkOutput.add( f );
-   vtkOutput.add( r );
-   vtkOutput.add( err );
-   vtkOutput.add( npoints_helper );
-   vtkOutput.write( maxLevel, 0 );
+//   hyteg::VTKOutput vtkOutput( "../../output", "AgglomerationConvergenceTest", storage );
+//   vtkOutput.add( u );
+//   vtkOutput.add( u_exact );
+//   vtkOutput.add( f );
+//   vtkOutput.add( r );
+//   vtkOutput.add( err );
+//   vtkOutput.add( npoints_helper );
+//   vtkOutput.write( maxLevel, 0 );
 
 #if 1
    // Setup of the agglomeration based solver.
@@ -159,7 +159,7 @@ void AgglomerationConvergenceTest( const std::string& meshFile,
 
       WALBERLA_LOG_INFO_ON_ROOT( "residual " << discr_l2_residual << ", error " << discr_l2_err );
 
-      vtkOutput.write( maxLevel, iteration + 1 );
+//      vtkOutput.write( maxLevel, iteration + 1 );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err << ", (mesh: " << meshFile << ")" );

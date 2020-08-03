@@ -155,9 +155,9 @@ static void testP2Function()
    std::function< real_t( const hyteg::Point3D& ) > linearX = []( const Point3D& xx ) -> real_t { return xx[0] + xx[1]; };
    p2->interpolate( linearX, maxLevel, DoFType::All );
 
-   VTKOutput vtkOutput("../../output", "p2_interpolate_test", storage);
-   vtkOutput.add( *p2 );
-   vtkOutput.write( maxLevel );
+//   VTKOutput vtkOutput("../../output", "p2_interpolate_test", storage);
+//   vtkOutput.add( *p2 );
+//   vtkOutput.write( maxLevel );
 }
 
 } // namespace hyteg

@@ -107,31 +107,31 @@ void p1StokesPetscApplyTest( const uint_t & level, const std::string & meshFile,
   WALBERLA_LOG_INFO_ON_ROOT( "Error sum = " << absScalarProd );
 
   // VTK
-  VTKOutput vtkOutput( "../../output", "P1StokesPetscApplyTest", storage );
-  vtkOutput.add( src.u );
-  vtkOutput.add( src.v );
-  vtkOutput.add( src.p );
-
-  vtkOutput.add( hhgDst.u );
-  vtkOutput.add( hhgDst.v );
-  vtkOutput.add( hhgDst.p );
-
-  vtkOutput.add( petscDst.u );
-  vtkOutput.add( petscDst.v );
-  vtkOutput.add( petscDst.p );
-
-  vtkOutput.add( err.u );
-  vtkOutput.add( err.v );
-  vtkOutput.add( err.p );
-
-  if ( storage->hasGlobalCells() )
-  {
-    vtkOutput.add( src.w );
-    vtkOutput.add( hhgDst.w );
-    vtkOutput.add( petscDst.w );
-    vtkOutput.add( err.w );
-  }
-  vtkOutput.write( level, 0 );
+//  VTKOutput vtkOutput( "../../output", "P1StokesPetscApplyTest", storage );
+//  vtkOutput.add( src.u );
+//  vtkOutput.add( src.v );
+//  vtkOutput.add( src.p );
+//
+//  vtkOutput.add( hhgDst.u );
+//  vtkOutput.add( hhgDst.v );
+//  vtkOutput.add( hhgDst.p );
+//
+//  vtkOutput.add( petscDst.u );
+//  vtkOutput.add( petscDst.v );
+//  vtkOutput.add( petscDst.p );
+//
+//  vtkOutput.add( err.u );
+//  vtkOutput.add( err.v );
+//  vtkOutput.add( err.p );
+//
+//  if ( storage->hasGlobalCells() )
+//  {
+//    vtkOutput.add( src.w );
+//    vtkOutput.add( hhgDst.w );
+//    vtkOutput.add( petscDst.w );
+//    vtkOutput.add( err.w );
+//  }
+//  vtkOutput.write( level, 0 );
 
   WALBERLA_CHECK_LESS( absScalarProd, eps );
 

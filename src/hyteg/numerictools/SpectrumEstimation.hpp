@@ -69,7 +69,7 @@ namespace hyteg {
     real_t radius = 0.0;
 
     // run power iteration
-    for( uint it = 1; it <= numIts; ++it ) {
+    for( uint_t it = 1; it <= numIts; ++it ) {
       norm = std::sqrt( auxVec.dotGlobal( auxVec, level, hyteg::All ) );
       itrVec.assign( {1.0/norm}, {auxVec}, level, hyteg::All );
       op.apply( itrVec, auxVec, level, hyteg::All );

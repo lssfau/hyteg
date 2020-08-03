@@ -119,15 +119,15 @@ int main( int argc, char* argv[] )
    hyteg::P1StokesFunction< real_t > uExact( "uExact", storage, minLevel, maxLevel );
    hyteg::P1StokesFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
-   hyteg::VTKOutput vtkOutput( "../../output", "P1_Stokes_3D_MinRes_convergence", storage );
-   vtkOutput.add( u.u );
-   vtkOutput.add( u.v );
-   vtkOutput.add( u.w );
-   vtkOutput.add( u.p );
-   vtkOutput.add( uExact.u );
-   vtkOutput.add( uExact.v );
-   vtkOutput.add( uExact.w );
-   vtkOutput.add( uExact.p );
+//   hyteg::VTKOutput vtkOutput( "../../output", "P1_Stokes_3D_MinRes_convergence", storage );
+//   vtkOutput.add( u.u );
+//   vtkOutput.add( u.v );
+//   vtkOutput.add( u.w );
+//   vtkOutput.add( u.p );
+//   vtkOutput.add( uExact.u );
+//   vtkOutput.add( uExact.v );
+//   vtkOutput.add( uExact.w );
+//   vtkOutput.add( uExact.p );
 
    hyteg::P1StokesOperator L( storage, minLevel, maxLevel );
 
@@ -173,7 +173,7 @@ int main( int argc, char* argv[] )
    uExact.v.interpolate( collidingFlow_y, maxLevel );
 #endif
 
-   vtkOutput.write( maxLevel, 0 );
+//   vtkOutput.write( maxLevel, 0 );
 #if 1
 
    typedef hyteg::CGSolver< hyteg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
@@ -205,7 +205,7 @@ int main( int argc, char* argv[] )
    f.w.assign( {1.0}, {u.w}, level, DirichletBoundary );
    petScLUSolver.solve( L, u, f, r, level, tolerance, maxIterations, Inner | NeumannBoundary );
 #endif
-   vtkOutput.write( maxLevel, 1 );
+//   vtkOutput.write( maxLevel, 1 );
 
    L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
    real_t final_residual = r.dotGlobal( r, maxLevel, hyteg::Inner ) / real_c( hyteg::numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, maxLevel ) );

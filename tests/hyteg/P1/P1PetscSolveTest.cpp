@@ -116,12 +116,12 @@ void petscSolveTest( const uint_t & level, const std::string & meshFileName, con
    WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
 //   WALBERLA_LOG_INFO_ON_ROOT( "residuum 2 = " << residuum_l2_2 );
 
-   VTKOutput vtkOutput("../../output", "P1PetscSolve", storage);
-   vtkOutput.add( x );
-   vtkOutput.add( x_exact );
-   vtkOutput.add( err );
-   vtkOutput.add( residuum );
-   vtkOutput.write( level );
+//   VTKOutput vtkOutput("../../output", "P1PetscSolve", storage);
+//   vtkOutput.add( x );
+//   vtkOutput.add( x_exact );
+//   vtkOutput.add( err );
+//   vtkOutput.add( residuum );
+//   vtkOutput.write( level );
 
    WALBERLA_CHECK_FLOAT_EQUAL_EPSILON( residuum_l2_1, 0.0, 1e-15 );
    //WALBERLA_CHECK_FLOAT_EQUAL_EPSILON( residuum_l2_2, 0.0, 1e-15 );

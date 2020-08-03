@@ -283,8 +283,10 @@ waLBerla_compile_test(FILES operators/SimpleVertexDoFToEdgeDoFOperatorTest.cpp D
 waLBerla_execute_test(NAME SimpleVertexDoFToEdgeDoFOperatorTest)
 
 waLBerla_compile_test(FILES operators/MassOperatorTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME MassOperatorTest )
-waLBerla_execute_test(NAME MassOperatorTestMPI COMMAND $<TARGET_FILE:MassOperatorTest> PROCESSES 2 )
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+  waLBerla_execute_test(NAME MassOperatorTest )
+  waLBerla_execute_test(NAME MassOperatorTestMPI COMMAND $<TARGET_FILE:MassOperatorTest> PROCESSES 2 )
+endif()
 
 waLBerla_compile_test(FILES operators/ElementwiseOperatorAdditiveApplyTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME ElementwiseOperatorAdditiveApplyTest)
@@ -583,7 +585,9 @@ waLBerla_compile_test(FILES blending/IcosahedralShellMapTest.cpp DEPENDS hyteg c
 waLBerla_execute_test(NAME IcosahedralShellMapTest COMMAND $<TARGET_FILE:IcosahedralShellMapTest> )
 
 waLBerla_compile_test(FILES blending/AffineMap3DTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME AffineMap3DTest1 COMMAND $<TARGET_FILE:AffineMap3DTest> )
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+  waLBerla_execute_test(NAME AffineMap3DTest1 COMMAND $<TARGET_FILE:AffineMap3DTest> )
+endif()
 
 if(CMAKE_BUILD_TYPE MATCHES "Release")
   if(NOT WALBERLA_CXX_COMPILER_IS_INTEL)

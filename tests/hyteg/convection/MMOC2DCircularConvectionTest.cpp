@@ -209,13 +209,13 @@ int main( int argc, char* argv[] )
 
    velocityMagnitude.interpolate( magnitude, {u, v}, maxLevel, All );
 
-   hyteg::VTKOutput vtkOutput( "../../output", "MMOC2DCircularConvectionTest", storage );
-
-   vtkOutput.add( u );
-   vtkOutput.add( v );
-   vtkOutput.add( c );
-   vtkOutput.add( cError );
-   vtkOutput.add( cInitial );
+//   hyteg::VTKOutput vtkOutput( "../../output", "MMOC2DCircularConvectionTest", storage );
+//
+//   vtkOutput.add( u );
+//   vtkOutput.add( v );
+//   vtkOutput.add( c );
+//   vtkOutput.add( cError );
+//   vtkOutput.add( cInitial );
 
    WALBERLA_LOG_INFO_ON_ROOT( " outer step | timestep | max temperature | total mass | mass lost since last outer step " )
    WALBERLA_LOG_INFO_ON_ROOT( "------------+----------+-----------------+------------+---------------------------------" )
@@ -225,7 +225,7 @@ int main( int argc, char* argv[] )
    M.apply( c, cMass, maxLevel, All );
    auto total_mass = cMass.sumGlobal( maxLevel );
 
-   vtkOutput.write( maxLevel );
+//   vtkOutput.write( maxLevel );
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %10d | %8d | %15.3e | %10.3e | %30.2f%% ", 0, 0, max_temp, total_mass, 0, 0. ) )
 
@@ -244,7 +244,7 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
           " %10d | %8d | %15.3e | %10.3e | %30.2f%% ", i, i * innerSteps, max_temp, total_mass, total_mass_lost * 100. ) )
 
-      vtkOutput.write( maxLevel, i );
+//      vtkOutput.write( maxLevel, i );
    }
 
    auto p2MassFormFenics =

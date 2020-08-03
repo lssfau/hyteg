@@ -87,10 +87,10 @@ void runTest1( std::string tag ) {
 
   std::string outFile( "triangle" );
   outFile += tag;
-  VTKOutput vtkOutput( "../../output", outFile, storage );
-  vtkOutput.add( f1 );
-  vtkOutput.add( f2 );
-  vtkOutput.write( level );
+//  VTKOutput vtkOutput( "../../output", outFile, storage );
+//  vtkOutput.add( f1 );
+//  vtkOutput.add( f2 );
+//  vtkOutput.write( level );
 }
 
 

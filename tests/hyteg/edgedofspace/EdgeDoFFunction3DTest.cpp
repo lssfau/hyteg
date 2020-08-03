@@ -56,12 +56,12 @@ int main( int argc, char** argv )
 
    std::function< real_t( const Point3D& ) > ones = []( const Point3D& ) { return real_c( 1 ); };
 
-   VTKOutput vtkOutput( "../../output", "EdgeDoFInterpolation3DTest", storage );
-   vtkOutput.add( x1 );
-   vtkOutput.add( x2 );
-   vtkOutput.add( xSum );
-
-   vtkOutput.write( level, 0 );
+//   VTKOutput vtkOutput( "../../output", "EdgeDoFInterpolation3DTest", storage );
+//   vtkOutput.add( x1 );
+//   vtkOutput.add( x2 );
+//   vtkOutput.add( xSum );
+//
+//   vtkOutput.write( level, 0 );
 
    x1.interpolate( fn1, level );
    xSum.interpolate( fn2, level );
@@ -73,7 +73,7 @@ int main( int argc, char** argv )
    x2.interpolate( ones, level );
    const real_t dotProduct = x2.dotLocal( x2, level );
 
-   vtkOutput.write( level, 1 );
+//   vtkOutput.write( level, 1 );
 
    for ( const auto& itCell : storage->getCells() )
    {
