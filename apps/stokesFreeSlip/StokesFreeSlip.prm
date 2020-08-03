@@ -3,15 +3,24 @@ Parameters
   minLevel 2;
   maxLevel 2;
 
-  /// solver can be uzawa, minres
-  // solver uzawa;
+  // which scenario should be loaded?
+  useRectangleScenario false;
+
+  // scenario rectangle
+  channelLength 0.5;
+  channelHeight 0.5;
+  ny 1;
+
+  // scenario annulus
+  rmin 0.5;
+  rmax 1;
+  nTan 5;
+  nRad 1;
 
   /// output
   printGlobalStorageInfo true;
   printParameters true;
   printDoFCount true;
-  printFunctionCount true;
-  printTiming false;
   writeDomainVTK true;
   VTKOutput true;
 }
