@@ -111,7 +111,6 @@ class TempSolution : public Solution
 class TempSolution3D : public Solution
 {
  public:
-
    /// Evaluates the solution at a specific point.
    real_t operator()( const Point3D& x ) const override
    {
@@ -168,8 +167,8 @@ class VelocitySolutionZ : public Solution
 {
  public:
    explicit VelocitySolutionZ( real_t timeTotal )
-       : Solution()
-       , timeTotal_( timeTotal )
+   : Solution()
+   , timeTotal_( timeTotal )
    {}
 
    /// Evaluates the solution at a specific point.
@@ -187,16 +186,14 @@ class VelocitySolution3DX : public Solution
 {
  public:
    explicit VelocitySolution3DX( real_t timeTotal )
-       : Solution()
-       , timeTotal_( timeTotal )
+   : Solution()
+   , timeTotal_( timeTotal )
    {}
 
    /// Evaluates the solution at a specific point.
    real_t operator()( const Point3D& x ) const override
    {
-      return 2 * std::sin( pi * x[0] ) * std::sin( pi * x[0] ) *
-             std::sin( 2 * pi * x[1] ) *
-             std::sin( 2 * pi * x[2] ) *
+      return 2 * std::sin( pi * x[0] ) * std::sin( pi * x[0] ) * std::sin( 2 * pi * x[1] ) * std::sin( 2 * pi * x[2] ) *
              std::cos( pi * ( currentTime_ / timeTotal_ ) );
    }
 
@@ -208,16 +205,14 @@ class VelocitySolution3DY : public Solution
 {
  public:
    explicit VelocitySolution3DY( real_t timeTotal )
-       : Solution()
-       , timeTotal_( timeTotal )
+   : Solution()
+   , timeTotal_( timeTotal )
    {}
 
    /// Evaluates the solution at a specific point.
    real_t operator()( const Point3D& x ) const override
    {
-      return - std::sin( 2 * pi * x[0] ) *
-             std::sin( pi * x[1] ) * std::sin( pi * x[1] ) *
-             std::sin( 2 * pi * x[2] ) *
+      return -std::sin( 2 * pi * x[0] ) * std::sin( pi * x[1] ) * std::sin( pi * x[1] ) * std::sin( 2 * pi * x[2] ) *
              std::cos( pi * ( currentTime_ / timeTotal_ ) );
    }
 
@@ -229,16 +224,14 @@ class VelocitySolution3DZ : public Solution
 {
  public:
    explicit VelocitySolution3DZ( real_t timeTotal )
-       : Solution()
-       , timeTotal_( timeTotal )
+   : Solution()
+   , timeTotal_( timeTotal )
    {}
 
    /// Evaluates the solution at a specific point.
    real_t operator()( const Point3D& x ) const override
    {
-      return - std::sin( 2 * pi * x[0] ) *
-             std::sin( 2 * pi * x[1] ) *
-             std::sin( pi * x[2] ) * std::sin( pi * x[2] ) *
+      return -std::sin( 2 * pi * x[0] ) * std::sin( 2 * pi * x[1] ) * std::sin( pi * x[2] ) * std::sin( pi * x[2] ) *
              std::cos( pi * ( currentTime_ / timeTotal_ ) );
    }
 
@@ -265,26 +258,28 @@ void benchmark( int argc, char** argv )
 
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
-   const uint_t numTimeSteps       = mainConf.getParameter< uint_t >( "numTimeSteps" );
-   const uint_t level              = mainConf.getParameter< uint_t >( "level" );
-   const bool   threeDim           = mainConf.getParameter< bool >( "threeDim" );
-   const bool   resetParticles     = mainConf.getParameter< bool >( "resetParticles" );
-   const bool   adjustedAdvection  = mainConf.getParameter< bool >( "adjustedAdvection" );
-   const bool   enableCylinder     = mainConf.getParameter< bool >( "enableCylinder" );
-   const bool   enableLinearCone   = mainConf.getParameter< bool >( "enableLinearCone" );
-   const bool   enableGaussianCone = mainConf.getParameter< bool >( "enableGaussianCone" );
-   const uint_t printInterval      = mainConf.getParameter< uint_t >( "printInterval" );
-   const bool   vtk                = mainConf.getParameter< bool >( "vtk" );
-   const uint_t vtkInterval        = mainConf.getParameter< uint_t >( "vtkInterval" );
+   const uint_t      numTimeSteps           = mainConf.getParameter< uint_t >( "numTimeSteps" );
+   const uint_t      level                  = mainConf.getParameter< uint_t >( "level" );
+   const bool        threeDim               = mainConf.getParameter< bool >( "threeDim" );
+   const bool        resetParticles         = mainConf.getParameter< bool >( "resetParticles" );
+   const uint_t      resetParticlesInterval = mainConf.getParameter< uint_t >( "resetParticlesInterval" );
+   const bool        adjustedAdvection      = mainConf.getParameter< bool >( "adjustedAdvection" );
+   const bool        enableCylinder         = mainConf.getParameter< bool >( "enableCylinder" );
+   const bool        enableLinearCone       = mainConf.getParameter< bool >( "enableLinearCone" );
+   const bool        enableGaussianCone     = mainConf.getParameter< bool >( "enableGaussianCone" );
+   const uint_t      printInterval          = mainConf.getParameter< uint_t >( "printInterval" );
+   const bool        vtk                    = mainConf.getParameter< bool >( "vtk" );
+   const uint_t      vtkInterval            = mainConf.getParameter< uint_t >( "vtkInterval" );
+   const std::string dbFile                 = mainConf.getParameter< std::string >( "dbFile" );
 
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
    if ( threeDim )
    {
-      meshInfo = MeshInfo::meshCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
+      meshInfo = MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
    }
    else
    {
-      meshInfo = MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1, 1 } ), MeshInfo::CRISS, 1, 1 );
+      meshInfo = MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, 1, 1 );
    }
 
    const real_t tEnd = 1.5;
@@ -314,13 +309,16 @@ void benchmark( int argc, char** argv )
              DiffusionTimeIntegrator::ImplicitEuler,
              false,
              resetParticles,
+             resetParticlesInterval,
              adjustedAdvection,
              numTimeSteps,
              vtk,
              true,
              "Benchmark_02_SwirlingAdvection",
              printInterval,
-             vtkInterval );
+             vtkInterval,
+             false,
+             dbFile );
    }
    else
    {
@@ -336,15 +334,17 @@ void benchmark( int argc, char** argv )
              DiffusionTimeIntegrator::ImplicitEuler,
              false,
              resetParticles,
+             resetParticlesInterval,
              adjustedAdvection,
              numTimeSteps,
              vtk,
              true,
              "Benchmark_02_SwirlingAdvection",
              printInterval,
-             vtkInterval );
+             vtkInterval,
+             false,
+             dbFile );
    }
-
 }
 } // namespace moc_benchmarks
 } // namespace hyteg

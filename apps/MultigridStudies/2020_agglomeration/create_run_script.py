@@ -9,25 +9,72 @@ def supermuc_scaling_prm_file_string(discretization="P2", mesh_spherical_shell=F
                                      db_file="database.db", coarse_grid_tol=1e-10,
                                      coarse_grid_solver_type=1, coarse_grid_preconditioner_type=1,
                                      agglomeration=False, agglomeration_strategy='bulk',
-                                     agglomeration_num_processes=4, agglomeration_interval=48):
+                                     agglomeration_num_processes=4, agglomeration_interval=48,
+                                     block_low_rank=False, block_low_rank_tolerance=1e-3,
+                                     mesh_type='symmetricCube', t_domain_diameter=2, t_domain_height=100,
+                                     t_domain_width=25, t_domain_num_junctions=1,
+                                     project_pressure_after_restriction=True):
 
     base_config = """
 Parameters
 {{
     equation stokes;
-    dim 3;
-    numFacesPerSide {num_faces_per_side};
+    
+    // meshes
+    // dim == 2:
+    //  square:        square
+    // dim == 3:
+    //  symmetricCube:  symmetric cube with 24 tets
+    //  cube:           cube with 6 tets
+    //  sphericalShell: spherical shell
+    //  tDomain:        T-shaped domain
+    meshType {mesh_type};
+
+    
+    numEdgesPerSide {num_faces_per_side};
     discretization {discretization};
 
     // number of tets = 60 * (ntan-1) * (ntan-1) * (nrad-1)
-    meshSphericalShell {mesh_spherical_shell};
     shellNTan {ntan};
     shellNRad {nrad};
     shellRMin 0.55;
     shellRMax 1.0;
+    
+    // parameters for T-domain
+    //
+    // top down view
+    //
+    //       out
+    //       #
+    // in    #     diam   = 1
+    // #######     height = 6 // height minus junction
+    //       #     width  = 2 // one sided distance from junction
+    //       #
+    //       out
+    //
+    //     out
+    //     ##
+    //     ##
+    // in  ##     diam   = 2
+    // ######     height = 4 // height minus junction
+    // ######     width  = 3 // one sided distance from junction
+    //     ##
+    //     ##
+    //     ##
+    //     out
+    //
+    // height == width == 0 gives only junction with specified diameter (cube w/ diam^3 cubes)
+    //
+    tDomainDiameter {t_domain_diameter}; // number of cubes in "diameter", > 0 please
+    tDomainHeight   {t_domain_height};
+    tDomainWidth    {t_domain_width};
+    tDomainNumJunctions {t_domain_num_junctions};
+    
+    snakeNumRows 5;
+    snakeRowLength 5;
 
     meshLayout CRISSCROSS;
-    symmetricCuboidMesh true;
+    
     numCycles {num_cycles};
     cycleType V;
     fmgInnerCycles {fmg_r}; // 0 == no fmg
@@ -49,7 +96,7 @@ Parameters
     maxLevel {max_level}; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-16;
-    projectPressureAfterRestriction true;
+    projectPressureAfterRestriction {project_pressure_after_restriction};
     calculateDiscretizationError false;
     coarseGridMaxIterations 100000;
     coarseGridResidualTolerance {coarse_grid_tol};
@@ -67,6 +114,10 @@ Parameters
     // 2: Schur complement
     // 3: HYPRE
     coarseGridSolverVelocityPreconditionerType {coarse_grid_preconditioner_type};
+
+    // BLR options for MUMPS
+    blockLowRank {block_low_rank};
+    blockLowRankTolerance {block_low_rank_tolerance};
 
     agglomeration {agglomeration};
     agglomerationStrategy {agglomeration_strategy};   // dedicated, bulk, or interval
@@ -96,7 +147,11 @@ Parameters
            coarse_grid_tol=coarse_grid_tol, coarse_grid_solver_type=coarse_grid_solver_type,
            coarse_grid_preconditioner_type=coarse_grid_preconditioner_type,
            agglomeration=agglomeration, agglomeration_strategy=agglomeration_strategy,
-           agglomeration_num_processes=agglomeration_num_processes, agglomeration_interval=agglomeration_interval)
+           agglomeration_num_processes=agglomeration_num_processes, agglomeration_interval=agglomeration_interval,
+           block_low_rank=block_low_rank, block_low_rank_tolerance=block_low_rank_tolerance,
+           mesh_type=mesh_type, t_domain_diameter=t_domain_diameter, t_domain_height=t_domain_height,
+           t_domain_width=t_domain_width, t_domain_num_junctions=t_domain_num_junctions,
+           project_pressure_after_restriction=project_pressure_after_restriction)
     return base_config
 
 
@@ -199,6 +254,7 @@ def supermuc_scaling():
     cube_base_config_fmg["weak_large_3072_27fps"] = cube_base_config_fmg["weak"]
     cube_base_config_fmg["weak_large_3072_28fps"] = cube_base_config_fmg["weak"]
     cube_base_config_fmg["weak_large_3072_29fps"] = cube_base_config_fmg["weak"]
+    cube_base_config_fmg["weak_fast_tdomain"] = cube_base_config_fmg["weak"]
 
     node_dep_parameters_cube = {
         "weak": {
@@ -259,6 +315,18 @@ def supermuc_scaling():
             24: {"num_faces_per_side": 6},
             48: {"num_faces_per_side": 6},
             96: {"num_faces_per_side": 6},
+        },
+        "weak_fast_tdomain": {
+            192: {"mesh_type": 'tDomain', "t_domain_diameter": 1, "t_domain_height": 600, "t_domain_width": 2,
+                  "t_domain_num_junctions": 1, "project_pressure_after_restriction": False},
+            384: {"mesh_type": 'tDomain', "t_domain_diameter": 1, "t_domain_height": 1200, "t_domain_width": 2,
+                  "t_domain_num_junctions": 1, "project_pressure_after_restriction": False},
+            768: {"mesh_type": 'tDomain', "t_domain_diameter": 1, "t_domain_height": 2400, "t_domain_width": 2,
+                  "t_domain_num_junctions": 1, "project_pressure_after_restriction": False},
+            1536: {"mesh_type": 'tDomain', "t_domain_diameter": 1, "t_domain_height": 4800, "t_domain_width": 2,
+                   "t_domain_num_junctions": 1, "project_pressure_after_restriction": False},
+            3072: {"mesh_type": 'tDomain', "t_domain_diameter": 1, "t_domain_height": 9600, "t_domain_width": 2,
+                   "t_domain_num_junctions": 1, "project_pressure_after_restriction": False},
         }
     }
 
@@ -272,6 +340,12 @@ def supermuc_scaling():
         (4, 0): "SuperLU"
     }
 
+    blr_settings = {
+        0: [(False, 0), (True, 1e-3), (True, 1e-5)],
+        1: [(False, 0)],
+        4: [(False, 0)],
+    }
+
     agglomeration_parameters = [
         {"agglomeration": False},
         {"agglomeration": True, "agglomeration_strategy": "bulk", "agglomeration_num_processes": 48},
@@ -283,56 +357,66 @@ def supermuc_scaling():
         {"agglomeration": True, "agglomeration_strategy": "bulk", "agglomeration_num_processes": 192},
         {"agglomeration": True, "agglomeration_strategy": "interval", "agglomeration_num_processes": 192},
         {"agglomeration": True, "agglomeration_strategy": "dedicated", "agglomeration_num_processes": 192},
+        {"agglomeration": True, "agglomeration_strategy": "bulk", "agglomeration_num_processes": 384},
+        {"agglomeration": True, "agglomeration_strategy": "interval", "agglomeration_num_processes": 384},
+        {"agglomeration": True, "agglomeration_strategy": "dedicated", "agglomeration_num_processes": 384},
     ]
 
     for discretization in ["P2"]:
-        for scaling_type in ["weak_fast"]:
-            for coarse_grid_tol in [1e-12]:
+        for scaling_type in ["weak_fast_tdomain"]:
+            for coarse_grid_tol in [1e-05, 1e-12]:
                 for coarse_grid_solver_type, coarse_grid_preconditioner_type in coarse_grid_solver_string.keys():
                     for agglomeration_parameter_set in agglomeration_parameters:
-                        if "weak_large" in scaling_type:
-                            ppn = 24
-                        else:
-                            ppn = 48
+                        for blr, blr_tol in blr_settings[coarse_grid_solver_type]:
+                            if "weak_large" in scaling_type:
+                                ppn = 24
+                            else:
+                                ppn = 48
 
-                        base_config = cube_base_config_fmg[scaling_type][discretization]
-                        base_config["coarse_grid_tol"] = coarse_grid_tol
-                        base_config["coarse_grid_solver_type"] = coarse_grid_solver_type
-                        base_config["coarse_grid_preconditioner_type"] = coarse_grid_preconditioner_type
-                        base_config.update(agglomeration_parameter_set)
-                        agglomeration_string = "agg_" + (agglomeration_parameter_set["agglomeration_strategy"] + \
-                                                         str(agglomeration_parameter_set["agglomeration_num_processes"]) if agglomeration_parameter_set["agglomeration"] else "none")
-                        node_dep_parameters = node_dep_parameters_cube[scaling_type]
+                            base_config = cube_base_config_fmg[scaling_type][discretization]
+                            base_config["coarse_grid_tol"] = coarse_grid_tol
+                            base_config["coarse_grid_solver_type"] = coarse_grid_solver_type
+                            base_config["coarse_grid_preconditioner_type"] = coarse_grid_preconditioner_type
+                            base_config["block_low_rank"] = blr
+                            base_config["block_low_rank_tolerance"] = blr_tol
+                            base_config.update(agglomeration_parameter_set)
+                            agglomeration_string = "agg_" + (agglomeration_parameter_set["agglomeration_strategy"] + \
+                                                             str(agglomeration_parameter_set["agglomeration_num_processes"]) if agglomeration_parameter_set["agglomeration"] else "none")
+                            node_dep_parameters = node_dep_parameters_cube[scaling_type]
 
-                        for num_nodes, prms in node_dep_parameters.items():
-                            # some_id = str(uuid4())
+                            blr_string = ""
+                            if coarse_grid_solver_type == 0:
+                                blr_string = "_BLR_{:.2e}".format(blr_tol)
 
-                            job_name = "mg_studies_{}_{}_cgstype_{}_cgtol_{:.2e}_{}nodes_{}_{}".format(
-                                scaling_type, discretization, coarse_grid_solver_string[(coarse_grid_solver_type, coarse_grid_preconditioner_type)],
-                                coarse_grid_tol, num_nodes, agglomeration_string, some_id)
-                            prm_file_name = job_name + ".prm"
-                            job_file_name = job_name + ".job"
+                            for num_nodes, prms in node_dep_parameters.items():
+                                # some_id = str(uuid4())
 
-                            timing_file = job_name + ".json"
-                            agglomeration_timing_file = job_name + "_agglomeration.json"
-                            db_file = job_name + ".db"
+                                job_name = "mg_studies_{}_{}_cgstype_{}_cgtol_{:.2e}_{}nodes_{}_{}".format(
+                                    scaling_type, discretization, coarse_grid_solver_string[(coarse_grid_solver_type, coarse_grid_preconditioner_type)] + blr_string,
+                                    coarse_grid_tol, num_nodes, agglomeration_string, some_id)
+                                prm_file_name = job_name + ".prm"
+                                job_file_name = job_name + ".job"
 
-                            prm_string_prm_dict = {}
-                            prm_string_prm_dict.update(base_config)
-                            prm_string_prm_dict.update(prms)
-                            prm_string_prm_dict["timing_file"] = timing_file
-                            prm_string_prm_dict["agglomeration_timing_file"] = agglomeration_timing_file
-                            prm_string_prm_dict["db_file"] = db_file
+                                timing_file = job_name + ".json"
+                                agglomeration_timing_file = job_name + "_agglomeration.json"
+                                db_file = job_name + ".db"
 
-                            prm_string = supermuc_scaling_prm_file_string(**prm_string_prm_dict)
-                            job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="0:30:00",
-                                                                  num_nodes=num_nodes, prm_file=prm_file_name, ppn=ppn, petsc_detail=True,
-                                                                  script_dir=some_id)
+                                prm_string_prm_dict = {}
+                                prm_string_prm_dict.update(base_config)
+                                prm_string_prm_dict.update(prms)
+                                prm_string_prm_dict["timing_file"] = timing_file
+                                prm_string_prm_dict["agglomeration_timing_file"] = agglomeration_timing_file
+                                prm_string_prm_dict["db_file"] = db_file
 
-                            with open(os.path.join(some_id, prm_file_name), "w") as f:
-                                f.write(prm_string)
-                            with open(os.path.join(some_id, job_file_name), "w") as f:
-                                f.write(job_string)
+                                prm_string = supermuc_scaling_prm_file_string(**prm_string_prm_dict)
+                                job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="0:30:00",
+                                                                      num_nodes=num_nodes, prm_file=prm_file_name, ppn=ppn, petsc_detail=True,
+                                                                      script_dir=some_id)
+
+                                with open(os.path.join(some_id, prm_file_name), "w") as f:
+                                    f.write(prm_string)
+                                with open(os.path.join(some_id, job_file_name), "w") as f:
+                                    f.write(job_string)
 
 if __name__ == "__main__":
     supermuc_scaling()

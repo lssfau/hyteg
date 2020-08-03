@@ -106,7 +106,7 @@ void petscSolveTest( const uint_t& level, const std::string& meshFileName, const
    vtkOutput.add( residuum );
    vtkOutput.write( level );
 
-   WALBERLA_CHECK_LESS( residuum_l2_1, 1e-15 );
+   WALBERLA_CHECK_LESS( residuum_l2_1, 4e-15 );
    WALBERLA_CHECK_LESS( discr_l2_err_1, errEps );
 }
 
