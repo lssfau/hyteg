@@ -8,3 +8,7 @@ waLBerla_add_executable( NAME SPHdemo
         FILES  SPHdemo.cpp
         DEPENDS hyteg)
 
+waLBerla_add_executable( NAME bmark
+        FILES  bmark.cpp
+        DEPENDS hyteg)
+

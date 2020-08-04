@@ -39,38 +39,57 @@ using walberla::real_c;
 using walberla::real_t;
 using namespace hyteg;
 
+template < typename feFuncType >
+void exportSPHfunc( uint_t degree, int order, uint_t level, std::shared_ptr< hyteg::PrimitiveStorage > storage )
+{
+   uint_t                                    lmax    = degree;
+   std::shared_ptr< SphericalHarmonicsTool > sphTool = std::make_shared< SphericalHarmonicsTool >( lmax );
+
+   // This will be our scalar spherical harmonics function (constant radial component)
+   std::function< real_t( const Point3D& ) > sphFunc = [sphTool, degree, order]( const Point3D& x ) {
+      return sphTool->shconvert_eval( degree, order, x[0], x[1], x[2] );
+   };
+
+   feFuncType sph( "harmonic", storage, level, level );
+   sph.interpolate( sphFunc, level, All );
+
+   hyteg::VTKOutput vtkOutput( "./output", "SPHdemo", storage );
+   vtkOutput.add( sph );
+   vtkOutput.write( level, 0 );
+}
+
 int main( int argc, char* argv[] )
 {
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
+   // ============
+   //  Parameters
+   // ============
+
    // check if a config was given on command line or load default file otherwise
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )
    {
-      // auto defaultFile = "./StokesSphere.prm";
-      // WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
-      // cfg->readParameterFile( defaultFile );
+      auto defaultFile = "./SPHdemo.prm";
+      WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
+      cfg->readParameterFile( defaultFile );
    }
    else
    {
       cfg = env.config();
    }
 
-   // ============
-   //  Parameters
-   // ============
-
-   // const walberla::Config::BlockHandle mainConf    = cfg->getBlock( "Parameters" );
-   // const walberla::Config::BlockHandle layersParam = cfg->getBlock( "Layers" );
+   const walberla::Config::BlockHandle params = cfg->getBlock( "Parameters" );
 
    // =========
    //  Meshing
    // =========
-   uint_t minLevel = 3;
-   uint_t maxLevel = minLevel;
+   const uint_t level = params.getParameter< uint_t >( "level" );
+   const uint_t nRad  = params.getParameter< uint_t >( "nRad" );
+   const uint_t nTan  = params.getParameter< uint_t >( "nTan" );
 
-   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::meshSphericalShell( 5, 2, 1.0, 2.0 );
+   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::meshSphericalShell( nTan, nRad, 1.0, 2.0 );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
                                               walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    hyteg::loadbalancing::roundRobin( setupStorage );
@@ -84,26 +103,19 @@ int main( int argc, char* argv[] )
    // ===========
    //  SPH Stuff
    // ===========
-   uint_t degree = 6;
-   int    order  = 1;
+   uint_t degree = params.getParameter< uint_t >( "degree" );
+   int    order  = params.getParameter< int >( "order" );
 
-   uint_t                                    lmax    = degree;
-   std::shared_ptr< SphericalHarmonicsTool > sphTool = std::make_shared< SphericalHarmonicsTool >( lmax );
+   std::string feSpace = params.getParameter< std::string >( "feSpace" );
 
-   // This will be our scalar spherical harmonics function (constant radial component)
-   std::function< real_t( const Point3D& ) > sphFunc = [sphTool, degree, order]( const Point3D& x ) {
-      return sphTool->shconvert_eval( degree, order, x[0], x[1], x[2] );
-   };
-
-   hyteg::P1Function< real_t > sph( "harmonic", storage, minLevel, maxLevel );
-   sph.interpolate( sphFunc, maxLevel, All );
-
-   // ==============
-   //  Output stuff
-   // ==============
-   hyteg::VTKOutput vtkOutput( "./output", "SPHdemo", storage );
-   vtkOutput.add( sph );
-   vtkOutput.write( maxLevel, 0 );
+   if ( feSpace == "P1" )
+   {
+      exportSPHfunc< P1Function< real_t > >( degree, order, level, storage );
+   }
+   else if ( feSpace == "P2" )
+   {
+      exportSPHfunc< P2Function< real_t > >( degree, order, level, storage );
+   }
 
    return EXIT_SUCCESS;
 }
