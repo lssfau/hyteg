@@ -638,6 +638,10 @@ waLBerla_compile_test(FILES freeslip/P1ProjectNormalTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1ProjectNormalTest)
 waLBerla_execute_test(NAME P1ProjectNormalTestMPI COMMAND $<TARGET_FILE:P1ProjectNormalTest> PROCESSES 2 )
 
+waLBerla_compile_test(FILES freeslip/P2ProjectNormalTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P2ProjectNormalTest)
+waLBerla_execute_test(NAME P2ProjectNormalTestMPI COMMAND $<TARGET_FILE:P2ProjectNormalTest> PROCESSES 2 )
+
 if ( HYTEG_BUILD_WITH_TRILINOS )
 ## Trilinos ##
 waLBerla_compile_test(FILES trilinos/TrilinosVersionTest.cpp DEPENDS hyteg core)
