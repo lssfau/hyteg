@@ -87,12 +87,12 @@ void trilinosSolveScalarTest( const uint_t&   solverType,
    x.interpolate( exact, level, DirichletBoundary );
    x_exact.interpolate( exact, level );
 
-   VTKOutput vtkOutput( "../../output", "P2LaplaceTrilinosSolve", storage );
-   vtkOutput.add( x );
-   vtkOutput.add( x_exact );
-   vtkOutput.add( err );
-   vtkOutput.add( b );
-   vtkOutput.write( level, 0 );
+//   VTKOutput vtkOutput( "../../output", "P2LaplaceTrilinosSolve", storage );
+//   vtkOutput.add( x );
+//   vtkOutput.add( x_exact );
+//   vtkOutput.add( err );
+//   vtkOutput.add( b );
+//   vtkOutput.write( level, 0 );
 
    uint_t localDoFs  = numberOfLocalDoFs< P2FunctionTag >( *storage, level );
    uint_t globalDoFs = numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
@@ -128,7 +128,7 @@ void trilinosSolveScalarTest( const uint_t&   solverType,
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
    WALBERLA_LOG_INFO_ON_ROOT( "residuum = " << residuum_l2 );
 
-   vtkOutput.write( level, 1 );
+//   vtkOutput.write( level, 1 );
 
    WALBERLA_CHECK_LESS( residuum_l2, resEps );
    WALBERLA_CHECK_LESS( discr_l2_err, errEps );
@@ -218,24 +218,24 @@ void trilinosSolveStokesTest( const uint_t&   solverType,
 
    vertexdof::projectMean( x_exact.p, level );
 
-   VTKOutput vtkOutput( "../../output", "P2P1Stokes3DTrilinosSolve", storage );
-   vtkOutput.add( x.u );
-   vtkOutput.add( x.v );
-   vtkOutput.add( x.w );
-   vtkOutput.add( x.p );
-   vtkOutput.add( x_exact.u );
-   vtkOutput.add( x_exact.v );
-   vtkOutput.add( x_exact.w );
-   vtkOutput.add( x_exact.p );
-   vtkOutput.add( err.u );
-   vtkOutput.add( err.v );
-   vtkOutput.add( err.w );
-   vtkOutput.add( err.p );
-   vtkOutput.add( b.u );
-   vtkOutput.add( b.v );
-   vtkOutput.add( b.w );
-   vtkOutput.add( b.p );
-   vtkOutput.write( level, 0 );
+//   VTKOutput vtkOutput( "../../output", "P2P1Stokes3DTrilinosSolve", storage );
+//   vtkOutput.add( x.u );
+//   vtkOutput.add( x.v );
+//   vtkOutput.add( x.w );
+//   vtkOutput.add( x.p );
+//   vtkOutput.add( x_exact.u );
+//   vtkOutput.add( x_exact.v );
+//   vtkOutput.add( x_exact.w );
+//   vtkOutput.add( x_exact.p );
+//   vtkOutput.add( err.u );
+//   vtkOutput.add( err.v );
+//   vtkOutput.add( err.w );
+//   vtkOutput.add( err.p );
+//   vtkOutput.add( b.u );
+//   vtkOutput.add( b.v );
+//   vtkOutput.add( b.w );
+//   vtkOutput.add( b.p );
+//   vtkOutput.write( level, 0 );
 
    uint_t localDoFs1         = numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
    uint_t globalDoFs1        = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
@@ -282,7 +282,7 @@ void trilinosSolveStokesTest( const uint_t&   solverType,
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_1_p );
    WALBERLA_LOG_INFO_ON_ROOT( "residuum 1  = " << residuum_l2_1 );
 
-   vtkOutput.write( level, 1 );
+//   vtkOutput.write( level, 1 );
 
    WALBERLA_CHECK_LESS( residuum_l2_1, resEps );
    WALBERLA_CHECK_LESS( discr_l2_err_1_u + discr_l2_err_1_v, errEpsUSum );

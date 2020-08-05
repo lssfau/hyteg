@@ -76,14 +76,14 @@ void P2ElementwiseCGTest( const std::string& meshFile, const uint_t level, const
    const real_t npoints      = npoints_helper.dotGlobal( npoints_helper, level );
    const real_t discr_l2_err = std::sqrt( err.dotGlobal( err, level ) / npoints );
 
-   hyteg::VTKOutput vtkOutput( "../../output", "P2ElementwiseCGConvergenceTest", storage );
-   vtkOutput.add( u );
-   vtkOutput.add( u_exact );
-   vtkOutput.add( f );
-   vtkOutput.add( r );
-   vtkOutput.add( err );
-   vtkOutput.add( npoints_helper );
-   vtkOutput.write( level );
+//   hyteg::VTKOutput vtkOutput( "../../output", "P2ElementwiseCGConvergenceTest", storage );
+//   vtkOutput.add( u );
+//   vtkOutput.add( u_exact );
+//   vtkOutput.add( f );
+//   vtkOutput.add( r );
+//   vtkOutput.add( err );
+//   vtkOutput.add( npoints_helper );
+//   vtkOutput.write( level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err << " (level " << level << ", mesh: " << meshFile << ")" );
    WALBERLA_CHECK_LESS( discr_l2_err, targetError );

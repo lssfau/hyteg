@@ -117,15 +117,15 @@ int main( int argc, char* argv[] )
    c->interpolate( initialBodies, maxLevel );
    c_final->interpolate( initialBodies, maxLevel );
 
-   hyteg::VTKOutput vtkOutput( "../../output", "Upwind2DCircularConvectionTest", storage, 10 );
-
-   vtkOutput.add( *u );
-   vtkOutput.add( *v );
-   vtkOutput.add( *c_old );
-   vtkOutput.add( *c );
-   vtkOutput.add( *c_final );
-
-   vtkOutput.write( maxLevel );
+//   hyteg::VTKOutput vtkOutput( "../../output", "Upwind2DCircularConvectionTest", storage, 10 );
+//
+//   vtkOutput.add( *u );
+//   vtkOutput.add( *v );
+//   vtkOutput.add( *c_old );
+//   vtkOutput.add( *c );
+//   vtkOutput.add( *c_final );
+//
+//   vtkOutput.write( maxLevel );
 
    for ( uint_t i = 1; i <= timesteps; i++ )
    {
@@ -139,7 +139,7 @@ int main( int argc, char* argv[] )
       N.apply( *c_old, *c, maxLevel, hyteg::Inner, Replace );
       c->assign( {1.0, -dt}, {*c_old, *c}, maxLevel, hyteg::Inner );
 
-      vtkOutput.write( maxLevel, i );
+//      vtkOutput.write( maxLevel, i );
 
       c_old.swap( c );
    }

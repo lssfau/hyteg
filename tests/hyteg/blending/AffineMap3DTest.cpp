@@ -219,7 +219,7 @@ void exportMesh( SetupPrimitiveStorage& setupStorage, uint_t caseIdx, uint_t lev
    someData.interpolate( myFunc, level );
    vtkOutput.add( someData );
    WALBERLA_LOG_INFO_ON_ROOT( "Output goes to file with basename: " << vtkFileName );
-   vtkOutput.write( level );
+//   vtkOutput.write( level );
 }
 
 int main( int argc, char* argv[] )
