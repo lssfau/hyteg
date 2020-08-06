@@ -531,7 +531,6 @@ waLBerla_execute_test(NAME AgglomerationConvergenceTest3 COMMAND $<TARGET_FILE:A
 
 if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES adaptivity/AgglomerationSupermanFactorizationTest.cpp DEPENDS hyteg core)
-  waLBerla_execute_test(NAME AgglomerationSupermanFactorizationTest2 COMMAND $<TARGET_FILE:AgglomerationSupermanFactorizationTest> PROCESSES 2 )
   #waLBerla_execute_test(NAME AgglomerationSupermanFactorizationTest4 COMMAND $<TARGET_FILE:AgglomerationSupermanFactorizationTest> PROCESSES 4 )
 endif()
 
