@@ -194,6 +194,7 @@ real_t solve(std::shared_ptr<StokesOperator> L, std::shared_ptr<PrimitiveStorage
    up_exact.u.interpolate(u_exact, maxLevel, All);
    up_exact.v.interpolate(v_exact, maxLevel, All);
    up_exact.p.interpolate(p_exact, maxLevel, All);
+   vertexdof::projectMean(up_exact.p, maxLevel);
 
    communication::syncP2FunctionBetweenPrimitives(up_exact.u, maxLevel);
    communication::syncP2FunctionBetweenPrimitives(up_exact.v, maxLevel);
