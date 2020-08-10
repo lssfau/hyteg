@@ -58,12 +58,16 @@ using walberla::real_t;
 using walberla::uint_t;
 using walberla::uint_c;
 
-#define PI 3.141592653589793238
+using walberla::math::pi;
 
 using namespace hyteg;
 
 
 typedef std::function<real_t(const hyteg::Point3D&)> c_function;
+
+// cartesian to polar coordinates
+c_function radius = [](const hyteg::Point3D& x) {return std::hypot(x[0], x[1]);};
+c_function angle = [](const hyteg::Point3D& x) {return std::atan2(x[1], x[0]);};
 
 // ==================== FE-spaces ====================
 
@@ -435,31 +439,35 @@ int main(int argc, char* argv[])
   // define functions and domain
 
   /// case rectangle
-  c_function exact = [](const hyteg::Point3D & x) {return sin(PI*x[0])*sin(PI* x[1]);};
+  c_function exact = [](const hyteg::Point3D & x) {return sin(pi*x[0])*sin(pi* x[1]);};
   c_function boundary = [](const hyteg::Point3D &) {return 0;};
-  c_function rhs = [](const hyteg::Point3D & x) {return 2*PI*PI*sin(PI*x[0])*sin(PI* x[1]);};
+  c_function rhs = [](const hyteg::Point3D & x) {return 2*pi*pi*sin(pi*x[0])*sin(pi* x[1]);};
 
   MeshInfo meshInfo = MeshInfo::meshRectangle(Point2D({0.0, 0.0}), Point2D({1.0, 1.0}), MeshInfo::CRISS, nX, nY);
 
   /// case annulus
+  Point3D circleCenter{{0, 0, 0}};
+  real_t rMin = pi;
+  real_t rMax = 2.0*pi;
+  real_t middle = (rMax + rMin) / 2.0;
+  std::function<real_t(const real_t, const real_t)> exact_polar = [](const real_t r, const real_t phi) { return sin(2*r) * sin(4*phi); };
   if (annulus)
   {
-    Point3D circleCenter{{0, 0, 0}};
-    real_t innerRadius = 1.0;
-    real_t outerRadius = 2.0;
-    real_t middle = (outerRadius + innerRadius) / 2.0;
-    real_t freq = 5.0;
-    exact = [freq](const hyteg::Point3D & x) {return sin(freq * (x[0] * x[0] + x[1] * x[1]));};
-    boundary = [freq,circleCenter, innerRadius, outerRadius, middle](const hyteg::Point3D & x) {
-        real_t R = ((x - circleCenter).norm() < middle) ? innerRadius : outerRadius;
-        return sin(freq*R*R);
-      };
-    rhs = [freq](const hyteg::Point3D & x) {
-      real_t r = freq * (x[0] * x[0] + x[1] * x[1]);
-      return 4 * freq * (r * sin(r) - cos(r));
-      };
 
-    meshInfo = MeshInfo::meshAnnulus(innerRadius, outerRadius, MeshInfo::CRISS, nX, nY);
+    exact = [&](const hyteg::Point3D& x) { return exact_polar(radius(x), angle(x)); };
+    boundary = [&](const hyteg::Point3D & x) {
+        real_t r = (radius(x) < middle) ? rMin : rMax;
+        return exact_polar(r, angle(x));
+    };
+    rhs = [&](const hyteg::Point3D& x) {
+      real_t r = radius(x);
+      real_t T1 = 8 * x[0]*x[1] * (x[0]*x[0] - x[1]*x[1]);
+      real_t T2 = pow(r,8)*(-r*cos(2*r) + (2*r*r + 8)*sin(2*r));
+      real_t T3 = pow(r,14);
+      return T1*T2/T3;
+    };
+
+    meshInfo = MeshInfo::meshAnnulus(rMin, rMax, MeshInfo::CRISS, nX, nY);
   }
 
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
