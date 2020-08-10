@@ -21,6 +21,7 @@
 
 #include <hyteg/p1functionspace/VertexDoFMemory.hpp>
 #include <hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp>
+#include <hyteg/p2functionspace/polynomial/P2StencilPolynomial.hpp>
 
 namespace hyteg {
 namespace P2 {
@@ -28,27 +29,6 @@ namespace P2 {
 class FacePolynomialMemory
 {
  public:
-
-   template <NumStencilentries2D N>
-   class StencilPolynomial
-   {
-    public:
-
-      inline void initialize(uint_t degree)
-      {
-         for (uint_t i = 0; i < N; ++i)
-         {
-            data_[i] = std::make_shared<GeneralPolynomial2D>(degree);
-         }
-      }
-
-      inline GeneralPolynomial2D& operator[](uint_t i) {return *data_[i];}
-
-      inline const GeneralPolynomial2D& operator[](uint_t i) const {return *data_[i];}
-
-    private:
-      std::array<std::shared_ptr<GeneralPolynomial2D>, N> data_;
-   };
 
    struct FacePolynomials
    {

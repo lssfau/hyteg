@@ -42,7 +42,7 @@ class PolynomialStencil
    using StencilEvaluator = std::array<std::shared_ptr<Polynomial2DEvaluator>, N>;
    using StencilEntries = std::array<real_t, N>;
 
-   PolynomialStencil(const FacePolynomialMemory::StencilPolynomial<N>& poly)
+   PolynomialStencil(const P2::StencilPolynomial<N>& poly)
    {
       for (uint_t i = 0; i < N; ++i)
       {

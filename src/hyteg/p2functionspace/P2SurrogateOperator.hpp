@@ -20,7 +20,6 @@
 
 #pragma once
 
-#include <array>
 #include <hyteg/Operator.hpp>
 
 #include "hyteg/types/pointnd.hpp"
@@ -32,7 +31,7 @@
 #include <hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp>
 #include <hyteg/forms/form_hyteg_manual/P2FormMass.hpp>
 
-#include "hyteg/polynomial/LSQPInterpolator.hpp"
+#include <hyteg/p2functionspace/polynomial/StencilInterpolator.hpp>
 
 #include <hyteg/p1functionspace/VertexDoFFunction.hpp>
 #include <hyteg/p2functionspace/P2Function.hpp>
@@ -44,37 +43,6 @@ template <class P2Form, OperatorType OprType>
 class P2SurrogateOperator : public Operator<P2Function<real_t>, P2Function<real_t>>
 {
  public:
-   using EdgeInterpolator = LSQPInterpolator<MonomialBasis2D, LSQPType::EDGE_ALL>;
-   using VertexInterpolator = LSQPInterpolator<MonomialBasis2D, LSQPType::VERTEX>;
-
-   template <typename Interpolatortype, P2::NumStencilentries2D N>
-   class StencilInterpolator
-   {
-    public:
-      StencilInterpolator(uint_t polyDegree, uint_t interpolationLevel)
-      {
-         for (uint_t i = 0; i < N; ++i)
-         {
-            data_[i] = std::make_shared<Interpolatortype>(polyDegree, interpolationLevel);
-         }
-      }
-
-      inline void interpolate(P2::FacePolynomialMemory::StencilPolynomial<N>& poly)
-      {
-         for (uint_t i = 0; i < N; ++i)
-         {
-            data_[i]->interpolate(poly[i]);
-         }
-      }
-
-      inline Interpolatortype& operator[](uint_t i) {return *(data_[i]);}
-
-      inline const Interpolatortype& operator[](uint_t i) const {return *(data_[i]);}
-
-    private:
-      std::array<std::shared_ptr<Interpolatortype>, N> data_;
-   };
-
    P2SurrogateOperator(const std::shared_ptr<PrimitiveStorage>& storage,
                                 uint_t minLevel, uint_t maxLevel, uint_t interpolationLevel)
       : Operator(storage, minLevel, maxLevel)
@@ -122,10 +90,10 @@ class P2SurrogateOperator : public Operator<P2Function<real_t>, P2Function<real_
 
          for (uint_t level = minLevel_; level <= maxLevel_; ++level)
          {
-            StencilInterpolator<VertexInterpolator, P2::NumStencilentries2D::VtV> VtVInterpolator(polyDegree, interpolationLevel_);
-            StencilInterpolator<VertexInterpolator, P2::NumStencilentries2D::EtV> EtVInterpolator(polyDegree, interpolationLevel_);
-            StencilInterpolator<EdgeInterpolator, P2::NumStencilentries2D::VtE> VtEInterpolator(polyDegree, interpolationLevel_);
-            StencilInterpolator<EdgeInterpolator, P2::NumStencilentries2D::EtE> EtEInterpolator(polyDegree, interpolationLevel_);
+            P2::StencilInterpolator<LSQPType::VERTEX, P2::NumStencilentries2D::VtV> VtVInterpolator(polyDegree, interpolationLevel_);
+            P2::StencilInterpolator<LSQPType::VERTEX, P2::NumStencilentries2D::EtV> EtVInterpolator(polyDegree, interpolationLevel_);
+            P2::StencilInterpolator<LSQPType::EDGE_ALL, P2::NumStencilentries2D::VtE> VtEInterpolator(polyDegree, interpolationLevel_);
+            P2::StencilInterpolator<LSQPType::EDGE_ALL, P2::NumStencilentries2D::EtE> EtEInterpolator(polyDegree, interpolationLevel_);
 
             // directions (size of microfaces based on current level)
             real_t  h = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
