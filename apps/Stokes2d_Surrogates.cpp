@@ -31,6 +31,7 @@
 
 #include <hyteg/composites/P2P1TaylorHoodStokesOperator.hpp>
 #include <hyteg/composites/P2P1BlendingTaylorhoodStokesOperator.hpp>
+#include <hyteg/composites/P2P1SurrogateTaylorhoodStokesOperator.hpp>
 #include <hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp>
 
 #include <hyteg/p2functionspace/P2ConstantOperator.hpp>
@@ -494,12 +495,12 @@ int main(int argc, char* argv[])
    WALBERLA_LOG_INFO_ON_ROOT("Refinement levels: " << minLevel << "->" << maxLevel);
 
    // compare_B_operators(storage,minLevel,maxLevel);
-   real_t setupTime = 0, solveTime;
+   real_t setupTime = 0, startSetup = 0, endSetup = 0, solveTime;
 
    auto L1 = std::make_shared<P2P1TaylorHoodStokesOperator>(storage, minLevel, maxLevel);
    auto L2 = std::make_shared<P2P1BlendingTaylorHoodStokesOperator>(storage, minLevel, maxLevel);
    auto L3 = std::make_shared<P2P1ElementwiseBlendingStokesOperator>(storage, minLevel, maxLevel);
-   // auto L4 = std::make_shared<P2P1SurrogateTaylorHoodStokesOperator>(storage, minLevel, maxLevel, interpolationLevel);
+   auto L4 = std::make_shared<P2P1SurrogateTaylorHoodStokesOperator>(storage, minLevel, maxLevel, interpolationLevel);
 
    switch (opType)
    {
@@ -517,27 +518,26 @@ int main(int argc, char* argv[])
                                                                            u_exact, v_exact, p_exact, u_boundary, v_boundary, rhs_x, rhs_y, T_field);
          break;
 
-      case ELWISE:
-         WALBERLA_LOG_INFO_ON_ROOT("Operatortype: Elementwise");
-         WALBERLA_ABORT("The desired Operator Type is not supported!");
-         // solveTime = solve<ELWISE, P2P1ElementwiseBlendingStokesOperator>(L3, storage, minLevel, maxLevel,
-         //   max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk,
-         //   u_exact, v_exact, p_exact, u_boundary, v_boundary, rhs_x, rhs_y, T_field);
-         break;
+      // case ELWISE:
+      //    WALBERLA_LOG_INFO_ON_ROOT("Operatortype: Elementwise");
+      //    WALBERLA_ABORT("The desired Operator Type is not supported!");
+      //    // solveTime = solve<ELWISE, P2P1ElementwiseBlendingStokesOperator>(L3, storage, minLevel, maxLevel,
+      //    //   max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk,
+      //    //   u_exact, v_exact, p_exact, u_boundary, v_boundary, rhs_x, rhs_y, T_field);
+      //    break;
 
       case LSQP:
          WALBERLA_LOG_INFO_ON_ROOT("Operatortype: Surrogate Polynomial Stencil");
-         WALBERLA_ABORT("The desired Operator Type is not supported!");
-         // WALBERLA_LOG_INFO_ON_ROOT("Interpolation level: " << interpolationLevel);
-         // WALBERLA_LOG_INFO_ON_ROOT(walberla::format("Apply LSQ-fit with q = %d", polyDegree));
-         // auto start = walberla::timing::getWcTime();
-         // L4->interpolateStencils(polyDegree);
-         // auto end = walberla::timing::getWcTime();
-         // L4->useDegree(polyDegree);
-         // setupTime = (end - start);
-         // solveTime = solve<LSQP,P2P1SurrogateTaylorHoodStokesOperator>(L4, storage, minLevel, maxLevel,
-         //             max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk,
-         //             u_exact, v_exact, p_exact, u_boundary, v_boundary, rhs_x, rhs_y, T_field)
+         WALBERLA_LOG_INFO_ON_ROOT("Interpolation level: " << interpolationLevel);
+         WALBERLA_LOG_INFO_ON_ROOT(walberla::format("Apply LSQ-fit with q = %d", polyDegree));
+         startSetup = walberla::timing::getWcTime();
+         L4->interpolateStencils(polyDegree);
+         endSetup = walberla::timing::getWcTime();
+         L4->useDegree(polyDegree);
+         setupTime = (endSetup - startSetup);
+         solveTime = solve<LSQP,P2P1SurrogateTaylorHoodStokesOperator>(L4, storage, minLevel, maxLevel,
+                     max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk,
+                     u_exact, v_exact, p_exact, u_boundary, v_boundary, rhs_x, rhs_y, T_field);
          break;
 
       default:
