@@ -67,7 +67,7 @@ class P1ToP2VariableOperator : public Operator<P1Function<real_t>, P2Function<re
 
          if (testFlag(vtxFlag, flag))
          {
-            P1ToP2::variablestencil::macrovertex::applyVariableStencil<P1ToP2Form>(level, vertex, storage_, src.getVertexDataID(), dstVertexDoF.getVertexDataID(), updateType);
+            P1toP2::variablestencil::macrovertex::applyVariableStencil<P1ToP2Form>(level, vertex, storage_, src.getVertexDataID(), dstVertexDoF.getVertexDataID(), updateType);
          }
       }
 
@@ -79,7 +79,7 @@ class P1ToP2VariableOperator : public Operator<P1Function<real_t>, P2Function<re
 
          if (testFlag(edgeFlag, flag))
          {
-            P1ToP2::variablestencil::macroedge::applyVariableStencil<P1ToP2Form>(level, edge, storage_, src.getEdgeDataID(), dstVertexDoF.getEdgeDataID(), dstEdgeDoF.getEdgeDataID(), updateType);
+            P1toP2::variablestencil::macroedge::applyVariableStencil<P1ToP2Form>(level, edge, storage_, src.getEdgeDataID(), dstVertexDoF.getEdgeDataID(), dstEdgeDoF.getEdgeDataID(), updateType);
          }
       }
 
@@ -91,7 +91,7 @@ class P1ToP2VariableOperator : public Operator<P1Function<real_t>, P2Function<re
 
          if (testFlag(faceFlag, flag))
          {
-            P1ToP2::variablestencil::macroface::applyVariableStencil<P1ToP2Form>(level, face, src.getFaceDataID(), dstVertexDoF.getFaceDataID(), dstEdgeDoF.getFaceDataID(), updateType);
+            P1toP2::variablestencil::macroface::applyVariableStencil<P1ToP2Form>(level, face, src.getFaceDataID(), dstVertexDoF.getFaceDataID(), dstEdgeDoF.getFaceDataID(), updateType);
          }
       }
 

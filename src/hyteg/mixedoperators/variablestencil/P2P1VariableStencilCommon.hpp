@@ -25,7 +25,7 @@
 
 
 namespace hyteg {
-namespace P2ToP1 {
+namespace P2toP1 {
 
 using P2::NumStencilentries2D;
 
@@ -402,10 +402,10 @@ inline void applyVariableStencil(uint_t level,
 
 } // namespace macrovertex
 } // namespace variablestencil
-} // namespace P2
+} // namespace P2toP1
 
 
-namespace P1ToP2 {
+namespace P1toP2 {
 
 using P2::NumStencilentries2D;
 
@@ -874,6 +874,6 @@ inline void applyVariableStencil(uint_t level,
 
 } // namespace macrovertex
 } // namespace variablestencil
-} // namespace P1ToP2
+} // namespace P1toP2
 
 } // namespace hyteg
