@@ -79,17 +79,17 @@ int main( int argc, char* argv[] )
    hyteg::P1StokesFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
    hyteg::VTKOutput vtkOutput( "../../output", "P1P1_Stokes_3D_Uzawa_convergence", storage );
-   vtkOutput.add( u.u );
-   vtkOutput.add( u.v );
-   vtkOutput.add( u.w );
+   vtkOutput.add( u.uvw.u );
+   vtkOutput.add( u.uvw.v );
+   vtkOutput.add( u.uvw.w );
    vtkOutput.add( u.p );
-   vtkOutput.add( uExact.u );
-   vtkOutput.add( uExact.v );
-   vtkOutput.add( uExact.w );
+   vtkOutput.add( uExact.uvw.u );
+   vtkOutput.add( uExact.uvw.v );
+   vtkOutput.add( uExact.uvw.w );
    vtkOutput.add( uExact.p );
-   vtkOutput.add( err.u );
-   vtkOutput.add( err.v );
-   vtkOutput.add( err.w );
+   vtkOutput.add( err.uvw.u );
+   vtkOutput.add( err.uvw.v );
+   vtkOutput.add( err.uvw.w );
    vtkOutput.add( err.p );
 
    hyteg::P1StokesOperator L( storage, minLevel, maxLevel );
@@ -125,11 +125,11 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   u.u.interpolate( collidingFlow_x, maxLevel, hyteg::DirichletBoundary );
-   u.v.interpolate( collidingFlow_y, maxLevel, hyteg::DirichletBoundary );
+   u.uvw.u.interpolate( collidingFlow_x, maxLevel, hyteg::DirichletBoundary );
+   u.uvw.v.interpolate( collidingFlow_y, maxLevel, hyteg::DirichletBoundary );
 
-   uExact.u.interpolate( collidingFlow_x, maxLevel );
-   uExact.v.interpolate( collidingFlow_y, maxLevel );
+   uExact.uvw.u.interpolate( collidingFlow_x, maxLevel );
+   uExact.uvw.v.interpolate( collidingFlow_y, maxLevel );
    uExact.p.interpolate( collidingFlow_p, maxLevel );
 
    if ( writeVTK )
@@ -179,9 +179,9 @@ int main( int argc, char* argv[] )
          vtkOutput.write( maxLevel, i );
       }
 
-      discr_l2_err_1_u = std::sqrt( err.u.dotGlobal( err.u, maxLevel ) / (real_t) globalDoFsVelocity );
-      discr_l2_err_1_v = std::sqrt( err.v.dotGlobal( err.v, maxLevel ) / (real_t) globalDoFsVelocity );
-      discr_l2_err_1_w = std::sqrt( err.w.dotGlobal( err.w, maxLevel ) / (real_t) globalDoFsVelocity );
+      discr_l2_err_1_u = std::sqrt( err.uvw.u.dotGlobal( err.uvw.u, maxLevel ) / (real_t) globalDoFsVelocity );
+      discr_l2_err_1_v = std::sqrt( err.uvw.v.dotGlobal( err.uvw.v, maxLevel ) / (real_t) globalDoFsVelocity );
+      discr_l2_err_1_w = std::sqrt( err.uvw.w.dotGlobal( err.uvw.w, maxLevel ) / (real_t) globalDoFsVelocity );
       discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, maxLevel ) / (real_t) globalDoFsPressure );
       residuum_l2_1 =
           std::sqrt( r.dotGlobal( r, maxLevel ) / ( 3 * (real_t) globalDoFsVelocity + real_c( globalDoFsPressure ) ) );

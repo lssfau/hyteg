@@ -49,9 +49,9 @@ class StokesBlockDiagonalPreconditioner : public Solver< OperatorType >
    {
       for( uint_t steps = 0; steps < velocityPreconditionSteps_; steps++ )
       {
-         velocityBlockPreconditioner_->solve( A.A, x.u, b.u, level );
-         velocityBlockPreconditioner_->solve( A.A, x.v, b.v, level );
-         velocityBlockPreconditioner_->solve( A.A, x.w, b.w, level );
+         velocityBlockPreconditioner_->solve( A.A, x.uvw.u, b.uvw.u, level );
+         velocityBlockPreconditioner_->solve( A.A, x.uvw.v, b.uvw.v, level );
+         velocityBlockPreconditioner_->solve( A.A, x.uvw.w, b.uvw.w, level );
       }
 
       pressureBlockPreconditioner_->apply( b.p, x.p, level, flag_, Replace );

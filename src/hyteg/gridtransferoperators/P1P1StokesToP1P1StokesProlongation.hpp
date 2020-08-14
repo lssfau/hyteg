@@ -33,9 +33,9 @@ class P1P1StokesToP1P1StokesProlongation : public ProlongationOperator< P1Stokes
 
    void prolongate( const P1StokesFunction< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
    {
-      prolongationOperator_.prolongate( function.u, sourceLevel, flag );
-      prolongationOperator_.prolongate( function.v, sourceLevel, flag );
-      prolongationOperator_.prolongate( function.w, sourceLevel, flag );
+      prolongationOperator_.prolongate( function.uvw.u, sourceLevel, flag );
+      prolongationOperator_.prolongate( function.uvw.v, sourceLevel, flag );
+      prolongationOperator_.prolongate( function.uvw.w, sourceLevel, flag );
       prolongationOperator_.prolongate( function.p, sourceLevel, flag );
    }
 

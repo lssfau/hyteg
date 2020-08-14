@@ -70,11 +70,11 @@ void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo
   std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& xx ) { return real_c(60) * std::pow( xx[0], 2.0 ) * xx[1] - real_c(20) * std::pow( xx[1], 3.0 ); };
   std::function< real_t( const hyteg::Point3D& ) > zero =   []( const hyteg::Point3D&    ) { return real_c(0); };
 
-  x.u.interpolate( exactU, level, hyteg::DirichletBoundary );
-  x.v.interpolate( exactV, level, hyteg::DirichletBoundary );
+  x.uvw.u.interpolate( exactU, level, hyteg::DirichletBoundary );
+  x.uvw.v.interpolate( exactV, level, hyteg::DirichletBoundary );
 
-  x_exact.u.interpolate( exactU, level );
-  x_exact.v.interpolate( exactV, level );
+  x_exact.uvw.u.interpolate( exactU, level );
+  x_exact.uvw.v.interpolate( exactV, level );
   x_exact.p.interpolate( exactP, level );
 
 //  VTKOutput vtkOutput("../../output", "P2P1Stokes2DSchurCGConvergence", storage);
@@ -119,8 +119,8 @@ void P2P1SchurCGConvergenceTest( const uint_t & level, const MeshInfo & meshInfo
 
   err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
-  real_t discr_l2_err_u = std::sqrt( err.u.dotGlobal( err.u, level ) / (real_t) globalDoFsPerVelocityComponent );
-  real_t discr_l2_err_v = std::sqrt( err.v.dotGlobal( err.v, level ) / (real_t) globalDoFsPerVelocityComponent );
+  real_t discr_l2_err_u = std::sqrt( err.uvw.u.dotGlobal( err.uvw.u, level ) / (real_t) globalDoFsPerVelocityComponent );
+  real_t discr_l2_err_v = std::sqrt( err.uvw.v.dotGlobal( err.uvw.v, level ) / (real_t) globalDoFsPerVelocityComponent );
   real_t discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFsPressure );
   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level, Inner ) / (real_t) globalDoFs1 );
 

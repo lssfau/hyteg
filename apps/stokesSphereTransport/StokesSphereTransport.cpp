@@ -303,15 +303,15 @@ void simulate( int argc, char* argv[] )
    auto maxMagnitudeVelocity = [&]() {
       tmp2.interpolate( 0, maxLevel, All );
 
-      tmp.assign( {1.0}, {u.u}, maxLevel, All );
+      tmp.assign( {1.0}, {u.uvw.u}, maxLevel, All );
       tmp.multElementwise( {tmp, tmp}, maxLevel, All );
       tmp2.assign( {1.0, 1.0}, {tmp2, tmp}, maxLevel, All );
 
-      tmp.assign( {1.0}, {u.v}, maxLevel, All );
+      tmp.assign( {1.0}, {u.uvw.v}, maxLevel, All );
       tmp.multElementwise( {tmp, tmp}, maxLevel, All );
       tmp2.assign( {1.0, 1.0}, {tmp2, tmp}, maxLevel, All );
 
-      tmp.assign( {1.0}, {u.w}, maxLevel, All );
+      tmp.assign( {1.0}, {u.uvw.w}, maxLevel, All );
       tmp.multElementwise( {tmp, tmp}, maxLevel, All );
       tmp2.assign( {1.0, 1.0}, {tmp2, tmp}, maxLevel, All );
 
@@ -334,17 +334,17 @@ void simulate( int argc, char* argv[] )
 
       // Updating right-hand side (Boussinesq approximation)
 
-      M.apply( temp, f.u, maxLevel, All );
-      M.apply( temp, f.v, maxLevel, All );
-      M.apply( temp, f.w, maxLevel, All );
+      M.apply( temp, f.uvw.u, maxLevel, All );
+      M.apply( temp, f.uvw.v, maxLevel, All );
+      M.apply( temp, f.uvw.w, maxLevel, All );
 
-      f.u.multElementwise( {f.u, normalX}, maxLevel, All );
-      f.v.multElementwise( {f.v, normalY}, maxLevel, All );
-      f.w.multElementwise( {f.w, normalZ}, maxLevel, All );
+      f.uvw.u.multElementwise( {f.uvw.u, normalX}, maxLevel, All );
+      f.uvw.v.multElementwise( {f.uvw.v, normalY}, maxLevel, All );
+      f.uvw.w.multElementwise( {f.uvw.w, normalZ}, maxLevel, All );
 
-      f.u.assign( {rhsScaleFactor}, {f.u}, maxLevel, All );
-      f.v.assign( {rhsScaleFactor}, {f.v}, maxLevel, All );
-      f.w.assign( {rhsScaleFactor}, {f.w}, maxLevel, All );
+      f.uvw.u.assign( {rhsScaleFactor}, {f.uvw.u}, maxLevel, All );
+      f.uvw.v.assign( {rhsScaleFactor}, {f.uvw.v}, maxLevel, All );
+      f.uvw.w.assign( {rhsScaleFactor}, {f.uvw.w}, maxLevel, All );
 
       // Stokes solver
 
@@ -397,7 +397,7 @@ void simulate( int argc, char* argv[] )
 
       time += dt;
 
-      transport.step( temp, u.u, u.v, u.w, uLastTimeStep.u, uLastTimeStep.v, uLastTimeStep.w, maxLevel, All, dt, 1, true );
+      transport.step( temp, u.uvw.u, u.uvw.v, u.uvw.w, uLastTimeStep.uvw.u, uLastTimeStep.uvw.v, uLastTimeStep.uvw.w, maxLevel, All, dt, 1, true );
 
       timer.end();
       WALBERLA_LOG_INFO_ON_ROOT( "" )

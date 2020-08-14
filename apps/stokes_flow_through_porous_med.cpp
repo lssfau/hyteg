@@ -80,21 +80,21 @@ int main( int argc, char* argv[] )
   std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-  u.u.interpolate( bc_x, level, hyteg::DirichletBoundary );
-  u.v.interpolate( zero, level, hyteg::DirichletBoundary );
+  u.uvw.u.interpolate( bc_x, level, hyteg::DirichletBoundary );
+  u.uvw.v.interpolate( zero, level, hyteg::DirichletBoundary );
 
   hyteg::VTKOutput vtkOutput("../output", "stokes_porous_taylor_hood", storage);
 
-  vtkOutput.add( r.u );
-  vtkOutput.add( r.v );
+  vtkOutput.add( r.uvw.u );
+  vtkOutput.add( r.uvw.v );
   vtkOutput.add( r.p );
 
-  vtkOutput.add( f.u );
-  vtkOutput.add( f.v );
+  vtkOutput.add( f.uvw.u );
+  vtkOutput.add( f.uvw.v );
   vtkOutput.add( f.p );
 
-  vtkOutput.add( u.u );
-  vtkOutput.add( u.v );
+  vtkOutput.add( u.uvw.u );
+  vtkOutput.add( u.uvw.v );
   vtkOutput.add( u.p );
 
   timingTree->start( "Complete app" );
@@ -105,7 +105,7 @@ int main( int argc, char* argv[] )
   if ( usePetsc )
   {
     PETScManager petscManager;
-    f.u.interpolate(bc_x, level, hyteg::DirichletBoundary);
+    f.uvw.u.interpolate(bc_x, level, hyteg::DirichletBoundary);
     PETScLUSolver< hyteg::P2P1TaylorHoodStokesOperator> solver( storage, level );
     solver.solve( L, u, f, level );
   }

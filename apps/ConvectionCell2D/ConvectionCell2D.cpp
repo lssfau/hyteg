@@ -181,12 +181,12 @@ int main( int argc, char* argv[] )
    for ( uint_t i = 1; i <= stepsTotal; i++ )
    {
       uLast.assign( {1.0}, {u}, maxLevel, All );
-      M.apply( c, f.v, maxLevel, All );
-      f.v.assign( {mainConf.getParameter< real_t >( "convectivity" )}, {f.v}, maxLevel, All );
+      M.apply( c, f.uvw.v, maxLevel, All );
+      f.uvw.v.assign( {mainConf.getParameter< real_t >( "convectivity" )}, {f.uvw.v}, maxLevel, All );
 
       gmgLoop.solve( L, u, f, maxLevel );
 
-      transport.step( c, u.u, u.v, u.w, uLast.u, uLast.v, uLast.w, maxLevel, Inner, dt, 1, true );
+      transport.step( c, u.uvw.u, u.uvw.v, u.uvw.w, uLast.uvw.u, uLast.uvw.v, uLast.uvw.w, maxLevel, Inner, dt, 1, true );
 
       max_temp = c.getMaxMagnitude( maxLevel, All );
       M.apply( c, cMass, maxLevel, All );

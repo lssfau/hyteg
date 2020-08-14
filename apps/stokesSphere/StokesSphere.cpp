@@ -149,13 +149,13 @@ int main( int argc, char* argv[] )
    hyteg::VTKOutput vtkOutput("./output", "StokesSphere", storage);
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
-      vtkOutput.add( u.u );
-      vtkOutput.add( u.v );
-      vtkOutput.add( u.w );
+      vtkOutput.add( u.uvw.u );
+      vtkOutput.add( u.uvw.v );
+      vtkOutput.add( u.uvw.w );
       vtkOutput.add( u.p );
-      vtkOutput.add( f.u );
-      vtkOutput.add( f.v );
-      vtkOutput.add( f.w );
+      vtkOutput.add( f.uvw.u );
+      vtkOutput.add( f.uvw.v );
+      vtkOutput.add( f.uvw.w );
       vtkOutput.add( f.p );
    }
 
@@ -188,9 +188,9 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   f.u.interpolate( rhsPlumeX, maxLevel );
-   f.v.interpolate( rhsPlumeY, maxLevel );
-   f.w.interpolate( rhsPlumeZ, maxLevel );
+   f.uvw.u.interpolate( rhsPlumeX, maxLevel );
+   f.uvw.v.interpolate( rhsPlumeY, maxLevel );
+   f.uvw.w.interpolate( rhsPlumeZ, maxLevel );
 
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
