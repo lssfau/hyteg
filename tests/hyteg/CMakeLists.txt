@@ -638,13 +638,9 @@ waLBerla_compile_test(FILES freeslip/FreeslipRectangularChannelTest.cpp DEPENDS 
 waLBerla_execute_test(NAME FreeslipRectangularChannelTest)
 waLBerla_execute_test(NAME FreeslipRectangularChannelTestMPI COMMAND $<TARGET_FILE:FreeslipRectangularChannelTest> PROCESSES 2 )
 
-waLBerla_compile_test(FILES freeslip/P1ProjectNormalTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME P1ProjectNormalTest)
-waLBerla_execute_test(NAME P1ProjectNormalTestMPI COMMAND $<TARGET_FILE:P1ProjectNormalTest> PROCESSES 2 )
-
-waLBerla_compile_test(FILES freeslip/P2ProjectNormalTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME P2ProjectNormalTest)
-waLBerla_execute_test(NAME P2ProjectNormalTestMPI COMMAND $<TARGET_FILE:P2ProjectNormalTest> PROCESSES 2 )
+waLBerla_compile_test(FILES freeslip/ProjectNormalTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME ProjectNormalTest)
+waLBerla_execute_test(NAME ProjectNormalTestMPI COMMAND $<TARGET_FILE:ProjectNormalTest> PROCESSES 2 )
 
 if ( HYTEG_BUILD_WITH_TRILINOS )
 ## Trilinos ##

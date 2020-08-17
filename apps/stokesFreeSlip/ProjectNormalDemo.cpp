@@ -46,7 +46,7 @@ static void demoProjectNormal( const std::shared_ptr< walberla::config::Config >
    auto meshInfo = MeshInfo::emptyMeshInfo();
    if ( use3D )
    {
-      meshInfo = MeshInfo::meshSphericalShell( 5, 2, 0.5, 1.0 );
+      meshInfo = MeshInfo::meshSphericalShell( 2, 2, 0.5, 1.0 );
    }
    else
    {

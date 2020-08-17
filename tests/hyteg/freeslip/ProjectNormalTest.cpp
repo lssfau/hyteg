@@ -38,15 +38,34 @@ using walberla::real_t;
 using namespace hyteg;
 
 
-template < typename StokesFunctionType, typename ProjectNormalOperatorType >
-static void testProjectNormal2D( )
+template < typename StokesFunctionType, typename ProjectNormalOperatorType, bool use3D >
+static void testProjectNormal( )
 {
-   const int level = 3;
+   const int level = use3D ? 2 : 3;
 
-   const auto  meshInfo = MeshInfo::meshAnnulus(0.5, 1.0, MeshInfo::CRISS, 6, 6);
+   auto meshInfo = MeshInfo::emptyMeshInfo();
+   if ( use3D )
+   {
+      // this spheres tets are very distorted, but it is good (and fast) enough for this test:
+      meshInfo = MeshInfo::meshSphericalShell( 2, 2, 0.5, 1.0 );
+   }
+   else
+   {
+      meshInfo = MeshInfo::meshAnnulus( 0.5, 1.0, MeshInfo::CRISS, 6, 6 );
+   }
+
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 3, 0, true );
-   AnnulusMap::setMap( setupStorage );
+
+   if ( use3D )
+   {
+      IcosahedralShellMap::setMap( setupStorage );
+   }
+   else
+   {
+      AnnulusMap::setMap( setupStorage );
+   }
+
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
    auto normalInterpolant = [] ( const Point3D & p ) {
@@ -63,59 +82,27 @@ static void testProjectNormal2D( )
 
    StokesFunctionType u( "u", storage, level, level );
 
-   // we check if a radial function gets set to zero on the free slip boundary
+   // we check if a radial function gets set to zero on the free slip boundary:
    u.u.interpolate( [=](auto & p){ return normalInterpolant(p)[0]; }, level );
    u.v.interpolate( [=](auto & p){ return normalInterpolant(p)[1]; }, level );
+   if (storage->hasGlobalCells())
+      u.w.interpolate( [=](auto & p){ return normalInterpolant(p)[2]; }, level );
    WALBERLA_CHECK_GREATER( u.dotGlobal(u, level, FreeslipBoundary), 1 );
    projectNormalOperator.apply( u, level, FreeslipBoundary );
    WALBERLA_CHECK_LESS( u.dotGlobal(u, level, FreeslipBoundary), 1e-14 );
 
-   // we check if a tangential function is not changed by the projection operator
+   // we check if a tangential function is not changed by the projection operator:
    StokesFunctionType uTan( "uTan", storage, level, level );
    uTan.u.interpolate( [=](auto & p){ return -p[1]; }, level );
    uTan.v.interpolate( [=](auto & p){ return p[0]; }, level );
+   if (storage->hasGlobalCells())
+      uTan.w.interpolate(0, level );
    u.assign({1}, {uTan}, level, All);
    WALBERLA_CHECK_GREATER( u.dotGlobal(u, level, FreeslipBoundary), 1 );
    projectNormalOperator.apply( u, level, FreeslipBoundary );
    StokesFunctionType diff( "diff", storage, level, level );
    diff.assign( {1, -1}, {u, uTan}, level, All );
    WALBERLA_CHECK_LESS( diff.dotGlobal(diff, level, All), 1e-14 );
-}
-
-static void testProjectNormal3D( )
-{
-   const bool   writeVTK   = true;
-   const real_t errorLimit = 1e-13;
-   const int level = 3;
-
-   auto meshInfo = MeshInfo::meshSphericalShell( 5, 2, 0.5, 1.0 );
-   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 3, 0, true );
-   IcosahedralShellMap::setMap( setupStorage );
-   const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
-
-   if ( writeVTK )
-      writeDomainPartitioningVTK( storage, "../../output", "P1ProjectNormalTest3D_Domain" );
-
-   auto normal_function = []( const Point3D& p, Point3D& n ) -> void {
-     real_t norm = p.norm();
-     real_t sign = (norm > 0.75) ? 1.0 : -1.0;
-
-     n = sign/norm * p;
-   };
-
-   P1ProjectNormalOperator projectNormalOperator( storage, level, level, normal_function );
-
-   P1StokesFunction< real_t > u( "u", storage, level, level );
-
-   VTKOutput vtkOutput( "../../output", "P1ProjectNormalTest3D", storage );
-   vtkOutput.add( u );
-
-   u.interpolate( 1, level );
-   projectNormalOperator.apply( u, level, FreeslipBoundary );
-
-   if ( writeVTK )
-      vtkOutput.write( level, 0 );
 }
 
 int main( int argc, char* argv[] )
@@ -125,9 +112,11 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    WALBERLA_LOG_INFO_ON_ROOT("normal projection P1-P1 in 2D");
-   testProjectNormal2D< P1StokesFunction< real_t >, P1ProjectNormalOperator >( );
+   testProjectNormal< P1StokesFunction< real_t >, P1ProjectNormalOperator, false >( );
    WALBERLA_LOG_INFO_ON_ROOT("normal projection P2-P1-TH in 2D");
-   testProjectNormal2D< P2P1TaylorHoodFunction< real_t >, P2ProjectNormalOperator >( );
-
-   return 0;
+   testProjectNormal< P2P1TaylorHoodFunction< real_t >, P2ProjectNormalOperator, false >( );
+   WALBERLA_LOG_INFO_ON_ROOT("normal projection P1-P1 in 3D");
+   testProjectNormal< P1StokesFunction< real_t >, P1ProjectNormalOperator, true >( );
+   WALBERLA_LOG_INFO_ON_ROOT("normal projection P2-P1-TH in 3D");
+   testProjectNormal< P2P1TaylorHoodFunction< real_t >, P2ProjectNormalOperator, true >( );
 }
