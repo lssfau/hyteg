@@ -17,30 +17,30 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
+#include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
 #include "core/math/Random.h"
-#include "core/timing/Timer.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/geometry/AnnulusMap.hpp"
-#include "hyteg/geometry/IcosahedralShellMap.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
 
 using namespace hyteg;
 
+
+template < typename StokesFunctionType, typename ProjectNormalOperatorType >
 static void testProjectNormal2D( )
 {
-   const bool   writeVTK   = true;
-   const real_t errorLimit = 1e-13;
    const int level = 3;
 
    const auto  meshInfo = MeshInfo::meshAnnulus(0.5, 1.0, MeshInfo::CRISS, 6, 6);
@@ -49,28 +49,37 @@ static void testProjectNormal2D( )
    AnnulusMap::setMap( setupStorage );
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   if ( writeVTK )
-      writeDomainPartitioningVTK( storage, "../../output", "P1ProjectNormalTest2D_Domain" );
-
-   auto normal_function = []( const Point3D& p, Point3D& n ) -> void {
+   auto normalInterpolant = [] ( const Point3D & p ) {
      real_t norm = p.norm();
      real_t sign = (norm > 0.75) ? 1.0 : -1.0;
-
-     n = sign/norm * p;
+     return sign/norm * p;
    };
 
-   P1ProjectNormalOperator projectNormalOperator( storage, level, level, normal_function );
+   auto normalFunction = [=]( const Point3D& p, Point3D& n ) -> void {
+      n = normalInterpolant( p );
+   };
 
-   P1StokesFunction< real_t > u( "u", storage, level, level );
+   ProjectNormalOperatorType projectNormalOperator( storage, level, level, normalFunction );
 
-   VTKOutput vtkOutput( "../../output", "P1ProjectNormalTest2D", storage );
-   vtkOutput.add( u );
+   StokesFunctionType u( "u", storage, level, level );
 
-   u.interpolate( 1, level );
+   // we check if a radial function gets set to zero on the free slip boundary
+   u.u.interpolate( [=](auto & p){ return normalInterpolant(p)[0]; }, level );
+   u.v.interpolate( [=](auto & p){ return normalInterpolant(p)[1]; }, level );
+   WALBERLA_CHECK_GREATER( u.dotGlobal(u, level, FreeslipBoundary), 1 );
    projectNormalOperator.apply( u, level, FreeslipBoundary );
+   WALBERLA_CHECK_LESS( u.dotGlobal(u, level, FreeslipBoundary), 1e-14 );
 
-   if ( writeVTK )
-      vtkOutput.write( level, 0 );
+   // we check if a tangential function is not changed by the projection operator
+   StokesFunctionType uTan( "uTan", storage, level, level );
+   uTan.u.interpolate( [=](auto & p){ return -p[1]; }, level );
+   uTan.v.interpolate( [=](auto & p){ return p[0]; }, level );
+   u.assign({1}, {uTan}, level, All);
+   WALBERLA_CHECK_GREATER( u.dotGlobal(u, level, FreeslipBoundary), 1 );
+   projectNormalOperator.apply( u, level, FreeslipBoundary );
+   StokesFunctionType diff( "diff", storage, level, level );
+   diff.assign( {1, -1}, {u, uTan}, level, All );
+   WALBERLA_CHECK_LESS( diff.dotGlobal(diff, level, All), 1e-14 );
 }
 
 static void testProjectNormal3D( )
@@ -115,8 +124,10 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   testProjectNormal2D( );
-   testProjectNormal3D( );
+   WALBERLA_LOG_INFO_ON_ROOT("normal projection P1-P1 in 2D");
+   testProjectNormal2D< P1StokesFunction< real_t >, P1ProjectNormalOperator >( );
+   WALBERLA_LOG_INFO_ON_ROOT("normal projection P2-P1-TH in 2D");
+   testProjectNormal2D< P2P1TaylorHoodFunction< real_t >, P2ProjectNormalOperator >( );
 
    return 0;
 }
