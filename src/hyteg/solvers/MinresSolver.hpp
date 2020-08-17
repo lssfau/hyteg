@@ -42,7 +42,7 @@ public:
       std::shared_ptr< Solver< OperatorType > >  preconditioner = std::make_shared< IdentityPreconditioner< OperatorType > >() )
   : maxIter_( maxIter )
   , tolerance_( tolerance )
-  , printInfo_( true )
+  , printInfo_( false )
   , flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
   , preconditioner_( preconditioner )
   , p_vm( "minres_vm", storage, minLevel, maxLevel )
@@ -153,6 +153,8 @@ public:
     }
     timingTree_->stop( "MinRes Solver" );
   }
+
+  void setPrintInfo( bool printInfo ) { printInfo_ = printInfo; }
 
 private:
 

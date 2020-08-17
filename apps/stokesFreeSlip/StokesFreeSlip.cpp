@@ -18,6 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 #include <cmath>
+#include <hyteg/p2functionspace/P2ProjectNormalOperator.hpp>
 
 #include "core/DataTypes.h"
 #include "core/Environment.h"
@@ -25,8 +26,8 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/FunctionProperties.hpp"
-#include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P1BlendingStokesOperator.hpp"
+#include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/StrongFreeSlipWrapper.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
@@ -71,10 +72,8 @@ std::shared_ptr< SetupPrimitiveStorage >
    return setupStorage;
 }
 
-void applyDirichletBCRectangle( const double                channelLength,
-                                const double                channelHeight,
-                                const uint_t                level,
-                                P1StokesFunction< real_t >& u )
+template < typename StokesFunction >
+void applyDirichletBCRectangle( const double channelLength, const double channelHeight, const uint_t level, StokesFunction& u )
 {
    auto inflow                = [=]( auto p ) { return p[0] <= -channelLength / 2 + 1e-14; };
    auto dirichletInterpolantX = [=]( auto p ) {
@@ -118,7 +117,8 @@ std::shared_ptr< SetupPrimitiveStorage >
    return setupStorage;
 }
 
-void applyDirichletBCAnnulus( const double rmin, const double, const uint_t level, P1StokesFunction< real_t >& u )
+template < typename StokesFunction >
+void applyDirichletBCAnnulus( const double rmin, const double, const uint_t level, StokesFunction& u )
 {
    auto rminSq = rmin * rmin;
 
@@ -135,30 +135,22 @@ void applyDirichletBCAnnulus( const double rmin, const double, const uint_t leve
    u.v.interpolate( dirichletInterpolantY, level, DirichletBoundary );
 }
 
-int main( int argc, char* argv[] )
+template < typename StokesFunctionType,
+           typename StokesFunctionTag,
+           typename StokesOperatorType,
+           typename ProjectNormalOperatorType >
+void run( std::shared_ptr< walberla::config::Config > cfg )
 {
-   walberla::Environment env( argc, argv );
-   walberla::MPIManager::instance()->useWorldComm();
-
-   //check if a config was given on command line or load default file otherwise
-   auto cfg = std::make_shared< walberla::config::Config >();
-   if ( env.config() == nullptr )
-   {
-      cfg->readParameterFile( "./StokesFreeSlip.prm" );
-   }
-   else
-   {
-      cfg = env.config();
-   }
-
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
    if ( mainConf.getParameter< bool >( "printParameters" ) )
       mainConf.listParameters();
 
    // solver parameters
-   const uint_t minLevel = mainConf.getParameter< uint_t >( "minLevel" );
-   const uint_t maxLevel = mainConf.getParameter< uint_t >( "maxLevel" );
+   const uint_t minLevel               = mainConf.getParameter< uint_t >( "minLevel" );
+   const uint_t maxLevel               = mainConf.getParameter< uint_t >( "maxLevel" );
+   const real_t absoluteTargetResidual = mainConf.getParameter< real_t >( "absoluteTargetResidual" );
+   const uint_t maxIterations          = mainConf.getParameter< uint_t >( "maxIterations" );
 
    // geometry rectangle
    real_t       channelLength = mainConf.getParameter< real_t >( "channelLength" );
@@ -198,11 +190,11 @@ int main( int argc, char* argv[] )
       hyteg::writeDomainPartitioningVTK( storage, "./output", "StokesFreeSlip_domain" );
    }
 
-   hyteg::P1StokesFunction< real_t > f( "f", storage, minLevel, maxLevel );
+   StokesFunctionType f( "f", storage, minLevel, maxLevel );
 
    f.interpolate( 0, maxLevel, All );
 
-   hyteg::P1StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );
+   StokesFunctionType u( "u", storage, minLevel, maxLevel );
 
    if ( useRectangleScenario )
       applyDirichletBCRectangle( channelLength, channelHeight, maxLevel, u );
@@ -214,7 +206,7 @@ int main( int argc, char* argv[] )
       uint_t totalGlobalDofsStokes = 0;
       for ( uint_t lvl = minLevel; lvl <= maxLevel; ++lvl )
       {
-         uint_t tmpDofStokes = numberOfGlobalDoFs< hyteg::P1StokesFunctionTag >( *storage, lvl );
+         uint_t tmpDofStokes = numberOfGlobalDoFs< StokesFunctionTag >( *storage, lvl );
          WALBERLA_LOG_INFO_ON_ROOT( "Stokes DoFs on level " << lvl << " : " << tmpDofStokes );
          totalGlobalDofsStokes += tmpDofStokes;
       }
@@ -228,28 +220,68 @@ int main( int argc, char* argv[] )
    }
 
    // using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1StokesOperator, hyteg::P1ProjectNormalOperator >;
-   using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1BlendingStokesOperator, hyteg::P1ProjectNormalOperator >;
-   auto stokes          = std::make_shared< hyteg::P1BlendingStokesOperator >( storage, minLevel, maxLevel );
-   auto normalsRect     = []( auto, Point3D& n ) { n = Point3D( { 0, -1 } ); };
-   auto normalsAnn      = [=]( Point3D p, Point3D& n ) { n = Point3D( { p[0] / rmax, p[1] / rmax } ); };
+   using StokesOperatorFS = hyteg::StrongFreeSlipWrapper< StokesOperatorType, ProjectNormalOperatorType >;
+   auto stokes            = std::make_shared< StokesOperatorType >( storage, minLevel, maxLevel );
+   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( { 0, -1 } ); };
+   auto normalsAnn        = [=]( Point3D p, Point3D& n ) { n = Point3D( { p[0] / rmax, p[1] / rmax } ); };
 
-   std::shared_ptr< hyteg::P1ProjectNormalOperator > projection = nullptr;
+   std::shared_ptr< ProjectNormalOperatorType > projection = nullptr;
    if ( useRectangleScenario )
    {
-      projection = std::make_shared< hyteg::P1ProjectNormalOperator >( storage, minLevel, maxLevel, normalsRect );
+      projection = std::make_shared< ProjectNormalOperatorType >( storage, minLevel, maxLevel, normalsRect );
    }
    else
    {
-      projection = std::make_shared< hyteg::P1ProjectNormalOperator >( storage, minLevel, maxLevel, normalsAnn );
+      projection = std::make_shared< ProjectNormalOperatorType >( storage, minLevel, maxLevel, normalsAnn );
    }
 
-   StokesOperator L( stokes, projection, FreeslipBoundary );
+   StokesOperatorFS L( stokes, projection, FreeslipBoundary );
 
-   auto solver = hyteg::solvertemplates::stokesMinResSolver< StokesOperator >( storage, maxLevel, 1e-6, 1000 );
+   auto solver =
+       hyteg::solvertemplates::stokesMinResSolver< StokesOperatorFS >( storage, maxLevel, absoluteTargetResidual, maxIterations );
+
+   // print info about convergence
+   if ( auto s = std::dynamic_pointer_cast< MinResSolver< StokesOperatorFS > >( solver ) )
+      s->setPrintInfo( true );
+
    solver->solve( L, u, f, maxLevel );
 
    if ( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       vtkOutput.write( maxLevel );
+   }
+}
+
+int main( int argc, char* argv[] )
+{
+   walberla::Environment env( argc, argv );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   //check if a config was given on command line or load default file otherwise
+   auto cfg = std::make_shared< walberla::config::Config >();
+   if ( env.config() == nullptr )
+   {
+      cfg->readParameterFile( "./StokesFreeSlip.prm" );
+   }
+   else
+   {
+      cfg = env.config();
+   }
+
+   if ( cfg->getBlock( "Parameters" ).getParameter< bool >( "runP1P1" ) )
+   {
+      run< P1StokesFunction< real_t >,      // function type
+           P1StokesFunction< real_t >::Tag, // tag
+           P1BlendingStokesOperator,        // operator
+           P1ProjectNormalOperator          // projection
+           >( cfg );
+   }
+   else
+   {
+      run< P2P1TaylorHoodFunction< real_t >,      // function type
+           P2P1TaylorHoodFunction< real_t >::Tag, // tag
+           P2P1TaylorHoodStokesOperator,          // operator
+           P2ProjectNormalOperator                // projection
+           >( cfg );
    }
 }
