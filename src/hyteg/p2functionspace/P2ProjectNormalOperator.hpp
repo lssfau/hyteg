@@ -20,10 +20,10 @@
 #pragma once
 
 #include "hyteg/Operator.hpp"
+#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFProjectNormalOperator.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 
 namespace hyteg {
 
@@ -48,7 +48,7 @@ class P2ProjectNormalOperator : public Operator< P2Function< real_t >, P2Functio
    void apply( const P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag ) const;
 
  private:
-   P1ProjectNormalOperator p1Operator;
+   P1ProjectNormalOperator      p1Operator;
    EdgeDoFProjectNormalOperator edgeDoFOperator;
 };
 

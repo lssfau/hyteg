@@ -42,7 +42,7 @@ class EdgeDoFProjectNormalOperator final : public Operator< hyteg::EdgeDoFFuncti
                const EdgeDoFFunction< real_t >& dst_v,
                const EdgeDoFFunction< real_t >& dst_w,
                uint_t                           level,
-               DoFType                          flag) const;
+               DoFType                          flag ) const;
 
  private:
    const std::function< void( const Point3D&, Point3D& ) > normal_function_;
