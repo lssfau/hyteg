@@ -634,6 +634,10 @@ waLBerla_compile_test(FILES fpe/CircularMapFPETest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME CircularMapFPETest)
 waLBerla_execute_test(NAME CircularMapFPETestMPI COMMAND $<TARGET_FILE:CircularMapFPETest> PROCESSES 2 )
 
+waLBerla_compile_test(FILES freeslip/FreeslipRectangularChannelTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME FreeslipRectangularChannelTest)
+waLBerla_execute_test(NAME FreeslipRectangularChannelTestMPI COMMAND $<TARGET_FILE:FreeslipRectangularChannelTest> PROCESSES 2 )
+
 waLBerla_compile_test(FILES freeslip/P1ProjectNormalTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1ProjectNormalTest)
 waLBerla_execute_test(NAME P1ProjectNormalTestMPI COMMAND $<TARGET_FILE:P1ProjectNormalTest> PROCESSES 2 )
