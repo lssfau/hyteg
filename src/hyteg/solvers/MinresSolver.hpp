@@ -61,6 +61,18 @@ public:
   void solve( const OperatorType& A,const FunctionType& x, const FunctionType& b, const uint_t level ) override
   {
     timingTree_->start( "MinRes Solver" );
+
+    p_vm.copyBoundaryConditionFromFunction( x );
+    p_v.copyBoundaryConditionFromFunction( x );
+    p_vp.copyBoundaryConditionFromFunction( x );
+    p_z.copyBoundaryConditionFromFunction( x );
+    p_zp.copyBoundaryConditionFromFunction( x );
+    p_wm.copyBoundaryConditionFromFunction( x );
+    p_w.copyBoundaryConditionFromFunction( x );
+    p_wp.copyBoundaryConditionFromFunction( x );
+    p_tmp.copyBoundaryConditionFromFunction( x );
+    r_.copyBoundaryConditionFromFunction( x );
+
     std::function<real_t(const hyteg::Point3D&)> zero = [](const hyteg::Point3D&) { return 0.0; };
     p_vm.interpolate(zero, level, flag_);
     p_wm.interpolate(zero, level, flag_);

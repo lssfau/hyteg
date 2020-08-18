@@ -72,6 +72,12 @@ class CGSolver : public Solver< OperatorType >
          return;
 
       timingTree_->start( "CG Solver" );
+
+      p_.copyBoundaryConditionFromFunction( x );
+      z_.copyBoundaryConditionFromFunction( x );
+      ap_.copyBoundaryConditionFromFunction( x );
+      r_.copyBoundaryConditionFromFunction( x );
+
       real_t prsold = 0;
       init( A, x, b, level, prsold );
       real_t res_start = std::sqrt( r_.dotGlobal( r_, level, flag_ ) );

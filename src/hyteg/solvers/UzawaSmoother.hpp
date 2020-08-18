@@ -114,6 +114,8 @@ class UzawaSmoother : public Solver< OperatorType >
                const typename OperatorType::dstType& b,
                const uint_t                          level ) override
    {
+      r_.copyBoundaryConditionFromFunction( x );
+
       uzawaSmooth( A,
                    x,
                    b,

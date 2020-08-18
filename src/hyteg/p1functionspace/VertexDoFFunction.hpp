@@ -199,6 +199,8 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
    BoundaryCondition getBoundaryCondition() const;
+   void setBoundaryCondition( BoundaryCondition bc );
+   void copyBoundaryConditionFromFunction( const VertexDoFFunction< ValueType > & other );
 
    template < typename SenderType, typename ReceiverType >
    inline void startCommunication( const uint_t& level ) const

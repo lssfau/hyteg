@@ -44,6 +44,9 @@ class ChebyshevSmoother : public Solver< OperatorType >
    /// Executes an iteration step of the smoother.
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
+      tmp1_.copyBoundaryConditionFromFunction( x );
+      tmp2_.copyBoundaryConditionFromFunction( x );
+
       auto inverseDiagonalValues = A.getInverseDiagonalValues();
 
       WALBERLA_ASSERT( coefficients.size() > 0, "coefficients must be setup" );
