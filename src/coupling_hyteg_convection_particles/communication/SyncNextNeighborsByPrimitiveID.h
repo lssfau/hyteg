@@ -36,12 +36,10 @@
 #include <convection_particles/mpi/notifications/ParticleRemoteMigrationNotification.h>
 #include <convection_particles/mpi/notifications/ParticleRemovalNotification.h>
 #include <convection_particles/mpi/notifications/ParticleUpdateNotification.h>
-
-#include <core/mpi/BufferSystem.h>
 #include <core/logging/Logging.h>
-
+#include <core/mpi/BufferSystem.h>
 #include <hyteg/primitivestorage/SetupPrimitiveStorage.hpp>
-#include <hyteg/communication/convection_particles/ParseMessagePrimitiveIDCommunication.h>
+#include <coupling_hyteg_convection_particles/communication/ParseMessagePrimitiveIDCommunication.h>
 
 namespace walberla {
 namespace convection_particles {
@@ -58,19 +56,18 @@ namespace mpi {
  */
 class SyncNextNeighborsByPrimitiveID
 {
-public:
-   void operator()(data::ParticleStorage& ps,
-                   const hyteg::SetupPrimitiveStorage & setupStorage) const;
+ public:
+   void operator()( data::ParticleStorage& ps, const hyteg::SetupPrimitiveStorage& setupStorage ) const;
 
    int64_t getBytesSent() const { return bs.getBytesSent(); }
    int64_t getBytesReceived() const { return bs.getBytesReceived(); }
 
    int64_t getNumberOfSends() const { return bs.getNumberOfSends(); }
    int64_t getNumberOfReceives() const { return bs.getNumberOfReceives(); }
-private:
-   void generateSynchronizationMessages(data::ParticleStorage& ps,
-                                        const hyteg::SetupPrimitiveStorage & setupStorage) const;
-   mutable std::vector<uint_t> neighborRanks_; ///cache for neighbor ranks -> will be updated in operator()
+
+ private:
+   void generateSynchronizationMessages( data::ParticleStorage& ps, const hyteg::SetupPrimitiveStorage& setupStorage ) const;
+   mutable std::vector< uint_t > neighborRanks_; ///cache for neighbor ranks -> will be updated in operator()
 
    mutable walberla::mpi::BufferSystem bs = walberla::mpi::BufferSystem( walberla::mpi::MPIManager::instance()->comm() );
 
@@ -78,6 +75,6 @@ private:
    int rank_         = walberla::mpi::MPIManager::instance()->rank();
 };
 
-}  // namespace mpi
-}  // namespace convection_particles
-}  // namespace walberla
+} // namespace mpi
+} // namespace convection_particles
+} // namespace walberla

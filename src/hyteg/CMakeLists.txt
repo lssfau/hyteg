@@ -1,1 +1,1 @@
-waLBerla_add_module( DEPENDS core convection_particles )
+waLBerla_add_module( DEPENDS core )

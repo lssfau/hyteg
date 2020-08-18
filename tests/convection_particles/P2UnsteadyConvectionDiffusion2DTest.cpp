@@ -22,7 +22,6 @@
 #include <core/math/Constants.h>
 
 #include "hyteg/MeshQuality.hpp"
-#include "hyteg/composites/MMOCTransport.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
@@ -38,6 +37,8 @@
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/controlflow/SolverLoop.hpp"
+
+#include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
