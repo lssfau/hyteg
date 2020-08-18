@@ -287,8 +287,6 @@ void solve( const MeshInfo&         meshInfo,
       if ( verbose )
          WALBERLA_LOG_INFO_ON_ROOT( "interpolating velocity" )
 
-      cOld.assign( {1.0}, {c}, level, All );
-
       uLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
       vLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
       if ( storage->hasGlobalCells() )
@@ -344,6 +342,8 @@ void solve( const MeshInfo&         meshInfo,
       solution.incTime( dt );
 
       cSolution.interpolate( std::function< real_t( const Point3D& ) >( std::ref( solution ) ), level );
+
+      cOld.assign( {1.0}, {c}, level, All );
 
       c.interpolate( std::function< real_t( const Point3D& ) >( std::ref( solution ) ), level, DirichletBoundary );
 

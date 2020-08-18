@@ -78,16 +78,17 @@ class P2UnsteadyDiffusionOperator : public Operator< P2Function< real_t >, P2Fun
                                 const real_t&                              diffusionCoefficient,
                                 const DiffusionTimeIntegrator&             timeIntegrator )
    : Operator( storage, minLevel, maxLevel )
+   , storage_( storage )
+   , minLevel_( minLevel )
+   , maxLevel_( maxLevel )
+   , diffusionCoefficient_( diffusionCoefficient )
    , laplaceForm_( new LaplaceForm_T() )
    , massForm_( new MassForm_T() )
    , timeIntegrator_( timeIntegrator )
-   , unsteadyDiffusionOperator_(
-         storage,
-         minLevel,
-         maxLevel,
-         P2LinearCombinationForm( {1.0, dtScaling() * dt * diffusionCoefficient}, {massForm_.get(), laplaceForm_.get()} ) )
    , dt_( dt )
-   {}
+   {
+      setDt( dt );
+   }
 
    void apply( const P2Function< real_t >& src,
                const P2Function< real_t >& dst,
@@ -95,7 +96,7 @@ class P2UnsteadyDiffusionOperator : public Operator< P2Function< real_t >, P2Fun
                const DoFType&              flag,
                const UpdateType&           updateType = Replace ) const
    {
-      unsteadyDiffusionOperator_.apply( src, dst, level, flag, updateType );
+      unsteadyDiffusionOperator_->apply( src, dst, level, flag, updateType );
    }
 
    void smooth_sor( const P2Function< real_t >& dst,
@@ -105,7 +106,7 @@ class P2UnsteadyDiffusionOperator : public Operator< P2Function< real_t >, P2Fun
                     DoFType                     flag,
                     const bool&                 backwards = false ) const
    {
-      unsteadyDiffusionOperator_.smooth_sor( dst, rhs, relax, level, flag, backwards );
+      unsteadyDiffusionOperator_->smooth_sor( dst, rhs, relax, level, flag, backwards );
    }
 
    void smooth_gs( const P2Function< real_t >& dst,
@@ -124,34 +125,47 @@ class P2UnsteadyDiffusionOperator : public Operator< P2Function< real_t >, P2Fun
                     size_t                      level,
                     DoFType                     flag ) const
    {
-      unsteadyDiffusionOperator_.smooth_jac( dst, rhs, src, relax, level, flag );
+      unsteadyDiffusionOperator_->smooth_jac( dst, rhs, src, relax, level, flag );
    }
 
    real_t dt() const { return dt_; }
 
+   void setDt( const real_t& dt )
+   {
+      dt_                        = dt;
+      unsteadyDiffusionOperator_ = std::make_shared< P2Operator< P2LinearCombinationForm > >(
+          storage_,
+          minLevel_,
+          maxLevel_,
+          P2LinearCombinationForm( {1.0, dtScaling() * dt * diffusionCoefficient_}, {massForm_.get(), laplaceForm_.get()} ) );
+   }
+
    DiffusionTimeIntegrator getTimeIntegrator() const { return timeIntegrator_; }
 
-   const P2Operator< P2LinearCombinationForm > & getOperator() const { return unsteadyDiffusionOperator_; }
+   const P2Operator< P2LinearCombinationForm >& getOperator() const { return *unsteadyDiffusionOperator_; }
 
  private:
-
    real_t dtScaling()
    {
-      switch( timeIntegrator_ )
+      switch ( timeIntegrator_ )
       {
       case DiffusionTimeIntegrator::ImplicitEuler:
          return 1.0;
       case DiffusionTimeIntegrator::CrankNicolson:
          return 0.5;
       default:
-         WALBERLA_ABORT("Invalid time integrator")
+         WALBERLA_ABORT( "Invalid time integrator" )
       }
    }
 
-   std::shared_ptr< LaplaceForm_T >              laplaceForm_;
-   std::shared_ptr< MassForm_T >                 massForm_;
-   DiffusionTimeIntegrator timeIntegrator_;
-   P2Operator< P2LinearCombinationForm >         unsteadyDiffusionOperator_;
+   std::shared_ptr< PrimitiveStorage >                      storage_;
+   uint_t                                                   minLevel_;
+   uint_t                                                   maxLevel_;
+   real_t                                                   diffusionCoefficient_;
+   std::shared_ptr< LaplaceForm_T >                         laplaceForm_;
+   std::shared_ptr< MassForm_T >                            massForm_;
+   DiffusionTimeIntegrator                                  timeIntegrator_;
+   std::shared_ptr< P2Operator< P2LinearCombinationForm > > unsteadyDiffusionOperator_;
 
    real_t dt_;
 };
@@ -203,7 +217,10 @@ inline void createMatrix< P2ElementwiseUnsteadyDiffusionOperator >( const P2Elem
 /// Therefore in each time step, the passed UnsteadyDiffusionOperatorType instance must be inverted.
 ///
 /// Note that the selection of the time-integrator is done during the construction of the diffusion operator.
-template < typename FunctionType, typename UnsteadyDiffusionOperatorType, typename LaplaceOperatorType, typename MassOperatorType >
+template < typename FunctionType,
+           typename UnsteadyDiffusionOperatorType,
+           typename LaplaceOperatorType,
+           typename MassOperatorType >
 class UnsteadyDiffusion
 {
  public:
@@ -265,7 +282,7 @@ class UnsteadyDiffusion
          M.apply( uOld, uOld_, level, flag );
          uOld_.assign( {1.0, 0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
          L.apply( uOld, fWeak_, level, flag );
-         uOld_.assign( {1.0, - 0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
+         uOld_.assign( {1.0, -0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
          solver_->solve( A, u, uOld_, level );
       }
    }
@@ -281,7 +298,7 @@ class UnsteadyDiffusion
    {
       if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::ImplicitEuler )
       {
-         M.apply( u, uOld_, level, flag );
+         M.apply( uOld, uOld_, level, flag );
          uOld_.assign( {1.0}, {uOld_}, level, flag );
          solver_->solve( A, u, uOld_, level );
       }
@@ -291,7 +308,7 @@ class UnsteadyDiffusion
          M.apply( uOld, uOld_, level, flag );
          uOld_.assign( {1.0}, {uOld_}, level, flag );
          L.apply( uOld, fWeak_, level, flag );
-         uOld_.assign( {1.0, - 0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
+         uOld_.assign( {1.0, -0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
          solver_->solve( A, u, uOld_, level );
       }
    }
@@ -321,7 +338,7 @@ class UnsteadyDiffusion
          M.apply( uOld, uOld_, level, flag );
          uOld_.assign( {1.0, 0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
          L.apply( uOld, fWeak_, level, flag );
-         uOld_.assign( {1.0, - 0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
+         uOld_.assign( {1.0, -0.5 * A.dt()}, {uOld_, fWeak_}, level, flag );
       }
       A.apply( u, fWeak_, level, flag );
       r.assign( {1.0, -1.0}, {uOld_, fWeak_}, level, flag );
