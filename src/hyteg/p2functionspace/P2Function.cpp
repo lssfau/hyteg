@@ -49,7 +49,7 @@ P2Function< ValueType >::P2Function( const std::string&                         
                                      const std::shared_ptr< PrimitiveStorage >& storage,
                                      uint_t                                     minLevel,
                                      uint_t                                     maxLevel )
-: P2Function( name, storage, minLevel, maxLevel, BoundaryCondition::create012BC() )
+: P2Function( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
 {}
 
 template < typename ValueType >

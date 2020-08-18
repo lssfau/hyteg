@@ -64,7 +64,7 @@ VertexDoFFunction< ValueType >::VertexDoFFunction( const std::string&           
                                                    const std::shared_ptr< PrimitiveStorage >& storage,
                                                    uint_t                                     minLevel,
                                                    uint_t                                     maxLevel )
-: VertexDoFFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create012BC() )
+: VertexDoFFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
 {}
 
 template < typename ValueType >

@@ -33,11 +33,12 @@ enum UpdateType
 enum DoFType:size_t
 {
   None = 0,
-  All = 1+2+4,
-  Boundary = 2+4,
+  All = 1+2+4+8,
+  Boundary = 2+4+8,
   Inner = 1,
   DirichletBoundary = 2,
   NeumannBoundary = 4,
+  FreeslipBoundary = 8
 };
 
 inline DoFType operator|(DoFType a, DoFType b){

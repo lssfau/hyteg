@@ -1,0 +1,32 @@
+Parameters
+{
+  // Should a P1-P1 pairing be used? If it is false, we use Taylor-Hood.
+  runP1P1 true;
+
+  // solver parameters
+  minLevel 2;
+  maxLevel 2;
+  absoluteTargetResidual 1e-14;
+  maxIterations 1000;
+
+  // which scenario should be loaded? The rectangle scenario, or the annulus?
+  useRectangleScenario true;
+
+  // scenario rectangle
+  channelLength 0.5;
+  channelHeight 0.5;
+  ny 1;
+
+  // scenario annulus
+  rmin 0.5;
+  rmax 1;
+  nTan 5;
+  nRad 1;
+
+  // output
+  printGlobalStorageInfo true;
+  printParameters true;
+  printDoFCount true;
+  writeDomainVTK true;
+  VTKOutput true;
+}
