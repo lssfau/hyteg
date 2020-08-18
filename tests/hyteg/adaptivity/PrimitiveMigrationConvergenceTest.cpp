@@ -79,14 +79,14 @@ void P2CGTest( const std::string& meshFile, const uint_t level, const real_t tar
       u.setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
    }
 
-   hyteg::VTKOutput vtkOutput( "../../output", "P2CGConvergenceTest", storage );
-   vtkOutput.add( u );
-   vtkOutput.add( u_exact );
-   vtkOutput.add( f );
-   vtkOutput.add( r );
-   vtkOutput.add( err );
-   vtkOutput.add( npoints_helper );
-   vtkOutput.write( level );
+//   hyteg::VTKOutput vtkOutput( "../../output", "P2CGConvergenceTest", storage );
+//   vtkOutput.add( u );
+//   vtkOutput.add( u_exact );
+//   vtkOutput.add( f );
+//   vtkOutput.add( r );
+//   vtkOutput.add( err );
+//   vtkOutput.add( npoints_helper );
+//   vtkOutput.write( level );
 
    std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
    std::function< real_t( const hyteg::Point3D& ) > rhs   = []( const hyteg::Point3D& ) { return 0; };
@@ -103,7 +103,7 @@ void P2CGTest( const std::string& meshFile, const uint_t level, const real_t tar
    storage->getPrimitiveIDs( localPrimitiveIDs );
    WALBERLA_CHECK( !localPrimitiveIDs.empty() );
 
-   vtkOutput.write( level );
+//   vtkOutput.write( level );
 
    solver.solve( L, u, f, level );
 
@@ -113,7 +113,7 @@ void P2CGTest( const std::string& meshFile, const uint_t level, const real_t tar
    const real_t npoints      = npoints_helper.dotGlobal( npoints_helper, level );
    const real_t discr_l2_err = std::sqrt( err.dotGlobal( err, level ) / npoints );
 
-   vtkOutput.write( level );
+//   vtkOutput.write( level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
    WALBERLA_CHECK_LESS( discr_l2_err, targetError );

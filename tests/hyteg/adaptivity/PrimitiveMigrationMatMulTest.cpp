@@ -77,12 +77,12 @@ void PrimitiveMigrationMatMulTest( const std::string& meshFile, const uint_t lev
       u.setLocalCommunicationMode( communication::BufferedCommunicator::LocalCommunicationMode::BUFFERED_MPI );
    }
 
-   hyteg::VTKOutput vtkOutput( "../../output", "PrimitiveMigrationMatMulTest", storage );
-   vtkOutput.add( u );
-   vtkOutput.add( f_before_migration );
-   vtkOutput.add( f_after_migration );
-   vtkOutput.add( f_error );
-   vtkOutput.write( level, 0 );
+//   hyteg::VTKOutput vtkOutput( "../../output", "PrimitiveMigrationMatMulTest", storage );
+//   vtkOutput.add( u );
+//   vtkOutput.add( f_before_migration );
+//   vtkOutput.add( f_after_migration );
+//   vtkOutput.add( f_error );
+//   vtkOutput.write( level, 0 );
 
    std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
 
@@ -93,7 +93,7 @@ void PrimitiveMigrationMatMulTest( const std::string& meshFile, const uint_t lev
    const auto u_norm_before = u.dotGlobal( u, level, All );
    const auto f_norm_before = f_before_migration.dotGlobal( f_before_migration, level, All );
 
-   vtkOutput.write( level, 1 );
+//   vtkOutput.write( level, 1 );
 
    // we now migrate the primitives in parallel now
    loadbalancing::distributed::roundRobin( *storage );
@@ -107,7 +107,7 @@ void PrimitiveMigrationMatMulTest( const std::string& meshFile, const uint_t lev
 
    f_error.assign( {1.0, -1.0}, {f_before_migration, f_after_migration}, level, All );
 
-   vtkOutput.write( level, 2 );
+//   vtkOutput.write( level, 2 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "mesh: " << meshFile << ", norm difference u: " << u_norm_after - u_norm_before );
    WALBERLA_LOG_INFO_ON_ROOT( "mesh: " << meshFile << ", norm difference f: " << f_norm_after - f_norm_before );

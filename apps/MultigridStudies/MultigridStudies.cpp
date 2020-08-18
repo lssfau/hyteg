@@ -18,6 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <cmath>
+
 #include "core/Environment.h"
 #include "core/Hostname.h"
 #include "core/config/Config.h"
@@ -75,6 +77,7 @@
 namespace hyteg {
 
 using walberla::int64_c;
+using walberla::int_c;
 using walberla::math::pi;
 
 #define NEUMANN_PROBLEM 0
@@ -114,7 +117,7 @@ std::function< real_t( const hyteg::Point3D& ) > rhs = []( const hyteg::Point3D&
 #else
 std::function< real_t( const hyteg::Point3D& ) > exact = []( const hyteg::Point3D& x ) { return sin( x[0] ) * sinh( x[1] ); };
 
-std::function< real_t( const hyteg::Point3D& ) > rhs    = []( const hyteg::Point3D& ) { return 0; };
+std::function< real_t( const hyteg::Point3D& ) > rhs         = []( const hyteg::Point3D& ) { return 0; };
 #endif
 #endif // END ELSE CONSTANTA
 
@@ -156,28 +159,28 @@ std::function< real_t( const hyteg::Point3D& ) > rhsU = []( const hyteg::Point3D
 std::function< real_t( const hyteg::Point3D& ) > rhsV = []( const hyteg::Point3D& ) { return 0; };
 
 #else
-std::function< real_t( const hyteg::Point3D& ) > exactU = []( const hyteg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > plumeExactU = []( const hyteg::Point3D& x ) {
    return std::sin( 2 * pi * x[0] ) * std::cos( pi * x[1] );
 };
-std::function< real_t( const hyteg::Point3D& ) > bcU = []( const hyteg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > plumeBCU = []( const hyteg::Point3D& x ) {
    return std::sin( 2 * pi * x[0] ) * std::cos( pi * x[1] );
 };
-std::function< real_t( const hyteg::Point3D& ) > exactV = []( const hyteg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > plumeExactV = []( const hyteg::Point3D& x ) {
    return -2.0 * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] );
 };
-std::function< real_t( const hyteg::Point3D& ) > bcV = []( const hyteg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > plumeBCV = []( const hyteg::Point3D& x ) {
    return -2.0 * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] );
 };
-std::function< real_t( const hyteg::Point3D& ) > exactW = []( const hyteg::Point3D& ) { return real_c( 0 ); };
-std::function< real_t( const hyteg::Point3D& ) > bcW    = []( const hyteg::Point3D& ) { return real_c( 0 ); };
-std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > plumeExactW = []( const hyteg::Point3D& ) { return real_c( 0 ); };
+std::function< real_t( const hyteg::Point3D& ) > plumeBCW    = []( const hyteg::Point3D& ) { return real_c( 0 ); };
+std::function< real_t( const hyteg::Point3D& ) > plumeExactP = []( const hyteg::Point3D& x ) {
    return 2.5 * pi * std::cos( 2 * pi * x[0] ) * std::cos( pi * x[1] );
 };
-std::function< real_t( const hyteg::Point3D& ) > rhsU = []( const hyteg::Point3D& ) { return 0; };
-std::function< real_t( const hyteg::Point3D& ) > rhsV = []( const hyteg::Point3D& x ) {
+std::function< real_t( const hyteg::Point3D& ) > plumeRhsU = []( const hyteg::Point3D& ) { return 0; };
+std::function< real_t( const hyteg::Point3D& ) > plumeRhsV = []( const hyteg::Point3D& x ) {
    return -12.5 * pi * pi * std::cos( 2 * pi * x[0] ) * std::sin( pi * x[1] );
 };
-std::function< real_t( const hyteg::Point3D& ) > rhsW = []( const hyteg::Point3D& ) { return real_c( 0 ); };
+std::function< real_t( const hyteg::Point3D& ) > plumeRhsW = []( const hyteg::Point3D& ) { return real_c( 0 ); };
 #endif
 #endif
 
@@ -199,6 +202,25 @@ std::function< real_t( const hyteg::Point3D& ) > shellRhsV = []( const hyteg::Po
 };
 std::function< real_t( const hyteg::Point3D& ) > shellRhsW = []( const hyteg::Point3D& x ) {
    return 2 * std::sin( 4 * x[0] ) * std::sin( 8 * x[1] ) * std::cos( 2 * x[2] ) - 8 * std::cos( 2 * x[1] );
+};
+
+enum class MeshType
+{
+   SQUARE,
+   CUBE,
+   SYMMETRIC_CUBE,
+   SPHERICAL_SHELL,
+   T_DOMAIN,
+   SNAKE
+};
+
+const std::map< std::string, MeshType > meshTypeStrings = {
+    {"square", MeshType::SQUARE},
+    {"cube", MeshType::CUBE},
+    {"symmetricCube", MeshType::SYMMETRIC_CUBE},
+    {"sphericalShell", MeshType::SPHERICAL_SHELL},
+    {"tDomain", MeshType::T_DOMAIN},
+    {"snake", MeshType::SNAKE},
 };
 
 template < typename Function, typename LaplaceOperator, typename MassOperator >
@@ -232,15 +254,20 @@ void calculateErrorAndResidual( const uint_t&          level,
 }
 
 template < typename Function, typename StokesOperator >
-void calculateErrorAndResidualStokes( const uint_t&         level,
-                                      const StokesOperator& A,
-                                      const Function&       u,
-                                      const Function&       f,
-                                      const Function&       error,
-                                      long double&          l2ErrorU,
-                                      long double&          l2ErrorP,
-                                      long double&          l2ResidualU,
-                                      long double&          l2ResidualP )
+void calculateErrorAndResidualStokes( const uint_t&                                    level,
+                                      const StokesOperator&                            A,
+                                      const Function&                                  u,
+                                      const Function&                                  f,
+                                      const Function&                                  error,
+                                      long double&                                     l2ErrorU,
+                                      long double&                                     l2ErrorP,
+                                      long double&                                     l2ResidualU,
+                                      long double&                                     l2ResidualP,
+                                      const std::function< real_t( const Point3D& ) >& exactU,
+                                      const std::function< real_t( const Point3D& ) >& exactV,
+                                      const std::function< real_t( const Point3D& ) >& exactW,
+                                      const std::function< real_t( const Point3D& ) >& exactP,
+                                      const bool&                                      projectPressure )
 {
    auto numU = numberOfGlobalDoFs< typename Function::VelocityFunction_T::Tag >( *u.u.getStorage(), level );
    auto numP = numberOfGlobalDoFs< typename Function::PressureFunction_T::Tag >( *u.p.getStorage(), level );
@@ -275,7 +302,10 @@ void calculateErrorAndResidualStokes( const uint_t&         level,
    error.p.interpolate( exactP, level, All );
    error.assign( {1.0, -1.0}, {error, u}, level, All );
 
-   vertexdof::projectMean( error.p, level );
+   if ( projectPressure )
+   {
+      vertexdof::projectMean( error.p, level );
+   }
 
    real_t sumVelocityErrorDot = 0.0;
    sumVelocityErrorDot += error.u.dotGlobal( error.u, level, Inner | NeumannBoundary );
@@ -331,10 +361,18 @@ void calculateDiscretizationError( const std::shared_ptr< PrimitiveStorage >& st
 }
 
 template < typename StokesFunction, typename StokesOperator, typename MassOperator >
-void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage >& storage,
-                                         const uint_t&                              level,
-                                         long double&                               l2DiscretizationErrorU,
-                                         long double&                               l2DiscretizationErrorP )
+void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage >&       storage,
+                                         const uint_t&                                    level,
+                                         long double&                                     l2DiscretizationErrorU,
+                                         long double&                                     l2DiscretizationErrorP,
+                                         const std::function< real_t( const Point3D& ) >& exactU,
+                                         const std::function< real_t( const Point3D& ) >& exactV,
+                                         const std::function< real_t( const Point3D& ) >& exactW,
+                                         const std::function< real_t( const Point3D& ) >& exactP,
+                                         const std::function< real_t( const Point3D& ) >& rhsU,
+                                         const std::function< real_t( const Point3D& ) >& rhsV,
+                                         const std::function< real_t( const Point3D& ) >& rhsW,
+                                         const bool&                                      projectPressure )
 {
    StokesFunction u( "u", storage, level, level );
    StokesFunction f( "f", storage, level, level );
@@ -345,9 +383,9 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
    StokesOperator A( storage, level, level );
    MassOperator   M( storage, level, level );
 
-   u.u.interpolate( bcU, level, DirichletBoundary );
-   u.v.interpolate( bcV, level, DirichletBoundary );
-   u.w.interpolate( bcW, level, DirichletBoundary );
+   u.u.interpolate( exactU, level, DirichletBoundary );
+   u.v.interpolate( exactV, level, DirichletBoundary );
+   u.w.interpolate( exactW, level, DirichletBoundary );
 
    tmp.u.interpolate( rhsU, level, All );
    tmp.v.interpolate( rhsV, level, All );
@@ -370,13 +408,28 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
 #endif
    solver->solve( A, u, f, level );
 
-   vertexdof::projectMean( u.p, level );
+   if ( projectPressure )
+   {
+      vertexdof::projectMean( u.p, level );
+   }
 
    long double l2ResidualU;
    long double l2ResidualP;
 
-   calculateErrorAndResidualStokes(
-       level, A, u, f, error, l2DiscretizationErrorU, l2DiscretizationErrorP, l2ResidualU, l2ResidualP );
+   calculateErrorAndResidualStokes( level,
+                                    A,
+                                    u,
+                                    f,
+                                    error,
+                                    l2DiscretizationErrorU,
+                                    l2DiscretizationErrorP,
+                                    l2ResidualU,
+                                    l2ResidualP,
+                                    exactU,
+                                    exactV,
+                                    exactW,
+                                    exactP,
+                                    projectPressure );
 }
 
 template < typename Function,
@@ -663,7 +716,9 @@ void DCStokesRHSSetup( const std::shared_ptr< PrimitiveStorage >&,
                        const uint_t&,
                        const StokesOperator&,
                        const StokesFunction&,
-                       const P1StokesFunction< real_t >& )
+                       const P1StokesFunction< real_t >&,
+                       const std::function< real_t( const Point3D& ) >&,
+                       const std::function< real_t( const Point3D& ) >& )
 {
    WALBERLA_ABORT( "Defect correction not implemented for this discretization." )
 }
@@ -673,7 +728,9 @@ void DCStokesRHSSetup< P1StokesOperator, P1StokesFunction< real_t > >( const std
                                                                        const uint_t&                              p1Level,
                                                                        const P1StokesOperator&           p1StokesOperator,
                                                                        const P1StokesFunction< real_t >& u,
-                                                                       const P1StokesFunction< real_t >& p1DefectCorrectionRHS )
+                                                                       const P1StokesFunction< real_t >& p1DefectCorrectionRHS,
+                                                                       const std::function< real_t( const Point3D& ) >& rhsU,
+                                                                       const std::function< real_t( const Point3D& ) >& rhsV )
 {
    const uint_t p2Level = p1Level - 1;
 
@@ -758,49 +815,63 @@ template < typename StokesFunction,
            typename Restriction,
            typename Prolongation,
            typename FMGProlongation >
-void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           storage,
-                      const uint_t&                                        minLevel,
-                      const uint_t&                                        maxLevel,
-                      const uint_t&                                        numCycles,
-                      const CycleType                                      cycleType,
-                      const uint_t&                                        fmgInnerCycles,
-                      const real_t&                                        L2residualTolerance,
-                      const real_t&                                        sorRelax,
-                      const uint_t&                                        sorRelaxEstimationIterations,
-                      const uint_t&                                        sorRelaxEstimationLevel,
-                      const real_t&                                        velocitySorRelax,
-                      const bool&                                          symmGSVelocity,
-                      const uint_t&                                        numGSVelocity,
-                      const bool&                                          symmGSPressure,
-                      const uint_t&                                        numGSPressure,
-                      const uint_t&                                        preSmoothingSteps,
-                      const uint_t&                                        postSmoothingSteps,
-                      const uint_t&                                        smoothingIncrement,
-                      const bool&                                          projectPressureAfterRestriction,
-                      const uint_t&                                        coarseGridMaxIterations,
-                      const real_t&                                        coarseResidualTolerance,
-                      const uint_t&                                        coarseGridSolverType,
-                      const uint_t&                                        coarseGridSolverVelocityPreconditionerType,
-                      const bool&                                          agglomeration,
-                      const std::string&                                   agglomerationStrategy,
-                      const uint_t&                                        agglomerationNumProcesses,
-                      const uint_t&                                        agglomerationInterval,
-                      const std::string&                                   agglomerationTimingJSONFile,
-                      const bool&                                          outputVTK,
-                      const uint_t&                                        skipCyclesForAvgConvRate,
-                      const bool&                                          calcDiscretizationError,
-                      const uint_t&                                        cyclesBeforeDC,
-                      const uint_t&                                        postDCPreSmoothingSteps,
-                      const uint_t&                                        postDCPostSmoothingSteps,
-                      const uint_t&                                        postDCSmoothingIncrement,
-                      std::map< std::string, walberla::int64_t >&          sqlIntegerProperties,
-                      std::map< std::string, double >&                     sqlRealProperties,
-                      std::map< std::string, std::string >&                sqlStringProperties,
-                      std::map< uint_t, std::map< std::string, double > >& sqlRealPropertiesMG )
+void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              storage,
+                      const uint_t&                                           minLevel,
+                      const uint_t&                                           maxLevel,
+                      const std::function< real_t( const hyteg::Point3D& ) >& exactU,
+                      const std::function< real_t( const hyteg::Point3D& ) >& exactV,
+                      const std::function< real_t( const hyteg::Point3D& ) >& exactW,
+                      const std::function< real_t( const hyteg::Point3D& ) >& exactP,
+                      const std::function< real_t( const hyteg::Point3D& ) >& rhsU,
+                      const std::function< real_t( const hyteg::Point3D& ) >& rhsV,
+                      const std::function< real_t( const hyteg::Point3D& ) >& rhsW,
+                      const uint_t&                                           numCycles,
+                      const CycleType                                         cycleType,
+                      const uint_t&                                           fmgInnerCycles,
+                      const real_t&                                           L2residualTolerance,
+                      const real_t&                                           sorRelax,
+                      const uint_t&                                           sorRelaxEstimationIterations,
+                      const uint_t&                                           sorRelaxEstimationLevel,
+                      const real_t&                                           velocitySorRelax,
+                      const bool&                                             symmGSVelocity,
+                      const uint_t&                                           numGSVelocity,
+                      const bool&                                             symmGSPressure,
+                      const uint_t&                                           numGSPressure,
+                      const uint_t&                                           preSmoothingSteps,
+                      const uint_t&                                           postSmoothingSteps,
+                      const uint_t&                                           smoothingIncrement,
+                      const bool&                                             projectPressure,
+                      const bool&                                             projectPressureAfterRestriction,
+                      const uint_t&                                           coarseGridMaxIterations,
+                      const real_t&                                           coarseResidualTolerance,
+                      const uint_t&                                           coarseGridSolverType,
+                      const uint_t&                                           coarseGridSolverVelocityPreconditionerType,
+                      const bool&                                             blockLowRank,
+                      const real_t&                                           blockLowRankTolerance,
+                      const bool&                                             agglomeration,
+                      const std::string&                                      agglomerationStrategy,
+                      const uint_t&                                           agglomerationNumProcesses,
+                      const uint_t&                                           agglomerationInterval,
+                      const std::string&                                      agglomerationTimingJSONFile,
+                      const bool&                                             outputVTK,
+                      const uint_t&                                           skipCyclesForAvgConvRate,
+                      const bool&                                             calcDiscretizationError,
+                      const uint_t&                                           cyclesBeforeDC,
+                      const uint_t&                                           postDCPreSmoothingSteps,
+                      const uint_t&                                           postDCPostSmoothingSteps,
+                      const uint_t&                                           postDCSmoothingIncrement,
+                      std::map< std::string, walberla::int64_t >&             sqlIntegerProperties,
+                      std::map< std::string, double >&                        sqlRealProperties,
+                      std::map< std::string, std::string >&                   sqlStringProperties,
+                      std::map< uint_t, std::map< std::string, double > >&    sqlRealPropertiesMG )
 {
    walberla::WcTimer timer;
 
    WALBERLA_UNUSED( sqlStringProperties );
+#ifndef HYTEG_BUILD_WITH_PETSC
+   WALBERLA_UNUSED( blockLowRank );
+   WALBERLA_UNUSED( blockLowRankTolerance );
+#endif
 
    if ( cyclesBeforeDC > 0 )
    {
@@ -822,11 +893,11 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
           uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - finalNumAgglomerationProcesses;
       const auto minRank = finalNumAgglomerationProcesses;
       const auto maxRank = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) - 1;
-      WALBERLA_LOG_INFO_ON_ROOT( "Performing primitive re-distribution to " << numRemainingProcesses << " processes  (ranks " << minRank << " .. " << maxRank << ") ..." )
+      WALBERLA_LOG_INFO_ON_ROOT( "Performing primitive re-distribution to " << numRemainingProcesses << " processes  (ranks "
+                                                                            << minRank << " .. " << maxRank << ") ..." )
       loadbalancing::distributed::roundRobin( *storage, minRank, maxRank );
       WALBERLA_LOG_INFO_ON_ROOT( "Done." )
       WALBERLA_LOG_INFO_ON_ROOT( "" )
-
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "Allocating functions ..." );
@@ -898,9 +969,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    timer.reset();
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
-      u.u.interpolate( bcU, level, DirichletBoundary );
-      u.v.interpolate( bcV, level, DirichletBoundary );
-      u.w.interpolate( bcW, level, DirichletBoundary );
+      u.u.interpolate( exactU, level, DirichletBoundary );
+      u.v.interpolate( exactV, level, DirichletBoundary );
+      u.w.interpolate( exactW, level, DirichletBoundary );
 
       // using error as tmp function here
       error.u.interpolate( rhsU, level, All );
@@ -925,8 +996,18 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       WALBERLA_LOG_INFO_ON_ROOT( "l2 discretization error ( u | p ) per level:" );
       for ( uint_t level = minLevel; level <= maxLevel; level++ )
       {
-         calculateDiscretizationErrorStokes< StokesFunction, StokesOperator, MassOperator >(
-             storage, level, discretizationErrorU, discretizationErrorP );
+         calculateDiscretizationErrorStokes< StokesFunction, StokesOperator, MassOperator >( storage,
+                                                                                             level,
+                                                                                             discretizationErrorU,
+                                                                                             discretizationErrorP,
+                                                                                             exactU,
+                                                                                             exactV,
+                                                                                             exactW,
+                                                                                             exactP,
+                                                                                             rhsU,
+                                                                                             rhsV,
+                                                                                             rhsW,
+                                                                                             projectPressure );
          WALBERLA_LOG_INFO_ON_ROOT( "  level " << std::setw( 2 ) << level << ": " << std::scientific << discretizationErrorU
                                                << " | " << discretizationErrorP );
          sqlRealProperties["l2_discr_error_u_level_" + std::to_string( level )] = real_c( discretizationErrorU );
@@ -1066,7 +1147,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
          const auto minProcess = 0;
          const auto maxProcess = finalNumAgglomerationProcesses - 1;
          WALBERLA_LOG_INFO_ON_ROOT( "Re-distribution of agglomeration primitive storage to ranks " << minProcess << " - "
-                                                                                                    << maxProcess << " ..." )
+                                                                                                   << maxProcess << " ..." )
          agglomerationWrapper->setStrategyContinuousProcesses( minProcess, maxProcess );
 
          WALBERLA_LOG_INFO_ON_ROOT( "Primitive distribution due to dedicated agglomeration:" )
@@ -1116,6 +1197,16 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
       auto petscSolverInternalTmp =
           std::make_shared< PETScLUSolver< StokesOperator > >( coarseGridSolverStorage, coarseGridMaxLevel );
+
+      if ( blockLowRank )
+      {
+         petscSolverInternalTmp->setMUMPSIcntrl( 35, 1 );                   // activate BLR
+         petscSolverInternalTmp->setMUMPSCntrl( 7, blockLowRankTolerance ); // BLR tolerance
+      }
+
+      // allocate more memory
+      petscSolverInternalTmp->setMUMPSIcntrl( 14, 200 );
+
       petscSolverInternalTmp->setVerbose( true );
       petscSolverInternalTmp->setDirectSolverType( solverType );
       if ( agglomeration && dedicatedAgglomeration && isAgglomerationProcess )
@@ -1197,7 +1288,20 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
    auto postCycle = [&]( uint_t currentLevel ) {
       timerFMGErrorCalculation.start();
       long double _l2ErrorU, _l2ErrorP, _l2ResidualU, _l2ResidualP;
-      calculateErrorAndResidualStokes( currentLevel, A, u, f, error, _l2ErrorU, _l2ErrorP, _l2ResidualU, _l2ResidualP );
+      calculateErrorAndResidualStokes( currentLevel,
+                                       A,
+                                       u,
+                                       f,
+                                       error,
+                                       _l2ErrorU,
+                                       _l2ErrorP,
+                                       _l2ResidualU,
+                                       _l2ResidualP,
+                                       exactU,
+                                       exactV,
+                                       exactW,
+                                       exactP,
+                                       projectPressure );
       sqlRealProperties["fmg_l2_error_u_level_" + std::to_string( currentLevel )]    = real_c( _l2ErrorU );
       sqlRealProperties["fmg_l2_error_p_level_" + std::to_string( currentLevel )]    = real_c( _l2ErrorP );
       sqlRealProperties["fmg_l2_residual_u_level_" + std::to_string( currentLevel )] = real_c( _l2ErrorU );
@@ -1234,7 +1338,8 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
        " ---------------++--------------+--------------+--------------------++--------------+--------------+-----------------------++----------------+----------------------------+--------------+--------------|" );
 
    timer.reset();
-   calculateErrorAndResidualStokes( maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
+   calculateErrorAndResidualStokes(
+       maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP, exactU, exactV, exactW, exactP, projectPressure );
    timer.end();
    timeError = timer.last();
 
@@ -1282,8 +1387,24 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
       timer.end();
       timeCycle = timer.last();
-      vertexdof::projectMean( u.p, maxLevel );
-      calculateErrorAndResidualStokes( maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
+      if ( projectPressure )
+      {
+         vertexdof::projectMean( u.p, maxLevel );
+      }
+      calculateErrorAndResidualStokes( maxLevel,
+                                       A,
+                                       u,
+                                       f,
+                                       error,
+                                       l2ErrorU,
+                                       l2ErrorP,
+                                       l2ResidualU,
+                                       l2ResidualP,
+                                       exactU,
+                                       exactV,
+                                       exactW,
+                                       exactP,
+                                       projectPressure );
       vtkOutput.write( maxLevel, 1 );
       WALBERLA_LOG_INFO_ON_ROOT( std::setw( 15 )
                                  << 1 << " || " << std::scientific << l2ErrorU << " | " << l2ErrorP << " | "
@@ -1334,7 +1455,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
          // set up DC RHS once right after the exact number of cycles are performed on the original RHS
          WALBERLA_LOG_INFO_ON_ROOT( "Preparing RHS for DC..." )
          timer.reset();
-         DCStokesRHSSetup( storage, maxLevel, A, u, *f_dc );
+         DCStokesRHSSetup( storage, maxLevel, A, u, *f_dc, rhsU, rhsV );
          timer.end();
          auto timeDCSetup                   = timer.last();
          sqlRealProperties["dc_setup_time"] = timeDCSetup;
@@ -1377,11 +1498,26 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
 
       numExecutedCycles++;
 
-      if ( !NEUMANN_PROBLEM )
+      if ( projectPressure )
+      {
          vertexdof::projectMean( u.p, maxLevel );
+      }
 
       timer.reset();
-      calculateErrorAndResidualStokes( maxLevel, A, u, f, error, l2ErrorU, l2ErrorP, l2ResidualU, l2ResidualP );
+      calculateErrorAndResidualStokes( maxLevel,
+                                       A,
+                                       u,
+                                       f,
+                                       error,
+                                       l2ErrorU,
+                                       l2ErrorP,
+                                       l2ResidualU,
+                                       l2ResidualP,
+                                       exactU,
+                                       exactV,
+                                       exactW,
+                                       exactP,
+                                       projectPressure );
       timer.end();
       timeError = timer.last();
       if ( cycle == 1 && fmgInnerCycles > 0 )
@@ -1401,6 +1537,11 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&           stora
       l2ResidualReductionU = l2ResidualU / lastl2ResidualU;
       l2ErrorReductionP    = l2ErrorP / lastl2ErrorP;
       l2ResidualReductionP = l2ResidualP / lastl2ResidualP;
+
+      if ( !std::isfinite( l2ErrorReductionU ) )
+      {
+         l2ErrorReductionU = 0;
+      }
 
       WALBERLA_LOG_INFO_ON_ROOT( std::setw( 15 ) << cycle << " || " << std::scientific << l2ErrorU << " | " << l2ErrorP << " | "
                                                  << "      " << l2ErrorReductionU << " || " << l2ResidualU << " | " << l2ResidualP
@@ -1519,9 +1660,8 @@ void setup( int argc, char** argv )
    ////////////////
 
    const std::string equation                        = mainConf.getParameter< std::string >( "equation" );
-   const uint_t      dim                             = mainConf.getParameter< uint_t >( "dim" );
    const uint_t      numProcesses                    = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
-   const uint_t      numFacesPerSide                 = mainConf.getParameter< uint_t >( "numFacesPerSide" );
+   const uint_t      numEdgesPerSide                 = mainConf.getParameter< uint_t >( "numEdgesPerSide" );
    const std::string discretization                  = mainConf.getParameter< std::string >( "discretization" );
    const uint_t      numCycles                       = mainConf.getParameter< uint_t >( "numCycles" );
    const std::string cycleTypeString                 = mainConf.getParameter< std::string >( "cycleType" );
@@ -1548,6 +1688,9 @@ void setup( int argc, char** argv )
    const uint_t      coarseGridSolverType            = mainConf.getParameter< uint_t >( "coarseGridSolverType" );
    const uint_t      coarseGridSolverVelocityPreconditionerType =
        mainConf.getParameter< uint_t >( "coarseGridSolverVelocityPreconditionerType" );
+   const bool   blockLowRank          = mainConf.getParameter< bool >( "blockLowRank" );
+   const real_t blockLowRankTolerance = mainConf.getParameter< real_t >( "blockLowRankTolerance" );
+
    const bool        agglomeration             = mainConf.getParameter< bool >( "agglomeration" );
    const std::string agglomerationStrategy     = mainConf.getParameter< std::string >( "agglomerationStrategy" );
    const uint_t      agglomerationNumProcesses = mainConf.getParameter< uint_t >( "agglomerationNumProcesses" );
@@ -1565,18 +1708,25 @@ void setup( int argc, char** argv )
    const std::string outputSQLFile            = mainConf.getParameter< std::string >( "outputSQLFile" );
    const std::string sqlTag                   = mainConf.getParameter< std::string >( "sqlTag", "default" );
    const uint_t      skipCyclesForAvgConvRate = mainConf.getParameter< uint_t >( "skipCyclesForAvgConvRate" );
+   const std::string meshTypeString           = mainConf.getParameter< std::string >( "meshType" );
    const std::string meshLayout               = mainConf.getParameter< std::string >( "meshLayout" );
-   const bool        symmetricCuboidMesh      = mainConf.getParameter< bool >( "symmetricCuboidMesh" );
    const uint_t      cyclesBeforeDC           = mainConf.getParameter< uint_t >( "cyclesBeforeDC" );
    const uint_t      postDCPreSmoothingSteps  = mainConf.getParameter< uint_t >( "postDCPreSmoothingSteps" );
    const uint_t      postDCPostSmoothingSteps = mainConf.getParameter< uint_t >( "postDCPostSmoothingSteps" );
    const uint_t      postDCSmoothingIncrement = mainConf.getParameter< uint_t >( "postDCSmoothingIncrement" );
 
-   const bool   meshSphericalShell = mainConf.getParameter< bool >( "meshSphericalShell" );
-   const uint_t shellNTan          = mainConf.getParameter< uint_t >( "shellNTan" );
-   const uint_t shellNRad          = mainConf.getParameter< uint_t >( "shellNRad" );
-   const real_t shellRMin          = mainConf.getParameter< real_t >( "shellRMin" );
-   const real_t shellRMax          = mainConf.getParameter< real_t >( "shellRMax" );
+   const uint_t shellNTan = mainConf.getParameter< uint_t >( "shellNTan" );
+   const uint_t shellNRad = mainConf.getParameter< uint_t >( "shellNRad" );
+   const real_t shellRMin = mainConf.getParameter< real_t >( "shellRMin" );
+   const real_t shellRMax = mainConf.getParameter< real_t >( "shellRMax" );
+
+   const uint_t tDomainDiameter     = mainConf.getParameter< uint_t >( "tDomainDiameter" );
+   const uint_t tDomainHeight       = mainConf.getParameter< uint_t >( "tDomainHeight" );
+   const uint_t tDomainWidth        = mainConf.getParameter< uint_t >( "tDomainWidth" );
+   const uint_t tDomainNumJunctions = mainConf.getParameter< uint_t >( "tDomainNumJunctions" );
+
+   const uint_t snakeNumRows   = mainConf.getParameter< uint_t >( "snakeNumRows" );
+   const uint_t snakeRowLength = mainConf.getParameter< uint_t >( "snakeRowLength" );
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    PETScManager petscManager( &argc, &argv );
@@ -1590,6 +1740,9 @@ void setup( int argc, char** argv )
    WALBERLA_CHECK( cycleTypeString == "V" || cycleTypeString == "W" );
 
    const CycleType cycleType = ( cycleTypeString == "V" ? CycleType::VCYCLE : CycleType::WCYCLE );
+
+   WALBERLA_CHECK_GREATER( meshTypeStrings.count( meshTypeString ), 0, "Invalid mesh type" );
+   const MeshType meshType = meshTypeStrings.at( meshTypeString );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Parameters:" );
    WALBERLA_LOG_INFO_ON_ROOT( "  - equation:                                " << equation );
@@ -1627,6 +1780,8 @@ void setup( int argc, char** argv )
 
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid solver type (stokes only):   " << coarseGridSolverType );
    WALBERLA_LOG_INFO_ON_ROOT( "  - coarse grid u prec. type (stokes only):  " << coarseGridSolverVelocityPreconditionerType );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - BLR:                                     " << ( blockLowRank ? "enabled" : "disabled" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "  - BLR tolerance:                           " << blockLowRankTolerance );
    WALBERLA_LOG_INFO_ON_ROOT( "  - agglomeration:                           " << ( agglomeration ? "yes" : "no" ) );
    if ( agglomeration )
    {
@@ -1645,21 +1800,33 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "  - output SQL file:                         " << outputSQLFile );
    WALBERLA_LOG_INFO_ON_ROOT( "  - SQL tag:                                 " << sqlTag );
    WALBERLA_LOG_INFO_ON_ROOT( "  - skip cycles for avg conv rate:           " << skipCyclesForAvgConvRate );
-   if ( meshSphericalShell )
+   WALBERLA_LOG_INFO_ON_ROOT( "  - mesh type:                               " << meshTypeString );
+   if ( meshType == MeshType::CUBE || meshType == MeshType::SYMMETRIC_CUBE || meshType == MeshType::SQUARE )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "  - sphericalShell:                          "
-                                 << "yes" );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - num edges per side:                      " << numEdgesPerSide );
+      if ( meshType == MeshType::SQUARE )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "  - mesh layout:                             " << meshLayout );
+      }
+   }
+   else if ( meshType == MeshType::SPHERICAL_SHELL )
+   {
       WALBERLA_LOG_INFO_ON_ROOT( "  - nTan:                                    " << shellNTan );
       WALBERLA_LOG_INFO_ON_ROOT( "  - nRad:                                    " << shellNRad );
       WALBERLA_LOG_INFO_ON_ROOT( "  - rMin:                                    " << shellRMin );
       WALBERLA_LOG_INFO_ON_ROOT( "  - rMax:                                    " << shellRMax );
    }
-   else
+   else if ( meshType == MeshType::T_DOMAIN )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "  - dim:                                     " << dim );
-      WALBERLA_LOG_INFO_ON_ROOT( "  - num faces per side:                      " << numFacesPerSide );
-      WALBERLA_LOG_INFO_ON_ROOT( "  - mesh layout:                             " << meshLayout );
-      WALBERLA_LOG_INFO_ON_ROOT( "  - symmetric cuboid mesh:                   " << symmetricCuboidMesh );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - T-domain diameter:                       " << tDomainDiameter );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - T-domain height:                         " << tDomainHeight );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - T-domain width:                          " << tDomainWidth );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - T-domain num junctions:                  " << tDomainNumJunctions );
+   }
+   else if ( meshType == MeshType::SNAKE )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "  - snake-domain num rows:                   " << snakeNumRows );
+      WALBERLA_LOG_INFO_ON_ROOT( "  - snake-domain row length:                 " << snakeRowLength );
    }
    WALBERLA_LOG_INFO_ON_ROOT( "  - cycles before DC:                        "
                               << ( discretization == "P1" ? std::to_string( cyclesBeforeDC ) : "disabled" ) );
@@ -1684,8 +1851,7 @@ void setup( int argc, char** argv )
 
    sqlStringProperties["git_hash"]                     = gitSHA1();
    sqlIntegerProperties["num_processes"]               = int64_c( numProcesses );
-   sqlIntegerProperties["dim"]                         = int64_c( dim );
-   sqlIntegerProperties["num_faces_per_side"]          = int64_c( numFacesPerSide );
+   sqlIntegerProperties["num_faces_per_side"]          = int64_c( numEdgesPerSide );
    sqlStringProperties["discretization"]               = discretization;
    sqlIntegerProperties["num_cycles"]                  = int64_c( numCycles );
    sqlStringProperties["cycle_type"]                   = cycleTypeString;
@@ -1723,8 +1889,11 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "Setting up domain ..." );
    timer.reset();
 
+   bool projectPressure = true;
+
    Point2D leftBottom( {0, 0} );
    Point3D leftBottom3D( {0, 0, 0} );
+
    if ( equation == "stokes" && ( NEUMANN_PROBLEM || COLLIDING_FLOW ) )
    {
       leftBottom   = Point2D( {-1, -1} );
@@ -1732,113 +1901,352 @@ void setup( int argc, char** argv )
    }
 
    std::shared_ptr< PrimitiveStorage > storage;
+
+   std::function< real_t( const hyteg::Point3D& ) > exactU;
+   std::function< real_t( const hyteg::Point3D& ) > exactV;
+   std::function< real_t( const hyteg::Point3D& ) > exactW;
+   std::function< real_t( const hyteg::Point3D& ) > exactP;
+
+   std::function< real_t( const hyteg::Point3D& ) > rhsU;
+   std::function< real_t( const hyteg::Point3D& ) > rhsV;
+   std::function< real_t( const hyteg::Point3D& ) > rhsW;
+
+   if ( meshType == MeshType::SPHERICAL_SHELL )
    {
-      if ( meshSphericalShell )
+      auto meshInfo = MeshInfo::meshSphericalShell( shellNTan, shellNRad, shellRMin, shellRMax );
+
+      SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+
+      storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+      sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
+      sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
+      sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
+      sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
+
+      exactU = shellExactU;
+      exactV = shellExactV;
+      exactW = shellExactW;
+
+      exactP = shellExactP;
+
+      rhsU = shellRhsU;
+      rhsV = shellRhsV;
+      rhsW = shellRhsW;
+   }
+   else if ( meshType == MeshType::T_DOMAIN )
+   {
+      projectPressure = false;
+
+      std::set< std::array< int, 3 > > cubes;
+
+      WALBERLA_CHECK_EQUAL( tDomainNumJunctions, 1, "Outflow boundaries are not yet specified correctly for multiple junctions" );
+      WALBERLA_CHECK_GREATER( tDomainDiameter, 0 )
+
+      // height
+      for ( int h = 0; h < int_c( tDomainHeight ); h++ )
       {
-         auto meshInfo = MeshInfo::meshSphericalShell( shellNTan, shellNRad, shellRMin, shellRMax );
-
-         SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
-         setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-
-         storage = std::make_shared< PrimitiveStorage >( setupStorage );
-
-         sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
-         sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
-         sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
-         sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
-
-         exactU = shellExactU;
-         exactV = shellExactV;
-         exactW = shellExactW;
-
-         exactP = shellExactP;
-
-         bcU = shellExactU;
-         bcV = shellExactV;
-         bcW = shellExactW;
-
-         rhsU = shellRhsU;
-         rhsV = shellRhsV;
-         rhsW = shellRhsW;
-      }
-      else
-      {
-         MeshInfo::meshFlavour meshFlavour;
-         if ( meshLayout == "CRISS" )
-            meshFlavour = MeshInfo::CRISS;
-         else if ( meshLayout == "CRISSCROSS" )
-            meshFlavour = MeshInfo::CRISSCROSS;
-         else
-            WALBERLA_ABORT( "Invalid mesh layout." );
-
-         auto meshInfo = MeshInfo::meshRectangle( leftBottom, Point2D( {1, 1} ), meshFlavour, numFacesPerSide, numFacesPerSide );
-         if ( dim == 3 )
+         for ( int j = 0; j < int_c( tDomainDiameter ); j++ )
          {
-            if ( symmetricCuboidMesh )
+            for ( int k = 0; k < int_c( tDomainDiameter ); k++ )
             {
-               meshInfo = MeshInfo::meshSymmetricCuboid(
-                   leftBottom3D, Point3D( {1, 1, 1} ), numFacesPerSide, numFacesPerSide, numFacesPerSide );
+               cubes.insert( {h, j, k} );
             }
-            else
-            {
-               meshInfo =
-                   MeshInfo::meshCuboid( leftBottom3D, Point3D( {1, 1, 1} ), numFacesPerSide, numFacesPerSide, numFacesPerSide );
-            }
-            exactU = shellExactU;
-            exactV = shellExactV;
-            exactW = shellExactW;
-
-            exactP = shellExactP;
-
-            bcU = shellExactU;
-            bcV = shellExactV;
-            bcW = shellExactW;
-
-            rhsU = shellRhsU;
-            rhsV = shellRhsV;
-            rhsW = shellRhsW;
          }
-         SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
-         setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+      }
+
+      const auto segmentLength = int_c( tDomainHeight / tDomainNumJunctions );
+
+      for ( int junc = 0; junc < int_c( tDomainNumJunctions ); junc++ )
+      {
+         const auto juncBaseX = int_c( tDomainHeight ) - junc * segmentLength - int_c( tDomainDiameter );
+
+         // width
+         for ( int w = 0; w < int_c( tDomainWidth ); w++ )
+         {
+            for ( int i = 0; i < int_c( tDomainDiameter ); i++ )
+            {
+               for ( int k = 0; k < int_c( tDomainDiameter ); k++ )
+               {
+                  cubes.insert( {juncBaseX + i, -( w + 1 ), k} );
+                  cubes.insert( {juncBaseX + i, w + int_c( tDomainDiameter ), k} );
+               }
+            }
+         }
+      }
+
+      auto meshInfo = MeshInfo::meshCubedDomain( cubes, 1 );
+
+      SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+
+      const auto eps = 1e-3;
+
+      auto outFlow1 = [eps, tDomainDiameter, tDomainWidth]( const Point3D& p ) {
+         return std::abs( p[1] - real_c( tDomainDiameter + tDomainWidth ) ) < eps;
+      };
+
+      auto outFlow2 = [eps, tDomainWidth]( const Point3D& p ) { return std::abs( p[1] + real_c( tDomainWidth ) ) < eps; };
+
+      auto surroundingEdgesTop = [eps, tDomainDiameter]( const Point3D& p ) {
+         return std::abs( p[2] - real_c( tDomainDiameter ) ) < eps;
+      };
+
+      auto surroundingEdgesBottom = []( const Point3D& p ) { return std::abs( p[2] ) < 1e-8; };
+
+      auto surroundingEdgesFar = [eps, tDomainHeight]( const Point3D& p ) {
+         return std::abs( p[0] - real_c( tDomainHeight ) ) < eps;
+      };
+
+      auto surroundingEdgesNear = [eps, tDomainDiameter, tDomainHeight, tDomainWidth]( const Point3D& p ) {
+         return std::abs( p[0] - real_c( tDomainHeight - tDomainDiameter ) ) < eps &&
+                ( std::abs( p[1] - real_c( tDomainDiameter + tDomainWidth ) ) < eps ||
+                  std::abs( p[1] + real_c( tDomainWidth ) ) < eps );
+      };
+
+      auto inflowBC = [eps, tDomainDiameter]( const hyteg::Point3D& p ) {
+         if ( std::abs( p[0] ) < eps )
+         {
+            const Point3D center( {0, 0.5 * real_c( tDomainDiameter ), 0.5 * real_c( tDomainDiameter )} );
+            const auto    radius  = 0.5 * real_c( tDomainDiameter );
+            const auto    shifted = ( p - center ) / radius;
+#if 0
+            return ( 1 - ( shifted[1] * shifted[1] ) ) * ( 1 - ( shifted[2] * shifted[2] ) );
+#else
+            return ( 1 - std::sin( 0.5 * pi * shifted[1] * shifted[1] ) ) *
+                   ( 1 - std::sin( 0.5 * pi * shifted[2] * shifted[2] ) );
+#endif
+         }
+         else
+         {
+            return 0.0;
+         }
+      };
+
+      setupStorage.setMeshBoundaryFlagsByVertexLocation( 2, outFlow1, true );
+      setupStorage.setMeshBoundaryFlagsByVertexLocation( 2, outFlow2, true );
+      // vertices shall not have outflow condition
+      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesBottom, true );
+      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesTop, true );
+      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesFar, true );
+      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesNear, true );
+
+#if 0
+      // test
+      setupStorage.setMeshBoundaryFlagsByVertexLocation( 2, surroundingEdgesFar, true );
+//      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, outFlow1, true );
+//      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, outFlow2, true );
+//      // vertices shall not have outflow condition
+//      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesBottom, true );
+//      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surroundingEdgesTop, true );
+      // test end
+#endif
+      const auto zero = []( const Point3D& ) { return 0; };
+
+      exactU = inflowBC;
+      exactV = zero;
+      exactW = zero;
+      exactP = zero;
+
+      rhsU = zero;
+      rhsV = zero;
+      rhsW = zero;
+
+      storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+      sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
+      sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
+      sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
+      sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
+   }
+   else if ( meshType == MeshType::SNAKE )
+   {
+      WALBERLA_CHECK_EQUAL( snakeNumRows % 2, 0, "Snake-domain must have even number of rows" );
+      projectPressure = false;
+
+      std::set< std::array< int, 3 > > cubes;
+
+      for ( int row = 0; row < int_c( snakeNumRows ); row++ )
+      {
+         for ( int col = 0; col < int_c( snakeRowLength ); col++ )
+         {
+            cubes.insert( {col, 2 * row, 0} );
+         }
+      }
+
+      for ( int row = 0; row < int_c( snakeNumRows - 1 ); row++ )
+      {
+         if ( row % 2 == 0 )
+         {
+            cubes.insert( {int_c( snakeRowLength ) - 1, 2 * row + 1, 0} );
+         }
+         else
+         {
+            cubes.insert( {0, 2 * row + 1, 0} );
+         }
+      }
+
+      const auto eps = 1e-3;
+
+      auto inflowBC = [eps]( const hyteg::Point3D& p ) {
+         if ( std::abs( p[0] ) < eps && p[1] > -eps && p[1] < 1 + eps )
+         {
+            const Point3D center( {0, 0.5, 0.5} );
+            const auto    radius  = 0.5;
+            const auto    shifted = ( p - center ) / radius;
+#if 0
+           return ( 1 - ( shifted[1] * shifted[1] ) ) * ( 1 - ( shifted[2] * shifted[2] ) );
+#else
+            return ( 1 - std::sin( 0.5 * pi * shifted[1] * shifted[1] ) ) *
+                   ( 1 - std::sin( 0.5 * pi * shifted[2] * shifted[2] ) );
+#endif
+         }
+         else
+         {
+            return 0.0;
+         }
+      };
+
+      auto outFlow = [eps, snakeNumRows]( const Point3D& p ) {
+         return std::abs( p[0] ) < eps && p[1] > 2 * real_c( snakeNumRows - 1 ) - eps;
+      };
+
+      auto meshInfo = MeshInfo::meshCubedDomain( cubes, 1 );
+
+      SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+      setupStorage.setMeshBoundaryFlagsByVertexLocation( 2, outFlow, true );
+
+      const auto zero = []( const Point3D& ) { return 0; };
+
+      exactU = inflowBC;
+      exactV = zero;
+      exactW = zero;
+      exactP = zero;
+
+      rhsU = zero;
+      rhsV = zero;
+      rhsW = zero;
+
+      storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+      sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
+      sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
+      sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
+      sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
+   }
+   else if ( meshType == MeshType::CUBE )
+   {
+      exactU = shellExactU;
+      exactV = shellExactV;
+      exactW = shellExactW;
+
+      exactP = shellExactP;
+
+      rhsU = shellRhsU;
+      rhsV = shellRhsV;
+      rhsW = shellRhsW;
+
+      auto meshInfo =
+          MeshInfo::meshCuboid( leftBottom3D, Point3D( {1, 1, 1} ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
+
+      SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+
+      storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+      sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
+      sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
+      sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
+      sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
+   }
+   else if ( meshType == MeshType::SYMMETRIC_CUBE )
+   {
+      exactU = shellExactU;
+      exactV = shellExactV;
+      exactW = shellExactW;
+
+      exactP = shellExactP;
+
+      rhsU = shellRhsU;
+      rhsV = shellRhsV;
+      rhsW = shellRhsW;
+
+      auto meshInfo =
+          MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( {1, 1, 1} ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
+
+      SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+
+      storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+      sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
+      sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
+      sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
+      sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
+
+#if CONSTANTA_POISSON
+      exact = exactConstanta3D;
+      rhs   = rhsConstanta3D;
+#endif
+   }
+   else if ( meshType == MeshType::SQUARE )
+   {
+      exactU = plumeExactU;
+      exactV = plumeExactV;
+      exactW = plumeExactW;
+
+      exactP = plumeExactP;
+
+      rhsU = plumeRhsU;
+      rhsV = plumeRhsV;
+      rhsW = plumeRhsW;
+
+      MeshInfo::meshFlavour meshFlavour;
+      if ( meshLayout == "CRISS" )
+         meshFlavour = MeshInfo::CRISS;
+      else if ( meshLayout == "CRISSCROSS" )
+         meshFlavour = MeshInfo::CRISSCROSS;
+      else
+         WALBERLA_ABORT( "Invalid mesh layout." );
+
+      auto meshInfo = MeshInfo::meshRectangle( leftBottom, Point2D( {1, 1} ), meshFlavour, numEdgesPerSide, numEdgesPerSide );
+
+      SetupPrimitiveStorage setupStorage( meshInfo, numProcesses );
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
 #if NEUMANN_PROBLEM
-         auto topBoundary = []( const Point3D& x ) {
-            const real_t eps = 1e-8;
-            return std::abs( x[1] - 1 ) < eps;
-         };
-         auto bottomBoundary = []( const Point3D& x ) {
-            const real_t eps = 1e-8;
-            return std::abs( x[1] + 1 ) < eps;
-         };
-         auto leftBoundary = []( const Point3D& x ) {
-            const real_t eps = 1e-8;
-            return std::abs( x[0] + 1 ) < eps;
-         };
-         setupStorage.setMeshBoundaryFlagsOnBoundary( 2, 0, true );
-         setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, topBoundary, true );
-         setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, bottomBoundary, true );
-         setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, leftBoundary, true );
+      projectPressure = true;
+
+      auto topBoundary = []( const Point3D& x ) {
+         const real_t eps = 1e-8;
+         return std::abs( x[1] - 1 ) < eps;
+      };
+      auto bottomBoundary = []( const Point3D& x ) {
+         const real_t eps = 1e-8;
+         return std::abs( x[1] + 1 ) < eps;
+      };
+      auto leftBoundary = []( const Point3D& x ) {
+         const real_t eps = 1e-8;
+         return std::abs( x[0] + 1 ) < eps;
+      };
+      setupStorage.setMeshBoundaryFlagsOnBoundary( 2, 0, true );
+      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, topBoundary, true );
+      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, bottomBoundary, true );
+      setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, leftBoundary, true );
 #endif
 
 #if CONSTANTA_POISSON
-         if ( dim == 2 )
-         {
-            exact = exactConstanta2D;
-            rhs   = rhsConstanta2D;
-         }
-         else
-         {
-            exact = exactConstanta3D;
-            rhs   = rhsConstanta3D;
-         }
+      exact = exactConstanta2D;
+      rhs   = rhsConstanta2D;
 #endif
-         storage = std::make_shared< PrimitiveStorage >( setupStorage );
+      storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-         sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
-         sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
-         sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
-         sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
-      }
+      sqlIntegerProperties["num_macro_vertices"] = int64_c( setupStorage.getNumberOfVertices() );
+      sqlIntegerProperties["num_macro_edges"]    = int64_c( setupStorage.getNumberOfEdges() );
+      sqlIntegerProperties["num_macro_faces"]    = int64_c( setupStorage.getNumberOfFaces() );
+      sqlIntegerProperties["num_macro_cells"]    = int64_c( setupStorage.getNumberOfCells() );
    }
 
    timer.end();
@@ -1923,6 +2331,13 @@ void setup( int argc, char** argv )
                           P1P1StokesToP1P1StokesProlongation >( storage,
                                                                 minLevel,
                                                                 maxLevel,
+                                                                exactU,
+                                                                exactV,
+                                                                exactW,
+                                                                exactP,
+                                                                rhsU,
+                                                                rhsV,
+                                                                rhsW,
                                                                 numCycles,
                                                                 cycleType,
                                                                 fmgInnerCycles,
@@ -1938,11 +2353,14 @@ void setup( int argc, char** argv )
                                                                 preSmoothingSteps,
                                                                 postSmoothingSteps,
                                                                 smoothingIncrement,
+                                                                projectPressure,
                                                                 projectPressureAfterRestriction,
                                                                 coarseGridMaxIterations,
                                                                 coarseGridResidualTolerance,
                                                                 coarseGridSolverType,
                                                                 coarseGridSolverVelocityPreconditionerType,
+                                                                blockLowRank,
+                                                                blockLowRankTolerance,
                                                                 agglomeration,
                                                                 agglomerationStrategy,
                                                                 agglomerationNumProcesses,
@@ -1971,6 +2389,13 @@ void setup( int argc, char** argv )
                           P2P1StokesToP2P1StokesProlongation >( storage,
                                                                 minLevel,
                                                                 maxLevel,
+                                                                exactU,
+                                                                exactV,
+                                                                exactW,
+                                                                exactP,
+                                                                rhsU,
+                                                                rhsV,
+                                                                rhsW,
                                                                 numCycles,
                                                                 cycleType,
                                                                 fmgInnerCycles,
@@ -1986,11 +2411,14 @@ void setup( int argc, char** argv )
                                                                 preSmoothingSteps,
                                                                 postSmoothingSteps,
                                                                 smoothingIncrement,
+                                                                projectPressure,
                                                                 projectPressureAfterRestriction,
                                                                 coarseGridMaxIterations,
                                                                 coarseGridResidualTolerance,
                                                                 coarseGridSolverType,
                                                                 coarseGridSolverVelocityPreconditionerType,
+                                                                blockLowRank,
+                                                                blockLowRankTolerance,
                                                                 agglomeration,
                                                                 agglomerationStrategy,
                                                                 agglomerationNumProcesses,

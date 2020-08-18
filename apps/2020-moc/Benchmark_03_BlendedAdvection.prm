@@ -13,5 +13,6 @@ Parameters
   vtk true;
   printInterval 1;
   vtkInterval 1;
+  dbFile Benchmark_03_BlendedAdvection.db;
 
 }

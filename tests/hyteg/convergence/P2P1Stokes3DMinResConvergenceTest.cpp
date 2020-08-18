@@ -114,19 +114,19 @@ void stokesMinResConvergenceTest()
    hyteg::P2P1TaylorHoodFunction< real_t > err( "err", storage, minLevel, maxLevel );
    hyteg::P2P1TaylorHoodFunction< real_t > Lu( "Lu", storage, minLevel, maxLevel );
 
-   hyteg::VTKOutput vtkOutput( "../../output", "P2P1_Stokes_3D_MinRes_convergence", storage );
-   vtkOutput.add( u.u );
-   vtkOutput.add( u.v );
-   // vtkOutput.add( u.w );
-   vtkOutput.add( u.p );
-   vtkOutput.add( uExact.u );
-   vtkOutput.add( uExact.v );
-   // vtkOutput.add( uExact.w );
-   vtkOutput.add( uExact.p );
-   vtkOutput.add( err.u );
-   vtkOutput.add( err.v );
-   // vtkOutput.add( err.w );
-   vtkOutput.add( err.p );
+//   hyteg::VTKOutput vtkOutput( "../../output", "P2P1_Stokes_3D_MinRes_convergence", storage );
+//   vtkOutput.add( u.u );
+//   vtkOutput.add( u.v );
+//   // vtkOutput.add( u.w );
+//   vtkOutput.add( u.p );
+//   vtkOutput.add( uExact.u );
+//   vtkOutput.add( uExact.v );
+//   // vtkOutput.add( uExact.w );
+//   vtkOutput.add( uExact.p );
+//   vtkOutput.add( err.u );
+//   vtkOutput.add( err.v );
+//   // vtkOutput.add( err.w );
+//   vtkOutput.add( err.p );
 
    P2P1StokesOperator L( storage, minLevel, maxLevel );
 
@@ -172,7 +172,7 @@ void stokesMinResConvergenceTest()
    uExact.p.interpolate( collidingFlow_p, maxLevel );
 #endif
 
-   vtkOutput.write( maxLevel, 0 );
+//   vtkOutput.write( maxLevel, 0 );
 
    typedef hyteg::StokesPressureBlockPreconditioner< P2P1StokesOperator, hyteg::P1LumpedInvMassOperator >
         PressurePreconditioner_T;
@@ -203,7 +203,7 @@ void stokesMinResConvergenceTest()
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_1_p );
    WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
 
-   vtkOutput.write( maxLevel, 1 );
+//   vtkOutput.write( maxLevel, 1 );
 
    auto tt        = storage->getTimingTree();
    auto ttreduced = tt->getReduced().getCopyWithRemainder();

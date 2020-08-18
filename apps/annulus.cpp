@@ -147,8 +147,9 @@ void solveProblem( std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t l
 
 int main( int argc, char* argv[] )
 {
+#ifndef __APPLE__
    feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
-
+#endif
    // -------
    //  Setup
    // -------

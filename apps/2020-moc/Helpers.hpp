@@ -27,6 +27,7 @@
 #include "core/DataTypes.h"
 #include "core/config/Config.h"
 #include "core/mpi/MPIManager.h"
+#include "sqlite/SQLite.h"
 
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/MeshQuality.hpp"
@@ -45,6 +46,7 @@
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -80,13 +82,13 @@ inline real_t normL2( const P2Function< real_t >& u,
 
 /// Calculates and returns difference in point-wise max peaks:
 ///
-///    | maxMagnitudePeakU / maxMagnitudePeakUSolution - 1 |
+///     (maxU / maxUSolution) - 1
 ///
 inline real_t maxPeakDifference( const P2Function< real_t >& u, const P2Function< real_t >& uSolution, uint_t level, DoFType flag )
 {
-   const real_t maxTempApproximate = u.getMaxMagnitude( level, flag );
-   const real_t maxTempAnalytical  = uSolution.getMaxMagnitude( level, flag );
-   const real_t peakError          = std::abs( maxTempApproximate / maxTempAnalytical - 1 );
+   const real_t maxTempApproximate = u.getMaxValue( level, flag );
+   const real_t maxTempAnalytical  = uSolution.getMaxValue( level, flag );
+   const real_t peakError          = maxTempApproximate / maxTempAnalytical - 1;
    return peakError;
 }
 
@@ -156,13 +158,16 @@ void solve( const MeshInfo&         meshInfo,
             DiffusionTimeIntegrator diffusionTimeIntegrator,
             bool                    enableDiffusion,
             bool                    resetParticles,
+            uint_t                  resetParticlesInterval,
             bool                    adjustedAdvection,
             uint_t                  numTimeSteps,
             bool                    vtk,
             bool                    vtkOutputVelocity,
             const std::string&      benchmarkName,
             uint_t                  printInterval,
-            uint_t                  vtkInterval );
+            uint_t                  vtkInterval,
+            bool                    verbose,
+            std::string             dbFile );
 
 
 } // namespace moc_benchmarks

@@ -43,22 +43,24 @@ using walberla::math::pi;
 namespace hyteg {
 namespace moc_benchmarks {
 
+const real_t INITIAL_DIFFUSIVITY_TIME_PRODUCT = 1e-03 * 2 * pi;
+
 
 class TempSolution : public Solution
 {
  public:
    TempSolution( real_t diffusivity, Point3D p0, real_t t0 )
-       : Solution( t0 )
-       , diffusivity_( diffusivity )
-       , p0_( p0 )
+   : Solution( t0 )
+   , diffusivity_( diffusivity )
+   , p0_( p0 )
    {}
 
    real_t operator()( const Point3D& x ) const override
    {
-       auto x_hat    = p0_[0] * std::cos( currentTime_ ) - p0_[1] * std::sin( currentTime_ );
-       auto y_hat    = -p0_[0] * std::sin( currentTime_ ) + p0_[1] * std::cos( currentTime_ );
-//      auto x_hat    = p0_[0] + currentTime_;
-//      auto y_hat    = 0;
+      auto x_hat = p0_[0] * std::cos( currentTime_ ) - p0_[1] * std::sin( currentTime_ );
+      auto y_hat = -p0_[0] * std::sin( currentTime_ ) + p0_[1] * std::cos( currentTime_ );
+      //      auto x_hat    = p0_[0] + currentTime_;
+      //      auto y_hat    = 0;
       auto exponent = -std::pow( r( x, x_hat, y_hat ), 2 ) / ( 4.0 * diffusivity_ * currentTime_ );
       return ( 1.0 / ( 4.0 * pi * diffusivity_ * currentTime_ ) ) * std::exp( exponent );
    }
@@ -66,14 +68,13 @@ class TempSolution : public Solution
  private:
    real_t r( const Point3D& p, const real_t& x_hat, const real_t& y_hat ) const
    {
-      return std::sqrt( std::pow( p[0] - x_hat, 2 ) + std::pow( p[1] - y_hat, 2 ) );
+      return std::sqrt( std::pow( p[0] - x_hat, 2 ) + std::pow( p[1] - y_hat, 2 ) + std::pow( p[2], 2 ) );
    }
 
  private:
    real_t  diffusivity_;
    Point3D p0_;
 };
-
 
 class VelocitySolutionX : public Solution
 {
@@ -112,23 +113,35 @@ void benchmark( int argc, char** argv )
 
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
-   const uint_t numTimeSteps       = mainConf.getParameter< uint_t >( "numTimeSteps" );
-   const uint_t level              = mainConf.getParameter< uint_t >( "level" );
-   const real_t diffusivity              = mainConf.getParameter< real_t >( "diffusivity" );
-   const bool   adjustedAdvection  = mainConf.getParameter< bool >( "adjustedAdvection" );
-   const uint_t printInterval      = mainConf.getParameter< uint_t >( "printInterval" );
-   const bool   vtk                = mainConf.getParameter< bool >( "vtk" );
-   const uint_t vtkInterval        = mainConf.getParameter< uint_t >( "vtkInterval" );
+   const uint_t      numTimeSteps      = mainConf.getParameter< uint_t >( "numTimeSteps" );
+   const bool        threeDim          = mainConf.getParameter< bool >( "threeDim" );
+   const uint_t      level             = mainConf.getParameter< uint_t >( "level" );
+   const real_t      diffusivity       = mainConf.getParameter< real_t >( "diffusivity" );
+   const bool        rotationOnly      = mainConf.getParameter< bool >( "rotationOnly" );
+   const bool        resetParticles    = mainConf.getParameter< bool >( "resetParticles" );
+   const bool        adjustedAdvection = mainConf.getParameter< bool >( "adjustedAdvection" );
+   const uint_t      printInterval     = mainConf.getParameter< uint_t >( "printInterval" );
+   const bool        vtk               = mainConf.getParameter< bool >( "vtk" );
+   const uint_t      vtkInterval       = mainConf.getParameter< uint_t >( "vtkInterval" );
+   const bool        verbose           = mainConf.getParameter< bool >( "verbose" );
+   const std::string dbFile            = mainConf.getParameter< std::string >( "dbFile" );
 
+   MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
+   if ( threeDim )
+   {
+      meshInfo = MeshInfo::meshSphericalShell( 3, 3, 0.5, 1.5 );
+   }
+   else
+   {
+      meshInfo = MeshInfo::meshAnnulus( 0.5, 1.5, MeshInfo::CROSS, 6, 2 );
+   }
 
-   MeshInfo meshInfo = MeshInfo::meshAnnulus( 0.5, 1.5, MeshInfo::CROSS, 6, 2 );
+   const Point3D p0( {0, 1, 0} );
 
-   const Point3D p0( { 0, 1, 0 } );
+   const real_t tStart = INITIAL_DIFFUSIVITY_TIME_PRODUCT / diffusivity;
+   const real_t tEnd   = tStart + 2.0 * pi;
 
-   const real_t tStart = 0.5 * pi;
-   const real_t tEnd = 2.5 * pi;
-
-   const real_t dt   = (tEnd - tStart) / real_c( numTimeSteps );
+   const real_t dt = ( tEnd - tStart ) / real_c( numTimeSteps );
 
    TempSolution      cSolution( diffusivity, p0, tStart );
    VelocitySolutionX uSolution;
@@ -145,15 +158,18 @@ void benchmark( int argc, char** argv )
           diffusivity,
           level,
           DiffusionTimeIntegrator::ImplicitEuler,
-          true,
-          true,
+          !rotationOnly,
+          !rotationOnly || resetParticles,
+          1,
           adjustedAdvection,
           numTimeSteps,
           vtk,
           true,
           "Benchmark_04_BlendedAdvectionDiffusion",
           printInterval,
-          vtkInterval );
+          vtkInterval,
+          verbose,
+          dbFile );
 }
 } // namespace moc_benchmarks
 } // namespace hyteg

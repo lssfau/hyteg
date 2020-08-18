@@ -18,7 +18,9 @@ def main(datafile, perfgroup, minLevel, maxLevel):
             region = 'walberla'
             likwidRegions[region] = {}
             for l in lines:
-                if (l[0] == 'TABLE'):
+                if not l:
+                    continue
+                if l[0] == 'TABLE':
                     region = l[1]
                     likwidRegions[region] = {}
                 else:

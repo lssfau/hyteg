@@ -736,10 +736,16 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
 {
    communication::syncFunctionBetweenPrimitives( cOld, level );
 
+   // limiting temperature evaluation
+   const auto minTempCOld = cOld.getMinValue( level );
+   const auto maxTempCOld = cOld.getMaxValue( level );
+
    // evaluate temperature at final position
    for ( auto p : particleStorage )
    {
-      const auto finalTemperature = evaluateAtParticlePosition( storage, cOld, p, level );
+      auto finalTemperature = evaluateAtParticlePosition( storage, cOld, p, level );
+      finalTemperature = std::max( finalTemperature, minTempCOld );
+      finalTemperature = std::min( finalTemperature, maxTempCOld );
       p->setFinalTemperature( finalTemperature );
    }
 

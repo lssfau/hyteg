@@ -85,20 +85,20 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   x_exact.v.interpolate( exactV, level );
   x_exact.p.interpolate( exactP, level );
 
-  VTKOutput vtkOutput("../../output", "P2P2Stokes2DPetscSolve", storage);
-  vtkOutput.add( x.u );
-  vtkOutput.add( x.v );
-  vtkOutput.add( x.p );
-  vtkOutput.add( x_exact.u );
-  vtkOutput.add( x_exact.v );
-  vtkOutput.add( x_exact.p );
-  vtkOutput.add( err.u );
-  vtkOutput.add( err.v );
-  vtkOutput.add( err.p );
-  vtkOutput.add( b.u );
-  vtkOutput.add( b.v );
-  vtkOutput.add( b.p );
-  vtkOutput.write( level, 0 );
+//  VTKOutput vtkOutput("../../output", "P2P2Stokes2DPetscSolve", storage);
+//  vtkOutput.add( x.u );
+//  vtkOutput.add( x.v );
+//  vtkOutput.add( x.p );
+//  vtkOutput.add( x_exact.u );
+//  vtkOutput.add( x_exact.v );
+//  vtkOutput.add( x_exact.p );
+//  vtkOutput.add( err.u );
+//  vtkOutput.add( err.v );
+//  vtkOutput.add( err.p );
+//  vtkOutput.add( b.u );
+//  vtkOutput.add( b.v );
+//  vtkOutput.add( b.p );
+//  vtkOutput.write( level, 0 );
 
   uint_t localDoFs1 = hyteg::numberOfLocalDoFs< P2P2StokesFunctionTag >( *storage, level );
   uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< P2P2StokesFunctionTag >( *storage, level );
@@ -129,7 +129,7 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_1_p );
   WALBERLA_LOG_INFO_ON_ROOT( "residuum 1 = " << residuum_l2_1 );
 
-  vtkOutput.write( level, 1 );
+//  vtkOutput.write( level, 1 );
 
   WALBERLA_CHECK_LESS( residuum_l2_1, resEps );
   WALBERLA_CHECK_LESS( discr_l2_err_1_u + discr_l2_err_1_v, errEpsUSum );
@@ -145,7 +145,7 @@ int main( int argc, char* argv[] )
   walberla::Environment walberlaEnv( argc, argv );
   walberla::MPIManager::instance()->useWorldComm();
 
-  petscSolveTest( 5, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 6.0e-15, 0.008, 0.13 );
+  petscSolveTest( 5, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 3.0e-14, 0.008, 0.13 );
 
   return EXIT_SUCCESS;
 }

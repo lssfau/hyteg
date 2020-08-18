@@ -114,8 +114,9 @@ void logSectionHeader( const char* header )
 
 int main( int argc, char** argv )
 {
+#ifndef __APPLE__
    feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
-
+#endif
    walberla::debug::enterTestMode();
 
    walberla::mpi::Environment MPIenv( argc, argv );

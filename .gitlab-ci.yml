@@ -351,15 +351,81 @@ gcc_9_serial_dbg:
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
    variables:
       <<: *build_serial_dbg_variables
-   except:
+   only:
       variables:
-         - $DISABLE_PER_COMMIT_BUILDS
+         - $ENABLE_NIGHTLY_BUILDS
    tags:
       - docker
 
 gcc_9_mpionly_dbg:
    <<: *build_definition
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
+   variables:
+      <<: *build_mpionly_dbg_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+gcc_9_hybrid_dbg_sp:
+   <<: *build_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
+   variables:
+      <<: *build_hybrid_dbg_sp_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+gcc_9_eigen_petsc:
+   <<: *build_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
+   variables:
+      <<: *build_eigen_petsc_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+gcc_10_serial:
+   <<: *build_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:10
+   variables:
+      <<: *build_serial_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+gcc_10_mpionly:
+   <<: *build_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:10
+   variables:
+      <<: *build_mpionly_variables
+   only:
+      variables:
+         - $ENABLE_NIGHTLY_BUILDS
+   tags:
+      - docker
+
+gcc_10_serial_dbg:
+   <<: *build_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:10
+   variables:
+      <<: *build_serial_dbg_variables
+   except:
+      variables:
+         - $DISABLE_PER_COMMIT_BUILDS
+   tags:
+      - docker
+
+gcc_10_mpionly_dbg:
+   <<: *build_definition
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:10
    stage: pretest
    variables:
       <<: *build_mpionly_dbg_variables
@@ -369,9 +435,9 @@ gcc_9_mpionly_dbg:
    tags:
       - docker
 
-gcc_9_hybrid_dbg_sp:
+gcc_10_hybrid_dbg_sp:
    <<: *build_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:10
    variables:
       <<: *build_hybrid_dbg_sp_variables
    except:
@@ -380,9 +446,9 @@ gcc_9_hybrid_dbg_sp:
    tags:
       - docker
 
-gcc_9_eigen_petsc:
+gcc_10_eigen_petsc:
    <<: *build_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:10
    variables:
       <<: *build_eigen_petsc_variables
    except:
@@ -737,7 +803,7 @@ clang_10.0_eigen_petsc:
 ###############################################################################
 
 pages:
-  image: i10git.cs.fau.de:5005/walberla/buildenvs/ubuntu:18.04
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
   script:
    - export CCACHE_BASEDIR=$CI_PROJECT_DIR
    - cd $CI_PROJECT_DIR/doc
@@ -992,7 +1058,7 @@ benchmark_ClangBuildAnalyzer:
       - mkdir -p ~/.config/matplotlib
       - echo backend:Agg > ~/.config/matplotlib/matplotlibrc
       - cat $DOCKER_IMAGE_NAME.txt
-      - python3 createLevelScalingPlot.py $DOCKER_IMAGE_NAME.txt 2 15 --perfgroup "DP MFLOP/s STAT"
+      - python3 createLevelScalingPlot.py $DOCKER_IMAGE_NAME.txt 2 15 --perfgroup "DP [MFLOP/s] STAT"
    tags:
       - docker-benchmark
    variables:
@@ -1013,4 +1079,4 @@ benchmark_gcc9:
 
 benchmark_clang8:
    <<: *benchmark_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0

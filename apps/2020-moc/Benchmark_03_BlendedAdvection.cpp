@@ -44,7 +44,7 @@ namespace hyteg {
 namespace moc_benchmarks {
 
 auto r = []( const hyteg::Point3D& x, const hyteg::Point3D& x0, const real_t& r0 ) -> real_t {
-   return ( 1 / r0 ) * std::sqrt( std::pow( x[0] - x0[0], 2 ) + std::pow( x[1] - x0[1], 2 ) + std::pow( x[2] - x0[2], 2 )  );
+   return ( 1 / r0 ) * std::sqrt( std::pow( x[0] - x0[0], 2 ) + std::pow( x[1] - x0[1], 2 ) + std::pow( x[2] - x0[2], 2 ) );
 };
 
 std::function< real_t( const hyteg::Point3D& ) > conicalBody = []( const hyteg::Point3D& x ) -> real_t {
@@ -73,7 +73,6 @@ std::function< real_t( const hyteg::Point3D& ) > slottedCylinder = []( const hyt
    else
       return 0.0;
 };
-
 
 class TempSolution : public Solution
 {
@@ -119,7 +118,7 @@ class VelocitySolutionZ : public Solution
 {
  public:
    explicit VelocitySolutionZ( bool threeDim )
-       : threeDim_( threeDim )
+   : threeDim_( threeDim )
    {}
 
    /// Evaluates the solution at a specific point.
@@ -156,17 +155,19 @@ void benchmark( int argc, char** argv )
 
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
-   const uint_t numTimeSteps       = mainConf.getParameter< uint_t >( "numTimeSteps" );
-   const uint_t level              = mainConf.getParameter< uint_t >( "level" );
-   const bool   threeDim           = mainConf.getParameter< bool >( "threeDim" );
-   const bool   resetParticles     = mainConf.getParameter< bool >( "resetParticles" );
-   const bool   adjustedAdvection  = mainConf.getParameter< bool >( "adjustedAdvection" );
-   const bool   enableCylinder     = mainConf.getParameter< bool >( "enableCylinder" );
-   const bool   enableLinearCone   = mainConf.getParameter< bool >( "enableLinearCone" );
-   const bool   enableGaussianCone = mainConf.getParameter< bool >( "enableGaussianCone" );
-   const uint_t printInterval      = mainConf.getParameter< uint_t >( "printInterval" );
-   const bool   vtk                = mainConf.getParameter< bool >( "vtk" );
-   const uint_t vtkInterval        = mainConf.getParameter< uint_t >( "vtkInterval" );
+   const uint_t      numTimeSteps           = mainConf.getParameter< uint_t >( "numTimeSteps" );
+   const uint_t      level                  = mainConf.getParameter< uint_t >( "level" );
+   const bool        threeDim               = mainConf.getParameter< bool >( "threeDim" );
+   const bool        resetParticles         = mainConf.getParameter< bool >( "resetParticles" );
+   const uint_t      resetParticlesInterval = mainConf.getParameter< uint_t >( "resetParticlesInterval" );
+   const bool        adjustedAdvection      = mainConf.getParameter< bool >( "adjustedAdvection" );
+   const bool        enableCylinder         = mainConf.getParameter< bool >( "enableCylinder" );
+   const bool        enableLinearCone       = mainConf.getParameter< bool >( "enableLinearCone" );
+   const bool        enableGaussianCone     = mainConf.getParameter< bool >( "enableGaussianCone" );
+   const uint_t      printInterval          = mainConf.getParameter< uint_t >( "printInterval" );
+   const bool        vtk                    = mainConf.getParameter< bool >( "vtk" );
+   const uint_t      vtkInterval            = mainConf.getParameter< uint_t >( "vtkInterval" );
+   const std::string dbFile                 = mainConf.getParameter< std::string >( "dbFile" );
 
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
    if ( threeDim )
@@ -198,13 +199,16 @@ void benchmark( int argc, char** argv )
           DiffusionTimeIntegrator::ImplicitEuler,
           false,
           resetParticles,
+          resetParticlesInterval,
           adjustedAdvection,
           numTimeSteps,
           vtk,
           true,
           "Benchmark_03_BlendedAdvection",
           printInterval,
-          vtkInterval );
+          vtkInterval,
+          false,
+          dbFile );
 }
 } // namespace moc_benchmarks
 } // namespace hyteg
