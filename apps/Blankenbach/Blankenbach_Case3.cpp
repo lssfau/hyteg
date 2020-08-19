@@ -28,7 +28,7 @@
 
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/MeshQuality.hpp"
-#include "hyteg/composites/MMOCTransport.hpp"
+#include "hyteg/composites/StrongFreeSlipWrapper.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
@@ -39,6 +39,7 @@
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScMinResSolver.hpp"
@@ -56,6 +57,7 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
+#include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 #include "sqlite/SQLite.h"
 
 namespace hyteg {
@@ -108,10 +110,10 @@ void calculateStokesResiduals( const StokesOperator&       A,
 {
    r.interpolate( 0, level, All );
    A.apply( x, tmp, level, Inner | NeumannBoundary );
-   r.assign( {1.0, -1.0}, {b, tmp}, level, Inner | NeumannBoundary );
-   residualU = normL2( r.u, tmp.u, Mu, level, Inner | NeumannBoundary );
-   residualV = normL2( r.v, tmp.v, Mu, level, Inner | NeumannBoundary );
-   residualP = normL2( r.p, tmp.p, Mp, level, Inner | NeumannBoundary );
+   r.assign( {1.0, -1.0}, {b, tmp}, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residualU = normL2( r.u, tmp.u, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residualV = normL2( r.v, tmp.v, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residualP = normL2( r.p, tmp.p, Mp, level, Inner | NeumannBoundary | FreeslipBoundary );
 }
 
 template < typename StokesFunction >
@@ -120,8 +122,79 @@ real_t velocityRMS( const StokesFunction& u, real_t domainHeight, real_t domainW
    const auto norm = std::sqrt(
        ( u.u.dotGlobal( u.u, level, All ) + u.v.dotGlobal( u.v, level, All ) ) /
        real_c( 2 * numberOfGlobalDoFs< typename StokesFunction::VelocityFunction_T::Tag >( *u.u.getStorage(), level ) ) );
+
    const auto area = domainHeight * domainWidth;
    return norm / std::sqrt( area );
+}
+
+template < typename FunctionType >
+std::vector< real_t > evaluateHorizontalTemperatureSlice( const FunctionType& c,
+                                                          uint_t              level,
+                                                          real_t              xMin,
+                                                          real_t              xMax,
+                                                          real_t              y,
+                                                          uint_t              numSamples )
+{
+   std::vector< real_t > samples( numSamples );
+   const real_t          dx = ( xMax - xMin ) / real_c( numSamples - 1 );
+   for ( uint_t sample = 0; sample < numSamples; sample++ )
+   {
+      samples[sample] = c.evaluate( Point3D( {xMin + real_c( sample ) * dx, y, 0} ), level );
+   }
+   return samples;
+}
+
+template < typename FunctionType >
+std::vector< real_t > verticalGradientSlice( const FunctionType& c,
+                                             uint_t              level,
+                                             real_t              xMin,
+                                             real_t              xMax,
+                                             real_t              yTop,
+                                             real_t              yBottom,
+                                             uint_t              numSamples )
+{
+   const auto sliceTop    = evaluateHorizontalTemperatureSlice( c, level, xMin, xMax, yTop, numSamples );
+   const auto sliceBottom = evaluateHorizontalTemperatureSlice( c, level, xMin, xMax, yBottom, numSamples );
+
+   const real_t          hInv = 1. / ( yTop - yBottom );
+   std::vector< real_t > gradient( numSamples );
+
+   for ( uint_t sample = 0; sample < numSamples; sample++ )
+   {
+      gradient[sample] = ( sliceTop[sample] - sliceBottom[sample] ) * hInv;
+   }
+   return gradient;
+}
+
+real_t integrateSlice( const std::vector< real_t >& slice, real_t xMin, real_t xMax )
+{
+   real_t result = 0;
+   WALBERLA_CHECK_EQUAL( slice.size() % 2, 1 );
+   const auto hThird = ( ( xMax - xMin ) / real_c( slice.size() - 1 ) ) / 3.;
+   for ( uint_t x0 = 0; x0 < slice.size() - 2; x0 += 2 )
+   {
+      auto x1 = x0 + 1;
+      auto x2 = x0 + 2;
+      result += hThird * ( slice[x0] + 4.0 * slice[x1] + slice[x2] );
+   }
+   return result;
+}
+
+template < typename FunctionType >
+real_t calculateNusseltNumber( const FunctionType& c, uint_t level, real_t hGradient, real_t epsBoundary, uint_t numSamples )
+{
+   const real_t xMin            = epsBoundary;
+   const real_t xMax            = 1.5 - epsBoundary;
+   const real_t yGradientTop    = 1.0 - epsBoundary;
+   const real_t yGradientBottom = yGradientTop - hGradient;
+   const real_t yBottom         = epsBoundary;
+
+   auto gradientSlice         = verticalGradientSlice( c, level, xMin, xMax, yGradientTop, yGradientBottom, numSamples );
+   auto bottomSlice           = evaluateHorizontalTemperatureSlice( c, level, xMin, xMax, yBottom, numSamples );
+   auto gradientSliceIntegral = integrateSlice( gradientSlice, xMin, xMax );
+   auto bottomSliceIntegral   = integrateSlice( bottomSlice, xMin, xMax );
+
+   return -gradientSliceIntegral / bottomSliceIntegral;
 }
 
 std::shared_ptr< SetupPrimitiveStorage > createSetupStorage()
@@ -226,22 +299,21 @@ void runBenchmark( real_t      cflMax,
    sqlRealProperties["diffusivity"]             = diffusivity;
    sqlIntegerProperties["adjusted_advection"]   = adjustedAdvection;
 
-   typedef P2P1TaylorHoodFunction< real_t >    StokesFunction;
-   typedef P2Function< real_t >                ScalarFunction;
-   typedef P2P1TaylorHoodStokesOperator        StokesOperator;
-   typedef P2ConstantLaplaceOperator           LaplaceOperator;
-   typedef P2ConstantMassOperator              MassOperatorVelocity;
-   typedef P1ConstantMassOperator              MassOperatorPressure;
-   typedef P2ConstantUnsteadyDiffusionOperator UnsteadyDiffusionOperator;
-
-   //   BoundaryCondition bcVelocity = BoundaryCondition::create012BC();
-   //   BoundaryCondition bcTemperature = BoundaryCondition::create012BC();
+   typedef P2P1TaylorHoodFunction< real_t >                                     StokesFunction;
+   typedef P2Function< real_t >                                                 ScalarFunction;
+   typedef P2P1TaylorHoodStokesOperator                                         StokesOperator;
+   typedef P2ConstantLaplaceOperator                                            LaplaceOperator;
+   typedef P2ConstantMassOperator                                               MassOperatorVelocity;
+   typedef P1ConstantMassOperator                                               MassOperatorPressure;
+   typedef P2ConstantUnsteadyDiffusionOperator                                  UnsteadyDiffusionOperator;
+   typedef P2ProjectNormalOperator                                              ProjectNormalOperator;
+   typedef StrongFreeSlipWrapper< StokesOperator, ProjectNormalOperator, true > StokesOperatorFreeSlip;
 
    BoundaryCondition bcVelocity;
    BoundaryCondition bcTemperature;
 
    bcVelocity.createDirichletBC( "topAndBottomWalls", {1, 2} );
-   bcVelocity.createDirichletBC( "sideWalls", {3, 4} ); // TODO: change to free-slip
+   bcVelocity.createFreeslipBC( "sideWalls", {3, 4} );
 
    bcTemperature.createDirichletBC( "dirichletWall", 1 );
    bcTemperature.createNeumannBC( "neumannWalls", {2, 3, 4} );
@@ -264,18 +336,32 @@ void runBenchmark( real_t      cflMax,
    ScalarFunction uTmp2( "uTmp2", storage, level, level, bcVelocity );
 
    auto initialTemperature = []( const Point3D& x ) {
-      return 0.5 * ( 1.0 - x[1] * x[1] ) + 0.01 * std::cos( pi * x[0] / 1.5 ) * std::sin( pi * x[1] / 1.0 );
+      // return 0.5 * ( 1.0 - x[1] * x[1] ) + 0.5 * std::cos( pi * x[0] / 1.5 ) * std::sin( pi * x[1] / 1.0 );
+      return 0.1 * ( 1.0 - x[1] * x[1] ) + 0.1 * ( 1 - x[0] / 1.5 ) * ( 1.0 - x[1] * x[1] );
    };
 
-   c.interpolate( initialTemperature, level, Inner | NeumannBoundary );
+   c.interpolate( initialTemperature, level, Inner | NeumannBoundary | FreeslipBoundary );
    q.interpolate( internalHeating, level );
    upwardNormal.v.interpolate( 1, level );
 
+   auto surfaceNormalsFreeSlip = []( const Point3D& in, Point3D& out ) {
+      if ( in[0] < 0.75 )
+      {
+         out = Point3D( {-1, 0, 0} );
+      }
+      else
+      {
+         out = Point3D( {1, 0, 0} );
+      }
+   };
+
    UnsteadyDiffusionOperator diffusionOperator( storage, level, level, 1.0, diffusivity, DiffusionTimeIntegrator::ImplicitEuler );
-   StokesOperator            A( storage, level, level );
-   LaplaceOperator           L( storage, level, level );
-   MassOperatorVelocity      MVelocity( storage, level, level );
-   MassOperatorPressure      MPressure( storage, level, level );
+   auto projectNormalOperator = std::make_shared< ProjectNormalOperator >( storage, level, level, surfaceNormalsFreeSlip );
+   auto A                     = std::make_shared< StokesOperator >( storage, level, level );
+   StokesOperatorFreeSlip          AFS( A, projectNormalOperator, FreeslipBoundary );
+   LaplaceOperator                 L( storage, level, level );
+   MassOperatorVelocity            MVelocity( storage, level, level );
+   MassOperatorPressure            MPressure( storage, level, level );
    MMOCTransport< ScalarFunction > transport( storage, setupStorage, level, level, TimeSteppingScheme::RK4 );
 
 #ifndef HYTEG_BUILD_WITH_PETSC
@@ -286,14 +372,18 @@ void runBenchmark( real_t      cflMax,
        std::make_shared< CGSolver< UnsteadyDiffusionOperator > >( storage, level, level, 100000, 1e-12 );
 #endif
 
-   auto stokesSolver = solvertemplates::stokesMinResSolver< StokesOperator >( storage, level, 1e-12, 5000 );
+   auto stokesSolver = solvertemplates::stokesMinResSolver< StokesOperatorFreeSlip >( storage, level, 1e-12, 10000 );
 
    UnsteadyDiffusion< ScalarFunction, UnsteadyDiffusionOperator, LaplaceOperator, MassOperatorVelocity > diffusionSolver(
        storage, level, level, internalDiffusionSolver );
 
+   uint_t numSamples = uint_c( 1.5 / hMin );
+   if ( numSamples % 2 == 0 )
+      numSamples--;
+
    real_t timeTotal = 0;
    real_t vMax      = velocityMaxMagnitude( u.u, u.v, uTmp, uTmp2, level, All );
-   real_t nu        = 0;
+   real_t nu        = calculateNusseltNumber( c, level, 0.5 * hMin, 0.5 * hMin, numSamples );
    real_t vRms      = 0;
    real_t residualU = 0;
    real_t residualV = 0;
@@ -340,15 +430,6 @@ void runBenchmark( real_t      cflMax,
 
    timer->start( "Simulation" );
 
-   MVelocity.apply( c, f.u, level, All );
-   MVelocity.apply( c, f.v, level, All );
-   f.u.multElementwise( {f.u, upwardNormal.u}, level );
-   f.v.multElementwise( {f.v, upwardNormal.v}, level );
-   f.u.assign( {rayleighNumber}, {f.u}, level, All );
-   f.v.assign( {rayleighNumber}, {f.v}, level, All );
-
-   stokesSolver->solve( A, u, f, level );
-
    uint_t timeStep = 0;
 
    while ( timeTotal < simulationTime )
@@ -368,11 +449,11 @@ void runBenchmark( real_t      cflMax,
       f.v.multElementwise( {f.v, upwardNormal.v}, level );
       f.u.assign( {rayleighNumber}, {f.u}, level, All );
       f.v.assign( {rayleighNumber}, {f.v}, level, All );
-
-      stokesSolver->solve( A, u, f, level );
+      projectNormalOperator->apply( f, level, FreeslipBoundary );
+      stokesSolver->solve( AFS, u, f, level );
 
       calculateStokesResiduals(
-          A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualV, residualP );
+          AFS, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualV, residualP );
       vRms = velocityRMS( u, 1.0, 1.5, level );
 
       // Energy
@@ -411,8 +492,10 @@ void runBenchmark( real_t      cflMax,
 
       if ( verbose )
          WALBERLA_LOG_INFO_ON_ROOT( "performing diffusion step" )
-      diffusionSolver.step( diffusionOperator, L, MVelocity, c, cOld, q, q, level, Inner | NeumannBoundary );
-      // diffusionSolver.step( diffusionOperator, L, M, c, cOld, level, Inner | NeumannBoundary );
+
+      diffusionSolver.step( diffusionOperator, L, MVelocity, c, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
+
+      nu = calculateNusseltNumber( c, level, 0.5 * hMin, 0.5 * hMin, numSamples );
 
       if ( printInterval > 0 && timeStep % printInterval == 0 )
       {
@@ -463,5 +546,5 @@ int main( int argc, char** argv )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::runBenchmark( 10.0, 4, false, 100000, true, 1, 1, false, "database.db" );
+   hyteg::runBenchmark( 1., 3, false, 100000, true, 1, 1, false, "database.db" );
 }
