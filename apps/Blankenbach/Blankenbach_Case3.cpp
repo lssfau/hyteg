@@ -327,7 +327,6 @@ void runBenchmark( real_t      cflMax,
    StokesFunction u( "u", storage, level, level, bcVelocity );
    StokesFunction uLast( "uLast", storage, level, level, bcVelocity );
    StokesFunction f( "f", storage, level, level, bcVelocity );
-   StokesFunction fLast( "fLast", storage, level, level, bcVelocity );
    StokesFunction upwardNormal( "upwardNormal", storage, level, level, bcVelocity );
    StokesFunction stokesTmp( "stokesTmp", storage, level, level, bcVelocity );
    StokesFunction stokesResidual( "stokesResidual", storage, level, level, bcVelocity );
@@ -336,13 +335,14 @@ void runBenchmark( real_t      cflMax,
    ScalarFunction uTmp2( "uTmp2", storage, level, level, bcVelocity );
 
    auto initialTemperature = []( const Point3D& x ) {
-      // return 0.5 * ( 1.0 - x[1] * x[1] ) + 0.5 * std::cos( pi * x[0] / 1.5 ) * std::sin( pi * x[1] / 1.0 );
+      // return 0.5 * ( 1.0 - x[1] * x[1] ) + 0.01 * std::cos( pi * x[0] / 1.5 ) * std::sin( pi * x[1] / 1.0 );
       return 0.1 * ( 1.0 - x[1] * x[1] ) + 0.1 * ( 1 - x[0] / 1.5 ) * ( 1.0 - x[1] * x[1] );
+      // return 0.2 * ( 1.0 - x[1] * x[1] * x[1] ) + 0.2 * ( 1 - x[0] / 1.5 ) * ( 1.0 - x[1] * x[1] * x[1] );
    };
 
    c.interpolate( initialTemperature, level, Inner | NeumannBoundary | FreeslipBoundary );
-   q.interpolate( internalHeating, level );
-   upwardNormal.v.interpolate( 1, level );
+   q.interpolate( internalHeating, level, Inner | NeumannBoundary | FreeslipBoundary );
+   upwardNormal.v.interpolate( 1, level, Inner | NeumannBoundary | FreeslipBoundary );
 
    auto surfaceNormalsFreeSlip = []( const Point3D& in, Point3D& out ) {
       if ( in[0] < 0.75 )
@@ -432,6 +432,15 @@ void runBenchmark( real_t      cflMax,
 
    uint_t timeStep = 0;
 
+   MVelocity.apply( c, f.u, level, All );
+   MVelocity.apply( c, f.v, level, All );
+   f.u.multElementwise( {f.u, upwardNormal.u}, level );
+   f.v.multElementwise( {f.v, upwardNormal.v}, level );
+   f.u.assign( {rayleighNumber}, {f.u}, level, All );
+   f.v.assign( {rayleighNumber}, {f.v}, level, All );
+   projectNormalOperator->apply( f, level, FreeslipBoundary );
+   stokesSolver->solve( AFS, u, f, level );
+
    while ( timeTotal < simulationTime )
    {
       timeStep++;
@@ -452,8 +461,8 @@ void runBenchmark( real_t      cflMax,
       projectNormalOperator->apply( f, level, FreeslipBoundary );
       stokesSolver->solve( AFS, u, f, level );
 
-      calculateStokesResiduals(
-          AFS, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualV, residualP );
+//      calculateStokesResiduals(
+//          AFS, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualV, residualP );
       vRms = velocityRMS( u, 1.0, 1.5, level );
 
       // Energy
@@ -546,5 +555,5 @@ int main( int argc, char** argv )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::runBenchmark( 1., 3, false, 100000, true, 1, 1, false, "database.db" );
+   hyteg::runBenchmark( 0.1, 3, false, 100000, true, 1, 1, false, "database.db" );
 }
