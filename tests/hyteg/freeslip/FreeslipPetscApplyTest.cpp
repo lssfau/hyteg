@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Daniel Drzisga, Andreas Wagner.
+ * Copyright (c) 2020 Daniel Drzisga, Andreas Wagner, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -17,6 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include <cmath>
 
 #include "core/DataTypes.h"
@@ -27,11 +28,12 @@
 #include "hyteg/composites/P1BlendingStokesOperator.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/StrongFreeSlipWrapper.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
-#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
@@ -47,8 +49,8 @@ using namespace hyteg;
 std::shared_ptr< SetupPrimitiveStorage >
     setupStorageRectangle( const double channelLength, const double channelHeight, const uint_t ny )
 {
-   Point2D left( { -channelLength / 2, 0 } );
-   Point2D right( { channelLength / 2, channelHeight } );
+   Point2D left( {-channelLength / 2, 0} );
+   Point2D right( {channelLength / 2, channelHeight} );
 
    const uint_t    nx           = ny * static_cast< uint_t >( channelLength / channelHeight );
    hyteg::MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( left, right, MeshInfo::CROSS, nx, ny );
@@ -70,21 +72,8 @@ std::shared_ptr< SetupPrimitiveStorage >
    return setupStorage;
 }
 
-template < typename StokesFunction >
-void interpolateTrueSolutionVelocity( const double,
-                                      const double    channelHeight,
-                                      const uint_t    level,
-                                      StokesFunction& u,
-                                      const DoFType   flag )
-{
-   auto dirichletInterpolantX = [=]( auto p ) { return ( channelHeight - p[1] ) * ( channelHeight + p[1] ); };
-
-   u.u.interpolate( dirichletInterpolantX, level, flag );
-   u.v.interpolate( 0, level, flag );
-}
-
 template < typename StokesFunctionType, typename StokesOperatorType, typename ProjectNormalOperatorType >
-void run( const real_t absErrorTolerance, const bool testPETScSolver )
+void run( const real_t absErrorTolerance )
 {
    // solver parameters
    const uint_t minLevel = 2;
@@ -99,44 +88,62 @@ void run( const real_t absErrorTolerance, const bool testPETScSolver )
 
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage );
 
-   StokesFunctionType u( "u", storage, minLevel, maxLevel );
-   StokesFunctionType u_exact( "u_exact", storage, minLevel, maxLevel );
-   StokesFunctionType diff( "diff", storage, minLevel, maxLevel );
-   StokesFunctionType f( "f", storage, minLevel, maxLevel );
+   StokesFunctionType                                             u_src( "u_src", storage, minLevel, maxLevel );
+   StokesFunctionType                                             u_dst_hyteg( "u_dst_hyteg", storage, minLevel, maxLevel );
+   StokesFunctionType                                             u_dst_petsc( "u_dst_petsc", storage, minLevel, maxLevel );
+   StokesFunctionType                                             diff( "diff", storage, minLevel, maxLevel );
+   typename StokesFunctionType::template FunctionType< PetscInt > numerator( "numerator", storage, minLevel, maxLevel );
 
-   f.interpolate( 0, maxLevel, All );
-   u_exact.u.interpolate( [=]( auto p ) { return ( channelHeight - p[1] ) * ( channelHeight + p[1] ); }, maxLevel, All );
-   interpolateTrueSolutionVelocity( channelLength, channelHeight, maxLevel, u_exact, All );
-   interpolateTrueSolutionVelocity( channelLength, channelHeight, maxLevel, u, DirichletBoundary );
+   numerator.enumerate( maxLevel );
+
+   walberla::math::seedRandomGenerator( 1234 );
+   auto rand = []( const Point3D& ) { return walberla::math::realRandom(); };
+
+   u_src.u.interpolate( rand, maxLevel, All );
+   u_src.v.interpolate( rand, maxLevel, All );
+   u_src.w.interpolate( rand, maxLevel, All );
+   u_src.p.interpolate( rand, maxLevel, All );
 
    using StokesOperatorFS = hyteg::StrongFreeSlipWrapper< StokesOperatorType, ProjectNormalOperatorType >;
    auto stokes            = std::make_shared< StokesOperatorType >( storage, minLevel, maxLevel );
-   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( { 0, -1 } ); };
+   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( {0, -1} ); };
 
    auto projection = std::make_shared< ProjectNormalOperatorType >( storage, minLevel, maxLevel, normalsRect );
 
    StokesOperatorFS L( stokes, projection, FreeslipBoundary );
 
-   std::shared_ptr< Solver< StokesOperatorFS > > solver;
-   if ( testPETScSolver )
-   {
-#ifdef HYTEG_BUILD_WITH_PETSC
-      solver = std::make_shared< PETScMinResSolver< StokesOperatorFS > >( storage, maxLevel, 1e-15, 2000 );
-#else
-      WALBERLA_ABORT( "HyTeG was not built with PETSc." )
-#endif
-   }
-   else
-   {
-      solver = hyteg::solvertemplates::stokesMinResSolver< StokesOperatorFS >( storage, maxLevel, 1e-15, 2000 );
-   }
+   L.apply( u_src, u_dst_hyteg, maxLevel, All );
 
-   solver->solve( L, u, f, maxLevel );
+   PETScSparseMatrix< StokesOperatorType, StokesFunctionType::template FunctionType > petscMatStokes(
+       storage, maxLevel, "stokes_pure" );
+   petscMatStokes.createMatrixFromOperator( *stokes, maxLevel, numerator );
+   // petscMatStokes.print( "/tmp/stokes.m" );
 
-   // the pressure is only defined up to constants (and for P1P1 it is not even the "true" pressure), thus we ignore it.
-   u.p.interpolate( 0, maxLevel, All );
-   diff.assign( { 1, -1 }, { u, u_exact }, maxLevel, All );
+   PETScSparseMatrix< StokesOperatorFS, StokesFunctionType::template FunctionType > petscMatFS( storage, maxLevel, "stokes_fs" );
+   petscMatFS.createMatrixFromOperator( L, maxLevel, numerator );
+   // petscMatFS.print( "/tmp/free_slip.m" );
+
+   PETScVector< real_t, StokesFunctionType::template FunctionType > srcVectorPetsc( u_src, numerator, maxLevel );
+   PETScVector< real_t, StokesFunctionType::template FunctionType > dstVectorPetsc( u_dst_petsc, numerator, maxLevel );
+
+   MatMult( petscMatFS.get(), srcVectorPetsc.get(), dstVectorPetsc.get() );
+
+   dstVectorPetsc.createFunctionFromVector( u_dst_petsc, numerator, maxLevel );
+
+   diff.assign( {1, -1}, {u_dst_hyteg, u_dst_petsc}, maxLevel, All );
    auto norm = sqrt( diff.dotGlobal( diff, maxLevel, All ) );
+
+   const bool outputVTK = false;
+
+   if ( outputVTK )
+   {
+      VTKOutput vtk( "../../output", "FreeslipPetscApplyTest", storage );
+      vtk.add( u_src );
+      vtk.add( diff );
+      vtk.add( u_dst_hyteg );
+      vtk.add( u_dst_petsc );
+      vtk.write( maxLevel );
+   }
 
    WALBERLA_CHECK_LESS( norm, absErrorTolerance );
 }
@@ -146,28 +153,11 @@ int main( int argc, char* argv[] )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   WALBERLA_LOG_INFO_ON_ROOT( "free-slip P1-P1 test" );
-   // for P1-P1 we are nonconforming, thus we need a large tolerance.
-   // the tolerance here was determined experimentally, so no great meaning behind it :)
-   run< P1StokesFunction< real_t >, // function type
-        P1BlendingStokesOperator,   // operator
-        P1ProjectNormalOperator     // projection
-        >( 1e-1, false );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "free-slip P2-P1-TH test" );
-   run< P2P1TaylorHoodFunction< real_t >, // function type
-        P2P1TaylorHoodStokesOperator,     // operator
-        P2ProjectNormalOperator           // projection
-        >( 1e-13, false );
-
-#ifdef HYTEG_BUILD_WITH_PETSC
-
    PETScManager manager( &argc, &argv );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "free-slip P2-P1-TH test w/ PETSc solver" );
+   WALBERLA_LOG_INFO_ON_ROOT( "free-slip PETSc assembly P2-P1-TH test" );
    run< P2P1TaylorHoodFunction< real_t >, // function type
         P2P1TaylorHoodStokesOperator,     // operator
         P2ProjectNormalOperator           // projection
-        >( 1e-13, true );
-#endif
+        >( 1e-13 );
 }

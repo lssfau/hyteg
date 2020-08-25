@@ -20,8 +20,13 @@
 
 #pragma once
 
+#include "core/DataTypes.h"
+
+#include <vector>
+
 namespace hyteg {
 
+using walberla::real_t;
 using walberla::uint_t;
 
 /// \brief This class serves as a proxy for the assembly of sparse matrices, especially for external formats/libraries.
@@ -29,12 +34,21 @@ class SparseMatrixProxy
 {
  public:
 
+   virtual std::shared_ptr< SparseMatrixProxy > createCopy() const = 0;
+
    /// \brief Adds the passed value on the existing value in the matrix, or sets it to the value if no value exists.
    virtual void addValue( uint_t row, uint_t col, real_t value ) = 0;
 
    /// \brief Adds a "block" of values to the sparse matrix at once.
    virtual void
        addValues( const std::vector< uint_t >& rows, const std::vector< uint_t >& cols, const std::vector< real_t >& values ) = 0;
+
+   /// \brief Stores the product of the passed matrices (as ordered in the vector) in this matrix.
+   ///        Can be used to assemble concatenated operators.
+   virtual void
+       createFromMatrixProduct( const std::vector< std::shared_ptr< SparseMatrixProxy > > & matrices ) = 0;
 };
+
+
 
 } // namespace hyteg
