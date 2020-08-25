@@ -714,6 +714,21 @@ inline void saveOperator( const uint_t&                                         
    }
 }
 
+inline void saveIdentityOperator( const uint_t&                                              Level,
+                                  Cell&                                                      cell,
+                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Cell >& dstId,
+                                  const std::shared_ptr< SparseMatrixProxy >&                mat )
+{
+   auto dst = cell.getData( dstId )->getPointer( Level );
+
+   for ( const auto& it : vertexdof::macrocell::Iterator( Level, 1 ) )
+   {
+      PetscInt dstInt = dst[vertexdof::macrocell::indexFromVertex( Level, it.x(), it.y(), it.z(), stencilDirection::VERTEX_C )];
+
+      mat->addValue( uint_c( dstInt ), uint_c( dstInt ), 1.0 );
+   }
+}
+
 template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               Level,
                                       Cell&                                                       cell,

@@ -256,6 +256,53 @@ inline void projectNormal3D( uint_t                                             
    }
 }
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+
+inline void saveProjectNormalOperator2D( uint_t                                                     level,
+                                         const Edge&                                                edge,
+                                         const std::shared_ptr< PrimitiveStorage >&                 storage,
+                                         const std::function< void( const Point3D&, Point3D& ) >&   normal_function,
+                                         const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& dstIdU,
+                                         const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& dstIdV,
+                                         const std::shared_ptr< SparseMatrixProxy >&                mat )
+{
+   auto dstU = edge.getData( dstIdU )->getPointer( level );
+   auto dstV = edge.getData( dstIdV )->getPointer( level );
+
+   const Point3D leftCoords  = edge.getCoordinates()[0];
+   const Point3D rightCoords = edge.getCoordinates()[1];
+
+   const Point3D microEdgeOffset = ( rightCoords - leftCoords ) / real_c( 2 * levelinfo::num_microedges_per_edge( level ) );
+
+   Point3D  normal;
+   Matrix2r projection;
+   Point2D  in;
+   Point2D  out;
+
+   Point3D xPhy;
+
+   for ( const auto& it : edgedof::macroedge::Iterator( level ) )
+   {
+      const Point3D currentCoordinates = leftCoords + microEdgeOffset + real_c( 2 ) * it.col() * microEdgeOffset;
+      edge.getGeometryMap()->evalF( currentCoordinates, xPhy );
+
+      normal_function( xPhy, normal );
+      projectionMatrix2D( normal, projection );
+
+      const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( level, it.col(), stencilDirection::EDGE_HO_C );
+
+      const auto idxU = dstU[idx];
+      const auto idxV = dstV[idx];
+
+      mat->addValue( uint_c( idxU ), uint_c( idxU ), projection(0, 0) );
+      mat->addValue( uint_c( idxU ), uint_c( idxV ), projection( 0, 1 ) );
+      mat->addValue( uint_c( idxV ), uint_c( idxU ), projection( 1, 0 ) );
+      mat->addValue( uint_c( idxV ), uint_c( idxV ), projection( 1, 1 ) );
+   }
+}
+
+#endif
+
 } // namespace macroedge
 
 } // namespace edgedof

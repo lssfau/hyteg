@@ -361,6 +361,15 @@ inline void saveOperator( Vertex&                                               
    }
 }
 
+inline void saveIdentityOperator( Vertex&                                                      vertex,
+                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& dstId,
+                                  const std::shared_ptr< SparseMatrixProxy >&                  mat,
+                                  uint_t                                                       level )
+{
+   auto dst = vertex.getData( dstId )->getPointer( level );
+   mat->addValue( uint_c( dst[0] ), uint_c( dst[0] ), 1.0 );
+}
+
 template < typename ValueType >
 inline void createVectorFromFunction( const Vertex&                                                 vertex,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,

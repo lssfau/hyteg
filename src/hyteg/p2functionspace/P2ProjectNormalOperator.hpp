@@ -21,6 +21,8 @@
 
 #include "hyteg/Operator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
+#include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
 #include "hyteg/edgedofspace/EdgeDoFProjectNormalOperator.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -47,9 +49,28 @@ class P2ProjectNormalOperator : public Operator< P2Function< real_t >, P2Functio
 
    void apply( const P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag ) const;
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+   /// Assemble operator as sparse matrix
+   ///
+   /// \param mat   a sparse matrix proxy
+   /// \param numU  P2Function for determining row indices
+   /// \param numV  P2Function for determining row indices
+   /// \param numW  P2Function for determining row indices
+   /// \param level level in mesh hierarchy for which local operator is to be assembled
+   /// \param flag  determines on which primitives this operator is assembled
+   ///
+   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                             const P2Function< PetscInt >&               numU,
+                             const P2Function< PetscInt >&               numV,
+                             const P2Function< PetscInt >&               numW,
+                             uint_t                                      level,
+                             DoFType                                     flag );
+#endif
+
  private:
    P1ProjectNormalOperator      p1Operator;
    EdgeDoFProjectNormalOperator edgeDoFOperator;
 };
+
 
 } // namespace hyteg

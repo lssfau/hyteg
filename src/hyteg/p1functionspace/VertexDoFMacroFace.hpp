@@ -1143,6 +1143,27 @@ inline void saveOperator( const uint_t&                                         
    }
 }
 
+inline void saveIdentityOperator( const uint_t&                                              Level,
+                                  Face&                                                      face,
+                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Face >& dstId,
+                                  const std::shared_ptr< SparseMatrixProxy >&                mat )
+{
+   uint_t rowsize       = levelinfo::num_microvertices_per_edge( Level );
+   uint_t inner_rowsize = rowsize;
+
+   auto dst = face.getData( dstId )->getPointer( Level );
+
+   for ( uint_t i = 1; i < rowsize - 2; ++i )
+   {
+      for ( uint_t j = 1; j < inner_rowsize - 2; ++j )
+      {
+         PetscInt dstInt = dst[vertexdof::macroface::indexFromVertex( Level, i, j, stencilDirection::VERTEX_C )];
+         mat->addValue( uint_c( dstInt ), uint_c( dstInt ), 1.0 );
+      }
+      --inner_rowsize;
+   }
+}
+
 inline void saveOperator3D( const uint_t&                                                   Level,
                             Face&                                                           face,
                             const PrimitiveStorage&                                         storage,
