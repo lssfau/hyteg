@@ -23,6 +23,7 @@
 #include "hyteg/composites/StokesOperatorTraits.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
+#include "hyteg/composites/P1StokesBlockPreconditioner.hpp"
 
 namespace hyteg {
 
@@ -41,6 +42,8 @@ class P1BlendingStokesOperator : public Operator< P1StokesFunction< real_t >, P1
    , divT_y( storage, minLevel, maxLevel )
    , pspg( storage, minLevel, maxLevel )
    {}
+
+   typedef P1StokesBlockPreconditioner BlockPreconditioner_T;
 
    void apply( const P1StokesFunction< real_t >& src,
                const P1StokesFunction< real_t >& dst,

@@ -58,6 +58,9 @@ template < typename OpType, typename ProjOpType, bool PreProjection = false >
 class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typename OpType::dstType >
 {
  public:
+
+   typedef typename OpType::BlockPreconditioner_T BlockPreconditioner_T;
+
    StrongFreeSlipWrapper( std::shared_ptr< OpType > op, std::shared_ptr< ProjOpType > projOp, DoFType projFlag )
    : Operator< typename OpType::srcType, typename OpType::dstType >( op->getStorage(), op->getMinLevel(), op->getMaxLevel() )
    , op_( op )
