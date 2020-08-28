@@ -50,7 +50,7 @@ class CGSolver : public Solver< OperatorType >
    , ap_( "ap", storage, minLevel, maxLevel )
    , r_( "r", storage, minLevel, maxLevel )
    , preconditioner_( preconditioner )
-   , flag_( hyteg::Inner | hyteg::NeumannBoundary )
+   , flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
    , printInfo_( false )
    , tolerance_( tolerance )
    , restartFrequency_( std::numeric_limits< uint_t >::max() )
