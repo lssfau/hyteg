@@ -1,0 +1,9 @@
+Parameters
+{
+    level 3;
+    simulationTime 10;
+    cflMax 0.5;
+    fixedTimeStep true;
+    dtConstant 1e-4;
+    rayleighNumber 216000;
+}

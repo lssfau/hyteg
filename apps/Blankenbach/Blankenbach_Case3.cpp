@@ -40,6 +40,7 @@
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
+#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScMinResSolver.hpp"
@@ -63,6 +64,7 @@
 namespace hyteg {
 
 using walberla::int_c;
+using walberla::real_t;
 using walberla::math::pi;
 
 #if 0
@@ -108,8 +110,9 @@ void calculateStokesResiduals( const StokesOperator&       A,
                                real_t&                     residualV,
                                real_t&                     residualP )
 {
+   tmp.interpolate( 0, level, All );
    r.interpolate( 0, level, All );
-   A.apply( x, tmp, level, Inner | NeumannBoundary );
+   A.apply( x, tmp, level, Inner | NeumannBoundary | FreeslipBoundary );
    r.assign( {1.0, -1.0}, {b, tmp}, level, Inner | NeumannBoundary | FreeslipBoundary );
    residualU = normL2( r.u, tmp.u, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
    residualV = normL2( r.v, tmp.v, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
@@ -121,7 +124,7 @@ real_t velocityRMS( const StokesFunction& u, real_t domainHeight, real_t domainW
 {
    const auto norm = std::sqrt(
        ( u.u.dotGlobal( u.u, level, All ) + u.v.dotGlobal( u.v, level, All ) ) /
-       real_c( 2 * numberOfGlobalDoFs< typename StokesFunction::VelocityFunction_T::Tag >( *u.u.getStorage(), level ) ) );
+       real_c( numberOfGlobalDoFs< typename StokesFunction::VelocityFunction_T::Tag >( *u.u.getStorage(), level ) ) );
 
    const auto area = domainHeight * domainWidth;
    return norm / std::sqrt( area );
@@ -183,6 +186,8 @@ real_t integrateSlice( const std::vector< real_t >& slice, real_t xMin, real_t x
 template < typename FunctionType >
 real_t calculateNusseltNumber( const FunctionType& c, uint_t level, real_t hGradient, real_t epsBoundary, uint_t numSamples )
 {
+#if 1
+   WALBERLA_CHECK_EQUAL( walberla::mpi::MPIManager::instance()->numProcesses(), 1, "Cannot calculate Nusselt number in parallel." );
    const real_t xMin            = epsBoundary;
    const real_t xMax            = 1.5 - epsBoundary;
    const real_t yGradientTop    = 1.0 - epsBoundary;
@@ -195,11 +200,14 @@ real_t calculateNusseltNumber( const FunctionType& c, uint_t level, real_t hGrad
    auto bottomSliceIntegral   = integrateSlice( bottomSlice, xMin, xMax );
 
    return -gradientSliceIntegral / bottomSliceIntegral;
+#else
+   return 0;
+#endif
 }
 
 std::shared_ptr< SetupPrimitiveStorage > createSetupStorage()
 {
-   auto meshInfo     = MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1.5, 1} ), MeshInfo::CRISS, 3, 2 );
+   auto meshInfo     = MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1.5, 1} ), MeshInfo::CROSS, 3, 2 );
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -222,6 +230,9 @@ std::shared_ptr< SetupPrimitiveStorage > createSetupStorage()
 }
 
 void runBenchmark( real_t      cflMax,
+                   real_t      rayleighNumber,
+                   bool        fixedTimeStep,
+                   real_t      dtConstant,
                    uint_t      level,
                    bool        adjustedAdvection,
                    real_t      simulationTime,
@@ -252,13 +263,20 @@ void runBenchmark( real_t      cflMax,
    const real_t hMin     = MeshQuality::getMinimalEdgeLength( storage, level );
    const real_t hMax     = MeshQuality::getMaximalEdgeLength( storage, level );
 
-   const real_t rayleighNumber  = 216000.0;
    const real_t diffusivity     = 1.0;
    const real_t internalHeating = 1.0;
 
    WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << benchmarkName )
    WALBERLA_LOG_INFO_ON_ROOT( " - time discretization: " )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + max CFL:                                      " << cflMax )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + fixed time step:                              " << fixedTimeStep )
+   if ( fixedTimeStep )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "   + dt (constant):                                " << dtConstant )
+   }
+   else
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "   + max CFL:                                      " << cflMax )
+   }
    WALBERLA_LOG_INFO_ON_ROOT( "   + simulation time:                              " << simulationTime )
    WALBERLA_LOG_INFO_ON_ROOT( " - space discretization: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + dimensions:                                   " << ( storage->hasGlobalCells() ? "3" : "2" ) )
@@ -266,8 +284,8 @@ void runBenchmark( real_t      cflMax,
    WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns (== particles), including boundary:  " << unknowns )
    WALBERLA_LOG_INFO_ON_ROOT( "   + h_min:                                        " << hMin )
    WALBERLA_LOG_INFO_ON_ROOT( "   + h_max:                                        " << hMax )
-   WALBERLA_LOG_INFO_ON_ROOT( " - advection-diffusion settings: " )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + diffusivity:                                  " << diffusivity )
+   WALBERLA_LOG_INFO_ON_ROOT( " - benchmark settings: " )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + Rayleigh number                               " << rayleighNumber )
    WALBERLA_LOG_INFO_ON_ROOT( "   + adjusted advection:                           " << ( adjustedAdvection ? "yes" : "no" ) )
    WALBERLA_LOG_INFO_ON_ROOT( " - app settings: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + VTK:                                          " << ( vtk ? "yes" : "no" ) )
@@ -285,7 +303,9 @@ void runBenchmark( real_t      cflMax,
    std::map< std::string, std::string >       sqlStringProperties;
 
    sqlIntegerProperties["ts"]                   = 0;
+   sqlIntegerProperties["fixed_time_step"]      = int_c( fixedTimeStep );
    sqlRealProperties["cfl_max"]                 = cflMax;
+   sqlRealProperties["dt_constant"]             = dtConstant;
    sqlRealProperties["simulation_time"]         = simulationTime;
    sqlIntegerProperties["level"]                = int_c( level );
    sqlIntegerProperties["unknowns"]             = int_c( unknowns );
@@ -298,6 +318,14 @@ void runBenchmark( real_t      cflMax,
    sqlIntegerProperties["num_macro_primitives"] = int_c( setupStorage->getNumberOfPrimitives() );
    sqlRealProperties["diffusivity"]             = diffusivity;
    sqlIntegerProperties["adjusted_advection"]   = adjustedAdvection;
+
+   WALBERLA_ROOT_SECTION()
+   {
+      db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
+      sqlRealProperties.clear();
+      sqlIntegerProperties.clear();
+      sqlStringProperties.clear();
+   }
 
    typedef P2P1TaylorHoodFunction< real_t >                                     StokesFunction;
    typedef P2Function< real_t >                                                 ScalarFunction;
@@ -335,14 +363,14 @@ void runBenchmark( real_t      cflMax,
    ScalarFunction uTmp2( "uTmp2", storage, level, level, bcVelocity );
 
    auto initialTemperature = []( const Point3D& x ) {
-      // return 0.5 * ( 1.0 - x[1] * x[1] ) + 0.01 * std::cos( pi * x[0] / 1.5 ) * std::sin( pi * x[1] / 1.0 );
-      return 0.1 * ( 1.0 - x[1] * x[1] ) + 0.1 * ( 1 - x[0] / 1.5 ) * ( 1.0 - x[1] * x[1] );
+      return 0.5 * ( 1.0 - x[1] * x[1] ) + 0.01 * std::cos( pi * x[0] / 1.5 ) * std::sin( pi * x[1] / 1.0 );
+      // return 0.1 * ( 1.0 - x[1] * x[1] ) + 0.1 * ( 1 - x[0] / 1.5 ) * ( 1.0 - x[1] * x[1] );
       // return 0.2 * ( 1.0 - x[1] * x[1] * x[1] ) + 0.2 * ( 1 - x[0] / 1.5 ) * ( 1.0 - x[1] * x[1] * x[1] );
    };
 
    c.interpolate( initialTemperature, level, Inner | NeumannBoundary | FreeslipBoundary );
-   q.interpolate( internalHeating, level, Inner | NeumannBoundary | FreeslipBoundary );
-   upwardNormal.v.interpolate( 1, level, Inner | NeumannBoundary | FreeslipBoundary );
+   q.interpolate( internalHeating, level, All );
+   upwardNormal.v.interpolate( 1, level, All );
 
    auto surfaceNormalsFreeSlip = []( const Point3D& in, Point3D& out ) {
       if ( in[0] < 0.75 )
@@ -365,19 +393,24 @@ void runBenchmark( real_t      cflMax,
    MMOCTransport< ScalarFunction > transport( storage, setupStorage, level, level, TimeSteppingScheme::RK4 );
 
 #ifndef HYTEG_BUILD_WITH_PETSC
-   PETScManager manager;
-   auto internalDiffusionSolver = std::make_shared< PETScMinResSolver< UnsteadyDiffusionOperator > >( storage, level, 1e-06 );
-#else
    auto internalDiffusionSolver =
-       std::make_shared< CGSolver< UnsteadyDiffusionOperator > >( storage, level, level, 100000, 1e-12 );
+       std::make_shared< PETScMinResSolver< UnsteadyDiffusionOperator > >( storage, level, 1e-15, 50000 );
+#else
+   auto internalDiffusionSolver = std::make_shared< CGSolver< UnsteadyDiffusionOperator > >( storage, level, level, 5000, 1e-14 );
 #endif
 
-   auto stokesSolver = solvertemplates::stokesMinResSolver< StokesOperatorFreeSlip >( storage, level, 1e-12, 10000 );
+#ifdef HYTEG_BUILD_WITH_PETSC
+   auto stokesSolver =
+       std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperatorFreeSlip > >( storage, level, 1e-08, 5000, 4, 0 );
+   stokesSolver->reassembleMatrix( false );
+#else
+   auto stokesSolver            = solvertemplates::stokesMinResSolver< StokesOperatorFreeSlip >( storage, level, 1e-14, 5000 );
+#endif
 
    UnsteadyDiffusion< ScalarFunction, UnsteadyDiffusionOperator, LaplaceOperator, MassOperatorVelocity > diffusionSolver(
        storage, level, level, internalDiffusionSolver );
 
-   uint_t numSamples = uint_c( 1.5 / hMin );
+   uint_t numSamples = uint_c( 1.5 / (hMin * 0.97) );
    if ( numSamples % 2 == 0 )
       numSamples--;
 
@@ -389,6 +422,11 @@ void runBenchmark( real_t      cflMax,
    real_t residualV = 0;
    real_t residualP = 0;
 
+   real_t timeStepTotal = 0;
+   real_t timeStokes    = 0;
+   real_t timeMMOC      = 0;
+   real_t timeDiffusion = 0;
+
    hyteg::VTKOutput vtkOutput( "./vtk", benchmarkName, storage, vtkInterval );
 
    vtkOutput.add( u );
@@ -396,35 +434,27 @@ void runBenchmark( real_t      cflMax,
    vtkOutput.add( c );
    vtkOutput.add( upwardNormal );
    vtkOutput.add( q );
-
-   if ( vtk )
-      vtkOutput.write( level );
+   vtkOutput.add( stokesResidual );
 
    WALBERLA_LOG_INFO_ON_ROOT(
-       " timestep |           dt | time total | Nusselt number | velocity RMS | velocity max magnitude |   residual u |   residual v |   residual p " )
+       " timestep |           dt | time total | Nusselt number | velocity RMS | velocity max magnitude |   residual u |   residual v |   residual p |  total | Stokes |   MMOC |   diff " )
    WALBERLA_LOG_INFO_ON_ROOT(
-       "----------+--------------+------------+----------------+--------------+------------------------+--------------+--------------+-------------- " )
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %8s | %12s | %10.5f | %14.4f | %12.4f | %22.4f | %12.5e | %12.5e | %12.5e ",
-                                                "initial",
-                                                "-",
-                                                timeTotal,
-                                                nu,
-                                                vRms,
-                                                vMax,
-                                                residualU,
-                                                residualV,
-                                                residualP ) )
-
-   WALBERLA_ROOT_SECTION()
-   {
-      sqlRealProperties["sim_time"] = timeTotal;
-      sqlRealProperties["v_max"]    = vMax;
-
-      db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
-      sqlRealProperties.clear();
-      sqlIntegerProperties.clear();
-      sqlStringProperties.clear();
-   }
+       "----------+--------------+------------+----------------+--------------+------------------------+--------------+--------------+--------------+--------+--------+--------+--------" )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+       " %8s | %12s | %10.5f | %14.4f | %12.4f | %22.4f | %12.5e | %12.5e | %12.5e | %6.2f | %6.2f | %6.2f | %6.2f ",
+       "initial",
+       "-",
+       timeTotal,
+       nu,
+       vRms,
+       vMax,
+       residualU,
+       residualV,
+       residualP,
+       timeStepTotal,
+       timeStokes,
+       timeMMOC,
+       timeDiffusion ) )
 
    timer->stop( "Setup" );
 
@@ -441,8 +471,15 @@ void runBenchmark( real_t      cflMax,
    projectNormalOperator->apply( f, level, FreeslipBoundary );
    stokesSolver->solve( AFS, u, f, level );
 
+   if ( vtk )
+      vtkOutput.write( level );
+
+   walberla::WcTimer timeStepTimer;
+
    while ( timeTotal < simulationTime )
    {
+      timeStepTimer.start();
+
       timeStep++;
 
       if ( verbose )
@@ -459,22 +496,32 @@ void runBenchmark( real_t      cflMax,
       f.u.assign( {rayleighNumber}, {f.u}, level, All );
       f.v.assign( {rayleighNumber}, {f.v}, level, All );
       projectNormalOperator->apply( f, level, FreeslipBoundary );
-      stokesSolver->solve( AFS, u, f, level );
 
-//      calculateStokesResiduals(
-//          AFS, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualV, residualP );
+      localTimer.start();
+      stokesSolver->solve( AFS, u, f, level );
+      localTimer.end();
+      timeStokes = localTimer.last();
+
+      calculateStokesResiduals(
+          AFS, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualV, residualP );
       vRms = velocityRMS( u, 1.0, 1.5, level );
 
       // Energy
 
       vMax = velocityMaxMagnitude( u.u, u.v, uTmp, uTmp2, level, All );
 
-      const auto dt = ( cflMax / vMax ) * hMin;
+      real_t dt;
+      if ( fixedTimeStep )
+      {
+         dt = dtConstant;
+      }
+      else
+      {
+         dt = ( cflMax / vMax ) * hMin;
+      }
 
       if ( verbose )
          WALBERLA_LOG_INFO_ON_ROOT( "performing transport step" )
-
-      real_t advectionTimeStepRunTime;
 
       if ( adjustedAdvection )
       {
@@ -483,15 +530,17 @@ void runBenchmark( real_t      cflMax,
          transport.step(
              c, u.u, u.v, u.w, uLast.u, uLast.v, uLast.w, level, All, dt, 1, MVelocity, 0.0, adjustedAdvectionPertubation );
          localTimer.end();
-         advectionTimeStepRunTime = localTimer.last();
+         timeMMOC = localTimer.last();
       }
       else
       {
          localTimer.start();
          transport.step( c, u.u, u.v, u.w, uLast.u, uLast.v, uLast.w, level, All, dt, 1, true );
          localTimer.end();
-         advectionTimeStepRunTime = localTimer.last();
+         timeMMOC = localTimer.last();
       }
+
+      c.interpolate( 0, level, DirichletBoundary );
 
       cOld.assign( {1.0}, {c}, level, All );
 
@@ -502,24 +551,12 @@ void runBenchmark( real_t      cflMax,
       if ( verbose )
          WALBERLA_LOG_INFO_ON_ROOT( "performing diffusion step" )
 
+      localTimer.start();
       diffusionSolver.step( diffusionOperator, L, MVelocity, c, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
+      localTimer.end();
+      timeDiffusion = localTimer.last();
 
       nu = calculateNusseltNumber( c, level, 0.5 * hMin, 0.5 * hMin, numSamples );
-
-      if ( printInterval > 0 && timeStep % printInterval == 0 )
-      {
-         WALBERLA_LOG_INFO_ON_ROOT(
-             walberla::format( " %8d | %12.5e | %10.5f | %14.4f | %12.4f | %22.4f | %12.5e | %12.5e | %12.5e ",
-                               timeStep,
-                               dt,
-                               timeTotal,
-                               nu,
-                               vRms,
-                               vMax,
-                               residualU,
-                               residualV,
-                               residualP ) )
-      }
 
       if ( vtk )
          vtkOutput.write( level, timeStep );
@@ -528,13 +565,40 @@ void runBenchmark( real_t      cflMax,
       {
          sqlIntegerProperties["ts"]              = int_c( timeStep );
          sqlRealProperties["sim_time"]           = timeTotal;
-         sqlRealProperties["run_time_advection"] = advectionTimeStepRunTime;
+         sqlRealProperties["run_time_advection"] = timeMMOC;
+         sqlRealProperties["run_time_stokes"]    = timeStokes;
+         sqlRealProperties["run_time_time_step"] = timeStepTotal;
          sqlRealProperties["v_max"]              = vMax;
+         sqlRealProperties["v_rms"]              = vRms;
+         sqlRealProperties["nu"]                 = nu;
+         sqlRealProperties["dt"]                 = dt;
 
          db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
          sqlRealProperties.clear();
          sqlIntegerProperties.clear();
          sqlStringProperties.clear();
+      }
+
+      timeStepTimer.end();
+      timeStepTotal = timeStepTimer.last();
+
+      if ( printInterval > 0 && timeStep % printInterval == 0 )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+             " %8d | %12.5e | %10.5f | %14.4f | %12.4f | %22.4f | %12.5e | %12.5e | %12.5e | %6.2f | %6.2f | %6.2f | %6.2f ",
+             timeStep,
+             dt,
+             timeTotal,
+             nu,
+             vRms,
+             vMax,
+             residualU,
+             residualV,
+             residualP,
+             timeStepTotal,
+             timeStokes,
+             timeMMOC,
+             timeDiffusion ) )
       }
    }
 
@@ -555,5 +619,31 @@ int main( int argc, char** argv )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::runBenchmark( 0.1, 3, false, 100000, true, 1, 1, false, "database.db" );
+#ifdef HYTEG_BUILD_WITH_PETSC
+   hyteg::PETScManager manager( &argc, &argv );
+#endif
+
+   auto cfg = std::make_shared< walberla::config::Config >();
+   if ( env.config() == nullptr )
+   {
+      auto defaultFile = "./Blankenbach_Case3.prm";
+      WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
+      cfg->readParameterFile( defaultFile );
+   }
+   else
+   {
+      cfg = env.config();
+   }
+
+   const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
+
+   const hyteg::real_t cflMax         = mainConf.getParameter< hyteg::real_t >( "cflMax" );
+   const hyteg::real_t rayleighNumber = mainConf.getParameter< hyteg::real_t >( "rayleighNumber" );
+   const bool          fixedTimeStep  = mainConf.getParameter< bool >( "fixedTimeStep" );
+   const hyteg::real_t dtConstant     = mainConf.getParameter< hyteg::real_t >( "dtConstant" );
+   const uint_t        level          = mainConf.getParameter< uint_t >( "level" );
+   const hyteg::real_t simulationTime = mainConf.getParameter< hyteg::real_t >( "simulationTime" );
+
+   hyteg::runBenchmark(
+       cflMax, rayleighNumber, fixedTimeStep, dtConstant, level, false, simulationTime, true, 1, 1, false, "database.db" );
 }
