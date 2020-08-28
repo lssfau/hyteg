@@ -27,13 +27,16 @@
 #include "hyteg/composites/P1BlendingStokesOperator.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/StrongFreeSlipWrapper.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/petsc/PETScMinResSolver.hpp"
+#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
@@ -121,7 +124,7 @@ void run( const real_t absErrorTolerance, const bool testPETScSolver )
    if ( testPETScSolver )
    {
 #ifdef HYTEG_BUILD_WITH_PETSC
-      solver = std::make_shared< PETScMinResSolver< StokesOperatorFS > >( storage, maxLevel, 1e-15, 2000 );
+      solver = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperatorFS > >( storage, maxLevel, 1e-15, 2000, 4 );
 #else
       WALBERLA_ABORT( "HyTeG was not built with PETSc." )
 #endif
@@ -137,6 +140,18 @@ void run( const real_t absErrorTolerance, const bool testPETScSolver )
    u.p.interpolate( 0, maxLevel, All );
    diff.assign( { 1, -1 }, { u, u_exact }, maxLevel, All );
    auto norm = sqrt( diff.dotGlobal( diff, maxLevel, All ) );
+
+   const bool outputVTK = false;
+
+   if ( outputVTK )
+   {
+      VTKOutput vtk( "../../output", "FreeslipRectangularChannelTest", storage );
+      vtk.add( u );
+      vtk.add( u_exact );
+      vtk.add( diff );
+      vtk.write( maxLevel );
+      writeDomainPartitioningVTK( storage, "../../output", "FreeslipRectangularChannelTestDomain" );
+   }
 
    WALBERLA_CHECK_LESS( norm, absErrorTolerance );
 }
