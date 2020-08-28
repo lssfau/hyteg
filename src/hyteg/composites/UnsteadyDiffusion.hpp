@@ -266,6 +266,9 @@ class UnsteadyDiffusion
               const uint_t&                        level,
               const DoFType&                       flag )
    {
+      uOld_.copyBoundaryConditionFromFunction( u );
+      fWeak_.copyBoundaryConditionFromFunction( u );
+
       if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::ImplicitEuler )
       {
          // implicit Euler
@@ -296,6 +299,9 @@ class UnsteadyDiffusion
               const uint_t&                        level,
               const DoFType&                       flag )
    {
+      uOld_.copyBoundaryConditionFromFunction( u );
+      fWeak_.copyBoundaryConditionFromFunction( u );
+
       if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::ImplicitEuler )
       {
          M.apply( uOld, uOld_, level, flag );
@@ -325,6 +331,9 @@ class UnsteadyDiffusion
                            const uint_t&                        level,
                            const DoFType&                       flag )
    {
+      uOld_.copyBoundaryConditionFromFunction( u );
+      fWeak_.copyBoundaryConditionFromFunction( u );
+
       if ( A.getTimeIntegrator() == DiffusionTimeIntegrator::ImplicitEuler )
       {
          M.apply( f, fWeak_, level, flag );
