@@ -167,7 +167,7 @@ void EdgeDoFProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< S
             edgedof::saveEdgeIdentityOperator( level, edge, numV.getEdgeDataID(), mat );
             if ( storage_->hasGlobalCells() )
             {
-               edgedof::saveEdgeIdentityOperator( level, edge, numV.getEdgeDataID(), mat );
+               edgedof::saveEdgeIdentityOperator( level, edge, numW.getEdgeDataID(), mat );
             }
          }
       }
@@ -197,7 +197,7 @@ void EdgeDoFProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< S
             edgedof::saveFaceIdentityOperator( level, face, numV.getFaceDataID(), mat );
             if ( storage_->hasGlobalCells() )
             {
-               edgedof::saveFaceIdentityOperator( level, face, numV.getFaceDataID(), mat );
+               edgedof::saveFaceIdentityOperator( level, face, numW.getFaceDataID(), mat );
             }
          }
       }
