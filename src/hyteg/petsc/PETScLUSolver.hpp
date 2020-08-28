@@ -122,7 +122,7 @@ class PETScLUSolver : public Solver< OperatorType >
    ///        Default is false.
    void reassembleMatrix( bool reassembleMatrix ) { reassembleMatrix_ = reassembleMatrix; }
 
-   void setMUMPSIcntrl( uint_t key, uint_t value ) { mumpsIcntrl_[key] = value; }
+   void setMUMPSIcntrl( uint_t key, int value ) { mumpsIcntrl_[key] = value; }
    void setMUMPSCntrl( uint_t key, real_t value ) { mumpsCntrl_[key] = value; }
 
    void assembleAndFactorize( const OperatorType& A )
@@ -281,7 +281,7 @@ class PETScLUSolver : public Solver< OperatorType >
    bool                       reassembleMatrix_;
    bool                       assumeSymmetry_;
    PETScDirectSolverType      solverType_;
-   std::map< uint_t, uint_t > mumpsIcntrl_;
+   std::map< uint_t, int >    mumpsIcntrl_;
    std::map< uint_t, real_t > mumpsCntrl_;
 };
 
