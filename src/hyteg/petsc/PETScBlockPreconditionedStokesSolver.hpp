@@ -27,11 +27,15 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    ///                                   - 2: Schur complement
    ///                                   - 3: Hypre (BoomerAMG)
    ///                                   - 4: none
+   /// \param pressurePreconditionerType choose from different pressure preconditioners:
+   ///                                   - 0: none
+   ///                                   - 1: PCJACOBI (lumped mass)
    PETScBlockPreconditionedStokesSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                                          const uint_t&                              level,
                                          const real_t                               tolerance = 1e-12,
                                          const PetscInt maxIterations              = std::numeric_limits< PetscInt >::max(),
-                                         const uint_t&  velocityPreconditionerType = 1 )
+                                         const uint_t&  velocityPreconditionerType = 1,
+                                         const uint_t&  pressurePreconditionerType = 1 )
    : allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
@@ -57,6 +61,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    , nullSpaceSet_( false )
    , blockPreconditioner_( storage, level, level )
    , velocityPreconditionerType_( velocityPreconditionerType )
+   , pressurePreconditionerType_( pressurePreconditionerType )
    , verbose_( false )
    , reassembleMatrix_( true )
    , matrixWasAssembledOnce_( false )
@@ -208,8 +213,21 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
             break;
          }
 
-         // inv. lumped mass
-         PCSetType( pc_p, PCJACOBI );
+         switch ( pressurePreconditionerType_ )
+         {
+         case 0:
+            PCSetType( pc_p, PCNONE );
+            break;
+         case 1:
+            // inv. lumped mass
+            PCSetType( pc_p, PCJACOBI );
+            break;
+         default:
+            WALBERLA_ABORT( "Invalid pressure preconditioner for PETSc block prec MinRes solver." );
+            break;
+
+         }
+
       }
 
       timer.end();
@@ -344,6 +362,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    bool         nullSpaceSet_;
 
    uint_t velocityPreconditionerType_;
+   uint_t pressurePreconditionerType_;
    bool   verbose_;
    bool   reassembleMatrix_;
    bool   matrixWasAssembledOnce_;
