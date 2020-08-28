@@ -200,7 +200,12 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 
    BoundaryCondition getBoundaryCondition() const;
    void setBoundaryCondition( BoundaryCondition bc );
-   void copyBoundaryConditionFromFunction( const VertexDoFFunction< ValueType > & other );
+
+   template < typename OtherFunctionValueType >
+   void copyBoundaryConditionFromFunction( const VertexDoFFunction< OtherFunctionValueType >& other )
+   {
+      setBoundaryCondition( other.getBoundaryCondition() );
+   }
 
    template < typename SenderType, typename ReceiverType >
    inline void startCommunication( const uint_t& level ) const

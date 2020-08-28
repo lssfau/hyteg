@@ -164,7 +164,12 @@ class P2Function : public Function< P2Function< ValueType > >
 
    BoundaryCondition getBoundaryCondition() const;
    void setBoundaryCondition( BoundaryCondition bc );
-   void copyBoundaryConditionFromFunction( const P2Function< ValueType > & other );
+
+   template < typename OtherFunctionValueType >
+   void copyBoundaryConditionFromFunction( const P2Function< OtherFunctionValueType >& other )
+   {
+      setBoundaryCondition( other.getBoundaryCondition() );
+   }
 
    void enumerate( uint_t level ) const;
 

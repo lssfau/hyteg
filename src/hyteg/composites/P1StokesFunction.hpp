@@ -193,9 +193,12 @@ public:
      WALBERLA_DEBUG_SECTION()
      {
         auto bc_v = v.getBoundaryCondition();
-        auto bc_w = w.getBoundaryCondition();
         WALBERLA_CHECK_EQUAL( bc_u, bc_v, "Velocity components do not have same boundary conditions." );
-        WALBERLA_CHECK_EQUAL( bc_u, bc_w, "Velocity components do not have same boundary conditions." );
+        if ( u.getStorage()->hasGlobalCells() )
+        {
+           auto bc_w = w.getBoundaryCondition();
+           WALBERLA_CHECK_EQUAL( bc_u, bc_w, "Velocity components do not have same boundary conditions." );
+        }
      }
      return bc_u;
   }
@@ -211,7 +214,8 @@ public:
 
   void setPressureBoundaryCondition( BoundaryCondition bc ) { p.setBoundaryCondition( bc ); }
 
-  void copyBoundaryConditionFromFunction( const P1StokesFunction< ValueType >& other )
+  template< typename OtherFunctionValueType >
+  void copyBoundaryConditionFromFunction( const P1StokesFunction< OtherFunctionValueType >& other )
   {
      setVelocityBoundaryCondition( other.getVelocityBoundaryCondition() );
      setPressureBoundaryCondition( other.getPressureBoundaryCondition() );

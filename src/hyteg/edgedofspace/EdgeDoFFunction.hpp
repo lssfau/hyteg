@@ -182,7 +182,9 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
 
    inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
    inline void setBoundaryCondition( BoundaryCondition bc ) { boundaryCondition_ = bc; }
-   inline void copyBoundaryConditionFromFunction( const EdgeDoFFunction< ValueType > & other )
+
+   template< typename OtherFunctionValueType >
+   inline void copyBoundaryConditionFromFunction( const EdgeDoFFunction< OtherFunctionValueType > & other )
    {
       setBoundaryCondition( other.getBoundaryCondition() );
    }

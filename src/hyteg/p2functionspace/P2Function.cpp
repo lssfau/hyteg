@@ -616,11 +616,6 @@ void P2Function< ValueType >::setBoundaryCondition( BoundaryCondition bc )
    edgeDoFFunction_.setBoundaryCondition( bc );
 }
 
-template < typename ValueType >
-void P2Function< ValueType >::copyBoundaryConditionFromFunction( const P2Function< ValueType > & other )
-{
-   setBoundaryCondition( other.getBoundaryCondition() );
-}
 
 template < typename ValueType >
 void P2Function< ValueType >::enumerate( uint_t level ) const
