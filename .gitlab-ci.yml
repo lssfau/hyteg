@@ -24,7 +24,7 @@ variables:
       - export NUM_CORES=$(nproc --all)
       - export MAX_BUILD_CORES=$(( $(awk '( $1 == "MemTotal:" ) { print $2 }' /proc/meminfo) / ( 4 * 1024 * 1024  ) ))
       - "[[ $MAX_BUILD_CORES -lt $NUM_CORES ]] && export MAX_BUILD_CORES=$MAX_BUILD_CORES || export MAX_BUILD_CORES=$NUM_CORES"
-      - echo "NUM_CORES = $(NUM_CORES) - MAX_BUILD_CORES =  $(MAX_BUILD_CORES)"
+      - echo "NUM_CORES = $NUM_CORES - MAX_BUILD_CORES =  $MAX_BUILD_CORES"
       - $CXX --version
       - cmake --version
       - ccache --version
@@ -34,7 +34,7 @@ variables:
       - cd $CI_PROJECT_DIR/build
       - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
       - cmake .. -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DPE_DIR=/builds/pe -DHYTEG_BUILD_WITH_PETSC=$HYTEG_BUILD_WITH_PETSC -DPETSC_DIR=$PETSC_DIR -DHYTEG_BUILD_WITH_EIGEN=$HYTEG_BUILD_WITH_EIGEN -DWALBERLA_SANITIZE_ADDRESS=$WALBERLA_SANITIZE_ADDRESS -DWALBERLA_SANITIZE_UNDEFINED=$WALBERLA_SANITIZE_UNDEFINED
-      - cmake . -LAH
+      - cmake . -LA
       - cd $CI_PROJECT_DIR/build/apps
       - make -j $MAX_BUILD_CORES -l $NUM_CORES
       - ctest -C $CMAKE_BUILD_TYPE --output-on-failure -j $NUM_CORES
@@ -849,7 +849,7 @@ coverage:
       - pip3 install gcovr
       - export NUM_CORES=$(nproc --all)
       - export MAX_BUILD_CORES=$(( $(awk '( $1 == "MemTotal:" ) { print $2 }' /proc/meminfo) / ( 4 * 1024 * 1024  ) ))
-      - echo "NUM_CORES = $(NUM_CORES) - MAX_BUILD_CORES =  $(MAX_BUILD_CORES)"
+      - echo "NUM_CORES = $NUM_CORES - MAX_BUILD_CORES =  $MAX_BUILD_CORES"
       - $CXX --version
       - cmake --version
       - ccache --version
@@ -860,7 +860,7 @@ coverage:
       - cd build
       - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
       - cmake .. -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_MPI=ON -DWALBERLA_BUILD_WITH_OPENMP=OFF -DCMAKE_BUILD_TYPE=DebugOptimized -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DHYTEG_BUILD_WITH_PETSC=ON -DHYTEG_BUILD_WITH_TRILINOS=ON  -DCMAKE_CXX_FLAGS=--coverage
-      - cmake . -LAH
+      - cmake . -LA
       - cd tests
       - make -j $MAX_BUILD_CORES -l $NUM_CORES
       - ctest -LE $CTEST_EXCLUDE_LABELS --output-on-failure -j $NUM_CORES
@@ -897,7 +897,7 @@ coverage:
       - cmake --version
       - mkdir build
       - cd build
-      - cmake -LAH -DWALBERLA_BUILD_BENCHMARKS=OFF -DWALBERLA_BUILD_TUTORIALS=OFF -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DWALBERLA_DOUBLE_ACCURACY=$WALBERLA_DOUBLE_ACCURACY -DWARNING_ERROR=OFF -G "$CMAKE_GENERATOR" ..
+      - cmake -LA -DWALBERLA_BUILD_BENCHMARKS=OFF -DWALBERLA_BUILD_TUTORIALS=OFF -DWALBERLA_BUILD_WITH_MPI=$WALBERLA_BUILD_WITH_MPI -DWALBERLA_BUILD_WITH_OPENMP=$WALBERLA_BUILD_WITH_OPENMP -DWALBERLA_DOUBLE_ACCURACY=$WALBERLA_DOUBLE_ACCURACY -DWARNING_ERROR=OFF -G "$CMAKE_GENERATOR" ..
       - cmake --build . --config $BUILD_CONFIGURATION --target hyteg -- /maxcpucount:4
       #- cd tests
       #- ctest -LE $CTEST_EXCLUDE_LABELS -C $BUILD_CONFIGURATION --output-on-failure -j 4
@@ -953,7 +953,7 @@ benchmark_build_time:
     - cd $CI_PROJECT_DIR/build
     - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
     - cmake .. -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS
-    - cmake . -LAH
+    - cmake . -LA
     - time make core -j20
     - /usr/bin/time -o $CI_PROJECT_DIR/BuildTiming.txt -f "hyteg buildtime %e" make hyteg -j20
     - cd $CI_PROJECT_DIR/build/tests && \
@@ -992,7 +992,7 @@ benchmark_ClangBuildAnalyzer:
     - cd $CI_PROJECT_DIR/build
     - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
     - cmake .. -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -G Ninja -DCMAKE_CXX_FLAGS=-ftime-trace -G Ninja
-    - cmake . -LAH
+    - cmake . -LA
     - ClangBuildAnalyzer --start src
     - ninja hyteg
     - ClangBuildAnalyzer --stop src CBA
@@ -1016,7 +1016,7 @@ benchmark_ClangBuildAnalyzer:
       - cd $CI_PROJECT_DIR/build
       - if dpkg --compare-versions `ompi_info | head -2 | tail -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'` ge 1.10; then export MPIEXEC_PREFLAGS="--allow-run-as-root" ; fi
       - cmake .. -DWALBERLA_BUFFER_DEBUG=OFF -DWALBERLA_BUILD_TESTS=OFF -DWALBERLA_BUILD_BENCHMARKS=OFF -DWALBERLA_BUILD_TUTORIALS=OFF -DWALBERLA_BUILD_TOOLS=OFF -DWALBERLA_BUILD_WITH_MPI=ON -DWALBERLA_BUILD_WITH_CUDA=OFF -DWALBERLA_BUILD_WITH_PYTHON=OFF -DWALBERLA_BUILD_WITH_OPENMP=OFF -DCMAKE_BUILD_TYPE=RELEASE -DMPIEXEC_PREFLAGS=$MPIEXEC_PREFLAGS -DWALBERLA_DOUBLE_ACCURACY=ON -DWARNING_ERROR=ON -DWALBERLA_BUILD_WITH_METIS=OFF -DWALBERLA_BUILD_WITH_PARMETIS=OFF -DWALBERLA_OPTIMIZE_FOR_LOCALHOST=ON -DWALBERLA_BUILD_WITH_FASTMATH=OFF -DWALBERLA_BUILD_WITH_LTO=OFF -DWALBERLA_BUILD_WITH_LIKWID_MARKERS=ON
-      - cmake . -LAH
+      - cmake . -LA
       - time make core -j20
       - time make hyteg -j20
       - cd $CI_PROJECT_DIR/build/tests
@@ -1079,4 +1079,4 @@ benchmark_gcc9:
 
 benchmark_clang8:
    <<: *benchmark_definition
-   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
+   image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
