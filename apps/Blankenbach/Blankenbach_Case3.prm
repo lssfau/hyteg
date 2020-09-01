@@ -1,9 +1,10 @@
 Parameters
 {
     level 3;
+    nx 3; // must be multiple of 3
     simulationTime 10;
     cflMax 0.5;
-    fixedTimeStep true;
+    fixedTimeStep false;
     dtConstant 1e-4;
     rayleighNumber 216000;
 }

@@ -205,9 +205,11 @@ real_t calculateNusseltNumber( const FunctionType& c, uint_t level, real_t hGrad
 #endif
 }
 
-std::shared_ptr< SetupPrimitiveStorage > createSetupStorage()
+std::shared_ptr< SetupPrimitiveStorage > createSetupStorage( uint_t nx )
 {
-   auto meshInfo     = MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1.5, 1} ), MeshInfo::CROSS, 3, 2 );
+   WALBERLA_CHECK_EQUAL( nx % 3, 0 );
+
+   auto meshInfo     = MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1.5, 1} ), MeshInfo::CROSS, nx, (nx / 3) * 2 );
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -234,7 +236,10 @@ void runBenchmark( real_t      cflMax,
                    bool        fixedTimeStep,
                    real_t      dtConstant,
                    uint_t      level,
+                   uint_t      nx,
                    bool        adjustedAdvection,
+                   bool        strangSplitting,
+                   bool        predictorCorrector,
                    real_t      simulationTime,
                    bool        vtk,
                    uint_t      printInterval,
@@ -247,7 +252,8 @@ void runBenchmark( real_t      cflMax,
    const std::string benchmarkName    = "Blankenbach_Case3";
    const bool        outputTimingJSON = true;
 
-   auto setupStorage = createSetupStorage();
+
+   auto setupStorage = createSetupStorage( nx );
    auto storage      = std::make_shared< PrimitiveStorage >( *setupStorage );
 
    if ( vtk )
@@ -347,6 +353,7 @@ void runBenchmark( real_t      cflMax,
    bcTemperature.createNeumannBC( "neumannWalls", {2, 3, 4} );
 
    ScalarFunction c( "c", storage, level, level, bcTemperature );
+   ScalarFunction cPr( "cPr", storage, level, level, bcTemperature );
    ScalarFunction cOld( "cOld", storage, level, level, bcTemperature );
    ScalarFunction cTmp( "cTmp", storage, level, level, bcTemperature );
    ScalarFunction cTmp2( "cTmp2", storage, level, level, bcTemperature );
@@ -363,7 +370,8 @@ void runBenchmark( real_t      cflMax,
    ScalarFunction uTmp2( "uTmp2", storage, level, level, bcVelocity );
 
    auto initialTemperature = []( const Point3D& x ) {
-      return 0.5 * ( 1.0 - x[1] * x[1] ) + 0.01 * std::cos( pi * x[0] / 1.5 ) * std::sin( pi * x[1] / 1.0 );
+      // return 0.5 * ( 1.0 - x[1] * x[1] ) + 0.01 * std::cos( pi * x[0] / 1.5 ) * std::sin( pi * x[1] / 1.0 );
+      return 0.7 * ( 1.0 - x[1] * x[1] ) + 0.01 * std::cos( pi * x[0] / 1.5 ) * std::sin( pi * x[1] / 1.0 );
       // return 0.1 * ( 1.0 - x[1] * x[1] ) + 0.1 * ( 1 - x[0] / 1.5 ) * ( 1.0 - x[1] * x[1] );
       // return 0.2 * ( 1.0 - x[1] * x[1] * x[1] ) + 0.2 * ( 1 - x[0] / 1.5 ) * ( 1.0 - x[1] * x[1] * x[1] );
    };
@@ -383,7 +391,7 @@ void runBenchmark( real_t      cflMax,
       }
    };
 
-   UnsteadyDiffusionOperator diffusionOperator( storage, level, level, 1.0, diffusivity, DiffusionTimeIntegrator::ImplicitEuler );
+   UnsteadyDiffusionOperator diffusionOperator( storage, level, level, 1.0, diffusivity, DiffusionTimeIntegrator::CrankNicolson );
    auto projectNormalOperator = std::make_shared< ProjectNormalOperator >( storage, level, level, surfaceNormalsFreeSlip );
    auto A                     = std::make_shared< StokesOperator >( storage, level, level );
    StokesOperatorFreeSlip          AFS( A, projectNormalOperator, FreeslipBoundary );
@@ -401,7 +409,7 @@ void runBenchmark( real_t      cflMax,
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    auto stokesSolver =
-       std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperatorFreeSlip > >( storage, level, 1e-08, 5000, 4, 0 );
+       std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperatorFreeSlip > >( storage, level, 1e-08, 5000, 4, 1 );
    stokesSolver->reassembleMatrix( false );
 #else
    auto stokesSolver            = solvertemplates::stokesMinResSolver< StokesOperatorFreeSlip >( storage, level, 1e-14, 5000 );
@@ -414,9 +422,11 @@ void runBenchmark( real_t      cflMax,
    if ( numSamples % 2 == 0 )
       numSamples--;
 
+   const real_t nusseltEpsBoundary = 0.01 * hMin;
+
    real_t timeTotal = 0;
    real_t vMax      = velocityMaxMagnitude( u.u, u.v, uTmp, uTmp2, level, All );
-   real_t nu        = calculateNusseltNumber( c, level, 0.5 * hMin, 0.5 * hMin, numSamples );
+   real_t nu        = calculateNusseltNumber( c, level, 0.5 * hMin, nusseltEpsBoundary, numSamples );
    real_t vRms      = 0;
    real_t residualU = 0;
    real_t residualV = 0;
@@ -471,6 +481,8 @@ void runBenchmark( real_t      cflMax,
    projectNormalOperator->apply( f, level, FreeslipBoundary );
    stokesSolver->solve( AFS, u, f, level );
 
+   vMax = velocityMaxMagnitude( u.u, u.v, uTmp, uTmp2, level, All );
+
    if ( vtk )
       vtkOutput.write( level );
 
@@ -482,31 +494,7 @@ void runBenchmark( real_t      cflMax,
 
       timeStep++;
 
-      if ( verbose )
-         WALBERLA_LOG_INFO_ON_ROOT( "timestep " << timeStep )
-
-      // Stokes
-
-      uLast.assign( {1.0}, {u}, level, All );
-
-      MVelocity.apply( c, f.u, level, All );
-      MVelocity.apply( c, f.v, level, All );
-      f.u.multElementwise( {f.u, upwardNormal.u}, level );
-      f.v.multElementwise( {f.v, upwardNormal.v}, level );
-      f.u.assign( {rayleighNumber}, {f.u}, level, All );
-      f.v.assign( {rayleighNumber}, {f.v}, level, All );
-      projectNormalOperator->apply( f, level, FreeslipBoundary );
-
-      localTimer.start();
-      stokesSolver->solve( AFS, u, f, level );
-      localTimer.end();
-      timeStokes = localTimer.last();
-
-      calculateStokesResiduals(
-          AFS, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualV, residualP );
-      vRms = velocityRMS( u, 1.0, 1.5, level );
-
-      // Energy
+      // new time step size
 
       vMax = velocityMaxMagnitude( u.u, u.v, uTmp, uTmp2, level, All );
 
@@ -520,43 +508,107 @@ void runBenchmark( real_t      cflMax,
          dt = ( cflMax / vMax ) * hMin;
       }
 
-      if ( verbose )
-         WALBERLA_LOG_INFO_ON_ROOT( "performing transport step" )
+      // energy
 
-      if ( adjustedAdvection )
-      {
-         const real_t adjustedAdvectionPertubation = 0.1 * ( hMin / vMax );
-         localTimer.start();
-         transport.step(
-             c, u.u, u.v, u.w, uLast.u, uLast.v, uLast.w, level, All, dt, 1, MVelocity, 0.0, adjustedAdvectionPertubation );
-         localTimer.end();
-         timeMMOC = localTimer.last();
-      }
-      else
-      {
-         localTimer.start();
-         transport.step( c, u.u, u.v, u.w, uLast.u, uLast.v, uLast.w, level, All, dt, 1, true );
-         localTimer.end();
-         timeMMOC = localTimer.last();
-      }
+      // advection
 
-      c.interpolate( 0, level, DirichletBoundary );
+      // start value for predictor
+      cPr.assign( {1.0}, {c}, level, All );
 
-      cOld.assign( {1.0}, {c}, level, All );
+      // let's just use the current velocity for the prediction
+      uLast.assign( {1.0}, {u}, level, All );
 
-      timeTotal += dt;
+      localTimer.start();
+      transport.step( cPr, u.u, u.v, u.w, uLast.u, uLast.v, uLast.w, level, All, dt, 1, true );
+      localTimer.end();
+      timeMMOC = localTimer.last();
+
+      // diffusion
+
+      cPr.interpolate( 0, level, DirichletBoundary );
+
+      cOld.assign( { 1.0 }, { cPr }, level, All );
 
       diffusionOperator.setDt( dt );
 
-      if ( verbose )
-         WALBERLA_LOG_INFO_ON_ROOT( "performing diffusion step" )
-
       localTimer.start();
-      diffusionSolver.step( diffusionOperator, L, MVelocity, c, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
+      diffusionSolver.step(
+          diffusionOperator, L, MVelocity, cPr, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
       localTimer.end();
       timeDiffusion = localTimer.last();
 
-      nu = calculateNusseltNumber( c, level, 0.5 * hMin, 0.5 * hMin, numSamples );
+      // Stokes
+
+      MVelocity.apply( cPr, f.u, level, All );
+      MVelocity.apply( cPr, f.v, level, All );
+      f.u.multElementwise( {f.u, upwardNormal.u}, level );
+      f.v.multElementwise( {f.v, upwardNormal.v}, level );
+      f.u.assign( {rayleighNumber}, {f.u}, level, All );
+      f.v.assign( {rayleighNumber}, {f.v}, level, All );
+      projectNormalOperator->apply( f, level, FreeslipBoundary );
+
+      localTimer.start();
+      stokesSolver->solve( AFS, u, f, level );
+      localTimer.end();
+      timeStokes = localTimer.last();
+
+      calculateStokesResiduals(
+          AFS, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualV, residualP );
+
+
+      if ( predictorCorrector )
+      {
+         // energy
+
+         // advection
+
+         localTimer.start();
+         transport.step( c, u.u, u.v, u.w, uLast.u, uLast.v, uLast.w, level, All, dt, 1, true );
+         localTimer.end();
+         timeMMOC += localTimer.last();
+
+         // diffusion
+
+         c.interpolate( 0, level, DirichletBoundary );
+
+         cOld.assign( { 1.0 }, { c }, level, All );
+
+         diffusionOperator.setDt( dt );
+
+         localTimer.start();
+         diffusionSolver.step(
+             diffusionOperator, L, MVelocity, c, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
+         localTimer.end();
+         timeDiffusion += localTimer.last();
+
+         // Stokes
+
+         MVelocity.apply( c, f.u, level, All );
+         MVelocity.apply( c, f.v, level, All );
+         f.u.multElementwise( {f.u, upwardNormal.u}, level );
+         f.v.multElementwise( {f.v, upwardNormal.v}, level );
+         f.u.assign( {rayleighNumber}, {f.u}, level, All );
+         f.v.assign( {rayleighNumber}, {f.v}, level, All );
+         projectNormalOperator->apply( f, level, FreeslipBoundary );
+
+         localTimer.start();
+         stokesSolver->solve( AFS, u, f, level );
+         localTimer.end();
+         timeStokes += localTimer.last();
+
+         calculateStokesResiduals(
+             AFS, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualV, residualP );
+      }
+      else
+      {
+         // use predicted value
+         c.assign( {1.0}, {cPr}, level, All );
+      }
+
+      timeTotal += dt;
+
+      vRms = velocityRMS( u, 1.0, 1.5, level );
+      nu = calculateNusseltNumber( c, level, 0.5 * hMin, nusseltEpsBoundary, numSamples );
 
       if ( vtk )
          vtkOutput.write( level, timeStep );
@@ -643,7 +695,8 @@ int main( int argc, char** argv )
    const hyteg::real_t dtConstant     = mainConf.getParameter< hyteg::real_t >( "dtConstant" );
    const uint_t        level          = mainConf.getParameter< uint_t >( "level" );
    const hyteg::real_t simulationTime = mainConf.getParameter< hyteg::real_t >( "simulationTime" );
+   const hyteg::uint_t nx = mainConf.getParameter< hyteg::uint_t >( "nx" );
 
    hyteg::runBenchmark(
-       cflMax, rayleighNumber, fixedTimeStep, dtConstant, level, false, simulationTime, true, 1, 1, false, "database.db" );
+       cflMax, rayleighNumber, fixedTimeStep, dtConstant, level, nx,false, true, true, simulationTime, true, 1, 1, false, "database.db" );
 }
