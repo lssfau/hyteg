@@ -130,6 +130,24 @@ real_t velocityRMS( const StokesFunction& u, real_t domainHeight, real_t domainW
    return norm / std::sqrt( area );
 }
 
+bool isPointLocal( const std::shared_ptr< PrimitiveStorage > & storage, const Point3D & point, const real_t & epsRadius )
+{
+   for ( const auto & it : storage->getFaces() )
+   {
+      auto face = it.second;
+      Point2D p2D( {point[0], point[1]} );
+      if ( circleTriangleIntersection( p2D,
+                                       epsRadius,
+                                       Point2D({ face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1] }),
+                                       Point2D({ face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1] }),
+                                       Point2D({ face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1] }) ) )
+      {
+         return true;
+      }
+   }
+   return false;
+}
+
 template < typename FunctionType >
 std::vector< real_t > evaluateHorizontalTemperatureSlice( const FunctionType& c,
                                                           uint_t              level,
@@ -139,12 +157,53 @@ std::vector< real_t > evaluateHorizontalTemperatureSlice( const FunctionType& c,
                                                           uint_t              numSamples )
 {
    std::vector< real_t > samples( numSamples );
+   std::vector< bool >   sampleLocallyAvailable( numSamples, false );
    const real_t          dx = ( xMax - xMin ) / real_c( numSamples - 1 );
    for ( uint_t sample = 0; sample < numSamples; sample++ )
    {
-      samples[sample] = c.evaluate( Point3D( {xMin + real_c( sample ) * dx, y, 0} ), level );
+      Point3D pos( {xMin + real_c( sample ) * dx, y, 0} );
+      if ( isPointLocal( c.getStorage(), pos, 1e-6 ) )
+      {
+         sampleLocallyAvailable[sample] = true;
+         samples[sample] = c.evaluate( pos, level );
+      }
+
    }
-   return samples;
+
+   walberla::mpi::SendBuffer sendbuffer;
+   walberla::mpi::RecvBuffer recvbuffer;
+
+   sendbuffer << samples;
+   sendbuffer << sampleLocallyAvailable;
+
+   walberla::mpi::allGathervBuffer( sendbuffer, recvbuffer );
+
+   std::vector< real_t > samplesGlobal( numSamples );
+   std::vector< bool >   sampleGloballyAvailable( numSamples, false );
+
+   for ( uint_t rank = 0; rank < uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ); rank++ )
+   {
+      std::vector< real_t > recvSamples( numSamples );
+      std::vector< bool >   recvSamplesAvailable( numSamples, false );
+      recvbuffer >> recvSamples;
+      recvbuffer >> recvSamplesAvailable;
+
+      for ( uint_t sample = 0; sample < numSamples; sample++ )
+      {
+         if ( recvSamplesAvailable[sample] )
+         {
+            sampleGloballyAvailable[sample] = true;
+            samplesGlobal[sample] = recvSamples[sample];
+         }
+      }
+   }
+
+   for ( uint_t sample = 0; sample < numSamples; sample++ )
+   {
+      WALBERLA_CHECK( sampleGloballyAvailable[sample] );
+   }
+
+   return samplesGlobal;
 }
 
 template < typename FunctionType >
@@ -186,8 +245,6 @@ real_t integrateSlice( const std::vector< real_t >& slice, real_t xMin, real_t x
 template < typename FunctionType >
 real_t calculateNusseltNumber( const FunctionType& c, uint_t level, real_t hGradient, real_t epsBoundary, uint_t numSamples )
 {
-#if 1
-   WALBERLA_CHECK_EQUAL( walberla::mpi::MPIManager::instance()->numProcesses(), 1, "Cannot calculate Nusselt number in parallel." );
    const real_t xMin            = epsBoundary;
    const real_t xMax            = 1.5 - epsBoundary;
    const real_t yGradientTop    = 1.0 - epsBoundary;
@@ -200,9 +257,6 @@ real_t calculateNusseltNumber( const FunctionType& c, uint_t level, real_t hGrad
    auto bottomSliceIntegral   = integrateSlice( bottomSlice, xMin, xMax );
 
    return -gradientSliceIntegral / bottomSliceIntegral;
-#else
-   return 0;
-#endif
 }
 
 std::shared_ptr< SetupPrimitiveStorage > createSetupStorage( uint_t nx )
@@ -237,14 +291,11 @@ void runBenchmark( real_t      cflMax,
                    real_t      dtConstant,
                    uint_t      level,
                    uint_t      nx,
-                   bool        adjustedAdvection,
-                   bool        strangSplitting,
                    bool        predictorCorrector,
                    real_t      simulationTime,
                    bool        vtk,
                    uint_t      printInterval,
                    uint_t      vtkInterval,
-                   bool        verbose,
                    std::string dbFile )
 {
    walberla::WcTimer localTimer;
@@ -292,7 +343,6 @@ void runBenchmark( real_t      cflMax,
    WALBERLA_LOG_INFO_ON_ROOT( "   + h_max:                                        " << hMax )
    WALBERLA_LOG_INFO_ON_ROOT( " - benchmark settings: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + Rayleigh number                               " << rayleighNumber )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + adjusted advection:                           " << ( adjustedAdvection ? "yes" : "no" ) )
    WALBERLA_LOG_INFO_ON_ROOT( " - app settings: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + VTK:                                          " << ( vtk ? "yes" : "no" ) )
    if ( vtk )
@@ -323,7 +373,6 @@ void runBenchmark( real_t      cflMax,
    sqlIntegerProperties["num_macro_vertices"]   = int_c( setupStorage->getNumberOfVertices() );
    sqlIntegerProperties["num_macro_primitives"] = int_c( setupStorage->getNumberOfPrimitives() );
    sqlRealProperties["diffusivity"]             = diffusivity;
-   sqlIntegerProperties["adjusted_advection"]   = adjustedAdvection;
 
    WALBERLA_ROOT_SECTION()
    {
@@ -370,10 +419,7 @@ void runBenchmark( real_t      cflMax,
    ScalarFunction uTmp2( "uTmp2", storage, level, level, bcVelocity );
 
    auto initialTemperature = []( const Point3D& x ) {
-      // return 0.5 * ( 1.0 - x[1] * x[1] ) + 0.01 * std::cos( pi * x[0] / 1.5 ) * std::sin( pi * x[1] / 1.0 );
-      return 0.7 * ( 1.0 - x[1] * x[1] ) + 0.01 * std::cos( pi * x[0] / 1.5 ) * std::sin( pi * x[1] / 1.0 );
-      // return 0.1 * ( 1.0 - x[1] * x[1] ) + 0.1 * ( 1 - x[0] / 1.5 ) * ( 1.0 - x[1] * x[1] );
-      // return 0.2 * ( 1.0 - x[1] * x[1] * x[1] ) + 0.2 * ( 1 - x[0] / 1.5 ) * ( 1.0 - x[1] * x[1] * x[1] );
+      return 0.5 * ( 1.0 - x[1] * x[1] ) + 0.01 * std::cos( pi * x[0] / 1.5 ) * std::sin( pi * x[1] / 1.0 );
    };
 
    c.interpolate( initialTemperature, level, Inner | NeumannBoundary | FreeslipBoundary );
@@ -400,12 +446,7 @@ void runBenchmark( real_t      cflMax,
    MassOperatorPressure            MPressure( storage, level, level );
    MMOCTransport< ScalarFunction > transport( storage, setupStorage, level, level, TimeSteppingScheme::RK4 );
 
-#ifndef HYTEG_BUILD_WITH_PETSC
-   auto internalDiffusionSolver =
-       std::make_shared< PETScMinResSolver< UnsteadyDiffusionOperator > >( storage, level, 1e-15, 50000 );
-#else
    auto internalDiffusionSolver = std::make_shared< CGSolver< UnsteadyDiffusionOperator > >( storage, level, level, 5000, 1e-14 );
-#endif
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    auto stokesSolver =
@@ -422,11 +463,11 @@ void runBenchmark( real_t      cflMax,
    if ( numSamples % 2 == 0 )
       numSamples--;
 
-   const real_t nusseltEpsBoundary = 0.01 * hMin;
+   const real_t nusseltEpsBoundary = 0.0001 * hMin;
 
    real_t timeTotal = 0;
    real_t vMax      = velocityMaxMagnitude( u.u, u.v, uTmp, uTmp2, level, All );
-   real_t nu        = calculateNusseltNumber( c, level, 0.5 * hMin, nusseltEpsBoundary, numSamples );
+   real_t nu        = calculateNusseltNumber( c, level, 0.1 * hMin, nusseltEpsBoundary, numSamples );
    real_t vRms      = 0;
    real_t residualU = 0;
    real_t residualV = 0;
@@ -518,6 +559,20 @@ void runBenchmark( real_t      cflMax,
       // let's just use the current velocity for the prediction
       uLast.assign( {1.0}, {u}, level, All );
 
+      // diffusion
+
+      cPr.interpolate( 0, level, DirichletBoundary );
+
+      cOld.assign( { 1.0 }, { cPr }, level, All );
+
+      diffusionOperator.setDt( 0.5 * dt );
+
+      localTimer.start();
+      diffusionSolver.step(
+          diffusionOperator, L, MVelocity, cPr, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
+      localTimer.end();
+      timeDiffusion = localTimer.last();
+
       localTimer.start();
       transport.step( cPr, u.u, u.v, u.w, uLast.u, uLast.v, uLast.w, level, All, dt, 1, true );
       localTimer.end();
@@ -529,13 +584,11 @@ void runBenchmark( real_t      cflMax,
 
       cOld.assign( { 1.0 }, { cPr }, level, All );
 
-      diffusionOperator.setDt( dt );
-
       localTimer.start();
       diffusionSolver.step(
           diffusionOperator, L, MVelocity, cPr, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
       localTimer.end();
-      timeDiffusion = localTimer.last();
+      timeDiffusion += localTimer.last();
 
       // Stokes
 
@@ -560,6 +613,18 @@ void runBenchmark( real_t      cflMax,
       {
          // energy
 
+         // diffusion
+
+         c.interpolate( 0, level, DirichletBoundary );
+
+         cOld.assign( { 1.0 }, { c }, level, All );
+
+         localTimer.start();
+         diffusionSolver.step(
+             diffusionOperator, L, MVelocity, c, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
+         localTimer.end();
+         timeDiffusion += localTimer.last();
+
          // advection
 
          localTimer.start();
@@ -572,8 +637,6 @@ void runBenchmark( real_t      cflMax,
          c.interpolate( 0, level, DirichletBoundary );
 
          cOld.assign( { 1.0 }, { c }, level, All );
-
-         diffusionOperator.setDt( dt );
 
          localTimer.start();
          diffusionSolver.step(
@@ -698,5 +761,5 @@ int main( int argc, char** argv )
    const hyteg::uint_t nx = mainConf.getParameter< hyteg::uint_t >( "nx" );
 
    hyteg::runBenchmark(
-       cflMax, rayleighNumber, fixedTimeStep, dtConstant, level, nx,false, true, true, simulationTime, true, 1, 1, false, "database.db" );
+       cflMax, rayleighNumber, fixedTimeStep, dtConstant, level, nx, true, simulationTime, true, 1, 1, "database.db" );
 }
