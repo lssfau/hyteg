@@ -25,6 +25,8 @@
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 
+#include "hyteg/petsc/PETScWrapper.hpp"
+
 namespace hyteg {
 namespace petsc {
 
