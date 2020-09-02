@@ -24,8 +24,9 @@
 #include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
+#include "hyteg/HytegDefinitions.hpp"
 
-#include "hyteg/petsc/PETScWrapper.hpp"
+#ifdef HYTEG_BUILD_WITH_PETSC
 
 namespace hyteg {
 namespace petsc {
@@ -118,3 +119,5 @@ inline void createMatrix< P1StokesBlockPreconditioner >( const P1StokesBlockPrec
 }
 }
 }
+
+#endif
