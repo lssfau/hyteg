@@ -1,12 +1,12 @@
 Parameters
 {
-  level_h_coarse 2;
-  level_h_fine 4;
-  elementType 2;
-  operatorType 1; # 0=constant, 1=variable, 2=polynomial;
+  level_h_coarse 0;
+  level_h_fine 0;
+  elementType 1;
+  operatorType 0; # 0=constant, 1=variable, 2=polynomial;
 
   # parameters for surrogate polynomials;
-  interpolationLevel 5;
+  interpolationLevel 4;
   minPolyDegree 7;
   maxPolyDegree 7;
 
@@ -22,4 +22,5 @@ Parameters
   coarse_tolerance 1e-16;
 
   vtkOutput 0;
+  show_macrogrid 1;
 }

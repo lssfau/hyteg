@@ -365,6 +365,39 @@ void solve(const StencilType T, const uint_t interpolationLevel, std::shared_ptr
   }
 }
 
+
+void showGrid(std::shared_ptr<PrimitiveStorage> storage, const uint_t interpolationlevel)
+{
+  P1Function<real_t> grid("grid", storage, interpolationlevel, interpolationlevel);
+
+  size_t rowsize = levelinfo::num_microvertices_per_edge( interpolationlevel );
+  auto edgeId = grid.getEdgeDataID();
+  auto vtxId = grid.getVertexDataID();
+
+  for ( auto& it : storage->getEdges() )
+  {
+      Edge& edge = *it.second;
+      auto data = edge.getData( edgeId )->getPointer( interpolationlevel );
+
+      for( size_t i = 1; i < rowsize - 1; ++i )
+      {
+        data[vertexdof::macroedge::indexFromVertex( interpolationlevel, i, stencilDirection::VERTEX_C )] = 1;
+      }
+  }
+
+  for ( auto& it : storage->getVertices() )
+  {
+      Vertex& vertex = *it.second;
+      auto data = vertex.getData( vtxId )->getPointer( interpolationlevel );
+      data[0] = 2;
+  }
+
+  std::string name = "Annulus_macro";
+  hyteg::VTKOutput vtkOutput("../output", name, storage);
+  vtkOutput.add(grid);
+  vtkOutput.write(interpolationlevel, 0);
+}
+
 int main(int argc, char* argv[])
 {
   walberla::Environment walberlaEnv(argc, argv);
@@ -416,6 +449,7 @@ int main(int argc, char* argv[])
   const real_t coarse_tolerance = parameters.getParameter<real_t>("coarse_tolerance");
 
   const bool vtk = parameters.getParameter<bool>("vtkOutput");
+  const bool show_macrogrid = parameters.getParameter<bool>("show_macrogrid");
 
 
   if (annulus)
@@ -498,6 +532,9 @@ int main(int argc, char* argv[])
     default:
       WALBERLA_ABORT("The desired FE space is not supported!");
   }
+
+  if (show_macrogrid)
+    showGrid(storage, maxInterpolationLevel);
 
   return 0;
 }
