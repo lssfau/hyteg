@@ -151,7 +151,7 @@ void P1ProjectNormalOperator::apply( const P1Function< real_t >& dst_u,
 
 void P1ProjectNormalOperator::apply( const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const
 {
-   apply( dst.u, dst.v, dst.w, level, flag );
+   apply( dst.uvw.u, dst.uvw.v, dst.uvw.w, level, flag );
 }
 
 } // namespace hyteg

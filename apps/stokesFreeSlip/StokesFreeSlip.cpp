@@ -81,8 +81,8 @@ void applyDirichletBCRectangle( const double channelLength, const double channel
       // return inflow(p) ? (channelHeight-p[1])*p[1] : 0;
    };
 
-   u.u.interpolate( dirichletInterpolantX, level, DirichletBoundary );
-   u.v.interpolate( 0, level, DirichletBoundary );
+   u.uvw.u.interpolate( dirichletInterpolantX, level, DirichletBoundary );
+   u.uvw.v.interpolate( 0, level, DirichletBoundary );
 }
 
 std::shared_ptr< SetupPrimitiveStorage >
@@ -131,8 +131,8 @@ void applyDirichletBCAnnulus( const double rmin, const double, const uint_t leve
    auto dirichletInterpolantX = [=]( auto p ) { return inflow( p ) ? -p[1] / rmin : 0; };
    auto dirichletInterpolantY = [=]( auto p ) { return inflow( p ) ? +p[0] / rmin : 0; };
 
-   u.u.interpolate( dirichletInterpolantX, level, DirichletBoundary );
-   u.v.interpolate( dirichletInterpolantY, level, DirichletBoundary );
+   u.uvw.u.interpolate( dirichletInterpolantX, level, DirichletBoundary );
+   u.uvw.v.interpolate( dirichletInterpolantY, level, DirichletBoundary );
 }
 
 template < typename StokesFunctionType,

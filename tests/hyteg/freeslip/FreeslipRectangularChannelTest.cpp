@@ -77,8 +77,8 @@ void interpolateTrueSolutionVelocity( const double,
 {
    auto dirichletInterpolantX = [=]( auto p ) { return ( channelHeight - p[1] ) * ( channelHeight + p[1] ); };
 
-   u.u.interpolate( dirichletInterpolantX, level, flag );
-   u.v.interpolate( 0, level, flag );
+   u.uvw.u.interpolate( dirichletInterpolantX, level, flag );
+   u.uvw.v.interpolate( 0, level, flag );
 }
 
 template < typename StokesFunctionType, typename StokesOperatorType, typename ProjectNormalOperatorType >
@@ -103,7 +103,7 @@ void run( const real_t absErrorTolerance )
    StokesFunctionType f( "f", storage, minLevel, maxLevel );
 
    f.interpolate( 0, maxLevel, All );
-   u_exact.u.interpolate( [=]( auto p ) { return ( channelHeight - p[1] ) * ( channelHeight + p[1] ); }, maxLevel, All );
+   u_exact.uvw.u.interpolate( [=]( auto p ) { return ( channelHeight - p[1] ) * ( channelHeight + p[1] ); }, maxLevel, All );
    interpolateTrueSolutionVelocity( channelLength, channelHeight, maxLevel, u_exact, All );
    interpolateTrueSolutionVelocity( channelLength, channelHeight, maxLevel, u, DirichletBoundary );
 
