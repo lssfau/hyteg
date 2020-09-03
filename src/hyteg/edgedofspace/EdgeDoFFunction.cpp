@@ -53,7 +53,7 @@ EdgeDoFFunction< ValueType >::EdgeDoFFunction( const std::string&               
                                                const std::shared_ptr< PrimitiveStorage >& storage,
                                                const uint_t&                              minLevel,
                                                const uint_t&                              maxLevel )
-: EdgeDoFFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create012BC() )
+: EdgeDoFFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
 {}
 
 template < typename ValueType >

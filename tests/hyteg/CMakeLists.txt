@@ -139,36 +139,11 @@ if(CMAKE_BUILD_TYPE MATCHES "Release")
   endif()
 endif()
 
-waLBerla_compile_test(FILES convergence/P2UnsteadyConvectionDiffusion2DTest.cpp DEPENDS hyteg core convection_particles )
-waLBerla_execute_test(NAME P2UnsteadyConvectionDiffusion2DTest)
 
 ## convection ##
 
 waLBerla_compile_test(FILES convection/Upwind2DCircularConvectionTest.cpp DEPENDS hyteg core)
 waLBerla_compile_test(FILES convection/AlgebraicUpwind3DCircularConvectionTest.cpp DEPENDS hyteg core)
-
-waLBerla_compile_test(FILES convection/MMOC2DCircularConvectionTest.cpp DEPENDS hyteg core convection_particles)
-if(CMAKE_BUILD_TYPE MATCHES "Release")
-  waLBerla_execute_test(NAME MMOC2DCircularConvectionTest)
-endif()
-
-waLBerla_compile_test(FILES convection/MMOC2DCircularConvectionBlendingTest.cpp DEPENDS hyteg core convection_particles)
-if(CMAKE_BUILD_TYPE MATCHES "Release")
-  waLBerla_execute_test(NAME MMOC2DCircularConvectionBlendingTest)
-endif()
-
-waLBerla_compile_test(FILES convection/MMOC3DCircularConvectionTest.cpp DEPENDS hyteg core convection_particles)
-if(CMAKE_BUILD_TYPE MATCHES "Release")
-  waLBerla_execute_test(NAME MMOC3DCircularConvectionTest LABELS longrun)
-endif()
-
-waLBerla_compile_test(FILES convection/MMOC2DSwirlingFlowConvectionTest.cpp DEPENDS hyteg core convection_particles)
-if(CMAKE_BUILD_TYPE MATCHES "Release")
-  waLBerla_execute_test(NAME MMOC2DSwirlingFlowConvectionTest)
-endif()
-
-waLBerla_compile_test(FILES convection/ConvectionParticlesCouplingTest.cpp DEPENDS core convection_particles)
-waLBerla_execute_test(NAME ConvectionParticlesCouplingTest)
 
 ## Forms ##
 
@@ -400,6 +375,9 @@ if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_execute_test(NAME P2PetscApplyTest2 COMMAND $<TARGET_FILE:P2PetscApplyTest> PROCESSES 2)
   waLBerla_execute_test(NAME P2PetscApplyTest8 COMMAND $<TARGET_FILE:P2PetscApplyTest> PROCESSES 8)
 endif()
+
+waLBerla_compile_test(FILES composites/ConcatenatedOperator.cpp DEPENDS hyteg core )
+waLBerla_execute_test(NAME ConcatenatedOperator )
 
 ## composites ##
 if( HYTEG_BUILD_WITH_PETSC )
@@ -634,6 +612,14 @@ waLBerla_execute_test(NAME invertElementwiseTestMPI COMMAND $<TARGET_FILE:invert
 waLBerla_compile_test(FILES fpe/CircularMapFPETest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME CircularMapFPETest)
 waLBerla_execute_test(NAME CircularMapFPETestMPI COMMAND $<TARGET_FILE:CircularMapFPETest> PROCESSES 2 )
+
+waLBerla_compile_test(FILES freeslip/FreeslipRectangularChannelTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME FreeslipRectangularChannelTest)
+waLBerla_execute_test(NAME FreeslipRectangularChannelTestMPI COMMAND $<TARGET_FILE:FreeslipRectangularChannelTest> PROCESSES 2 )
+
+waLBerla_compile_test(FILES freeslip/ProjectNormalTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME ProjectNormalTest)
+waLBerla_execute_test(NAME ProjectNormalTestMPI COMMAND $<TARGET_FILE:ProjectNormalTest> PROCESSES 2 )
 
 if ( HYTEG_BUILD_WITH_TRILINOS )
 ## Trilinos ##

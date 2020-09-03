@@ -34,7 +34,7 @@ class StokesPressureBlockPreconditioner : public Solver< OperatorType >
 
    StokesPressureBlockPreconditioner( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
    : pressureBlockPreconditioner_( std::make_shared< pressureBlockPreconditionerType >( storage, minLevel, maxLevel ) )
-   , flag_( hyteg::Inner | hyteg::NeumannBoundary )
+   , flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
    {}
 
    void solve( const OperatorType&, const FunctionType& x, const FunctionType& b, const uint_t level ) override

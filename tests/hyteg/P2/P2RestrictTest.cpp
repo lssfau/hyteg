@@ -43,8 +43,8 @@ static void testP2Restrict() {
 
   std::shared_ptr <PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);
 
-  auto x = std::make_shared < P2Function < real_t > > ("x", storage, sourceLevel-1, sourceLevel, BoundaryCondition::create012BC() );
-  auto ident = P2Function < real_t >("ident", storage, sourceLevel-1, sourceLevel, BoundaryCondition::create012BC() );
+  auto x = std::make_shared < P2Function < real_t > > ("x", storage, sourceLevel-1, sourceLevel, BoundaryCondition::create0123BC() );
+  auto ident = P2Function < real_t >("ident", storage, sourceLevel-1, sourceLevel, BoundaryCondition::create0123BC() );
   std::function< real_t( const hyteg::Point3D& ) > one = []( const hyteg::Point3D&  ) {
      return 1;
   };
@@ -143,7 +143,7 @@ static void testP2Restrict2() {
   std::shared_ptr<SetupPrimitiveStorage> setupStorage =
     std::make_shared<SetupPrimitiveStorage>(mesh, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(*setupStorage);
-  auto x = std::make_shared<P2Function<real_t> >("x", storage, sourceLevel - 2, sourceLevel, BoundaryCondition::create012BC() );
+  auto x = std::make_shared<P2Function<real_t> >("x", storage, sourceLevel - 2, sourceLevel, BoundaryCondition::create0123BC() );
   typedef stencilDirection sD;
   std::function<real_t(const hyteg::Point3D &)> values = [](const hyteg::Point3D &) { return 13; };
 

@@ -23,11 +23,12 @@
 
 namespace hyteg {
 
-BoundaryCondition BoundaryCondition::create012BC()
+BoundaryCondition BoundaryCondition::create0123BC()
 {
   BoundaryCondition bc;
   bc.createDirichletBC( "Dirichlet", 1 );
   bc.createNeumannBC( "Neumann", 2 );
+  bc.createFreeslipBC( "Freeslip", 3 );
   return bc;
 }
 
@@ -75,6 +76,26 @@ BoundaryUID BoundaryCondition::createNeumannBC( const std::string & name, const 
   }
 
   return boundaryUID;
+}
+
+BoundaryUID BoundaryCondition::createFreeslipBC( const std::string & name, const uint_t & meshBoundaryFlag )
+{
+   std::vector< uint_t > meshBoundaryFlags = { meshBoundaryFlag };
+   return createFreeslipBC( name, meshBoundaryFlags );
+}
+
+BoundaryUID BoundaryCondition::createFreeslipBC( const std::string & name, const std::vector< uint_t > & meshBoundaryFlags )
+{
+   BoundaryUID boundaryUID( name );
+   WALBERLA_CHECK_EQUAL( boundaryUIDToType_.count( boundaryUID ), 0, "Boundary condition with name '" << name << "' already exists!" )
+   boundaryUIDToType_[ boundaryUID ] = DoFType::FreeslipBoundary;
+
+   for ( const auto & meshBoundaryFlag : meshBoundaryFlags )
+   {
+      meshFlagToID_[ meshBoundaryFlag ] = boundaryUID;
+   }
+
+   return boundaryUID;
 }
 
 DoFType BoundaryCondition::getBoundaryType( const uint_t & meshBoundaryFlag ) const

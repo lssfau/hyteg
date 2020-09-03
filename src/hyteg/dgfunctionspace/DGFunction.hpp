@@ -38,7 +38,7 @@ class DGFunction : public Function< DGFunction< ValueType > >
 {
  public:
    DGFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
-   : DGFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create012BC() )
+   : DGFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
    {}
 
    DGFunction( const std::string&                         name,

@@ -22,7 +22,6 @@
 #include <core/math/Constants.h>
 
 #include "hyteg/MeshQuality.hpp"
-#include "hyteg/composites/MMOCTransport.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
@@ -31,6 +30,8 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
+
+#include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

@@ -20,15 +20,12 @@
 
 #pragma once
 
-#include <convection_particles/data/ParticleStorage.h>
-#include <convection_particles/mpi/SyncNextNeighborsNoGhosts.h>
-#include <core/math/MatrixMxN.h>
-#include <core/mpi/MPIWrapper.h>
+#include "core/math/MatrixMxN.h"
+#include "core/mpi/MPIWrapper.h"
 
 #include "hyteg/FunctionIterator.hpp"
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/communication/Syncing.hpp"
-#include "hyteg/communication/convection_particles/SyncNextNeighborsByPrimitiveID.h"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
@@ -42,7 +39,11 @@
 #include "hyteg/p2functionspace/P2MacroCell.hpp"
 #include "hyteg/p2functionspace/P2MacroFace.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/convection_particles_coupling/SetupPrimitiveStorageConvectionParticlesInterface.hpp"
+#include "coupling_hyteg_convection_particles/communication/SyncNextNeighborsByPrimitiveID.h"
+#include "coupling_hyteg_convection_particles/setupPrimitiveStorage/SetupPrimitiveStorageConvectionParticlesInterface.hpp"
+
+#include "convection_particles/data/ParticleStorage.h"
+#include "convection_particles/mpi/SyncNextNeighborsNoGhosts.h"
 
 namespace hyteg {
 
