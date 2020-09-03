@@ -363,6 +363,95 @@ void solve(const StencilType T, const uint_t interpolationLevel, std::shared_ptr
   }
 }
 
+// write diagonal entries of stiffness matrix to vtk-file
+void showStencilFunction(std::shared_ptr<PrimitiveStorage> storage, const uint_t level, const real_t alpha)
+{
+  typedef stencilDirection SD;
+
+  P2Function<real_t> stencil("stencil", storage, level, level);
+
+  stencil.add(nan(""), level, All);
+
+  auto vtxID  = stencil.getVertexDoFFunction().getFaceDataID();
+  auto edgeID = stencil.getEdgeDoFFunction().getFaceDataID();
+
+  for (auto& faceit : storage->getFaces())
+  {
+    hyteg::Face& face = *faceit.second;
+
+    real_t* vtxData = face.getData(vtxID)->getPointer(level);
+    real_t* edgeData = face.getData(edgeID)->getPointer(level);
+
+    P2Form_divKgrad form;
+    form.setGeometryMap(face.getGeometryMap());
+
+    Point3D x0(face.coords[0]), x;
+    real_t  h = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
+
+    Point3D d0 = h * (face.coords[1] - face.coords[0]);
+    Point3D d2 = h * (face.coords[2] - face.coords[0]);
+
+    // directions
+    const Point3D dirS  = -d2;
+    const Point3D dirSE = d0 - d2;
+    const Point3D dirE  = d0;
+    const Point3D dirW  = -dirE;
+    const Point3D dirNW = -dirSE;
+    const Point3D dirN  = -dirS;
+    const Point3D dirNE = dirN + dirE;
+
+    // stencil entries
+    std::array<real_t, P2::NumStencilentries2D::VtV> VtVStencil;
+    std::array<real_t, P2::NumStencilentries2D::EtV> EtVStencil;
+    std::array<real_t, P2::NumStencilentries2D::VtE> VtEStencil;
+    std::array<real_t, P2::NumStencilentries2D::EtE> EtEStencil;
+
+    // loop over all DOFs
+    for (const auto& it : hyteg::edgedof::macroface::Iterator(level, 0))
+    {
+      x = x0 + walberla::real_c(it.row()) * d2 + walberla::real_c(it.col()) * d0;
+
+      P2::variablestencil::macroface::assembleStencil(form, x, dirS, dirSE, dirE, dirN, dirNW, dirW, dirNE,
+                                                      VtVStencil, EtVStencil, VtEStencil, EtEStencil);
+      uint_t i = it.col();
+      uint_t j = it.row();
+
+      // VERTEX DoF
+      if (!vertexdof::macroface::isVertexOnBoundary(level, it))
+      {
+        vtxData[vertexdof::macroface::indexFromVertex(level, i, j, SD::VERTEX_C)] =
+          VtVStencil[vertexdof::stencilIndexFromVertex(SD::VERTEX_C)];
+      }
+
+      // HORIZONTAL EDGE DoF
+      if (!edgedof::macroface::isHorizontalEdgeOnBoundary(level, it))
+      {
+        edgeData[edgedof::macroface::indexFromHorizontalEdge(level, i, j, SD::EDGE_HO_C)] =
+          EtEStencil[edgedof::stencilIndexFromHorizontalEdge(SD::EDGE_HO_C)];
+      }
+
+      // VERTICAL EDGE DoF
+      if (!edgedof::macroface::isVerticalEdgeOnBoundary(level, it))
+      {
+        edgeData[edgedof::macroface::indexFromVerticalEdge(level, i, j, SD::EDGE_VE_C)] =
+          EtEStencil[edgedof::stencilIndexFromVerticalEdge(SD::EDGE_VE_C)];
+      }
+
+      // DIAGONAL EDGE DoF
+      if (!edgedof::macroface::isDiagonalEdgeOnBoundary(level, it))
+      {
+        edgeData[edgedof::macroface::indexFromDiagonalEdge(level, i, j, SD::EDGE_DI_C)] =
+          EtEStencil[edgedof::stencilIndexFromDiagonalEdge(SD::EDGE_DI_C)];
+      }
+    }
+  }
+
+  std::string name = "divKgrad_stencil_alpha=" + std::to_string(int(alpha));
+  hyteg::VTKOutput vtkOutput("../output", name, storage);
+  vtkOutput.add(stencil);
+  vtkOutput.write(level, 0);
+}
+
 int main(int argc, char* argv[])
 {
   walberla::Environment walberlaEnv(argc, argv);
@@ -406,9 +495,12 @@ int main(int argc, char* argv[])
   const real_t coarse_tolerance = parameters.getParameter<real_t>("coarse_tolerance");
 
   const bool vtk = parameters.getParameter<bool>("vtkOutput");
+  const bool show_stencil = parameters.getParameter<bool>("show_stencil");
 
   const real_t alpha = parameters.getParameter<real_t>("alpha");
   const real_t phi = parameters.getParameter<real_t>("phi");
+
+  const uint_t n_el = parameters.getParameter<uint_t>("n_el");
 
   // define functions and domain
   // case: smooth k, domain = triangle
@@ -426,7 +518,8 @@ int main(int argc, char* argv[])
     return PI * (t1 + t2) * sinh(PI*x[1]);
   };
 
-  MeshInfo meshInfo = MeshInfo::fromGmshFile("../data/meshes/tri_1el.msh");
+  std::string msh = "../data/meshes/tri_" + std::to_string(n_el) + "el.msh";
+  MeshInfo meshInfo = MeshInfo::fromGmshFile(msh);
   P2Form_divKgrad::callback = k;
 
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
@@ -455,6 +548,9 @@ int main(int argc, char* argv[])
     default:
       WALBERLA_ABORT("The desired FE space is not supported!");
   }
+
+  if (show_stencil)
+    showStencilFunction(storage, maxInterpolationLevel, alpha);
 
   return 0;
 }
