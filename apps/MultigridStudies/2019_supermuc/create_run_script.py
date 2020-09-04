@@ -4,26 +4,76 @@ import datetime
 
 def supermuc_scaling_prm_file_string(discretization="P2", mesh_spherical_shell=False, num_faces_per_side=1, ntan=2, nrad=2,
                                      num_cycles=1, fmg_r=1, omega=0.2, pre=3, post=3, num_gs_velocity=1, max_level=3,
-                                     timing_file="timing.json", db_file="database.db", coarse_grid_tol=1e-10,
-                                     coarse_grid_solver_type=1, coarse_grid_preconditioner_type=1):
+                                     timing_file="timing.json", agglomeration_timing_file="timing_agglomeration.json",
+                                     db_file="database.db", coarse_grid_tol=1e-10,
+                                     coarse_grid_solver_type=1, coarse_grid_preconditioner_type=1,
+                                     agglomeration=False, agglomeration_strategy='bulk',
+                                     agglomeration_num_processes=4, agglomeration_interval=48,
+                                     block_low_rank=False, block_low_rank_tolerance=1e-3,
+                                     mesh_type='symmetricCube', t_domain_diameter=2, t_domain_height=100,
+                                     t_domain_width=25, t_domain_num_junctions=1,
+                                     project_pressure_after_restriction=True):
 
     base_config = """
 Parameters
 {{
     equation stokes;
-    dim 3;
-    numFacesPerSide {num_faces_per_side};
+    
+    // meshes
+    // dim == 2:
+    //  square:        square
+    // dim == 3:
+    //  symmetricCube:  symmetric cube with 24 tets
+    //  cube:           cube with 6 tets
+    //  sphericalShell: spherical shell
+    //  tDomain:        T-shaped domain
+    meshType {mesh_type};
+
+    
+    numEdgesPerSide {num_faces_per_side};
     discretization {discretization};
 
     // number of tets = 60 * (ntan-1) * (ntan-1) * (nrad-1)
-    meshSphericalShell {mesh_spherical_shell};
     shellNTan {ntan};
     shellNRad {nrad};
     shellRMin 0.55;
     shellRMax 1.0;
+    
+    // parameters for T-domain
+    //
+    // top down view
+    //
+    //       out
+    //       #
+    // in    #     diam   = 1
+    // #######     height = 6 // height minus junction
+    //       #     width  = 2 // one sided distance from junction
+    //       #
+    //       out
+    //
+    //     out
+    //     ##
+    //     ##
+    // in  ##     diam   = 2
+    // ######     height = 4 // height minus junction
+    // ######     width  = 3 // one sided distance from junction
+    //     ##
+    //     ##
+    //     ##
+    //     out
+    //
+    // height == width == 0 gives only junction with specified diameter (cube w/ diam^3 cubes)
+    //
+    tDomainDiameter {t_domain_diameter}; // number of cubes in "diameter", > 0 please
+    tDomainHeight   {t_domain_height};
+    tDomainWidth    {t_domain_width};
+    tDomainNumJunctions {t_domain_num_junctions};
+    
+    snakeNumRows 5;
+    snakeRowLength 5;
 
     meshLayout CRISSCROSS;
-    symmetricCuboidMesh true;
+    
     numCycles {num_cycles};
     cycleType V;
     fmgInnerCycles {fmg_r}; // 0 == no fmg
@@ -45,20 +95,33 @@ Parameters
     maxLevel {max_level}; // P1 level, P2 level is automatically reduced by 1
     skipCyclesForAvgConvRate 0;
     L2residualTolerance 1e-16;
-    projectPressureAfterRestriction true;
+    projectPressureAfterRestriction {project_pressure_after_restriction};
     calculateDiscretizationError false;
     coarseGridMaxIterations 100000;
     coarseGridResidualTolerance {coarse_grid_tol};
     
-    // PETSc only
-    // 0: LU (MUMPS)
-    // 1: Block-prec. MinRes
+    // 0: MUMPS                          (PETSc)
+    // 1: block preconditioned MINRES    (PETSc)
+    // 2: MINRES                         (HyTeG)
+    // 3: pressure preconditioned MINRES (HyTeG)
+    // 4: SuperLU (dist)                 (PETSc)
     coarseGridSolverType {coarse_grid_solver_type};
 
+    // for solver type 1:
     // 0: PCGAMG
     // 1: PCJACOBI
     // 2: Schur complement
+    // 3: HYPRE
     coarseGridSolverVelocityPreconditionerType {coarse_grid_preconditioner_type};
+
+    // BLR options for MUMPS
+    blockLowRank {block_low_rank};
+    blockLowRankTolerance {block_low_rank_tolerance};
+
+    agglomeration {agglomeration};
+    agglomerationStrategy {agglomeration_strategy};   // dedicated, bulk, or interval
+    agglomerationNumProcesses {agglomeration_num_processes};
+    agglomerationInterval {agglomeration_interval};
 
     cyclesBeforeDC 0;
     postDCPreSmoothingSteps 3;
@@ -70,17 +133,24 @@ Parameters
     outputTiming false;
     outputTimingJSON true;
     outputTimingJSONFile {timing_file};
+    outputAgglomerationTimingJSONFile {agglomeration_timing_file};
     outputSQL true;
     outputParallelSQL false;
     outputSQLFile {db_file};
 }}
 """.format(discretization=discretization, ntan=ntan, nrad=nrad,
            num_cycles=num_cycles, fmg_r=fmg_r, omega=omega, pre=pre,
-           post=post, max_level=max_level, timing_file=timing_file,
+           post=post, max_level=max_level, timing_file=timing_file, agglomeration_timing_file=agglomeration_timing_file,
            db_file=db_file, mesh_spherical_shell=mesh_spherical_shell,
            num_faces_per_side=num_faces_per_side, num_gs_velocity=num_gs_velocity,
            coarse_grid_tol=coarse_grid_tol, coarse_grid_solver_type=coarse_grid_solver_type,
-           coarse_grid_preconditioner_type=coarse_grid_preconditioner_type)
+           coarse_grid_preconditioner_type=coarse_grid_preconditioner_type,
+           agglomeration=agglomeration, agglomeration_strategy=agglomeration_strategy,
+           agglomeration_num_processes=agglomeration_num_processes, agglomeration_interval=agglomeration_interval,
+           block_low_rank=block_low_rank, block_low_rank_tolerance=block_low_rank_tolerance,
+           mesh_type=mesh_type, t_domain_diameter=t_domain_diameter, t_domain_height=t_domain_height,
+           t_domain_width=t_domain_width, t_domain_num_junctions=t_domain_num_junctions,
+           project_pressure_after_restriction=project_pressure_after_restriction)
     return base_config
 
 
