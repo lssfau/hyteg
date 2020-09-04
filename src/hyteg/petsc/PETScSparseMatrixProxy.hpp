@@ -41,13 +41,15 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
 
    void addValues( const std::vector< uint_t >& rows, const std::vector< uint_t >& cols, const std::vector< real_t >& values )
    {
-      WALBERLA_ASSERT_EQUAL( rows.size(), cols.size() );
       WALBERLA_ASSERT_EQUAL( values.size(), rows.size() * cols.size() );
       std::vector< PetscInt > petscRows( rows.size() );
       std::vector< PetscInt > petscCols( cols.size() );
       for ( uint_t i = 0; i < rows.size(); i++ )
       {
          petscRows[i] = static_cast< PetscInt >( rows[i] );
+      }
+      for ( uint_t i = 0; i < cols.size(); i++ )
+      {
          petscCols[i] = static_cast< PetscInt >( cols[i] );
       }
       MatSetValues( mat_,
