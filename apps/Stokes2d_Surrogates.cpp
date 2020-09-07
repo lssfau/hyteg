@@ -78,89 +78,12 @@ c_function radius = [](const hyteg::Point3D& x) {return std::hypot(x[0], x[1]);}
 c_function angle = [](const hyteg::Point3D& x) {return std::atan2(x[1], x[0]);};
 
 
-template <class FE_Function>
-void compare(const std::shared_ptr<PrimitiveStorage> storage, uint_t minLevel, uint_t maxLevel,
-             const FE_Function& a, const std::string& name_a,
-             const FE_Function& b, const std::string& name_b,
-             const FE_Function& c, const std::string& name_c)
-{
-   FE_Function err("err", storage, minLevel, maxLevel);
-   real_t norm_a, norm_b, norm_c, norm_ab, norm_ac;
-
-   norm_a = std::sqrt(a.dotGlobal(a, maxLevel));
-   norm_b = std::sqrt(b.dotGlobal(b, maxLevel));
-   norm_c = std::sqrt(c.dotGlobal(c, maxLevel));
-   err.assign({1.0, -1.0}, {a, b}, maxLevel);
-   norm_ab = std::sqrt(err.dotGlobal(err, maxLevel));
-   err.assign({1.0, -1.0}, {a, c}, maxLevel);
-   norm_ac = std::sqrt(err.dotGlobal(err, maxLevel));
-   // fprint("|%s| = %f\n|%s| = %f\n|%s| = %f\n|%s-%s| = %f\n|%s-%s| = %f\n", name_a,norm_a,name_b,norm_b,name_c,norm_c,name_a,name_b,norm_ab,name_a,name_c,norm_ac);
-
-   WALBERLA_LOG_INFO_ON_ROOT(walberla::format("|%s| = %f", name_a, norm_a));
-   WALBERLA_LOG_INFO_ON_ROOT(walberla::format("|%s| = %f", name_b, norm_b));
-   WALBERLA_LOG_INFO_ON_ROOT(walberla::format("|%s| = %f", name_c, norm_c));
-   WALBERLA_LOG_INFO_ON_ROOT(walberla::format("|%s - %s| = %f", name_a, name_b, norm_ab));
-   WALBERLA_LOG_INFO_ON_ROOT(walberla::format("|%s - %s| = %f", name_a, name_c, norm_ac));
-}
-
-void compare_B_operators(const std::shared_ptr<PrimitiveStorage> storage, uint_t minLevel, uint_t maxLevel)
-{
-   // functions
-   c_function ones = [](const hyteg::Point3D&) {return 1;};
-   c_function xy = [](const hyteg::Point3D & x) {return x[0] * x[1];};
-   c_function sinXsinhY = [](const hyteg::Point3D & x) {return sin(pi * x[0]) * sinh(pi * x[1]);};
-   c_function& f = xy;
-   c_function& g = ones;
-
-   // operators
-   // B
-   P2ToP1ConstantDivxOperator             B_const(storage, minLevel, maxLevel);
-   P2ToP1BlendingDivxOperator             B_blend(storage, minLevel, maxLevel);
-   P2ToP1ElementwiseBlendingDivxOperator  B_elwise(storage, minLevel, maxLevel);
-   // B^T
-   P1ToP2ConstantDivTxOperator             Bt_const(storage, minLevel, maxLevel);
-   P1ToP2BlendingDivTxOperator             Bt_blend(storage, minLevel, maxLevel);
-   P1ToP2ElementwiseBlendingDivTxOperator  Bt_elwise(storage, minLevel, maxLevel);
-   // M
-   P1ConstantMassOperator                 M1(storage, minLevel, maxLevel);
-   P2ConstantMassOperator                 M2(storage, minLevel, maxLevel);
-
-   // FE-functions
-   P2Function<real_t> v("v", storage, minLevel, maxLevel);
-   P1Function<real_t> p_const("p_const", storage, minLevel, maxLevel);
-   P1Function<real_t> p_blend("p_blend", storage, minLevel, maxLevel);
-   P1Function<real_t> p_elwise("p_elwise", storage, minLevel, maxLevel);
-
-   P2Function<real_t> u_const("u_const", storage, minLevel, maxLevel);
-   P2Function<real_t> u_blend("u_blend", storage, minLevel, maxLevel);
-   P2Function<real_t> u_elwise("u_elwise", storage, minLevel, maxLevel);
-   P1Function<real_t> q("q", storage, minLevel, maxLevel);
-
-
-   v.interpolate(f, maxLevel);
-   q.interpolate(g, maxLevel);
-
-   // apply operators
-   B_const.apply(v, p_const, maxLevel, hyteg::All);
-   B_blend.apply(v, p_blend, maxLevel, hyteg::All);
-   B_elwise.apply(v, p_elwise, maxLevel, hyteg::All);
-
-   Bt_const.apply(q, u_const, maxLevel, hyteg::All);
-   Bt_blend.apply(q, u_blend, maxLevel, hyteg::All);
-   Bt_elwise.apply(q, u_elwise, maxLevel, hyteg::All);
-
-   // compute norm of result and error (w.r.t const version)
-   compare<P1Function<real_t>>(storage, minLevel, maxLevel, p_const, "const", p_blend, "blend", p_elwise, "elwise");
-   compare<P2Function<real_t>>(storage, minLevel, maxLevel, u_const, "const", u_blend, "blend", u_elwise, "elwise");
-}
-
-
 template <StencilType ST, class StokesOperator>
 real_t solve(std::shared_ptr<StokesOperator> L, std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel, const uint_t maxLevel
              , const uint_t max_outer_iter, const uint_t max_cg_iter, const real_t mg_tolerance, const real_t coarse_tolerance, const bool vtk
              , c_function& u_exact, c_function& v_exact, c_function& p_exact, c_function& u_boundary, c_function& v_boundary
              , c_function& rhs_x, c_function& rhs_y, c_function& T_field
-            )//   , const uint_t interpolationLevel = 0, const uint_t minPolyDegree = 0, const uint_t maxPolyDegree = 0)
+            )
 {
    // functions and operators
    P2BlendingMassOperator M2(storage, maxLevel, maxLevel);
@@ -494,7 +417,6 @@ int main(int argc, char* argv[])
    // WALBERLA_LOG_INFO_ON_ROOT(storage->getGlobalInfo());
    WALBERLA_LOG_INFO_ON_ROOT("Refinement levels: " << minLevel << "->" << maxLevel);
 
-   // compare_B_operators(storage,minLevel,maxLevel);
    real_t setupTime = 0, startSetup = 0, endSetup = 0, solveTime;
 
    auto L1 = std::make_shared<P2P1TaylorHoodStokesOperator>(storage, minLevel, maxLevel);
@@ -517,14 +439,6 @@ int main(int argc, char* argv[])
                                                                            max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk,
                                                                            u_exact, v_exact, p_exact, u_boundary, v_boundary, rhs_x, rhs_y, T_field);
          break;
-
-      // case ELWISE:
-      //    WALBERLA_LOG_INFO_ON_ROOT("Operatortype: Elementwise");
-      //    WALBERLA_ABORT("The desired Operator Type is not supported!");
-      //    // solveTime = solve<ELWISE, P2P1ElementwiseBlendingStokesOperator>(L3, storage, minLevel, maxLevel,
-      //    //   max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk,
-      //    //   u_exact, v_exact, p_exact, u_boundary, v_boundary, rhs_x, rhs_y, T_field);
-      //    break;
 
       case LSQP:
          WALBERLA_LOG_INFO_ON_ROOT("Operatortype: Surrogate Polynomial Stencil");
