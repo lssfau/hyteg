@@ -79,7 +79,7 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
    {
       WALBERLA_CHECK( updateType == Replace, "Operator concatenation only supported for updateType Replace" );
 
-      if ( PreProjection )
+      if ( PreProjection && projFlag_ != None )
       {
          tmp_->assign( {1}, {src}, level, All );
          projOp_->apply( *tmp_, level, projFlag_ );
@@ -90,7 +90,8 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
          op_->apply( src, dst, level, flag );
       }
 
-      projOp_->apply( dst, level, projFlag_ );
+      if ( projFlag_ != None )
+         projOp_->apply( dst, level, projFlag_ );
    }
 
 #ifdef HYTEG_BUILD_WITH_PETSC
