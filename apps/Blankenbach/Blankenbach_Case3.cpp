@@ -119,15 +119,13 @@ void calculateStokesResiduals( const StokesOperator&       A,
    residualP = normL2( r.p, tmp.p, Mp, level, Inner | NeumannBoundary | FreeslipBoundary );
 }
 
-template < typename StokesFunction >
-real_t velocityRMS( const StokesFunction& u, real_t domainHeight, real_t domainWidth, uint_t level )
+template < typename StokesFunction, typename VelocityMass >
+real_t velocityRMS( const StokesFunction& u, const StokesFunction & tmp, const VelocityMass & M, real_t domainHeight, real_t domainWidth, uint_t level )
 {
-   const auto norm = std::sqrt(
-       ( u.u.dotGlobal( u.u, level, All ) + u.v.dotGlobal( u.v, level, All ) ) /
-       real_c( numberOfGlobalDoFs< typename StokesFunction::VelocityFunction_T::Tag >( *u.u.getStorage(), level ) ) );
 
+   auto norm = std::pow( normL2( u.u, tmp.u, M, level, All ), 2.0 ) + std::pow( normL2( u.v, tmp.v, M, level, All ), 2.0 );
    const auto area = domainHeight * domainWidth;
-   return norm / std::sqrt( area );
+   return std::sqrt( norm / area );
 }
 
 bool isPointLocal( const std::shared_ptr< PrimitiveStorage > & storage, const Point3D & point, const real_t & epsRadius )
@@ -463,11 +461,12 @@ void runBenchmark( real_t      cflMax,
    if ( numSamples % 2 == 0 )
       numSamples--;
 
-   const real_t nusseltEpsBoundary = 0.0001 * hMin;
+   const real_t nusseltEpsBoundary = 1e-12;
+   const real_t nusseltDiffH       = 2.5e-1 * hMin;
 
    real_t timeTotal = 0;
    real_t vMax      = velocityMaxMagnitude( u.u, u.v, uTmp, uTmp2, level, All );
-   real_t nu        = calculateNusseltNumber( c, level, 0.1 * hMin, nusseltEpsBoundary, numSamples );
+   real_t nu        = 0;
    real_t vRms      = 0;
    real_t residualU = 0;
    real_t residualV = 0;
@@ -670,8 +669,8 @@ void runBenchmark( real_t      cflMax,
 
       timeTotal += dt;
 
-      vRms = velocityRMS( u, 1.0, 1.5, level );
-      nu = calculateNusseltNumber( c, level, 0.5 * hMin, nusseltEpsBoundary, numSamples );
+      vRms = velocityRMS( u, stokesTmp, MVelocity, 1.0, 1.5, level );
+      nu = calculateNusseltNumber( c, level, nusseltDiffH, nusseltEpsBoundary, numSamples );
 
       if ( vtk )
          vtkOutput.write( level, timeStep );
@@ -758,8 +757,10 @@ int main( int argc, char** argv )
    const hyteg::real_t dtConstant     = mainConf.getParameter< hyteg::real_t >( "dtConstant" );
    const uint_t        level          = mainConf.getParameter< uint_t >( "level" );
    const hyteg::real_t simulationTime = mainConf.getParameter< hyteg::real_t >( "simulationTime" );
-   const hyteg::uint_t nx = mainConf.getParameter< hyteg::uint_t >( "nx" );
+   const hyteg::uint_t nx             = mainConf.getParameter< hyteg::uint_t >( "nx" );
+   const std::string   dbFile         = mainConf.getParameter< std::string >( "dbFile" );
+   const bool          vtk            = mainConf.getParameter< bool >( "vtk" );
 
    hyteg::runBenchmark(
-       cflMax, rayleighNumber, fixedTimeStep, dtConstant, level, nx, true, simulationTime, true, 1, 1, "database.db" );
+       cflMax, rayleighNumber, fixedTimeStep, dtConstant, level, nx, true, simulationTime, vtk, 1, 1, dbFile );
 }

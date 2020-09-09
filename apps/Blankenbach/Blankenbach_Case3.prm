@@ -2,9 +2,12 @@ Parameters
 {
     level 3;
     nx 3; // must be multiple of 3
-    simulationTime 10;
+    simulationTime 5;
     cflMax 0.5;
     fixedTimeStep false;
     dtConstant 1e-4;
-    rayleighNumber 216000;
+    rayleighNumber 218000;
+    vtk false;
+
+    dbFile database_ra218000_level3_nx3_cfl0.5_04.db;
 }
