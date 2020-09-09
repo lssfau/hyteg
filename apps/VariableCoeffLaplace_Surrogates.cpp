@@ -249,7 +249,7 @@ void solveTmpl(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel,
     // solve iteratively
     uint_t iter = 0;
     real_t res = 0, res_old, discr_l2_err;
-    real_t vCycleTime, solveTime = 0;
+    real_t vCycleTime = 0, solveTime = 0;
     real_t averageConvergenceRate = 0;
     const uint_t convergenceStartIter = 3;
 
