@@ -5,10 +5,14 @@ endif()
 waLBerla_link_files_to_builddir( *.prm )
 
 waLBerla_add_executable( NAME SPHdemo
-        FILES  SPHdemo.cpp
+        FILES SPHdemo.cpp
+        DEPENDS hyteg)
+
+waLBerla_add_executable( NAME EigFunLaplace
+        FILES EigFunLaplace.cpp
         DEPENDS hyteg)
 
 waLBerla_add_executable( NAME bmark
-        FILES  bmark.cpp
+        FILES bmark.cpp
         DEPENDS hyteg)
 
