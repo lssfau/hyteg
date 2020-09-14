@@ -419,7 +419,7 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg, std::sh
          WALBERLA_ABORT( "Recompile with PETSc support to use PETSc solvers!" );
 #endif
       }
-      if ( solverType.compare( "PETScBPSS" ) == 0 )
+      else if ( solverType.compare( "PETScBPSS" ) == 0 )
       {
 #ifdef HYTEG_BUILD_WITH_PETSC
          WALBERLA_LOG_PROGRESS_ON_ROOT( "Iterative with PETScBPSS ... " );

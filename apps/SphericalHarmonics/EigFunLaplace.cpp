@@ -116,15 +116,14 @@ int main( int argc, char* argv[] )
 
    uint_t degree = params.getParameter< uint_t >( "degree" );
    int    order  = params.getParameter< int >( "order" );
-   int    nroot  = params.getParameter< int >( "nroot" );
-   nroot++; // convert back to 0-based
+   uint_t nroot  = params.getParameter< uint_t >( "nroot" );
 
    // check validity of inputs
    if ( degree >= 5 )
    {
       WALBERLA_ABORT( "Please choose a degree from {0,1,2,3,4}." );
    }
-   if ( nroot < 0 || nroot >= 4 )
+   if ( nroot < 1 || nroot > 4 )
    {
       WALBERLA_ABORT( "Please choose nroot from {1,2,3,4}." );
    }
@@ -146,7 +145,7 @@ int main( int argc, char* argv[] )
    std::shared_ptr< SphericalHarmonicsTool > sphTool = std::make_shared< SphericalHarmonicsTool >( lmax );
 
    // describe eigenfunction
-   real_t                                    besselRoot    = roots[degree][nroot];
+   real_t                                    besselRoot    = roots[degree][nroot-1];
    std::function< real_t( const Point3D& ) > eigenFunction = [sphTool, degree, order, besselRoot, outerRad]( const Point3D& x ) {
       real_t sph = sphTool->shconvert_eval( degree, order, x[0], x[1], x[2] );
       real_t rad = std::sqrt( x[0] * x[0] + x[1] * x[1] + x[2] * x[2] );
