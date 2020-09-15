@@ -198,6 +198,7 @@ void benchmark( int argc, char** argv )
           level,
           DiffusionTimeIntegrator::ImplicitEuler,
           false,
+          false,
           resetParticles,
           resetParticlesInterval,
           adjustedAdvection,

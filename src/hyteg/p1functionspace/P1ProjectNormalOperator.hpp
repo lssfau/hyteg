@@ -19,8 +19,11 @@
  */
 #pragma once
 
+#include "hyteg/HytegDefinitions.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/Operator.hpp"
 #include "hyteg/composites//P1StokesFunction.hpp"
+#include "hyteg/petsc/PETScWrapper.hpp"
 
 namespace hyteg {
 
@@ -43,6 +46,24 @@ class P1ProjectNormalOperator : public Operator< P1Function< real_t >, P1Functio
                DoFType                     flag ) const;
 
    void apply( const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const;
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+   /// Assemble operator as sparse matrix
+   ///
+   /// \param mat   a sparse matrix proxy
+   /// \param numU  P1Function for determining row indices
+   /// \param numV  P1Function for determining row indices
+   /// \param numW  P1Function for determining row indices
+   /// \param level level in mesh hierarchy for which local operator is to be assembled
+   /// \param flag  determines on which primitives this operator is assembled
+   ///
+   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                             const P1Function< PetscInt >&               numU,
+                             const P1Function< PetscInt >&               numV,
+                             const P1Function< PetscInt >&               numW,
+                             uint_t                                      level,
+                             DoFType                                     flag ) const;
+#endif
 
  private:
    const std::function< void( const Point3D&, Point3D& ) > normal_function_;

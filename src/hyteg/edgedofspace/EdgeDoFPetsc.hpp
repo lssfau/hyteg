@@ -170,6 +170,23 @@ inline void saveEdgeOperator( const uint_t & Level, const Edge & edge,
   }
 }
 
+inline void saveEdgeIdentityOperator( const uint_t&                                              Level,
+                                      const Edge&                                                edge,
+                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& dstId,
+                                      const std::shared_ptr< SparseMatrixProxy >&                mat )
+{
+   using namespace hyteg::edgedof::macroedge;
+   size_t rowsize = levelinfo::num_microedges_per_edge( Level );
+
+   PetscInt* dst = edge.getData( dstId )->getPointer( Level );
+   PetscInt  dstInt;
+
+   for ( uint_t i = 0; i < rowsize; ++i )
+   {
+      dstInt = dst[indexFromHorizontalEdge( Level, i, stencilDirection::EDGE_HO_C )];
+      mat->addValue( uint_c( dstInt ), uint_c( dstInt ), 1.0 );
+   }
+}
 
 inline void saveEdgeOperator3D( const uint_t & level, const Edge & edge,
                                 const PrimitiveStorage                                                   & storage,
@@ -320,6 +337,37 @@ inline void saveFaceOperator( const uint_t & Level, const Face & face,
   }
 }
 
+inline void saveFaceIdentityOperator( const uint_t&                                              Level,
+                                      const Face&                                                face,
+                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Face >& dstId,
+                                      const std::shared_ptr< SparseMatrixProxy >&                mat )
+{
+   PetscInt* dst = face.getData( dstId )->getPointer( Level );
+
+   PetscInt dstInt;
+
+   using namespace edgedof::macroface;
+
+   for ( const auto& it : hyteg::edgedof::macroface::Iterator( Level, 0 ) )
+   {
+      if ( it.row() != 0 )
+      {
+         dstInt = dst[indexFromHorizontalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_HO_C )];
+         mat->addValue( uint_c( dstInt ), uint_c( dstInt ), 1.0 );
+      }
+      if ( it.col() + it.row() != ( hyteg::levelinfo::num_microedges_per_edge( Level ) - 1 ) )
+      {
+         dstInt = dst[indexFromDiagonalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_DI_C )];
+         mat->addValue( uint_c( dstInt ), uint_c( dstInt ), 1.0 );
+      }
+      if ( it.col() != 0 )
+      {
+         dstInt = dst[indexFromVerticalEdge( Level, it.col(), it.row(), stencilDirection::EDGE_VE_C )];
+         mat->addValue( uint_c( dstInt ), uint_c( dstInt ), 1.0 );
+      }
+   }
+}
+
 inline void saveFaceOperator3D( const uint_t & level, const Face & face,
                                 const PrimitiveStorage                                                    & storage,
                                 const PrimitiveDataID< LevelWiseMemory< macroface::StencilMap_T >, Face > & operatorId,
@@ -456,6 +504,48 @@ inline void saveCellOperator( const uint_t & Level, const Cell & cell,
       }
     }
   }
+}
+
+inline void saveCellIdentityOperator( const uint_t&                                              Level,
+                                      const Cell&                                                cell,
+                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Cell >& dstId,
+                                      const std::shared_ptr< SparseMatrixProxy >&                mat )
+{
+   auto dstData = cell.getData( dstId )->getPointer( Level );
+
+   for ( const auto& it : edgedof::macrocell::Iterator( Level, 0 ) )
+   {
+      std::vector< edgedof::EdgeDoFOrientation > innerOrientations;
+
+      if ( macrocell::isInnerXEdgeDoF( Level, it ) )
+         innerOrientations.push_back( edgedof::EdgeDoFOrientation::X );
+      if ( macrocell::isInnerYEdgeDoF( Level, it ) )
+         innerOrientations.push_back( edgedof::EdgeDoFOrientation::Y );
+      if ( macrocell::isInnerZEdgeDoF( Level, it ) )
+         innerOrientations.push_back( edgedof::EdgeDoFOrientation::Z );
+      if ( macrocell::isInnerXYEdgeDoF( Level, it ) )
+         innerOrientations.push_back( edgedof::EdgeDoFOrientation::XY );
+      if ( macrocell::isInnerXZEdgeDoF( Level, it ) )
+         innerOrientations.push_back( edgedof::EdgeDoFOrientation::XZ );
+      if ( macrocell::isInnerYZEdgeDoF( Level, it ) )
+         innerOrientations.push_back( edgedof::EdgeDoFOrientation::YZ );
+
+      for ( const auto& centerOrientation : innerOrientations )
+      {
+         const auto dstArrayIdx = edgedof::macrocell::index( Level, it.x(), it.y(), it.z(), centerOrientation );
+         const auto dstInt      = dstData[dstArrayIdx];
+         mat->addValue( uint_c( dstInt ), uint_c( dstInt ), 1.0 );
+      }
+   }
+
+   for ( const auto& it : edgedof::macrocell::IteratorXYZ( Level, 0 ) )
+   {
+      const auto centerOrientation = edgedof::EdgeDoFOrientation::XYZ;
+
+      const auto dstArrayIdx = edgedof::macrocell::index( Level, it.x(), it.y(), it.z(), centerOrientation );
+      const auto dstInt      = dstData[dstArrayIdx];
+      mat->addValue( uint_c( dstInt ), uint_c( dstInt ), 1.0 );
+   }
 }
 
 template < class OperatorType >

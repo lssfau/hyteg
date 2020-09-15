@@ -213,6 +213,39 @@ public:
     p.enumerate( level, offset );
   }
 
+  BoundaryCondition getVelocityBoundaryCondition() const
+  {
+     auto bc_u = u.getBoundaryCondition();
+     WALBERLA_DEBUG_SECTION()
+     {
+        auto bc_v = v.getBoundaryCondition();
+        WALBERLA_CHECK_EQUAL( bc_u, bc_v, "Velocity components do not have same boundary conditions." );
+        if ( u.getStorage()->hasGlobalCells() )
+        {
+           auto bc_w = w.getBoundaryCondition();
+           WALBERLA_CHECK_EQUAL( bc_u, bc_w, "Velocity components do not have same boundary conditions." );
+        }
+     }
+     return bc_u;
+  }
+
+  BoundaryCondition getPressureBoundaryCondition() const { return p.getBoundaryCondition(); }
+
+  void setVelocityBoundaryCondition( BoundaryCondition bc )
+  {
+     u.setBoundaryCondition( bc );
+     v.setBoundaryCondition( bc );
+     w.setBoundaryCondition( bc );
+  }
+
+  void setPressureBoundaryCondition( BoundaryCondition bc ) { p.setBoundaryCondition( bc ); }
+
+  template< typename OtherFunctionValueType >
+  void copyBoundaryConditionFromFunction( const P2P1TaylorHoodFunction< OtherFunctionValueType >& other )
+  {
+     setVelocityBoundaryCondition( other.getVelocityBoundaryCondition() );
+     setPressureBoundaryCondition( other.getPressureBoundaryCondition() );
+  }
 
   VelocityFunction_T u;
   VelocityFunction_T v;

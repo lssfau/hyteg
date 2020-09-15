@@ -26,11 +26,16 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    ///                                   - 1: PCJACOBI
    ///                                   - 2: Schur complement
    ///                                   - 3: Hypre (BoomerAMG)
+   ///                                   - 4: none
+   /// \param pressurePreconditionerType choose from different pressure preconditioners:
+   ///                                   - 0: none
+   ///                                   - 1: PCJACOBI (lumped mass)
    PETScBlockPreconditionedStokesSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                                          const uint_t&                              level,
                                          const real_t                               tolerance = 1e-12,
                                          const PetscInt maxIterations              = std::numeric_limits< PetscInt >::max(),
-                                         const uint_t&  velocityPreconditionerType = 1 )
+                                         const uint_t&  velocityPreconditionerType = 1,
+                                         const uint_t&  pressurePreconditionerType = 1 )
    : allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
@@ -38,6 +43,10 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
            numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
            "Amat",
            petscCommunicator_ )
+   , AmatNonEliminatedBC( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
+                          numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
+                          "AmatNonEliminatedBC",
+                          petscCommunicator_ )
    , Pmat( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ),
            numberOfGlobalDoFs< typename FunctionType::Tag >( *storage, level, petscCommunicator_ ),
            "Pmat",
@@ -52,12 +61,17 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    , nullSpaceSet_( false )
    , blockPreconditioner_( storage, level, level )
    , velocityPreconditionerType_( velocityPreconditionerType )
+   , pressurePreconditionerType_( pressurePreconditionerType )
    , verbose_( false )
-   {
-      num.enumerate( level );
-   }
+   , reassembleMatrix_( true )
+   , matrixWasAssembledOnce_( false )
+   {}
 
    ~PETScBlockPreconditionedStokesSolver() = default;
+
+   /// \brief If set to true, the operator is reassembled for every solve / manual assembly call.
+   ///        Default is true.
+   void reassembleMatrix( bool reassembleMatrix ) { reassembleMatrix_ = reassembleMatrix; }
 
    void setNullSpace( const FunctionType& nullspace )
    {
@@ -78,6 +92,9 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
 
       x.getStorage()->getTimingTree()->start( "Setup" );
       timer.start();
+
+      num.copyBoundaryConditionFromFunction( x );
+      num.enumerate( level );
 
       x.getStorage()->getTimingTree()->start( "Index set setup" );
 
@@ -106,17 +123,31 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       bVec.createVectorFromFunction( b, num, level, All );
       x.getStorage()->getTimingTree()->stop( "Vector copy" );
 
-      x.getStorage()->getTimingTree()->start( "Matrix assembly" );
-      Amat.zeroEntries();
-      Pmat.zeroEntries();
-      Amat.createMatrixFromOperator( A, level, num, All );
-      Pmat.createMatrixFromOperator( blockPreconditioner_, level, num, All );
-      x.getStorage()->getTimingTree()->stop( "Matrix assembly" );
+      if ( reassembleMatrix_ || !matrixWasAssembledOnce_ )
+      {
+         x.getStorage()->getTimingTree()->start( "Matrix assembly" );
+         Amat.zeroEntries();
+         Pmat.zeroEntries();
+         AmatNonEliminatedBC.zeroEntries();
+         Amat.createMatrixFromOperator( A, level, num, All );
+         AmatNonEliminatedBC.createMatrixFromOperator( A, level, num, All );
+         Pmat.createMatrixFromOperator( blockPreconditioner_, level, num, All );
+         x.getStorage()->getTimingTree()->stop( "Matrix assembly" );
 
-      x.getStorage()->getTimingTree()->start( "Dirichlet BCs" );
-      Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
-      Pmat.applyDirichletBCSymmetrically( num, level );
-      x.getStorage()->getTimingTree()->stop( "Dirichlet BCs" );
+         x.getStorage()->getTimingTree()->start( "Dirichlet BCs" );
+         Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
+         Pmat.applyDirichletBCSymmetrically( num, level );
+         x.getStorage()->getTimingTree()->stop( "Dirichlet BCs" );
+
+         matrixWasAssembledOnce_ = true;
+      }
+      else
+      {
+         MatCopy( AmatNonEliminatedBC.get(), Amat.get(), DIFFERENT_NONZERO_PATTERN );
+         x.getStorage()->getTimingTree()->start( "Dirichlet BCs" );
+         Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
+         x.getStorage()->getTimingTree()->stop( "Dirichlet BCs" );
+      }
 
       if ( nullSpaceSet_ )
       {
@@ -169,17 +200,34 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
          case 1:
             PCSetType( pc_u, PCJACOBI );
             break;
-         case 3: {
+         case 3:
+         {
             PCSetType( pc_u, PCHYPRE );
             break;
          }
+         case 4:
+            PCSetType( pc_u, PCNONE );
+            break;
          default:
             WALBERLA_ABORT( "Invalid velocity preconditioner for PETSc block prec MinRes solver." );
             break;
          }
 
-         // inv. lumped mass
-         PCSetType( pc_p, PCJACOBI );
+         switch ( pressurePreconditionerType_ )
+         {
+         case 0:
+            PCSetType( pc_p, PCNONE );
+            break;
+         case 1:
+            // inv. lumped mass
+            PCSetType( pc_p, PCJACOBI );
+            break;
+         default:
+            WALBERLA_ABORT( "Invalid pressure preconditioner for PETSc block prec MinRes solver." );
+            break;
+
+         }
+
       }
 
       timer.end();
@@ -292,6 +340,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    MPI_Comm                                                                                          petscCommunicator_;
    typename OperatorType::srcType::template FunctionType< PetscInt >                                 num;
    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >                   Amat;
+   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >                   AmatNonEliminatedBC;
    PETScSparseMatrix< BlockPreconditioner_T, BlockPreconditioner_T::srcType::template FunctionType > Pmat;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType >     xVec;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType >     bVec;
@@ -313,7 +362,10 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    bool         nullSpaceSet_;
 
    uint_t velocityPreconditionerType_;
+   uint_t pressurePreconditionerType_;
    bool   verbose_;
+   bool   reassembleMatrix_;
+   bool   matrixWasAssembledOnce_;
 };
 
 } // namespace hyteg

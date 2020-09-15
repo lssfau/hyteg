@@ -1,9 +1,12 @@
 Parameters
 {
   // Should a P1-P1 pairing be used? If it is false, we use Taylor-Hood.
-  runP1P1 true;
+  runP1P1 false;
 
   // solver parameters
+  // 0: MINRES + pressure prec. (HyTeG)
+  // 1: MINRES + no prec. (PETSc)
+  solverType 0;
   minLevel 2;
   maxLevel 2;
   absoluteTargetResidual 1e-14;
