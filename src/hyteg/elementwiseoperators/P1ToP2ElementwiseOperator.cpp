@@ -247,7 +247,7 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixVectorMultiply2D( const
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( {v0, v1, v2}, elMat );
+   form.integrateAll( { v0, v1, v2 }, elMat );
 
    // assemble local element vector (note the tweaked ordering to go along with FEniCS indexing)
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
@@ -468,7 +468,7 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly2D( const std::
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( {v0, v1, v2}, elMat );
+   form.integrateAll( { v0, v1, v2 }, elMat );
 
    // determine global indices of our local DoFs (note the tweaked ordering to go along with FEniCS indexing)
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
@@ -493,7 +493,7 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly2D( const std::
    colIdx[1] = uint_c( srcVertexIdx[dofDataIdx[1]] );
    colIdx[2] = uint_c( srcVertexIdx[dofDataIdx[2]] );
 
-   const uint_t elMatSize = 6 * 3;
+   const uint_t          elMatSize = 6 * 3;
    std::vector< real_t > blockMatData( elMatSize );
    for ( uint_t i = 0; i < elMatSize; i++ )
    {
@@ -536,7 +536,7 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly3D( const std::
    edgedof::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
 
    std::vector< uint_t > rowIdx( 10 );
-   std::vector< uint_t > colIdx(  4 );
+   std::vector< uint_t > colIdx( 4 );
 
    for ( uint_t k = 0; k < 4; ++k )
    {
@@ -548,7 +548,7 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly3D( const std::
       rowIdx[k] = uint_c( dstEdgeIdx[edgeDoFIndices[k - 4]] );
    }
 
-   const uint_t elMatSize = 10 * 4;
+   const uint_t          elMatSize = 10 * 4;
    std::vector< real_t > blockMatData( elMatSize );
    for ( uint_t i = 0; i < elMatSize; i++ )
    {
@@ -557,7 +557,6 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixAssembly3D( const std::
 
    // add local matrix into global matrix
    mat->addValues( rowIdx, colIdx, blockMatData );
-
 }
 
 #endif
@@ -573,6 +572,6 @@ template class P1ToP2ElementwiseOperator<
 
 template class P1ToP2ElementwiseOperator< P1ToP2Form_divt< 0 > >;
 template class P1ToP2ElementwiseOperator< P1ToP2Form_divt< 1 > >;
-
+template class P1ToP2ElementwiseOperator< P1ToP2Form_divt< 2 > >;
 
 } // namespace hyteg

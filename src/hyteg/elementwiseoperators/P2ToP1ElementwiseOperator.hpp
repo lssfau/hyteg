@@ -140,6 +140,6 @@ typedef P2ToP1ElementwiseOperator< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p
 
 typedef P2ToP1ElementwiseOperator< P2ToP1Form_div< 0 > > P2ToP1ElementwiseBlendingDivxOperator;
 typedef P2ToP1ElementwiseOperator< P2ToP1Form_div< 1 > > P2ToP1ElementwiseBlendingDivyOperator;
-
+typedef P2ToP1ElementwiseOperator< P2ToP1Form_div< 2 > > P2ToP1ElementwiseBlendingDivzOperator;
 
 } // namespace hyteg

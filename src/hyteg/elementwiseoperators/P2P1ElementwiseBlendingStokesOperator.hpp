@@ -75,10 +75,10 @@ class P2P1ElementwiseBlendingStokesOperator
    P2ElementwiseBlendingLaplaceOperator   A;
    P2ToP1ElementwiseBlendingDivxOperator  div_x;
    P2ToP1ElementwiseBlendingDivyOperator  div_y;
-   P2ToP1ElementwiseDivzOperator          div_z;
+   P2ToP1ElementwiseBlendingDivzOperator  div_z;
    P1ToP2ElementwiseBlendingDivTxOperator divT_x;
    P1ToP2ElementwiseBlendingDivTyOperator divT_y;
-   P1ToP2ElementwiseDivTzOperator         divT_z;
+   P1ToP2ElementwiseBlendingDivTzOperator divT_z;
 
    /// this operator is need in the uzawa smoother
    //   P1ElementwisePSPGOperator        pspg_;
