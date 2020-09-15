@@ -614,8 +614,10 @@ waLBerla_execute_test(NAME CircularMapFPETest)
 waLBerla_execute_test(NAME CircularMapFPETestMPI COMMAND $<TARGET_FILE:CircularMapFPETest> PROCESSES 2 )
 
 ## Free slip ##
-waLBerla_compile_test(FILES freeslip/FreeslipPetscApplyTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME FreeslipPetscApplyTest)
+if( HYTEG_BUILD_WITH_PETSC )
+  waLBerla_compile_test(FILES freeslip/FreeslipPetscApplyTest.cpp DEPENDS hyteg core)
+  waLBerla_execute_test(NAME FreeslipPetscApplyTest)
+endif()
 
 waLBerla_compile_test(FILES freeslip/FreeslipRectangularChannelTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FreeslipRectangularChannelTest)
