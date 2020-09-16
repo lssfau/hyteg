@@ -60,9 +60,9 @@ int main( int argc, char* argv[] )
       return std::sin(p[0]) + 0.5 * p[1];
    };
 
-   xOriginal.u.interpolate( f, level, All );
-   xOriginal.v.interpolate( f, level, All );
-   xOriginal.w.interpolate( f, level, All );
+   xOriginal.uvw.u.interpolate( f, level, All );
+   xOriginal.uvw.v.interpolate( f, level, All );
+   xOriginal.uvw.w.interpolate( f, level, All );
    xOriginal.p.interpolate( f, level, All );
 
    trilinos::TrilinosVector< P2P1TaylorHoodFunction > vector( storage, level );
@@ -70,9 +70,9 @@ int main( int argc, char* argv[] )
    vector.writeToFunction( xTrilinos, numerator );
 
    error.assign( {1.0, -1.0}, {xTrilinos, xOriginal}, level );
-   const auto maxMagnitudeU = error.u.getMaxMagnitude( level );
-   const auto maxMagnitudeV = error.v.getMaxMagnitude( level );
-   const auto maxMagnitudeW = error.w.getMaxMagnitude( level );
+   const auto maxMagnitudeU = error.uvw.u.getMaxMagnitude( level );
+   const auto maxMagnitudeV = error.uvw.v.getMaxMagnitude( level );
+   const auto maxMagnitudeW = error.uvw.w.getMaxMagnitude( level );
    const auto maxMagnitudeP = error.p.getMaxMagnitude( level );
 
    WALBERLA_CHECK_LESS( maxMagnitudeU, 1e-14 );
