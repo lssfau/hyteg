@@ -24,8 +24,8 @@
 
 #include "core/debug/CheckFunctions.h"
 
-#include "hyteg/forms/P2Form.hpp"
 #include "hyteg/fenics/fenics.hpp"
+#include "hyteg/forms/P2Form.hpp"
 
 namespace hyteg {
 
@@ -33,7 +33,10 @@ namespace hyteg {
 class P2RowSumForm : public P2Form
 {
  public:
-   P2RowSumForm() = default;
+   P2RowSumForm()
+   {
+      WALBERLA_ABORT( "P2RowSumForm() only implemented for technical reasons. Please use P2RowSumForm( form ) instead!" );
+   }
 
    P2RowSumForm( const std::shared_ptr< P2Form >& form )
    : form_( form )
