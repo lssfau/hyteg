@@ -41,10 +41,12 @@
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 using walberla::real_t;
+using namespace hyteg;
 
-namespace hyteg {
-
-bool P2RowSumTest( const uint_t& level, const std::string& meshFile )
+template< typename rowSumFormType, template < class > class funcType, template < class > class opType, typename opTypeLap, typename opTypeMass >
+bool RowSumTest( const uint_t& level, const std::string& meshFile,
+                 rowSumFormType rowSumLaplace,
+                 rowSumFormType rowSumMass )
 {
    const real_t eps = 1e-14;
 
@@ -56,30 +58,22 @@ bool P2RowSumTest( const uint_t& level, const std::string& meshFile )
 
    writeDomainPartitioningVTK( storage, "../../output", "P2RowSumTest" );
 
-   P2Function< real_t > src( "src", storage, level, level );
-   P2Function< real_t > dstRowSumLaplace( "dstRowSumLaplace", storage, level, level );
-   P2Function< real_t > dstVerificationLaplace( "dstVerificationLaplace", storage, level, level );
-   P2Function< real_t > dstRowSumMass( "dstRowSumLaplace", storage, level, level );
-   P2Function< real_t > dstVerificationMass( "dstVerificationLaplace", storage, level, level );
-   P2Function< real_t > error( "error", storage, level, level );
+   // typedef typename opTypeLap::srcType funcType;
+
+   funcType< real_t > src( "src", storage, level, level );
+   funcType< real_t > dstRowSumLaplace( "dstRowSumLaplace", storage, level, level );
+   funcType< real_t > dstVerificationLaplace( "dstVerificationLaplace", storage, level, level );
+   funcType< real_t > dstRowSumMass( "dstRowSumLaplace", storage, level, level );
+   funcType< real_t > dstVerificationMass( "dstVerificationLaplace", storage, level, level );
+   funcType< real_t > error( "error", storage, level, level );
 
    src.interpolate( 1.0, level, hyteg::All );
 
-   P2ConstantLaplaceOperator L( storage, level, level );
-   P2ConstantMassOperator    M( storage, level, level );
+   opTypeLap  L( storage, level, level );
+   opTypeMass M( storage, level, level );
 
-   // row sum operators
-
-   auto p2DiffusionFormFenics =
-       std::make_shared< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >();
-   auto p2MassFormFenics =
-       std::make_shared< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >();
-
-   P2RowSumForm rowSumLaplace( p2DiffusionFormFenics );
-   P2RowSumForm rowSumMass( p2MassFormFenics );
-
-   P2ConstantOperator< P2RowSumForm > LLumped( storage, level, level, rowSumLaplace );
-   P2ConstantOperator< P2RowSumForm > MLumped( storage, level, level, rowSumMass );
+   opType<rowSumFormType> LLumped( storage, level, level, rowSumLaplace );
+   opType<rowSumFormType> MLumped( storage, level, level, rowSumMass );
 
    // apply operators
 
@@ -104,22 +98,23 @@ bool P2RowSumTest( const uint_t& level, const std::string& meshFile )
 #ifdef HYTEG_BUILD_WITH_PETSC
    // check if matrices diagonal
    PETScManager           manager;
-   const auto             localSize  = numberOfLocalDoFs< P2FunctionTag >( *storage, level );
-   const auto             globalSize = numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
-   P2Function< PetscInt > numerator( "numerator", storage, level, level );
+   typedef typename FunctionTrait< funcType< PetscInt > >::Tag enumTag;
+   const auto             localSize  = numberOfLocalDoFs< enumTag >( *storage, level );
+   const auto             globalSize = numberOfGlobalDoFs< enumTag >( *storage, level );
+   funcType< PetscInt > numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
 
-   PETScSparseMatrix< P2ConstantOperator< P2RowSumForm >, P2Function > massLumpedPetsc( localSize, globalSize );
+   PETScSparseMatrix< opType< rowSumFormType >, funcType > massLumpedPetsc( localSize, globalSize );
    massLumpedPetsc.createMatrixFromOperator( MLumped, level, numerator );
 
-   PETScSparseMatrix< P2ConstantOperator< P2RowSumForm >, P2Function > laplaceLumpedPetsc( localSize, globalSize );
+   PETScSparseMatrix< opType< rowSumFormType >, funcType > laplaceLumpedPetsc( localSize, globalSize );
    laplaceLumpedPetsc.createMatrixFromOperator( LLumped, level, numerator );
 
    const auto massDiagonal    = massLumpedPetsc.isDiagonal();
    const auto laplaceDiagonal = laplaceLumpedPetsc.isDiagonal();
 
    // just to make sure petsc is diagonal check works...
-   PETScSparseMatrix< P2ConstantLaplaceOperator, P2Function > laplacePetsc( localSize, globalSize );
+   PETScSparseMatrix< opTypeLap, funcType > laplacePetsc( localSize, globalSize );
    laplacePetsc.createMatrixFromOperator( L, level, numerator );
    WALBERLA_CHECK( !laplacePetsc.isDiagonal() );
 
@@ -136,39 +131,40 @@ bool P2RowSumTest( const uint_t& level, const std::string& meshFile )
    return success;
 }
 
-} // namespace hyteg
-
 int main( int argc, char* argv[] )
 {
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
+   std::vector< std::string > meshes;
+   meshes.push_back( "../../data/meshes/quad_4el.msh" );
+   meshes.push_back( "../../data/meshes/annulus_coarse.msh" );
+   meshes.push_back( "../../data/meshes/3D/regular_octahedron_8el.msh" );
+   meshes.push_back( "../../data/meshes/3D/cube_6el.msh" );
+
+   uint maxLevel = 3;
    bool succeeded = true;
 
-   succeeded &= hyteg::P2RowSumTest( 0, "../../data/meshes/quad_4el.msh" );
-   succeeded &= hyteg::P2RowSumTest( 0, "../../data/meshes/annulus_coarse.msh" );
-   succeeded &= hyteg::P2RowSumTest( 0, "../../data/meshes/3D/regular_octahedron_8el.msh" );
-   succeeded &= hyteg::P2RowSumTest( 0, "../../data/meshes/3D/cube_6el.msh" );
+   // -----------------------------
+   //  Run tests for P2RowSumForm
+   // -----------------------------
+   succeeded = true;
 
-   succeeded &= hyteg::P2RowSumTest( 1, "../../data/meshes/quad_4el.msh" );
-   succeeded &= hyteg::P2RowSumTest( 1, "../../data/meshes/annulus_coarse.msh" );
-   succeeded &= hyteg::P2RowSumTest( 1, "../../data/meshes/3D/regular_octahedron_8el.msh" );
-   succeeded &= hyteg::P2RowSumTest( 1, "../../data/meshes/3D/cube_6el.msh" );
+   auto p2DiffusionFormFenics =
+       std::make_shared< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >();
+   auto p2MassFormFenics =
+       std::make_shared< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >();
 
-   succeeded &= hyteg::P2RowSumTest( 2, "../../data/meshes/quad_4el.msh" );
-   succeeded &= hyteg::P2RowSumTest( 2, "../../data/meshes/annulus_coarse.msh" );
-   succeeded &= hyteg::P2RowSumTest( 2, "../../data/meshes/3D/regular_octahedron_8el.msh" );
-   succeeded &= hyteg::P2RowSumTest( 2, "../../data/meshes/3D/cube_6el.msh" );
+   P2RowSumForm rowSumLaplace( p2DiffusionFormFenics );
+   P2RowSumForm rowSumMass( p2MassFormFenics );
 
-   succeeded &= hyteg::P2RowSumTest( 3, "../../data/meshes/quad_4el.msh" );
-   succeeded &= hyteg::P2RowSumTest( 3, "../../data/meshes/annulus_coarse.msh" );
-   succeeded &= hyteg::P2RowSumTest( 3, "../../data/meshes/3D/regular_octahedron_8el.msh" );
-   succeeded &= hyteg::P2RowSumTest( 3, "../../data/meshes/3D/cube_6el.msh" );
+   for( auto mesh = meshes.begin(); mesh != meshes.end(); ++mesh ) {
+     for( uint level = 0; level <= maxLevel; ++level ) {
+       succeeded &= RowSumTest< P2RowSumForm, P2Function, P2ConstantOperator, P2ConstantLaplaceOperator, P2ConstantMassOperator >( 0, *mesh, rowSumLaplace, rowSumMass );
+     }
+   }
 
-
-
-
-   WALBERLA_CHECK( succeeded, "One of the tests failed" )
+   WALBERLA_CHECK( succeeded, "One of the tests for P2RowSumForm failed" )
 
    return EXIT_SUCCESS;
 }

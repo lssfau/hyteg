@@ -150,8 +150,8 @@ waLBerla_compile_test(FILES convection/AlgebraicUpwind3DCircularConvectionTest.c
 waLBerla_compile_test(FILES forms/P2LinearCombinationFormTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2LinearCombinationFormTest)
 
-waLBerla_compile_test(FILES forms/P2RowSumTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME P2RowSumTest)
+waLBerla_compile_test(FILES forms/RowSumTests.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME RowSumTests)
 
 ## Indexing ##
 
@@ -265,6 +265,9 @@ endif()
 
 waLBerla_compile_test(FILES operators/ElementwiseOperatorAdditiveApplyTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME ElementwiseOperatorAdditiveApplyTest)
+
+waLBerla_compile_test(FILES operators/diagonalExperiment.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME diagonalExperiment)
 
 #################### P1 ####################
 
