@@ -99,9 +99,9 @@ void run( const real_t absErrorTolerance )
    walberla::math::seedRandomGenerator( 1234 );
    auto rand = []( const Point3D& ) { return walberla::math::realRandom(); };
 
-   u_src.u.interpolate( rand, maxLevel, All );
-   u_src.v.interpolate( rand, maxLevel, All );
-   u_src.w.interpolate( rand, maxLevel, All );
+   u_src.uvw.u.interpolate( rand, maxLevel, All );
+   u_src.uvw.v.interpolate( rand, maxLevel, All );
+   u_src.uvw.w.interpolate( rand, maxLevel, All );
    u_src.p.interpolate( rand, maxLevel, All );
 
    using StokesOperatorFS = hyteg::StrongFreeSlipWrapper< StokesOperatorType, ProjectNormalOperatorType >;

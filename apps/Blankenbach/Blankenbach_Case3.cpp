@@ -114,8 +114,8 @@ void calculateStokesResiduals( const StokesOperator&       A,
    r.interpolate( 0, level, All );
    A.apply( x, tmp, level, Inner | NeumannBoundary | FreeslipBoundary );
    r.assign( {1.0, -1.0}, {b, tmp}, level, Inner | NeumannBoundary | FreeslipBoundary );
-   residualU = normL2( r.u, tmp.u, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
-   residualV = normL2( r.v, tmp.v, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residualU = normL2( r.uvw.u, tmp.uvw.u, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residualV = normL2( r.uvw.v, tmp.uvw.v, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
    residualP = normL2( r.p, tmp.p, Mp, level, Inner | NeumannBoundary | FreeslipBoundary );
 }
 
@@ -123,7 +123,7 @@ template < typename StokesFunction, typename VelocityMass >
 real_t velocityRMS( const StokesFunction& u, const StokesFunction & tmp, const VelocityMass & M, real_t domainHeight, real_t domainWidth, uint_t level )
 {
 
-   auto norm = std::pow( normL2( u.u, tmp.u, M, level, All ), 2.0 ) + std::pow( normL2( u.v, tmp.v, M, level, All ), 2.0 );
+   auto norm = std::pow( normL2( u.uvw.u, tmp.uvw.u, M, level, All ), 2.0 ) + std::pow( normL2( u.uvw.v, tmp.uvw.v, M, level, All ), 2.0 );
    const auto area = domainHeight * domainWidth;
    return std::sqrt( norm / area );
 }
@@ -422,7 +422,7 @@ void runBenchmark( real_t      cflMax,
 
    c.interpolate( initialTemperature, level, Inner | NeumannBoundary | FreeslipBoundary );
    q.interpolate( internalHeating, level, All );
-   upwardNormal.v.interpolate( 1, level, All );
+   upwardNormal.uvw.v.interpolate( 1, level, All );
 
    auto surfaceNormalsFreeSlip = []( const Point3D& in, Point3D& out ) {
       if ( in[0] < 0.75 )
@@ -465,7 +465,7 @@ void runBenchmark( real_t      cflMax,
    const real_t nusseltDiffH       = 2.5e-1 * hMin;
 
    real_t timeTotal = 0;
-   real_t vMax      = velocityMaxMagnitude( u.u, u.v, uTmp, uTmp2, level, All );
+   real_t vMax      = velocityMaxMagnitude( u.uvw.u, u.uvw.v, uTmp, uTmp2, level, All );
    real_t nu        = 0;
    real_t vRms      = 0;
    real_t residualU = 0;
@@ -512,16 +512,16 @@ void runBenchmark( real_t      cflMax,
 
    uint_t timeStep = 0;
 
-   MVelocity.apply( c, f.u, level, All );
-   MVelocity.apply( c, f.v, level, All );
-   f.u.multElementwise( {f.u, upwardNormal.u}, level );
-   f.v.multElementwise( {f.v, upwardNormal.v}, level );
-   f.u.assign( {rayleighNumber}, {f.u}, level, All );
-   f.v.assign( {rayleighNumber}, {f.v}, level, All );
+   MVelocity.apply( c, f.uvw.u, level, All );
+   MVelocity.apply( c, f.uvw.v, level, All );
+   f.uvw.u.multElementwise( {f.uvw.u, upwardNormal.uvw.u}, level );
+   f.uvw.v.multElementwise( {f.uvw.v, upwardNormal.uvw.v}, level );
+   f.uvw.u.assign( {rayleighNumber}, {f.uvw.u}, level, All );
+   f.uvw.v.assign( {rayleighNumber}, {f.uvw.v}, level, All );
    projectNormalOperator->apply( f, level, FreeslipBoundary );
    stokesSolver->solve( AFS, u, f, level );
 
-   vMax = velocityMaxMagnitude( u.u, u.v, uTmp, uTmp2, level, All );
+   vMax = velocityMaxMagnitude( u.uvw.u, u.uvw.v, uTmp, uTmp2, level, All );
 
    if ( vtk )
       vtkOutput.write( level );
@@ -536,7 +536,7 @@ void runBenchmark( real_t      cflMax,
 
       // new time step size
 
-      vMax = velocityMaxMagnitude( u.u, u.v, uTmp, uTmp2, level, All );
+      vMax = velocityMaxMagnitude( u.uvw.u, u.uvw.v, uTmp, uTmp2, level, All );
 
       real_t dt;
       if ( fixedTimeStep )
@@ -573,7 +573,7 @@ void runBenchmark( real_t      cflMax,
       timeDiffusion = localTimer.last();
 
       localTimer.start();
-      transport.step( cPr, u.u, u.v, u.w, uLast.u, uLast.v, uLast.w, level, All, dt, 1, true );
+      transport.step( cPr, u.uvw.u, u.uvw.v, u.uvw.w, uLast.uvw.u, uLast.uvw.v, uLast.uvw.w, level, All, dt, 1, true );
       localTimer.end();
       timeMMOC = localTimer.last();
 
@@ -591,12 +591,12 @@ void runBenchmark( real_t      cflMax,
 
       // Stokes
 
-      MVelocity.apply( cPr, f.u, level, All );
-      MVelocity.apply( cPr, f.v, level, All );
-      f.u.multElementwise( {f.u, upwardNormal.u}, level );
-      f.v.multElementwise( {f.v, upwardNormal.v}, level );
-      f.u.assign( {rayleighNumber}, {f.u}, level, All );
-      f.v.assign( {rayleighNumber}, {f.v}, level, All );
+      MVelocity.apply( cPr, f.uvw.u, level, All );
+      MVelocity.apply( cPr, f.uvw.v, level, All );
+      f.uvw.u.multElementwise( {f.uvw.u, upwardNormal.uvw.u}, level );
+      f.uvw.v.multElementwise( {f.uvw.v, upwardNormal.uvw.v}, level );
+      f.uvw.u.assign( {rayleighNumber}, {f.uvw.u}, level, All );
+      f.uvw.v.assign( {rayleighNumber}, {f.uvw.v}, level, All );
       projectNormalOperator->apply( f, level, FreeslipBoundary );
 
       localTimer.start();
@@ -627,7 +627,7 @@ void runBenchmark( real_t      cflMax,
          // advection
 
          localTimer.start();
-         transport.step( c, u.u, u.v, u.w, uLast.u, uLast.v, uLast.w, level, All, dt, 1, true );
+         transport.step( c, u.uvw.u, u.uvw.v, u.uvw.w, uLast.uvw.u, uLast.uvw.v, uLast.uvw.w, level, All, dt, 1, true );
          localTimer.end();
          timeMMOC += localTimer.last();
 
@@ -645,12 +645,12 @@ void runBenchmark( real_t      cflMax,
 
          // Stokes
 
-         MVelocity.apply( c, f.u, level, All );
-         MVelocity.apply( c, f.v, level, All );
-         f.u.multElementwise( {f.u, upwardNormal.u}, level );
-         f.v.multElementwise( {f.v, upwardNormal.v}, level );
-         f.u.assign( {rayleighNumber}, {f.u}, level, All );
-         f.v.assign( {rayleighNumber}, {f.v}, level, All );
+         MVelocity.apply( c, f.uvw.u, level, All );
+         MVelocity.apply( c, f.uvw.v, level, All );
+         f.uvw.u.multElementwise( {f.uvw.u, upwardNormal.uvw.u}, level );
+         f.uvw.v.multElementwise( {f.uvw.v, upwardNormal.uvw.v}, level );
+         f.uvw.u.assign( {rayleighNumber}, {f.uvw.u}, level, All );
+         f.uvw.v.assign( {rayleighNumber}, {f.uvw.v}, level, All );
          projectNormalOperator->apply( f, level, FreeslipBoundary );
 
          localTimer.start();
