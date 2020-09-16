@@ -150,6 +150,7 @@ void solveImplementation( const MeshInfo&                                       
 
    WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << benchmarkName )
    WALBERLA_LOG_INFO_ON_ROOT( " - space discretization: " )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + elements:                                     " << ( std::is_same< typename StokesFunction< real_t >::Tag, P2P1TaylorHoodFunctionTag >::value ? "P2-P1" : "P1-P1" ) );
    WALBERLA_LOG_INFO_ON_ROOT( "   + dimensions:                                   " << ( storage->hasGlobalCells() ? "3" : "2" ) )
    WALBERLA_LOG_INFO_ON_ROOT( "   + min level:                                    " << minLevel )
    WALBERLA_LOG_INFO_ON_ROOT( "   + max level:                                    " << maxLevel )
@@ -433,6 +434,11 @@ void solveImplementation( const MeshInfo&                                       
    {
       multigridSolver->solve( A, u, f, maxLevel );
 
+      if ( projectPressure )
+      {
+         vertexdof::projectMean( u.p, maxLevel );
+      }
+
       for ( uint_t prolongationSourceLevel = maxLevel; prolongationSourceLevel < errorLevel; prolongationSourceLevel++ )
       {
          prolongationOperator->prolongate( u, prolongationSourceLevel, All );
@@ -463,6 +469,11 @@ void solveImplementation( const MeshInfo&                                       
    for ( uint_t i = 1; i < multigridSettings.numCycles; i++ )
    {
       multigridSolver->solve( A, u, f, maxLevel );
+
+      if ( projectPressure )
+      {
+         vertexdof::projectMean( u.p, maxLevel );
+      }
 
       for ( uint_t prolongationSourceLevel = maxLevel; prolongationSourceLevel < errorLevel; prolongationSourceLevel++ )
       {
