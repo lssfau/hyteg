@@ -136,6 +136,34 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    std::shared_ptr< P1Function< real_t > > diagonalValues_;
    std::shared_ptr< P1Function< real_t > > inverseDiagonalValues_;
 
+   void smooth_sor_macro_vertices( const P1Function< real_t >& dst,
+                                   const P1Function< real_t >& rhs,
+                                   real_t                      relax,
+                                   size_t                      level,
+                                   DoFType                     flag,
+                                   const bool&                 backwards = false ) const;
+
+   void smooth_sor_macro_edges( const P1Function< real_t >& dst,
+                                const P1Function< real_t >& rhs,
+                                real_t                      relax,
+                                size_t                      level,
+                                DoFType                     flag,
+                                const bool&                 backwards = false ) const;
+
+   void smooth_sor_macro_faces( const P1Function< real_t >& dst,
+                                const P1Function< real_t >& rhs,
+                                real_t                      relax,
+                                size_t                      level,
+                                DoFType                     flag,
+                                const bool&                 backwards = false ) const;
+
+   void smooth_sor_macro_cells( const P1Function< real_t >& dst,
+                                const P1Function< real_t >& rhs,
+                                real_t                      relax,
+                                size_t                      level,
+                                DoFType                     flag,
+                                const bool&                 backwards = false ) const;
+
    PrimitiveDataID< StencilMemory< real_t >, Vertex > vertexStencilID_;
    PrimitiveDataID< StencilMemory< real_t >, Edge >   edgeStencilID_;
    PrimitiveDataID< LevelWiseMemory< vertexdof::macroedge::StencilMap_T >, Edge > edgeStencil3DID_;

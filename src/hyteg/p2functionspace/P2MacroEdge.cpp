@@ -625,61 +625,6 @@ void smoothSOR3D(
     const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     edgeDoFRhsId,
     const bool&                                                                                  backwards )
 {
-   if ( backwards )
-   {
-      storage.getTimingTree()->start( "EdgeDoFs" );
-      smoothSOR3DUpdateEdgeDoFs( level,
-                                 storage,
-                                 edge,
-                                 relax,
-                                 vertexToVertexOperatorId,
-                                 edgeToVertexOperatorId,
-                                 vertexToEdgeOperatorId,
-                                 edgeToEdgeOperatorId,
-                                 vertexDoFDstId,
-                                 vertexDoFRhsId,
-                                 edgeDoFDstId,
-                                 edgeDoFRhsId,
-                                 backwards );
-      storage.getTimingTree()->stop( "EdgeDoFs" );
-
-      storage.getTimingTree()->start( "VertexDoFs" );
-      if ( globalDefines::useGeneratedKernels )
-      {
-         smoothSOR3DUpdateVertexDoFsGenerated( level,
-                                               storage,
-                                               edge,
-                                               relax,
-                                               vertexToVertexOperatorMapId,
-                                               edgeToVertexOperatorId,
-                                               vertexToEdgeOperatorId,
-                                               edgeToEdgeOperatorId,
-                                               vertexDoFDstId,
-                                               vertexDoFRhsId,
-                                               edgeDoFDstId,
-                                               edgeDoFRhsId,
-                                               backwards );
-      }
-      else
-      {
-         smoothSOR3DUpdateVertexDoFs( level,
-                                      storage,
-                                      edge,
-                                      relax,
-                                      vertexToVertexOperatorId,
-                                      edgeToVertexOperatorId,
-                                      vertexToEdgeOperatorId,
-                                      edgeToEdgeOperatorId,
-                                      vertexDoFDstId,
-                                      vertexDoFRhsId,
-                                      edgeDoFDstId,
-                                      edgeDoFRhsId,
-                                      backwards );
-      }
-      storage.getTimingTree()->stop( "VertexDoFs" );
-   }
-   else
-   {
       storage.getTimingTree()->start( "VertexDoFs" );
       if ( globalDefines::useGeneratedKernels )
       {
@@ -730,7 +675,7 @@ void smoothSOR3D(
                                  edgeDoFRhsId,
                                  backwards );
       storage.getTimingTree()->stop( "EdgeDoFs" );
-   }
+
 }
 
 void smoothJacobi( const uint_t&                                            level,
