@@ -204,7 +204,4 @@ typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_
 typedef P1ConstantOperator< P1FenicsForm< fenics::UndefinedAssembly, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >
     P1ToP1DivTzVertexToVertexConstantOperator;
 
-typedef P1ConstantOperator< P2LinearCombinationForm > P1ConstantLinearCombinationOperator;
-typedef P1ConstantOperator< P2RowSumForm > P1ConstantRowSumOperator;
-
 } // namespace hyteg
