@@ -1,5 +1,7 @@
 Parameters
 {
+  discretization p1p1;
+
   minLevel 0;
   maxLevel 6;
 
@@ -18,7 +20,7 @@ Parameters
   symmGSVelocity false;
 
   estimateOmega true;
-  omega 0.4;
+  omega 0.3;
   omegaEstimationLevel 3;
   omegaEstimationIterations 20;
 

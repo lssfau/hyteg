@@ -60,6 +60,8 @@ void benchmark( int argc, char** argv )
 
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
+   const std::string discretizationString = mainConf.getParameter< std::string >( "discretization" );
+
    const uint_t minLevel        = mainConf.getParameter< uint_t >( "minLevel" );
    const uint_t maxLevel        = mainConf.getParameter< uint_t >( "maxLevel" );
    const uint_t numEdgesPerSide = mainConf.getParameter< uint_t >( "numEdgesPerSide" );
@@ -90,6 +92,11 @@ void benchmark( int argc, char** argv )
    const uint_t normCalculationLevelIncrement                = mainConf.getParameter< uint_t >( "normCalculationLevelIncrement" );
 
    Discretization discretization = Discretization::P2_P1;
+   if ( discretizationString == "p1p1" )
+   {
+      discretization = Discretization::P1_P1;
+   }
+
 
    Point3D leftBottom3D( { 0, 0, 0 } );
 

@@ -552,6 +552,37 @@ void solve( const MeshInfo&                                         meshInfo,
                                                                  verbose,
                                                                  dbFile );
    }
+   else
+   {
+      solveImplementation< P1StokesFunction,
+          P1StokesOperator,
+          P1ConstantMassOperator,
+          P1ConstantMassOperator,
+          P1P1StokesToP1P1StokesRestriction,
+          P1P1StokesToP1P1StokesProlongation,
+          P1P1StokesToP1P1StokesProlongation >( meshInfo,
+                                                hasAnalyticalSolution,
+                                                solutionU,
+                                                solutionV,
+                                                solutionW,
+                                                solutionP,
+                                                rhsU,
+                                                rhsV,
+                                                rhsW,
+                                                minLevel,
+                                                maxLevel,
+                                                multigridSettings,
+                                                smootherSettings,
+                                                coarseGridSettings,
+                                                projectPressure,
+                                                projectPressurefterRestriction,
+                                                calculateDiscretizationError,
+                                                normCalculationLevelIncrement,
+                                                vtk,
+                                                benchmarkName,
+                                                verbose,
+                                                dbFile );
+   }
 }
 
 } // namespace tme_benchmarks
