@@ -1,24 +1,24 @@
 Parameters
 {
   minLevel 0;
-  maxLevel 5;
+  maxLevel 6;
 
   numEdgesPerSide 1;
 
   vtk false;
   dbFile Benchmark_01_Cube.db;
 
-  preSmooth 1;
-  postSmooth 1;
-  incSmooth 1;
+  preSmooth 3;
+  postSmooth 3;
+  incSmooth 2;
   fmgInnerIterations 1;
-  numCycles 1;
+  numCycles 10;
 
   numGSVelocity 2;
   symmGSVelocity false;
 
-  estimateOmega false;
-  omega 0.3;
+  estimateOmega true;
+  omega 0.4;
   omegaEstimationLevel 3;
   omegaEstimationIterations 20;
 

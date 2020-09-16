@@ -54,18 +54,37 @@ void writeDataHeader()
 // iterationType: I: initial
 //                V: v-cycle
 //                F: FMG
-void writeDataRow( uint_t      iteration,
-                   std::string iterationType,
-                   uint_t      fmgLevel,
-                   real_t      errorL2Velocity,
-                   real_t      residualL2Velocity,
-                   real_t      errorL2Pressure,
-                   real_t      residualL2Pressure )
+void writeDataRow( uint_t                                      iteration,
+                   std::string                                 iterationType,
+                   uint_t                                      fmgLevel,
+                   real_t                                      errorL2Velocity,
+                   real_t                                      residualL2Velocity,
+                   real_t                                      errorL2Pressure,
+                   real_t                                      residualL2Pressure,
+                   walberla::sqlite::SQLiteDB&                 db,
+                   std::map< std::string, walberla::int64_t >& sqlIntegerProperties,
+                   std::map< std::string, double >&            sqlRealProperties,
+                   std::map< std::string, std::string >&       sqlStringProperties )
 {
    std::string fmgLevelString = "-";
    if ( iterationType == "F" )
    {
       fmgLevelString = walberla::format( "%9d", fmgLevel );
+   }
+
+   sqlStringProperties["iteration_type"]     = iterationType;
+   sqlIntegerProperties["fmg_level"]         = int_c( fmgLevel );
+   sqlRealProperties["error_l2_velocity"]    = errorL2Velocity;
+   sqlRealProperties["residual_l2_velocity"] = residualL2Velocity;
+   sqlRealProperties["error_l2_pressure"]    = errorL2Pressure;
+   sqlRealProperties["residual_l2_pressure"] = residualL2Pressure;
+
+   WALBERLA_ROOT_SECTION()
+   {
+      db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
+      sqlRealProperties.clear();
+      sqlIntegerProperties.clear();
+      sqlStringProperties.clear();
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9d | %14s | %9s | %17.5e | %20.5e | %17.5e | %20.5e ",
@@ -102,15 +121,12 @@ void solveImplementation( const MeshInfo&                                       
                           bool                                                    projectPressure,
                           bool                                                    projectPressurefterRestriction,
                           bool                                                    calculateDiscretizationError,
-                          uint_t                                                  normCalculationLevelIncrement,
+                          uint_t                                                  errorCalculationLevelIncrement,
                           bool                                                    vtk,
                           const std::string&                                      benchmarkName,
                           bool                                                    verbose,
                           std::string                                             dbFile )
 {
-   walberla::WcTimer localTimer;
-
-   const bool outputTimingJSON = true;
 
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -127,10 +143,10 @@ void solveImplementation( const MeshInfo&                                       
    timer->start( "Total" );
    timer->start( "Setup" );
 
-   const uint_t unknowns = numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel );
-   const real_t hMin     = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
-   const real_t hMax     = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
-   const auto errorLevel = maxLevel + normCalculationLevelIncrement;
+   const uint_t unknowns   = numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel );
+   const real_t hMin       = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
+   const real_t hMax       = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
+   const auto   errorLevel = maxLevel + errorCalculationLevelIncrement;
 
    WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << benchmarkName )
    WALBERLA_LOG_INFO_ON_ROOT( " - space discretization: " )
@@ -179,6 +195,10 @@ void solveImplementation( const MeshInfo&                                       
    std::map< std::string, double >            sqlRealProperties;
    std::map< std::string, std::string >       sqlStringProperties;
 
+   uint_t iteration                  = 0;
+   sqlIntegerProperties["iteration"] = int_c( iteration );
+
+   sqlIntegerProperties["min_level"]            = int_c( minLevel );
    sqlIntegerProperties["max_level"]            = int_c( maxLevel );
    sqlIntegerProperties["unknowns"]             = int_c( unknowns );
    sqlRealProperties["h_min"]                   = hMin;
@@ -188,6 +208,25 @@ void solveImplementation( const MeshInfo&                                       
    sqlIntegerProperties["num_macro_edges"]      = int_c( setupStorage->getNumberOfEdges() );
    sqlIntegerProperties["num_macro_vertices"]   = int_c( setupStorage->getNumberOfVertices() );
    sqlIntegerProperties["num_macro_primitives"] = int_c( setupStorage->getNumberOfPrimitives() );
+
+   sqlIntegerProperties["num_cycles"]           = int_c( multigridSettings.numCycles );
+   sqlIntegerProperties["pre_smooth"]           = int_c( multigridSettings.preSmooth );
+   sqlIntegerProperties["post_smooth"]          = int_c( multigridSettings.postSmooth );
+   sqlIntegerProperties["inc_smooth"]           = int_c( multigridSettings.incSmooth );
+   sqlIntegerProperties["fmg_inner_iterations"] = int_c( multigridSettings.fmgInnerIterations );
+
+   sqlRealProperties["omega"]                          = smootherSettings.omega;
+   sqlIntegerProperties["omega_estimation_iterations"] = int_c( smootherSettings.omegaEstimationIterations );
+   sqlIntegerProperties["omega_estimation_level"]      = int_c( smootherSettings.omegaEstimationLevel );
+   sqlIntegerProperties["estimate_omega"]              = int_c( smootherSettings.estimateOmega );
+   sqlIntegerProperties["symm_gs_velocity"]            = int_c( smootherSettings.symmGSVelocity );
+   sqlIntegerProperties["num_gs_velocity"]             = int_c( smootherSettings.numGSVelocity );
+
+   sqlIntegerProperties["coarse_grid_solver_type"]              = int_c( coarseGridSettings.solverType );
+   sqlIntegerProperties["coarse_grid_max_iterations"]           = int_c( coarseGridSettings.maxIterations );
+   sqlRealProperties["coarse_grid_absolute_residual_tolerance"] = coarseGridSettings.absoluteResidualTolerance;
+
+   sqlIntegerProperties["error_calculation_level_increment"] = int_c( errorCalculationLevelIncrement );
 
    const auto errorFlag = Inner | NeumannBoundary | FreeslipBoundary;
 
@@ -210,6 +249,8 @@ void solveImplementation( const MeshInfo&                                       
       exact.w.interpolate( solutionW, level, All );
       exact.p.interpolate( solutionP, level, All );
 
+      vertexdof::projectMean( exact.p, level );
+
       u.u.interpolate( solutionU, level, DirichletBoundary );
       u.v.interpolate( solutionV, level, DirichletBoundary );
       u.w.interpolate( solutionW, level, DirichletBoundary );
@@ -223,38 +264,8 @@ void solveImplementation( const MeshInfo&                                       
       MVelocity.apply( tmp.w, f.w, level, All );
    }
 
-   uint_t iteration = 0;
-
    auto prolongationOperator = std::make_shared< Prolongation >();
    auto restrictionOperator  = std::make_shared< Restriction >( projectPressurefterRestriction );
-
-   for ( uint_t prolongationSourceLevel = maxLevel; prolongationSourceLevel < errorLevel; prolongationSourceLevel++ )
-   {
-      prolongationOperator->prolongate( u, prolongationSourceLevel, All );
-   }
-
-   residual( u, f, A, tmp, maxLevel, errorFlag, r );
-   error( u, exact, errorLevel, errorFlag, err );
-
-   auto errorL2Velocity    = normL2Velocity( err, MVelocity, tmp, errorLevel, errorFlag );
-   auto residualL2Velocity = normL2Velocity( r, MVelocity, tmp, maxLevel, errorFlag );
-   auto errorL2Pressure    = normL2Scalar( err.p, MPressure, tmp.p, errorLevel, errorFlag );
-   auto residualL2Pressure = normL2Scalar( r.p, MPressure, tmp.p, maxLevel, errorFlag );
-
-   writeDataHeader();
-   writeDataRow( iteration, "I", 0, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure );
-   iteration++;
-
-   VTKOutput vtkOutput( "vtk", "TME", storage );
-   vtkOutput.add( u );
-   vtkOutput.add( f );
-   vtkOutput.add( err );
-   vtkOutput.add( exact );
-
-   if ( vtk )
-   {
-      vtkOutput.write( maxLevel, 0 );
-   }
 
    std::shared_ptr< Solver< typename StokesOperator::VelocityOperator_T > > scalarSmoother;
    if ( smootherSettings.symmGSVelocity )
@@ -331,6 +342,7 @@ void solveImplementation( const MeshInfo&                                       
    auto fmgProlongation = std::make_shared< FMGProlongation >();
 
    auto postCycle = [&]( uint_t currentLevel ) {
+
       if ( projectPressure )
       {
          vertexdof::projectMean( u.p, currentLevel );
@@ -343,7 +355,7 @@ void solveImplementation( const MeshInfo&                                       
 
       tmpFMG.assign( {1.0}, {u}, currentLevel, All );
 
-      const auto fmgErrorLevel = currentLevel + normCalculationLevelIncrement;
+      const auto fmgErrorLevel = currentLevel + errorCalculationLevelIncrement;
       for ( uint_t prolongationSourceLevel = currentLevel; prolongationSourceLevel < fmgErrorLevel; prolongationSourceLevel++ )
       {
          prolongationOperator->prolongate( tmpFMG, prolongationSourceLevel, All );
@@ -352,22 +364,136 @@ void solveImplementation( const MeshInfo&                                       
       residual( tmpFMG, f, A, tmp, currentLevel, errorFlag, r );
       error( tmpFMG, exact, fmgErrorLevel, errorFlag, err );
 
-      auto errorL2Velocity    = normL2Velocity( err, MVelocity, tmp, fmgErrorLevel, errorFlag );
-      auto residualL2Velocity = normL2Velocity( r, MVelocity, tmp, currentLevel, errorFlag );
+      auto errorL2VelocityFMG    = normL2Velocity( err, MVelocity, tmp, fmgErrorLevel, errorFlag );
+      auto residualL2VelocityFMG = normL2Velocity( r, MVelocity, tmp, currentLevel, errorFlag );
 
-      auto errorL2Pressure    = normL2Scalar( err.p, MPressure, tmp.p, fmgErrorLevel, errorFlag );
-      auto residualL2Pressure = normL2Scalar( r.p, MPressure, tmp.p, currentLevel, errorFlag );
+      auto errorL2PressureFMG    = normL2Scalar( err.p, MPressure, tmp.p, fmgErrorLevel, errorFlag );
+      auto residualL2PressureFMG = normL2Scalar( r.p, MPressure, tmp.p, currentLevel, errorFlag );
 
-      writeDataRow( iteration, "F", currentLevel, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure );
+      writeDataRow( iteration,
+                    "F",
+                    currentLevel,
+                    errorL2VelocityFMG,
+                    residualL2VelocityFMG,
+                    errorL2PressureFMG,
+                    residualL2PressureFMG,
+                    db,
+                    sqlIntegerProperties,
+                    sqlRealProperties,
+                    sqlStringProperties );
       iteration++;
    };
 
    FullMultigridSolver< StokesOperator > fullMultigridSolver(
        storage, multigridSolver, fmgProlongation, minLevel, maxLevel, multigridSettings.fmgInnerIterations, postCycle );
 
+   for ( uint_t prolongationSourceLevel = maxLevel; prolongationSourceLevel < errorLevel; prolongationSourceLevel++ )
+   {
+      prolongationOperator->prolongate( u, prolongationSourceLevel, All );
+   }
+
+   residual( u, f, A, tmp, maxLevel, errorFlag, r );
+   error( u, exact, errorLevel, errorFlag, err );
+
+   auto errorL2Velocity    = normL2Velocity( err, MVelocity, tmp, errorLevel, errorFlag );
+   auto residualL2Velocity = normL2Velocity( r, MVelocity, tmp, maxLevel, errorFlag );
+   auto errorL2Pressure    = normL2Scalar( err.p, MPressure, tmp.p, errorLevel, errorFlag );
+   auto residualL2Pressure = normL2Scalar( r.p, MPressure, tmp.p, maxLevel, errorFlag );
+
+   writeDataHeader();
+   writeDataRow( iteration,
+                 "I",
+                 0,
+                 errorL2Velocity,
+                 residualL2Velocity,
+                 errorL2Pressure,
+                 residualL2Pressure,
+                 db,
+                 sqlIntegerProperties,
+                 sqlRealProperties,
+                 sqlStringProperties );
+   iteration++;
+
+   VTKOutput vtkOutput( "vtk", "TME", storage );
+   vtkOutput.add( u );
+   vtkOutput.add( f );
+   vtkOutput.add( err );
+   vtkOutput.add( exact );
+
+   if ( vtk )
+   {
+      vtkOutput.write( maxLevel, 0 );
+   }
+
    if ( multigridSettings.fmgInnerIterations > 0 )
    {
       fullMultigridSolver.solve( A, u, f, maxLevel );
+   }
+   else
+   {
+      multigridSolver->solve( A, u, f, maxLevel );
+
+      for ( uint_t prolongationSourceLevel = maxLevel; prolongationSourceLevel < errorLevel; prolongationSourceLevel++ )
+      {
+         prolongationOperator->prolongate( u, prolongationSourceLevel, All );
+      }
+
+      residual( u, f, A, tmp, maxLevel, errorFlag, r );
+      error( u, exact, errorLevel, errorFlag, err );
+
+      errorL2Velocity    = normL2Velocity( err, MVelocity, tmp, errorLevel, errorFlag );
+      residualL2Velocity = normL2Velocity( r, MVelocity, tmp, maxLevel, errorFlag );
+      errorL2Pressure    = normL2Scalar( err.p, MPressure, tmp.p, errorLevel, errorFlag );
+      residualL2Pressure = normL2Scalar( r.p, MPressure, tmp.p, maxLevel, errorFlag );
+
+      writeDataRow( iteration,
+                    "V",
+                    0,
+                    errorL2Velocity,
+                    residualL2Velocity,
+                    errorL2Pressure,
+                    residualL2Pressure,
+                    db,
+                    sqlIntegerProperties,
+                    sqlRealProperties,
+                    sqlStringProperties );
+      iteration++;
+   }
+
+   for ( uint_t i = 1; i < multigridSettings.numCycles; i++ )
+   {
+      multigridSolver->solve( A, u, f, maxLevel );
+
+      for ( uint_t prolongationSourceLevel = maxLevel; prolongationSourceLevel < errorLevel; prolongationSourceLevel++ )
+      {
+         prolongationOperator->prolongate( u, prolongationSourceLevel, All );
+      }
+
+      residual( u, f, A, tmp, maxLevel, errorFlag, r );
+      error( u, exact, errorLevel, errorFlag, err );
+
+      errorL2Velocity    = normL2Velocity( err, MVelocity, tmp, errorLevel, errorFlag );
+      residualL2Velocity = normL2Velocity( r, MVelocity, tmp, maxLevel, errorFlag );
+      errorL2Pressure    = normL2Scalar( err.p, MPressure, tmp.p, errorLevel, errorFlag );
+      residualL2Pressure = normL2Scalar( r.p, MPressure, tmp.p, maxLevel, errorFlag );
+
+      writeDataRow( iteration,
+                    "V",
+                    0,
+                    errorL2Velocity,
+                    residualL2Velocity,
+                    errorL2Pressure,
+                    residualL2Pressure,
+                    db,
+                    sqlIntegerProperties,
+                    sqlRealProperties,
+                    sqlStringProperties );
+      iteration++;
+   }
+
+   if ( vtk )
+   {
+      vtkOutput.write( maxLevel, 1 );
    }
 }
 
