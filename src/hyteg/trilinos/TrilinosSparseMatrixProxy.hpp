@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "core/Abort.h"
+
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/trilinos/TpetraWrapper.hpp"
 
@@ -35,6 +37,8 @@ class TrilinosSparseMatrixProxy : public SparseMatrixProxy
    : mat_( mat )
    {}
 
+   std::shared_ptr< SparseMatrixProxy > createCopy() const { WALBERLA_ABORT( "Trilinos sparse matrix copy not implemented." ); }
+
    void addValue( uint_t row, uint_t col, real_t value ) override
    {
       mat_->insertGlobalValues( row,
@@ -42,7 +46,9 @@ class TrilinosSparseMatrixProxy : public SparseMatrixProxy
                                 Teuchos::tuple< Tpetra::Vector<>::scalar_type >( value ) );
    }
 
-   void addValues( const std::vector< uint_t >& rows, const std::vector< uint_t >& cols, const std::vector< real_t >& values ) override
+   void addValues( const std::vector< uint_t >& rows,
+                   const std::vector< uint_t >& cols,
+                   const std::vector< real_t >& values ) override
    {
       WALBERLA_ASSERT_EQUAL( values.size(), rows.size() * cols.size() );
       for ( uint_t i = 0; i < rows.size(); i++ )
@@ -53,6 +59,11 @@ class TrilinosSparseMatrixProxy : public SparseMatrixProxy
          }
       }
    }
+
+   void createFromMatrixProduct( const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices )
+   {
+      WALBERLA_ABORT( "Trilinos sparse matrix construction from matrix product not implemented." );
+   };
 
  private:
    RCP< Tpetra::CrsMatrix<> > mat_;
