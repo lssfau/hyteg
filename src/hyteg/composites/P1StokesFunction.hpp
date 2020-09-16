@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/composites/P1VectorFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -162,8 +163,43 @@ class P1StokesFunction
       p.enumerate( level, offset );
    }
 
+   BoundaryCondition getVelocityBoundaryCondition() const
+   {
+      auto bc_u = uvw.u.getBoundaryCondition();
+      WALBERLA_DEBUG_SECTION()
+      {
+         auto bc_v = uvw.v.getBoundaryCondition();
+         WALBERLA_CHECK_EQUAL( bc_u, bc_v, "Velocity components do not have same boundary conditions." );
+         if ( uvw.u.getStorage()->hasGlobalCells() )
+         {
+            auto bc_w = uvw.w.getBoundaryCondition();
+            WALBERLA_CHECK_EQUAL( bc_u, bc_w, "Velocity components do not have same boundary conditions." );
+         }
+      }
+      return bc_u;
+   }
+
+   BoundaryCondition getPressureBoundaryCondition() const { return p.getBoundaryCondition(); }
+
+   void setVelocityBoundaryCondition( BoundaryCondition bc )
+   {
+      uvw.u.setBoundaryCondition( bc );
+      uvw.v.setBoundaryCondition( bc );
+      uvw.w.setBoundaryCondition( bc );
+   }
+
+   void setPressureBoundaryCondition( BoundaryCondition bc ) { p.setBoundaryCondition( bc ); }
+
+   template< typename OtherFunctionValueType >
+   void copyBoundaryConditionFromFunction( const P1StokesFunction< OtherFunctionValueType >& other )
+   {
+      setVelocityBoundaryCondition( other.getVelocityBoundaryCondition() );
+      setPressureBoundaryCondition( other.getPressureBoundaryCondition() );
+   }
+
    P1VectorFunction< ValueType > uvw;
    P1Function< ValueType >       p;
 };
 
-} // namespace hyteg
+}
+

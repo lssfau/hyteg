@@ -30,7 +30,7 @@ class IdentityPreconditioner : public Solver< OperatorType >
  public:
    IdentityPreconditioner()
    : updateType_( Replace )
-   , flag_( hyteg::Inner | hyteg::NeumannBoundary )
+   , flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
    {}
 
    void solve( const OperatorType&,

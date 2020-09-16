@@ -63,6 +63,7 @@ waLBerla_add_executable( NAME annulus
 endif()
 
 add_subdirectory(benchmarks)
+add_subdirectory(Blankenbach)
 add_subdirectory(scaling)
 add_subdirectory(stokesSphere)
 add_subdirectory(stokesCubeTransport)

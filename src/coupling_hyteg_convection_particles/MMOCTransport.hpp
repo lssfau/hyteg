@@ -333,10 +333,10 @@ inline real_t evaluateAtParticlePosition( PrimitiveStorage&                     
                                           const walberla::convection_particles::data::ParticleStorage::Particle& particle,
                                           const uint_t&                                                          level )
 {
-   if ( particle.getOutsideDomain() == 1 )
-   {
-      return real_c( 0 );
-   }
+//   if ( particle.getOutsideDomain() == 1 )
+//   {
+//      return real_c( 0 );
+//   }
 
    real_t result;
    if ( !storage.hasGlobalCells() )
@@ -446,8 +446,8 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
 
    for ( auto it : FunctionIterator< vertexdof::VertexDoFFunction< real_t > >( c.getVertexDoFFunction(), level ) )
    {
-      if ( storage.onBoundary( it.primitiveID(), true ) )
-         continue;
+      // if ( storage.onBoundary( it.primitiveID(), true ) )
+      //   continue;
 
       Point3D physicalLocation;
       auto    primitive = setupStorage.getPrimitive( it.primitiveID() );
@@ -522,8 +522,8 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
 
    for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( c.getEdgeDoFFunction(), level ) )
    {
-      if ( storage.onBoundary( it.primitiveID(), true ) )
-         continue;
+//      if ( storage.onBoundary( it.primitiveID(), true ) )
+//         continue;
 
       Point3D physicalLocation;
       auto    primitive = setupStorage.getPrimitive( it.primitiveID() );
@@ -935,6 +935,13 @@ class MMOCTransport
               const bool&         resetParticles = true )
    {
       storage_->getTimingTree()->start( "MMOCTransport" );
+
+      cOld_.copyBoundaryConditionFromFunction( c );
+      cTmp_.copyBoundaryConditionFromFunction( c );
+      cPlus_.copyBoundaryConditionFromFunction( c );
+      cMinus_.copyBoundaryConditionFromFunction( c );
+      cAdjusted_.copyBoundaryConditionFromFunction( c );
+
       if ( resetParticles )
       {
          cOld_.assign( {1.0}, {c}, level, All );
@@ -985,6 +992,12 @@ class MMOCTransport
               const real_t&       allowedRelativeMassDifference,
               const real_t&       dtPertubationAdjustedAdvection )
    {
+      cOld_.copyBoundaryConditionFromFunction( c );
+      cTmp_.copyBoundaryConditionFromFunction( c );
+      cPlus_.copyBoundaryConditionFromFunction( c );
+      cMinus_.copyBoundaryConditionFromFunction( c );
+      cAdjusted_.copyBoundaryConditionFromFunction( c );
+
       cPlus_.assign( {1.0}, {c}, level, All );
       cMinus_.assign( {1.0}, {c}, level, All );
 

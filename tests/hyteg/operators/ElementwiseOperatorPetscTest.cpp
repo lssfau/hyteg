@@ -41,6 +41,10 @@
 // the matrix we get for the corresponding elementwise operator.
 // We do that for several operators/forms in 2D and 3D.
 
+#ifndef HYTEG_BUILD_WITH_PETSC
+WALBERLA_ABORT( "This test only works with PETSc enabled. Please enable it via -DHYTEG_BUILD_WITH_PETSC=ON" )
+#endif
+
 using walberla::real_t;
 using namespace hyteg;
 

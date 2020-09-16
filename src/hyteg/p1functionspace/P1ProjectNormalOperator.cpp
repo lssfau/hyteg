@@ -19,7 +19,12 @@
  */
 #include "P1ProjectNormalOperator.hpp"
 
+#include "hyteg/communication/Syncing.hpp"
 #include "hyteg/p1functionspace/freeslip/VertexDoFProjectNormal.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 
 namespace hyteg {
 
@@ -153,5 +158,120 @@ void P1ProjectNormalOperator::apply( const P1StokesFunction< real_t >& dst, size
 {
    apply( dst.uvw.u, dst.uvw.v, dst.uvw.w, level, flag );
 }
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+
+void P1ProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                   const P1Function< PetscInt >&               numU,
+                                                   const P1Function< PetscInt >&               numV,
+                                                   const P1Function< PetscInt >&               numW,
+                                                   uint_t                                      level,
+                                                   DoFType                                     flag ) const
+{
+   communication::syncFunctionBetweenPrimitives( numU, level );
+   communication::syncFunctionBetweenPrimitives( numV, level );
+   communication::syncFunctionBetweenPrimitives( numW, level );
+
+   // The matrix-free application of the projection operator (ID - nn^t) emulates
+   // the application of Id by not touching the vector at all.
+   // However, the Id diagonal must be assembled.
+
+   for ( const auto& it : storage_->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+
+      const DoFType vertexBC = numU.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+
+      if ( testFlag( vertexBC, flag ) )
+      {
+         if ( storage_->hasGlobalCells() )
+         {
+            WALBERLA_ABORT( "Sparse matrix assembly not implemented for 3D." );
+         }
+         else
+         {
+            vertexdof::macrovertex::saveProjectNormalOperator2D(
+                level, vertex, storage_, normal_function_, numU.getVertexDataID(), numV.getVertexDataID(), mat );
+         }
+      }
+      else
+      {
+         vertexdof::macrovertex::saveIdentityOperator( vertex, numU.getVertexDataID(), mat, level );
+         vertexdof::macrovertex::saveIdentityOperator( vertex, numV.getVertexDataID(), mat, level );
+         if ( storage_->hasGlobalCells() )
+         {
+            vertexdof::macrovertex::saveIdentityOperator( vertex, numW.getVertexDataID(), mat, level );
+         }
+      }
+   }
+
+   if ( level >= 1 )
+   {
+      for ( const auto& it : storage_->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         const DoFType edgeBC = numU.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+
+         if ( testFlag( edgeBC, flag ) )
+         {
+            if ( storage_->hasGlobalCells() )
+            {
+               WALBERLA_ABORT( "Sparse matrix assembly not implemented for 3D." );
+            }
+            else
+            {
+               vertexdof::macroedge::saveProjectNormalOperator2D(
+                   level, edge, storage_, normal_function_, numU.getEdgeDataID(), numV.getEdgeDataID(), mat );
+            }
+         }
+         else
+         {
+            vertexdof::macroedge::saveIdentityOperator( level, edge, numU.getEdgeDataID(), mat );
+            vertexdof::macroedge::saveIdentityOperator( level, edge, numV.getEdgeDataID(), mat );
+            if ( storage_->hasGlobalCells() )
+            {
+               vertexdof::macroedge::saveIdentityOperator( level, edge, numW.getEdgeDataID(), mat );
+            }
+         }
+      }
+   }
+
+   if ( level >= 2 )
+   {
+      for ( const auto& it : storage_->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = numU.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+
+         if ( testFlag( faceBC, flag ) )
+         {
+            if ( storage_->hasGlobalCells() )
+            {
+               WALBERLA_ABORT( "Sparse matrix assembly not implemented for 3D." );
+            }
+            else
+            {
+               WALBERLA_ABORT( "Normal projection for inner primitives?" );
+            }
+         }
+         else
+         {
+            vertexdof::macroface::saveIdentityOperator( level, face, numU.getFaceDataID(), mat );
+            vertexdof::macroface::saveIdentityOperator( level, face, numV.getFaceDataID(), mat );
+            if ( storage_->hasGlobalCells() )
+            {
+               vertexdof::macroface::saveIdentityOperator( level, face, numW.getFaceDataID(), mat );
+            }
+         }
+      }
+
+
+
+   }
+}
+
+#endif
 
 } // namespace hyteg

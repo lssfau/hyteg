@@ -610,6 +610,14 @@ BoundaryCondition P2Function< ValueType >::getBoundaryCondition() const
 }
 
 template < typename ValueType >
+void P2Function< ValueType >::setBoundaryCondition( BoundaryCondition bc )
+{
+   vertexDoFFunction_.setBoundaryCondition( bc );
+   edgeDoFFunction_.setBoundaryCondition( bc );
+}
+
+
+template < typename ValueType >
 void P2Function< ValueType >::enumerate( uint_t level ) const
 {
    this->startTiming( "Enumerate" );

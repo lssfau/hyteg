@@ -32,7 +32,20 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
  public:
    PETScSparseMatrixProxy( Mat mat )
    : mat_( mat )
-   {}
+   {
+      MatSetOption(mat_, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE);
+   }
+
+   virtual std::shared_ptr< SparseMatrixProxy > createCopy() const
+   {
+      Mat matCopy;
+
+      MatAssemblyBegin( mat_, MAT_FINAL_ASSEMBLY );
+      MatAssemblyEnd( mat_, MAT_FINAL_ASSEMBLY );
+
+      MatDuplicate( mat_, MAT_COPY_VALUES, &matCopy );
+      return std::make_shared< PETScSparseMatrixProxy >( matCopy );
+   }
 
    void addValue( uint_t row, uint_t col, real_t value )
    {
@@ -41,13 +54,15 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
 
    void addValues( const std::vector< uint_t >& rows, const std::vector< uint_t >& cols, const std::vector< real_t >& values )
    {
-      WALBERLA_ASSERT_EQUAL( rows.size(), cols.size() );
       WALBERLA_ASSERT_EQUAL( values.size(), rows.size() * cols.size() );
       std::vector< PetscInt > petscRows( rows.size() );
       std::vector< PetscInt > petscCols( cols.size() );
       for ( uint_t i = 0; i < rows.size(); i++ )
       {
          petscRows[i] = static_cast< PetscInt >( rows[i] );
+      }
+      for ( uint_t i = 0; i < cols.size(); i++ )
+      {
          petscCols[i] = static_cast< PetscInt >( cols[i] );
       }
       MatSetValues( mat_,
@@ -59,8 +74,69 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
                     ADD_VALUES );
    }
 
+   void createFromMatrixProduct( const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices )
+   {
+      Mat tmp;
+
+      PetscErrorCode err;
+
+      err = MatAssemblyBegin( mat_, MAT_FINAL_ASSEMBLY );
+      WALBERLA_CHECK(!err);
+      err = MatAssemblyEnd( mat_, MAT_FINAL_ASSEMBLY );
+      WALBERLA_CHECK(!err);
+
+      err = MatDuplicate( mat_, MAT_DO_NOT_COPY_VALUES, &tmp );
+      WALBERLA_CHECK(!err);
+
+      WALBERLA_CHECK_GREATER( matrices.size(), 0 );
+
+      auto petscProxy = std::dynamic_pointer_cast< PETScSparseMatrixProxy >( matrices.at( 0 ) );
+      WALBERLA_CHECK_NOT_NULLPTR( petscProxy );
+
+      err = MatAssemblyBegin( petscProxy->mat_, MAT_FINAL_ASSEMBLY );
+      WALBERLA_CHECK(!err);
+      err = MatAssemblyEnd( petscProxy->mat_, MAT_FINAL_ASSEMBLY );
+      WALBERLA_CHECK(!err);
+
+      err = MatCopy( petscProxy->mat_, mat_, DIFFERENT_NONZERO_PATTERN );
+      WALBERLA_CHECK(!err);
+
+      for ( uint_t i = 1; i < matrices.size(); i++ )
+      {
+         petscProxy = std::dynamic_pointer_cast< PETScSparseMatrixProxy >( matrices.at( i ) );
+
+         err = MatAssemblyBegin( petscProxy->mat_, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK(!err);
+         err = MatAssemblyEnd( petscProxy->mat_, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK(!err);
+
+         err = MatAssemblyBegin( mat_, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK(!err);
+         err = MatAssemblyEnd( mat_, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK(!err);
+
+         err = MatMatMult( mat_, petscProxy->mat_, MAT_INITIAL_MATRIX, PETSC_DEFAULT, &tmp );
+         WALBERLA_CHECK(!err);
+         err = MatCopy( tmp, mat_, DIFFERENT_NONZERO_PATTERN );
+         WALBERLA_CHECK(!err);
+
+
+         err = MatAssemblyBegin( tmp, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK(!err);
+         err = MatAssemblyEnd( tmp, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK(!err);
+
+         err = MatAssemblyBegin( mat_, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK(!err);
+         err = MatAssemblyEnd( mat_, MAT_FINAL_ASSEMBLY );
+         WALBERLA_CHECK(!err);
+      }
+   }
+
  private:
+
    Mat mat_;
+
 };
 
 } // namespace hyteg

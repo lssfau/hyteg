@@ -50,7 +50,7 @@ class CGSolver : public Solver< OperatorType >
    , ap_( "ap", storage, minLevel, maxLevel )
    , r_( "r", storage, minLevel, maxLevel )
    , preconditioner_( preconditioner )
-   , flag_( hyteg::Inner | hyteg::NeumannBoundary )
+   , flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
    , printInfo_( false )
    , tolerance_( tolerance )
    , restartFrequency_( std::numeric_limits< uint_t >::max() )
@@ -72,6 +72,12 @@ class CGSolver : public Solver< OperatorType >
          return;
 
       timingTree_->start( "CG Solver" );
+
+      p_.copyBoundaryConditionFromFunction( x );
+      z_.copyBoundaryConditionFromFunction( x );
+      ap_.copyBoundaryConditionFromFunction( x );
+      r_.copyBoundaryConditionFromFunction( x );
+
       real_t prsold = 0;
       init( A, x, b, level, prsold );
       real_t res_start = std::sqrt( r_.dotGlobal( r_, level, flag_ ) );

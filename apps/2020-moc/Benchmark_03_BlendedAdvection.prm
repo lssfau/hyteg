@@ -1,16 +1,17 @@
 Parameters
 {
   level 5;
-  numTimeSteps 10;
+  numTimeSteps 100;
   threeDim false;
 
   enableGaussianCone true;
   enableLinearCone true;
   enableCylinder true;
 
-  resetParticles true;
-  adjustedAdvection true;
-  vtk true;
+  resetParticles false;
+  resetParticlesInterval 1;
+  adjustedAdvection false;
+  vtk false;
   printInterval 1;
   vtkInterval 1;
   dbFile Benchmark_03_BlendedAdvection.db;

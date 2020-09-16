@@ -181,6 +181,13 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
    ValueType getMaxMagnitude( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
 
    inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
+   inline void setBoundaryCondition( BoundaryCondition bc ) { boundaryCondition_ = bc; }
+
+   template< typename OtherFunctionValueType >
+   inline void copyBoundaryConditionFromFunction( const EdgeDoFFunction< OtherFunctionValueType > & other )
+   {
+      setBoundaryCondition( other.getBoundaryCondition() );
+   }
 
    template < typename SenderType, typename ReceiverType >
    inline void startCommunication( const uint_t& level ) const

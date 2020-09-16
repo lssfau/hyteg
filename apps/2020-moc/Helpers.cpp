@@ -54,6 +54,7 @@ void solve( const MeshInfo&         meshInfo,
             uint_t                  level,
             DiffusionTimeIntegrator diffusionTimeIntegrator,
             bool                    enableDiffusion,
+            bool                    strangSplitting,
             bool                    resetParticles,
             uint_t                  resetParticlesInterval,
             bool                    adjustedAdvection,
@@ -133,6 +134,7 @@ void solve( const MeshInfo&         meshInfo,
        << ( enableDiffusion ?
                 ( diffusionTimeIntegrator == DiffusionTimeIntegrator::ImplicitEuler ? "implicit Euler" : "Crank-Nicolson" ) :
                 "disabled" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + Strang splitting:                             " << ( enableDiffusion && strangSplitting ? "yes" : "disabled" ))
    WALBERLA_LOG_INFO_ON_ROOT( "   + adjusted advection:                           " << ( adjustedAdvection ? "yes" : "no" ) )
    WALBERLA_LOG_INFO_ON_ROOT( "   + particle reset:                               "
                               << ( resetParticles ? "yes" : "no" ) << ( forcedParticleReset ? " (forced)" : "" ) )
@@ -169,6 +171,7 @@ void solve( const MeshInfo&         meshInfo,
    sqlIntegerProperties["num_macro_primitives"]    = int_c( setupStorage->getNumberOfPrimitives() );
    sqlRealProperties["diffusivity"]                = diffusivity;
    sqlIntegerProperties["pure_advection"]          = !enableDiffusion;
+   sqlIntegerProperties["strang_splitting"]        = strangSplitting;
    sqlIntegerProperties["adjusted_advection"]      = adjustedAdvection;
    sqlIntegerProperties["particle_reset"]          = resetParticles;
    sqlIntegerProperties["particle_reset_interval"] = int_c( resetParticlesInterval );
@@ -192,16 +195,17 @@ void solve( const MeshInfo&         meshInfo,
    FunctionType vLast( "vLast", storage, level, level );
    FunctionType wLast( "wLast", storage, level, level );
 
-   UnsteadyDiffusionOperator     diffusionOperator( storage, level, level, dt, diffusivity, diffusionTimeIntegrator );
+   const real_t diffusionDt = strangSplitting ? 0.5 * dt : dt;
+   UnsteadyDiffusionOperator     diffusionOperator( storage, level, level, diffusionDt, diffusivity, diffusionTimeIntegrator );
    LaplaceOperator               L( storage, level, level );
    MassOperator                  M( storage, level, level );
    MMOCTransport< FunctionType > transport( storage, setupStorage, level, level, TimeSteppingScheme::RK4 );
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    PETScManager manager;
-   auto         solver = std::make_shared< PETScMinResSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, 1e-06 );
+   auto         solver = std::make_shared< PETScMinResSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, 1e-12 );
 #else
-   auto solver = std::make_shared< CGSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, level );
+   auto solver = std::make_shared< CGSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, level  );
 #endif
 
    UnsteadyDiffusion< FunctionType, UnsteadyDiffusionOperator, LaplaceOperator, MassOperator > diffusionSolver(
@@ -287,8 +291,6 @@ void solve( const MeshInfo&         meshInfo,
       if ( verbose )
          WALBERLA_LOG_INFO_ON_ROOT( "interpolating velocity" )
 
-      cOld.assign( {1.0}, {c}, level, All );
-
       uLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
       vLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
       if ( storage->hasGlobalCells() )
@@ -311,6 +313,19 @@ void solve( const MeshInfo&         meshInfo,
       real_t advectionTimeStepRunTime;
 
       vMax = velocityMaxMagnitude( u, v, w, tmp, tmp2, level, All );
+
+      if ( enableDiffusion && strangSplitting )
+      {
+         solution.incTime( 0.5 * dt );
+
+         cOld.assign( {1.0}, {c}, level, All );
+
+         c.interpolate( std::function< real_t( const Point3D& ) >( std::ref( solution ) ), level, DirichletBoundary );
+
+         if ( verbose )
+            WALBERLA_LOG_INFO_ON_ROOT( "performing diffusion step" )
+         diffusionSolver.step( diffusionOperator, L, M, c, cOld, level, Inner );
+      }
 
       if ( adjustedAdvection )
       {
@@ -339,11 +354,16 @@ void solve( const MeshInfo&         meshInfo,
          advectionTimeStepRunTime = localTimer.last();
       }
 
-      timeTotal += dt;
+      if ( strangSplitting )
+      {
+         solution.incTime( 0.5 * dt );
+      }
+      else
+      {
+         solution.incTime( dt );
+      }
 
-      solution.incTime( dt );
-
-      cSolution.interpolate( std::function< real_t( const Point3D& ) >( std::ref( solution ) ), level );
+      cOld.assign( {1.0}, {c}, level, All );
 
       c.interpolate( std::function< real_t( const Point3D& ) >( std::ref( solution ) ), level, DirichletBoundary );
 
@@ -354,7 +374,10 @@ void solve( const MeshInfo&         meshInfo,
          diffusionSolver.step( diffusionOperator, L, M, c, cOld, level, Inner );
       }
 
+      cSolution.interpolate( std::function< real_t( const Point3D& ) >( std::ref( solution ) ), level );
       cError.assign( {1.0, -1.0}, {c, cSolution}, level, All );
+
+      timeTotal += dt;
 
       if ( ( printInterval == 0 && i == numTimeSteps ) || ( printInterval > 0 && i % printInterval == 0 ) )
       {

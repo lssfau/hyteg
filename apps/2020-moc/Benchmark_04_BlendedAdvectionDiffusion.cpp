@@ -120,6 +120,8 @@ void benchmark( int argc, char** argv )
    const bool        rotationOnly      = mainConf.getParameter< bool >( "rotationOnly" );
    const bool        resetParticles    = mainConf.getParameter< bool >( "resetParticles" );
    const bool        adjustedAdvection = mainConf.getParameter< bool >( "adjustedAdvection" );
+   const bool        crankNicolson     = mainConf.getParameter< bool >( "crankNicolson" );
+   const bool        strangSplitting   = mainConf.getParameter< bool >( "strangSplitting" );
    const uint_t      printInterval     = mainConf.getParameter< uint_t >( "printInterval" );
    const bool        vtk               = mainConf.getParameter< bool >( "vtk" );
    const uint_t      vtkInterval       = mainConf.getParameter< uint_t >( "vtkInterval" );
@@ -157,8 +159,9 @@ void benchmark( int argc, char** argv )
           dt,
           diffusivity,
           level,
-          DiffusionTimeIntegrator::ImplicitEuler,
+          crankNicolson ? DiffusionTimeIntegrator::CrankNicolson : DiffusionTimeIntegrator::ImplicitEuler,
           !rotationOnly,
+          strangSplitting,
           !rotationOnly || resetParticles,
           1,
           adjustedAdvection,
