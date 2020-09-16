@@ -164,11 +164,11 @@ void stokesMinResConvergenceTest()
 #if 0
    u.w.interpolate( inflowPoiseuille, maxLevel, hyteg::DirichletBoundary );
 #else
-   u.u.interpolate( collidingFlow_x, maxLevel, hyteg::DirichletBoundary );
-   u.v.interpolate( collidingFlow_y, maxLevel, hyteg::DirichletBoundary );
+   u.uvw.u.interpolate( collidingFlow_x, maxLevel, hyteg::DirichletBoundary );
+   u.uvw.v.interpolate( collidingFlow_y, maxLevel, hyteg::DirichletBoundary );
 
-   uExact.u.interpolate( collidingFlow_x, maxLevel );
-   uExact.v.interpolate( collidingFlow_y, maxLevel );
+   uExact.uvw.u.interpolate( collidingFlow_x, maxLevel );
+   uExact.uvw.v.interpolate( collidingFlow_y, maxLevel );
    uExact.p.interpolate( collidingFlow_p, maxLevel );
 #endif
 
@@ -191,9 +191,9 @@ void stokesMinResConvergenceTest()
 
    uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< hyteg::P2P1TaylorHoodFunctionTag >( *storage, maxLevel );
 
-   real_t discr_l2_err_1_u = std::sqrt( err.u.dotGlobal( err.u, maxLevel ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_1_v = std::sqrt( err.v.dotGlobal( err.v, maxLevel ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_1_w = std::sqrt( err.w.dotGlobal( err.w, maxLevel ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_u = std::sqrt( err.uvw.u.dotGlobal( err.uvw.u, maxLevel ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_v = std::sqrt( err.uvw.v.dotGlobal( err.uvw.v, maxLevel ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_w = std::sqrt( err.uvw.w.dotGlobal( err.uvw.w, maxLevel ) / (real_t) globalDoFs1 );
    real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, maxLevel ) / (real_t) globalDoFs1 );
    real_t residuum_l2_1    = std::sqrt( r.dotGlobal( r, maxLevel ) / (real_t) globalDoFs1 );
 

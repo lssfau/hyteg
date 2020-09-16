@@ -114,12 +114,12 @@ int main( int argc, char* argv[] )
    auto tmp = std::make_shared< hyteg::P1Function< real_t > >( "tmp", storage, minLevel, maxLevel );
 
    // Setting up Operators
-   std::array< hyteg::P1Function< real_t >, 2 >         velocity{u->u, u->v};
+   std::array< hyteg::P1Function< real_t >, 2 >         velocity{u->uvw.u, u->uvw.v};
    hyteg::DGUpwindOperator< hyteg::P1Function< real_t > > N( storage, velocity, minLevel, maxLevel );
    hyteg::P1StokesOperator                              L( storage, minLevel, maxLevel );
    hyteg::P1ConstantMassOperator                        M( storage, minLevel, maxLevel );
 
-   real_t       estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( {{&u->u, &u->v}}, maxLevel );
+   real_t       estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( {{&u->uvw.u, &u->uvw.v}}, maxLevel );
    const real_t minimalEdgeLength    = hyteg::MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    WALBERLA_LOG_INFO_ON_ROOT( "minimalEdgeLength: " << minimalEdgeLength )
    real_t dt = std::min( 1.0, 0.25 * minimalEdgeLength / estimatedMaxVelocity );
@@ -167,11 +167,11 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_DETAIL_ON_ROOT("Total DoFs on all level :" << (totalGlobalDofsTemp + totalGlobalDofsStokes));
 
    hyteg::VTKOutput vtkOutput("../output", "plume", storage, plotModulo);
-   vtkOutput.add( u->u );
-   vtkOutput.add( u->v );
+   vtkOutput.add( u->uvw.u );
+   vtkOutput.add( u->uvw.v );
    vtkOutput.add( u->p );
-   vtkOutput.add( f->u );
-   vtkOutput.add( f->v );
+   vtkOutput.add( f->uvw.u );
+   vtkOutput.add( f->uvw.v );
    vtkOutput.add( *c );
 
    uint_t plotIter = 0;
@@ -185,8 +185,8 @@ int main( int argc, char* argv[] )
 
          f_dg->interpolateExtended( expr_f, {c_old.get()}, maxLevel );
 
-         f->u.integrateDG( *f_dg, *n_x, maxLevel, hyteg::All );
-         f->v.integrateDG( *f_dg, *n_y, maxLevel, hyteg::All );
+         f->uvw.u.integrateDG( *f_dg, *n_x, maxLevel, hyteg::All );
+         f->uvw.v.integrateDG( *f_dg, *n_y, maxLevel, hyteg::All );
 
          for( uint_t outer = 0; outer < 2; ++outer )
          {
@@ -218,7 +218,7 @@ int main( int argc, char* argv[] )
       time += dt;
 
       // compute new dt by CFL condition
-      estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( {{&u->u, &u->v}}, maxLevel );
+      estimatedMaxVelocity = P1::getApproximateEuclideanNorm< 2 >( {{&u->uvw.u, &u->uvw.v}}, maxLevel );
       dt                   = std::min( 1.0, 0.25 * minimalEdgeLength / estimatedMaxVelocity );
    }
 

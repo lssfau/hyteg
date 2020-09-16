@@ -83,20 +83,20 @@ static void testProjectNormal( )
    StokesFunctionType u( "u", storage, level, level );
 
    // we check if a radial function gets set to zero on the free slip boundary:
-   u.u.interpolate( [=](auto & p){ return normalInterpolant(p)[0]; }, level );
-   u.v.interpolate( [=](auto & p){ return normalInterpolant(p)[1]; }, level );
+   u.uvw.u.interpolate( [=](auto & p){ return normalInterpolant(p)[0]; }, level );
+   u.uvw.v.interpolate( [=](auto & p){ return normalInterpolant(p)[1]; }, level );
    if (storage->hasGlobalCells())
-      u.w.interpolate( [=](auto & p){ return normalInterpolant(p)[2]; }, level );
+      u.uvw.w.interpolate( [=](auto & p){ return normalInterpolant(p)[2]; }, level );
    WALBERLA_CHECK_GREATER( u.dotGlobal(u, level, FreeslipBoundary), 1 );
    projectNormalOperator.apply( u, level, FreeslipBoundary );
    WALBERLA_CHECK_LESS( u.dotGlobal(u, level, FreeslipBoundary), 1e-14 );
 
    // we check if a tangential function is not changed by the projection operator:
    StokesFunctionType uTan( "uTan", storage, level, level );
-   uTan.u.interpolate( [=](auto & p){ return -p[1]; }, level );
-   uTan.v.interpolate( [=](auto & p){ return p[0]; }, level );
+   uTan.uvw.u.interpolate( [=](auto & p){ return -p[1]; }, level );
+   uTan.uvw.v.interpolate( [=](auto & p){ return p[0]; }, level );
    if (storage->hasGlobalCells())
-      uTan.w.interpolate(0, level );
+      uTan.uvw.w.interpolate(0, level );
    u.assign({1}, {uTan}, level, All);
    WALBERLA_CHECK_GREATER( u.dotGlobal(u, level, FreeslipBoundary), 1 );
    projectNormalOperator.apply( u, level, FreeslipBoundary );

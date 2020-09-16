@@ -219,8 +219,8 @@ void runSimulation( int argc, char** argv )
       return std::sin( std::atan2( x[1], x[0] ) );
    };
 
-   outwardNormalField.u.interpolate( normalX, maxLevel );
-   outwardNormalField.v.interpolate( normalY, maxLevel );
+   outwardNormalField.uvw.u.interpolate( normalX, maxLevel );
+   outwardNormalField.uvw.v.interpolate( normalY, maxLevel );
 
    // VTK
 
@@ -261,12 +261,12 @@ void runSimulation( int argc, char** argv )
    {
       uLast.assign( {1.0}, {u}, maxLevel, All );
 
-      M.apply( c, f.u, maxLevel, All );
-      M.apply( c, f.v, maxLevel, All );
-      f.u.multElementwise( {f.u, outwardNormalField.u}, maxLevel );
-      f.v.multElementwise( {f.v, outwardNormalField.v}, maxLevel );
-      f.u.assign( {rayleighNumber}, {f.u}, maxLevel, All );
-      f.v.assign( {rayleighNumber}, {f.v}, maxLevel, All );
+      M.apply( c, f.uvw.u, maxLevel, All );
+      M.apply( c, f.uvw.v, maxLevel, All );
+      f.uvw.u.multElementwise( {f.uvw.u, outwardNormalField.uvw.u}, maxLevel );
+      f.uvw.v.multElementwise( {f.uvw.v, outwardNormalField.uvw.v}, maxLevel );
+      f.uvw.u.assign( {rayleighNumber}, {f.uvw.u}, maxLevel, All );
+      f.uvw.v.assign( {rayleighNumber}, {f.uvw.v}, maxLevel, All );
 
       uint_t numVCycles      = 0;
       real_t currentResidual = std::numeric_limits< real_t >::max();
@@ -283,10 +283,10 @@ void runSimulation( int argc, char** argv )
              walberla::format( " %6s | %12s | %14s | %12s | %8d | %15e ", "", "", "", "", numVCycles, currentResidual ) )
       }
 
-      const auto maxVelocity = velocityMaxMagnitude( u.u, u.v, tmp.u, tmp.v, maxLevel, All );
+      const auto maxVelocity = velocityMaxMagnitude( u.uvw.u, u.uvw.v, tmp.uvw.u, tmp.uvw.v, maxLevel, All );
       const auto dt          = ( cflUpperBound / maxVelocity ) * hMin;
 
-      transport.step( c, u.u, u.v, u.w, uLast.u, uLast.v, uLast.w,  maxLevel, Inner, dt, 1, true );
+      transport.step( c, u.uvw.u, u.uvw.v, u.uvw.w, uLast.uvw.u, uLast.uvw.v, uLast.uvw.w,  maxLevel, Inner, dt, 1, true );
 
       if ( writeVTK )
       {

@@ -52,24 +52,24 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
                const uint_t                            level,
                const DoFType                           flag ) const
    {
-      A.apply( src.u, dst.u, level, flag, Replace );
-      divT_x.apply( src.p, dst.u, level, flag, Add );
+      A.apply( src.uvw.u, dst.uvw.u, level, flag, Replace );
+      divT_x.apply( src.p, dst.uvw.u, level, flag, Add );
 
-      A.apply( src.v, dst.v, level, flag, Replace );
-      divT_y.apply( src.p, dst.v, level, flag, Add );
+      A.apply( src.uvw.v, dst.uvw.v, level, flag, Replace );
+      divT_y.apply( src.p, dst.uvw.v, level, flag, Add );
 
       if ( hasGlobalCells_ )
       {
-         A.apply( src.w, dst.w, level, flag, Replace );
-         divT_z.apply( src.p, dst.w, level, flag, Add );
+         A.apply( src.uvw.w, dst.uvw.w, level, flag, Replace );
+         divT_z.apply( src.p, dst.uvw.w, level, flag, Add );
       }
 
-      div_x.apply( src.u, dst.p, level, flag, Replace );
-      div_y.apply( src.v, dst.p, level, flag, Add );
+      div_x.apply( src.uvw.u, dst.p, level, flag, Replace );
+      div_y.apply( src.uvw.v, dst.p, level, flag, Add );
 
       if ( hasGlobalCells_ )
       {
-         div_z.apply( src.w, dst.p, level, flag, Add );
+         div_z.apply( src.uvw.w, dst.p, level, flag, Add );
       }
    }
 

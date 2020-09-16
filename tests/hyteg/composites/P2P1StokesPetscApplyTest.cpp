@@ -108,9 +108,9 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
 
    // compare
    err.assign( {1.0, -1.0}, {hhgDst, petscDst}, level, location );
-   auto maxError = err.u.getMaxMagnitude( level );
-   maxError = std::max(maxError,err.v.getMaxMagnitude( level ));
-   maxError = std::max(maxError,err.w.getMaxMagnitude( level ));
+   auto maxError = err.uvw.u.getMaxMagnitude( level );
+   maxError = std::max(maxError,err.uvw.v.getMaxMagnitude( level ));
+   maxError = std::max(maxError,err.uvw.w.getMaxMagnitude( level ));
    maxError = std::max(maxError,err.p.getMaxMagnitude( level ));
 
    WALBERLA_LOG_INFO_ON_ROOT( "Error max Magnitude = " << maxError << " eps: " << eps );
@@ -118,24 +118,24 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
    if ( writeVTK )
    {
       VTKOutput vtkOutput( "../../output", "P2P1StokesPetscApplyTest", storage );
-      vtkOutput.add( src.u );
-      vtkOutput.add( src.v );
+      vtkOutput.add( src.uvw.u );
+      vtkOutput.add( src.uvw.v );
 
-      vtkOutput.add( hhgDst.u );
-      vtkOutput.add( hhgDst.v );
+      vtkOutput.add( hhgDst.uvw.u );
+      vtkOutput.add( hhgDst.uvw.v );
 
-      vtkOutput.add( petscDst.u );
-      vtkOutput.add( petscDst.v );
+      vtkOutput.add( petscDst.uvw.u );
+      vtkOutput.add( petscDst.uvw.v );
 
-      vtkOutput.add( err.u );
-      vtkOutput.add( err.v );
+      vtkOutput.add( err.uvw.u );
+      vtkOutput.add( err.uvw.v );
 
       if ( storage->hasGlobalCells() )
       {
-         vtkOutput.add( src.w );
-         vtkOutput.add( hhgDst.w );
-         vtkOutput.add( petscDst.w );
-         vtkOutput.add( err.w );
+         vtkOutput.add( src.uvw.w );
+         vtkOutput.add( hhgDst.uvw.w );
+         vtkOutput.add( petscDst.uvw.w );
+         vtkOutput.add( err.uvw.w );
       }
       vtkOutput.write( level, 0 );
    }

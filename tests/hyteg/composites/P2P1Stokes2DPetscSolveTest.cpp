@@ -74,15 +74,15 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& xx ) { return real_c(60) * std::pow( xx[0], 2.0 ) * xx[1] - real_c(20) * std::pow( xx[1], 3.0 ); };
   std::function< real_t( const hyteg::Point3D& ) > zero =   []( const hyteg::Point3D&    ) { return real_c(0); };
 
-  x.u.interpolate( exactU, level, hyteg::DirichletBoundary );
-  x.v.interpolate( exactV, level, hyteg::DirichletBoundary );
+  x.uvw.u.interpolate( exactU, level, hyteg::DirichletBoundary );
+  x.uvw.v.interpolate( exactV, level, hyteg::DirichletBoundary );
 
-  x_exact.u.interpolate( exactU, level );
-  x_exact.v.interpolate( exactV, level );
+  x_exact.uvw.u.interpolate( exactU, level );
+  x_exact.uvw.v.interpolate( exactV, level );
   x_exact.p.interpolate( exactP, level );
 
-  b.u.interpolate( exactU, level, DirichletBoundary );
-  b.v.interpolate( exactV, level, DirichletBoundary );
+  b.uvw.u.interpolate( exactU, level, DirichletBoundary );
+  b.uvw.v.interpolate( exactV, level, DirichletBoundary );
 
 //  VTKOutput vtkOutput("../../output", "P2P1Stokes2DPetscSolve", storage);
 //  vtkOutput.add( x.u );
@@ -118,8 +118,8 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
 
   err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
-  real_t discr_l2_err_1_u = std::sqrt( err.u.dotGlobal( err.u, level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_v = std::sqrt( err.v.dotGlobal( err.v, level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_u = std::sqrt( err.uvw.u.dotGlobal( err.uvw.u, level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_v = std::sqrt( err.uvw.v.dotGlobal( err.uvw.v, level ) / (real_t) globalDoFs1 );
   real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFs1 );
   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
 
