@@ -130,7 +130,7 @@ void solveImplementation( const MeshInfo&                                       
    WALBERLA_UNUSED( hasAnalyticalSolution );
    WALBERLA_UNUSED( calculateDiscretizationError );
 
-   WALBERLA_LOG_INFO_ON_ROOT( gitSHA1() );
+   printGitInfo();
 
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );

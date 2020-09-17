@@ -24,17 +24,17 @@
 
 namespace hyteg {
 
-std::string gitSHA1()
+inline std::string gitSHA1()
 {
    return "@GIT_COMMIT_HASH@";
 }
 
-std::string gitBranch()
+inline std::string gitBranch()
 {
    return "@GIT_BRANCH@";
 }
 
-void printGitInfo()
+inline void printGitInfo()
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Git info:" )
    WALBERLA_LOG_INFO_ON_ROOT( " - SHA1:   " << gitSHA1() );
