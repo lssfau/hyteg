@@ -54,83 +54,30 @@ void writeDataHeader()
 // iterationType: I: initial
 //                V: v-cycle
 //                F: FMG
-void writeDataRow( std::string                                     discretization,
-                   uint_t                                          minLevel,
-                   uint_t                                          maxLevel,
-                   uint_t                                          unknowns,
-                   real_t                                          hMin,
-                   real_t                                          hMax,
-                   const std::shared_ptr< SetupPrimitiveStorage >& setupStorage,
-                   uint_t                                          errorCalculationLevelIncrement,
-                   MultigridSettings                               multigridSettings,
-                   SmootherSettings                                smootherSettings,
-                   CoarseGridSettings                              coarseGridSettings,
-                   uint_t                                          iteration,
-                   std::string                                     iterationType,
-                   uint_t                                          fmgLevel,
-                   real_t                                          errorL2Velocity,
-                   real_t                                          residualL2Velocity,
-                   real_t                                          errorL2Pressure,
-                   real_t                                          residualL2Pressure,
-                   walberla::sqlite::SQLiteDB&                     db,
-                   std::map< std::string, walberla::int64_t >&     sqlIntegerProperties,
-                   std::map< std::string, double >&                sqlRealProperties,
-                   std::map< std::string, std::string >&           sqlStringProperties )
+void writeDataRow( uint_t          iteration,
+                   std::string     iterationType,
+                   uint_t          fmgLevel,
+                   real_t          errorL2Velocity,
+                   real_t          residualL2Velocity,
+                   real_t          errorL2Pressure,
+                   real_t          residualL2Pressure,
+                   FixedSizeSQLDB& db )
 {
-   sqlRealProperties.clear();
-   sqlIntegerProperties.clear();
-   sqlStringProperties.clear();
-
-   sqlStringProperties["discretization"] = discretization;
-
-   sqlIntegerProperties["min_level"]            = int_c( minLevel );
-   sqlIntegerProperties["max_level"]            = int_c( maxLevel );
-   sqlIntegerProperties["unknowns"]             = int_c( unknowns );
-   sqlRealProperties["h_min"]                   = hMin;
-   sqlRealProperties["h_max"]                   = hMax;
-   sqlIntegerProperties["num_macro_cells"]      = int_c( setupStorage->getNumberOfCells() );
-   sqlIntegerProperties["num_macro_faces"]      = int_c( setupStorage->getNumberOfFaces() );
-   sqlIntegerProperties["num_macro_edges"]      = int_c( setupStorage->getNumberOfEdges() );
-   sqlIntegerProperties["num_macro_vertices"]   = int_c( setupStorage->getNumberOfVertices() );
-   sqlIntegerProperties["num_macro_primitives"] = int_c( setupStorage->getNumberOfPrimitives() );
-
-   sqlIntegerProperties["num_cycles"]           = int_c( multigridSettings.numCycles );
-   sqlIntegerProperties["pre_smooth"]           = int_c( multigridSettings.preSmooth );
-   sqlIntegerProperties["post_smooth"]          = int_c( multigridSettings.postSmooth );
-   sqlIntegerProperties["inc_smooth"]           = int_c( multigridSettings.incSmooth );
-   sqlIntegerProperties["fmg_inner_iterations"] = int_c( multigridSettings.fmgInnerIterations );
-
-   sqlRealProperties["omega"]                          = smootherSettings.omega;
-   sqlIntegerProperties["omega_estimation_iterations"] = int_c( smootherSettings.omegaEstimationIterations );
-   sqlIntegerProperties["omega_estimation_level"]      = int_c( smootherSettings.omegaEstimationLevel );
-   sqlIntegerProperties["estimate_omega"]              = int_c( smootherSettings.estimateOmega );
-   sqlIntegerProperties["symm_gs_velocity"]            = int_c( smootherSettings.symmGSVelocity );
-   sqlIntegerProperties["num_gs_velocity"]             = int_c( smootherSettings.numGSVelocity );
-
-   sqlIntegerProperties["coarse_grid_solver_type"]              = int_c( coarseGridSettings.solverType );
-   sqlIntegerProperties["coarse_grid_max_iterations"]           = int_c( coarseGridSettings.maxIterations );
-   sqlRealProperties["coarse_grid_absolute_residual_tolerance"] = coarseGridSettings.absoluteResidualTolerance;
-
-   sqlIntegerProperties["error_calculation_level_increment"] = int_c( errorCalculationLevelIncrement );
-
    std::string fmgLevelString = "-";
    if ( iterationType == "F" )
    {
       fmgLevelString = walberla::format( "%9d", fmgLevel );
    }
 
-   sqlIntegerProperties["iteration"]         = int_c( iteration );
-   sqlStringProperties["iteration_type"]     = iterationType;
-   sqlIntegerProperties["fmg_level"]         = int_c( fmgLevel );
-   sqlRealProperties["error_l2_velocity"]    = errorL2Velocity;
-   sqlRealProperties["residual_l2_velocity"] = residualL2Velocity;
-   sqlRealProperties["error_l2_pressure"]    = errorL2Pressure;
-   sqlRealProperties["residual_l2_pressure"] = residualL2Pressure;
+   db.setVariableEntry( "iteration", iteration );
+   db.setVariableEntry( "iteration_type", iterationType );
+   db.setVariableEntry( "fmg_level", fmgLevel );
+   db.setVariableEntry( "error_l2_velocity", errorL2Velocity );
+   db.setVariableEntry( "residual_l2_velocity", residualL2Velocity );
+   db.setVariableEntry( "error_l2_pressure", errorL2Pressure );
+   db.setVariableEntry( "residual_l2_pressure", residualL2Pressure );
 
-   WALBERLA_ROOT_SECTION()
-   {
-      db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
-   }
+   WALBERLA_ROOT_SECTION() { db.writeRow(); }
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9d | %14s | %9s | %17.5e | %20.5e | %17.5e | %20.5e ",
                                                 iteration,
@@ -243,10 +190,7 @@ void solveImplementation( const MeshInfo&                                       
    WALBERLA_LOG_INFO_ON_ROOT( "   + database file:                                " << dbFile )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
-   walberla::sqlite::SQLiteDB                 db( dbFile );
-   std::map< std::string, walberla::int64_t > sqlIntegerProperties;
-   std::map< std::string, double >            sqlRealProperties;
-   std::map< std::string, std::string >       sqlStringProperties;
+   FixedSizeSQLDB db( dbFile );
 
    uint_t iteration = 0;
 
@@ -389,28 +333,14 @@ void solveImplementation( const MeshInfo&                                       
       auto errorL2PressureFMG    = normL2Scalar( err.p, MPressure, tmp.p, fmgErrorLevel, errorFlag );
       auto residualL2PressureFMG = normL2Scalar( r.p, MPressure, tmp.p, currentLevel, errorFlag );
 
-      writeDataRow( discretization,
-                    minLevel,
-                    maxLevel,
-                    unknowns,
-                    hMin,
-                    hMax,
-                    setupStorage,
-                    errorCalculationLevelIncrement,
-                    multigridSettings,
-                    smootherSettings,
-                    coarseGridSettings,
-                    iteration,
+      writeDataRow( iteration,
                     "F",
                     currentLevel,
                     errorL2VelocityFMG,
                     residualL2VelocityFMG,
                     errorL2PressureFMG,
                     residualL2PressureFMG,
-                    db,
-                    sqlIntegerProperties,
-                    sqlRealProperties,
-                    sqlStringProperties );
+                    db );
       iteration++;
    };
 
@@ -432,28 +362,39 @@ void solveImplementation( const MeshInfo&                                       
 
    writeDataHeader();
 
-   writeDataRow( discretization,
-                 minLevel,
-                 maxLevel,
-                 unknowns,
-                 hMin,
-                 hMax,
-                 setupStorage,
-                 errorCalculationLevelIncrement,
-                 multigridSettings,
-                 smootherSettings,
-                 coarseGridSettings,
-                 iteration,
-                 "I",
-                 0,
-                 errorL2Velocity,
-                 residualL2Velocity,
-                 errorL2Pressure,
-                 residualL2Pressure,
-                 db,
-                 sqlIntegerProperties,
-                 sqlRealProperties,
-                 sqlStringProperties );
+   db.setConstantEntry( "discretization", discretization );
+
+   db.setConstantEntry( "min_level", minLevel );
+   db.setConstantEntry( "max_level", maxLevel );
+   db.setConstantEntry( "unknowns", unknowns );
+   db.setConstantEntry( "h_min", hMin );
+   db.setConstantEntry( "h_max", hMax );
+   db.setConstantEntry( "num_macro_cells", setupStorage->getNumberOfCells() );
+   db.setConstantEntry( "num_macro_faces", setupStorage->getNumberOfFaces() );
+   db.setConstantEntry( "num_macro_edges", setupStorage->getNumberOfEdges() );
+   db.setConstantEntry( "num_macro_vertices", setupStorage->getNumberOfVertices() );
+   db.setConstantEntry( "num_macro_primitives", setupStorage->getNumberOfPrimitives() );
+
+   db.setConstantEntry( "num_cycles", multigridSettings.numCycles );
+   db.setConstantEntry( "pre_smooth", multigridSettings.preSmooth );
+   db.setConstantEntry( "post_smooth", multigridSettings.postSmooth );
+   db.setConstantEntry( "inc_smooth", multigridSettings.incSmooth );
+   db.setConstantEntry( "fmg_inner_iterations", multigridSettings.fmgInnerIterations );
+
+   db.setConstantEntry( "omega", smootherSettings.omega );
+   db.setConstantEntry( "omega_estimation_iterations", smootherSettings.omegaEstimationIterations );
+   db.setConstantEntry( "omega_estimation_level", smootherSettings.omegaEstimationLevel );
+   db.setConstantEntry( "estimate_omega", smootherSettings.estimateOmega );
+   db.setConstantEntry( "symm_gs_velocity", smootherSettings.symmGSVelocity );
+   db.setConstantEntry( "num_gs_velocity", smootherSettings.numGSVelocity );
+
+   db.setConstantEntry( "coarse_grid_solver_type", coarseGridSettings.solverType );
+   db.setConstantEntry( "coarse_grid_max_iterations", coarseGridSettings.maxIterations );
+   db.setConstantEntry( "coarse_grid_absolute_residual_tolerance", coarseGridSettings.absoluteResidualTolerance );
+
+   db.setConstantEntry( "error_calculation_level_increment", errorCalculationLevelIncrement );
+
+   writeDataRow( iteration, "I", 0, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
    iteration++;
 
    VTKOutput vtkOutput( "vtk", "TME", storage );
@@ -493,28 +434,7 @@ void solveImplementation( const MeshInfo&                                       
       errorL2Pressure    = normL2Scalar( err.p, MPressure, tmp.p, errorLevel, errorFlag );
       residualL2Pressure = normL2Scalar( r.p, MPressure, tmp.p, maxLevel, errorFlag );
 
-      writeDataRow( discretization,
-                    minLevel,
-                    maxLevel,
-                    unknowns,
-                    hMin,
-                    hMax,
-                    setupStorage,
-                    errorCalculationLevelIncrement,
-                    multigridSettings,
-                    smootherSettings,
-                    coarseGridSettings,
-                    iteration,
-                    "V",
-                    0,
-                    errorL2Velocity,
-                    residualL2Velocity,
-                    errorL2Pressure,
-                    residualL2Pressure,
-                    db,
-                    sqlIntegerProperties,
-                    sqlRealProperties,
-                    sqlStringProperties );
+      writeDataRow( iteration, "V", 0, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
       iteration++;
    }
 
@@ -542,28 +462,7 @@ void solveImplementation( const MeshInfo&                                       
       errorL2Pressure    = normL2Scalar( err.p, MPressure, tmp.p, errorLevel, errorFlag );
       residualL2Pressure = normL2Scalar( r.p, MPressure, tmp.p, maxLevel, errorFlag );
 
-      writeDataRow( discretization,
-                    minLevel,
-                    maxLevel,
-                    unknowns,
-                    hMin,
-                    hMax,
-                    setupStorage,
-                    errorCalculationLevelIncrement,
-                    multigridSettings,
-                    smootherSettings,
-                    coarseGridSettings,
-                    iteration,
-                    "V",
-                    0,
-                    errorL2Velocity,
-                    residualL2Velocity,
-                    errorL2Pressure,
-                    residualL2Pressure,
-                    db,
-                    sqlIntegerProperties,
-                    sqlRealProperties,
-                    sqlStringProperties );
+      writeDataRow( iteration, "V", 0, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
       iteration++;
    }
 
