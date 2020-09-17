@@ -51,11 +51,11 @@ class StokesVelocityBlockBlockDiagonalPreconditioner : public Solver< OperatorTy
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, uint_t level ) override
    {
-      scalarVelocityPreconditioner_->solve( A.A, x.u, b.u, level );
-      scalarVelocityPreconditioner_->solve( A.A, x.v, b.v, level );
+      scalarVelocityPreconditioner_->solve( A.A, x.uvw.u, b.uvw.u, level );
+      scalarVelocityPreconditioner_->solve( A.A, x.uvw.v, b.uvw.v, level );
       if ( hasGlobalCells_ )
       {
-         scalarVelocityPreconditioner_->solve( A.A, x.w, b.w, level );
+         scalarVelocityPreconditioner_->solve( A.A, x.uvw.w, b.uvw.w, level );
       }
    }
 

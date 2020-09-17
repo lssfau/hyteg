@@ -43,7 +43,23 @@ void P2ProjectNormalOperator::apply( const P2Function< real_t >& dst_u,
 
 void P2ProjectNormalOperator::apply( const P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag ) const
 {
-   apply( dst.u, dst.v, dst.w, level, flag );
+   apply( dst.uvw.u, dst.uvw.v, dst.uvw.w, level, flag );
 }
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+
+void P2ProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                   const P2Function< PetscInt >&               numU,
+                                                   const P2Function< PetscInt >&               numV,
+                                                   const P2Function< PetscInt >&               numW,
+                                                   uint_t                                      level,
+                                                   DoFType                                     flag )
+{
+   p1Operator.assembleLocalMatrix(
+       mat, numU.getVertexDoFFunction(), numV.getVertexDoFFunction(), numW.getVertexDoFFunction(), level, flag );
+   edgeDoFOperator.assembleLocalMatrix(
+       mat, numU.getEdgeDoFFunction(), numV.getEdgeDoFFunction(), numW.getEdgeDoFFunction(), level, flag );
+}
+#endif
 
 } // namespace hyteg

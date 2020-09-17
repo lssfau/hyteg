@@ -17,9 +17,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
 #include "EdgeDoFProjectNormalOperator.hpp"
 
+#include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/freeslip/EdgeDoFProjectNormal.hpp"
+#include "hyteg/edgedofspace/EdgeDoFPetsc.hpp"
 
 namespace hyteg {
 
@@ -120,5 +123,87 @@ void EdgeDoFProjectNormalOperator::apply( const EdgeDoFFunction< real_t >& dst_u
 
    this->stopTiming( "Apply" );
 }
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+
+void EdgeDoFProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                        const EdgeDoFFunction< PetscInt >&          numU,
+                                                        const EdgeDoFFunction< PetscInt >&          numV,
+                                                        const EdgeDoFFunction< PetscInt >&          numW,
+                                                        uint_t                                      level,
+                                                        DoFType                                     flag ) const
+{
+   communication::syncFunctionBetweenPrimitives( numU, level );
+   communication::syncFunctionBetweenPrimitives( numV, level );
+   communication::syncFunctionBetweenPrimitives( numW, level );
+
+   // The matrix-free application of the projection operator (ID - nn^t) emulates
+   // the application of Id by not touching the vector at all.
+   // However, the Id diagonal must be assembled.
+
+   if ( level >= 1 )
+   {
+      for ( const auto& it : storage_->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         const DoFType edgeBC = numU.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+
+         if ( testFlag( edgeBC, flag ) )
+         {
+            if ( storage_->hasGlobalCells() )
+            {
+               WALBERLA_ABORT( "Sparse matrix assembly not implemented for 3D." );
+            }
+            else
+            {
+               edgedof::macroedge::saveProjectNormalOperator2D(
+                   level, edge, storage_, normal_function_, numU.getEdgeDataID(), numV.getEdgeDataID(), mat );
+            }
+         }
+         else
+         {
+            edgedof::saveEdgeIdentityOperator( level, edge, numU.getEdgeDataID(), mat );
+            edgedof::saveEdgeIdentityOperator( level, edge, numV.getEdgeDataID(), mat );
+            if ( storage_->hasGlobalCells() )
+            {
+               edgedof::saveEdgeIdentityOperator( level, edge, numW.getEdgeDataID(), mat );
+            }
+         }
+      }
+   }
+
+   if ( level >= 2 )
+   {
+      for ( const auto& it : storage_->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = numU.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            if ( storage_->hasGlobalCells() )
+            {
+               WALBERLA_ABORT( "Sparse matrix assembly not implemented for 3D." );
+            }
+            else
+            {
+               WALBERLA_ABORT( "Normal projection for inner primitives?" );
+            }
+         }
+         else
+         {
+            edgedof::saveFaceIdentityOperator( level, face, numU.getFaceDataID(), mat );
+            edgedof::saveFaceIdentityOperator( level, face, numV.getFaceDataID(), mat );
+            if ( storage_->hasGlobalCells() )
+            {
+               edgedof::saveFaceIdentityOperator( level, face, numW.getFaceDataID(), mat );
+            }
+         }
+      }
+   }
+}
+
+#endif
 
 } // namespace hyteg

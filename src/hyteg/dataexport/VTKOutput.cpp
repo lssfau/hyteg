@@ -115,19 +115,19 @@ void VTKOutput::add(DGFunction<real_t> function) { dgFunctions_.push_back( funct
 
 void VTKOutput::add( P1StokesFunction< real_t > function )
 {
-   add( function.u );
-   add( function.v );
+   add( function.uvw.u );
+   add( function.uvw.v );
    if ( !write2D_ )
-      add( function.w );
+      add( function.uvw.w );
    add( function.p );
 }
 
 void VTKOutput::add( P2P1TaylorHoodFunction< real_t > function )
 {
-   add( function.u );
-   add( function.v );
+   add( function.uvw.u );
+   add( function.uvw.v );
    if ( !write2D_ )
-      add( function.w );
+      add( function.uvw.w );
    add( function.p );
 }
 

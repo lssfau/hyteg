@@ -224,6 +224,13 @@ BoundaryCondition VertexDoFFunction< ValueType >::getBoundaryCondition() const
 }
 
 template < typename ValueType >
+void VertexDoFFunction< ValueType >::setBoundaryCondition( BoundaryCondition bc )
+{
+   boundaryCondition_ = bc;
+}
+
+
+template < typename ValueType >
 void VertexDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag ) const
 {
    if ( isDummy() )

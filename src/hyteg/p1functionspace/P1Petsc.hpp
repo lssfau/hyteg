@@ -188,6 +188,61 @@ inline void applyDirichletBC( const P1Function< PetscInt >& numerator, std::vect
    }
 }
 
+inline void saveIdentityOperator( const P1Function< PetscInt >&               dst,
+                                  const std::shared_ptr< SparseMatrixProxy >& mat,
+                                  size_t                                      level,
+                                  DoFType                                     flag )
+{
+   const auto storage = dst.getStorage();
+
+   for ( auto& it : storage->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+
+      const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+      if ( testFlag( vertexBC, flag ) )
+      {
+         vertexdof::macrovertex::saveIdentityOperator( vertex, dst.getVertexDataID(), mat, level );
+      }
+   }
+
+   for ( auto& it : storage->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if ( testFlag( edgeBC, flag ) )
+      {
+         vertexdof::macroedge::saveIdentityOperator( level, edge, dst.getEdgeDataID(), mat );
+      }
+   }
+
+   if ( level >= 2 )
+   {
+      for ( auto& it : storage->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            vertexdof::macroface::saveIdentityOperator( level, face, dst.getFaceDataID(), mat );
+         }
+      }
+
+      for ( auto& it : storage->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+         if ( testFlag( cellBC, flag ) )
+         {
+            vertexdof::macrocell::saveIdentityOperator( level, cell, dst.getCellDataID(), mat );
+         }
+      }
+   }
+}
+
 template < class OperatorType >
 inline void createMatrix( const OperatorType&                         opr,
                           const P1Function< PetscInt >&               src,

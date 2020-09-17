@@ -75,6 +75,9 @@ class FASSolver : public Solver< OperatorType >
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
       timingTree_->start( "FAS Multigrid Solver" );
+      tmp_.copyBoundaryConditionFromFunction( x );
+      d_.copyBoundaryConditionFromFunction( x );
+      w_.copyBoundaryConditionFromFunction( x );
       invokedLevel_ = level;
       solveRecursively( A, x, b, level );
       timingTree_->stop( "FAS Multigrid Solver" );

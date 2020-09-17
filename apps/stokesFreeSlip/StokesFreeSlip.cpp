@@ -33,6 +33,8 @@
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
@@ -49,8 +51,8 @@ using namespace hyteg;
 std::shared_ptr< SetupPrimitiveStorage >
     setupStorageRectangle( const double channelLength, const double channelHeight, const uint_t ny )
 {
-   Point2D left( { -channelLength / 2, 0 } );
-   Point2D right( { channelLength / 2, channelHeight } );
+   Point2D left( {-channelLength / 2, 0} );
+   Point2D right( {channelLength / 2, channelHeight} );
 
    const uint_t    nx           = ny * static_cast< uint_t >( channelLength / channelHeight );
    hyteg::MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( left, right, MeshInfo::CROSS, nx, ny );
@@ -81,8 +83,8 @@ void applyDirichletBCRectangle( const double channelLength, const double channel
       // return inflow(p) ? (channelHeight-p[1])*p[1] : 0;
    };
 
-   u.u.interpolate( dirichletInterpolantX, level, DirichletBoundary );
-   u.v.interpolate( 0, level, DirichletBoundary );
+   u.uvw.u.interpolate( dirichletInterpolantX, level, DirichletBoundary );
+   u.uvw.v.interpolate( 0, level, DirichletBoundary );
 }
 
 std::shared_ptr< SetupPrimitiveStorage >
@@ -131,8 +133,8 @@ void applyDirichletBCAnnulus( const double rmin, const double, const uint_t leve
    auto dirichletInterpolantX = [=]( auto p ) { return inflow( p ) ? -p[1] / rmin : 0; };
    auto dirichletInterpolantY = [=]( auto p ) { return inflow( p ) ? +p[0] / rmin : 0; };
 
-   u.u.interpolate( dirichletInterpolantX, level, DirichletBoundary );
-   u.v.interpolate( dirichletInterpolantY, level, DirichletBoundary );
+   u.uvw.u.interpolate( dirichletInterpolantX, level, DirichletBoundary );
+   u.uvw.v.interpolate( dirichletInterpolantY, level, DirichletBoundary );
 }
 
 template < typename StokesFunctionType,
@@ -162,6 +164,8 @@ void run( std::shared_ptr< walberla::config::Config > cfg )
    real_t rmax = mainConf.getParameter< real_t >( "rmax" );
    uint_t nTan = mainConf.getParameter< uint_t >( "nTan" );
    uint_t nRad = mainConf.getParameter< uint_t >( "nRad" );
+
+   uint_t solverType = mainConf.getParameter< uint_t >( "solverType" );
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
 
@@ -222,8 +226,8 @@ void run( std::shared_ptr< walberla::config::Config > cfg )
    // using StokesOperator = hyteg::StrongFreeSlipWrapper< hyteg::P1StokesOperator, hyteg::P1ProjectNormalOperator >;
    using StokesOperatorFS = hyteg::StrongFreeSlipWrapper< StokesOperatorType, ProjectNormalOperatorType >;
    auto stokes            = std::make_shared< StokesOperatorType >( storage, minLevel, maxLevel );
-   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( { 0, -1 } ); };
-   auto normalsAnn        = [=]( Point3D p, Point3D& n ) { n = Point3D( { p[0] / rmax, p[1] / rmax } ); };
+   auto normalsRect       = []( auto, Point3D& n ) { n = Point3D( {0, -1} ); };
+   auto normalsAnn        = [=]( Point3D p, Point3D& n ) { n = Point3D( {p[0] / rmax, p[1] / rmax} ); };
 
    std::shared_ptr< ProjectNormalOperatorType > projection = nullptr;
    if ( useRectangleScenario )
@@ -237,8 +241,24 @@ void run( std::shared_ptr< walberla::config::Config > cfg )
 
    StokesOperatorFS L( stokes, projection, FreeslipBoundary );
 
-   auto solver =
-       hyteg::solvertemplates::stokesMinResSolver< StokesOperatorFS >( storage, maxLevel, absoluteTargetResidual, maxIterations );
+   std::shared_ptr< Solver< StokesOperatorFS > > solver;
+
+   if ( solverType == 0 )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Solver: MINRES + pressure prec. (HyTeG)" );
+      solver = hyteg::solvertemplates::stokesMinResSolver< StokesOperatorFS >(
+          storage, maxLevel, absoluteTargetResidual, maxIterations );
+   }
+   else if ( solverType == 1 )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Solver: MINRES + no prec. (PETSc)" );
+#ifdef HYTEG_BUILD_WITH_PETSC
+      solver =
+          std::make_shared< PETScMinResSolver< StokesOperatorFS > >( storage, maxLevel, absoluteTargetResidual, maxIterations );
+#else
+      WALBERLA_ABORT( "PETSc not activated." );
+#endif
+   }
 
    // print info about convergence
    if ( auto s = std::dynamic_pointer_cast< MinResSolver< StokesOperatorFS > >( solver ) )
@@ -256,6 +276,10 @@ int main( int argc, char* argv[] )
 {
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+   PETScManager manager( &argc, &argv );
+#endif
 
    //check if a config was given on command line or load default file otherwise
    auto cfg = std::make_shared< walberla::config::Config >();

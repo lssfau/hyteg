@@ -108,27 +108,27 @@ void runBenchmark( int argc, char** argv )
    StokesOperator L( storage, level, level );
    MassOperator   M( storage, level, level );
 
-   u.u.interpolate( exactU, level, DirichletBoundary );
-   u.v.interpolate( exactV, level, DirichletBoundary );
+   u.uvw.u.interpolate( exactU, level, DirichletBoundary );
+   u.uvw.v.interpolate( exactV, level, DirichletBoundary );
 
-   Au.u.interpolate( rhsU, level, All );
-   Au.v.interpolate( rhsV, level, All );
+   Au.uvw.u.interpolate( rhsU, level, All );
+   Au.uvw.v.interpolate( rhsV, level, All );
 
-   M.apply( Au.u, f.u, level, All );
-   M.apply( Au.v, f.v, level, All );
+   M.apply( Au.uvw.u, f.uvw.u, level, All );
+   M.apply( Au.uvw.v, f.uvw.v, level, All );
 
-   Au.u.setToZero( level );
-   Au.v.setToZero( level );
+   Au.uvw.u.setToZero( level );
+   Au.uvw.v.setToZero( level );
    Au.p.setToZero( level );
 
-   u_exact.u.interpolate( exactU, level, All );
-   u_exact.v.interpolate( exactV, level, All );
+   u_exact.uvw.u.interpolate( exactU, level, All );
+   u_exact.uvw.v.interpolate( exactV, level, All );
    u_exact.p.interpolate( exactP, level, All );
 
    vertexdof::projectMean( u_exact.p, level );
 
-   communication::syncP2FunctionBetweenPrimitives( u_exact.u, level );
-   communication::syncP2FunctionBetweenPrimitives( u_exact.v, level );
+   communication::syncP2FunctionBetweenPrimitives( u_exact.uvw.u, level );
+   communication::syncP2FunctionBetweenPrimitives( u_exact.uvw.v, level );
    communication::syncFunctionBetweenPrimitives( u_exact.p, level );
 
    auto solver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, level );
@@ -150,8 +150,8 @@ void runBenchmark( int argc, char** argv )
 
    err.assign( {1.0, -1.0}, {u, u_exact}, level, All );
 
-   auto discr_l2_err_u = std::sqrt( err.u.dotGlobal( err.u, level, All ) / real_c( numPointsVelocity ) );
-   auto discr_l2_err_v = std::sqrt( err.v.dotGlobal( err.v, level, All ) / real_c( numPointsVelocity ) );
+   auto discr_l2_err_u = std::sqrt( err.uvw.u.dotGlobal( err.uvw.u, level, All ) / real_c( numPointsVelocity ) );
+   auto discr_l2_err_v = std::sqrt( err.uvw.v.dotGlobal( err.uvw.v, level, All ) / real_c( numPointsVelocity ) );
    auto discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, level, All ) / real_c( numPointsPressure ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
@@ -160,14 +160,14 @@ void runBenchmark( int argc, char** argv )
        "%15s|%15e|%15s|%15e|%15e|%15e", "initial", oldRes, "-", discr_l2_err_u, discr_l2_err_v, discr_l2_err_p ) )
 
    VTKOutput vtkOutput( "./output", "GKBTestProblem", storage );
-   vtkOutput.add( u.u );
-   vtkOutput.add( u.v );
+   vtkOutput.add( u.uvw.u );
+   vtkOutput.add( u.uvw.v );
    vtkOutput.add( u.p );
-   vtkOutput.add( u_exact.u );
-   vtkOutput.add( u_exact.v );
+   vtkOutput.add( u_exact.uvw.u );
+   vtkOutput.add( u_exact.uvw.v );
    vtkOutput.add( u_exact.p );
-   vtkOutput.add( err.u );
-   vtkOutput.add( err.v );
+   vtkOutput.add( err.uvw.u );
+   vtkOutput.add( err.uvw.v );
    vtkOutput.add( err.p );
 
    if ( writeVTK )
@@ -187,8 +187,8 @@ void runBenchmark( int argc, char** argv )
    oldRes                 = currRes;
 
    err.assign( {1.0, -1.0}, {u, u_exact}, level );
-   discr_l2_err_u = std::sqrt( err.u.dotGlobal( err.u, level, All ) / real_c( numPointsVelocity ) );
-   discr_l2_err_v = std::sqrt( err.v.dotGlobal( err.v, level, All ) / real_c( numPointsVelocity ) );
+   discr_l2_err_u = std::sqrt( err.uvw.u.dotGlobal( err.uvw.u, level, All ) / real_c( numPointsVelocity ) );
+   discr_l2_err_v = std::sqrt( err.uvw.v.dotGlobal( err.uvw.v, level, All ) / real_c( numPointsVelocity ) );
    discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, level, All ) / real_c( numPointsPressure ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format(

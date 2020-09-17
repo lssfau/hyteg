@@ -199,21 +199,21 @@ void trilinosSolveStokesTest( const uint_t&   solverType,
    //   std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& xx ) { return real_c(60) * std::pow( xx[0], 2.0 ) * xx[1] - real_c(20) * std::pow( xx[1], 3.0 ); };
    //   std::function< real_t( const hyteg::Point3D& ) > zero =   []( const hyteg::Point3D&    ) { return real_c(0); };
 
-   btmp.u.interpolate( forceU, level, Inner );
-   btmp.v.interpolate( forceV, level, Inner );
-   btmp.w.interpolate( forceW, level, Inner );
+   btmp.uvw.u.interpolate( forceU, level, Inner );
+   btmp.uvw.v.interpolate( forceV, level, Inner );
+   btmp.uvw.w.interpolate( forceW, level, Inner );
 
-   M.apply( btmp.u, b.u, level, All );
-   M.apply( btmp.v, b.v, level, All );
-   M.apply( btmp.w, b.w, level, All );
+   M.apply( btmp.uvw.u, b.uvw.u, level, All );
+   M.apply( btmp.uvw.v, b.uvw.v, level, All );
+   M.apply( btmp.uvw.w, b.uvw.w, level, All );
 
-   x.u.interpolate( exactU, level, DirichletBoundary );
-   x.v.interpolate( exactV, level, DirichletBoundary );
-   x.w.interpolate( exactW, level, DirichletBoundary );
+   x.uvw.u.interpolate( exactU, level, DirichletBoundary );
+   x.uvw.v.interpolate( exactV, level, DirichletBoundary );
+   x.uvw.w.interpolate( exactW, level, DirichletBoundary );
 
-   x_exact.u.interpolate( exactU, level );
-   x_exact.v.interpolate( exactV, level );
-   x_exact.w.interpolate( exactW, level );
+   x_exact.uvw.u.interpolate( exactU, level );
+   x_exact.uvw.v.interpolate( exactV, level );
+   x_exact.uvw.w.interpolate( exactW, level );
    x_exact.p.interpolate( exactP, level );
 
    vertexdof::projectMean( x_exact.p, level );
@@ -269,9 +269,9 @@ void trilinosSolveStokesTest( const uint_t&   solverType,
    err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
    real_t discr_l2_err     = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_1_u = std::sqrt( err.u.dotGlobal( err.u, level ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_1_v = std::sqrt( err.v.dotGlobal( err.v, level ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_1_w = std::sqrt( err.w.dotGlobal( err.w, level ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_u = std::sqrt( err.uvw.u.dotGlobal( err.uvw.u, level ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_v = std::sqrt( err.uvw.v.dotGlobal( err.uvw.v, level ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_w = std::sqrt( err.uvw.w.dotGlobal( err.uvw.w, level ) / (real_t) globalDoFs1 );
    real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFs1 );
    real_t residuum_l2_1    = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
 

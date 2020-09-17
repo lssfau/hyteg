@@ -756,6 +756,22 @@ inline void saveOperator( const uint_t&                                         
    }
 }
 
+inline void saveIdentityOperator( const uint_t&                                              level,
+                                  Edge&                                                      edge,
+                                  const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& dstId,
+                                  const std::shared_ptr< SparseMatrixProxy >&                mat )
+{
+   size_t rowsize = levelinfo::num_microvertices_per_edge( level );
+
+   auto dst = edge.getData( dstId )->getPointer( level );
+
+   for ( uint_t i = 1; i < rowsize - 1; ++i )
+   {
+      PetscInt dstint = dst[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+      mat->addValue( uint_c( dstint ), uint_c( dstint ), 1.0 );
+   }
+}
+
 template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               level,
                                       Edge&                                                       edge,

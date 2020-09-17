@@ -62,9 +62,9 @@ void testSparseMatrix()
 
    auto f = []( const Point3D& p ) -> real_t { return std::sin( p[0] ) + 0.5 * p[1]; };
 
-   src.u.interpolate( f, level, All );
-   src.v.interpolate( f, level, All );
-   src.w.interpolate( f, level, All );
+   src.uvw.u.interpolate( f, level, All );
+   src.uvw.v.interpolate( f, level, All );
+   src.uvw.w.interpolate( f, level, All );
    src.p.interpolate( f, level, All );
 
    trilinos::TrilinosSparseMatrix< OperatorType, P2P1TaylorHoodFunction > matrix( storage, level );
@@ -83,9 +83,9 @@ void testSparseMatrix()
 
    error.assign( {1.0, -1.0}, {dstTrilinos, dstHyteg}, level, All );
 
-   const auto maxMagnitudeU = error.u.getMaxMagnitude( level );
-   const auto maxMagnitudeV = error.v.getMaxMagnitude( level );
-   const auto maxMagnitudeW = error.w.getMaxMagnitude( level );
+   const auto maxMagnitudeU = error.uvw.u.getMaxMagnitude( level );
+   const auto maxMagnitudeV = error.uvw.v.getMaxMagnitude( level );
+   const auto maxMagnitudeW = error.uvw.w.getMaxMagnitude( level );
    const auto maxMagnitudeP = error.p.getMaxMagnitude( level );
 
    WALBERLA_CHECK_LESS( maxMagnitudeU, 1e-14 );

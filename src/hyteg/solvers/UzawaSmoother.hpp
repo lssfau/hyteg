@@ -123,6 +123,8 @@ class UzawaSmoother : public Solver< OperatorType >
                const typename OperatorType::dstType& b,
                const uint_t                          level ) override
    {
+      r_.copyBoundaryConditionFromFunction( x );
+
       uzawaSmooth( A,
                    x,
                    b,
@@ -142,16 +144,16 @@ class UzawaSmoother : public Solver< OperatorType >
                      std::false_type /* tensor */,
                      std::true_type /* PSPG */ ) const
    {
-      A.divT_x.apply( x.p, r_.u, level, flag_, Replace );
-      r_.u.assign( {1.0, -1.0}, {b.u, r_.u}, level, flag_ );
+      A.divT_x.apply( x.p, r_.uvw.u, level, flag_, Replace );
+      r_.uvw.u.assign( {1.0, -1.0}, {b.uvw.u, r_.uvw.u}, level, flag_ );
 
-      A.divT_y.apply( x.p, r_.v, level, flag_, Replace );
-      r_.v.assign( {1.0, -1.0}, {b.v, r_.v}, level, flag_ );
+      A.divT_y.apply( x.p, r_.uvw.v, level, flag_, Replace );
+      r_.uvw.v.assign( {1.0, -1.0}, {b.uvw.v, r_.uvw.v}, level, flag_ );
 
       if ( hasGlobalCells_ )
       {
-         A.divT_z.apply( x.p, r_.w, level, flag_, Replace );
-         r_.w.assign( {1.0, -1.0}, {b.w, r_.w}, level, flag_ );
+         A.divT_z.apply( x.p, r_.uvw.w, level, flag_, Replace );
+         r_.uvw.w.assign( {1.0, -1.0}, {b.uvw.w, r_.uvw.w}, level, flag_ );
       }
 
       for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
@@ -160,12 +162,12 @@ class UzawaSmoother : public Solver< OperatorType >
       }
 
       A.pspg.apply( x.p, r_.p, level, flag_, Replace );
-      A.div_x.apply( x.u, r_.p, level, flag_, Add );
-      A.div_y.apply( x.v, r_.p, level, flag_, Add );
+      A.div_x.apply( x.uvw.u, r_.p, level, flag_, Add );
+      A.div_y.apply( x.uvw.v, r_.p, level, flag_, Add );
 
       if ( hasGlobalCells_ )
       {
-         A.div_z.apply( x.w, r_.p, level, flag_, Add );
+         A.div_z.apply( x.uvw.w, r_.p, level, flag_, Add );
       }
 
       r_.p.assign( {1.0, -1.0}, {b.p, r_.p}, level, flag_ );
@@ -208,16 +210,16 @@ class UzawaSmoother : public Solver< OperatorType >
                      std::false_type /* tensor */,
                      std::false_type /* PSPG */ ) const
    {
-      A.divT_x.apply( x.p, r_.u, level, flag_, Replace );
-      r_.u.assign( {1.0, -1.0}, {b.u, r_.u}, level, flag_ );
+      A.divT_x.apply( x.p, r_.uvw.u, level, flag_, Replace );
+      r_.uvw.u.assign( {1.0, -1.0}, {b.uvw.u, r_.uvw.u}, level, flag_ );
 
-      A.divT_y.apply( x.p, r_.v, level, flag_, Replace );
-      r_.v.assign( {1.0, -1.0}, {b.v, r_.v}, level, flag_ );
+      A.divT_y.apply( x.p, r_.uvw.v, level, flag_, Replace );
+      r_.uvw.v.assign( {1.0, -1.0}, {b.uvw.v, r_.uvw.v}, level, flag_ );
 
       if ( hasGlobalCells_ )
       {
-         A.divT_z.apply( x.p, r_.w, level, flag_, Replace );
-         r_.w.assign( {1.0, -1.0}, {b.w, r_.w}, level, flag_ );
+         A.divT_z.apply( x.p, r_.uvw.w, level, flag_, Replace );
+         r_.uvw.w.assign( {1.0, -1.0}, {b.uvw.w, r_.uvw.w}, level, flag_ );
       }
 
       for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
@@ -225,12 +227,12 @@ class UzawaSmoother : public Solver< OperatorType >
          velocitySmoother_->solve( A, x, r_, level );
       }
 
-      A.div_x.apply( x.u, r_.p, level, flag_, Replace );
-      A.div_y.apply( x.v, r_.p, level, flag_, Add );
+      A.div_x.apply( x.uvw.u, r_.p, level, flag_, Replace );
+      A.div_y.apply( x.uvw.v, r_.p, level, flag_, Add );
 
       if ( hasGlobalCells_ )
       {
-         A.div_z.apply( x.w, r_.p, level, flag_, Add );
+         A.div_z.apply( x.uvw.w, r_.p, level, flag_, Add );
       }
 
       r_.p.assign( {1.0, -1.0}, {b.p, r_.p}, level, flag_ );

@@ -205,6 +205,52 @@ inline void projectNormal3D( uint_t                                             
    }
 }
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+
+inline void saveProjectNormalOperator2D( uint_t                                                     level,
+                                         const Edge&                                                edge,
+                                         const std::shared_ptr< PrimitiveStorage >&                 storage,
+                                         const std::function< void( const Point3D&, Point3D& ) >&   normal_function,
+                                         const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& dstIdU,
+                                         const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& dstIdV,
+                                         const std::shared_ptr< SparseMatrixProxy >&                mat )
+{
+   size_t rowsize = levelinfo::num_microvertices_per_edge( level );
+
+   auto dstU = edge.getData( dstIdU )->getPointer( level );
+   auto dstV = edge.getData( dstIdV )->getPointer( level );
+
+   Face* faceS = storage->getFace( edge.neighborFaces()[0] );
+
+   Point3D                 normal;
+   std::vector< PetscInt > in( 2 );
+   std::vector< PetscInt > out( 2 );
+
+   Point3D x  = edge.getCoordinates()[0];
+   real_t  h  = 1.0 / ( walberla::real_c( rowsize - 1 ) );
+   Point3D dx = h * edge.getDirection();
+   x += dx;
+   Point3D xPhy;
+
+   for ( size_t i = 1; i < rowsize - 1; ++i )
+   {
+      faceS->getGeometryMap()->evalF( x, xPhy );
+      normal_function( xPhy, normal );
+
+      const auto idxU = dstU[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+      const auto idxV = dstV[vertexdof::macroedge::indexFromVertex( level, i, stencilDirection::VERTEX_C )];
+
+      mat->addValue( uint_c( idxU ), uint_c( idxU ), 1.0 - normal[0] * normal[0] );
+      mat->addValue( uint_c( idxU ), uint_c( idxV ), -normal[0] * normal[1] );
+      mat->addValue( uint_c( idxV ), uint_c( idxU ), -normal[0] * normal[1] );
+      mat->addValue( uint_c( idxV ), uint_c( idxV ), 1.0 - normal[1] * normal[1] );
+
+      x += dx;
+   }
+}
+
+#endif
+
 } // namespace macroedge
 
 namespace macrovertex {
@@ -217,7 +263,7 @@ inline void projectNormal2D( uint_t                                             
                              const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstIdU,
                              const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstIdV )
 {
-   // TODO: Way to check that this is a boundary vertex?
+   WALBERLA_CHECK( storage->onBoundary( vertex.getID() ) );
 
    auto dstU = vertex.getData( dstIdU )->getPointer( level );
    auto dstV = vertex.getData( dstIdV )->getPointer( level );
@@ -289,6 +335,40 @@ inline void projectNormal3D( uint_t                                             
    dstV[0] = out[1];
    dstW[0] = out[2];
 }
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+
+inline void saveProjectNormalOperator2D( uint_t                                                       level,
+                                         const Vertex&                                                vertex,
+                                         const std::shared_ptr< PrimitiveStorage >&                   storage,
+                                         const std::function< void( const Point3D&, Point3D& ) >&     normal_function,
+                                         const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& dstIdU,
+                                         const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& dstIdV,
+                                         const std::shared_ptr< SparseMatrixProxy >&                  mat )
+{
+   WALBERLA_CHECK( storage->onBoundary( vertex.getID() ) );
+
+   auto dstU = vertex.getData( dstIdU )->getPointer( level );
+   auto dstV = vertex.getData( dstIdV )->getPointer( level );
+
+   Face* faceS = storage->getFace( vertex.neighborFaces()[0] );
+
+   Point3D xPhy;
+   faceS->getGeometryMap()->evalF( vertex.getCoordinates(), xPhy );
+
+   Point3D normal;
+   normal_function( xPhy, normal );
+
+   const auto idxU = *dstU;
+   const auto idxV = *dstV;
+
+   mat->addValue( uint_c( idxU ), uint_c( idxU ), 1.0 - normal[0] * normal[0] );
+   mat->addValue( uint_c( idxU ), uint_c( idxV ), -normal[0] * normal[1] );
+   mat->addValue( uint_c( idxV ), uint_c( idxU ), -normal[0] * normal[1] );
+   mat->addValue( uint_c( idxV ), uint_c( idxV ), 1.0 - normal[1] * normal[1] );
+}
+
+#endif
 
 } // namespace macrovertex
 

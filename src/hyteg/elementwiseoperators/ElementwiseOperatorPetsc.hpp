@@ -66,20 +66,20 @@ inline void createMatrix( const P2P1ElementwiseConstantCoefficientStokesOperator
                           uint_t                                                  level,
                           DoFType                                                 flag )
 {
-   opr.A.assembleLocalMatrix( mat, src.u, dst.u, level, flag );
-   opr.A.assembleLocalMatrix( mat, src.v, dst.v, level, flag );
+   opr.A.assembleLocalMatrix( mat, src.uvw.u, dst.uvw.u, level, flag );
+   opr.A.assembleLocalMatrix( mat, src.uvw.v, dst.uvw.v, level, flag );
 
-   opr.divT_x.assembleLocalMatrix( mat, src.p, dst.u, level, flag );
-   opr.divT_y.assembleLocalMatrix( mat, src.p, dst.v, level, flag );
+   opr.divT_x.assembleLocalMatrix( mat, src.p, dst.uvw.u, level, flag );
+   opr.divT_y.assembleLocalMatrix( mat, src.p, dst.uvw.v, level, flag );
 
-   opr.div_x.assembleLocalMatrix( mat, src.u, dst.p, level, flag );
-   opr.div_y.assembleLocalMatrix( mat, src.v, dst.p, level, flag );
+   opr.div_x.assembleLocalMatrix( mat, src.uvw.u, dst.p, level, flag );
+   opr.div_y.assembleLocalMatrix( mat, src.uvw.v, dst.p, level, flag );
 
    if ( src.getStorage()->hasGlobalCells() )
    {
-      opr.A.assembleLocalMatrix( mat, src.w, dst.w, level, flag );
-      opr.divT_z.assembleLocalMatrix( mat, src.p, dst.w, level, flag );
-      opr.div_z.assembleLocalMatrix( mat, src.w, dst.p, level, flag );
+      opr.A.assembleLocalMatrix( mat, src.uvw.w, dst.uvw.w, level, flag );
+      opr.divT_z.assembleLocalMatrix( mat, src.p, dst.uvw.w, level, flag );
+      opr.div_z.assembleLocalMatrix( mat, src.uvw.w, dst.p, level, flag );
    }
 }
 
@@ -92,20 +92,20 @@ inline void createMatrix( const P2P1ElementwiseBlendingStokesOperator& opr,
                           uint_t                                       level,
                           DoFType                                      flag )
 {
-   opr.A.assembleLocalMatrix( mat, src.u, dst.u, level, flag );
-   opr.A.assembleLocalMatrix( mat, src.v, dst.v, level, flag );
+   opr.A.assembleLocalMatrix( mat, src.uvw.u, dst.uvw.u, level, flag );
+   opr.A.assembleLocalMatrix( mat, src.uvw.v, dst.uvw.v, level, flag );
 
-   opr.divT_x.assembleLocalMatrix( mat, src.p, dst.u, level, flag );
-   opr.divT_y.assembleLocalMatrix( mat, src.p, dst.v, level, flag );
+   opr.divT_x.assembleLocalMatrix( mat, src.p, dst.uvw.u, level, flag );
+   opr.divT_y.assembleLocalMatrix( mat, src.p, dst.uvw.v, level, flag );
 
-   opr.div_x.assembleLocalMatrix( mat, src.u, dst.p, level, flag );
-   opr.div_y.assembleLocalMatrix( mat, src.v, dst.p, level, flag );
+   opr.div_x.assembleLocalMatrix( mat, src.uvw.u, dst.p, level, flag );
+   opr.div_y.assembleLocalMatrix( mat, src.uvw.v, dst.p, level, flag );
 
    if ( src.getStorage()->hasGlobalCells() )
    {
-      opr.A.assembleLocalMatrix( mat, src.w, dst.w, level, flag );
-      opr.divT_z.assembleLocalMatrix( mat, src.p, dst.w, level, flag );
-      opr.div_z.assembleLocalMatrix( mat, src.w, dst.p, level, flag );
+      opr.A.assembleLocalMatrix( mat, src.uvw.w, dst.uvw.w, level, flag );
+      opr.divT_z.assembleLocalMatrix( mat, src.p, dst.uvw.w, level, flag );
+      opr.div_z.assembleLocalMatrix( mat, src.uvw.w, dst.p, level, flag );
    }
 }
 

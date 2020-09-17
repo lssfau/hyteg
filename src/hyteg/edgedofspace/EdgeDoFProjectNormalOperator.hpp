@@ -22,7 +22,9 @@
 #include "hyteg/Algorithms.hpp"
 #include "hyteg/LevelWiseMemory.hpp"
 #include "hyteg/Levelinfo.hpp"
+#include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/Operator.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOperatorTypeDefs.hpp"
@@ -43,6 +45,24 @@ class EdgeDoFProjectNormalOperator final : public Operator< hyteg::EdgeDoFFuncti
                const EdgeDoFFunction< real_t >& dst_w,
                uint_t                           level,
                DoFType                          flag ) const;
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+   /// Assemble operator as sparse matrix
+   ///
+   /// \param mat   a sparse matrix proxy
+   /// \param numU  EdgeDoFFunction for determining row indices
+   /// \param numV  EdgeDoFFunction for determining row indices
+   /// \param numW  EdgeDoFFunction for determining row indices
+   /// \param level level in mesh hierarchy for which local operator is to be assembled
+   /// \param flag  determines on which primitives this operator is assembled
+   ///
+   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                             const EdgeDoFFunction< PetscInt >&               numU,
+                             const EdgeDoFFunction< PetscInt >&               numV,
+                             const EdgeDoFFunction< PetscInt >&               numW,
+                             uint_t                                      level,
+                             DoFType                                     flag ) const;
+#endif
 
  private:
    const std::function< void( const Point3D&, Point3D& ) > normal_function_;

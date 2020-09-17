@@ -27,7 +27,9 @@
 
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/composites/petsc/P1StokesPetsc.hpp"
+#include "hyteg/composites/StrongFreeSlipWrapper.hpp"
 #include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
+#include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/p2functionspace/P2Petsc.hpp"
@@ -148,18 +150,12 @@ class PETScSparseMatrix
       PETScVector< real_t, FunctionType > dirichletSolutionVec(
           dirichletSolution, numerator, level, All, "dirichletSolutionVec", rhsVec.getCommunicator() );
 
-      WALBERLA_ASSERT(
-          isSymmetric(),
-          "PETSc: Dirichlet boundary conditions can only be applied symmetrically if the original system is symmetric." );
-
       // This is required as the implementation of MatZeroRowsColumns() checks (for performance reasons?!)
       // if there are zero diagonals in the matrix. If there are, the function halts.
       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
       MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
       MatZeroRowsColumns( mat, bcIndices.size(), bcIndices.data(), 1.0, dirichletSolutionVec.get(), rhsVec.get() );
-
-      WALBERLA_ASSERT( isSymmetric() );
    }
 
    /// \brief Variant of applyDirichletBCSymmetrically() that only modifies the matrix itself
@@ -170,18 +166,12 @@ class PETScSparseMatrix
       std::vector< PetscInt > bcIndices;
       hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );
 
-      WALBERLA_ASSERT(
-          isSymmetric(),
-          "PETSc: Dirichlet boundary conditions can only be applied symmetrically if the original system is symmetric." );
-
       // This is required as the implementation of MatZeroRowsColumns() checks (for performance reasons?!)
       // if there are zero diagonals in the matrix. If there are, the function halts.
       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
       MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
       MatZeroRowsColumns( mat, bcIndices.size(), bcIndices.data(), 1.0, NULL, NULL );
-
-      WALBERLA_ASSERT( isSymmetric() );
 
       return bcIndices;
    }
