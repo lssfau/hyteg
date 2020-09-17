@@ -25,9 +25,26 @@ namespace hyteg {
 template < class P1Form >
 P1ElementwiseOperator< P1Form >::P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                                         size_t                                     minLevel,
+                                                        size_t                                     maxLevel )
+: P1ElementwiseOperator< P1Form >( storage, minLevel, maxLevel, P1Form(), true )
+{}
+
+template < class P1Form >
+P1ElementwiseOperator< P1Form >::P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                        size_t                                     minLevel,
                                                         size_t                                     maxLevel,
+                                                        const P1Form&                              form )
+: P1ElementwiseOperator< P1Form >( storage, minLevel, maxLevel, form, true )
+{}
+
+template < class P1Form >
+P1ElementwiseOperator< P1Form >::P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                        size_t                                     minLevel,
+                                                        size_t                                     maxLevel,
+                                                        const P1Form&                              form,
                                                         bool                                       needsInverseDiagEntries )
 : Operator( storage, minLevel, maxLevel )
+, form_( form )
 {
    if ( needsInverseDiagEntries )
    {
@@ -219,7 +236,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixVectorMultiply2D( const Face&  
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 3 >  dofDataIdx;
-   P1Form                   form;
+   P1Form                   form( form_ );
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -269,7 +286,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixVectorMultiply3D( const Cell&  
 
    // assemble local element matrix
    Matrix4r elMat;
-   P1Form   form;
+   P1Form   form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
 
@@ -425,7 +442,7 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions2D( const
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 6 >  dofDataIdx;
-   P1Form                   form;
+   P1Form                   form( form_ );
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -467,7 +484,7 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions3D( const
 
    // assemble local element matrix
    Matrix4r elMat;
-   P1Form   form;
+   P1Form   form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
 
@@ -584,7 +601,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly2D( const std::shared_p
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 3 >  dofDataIdx;
-   P1Form                   form;
+   P1Form                   form( form_ );
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -643,7 +660,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly3D( const std::shared_p
 
    // assemble local element matrix
    Matrix4r elMat;
-   P1Form   form;
+   P1Form   form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
 

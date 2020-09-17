@@ -41,8 +41,18 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
  public:
    P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                           size_t                                     minLevel,
+                          size_t                                     maxLevel );
+
+   P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                          size_t                                     minLevel,
                           size_t                                     maxLevel,
-                          bool                                       needsInverseDiagEntries = true );
+                          const P1Form&                              form );
+
+   P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                          size_t                                     minLevel,
+                          size_t                                     maxLevel,
+                          const P1Form&                              form,
+                          bool                                       needsInverseDiagEntries );
 
    void apply( const P1Function< real_t >& src,
                const P1Function< real_t >& dst,
@@ -191,6 +201,7 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
    std::shared_ptr< P1Function< real_t > > diagonalValues_;
    std::shared_ptr< P1Function< real_t > > inverseDiagonalValues_;
 
+   P1Form form_;
 };
 
 typedef P1ElementwiseOperator<
