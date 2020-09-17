@@ -72,6 +72,7 @@ void writeDataRow( uint_t                                      iteration,
       fmgLevelString = walberla::format( "%9d", fmgLevel );
    }
 
+   sqlIntegerProperties["iteration"]         = int_c( iteration );
    sqlStringProperties["iteration_type"]     = iterationType;
    sqlIntegerProperties["fmg_level"]         = int_c( fmgLevel );
    sqlRealProperties["error_l2_velocity"]    = errorL2Velocity;
