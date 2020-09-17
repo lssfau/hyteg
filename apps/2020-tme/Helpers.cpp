@@ -210,24 +210,24 @@ void solveImplementation( const MeshInfo&                                       
 
    for ( uint_t level = minLevel; level <= errorLevel; level++ )
    {
-      exact.u.interpolate( solutionU, level, All );
-      exact.v.interpolate( solutionV, level, All );
-      exact.w.interpolate( solutionW, level, All );
+      exact.uvw.u.interpolate( solutionU, level, All );
+      exact.uvw.v.interpolate( solutionV, level, All );
+      exact.uvw.w.interpolate( solutionW, level, All );
       exact.p.interpolate( solutionP, level, All );
 
       vertexdof::projectMean( exact.p, level );
 
-      u.u.interpolate( solutionU, level, DirichletBoundary );
-      u.v.interpolate( solutionV, level, DirichletBoundary );
-      u.w.interpolate( solutionW, level, DirichletBoundary );
+      u.uvw.u.interpolate( solutionU, level, DirichletBoundary );
+      u.uvw.v.interpolate( solutionV, level, DirichletBoundary );
+      u.uvw.w.interpolate( solutionW, level, DirichletBoundary );
 
-      tmp.u.interpolate( rhsU, level, All );
-      tmp.v.interpolate( rhsV, level, All );
-      tmp.w.interpolate( rhsW, level, All );
+      tmp.uvw.u.interpolate( rhsU, level, All );
+      tmp.uvw.v.interpolate( rhsV, level, All );
+      tmp.uvw.w.interpolate( rhsW, level, All );
 
-      MVelocity.apply( tmp.u, f.u, level, All );
-      MVelocity.apply( tmp.v, f.v, level, All );
-      MVelocity.apply( tmp.w, f.w, level, All );
+      MVelocity.apply( tmp.uvw.u, f.uvw.u, level, All );
+      MVelocity.apply( tmp.uvw.v, f.uvw.v, level, All );
+      MVelocity.apply( tmp.uvw.w, f.uvw.w, level, All );
    }
 
    auto prolongationOperator = std::make_shared< Prolongation >();
