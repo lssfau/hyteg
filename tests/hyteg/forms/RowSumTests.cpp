@@ -24,6 +24,7 @@
 
 #include "hyteg/FunctionTraits.hpp"
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/forms/P1RowSumForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_generated/p2_diffusion.h"
@@ -42,6 +43,11 @@
 
 using walberla::real_t;
 using namespace hyteg;
+
+// Use a C++11 "alias declaration" to overcome the problem that P1ConstantOperator and P2ConstantOperator
+// have differing numbers of template arguments
+template < class P1Form >
+using P1ConstOp = P1ConstantOperator< P1Form, false, false, false >;
 
 template< typename rowSumFormType, template < class > class funcType, template < class > class opType, typename opTypeLap, typename opTypeMass >
 bool RowSumTest( const uint_t& level, const std::string& meshFile,
@@ -146,8 +152,39 @@ int main( int argc, char* argv[] )
    bool succeeded = true;
 
    // -----------------------------
+   //  Run tests for P1RowSumForm
+   // -----------------------------
+
+   WALBERLA_LOG_INFO_ON_ROOT( "==============================" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Running tests for P1RowSumForm" );
+   WALBERLA_LOG_INFO_ON_ROOT( "==============================" );
+   succeeded = true;
+
+   auto p1DiffusionFormFenics =
+       std::make_shared< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >();
+   auto p1MassFormFenics =
+       std::make_shared< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >();
+
+   P1RowSumForm rowSumLaplaceP1( p1DiffusionFormFenics );
+   P1RowSumForm rowSumMassP1( p1MassFormFenics );
+
+   for( auto mesh = meshes.begin(); mesh != meshes.end(); ++mesh ) {
+     for( uint level = 0; level <= maxLevel; ++level ) {
+       // succeeded &= RowSumTest< P1RowSumForm, P1Function, P1ConstantOperator<...,false,false,false>, P1ConstantLaplaceOperator, P1ConstantMassOperator >( 0, *mesh, rowSumLaplaceP1, rowSumMassP1 );
+       succeeded &= RowSumTest< P1RowSumForm, P1Function, P1ConstOp, P1ConstantLaplaceOperator, P1ConstantMassOperator >( 0, *mesh, rowSumLaplaceP1, rowSumMassP1 );
+     }
+   }
+
+   WALBERLA_CHECK( succeeded, "One of the tests for P1RowSumForm failed" )
+
+   // -----------------------------
    //  Run tests for P2RowSumForm
    // -----------------------------
+
+   WALBERLA_LOG_INFO_ON_ROOT( "==============================" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Running tests for P2RowSumForm" );
+   WALBERLA_LOG_INFO_ON_ROOT( "==============================" );
+
    succeeded = true;
 
    auto p2DiffusionFormFenics =
@@ -155,12 +192,12 @@ int main( int argc, char* argv[] )
    auto p2MassFormFenics =
        std::make_shared< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >();
 
-   P2RowSumForm rowSumLaplace( p2DiffusionFormFenics );
-   P2RowSumForm rowSumMass( p2MassFormFenics );
+   P2RowSumForm rowSumLaplaceP2( p2DiffusionFormFenics );
+   P2RowSumForm rowSumMassP2( p2MassFormFenics );
 
    for( auto mesh = meshes.begin(); mesh != meshes.end(); ++mesh ) {
      for( uint level = 0; level <= maxLevel; ++level ) {
-       succeeded &= RowSumTest< P2RowSumForm, P2Function, P2ConstantOperator, P2ConstantLaplaceOperator, P2ConstantMassOperator >( 0, *mesh, rowSumLaplace, rowSumMass );
+       succeeded &= RowSumTest< P2RowSumForm, P2Function, P2ConstantOperator, P2ConstantLaplaceOperator, P2ConstantMassOperator >( 0, *mesh, rowSumLaplaceP2, rowSumMassP2 );
      }
    }
 

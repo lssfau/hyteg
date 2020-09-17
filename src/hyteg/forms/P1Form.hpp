@@ -30,9 +30,12 @@ class P1Form : public Form
 
    // 2D P1
    virtual void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const { WALBERLA_ABORT( "Not implemented." ); }
+   virtual void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const { WALBERLA_ABORT( "Not implemented." ); }
 
    // 3D P1
    virtual void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const { WALBERLA_ABORT( "Not implemented." ); }
+   virtual void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const { WALBERLA_ABORT( "Not implemented." ); }
+
 };
 
 } // namespace hyteg

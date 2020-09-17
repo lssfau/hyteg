@@ -31,6 +31,7 @@
 #endif
 
 #include "hyteg/LevelWiseMemory.hpp"
+#include "hyteg/forms/P1RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
@@ -1622,5 +1623,8 @@ template class P1ConstantOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwi
 
 template class P1ConstantOperator< P2LinearCombinationForm >;
 template class P1ConstantOperator< P2RowSumForm >;
+
+// Mostly for testing, as the P1ConstantOperator inherently was designed to support lumping
+template class P1ConstantOperator< P1RowSumForm >;
 
 } // namespace hyteg
