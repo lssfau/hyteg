@@ -1,28 +1,29 @@
 Parameters
 {
-  discretization p1p1;
+  discretization p2p1;
 
   minLevel 0;
-  maxLevel 6;
+  maxLevel 1;
 
   numEdgesPerSide 1;
 
   vtk false;
   dbFile Benchmark_01_Cube.db;
 
-  preSmooth 3;
-  postSmooth 3;
+  preSmooth 10;
+  postSmooth 10;
   incSmooth 2;
   fmgInnerIterations 1;
-  numCycles 10;
+  numCycles 100;
+  absoluteResidualTolerance 1e-12;
 
-  numGSVelocity 2;
-  symmGSVelocity false;
+  numGSVelocity 1;
+  symmGSVelocity true;
 
   estimateOmega true;
-  omega 0.3;
-  omegaEstimationLevel 3;
-  omegaEstimationIterations 20;
+  omega 0.444603;
+  omegaEstimationLevel 1;
+  omegaEstimationIterations 50;
 
   coarseGridSolverType 0;
   maxIterations 1000;

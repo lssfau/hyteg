@@ -28,6 +28,7 @@
 #include "core/config/Config.h"
 #include "core/mpi/MPIManager.h"
 
+#include "hyteg/Git.hpp"
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
@@ -156,6 +157,9 @@ struct MultigridSettings
    uint_t fmgInnerIterations;
 
    uint_t numCycles;
+
+   // stops cycling after both, pressure and velocity residual drop below this value
+   real_t absoluteResidualTolerance;
 };
 
 struct SmootherSettings

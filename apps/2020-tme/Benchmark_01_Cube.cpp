@@ -70,11 +70,12 @@ void benchmark( int argc, char** argv )
    const std::string dbFile = mainConf.getParameter< std::string >( "dbFile" );
 
    MultigridSettings multigridSettings;
-   multigridSettings.preSmooth          = mainConf.getParameter< uint_t >( "preSmooth" );
-   multigridSettings.postSmooth         = mainConf.getParameter< uint_t >( "postSmooth" );
-   multigridSettings.incSmooth          = mainConf.getParameter< uint_t >( "incSmooth" );
-   multigridSettings.fmgInnerIterations = mainConf.getParameter< uint_t >( "fmgInnerIterations" );
-   multigridSettings.numCycles          = mainConf.getParameter< uint_t >( "numCycles" );
+   multigridSettings.preSmooth                 = mainConf.getParameter< uint_t >( "preSmooth" );
+   multigridSettings.postSmooth                = mainConf.getParameter< uint_t >( "postSmooth" );
+   multigridSettings.incSmooth                 = mainConf.getParameter< uint_t >( "incSmooth" );
+   multigridSettings.fmgInnerIterations        = mainConf.getParameter< uint_t >( "fmgInnerIterations" );
+   multigridSettings.numCycles                 = mainConf.getParameter< uint_t >( "numCycles" );
+   multigridSettings.absoluteResidualTolerance = mainConf.getParameter< real_t >( "absoluteResidualTolerance" );
 
    SmootherSettings smootherSettings;
    smootherSettings.estimateOmega             = mainConf.getParameter< bool >( "estimateOmega" );
@@ -89,7 +90,7 @@ void benchmark( int argc, char** argv )
    coarseGridSettings.maxIterations             = mainConf.getParameter< uint_t >( "maxIterations" );
    coarseGridSettings.solverType                = mainConf.getParameter< uint_t >( "coarseGridSolverType" );
 
-   const uint_t normCalculationLevelIncrement                = mainConf.getParameter< uint_t >( "normCalculationLevelIncrement" );
+   const uint_t normCalculationLevelIncrement = mainConf.getParameter< uint_t >( "normCalculationLevelIncrement" );
 
    Discretization discretization = Discretization::P2_P1;
    if ( discretizationString == "p1p1" )
@@ -97,11 +98,10 @@ void benchmark( int argc, char** argv )
       discretization = Discretization::P1_P1;
    }
 
-
-   Point3D leftBottom3D( { 0, 0, 0 } );
+   Point3D leftBottom3D( {0, 0, 0} );
 
    auto meshInfo =
-       MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( { 1, 1, 1 } ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
+       MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( {1, 1, 1} ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
 
    solve( meshInfo,
           discretization,
@@ -131,7 +131,7 @@ void benchmark( int argc, char** argv )
 } // namespace tme_benchmarks
 } // namespace hyteg
 
-int main( int argc, char ** argv )
+int main( int argc, char** argv )
 {
    hyteg::tme_benchmarks::benchmark( argc, argv );
 }

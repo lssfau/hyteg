@@ -127,6 +127,10 @@ void solveImplementation( const MeshInfo&                                       
                           bool                                                    verbose,
                           std::string                                             dbFile )
 {
+   WALBERLA_UNUSED( hasAnalyticalSolution );
+   WALBERLA_UNUSED( calculateDiscretizationError );
+
+   WALBERLA_LOG_INFO_ON_ROOT( gitSHA1() );
 
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -147,10 +151,12 @@ void solveImplementation( const MeshInfo&                                       
    const real_t hMin       = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    const real_t hMax       = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
    const auto   errorLevel = maxLevel + errorCalculationLevelIncrement;
+   const auto   discretization =
+       ( std::is_same< typename StokesFunction< real_t >::Tag, P2P1TaylorHoodFunctionTag >::value ? "P2-P1" : "P1-P1" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << benchmarkName )
    WALBERLA_LOG_INFO_ON_ROOT( " - space discretization: " )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + elements:                                     " << ( std::is_same< typename StokesFunction< real_t >::Tag, P2P1TaylorHoodFunctionTag >::value ? "P2-P1" : "P1-P1" ) );
+   WALBERLA_LOG_INFO_ON_ROOT( "   + elements:                                     " << discretization );
    WALBERLA_LOG_INFO_ON_ROOT( "   + dimensions:                                   " << ( storage->hasGlobalCells() ? "3" : "2" ) )
    WALBERLA_LOG_INFO_ON_ROOT( "   + min level:                                    " << minLevel )
    WALBERLA_LOG_INFO_ON_ROOT( "   + max level:                                    " << maxLevel )
@@ -163,6 +169,8 @@ void solveImplementation( const MeshInfo&                                       
    WALBERLA_LOG_INFO_ON_ROOT( "   + inc smooth:                                   " << multigridSettings.incSmooth )
    WALBERLA_LOG_INFO_ON_ROOT( "   + num cycles:                                   " << multigridSettings.numCycles )
    WALBERLA_LOG_INFO_ON_ROOT( "   + FMG inner iterations:                         " << multigridSettings.fmgInnerIterations )
+   WALBERLA_LOG_INFO_ON_ROOT(
+       "   + absolute residual tolerance:                  " << multigridSettings.absoluteResidualTolerance )
    WALBERLA_LOG_INFO_ON_ROOT( " - smoother settings: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + num GS velocity:                              " << smootherSettings.numGSVelocity )
    WALBERLA_LOG_INFO_ON_ROOT( "   + symmetric velocity:                           " << smootherSettings.symmGSVelocity )
@@ -170,8 +178,7 @@ void solveImplementation( const MeshInfo&                                       
        "   + omega estimation:                             " << ( smootherSettings.estimateOmega ? "yes" : "no" ) )
    if ( smootherSettings.estimateOmega )
    {
-      WALBERLA_LOG_INFO_ON_ROOT(
-          "   + omega estimation level:                       " << smootherSettings.omegaEstimationIterations )
+      WALBERLA_LOG_INFO_ON_ROOT( "   + omega estimation level:                       " << smootherSettings.omegaEstimationLevel )
       WALBERLA_LOG_INFO_ON_ROOT(
           "   + omega estimation iterations:                  " << smootherSettings.omegaEstimationIterations )
    }
@@ -195,6 +202,8 @@ void solveImplementation( const MeshInfo&                                       
    std::map< std::string, walberla::int64_t > sqlIntegerProperties;
    std::map< std::string, double >            sqlRealProperties;
    std::map< std::string, std::string >       sqlStringProperties;
+
+   sqlStringProperties["discretization"] = discretization;
 
    uint_t iteration                  = 0;
    sqlIntegerProperties["iteration"] = int_c( iteration );
@@ -268,19 +277,18 @@ void solveImplementation( const MeshInfo&                                       
    auto prolongationOperator = std::make_shared< Prolongation >();
    auto restrictionOperator  = std::make_shared< Restriction >( projectPressurefterRestriction );
 
-   std::shared_ptr< Solver< typename StokesOperator::VelocityOperator_T > > scalarSmoother;
-   if ( smootherSettings.symmGSVelocity )
-   {
-      scalarSmoother = std::make_shared< SymmetricSORSmoother< typename StokesOperator::VelocityOperator_T > >( 1.0 );
-   }
-   else
-   {
-      scalarSmoother = std::make_shared< SORSmoother< typename StokesOperator::VelocityOperator_T > >( 1.0 );
-   }
+   std::shared_ptr< Solver< typename StokesOperator::VelocityOperator_T > > forwardVelocitySmoother =
+       std::make_shared< SORSmoother< typename StokesOperator::VelocityOperator_T > >( 1.0 );
+   std::shared_ptr< Solver< typename StokesOperator::VelocityOperator_T > > symmetricVelocitySmoother =
+       std::make_shared< SymmetricSORSmoother< typename StokesOperator::VelocityOperator_T > >( 1.0 );
+
+   auto uzawaForwardVelocityPreconditioner =
+       std::make_shared< StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator > >( storage, forwardVelocitySmoother );
+   auto uzawaSymmetricVelocityPreconditioner =
+       std::make_shared< StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator > >( storage, symmetricVelocitySmoother );
 
    auto uzawaVelocityPreconditioner =
-       std::make_shared< StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator > >( storage, scalarSmoother );
-
+       ( smootherSettings.symmGSVelocity ? uzawaSymmetricVelocityPreconditioner : uzawaForwardVelocityPreconditioner );
    auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage,
                                                                         uzawaVelocityPreconditioner,
                                                                         minLevel,
@@ -296,14 +304,14 @@ void solveImplementation( const MeshInfo&                                       
                                                       << " power iterations on level " << smootherSettings.omegaEstimationLevel
                                                       << ") ..." );
       const auto estimatedOmega = estimateUzawaRelaxationParameter( storage,
-                                                                    uzawaVelocityPreconditioner,
+                                                                    uzawaSymmetricVelocityPreconditioner,
                                                                     smootherSettings.omegaEstimationLevel,
                                                                     smootherSettings.omegaEstimationIterations,
                                                                     smootherSettings.numGSVelocity );
       smoother->setRelaxationParameter( estimatedOmega );
       WALBERLA_LOG_INFO_ON_ROOT( "Setting omega to estimate: " << estimatedOmega );
       WALBERLA_LOG_INFO_ON_ROOT( "" );
-      sqlRealProperties["sor_relax"] = estimatedOmega;
+      sqlRealProperties["omega"] = estimatedOmega;
    }
 
    // coarse grid solver type:
@@ -343,7 +351,6 @@ void solveImplementation( const MeshInfo&                                       
    auto fmgProlongation = std::make_shared< FMGProlongation >();
 
    auto postCycle = [&]( uint_t currentLevel ) {
-
       if ( projectPressure )
       {
          vertexdof::projectMean( u.p, currentLevel );
@@ -466,7 +473,9 @@ void solveImplementation( const MeshInfo&                                       
       iteration++;
    }
 
-   for ( uint_t i = 1; i < multigridSettings.numCycles; i++ )
+   for ( uint_t i = 1; i < multigridSettings.numCycles && ( multigridSettings.absoluteResidualTolerance < residualL2Velocity ||
+                                                            multigridSettings.absoluteResidualTolerance < residualL2Pressure );
+         i++ )
    {
       multigridSolver->solve( A, u, f, maxLevel );
 
@@ -566,33 +575,33 @@ void solve( const MeshInfo&                                         meshInfo,
    else
    {
       solveImplementation< P1StokesFunction,
-          P1StokesOperator,
-          P1ConstantMassOperator,
-          P1ConstantMassOperator,
-          P1P1StokesToP1P1StokesRestriction,
-          P1P1StokesToP1P1StokesProlongation,
-          P1P1StokesToP1P1StokesProlongation >( meshInfo,
-                                                hasAnalyticalSolution,
-                                                solutionU,
-                                                solutionV,
-                                                solutionW,
-                                                solutionP,
-                                                rhsU,
-                                                rhsV,
-                                                rhsW,
-                                                minLevel,
-                                                maxLevel,
-                                                multigridSettings,
-                                                smootherSettings,
-                                                coarseGridSettings,
-                                                projectPressure,
-                                                projectPressurefterRestriction,
-                                                calculateDiscretizationError,
-                                                normCalculationLevelIncrement,
-                                                vtk,
-                                                benchmarkName,
-                                                verbose,
-                                                dbFile );
+                           P1StokesOperator,
+                           P1ConstantMassOperator,
+                           P1ConstantMassOperator,
+                           P1P1StokesToP1P1StokesRestriction,
+                           P1P1StokesToP1P1StokesProlongation,
+                           P1P1StokesToP1P1StokesProlongation >( meshInfo,
+                                                                 hasAnalyticalSolution,
+                                                                 solutionU,
+                                                                 solutionV,
+                                                                 solutionW,
+                                                                 solutionP,
+                                                                 rhsU,
+                                                                 rhsV,
+                                                                 rhsW,
+                                                                 minLevel,
+                                                                 maxLevel,
+                                                                 multigridSettings,
+                                                                 smootherSettings,
+                                                                 coarseGridSettings,
+                                                                 projectPressure,
+                                                                 projectPressurefterRestriction,
+                                                                 calculateDiscretizationError,
+                                                                 normCalculationLevelIncrement,
+                                                                 vtk,
+                                                                 benchmarkName,
+                                                                 verbose,
+                                                                 dbFile );
    }
 }
 
