@@ -27,7 +27,7 @@ Parameters
 
   coarseGridSolverType 0;
   maxIterations 1000;
-  absoluteResidualTolerance 1e-12;
+  coarseGridAbsoluteResidualTolerance 1e-12;
 
   normCalculationLevelIncrement 1;
 }

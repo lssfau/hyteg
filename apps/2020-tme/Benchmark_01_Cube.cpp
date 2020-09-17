@@ -86,7 +86,7 @@ void benchmark( int argc, char** argv )
    smootherSettings.symmGSVelocity            = mainConf.getParameter< bool >( "symmGSVelocity" );
 
    CoarseGridSettings coarseGridSettings;
-   coarseGridSettings.absoluteResidualTolerance = mainConf.getParameter< real_t >( "absoluteResidualTolerance" );
+   coarseGridSettings.absoluteResidualTolerance = mainConf.getParameter< real_t >( "coarseGridAbsoluteResidualTolerance" );
    coarseGridSettings.maxIterations             = mainConf.getParameter< uint_t >( "maxIterations" );
    coarseGridSettings.solverType                = mainConf.getParameter< uint_t >( "coarseGridSolverType" );
 
