@@ -77,7 +77,7 @@ void writeDataRow( uint_t          iteration,
    db.setVariableEntry( "error_l2_pressure", errorL2Pressure );
    db.setVariableEntry( "residual_l2_pressure", residualL2Pressure );
 
-   WALBERLA_ROOT_SECTION() { db.writeRow(); }
+   db.writeRowOnRoot();
 
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9d | %14s | %9s | %17.5e | %20.5e | %17.5e | %20.5e ",
                                                 iteration,
@@ -264,9 +264,18 @@ void solveImplementation( const MeshInfo&                                       
                                                                  smootherSettings.omegaEstimationLevel,
                                                                  smootherSettings.omegaEstimationIterations,
                                                                  smootherSettings.numGSVelocity );
-      smoother->setRelaxationParameter( smootherSettings.omega );
-      WALBERLA_LOG_INFO_ON_ROOT( "Setting omega to estimate: " << smootherSettings.omega );
+      if ( std::isnan( smootherSettings.omega ) )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Omega is NaN, setting to: " << smootherSettings.omega );
+         smootherSettings.omega = 0;
+      }
+      else
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Setting omega to estimate: " << smootherSettings.omega );
+      }
       WALBERLA_LOG_INFO_ON_ROOT( "" );
+      smoother->setRelaxationParameter( smootherSettings.omega );
+
    }
 
    // coarse grid solver type:

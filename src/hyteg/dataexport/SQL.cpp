@@ -22,7 +22,7 @@
 
 namespace hyteg {
 
-void FixedSizeSQLDB::writeRow()
+void FixedSizeSQLDB::writeRowOnRoot()
 {
    for ( auto key : variableKeys_ )
    {
@@ -46,7 +46,10 @@ void FixedSizeSQLDB::writeRow()
    integerEntries.insert( constantEntriesInteger_.begin(), constantEntriesInteger_.end() );
    integerEntries.insert( variableEntriesInteger_.begin(), variableEntriesInteger_.end() );
 
-   db_.storeRun( integerEntries, stringEntries, doubleEntries );
+   WALBERLA_ROOT_SECTION()
+   {
+      db_.storeRun( integerEntries, stringEntries, doubleEntries );
+   }
 
    columnsFixed_ = true;
    variableEntriesInteger_.clear();

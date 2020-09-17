@@ -73,7 +73,9 @@ class FixedSizeSQLDB
    ///
    /// If there is a column entry missing for this row, this method will abort.
    /// This way it is ensured that there are no empty cells.
-   void writeRow();
+   ///
+   /// Must be called collectively by all processes, writes only on root.
+   void writeRowOnRoot();
 
  private:
    template < typename ValueType >
