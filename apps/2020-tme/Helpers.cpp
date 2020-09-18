@@ -139,7 +139,7 @@ void solveImplementation( const MeshInfo&                                       
    timer->start( "Total" );
    timer->start( "Setup" );
 
-   const uint_t unknowns   = numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel );
+   const uint_t unknowns   = numberOfGlobalDoFs< typename StokesFunction< real_t >::Tag >( *storage, maxLevel );
    const real_t hMin       = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    const real_t hMax       = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
    const auto   errorLevel = maxLevel + errorCalculationLevelIncrement;
@@ -152,7 +152,7 @@ void solveImplementation( const MeshInfo&                                       
    WALBERLA_LOG_INFO_ON_ROOT( "   + dimensions:                                   " << ( storage->hasGlobalCells() ? "3" : "2" ) )
    WALBERLA_LOG_INFO_ON_ROOT( "   + min level:                                    " << minLevel )
    WALBERLA_LOG_INFO_ON_ROOT( "   + max level:                                    " << maxLevel )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns (== particles), including boundary:  " << unknowns )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns, including boundary:                 " << unknowns )
    WALBERLA_LOG_INFO_ON_ROOT( "   + h_min:                                        " << hMin )
    WALBERLA_LOG_INFO_ON_ROOT( "   + h_max:                                        " << hMax )
    WALBERLA_LOG_INFO_ON_ROOT( " - multigrid settings: " )
