@@ -914,7 +914,10 @@ template class P2ElementwiseOperator< P2Form_laplace >;
 // P2ElementwiseLinearCombinationOperator
 template class P2ElementwiseOperator< P2LinearCombinationForm >;
 
-// this is needed for the ElementwiseVSConstant app
+// Needed for P2Blending(Inverse)DiagonalOperator
+template class P2ElementwiseOperator< P2RowSumForm >;
+
+// this is needed for the ElementwiseVsConstant app
 template void localMatrixVectorMultiply3D(
     const Cell&,
     const uint_t,

@@ -20,6 +20,8 @@
 
 #include "P1ElementwiseOperator.hpp"
 
+#include "hyteg/forms/P1RowSumForm.hpp"
+
 namespace hyteg {
 
 template < class P1Form >
@@ -73,7 +75,7 @@ void P1ElementwiseOperator< P1Form >::apply( const P1Function< real_t >& src,
       // Therefore we first zero out everything that flagged, and then, later,
       // the halos of the highest dim primitives.
 
-      dst.interpolate( real_c(0), level, flag );
+      dst.interpolate( real_c( 0 ), level, flag );
    }
 
    // For 3D we work on cells and for 2D on faces
@@ -630,7 +632,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly2D( const std::shared_p
    colIdx[1] = uint_c( srcIdx[dofDataIdx[1]] );
    colIdx[2] = uint_c( srcIdx[dofDataIdx[2]] );
 
-   const uint_t elMatSize = 9;
+   const uint_t          elMatSize = 9;
    std::vector< real_t > blockMatData( elMatSize );
    for ( uint_t i = 0; i < elMatSize; i++ )
    {
@@ -676,7 +678,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly3D( const std::shared_p
       colIdx[k] = uint_c( srcIdx[vertexDoFDataIdx[k]] );
    }
 
-   const uint_t elMatSize = 16;
+   const uint_t          elMatSize = 16;
    std::vector< real_t > blockMatData( elMatSize );
    for ( uint_t i = 0; i < elMatSize; i++ )
    {
@@ -700,7 +702,8 @@ template class P1ElementwiseOperator< P1FenicsForm< p1_polar_laplacian_cell_inte
 template class P1ElementwiseOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >;
 
 // P1ElementwisePSPGOperator
-template class P1ElementwiseOperator< P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >;
+template class P1ElementwiseOperator<
+    P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >;
 
 // P1ElementwiseBlendingMassOperator
 template class P1ElementwiseOperator< P1Form_mass >;
@@ -710,5 +713,8 @@ template class P1ElementwiseOperator< P1Form_mass3D >;
 
 // P1ElementwiseBlendingLaplaceOperator
 template class P1ElementwiseOperator< P1Form_laplace >;
+
+// Needed for P1Blending(Inverse)DiagonalOperator
+template class P1ElementwiseOperator< P1RowSumForm >;
 
 } // namespace hyteg

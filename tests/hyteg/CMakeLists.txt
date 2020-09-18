@@ -266,6 +266,9 @@ endif()
 waLBerla_compile_test(FILES operators/ElementwiseOperatorAdditiveApplyTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME ElementwiseOperatorAdditiveApplyTest)
 
+waLBerla_compile_test(FILES operators/DiagonalNonConstantOperatorTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DiagonalNonConstantOperatorTest)
+
 #################### P1 ####################
 
 waLBerla_compile_test(FILES P1/P1LaplaceOperator3DTest.cpp DEPENDS hyteg core)
