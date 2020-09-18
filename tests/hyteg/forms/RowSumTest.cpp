@@ -54,6 +54,8 @@ bool RowSumTest( const uint_t& level, const std::string& meshFile,
                  rowSumFormType rowSumLaplace,
                  rowSumFormType rowSumMass )
 {
+   WALBERLA_LOG_INFO_ON_ROOT( "Running with mesh = " << meshFile << ", level = " << level );
+
    const real_t eps = 1e-14;
 
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFile );
@@ -63,8 +65,6 @@ bool RowSumTest( const uint_t& level, const std::string& meshFile,
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
 
    writeDomainPartitioningVTK( storage, "../../output", "P2RowSumTest" );
-
-   // typedef typename opTypeLap::srcType funcType;
 
    funcType< real_t > src( "src", storage, level, level );
    funcType< real_t > dstRowSumLaplace( "dstRowSumLaplace", storage, level, level );
@@ -93,11 +93,11 @@ bool RowSumTest( const uint_t& level, const std::string& meshFile,
    real_t maxError;
    error.assign( {1.0, -1.0}, {dstVerificationLaplace, dstRowSumLaplace}, level, All );
    maxError = error.getMaxMagnitude( level );
-   WALBERLA_LOG_INFO_ON_ROOT( "Error max magnitude Laplace: " << maxError << ", eps: " << eps );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> error max magnitude Laplace: " << maxError << ", eps: " << eps );
 
    error.assign( {1.0, -1.0}, {dstVerificationMass, dstRowSumMass}, level, All );
    maxError = error.getMaxMagnitude( level );
-   WALBERLA_LOG_INFO_ON_ROOT( "Error max magnitude mass: " << maxError << ", eps: " << eps );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> error max magnitude mass: " << maxError << ", eps: " << eps );
 
    bool success = maxError <= eps;
 
@@ -170,8 +170,7 @@ int main( int argc, char* argv[] )
 
    for( auto mesh = meshes.begin(); mesh != meshes.end(); ++mesh ) {
      for( uint level = 0; level <= maxLevel; ++level ) {
-       // succeeded &= RowSumTest< P1RowSumForm, P1Function, P1ConstantOperator<...,false,false,false>, P1ConstantLaplaceOperator, P1ConstantMassOperator >( 0, *mesh, rowSumLaplaceP1, rowSumMassP1 );
-       succeeded &= RowSumTest< P1RowSumForm, P1Function, P1ConstOp, P1ConstantLaplaceOperator, P1ConstantMassOperator >( 0, *mesh, rowSumLaplaceP1, rowSumMassP1 );
+       succeeded &= RowSumTest< P1RowSumForm, P1Function, P1ConstOp, P1ConstantLaplaceOperator, P1ConstantMassOperator >( level, *mesh, rowSumLaplaceP1, rowSumMassP1 );
      }
    }
 
@@ -197,7 +196,7 @@ int main( int argc, char* argv[] )
 
    for( auto mesh = meshes.begin(); mesh != meshes.end(); ++mesh ) {
      for( uint level = 0; level <= maxLevel; ++level ) {
-       succeeded &= RowSumTest< P2RowSumForm, P2Function, P2ConstantOperator, P2ConstantLaplaceOperator, P2ConstantMassOperator >( 0, *mesh, rowSumLaplaceP2, rowSumMassP2 );
+       succeeded &= RowSumTest< P2RowSumForm, P2Function, P2ConstantOperator, P2ConstantLaplaceOperator, P2ConstantMassOperator >( level, *mesh, rowSumLaplaceP2, rowSumMassP2 );
      }
    }
 
