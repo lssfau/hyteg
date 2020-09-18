@@ -51,6 +51,7 @@ class P1RowSumForm : public P1Form
    {
       out.setAll( 0 );
       Matrix3r elMat;
+      form_->setGeometryMap( this->geometryMap_ );
       form_->integrateAll( coords, elMat );
       for ( uint_t j = 0; j < 3; j++ )
          out[0] += elMat( 0, j );
@@ -59,6 +60,7 @@ class P1RowSumForm : public P1Form
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const
    {
       Matrix3r elementMatrix;
+      form_->setGeometryMap( this->geometryMap_ );
       form_->integrateAll( coords, elementMatrix );
       elMat.setAll( 0 );
       for ( uint_t i = 0; i < 3; i++ )
@@ -88,6 +90,7 @@ class P1RowSumForm : public P1Form
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const
    {
       Matrix4r elementMatrix;
+      form_->setGeometryMap( geometryMap_ );
       form_->integrateAll( coords, elementMatrix );
       elMat.setAll( 0 );
       for ( uint_t i = 0; i < 4; i++ )

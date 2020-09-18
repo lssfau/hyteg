@@ -132,6 +132,12 @@ int main( int argc, char* argv[] )
        std::make_shared< P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >();
    std::shared_ptr< P1RowSumForm > pspgFormP1 = std::make_shared< P1RowSumForm >( p1PSPGFormFenics );
 
+   auto p1MassFormHyTeG3D = std::make_shared< P1Form_mass3D >();
+   std::shared_ptr< P1RowSumForm > lumpedMassFormP1HyTeG3D = std::make_shared< P1RowSumForm >( p1MassFormHyTeG3D );
+
+   auto p2MassFormHyTeG = std::make_shared< P2Form_mass >();
+   std::shared_ptr< P2RowSumForm > lumpedMassFormP2HyTeG = std::make_shared< P2RowSumForm >( p2MassFormHyTeG );
+
    // ----------------------------
    //  Prepare setup for 2D tests
    // ----------------------------
@@ -192,6 +198,14 @@ int main( int argc, char* argv[] )
    printTestHdr( "Testing Mass Lumping for P2" );
    compareOperators< P2ConstantRowSumOperator, P2BlendingDiagonalOperator, P2RowSumForm, false >(
        storage, level, lumpedMassFormP2, 1e-17 );
+
+   printTestHdr( "Testing Mass Lumping for P1 (HyTeG Form)" );
+   compareOperators< P1LumpedMassOperator, P1BlendingDiagonalOperator, P1RowSumForm, true >(
+       storage3D, level, lumpedMassFormP1HyTeG3D, 1e-17 );
+
+   printTestHdr( "Testing Mass Lumping for P2 (HyTeG Form)" );
+   compareOperators< P2ConstantRowSumOperator, P2BlendingDiagonalOperator, P2RowSumForm, false >(
+       storage, level, lumpedMassFormP2HyTeG, 1e-17 );
 
    return 0;
 }

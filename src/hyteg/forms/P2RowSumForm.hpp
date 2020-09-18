@@ -51,6 +51,7 @@ class P2RowSumForm : public P2Form
    {
       out.setAll( 0 );
       Matrix6r elMat;
+      form_->setGeometryMap( geometryMap_ );
       form_->integrateAll( coords, elMat );
       for ( uint_t j = 0; j < 6; j++ )
          out[0] += elMat( 0, j );
@@ -64,6 +65,7 @@ class P2RowSumForm : public P2Form
    {
       out.setAll( 0 );
       Matrix6r elMat;
+      form_->setGeometryMap( geometryMap_ );
       form_->integrateAll( coords, elMat );
       for ( uint_t j = 0; j < 6; j++ )
          out[2] += elMat( 5, j );
@@ -72,6 +74,7 @@ class P2RowSumForm : public P2Form
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const
    {
       Matrix6r stiffness;
+      form_->setGeometryMap( geometryMap_ );
       form_->integrateAll( coords, stiffness );
       elMat.setAll( 0 );
       for ( uint_t i = 0; i < 6; i++ )
@@ -152,6 +155,7 @@ class P2RowSumForm : public P2Form
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const
    {
       Matrix10r stiffness;
+      form_->setGeometryMap( geometryMap_ );
       form_->integrateAll( coords, stiffness );
       elMat.setAll( 0 );
       for ( uint_t i = 0; i < 10; i++ )
