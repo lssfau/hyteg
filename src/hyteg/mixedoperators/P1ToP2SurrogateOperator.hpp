@@ -173,7 +173,6 @@ class P1ToP2SurrogateOperator : public Operator<P1Function<real_t>, P2Function<r
               DoFType                     flag,
               UpdateType                  updateType = Replace) const
    {
-      WALBERLA_ASSERT_NOT_IDENTICAL(std::addressof(src), std::addressof(dst));
 
       checkForMissingPolynomial(level);
 
