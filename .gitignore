@@ -1,8 +1,8 @@
 ### VisualStudioCode ###
 .vscode/*
 #!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
+# !.vscode/tasks.json
+# !.vscode/launch.json
 !.vscode/extensions.json
 .idea
 cmake-build-*

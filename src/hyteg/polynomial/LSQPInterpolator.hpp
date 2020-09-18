@@ -29,8 +29,9 @@ namespace hyteg {
 
 enum class LSQPType
 {
-  EDGE,
-  VERTEX
+  EDGE,     // one interpolation point on every edge of one type (HO,VE or DI) connected to a vertex.
+  VERTEX,   // one interpolation point on every vertex.
+  EDGE_ALL  // one interpolation point on every edge of one type (HO,VE or DI).
 };
 
 template<LSQPType Type>
@@ -42,6 +43,8 @@ constexpr uint_t GetNumInterpolationPoints(uint_t level)
       return (levelinfo::num_microedges_per_face(level) - 3 * levelinfo::num_microedges_per_edge(level) - 3) / 3;
     case LSQPType::VERTEX:
       return levelinfo::num_microvertices_per_face(level) - 3 * (levelinfo::num_microvertices_per_edge(level) - 2) - 3;
+    case LSQPType::EDGE_ALL:
+      return (levelinfo::num_microedges_per_face(level) - 3 * levelinfo::num_microedges_per_edge(level)) / 3;
   }
 }
 

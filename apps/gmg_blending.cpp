@@ -69,8 +69,8 @@ int main(int argc, char* argv[])
 
   uint_t level_H = parameters.getParameter<uint_t>("level_h_coarse");
   uint_t level_h = parameters.getParameter<uint_t>("level_h_fine");
-  const uint_t minLevel = 2;
-  const uint_t maxLevel = level_h - level_H;
+  const uint_t minLevel = level_H;
+  const uint_t maxLevel = level_h;
   const uint_t maxMemoryLevel = maxLevel + 1;
   const uint_t maxPolyDegree = parameters.getParameter<uint_t>("maxPolyDegree");
   const uint_t interpolationLevel = parameters.getParameter<uint_t>("interpolationLevel");
@@ -80,8 +80,8 @@ int main(int argc, char* argv[])
   const real_t coarse_tolerance = parameters.getParameter<real_t>("coarse_tolerance");
   const bool polynomialOperator = parameters.getParameter<bool>("polynomialOperator");
 
-//  MeshInfo meshInfo = MeshInfo::fromGmshFile(parameters.getParameter<std::string>("meshFilename"));
-  MeshInfo meshInfo = MeshInfo::meshUnitSquare(level_H);
+  MeshInfo meshInfo = MeshInfo::fromGmshFile(parameters.getParameter<std::string>("meshFilename"));
+  // MeshInfo meshInfo = MeshInfo::meshUnitSquare(level_H);
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   Point3D circleCenter{{0.5, 0.5, 0}};
@@ -92,9 +92,10 @@ int main(int argc, char* argv[])
      Face& face = *(it.second);
 
      std::vector< PrimitiveID > neighborEdgesOnBoundary = face.neighborEdges();
-     std::remove_if( neighborEdgesOnBoundary.begin(), neighborEdgesOnBoundary.end(),
-                     [ &setupStorage ]( const PrimitiveID & id ){ return !setupStorage.onBoundary( id ); } );
-
+     neighborEdgesOnBoundary.erase(
+      std::remove_if( neighborEdgesOnBoundary.begin(), neighborEdgesOnBoundary.end(),
+                     [ &setupStorage ]( const PrimitiveID & id ){ return !setupStorage.onBoundary( id ); } )
+      , neighborEdgesOnBoundary.end());
      if( neighborEdgesOnBoundary.size() > 0 )
      {
         Edge& edge = *setupStorage.getEdge( neighborEdgesOnBoundary[0] );
@@ -142,7 +143,9 @@ int main(int argc, char* argv[])
   typedef hyteg::P1PolynomialBlendingLaplaceOperator SolveOperatorPoly;
 
   std::function<real_t(const hyteg::Point3D&)> exact = [](const hyteg::Point3D& x) { return sin(x[0])*sinh(x[1]); };
-  std::function<real_t(const hyteg::Point3D&)> rhs = [](const hyteg::Point3D& x) { return -2*(x[0] + 1)*cos(x[0])*sinh(x[1]) - 3*sin(x[0])*cosh(x[1]); };
+  // std::function<real_t(const hyteg::Point3D&)> rhs = [](const hyteg::Point3D& x) { return -2*(x[0] + 1)*cos(x[0])*sinh(x[1]) - 3*sin(x[0])*cosh(x[1]); };
+  std::function<real_t(const hyteg::Point3D&)> rhs = [](const hyteg::Point3D&) { return 0.0; };
+
   std::function<real_t(const hyteg::Point3D&)> zeros = [](const hyteg::Point3D&) { return 0.0; };
   std::function<real_t(const hyteg::Point3D&)> ones  = [](const hyteg::Point3D&) { return 1.0; };
 
