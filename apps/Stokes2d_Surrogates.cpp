@@ -98,30 +98,30 @@ real_t solve(std::shared_ptr<StokesOperator> L, std::shared_ptr<PrimitiveStorage
    P2Function< real_t >             T("T", storage, minLevel, maxLevel);
    P2P1TaylorHoodFunction< real_t > tmp("", storage, minLevel, maxLevel);
 
-   Lu.u.setToZero(maxLevel);
-   Lu.v.setToZero(maxLevel);
+   Lu.uvw.u.setToZero(maxLevel);
+   Lu.uvw.v.setToZero(maxLevel);
    Lu.p.setToZero(maxLevel);
 
    // init boundary
-   up.u.interpolate(u_boundary, maxLevel, DirichletBoundary);
-   up.v.interpolate(v_boundary, maxLevel, DirichletBoundary);
+   up.uvw.u.interpolate(u_boundary, maxLevel, DirichletBoundary);
+   up.uvw.v.interpolate(v_boundary, maxLevel, DirichletBoundary);
 
    // init rhs
-   tmp.u.interpolate(rhs_x, maxLevel, All);
-   tmp.v.interpolate(rhs_y, maxLevel, All);
-   M2.apply(tmp.u, f.u, maxLevel, All);
-   M2.apply(tmp.v, f.v, maxLevel, All);
+   tmp.uvw.u.interpolate(rhs_x, maxLevel, All);
+   tmp.uvw.v.interpolate(rhs_y, maxLevel, All);
+   M2.apply(tmp.uvw.u, f.uvw.u, maxLevel, All);
+   M2.apply(tmp.uvw.v, f.uvw.v, maxLevel, All);
    f.p.setToZero(maxLevel);
 
    // init exact solution
    T.interpolate(T_field, maxLevel, All);
-   up_exact.u.interpolate(u_exact, maxLevel, All);
-   up_exact.v.interpolate(v_exact, maxLevel, All);
+   up_exact.uvw.u.interpolate(u_exact, maxLevel, All);
+   up_exact.uvw.v.interpolate(v_exact, maxLevel, All);
    up_exact.p.interpolate(p_exact, maxLevel, All);
    vertexdof::projectMean(up_exact.p, maxLevel);
 
-   communication::syncP2FunctionBetweenPrimitives(up_exact.u, maxLevel);
-   communication::syncP2FunctionBetweenPrimitives(up_exact.v, maxLevel);
+   communication::syncP2FunctionBetweenPrimitives(up_exact.uvw.u, maxLevel);
+   communication::syncP2FunctionBetweenPrimitives(up_exact.uvw.v, maxLevel);
    communication::syncFunctionBetweenPrimitives(up_exact.p, maxLevel);
 
    // solver
@@ -154,11 +154,11 @@ real_t solve(std::shared_ptr<StokesOperator> L, std::shared_ptr<PrimitiveStorage
       // compute error
       vertexdof::projectMean(up.p, maxLevel);
       err.assign({1.0, -1.0}, {up, up_exact}, maxLevel);
-      M2.apply(err.u, tmp.u, maxLevel, Inner | NeumannBoundary, Replace);
-      M2.apply(err.v, tmp.v, maxLevel, Inner | NeumannBoundary, Replace);
+      M2.apply(err.uvw.u, tmp.uvw.u, maxLevel, Inner | NeumannBoundary, Replace);
+      M2.apply(err.uvw.v, tmp.uvw.v, maxLevel, Inner | NeumannBoundary, Replace);
       M1.apply(err.p, tmp.p, maxLevel, Inner | NeumannBoundary, Replace);
-      discr_l2_err_u = std::sqrt(err.u.dotGlobal(tmp.u, maxLevel,Inner | NeumannBoundary));
-      discr_l2_err_v = std::sqrt(err.v.dotGlobal(tmp.v, maxLevel,Inner | NeumannBoundary));
+      discr_l2_err_u = std::sqrt(err.uvw.u.dotGlobal(tmp.uvw.u, maxLevel,Inner | NeumannBoundary));
+      discr_l2_err_v = std::sqrt(err.uvw.v.dotGlobal(tmp.uvw.v, maxLevel,Inner | NeumannBoundary));
       discr_l2_err_p = std::sqrt(err.p.dotGlobal(tmp.p, maxLevel,Inner | NeumannBoundary));
       discr_l2_err_uv = std::sqrt(discr_l2_err_u * discr_l2_err_u + discr_l2_err_v * discr_l2_err_v);
 
@@ -166,8 +166,8 @@ real_t solve(std::shared_ptr<StokesOperator> L, std::shared_ptr<PrimitiveStorage
       res_old = res;
       L->apply(up, Lu, maxLevel, hyteg::Inner | NeumannBoundary);
       r.assign({1.0, -1.0}, {f, Lu}, maxLevel, hyteg::Inner | NeumannBoundary);
-      M2.apply(r.u, tmp.u, maxLevel, hyteg::All, Replace);
-      M2.apply(r.v, tmp.v, maxLevel, hyteg::All, Replace);
+      M2.apply(r.uvw.u, tmp.uvw.u, maxLevel, hyteg::All, Replace);
+      M2.apply(r.uvw.v, tmp.uvw.v, maxLevel, hyteg::All, Replace);
       M1.apply(r.p, tmp.p, maxLevel, hyteg::All, Replace);
       res = std::sqrt(r.dotGlobal(tmp, maxLevel, All));
 
@@ -229,14 +229,14 @@ real_t solve(std::shared_ptr<StokesOperator> L, std::shared_ptr<PrimitiveStorage
       }
 
       hyteg::VTKOutput vtkOutput("../output", name, storage);
-      vtkOutput.add(up.u);
-      vtkOutput.add(up.v);
+      vtkOutput.add(up.uvw.u);
+      vtkOutput.add(up.uvw.v);
       vtkOutput.add(up.p);
-      vtkOutput.add(up_exact.u);
-      vtkOutput.add(up_exact.v);
+      vtkOutput.add(up_exact.uvw.u);
+      vtkOutput.add(up_exact.uvw.v);
       vtkOutput.add(up_exact.p);
-      vtkOutput.add(err.u);
-      vtkOutput.add(err.v);
+      vtkOutput.add(err.uvw.u);
+      vtkOutput.add(err.uvw.v);
       vtkOutput.add(err.p);
       vtkOutput.add(T);
       vtkOutput.write(maxLevel, 0);
