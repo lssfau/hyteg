@@ -23,6 +23,7 @@
 
 namespace hyteg {
 
+/// Base class for all forms
 class Form
 {
  public:
@@ -36,7 +37,15 @@ class Form
 
    virtual bool assembly3DDefined() const = 0;
 
-   virtual void setGeometryMap( const std::shared_ptr< GeometryMap > & geometryMap ) { geometryMap_ = geometryMap; }
+   /// Set the geometry/blending map for the form
+   ///
+   /// \note
+   /// - This method is used e.g. by the ElementwiseOperators.
+   /// - In the case of the FEniCS forms the map is ignored.
+   void setGeometryMap( const std::shared_ptr< GeometryMap > & geometryMap ) {
+     WALBERLA_ASSERT_NOT_NULLPTR( geometryMap );
+     geometryMap_ = geometryMap;
+   }
 
  protected:
 

@@ -29,9 +29,6 @@ class P1FormHyTeG : public P1Form
  public:
    virtual ~P1FormHyTeG() {}
 
-   // virtual void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const { WALBERLA_ABORT( "Not implemented." ); }
-   // virtual void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const { WALBERLA_ABORT( "Not implemented." ); }
-
    // implemented here to allow using the forms in form_hyteg_generated with the P1ElementwiseOperator
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const override
    {
@@ -91,11 +88,6 @@ class P1FormHyTeG : public P1Form
       return false;
    };
 
-   // needed for the blending
-   void setGeometryMap( const std::shared_ptr< GeometryMap > map ) { this->geometryMap_ = map; }
-
- protected:
-   std::shared_ptr< GeometryMap > geometryMap_;
 };
 
 } // namespace hyteg

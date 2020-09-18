@@ -37,6 +37,12 @@ class P1ToP2Form_divt : public P1ToP2FormHyTeG
    {
       WALBERLA_ABORT( "P1ToP2Form_divt not implemented for requested template value (direction)!" );
    };
+
+   bool assemble2D() const final { return false; };
+   bool assemble3D() const final { return false; };
+   bool assembly2DDefined() const final { return false; };
+   bool assembly3DDefined() const final { return false; };
+
 };
 
 
@@ -47,6 +53,11 @@ template <>
 class P1ToP2Form_divt< 0 > : public P1ToP2FormHyTeG
 {
  public:
+
+   bool assemble2D() const final { return true; };
+   bool assemble3D() const final { return true; };
+   bool assembly2DDefined() const final { return true; };
+   bool assembly3DDefined() const final { return true; };
 
    // ---------
    //  2D Case
@@ -294,6 +305,11 @@ class P1ToP2Form_divt< 1 > : public P1ToP2FormHyTeG
 {
  public:
 
+   bool assemble2D() const final { return true; };
+   bool assemble3D() const final { return true; };
+   bool assembly2DDefined() const final { return true; };
+   bool assembly3DDefined() const final { return true; };
+
    // ---------
    //  2D Case
    // ---------
@@ -538,6 +554,11 @@ template <>
 class P1ToP2Form_divt< 2 > : public P1ToP2FormHyTeG
 {
  public:
+
+   bool assemble2D() const final { return false; };
+   bool assemble3D() const final { return true; };
+   bool assembly2DDefined() const final { return false; };
+   bool assembly3DDefined() const final { return true; };
 
    // ---------
    //  2D Case

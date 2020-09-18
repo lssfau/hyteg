@@ -25,7 +25,7 @@
 
 namespace hyteg {
 
-class P1ToP2FormHyTeG
+class P1ToP2FormHyTeG : public Form
 {
  public:
    virtual ~P1ToP2FormHyTeG() {}
@@ -33,11 +33,6 @@ class P1ToP2FormHyTeG
    virtual void integrateAll( const std::array< Point3D, 3 >& coords, Matrixr< 6, 3 >& elMat ) const = 0;
 
    virtual void integrateAll( const std::array< Point3D, 4 >& coords, Matrixr< 10, 4 >& elMat ) const = 0;
-
-   void setGeometryMap( const std::shared_ptr< GeometryMap > map ) { this->geometryMap_ = map; }
-
- protected:
-   std::shared_ptr< GeometryMap > geometryMap_;
 };
 
 } // namespace hyteg
