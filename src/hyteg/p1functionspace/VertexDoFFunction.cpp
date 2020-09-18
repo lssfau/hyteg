@@ -448,19 +448,62 @@ void VertexDoFFunction< ValueType >::setToZero( uint_t level ) const
 }
 
 template < typename ValueType >
-real_t VertexDoFFunction< ValueType >::evaluate( const Point3D& coordinates, uint_t level ) const
+bool VertexDoFFunction< ValueType >::evaluate( const Point3D& coordinates,
+                                               uint_t         level,
+                                               ValueType&     value,
+                                               real_t         searchToleranceRadius ) const
 {
-   // Check if 2D or 3D function
+   WALBERLA_UNUSED( coordinates );
+   WALBERLA_UNUSED( level );
+   WALBERLA_UNUSED( value );
+   WALBERLA_UNUSED( searchToleranceRadius );
+   WALBERLA_ABORT( "VertexDoFFunction< ValueType >::evaluate not implemented for requested template parameter" );
+}
+
+template <>
+bool VertexDoFFunction< real_t >::evaluate( const Point3D& coordinates,
+                                            uint_t         level,
+                                            real_t&        value,
+                                            real_t         searchToleranceRadius ) const
+{
    if ( !this->getStorage()->hasGlobalCells() )
    {
+      Point2D coordinates2D( {coordinates[0], coordinates[1]} );
+
       for ( auto& it : this->getStorage()->getFaces() )
       {
          Face& face = *it.second;
 
-         if ( sphereTriangleIntersection(
-                  coordinates, 1e-05, face.getCoordinates()[0], face.getCoordinates()[1], face.getCoordinates()[2] ) )
+         Point2D faceCoodinates0( {face.getCoordinates()[0][0], face.getCoordinates()[0][1]} );
+         Point2D faceCoodinates1( {face.getCoordinates()[1][0], face.getCoordinates()[1][1]} );
+         Point2D faceCoodinates2( {face.getCoordinates()[2][0], face.getCoordinates()[2][1]} );
+
+         if ( isPointInTriangle( coordinates2D, faceCoodinates0, faceCoodinates1, faceCoodinates2 ) )
          {
-            return vertexdof::macroface::evaluate< ValueType >( level, face, coordinates, faceDataID_ );
+            value = vertexdof::macroface::evaluate< real_t >( level, face, coordinates, faceDataID_ );
+            return true;
+         }
+      }
+
+      if ( searchToleranceRadius > 0 )
+      {
+         for ( auto& it : this->getStorage()->getFaces() )
+         {
+            Face& face = *it.second;
+
+            Point2D faceCoodinates0( {face.getCoordinates()[0][0], face.getCoordinates()[0][1]} );
+            Point2D faceCoodinates1( {face.getCoordinates()[1][0], face.getCoordinates()[1][1]} );
+            Point2D faceCoodinates2( {face.getCoordinates()[2][0], face.getCoordinates()[2][1]} );
+
+            if ( circleTriangleIntersection( coordinates2D,
+                                             searchToleranceRadius,
+                                             faceCoodinates0,
+                                             faceCoodinates1,
+                                             faceCoodinates2 ) )
+            {
+               value = vertexdof::macroface::evaluate< real_t >( level, face, coordinates, faceDataID_ );
+               return true;
+            }
          }
       }
    }
@@ -470,19 +513,43 @@ real_t VertexDoFFunction< ValueType >::evaluate( const Point3D& coordinates, uin
       {
          Cell& cell = *it.second;
 
-         if ( sphereTetrahedronIntersection( coordinates,
-                                    1e-05,
+         if ( isPointInTetrahedron( coordinates,
+
                                     cell.getCoordinates()[0],
                                     cell.getCoordinates()[1],
                                     cell.getCoordinates()[2],
-                                    cell.getCoordinates()[3] ) )
+                                    cell.getCoordinates()[3],
+                                    cell.getFaceInwardNormal( 0 ),
+                                    cell.getFaceInwardNormal( 1 ),
+                                    cell.getFaceInwardNormal( 2 ),
+                                    cell.getFaceInwardNormal( 3 ) ) )
          {
-            return vertexdof::macrocell::evaluate< ValueType >( level, cell, coordinates, cellDataID_ );
+            value = vertexdof::macrocell::evaluate< real_t >( level, cell, coordinates, cellDataID_ );
+            return true;
+         }
+      }
+
+      if ( searchToleranceRadius > 0 )
+      {
+         for ( auto& it : this->getStorage()->getCells() )
+         {
+            Cell& cell = *it.second;
+
+            if ( sphereTetrahedronIntersection( coordinates,
+                                                searchToleranceRadius,
+                                                cell.getCoordinates()[0],
+                                                cell.getCoordinates()[1],
+                                                cell.getCoordinates()[2],
+                                                cell.getCoordinates()[3] ) )
+            {
+               value = vertexdof::macrocell::evaluate< real_t >( level, cell, coordinates, cellDataID_ );
+               return true;
+            }
          }
       }
    }
 
-   WALBERLA_ABORT( "There is no local macro element including a point at the given coordinates " << coordinates )
+   return false;
 }
 
 template < typename ValueType >
