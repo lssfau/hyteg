@@ -19,15 +19,77 @@
  */
 #pragma once
 
+#include "hyteg/FunctionIterator.hpp"
 #include "hyteg/Operator.hpp"
+#include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/forms/P1RowSumForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
+#include "hyteg/p1functionspace/P1Petsc.hpp"
+#include "hyteg/p1functionspace/VertexDoFFunction.hpp"
+#include "hyteg/p2functionspace/P2Petsc.hpp"
 
 namespace hyteg {
 
 using walberla::real_t;
+
+// As long as we cannot use FunctionIterator< P2Function > we specialise here
+namespace workaround {
+
+template < typename func_T >
+void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >&               mat,
+                               const func_T&                                             diagVals,
+                               const typename func_T::template FunctionType< PetscInt >& numerator,
+                               uint_t                                                    level,
+                               DoFType                                                   flag )
+{
+   WALBERLA_ABORT( "externalDiagonalAssembly() not implemented for " << typeid( func_T ).name() );
+};
+
+template <>
+void externalDiagonalAssembly< P1Function< real_t > >( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                       const P1Function< real_t >&                 diagVals,
+                                                       const P1Function< PetscInt >&               numerator,
+                                                       uint_t                                      level,
+                                                       DoFType                                     flag )
+{
+   FunctionIterator< P1Function< PetscInt > > idxIter( numerator, level );
+   for ( auto valIter : FunctionIterator< P1Function< real_t > >( diagVals, level ) )
+   {
+      WALBERLA_ASSERT( valIter.isVertexDoF() );
+      mat->addValue( ( *idxIter ).value(), ( *idxIter ).value(), valIter.value() );
+      idxIter++;
+   }
+};
+
+template <>
+void externalDiagonalAssembly< P2Function< real_t > >( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                       const P2Function< real_t >&                 diagVals,
+                                                       const P2Function< PetscInt >&               numerator,
+                                                       uint_t                                      level,
+                                                       DoFType                                     flag )
+{
+   using vertexdof::VertexDoFFunction;
+
+   FunctionIterator< VertexDoFFunction< PetscInt > > idxIterV( numerator.getVertexDoFFunction(), level );
+   for ( auto valIter : FunctionIterator< VertexDoFFunction< real_t > >( diagVals.getVertexDoFFunction(), level ) )
+   {
+      WALBERLA_ASSERT( valIter.isVertexDoF() );
+      mat->addValue( ( *idxIterV ).value(), ( *idxIterV ).value(), valIter.value() );
+      idxIterV++;
+   }
+
+   FunctionIterator< EdgeDoFFunction< PetscInt > > idxIterE( numerator.getEdgeDoFFunction(), level );
+   for ( auto valIter : FunctionIterator< EdgeDoFFunction< real_t > >( diagVals.getEdgeDoFFunction(), level ) )
+   {
+      WALBERLA_ASSERT( valIter.isEdgeDoF() );
+      mat->addValue( ( *idxIterE ).value(), ( *idxIterE ).value(), valIter.value() );
+      idxIterE++;
+   }
+};
+
+} // namespace workaround
 
 /// Provides an operator with only "diagonal" values that may change from DoF to DoF
 ///
@@ -97,6 +159,22 @@ class DiagonalNonConstantOperator : public Operator< typename opType< formType >
       }
    }
 
+   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >&                                    mat,
+                             const typename opType< formType >::srcType::template FunctionType< PetscInt >& numerator,
+                             uint_t                                                                         level,
+                             DoFType                                                                        flag ) const
+   {
+      // This is a crappy workaround. We are re-computing information that we already have. The internal oper_ already
+      // has computed its diagonal values. So we are redoing work here and additionally we are not making use of the
+      // fact that the matrix will only have entries on the diagonal in the assembly.
+      //
+      // AND it does not work for InvertDiagonal = true !!
+      // oper_->assembleLocalMatrix( mat, numerator, numerator, level, flag );
+
+      std::shared_ptr< funcType > opVals = InvertDiagonal ? oper_->getInverseDiagonalValues() : oper_->getDiagonalValues();
+      workaround::externalDiagonalAssembly< funcType >( mat, *opVals, numerator, level, flag );
+   }
+
  private:
    std::shared_ptr< formType >           form_;
    std::unique_ptr< opType< formType > > oper_;
@@ -114,4 +192,80 @@ typedef DiagonalNonConstantOperator< P2ElementwiseOperator, P2RowSumForm, false 
 /// Diagonal inverse operator for P2 HyTeG forms potentially including blending and/or variable coefficients
 typedef DiagonalNonConstantOperator< P2ElementwiseOperator, P2RowSumForm, true > P2BlendingInverseDiagonalOperator;
 
+// ========================
+//  Sparse Matrix Assembly
+// ========================
+namespace petsc {
+
+/// Version of createMatrix function for DiagonalNonConstantOperator
+template < template < class > class opType, class formType, bool InvertDiagonal = false >
+inline void createMatrix(
+    const DiagonalNonConstantOperator< opType, formType, InvertDiagonal >&                                             opr,
+    const typename DiagonalNonConstantOperator< opType, formType, InvertDiagonal >::template FunctionType< PetscInt >& src,
+    const typename DiagonalNonConstantOperator< opType, formType, InvertDiagonal >::template FunctionType< PetscInt >& dst,
+    const std::shared_ptr< SparseMatrixProxy >&                                                                        mat,
+    uint_t                                                                                                             level,
+    DoFType                                                                                                            flag )
+{
+   // we don't need to pass same info twice
+   WALBERLA_UNUSED( dst );
+
+   // delegate work to operator method
+   opr.assembleLocalMatrix( mat, src, level, flag );
+}
+
+// We use this specialisations, as the definition above is not sufficient for the
+// compiler to recognise that it should call the above and not the templated createMatrix
+// function defined in P1Petsc.hpp. Why it works for the createMatrix template functions
+// for the P[12]ElementwiseOperator in ElementwiseOperatorPetsc.hpp I do not understand.
+// Maybe a missing include somewhere?
+template <>
+inline void createMatrix( const P1BlendingDiagonalOperator&           opr,
+                          const P1Function< PetscInt >&               src,
+                          const P1Function< PetscInt >&               dst,
+                          const std::shared_ptr< SparseMatrixProxy >& mat,
+                          uint_t                                      level,
+                          DoFType                                     flag )
+{
+   WALBERLA_UNUSED( dst );
+   opr.assembleLocalMatrix( mat, src, level, flag );
+}
+
+template <>
+inline void createMatrix( const P1BlendingInverseDiagonalOperator&    opr,
+                          const P1Function< PetscInt >&               src,
+                          const P1Function< PetscInt >&               dst,
+                          const std::shared_ptr< SparseMatrixProxy >& mat,
+                          uint_t                                      level,
+                          DoFType                                     flag )
+{
+   WALBERLA_UNUSED( dst );
+   opr.assembleLocalMatrix( mat, src, level, flag );
+}
+
+template <>
+inline void createMatrix( const P2BlendingDiagonalOperator&           opr,
+                          const P2Function< PetscInt >&               src,
+                          const P2Function< PetscInt >&               dst,
+                          const std::shared_ptr< SparseMatrixProxy >& mat,
+                          uint_t                                      level,
+                          DoFType                                     flag )
+{
+   WALBERLA_UNUSED( dst );
+   opr.assembleLocalMatrix( mat, src, level, flag );
+}
+
+template <>
+inline void createMatrix( const P2BlendingInverseDiagonalOperator&    opr,
+                          const P2Function< PetscInt >&               src,
+                          const P2Function< PetscInt >&               dst,
+                          const std::shared_ptr< SparseMatrixProxy >& mat,
+                          uint_t                                      level,
+                          DoFType                                     flag )
+{
+   WALBERLA_UNUSED( dst );
+   opr.assembleLocalMatrix( mat, src, level, flag );
+}
+
+} // namespace petsc
 } // namespace hyteg
