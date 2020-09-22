@@ -240,6 +240,9 @@ int main( int argc, char* argv[] )
    auto                            p2MassFormHyTeG       = std::make_shared< P2Form_mass >();
    std::shared_ptr< P2RowSumForm > lumpedMassFormP2HyTeG = std::make_shared< P2RowSumForm >( p2MassFormHyTeG );
 
+   typedef P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > P1LaplaceForm_T;
+   auto p1LaplaceForm2D = std::make_shared< P1LaplaceForm_T >();
+
    // ----------------------------
    //  Prepare setup for 2D tests
    // ----------------------------
@@ -258,16 +261,21 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "============\n  2D TESTS\n============" );
 
    printTestHdr( "Testing Mass Lumping for P1" );
-   compareOperators< P1LumpedMassOperator, P1BlendingDiagonalOperator, P1RowSumForm, true >(
+   compareOperators< P1LumpedMassOperator, P1BlendingLumpedDiagonalOperator, P1RowSumForm, true >(
        storage, level, lumpedMassFormP1, 5e-17 );
 
    printTestHdr( "Testing Inverted Mass Lumping for P1" );
-   compareOperators< P1LumpedInvMassOperator, P1BlendingInverseDiagonalOperator, P1RowSumForm, true >(
+   compareOperators< P1LumpedInvMassOperator, P1BlendingLumpedInverseDiagonalOperator, P1RowSumForm, true >(
        storage, level, lumpedMassFormP1, 1e-10, true );
 
    printTestHdr( "Testing Mass Lumping for P2" );
-   compareOperators< P2ConstantRowSumOperator, P2BlendingDiagonalOperator, P2RowSumForm, false >(
+   compareOperators< P2ConstantRowSumOperator, P2BlendingLumpedDiagonalOperator, P2RowSumForm, false >(
        storage, level, lumpedMassFormP2, 1e-17 );
+
+   printTestHdr( "Testing Laplace for P1" );
+   typedef DiagonalNonConstantOperator< P1ElementwiseOperator, P1LaplaceForm_T, false > P1BlendingLaplaceDiagonalOperator;
+   compareOperators< P1DiagonalLaplaceOperator, P1BlendingLaplaceDiagonalOperator, P1LaplaceForm_T, true >(
+       storage, level, p1LaplaceForm2D, 5e-15 );
 
    // ----------------------------
    //  Prepare setup for 3D tests
@@ -285,23 +293,23 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "============\n  3D TESTS\n============" );
 
    printTestHdr( "Testing Mass Lumping for P1 (FEniCS Form)" );
-   compareOperators< P1LumpedMassOperator, P1BlendingDiagonalOperator, P1RowSumForm, true >(
+   compareOperators< P1LumpedMassOperator, P1BlendingLumpedDiagonalOperator, P1RowSumForm, true >(
        storage3D, level, lumpedMassFormP1, 1e-16 );
 
    printTestHdr( "Testing Inverted Mass Lumping for P1 (FEniCS Form)" );
-   compareOperators< P1LumpedInvMassOperator, P1BlendingInverseDiagonalOperator, P1RowSumForm, true >(
+   compareOperators< P1LumpedInvMassOperator, P1BlendingLumpedInverseDiagonalOperator, P1RowSumForm, true >(
        storage, level, lumpedMassFormP1, 1e-10 );
 
    printTestHdr( "Testing Mass Lumping for P2 (FEniCS Form)" );
-   compareOperators< P2ConstantRowSumOperator, P2BlendingDiagonalOperator, P2RowSumForm, false >(
+   compareOperators< P2ConstantRowSumOperator, P2BlendingLumpedDiagonalOperator, P2RowSumForm, false >(
        storage, level, lumpedMassFormP2, 1e-17 );
 
    printTestHdr( "Testing Mass Lumping for P1 (HyTeG Form)" );
-   compareOperators< P1LumpedMassOperator, P1BlendingDiagonalOperator, P1RowSumForm, true >(
+   compareOperators< P1LumpedMassOperator, P1BlendingLumpedDiagonalOperator, P1RowSumForm, true >(
        storage3D, level, lumpedMassFormP1HyTeG3D, 5e-17 );
 
    printTestHdr( "Testing Mass Lumping for P2 (HyTeG Form)" );
-   compareOperators< P2ConstantRowSumOperator, P2BlendingDiagonalOperator, P2RowSumForm, false >(
+   compareOperators< P2ConstantRowSumOperator, P2BlendingLumpedDiagonalOperator, P2RowSumForm, false >(
        storage, level, lumpedMassFormP2HyTeG, 1e-16 );
 
    // ----------------------
@@ -311,14 +319,14 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "===================\n  Matrix Assembly\n===================" );
 
    printTestHdr( "Testing Mass Lumping for P2 (HyTeG Form, 2D)" );
-   testAssembly< P2BlendingDiagonalOperator, P2RowSumForm >( storage, level, lumpedMassFormP2HyTeG );
+   testAssembly< P2BlendingLumpedDiagonalOperator, P2RowSumForm >( storage, level, lumpedMassFormP2HyTeG );
 
    printTestHdr( "Testing Mass Lumping for P1 (FEniCS Form, 2D)" );
-   compareMatrices< P1LumpedMassOperator, P1BlendingDiagonalOperator, P1RowSumForm, true >(
+   compareMatrices< P1LumpedMassOperator, P1BlendingLumpedDiagonalOperator, P1RowSumForm, true >(
        storage, level, lumpedMassFormP1, 1e-16 );
 
    printTestHdr( "Testing Inverted Mass Lumping for P1 (FEniCS Form, 2D)" );
-   compareMatrices< P1LumpedInvMassOperator, P1BlendingInverseDiagonalOperator, P1RowSumForm, true >(
+   compareMatrices< P1LumpedInvMassOperator, P1BlendingLumpedInverseDiagonalOperator, P1RowSumForm, true >(
        storage, level, lumpedMassFormP1, 1e-11 );
 
    return 0;

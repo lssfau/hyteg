@@ -164,13 +164,6 @@ class DiagonalNonConstantOperator : public Operator< typename opType< formType >
                              uint_t                                                                         level,
                              DoFType                                                                        flag ) const
    {
-      // This is a crappy workaround. We are re-computing information that we already have. The internal oper_ already
-      // has computed its diagonal values. So we are redoing work here and additionally we are not making use of the
-      // fact that the matrix will only have entries on the diagonal in the assembly.
-      //
-      // AND it does not work for InvertDiagonal = true !!
-      // oper_->assembleLocalMatrix( mat, numerator, numerator, level, flag );
-
       std::shared_ptr< funcType > opVals = InvertDiagonal ? oper_->getInverseDiagonalValues() : oper_->getDiagonalValues();
       workaround::externalDiagonalAssembly< funcType >( mat, *opVals, numerator, level, flag );
    }
@@ -181,16 +174,16 @@ class DiagonalNonConstantOperator : public Operator< typename opType< formType >
 };
 
 /// Diagonal operator for P1 HyTeG forms potentially including blending and/or variable coefficients
-typedef DiagonalNonConstantOperator< P1ElementwiseOperator, P1RowSumForm, false > P1BlendingDiagonalOperator;
+typedef DiagonalNonConstantOperator< P1ElementwiseOperator, P1RowSumForm, false > P1BlendingLumpedDiagonalOperator;
 
 /// Diagonal inverse operator for P1 HyTeG forms potentially including blending and/or variable coefficients
-typedef DiagonalNonConstantOperator< P1ElementwiseOperator, P1RowSumForm, true > P1BlendingInverseDiagonalOperator;
+typedef DiagonalNonConstantOperator< P1ElementwiseOperator, P1RowSumForm, true > P1BlendingLumpedInverseDiagonalOperator;
 
 /// Diagonal operator for P2 HyTeG forms potentially including blending and/or variable coefficients
-typedef DiagonalNonConstantOperator< P2ElementwiseOperator, P2RowSumForm, false > P2BlendingDiagonalOperator;
+typedef DiagonalNonConstantOperator< P2ElementwiseOperator, P2RowSumForm, false > P2BlendingLumpedDiagonalOperator;
 
 /// Diagonal inverse operator for P2 HyTeG forms potentially including blending and/or variable coefficients
-typedef DiagonalNonConstantOperator< P2ElementwiseOperator, P2RowSumForm, true > P2BlendingInverseDiagonalOperator;
+typedef DiagonalNonConstantOperator< P2ElementwiseOperator, P2RowSumForm, true > P2BlendingLumpedInverseDiagonalOperator;
 
 // ========================
 //  Sparse Matrix Assembly
@@ -220,7 +213,7 @@ inline void createMatrix(
 // for the P[12]ElementwiseOperator in ElementwiseOperatorPetsc.hpp I do not understand.
 // Maybe a missing include somewhere?
 template <>
-inline void createMatrix( const P1BlendingDiagonalOperator&           opr,
+inline void createMatrix( const P1BlendingLumpedDiagonalOperator&     opr,
                           const P1Function< PetscInt >&               src,
                           const P1Function< PetscInt >&               dst,
                           const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -232,19 +225,19 @@ inline void createMatrix( const P1BlendingDiagonalOperator&           opr,
 }
 
 template <>
-inline void createMatrix( const P1BlendingInverseDiagonalOperator&    opr,
-                          const P1Function< PetscInt >&               src,
-                          const P1Function< PetscInt >&               dst,
-                          const std::shared_ptr< SparseMatrixProxy >& mat,
-                          uint_t                                      level,
-                          DoFType                                     flag )
+inline void createMatrix( const P1BlendingLumpedInverseDiagonalOperator& opr,
+                          const P1Function< PetscInt >&                  src,
+                          const P1Function< PetscInt >&                  dst,
+                          const std::shared_ptr< SparseMatrixProxy >&    mat,
+                          uint_t                                         level,
+                          DoFType                                        flag )
 {
    WALBERLA_UNUSED( dst );
    opr.assembleLocalMatrix( mat, src, level, flag );
 }
 
 template <>
-inline void createMatrix( const P2BlendingDiagonalOperator&           opr,
+inline void createMatrix( const P2BlendingLumpedDiagonalOperator&     opr,
                           const P2Function< PetscInt >&               src,
                           const P2Function< PetscInt >&               dst,
                           const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -256,12 +249,12 @@ inline void createMatrix( const P2BlendingDiagonalOperator&           opr,
 }
 
 template <>
-inline void createMatrix( const P2BlendingInverseDiagonalOperator&    opr,
-                          const P2Function< PetscInt >&               src,
-                          const P2Function< PetscInt >&               dst,
-                          const std::shared_ptr< SparseMatrixProxy >& mat,
-                          uint_t                                      level,
-                          DoFType                                     flag )
+inline void createMatrix( const P2BlendingLumpedInverseDiagonalOperator& opr,
+                          const P2Function< PetscInt >&                  src,
+                          const P2Function< PetscInt >&                  dst,
+                          const std::shared_ptr< SparseMatrixProxy >&    mat,
+                          uint_t                                         level,
+                          DoFType                                        flag )
 {
    WALBERLA_UNUSED( dst );
    opr.assembleLocalMatrix( mat, src, level, flag );
