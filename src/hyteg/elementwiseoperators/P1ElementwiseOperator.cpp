@@ -512,7 +512,11 @@ void P1ElementwiseOperator< P1Form >::assembleLocalMatrix( const std::shared_ptr
                                                            DoFType                                     flag ) const
 {
    // We currently ignore the flag provided!
-   WALBERLA_UNUSED( flag );
+   // WALBERLA_UNUSED( flag );
+   if ( flag != All )
+   {
+      WALBERLA_LOG_WARNING_ON_ROOT( "Input flag ignored in P1ElementwiseOperator::assembleLocalMatrix(); using flag = All" );
+   }
 
    // For 3D we work on cells and for 2D on faces
    if ( storage_->hasGlobalCells() )

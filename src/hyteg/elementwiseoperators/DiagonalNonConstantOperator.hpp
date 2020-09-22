@@ -45,49 +45,21 @@ void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >&      
                                DoFType                                                   flag )
 {
    WALBERLA_ABORT( "externalDiagonalAssembly() not implemented for " << typeid( func_T ).name() );
-};
+}
 
-template <>
-void externalDiagonalAssembly< P1Function< real_t > >( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                       const P1Function< real_t >&                 diagVals,
-                                                       const P1Function< PetscInt >&               numerator,
-                                                       uint_t                                      level,
-                                                       DoFType                                     flag )
-{
-   FunctionIterator< P1Function< PetscInt > > idxIter( numerator, level );
-   for ( auto valIter : FunctionIterator< P1Function< real_t > >( diagVals, level ) )
-   {
-      WALBERLA_ASSERT( valIter.isVertexDoF() );
-      mat->addValue( ( *idxIter ).value(), ( *idxIter ).value(), valIter.value() );
-      idxIter++;
-   }
-};
+#ifndef INSTANTIATE_EXTERNAL_DIAGONAL_ASSEMBLY
+extern template void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                               const P1Function< real_t >&                 diagVals,
+                                               const P1Function< PetscInt >&               numerator,
+                                               uint_t                                      level,
+                                               DoFType                                     flag );
 
-template <>
-void externalDiagonalAssembly< P2Function< real_t > >( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                       const P2Function< real_t >&                 diagVals,
-                                                       const P2Function< PetscInt >&               numerator,
-                                                       uint_t                                      level,
-                                                       DoFType                                     flag )
-{
-   using vertexdof::VertexDoFFunction;
-
-   FunctionIterator< VertexDoFFunction< PetscInt > > idxIterV( numerator.getVertexDoFFunction(), level );
-   for ( auto valIter : FunctionIterator< VertexDoFFunction< real_t > >( diagVals.getVertexDoFFunction(), level ) )
-   {
-      WALBERLA_ASSERT( valIter.isVertexDoF() );
-      mat->addValue( ( *idxIterV ).value(), ( *idxIterV ).value(), valIter.value() );
-      idxIterV++;
-   }
-
-   FunctionIterator< EdgeDoFFunction< PetscInt > > idxIterE( numerator.getEdgeDoFFunction(), level );
-   for ( auto valIter : FunctionIterator< EdgeDoFFunction< real_t > >( diagVals.getEdgeDoFFunction(), level ) )
-   {
-      WALBERLA_ASSERT( valIter.isEdgeDoF() );
-      mat->addValue( ( *idxIterE ).value(), ( *idxIterE ).value(), valIter.value() );
-      idxIterE++;
-   }
-};
+extern template void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                               const P2Function< real_t >&                 diagVals,
+                                               const P2Function< PetscInt >&               numerator,
+                                               uint_t                                      level,
+                                               DoFType                                     flag );
+#endif
 
 } // namespace workaround
 
