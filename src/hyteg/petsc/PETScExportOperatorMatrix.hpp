@@ -48,8 +48,8 @@ namespace hyteg {
   /// \param elimDirichletBC  whether to zero row/columns for Dirichlet boundary values
   /// \param beVerbose        should function be talkative or not
   ///
-  template <class OperatorType, template <class> class FunctionType, class FunctionTag>
-  void exportOperator( OperatorType op,
+  template <class OperatorType>
+  void exportOperator( OperatorType& op,
                        std::string fName,
                        std::string matrixName,
                        std::shared_ptr< PrimitiveStorage > storage,
@@ -58,8 +58,8 @@ namespace hyteg {
                        bool beVerbose = false ) {
 
     // Get dimension of function space
-    uint_t localDoFs  = hyteg::numberOfLocalDoFs < FunctionTag >( *storage, level );
-    uint_t globalDoFs = hyteg::numberOfGlobalDoFs< FunctionTag >( *storage, level );
+    uint_t localDoFs  = hyteg::numberOfLocalDoFs < typename OperatorType::srcType::Tag >( *storage, level );
+    uint_t globalDoFs = hyteg::numberOfGlobalDoFs< typename OperatorType::srcType::Tag >( *storage, level );
     if(  localDoFs != globalDoFs ) {
       WALBERLA_ABORT( "localDoFs and globalDoFs must agree for this app!" );
     }
@@ -77,8 +77,8 @@ namespace hyteg {
     if( beVerbose ) {
       WALBERLA_LOG_INFO_ON_ROOT( " * Converting Operator to PETSc matrix" );
     }
-    PETScSparseMatrix< OperatorType, FunctionType > petscMatrix( localDoFs, globalDoFs, matrixName.c_str() );
-    FunctionType< PetscInt > numerator( "numerator", storage, level, level );
+    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType > petscMatrix( localDoFs, globalDoFs, matrixName.c_str() );
+    typename OperatorType::srcType::template FunctionType< PetscInt > numerator( "numerator", storage, level, level );
     numerator.enumerate( level );
     petscMatrix.createMatrixFromOperator( op, level, numerator );
 
