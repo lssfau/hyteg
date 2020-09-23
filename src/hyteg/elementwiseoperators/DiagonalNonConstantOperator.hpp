@@ -34,7 +34,9 @@ namespace hyteg {
 
 using walberla::real_t;
 
-// As long as we cannot use FunctionIterator< P2Function > we specialise here
+#ifdef HYTEG_BUILD_WITH_PETSC
+
+// As long as we cannot use FunctionIterator< P2Function > we use a specialised external template function
 namespace workaround {
 
 template < typename func_T >
@@ -42,26 +44,11 @@ void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >&      
                                const func_T&                                             diagVals,
                                const typename func_T::template FunctionType< PetscInt >& numerator,
                                uint_t                                                    level,
-                               DoFType                                                   flag )
-{
-   WALBERLA_ABORT( "externalDiagonalAssembly() not implemented for " << typeid( func_T ).name() );
-}
-
-#ifndef INSTANTIATE_EXTERNAL_DIAGONAL_ASSEMBLY
-extern template void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                               const P1Function< real_t >&                 diagVals,
-                                               const P1Function< PetscInt >&               numerator,
-                                               uint_t                                      level,
-                                               DoFType                                     flag );
-
-extern template void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                               const P2Function< real_t >&                 diagVals,
-                                               const P2Function< PetscInt >&               numerator,
-                                               uint_t                                      level,
-                                               DoFType                                     flag );
-#endif
+                               DoFType                                                   flag );
 
 } // namespace workaround
+
+#endif
 
 /// Provides an operator with only "diagonal" values that may change from DoF to DoF
 ///
@@ -131,6 +118,7 @@ class DiagonalNonConstantOperator : public Operator< typename opType< formType >
       }
    }
 
+#ifdef HYTEG_BUILD_WITH_PETSC
    void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >&                                    mat,
                              const typename opType< formType >::srcType::template FunctionType< PetscInt >& numerator,
                              uint_t                                                                         level,
@@ -139,6 +127,7 @@ class DiagonalNonConstantOperator : public Operator< typename opType< formType >
       std::shared_ptr< funcType > opVals = InvertDiagonal ? oper_->getInverseDiagonalValues() : oper_->getDiagonalValues();
       workaround::externalDiagonalAssembly< funcType >( mat, *opVals, numerator, level, flag );
    }
+#endif
 
  private:
    std::shared_ptr< formType >           form_;
@@ -160,6 +149,8 @@ typedef DiagonalNonConstantOperator< P2ElementwiseOperator, P2RowSumForm, true >
 // ========================
 //  Sparse Matrix Assembly
 // ========================
+#ifdef HYTEG_BUILD_WITH_PETSC
+
 namespace petsc {
 
 /// Version of createMatrix function for DiagonalNonConstantOperator
@@ -233,4 +224,6 @@ inline void createMatrix( const P2BlendingLumpedInverseDiagonalOperator& opr,
 }
 
 } // namespace petsc
+#endif
+
 } // namespace hyteg

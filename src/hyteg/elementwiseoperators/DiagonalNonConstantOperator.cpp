@@ -18,13 +18,22 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define INSTANTIATE_EXTERNAL_DIAGONAL_ASSEMBLY
 #include "DiagonalNonConstantOperator.hpp"
-#undef INSTANTIATE_EXTERNAL_DIAGONAL_ASSEMBLY
 
-// As long as we cannot use FunctionIterator< P2Function > we specialise here
+#ifdef HYTEG_BUILD_WITH_PETSC
+
 namespace hyteg {
 namespace workaround {
+
+template < typename func_T >
+void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >&               mat,
+                               const func_T&                                             diagVals,
+                               const typename func_T::template FunctionType< PetscInt >& numerator,
+                               uint_t                                                    level,
+                               DoFType                                                   flag )
+{
+   WALBERLA_ABORT( "externalDiagonalAssembly() not implemented for " << typeid( func_T ).name() );
+}
 
 template <>
 void externalDiagonalAssembly< P1Function< real_t > >( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -82,4 +91,7 @@ void externalDiagonalAssembly< P2Function< real_t > >( const std::shared_ptr< Sp
 }
 
 } // namespace workaround
+
 } // namespace hyteg
+
+#endif

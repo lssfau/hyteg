@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2020 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -111,6 +111,8 @@ void compareOperators( std::shared_ptr< PrimitiveStorage >& storage,
    }
 }
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+
 template < class operType, class RowSumFormType >
 void testAssembly( std::shared_ptr< PrimitiveStorage >& storage, uint_t level, std::shared_ptr< RowSumFormType >& rowSumForm )
 {
@@ -150,7 +152,7 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage >& storage,
    MatInfo infoTest;
    MatGetInfo( testMat.get(), MAT_GLOBAL_SUM, &infoTest );
    uint_t nDiagTest = uint_c( infoTest.nz_used );
-   WALBERLA_ASSERT_EQUAL( nDiagTest, nDiagVals );
+   WALBERLA_CHECK_EQUAL( nDiagTest, nDiagVals );
 
    // cannot compare the two, as the constant operator does not produce a true diagonal matrix
    // MatInfo infoComp;
@@ -216,6 +218,8 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage >& storage,
    WALBERLA_CHECK_LESS_EQUAL( normOne, limits[1] );
    WALBERLA_CHECK_LESS_EQUAL( normInf, limits[2] );
 }
+
+#endif
 
 int main( int argc, char* argv[] )
 {
@@ -316,6 +320,8 @@ int main( int argc, char* argv[] )
    //  Test Matrix Assembly
    // ----------------------
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+
    WALBERLA_LOG_INFO_ON_ROOT( "===================\n  Matrix Assembly\n===================" );
 
    printTestHdr( "Testing Mass Lumping for P2 (HyTeG Form, 2D)" );
@@ -328,6 +334,8 @@ int main( int argc, char* argv[] )
    printTestHdr( "Testing Inverted Mass Lumping for P1 (FEniCS Form, 2D)" );
    compareMatrices< P1LumpedInvMassOperator, P1BlendingLumpedInverseDiagonalOperator, P1RowSumForm, true >(
        storage, level, lumpedMassFormP1, 1e-11 );
+
+#endif
 
    return 0;
 }
