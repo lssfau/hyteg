@@ -37,7 +37,7 @@ parameterizations_base = {
         'coarseGridSolverType': 0, 'normCalculationLevelIncrement': 1, 'fmgInnerIterations': 0},
 
     5: {'discretization': 'p1p1', 'minLevel': 0, 'maxLevel': 6, 'numEdgesPerSide': 1, 'vtk': False, 'numCycles': 1, 'absoluteResidualTolerance': 1e-12,
-        'estimateOmega': False, 'omega': 0.448872, 'omegaEstimationLevel': 6, 'omegaEstimationIterations': 20,
+        'estimateOmega': False, 'omega': 0.570751, 'omegaEstimationLevel': 6, 'omegaEstimationIterations': 20,
         'coarseGridSolverType': 0, 'normCalculationLevelIncrement': 1},
 }
 
@@ -70,7 +70,7 @@ for pre in range(4):
     for post in range(4):
         for inc in range(4):
             for kappa in range(1, 3):
-                for gs, symm in [(1, True), (1, False), (2, False), (3, False)]:
+                for gs, symm in [(1, True), (2, True), (1, False), (2, False), (3, False), (4, False)]:
                     parameterizations[3].append({'preSmooth': pre, 'postSmooth': post, 'incSmooth': inc, 'fmgInnerIterations': kappa, 'numGSVelocity': gs, 'symmGSVelocity': symm})
                     parameterizations[5].append({'preSmooth': pre, 'postSmooth': post, 'incSmooth': inc, 'fmgInnerIterations': kappa, 'numGSVelocity': gs, 'symmGSVelocity': symm})
 
@@ -108,8 +108,8 @@ def run_all_configs(benchmark_id):
         with open(out_file, 'w') as f:
             f.write(completed_process.stdout)
 
-run_all_configs(1)
-run_all_configs(2)
+# run_all_configs(1)
+# run_all_configs(2)
 run_all_configs(3)
-run_all_configs(4)
+# run_all_configs(4)
 run_all_configs(5)
