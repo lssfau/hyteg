@@ -20,20 +20,17 @@
 #pragma once
 
 // #include "hyteg/forms/Form.hpp"
-// #include "hyteg/forms/P1Form.hpp"
+#include "hyteg/forms/P1Form.hpp"
 
 namespace hyteg {
 
-class P1FormHyTeG
+class P1FormHyTeG : public P1Form
 {
  public:
    virtual ~P1FormHyTeG() {}
 
-   virtual void integrate( const std::array< Point3D, 3 >& coords, Point3D& out ) const { WALBERLA_ABORT( "Not implemented." ); }
-
-   virtual void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const { WALBERLA_ABORT( "Not implemented." ); }
-
-   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const
+   // implemented here to allow using the forms in form_hyteg_generated with the P1ElementwiseOperator
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const override
    {
       Point3D                  matrixRow;
       std::array< Point3D, 3 > vertexCoords( coords );
@@ -63,12 +60,34 @@ class P1FormHyTeG
       elMat( 2, 2 ) = matrixRow[0];
    }
 
-   virtual void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const { WALBERLA_ABORT( "integrateAll() for 3D not implemented by current HyTeG form." ); }
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix4r& elMat ) const override
+   {
+      WALBERLA_ABORT( "integrateAll() for 3D not implemented by current HyTeG form." );
+   }
 
-   void setGeometryMap( const std::shared_ptr< GeometryMap > map ) { this->geometryMap_ = map; }
+   // We'd need to implement that in each child as we partially have separate 2D and 3D forms for P1 elements
+   // at the moment; although the P1ElementwiseOperator does not make use of these anyway
+   virtual bool assemble2D() const
+   {
+      WALBERLA_ABORT( "Don't call assemble2D on a P1FormHyteG child" );
+      return false;
+   };
+   virtual bool assemble3D() const
+   {
+      WALBERLA_ABORT( "Don't call assemble3D on a P1FormHyteG child" );
+      return false;
+   };
+   virtual bool assembly2DDefined() const
+   {
+      WALBERLA_ABORT( "Don't call assembly2DDefined on a P1FormHyteG child" );
+      return false;
+   };
+   virtual bool assembly3DDefined() const
+   {
+      WALBERLA_ABORT( "Don't call assembly2DDefined on a P1FormHyteG child" );
+      return false;
+   };
 
- protected:
-   std::shared_ptr< GeometryMap > geometryMap_;
 };
 
 } // namespace hyteg

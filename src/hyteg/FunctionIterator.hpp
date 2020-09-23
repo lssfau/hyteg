@@ -252,17 +252,19 @@ inline std::ostream& operator<<( std::ostream& os, const FunctionIteratorDoF< Fu
 ///
 /// Example usage:
 ///
-/// // prints the indices of all vertex-DoFs on macro-edges of a P2Function
-/// for ( auto dof : FunctionIterator( myP2Function ) )
-/// {
-///     if ( dof.isOnMacroEdge() && dof.isVertexDoF() )
-///     {
-///         WALBERLA_LOG_DEVEL( "Index: " << dof.index() );
-///         // or
-///         WALBERLA_LOG_DEVEL( dof );
-///         // to print a complete info string
-///     }
-/// }
+/// \code{.cpp}
+///    // prints the indices of all vertex-DoFs on macro-edges of a P2Function
+///    for ( auto dof : FunctionIterator< P2Function> ( myP2Function, level ) )
+///    {
+///        if ( dof.isOnMacroEdge() && dof.isVertexDoF() )
+///        {
+///            WALBERLA_LOG_DEVEL( "Index: " << dof.index() );
+///            // or
+///            WALBERLA_LOG_DEVEL( dof );
+///            // to print a complete info string
+///        }
+///    }
+/// \endcode
 ///
 /// This class is intended for debugging purposes since it
 /// is not at all optimized for performance.

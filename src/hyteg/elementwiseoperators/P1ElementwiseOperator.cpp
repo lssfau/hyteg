@@ -20,14 +20,33 @@
 
 #include "P1ElementwiseOperator.hpp"
 
+#include "hyteg/forms/P1RowSumForm.hpp"
+
 namespace hyteg {
 
 template < class P1Form >
 P1ElementwiseOperator< P1Form >::P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                                         size_t                                     minLevel,
+                                                        size_t                                     maxLevel )
+: P1ElementwiseOperator< P1Form >( storage, minLevel, maxLevel, P1Form(), true )
+{}
+
+template < class P1Form >
+P1ElementwiseOperator< P1Form >::P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                        size_t                                     minLevel,
                                                         size_t                                     maxLevel,
+                                                        const P1Form&                              form )
+: P1ElementwiseOperator< P1Form >( storage, minLevel, maxLevel, form, true )
+{}
+
+template < class P1Form >
+P1ElementwiseOperator< P1Form >::P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                        size_t                                     minLevel,
+                                                        size_t                                     maxLevel,
+                                                        const P1Form&                              form,
                                                         bool                                       needsInverseDiagEntries )
 : Operator( storage, minLevel, maxLevel )
+, form_( form )
 {
    if ( needsInverseDiagEntries )
    {
@@ -56,7 +75,7 @@ void P1ElementwiseOperator< P1Form >::apply( const P1Function< real_t >& src,
       // Therefore we first zero out everything that flagged, and then, later,
       // the halos of the highest dim primitives.
 
-      dst.interpolate( real_c(0), level, flag );
+      dst.interpolate( real_c( 0 ), level, flag );
    }
 
    // For 3D we work on cells and for 2D on faces
@@ -219,7 +238,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixVectorMultiply2D( const Face&  
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 3 >  dofDataIdx;
-   P1Form                   form;
+   P1Form                   form( form_ );
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -269,7 +288,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixVectorMultiply3D( const Cell&  
 
    // assemble local element matrix
    Matrix4r elMat;
-   P1Form   form;
+   P1Form   form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
 
@@ -425,7 +444,7 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions2D( const
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 6 >  dofDataIdx;
-   P1Form                   form;
+   P1Form                   form( form_ );
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -467,7 +486,7 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions3D( const
 
    // assemble local element matrix
    Matrix4r elMat;
-   P1Form   form;
+   P1Form   form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
 
@@ -493,7 +512,11 @@ void P1ElementwiseOperator< P1Form >::assembleLocalMatrix( const std::shared_ptr
                                                            DoFType                                     flag ) const
 {
    // We currently ignore the flag provided!
-   WALBERLA_UNUSED( flag );
+   // WALBERLA_UNUSED( flag );
+   if ( flag != All )
+   {
+      WALBERLA_LOG_WARNING_ON_ROOT( "Input flag ignored in P1ElementwiseOperator::assembleLocalMatrix(); using flag = All" );
+   }
 
    // For 3D we work on cells and for 2D on faces
    if ( storage_->hasGlobalCells() )
@@ -584,7 +607,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly2D( const std::shared_p
    indexing::IndexIncrement offset;
    Point3D                  v0, v1, v2;
    std::array< uint_t, 3 >  dofDataIdx;
-   P1Form                   form;
+   P1Form                   form( form_ );
 
    // determine vertices of micro-element
    nodeIdx = indexing::Index( xIdx, yIdx, 0 );
@@ -613,7 +636,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly2D( const std::shared_p
    colIdx[1] = uint_c( srcIdx[dofDataIdx[1]] );
    colIdx[2] = uint_c( srcIdx[dofDataIdx[2]] );
 
-   const uint_t elMatSize = 9;
+   const uint_t          elMatSize = 9;
    std::vector< real_t > blockMatData( elMatSize );
    for ( uint_t i = 0; i < elMatSize; i++ )
    {
@@ -643,7 +666,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly3D( const std::shared_p
 
    // assemble local element matrix
    Matrix4r elMat;
-   P1Form   form;
+   P1Form   form( form_ );
    form.setGeometryMap( cell.getGeometryMap() );
    form.integrateAll( coords, elMat );
 
@@ -659,7 +682,7 @@ void P1ElementwiseOperator< P1Form >::localMatrixAssembly3D( const std::shared_p
       colIdx[k] = uint_c( srcIdx[vertexDoFDataIdx[k]] );
    }
 
-   const uint_t elMatSize = 16;
+   const uint_t          elMatSize = 16;
    std::vector< real_t > blockMatData( elMatSize );
    for ( uint_t i = 0; i < elMatSize; i++ )
    {
@@ -683,7 +706,8 @@ template class P1ElementwiseOperator< P1FenicsForm< p1_polar_laplacian_cell_inte
 template class P1ElementwiseOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >;
 
 // P1ElementwisePSPGOperator
-template class P1ElementwiseOperator< P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >;
+template class P1ElementwiseOperator<
+    P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >;
 
 // P1ElementwiseBlendingMassOperator
 template class P1ElementwiseOperator< P1Form_mass >;
@@ -693,5 +717,8 @@ template class P1ElementwiseOperator< P1Form_mass3D >;
 
 // P1ElementwiseBlendingLaplaceOperator
 template class P1ElementwiseOperator< P1Form_laplace >;
+
+// Needed for P1Blending(Inverse)DiagonalOperator
+template class P1ElementwiseOperator< P1RowSumForm >;
 
 } // namespace hyteg

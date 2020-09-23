@@ -638,7 +638,11 @@ void P2ElementwiseOperator< P2Form >::assembleLocalMatrix( const std::shared_ptr
                                                            DoFType                                     flag ) const
 {
    // We currently ignore the flag provided!
-   WALBERLA_UNUSED( flag );
+   // WALBERLA_UNUSED( flag );
+   if ( flag != All )
+   {
+      WALBERLA_LOG_WARNING_ON_ROOT( "Input flag ignored in P2ElementwiseOperator::assembleLocalMatrix(); using flag = All" );
+   }
 
    // For 3D we work on cells and for 2D on faces
    if ( storage_->hasGlobalCells() )
@@ -914,7 +918,10 @@ template class P2ElementwiseOperator< P2Form_laplace >;
 // P2ElementwiseLinearCombinationOperator
 template class P2ElementwiseOperator< P2LinearCombinationForm >;
 
-// this is needed for the ElementwiseVSConstant app
+// Needed for P2Blending(Inverse)DiagonalOperator
+template class P2ElementwiseOperator< P2RowSumForm >;
+
+// this is needed for the ElementwiseVsConstant app
 template void localMatrixVectorMultiply3D(
     const Cell&,
     const uint_t,

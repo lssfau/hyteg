@@ -137,7 +137,7 @@ int main( int argc, char* argv[] ) {
     {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Laplace operator for P1 elements" );
       hyteg::P1ConstantLaplaceOperator opr( storage, level, level );
-      exportOperator< P1ConstantLaplaceOperator, P1Function, P1FunctionTag >( opr, fileName, matName, storage, level, elim );
+      exportOperator< P1ConstantLaplaceOperator >( opr, fileName, matName, storage, level, elim );
     }
     break;
 
@@ -145,7 +145,7 @@ int main( int argc, char* argv[] ) {
     {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Mass operator for P1 elements" );
       hyteg::P1ConstantMassOperator opr( storage, level, level );
-      exportOperator< P1ConstantMassOperator, P1Function, P1FunctionTag >( opr, fileName, matName, storage, level, elim );
+      exportOperator< P1ConstantMassOperator >( opr, fileName, matName, storage, level, elim );
     }
     break;
 
@@ -156,7 +156,7 @@ int main( int argc, char* argv[] ) {
     {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Laplace operator for P2 elements" );
       hyteg::P2ConstantLaplaceOperator opr( storage, level, level );
-      exportOperator< P2ConstantLaplaceOperator, P2Function, P2FunctionTag >( opr, fileName, matName, storage, level, elim );
+      exportOperator< P2ConstantLaplaceOperator >( opr, fileName, matName, storage, level, elim );
     }
     break;
 
@@ -164,7 +164,7 @@ int main( int argc, char* argv[] ) {
     {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Mass operator for P2 elements" );
       hyteg::P2ConstantMassOperator opr( storage, level, level );
-      exportOperator< P2ConstantMassOperator, P2Function, P2FunctionTag >( opr, fileName, matName, storage, level, elim );
+      exportOperator< P2ConstantMassOperator >( opr, fileName, matName, storage, level, elim );
     }
     break;
 
@@ -175,7 +175,7 @@ int main( int argc, char* argv[] ) {
     {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Stokes Operator for P2-P1 element" );
       hyteg::P2P1TaylorHoodStokesOperator opr( storage, level, level );
-      exportOperator< P2P1TaylorHoodStokesOperator, P2P1TaylorHoodFunction, P2P1TaylorHoodFunctionTag >( opr, fileName, matName, storage, level, elim );
+      exportOperator< P2P1TaylorHoodStokesOperator >( opr, fileName, matName, storage, level, elim );
     }
     break;
   }
