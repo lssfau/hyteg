@@ -37,6 +37,7 @@ int main( int argc, char* argv[] )
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
    hyteg::loadbalancing::roundRobin( setupStorage );
 
