@@ -72,7 +72,9 @@
 #include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_vertexdofs.hpp"
 #include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_vertexdofs_backwards.hpp"
 #include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_vertexdofs_one_sided.hpp"
+#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_vertexdofs_one_sided_backwards.hpp"
 #include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_edgedofs_one_sided.hpp"
+#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_edgedofs_one_sided_backwards.hpp"
 
 namespace hyteg {
 
@@ -643,7 +645,51 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< rea
 
                   if ( backwards )
                   {
-                     WALBERLA_ABORT( "One-sided, backwards SOR not generated." )
+                     P2::macroface::generated::sor_3D_macroface_P2_update_edgedofs_one_sided_backwards(
+                         &e_dst_data[offset_x],
+                         &e_dst_data[offset_xy],
+                         &e_dst_data[offset_y],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                         &e_rhs_data[offset_x],
+                         &e_rhs_data[offset_xy],
+                         &e_rhs_data[offset_y],
+                         v_dst_data,
+                         &v_dst_data[vertex_offset_gl_0],
+                         e2e_operator[0],
+                         static_cast< int32_t >( level ),
+                         neighbor_cell_0_local_vertex_id_0,
+                         neighbor_cell_0_local_vertex_id_1,
+                         neighbor_cell_0_local_vertex_id_2,
+                         relax,
+                         v2e_operator[0] );
+
+                     P2::macroface::generated::sor_3D_macroface_P2_update_vertexdofs_one_sided_backwards(
+                         &e_dst_data[offset_x],
+                         &e_dst_data[offset_xy],
+                         &e_dst_data[offset_y],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::X]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XY]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XYZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::XZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Y]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::YZ]],
+                         &e_dst_data[offset_gl_orientation[0][edgedof::EdgeDoFOrientation::Z]],
+                         v_dst_data,
+                         &v_dst_data[vertex_offset_gl_0],
+                         v_rhs_data,
+                         e2v_operator[0],
+                         static_cast< int32_t >( level ),
+                         neighbor_cell_0_local_vertex_id_0,
+                         neighbor_cell_0_local_vertex_id_1,
+                         neighbor_cell_0_local_vertex_id_2,
+                         relax,
+                         v2v_operator[0] );
                   }
                   else
                   {
