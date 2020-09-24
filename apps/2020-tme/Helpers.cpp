@@ -46,9 +46,9 @@ static std::string getDateTimeID()
 void writeDataHeader()
 {
    WALBERLA_LOG_INFO_ON_ROOT(
-       " iteration | iteration type | FMG level | L2 error velocity | L2 residual velocity | L2 error pressure | L2 residual pressure " );
+       " iteration | iteration type | FMG level | L2 error velocity | L2 alg err. rel. vel. | L2 residual velocity | L2 error pressure | L2 alg err. rel. pre. | L2 residual pressure " );
    WALBERLA_LOG_INFO_ON_ROOT(
-       "-----------+----------------+-----------+-------------------+----------------------+-------------------+----------------------" );
+       "-----------+----------------+-----------+-------------------+-----------------------+----------------------+-------------------+-----------------------+----------------------" );
 }
 
 // iterationType: I: initial
@@ -58,8 +58,10 @@ void writeDataRow( uint_t          iteration,
                    std::string     iterationType,
                    uint_t          fmgLevel,
                    real_t          errorL2Velocity,
+                   real_t          errorRelL2Velocity,
                    real_t          residualL2Velocity,
                    real_t          errorL2Pressure,
+                   real_t          errorRelL2Pressure,
                    real_t          residualL2Pressure,
                    FixedSizeSQLDB& db )
 {
@@ -73,19 +75,23 @@ void writeDataRow( uint_t          iteration,
    db.setVariableEntry( "iteration_type", iterationType );
    db.setVariableEntry( "fmg_level", fmgLevel );
    db.setVariableEntry( "error_l2_velocity", errorL2Velocity );
+   db.setVariableEntry( "error_rel_l2_velocity", errorRelL2Velocity );
    db.setVariableEntry( "residual_l2_velocity", residualL2Velocity );
    db.setVariableEntry( "error_l2_pressure", errorL2Pressure );
+   db.setVariableEntry( "error_rel_l2_pressure", errorRelL2Pressure );
    db.setVariableEntry( "residual_l2_pressure", residualL2Pressure );
 
    db.writeRowOnRoot();
 
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9d | %14s | %9s | %17.5e | %20.5e | %17.5e | %20.5e ",
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9d | %14s | %9s | %17.5e | %21.5e | %20.5e | %17.5e | %21.5e | %20.5e ",
                                                 iteration,
                                                 iterationType.c_str(),
                                                 fmgLevelString.c_str(),
                                                 errorL2Velocity,
+                                                errorRelL2Velocity,
                                                 residualL2Velocity,
                                                 errorL2Pressure,
+                                                errorRelL2Pressure,
                                                 residualL2Pressure ) );
 }
 
@@ -96,8 +102,8 @@ template < template < typename > class StokesFunction,
            typename Restriction,
            typename Prolongation,
            typename FMGProlongation >
-void solveImplementation( const MeshInfo&                                         meshInfo,
-                          bool                                                    hasAnalyticalSolution,
+void solveImplementation( const std::shared_ptr< PrimitiveStorage >&              storage,
+                          StokesFunction< real_t >&                               uSolution,
                           const std::function< real_t( const hyteg::Point3D& ) >& solutionU,
                           const std::function< real_t( const hyteg::Point3D& ) >& solutionV,
                           const std::function< real_t( const hyteg::Point3D& ) >& solutionW,
@@ -113,22 +119,14 @@ void solveImplementation( const MeshInfo&                                       
                           bool                                                    projectPressure,
                           bool                                                    projectPressurefterRestriction,
                           bool                                                    calculateDiscretizationError,
+                          bool                                                    discretizationErrorWasCalculated,
                           uint_t                                                  errorCalculationLevelIncrement,
                           bool                                                    vtk,
                           const std::string&                                      benchmarkName,
                           bool                                                    verbose,
                           std::string                                             dbFile )
 {
-   WALBERLA_UNUSED( hasAnalyticalSolution );
-   WALBERLA_UNUSED( calculateDiscretizationError );
-
    printGitInfo();
-
-   auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
-       meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-
-   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
    if ( vtk )
    {
@@ -146,6 +144,10 @@ void solveImplementation( const MeshInfo&                                       
    const auto   discretization =
        ( std::is_same< typename StokesFunction< real_t >::Tag, P2P1TaylorHoodFunctionTag >::value ? "P2-P1" : "P1-P1" );
 
+   if ( calculateDiscretizationError )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "### CALCULATING DISCRETIZATION ERROR ###" );
+   }
    WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << benchmarkName )
    WALBERLA_LOG_INFO_ON_ROOT( " - space discretization: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + elements:                                     " << discretization );
@@ -200,6 +202,7 @@ void solveImplementation( const MeshInfo&                                       
    StokesFunction< real_t > f( "f", storage, minLevel, errorLevel );
    StokesFunction< real_t > r( "r", storage, minLevel, errorLevel );
    StokesFunction< real_t > err( "error", storage, minLevel, errorLevel );
+   StokesFunction< real_t > errDiscr( "error_discr", storage, minLevel, errorLevel );
    StokesFunction< real_t > tmp( "tmp", storage, minLevel, errorLevel );
    StokesFunction< real_t > tmpFMG( "tmpFMG", storage, minLevel, errorLevel );
    StokesFunction< real_t > exact( "exact", storage, minLevel, errorLevel );
@@ -215,7 +218,10 @@ void solveImplementation( const MeshInfo&                                       
       exact.uvw.w.interpolate( solutionW, level, All );
       exact.p.interpolate( solutionP, level, All );
 
-      vertexdof::projectMean( exact.p, level );
+      if ( projectPressure )
+      {
+         vertexdof::projectMean( exact.p, level );
+      }
 
       u.uvw.u.interpolate( solutionU, level, DirichletBoundary );
       u.uvw.v.interpolate( solutionV, level, DirichletBoundary );
@@ -229,6 +235,9 @@ void solveImplementation( const MeshInfo&                                       
       MVelocity.apply( tmp.uvw.v, f.uvw.v, level, All );
       MVelocity.apply( tmp.uvw.w, f.uvw.w, level, All );
    }
+
+   const auto solutionNormVelocity = normL2Velocity( uSolution, MVelocity, tmp, maxLevel, errorFlag );
+   const auto solutionNormPressure = normL2Scalar( uSolution.p, MPressure, tmp.p, maxLevel, errorFlag );
 
    auto prolongationOperator = std::make_shared< Prolongation >();
    auto restrictionOperator  = std::make_shared< Restriction >( projectPressurefterRestriction );
@@ -275,7 +284,6 @@ void solveImplementation( const MeshInfo&                                       
       }
       WALBERLA_LOG_INFO_ON_ROOT( "" );
       smoother->setRelaxationParameter( smootherSettings.omega );
-
    }
 
    // coarse grid solver type:
@@ -335,6 +343,10 @@ void solveImplementation( const MeshInfo&                                       
 
       residual( tmpFMG, f, A, tmp, currentLevel, errorFlag, r );
       error( tmpFMG, exact, fmgErrorLevel, errorFlag, err );
+      if ( currentLevel == maxLevel )
+      {
+         error( u, uSolution, maxLevel, errorFlag, errDiscr );
+      }
 
       auto errorL2VelocityFMG    = normL2Velocity( err, MVelocity, tmp, fmgErrorLevel, errorFlag );
       auto residualL2VelocityFMG = normL2Velocity( r, MVelocity, tmp, currentLevel, errorFlag );
@@ -342,12 +354,22 @@ void solveImplementation( const MeshInfo&                                       
       auto errorL2PressureFMG    = normL2Scalar( err.p, MPressure, tmp.p, fmgErrorLevel, errorFlag );
       auto residualL2PressureFMG = normL2Scalar( r.p, MPressure, tmp.p, currentLevel, errorFlag );
 
+      auto errorRelL2VelocityFMG = 0.;
+      auto errorRelL2PressureFMG = 0.;
+      if ( !calculateDiscretizationError && discretizationErrorWasCalculated && currentLevel == maxLevel )
+      {
+         errorRelL2VelocityFMG = normL2Velocity( errDiscr, MVelocity, tmp, maxLevel, errorFlag ) / solutionNormVelocity;
+         errorRelL2PressureFMG = normL2Scalar( errDiscr.p, MPressure, tmp.p, maxLevel, errorFlag ) / solutionNormVelocity;
+      }
+
       writeDataRow( iteration,
                     "F",
                     currentLevel,
                     errorL2VelocityFMG,
+                    errorRelL2VelocityFMG,
                     residualL2VelocityFMG,
                     errorL2PressureFMG,
+                    errorRelL2PressureFMG,
                     residualL2PressureFMG,
                     db );
       iteration++;
@@ -363,11 +385,20 @@ void solveImplementation( const MeshInfo&                                       
 
    residual( u, f, A, tmp, maxLevel, errorFlag, r );
    error( u, exact, errorLevel, errorFlag, err );
+   error( u, uSolution, maxLevel, errorFlag, errDiscr );
 
    auto errorL2Velocity    = normL2Velocity( err, MVelocity, tmp, errorLevel, errorFlag );
    auto residualL2Velocity = normL2Velocity( r, MVelocity, tmp, maxLevel, errorFlag );
    auto errorL2Pressure    = normL2Scalar( err.p, MPressure, tmp.p, errorLevel, errorFlag );
    auto residualL2Pressure = normL2Scalar( r.p, MPressure, tmp.p, maxLevel, errorFlag );
+
+   auto errorAlgL2Velocity = 0.;
+   auto errorAlgL2Pressure = 0.;
+   if ( !calculateDiscretizationError && discretizationErrorWasCalculated )
+   {
+      errorAlgL2Velocity = normL2Velocity( errDiscr, MVelocity, tmp, maxLevel, errorFlag ) / solutionNormVelocity;
+      errorAlgL2Pressure = normL2Scalar( errDiscr.p, MPressure, tmp.p, maxLevel, errorFlag ) / solutionNormPressure;
+   }
 
    writeDataHeader();
 
@@ -378,11 +409,11 @@ void solveImplementation( const MeshInfo&                                       
    db.setConstantEntry( "unknowns", unknowns );
    db.setConstantEntry( "h_min", hMin );
    db.setConstantEntry( "h_max", hMax );
-   db.setConstantEntry( "num_macro_cells", setupStorage->getNumberOfCells() );
-   db.setConstantEntry( "num_macro_faces", setupStorage->getNumberOfFaces() );
-   db.setConstantEntry( "num_macro_edges", setupStorage->getNumberOfEdges() );
-   db.setConstantEntry( "num_macro_vertices", setupStorage->getNumberOfVertices() );
-   db.setConstantEntry( "num_macro_primitives", setupStorage->getNumberOfPrimitives() );
+   db.setConstantEntry( "num_macro_cells", storage->getNumberOfGlobalCells() );
+   db.setConstantEntry( "num_macro_faces", storage->getNumberOfGlobalFaces() );
+   db.setConstantEntry( "num_macro_edges", storage->getNumberOfGlobalEdges() );
+   db.setConstantEntry( "num_macro_vertices", storage->getNumberOfGlobalVertices() );
+   db.setConstantEntry( "num_macro_primitives", storage->getNumberOfGlobalPrimitives() );
 
    db.setConstantEntry( "num_cycles", multigridSettings.numCycles );
    db.setConstantEntry( "pre_smooth", multigridSettings.preSmooth );
@@ -403,7 +434,16 @@ void solveImplementation( const MeshInfo&                                       
 
    db.setConstantEntry( "error_calculation_level_increment", errorCalculationLevelIncrement );
 
-   writeDataRow( iteration, "I", 0, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
+   writeDataRow( iteration,
+                 "I",
+                 0,
+                 errorL2Velocity,
+                 errorAlgL2Velocity,
+                 residualL2Velocity,
+                 errorL2Pressure,
+                 errorAlgL2Pressure,
+                 residualL2Pressure,
+                 db );
    iteration++;
 
    VTKOutput vtkOutput( "vtk", "TME", storage );
@@ -437,13 +477,31 @@ void solveImplementation( const MeshInfo&                                       
 
       residual( u, f, A, tmp, maxLevel, errorFlag, r );
       error( u, exact, errorLevel, errorFlag, err );
+      error( u, uSolution, maxLevel, errorFlag, errDiscr );
 
       errorL2Velocity    = normL2Velocity( err, MVelocity, tmp, errorLevel, errorFlag );
       residualL2Velocity = normL2Velocity( r, MVelocity, tmp, maxLevel, errorFlag );
       errorL2Pressure    = normL2Scalar( err.p, MPressure, tmp.p, errorLevel, errorFlag );
       residualL2Pressure = normL2Scalar( r.p, MPressure, tmp.p, maxLevel, errorFlag );
 
-      writeDataRow( iteration, "V", 0, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
+      errorAlgL2Velocity = 0.;
+      errorAlgL2Pressure = 0.;
+      if ( !calculateDiscretizationError && discretizationErrorWasCalculated )
+      {
+         errorAlgL2Velocity = normL2Velocity( errDiscr, MVelocity, tmp, maxLevel, errorFlag ) / solutionNormVelocity;
+         errorAlgL2Pressure = normL2Scalar( errDiscr.p, MPressure, tmp.p, maxLevel, errorFlag ) / solutionNormPressure;
+      }
+
+      writeDataRow( iteration,
+                    "V",
+                    0,
+                    errorL2Velocity,
+                    errorAlgL2Velocity,
+                    residualL2Velocity,
+                    errorL2Pressure,
+                    errorAlgL2Pressure,
+                    residualL2Pressure,
+                    db );
       iteration++;
    }
 
@@ -465,13 +523,31 @@ void solveImplementation( const MeshInfo&                                       
 
       residual( u, f, A, tmp, maxLevel, errorFlag, r );
       error( u, exact, errorLevel, errorFlag, err );
+      error( u, uSolution, maxLevel, errorFlag, errDiscr );
 
       errorL2Velocity    = normL2Velocity( err, MVelocity, tmp, errorLevel, errorFlag );
       residualL2Velocity = normL2Velocity( r, MVelocity, tmp, maxLevel, errorFlag );
       errorL2Pressure    = normL2Scalar( err.p, MPressure, tmp.p, errorLevel, errorFlag );
       residualL2Pressure = normL2Scalar( r.p, MPressure, tmp.p, maxLevel, errorFlag );
 
-      writeDataRow( iteration, "V", 0, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
+      errorAlgL2Velocity = 0.;
+      errorAlgL2Pressure = 0.;
+      if ( !calculateDiscretizationError && discretizationErrorWasCalculated )
+      {
+         errorAlgL2Velocity = normL2Velocity( errDiscr, MVelocity, tmp, maxLevel, errorFlag ) / solutionNormVelocity;
+         errorAlgL2Pressure = normL2Scalar( errDiscr.p, MPressure, tmp.p, maxLevel, errorFlag ) / solutionNormPressure;
+      }
+
+      writeDataRow( iteration,
+                    "V",
+                    0,
+                    errorL2Velocity,
+                    errorAlgL2Velocity,
+                    residualL2Velocity,
+                    errorL2Pressure,
+                    errorAlgL2Pressure,
+                    residualL2Pressure,
+                    db );
       iteration++;
    }
 
@@ -479,11 +555,19 @@ void solveImplementation( const MeshInfo&                                       
    {
       vtkOutput.write( maxLevel, 1 );
    }
+
+   if ( calculateDiscretizationError )
+   {
+      for ( uint_t l = minLevel; l <= maxLevel; l++ )
+      {
+         uSolution.assign( {1.0}, {u}, maxLevel, All );
+      }
+   }
 }
 
-void solve( const MeshInfo&                                         meshInfo,
+void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
             Discretization                                          discretization,
-            bool                                                    hasAnalyticalSolution,
+            bool                                                    ,
             const std::function< real_t( const hyteg::Point3D& ) >& solutionU,
             const std::function< real_t( const hyteg::Point3D& ) >& solutionV,
             const std::function< real_t( const hyteg::Point3D& ) >& solutionW,
@@ -496,6 +580,9 @@ void solve( const MeshInfo&                                         meshInfo,
             MultigridSettings                                       multigridSettings,
             SmootherSettings                                        smootherSettings,
             CoarseGridSettings                                      coarseGridSettings,
+            MultigridSettings                                       multigridSettingsDiscrError,
+            SmootherSettings                                        smootherSettingsDiscrError,
+            CoarseGridSettings                                      coarseGridSettingsDiscrError,
             bool                                                    projectPressure,
             bool                                                    projectPressurefterRestriction,
             bool                                                    calculateDiscretizationError,
@@ -503,18 +590,54 @@ void solve( const MeshInfo&                                         meshInfo,
             bool                                                    vtk,
             const std::string&                                      benchmarkName,
             bool                                                    verbose,
-            std::string                                             dbFile )
+            std::string                                             dbFile,
+            std::string                                             dbFileDiscr )
 {
    if ( discretization == Discretization::P2_P1 )
    {
+      P2P1TaylorHoodFunction< real_t > uSolution( "uSolution", storage, minLevel, maxLevel + normCalculationLevelIncrement );
+
+      if ( calculateDiscretizationError )
+      {
+         solveImplementation< P2P1TaylorHoodFunction,
+                              P2P1TaylorHoodStokesOperator,
+                              P2ConstantMassOperator,
+                              P1ConstantMassOperator,
+                              P2P1StokesToP2P1StokesRestriction,
+                              P2P1StokesToP2P1StokesProlongation,
+                              P2P1StokesToP2P1StokesProlongation >( storage,
+                                                                    uSolution,
+                                                                    solutionU,
+                                                                    solutionV,
+                                                                    solutionW,
+                                                                    solutionP,
+                                                                    rhsU,
+                                                                    rhsV,
+                                                                    rhsW,
+                                                                    minLevel,
+                                                                    maxLevel,
+                                                                    multigridSettingsDiscrError,
+                                                                    smootherSettingsDiscrError,
+                                                                    coarseGridSettingsDiscrError,
+                                                                    projectPressure,
+                                                                    projectPressurefterRestriction,
+                                                                    true,
+                                                                    false,
+                                                                    normCalculationLevelIncrement,
+                                                                    false,
+                                                                    benchmarkName,
+                                                                    verbose,
+                                                                    dbFileDiscr );
+      }
+
       solveImplementation< P2P1TaylorHoodFunction,
                            P2P1TaylorHoodStokesOperator,
                            P2ConstantMassOperator,
                            P1ConstantMassOperator,
                            P2P1StokesToP2P1StokesRestriction,
                            P2P1StokesToP2P1StokesProlongation,
-                           P2P1StokesToP2P1StokesProlongation >( meshInfo,
-                                                                 hasAnalyticalSolution,
+                           P2P1StokesToP2P1StokesProlongation >( storage,
+                                                                 uSolution,
                                                                  solutionU,
                                                                  solutionV,
                                                                  solutionW,
@@ -529,6 +652,7 @@ void solve( const MeshInfo&                                         meshInfo,
                                                                  coarseGridSettings,
                                                                  projectPressure,
                                                                  projectPressurefterRestriction,
+                                                                 false,
                                                                  calculateDiscretizationError,
                                                                  normCalculationLevelIncrement,
                                                                  vtk,
@@ -538,14 +662,49 @@ void solve( const MeshInfo&                                         meshInfo,
    }
    else
    {
+      P1StokesFunction< real_t > uSolution( "uSolution", storage, minLevel, maxLevel + normCalculationLevelIncrement );
+
+      if ( calculateDiscretizationError )
+      {
+         solveImplementation< P1StokesFunction,
+                              P1StokesOperator,
+                              P1ConstantMassOperator,
+                              P1ConstantMassOperator,
+                              P1P1StokesToP1P1StokesRestriction,
+                              P1P1StokesToP1P1StokesProlongation,
+                              P1P1StokesToP1P1StokesProlongation >( storage,
+                                                                    uSolution,
+                                                                    solutionU,
+                                                                    solutionV,
+                                                                    solutionW,
+                                                                    solutionP,
+                                                                    rhsU,
+                                                                    rhsV,
+                                                                    rhsW,
+                                                                    minLevel,
+                                                                    maxLevel,
+                                                                    multigridSettings,
+                                                                    smootherSettings,
+                                                                    coarseGridSettings,
+                                                                    projectPressure,
+                                                                    projectPressurefterRestriction,
+                                                                    true,
+                                                                    false,
+                                                                    normCalculationLevelIncrement,
+                                                                    false,
+                                                                    benchmarkName,
+                                                                    verbose,
+                                                                    dbFileDiscr );
+      }
+
       solveImplementation< P1StokesFunction,
                            P1StokesOperator,
                            P1ConstantMassOperator,
                            P1ConstantMassOperator,
                            P1P1StokesToP1P1StokesRestriction,
                            P1P1StokesToP1P1StokesProlongation,
-                           P1P1StokesToP1P1StokesProlongation >( meshInfo,
-                                                                 hasAnalyticalSolution,
+                           P1P1StokesToP1P1StokesProlongation >( storage,
+                                                                 uSolution,
                                                                  solutionU,
                                                                  solutionV,
                                                                  solutionW,
@@ -560,6 +719,7 @@ void solve( const MeshInfo&                                         meshInfo,
                                                                  coarseGridSettings,
                                                                  projectPressure,
                                                                  projectPressurefterRestriction,
+                                                                 false,
                                                                  calculateDiscretizationError,
                                                                  normCalculationLevelIncrement,
                                                                  vtk,

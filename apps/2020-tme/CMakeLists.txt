@@ -13,3 +13,6 @@ waLBerla_add_executable( NAME Benchmark_01_Cube
         FILES Benchmark_01_Cube.cpp Helpers.cpp
         DEPENDS hyteg sqlite)
 
+waLBerla_add_executable( NAME Benchmark_02_Y-Pipe
+        FILES Benchmark_02_Y-Pipe.cpp Helpers.cpp
+        DEPENDS hyteg sqlite)

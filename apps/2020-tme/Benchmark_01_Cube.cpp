@@ -103,7 +103,16 @@ void benchmark( int argc, char** argv )
    auto meshInfo =
        MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( {1, 1, 1} ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
 
-   solve( meshInfo,
+   auto onBoundary = []( const Point3D & ){ return true; };
+   meshInfo.setMeshBoundaryFlagsByVertexLocation( 1, onBoundary );
+
+   auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
+       meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage->setMeshBoundaryFlagsInner( 0, true );
+
+   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
+
+   solve( storage,
           discretization,
           true,
           exactU,
@@ -118,6 +127,9 @@ void benchmark( int argc, char** argv )
           multigridSettings,
           smootherSettings,
           coarseGridSettings,
+          multigridSettings,
+          smootherSettings,
+          coarseGridSettings,
           true,
           true,
           false,
@@ -125,6 +137,7 @@ void benchmark( int argc, char** argv )
           vtk,
           "Benchmark_01_Cube",
           false,
+          dbFile,
           dbFile );
 }
 

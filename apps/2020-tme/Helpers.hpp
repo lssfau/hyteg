@@ -28,20 +28,20 @@
 #include "core/config/Config.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/Git.hpp"
 #include "hyteg/FunctionProperties.hpp"
+#include "hyteg/Git.hpp"
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
+#include "hyteg/dataexport/SQL.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/dataexport/SQL.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
-#include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
-#include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
+#include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
+#include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
@@ -67,7 +67,6 @@
 #include "hyteg/solvers/controlflow/TimedSolver.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
-
 
 namespace hyteg {
 namespace tme_benchmarks {
@@ -101,7 +100,6 @@ inline real_t normL2ScalarSquare( const FunctionType< real_t >& u,
    auto dot = u.dotGlobal( tmp, level, flag );
    return dot;
 }
-
 
 template < template < typename > class StokesFunctionType, typename VelocityMassOperator >
 inline real_t normL2Velocity( const StokesFunctionType< real_t >& u,
@@ -184,7 +182,7 @@ struct CoarseGridSettings
    uint_t maxIterations;
 };
 
-void solve( const MeshInfo&                                         meshInfo,
+void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
             Discretization                                          discretization,
             bool                                                    hasAnalyticalSolution,
             const std::function< real_t( const hyteg::Point3D& ) >& solutionU,
@@ -199,6 +197,9 @@ void solve( const MeshInfo&                                         meshInfo,
             MultigridSettings                                       multigridSettings,
             SmootherSettings                                        smootherSettings,
             CoarseGridSettings                                      coarseGridSettings,
+            MultigridSettings                                       multigridSettingsDiscrError,
+            SmootherSettings                                        smootherSettingsDiscrError,
+            CoarseGridSettings                                      coarseGridSettingsDiscrError,
             bool                                                    projectPressure,
             bool                                                    projectPressurefterRestriction,
             bool                                                    calculateDiscretizationError,
@@ -206,7 +207,8 @@ void solve( const MeshInfo&                                         meshInfo,
             bool                                                    vtk,
             const std::string&                                      benchmarkName,
             bool                                                    verbose,
-            std::string                                             dbFile );
+            std::string                                             dbFile,
+            std::string                                             dbFileDiscrError );
 
 } // namespace tme_benchmarks
 } // namespace hyteg
