@@ -5,14 +5,14 @@ Problem
   order  3;
 
   /// no-slip, free-slip or mixed
-  // bcType no-slip;
-  bcType mixed;
+  bcType no-slip;
+  // bcType mixed;
 
   /// meshing parameters
   nRad 2;
   nTan 3;
   coarseLevel 2;  // the coarsest level for GMG in HyTeG
-  targetLevel 3;  // the one on which we run the benchmark
+  targetLevel 2;  // the one on which we run the benchmark
 
   /// FE space
   feSpace P2P1TaylorHood;
@@ -30,5 +30,6 @@ Problem
   reportDoFNum true;
 
   /// export data for visualisation?
-  VTKOutput false;
+  VTKOutput true;
+  // VTKOutput false;
 }
