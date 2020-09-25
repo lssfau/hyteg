@@ -343,6 +343,9 @@ waLBerla_execute_test(NAME P2SwapTest)
 waLBerla_compile_test(FILES P2/P2FunctionTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2FunctionTest)
 
+waLBerla_compile_test(FILES P2/P2VectorFunctionTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P2VectorFunctionTest)
+
 waLBerla_compile_test(FILES P2/P2Level0Test.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2Level0Test1 COMMAND $<TARGET_FILE:P2Level0Test> PROCESSES 1)
 waLBerla_execute_test(NAME P2Level0Test2 COMMAND $<TARGET_FILE:P2Level0Test> PROCESSES 2)
