@@ -24,14 +24,14 @@
 #include <utility>
 #include <vector>
 
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
-#include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
-#include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
+#include "core/DataTypes.h"
+
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-
-#include "core/DataTypes.h"
+#include "hyteg/dgfunctionspace/DGFunction.hpp"
+#include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
 
 namespace hyteg {
 
@@ -86,7 +86,12 @@ class VTKOutput
       P2
    };
 
-  enum class VTK_DATA_FORMAT { ASCII, BINARY, APPENDED };
+   enum class VTK_DATA_FORMAT
+   {
+      ASCII,
+      BINARY,
+      APPENDED
+   };
 
    static const std::map< VTKOutput::DoFType, std::string > DoFTypeToString_;
 
@@ -126,8 +131,11 @@ class VTKOutput
 
    void syncAllFunctions( const uint_t& level ) const;
 
-   void openDataElement( std::ostream& output, const std::string& type, const std::string& name,
-                         const uint_t nComponents, const VTK_DATA_FORMAT fmt ) const;
+   void openDataElement( std::ostream&         output,
+                         const std::string&    type,
+                         const std::string&    name,
+                         const uint_t          nComponents,
+                         const VTK_DATA_FORMAT fmt ) const;
 
    /// Writes only macro-faces.
    void set2D() { write2D_ = true; }
