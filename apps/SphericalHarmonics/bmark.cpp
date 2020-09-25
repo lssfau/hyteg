@@ -85,8 +85,8 @@ typedef enum
 // ===============
 //  SetForceField
 // ===============
-template < typename feFuncType >
-void setForceField( std::array< feFuncType, 3 >&              f,
+template < typename vecFuncType >
+void setForceField( vecFuncType&                              f,
                     uint_t                                    level,
                     uint_t                                    degree,
                     int                                       order,
@@ -104,7 +104,9 @@ void setForceField( std::array< feFuncType, 3 >&              f,
    std::function< real_t( const Point3D& ) > sphFunc = [sphTool, degree, order]( const Point3D& x ) {
       return sphTool->shconvert_eval( degree, order, x[0], x[1], x[2] );
    };
-   feFuncType sph( "spherical harmonic", f[0].getStorage(), level, level );
+
+   typename vecFuncType::template VectorComponentType sph( "spherical harmonic", f[0].getStorage(), level, level );
+   // feFuncType sph( "spherical harmonic", f[0].getStorage(), level, level );
    sph.interpolate( sphFunc, level, All );
 
    // set polynomial coefficients for radial component
@@ -190,10 +192,8 @@ void setForceField( std::array< feFuncType, 3 >&              f,
 // =======================
 //  SetAnalyticalSolution
 // =======================
-template < typename feFuncType >
-void setAnalyticSolution( feFuncType&                               uX,
-                          feFuncType&                               uY,
-                          feFuncType&                               uZ,
+template < typename vecFuncType >
+void setAnalyticSolution( vecFuncType&                              u,
                           uint_t                                    level,
                           uint_t                                    degree,
                           int                                       order,
@@ -260,17 +260,9 @@ void setAnalyticSolution( feFuncType&                               uX,
       return value;
    };
 
-   // x-component
-   component = 0;
-   uX.interpolate( vshFunc, level, All );
+   // interpolate component functions
+   for( component = 0; component < 3; ++component ) u[component].interpolate( vshFunc, level, All );
 
-   // y-component
-   component = 1;
-   uY.interpolate( vshFunc, level, All );
-
-   // z-component
-   component = 2;
-   uZ.interpolate( vshFunc, level, All );
 }
 
 // ===================
@@ -333,7 +325,7 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg, std::sh
    {
       uint_t pressureDoFs = numberOfGlobalDoFs< typename pf_t::Tag >( *storage, targetLevel );
       WALBERLA_LOG_INFO_ON_ROOT( "Number of pressure DoFs on target level = " << pressureDoFs );
-      uint_t velocityDoFs = 3 * numberOfGlobalDoFs< typename vf_t::Tag >( *storage, targetLevel );
+      uint_t velocityDoFs = numberOfGlobalDoFs< typename vf_t::Tag >( *storage, targetLevel );
       WALBERLA_LOG_INFO_ON_ROOT( "Number of velocity DoFs on target level = " << velocityDoFs );
    }
 
@@ -343,28 +335,23 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg, std::sh
 
    // set the strong right-hand side
    WALBERLA_LOG_PROGRESS_ON_ROOT( "Computing forcing field ..." );
-   vf_t                  fX( "forcing X", storage, minLevel, maxLevel );
-   vf_t                  fY( "forcing Y", storage, minLevel, maxLevel );
-   vf_t                  fZ( "forcing Z", storage, minLevel, maxLevel );
-   std::array< vf_t, 3 > forcing{fX, fY, fZ};
+   vf_t forcing( "forcing", storage, minLevel, maxLevel );
    setForceField( forcing, maxLevel, degree, order, sphTool, bmarkBC );
 
    // derive from this the weak right-hand side
    WALBERLA_LOG_PROGRESS_ON_ROOT( "Computing weak right-hand side ..." );
    massOpType           mass( storage, maxLevel, maxLevel );
    feFuncType< real_t > rhs( "right-hand side", storage, minLevel, maxLevel );
-   mass.apply( forcing[0], rhs.u, maxLevel, All );
-   mass.apply( forcing[1], rhs.v, maxLevel, All );
-   mass.apply( forcing[2], rhs.w, maxLevel, All );
+   mass.apply( forcing[0], rhs.uvw[0], maxLevel, All );
+   mass.apply( forcing[1], rhs.uvw[1], maxLevel, All );
+   mass.apply( forcing[2], rhs.uvw[2], maxLevel, All );
 
    // ---------------------
    //  Analytical Solution
    // ---------------------
    WALBERLA_LOG_PROGRESS_ON_ROOT( "Interpolating analytical solution to FEspace ..." );
-   vf_t uX_exact( "Analytical Solution u_x (mapped to FE space)", storage, maxLevel, maxLevel );
-   vf_t uY_exact( "Analytical Solution u_y (mapped to FE space)", storage, maxLevel, maxLevel );
-   vf_t uZ_exact( "Analytical Solution u_z (mapped to FE space)", storage, maxLevel, maxLevel );
-   setAnalyticSolution( uX_exact, uY_exact, uZ_exact, maxLevel, degree, order, sphTool, bmarkBC );
+   vf_t u_exact( "Analytical Solution (mapped to FE space)", storage, maxLevel, maxLevel );
+   setAnalyticSolution( u_exact, maxLevel, degree, order, sphTool, bmarkBC );
 
    // -------------------
    //  Setup FE Solution
@@ -373,9 +360,9 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg, std::sh
    feFuncType< real_t > feSol( "Discrete Solution", storage, minLevel, maxLevel, bcVelocity );
 
    // set everything to zero (including boundaries)
-   feSol.u.setToZero( maxLevel );
-   feSol.v.setToZero( maxLevel );
-   feSol.w.setToZero( maxLevel );
+   feSol.uvw[0].setToZero( maxLevel );
+   feSol.uvw[1].setToZero( maxLevel );
+   feSol.uvw[2].setToZero( maxLevel );
    feSol.p.setToZero( maxLevel );
 
    // ---------------------
@@ -458,23 +445,19 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg, std::sh
    // -----------------
    //  Determine error
    // -----------------
-   vf_t errorX( "errorX", storage, maxLevel, maxLevel );
-   vf_t errorY( "errorY", storage, maxLevel, maxLevel );
-   vf_t errorZ( "errorZ", storage, maxLevel, maxLevel );
-   errorX.assign( {1.0, -1.0}, {uX_exact, feSol.u}, maxLevel );
-   errorY.assign( {1.0, -1.0}, {uY_exact, feSol.v}, maxLevel );
-   errorZ.assign( {1.0, -1.0}, {uZ_exact, feSol.w}, maxLevel );
+   vf_t error( "error", storage, maxLevel, maxLevel );
+   error.assign( {1.0, -1.0}, {u_exact, feSol.uvw}, maxLevel );
 
    if ( problemCfg.getParameter< bool >( "compute_L2_error" ) )
    {
       real_t L2error = 0.0;
-      vf_t   aux( "aux", storage, maxLevel, maxLevel );
-      mass.apply( errorX, aux, maxLevel, All );
-      L2error = errorX.dotGlobal( aux, maxLevel );
-      mass.apply( errorY, aux, maxLevel, All );
-      L2error += errorY.dotGlobal( aux, maxLevel );
-      mass.apply( errorZ, aux, maxLevel, All );
-      L2error += errorZ.dotGlobal( aux, maxLevel );
+      typename vf_t::template VectorComponentType aux( "aux", storage, maxLevel, maxLevel );
+
+      for( uint_t idx = 0; idx < 3; ++idx )
+      {
+        mass.apply( error[idx], aux, maxLevel, All );
+        L2error += error[idx].dotGlobal( aux, maxLevel );
+      }
       L2error = std::sqrt( L2error );
       WALBERLA_LOG_INFO_ON_ROOT( "L2 error = " << std::scientific << L2error );
    }
@@ -484,30 +467,23 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg, std::sh
    {
       real_t maxError = 0.0;
       uint_t fLevel   = maxLevel + 1;
-      vf_t   uX_fine( "u_x_fine", storage, fLevel, fLevel );
-      vf_t   uY_fine( "u_y_fine", storage, fLevel, fLevel );
-      vf_t   uZ_fine( "u_z_fine", storage, fLevel, fLevel );
-      setAnalyticSolution( uX_fine, uY_fine, uZ_fine, fLevel, degree, order, sphTool, bmarkBC );
+      vf_t   u_fine( "u_fine", storage, fLevel, fLevel );
+      setAnalyticSolution( u_fine, fLevel, degree, order, sphTool, bmarkBC );
 
-      vf_t                        aux( "aux", storage, maxLevel, maxLevel + 1 );
+      typename vf_t::template VectorComponentType aux( "aux", storage, maxLevel, maxLevel+1 );
       P2toP2QuadraticProlongation embedder;
 
-      aux.assign( {1.0}, {feSol.u}, maxLevel );
-      embedder.prolongate( aux, maxLevel, All );
-      aux.assign( {1.0, -1.0}, {uX_fine, aux}, fLevel );
-      maxError = aux.getMaxMagnitude( fLevel );
+      // TEST
+      // feSol.prolongate( maxLevel, All ); there is no P2Function::prolongate !!!
 
-      aux.assign( {1.0}, {feSol.v}, maxLevel );
-      embedder.prolongate( aux, maxLevel, All );
-      aux.assign( {1.0, -1.0}, {uY_fine, aux}, fLevel );
-      real_t val = aux.getMaxMagnitude( fLevel );
-      maxError   = maxError < val ? val : maxError;
-
-      aux.assign( {1.0}, {feSol.w}, maxLevel );
-      embedder.prolongate( aux, maxLevel, All );
-      aux.assign( {1.0, -1.0}, {uZ_fine, aux}, fLevel );
-      val      = aux.getMaxMagnitude( fLevel );
-      maxError = maxError < val ? val : maxError;
+      for( uint_t idx = 0; idx < 3; ++idx )
+      {
+        aux.assign( {1.0}, {feSol.uvw[idx]}, maxLevel );
+        embedder.prolongate( aux, maxLevel, All );
+        aux.assign( {1.0, -1.0}, {u_fine[idx], aux}, fLevel );
+        real_t val = aux.getMaxMagnitude( fLevel );
+        maxError   = maxError < val ? val : maxError;
+      }
 
       WALBERLA_LOG_INFO_ON_ROOT( "Maximum error = " << std::scientific << maxError );
    }
@@ -518,21 +494,14 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg, std::sh
    if ( problemCfg.getParameter< bool >( "VTKOutput" ) )
    {
       hyteg::VTKOutput vtkOutput( "./output", "bmark", storage );
-      vtkOutput.add( fX );
-      vtkOutput.add( fY );
-      vtkOutput.add( fZ );
-      vtkOutput.add( rhs.u );
-      vtkOutput.add( rhs.v );
-      vtkOutput.add( rhs.w );
-      vtkOutput.add( uX_exact );
-      vtkOutput.add( uY_exact );
-      vtkOutput.add( uZ_exact );
-      vtkOutput.add( feSol.u );
-      vtkOutput.add( feSol.v );
-      vtkOutput.add( feSol.w );
-      vtkOutput.add( errorX );
-      vtkOutput.add( errorY );
-      vtkOutput.add( errorZ );
+      for( uint_t idx = 0; idx < 3; ++idx )
+      {
+        vtkOutput.add( forcing[idx] );
+        vtkOutput.add( rhs.uvw[idx] );
+        vtkOutput.add( u_exact[idx] );
+        vtkOutput.add( feSol.uvw[idx] );
+        vtkOutput.add( error[idx] );
+      }
       vtkOutput.write( maxLevel, 0 );
    }
 }
