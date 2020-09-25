@@ -20,9 +20,9 @@
 #pragma once
 
 #include "hyteg/FunctionTraits.hpp"
-#include "hyteg/composites/P2VectorFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2VectorFunction.hpp"
 
 namespace hyteg {
 
