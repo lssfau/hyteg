@@ -77,12 +77,6 @@ static void testP2Function()
    timer["Dot"].end();
    WALBERLA_LOG_INFO_ON_ROOT( "dot product = " << scalarProduct );
 
-   // Prolongate
-   vec_f.prolongate( 3, All );
-
-   // Restrict
-   vec_f.restrict( 3, All );
-
    // Output VTK
    bool beVerbose = false;
    if ( beVerbose )

@@ -164,20 +164,6 @@ class P2VectorFunction
       return sum;
    }
 
-   void prolongate( const size_t level, const DoFType flag = All ) const
-   {
-      u.prolongate( level, flag );
-      v.prolongate( level, flag );
-      w.prolongate( level, flag );
-   }
-
-   void restrict( const size_t level, const DoFType flag = All ) const
-   {
-      u.restrict( level, flag );
-      v.restrict( level, flag );
-      w.restrict( level, flag );
-   }
-
    void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree ) const
    {
       u.enableTiming( timingTree );
