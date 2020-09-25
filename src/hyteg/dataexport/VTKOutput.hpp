@@ -57,10 +57,13 @@ class VTKOutput
               const uint_t&                              writeFrequency = 1 );
 
    void add( P1Function< real_t > function );
+   void add( P2Function< real_t > function );
+
    void add( EdgeDoFFunction< real_t > function );
    void add( DGFunction< real_t > function );
 
-   void add( P2Function< real_t > function );
+   void add( P1VectorFunction< real_t > function );
+   void add( P2VectorFunction< real_t > function );
 
    void add( P1StokesFunction< real_t > function );
    void add( P2P1TaylorHoodFunction< real_t > function );
@@ -102,6 +105,8 @@ class VTKOutput
    void writeEdgeDoFs( std::ostream& output, const uint_t& level, const VTKOutput::DoFType& dofType ) const;
    void writeDGDoFs( std::ostream& output, const uint_t& level ) const;
    void writeP2( std::ostream& output, const uint_t& level ) const;
+
+   void writeSingleP2Function( const P2Function< real_t >& function, std::ostream& output, const uint_t& level ) const;
 
    std::string fileNameExtension( const VTKOutput::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const;
 
@@ -151,11 +156,14 @@ class VTKOutput
 
    bool write2D_;
 
-   std::vector< P1Function< real_t > >      p1Functions_;
+   std::vector< P1Function< real_t > > p1Functions_;
+   std::vector< P2Function< real_t > > p2Functions_;
+
+   std::vector< P1VectorFunction< real_t > > p1VecFunctions_;
+   std::vector< P2VectorFunction< real_t > > p2VecFunctions_;
+
    std::vector< EdgeDoFFunction< real_t > > edgeDoFFunctions_;
    std::vector< DGFunction< real_t > >      dgFunctions_;
-
-   std::vector< P2Function< real_t > > p2Functions_;
 
    std::shared_ptr< PrimitiveStorage > storage_;
 };

@@ -45,6 +45,8 @@ class P2VectorFunction
    , v( _name + "_v", storage, minLevel, maxLevel )
    , w( storage->hasGlobalCells() ? P2Function< ValueType >( _name + "_w", storage, minLevel, maxLevel ) :
                                     P2Function< ValueType >( _name + "_w_dummy", storage ) )
+
+   , functionName_( _name )
    {}
 
    P2VectorFunction( const std::string&                         _name,
@@ -56,6 +58,7 @@ class P2VectorFunction
    , v( _name + "_v", storage, minLevel, maxLevel, velocityBC )
    , w( storage->hasGlobalCells() ? P2Function< ValueType >( _name + "_w", storage, minLevel, maxLevel, velocityBC ) :
                                     P2Function< ValueType >( _name + "_w_dummy", storage ) )
+   , functionName_( _name )
    {}
 
    std::shared_ptr< PrimitiveStorage > getStorage() const { return u.getStorage(); }
@@ -234,6 +237,11 @@ class P2VectorFunction
    P2Function< ValueType > u;
    P2Function< ValueType > v;
    P2Function< ValueType > w;
+
+   const std::string& getFunctionName() const { return functionName_; }
+
+ private:
+   const std::string functionName_;
 };
 
 } // namespace hyteg

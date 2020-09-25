@@ -45,6 +45,7 @@ class P1VectorFunction
    , v( _name + "_v", storage, minLevel, maxLevel )
    , w( storage->hasGlobalCells() ? P1Function< ValueType >( _name + "_w", storage, minLevel, maxLevel ) :
                                     P1Function< ValueType >( _name + "_w_dummy", storage ) )
+   , functionName_( _name )
    {}
 
    std::shared_ptr< PrimitiveStorage > getStorage() const { return u.getStorage(); }
@@ -160,61 +161,72 @@ class P1VectorFunction
       w.enableTiming( timingTree );
    }
 
-   P1Function< ValueType>& component( uint_t idx ) {
-     switch( idx ) {
-       case 0 :
+   P1Function< ValueType >& component( uint_t idx )
+   {
+      switch ( idx )
+      {
+      case 0:
          return u;
-       case 1 :
+      case 1:
          return v;
-       case 2 :
+      case 2:
          return w;
-     default:
-       WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
-     }
+      default:
+         WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
+      }
    }
 
-   const P1Function< ValueType>& component( uint_t idx ) const  {
-     switch( idx ) {
-       case 0 :
+   const P1Function< ValueType >& component( uint_t idx ) const
+   {
+      switch ( idx )
+      {
+      case 0:
          return u;
-       case 1 :
+      case 1:
          return v;
-       case 2 :
+      case 2:
          return w;
-     default:
-       WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
-     }
+      default:
+         WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
+      }
    }
 
-   const P1Function< ValueType>& operator[]( uint_t idx ) const  {
-     switch( idx ) {
-       case 0 :
+   const P1Function< ValueType >& operator[]( uint_t idx ) const
+   {
+      switch ( idx )
+      {
+      case 0:
          return u;
-       case 1 :
+      case 1:
          return v;
-       case 2 :
+      case 2:
          return w;
-     default:
-       WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
-     }
+      default:
+         WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
+      }
    }
 
-   P1Function< ValueType>& operator[]( uint_t idx ) {
-     switch( idx ) {
-       case 0 :
+   P1Function< ValueType >& operator[]( uint_t idx )
+   {
+      switch ( idx )
+      {
+      case 0:
          return u;
-       case 1 :
+      case 1:
          return v;
-       case 2 :
+      case 2:
          return w;
-     default:
-       WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
-     }
+      default:
+         WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
+      }
    }
 
    P1Function< ValueType > u;
    P1Function< ValueType > v;
    P1Function< ValueType > w;
+
+ private:
+   const std::string functionName_;
 };
 
 } // namespace hyteg

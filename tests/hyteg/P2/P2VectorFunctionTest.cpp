@@ -78,14 +78,22 @@ static void testP2Function()
    WALBERLA_LOG_INFO_ON_ROOT( "dot product = " << scalarProduct );
 
    // Output VTK
-   bool beVerbose = false;
+   bool beVerbose = true;
    if ( beVerbose )
    {
-      VTKOutput vtkOutput( "../../output", "P2VectorFunctionTest", storage );
+      std::string fPath = "../../output";
+      std::string fName = "P2VectorFunctionTest";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutput( fPath, fName, storage );
       vtkOutput.add( vec_f[0] );
       vtkOutput.add( vec_f[1] );
-      vtkOutput.add( vec_f[2] );
       vtkOutput.write( maxLevel );
+
+      std::string fName2 = "P2VectorFunctionExport";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName2 << "'" );
+      VTKOutput vtkOutput2( fPath, fName2, storage );
+      vtkOutput2.add( vec_f );
+      vtkOutput2.write( maxLevel );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( timer );
