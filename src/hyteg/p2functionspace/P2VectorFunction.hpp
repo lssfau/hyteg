@@ -185,6 +185,66 @@ class P2VectorFunction
       w.enableTiming( timingTree );
    }
 
+   P2Function< ValueType >& component( uint_t idx )
+   {
+      switch ( idx )
+      {
+      case 0:
+         return u;
+      case 1:
+         return v;
+      case 2:
+         return w;
+      default:
+         WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
+      }
+   }
+
+   const P2Function< ValueType >& component( uint_t idx ) const
+   {
+      switch ( idx )
+      {
+      case 0:
+         return u;
+      case 1:
+         return v;
+      case 2:
+         return w;
+      default:
+         WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
+      }
+   }
+
+   const P2Function< ValueType >& operator[]( uint_t idx ) const
+   {
+      switch ( idx )
+      {
+      case 0:
+         return u;
+      case 1:
+         return v;
+      case 2:
+         return w;
+      default:
+         WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
+      }
+   }
+
+   P2Function< ValueType >& operator[]( uint_t idx )
+   {
+      switch ( idx )
+      {
+      case 0:
+         return u;
+      case 1:
+         return v;
+      case 2:
+         return w;
+      default:
+         WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
+      }
+   }
+
    P2Function< ValueType > u;
    P2Function< ValueType > v;
    P2Function< ValueType > w;

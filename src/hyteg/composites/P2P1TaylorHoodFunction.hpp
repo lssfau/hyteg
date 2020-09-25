@@ -20,9 +20,9 @@
 #pragma once
 
 #include "hyteg/FunctionTraits.hpp"
-#include "hyteg/composites/P2VectorFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2VectorFunction.hpp"
 
 namespace hyteg {
 
@@ -178,22 +178,22 @@ class P2P1TaylorHoodFunction
          offset += static_cast< ValueType >( doFsPerRank[i] );
       }
 
-      uvw.u.enumerate( level, offset );
-      uvw.v.enumerate( level, offset );
-      uvw.w.enumerate( level, offset );
+      uvw[0].enumerate( level, offset );
+      uvw[1].enumerate( level, offset );
+      uvw[2].enumerate( level, offset );
       p.enumerate( level, offset );
    }
 
    BoundaryCondition getVelocityBoundaryCondition() const
    {
-      auto bc_u = uvw.u.getBoundaryCondition();
+      auto bc_u = uvw[0].getBoundaryCondition();
       WALBERLA_DEBUG_SECTION()
       {
-         auto bc_v = uvw.v.getBoundaryCondition();
+         auto bc_v = uvw[1].getBoundaryCondition();
          WALBERLA_CHECK_EQUAL( bc_u, bc_v, "Velocity components do not have same boundary conditions." );
-         if ( uvw.u.getStorage()->hasGlobalCells() )
+         if ( uvw[0].getStorage()->hasGlobalCells() )
          {
-            auto bc_w = uvw.w.getBoundaryCondition();
+            auto bc_w = uvw[2].getBoundaryCondition();
             WALBERLA_CHECK_EQUAL( bc_u, bc_w, "Velocity components do not have same boundary conditions." );
          }
       }
@@ -204,9 +204,9 @@ class P2P1TaylorHoodFunction
 
    void setVelocityBoundaryCondition( BoundaryCondition bc )
    {
-      uvw.u.setBoundaryCondition( bc );
-      uvw.v.setBoundaryCondition( bc );
-      uvw.w.setBoundaryCondition( bc );
+      uvw[0].setBoundaryCondition( bc );
+      uvw[1].setBoundaryCondition( bc );
+      uvw[2].setBoundaryCondition( bc );
    }
 
    void setPressureBoundaryCondition( BoundaryCondition bc ) { p.setBoundaryCondition( bc ); }

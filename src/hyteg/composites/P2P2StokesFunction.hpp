@@ -21,8 +21,8 @@
 #pragma once
 
 #include "hyteg/FunctionProperties.hpp"
-#include "hyteg/composites/P2VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2VectorFunction.hpp"
 
 namespace hyteg {
 

@@ -160,6 +160,58 @@ class P1VectorFunction
       w.enableTiming( timingTree );
    }
 
+   P1Function< ValueType>& component( uint_t idx ) {
+     switch( idx ) {
+       case 0 :
+         return u;
+       case 1 :
+         return v;
+       case 2 :
+         return w;
+     default:
+       WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
+     }
+   }
+
+   const P1Function< ValueType>& component( uint_t idx ) const  {
+     switch( idx ) {
+       case 0 :
+         return u;
+       case 1 :
+         return v;
+       case 2 :
+         return w;
+     default:
+       WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
+     }
+   }
+
+   const P1Function< ValueType>& operator[]( uint_t idx ) const  {
+     switch( idx ) {
+       case 0 :
+         return u;
+       case 1 :
+         return v;
+       case 2 :
+         return w;
+     default:
+       WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
+     }
+   }
+
+   P1Function< ValueType>& operator[]( uint_t idx ) {
+     switch( idx ) {
+       case 0 :
+         return u;
+       case 1 :
+         return v;
+       case 2 :
+         return w;
+     default:
+       WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
+     }
+   }
+
    P1Function< ValueType > u;
    P1Function< ValueType > v;
    P1Function< ValueType > w;
