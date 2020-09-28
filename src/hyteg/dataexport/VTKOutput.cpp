@@ -181,6 +181,49 @@ void VTKOutput::writeVertexDoFData( std::ostream&                               
    }
 }
 
+void VTKOutput::writeP1VectorFunctionData( std::ostream&                              output,
+                                           const P1VectorFunction< real_t >&          function,
+                                           const std::shared_ptr< PrimitiveStorage >& storage,
+                                           const uint_t&                              level ) const
+{
+   if ( write2D_ )
+   {
+      for ( const auto& it : storage->getFaces() )
+      {
+         const Face& face = *it.second;
+
+         size_t len = levelinfo::num_microvertices_per_face( level );
+         output << std::scientific;
+
+         for ( size_t i = 0; i < len; ++i )
+         {
+            output << face.getData( function[0].getFaceDataID() )->getPointer( level )[i] << " ";
+            output << face.getData( function[1].getFaceDataID() )->getPointer( level )[i] << " ";
+            // output << real_t(0) << " "; Paraview needs 3D vector fields to form glyphs
+         }
+      }
+   }
+   else
+   {
+      for ( const auto& it : storage->getCells() )
+      {
+         const Cell& cell      = *it.second;
+         const auto  cellData0 = cell.getData( function[0].getCellDataID() )->getPointer( level );
+         const auto  cellData1 = cell.getData( function[1].getCellDataID() )->getPointer( level );
+         const auto  cellData2 = cell.getData( function[2].getCellDataID() )->getPointer( level );
+
+         output << std::scientific;
+
+         for ( const auto& idxIt : vertexdof::macrocell::Iterator( level ) )
+         {
+            output << cellData0[vertexdof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z() )] << " ";
+            output << cellData1[vertexdof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z() )] << " ";
+            output << cellData2[vertexdof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z() )] << " ";
+         }
+      }
+   }
+}
+
 void VTKOutput::writeEdgeDoFData( std::ostream&                              output,
                                   const EdgeDoFFunction< real_t >&           function,
                                   const std::shared_ptr< PrimitiveStorage >& storage,
@@ -736,12 +779,10 @@ void VTKOutput::writeP1( std::ostream& output, const uint_t& level ) const
 
    for ( const auto& function : p1VecFunctions_ )
    {
-      for ( uint_t idx = 0; idx < ( write2D_ ? 2 : 3 ); ++idx )
-      {
-         openDataElement( output, "Float64", function[idx].getFunctionName(), 1, VTK_DATA_FORMAT::ASCII );
-         writeVertexDoFData( output, function[idx], storage, level );
-         output << "\n</DataArray>\n";
-      }
+      uint_t dim = write2D_ ? 2 : 3;
+      openDataElement( output, "Float64", function.getFunctionName(), dim, VTK_DATA_FORMAT::ASCII );
+      writeP1VectorFunctionData( output, function, storage, level );
+      output << "\n</DataArray>\n";
    }
 
    output << "</PointData>\n";
@@ -918,7 +959,6 @@ void VTKOutput::writeP2( std::ostream& output, const uint_t& level ) const
       writeSingleP2Function( function, output, level );
    }
 
-#define P2_VEC_SCALAR_OUTPUT
 #ifdef P2_VEC_SCALAR_OUTPUT
    for ( const auto& function : p2VecFunctions_ )
    {
@@ -926,6 +966,11 @@ void VTKOutput::writeP2( std::ostream& output, const uint_t& level ) const
       {
          writeSingleP2Function( function[idx], output, level );
       }
+   }
+#else
+   for ( const auto& function : p2VecFunctions_ )
+   {
+      writeSingleP2VectorFunction( function, output, level );
    }
 #endif
 
@@ -1031,6 +1076,155 @@ void VTKOutput::writeSingleP2Function( const P2Function< real_t >& function, std
                break;
             case 0b111:
                output << edgeData[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )] << " ";
+               break;
+            }
+         }
+      }
+   }
+
+   output << "\n</DataArray>\n";
+}
+
+void VTKOutput::writeSingleP2VectorFunction( const P2VectorFunction< real_t >& function,
+                                             std::ostream&                     output,
+                                             const uint_t&                     level ) const
+{
+   auto storage = function.getStorage();
+   openDataElement( output, "Float64", function.getFunctionName(), function.getDimension(), VTK_DATA_FORMAT::ASCII );
+
+   if ( write2D_ )
+   {
+      for ( const auto& itFaces : storage->getFaces() )
+      {
+         const Face& face = *itFaces.second;
+
+         output << std::scientific;
+
+         for ( const auto& it : vertexdof::macroface::Iterator( level + 1, 0 ) )
+         {
+            if ( it.row() % 2 == 0 )
+            {
+               if ( it.col() % 2 == 0 )
+               {
+                  output << face.getData( function[0].getVertexDoFFunction().getFaceDataID() )
+                                ->getPointer( level )[vertexdof::macroface::indexFromVertex(
+                                    level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C )]
+                         << " ";
+                  output << face.getData( function[1].getVertexDoFFunction().getFaceDataID() )
+                                ->getPointer( level )[vertexdof::macroface::indexFromVertex(
+                                    level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C )]
+                         << " ";
+               }
+               else
+               {
+                  output << face.getData( function[0].getEdgeDoFFunction().getFaceDataID() )
+                                ->getPointer(
+                                    level )[edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2 )]
+                         << " ";
+                  output << face.getData( function[1].getEdgeDoFFunction().getFaceDataID() )
+                                ->getPointer(
+                                    level )[edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2 )]
+                         << " ";
+               }
+            }
+            else
+            {
+               if ( it.col() % 2 == 0 )
+               {
+                  output << face.getData( function[0].getEdgeDoFFunction().getFaceDataID() )
+                                ->getPointer(
+                                    level )[edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 )]
+                         << " ";
+                  output << face.getData( function[1].getEdgeDoFFunction().getFaceDataID() )
+                                ->getPointer(
+                                    level )[edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 )]
+                         << " ";
+               }
+               else
+               {
+                  output
+                      << face.getData( function[0].getEdgeDoFFunction().getFaceDataID() )
+                             ->getPointer(
+                                 level )[edgedof::macroface::diagonalIndex( level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 )]
+                      << " ";
+                  output
+                      << face.getData( function[1].getEdgeDoFFunction().getFaceDataID() )
+                             ->getPointer(
+                                 level )[edgedof::macroface::diagonalIndex( level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 )]
+                      << " ";
+               }
+            }
+         }
+      }
+   }
+   else
+   {
+      for ( const auto& itCells : storage->getCells() )
+      {
+         const Cell& cell = *itCells.second;
+
+         auto vertexData0 = cell.getData( function[0].getVertexDoFFunction().getCellDataID() )->getPointer( level );
+         auto vertexData1 = cell.getData( function[1].getVertexDoFFunction().getCellDataID() )->getPointer( level );
+         auto vertexData2 = cell.getData( function[2].getVertexDoFFunction().getCellDataID() )->getPointer( level );
+
+         auto edgeData0 = cell.getData( function[0].getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+         auto edgeData1 = cell.getData( function[1].getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+         auto edgeData2 = cell.getData( function[2].getEdgeDoFFunction().getCellDataID() )->getPointer( level );
+
+         output << std::scientific;
+
+         for ( const auto& it : vertexdof::macrocell::Iterator( level + 1, 0 ) )
+         {
+            const auto   x   = it.x();
+            const auto   y   = it.y();
+            const auto   z   = it.z();
+            const uint_t mod = ( z % 2 << 0 ) | ( y % 2 << 1 ) | ( x % 2 << 2 );
+
+            switch ( mod )
+            {
+            case 0b000:
+               output
+                   << vertexData0[vertexdof::macrocell::indexFromVertex( level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )]
+                   << " "
+                   << vertexData1[vertexdof::macrocell::indexFromVertex( level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )]
+                   << " "
+                   << vertexData2[vertexdof::macrocell::indexFromVertex( level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )]
+                   << " ";
+               break;
+            case 0b100:
+               output << edgeData0[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )] << " ";
+               output << edgeData1[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )] << " ";
+               output << edgeData2[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )] << " ";
+               break;
+            case 0b010:
+               output << edgeData0[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )] << " ";
+               output << edgeData1[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )] << " ";
+               output << edgeData2[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )] << " ";
+               break;
+            case 0b001:
+               output << edgeData0[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )] << " ";
+               output << edgeData1[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )] << " ";
+               output << edgeData2[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )] << " ";
+               break;
+            case 0b110:
+               output << edgeData0[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )] << " ";
+               output << edgeData1[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )] << " ";
+               output << edgeData2[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )] << " ";
+               break;
+            case 0b101:
+               output << edgeData0[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )] << " ";
+               output << edgeData1[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )] << " ";
+               output << edgeData2[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )] << " ";
+               break;
+            case 0b011:
+               output << edgeData0[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )] << " ";
+               output << edgeData1[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )] << " ";
+               output << edgeData2[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )] << " ";
+               break;
+            case 0b111:
+               output << edgeData0[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )] << " ";
+               output << edgeData1[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )] << " ";
+               output << edgeData2[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )] << " ";
                break;
             }
          }
@@ -1185,6 +1379,21 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
    for ( const auto& function : p1Functions_ )
    {
       hyteg::communication::syncFunctionBetweenPrimitives< hyteg::P1Function< real_t > >( function, level );
+   }
+
+   for ( const auto& function : p1VecFunctions_ )
+   {
+      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
+   }
+
+   for ( const auto& function : p2Functions_ )
+   {
+      hyteg::communication::syncP2FunctionBetweenPrimitives( function, level );
+   }
+
+   for ( const auto& function : p2VecFunctions_ )
+   {
+      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
    }
 
    for ( const auto& function : edgeDoFFunctions_ )

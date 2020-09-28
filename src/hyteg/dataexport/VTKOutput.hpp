@@ -107,6 +107,8 @@ class VTKOutput
    void writeP2( std::ostream& output, const uint_t& level ) const;
 
    void writeSingleP2Function( const P2Function< real_t >& function, std::ostream& output, const uint_t& level ) const;
+   void
+       writeSingleP2VectorFunction( const P2VectorFunction< real_t >& function, std::ostream& output, const uint_t& level ) const;
 
    std::string fileNameExtension( const VTKOutput::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const;
 
@@ -130,6 +132,11 @@ class VTKOutput
                           const std::shared_ptr< PrimitiveStorage >& storage,
                           const uint_t&                              level,
                           const DoFType&                             dofType ) const;
+
+   void writeP1VectorFunctionData( std::ostream&                              output,
+                                   const P1VectorFunction< real_t >&          function,
+                                   const std::shared_ptr< PrimitiveStorage >& storage,
+                                   const uint_t&                              level ) const;
 
    void writeCells2D( std::ostream& output, const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& faceWidth ) const;
    void writeCells3D( std::ostream& output, const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level ) const;

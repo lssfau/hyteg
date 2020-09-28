@@ -139,11 +139,15 @@ if(CMAKE_BUILD_TYPE MATCHES "Release")
   endif()
 endif()
 
-
 ## convection ##
 
 waLBerla_compile_test(FILES convection/Upwind2DCircularConvectionTest.cpp DEPENDS hyteg core)
 waLBerla_compile_test(FILES convection/AlgebraicUpwind3DCircularConvectionTest.cpp DEPENDS hyteg core)
+
+## dataexport ##
+
+waLBerla_compile_test(FILES dataexport/VTKOutputTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME VTKOutputTest)
 
 ## Forms ##
 
