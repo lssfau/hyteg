@@ -45,20 +45,34 @@ class P1VectorFunction
    , v( _name + "_v", storage, minLevel, maxLevel )
    , w( storage->hasGlobalCells() ? P1Function< ValueType >( _name + "_w", storage, minLevel, maxLevel ) :
                                     P1Function< ValueType >( _name + "_w_dummy", storage ) )
+   , functionName_( _name )
    {}
 
    std::shared_ptr< PrimitiveStorage > getStorage() const { return u.getStorage(); }
 
    bool isDummy() const { return false; }
 
-   void interpolate( const std::function< real_t( const hyteg::Point3D& ) >& expr, size_t level, DoFType flag = All ) const
+   void interpolate( const std::function< ValueType( const hyteg::Point3D& ) >& expr, size_t level, DoFType flag = All ) const
    {
       u.interpolate( expr, level, flag );
       v.interpolate( expr, level, flag );
       w.interpolate( expr, level, flag );
    }
 
-   void interpolate( const real_t& constant, size_t level, DoFType flag = All ) const
+   void interpolate( std::vector< std::function< ValueType( const hyteg::Point3D ) > >& expr,
+                     size_t                                                             level,
+                     DoFType                                                            flag = All ) const
+   {
+      WALBERLA_ASSERT_GREATER( expr.size(), 0 );
+      WALBERLA_ASSERT_LESS_EQUAL( expr.size(), 3 );
+
+      for ( uint_t idx = 0; idx < expr.size(); ++idx )
+      {
+         component( idx ).interpolate( expr[idx], level, flag );
+      }
+   }
+
+   void interpolate( const ValueType& constant, size_t level, DoFType flag = All ) const
    {
       u.interpolate( constant, level, flag );
       v.interpolate( constant, level, flag );
@@ -160,61 +174,76 @@ class P1VectorFunction
       w.enableTiming( timingTree );
    }
 
-   P1Function< ValueType>& component( uint_t idx ) {
-     switch( idx ) {
-       case 0 :
+   P1Function< ValueType >& component( uint_t idx )
+   {
+      switch ( idx )
+      {
+      case 0:
          return u;
-       case 1 :
+      case 1:
          return v;
-       case 2 :
+      case 2:
          return w;
-     default:
-       WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
-     }
+      default:
+         WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
+      }
    }
 
-   const P1Function< ValueType>& component( uint_t idx ) const  {
-     switch( idx ) {
-       case 0 :
+   const P1Function< ValueType >& component( uint_t idx ) const
+   {
+      switch ( idx )
+      {
+      case 0:
          return u;
-       case 1 :
+      case 1:
          return v;
-       case 2 :
+      case 2:
          return w;
-     default:
-       WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
-     }
+      default:
+         WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
+      }
    }
 
-   const P1Function< ValueType>& operator[]( uint_t idx ) const  {
-     switch( idx ) {
-       case 0 :
+   const P1Function< ValueType >& operator[]( uint_t idx ) const
+   {
+      switch ( idx )
+      {
+      case 0:
          return u;
-       case 1 :
+      case 1:
          return v;
-       case 2 :
+      case 2:
          return w;
-     default:
-       WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
-     }
+      default:
+         WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
+      }
    }
 
-   P1Function< ValueType>& operator[]( uint_t idx ) {
-     switch( idx ) {
-       case 0 :
+   P1Function< ValueType >& operator[]( uint_t idx )
+   {
+      switch ( idx )
+      {
+      case 0:
          return u;
-       case 1 :
+      case 1:
          return v;
-       case 2 :
+      case 2:
          return w;
-     default:
-       WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
-     }
+      default:
+         WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
+      }
    }
 
    P1Function< ValueType > u;
    P1Function< ValueType > v;
    P1Function< ValueType > w;
+
+   const std::string& getFunctionName() const { return functionName_; }
+
+   uint_t getDimension() const { return component( 0 ).getStorage()->hasGlobalCells() ? 3 : 2; }
+
+ private:
+   const std::string functionName_;
 };
 
 } // namespace hyteg

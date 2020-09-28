@@ -24,14 +24,14 @@
 #include <utility>
 #include <vector>
 
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
-#include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
-#include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
+#include "core/DataTypes.h"
+
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-
-#include "core/DataTypes.h"
+#include "hyteg/dgfunctionspace/DGFunction.hpp"
+#include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
 
 namespace hyteg {
 
@@ -57,10 +57,13 @@ class VTKOutput
               const uint_t&                              writeFrequency = 1 );
 
    void add( P1Function< real_t > function );
+   void add( P2Function< real_t > function );
+
    void add( EdgeDoFFunction< real_t > function );
    void add( DGFunction< real_t > function );
 
-   void add( P2Function< real_t > function );
+   void add( P1VectorFunction< real_t > function );
+   void add( P2VectorFunction< real_t > function );
 
    void add( P1StokesFunction< real_t > function );
    void add( P2P1TaylorHoodFunction< real_t > function );
@@ -86,7 +89,12 @@ class VTKOutput
       P2
    };
 
-  enum class VTK_DATA_FORMAT { ASCII, BINARY, APPENDED };
+   enum class VTK_DATA_FORMAT
+   {
+      ASCII,
+      BINARY,
+      APPENDED
+   };
 
    static const std::map< VTKOutput::DoFType, std::string > DoFTypeToString_;
 
@@ -97,6 +105,10 @@ class VTKOutput
    void writeEdgeDoFs( std::ostream& output, const uint_t& level, const VTKOutput::DoFType& dofType ) const;
    void writeDGDoFs( std::ostream& output, const uint_t& level ) const;
    void writeP2( std::ostream& output, const uint_t& level ) const;
+
+   void writeSingleP2Function( const P2Function< real_t >& function, std::ostream& output, const uint_t& level ) const;
+   void
+       writeSingleP2VectorFunction( const P2VectorFunction< real_t >& function, std::ostream& output, const uint_t& level ) const;
 
    std::string fileNameExtension( const VTKOutput::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const;
 
@@ -121,13 +133,21 @@ class VTKOutput
                           const uint_t&                              level,
                           const DoFType&                             dofType ) const;
 
+   void writeP1VectorFunctionData( std::ostream&                              output,
+                                   const P1VectorFunction< real_t >&          function,
+                                   const std::shared_ptr< PrimitiveStorage >& storage,
+                                   const uint_t&                              level ) const;
+
    void writeCells2D( std::ostream& output, const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& faceWidth ) const;
    void writeCells3D( std::ostream& output, const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level ) const;
 
    void syncAllFunctions( const uint_t& level ) const;
 
-   void openDataElement( std::ostream& output, const std::string& type, const std::string& name,
-                         const uint_t nComponents, const VTK_DATA_FORMAT fmt ) const;
+   void openDataElement( std::ostream&         output,
+                         const std::string&    type,
+                         const std::string&    name,
+                         const uint_t          nComponents,
+                         const VTK_DATA_FORMAT fmt ) const;
 
    /// Writes only macro-faces.
    void set2D() { write2D_ = true; }
@@ -143,11 +163,14 @@ class VTKOutput
 
    bool write2D_;
 
-   std::vector< P1Function< real_t > >      p1Functions_;
+   std::vector< P1Function< real_t > > p1Functions_;
+   std::vector< P2Function< real_t > > p2Functions_;
+
+   std::vector< P1VectorFunction< real_t > > p1VecFunctions_;
+   std::vector< P2VectorFunction< real_t > > p2VecFunctions_;
+
    std::vector< EdgeDoFFunction< real_t > > edgeDoFFunctions_;
    std::vector< DGFunction< real_t > >      dgFunctions_;
-
-   std::vector< P2Function< real_t > > p2Functions_;
 
    std::shared_ptr< PrimitiveStorage > storage_;
 };

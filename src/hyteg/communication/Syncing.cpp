@@ -20,8 +20,8 @@
 #include "Syncing.hpp"
 
 #include "hyteg/Function.hpp"
-#include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitives/all.hpp"
 
 namespace hyteg {
@@ -48,17 +48,39 @@ void syncP2FunctionBetweenPrimitives( const P2Function< ValueType >& function, c
    syncFunctionBetweenPrimitives< hyteg::EdgeDoFFunction< ValueType > >( function.getEdgeDoFFunction(), level );
 }
 
+// Version for VectorFunctions
+template < typename vType >
+void syncVectorFunctionBetweenPrimitives( const P1VectorFunction< vType >& vecFunc, const uint_t& level )
+{
+   for ( uint_t idx = 0; idx < vecFunc.getDimension(); ++idx )
+   {
+      syncFunctionBetweenPrimitives( vecFunc[idx], level );
+   }
+}
+
+template < typename vType >
+void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< vType >& vecFunc, const uint_t& level )
+{
+   for ( uint_t idx = 0; idx < vecFunc.getDimension(); ++idx )
+   {
+      syncP2FunctionBetweenPrimitives( vecFunc[idx], level );
+   }
+}
+
 template void syncP2FunctionBetweenPrimitives( const P2Function< double >& function, const uint_t& level );
 template void syncP2FunctionBetweenPrimitives( const P2Function< int >& function, const uint_t& level );
 
-template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction<double>& function, const uint_t& level );
-template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction<int>& function, const uint_t& level );
+template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction< double >& function, const uint_t& level );
+template void syncFunctionBetweenPrimitives( const vertexdof::VertexDoFFunction< int >& function, const uint_t& level );
 
-template void syncFunctionBetweenPrimitives( const EdgeDoFFunction<double>& function, const uint_t& level );
-template void syncFunctionBetweenPrimitives( const EdgeDoFFunction<int>& function, const uint_t& level );
+template void syncFunctionBetweenPrimitives( const EdgeDoFFunction< double >& function, const uint_t& level );
+template void syncFunctionBetweenPrimitives( const EdgeDoFFunction< int >& function, const uint_t& level );
 
-template void syncFunctionBetweenPrimitives( const P2Function<double>& function, const uint_t& level );
-template void syncFunctionBetweenPrimitives( const P2Function<int>& function, const uint_t& level );
+template void syncFunctionBetweenPrimitives( const P2Function< double >& function, const uint_t& level );
+template void syncFunctionBetweenPrimitives( const P2Function< int >& function, const uint_t& level );
+
+template void syncVectorFunctionBetweenPrimitives( const P1VectorFunction< real_t >& function, const uint_t& level );
+template void syncVectorFunctionBetweenPrimitives( const P2VectorFunction< real_t >& function, const uint_t& level );
 
 //template void syncFunctionBetweenPrimitives( const P1Function<double>& function, const uint_t& level );
 

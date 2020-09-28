@@ -45,6 +45,8 @@ class P2VectorFunction
    , v( _name + "_v", storage, minLevel, maxLevel )
    , w( storage->hasGlobalCells() ? P2Function< ValueType >( _name + "_w", storage, minLevel, maxLevel ) :
                                     P2Function< ValueType >( _name + "_w_dummy", storage ) )
+
+   , functionName_( _name )
    {}
 
    P2VectorFunction( const std::string&                         _name,
@@ -56,20 +58,34 @@ class P2VectorFunction
    , v( _name + "_v", storage, minLevel, maxLevel, velocityBC )
    , w( storage->hasGlobalCells() ? P2Function< ValueType >( _name + "_w", storage, minLevel, maxLevel, velocityBC ) :
                                     P2Function< ValueType >( _name + "_w_dummy", storage ) )
+   , functionName_( _name )
    {}
 
    std::shared_ptr< PrimitiveStorage > getStorage() const { return u.getStorage(); }
 
    bool isDummy() const { return false; }
 
-   void interpolate( const std::function< real_t( const hyteg::Point3D& ) >& expr, size_t level, DoFType flag = All ) const
+   void interpolate( const std::function< ValueType( const hyteg::Point3D& ) >& expr, size_t level, DoFType flag = All ) const
    {
       u.interpolate( expr, level, flag );
       v.interpolate( expr, level, flag );
       w.interpolate( expr, level, flag );
    }
 
-   void interpolate( const real_t& constant, size_t level, DoFType flag = All ) const
+   void interpolate( std::vector< std::function< ValueType( const hyteg::Point3D ) > >& expr,
+                     size_t                                                             level,
+                     DoFType                                                            flag = All ) const
+   {
+      WALBERLA_ASSERT_GREATER( expr.size(), 0 );
+      WALBERLA_ASSERT_LESS_EQUAL( expr.size(), 3 );
+
+      for ( uint_t idx = 0; idx < expr.size(); ++idx )
+      {
+         component( idx ).interpolate( expr[idx], level, flag );
+      }
+   }
+
+   void interpolate( const ValueType& constant, size_t level, DoFType flag = All ) const
    {
       u.interpolate( constant, level, flag );
       v.interpolate( constant, level, flag );
@@ -164,20 +180,6 @@ class P2VectorFunction
       return sum;
    }
 
-   void prolongate( const size_t level, const DoFType flag = All ) const
-   {
-      u.prolongate( level, flag );
-      v.prolongate( level, flag );
-      w.prolongate( level, flag );
-   }
-
-   void restrict( const size_t level, const DoFType flag = All ) const
-   {
-      u.restrict( level, flag );
-      v.restrict( level, flag );
-      w.restrict( level, flag );
-   }
-
    void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree ) const
    {
       u.enableTiming( timingTree );
@@ -248,6 +250,13 @@ class P2VectorFunction
    P2Function< ValueType > u;
    P2Function< ValueType > v;
    P2Function< ValueType > w;
+
+   const std::string& getFunctionName() const { return functionName_; }
+
+   uint_t getDimension() const { return component( 0 ).getStorage()->hasGlobalCells() ? 3 : 2; }
+
+ private:
+   const std::string functionName_;
 };
 
 } // namespace hyteg
