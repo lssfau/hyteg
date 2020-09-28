@@ -51,6 +51,7 @@ This app implements the Stokes benchmark described in:
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/numerictools/SphericalHarmonicsTool.hpp"
+#include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
@@ -76,16 +77,43 @@ const real_t outerRadius = 2.0;
 
 namespace terraneo {
 
+// =========
+//  Meshing
+// =========
+std::shared_ptr< hyteg::PrimitiveStorage > generateMesh( uint_t nRad, uint_t nTan, bool reportPrimitives )
+{
+   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::meshSphericalShell( nTan, nRad, innerRadius, outerRadius );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
+                                              walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   hyteg::loadbalancing::roundRobin( setupStorage );
+
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   IcosahedralShellMap::setMap( setupStorage );
+
+   auto surface = []( const Point3D& p ) { return std::abs( p.norm() - outerRadius ) < 1e-10; };
+   auto cmb     = []( const Point3D& p ) { return std::abs( p.norm() - innerRadius ) < 1e-10; };
+   setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surface );
+   setupStorage.setMeshBoundaryFlagsByVertexLocation( 2, cmb );
+
+   if ( reportPrimitives )
+      WALBERLA_LOG_INFO_ON_ROOT( "" << setupStorage );
+
+   std::shared_ptr< walberla::WcTimingTree >  timingTree( new walberla::WcTimingTree() );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
+
+   return storage;
+}
+
 // ===================
 //  runBenchmarkTests
 // ===================
-template < template < class > class feFuncType, typename massOpType, typename stokesOpType >
-void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg, std::shared_ptr< hyteg::PrimitiveStorage > storage )
+template < template < class > class feFuncType, typename massOpType, typename stokesOpType, typename projOpType >
+void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg,
+                        std::shared_ptr< hyteg::PrimitiveStorage >  storage,
+                        uint_t                                      targetLevel )
 {
    // parameter handling
    const walberla::Config::BlockHandle problemCfg = cfg->getBlock( "Problem" );
-
-   const uint_t targetLevel = problemCfg.getParameter< uint_t >( "targetLevel" );
 
    // as long as we solve with PETSc we just need one level
    const uint_t minLevel = targetLevel;
@@ -167,7 +195,7 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg, std::sh
    // -------------------
    //  Setup FE Solution
    // -------------------
-   WALBERLA_LOG_PROGRESS_ON_ROOT( "Preparing FE function for discete solution ... " );
+   WALBERLA_LOG_PROGRESS_ON_ROOT( "Preparing FE function for discrete solution ... " );
    feFuncType< real_t > feSol( "Discrete Solution", storage, minLevel, maxLevel, bcVelocity );
 
    // set everything to zero (including boundaries)
@@ -184,22 +212,20 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg, std::sh
       real_t sign = ( norm > 0.95 * outerRadius ) ? 1.0 : -1.0;
       n           = sign / norm * p;
    };
-   auto projectNormalsOp        = std::make_shared< P2ProjectNormalOperator >( storage, maxLevel, maxLevel, normalFunc );
-   using StokesOperatorFreeSlip = StrongFreeSlipWrapper< stokesOpType, P2ProjectNormalOperator >;
+   auto projectNormalsOp        = std::make_shared< projOpType >( storage, maxLevel, maxLevel, normalFunc );
+   using StokesOperatorFreeSlip = StrongFreeSlipWrapper< stokesOpType, projOpType >;
 
    // -----------------------
    //  Setup Stokes Operator
    // -----------------------
    WALBERLA_LOG_PROGRESS_ON_ROOT( "Preparing Stokes operator ... " );
    std::shared_ptr< stokesOpType > stokesOp = std::make_shared< stokesOpType >( storage, maxLevel, maxLevel );
-   // StrongFreeSlipWrapper< stokesOpType, P2ProjectNormalOperator > stokesOpFS( stokesOp, projectNormalsOp, bmarkFsDoFs );
-   StokesOperatorFreeSlip stokesOpFS( stokesOp, projectNormalsOp, bmarkFsDoFs );
+   StokesOperatorFreeSlip          stokesOpFS( stokesOp, projectNormalsOp, bmarkFsDoFs );
    WALBERLA_LOG_PROGRESS_ON_ROOT( "Finished with Stokes operator ... " );
 
    // ---------------------
    //  Solve linear system
    // ---------------------
-
    std::string solverType = problemCfg.getParameter< std::string >( "solverType" );
 
    switch ( bmarkBC )
@@ -221,9 +247,8 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg, std::sh
       {
 #ifdef HYTEG_BUILD_WITH_PETSC
          WALBERLA_LOG_PROGRESS_ON_ROOT( "Iterative with PETScBPSS ... " );
-         WALBERLA_ABORT( "Need to define the block preconditioner for the P2P1ElementwiseBlendingStokesOperator for this one!" );
-         // PETScBlockPreconditionedStokesSolver< stokesOpType > stokesSolver( storage, maxLevel, 1e-08, 500, 1 );
-         // stokesSolver.solve( stokesOpFS, feSol, rhs, maxLevel );
+         PETScBlockPreconditionedStokesSolver< stokesOpType > stokesSolver( storage, maxLevel, 1e-08, 500, 1 );
+         stokesSolver.solve( *stokesOp, feSol, rhs, maxLevel );
 #else
          WALBERLA_ABORT( "Recompile with PETSc support to use PETSc solvers!" );
 #endif
@@ -261,8 +286,8 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg, std::sh
 
    if ( problemCfg.getParameter< bool >( "compute_L2_error" ) )
    {
-      real_t                                      L2error = 0.0;
-      typename vf_t::template VectorComponentType aux( "aux", storage, maxLevel, maxLevel );
+      real_t                             L2error = 0.0;
+      typename vf_t::VectorComponentType aux( "aux", storage, maxLevel, maxLevel );
 
       for ( uint_t idx = 0; idx < 3; ++idx )
       {
@@ -281,11 +306,8 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg, std::sh
       vf_t   u_fine( "u_fine", storage, fLevel, fLevel );
       setAnalyticSolution( u_fine, fLevel, degree, order, sphTool, bmarkBC );
 
-      typename vf_t::template VectorComponentType aux( "aux", storage, maxLevel, maxLevel + 1 );
-      P2toP2QuadraticProlongation                 embedder;
-
-      // TEST
-      // feSol.prolongate( maxLevel, All ); there is no P2Function::prolongate !!!
+      typename vf_t::VectorComponentType aux( "aux", storage, maxLevel, maxLevel + 1 );
+      P2toP2QuadraticProlongation        embedder;
 
       for ( uint_t idx = 0; idx < 3; ++idx )
       {
@@ -305,14 +327,11 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg, std::sh
    if ( problemCfg.getParameter< bool >( "VTKOutput" ) )
    {
       hyteg::VTKOutput vtkOutput( "./output", "bmark", storage );
-      for ( uint_t idx = 0; idx < 3; ++idx )
-      {
-         vtkOutput.add( forcing[idx] );
-         vtkOutput.add( rhs.uvw[idx] );
-         vtkOutput.add( u_exact[idx] );
-         vtkOutput.add( feSol.uvw[idx] );
-         vtkOutput.add( error[idx] );
-      }
+      vtkOutput.add( forcing );
+      vtkOutput.add( rhs.uvw );
+      vtkOutput.add( u_exact );
+      vtkOutput.add( feSol.uvw );
+      vtkOutput.add( error );
       vtkOutput.write( maxLevel, 0 );
    }
 }
@@ -357,42 +376,31 @@ int main( int argc, char* argv[] )
    // =========
    //  Meshing
    // =========
-   const uint_t nRad = problemCfg.getParameter< uint_t >( "nRad" );
-   const uint_t nTan = problemCfg.getParameter< uint_t >( "nTan" );
-
-   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::meshSphericalShell( nTan, nRad, innerRadius, outerRadius );
-   hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
-                                              walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   hyteg::loadbalancing::roundRobin( setupStorage );
-
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   IcosahedralShellMap::setMap( setupStorage );
-
-   auto surface = []( const Point3D& p ) { return std::abs( p.norm() - outerRadius ) < 1e-10; };
-   auto cmb     = []( const Point3D& p ) { return std::abs( p.norm() - innerRadius ) < 1e-10; };
-   setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, surface );
-   setupStorage.setMeshBoundaryFlagsByVertexLocation( 2, cmb );
-
-   std::shared_ptr< walberla::WcTimingTree >  timingTree( new walberla::WcTimingTree() );
-   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
-
-   if ( problemCfg.getParameter< bool >( "reportPrimitives" ) )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "" << setupStorage );
-   }
+   const uint_t nRad    = problemCfg.getParameter< uint_t >( "nRad" );
+   const uint_t nTan    = problemCfg.getParameter< uint_t >( "nTan" );
+   auto         storage = terraneo::generateMesh( nRad, nTan, problemCfg.getParameter< bool >( "reportPrimitives" ) );
 
    // =================
    //  Benchmark Stuff
    // =================
+   uint_t bmInitLevel = problemCfg.getParameter< uint_t >( "bmInitLevel" );
+   uint_t bmStopLevel = problemCfg.getParameter< uint_t >( "bmStopLevel" );
 
    // delegate actual work to templated function to allow different FE spaces
    std::string feSpace = problemCfg.getParameter< std::string >( "feSpace" );
 
-   if ( feSpace == "P2P1TaylorHood" )
+   for ( uint_t bmCurrentLevel = bmInitLevel; bmCurrentLevel <= bmStopLevel; bmCurrentLevel++ )
    {
-      terraneo::runBenchmarkTests< P2P1TaylorHoodFunction,
-                                   P2ElementwiseBlendingMassOperator,
-                                   P2P1ElementwiseBlendingStokesOperator >( cfg, storage );
+      if ( feSpace == "P2P1TaylorHood" )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "=================================================" );
+         WALBERLA_LOG_INFO_ON_ROOT( " REFINEMENT LEVEL = " << bmCurrentLevel );
+         WALBERLA_LOG_INFO_ON_ROOT( "=================================================" );
+         terraneo::runBenchmarkTests< P2P1TaylorHoodFunction,
+                                      P2ElementwiseBlendingMassOperator,
+                                      P2P1ElementwiseBlendingStokesOperator,
+                                      P2ProjectNormalOperator >( cfg, storage, bmCurrentLevel );
+      }
    }
 
    return EXIT_SUCCESS;

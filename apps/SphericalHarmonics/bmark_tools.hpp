@@ -37,6 +37,7 @@
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/numerictools/SphericalHarmonicsTool.hpp"
 #include "hyteg/p2functionspace/P2ProjectNormalOperator.hpp"
+#include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
@@ -86,7 +87,7 @@ void setForceField( vecFuncType&                              f,
       return sphTool->shconvert_eval( degree, order, x[0], x[1], x[2] );
    };
 
-   typename vecFuncType::template VectorComponentType sph( "spherical harmonic", f[0].getStorage(), level, level );
+   typename vecFuncType::VectorComponentType sph( "spherical harmonic", f[0].getStorage(), level, level );
    // feFuncType sph( "spherical harmonic", f[0].getStorage(), level, level );
    sph.interpolate( sphFunc, level, All );
 

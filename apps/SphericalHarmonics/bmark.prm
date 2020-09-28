@@ -12,7 +12,8 @@ Problem
   nRad 2;
   nTan 3;
   coarseLevel 2;  // the coarsest level for GMG in HyTeG
-  targetLevel 2;  // the one on which we run the benchmark
+  bmInitLevel 2;  // first level on which to run benchmark
+  bmStopLevel 3;  // last level on which to run benchmark
 
   /// FE space
   feSpace P2P1TaylorHood;
@@ -30,6 +31,6 @@ Problem
   reportDoFNum true;
 
   /// export data for visualisation?
-  VTKOutput true;
-  // VTKOutput false;
+  // VTKOutput true;
+  VTKOutput false;
 }
