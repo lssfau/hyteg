@@ -268,74 +268,120 @@ public:
 
   typedef uint_t IDType;
 
-  typedef enum { CRISS, CROSS, CRISSCROSS, DIAMOND } meshFlavour;
+  typedef enum
+  {
+     CRISS,
+     CROSS,
+     CRISSCROSS,
+     DIAMOND
+  } meshFlavour;
 
   class Vertex
   {
-  public:
-    Vertex() : id_( 0 ), coordinates_( Point3D() ), boundaryFlag_( 0 ) {};
-    Vertex( const IDType & id, const Point3D & coordinates, const uint_t & boundaryFlag ) :
-      id_( id ), coordinates_( coordinates ), boundaryFlag_( boundaryFlag )
-    {}
+   public:
+     Vertex()
+     : id_( 0 )
+     , coordinates_( Point3D() )
+     , boundaryFlag_( 0 ){};
 
-    IDType  getID()           const { return id_; }
-    Point3D getCoordinates()  const { return coordinates_; }
-    uint_t  getBoundaryFlag() const { return boundaryFlag_; }
+     Vertex( const IDType& id, const Point3D& coordinates, const uint_t& boundaryFlag )
+     : id_( id )
+     , coordinates_( coordinates )
+     , boundaryFlag_( boundaryFlag )
+     {}
 
-  private:
-    IDType  id_;
-    Point3D coordinates_;
-    uint_t  boundaryFlag_;
+     IDType  getID() const { return id_; }
+     Point3D getCoordinates() const { return coordinates_; }
+     uint_t  getBoundaryFlag() const { return boundaryFlag_; }
+
+     void setCoordinates( const Point3D& coords ) { coordinates_ = coords; }
+     void setBoundaryFlag( uint_t boundaryFlag ) { boundaryFlag_ = boundaryFlag; }
+
+   private:
+     IDType  id_;
+     Point3D coordinates_;
+     uint_t  boundaryFlag_;
   };
 
   class Edge
   {
-  public:
-    Edge() : boundaryFlag_( 0 ) {};
-    Edge( const std::array< IDType, 2 > & vertices, const uint_t & boundaryFlag ) :
-      vertices_( vertices ), boundaryFlag_( boundaryFlag )
-    {}
+   public:
+     Edge()
+     : boundaryFlag_( 0 ){};
 
-    std::array< IDType, 2 > getVertices()     const { return vertices_; }
-    uint_t                  getBoundaryFlag() const { return boundaryFlag_; }
+     Edge( const std::array< IDType, 2 >& vertices, const uint_t& boundaryFlag )
+     : vertices_( vertices )
+     , boundaryFlag_( boundaryFlag )
+     {}
 
-  private:
-    std::array< IDType, 2 > vertices_;
-    uint_t                  boundaryFlag_;
+     std::array< IDType, 2 > getVertices() const { return vertices_; }
+     uint_t                  getBoundaryFlag() const { return boundaryFlag_; }
+
+     void setBoundaryFlag( uint_t boundaryFlag ) { boundaryFlag_ = boundaryFlag; }
+
+   private:
+     std::array< IDType, 2 > vertices_;
+     uint_t                  boundaryFlag_;
   };
 
   class Face
   {
-  public:
-    Face() : boundaryFlag_( 0 ) {};
-    Face( const std::vector< IDType > & vertices, const uint_t & boundaryFlag ) :
-      vertices_( vertices ), boundaryFlag_( boundaryFlag )
-    {}
+   public:
+     Face()
+     : boundaryFlag_( 0 ){};
 
-    std::vector< IDType > getVertices()     const { return vertices_; }
-    uint_t                getBoundaryFlag() const { return boundaryFlag_; }
+     Face( const std::vector< IDType >& vertices, const uint_t& boundaryFlag )
+     : vertices_( vertices )
+     , boundaryFlag_( boundaryFlag )
+     {}
 
-  private:
-    std::vector< IDType > vertices_;
-    uint_t                boundaryFlag_;
+     std::vector< IDType > getVertices() const { return vertices_; }
+     uint_t                getBoundaryFlag() const { return boundaryFlag_; }
+
+     void setBoundaryFlag( uint_t boundaryFlag ) { boundaryFlag_ = boundaryFlag; }
+
+   private:
+     std::vector< IDType > vertices_;
+     uint_t                boundaryFlag_;
   };
 
   class Cell
   {
-  public:
-    Cell() : boundaryFlag_( 0 ) {};
-    Cell( const std::vector< IDType > & vertices, const uint_t & boundaryFlag ) :
-      vertices_( vertices ), boundaryFlag_( boundaryFlag )
-    {}
+   public:
+     Cell()
+     : boundaryFlag_( 0 ){};
 
-    std::vector< IDType > getVertices()     const { return vertices_; }
-    uint_t                getBoundaryFlag() const { return boundaryFlag_; }
+     Cell( const std::vector< IDType >& vertices, const uint_t& boundaryFlag )
+     : vertices_( vertices )
+     , boundaryFlag_( boundaryFlag )
+     {}
 
-  private:
-    std::vector< IDType > vertices_;
-    uint_t                boundaryFlag_;
+     std::vector< IDType > getVertices() const { return vertices_; }
+     uint_t                getBoundaryFlag() const { return boundaryFlag_; }
+
+     void setBoundaryFlag( uint_t boundaryFlag ) { boundaryFlag_ = boundaryFlag; }
+
+   private:
+     std::vector< IDType > vertices_;
+     uint_t                boundaryFlag_;
   };
 
+  /// \brief Applies a custom function to all vertices of the mesh, transforming their coordinates.
+  void applyCoordinateMap( const std::function< Point3D( const Point3D& ) >& map )
+  {
+     for ( auto& v : vertices_ )
+     {
+        auto newCoords = map( v.second.getCoordinates() );
+        v.second.setCoordinates( newCoords );
+     }
+  }
+
+  void setAllMeshBoundaryFlags( const uint_t& meshBoundaryFlag );
+
+  /// Every primitive for which onBoundary() returns true for all / any (if allVertices == true / false) of the primitve's vertices is assigned the passed mesh boundary flag.
+  void setMeshBoundaryFlagsByVertexLocation( const uint_t&                                    meshBoundaryFlag,
+                                             const std::function< bool( const Point3D& x ) >& onBoundary,
+                                             const bool&                                      allVertices = true );
 
   typedef std::map< IDType,                  Vertex > VertexContainer;
   typedef std::map< std::array< IDType, 2 >, Edge   > EdgeContainer;

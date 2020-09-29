@@ -116,12 +116,16 @@ class GeometricMultigridSolver : public Solver< OperatorType >
    {
       if ( level == minLevel_ )
       {
+         timingTree_->start( "Level " + std::to_string( level ) );
          timingTree_->start( "Coarse Grid Solver" );
          coarseSolver_->solve( A, x, b, minLevel_ );
          timingTree_->stop( "Coarse Grid Solver" );
+         timingTree_->stop( "Level " + std::to_string( level ) );
       }
       else
       {
+         timingTree_->start( "Level " + std::to_string( level ) );
+
          // pre-smooth
          const uint_t preSmoothingSteps = preSmoothSteps_ + smoothIncrement_ * ( invokedLevel_ - level );
          for ( uint_t i = 0; i < preSmoothingSteps; ++i )
@@ -143,12 +147,14 @@ class GeometricMultigridSolver : public Solver< OperatorType >
 
          x.interpolate( 0, level - 1 );
 
+         timingTree_->stop( "Level " + std::to_string( level ) );
          solveRecursively( A, x, b, level - 1 );
 
          if ( cycleType_ == CycleType::WCYCLE )
          {
             solveRecursively( A, x, b, level - 1 );
          }
+         timingTree_->start( "Level " + std::to_string( level ) );
 
          // prolongate
          tmp_.assign( {1.0}, {x}, level, flag_ );
@@ -165,6 +171,8 @@ class GeometricMultigridSolver : public Solver< OperatorType >
             smoother_->solve( A, x, b, level );
             timingTree_->stop( "Smoother" );
          }
+
+         timingTree_->stop( "Level " + std::to_string( level ) );
       }
    }
 

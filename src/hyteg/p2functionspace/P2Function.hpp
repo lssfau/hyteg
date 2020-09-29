@@ -65,7 +65,38 @@ class P2Function : public Function< P2Function< ValueType > >
       edgeDoFFunction_.template communicate< SenderType, ReceiverType >( level );
    }
 
-   inline ValueType evaluate( const Point3D& coordinates, uint_t level ) const;
+   /// \brief Evaluate finite element function at a specific coordinates.
+   ///
+   /// In a parallel setting, the specified coordinate might not lie in the local subdomain.
+   ///
+   /// Evaluation is performed in two steps:
+   ///
+   ///   1. For all volume primitives of the local subdomain:
+   ///      If a point-tet (point-triangle in 2D) inclusion test succeeds, the function returns true
+   ///      and the finite-element function is evaluated.
+   ///
+   ///   2. Skipped, if radius is negative.
+   ///      For all volume primitives of the local subdomain:
+   ///      A sphere-tet (circle-triangle) intersection
+   ///      test is performed, if successful returns true, and the finite-element function is extrapolated
+   ///      to the specified coordinate and evaluated, depending on the radius, this might introduce (large) errors.
+   ///
+   /// If both tests fail, this function returns false, and no evaluation is performed (i.e. the returned, evaluated
+   /// value is not set to anything meaningful).
+   ///
+   /// Note that two parallel processes that return true, may return _different_ values.
+   ///
+   /// No communication is performed in this function.
+   /// -> Does not need to be called collectively.
+   /// -> Different values are returned on each process.
+   ///
+   /// \param coordinates where the function shall be evaluated
+   /// \param level refinement level
+   /// \param value function value at the coordinate if search was successful
+   /// \param searchToleranceRadius radius of the sphere (circle) for the second search phase, skipped if negative
+   /// \return true if the function was evaluated successfully, false otherwise
+   ///
+   bool evaluate( const Point3D& coordinates, uint_t level, ValueType& value, real_t searchToleranceRadius = 1e-05 ) const;
 
    inline void evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const;
 
@@ -185,7 +216,7 @@ class P2Function : public Function< P2Function< ValueType > >
 };
 
 template <>
-real_t P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level ) const;
+bool P2Function< real_t >::evaluate( const Point3D& coordinates, uint_t level, real_t& value, real_t searchToleranceRadius ) const;
 template <>
 void P2Function< real_t >::evaluateGradient( const Point3D& coordinates, uint_t level, Point3D& gradient ) const;
 

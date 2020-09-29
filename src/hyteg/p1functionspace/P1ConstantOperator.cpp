@@ -1036,30 +1036,14 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_gs( 
 }
 
 template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
-void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor( const P1Function< real_t >& dst,
-                                                                                 const P1Function< real_t >& rhs,
-                                                                                 real_t                      relax,
-                                                                                 size_t                      level,
-                                                                                 DoFType                     flag,
-                                                                                 const bool&                 backwards ) const
+void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor_macro_vertices( const P1Function< real_t >& dst,
+                                                                                                const P1Function< real_t >& rhs,
+                                                                                                real_t                      relax,
+                                                                                                size_t                      level,
+                                                                                                DoFType                     flag,
+                                                                                                const bool& backwards ) const
 {
-   if ( backwards )
-   {
-      WALBERLA_CHECK( globalDefines::useGeneratedKernels, "Backward SOR only implemented in generated kernels." )
-      this->startTiming( "SOR backwards" );
-   }
-   else
-   {
-      this->startTiming( "SOR" );
-   }
-
-   dst.communicate< Vertex, Edge >( level );
-   dst.communicate< Edge, Face >( level );
-   dst.communicate< Face, Cell >( level );
-
-   dst.communicate< Cell, Face >( level );
-   dst.communicate< Face, Edge >( level );
-   dst.communicate< Edge, Vertex >( level );
+   WALBERLA_UNUSED( backwards );
 
    this->timingTree_->start( "Macro-Vertex" );
 
@@ -1076,9 +1060,16 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor(
    }
 
    this->timingTree_->stop( "Macro-Vertex" );
+}
 
-   dst.communicate< Vertex, Edge >( level );
-
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
+void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor_macro_edges( const P1Function< real_t >& dst,
+                                                                                             const P1Function< real_t >& rhs,
+                                                                                             real_t                      relax,
+                                                                                             size_t                      level,
+                                                                                             DoFType                     flag,
+                                                                                             const bool& backwards ) const
+{
    this->timingTree_->start( "Macro-Edge" );
 
    for ( auto& it : storage_->getEdges() )
@@ -1094,9 +1085,16 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor(
    }
 
    this->timingTree_->stop( "Macro-Edge" );
+}
 
-   dst.communicate< Edge, Face >( level );
-
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
+void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor_macro_faces( const P1Function< real_t >& dst,
+                                                                                             const P1Function< real_t >& rhs,
+                                                                                             real_t                      relax,
+                                                                                             size_t                      level,
+                                                                                             DoFType                     flag,
+                                                                                             const bool& backwards ) const
+{
    this->timingTree_->start( "Macro-Face" );
 
    for ( auto& it : storage_->getFaces() )
@@ -1298,9 +1296,16 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor(
    }
 
    this->timingTree_->stop( "Macro-Face" );
+}
 
-   dst.communicate< Face, Cell >( level );
-
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
+void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor_macro_cells( const P1Function< real_t >& dst,
+                                                                                             const P1Function< real_t >& rhs,
+                                                                                             real_t                      relax,
+                                                                                             size_t                      level,
+                                                                                             DoFType                     flag,
+                                                                                             const bool& backwards ) const
+{
    this->timingTree_->start( "Macro-Cell" );
 
    for ( auto& it : storage_->getCells() )
@@ -1336,6 +1341,67 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor(
    }
 
    this->timingTree_->stop( "Macro-Cell" );
+}
+
+template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
+void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor( const P1Function< real_t >& dst,
+                                                                                 const P1Function< real_t >& rhs,
+                                                                                 real_t                      relax,
+                                                                                 size_t                      level,
+                                                                                 DoFType                     flag,
+                                                                                 const bool&                 backwards ) const
+{
+   if ( backwards )
+   {
+      WALBERLA_CHECK( globalDefines::useGeneratedKernels, "Backward SOR only implemented in generated kernels." )
+      this->startTiming( "SOR backwards" );
+   }
+   else
+   {
+      this->startTiming( "SOR" );
+   }
+
+   dst.communicate< Vertex, Edge >( level );
+   dst.communicate< Edge, Face >( level );
+   dst.communicate< Face, Cell >( level );
+
+   dst.communicate< Cell, Face >( level );
+   dst.communicate< Face, Edge >( level );
+   dst.communicate< Edge, Vertex >( level );
+
+   if ( backwards )
+   {
+      smooth_sor_macro_cells( dst, rhs, relax, level, flag, backwards );
+
+      dst.communicate< Cell, Face >( level );
+
+      smooth_sor_macro_faces( dst, rhs, relax, level, flag, backwards );
+
+      dst.communicate< Face, Edge >( level );
+
+      smooth_sor_macro_edges( dst, rhs, relax, level, flag, backwards );
+
+      dst.communicate< Edge, Vertex >( level );
+
+      smooth_sor_macro_vertices( dst, rhs, relax, level, flag, backwards );
+   }
+   else
+   {
+      smooth_sor_macro_vertices( dst, rhs, relax, level, flag, backwards );
+
+      dst.communicate< Vertex, Edge >( level );
+
+      smooth_sor_macro_edges( dst, rhs, relax, level, flag, backwards );
+
+      dst.communicate< Edge, Face >( level );
+
+      smooth_sor_macro_faces( dst, rhs, relax, level, flag, backwards );
+
+      dst.communicate< Face, Cell >( level );
+
+      smooth_sor_macro_cells( dst, rhs, relax, level, flag, backwards );
+   }
+
 
    if ( backwards )
       this->stopTiming( "SOR backwards" );

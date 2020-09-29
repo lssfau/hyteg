@@ -105,32 +105,6 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     vertexIDsToEdgeIDs[ vertexIDs ] = edgeID;
   }
 
-  // TODO (issue #73): currently the mesh boundary flags are forced to certain values depending on neighboring primitives
-
-  for (auto& it : edges_) {
-    Edge& edge = *it.second;
-
-    if ( edge.getMeshBoundaryFlag() == 2 )
-    {
-      for ( auto itv : edge.neighborVertices() )
-      {
-        vertices_[itv.getID()]->meshBoundaryFlag_ = 2;
-      }
-    }
-  }
-
-  for (auto& it : edges_) {
-    Edge& edge = *it.second;
-
-    if ( edge.getMeshBoundaryFlag() == 1 )
-    {
-      for ( auto itv : edge.neighborVertices() )
-      {
-        vertices_[itv.getID()]->meshBoundaryFlag_ = 1;
-      }
-    }
-  }
-
   // Adding faces to storage
   const MeshInfo::FaceContainer faces = meshInfo.getFaces();
   for ( const auto & it : faces )
@@ -259,34 +233,6 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     std::vector< PrimitiveID > neighboringVertexIDs = {{ vertexID0, vertexID1, vertexID2 }};
     std::sort( neighboringVertexIDs.begin(), neighboringVertexIDs.end() );
     vertexIDsToFaceIDs[ neighboringVertexIDs ] = faceID;
-  }
-
-  // TODO (issue #73): currently the mesh boundary flags are forced to certain values depending on neighboring primitives
-
-  for ( const auto & it : faces_ )
-  {
-    Face & face = *it.second;
-
-    if ( face.getMeshBoundaryFlag() == 2 )
-    {
-      for ( auto & itv : face.neighborEdges() )
-      {
-        edges_[itv.getID()]->meshBoundaryFlag_ = 2;
-      }
-    }
-  }
-
-  for ( const auto & it : faces_ )
-  {
-    Face & face = *it.second;
-
-    if ( face.getMeshBoundaryFlag() == 1 )
-    {
-      for ( auto & itv : face.neighborEdges() )
-      {
-        edges_[itv.getID()]->meshBoundaryFlag_ = 1;
-      }
-    }
   }
 
   // Adding cells to storage

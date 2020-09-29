@@ -84,6 +84,34 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
                     DoFType                     flag ) const;
 
  private:
+   void smooth_sor_macro_vertices( const P2Function< real_t >& dst,
+                                   const P2Function< real_t >& rhs,
+                                   const real_t&               relax,
+                                   size_t                      level,
+                                   DoFType                     flag,
+                                   const bool&                 backwards = false ) const;
+
+   void smooth_sor_macro_edges( const P2Function< real_t >& dst,
+                                const P2Function< real_t >& rhs,
+                                const real_t&               relax,
+                                size_t                      level,
+                                DoFType                     flag,
+                                const bool&                 backwards = false ) const;
+
+   void smooth_sor_macro_faces( const P2Function< real_t >& dst,
+                                const P2Function< real_t >& rhs,
+                                const real_t&               relax,
+                                size_t                      level,
+                                DoFType                     flag,
+                                const bool&                 backwards = false ) const;
+
+   void smooth_sor_macro_cells( const P2Function< real_t >& dst,
+                                const P2Function< real_t >& rhs,
+                                const real_t&               relax,
+                                size_t                      level,
+                                DoFType                     flag,
+                                const bool&                 backwards = false ) const;
+
    P1ConstantOperator< P2Form >         vertexToVertex;
    EdgeDoFToVertexDoFOperator< P2Form > edgeToVertex;
    VertexDoFToEdgeDoFOperator< P2Form > vertexToEdge;
@@ -113,6 +141,6 @@ typedef P2ConstantOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_
     P2ConstantPSPGOperator;
 
 typedef P2ConstantOperator< P2LinearCombinationForm > P2ConstantLinearCombinationOperator;
-typedef P2ConstantOperator< P2RowSumForm > P2ConstantRowSumOperator;
+typedef P2ConstantOperator< P2RowSumForm >            P2ConstantRowSumOperator;
 
 } // namespace hyteg

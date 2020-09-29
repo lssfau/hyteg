@@ -423,6 +423,38 @@ class PrimitiveStorage : private walberla::NonCopyable
       return walberla::mpi::allReduce( getNumberOfLocalPrimitives(), walberla::mpi::SUM );
    }
 
+   /// \brief Returns the global number of vertices.
+   ///
+   /// Involves global communication.
+   uint_t getNumberOfGlobalVertices() const
+   {
+      return walberla::mpi::allReduce( getNumberOfLocalVertices(), walberla::mpi::SUM );
+   }
+
+   /// \brief Returns the global number of edges.
+   ///
+   /// Involves global communication.
+   uint_t getNumberOfGlobalEdges() const
+   {
+      return walberla::mpi::allReduce( getNumberOfLocalEdges(), walberla::mpi::SUM );
+   }
+
+   /// \brief Returns the global number of faces.
+   ///
+   /// Involves global communication.
+   uint_t getNumberOfGlobalFaces() const
+   {
+      return walberla::mpi::allReduce( getNumberOfLocalFaces(), walberla::mpi::SUM );
+   }
+
+   /// \brief Returns the global number of cells.
+   ///
+   /// Involves global communication.
+   uint_t getNumberOfGlobalCells() const
+   {
+      return walberla::mpi::allReduce( getNumberOfLocalCells(), walberla::mpi::SUM );
+   }
+
    /// \brief Returns the number of processes without any primitives.
    ///
    /// Involves global communication.

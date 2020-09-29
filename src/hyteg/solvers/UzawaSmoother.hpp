@@ -25,6 +25,7 @@
 
 #include "hyteg/composites/P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
+#include "hyteg/composites/P1P1UzawaDampingFactorEstimationOperator.hpp"
 #include "hyteg/composites/P2P1UzawaDampingFactorEstimationOperator.hpp"
 #include "hyteg/composites/StokesOperatorTraits.hpp"
 #include "hyteg/numerictools/SpectrumEstimation.hpp"
@@ -38,7 +39,15 @@ inline real_t estimateUzawaRelaxationParameter( const std::shared_ptr< Primitive
                                                 const uint_t&                                        numPowerIterations,
                                                 const uint_t&                                        numGSIterationsVelocity )
 {
-   WALBERLA_ABORT( "Not implemented" );
+   P1P1UzawaDampingFactorEstimationOperator estimator( storage, velocitySmoother, level, level, numGSIterationsVelocity );
+   P1Function< real_t >                     iterationVector( "iterationVector", storage, level, level );
+   P1Function< real_t >                     auxVector( "auxVector", storage, level, level );
+   walberla::math::seedRandomGenerator( 42 );
+   auto randFunction = []( const Point3D& ) { return walberla::math::realRandom(); };
+   iterationVector.interpolate( randFunction, level, All );
+   const real_t estimatedRelaxationParameter =
+       estimateSpectralRadiusWithPowerIteration( estimator, iterationVector, auxVector, numPowerIterations, storage, level );
+   return estimatedRelaxationParameter;
 }
 
 inline real_t estimateUzawaRelaxationParameter( const std::shared_ptr< PrimitiveStorage >&                       storage,

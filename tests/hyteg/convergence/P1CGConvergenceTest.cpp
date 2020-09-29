@@ -25,6 +25,8 @@
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -41,7 +43,10 @@ int main( int argc, char* argv[] )
    const uint_t      level    = 4;
    const std::string meshFile = "../../data/meshes/quad_8el.msh";
 
-   auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
+   auto meshInfo = MeshInfo::fromGmshFile( meshFile );
+   auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
    hyteg::P1Function< real_t > r( "r", storage, level, level );
    hyteg::P1Function< real_t > f( "f", storage, level, level );

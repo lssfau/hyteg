@@ -57,7 +57,9 @@ void test2D()
    communication::syncP2FunctionBetweenPrimitives( x, maxLevel );
 
    Point3D coordinates( {0.0, 0.5, 0.0} );
-   real_t  eval = x.evaluate( coordinates, maxLevel );
+   real_t  eval;
+   auto success = x.evaluate( coordinates, maxLevel, eval );
+   WALBERLA_CHECK( success );
    Point3D gradient;
    x.evaluateGradient( coordinates, maxLevel, gradient );
    WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ) );
@@ -66,7 +68,8 @@ void test2D()
 
    coordinates[0] = 2.0;
    coordinates[1] = 0.0;
-   eval           = x.evaluate( coordinates, maxLevel );
+   success = x.evaluate( coordinates, maxLevel, eval );
+   WALBERLA_CHECK( success );
    x.evaluateGradient( coordinates, maxLevel, gradient );
    WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ) );
    WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
@@ -74,7 +77,8 @@ void test2D()
 
    coordinates[0] = 2.0;
    coordinates[1] = 1.0;
-   eval           = x.evaluate( coordinates, maxLevel );
+   success = x.evaluate( coordinates, maxLevel, eval );
+   WALBERLA_CHECK( success );
    x.evaluateGradient( coordinates, maxLevel, gradient );
    WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ) );
    WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
@@ -82,7 +86,8 @@ void test2D()
 
    coordinates[0] = 0.0;
    coordinates[1] = 1.0;
-   eval           = x.evaluate( coordinates, maxLevel );
+   success = x.evaluate( coordinates, maxLevel, eval );
+   WALBERLA_CHECK( success );
    x.evaluateGradient( coordinates, maxLevel, gradient );
    WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ) );
    WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
@@ -90,7 +95,8 @@ void test2D()
 
    coordinates[0] = 0.5;
    coordinates[1] = 0.5;
-   eval           = x.evaluate( coordinates, maxLevel );
+   success = x.evaluate( coordinates, maxLevel, eval );
+   WALBERLA_CHECK( success );
    x.evaluateGradient( coordinates, maxLevel, gradient );
    WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ) );
    WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
@@ -106,7 +112,8 @@ void test2D()
          continue;
       }
 
-      eval = x.evaluate( coordinates, maxLevel );
+      success = x.evaluate( coordinates, maxLevel, eval );
+      WALBERLA_CHECK( success );
       x.evaluateGradient( coordinates, maxLevel, gradient );
       WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ) );
       WALBERLA_CHECK_FLOAT_EQUAL( gradient[0], testFuncDerivativeX( coordinates ) );
@@ -146,7 +153,9 @@ void test3D()
          coordinates[1] = walberla::math::realRandom( 0.0, 1.0 );
          coordinates[2] = walberla::math::realRandom( 0.0, 1.0 );
 
-         const real_t eval = x.evaluate( coordinates, level );
+         real_t eval;
+         auto success = x.evaluate( coordinates, level, eval );
+         WALBERLA_CHECK( success );
          WALBERLA_CHECK_FLOAT_EQUAL( eval, testFunc( coordinates ), "Test3D: wrong value at " << coordinates << "." );
 
          WALBERLA_LOG_INFO_ON_ROOT( "Passed: " << coordinates )
@@ -184,24 +193,32 @@ void test3DReversibility()
 
       for ( auto it : FunctionIterator< vertexdof::VertexDoFFunction< real_t > >( y.getVertexDoFFunction(), level ) )
       {
-         auto evaluation = x.evaluate( it.coordinates(), level );
+         real_t evaluation;
+         auto success = x.evaluate( it.coordinates(), level, evaluation );
+         WALBERLA_CHECK( success );
          auto nodeValue = testFunc( it.coordinates() );
          auto localError = std::abs( evaluation - nodeValue );
          if ( localError > 1e-06 )
             WALBERLA_LOG_INFO_ON_ROOT( "error: " << localError << ", " << it);
-         it.value() = x.evaluate( it.coordinates(), level );
+         success = x.evaluate( it.coordinates(), level, evaluation );
+         WALBERLA_CHECK( success );
+         it.value() = evaluation;
 
 
       }
 
       for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( y.getEdgeDoFFunction(), level ) )
       {
-         auto evaluation = x.evaluate( it.coordinates(), level );
+         real_t evaluation;
+         auto success = x.evaluate( it.coordinates(), level, evaluation );
+         WALBERLA_CHECK( success );
          auto nodeValue = testFunc( it.coordinates() );
          auto localError = std::abs( evaluation - nodeValue );
          if ( localError > 1e-06 )
             WALBERLA_LOG_INFO_ON_ROOT( "error: " << localError << ", " << it);
-         it.value() = x.evaluate( it.coordinates(), level );
+         success = x.evaluate( it.coordinates(), level, evaluation );
+         WALBERLA_CHECK( success );
+         it.value() = evaluation;
       }
 
       error.assign( {1.0, -1.0}, {x, y}, level, All );

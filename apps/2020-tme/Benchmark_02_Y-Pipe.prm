@@ -1,0 +1,60 @@
+Parameters
+{
+  discretization p2p1;
+
+  minLevel 0;
+  maxLevel 4;
+  normCalculationLevelIncrement 1;
+
+  vtk false;
+  dbFile Benchmark_02_Y-Pipe.db;
+
+  preSmooth 0;
+  postSmooth 2;
+  incSmooth 1;
+  fmgInnerIterations 1;
+  numCycles 1;
+  absoluteResidualTolerance 1e-10;
+
+  numGSVelocity 3;
+  symmGSVelocity false;
+
+  estimateOmega false;
+  omega 0.2; // 50 power iterations on level 5 (P2-P1)
+  omegaEstimationLevel 3;
+  omegaEstimationIterations 10;
+
+  coarseGridSolverType 0;
+  maxIterations 1000;
+  coarseGridAbsoluteResidualTolerance 1e-12;
+
+  calculateDiscretizationError false;
+
+  DiscretizationErrorSolver
+  {
+    preSmooth 7;
+    postSmooth 7;
+    incSmooth 2;
+    fmgInnerIterations 2;
+    numCycles 50;
+    absoluteResidualTolerance 1e-12;
+
+    numGSVelocity 4;
+    symmGSVelocity false;
+
+    estimateOmega false;
+    omega 0.2; // 50 power iterations on level 5 (P2-P1)
+    omegaEstimationLevel 3;
+    omegaEstimationIterations 1;
+
+    coarseGridSolverType 0;
+    maxIterations 1000;
+    coarseGridAbsoluteResidualTolerance 1e-12;
+
+    dbFile Benchmark_02_Y-Pipe_discr_error.db;
+
+  }
+
+}
+
+

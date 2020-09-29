@@ -334,19 +334,36 @@ inline bool sphereTetrahedronIntersection( const Point3D& sphereCenter,
                                            const Point3D& tetVertex3 )
 {
    const auto pointInTet = isPointInTetrahedron( sphereCenter, tetVertex0, tetVertex1, tetVertex2, tetVertex3 );
+   if ( pointInTet )
+      return true;
+
    const auto sphereInTet =
        isSphereCompletelyInTetrahedron( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex2, tetVertex3 );
+   if ( sphereInTet )
+      return true;
+
    const auto sphereTriangleIntersection0 =
        sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex2 );
+   if ( sphereTriangleIntersection0 )
+      return true;
+
    const auto sphereTriangleIntersection1 =
        sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex1, tetVertex3 );
+   if ( sphereTriangleIntersection1 )
+      return true;
+
    const auto sphereTriangleIntersection2 =
        sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex0, tetVertex2, tetVertex3 );
+   if ( sphereTriangleIntersection2 )
+      return true;
+
    const auto sphereTriangleIntersection3 =
        sphereTriangleIntersection( sphereCenter, sphereRadius, tetVertex1, tetVertex2, tetVertex3 );
+   if ( sphereTriangleIntersection3 )
+      return true;
 
-   return pointInTet || sphereInTet || sphereTriangleIntersection0 || sphereTriangleIntersection1 ||
-          sphereTriangleIntersection2 || sphereTriangleIntersection3;
+   return false;
+
 }
 
 } // namespace hyteg

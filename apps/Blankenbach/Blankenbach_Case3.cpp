@@ -128,23 +128,6 @@ real_t velocityRMS( const StokesFunction& u, const StokesFunction & tmp, const V
    return std::sqrt( norm / area );
 }
 
-bool isPointLocal( const std::shared_ptr< PrimitiveStorage > & storage, const Point3D & point, const real_t & epsRadius )
-{
-   for ( const auto & it : storage->getFaces() )
-   {
-      auto face = it.second;
-      Point2D p2D( {point[0], point[1]} );
-      if ( circleTriangleIntersection( p2D,
-                                       epsRadius,
-                                       Point2D({ face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1] }),
-                                       Point2D({ face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1] }),
-                                       Point2D({ face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1] }) ) )
-      {
-         return true;
-      }
-   }
-   return false;
-}
 
 template < typename FunctionType >
 std::vector< real_t > evaluateHorizontalTemperatureSlice( const FunctionType& c,
@@ -160,12 +143,8 @@ std::vector< real_t > evaluateHorizontalTemperatureSlice( const FunctionType& c,
    for ( uint_t sample = 0; sample < numSamples; sample++ )
    {
       Point3D pos( {xMin + real_c( sample ) * dx, y, 0} );
-      if ( isPointLocal( c.getStorage(), pos, 1e-6 ) )
-      {
-         sampleLocallyAvailable[sample] = true;
-         samples[sample] = c.evaluate( pos, level );
-      }
-
+      real_t value;
+      sampleLocallyAvailable[sample] = c.evaluate( pos, level, value, 1e-5 );
    }
 
    walberla::mpi::SendBuffer sendbuffer;
