@@ -121,8 +121,8 @@ inline void
 {
    for ( uint_t dim = 0; dim < src.uvw.getDimension(); dim++ )
    {
-      createMatrix< P2ElementwiseOperator, P2Form_laplace >( opr.A, src.uvw[dim], dst.uvw[dim], mat, level, flag );
-      // createMatrix( opr.A, src.uvw[dim], dst.uvw[dim], mat, level, flag );
+      // need to help the compiler here to find the correct version of createMatrix
+      createMatrix< P2ElementwiseBlendingLaplaceOperator, P2Form_laplace >( opr.A, src.uvw[dim], dst.uvw[dim], mat, level, flag );
    }
    createMatrix( opr.P, src.p, dst.p, mat, level, flag );
 }

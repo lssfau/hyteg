@@ -247,6 +247,7 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg,
       {
 #ifdef HYTEG_BUILD_WITH_PETSC
          WALBERLA_LOG_PROGRESS_ON_ROOT( "Iterative with PETScBPSS ... " );
+         PETScManager                                         petscManager;
          PETScBlockPreconditionedStokesSolver< stokesOpType > stokesSolver( storage, maxLevel, 1e-08, 500, 1 );
          stokesSolver.solve( *stokesOp, feSol, rhs, maxLevel );
 #else

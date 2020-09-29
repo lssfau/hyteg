@@ -20,7 +20,8 @@ Problem
 
   /// Solver selection (Minres, PETScLU, PETScBPSS)
   /// note: only Minres works for all cases
-  solverType PETScLU;
+  // solverType PETScLU;
+  solverType PETScBPSS;
 
   /// postprocessing
   compute_max_error true;
