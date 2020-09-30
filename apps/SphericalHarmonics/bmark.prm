@@ -1,19 +1,19 @@
 Problem
 {
   /// spherical harmonics settings
-  degree 5;
-  order  3;
+  degree 10;
+  order  0;
 
   /// no-slip, free-slip or mixed
   bcType no-slip;
   // bcType mixed;
 
   /// meshing parameters
-  nRad 2;
+  nRad 3;
   nTan 3;
   coarseLevel 2;  // the coarsest level for GMG in HyTeG
   bmInitLevel 2;  // first level on which to run benchmark
-  bmStopLevel 3;  // last level on which to run benchmark
+  bmStopLevel 4;  // last level on which to run benchmark
 
   /// FE space
   feSpace P2P1TaylorHood;

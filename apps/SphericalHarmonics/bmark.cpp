@@ -246,9 +246,10 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg,
       else if ( solverType.compare( "PETScBPSS" ) == 0 )
       {
 #ifdef HYTEG_BUILD_WITH_PETSC
-         WALBERLA_LOG_PROGRESS_ON_ROOT( "Iterative with PETScBPSS ... " );
+         WALBERLA_LOG_PROGRESS_ON_ROOT( "Solving iteratively with PETScBPSS ... " );
          PETScManager                                         petscManager;
-         PETScBlockPreconditionedStokesSolver< stokesOpType > stokesSolver( storage, maxLevel, 1e-08, 500, 1 );
+         PETScBlockPreconditionedStokesSolver< stokesOpType > stokesSolver( storage, maxLevel, 1e-08, 5000, 1, 1 );
+         stokesSolver.setVerbose( true );
          stokesSolver.solve( *stokesOp, feSol, rhs, maxLevel );
 #else
          WALBERLA_ABORT( "Recompile with PETSc support to use PETSc solvers!" );
