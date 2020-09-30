@@ -164,7 +164,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    uint_t iteration = 0;
 
    StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );
-   StokesFunction< real_t > f( "f", storage, minLevel, maxLevel );
+   StokesFunction< real_t > f( "f", storage, minLevel, maxLevel > minLevel ? maxLevel - 1 : maxLevel );
    StokesFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel );
 
    StokesOperator A( storage, minLevel, maxLevel );
@@ -189,11 +189,6 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
       u.uvw.u.interpolate( solutionU, level, DirichletBoundary );
       u.uvw.v.interpolate( solutionV, level, DirichletBoundary );
       u.uvw.w.interpolate( solutionW, level, DirichletBoundary );
-
-      f.uvw.u.interpolate( 0, level, All );
-      f.uvw.v.interpolate( 0, level, All );
-      f.uvw.w.interpolate( 0, level, All );
-      f.p.interpolate( 0, level, All );
    }
 
    VTKOutput vtkOutput( "vtk", "TME", storage );
@@ -301,6 +296,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    auto coarseGridSolver = std::make_shared< TimedSolver< StokesOperator > >( coarseGridSolverInternal );
 
    auto multigridSolver = std::make_shared< GeometricMultigridSolver< StokesOperator > >( storage,
+                                                                                          tmp,
                                                                                           smoother,
                                                                                           coarseGridSolver,
                                                                                           restrictionOperator,
@@ -310,7 +306,9 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
                                                                                           multigridSettings.preSmooth,
                                                                                           multigridSettings.postSmooth,
                                                                                           multigridSettings.incSmooth,
-                                                                                          CycleType::VCYCLE );
+                                                                                          CycleType::VCYCLE,
+                                                                                          true,
+                                                                                          0 );
 
    auto fmgProlongation = std::make_shared< FMGProlongation >();
 

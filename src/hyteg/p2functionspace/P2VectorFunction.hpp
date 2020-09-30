@@ -144,6 +144,13 @@ class P2VectorFunction
       w.assign( scalars, functions_w, level, flag );
    }
 
+   void add( real_t scalar, size_t level, DoFType flag = All ) const
+   {
+      u.add( scalar, level, flag );
+      v.add( scalar, level, flag );
+      w.add( scalar, level, flag );
+   }
+
    void add( const std::vector< walberla::real_t >                                               scalars,
              const std::vector< std::reference_wrapper< const P2VectorFunction< ValueType > > >& functions,
              size_t                                                                              level,

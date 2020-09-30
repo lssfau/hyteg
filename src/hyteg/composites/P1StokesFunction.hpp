@@ -112,6 +112,12 @@ class P1StokesFunction
       p.assign( scalars, functions_p, level, flag );
    }
 
+   void add( real_t scalar, size_t level, DoFType flag = All ) const
+   {
+      uvw.add( scalar, level, flag );
+      p.add( scalar, level, flag );
+   }
+
    void add( const std::vector< walberla::real_t >                                               scalars,
              const std::vector< std::reference_wrapper< const P1StokesFunction< ValueType > > >& functions,
              size_t                                                                              level,
