@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2020 Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -37,6 +37,16 @@ class P1P1StokesToP1P1StokesProlongation : public ProlongationOperator< P1Stokes
       prolongationOperator_.prolongate( function.uvw.v, sourceLevel, flag );
       prolongationOperator_.prolongate( function.uvw.w, sourceLevel, flag );
       prolongationOperator_.prolongate( function.p, sourceLevel, flag );
+   }
+
+   void prolongateAndAdd( const P1StokesFunction< real_t >& function,
+                          const uint_t&                     sourceLevel,
+                          const DoFType&                    flag ) const override
+   {
+      prolongationOperator_.prolongateAndAdd( function.uvw.u, sourceLevel, flag );
+      prolongationOperator_.prolongateAndAdd( function.uvw.v, sourceLevel, flag );
+      prolongationOperator_.prolongateAndAdd( function.uvw.w, sourceLevel, flag );
+      prolongationOperator_.prolongateAndAdd( function.p, sourceLevel, flag );
    }
 
  private:

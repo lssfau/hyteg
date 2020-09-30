@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2020 Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -21,31 +21,40 @@
 #pragma once
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/gridtransferoperators/ProlongationOperator.hpp"
 
 namespace hyteg {
 
 class P2P1StokesToP2P1StokesProlongation : public ProlongationOperator< P2P1TaylorHoodFunction< real_t > >
 {
-public:
+ public:
+   typedef P2toP2QuadraticProlongation VelocityProlongation_T;
+   typedef P1toP1LinearProlongation    PressureProlongation_T;
 
-    typedef P2toP2QuadraticProlongation VelocityProlongation_T;
-    typedef P1toP1LinearProlongation    PressureProlongation_T;
-
-    void prolongate ( const P2P1TaylorHoodFunction< real_t > & function, const uint_t & sourceLevel, const DoFType & flag ) const override
-    {
+   void prolongate( const P2P1TaylorHoodFunction< real_t >& function,
+                    const uint_t&                           sourceLevel,
+                    const DoFType&                          flag ) const override
+   {
       quadraticProlongationOperator_.prolongate( function.uvw.u, sourceLevel, flag );
       quadraticProlongationOperator_.prolongate( function.uvw.v, sourceLevel, flag );
       quadraticProlongationOperator_.prolongate( function.uvw.w, sourceLevel, flag );
       linearProlongationOperator_.prolongate( function.p, sourceLevel, flag );
-    }
+   }
 
-private:
+   void prolongateAndAdd( const P2P1TaylorHoodFunction< real_t >& function,
+                          const uint_t&                           sourceLevel,
+                          const DoFType&                          flag ) const override
+   {
+      quadraticProlongationOperator_.prolongateAndAdd( function.uvw.u, sourceLevel, flag );
+      quadraticProlongationOperator_.prolongateAndAdd( function.uvw.v, sourceLevel, flag );
+      quadraticProlongationOperator_.prolongateAndAdd( function.uvw.w, sourceLevel, flag );
+      linearProlongationOperator_.prolongateAndAdd( function.p, sourceLevel, flag );
+   }
 
-    P2toP2QuadraticProlongation quadraticProlongationOperator_;
-    P1toP1LinearProlongation    linearProlongationOperator_;
-
+ private:
+   P2toP2QuadraticProlongation quadraticProlongationOperator_;
+   P1toP1LinearProlongation    linearProlongationOperator_;
 };
-}
+} // namespace hyteg

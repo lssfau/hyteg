@@ -43,17 +43,35 @@ void P2toP2QuadraticProlongation::prolongate( const P2Function< walberla::real_t
 
    if ( function.getStorage()->hasGlobalCells() )
    {
-      prolongateAdditively3D( function, sourceLevel, flag );
+      prolongateAdditively3D( function, sourceLevel, flag, Replace );
    }
    else
    {
-      prolongateAdditively( function, sourceLevel, flag );
+      prolongateAdditively( function, sourceLevel, flag, Replace );
+   }
+}
+
+void P2toP2QuadraticProlongation::prolongateAndAdd( const P2Function< walberla::real_t >& function,
+                                                    const walberla::uint_t&               sourceLevel,
+                                                    const DoFType&                        flag ) const
+{
+   if ( function.isDummy() )
+      return;
+
+   if ( function.getStorage()->hasGlobalCells() )
+   {
+      prolongateAdditively3D( function, sourceLevel, flag, Add );
+   }
+   else
+   {
+      prolongateAdditively( function, sourceLevel, flag, Add );
    }
 }
 
 void P2toP2QuadraticProlongation::prolongateAdditively( const P2Function< real_t >& function,
                                                         const uint_t&               sourceLevel,
-                                                        const DoFType&              flag ) const
+                                                        const DoFType&              flag,
+                                                        const UpdateType &          updateType ) const
 {
    /// XOR flag with all to get the DoFTypes that should be excluded
    const DoFType excludeFlag = ( flag ^ All );
@@ -76,22 +94,59 @@ void P2toP2QuadraticProlongation::prolongateAdditively( const P2Function< real_t
       const auto vertexCoarseData = face->getData( function.getVertexDoFFunction().getFaceDataID() )->getPointer( coarseLevel );
       const auto edgeCoarseData   = face->getData( function.getEdgeDoFFunction().getFaceDataID() )->getPointer( coarseLevel );
 
-      // we need to set the face ghost-layers to zero explicitly since this is not necessarily done by interpolation
-      for ( const auto& it : vertexdof::macroface::Iterator( fineLevel, 0 ) )
+      if ( updateType == Replace )
       {
-         vertexFineData[vertexdof::macroface::index( fineLevel, it.x(), it.y() )] = real_c( 0 );
+         // we need to set the face ghost-layers to zero explicitly since this is not necessarily done by interpolation
+         for ( const auto& it : vertexdof::macroface::Iterator( fineLevel, 0 ) )
+         {
+            vertexFineData[vertexdof::macroface::index( fineLevel, it.x(), it.y() )] = real_c( 0 );
+         }
+
+         // For some reason the Intel compiler cannot create code if an iterator is used for the edge unknowns.
+         // Therefore we use a plain for loop here.
+         //
+         // See issue #94.
+         //
+         const uint_t edgedofFieldSize = face->getData( function.getEdgeDoFFunction().getFaceDataID() )->getSize( fineLevel );
+         for ( uint_t i = 0; i < edgedofFieldSize; i++ )
+         {
+            edgeFineData[i] = real_c( 0 );
+         }
+      }
+      else if ( updateType == Add )
+      {
+         // we only set the ghost layers to zero, but not the inner unknowns
+         for ( const auto& it : vertexdof::macroface::Iterator( fineLevel ) )
+         {
+            if ( vertexdof::macroface::isVertexOnBoundary( fineLevel, it ) )
+            {
+               vertexFineData[vertexdof::macroface::index( fineLevel, it.x(), it.y() )] = real_c( 0 );
+            }
+         }
+
+         for ( const auto & it : edgedof::macroface::Iterator( fineLevel ) )
+         {
+            if ( edgedof::macroface::isHorizontalEdgeOnBoundary( fineLevel, it ) )
+            {
+               edgeFineData[edgedof::macroface::index( fineLevel, it.x(), it.y(), edgedof::EdgeDoFOrientation::X )] = real_c( 0 );
+            }
+
+            if ( edgedof::macroface::isDiagonalEdgeOnBoundary( fineLevel, it ) )
+            {
+               edgeFineData[edgedof::macroface::index( fineLevel, it.x(), it.y(), edgedof::EdgeDoFOrientation::XY )] = real_c( 0 );
+            }
+
+            if ( edgedof::macroface::isVerticalEdgeOnBoundary( fineLevel, it ) )
+            {
+               edgeFineData[edgedof::macroface::index( fineLevel, it.x(), it.y(), edgedof::EdgeDoFOrientation::Y )] = real_c( 0 );
+            }
+         }
+      }
+      else
+      {
+         WALBERLA_ABORT( "Invalid update type in prolongation." );
       }
 
-      // For some reason the Intel compiler cannot create code if an iterator is used for the edge unknowns.
-      // Therefore we use a plain for loop here.
-      //
-      // See issue #94.
-      //
-      const uint_t edgedofFieldSize = face->getData( function.getEdgeDoFFunction().getFaceDataID() )->getSize( fineLevel );
-      for ( uint_t i = 0; i < edgedofFieldSize; i++ )
-      {
-         edgeFineData[i] = real_c( 0 );
-      }
 
       const double numNeighborFacesEdge0 =
           static_cast< double >( storage->getEdge( face->neighborEdges().at( 0 ) )->getNumNeighborFaces() );
@@ -159,15 +214,16 @@ void P2toP2QuadraticProlongation::prolongateAdditively( const P2Function< real_t
       }
    }
 
-   function.getVertexDoFFunction().communicateAdditively< Face, Edge >( fineLevel, excludeFlag, *function.getStorage() );
-   function.getVertexDoFFunction().communicateAdditively< Face, Vertex >( fineLevel, excludeFlag, *function.getStorage() );
+   function.getVertexDoFFunction().communicateAdditively< Face, Edge >( fineLevel, excludeFlag, *function.getStorage(), updateType == Replace );
+   function.getVertexDoFFunction().communicateAdditively< Face, Vertex >( fineLevel, excludeFlag, *function.getStorage(), updateType == Replace );
 
-   function.getEdgeDoFFunction().communicateAdditively< Face, Edge >( fineLevel, excludeFlag, *function.getStorage() );
+   function.getEdgeDoFFunction().communicateAdditively< Face, Edge >( fineLevel, excludeFlag, *function.getStorage(), updateType == Replace );
 }
 
 void P2toP2QuadraticProlongation::prolongateAdditively3D( const P2Function< real_t >& function,
                                                           const uint_t&               sourceLevel,
-                                                          const DoFType&              flag ) const
+                                                          const DoFType&              flag,
+                                                          const UpdateType &          updateType ) const
 {
    /// XOR flag with all to get the DoFTypes that should be excluded
    const DoFType excludeFlag = ( flag ^ All );
@@ -191,22 +247,54 @@ void P2toP2QuadraticProlongation::prolongateAdditively3D( const P2Function< real
       const auto vertexCoarseData = cell->getData( function.getVertexDoFFunction().getCellDataID() )->getPointer( coarseLevel );
       const auto edgeCoarseData   = cell->getData( function.getEdgeDoFFunction().getCellDataID() )->getPointer( coarseLevel );
 
-      // we need to set the face ghost-layers to zero explicitly since this is not necessarily done by interpolation
-      for ( const auto& it : vertexdof::macrocell::Iterator( fineLevel, 0 ) )
+      if ( updateType == Replace )
       {
-         vertexFineData[vertexdof::macrocell::index( fineLevel, it.x(), it.y(), it.z() )] = real_c( 0 );
+         // we need to set the face ghost-layers to zero explicitly since this is not necessarily done by interpolation
+         for ( const auto& it : vertexdof::macrocell::Iterator( fineLevel, 0 ) )
+         {
+            vertexFineData[vertexdof::macrocell::index( fineLevel, it.x(), it.y(), it.z() )] = real_c( 0 );
+         }
+
+         // For some reason the Intel compiler cannot create code if an iterator is used for the edge unknowns.
+         // Therefore we use a plain for loop here.
+         //
+         // See issue #94.
+         //
+         const uint_t edgedofFieldSize = cell->getData( function.getEdgeDoFFunction().getCellDataID() )->getSize( fineLevel );
+         for ( uint_t i = 0; i < edgedofFieldSize; i++ )
+         {
+            edgeFineData[i] = real_c( 0 );
+         }
+      }
+      else if ( updateType == Add )
+      {
+         // we only set the ghost layers to zero, but not the inner unknowns
+         for ( const auto& it : vertexdof::macrocell::Iterator( fineLevel, 0 ) )
+         {
+            if ( !vertexdof::macrocell::isOnCellFace( it, fineLevel ).empty() )
+            {
+               vertexFineData[vertexdof::macrocell::index( fineLevel, it.x(), it.y(), it.z() )] = real_c( 0 );
+            }
+         }
+
+         for ( auto orientation : edgedof::allEdgeDoFOrientationsWithoutXYZ )
+         {
+            for ( const auto & it : edgedof::macrocell::Iterator( fineLevel ) )
+            {
+               if ( !edgedof::macrocell::isInnerEdgeDoF( fineLevel, it, orientation ) )
+               {
+                  edgeFineData[edgedof::macrocell::index( fineLevel, it.x(), it.y(), it.z(), orientation )] = real_c( 0 );
+               }
+            }
+         }
+
+         // no xyz edges lie on the boundary by definition
+      }
+      else
+      {
+         WALBERLA_ABORT( "Invalid update type in prolongation." );
       }
 
-      // For some reason the Intel compiler cannot create code if an iterator is used for the edge unknowns.
-      // Therefore we use a plain for loop here.
-      //
-      // See issue #94.
-      //
-      const uint_t edgedofFieldSize = cell->getData( function.getEdgeDoFFunction().getCellDataID() )->getSize( fineLevel );
-      for ( uint_t i = 0; i < edgedofFieldSize; i++ )
-      {
-         edgeFineData[i] = real_c( 0 );
-      }
 
       const double numNeighborCellsFace0 =
           static_cast< double >( storage->getFace( cell->neighborFaces().at( 0 ) )->getNumNeighborCells() );
@@ -333,12 +421,12 @@ void P2toP2QuadraticProlongation::prolongateAdditively3D( const P2Function< real
       }
    }
 
-   function.getVertexDoFFunction().communicateAdditively< Cell, Face >( fineLevel, excludeFlag, *function.getStorage() );
-   function.getVertexDoFFunction().communicateAdditively< Cell, Edge >( fineLevel, excludeFlag, *function.getStorage() );
-   function.getVertexDoFFunction().communicateAdditively< Cell, Vertex >( fineLevel, excludeFlag, *function.getStorage() );
+   function.getVertexDoFFunction().communicateAdditively< Cell, Face >( fineLevel, excludeFlag, *function.getStorage(), updateType == Replace );
+   function.getVertexDoFFunction().communicateAdditively< Cell, Edge >( fineLevel, excludeFlag, *function.getStorage(), updateType == Replace );
+   function.getVertexDoFFunction().communicateAdditively< Cell, Vertex >( fineLevel, excludeFlag, *function.getStorage(), updateType == Replace );
 
-   function.getEdgeDoFFunction().communicateAdditively< Cell, Face >( fineLevel, excludeFlag, *function.getStorage() );
-   function.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( fineLevel, excludeFlag, *function.getStorage() );
+   function.getEdgeDoFFunction().communicateAdditively< Cell, Face >( fineLevel, excludeFlag, *function.getStorage(), updateType == Replace );
+   function.getEdgeDoFFunction().communicateAdditively< Cell, Edge >( fineLevel, excludeFlag, *function.getStorage(), updateType == Replace );
 }
 
 void P2toP2QuadraticProlongation::prolongateStandard( const P2Function< real_t >& function,

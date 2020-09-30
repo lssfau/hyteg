@@ -98,64 +98,62 @@ void testWeightsInCellVertexDoF()
    WALBERLA_CHECK_EQUAL( numModifiedDoFs, 1 + 2 * 14 + 3 * 24 + 24 )
 }
 
-
 void testWeightsInCellEdgeDoF()
 {
-  typedef edgedof::EdgeDoFOrientation eo;
+   typedef edgedof::EdgeDoFOrientation eo;
 
-  const uint_t lowerLevel = 2;
+   const uint_t lowerLevel = 2;
 
-  const auto            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
-  SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-  setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-  const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   const auto            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-  P2Function< real_t > u( "u", storage, lowerLevel, lowerLevel + 1 );
+   P2Function< real_t > u( "u", storage, lowerLevel, lowerLevel + 1 );
 
-  for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( u.getEdgeDoFFunction(), lowerLevel ) )
-  {
-    if ( it.isOnMacroCell() && it.isEdgeDoF() && it.edgeDoFOrientation() == eo::Z && it.index() == Index( {1, 1, 0} ) )
-    {
-      WALBERLA_LOG_INFO_ON_ROOT( it );
-      it.value() = 1.0;
-    }
-  }
+   for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( u.getEdgeDoFFunction(), lowerLevel ) )
+   {
+      if ( it.isOnMacroCell() && it.isEdgeDoF() && it.edgeDoFOrientation() == eo::Z && it.index() == Index( {1, 1, 0} ) )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( it );
+         it.value() = 1.0;
+      }
+   }
 
-  P2toP2QuadraticProlongation prolongationOperator;
-  prolongationOperator.prolongate( u, lowerLevel, Inner | NeumannBoundary );
+   P2toP2QuadraticProlongation prolongationOperator;
+   prolongationOperator.prolongate( u, lowerLevel, Inner | NeumannBoundary );
 
-  std::map< eo, uint_t > numNeighborElements = {
-  {eo::X, 6},
-  {eo::Y, 4},
-  {eo::Z, 6},
-  {eo::XY, 6},
-  {eo::XZ, 4},
-  {eo::YZ, 6},
-  {eo::XYZ, 4},
-  };
+   std::map< eo, uint_t > numNeighborElements = {
+       {eo::X, 6},
+       {eo::Y, 4},
+       {eo::Z, 6},
+       {eo::XY, 6},
+       {eo::XZ, 4},
+       {eo::YZ, 6},
+       {eo::XYZ, 4},
+   };
 
-  uint_t numModifiedDoFs = 0;
-  for ( auto it : FunctionIterator< P1Function< real_t > >( u.getVertexDoFFunction(), lowerLevel + 1 ) )
-  {
-    if ( it.isOnMacroCell() && it.isVertexDoF() && std::abs( it.value() ) > 1e-8 )
-    {
-      numModifiedDoFs++;
-      WALBERLA_LOG_INFO_ON_ROOT( it );
-    }
-  }
+   uint_t numModifiedDoFs = 0;
+   for ( auto it : FunctionIterator< P1Function< real_t > >( u.getVertexDoFFunction(), lowerLevel + 1 ) )
+   {
+      if ( it.isOnMacroCell() && it.isVertexDoF() && std::abs( it.value() ) > 1e-8 )
+      {
+         numModifiedDoFs++;
+         WALBERLA_LOG_INFO_ON_ROOT( it );
+      }
+   }
 
-  for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( u.getEdgeDoFFunction(), lowerLevel + 1 ) )
-  {
-    if ( it.isOnMacroCell() && it.isEdgeDoF() && std::abs( it.value() ) > 1e-8 )
-    {
-      numModifiedDoFs++;
-      WALBERLA_LOG_INFO_ON_ROOT( it );
-    }
-  }
+   for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( u.getEdgeDoFFunction(), lowerLevel + 1 ) )
+   {
+      if ( it.isOnMacroCell() && it.isEdgeDoF() && std::abs( it.value() ) > 1e-8 )
+      {
+         numModifiedDoFs++;
+         WALBERLA_LOG_INFO_ON_ROOT( it );
+      }
+   }
 
-  WALBERLA_CHECK_EQUAL( numModifiedDoFs, 1 + 2 + 6 * 2 + 6 * 1 + 6 * 1 )
+   WALBERLA_CHECK_EQUAL( numModifiedDoFs, 1 + 2 + 6 * 2 + 6 * 1 + 6 * 1 )
 }
-
 
 void testGridTransfer3D( const std::string& meshFile, const uint_t& lowerLevel )
 {
@@ -264,6 +262,65 @@ void testGridTransfer3D( const std::string& meshFile, const uint_t& lowerLevel )
    WALBERLA_CHECK_LESS( errorUQuadraticInXYZ, errorLimit );
 }
 
+void testProlongateAndAdd3D( const std::string& meshFile, const uint_t& lowerLevel )
+{
+   const bool   writeVTK   = true;
+   const real_t errorLimit = 1e-15;
+
+   const auto            meshInfo = MeshInfo::fromGmshFile( meshFile );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   if ( writeVTK )
+      writeDomainPartitioningVTK( storage, "../../output", "P1LaplaceOperatorTest3D_partitioning" );
+
+   std::function< real_t( const hyteg::Point3D& ) > termProlongate = []( const hyteg::Point3D& x ) {
+      return std::sin( x[0] ) + std::sinh( x[1] ) + x[2] * x[2];
+   };
+   std::function< real_t( const hyteg::Point3D& ) > termAdd = []( const hyteg::Point3D& x ) {
+      return std::cos( x[0] ) + std::cosh( x[1] ) + x[2] * x[2] * x[2];
+   };
+
+   P2Function< real_t > uProlongate( "uProlongate", storage, lowerLevel, lowerLevel + 1 );
+   P2Function< real_t > uAdd( "uAdd", storage, lowerLevel, lowerLevel + 1 );
+   P2Function< real_t > uProlongateAndAdd( "uProlongateAndAdd", storage, lowerLevel, lowerLevel + 1 );
+   P2Function< real_t > err( "err", storage, lowerLevel, lowerLevel + 1 );
+
+   VTKOutput vtkOutput( "../../output", "P2QuadraticProlongationTest3D_testProlongateAndAdd", storage );
+   vtkOutput.add( uProlongate );
+   vtkOutput.add( uAdd );
+   vtkOutput.add( uProlongateAndAdd );
+   vtkOutput.add( err );
+
+   uProlongate.interpolate( termProlongate, lowerLevel, All );
+   uProlongate.interpolate( termAdd, lowerLevel + 1, All );
+
+   uAdd.interpolate( termAdd, lowerLevel + 1, All );
+
+   uProlongateAndAdd.interpolate( termProlongate, lowerLevel, All );
+   uProlongateAndAdd.interpolate( termAdd, lowerLevel + 1, All );
+
+   P2toP2QuadraticProlongation prolongationOperator;
+
+   prolongationOperator.prolongate( uProlongate, lowerLevel, Inner | NeumannBoundary );
+   prolongationOperator.prolongateAndAdd( uProlongateAndAdd, lowerLevel, Inner | NeumannBoundary );
+
+   uProlongate.add( {1.0}, {uAdd}, lowerLevel + 1, Inner | NeumannBoundary );
+
+   err.assign( {1.0, -1.0}, {uProlongate, uProlongateAndAdd}, lowerLevel + 1, Inner | NeumannBoundary );
+   const real_t discrErr = err.dotGlobal( err, lowerLevel + 1, Inner | NeumannBoundary );
+
+   if ( writeVTK )
+      vtkOutput.write( lowerLevel + 1, 1 );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "L2 error: " << discrErr );
+   WALBERLA_CHECK_LESS( discrErr,
+                        errorLimit,
+                        "Prolongate and add test failed. Level (fine): " + std::to_string( lowerLevel + 1 ) +
+                            ", Mesh: " + meshFile );
+}
+
 int main( int argc, char* argv[] )
 {
    walberla::Environment walberlaEnv( argc, argv );
@@ -294,6 +351,28 @@ int main( int argc, char* argv[] )
    testGridTransfer3D( "../../data/meshes/3D/pyramid_4el.msh", 3 );
    testGridTransfer3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 3 );
    testGridTransfer3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 3 );
+
+   testProlongateAndAdd3D( "../../data/meshes/quad_8el.msh", 0 );
+   testProlongateAndAdd3D( "../../data/meshes/bfs_126el.msh", 0 );
+   testProlongateAndAdd3D( "../../data/meshes/3D/tet_1el.msh", 0 );
+   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_2el.msh", 0 );
+   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_4el.msh", 0 );
+   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 0 );
+   testProlongateAndAdd3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 0 );
+
+   testProlongateAndAdd3D( "../../data/meshes/quad_8el.msh", 1 );
+   testProlongateAndAdd3D( "../../data/meshes/3D/tet_1el.msh", 1 );
+   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_2el.msh", 1 );
+   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_4el.msh", 1 );
+   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 1 );
+   testProlongateAndAdd3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 1 );
+
+   testProlongateAndAdd3D( "../../data/meshes/quad_8el.msh", 3 );
+   testProlongateAndAdd3D( "../../data/meshes/3D/tet_1el.msh", 3 );
+   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_2el.msh", 3 );
+   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_4el.msh", 3 );
+   testProlongateAndAdd3D( "../../data/meshes/3D/pyramid_tilted_4el.msh", 3 );
+   testProlongateAndAdd3D( "../../data/meshes/3D/regular_octahedron_8el.msh", 3 );
 
    return 0;
 }
