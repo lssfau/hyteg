@@ -1,0 +1,33 @@
+Parameters
+{
+  discretization p2p1;
+
+  minLevel 3;
+  maxLevel 3;
+
+  numEdgesPerSide 1;
+
+  scenario 0;
+
+  vtk true;
+  dbFile Scaling_Workshop_01_Cube.db;
+
+  preSmooth 2;
+  postSmooth 2;
+  incSmooth 2;
+  fmgInnerIterations 1;
+  numCycles 1;
+  absoluteResidualTolerance 1e-12;
+
+  numGSVelocity 3;
+  symmGSVelocity false;
+
+  estimateOmega false;
+  omega 0.2;
+  omegaEstimationLevel 5;
+  omegaEstimationIterations 100;
+
+  coarseGridSolverType 1;
+  maxIterations 10000;
+  coarseGridAbsoluteResidualTolerance 1e-12;
+}

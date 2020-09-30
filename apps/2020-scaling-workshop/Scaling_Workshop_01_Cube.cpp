@@ -23,8 +23,6 @@
 namespace hyteg {
 namespace scaling_workshop {
 
-
-
 void benchmark( int argc, char** argv )
 {
    walberla::Environment env( argc, argv );
@@ -35,7 +33,7 @@ void benchmark( int argc, char** argv )
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )
    {
-      auto defaultFile = "./Benchmark_01_Cube.prm";
+      auto defaultFile = "./Scaling_Workshop_01_Cube.prm";
       WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
       cfg->readParameterFile( defaultFile );
    }
@@ -47,9 +45,9 @@ void benchmark( int argc, char** argv )
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
    const std::string discretizationString = mainConf.getParameter< std::string >( "discretization" );
-   const uint_t minLevel        = mainConf.getParameter< uint_t >( "minLevel" );
-   const uint_t maxLevel        = mainConf.getParameter< uint_t >( "maxLevel" );
-   const uint_t numEdgesPerSide = mainConf.getParameter< uint_t >( "numEdgesPerSide" );
+   const uint_t      minLevel             = mainConf.getParameter< uint_t >( "minLevel" );
+   const uint_t      maxLevel             = mainConf.getParameter< uint_t >( "maxLevel" );
+   const uint_t      numEdgesPerSide      = mainConf.getParameter< uint_t >( "numEdgesPerSide" );
 
    const bool        vtk    = mainConf.getParameter< bool >( "vtk" );
    const std::string dbFile = mainConf.getParameter< std::string >( "dbFile" );
@@ -83,7 +81,7 @@ void benchmark( int argc, char** argv )
       discretization = Discretization::P1_P1;
    }
 
-   Point3D leftBottom3D( {0, 0, 0} );
+   Point3D leftBottom3D( {-1, -1, -1} );
 
    auto meshInfo =
        MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( {1, 1, 1} ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
@@ -111,7 +109,7 @@ void benchmark( int argc, char** argv )
    std::function< real_t( const hyteg::Point3D& ) > rhsV = []( const hyteg::Point3D& ) -> real_t { return 0; };
    std::function< real_t( const hyteg::Point3D& ) > rhsW = []( const hyteg::Point3D& ) -> real_t { return 0; };
 
-   bool projectPressure = true;
+   bool projectPressure                 = true;
    bool projectPressureAfterRestriction = true;
 
    WALBERLA_LOG_INFO_ON_ROOT( "########################" )
@@ -120,7 +118,7 @@ void benchmark( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "# Domain: cube" )
    if ( scenario == 0 )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "# Scenario 0: u = 0, f = 0, initial guess: rand(0, 1) " );
+      WALBERLA_LOG_INFO_ON_ROOT( "# Scenario 0: u, p = 0, f = 0, initial guess: rand(0, 1) " );
 
       initialU = []( const hyteg::Point3D& ) { return walberla::math::realRandom(); };
       initialV = []( const hyteg::Point3D& ) { return walberla::math::realRandom(); };
@@ -129,45 +127,52 @@ void benchmark( int argc, char** argv )
    }
    else if ( scenario == 1 )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "# Scenario 1: u = sinusoidal, f = sinusoidal, initial guess: 0 " );
+      WALBERLA_LOG_INFO_ON_ROOT( "# Scenario 1: u, p = sinusoidal, f = sinusoidal, initial guess: 0 " );
       solutionU = []( const hyteg::Point3D& x ) { return -4 * std::cos( 4 * x[2] ); };
       solutionV = []( const hyteg::Point3D& x ) { return 8 * std::cos( 8 * x[0] ); };
       solutionW = []( const hyteg::Point3D& x ) { return -2 * std::cos( 2 * x[1] ); };
-      solutionP = []( const hyteg::Point3D& x ) {
-        return std::sin( 4 * x[0] ) * std::sin( 8 * x[1] ) * std::sin( 2 * x[2] );
-      };
+      solutionP = []( const hyteg::Point3D& x ) { return std::sin( 4 * x[0] ) * std::sin( 8 * x[1] ) * std::sin( 2 * x[2] ); };
 
       rhsU = []( const hyteg::Point3D& x ) {
-        return 4 * std::sin( 8 * x[1] ) * std::sin( 2 * x[2] ) * std::cos( 4 * x[0] ) - 64 * std::cos( 4 * x[2] );
+         return 4 * std::sin( 8 * x[1] ) * std::sin( 2 * x[2] ) * std::cos( 4 * x[0] ) - 64 * std::cos( 4 * x[2] );
       };
       rhsV = []( const hyteg::Point3D& x ) {
-        return 8 * std::sin( 4 * x[0] ) * std::sin( 2 * x[2] ) * std::cos( 8 * x[1] ) + 512 * std::cos( 8 * x[0] );
+         return 8 * std::sin( 4 * x[0] ) * std::sin( 2 * x[2] ) * std::cos( 8 * x[1] ) + 512 * std::cos( 8 * x[0] );
       };
       rhsW = []( const hyteg::Point3D& x ) {
-        return 2 * std::sin( 4 * x[0] ) * std::sin( 8 * x[1] ) * std::cos( 2 * x[2] ) - 8 * std::cos( 2 * x[1] );
+         return 2 * std::sin( 4 * x[0] ) * std::sin( 8 * x[1] ) * std::cos( 2 * x[2] ) - 8 * std::cos( 2 * x[1] );
       };
    }
 
-   solveRHS0( storage,
-              discretization,
-              solutionU,
-              solutionV,
-              solutionW,
-              solutionP,
-              initialU,
-              initialV,
-              initialW,
-              initialP,
-              minLevel,
-              maxLevel,
-              multigridSettings,
-              smootherSettings,
-              coarseGridSettings,
-              projectPressure,
-              projectPressureAfterRestriction,
-              vtk,
-              "Benchmark_01_Cube",
-              dbFile );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+
+   if ( scenario == 0 )
+   {
+      solveRHS0( storage,
+                 discretization,
+                 solutionU,
+                 solutionV,
+                 solutionW,
+                 solutionP,
+                 initialU,
+                 initialV,
+                 initialW,
+                 initialP,
+                 minLevel,
+                 maxLevel,
+                 multigridSettings,
+                 smootherSettings,
+                 coarseGridSettings,
+                 projectPressure,
+                 projectPressureAfterRestriction,
+                 vtk,
+                 "Benchmark_01_Cube",
+                 dbFile );
+   }
+   else
+   {
+      WALBERLA_ABORT( "Solver for rhs != 0 not implemented." );
+   }
 }
 
 } // namespace scaling_workshop

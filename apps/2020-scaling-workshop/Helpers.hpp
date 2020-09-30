@@ -88,33 +88,12 @@ inline std::string getDateTimeID()
    return timeString;
 }
 
-template < template < typename > class ScalarFunctionType >
-inline real_t squaredPointwiseScaledL2NormScalar( const ScalarFunctionType< real_t >& u, uint_t level )
+template < template < typename > class FunctionType >
+inline real_t pointwiseScaledL2Norm( const FunctionType< real_t >& u, uint_t level )
 {
-   auto numUnknowns = numberOfGlobalDoFs< typename ScalarFunctionType< real_t >::Tag >( *u.getStorage(), level );
+   auto numUnknowns = numberOfGlobalDoFs< typename FunctionType< real_t >::Tag >( *u.getStorage(), level );
    auto scalarProd  = u.dotGlobal( u, level, All );
-   return scalarProd / real_c( numUnknowns );
-}
-
-template < template < typename > class VectorFunctionType >
-inline real_t squaredPointwiseScaledL2NormVector( const VectorFunctionType< real_t >& uvw, uint_t level )
-{
-   auto sqnormU = squaredPointwiseScaledL2NormScalar( uvw.u, level );
-   auto sqnormV = squaredPointwiseScaledL2NormScalar( uvw.v, level );
-   auto sqnormW = squaredPointwiseScaledL2NormScalar( uvw.w, level );
-   return sqnormU + sqnormV + sqnormW;
-}
-
-template < template < typename > class ScalarFunctionType >
-inline real_t pointwiseScaledL2NormScalar( const ScalarFunctionType< real_t >& u, uint_t level )
-{
-   return std::sqrt( squaredPointwiseScaledL2NormScalar( u, level ) );
-}
-
-template < template < typename > class VectorFunctionType >
-inline real_t pointwiseScaledL2NormVector( const VectorFunctionType< real_t >& uvw, uint_t level )
-{
-   return std::sqrt( squaredPointwiseScaledL2NormVector( uvw, level ) );
+   return std::sqrt( scalarProd / real_c( numUnknowns ) );
 }
 
 template < template < typename > class StokesFunctionType, typename StokesOperator >

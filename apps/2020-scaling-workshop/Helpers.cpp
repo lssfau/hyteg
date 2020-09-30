@@ -196,6 +196,15 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
       f.p.interpolate( 0, level, All );
    }
 
+   VTKOutput vtkOutput( "vtk", "TME", storage );
+   vtkOutput.add( u );
+   vtkOutput.add( tmp );
+
+   if ( vtk )
+   {
+      vtkOutput.write( maxLevel, 0 );
+   }
+
    auto errorAndResidual = [&]( uint_t  level,
                                 real_t& residualL2Velocity,
                                 real_t& residualL2Pressure,
@@ -203,8 +212,8 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
                                 real_t& errorL2Pressure ) {
       tmp.interpolate( 0, level );
       residualNegativeRHS0( u, A, level, errorFlag, tmp );
-      residualL2Velocity = pointwiseScaledL2NormVector( tmp.uvw, level );
-      residualL2Pressure = pointwiseScaledL2NormScalar( tmp.p, level );
+      residualL2Velocity = pointwiseScaledL2Norm( tmp.uvw, level );
+      residualL2Pressure = pointwiseScaledL2Norm( tmp.p, level );
 
       tmp.uvw.u.interpolate( solutionU, level, All );
       tmp.uvw.v.interpolate( solutionV, level, All );
@@ -212,8 +221,9 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
       tmp.p.interpolate( solutionP, level, All );
       error( u, tmp, level, errorFlag, tmp );
 
-      errorL2Velocity = pointwiseScaledL2NormVector( tmp.uvw, level );
-      errorL2Pressure = pointwiseScaledL2NormScalar( tmp.p, level );
+      errorL2Velocity = pointwiseScaledL2Norm( tmp.uvw, level );
+      errorL2Pressure = pointwiseScaledL2Norm( tmp.p, level );
+      tmp.interpolate( 0, level );
    };
 
    real_t residualL2Velocity;
@@ -355,15 +365,6 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
    writeDataRow( iteration, "I", 0, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
    iteration++;
-
-   VTKOutput vtkOutput( "vtk", "TME", storage );
-   vtkOutput.add( u );
-   vtkOutput.add( f );
-
-   if ( vtk )
-   {
-      vtkOutput.write( maxLevel, 0 );
-   }
 
    if ( multigridSettings.fmgInnerIterations > 0 )
    {
