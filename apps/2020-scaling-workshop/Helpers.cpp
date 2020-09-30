@@ -87,6 +87,9 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
                               const std::function< real_t( const hyteg::Point3D& ) >& initialV,
                               const std::function< real_t( const hyteg::Point3D& ) >& initialW,
                               const std::function< real_t( const hyteg::Point3D& ) >& initialP,
+                              const std::function< real_t( const hyteg::Point3D& ) >& rhsU,
+                              const std::function< real_t( const hyteg::Point3D& ) >& rhsV,
+                              const std::function< real_t( const hyteg::Point3D& ) >& rhsW,
                               uint_t                                                  minLevel,
                               uint_t                                                  maxLevel,
                               MultigridSettings                                       multigridSettings,
@@ -96,7 +99,8 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
                               bool                                                    projectPressurefterRestriction,
                               bool                                                    vtk,
                               const std::string&                                      benchmarkName,
-                              std::string                                             dbFile )
+                              std::string                                             dbFile,
+                              bool                                                    RHSisZero )
 {
    printGitInfo();
 
@@ -164,7 +168,11 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    uint_t iteration = 0;
 
    StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );
-   StokesFunction< real_t > f( "f", storage, minLevel, maxLevel > minLevel ? maxLevel - 1 : maxLevel );
+   StokesFunction< real_t > f =
+       RHSisZero ? StokesFunction< real_t >( "f", storage, minLevel, maxLevel > minLevel ? maxLevel - 1 : maxLevel ) :
+                   StokesFunction< real_t >( "f", storage, minLevel, maxLevel );
+   StokesFunction< real_t > r =
+       RHSisZero ? StokesFunction< real_t >( "r", storage, 0, 0 ) : StokesFunction< real_t >( "r", storage, minLevel, maxLevel );
    StokesFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel );
 
    StokesOperator A( storage, minLevel, maxLevel );
@@ -189,11 +197,26 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
       u.uvw.u.interpolate( solutionU, level, DirichletBoundary );
       u.uvw.v.interpolate( solutionV, level, DirichletBoundary );
       u.uvw.w.interpolate( solutionW, level, DirichletBoundary );
+
+      if ( RHSisZero )
+      {
+         f.uvw.u.interpolate( 0, level, All );
+         f.uvw.v.interpolate( 0, level, All );
+         f.uvw.w.interpolate( 0, level, All );
+      }
+      else
+      {
+         f.uvw.u.interpolate( rhsU, level, All );
+         f.uvw.v.interpolate( rhsV, level, All );
+         f.uvw.w.interpolate( rhsW, level, All );
+      }
+      f.p.interpolate( 0, level, All );
    }
 
    VTKOutput vtkOutput( "vtk", "TME", storage );
    vtkOutput.add( u );
    vtkOutput.add( tmp );
+   vtkOutput.add( f );
 
    if ( vtk )
    {
@@ -205,10 +228,20 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
                                 real_t& residualL2Pressure,
                                 real_t& errorL2Velocity,
                                 real_t& errorL2Pressure ) {
-      tmp.interpolate( 0, level );
-      residualNegativeRHS0( u, A, level, errorFlag, tmp );
-      residualL2Velocity = pointwiseScaledL2Norm( tmp.uvw, level );
-      residualL2Pressure = pointwiseScaledL2Norm( tmp.p, level );
+      if ( RHSisZero )
+      {
+         tmp.interpolate( 0, level );
+         residualNegativeRHS0( u, A, level, errorFlag, tmp );
+         residualL2Velocity = pointwiseScaledL2Norm( tmp.uvw, level );
+         residualL2Pressure = pointwiseScaledL2Norm( tmp.p, level );
+      }
+      else
+      {
+         tmp.interpolate( 0, level );
+         residual( u, f, A, tmp, level, errorFlag, r );
+         residualL2Velocity = pointwiseScaledL2Norm( tmp.uvw, level );
+         residualL2Pressure = pointwiseScaledL2Norm( tmp.p, level );
+      }
 
       tmp.uvw.u.interpolate( solutionU, level, All );
       tmp.uvw.v.interpolate( solutionV, level, All );
@@ -466,6 +499,9 @@ void solveRHS0( const std::shared_ptr< PrimitiveStorage >&              storage,
                 const std::function< real_t( const hyteg::Point3D& ) >& initialV,
                 const std::function< real_t( const hyteg::Point3D& ) >& initialW,
                 const std::function< real_t( const hyteg::Point3D& ) >& initialP,
+                const std::function< real_t( const hyteg::Point3D& ) >& rhsU,
+                const std::function< real_t( const hyteg::Point3D& ) >& rhsV,
+                const std::function< real_t( const hyteg::Point3D& ) >& rhsW,
                 uint_t                                                  minLevel,
                 uint_t                                                  maxLevel,
                 MultigridSettings                                       multigridSettings,
@@ -475,7 +511,8 @@ void solveRHS0( const std::shared_ptr< PrimitiveStorage >&              storage,
                 bool                                                    projectPressurefterRestriction,
                 bool                                                    vtk,
                 std::string                                             benchmarkName,
-                std::string                                             dbFile )
+                std::string                                             dbFile,
+                bool                                                    RHSisZero )
 {
    if ( discretization == Discretization::P2_P1 )
    {
@@ -494,6 +531,9 @@ void solveRHS0( const std::shared_ptr< PrimitiveStorage >&              storage,
                                                                      initialV,
                                                                      initialW,
                                                                      initialP,
+                                                                     rhsU,
+                                                                     rhsV,
+                                                                     rhsW,
                                                                      minLevel,
                                                                      maxLevel,
                                                                      multigridSettings,
@@ -503,7 +543,8 @@ void solveRHS0( const std::shared_ptr< PrimitiveStorage >&              storage,
                                                                      projectPressurefterRestriction,
                                                                      vtk,
                                                                      benchmarkName,
-                                                                     dbFile );
+                                                                     dbFile,
+                                                                     RHSisZero );
    }
    else
    {
@@ -522,6 +563,9 @@ void solveRHS0( const std::shared_ptr< PrimitiveStorage >&              storage,
                                                                      initialV,
                                                                      initialW,
                                                                      initialP,
+                                                                     rhsU,
+                                                                     rhsV,
+                                                                     rhsW,
                                                                      minLevel,
                                                                      maxLevel,
                                                                      multigridSettings,
@@ -531,7 +575,8 @@ void solveRHS0( const std::shared_ptr< PrimitiveStorage >&              storage,
                                                                      projectPressurefterRestriction,
                                                                      vtk,
                                                                      benchmarkName,
-                                                                     dbFile );
+                                                                     dbFile,
+                                                                     RHSisZero );
    }
 }
 

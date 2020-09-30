@@ -74,6 +74,14 @@ void benchmark( int argc, char** argv )
    coarseGridSettings.solverType                = mainConf.getParameter< uint_t >( "coarseGridSolverType" );
 
    const uint_t scenario = mainConf.getParameter< uint_t >( "scenario" );
+   bool         RHSisZero;
+   if ( scenario == 0 ) {
+      RHSisZero = true;
+   }
+   else if ( scenario == 1 )
+   {
+      RHSisZero = false;
+   }
 
    Discretization discretization = Discretization::P2_P1;
    if ( discretizationString == "p1p1" )
@@ -81,10 +89,10 @@ void benchmark( int argc, char** argv )
       discretization = Discretization::P1_P1;
    }
 
-   Point3D leftBottom3D( {-1, -1, -1} );
+   Point3D leftBottom3D( { -1, -1, -1 } );
 
    auto meshInfo =
-       MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( {1, 1, 1} ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
+       MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( { 1, 1, 1 } ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
 
    auto onBoundary = []( const Point3D& ) { return true; };
    meshInfo.setMeshBoundaryFlagsByVertexLocation( 1, onBoundary );
@@ -146,33 +154,30 @@ void benchmark( int argc, char** argv )
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   if ( scenario == 0 )
-   {
-      solveRHS0( storage,
-                 discretization,
-                 solutionU,
-                 solutionV,
-                 solutionW,
-                 solutionP,
-                 initialU,
-                 initialV,
-                 initialW,
-                 initialP,
-                 minLevel,
-                 maxLevel,
-                 multigridSettings,
-                 smootherSettings,
-                 coarseGridSettings,
-                 projectPressure,
-                 projectPressureAfterRestriction,
-                 vtk,
-                 "Benchmark_01_Cube",
-                 dbFile );
-   }
-   else
-   {
-      WALBERLA_ABORT( "Solver for rhs != 0 not implemented." );
-   }
+   solveRHS0( storage,
+              discretization,
+              solutionU,
+              solutionV,
+              solutionW,
+              solutionP,
+              initialU,
+              initialV,
+              initialW,
+              initialP,
+              rhsU,
+              rhsV,
+              rhsW,
+              minLevel,
+              maxLevel,
+              multigridSettings,
+              smootherSettings,
+              coarseGridSettings,
+              projectPressure,
+              projectPressureAfterRestriction,
+              vtk,
+              "Benchmark_01_Cube",
+              dbFile,
+              RHSisZero );
 }
 
 } // namespace scaling_workshop
