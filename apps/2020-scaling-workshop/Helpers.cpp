@@ -176,6 +176,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    StokesFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel );
 
    StokesOperator A( storage, minLevel, maxLevel );
+   VelocityMassOperator velocityMassOperator( storage, minLevel, maxLevel );
 
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
@@ -206,9 +207,13 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
       }
       else
       {
-         f.uvw.u.interpolate( rhsU, level, All );
-         f.uvw.v.interpolate( rhsV, level, All );
-         f.uvw.w.interpolate( rhsW, level, All );
+         tmp.uvw.u.interpolate( rhsU, level, All );
+         tmp.uvw.v.interpolate( rhsV, level, All );
+         tmp.uvw.w.interpolate( rhsW, level, All );
+
+         velocityMassOperator.apply( tmp.uvw.u, f.uvw.u, level, All );
+         velocityMassOperator.apply( tmp.uvw.v, f.uvw.v, level, All );
+         velocityMassOperator.apply( tmp.uvw.w, f.uvw.w, level, All );
       }
       f.p.interpolate( 0, level, All );
    }
