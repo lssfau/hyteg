@@ -42,6 +42,8 @@ void benchmark( int argc, char** argv )
       cfg = env.config();
    }
 
+   std::string benchmarkName = "Benchmark_01_Cube";
+
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
    const std::string discretizationString = mainConf.getParameter< std::string >( "discretization" );
@@ -51,6 +53,7 @@ void benchmark( int argc, char** argv )
 
    const bool        vtk    = mainConf.getParameter< bool >( "vtk" );
    const std::string dbFile = mainConf.getParameter< std::string >( "dbFile" );
+   const bool        domainInfoOnly = mainConf.getParameter< bool >( "domainInfoOnly" );
 
    MultigridSettings multigridSettings;
    multigridSettings.preSmooth                 = mainConf.getParameter< uint_t >( "preSmooth" );
@@ -76,7 +79,7 @@ void benchmark( int argc, char** argv )
    const uint_t scenario = mainConf.getParameter< uint_t >( "scenario" );
    bool         RHSisZero;
    if ( scenario == 0 ) {
-      RHSisZero = true;
+      RHSisZero = false;
    }
    else if ( scenario == 1 )
    {
@@ -102,6 +105,12 @@ void benchmark( int argc, char** argv )
    setupStorage->setMeshBoundaryFlagsInner( 0, true );
 
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
+
+   if ( domainInfoOnly )
+   {
+      domainInfo( storage, discretization, minLevel, maxLevel, vtk, benchmarkName );
+      return;
+   }
 
    std::function< real_t( const hyteg::Point3D& ) > solutionU = []( const hyteg::Point3D& ) -> real_t { return 0; };
    std::function< real_t( const hyteg::Point3D& ) > solutionV = []( const hyteg::Point3D& ) -> real_t { return 0; };
@@ -175,7 +184,7 @@ void benchmark( int argc, char** argv )
               projectPressure,
               projectPressureAfterRestriction,
               vtk,
-              "Benchmark_01_Cube",
+              benchmarkName,
               dbFile,
               RHSisZero );
 }

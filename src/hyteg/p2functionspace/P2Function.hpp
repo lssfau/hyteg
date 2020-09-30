@@ -25,6 +25,7 @@
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
+#include "hyteg/p1functionspace/VertexDoFMemory.hpp"
 // #include "hyteg/p2functionspace/P2Multigrid.hpp"
 // #include "hyteg/p2functionspace/P2TransferOperators.hpp"
 // #include "hyteg/p2functionspace/P2MacroFace.hpp"
@@ -226,6 +227,18 @@ extern template class P2Function< int >;
 namespace p2function {
 
 void projectMean( const P2Function< real_t >& pressure, const uint_t& level );
+
+inline unsigned long long localFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+{
+   return vertexDoFLocalFunctionMemorySize( level, storage ) + edgedof::edgeDoFLocalFunctionMemorySize( level, storage );
+}
+
+inline unsigned long long globalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+{
+   const auto memLocal = localFunctionMemorySize( level, storage );
+   const auto memGlobal = walberla::mpi::allReduce( memLocal, walberla::mpi::SUM );
+   return memGlobal;
+}
 
 } // namespace p2function
 

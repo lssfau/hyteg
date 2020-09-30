@@ -163,6 +163,9 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    WALBERLA_LOG_INFO_ON_ROOT( "   + database file:                                " << dbFile )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
+   const auto storageGlobalInfo = storage->getGlobalInfo();
+   WALBERLA_LOG_INFO_ON_ROOT( storageGlobalInfo );
+
    FixedSizeSQLDB db( dbFile );
 
    uint_t iteration = 0;
@@ -345,7 +348,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
                                                                                           multigridSettings.postSmooth,
                                                                                           multigridSettings.incSmooth,
                                                                                           CycleType::VCYCLE,
-                                                                                          true,
+                                                                                          RHSisZero,
                                                                                           0 );
 
    auto fmgProlongation = std::make_shared< FMGProlongation >();
@@ -583,6 +586,74 @@ void solveRHS0( const std::shared_ptr< PrimitiveStorage >&              storage,
                                                                      dbFile,
                                                                      RHSisZero );
    }
+}
+
+void domainInfo( const std::shared_ptr< PrimitiveStorage >& storage,
+                 Discretization                             discretization,
+                 uint_t                                     minLevel,
+                 uint_t                                     maxLevel,
+                 bool                                       vtk,
+                 std::string                                benchmarkName )
+{
+   printGitInfo();
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
+
+   if ( vtk )
+   {
+      writeDomainPartitioningVTK( storage, "vtk/", benchmarkName + "_domain" );
+   }
+
+   auto timer = storage->getTimingTree();
+   timer->start( "Total" );
+   timer->start( "Setup" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Unknowns (incl. boundary) and total allocated floating point values per Stokes function:" )
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
+   unsigned long long unknownsSum        = 0;
+   unsigned long long allocatedMemorySum = 0;
+   WALBERLA_LOG_INFO_ON_ROOT( " level |       unknowns |          total " )
+   for ( uint_t level = minLevel; level <= maxLevel; level++ )
+   {
+      unsigned long long unknowns = 0;
+      unsigned long long allocatedMemoryLevel = 0;
+      if ( discretization == Discretization::P2_P1 )
+      {
+         unknowns             = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
+         allocatedMemoryLevel = p2p1globalFunctionMemorySize( level, storage );
+      }
+      else
+      {
+         unknowns             = numberOfGlobalDoFs< P1StokesFunctionTag >( *storage, level );
+         allocatedMemoryLevel = p1p1globalFunctionMemorySize( level, storage );
+      }
+      unknownsSum += unknowns;
+      allocatedMemorySum += allocatedMemoryLevel;
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %5d | %14llu | %14llu ", level, unknowns, allocatedMemoryLevel ) )
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( " ------+----------------+--------------- " )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "   sum | %14llu | %14llu ", unknownsSum, allocatedMemorySum ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
+
+   const real_t hMin                 = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
+   const real_t hMax                 = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
+   const auto   discretizationString = ( discretization == Discretization::P2_P1 ? "P2-P1" : "P1-P1" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << benchmarkName )
+   WALBERLA_LOG_INFO_ON_ROOT( " - space discretization: " )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + elements:                                     " << discretizationString );
+   WALBERLA_LOG_INFO_ON_ROOT( "   + dimensions:                                   " << ( storage->hasGlobalCells() ? "3" : "2" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + min level:                                    " << minLevel )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + max level:                                    " << maxLevel )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + h_min:                                        " << hMin )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + h_max:                                        " << hMax )
+   WALBERLA_LOG_INFO_ON_ROOT( " - app settings: " )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + VTK:                                          " << ( vtk ? "yes" : "no" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
+
+   const auto storageGlobalInfo = storage->getGlobalInfo();
+   WALBERLA_LOG_INFO_ON_ROOT( storageGlobalInfo );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
 }
 
 } // namespace scaling_workshop

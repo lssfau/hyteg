@@ -1576,6 +1576,40 @@ uint_t edgedof::edgeDoFMacroCellFunctionMemorySize( const uint_t& level, const P
           ( levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) - 1 ) );
 }
 
+unsigned long long edgedof::edgeDoFLocalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+{
+   unsigned long long mem = 0;
+
+   for ( const auto & it : storage->getVertices() )
+   {
+      mem += edgeDoFMacroVertexFunctionMemorySize( level, *it.second );
+   }
+
+   for ( const auto & it : storage->getEdges() )
+   {
+      mem += edgeDoFMacroEdgeFunctionMemorySize( level, *it.second );
+   }
+
+   for ( const auto & it : storage->getFaces() )
+   {
+      mem += edgeDoFMacroFaceFunctionMemorySize( level, *it.second );
+   }
+
+   for ( const auto & it : storage->getCells() )
+   {
+      mem += edgeDoFMacroCellFunctionMemorySize( level, *it.second );
+   }
+
+   return mem;
+}
+
+unsigned long long edgedof::edgeDoFGlobalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+{
+   const auto memLocal = edgeDoFLocalFunctionMemorySize( level, storage );
+   const auto memGlobal = walberla::mpi::allReduce( memLocal, walberla::mpi::SUM );
+   return memGlobal;
+}
+
 // =================
 //  specialisations
 // =================

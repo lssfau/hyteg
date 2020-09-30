@@ -51,6 +51,10 @@ uint_t edgeDoFMacroFaceFunctionMemorySize( const uint_t& level, const Primitive&
 
 uint_t edgeDoFMacroCellFunctionMemorySize( const uint_t& level, const Primitive& primitive );
 
+unsigned long long edgeDoFLocalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage );
+
+unsigned long long edgeDoFGlobalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage );
+
 ///@}
 
 } // namespace edgedof

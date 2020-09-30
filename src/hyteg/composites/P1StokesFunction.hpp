@@ -24,6 +24,7 @@
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
+#include "hyteg/p1functionspace/VertexDoFMemory.hpp"
 
 namespace hyteg {
 
@@ -206,6 +207,25 @@ class P1StokesFunction
    P1VectorFunction< ValueType > uvw;
    P1Function< ValueType >       p;
 };
+
+inline unsigned long long p1p1localFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+{
+   if ( storage->hasGlobalCells() )
+   {
+      return 4 * vertexDoFLocalFunctionMemorySize( level, storage );
+   }
+   else
+   {
+      return 3 * vertexDoFLocalFunctionMemorySize( level, storage );
+   }
+}
+
+inline unsigned long long p1p1globalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+{
+   const auto memLocal = p1p1localFunctionMemorySize( level, storage );
+   const auto memGlobal = walberla::mpi::allReduce( memLocal, walberla::mpi::SUM );
+   return memGlobal;
+}
 
 }
 

@@ -228,4 +228,23 @@ class P2P1TaylorHoodFunction
    PressureFunction_T p;
 };
 
+inline unsigned long long p2p1localFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+{
+   if ( storage->hasGlobalCells() )
+   {
+      return 3 * p2function::localFunctionMemorySize(level, storage) + vertexDoFLocalFunctionMemorySize( level, storage );
+   }
+   else
+   {
+      return 2 * p2function::localFunctionMemorySize(level, storage) + vertexDoFLocalFunctionMemorySize( level, storage );
+   }
+}
+
+inline unsigned long long p2p1globalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+{
+   const auto memLocal = p2p1localFunctionMemorySize( level, storage );
+   const auto memGlobal = walberla::mpi::allReduce( memLocal, walberla::mpi::SUM );
+   return memGlobal;
+}
+
 }

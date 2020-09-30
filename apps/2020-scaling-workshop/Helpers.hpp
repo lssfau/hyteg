@@ -222,5 +222,12 @@ void solveRHS0( const std::shared_ptr< PrimitiveStorage >&              storage,
                 std::string                                             dbFile,
                 bool                                                    RHSisZero );
 
+void domainInfo( const std::shared_ptr< PrimitiveStorage >& storage,
+                 Discretization                             discretization,
+                 uint_t                                     minLevel,
+                 uint_t                                     maxLevel,
+                 bool                                       vtk,
+                 std::string                                benchmarkName );
+
 } // namespace scaling_workshop
 } // namespace hyteg

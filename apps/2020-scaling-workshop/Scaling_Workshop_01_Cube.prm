@@ -2,12 +2,13 @@ Parameters
 {
   discretization p2p1;
 
-  minLevel 3;
-  maxLevel 3;
+  minLevel 0;
+  maxLevel 7;
 
-  numEdgesPerSide 1;
+  numEdgesPerSide 34;
 
-  scenario 0;
+  scenario 1;
+  domainInfoOnly true;
 
   vtk true;
   dbFile Scaling_Workshop_01_Cube.db;
