@@ -86,7 +86,7 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage > storage,
    constantPETScMat.createMatrixFromOperator( constantOp, level, enumerator, All );
 
    // determine difference between matrices and their norms
-   // PetscErrorCode MatAXPY(Mat Y,PetscScalar a,Mat X,MatStructure str)  // SAME_NONZERO_PATTERN
+   // PetscErrorCode MatAXPY(Mat Y,PetscReal a,Mat X,MatStructure str)  // SAME_NONZERO_PATTERN
    PetscErrorCode ierr;
    ierr = MatAXPY( constantPETScMat.get(), -1.0, elemWisePETScMat.get(), DIFFERENT_NONZERO_PATTERN );
    if ( ierr != 0 )
@@ -132,7 +132,6 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage > storage,
    WALBERLA_CHECK_LESS_EQUAL( normOne, limits[1] );
    WALBERLA_CHECK_LESS_EQUAL( normInf, limits[2] );
 }
-
 
 int main( int argc, char* argv[] )
 {

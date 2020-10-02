@@ -32,7 +32,7 @@
 namespace hyteg {
 namespace petsc {
 
-inline void createVectorFromFunction( const P2Function< PetscScalar >&      function,
+inline void createVectorFromFunction( const P2Function< PetscReal >&        function,
                                       const P2Function< PetscInt >&         numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -42,7 +42,7 @@ inline void createVectorFromFunction( const P2Function< PetscScalar >&      func
    edgedof::createVectorFromFunction( function.getEdgeDoFFunction(), numerator.getEdgeDoFFunction(), vec, level, flag );
 }
 
-inline void createFunctionFromVector( const P2Function< PetscScalar >&      function,
+inline void createFunctionFromVector( const P2Function< PetscReal >&        function,
                                       const P2Function< PetscInt >&         numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -59,12 +59,12 @@ inline void applyDirichletBC( const P2Function< PetscInt >& numerator, std::vect
 }
 
 template < class OperatorType >
-inline void createMatrix( const OperatorType&           opr,
-                          const P2Function< PetscInt >& src,
-                          const P2Function< PetscInt >& dst,
-                          const std::shared_ptr< SparseMatrixProxy >&                          mat,
-                          uint_t                        level,
-                          DoFType                       flag )
+inline void createMatrix( const OperatorType&                         opr,
+                          const P2Function< PetscInt >&               src,
+                          const P2Function< PetscInt >&               dst,
+                          const std::shared_ptr< SparseMatrixProxy >& mat,
+                          uint_t                                      level,
+                          DoFType                                     flag )
 {
    createMatrix( opr.getVertexToVertexOpr(), src.getVertexDoFFunction(), dst.getVertexDoFFunction(), mat, level, flag );
    EdgeDoFToVertexDoF::createMatrix(
