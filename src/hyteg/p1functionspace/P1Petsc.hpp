@@ -25,6 +25,7 @@
 #include <hyteg/p1functionspace/VertexDoFMacroEdge.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroVertex.hpp>
+
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 

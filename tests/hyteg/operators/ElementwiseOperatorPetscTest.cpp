@@ -133,7 +133,6 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage > storage,
    WALBERLA_CHECK_LESS_EQUAL( normInf, limits[2] );
 }
 
-
 int main( int argc, char* argv[] )
 {
    // General setup stuff

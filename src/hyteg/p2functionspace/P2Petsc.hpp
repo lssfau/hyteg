@@ -59,12 +59,12 @@ inline void applyDirichletBC( const P2Function< PetscInt >& numerator, std::vect
 }
 
 template < class OperatorType >
-inline void createMatrix( const OperatorType&           opr,
-                          const P2Function< PetscInt >& src,
-                          const P2Function< PetscInt >& dst,
-                          const std::shared_ptr< SparseMatrixProxy >&                          mat,
-                          uint_t                        level,
-                          DoFType                       flag )
+inline void createMatrix( const OperatorType&                         opr,
+                          const P2Function< PetscInt >&               src,
+                          const P2Function< PetscInt >&               dst,
+                          const std::shared_ptr< SparseMatrixProxy >& mat,
+                          uint_t                                      level,
+                          DoFType                                     flag )
 {
    createMatrix( opr.getVertexToVertexOpr(), src.getVertexDoFFunction(), dst.getVertexDoFFunction(), mat, level, flag );
    EdgeDoFToVertexDoF::createMatrix(
