@@ -33,7 +33,7 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
    PETScSparseMatrixProxy( Mat mat )
    : mat_( mat )
    {
-      MatSetOption(mat_, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE);
+      MatSetOption( mat_, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE );
    }
 
    virtual std::shared_ptr< SparseMatrixProxy > createCopy() const
@@ -49,7 +49,8 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
 
    void addValue( uint_t row, uint_t col, real_t value )
    {
-      MatSetValue( mat_, static_cast< PetscInt >( row ), static_cast< PetscInt >( col ), value, ADD_VALUES );
+      MatSetValue(
+          mat_, static_cast< PetscInt >( row ), static_cast< PetscInt >( col ), static_cast< PetscReal >( value ), ADD_VALUES );
    }
 
    void addValues( const std::vector< uint_t >& rows, const std::vector< uint_t >& cols, const std::vector< real_t >& values )
@@ -65,13 +66,33 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
       {
          petscCols[i] = static_cast< PetscInt >( cols[i] );
       }
-      MatSetValues( mat_,
-                    static_cast< PetscInt >( petscRows.size() ),
-                    petscRows.data(),
-                    static_cast< PetscInt >( petscCols.size() ),
-                    petscCols.data(),
-                    values.data(),
-                    ADD_VALUES );
+
+      // check whether we need to convert between PetscReal and real_t
+      if constexpr ( std::is_same< PetscReal, real_t >::value )
+      {
+         MatSetValues( mat_,
+                       static_cast< PetscInt >( petscRows.size() ),
+                       petscRows.data(),
+                       static_cast< PetscInt >( petscCols.size() ),
+                       petscCols.data(),
+                       values.data(),
+                       ADD_VALUES );
+      }
+      else
+      {
+         std::vector< PetscReal > petscVals( values.size() );
+         for ( uint_t k = 0; k < values.size(); k++ )
+         {
+            petscVals[k] = static_cast< PetscReal >( values[k] );
+         }
+         MatSetValues( mat_,
+                       static_cast< PetscInt >( petscRows.size() ),
+                       petscRows.data(),
+                       static_cast< PetscInt >( petscCols.size() ),
+                       petscCols.data(),
+                       petscVals.data(),
+                       ADD_VALUES );
+      }
    }
 
    void createFromMatrixProduct( const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices )
@@ -81,12 +102,12 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
       PetscErrorCode err;
 
       err = MatAssemblyBegin( mat_, MAT_FINAL_ASSEMBLY );
-      WALBERLA_CHECK(!err);
+      WALBERLA_CHECK( !err );
       err = MatAssemblyEnd( mat_, MAT_FINAL_ASSEMBLY );
-      WALBERLA_CHECK(!err);
+      WALBERLA_CHECK( !err );
 
       err = MatDuplicate( mat_, MAT_DO_NOT_COPY_VALUES, &tmp );
-      WALBERLA_CHECK(!err);
+      WALBERLA_CHECK( !err );
 
       WALBERLA_CHECK_GREATER( matrices.size(), 0 );
 
@@ -94,49 +115,46 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
       WALBERLA_CHECK_NOT_NULLPTR( petscProxy );
 
       err = MatAssemblyBegin( petscProxy->mat_, MAT_FINAL_ASSEMBLY );
-      WALBERLA_CHECK(!err);
+      WALBERLA_CHECK( !err );
       err = MatAssemblyEnd( petscProxy->mat_, MAT_FINAL_ASSEMBLY );
-      WALBERLA_CHECK(!err);
+      WALBERLA_CHECK( !err );
 
       err = MatCopy( petscProxy->mat_, mat_, DIFFERENT_NONZERO_PATTERN );
-      WALBERLA_CHECK(!err);
+      WALBERLA_CHECK( !err );
 
       for ( uint_t i = 1; i < matrices.size(); i++ )
       {
          petscProxy = std::dynamic_pointer_cast< PETScSparseMatrixProxy >( matrices.at( i ) );
 
          err = MatAssemblyBegin( petscProxy->mat_, MAT_FINAL_ASSEMBLY );
-         WALBERLA_CHECK(!err);
+         WALBERLA_CHECK( !err );
          err = MatAssemblyEnd( petscProxy->mat_, MAT_FINAL_ASSEMBLY );
-         WALBERLA_CHECK(!err);
+         WALBERLA_CHECK( !err );
 
          err = MatAssemblyBegin( mat_, MAT_FINAL_ASSEMBLY );
-         WALBERLA_CHECK(!err);
+         WALBERLA_CHECK( !err );
          err = MatAssemblyEnd( mat_, MAT_FINAL_ASSEMBLY );
-         WALBERLA_CHECK(!err);
+         WALBERLA_CHECK( !err );
 
          err = MatMatMult( mat_, petscProxy->mat_, MAT_INITIAL_MATRIX, PETSC_DEFAULT, &tmp );
-         WALBERLA_CHECK(!err);
+         WALBERLA_CHECK( !err );
          err = MatCopy( tmp, mat_, DIFFERENT_NONZERO_PATTERN );
-         WALBERLA_CHECK(!err);
-
+         WALBERLA_CHECK( !err );
 
          err = MatAssemblyBegin( tmp, MAT_FINAL_ASSEMBLY );
-         WALBERLA_CHECK(!err);
+         WALBERLA_CHECK( !err );
          err = MatAssemblyEnd( tmp, MAT_FINAL_ASSEMBLY );
-         WALBERLA_CHECK(!err);
+         WALBERLA_CHECK( !err );
 
          err = MatAssemblyBegin( mat_, MAT_FINAL_ASSEMBLY );
-         WALBERLA_CHECK(!err);
+         WALBERLA_CHECK( !err );
          err = MatAssemblyEnd( mat_, MAT_FINAL_ASSEMBLY );
-         WALBERLA_CHECK(!err);
+         WALBERLA_CHECK( !err );
       }
    }
 
  private:
-
    Mat mat_;
-
 };
 
 } // namespace hyteg

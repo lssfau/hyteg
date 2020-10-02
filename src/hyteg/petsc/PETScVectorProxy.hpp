@@ -37,16 +37,16 @@ class PETScVectorProxy : public VectorProxy
    /// \brief Sets the passed value in the vector.
    virtual void setValue( uint_t idx, real_t value )
    {
-      VecSetValue( vec_, static_cast< PetscInt >( idx ), value, INSERT_VALUES );
+      VecSetValue( vec_, static_cast< PetscInt >( idx ), static_cast< PetscReal >( value ), INSERT_VALUES );
    }
 
    /// \brief Returns the passed value of the vector.
    virtual real_t getValue( uint_t idx ) const
    {
-      PetscInt idxPetsc = static_cast< PetscInt >( idx );
-      real_t   value;
+      PetscInt  idxPetsc = static_cast< PetscInt >( idx );
+      PetscReal value;
       VecGetValues( vec_, 1, &idxPetsc, &value );
-      return value;
+      return static_cast< real_t >( value );
    }
 
  private:
