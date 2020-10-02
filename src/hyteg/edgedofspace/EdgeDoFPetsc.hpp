@@ -37,7 +37,7 @@ using walberla::uint_t;
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
-inline void createVectorFromFunction( const EdgeDoFFunction< PetscScalar >& function,
+inline void createVectorFromFunction( const EdgeDoFFunction< PetscReal >&   function,
                                       const EdgeDoFFunction< PetscInt >&    numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -50,7 +50,7 @@ inline void createVectorFromFunction( const EdgeDoFFunction< PetscScalar >& func
       const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, flag ) )
       {
-         macroedge::createVectorFromFunction< PetscScalar >(
+         macroedge::createVectorFromFunction< PetscReal >(
              level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
       }
    }
@@ -62,7 +62,7 @@ inline void createVectorFromFunction( const EdgeDoFFunction< PetscScalar >& func
       const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         macroface::createVectorFromFunction< PetscScalar >(
+         macroface::createVectorFromFunction< PetscReal >(
              level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
       }
    }
@@ -74,13 +74,13 @@ inline void createVectorFromFunction( const EdgeDoFFunction< PetscScalar >& func
       const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
       if ( testFlag( cellBC, flag ) )
       {
-         macrocell::createVectorFromFunction< PetscScalar >(
+         macrocell::createVectorFromFunction< PetscReal >(
              level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
       }
    }
 }
 
-inline void createFunctionFromVector( const EdgeDoFFunction< PetscScalar >& function,
+inline void createFunctionFromVector( const EdgeDoFFunction< PetscReal >&   function,
                                       const EdgeDoFFunction< PetscInt >&    numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
@@ -96,7 +96,7 @@ inline void createFunctionFromVector( const EdgeDoFFunction< PetscScalar >& func
       const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, flag ) )
       {
-         edgedof::macroedge::createFunctionFromVector< PetscScalar >(
+         edgedof::macroedge::createFunctionFromVector< PetscReal >(
              level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
       }
    }
@@ -111,7 +111,7 @@ inline void createFunctionFromVector( const EdgeDoFFunction< PetscScalar >& func
       const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         edgedof::macroface::createFunctionFromVector< PetscScalar >(
+         edgedof::macroface::createFunctionFromVector< PetscReal >(
              level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
       }
    }
@@ -123,7 +123,7 @@ inline void createFunctionFromVector( const EdgeDoFFunction< PetscScalar >& func
       const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
       if ( testFlag( cellBC, flag ) )
       {
-         edgedof::macrocell::createFunctionFromVector< PetscScalar >(
+         edgedof::macrocell::createFunctionFromVector< PetscReal >(
              level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
       }
    }

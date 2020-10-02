@@ -31,11 +31,11 @@
 namespace hyteg {
 namespace petsc {
 
-inline void createVectorFromFunction( const P1StokesFunction< PetscScalar >& function,
-                                      const P1StokesFunction< PetscInt >&    numerator,
-                                      const std::shared_ptr< VectorProxy >&  vec,
-                                      uint_t                                 level,
-                                      DoFType                                flag )
+inline void createVectorFromFunction( const P1StokesFunction< PetscReal >&  function,
+                                      const P1StokesFunction< PetscInt >&   numerator,
+                                      const std::shared_ptr< VectorProxy >& vec,
+                                      uint_t                                level,
+                                      DoFType                               flag )
 {
    createVectorFromFunction( function.uvw.u, numerator.uvw.u, vec, level, flag );
    createVectorFromFunction( function.uvw.v, numerator.uvw.v, vec, level, flag );
@@ -46,11 +46,11 @@ inline void createVectorFromFunction( const P1StokesFunction< PetscScalar >& fun
    createVectorFromFunction( function.p, numerator.p, vec, level, flag );
 }
 
-inline void createFunctionFromVector( const P1StokesFunction< PetscScalar >& function,
-                                      const P1StokesFunction< PetscInt >&    numerator,
-                                      const std::shared_ptr< VectorProxy >&  vec,
-                                      uint_t                                 level,
-                                      DoFType                                flag )
+inline void createFunctionFromVector( const P1StokesFunction< PetscReal >&  function,
+                                      const P1StokesFunction< PetscInt >&   numerator,
+                                      const std::shared_ptr< VectorProxy >& vec,
+                                      uint_t                                level,
+                                      DoFType                               flag )
 {
    createFunctionFromVector( function.uvw.u, numerator.uvw.u, vec, level, flag );
    createFunctionFromVector( function.uvw.v, numerator.uvw.v, vec, level, flag );
