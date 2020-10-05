@@ -3,9 +3,9 @@ param_template = """Parameters
   discretization p2p1;
 
   minLevel 0;
-  maxLevel 7;
+  maxLevel {maxLevel};
 
-  numEdgesPerSide 34;
+  numEdgesPerSide {numEPS};
 
   scenario 1;
   domainInfoOnly true;
