@@ -12,6 +12,7 @@ def create_files(args, args_dict):
 
     # parameter file
     if args.benchmark == 'cube':
+        binary_name = 'Scaling_Benchmark_01_Cube'
         num_tets = (args.num_edges_per_side ** 3) * 24
 
         base_name = '_'.join([datestamp, 'benchmark_cube', f'{args.num_nodes}_nodes', f'{num_tets}_tets'])
@@ -26,11 +27,14 @@ def create_files(args, args_dict):
     # job file
     if args.machine == 'hawk':
         job_file_name = base_name + '.job'
+        args_dict['out_dir'] = '../hawk'
+        args_dict['binary_name'] = binary_name
         args_dict['job_name'] = base_name
         args_dict['paramfile_name'] = parameter_file_name
         args_dict['total_num_procs'] = args.num_cores * args.num_nodes
         job_file = job_file_hawk(**args_dict)
     elif args.machine == 'supermuc':
+        args_dict['out_dir'] = '../supermuc'
         pass
     else:
         print('Invalid machine.')
@@ -45,8 +49,6 @@ def create_files(args, args_dict):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-
-    parser.add_argument("--out_dir", help="director to put all files", type=str, default='./')
 
     parser.add_argument("--machine", help="hawk or supermuc", type=str, required=True)
     parser.add_argument("--num_nodes", help="number of nodes to be used", type=int, required=True)

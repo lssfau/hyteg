@@ -37,7 +37,7 @@ def parameter_file_01_cube(scenario: int, max_level: int, num_edges_per_side: in
 """
 
 
-def job_file_hawk(job_name: str, num_nodes: int, num_cores: int, walltime: str, total_num_procs: int, paramfile_name: str, **kwargs):
+def job_file_hawk(job_name: str, binary_name: str, num_nodes: int, num_cores: int, walltime: str, total_num_procs: int, paramfile_name: str, **kwargs):
     return f"""#!/bin/bash
 #PBS -N {job_name}
 #PBS -l select={num_nodes}:node_type=rome:mpiprocs={num_cores}
@@ -59,5 +59,68 @@ cd ..
 pwd
 ls -lha
 
-mpirun -np {total_num_procs} omplace -c 0-{num_cores}:st=4 ./Scaling_Workshop_01_Cube hawk/{paramfile_name}
+mpirun -np {total_num_procs} omplace -c 0-{num_cores}:st=4 ./{binary_name} hawk/{paramfile_name}
 """
+
+def job_file_supermuc(job_name: str, binary_name: str, num_nodes: int, num_cores: int, walltime: str, paramfile_name: str, **kwargs):
+
+    petsc_detail_string = "-ksp_view -ksp_monitor -log_view -mat_mumps_icntl_4 2"
+
+    def partition(num_nodes):
+        if num_nodes <= 16:
+            return "micro"
+        elif num_nodes <= 768:
+            return "general"
+        elif num_nodes <= 3072:
+            return "large"
+
+    constraint = ""
+    if num_nodes <= 792:
+        constraint = "#SBATCH --constraint=[i01|i02|i03|i04|i05|i06|i07|i08]"
+
+    base_config = f"""#!/bin/bash
+    # Job Name and Files (also --job-name)
+    #SBATCH -J {job_name}
+    #Output and error (also --output, --error):
+    #SBATCH -o ./%x.%j.out
+    #SBATCH -e ./%x.%j.err
+    #Initial working directory (also --chdir):
+    #SBATCH -D ./
+    #Notification and type
+    #SBATCH --mail-type=END
+    #SBATCH --mail-user=nils.kohl@fau.de
+    # Wall clock limit:
+    #SBATCH --time={walltime}
+    #SBATCH --no-requeue
+    #Setup of execution environment
+    #SBATCH --export=NONE
+    #SBATCH --get-user-env
+    #SBATCH --account=pr86ma
+     
+    #SBATCH --ear=off
+    #SBATCH --partition={partition}
+    #Number of nodes and MPI tasks per node:
+    #SBATCH --nodes={num_nodes}
+    #SBATCH --ntasks-per-node={num_cores}
+    {constraint}
+    
+    module load slurm_setup
+    
+    module unload devEnv
+    module load devEnv/GCC
+    
+    module load boost
+    module load petsc
+    
+    export CC=gcc
+    export CXX=g++
+    
+    module list
+    
+    cd ..
+    pwd
+    ls -lha
+    
+    #Run the program:
+    mpiexec -n $SLURM_NTASKS ./{binary_name} supermuc/{paramfile_name} {petsc_detail_string}
+    """
