@@ -66,7 +66,12 @@ if __name__ == "__main__":
 
     parser_cube.add_argument("--scenario", type=int, required=True)
     parser_cube.add_argument("--num_edges_per_side", help="number of edges per side", type=int, required=True)
-    parser_cube.add_argument("--max_level", default=7, help="max level for multigrid", type=int, required=True)
+    parser_cube.add_argument("--max_level", default=7, help="max level for multigrid", type=int)
+    parser_cube.add_argument("--pre_smooth", default=2, type=int)
+    parser_cube.add_argument("--post_smooth", default=2, type=int)
+    parser_cube.add_argument("--inc_smooth", default=2, type=int)
+    parser_cube.add_argument("--fmg_inner_iterations", default=0, type=int)
+    parser_cube.add_argument("--num_cycles", default=5, type=int)
 
     args = parser.parse_args()
     args_dict = vars(args)

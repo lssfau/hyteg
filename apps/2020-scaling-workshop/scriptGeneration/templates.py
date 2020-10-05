@@ -1,5 +1,7 @@
 
-def parameter_file_01_cube(scenario: int, max_level: int, num_edges_per_side: int, db_file: str, timing_file: str, **kwargs):
+def parameter_file_01_cube(scenario: int, max_level: int, num_edges_per_side: int, db_file: str, timing_file: str,
+                           pre_smooth: int, post_smooth: int, inc_smooth: int, fmg_inner_iterations: int, num_cycles: int,
+                           **kwargs):
     return f"""Parameters
 {{
   discretization p2p1;
@@ -16,11 +18,11 @@ def parameter_file_01_cube(scenario: int, max_level: int, num_edges_per_side: in
   dbFile {db_file};
   timingFile {timing_file};
 
-  preSmooth 2;
-  postSmooth 2;
-  incSmooth 2;
-  fmgInnerIterations 1;
-  numCycles 1;
+  preSmooth {pre_smooth};
+  postSmooth {post_smooth};
+  incSmooth {inc_smooth};
+  fmgInnerIterations {fmg_inner_iterations};
+  numCycles {num_cycles};
   absoluteResidualTolerance 1e-12;
 
   numGSVelocity 3;
