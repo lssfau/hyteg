@@ -12,6 +12,7 @@ Parameters
 
   vtk true;
   dbFile Scaling_Workshop_01_Cube.db;
+  timingFile Scaling_Workshop_01_Cube.json;
 
   preSmooth 2;
   postSmooth 2;
