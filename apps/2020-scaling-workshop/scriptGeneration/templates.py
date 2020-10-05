@@ -82,39 +82,39 @@ def job_file_supermuc(job_name: str, binary_name: str, num_nodes: int, num_cores
         constraint = "#SBATCH --constraint=[i01|i02|i03|i04|i05|i06|i07|i08]"
 
     return f"""#!/bin/bash
-    # Job Name and Files (also --job-name)
-    #SBATCH -J {job_name}
-    #Output and error (also --output, --error):
-    #SBATCH -o ./%x.%j.out
-    #SBATCH -e ./%x.%j.err
-    #Initial working directory (also --chdir):
-    #SBATCH -D ./
-    #Notification and type
-    #SBATCH --mail-type=END
-    #SBATCH --mail-user=nils.kohl@fau.de
-    # Wall clock limit:
-    #SBATCH --time={walltime}
-    #SBATCH --no-requeue
-    #Setup of execution environment
-    #SBATCH --export=NONE
-    #SBATCH --get-user-env
-    #SBATCH --account=pr86ma
-     
-    #SBATCH --ear=off
-    #SBATCH --partition={partition}
-    #Number of nodes and MPI tasks per node:
-    #SBATCH --nodes={num_nodes}
-    #SBATCH --ntasks-per-node={num_cores}
-    {constraint}
-    
-    cd ..
-    pwd
-    ls -lha
-    
-    source load_modules_supermuc.sh
-    
-    module list
+# Job Name and Files (also --job-name)
+#SBATCH -J {job_name}
+#Output and error (also --output, --error):
+#SBATCH -o ./%x.%j.out
+#SBATCH -e ./%x.%j.err
+#Initial working directory (also --chdir):
+#SBATCH -D ./
+#Notification and type
+#SBATCH --mail-type=END
+#SBATCH --mail-user=nils.kohl@fau.de
+# Wall clock limit:
+#SBATCH --time={walltime}
+#SBATCH --no-requeue
+#Setup of execution environment
+#SBATCH --export=NONE
+#SBATCH --get-user-env
+#SBATCH --account=pr86ma
+ 
+#SBATCH --ear=off
+#SBATCH --partition={partition(num_nodes)}
+#Number of nodes and MPI tasks per node:
+#SBATCH --nodes={num_nodes}
+#SBATCH --ntasks-per-node={num_cores}
+{constraint}
 
-    #Run the program:
-    mpiexec -n $SLURM_NTASKS ./{binary_name} supermuc/{paramfile_name} {petsc_detail_string}
-    """
+cd ..
+pwd
+ls -lha
+
+source load_modules_supermuc.sh
+
+module list
+
+#Run the program:
+mpiexec -n $SLURM_NTASKS ./{binary_name} supermuc/{paramfile_name} {petsc_detail_string}
+"""
