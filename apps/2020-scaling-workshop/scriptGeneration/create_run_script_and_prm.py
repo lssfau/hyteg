@@ -3,7 +3,7 @@ import time
 import sys
 import os
 
-from templates import parameter_file_01_cube, job_file_hawk
+from templates import parameter_file_01_cube, job_file_hawk, job_file_supermuc
 
 
 def create_files(args, args_dict):
@@ -34,8 +34,12 @@ def create_files(args, args_dict):
         args_dict['total_num_procs'] = args.num_cores * args.num_nodes
         job_file = job_file_hawk(**args_dict)
     elif args.machine == 'supermuc':
+        job_file_name = base_name + '.job'
         args_dict['out_dir'] = '../supermuc'
-        pass
+        args_dict['binary_name'] = binary_name
+        args_dict['job_name'] = base_name
+        args_dict['paramfile_name'] = parameter_file_name
+        job_file = job_file_supermuc(**args_dict)
     else:
         print('Invalid machine.')
         sys.exit(1)

@@ -78,7 +78,7 @@ def job_file_supermuc(job_name: str, binary_name: str, num_nodes: int, num_cores
     if num_nodes <= 792:
         constraint = "#SBATCH --constraint=[i01|i02|i03|i04|i05|i06|i07|i08]"
 
-    base_config = f"""#!/bin/bash
+    return f"""#!/bin/bash
     # Job Name and Files (also --job-name)
     #SBATCH -J {job_name}
     #Output and error (also --output, --error):
