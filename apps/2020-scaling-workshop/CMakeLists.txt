@@ -14,3 +14,5 @@ waLBerla_add_executable( NAME Scaling_Workshop_01_Cube
         FILES  Scaling_Workshop_01_Cube.cpp Helpers.cpp
         DEPENDS hyteg sqlite)
 endif()
+
+add_subdirectory(scriptGeneration)

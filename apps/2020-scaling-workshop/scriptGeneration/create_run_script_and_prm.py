@@ -1,39 +1,67 @@
 import argparse
 import time
-from templates import job_template, param_template
+import sys
+import os
+
+from templates import parameter_file_01_cube, job_file_hawk
 
 
-def get_script(variables):
-    return job_template.format(**variables)
+def create_files(args, args_dict):
+    datestamp = time.strftime("%y_%m_%d-%H.%M.%S")
+    args_dict['prefix'] = datestamp
+
+    # parameter file
+    if args.benchmark == 'cube':
+        num_tets = (args.num_edges_per_side ** 3) * 24
+
+        base_name = '_'.join([datestamp, 'benchmark_cube', f'{args.num_nodes}_nodes', f'{num_tets}_tets'])
+        parameter_file_name = base_name + '.prm'
+        args_dict['db_file'] = base_name + '.db'
+
+        parameter_file = parameter_file_01_cube(**args_dict)
+    else:
+        print('Invalid benchmark. Specify subargument!')
+        sys.exit(1)
+
+    # job file
+    if args.machine == 'hawk':
+        job_file_name = base_name + '.job'
+        args_dict['job_name'] = base_name
+        args_dict['paramfile_name'] = parameter_file_name
+        args_dict['total_num_procs'] = args.num_cores * args.num_nodes
+        job_file = job_file_hawk(**args_dict)
+    elif args.machine == 'supermuc':
+        pass
+    else:
+        print('Invalid machine.')
+        sys.exit(1)
+
+    with open(os.path.join(args.out_dir, parameter_file_name), 'w') as f:
+        f.write(parameter_file)
+
+    with open(os.path.join(args.out_dir, job_file_name), 'w') as f:
+        f.write(job_file)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("num_nodes", help="number of nodes to be used", type=int)
-    parser.add_argument("numEPS", help="number of edges per side", type=int)
-    parser.add_argument("--maxLevel", default=8,
-                        help="max level for multigird. ATTENTION: P2 is reduced by 1", type=int)
-    parser.add_argument("--num_cores", default=32,
-                        help="number of cores per node", type=int)
-    parser.add_argument("--walltime", default="00:10:00",
-                        help="walltime for the job")
+
+    parser.add_argument("--out_dir", help="director to put all files", type=str, default='./')
+
+    parser.add_argument("--machine", help="hawk or supermuc", type=str, required=True)
+    parser.add_argument("--num_nodes", help="number of nodes to be used", type=int, required=True)
+    parser.add_argument("--num_cores", help="number of cores per node", type=int, required=True)
+    parser.add_argument("--walltime", default="00:10:00", help="walltime for the job")
+
+    subparsers = parser.add_subparsers(dest='benchmark')
+
+    parser_cube = subparsers.add_parser('cube', help='cube benchmark')
+
+    parser_cube.add_argument("--scenario", type=int, required=True)
+    parser_cube.add_argument("--num_edges_per_side", help="number of edges per side", type=int, required=True)
+    parser_cube.add_argument("--max_level", default=7, help="max level for multigrid", type=int, required=True)
 
     args = parser.parse_args()
     args_dict = vars(args)
-    args_dict['total_num_procs'] = args_dict['num_nodes'] * args_dict['num_cores']
-    datestamp = time.strftime("%y_%m_%d-%H.%M.%S")
-    total_tets = args_dict['numEPS'] ** 3 * 24
-    print("{} cores; {} nodes; {} tets".format(args_dict['num_cores'], args_dict['num_nodes'], total_tets))
-    print("{} tets per node\n{} tets per core".format(total_tets / args_dict['num_nodes'], total_tets / args_dict['total_num_procs']))
-    args_dict['job_name'] = "{}-FMG-Scaling-{}nodes-{}cores-maxLevel{}-{}tets".format(datestamp, args_dict['num_nodes'],
-                                                                                      args_dict['maxLevel'],
-                                                                                      args_dict['num_cores'], total_tets)
-    args_dict['paramfile_name'] = args_dict['job_name'] + '.prm'
 
-    with open("../hawk/" + args_dict['job_name'] + '.job', 'w') as f:
-        f.write(job_template.format(**args_dict))
-
-    with open("../hawk/" + args_dict['job_name'] + '.prm', 'w') as f:
-        f.write(param_template.format(**args_dict))
-    # print(param_template.format(**args_dict))
-    # print(job_template.format(**args_dict))
+    create_files(args, args_dict)

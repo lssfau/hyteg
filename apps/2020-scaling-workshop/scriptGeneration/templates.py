@@ -1,17 +1,19 @@
-param_template = """Parameters
+
+def parameter_file_01_cube(scenario: int, max_level: int, num_edges_per_side: int, db_file: str, **kwargs):
+    return f"""Parameters
 {{
   discretization p2p1;
 
   minLevel 0;
-  maxLevel {maxLevel};
+  maxLevel {max_level};
 
-  numEdgesPerSide {numEPS};
+  numEdgesPerSide {num_edges_per_side};
 
-  scenario 1;
-  domainInfoOnly true;
+  scenario {scenario};
+  domainInfoOnly false;
 
-  vtk true;
-  dbFile Scaling_Workshop_01_Cube.db;
+  vtk false;
+  dbFile {db_file};
 
   preSmooth 2;
   postSmooth 2;
@@ -31,9 +33,12 @@ param_template = """Parameters
   coarseGridSolverType 1;
   maxIterations 10000;
   coarseGridAbsoluteResidualTolerance 1e-12;
-}}"""
+}}
+"""
 
-job_template = """#!/bin/bash
+
+def job_file_hawk(job_name: str, num_nodes: int, num_cores: int, walltime: str, total_num_procs: int, paramfile_name: str, **kwargs):
+    return f"""#!/bin/bash
 #PBS -N {job_name}
 #PBS -l select={num_nodes}:node_type=rome:mpiprocs={num_cores}
 #PBS -l walltime={walltime}
@@ -54,4 +59,5 @@ cd ..
 pwd
 ls -lha
 
-mpirun -np {total_num_procs} omplace -c 0-{num_cores}:st=4 ./Scaling_Workshop_01_Cube hawk/{paramfile_name}"""
+mpirun -np {total_num_procs} omplace -c 0-{num_cores}:st=4 ./Scaling_Workshop_01_Cube hawk/{paramfile_name}
+"""
