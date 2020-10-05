@@ -107,23 +107,14 @@ def job_file_supermuc(job_name: str, binary_name: str, num_nodes: int, num_cores
     #SBATCH --ntasks-per-node={num_cores}
     {constraint}
     
-    module load slurm_setup
-    
-    module unload devEnv
-    module load devEnv/GCC
-    
-    module load boost
-    module load petsc
-    
-    export CC=gcc
-    export CXX=g++
-    
-    module list
-    
     cd ..
     pwd
     ls -lha
     
+    source load_modules_supermuc.sh
+    
+    module list
+
     #Run the program:
     mpiexec -n $SLURM_NTASKS ./{binary_name} supermuc/{paramfile_name} {petsc_detail_string}
     """
