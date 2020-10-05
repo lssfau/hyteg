@@ -1,5 +1,5 @@
 
-def parameter_file_01_cube(scenario: int, max_level: int, num_edges_per_side: int, db_file: str, **kwargs):
+def parameter_file_01_cube(scenario: int, max_level: int, num_edges_per_side: int, db_file: str, timing_file: str, **kwargs):
     return f"""Parameters
 {{
   discretization p2p1;
@@ -14,6 +14,7 @@ def parameter_file_01_cube(scenario: int, max_level: int, num_edges_per_side: in
 
   vtk false;
   dbFile {db_file};
+  timingFile {timing_file};
 
   preSmooth 2;
   postSmooth 2;

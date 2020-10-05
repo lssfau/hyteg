@@ -106,7 +106,7 @@ inline void residual( const StokesFunctionType< real_t >& u,
                       StokesFunctionType< real_t >&       r )
 {
    A.apply( u, tmp, level, flag );
-   r.assign( { 1.0, -1.0 }, { f, tmp }, level, flag );
+   r.assign( {1.0, -1.0}, {f, tmp}, level, flag );
 }
 
 template < template < typename > class StokesFunctionType, typename StokesOperator >
@@ -126,7 +126,7 @@ inline void error( const StokesFunctionType< real_t >& u,
                    DoFType                             flag,
                    StokesFunctionType< real_t >&       error )
 {
-   error.assign( { 1.0, -1.0 }, { u, exact }, level, flag );
+   error.assign( {1.0, -1.0}, {u, exact}, level, flag );
 }
 
 enum class Discretization
@@ -195,32 +195,9 @@ void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
             bool                                                    projectPressurefterRestriction,
             bool                                                    vtk,
             std::string                                             benchmarkName,
-            std::string                                             dbFile );
-
-void solveRHS0( const std::shared_ptr< PrimitiveStorage >&              storage,
-                Discretization                                          discretization,
-                const std::function< real_t( const hyteg::Point3D& ) >& solutionU,
-                const std::function< real_t( const hyteg::Point3D& ) >& solutionV,
-                const std::function< real_t( const hyteg::Point3D& ) >& solutionW,
-                const std::function< real_t( const hyteg::Point3D& ) >& solutionP,
-                const std::function< real_t( const hyteg::Point3D& ) >& initialU,
-                const std::function< real_t( const hyteg::Point3D& ) >& initialV,
-                const std::function< real_t( const hyteg::Point3D& ) >& initialW,
-                const std::function< real_t( const hyteg::Point3D& ) >& initialP,
-                const std::function< real_t( const hyteg::Point3D& ) >& rhsU,
-                const std::function< real_t( const hyteg::Point3D& ) >& rhsV,
-                const std::function< real_t( const hyteg::Point3D& ) >& rhsW,
-                uint_t                                                  minLevel,
-                uint_t                                                  maxLevel,
-                MultigridSettings                                       multigridSettings,
-                SmootherSettings                                        smootherSettings,
-                CoarseGridSettings                                      coarseGridSettings,
-                bool                                                    projectPressure,
-                bool                                                    projectPressurefterRestriction,
-                bool                                                    vtk,
-                std::string                                             benchmarkName,
-                std::string                                             dbFile,
-                bool                                                    RHSisZero );
+            std::string                                             dbFile,
+            std::string                                             timingFile,
+            bool                                                    RHSisZero );
 
 void domainInfo( const std::shared_ptr< PrimitiveStorage >& storage,
                  Discretization                             discretization,

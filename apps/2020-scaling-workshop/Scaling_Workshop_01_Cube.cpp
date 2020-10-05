@@ -51,8 +51,9 @@ void benchmark( int argc, char** argv )
    const uint_t      maxLevel             = mainConf.getParameter< uint_t >( "maxLevel" );
    const uint_t      numEdgesPerSide      = mainConf.getParameter< uint_t >( "numEdgesPerSide" );
 
-   const bool        vtk    = mainConf.getParameter< bool >( "vtk" );
-   const std::string dbFile = mainConf.getParameter< std::string >( "dbFile" );
+   const bool        vtk            = mainConf.getParameter< bool >( "vtk" );
+   const std::string dbFile         = mainConf.getParameter< std::string >( "dbFile" );
+   const std::string timingFile     = mainConf.getParameter< std::string >( "timingFile" );
    const bool        domainInfoOnly = mainConf.getParameter< bool >( "domainInfoOnly" );
 
    MultigridSettings multigridSettings;
@@ -78,7 +79,8 @@ void benchmark( int argc, char** argv )
 
    const uint_t scenario = mainConf.getParameter< uint_t >( "scenario" );
    bool         RHSisZero;
-   if ( scenario == 0 ) {
+   if ( scenario == 0 )
+   {
       RHSisZero = false;
    }
    else if ( scenario == 1 )
@@ -92,10 +94,10 @@ void benchmark( int argc, char** argv )
       discretization = Discretization::P1_P1;
    }
 
-   Point3D leftBottom3D( { -1, -1, -1 } );
+   Point3D leftBottom3D( {-1, -1, -1} );
 
    auto meshInfo =
-       MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( { 1, 1, 1 } ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
+       MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( {1, 1, 1} ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
 
    auto onBoundary = []( const Point3D& ) { return true; };
    meshInfo.setMeshBoundaryFlagsByVertexLocation( 1, onBoundary );
@@ -163,30 +165,31 @@ void benchmark( int argc, char** argv )
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
-   solveRHS0( storage,
-              discretization,
-              solutionU,
-              solutionV,
-              solutionW,
-              solutionP,
-              initialU,
-              initialV,
-              initialW,
-              initialP,
-              rhsU,
-              rhsV,
-              rhsW,
-              minLevel,
-              maxLevel,
-              multigridSettings,
-              smootherSettings,
-              coarseGridSettings,
-              projectPressure,
-              projectPressureAfterRestriction,
-              vtk,
-              benchmarkName,
-              dbFile,
-              RHSisZero );
+   solve( storage,
+          discretization,
+          solutionU,
+          solutionV,
+          solutionW,
+          solutionP,
+          initialU,
+          initialV,
+          initialW,
+          initialP,
+          rhsU,
+          rhsV,
+          rhsW,
+          minLevel,
+          maxLevel,
+          multigridSettings,
+          smootherSettings,
+          coarseGridSettings,
+          projectPressure,
+          projectPressureAfterRestriction,
+          vtk,
+          benchmarkName,
+          dbFile,
+          timingFile,
+          RHSisZero );
 }
 
 } // namespace scaling_workshop

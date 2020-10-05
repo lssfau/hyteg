@@ -100,8 +100,13 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
                               bool                                                    vtk,
                               const std::string&                                      benchmarkName,
                               std::string                                             dbFile,
+                              std::string                                             timingFile,
                               bool                                                    RHSisZero )
 {
+   auto timer = storage->getTimingTree();
+   timer->start( "Total" );
+   timer->start( "Setup" );
+
    printGitInfo();
 
    const DoFType errorFlag = All;
@@ -110,10 +115,6 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    {
       writeDomainPartitioningVTK( storage, "vtk/", benchmarkName + "_domain" );
    }
-
-   auto timer = storage->getTimingTree();
-   timer->start( "Total" );
-   timer->start( "Setup" );
 
    const uint_t unknowns = numberOfGlobalDoFs< typename StokesFunction< real_t >::Tag >( *storage, maxLevel );
    const real_t hMin     = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
@@ -178,7 +179,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
        RHSisZero ? StokesFunction< real_t >( "r", storage, 0, 0 ) : StokesFunction< real_t >( "r", storage, minLevel, maxLevel );
    StokesFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel );
 
-   StokesOperator A( storage, minLevel, maxLevel );
+   StokesOperator       A( storage, minLevel, maxLevel );
    VelocityMassOperator velocityMassOperator( storage, minLevel, maxLevel );
 
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
@@ -405,6 +406,9 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    writeDataRow( iteration, "I", 0, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
    iteration++;
 
+   timer->stop( "Setup" );
+   timer->start( "Solve" );
+
    if ( multigridSettings.fmgInnerIterations > 0 )
    {
       fullMultigridSolver.solve( A, u, f, maxLevel );
@@ -441,10 +445,15 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
       iteration++;
    }
 
+   timer->stop( "Solve" );
+
    if ( vtk )
    {
       vtkOutput.write( maxLevel, 1 );
    }
+
+   timer->stop( "Total" );
+   writeTimingTreeJSON( *timer, timingFile );
 }
 
 void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
@@ -469,58 +478,9 @@ void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
             bool                                                    projectPressurefterRestriction,
             bool                                                    vtk,
             std::string                                             benchmarkName,
-            std::string                                             dbFile )
-{
-   WALBERLA_UNUSED( storage );
-   WALBERLA_UNUSED( discretization );
-   WALBERLA_UNUSED( solutionU );
-   WALBERLA_UNUSED( solutionV );
-   WALBERLA_UNUSED( solutionW );
-   WALBERLA_UNUSED( solutionP );
-   WALBERLA_UNUSED( initialU );
-   WALBERLA_UNUSED( initialV );
-   WALBERLA_UNUSED( initialW );
-   WALBERLA_UNUSED( initialP );
-   WALBERLA_UNUSED( rhsU );
-   WALBERLA_UNUSED( rhsV );
-   WALBERLA_UNUSED( rhsW );
-   WALBERLA_UNUSED( minLevel );
-   WALBERLA_UNUSED( maxLevel );
-   WALBERLA_UNUSED( multigridSettings );
-   WALBERLA_UNUSED( smootherSettings );
-   WALBERLA_UNUSED( coarseGridSettings );
-   WALBERLA_UNUSED( projectPressure );
-   WALBERLA_UNUSED( projectPressurefterRestriction );
-   WALBERLA_UNUSED( vtk );
-   WALBERLA_UNUSED( benchmarkName );
-   WALBERLA_UNUSED( dbFile );
-   WALBERLA_ABORT( "Not implemented!" );
-}
-
-void solveRHS0( const std::shared_ptr< PrimitiveStorage >&              storage,
-                Discretization                                          discretization,
-                const std::function< real_t( const hyteg::Point3D& ) >& solutionU,
-                const std::function< real_t( const hyteg::Point3D& ) >& solutionV,
-                const std::function< real_t( const hyteg::Point3D& ) >& solutionW,
-                const std::function< real_t( const hyteg::Point3D& ) >& solutionP,
-                const std::function< real_t( const hyteg::Point3D& ) >& initialU,
-                const std::function< real_t( const hyteg::Point3D& ) >& initialV,
-                const std::function< real_t( const hyteg::Point3D& ) >& initialW,
-                const std::function< real_t( const hyteg::Point3D& ) >& initialP,
-                const std::function< real_t( const hyteg::Point3D& ) >& rhsU,
-                const std::function< real_t( const hyteg::Point3D& ) >& rhsV,
-                const std::function< real_t( const hyteg::Point3D& ) >& rhsW,
-                uint_t                                                  minLevel,
-                uint_t                                                  maxLevel,
-                MultigridSettings                                       multigridSettings,
-                SmootherSettings                                        smootherSettings,
-                CoarseGridSettings                                      coarseGridSettings,
-                bool                                                    projectPressure,
-                bool                                                    projectPressurefterRestriction,
-                bool                                                    vtk,
-                std::string                                             benchmarkName,
-                std::string                                             dbFile,
-                bool                                                    RHSisZero )
+            std::string                                             dbFile,
+            std::string                                             timingFile,
+            bool                                                    RHSisZero )
 {
    if ( discretization == Discretization::P2_P1 )
    {
@@ -552,6 +512,7 @@ void solveRHS0( const std::shared_ptr< PrimitiveStorage >&              storage,
                                                                      vtk,
                                                                      benchmarkName,
                                                                      dbFile,
+                                                                     timingFile,
                                                                      RHSisZero );
    }
    else
@@ -584,6 +545,7 @@ void solveRHS0( const std::shared_ptr< PrimitiveStorage >&              storage,
                                                                      vtk,
                                                                      benchmarkName,
                                                                      dbFile,
+                                                                     timingFile,
                                                                      RHSisZero );
    }
 }
@@ -603,10 +565,6 @@ void domainInfo( const std::shared_ptr< PrimitiveStorage >& storage,
       writeDomainPartitioningVTK( storage, "vtk/", benchmarkName + "_domain" );
    }
 
-   auto timer = storage->getTimingTree();
-   timer->start( "Total" );
-   timer->start( "Setup" );
-
    WALBERLA_LOG_INFO_ON_ROOT( "Unknowns (incl. boundary) and total allocated floating point values per Stokes function:" )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
    unsigned long long unknownsSum        = 0;
@@ -614,7 +572,7 @@ void domainInfo( const std::shared_ptr< PrimitiveStorage >& storage,
    WALBERLA_LOG_INFO_ON_ROOT( " level |       unknowns |          total " )
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
-      unsigned long long unknowns = 0;
+      unsigned long long unknowns             = 0;
       unsigned long long allocatedMemoryLevel = 0;
       if ( discretization == Discretization::P2_P1 )
       {

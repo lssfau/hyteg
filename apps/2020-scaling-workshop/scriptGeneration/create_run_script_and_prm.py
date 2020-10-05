@@ -18,6 +18,7 @@ def create_files(args, args_dict):
         base_name = '_'.join([datestamp, 'benchmark_cube', f'{args.num_nodes}_nodes', f'{num_tets}_tets'])
         parameter_file_name = base_name + '.prm'
         args_dict['db_file'] = base_name + '.db'
+        args_dict['timing_file'] = base_name + '.json'
 
         parameter_file = parameter_file_01_cube(**args_dict)
     else:
