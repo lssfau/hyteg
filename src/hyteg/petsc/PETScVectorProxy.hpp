@@ -34,6 +34,7 @@ class PETScVectorProxy : public VectorProxy
    : vec_( vec )
    {}
 
+#ifndef PETSC_USE_COMPLEX
    /// \brief Sets the passed value in the vector.
    virtual void setValue( uint_t idx, real_t value )
    {
@@ -48,6 +49,23 @@ class PETScVectorProxy : public VectorProxy
       VecGetValues( vec_, 1, &idxPetsc, &value );
       return static_cast< real_t >( value );
    }
+#else
+   /// \brief Sets the passed value in the vector.
+   virtual void setValue( uint_t idx, real_t value )
+   {
+      PetscComplex petscVal = static_cast< PetscReal >( value );
+      VecSetValue( vec_, static_cast< PetscInt >( idx ), petscVal, INSERT_VALUES );
+   }
+
+   /// \brief Returns the passed value of the vector.
+   virtual real_t getValue( uint_t idx ) const
+   {
+      PetscInt     idxPetsc = static_cast< PetscInt >( idx );
+      PetscComplex petscVal;
+      VecGetValues( vec_, 1, &idxPetsc, &petscVal );
+      return static_cast< real_t >( PetscRealPart( petscVal ) );
+   }
+#endif
 
  private:
    Vec vec_;
