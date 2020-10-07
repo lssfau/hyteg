@@ -1726,6 +1726,7 @@ void EdgeDoFFunction< real_t >::invertElementwise( uint_t level, DoFType flag, b
 // ========================
 template class EdgeDoFFunction< double >;
 template class EdgeDoFFunction< int >;
+template class EdgeDoFFunction< long >;
 
 template void EdgeDoFFunction< double >::interpolateByPrimitiveType< hyteg::Vertex >( const double& constant,
                                                                                       uint_t        level,

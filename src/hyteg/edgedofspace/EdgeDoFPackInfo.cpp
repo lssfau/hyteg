@@ -1162,5 +1162,6 @@ void EdgeDoFPackInfo< real_t >::communicateLocalCellToFace( const Cell* sender, 
 
 template class EdgeDoFPackInfo< double >;
 template class EdgeDoFPackInfo< int >;
+template class EdgeDoFPackInfo< long >;
 
 } // namespace hyteg

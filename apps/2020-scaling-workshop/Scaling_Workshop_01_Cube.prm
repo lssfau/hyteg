@@ -5,17 +5,17 @@ Parameters
   minLevel 0;
   maxLevel 7;
 
-  numEdgesPerSide 34;
+  numEdgesPerSide 1;
 
-  scenario 1;
-  domainInfoOnly true;
+  scenario 0;
+  domainInfoOnly false;
 
-  vtk true;
+  vtk false;
   dbFile Scaling_Workshop_01_Cube.db;
   timingFile Scaling_Workshop_01_Cube.json;
 
   preSmooth 2;
-  postSmooth 2;
+  postSmooth 0;
   incSmooth 2;
   fmgInnerIterations 1;
   numCycles 1;

@@ -1,4 +1,3 @@
-
 def parameter_file_01_cube(scenario: int, max_level: int, num_edges_per_side: int, db_file: str, timing_file: str,
                            pre_smooth: int, post_smooth: int, inc_smooth: int, fmg_inner_iterations: int, num_cycles: int,
                            **kwargs):
@@ -40,7 +39,8 @@ def parameter_file_01_cube(scenario: int, max_level: int, num_edges_per_side: in
 """
 
 
-def job_file_hawk(job_name: str, binary_name: str, num_nodes: int, num_cores: int, walltime: str, total_num_procs: int, paramfile_name: str, **kwargs):
+def job_file_hawk(job_name: str, binary_name: str, num_nodes: int, num_cores: int, walltime: str, total_num_procs: int, paramfile_name: str,
+                  path: str, **kwargs):
     return f"""#!/bin/bash
 #PBS -N {job_name}
 #PBS -l select={num_nodes}:node_type=rome:mpiprocs={num_cores}
@@ -62,11 +62,11 @@ cd ..
 pwd
 ls -lha
 
-mpirun -np {total_num_procs} omplace -c 0-{num_cores}:st=4 ./{binary_name} hawk/{paramfile_name}
+mpirun -np {total_num_procs} omplace -c 0-128:st={int(128 / num_cores)} {path}{binary_name} {path}hawk/{paramfile_name}
 """
 
-def job_file_supermuc(job_name: str, binary_name: str, num_nodes: int, num_cores: int, walltime: str, paramfile_name: str, **kwargs):
 
+def job_file_supermuc(job_name: str, binary_name: str, num_nodes: int, num_cores: int, walltime: str, paramfile_name: str, **kwargs):
     petsc_detail_string = "-ksp_view -ksp_monitor -log_view -mat_mumps_icntl_4 2"
 
     def partition(num_nodes):

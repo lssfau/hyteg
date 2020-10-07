@@ -12,10 +12,10 @@ def create_files(args, args_dict):
 
     # parameter file
     if args.benchmark == 'cube':
-        binary_name = 'Scaling_Benchmark_01_Cube'
+        binary_name = 'Scaling_Workshop_01_Cube'
         num_tets = (args.num_edges_per_side ** 3) * 24
 
-        base_name = '_'.join([datestamp, 'benchmark_cube', f'{args.num_nodes}_nodes', f'{num_tets}_tets'])
+        base_name = '_'.join([datestamp, 'benchmark_cube', f'{args.num_nodes}_nodes', f'{args.num_cores}_cores', f'{num_tets}_tets'])
         parameter_file_name = base_name + '.prm'
         args_dict['db_file'] = base_name + '.db'
         args_dict['timing_file'] = base_name + '.json'
@@ -29,6 +29,7 @@ def create_files(args, args_dict):
     if args.machine == 'hawk':
         job_file_name = base_name + '.job'
         args_dict['out_dir'] = '../hawk'
+        args_dict['path'] = os.getcwd().rstrip('scriptGeneration')
         args_dict['binary_name'] = binary_name
         args_dict['job_name'] = base_name
         args_dict['paramfile_name'] = parameter_file_name
@@ -67,11 +68,11 @@ if __name__ == "__main__":
     parser_cube.add_argument("--scenario", type=int, required=True)
     parser_cube.add_argument("--num_edges_per_side", help="number of edges per side", type=int, required=True)
     parser_cube.add_argument("--max_level", default=7, help="max level for multigrid", type=int)
-    parser_cube.add_argument("--pre_smooth", default=2, type=int)
+    parser_cube.add_argument("--pre_smooth", default=0, type=int)
     parser_cube.add_argument("--post_smooth", default=2, type=int)
     parser_cube.add_argument("--inc_smooth", default=2, type=int)
-    parser_cube.add_argument("--fmg_inner_iterations", default=0, type=int)
-    parser_cube.add_argument("--num_cycles", default=5, type=int)
+    parser_cube.add_argument("--fmg_inner_iterations", default=1, type=int)
+    parser_cube.add_argument("--num_cycles", default=1, type=int)
 
     args = parser.parse_args()
     args_dict = vars(args)

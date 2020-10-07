@@ -2063,6 +2063,7 @@ void VertexDoFFunction< real_t >::invertElementwise( uint_t level, DoFType flag,
 // ========================
 template class VertexDoFFunction< double >;
 template class VertexDoFFunction< int >;
+template class VertexDoFFunction< long >;
 
 template void VertexDoFFunction< double >::interpolateByPrimitiveType< hyteg::Vertex >( const double& constant,
                                                                                         uint_t        level,

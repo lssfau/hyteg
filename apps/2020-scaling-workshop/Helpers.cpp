@@ -184,15 +184,6 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
-      tmp.uvw.u.interpolate( solutionU, level, All );
-      tmp.uvw.v.interpolate( solutionV, level, All );
-      tmp.uvw.w.interpolate( solutionW, level, All );
-      tmp.p.interpolate( solutionP, level, All );
-
-      if ( projectPressure )
-      {
-         vertexdof::projectMean( tmp.p, level );
-      }
 
       u.uvw.u.interpolate( initialU, level, All );
       u.uvw.v.interpolate( initialV, level, All );

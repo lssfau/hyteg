@@ -41,4 +41,7 @@ uint_t generateZero< uint_t >();
 template <>
 int generateZero< int >();
 
+template <>
+long generateZero< long >();
+
 } // namespace hyteg
