@@ -28,6 +28,7 @@
 #include "core/config/Config.h"
 #include "core/debug/Debug.h"
 #include "core/mpi/MPIManager.h"
+#include "core/logging/Logging.h"
 
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/Git.hpp"
@@ -124,9 +125,88 @@ inline void error( const StokesFunctionType< real_t >& u,
                    const StokesFunctionType< real_t >& exact,
                    uint_t                              level,
                    DoFType                             flag,
-                   StokesFunctionType< real_t >&       error )
+                   StokesFunctionType< real_t >&       e )
 {
-   error.assign( {1.0, -1.0}, {u, exact}, level, flag );
+   e.assign( {1.0, -1.0}, {u, exact}, level, flag );
+}
+
+template < template < typename > class StokesFunctionType, typename StokesOperator >
+inline void errorAndResidual( const StokesOperator&               A,
+                              const StokesFunctionType< real_t >& u,
+                              const StokesFunctionType< real_t >& f,
+                              StokesFunctionType< real_t >& r,
+                              StokesFunctionType< real_t >& tmp,
+                              const std::function< real_t( const hyteg::Point3D& ) >& solutionU,
+                              const std::function< real_t( const hyteg::Point3D& ) >& solutionV,
+                              const std::function< real_t( const hyteg::Point3D& ) >& solutionW,
+                              const std::function< real_t( const hyteg::Point3D& ) >& solutionP,
+                              uint_t                                                  level,
+                              DoFType                                                 flag,
+                              bool                                                    RHSisZero,
+                              real_t&                                                 residualL2Velocity,
+                              real_t&                                                 residualL2Pressure,
+                              real_t&                                                 errorL2Velocity,
+                              real_t&                                                 errorL2Pressure )
+{
+   if ( RHSisZero )
+   {
+      tmp.interpolate( 0, level );
+      residualNegativeRHS0( u, A, level, flag, tmp );
+      residualL2Velocity = pointwiseScaledL2Norm( tmp.uvw, level );
+      residualL2Pressure = pointwiseScaledL2Norm( tmp.p, level );
+
+      auto errorU = [&]( const Point3D& p, const std::vector< real_t >& values )
+      {
+         auto sol = solutionU(p);
+         return sol - values[0];
+      };
+
+      auto errorV = [&]( const Point3D& p, const std::vector< real_t >& values )
+      {
+        auto sol = solutionV(p);
+        return sol - values[0];
+      };
+
+      auto errorW = [&]( const Point3D& p, const std::vector< real_t >& values )
+      {
+        auto sol = solutionW(p);
+        return sol - values[0];
+      };
+
+      auto errorP = [&]( const Point3D& p, const std::vector< real_t >& values )
+      {
+        auto sol = solutionP(p);
+        return sol - values[0];
+      };
+
+      tmp.uvw.u.interpolate( errorU, {u.uvw.u}, level, flag );
+      tmp.uvw.v.interpolate( errorV, {u.uvw.v}, level, flag );
+      tmp.uvw.w.interpolate( errorW, {u.uvw.w}, level, flag );
+      tmp.p.interpolate( errorP, {u.p}, level, flag );
+
+      errorL2Velocity = pointwiseScaledL2Norm( tmp.uvw, level );
+      errorL2Pressure = pointwiseScaledL2Norm( tmp.p, level );
+      tmp.interpolate( 0, level );
+   }
+   else
+   {
+      tmp.interpolate( 0, level );
+      residual( u, f, A, tmp, level, flag, r );
+      residualL2Velocity = pointwiseScaledL2Norm( r.uvw, level );
+      residualL2Pressure = pointwiseScaledL2Norm( r.p, level );
+
+      tmp.uvw.u.interpolate( solutionU, level, All );
+      tmp.uvw.v.interpolate( solutionV, level, All );
+      tmp.uvw.w.interpolate( solutionW, level, All );
+      tmp.p.interpolate( solutionP, level, All );
+      error( u, tmp, level, flag, r );
+
+      errorL2Velocity = pointwiseScaledL2Norm( r.uvw, level );
+      errorL2Pressure = pointwiseScaledL2Norm( r.p, level );
+      tmp.interpolate( 0, level );
+   }
+
+
 }
 
 enum class Discretization

@@ -109,7 +109,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
    printGitInfo();
 
-   const DoFType errorFlag = All;
+   const DoFType errorFlag = Inner | NeumannBoundary;
 
    if ( vtk )
    {
@@ -184,7 +184,6 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
-
       u.uvw.u.interpolate( initialU, level, All );
       u.uvw.v.interpolate( initialV, level, All );
       u.uvw.w.interpolate( initialW, level, All );
@@ -224,43 +223,13 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    if ( !RHSisZero )
    {
       vtkOutput.add( f );
+      vtkOutput.add( r );
    }
 
    if ( vtk )
    {
       vtkOutput.write( maxLevel, 0 );
    }
-
-   auto errorAndResidual = [&]( uint_t  level,
-                                real_t& residualL2Velocity,
-                                real_t& residualL2Pressure,
-                                real_t& errorL2Velocity,
-                                real_t& errorL2Pressure ) {
-      if ( RHSisZero )
-      {
-         tmp.interpolate( 0, level );
-         residualNegativeRHS0( u, A, level, errorFlag, tmp );
-         residualL2Velocity = pointwiseScaledL2Norm( tmp.uvw, level );
-         residualL2Pressure = pointwiseScaledL2Norm( tmp.p, level );
-      }
-      else
-      {
-         tmp.interpolate( 0, level );
-         residual( u, f, A, tmp, level, errorFlag, r );
-         residualL2Velocity = pointwiseScaledL2Norm( tmp.uvw, level );
-         residualL2Pressure = pointwiseScaledL2Norm( tmp.p, level );
-      }
-
-      tmp.uvw.u.interpolate( solutionU, level, All );
-      tmp.uvw.v.interpolate( solutionV, level, All );
-      tmp.uvw.w.interpolate( solutionW, level, All );
-      tmp.p.interpolate( solutionP, level, All );
-      error( u, tmp, level, errorFlag, tmp );
-
-      errorL2Velocity = pointwiseScaledL2Norm( tmp.uvw, level );
-      errorL2Pressure = pointwiseScaledL2Norm( tmp.p, level );
-      tmp.interpolate( 0, level );
-   };
 
    real_t residualL2Velocity;
    real_t residualL2Pressure;
@@ -366,7 +335,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
          vertexdof::projectMean( u.p, currentLevel );
       }
 
-      errorAndResidual( currentLevel, residualL2Velocity, residualL2Pressure, errorL2Velocity, errorL2Pressure );
+      errorAndResidual( A, u, f, r, tmp, solutionU, solutionV, solutionW, solutionP, currentLevel, errorFlag, RHSisZero,  residualL2Velocity, residualL2Pressure, errorL2Velocity, errorL2Pressure );
 
       writeDataRow( iteration, "F", currentLevel, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
       iteration++;
@@ -375,7 +344,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    FullMultigridSolver< StokesOperator > fullMultigridSolver(
        storage, multigridSolver, fmgProlongation, minLevel, maxLevel, multigridSettings.fmgInnerIterations, postCycle );
 
-   errorAndResidual( maxLevel, residualL2Velocity, residualL2Pressure, errorL2Velocity, errorL2Pressure );
+   errorAndResidual( A, u, f, r, tmp, solutionU, solutionV, solutionW, solutionP, maxLevel, errorFlag, RHSisZero,  residualL2Velocity, residualL2Pressure, errorL2Velocity, errorL2Pressure );
 
    printFunctionAllocationInfo( *storage, 2 );
 
@@ -430,7 +399,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
          vertexdof::projectMean( u.p, maxLevel );
       }
 
-      errorAndResidual( maxLevel, residualL2Velocity, residualL2Pressure, errorL2Velocity, errorL2Pressure );
+      errorAndResidual( A, u, f, r, tmp, solutionU, solutionV, solutionW, solutionP, maxLevel, errorFlag, RHSisZero,  residualL2Velocity, residualL2Pressure, errorL2Velocity, errorL2Pressure );
 
       writeDataRow( iteration, "V", 0, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
       iteration++;
@@ -447,7 +416,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
          vertexdof::projectMean( u.p, maxLevel );
       }
 
-      errorAndResidual( maxLevel, residualL2Velocity, residualL2Pressure, errorL2Velocity, errorL2Pressure );
+      errorAndResidual( A, u, f, r, tmp, solutionU, solutionV, solutionW, solutionP, maxLevel, errorFlag, RHSisZero,  residualL2Velocity, residualL2Pressure, errorL2Velocity, errorL2Pressure );
 
       writeDataRow( iteration, "V", 0, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
       iteration++;

@@ -138,6 +138,86 @@ void benchmark( int argc, char** argv )
 
       RHSisZero = true;
    }
+   else if ( scenario == 1 )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "# Scenario 1: Stokeslet, f = (1, 1, 1), initial guess 0 " );
+
+      solutionU = []( const hyteg::Point3D& p ) -> real_t {
+        const Point3D fDirection( {1, 1, 1} );
+        const real_t factorU = 1.0 / (8.0 * walberla::math::pi );
+
+        const uint_t i = 0;
+         const auto r    = p.norm();
+         const auto rInv = 1.0 / r;
+
+         Point3D q;
+
+         for ( uint_t j = 0; j < 3; j++ )
+         {
+            q[j] = p[i] * p[j] * rInv * rInv * rInv;
+         }
+         q[i] += rInv;
+
+         const auto result = factorU * q.dot( fDirection );
+         return result;
+      };
+
+      solutionV = []( const hyteg::Point3D& p ) -> real_t {
+        const Point3D fDirection( {1, 1, 1} );
+        const real_t factorU = 1.0 / (8.0 * walberla::math::pi );
+
+        const uint_t i = 1;
+        const auto r    = p.norm();
+        const auto rInv = 1.0 / r;
+
+        Point3D q;
+
+        for ( uint_t j = 0; j < 3; j++ )
+        {
+           q[j] = p[i] * p[j] * rInv * rInv * rInv;
+        }
+        q[i] += rInv;
+
+        const auto result = factorU * q.dot( fDirection );
+        return result;
+      };
+
+      solutionW = []( const hyteg::Point3D& p ) -> real_t {
+        const Point3D fDirection( {1, 1, 1} );
+        const real_t factorU = 1.0 / (8.0 * walberla::math::pi );
+
+        const uint_t i = 2;
+        const auto r    = p.norm();
+        const auto rInv = 1.0 / r;
+
+        Point3D q;
+
+        for ( uint_t j = 0; j < 3; j++ )
+        {
+           q[j] = p[i] * p[j] * rInv * rInv * rInv;
+        }
+        q[i] += rInv;
+
+        const auto result = factorU * q.dot( fDirection );
+        return result;
+      };
+
+      solutionP = []( const hyteg::Point3D& p ) -> real_t {
+        const Point3D fDirection( {1, 1, 1} );
+        const real_t factorP = 1.0 / (4.0 * walberla::math::pi );
+
+        const auto r    = p.norm();
+        const auto rInv = 1.0 / r;
+
+        Point3D q = p;
+        q *= rInv * rInv * rInv;
+
+        const auto result = factorP * q.dot( fDirection );
+        return result;
+      };
+
+      RHSisZero = true;
+   }
    else
    {
       WALBERLA_ABORT( "Invalid scenario." )

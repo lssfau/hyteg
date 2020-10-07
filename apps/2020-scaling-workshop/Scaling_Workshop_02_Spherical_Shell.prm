@@ -3,22 +3,22 @@ Parameters
   discretization p2p1;
 
   minLevel 0;
-  maxLevel 4;
+  maxLevel 3;
 
   ntan 2;
   nrad 2;
   rmin 0.5;
   rmax 1.0;
 
-  scenario 0;
+  scenario 1;
   domainInfoOnly false;
 
-  vtk true;
+  vtk false;
   dbFile Scaling_Workshop_02_Spherical_Shell.db;
   timingFile Scaling_Workshop_02_Spherical_Shell.json;
 
-  preSmooth 2;
-  postSmooth 2;
+  preSmooth 5;
+  postSmooth 5;
   incSmooth 2;
   fmgInnerIterations 0;
   numCycles 5;
