@@ -180,7 +180,7 @@ class PETScLUSolver : public Solver< OperatorType >
 #ifdef PETSC_HAVE_MUMPS
             petscSolverType = MATSOLVERMUMPS;
             break;
-#elif
+#else
             WALBERLA_ABORT( "PETSc is not build with MUMPS support." )
 #endif
          case PETScDirectSolverType::SUPER_LU:
