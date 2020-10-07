@@ -21,6 +21,10 @@ if (HYTEG_BUILD_WITH_PETSC)
 waLBerla_add_executable( NAME Scaling_Workshop_01_Cube
         FILES  Scaling_Workshop_01_Cube.cpp Helpers.cpp
         DEPENDS hyteg sqlite)
+
+waLBerla_add_executable( NAME Scaling_Workshop_02_Spherical_Shell
+        FILES  Scaling_Workshop_02_Spherical_Shell.cpp Helpers.cpp
+        DEPENDS hyteg sqlite)
 endif()
 
 add_subdirectory(scriptGeneration)

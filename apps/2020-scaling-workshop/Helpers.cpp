@@ -377,6 +377,8 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
    errorAndResidual( maxLevel, residualL2Velocity, residualL2Pressure, errorL2Velocity, errorL2Pressure );
 
+   printFunctionAllocationInfo( *storage, 2 );
+
    writeDataHeader();
 
    db.setConstantEntry( "discretization", discretization );
@@ -411,8 +413,6 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
    writeDataRow( iteration, "I", 0, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
    iteration++;
-
-   printFunctionAllocationInfo( *storage, 2 );
 
    timer->stop( "Setup" );
    timer->start( "Solve" );
