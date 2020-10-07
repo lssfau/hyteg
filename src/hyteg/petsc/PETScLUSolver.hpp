@@ -177,8 +177,12 @@ class PETScLUSolver : public Solver< OperatorType >
          switch ( solverType_ )
          {
          case PETScDirectSolverType::MUMPS:
+#ifdef PETSC_HAVE_MUMPS
             petscSolverType = MATSOLVERMUMPS;
             break;
+#elif
+            WALBERLA_ABORT( "PETSc is not build with MUMPS support." )
+#endif
          case PETScDirectSolverType::SUPER_LU:
             petscSolverType = MATSOLVERSUPERLU_DIST;
             break;
