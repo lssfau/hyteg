@@ -134,7 +134,7 @@ void P2Function< ValueType >::interpolate(
       edgeDoFFunctions.push_back( function.edgeDoFFunction_ );
    }
 
-   vertexDoFFunction_.interpolateExtended( expr, vertexDoFFunctions, level, flag );
+   vertexDoFFunction_.interpolate( expr, vertexDoFFunctions, level, flag );
    edgeDoFFunction_.interpolateExtended( expr, edgeDoFFunctions, level, flag );
 }
 

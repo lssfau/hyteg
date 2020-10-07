@@ -123,7 +123,7 @@ class ConcatenatedOperator : public Operator< typename OpType1::srcType, typenam
       {
          inverseDiagonalValues_->multElementwise( { *op1_->getDiagonalValues(), *op2_->getDiagonalValues() }, level, All );
          // invert:
-         inverseDiagonalValues_->interpolateExtended(
+         inverseDiagonalValues_->interpolate(
              []( auto, auto val ) { return 1. / val[0]; }, { *inverseDiagonalValues_, *inverseDiagonalValues_ }, level, All );
       }
    }

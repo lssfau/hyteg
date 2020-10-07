@@ -49,7 +49,7 @@ real_t errorE1( const uint_t&                   level,
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > E1 =
        []( const Point3D&, const std::vector< real_t >& values ) { return std::abs( values[0] - values[1] ); };
 
-   tmp0.interpolateExtended( E1, {solution, c}, level, All );
+   tmp0.interpolate( E1, { solution, c }, level, All );
    lumpedMass.apply( tmp0, tmp1, level, All );
    return tmp1.sumGlobal( level, All );
 }
@@ -64,7 +64,7 @@ real_t errorE2( const uint_t&                   level,
    std::function< real_t( const Point3D&, const std::vector< real_t >& ) > E2 =
        []( const Point3D&, const std::vector< real_t >& values ) { return std::pow( std::abs( values[0] - values[1] ), 2 ); };
 
-   tmp0.interpolateExtended( E2, {solution, c}, level, All );
+   tmp0.interpolate( E2, { solution, c }, level, All );
    lumpedMass.apply( tmp0, tmp1, level, All );
    return std::sqrt( tmp1.sumGlobal( level, All ) );
 }
@@ -173,7 +173,7 @@ int main( int argc, char* argv[] )
      return Point3D( {values[0], values[1], values[2]} ).norm();
    };
 
-   velocityMagnitude.interpolateExtended( magnitude, {u, v, w}, maxLevel, All );
+   velocityMagnitude.interpolate( magnitude, { u, v, w }, maxLevel, All );
 
 //   hyteg::VTKOutput vtkOutput( "../../output", "AlgebraicUpwind3DCircularConvectionTest", storage );
 //

@@ -258,7 +258,7 @@ void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType
    }
    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
        [&expr]( const hyteg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
-   interpolateExtended( exprExtended, {}, level, flag );
+   interpolate( exprExtended, {}, level, flag );
 }
 
 template < typename ValueType >
@@ -272,11 +272,11 @@ void VertexDoFFunction< ValueType >::interpolate( const std::function< ValueType
    }
    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
        [&expr]( const hyteg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
-   interpolateExtended( exprExtended, {}, level, boundaryUID );
+   interpolate( exprExtended, {}, level, boundaryUID );
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::interpolateExtended(
+void VertexDoFFunction< ValueType >::interpolate(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
     const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& srcFunctions,
     uint_t                                                                               level,
@@ -344,7 +344,7 @@ void VertexDoFFunction< ValueType >::interpolateExtended(
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::interpolateExtended(
+void VertexDoFFunction< ValueType >::interpolate(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
     const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& srcFunctions,
     uint_t                                                                               level,

@@ -205,15 +205,15 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
 
-   void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                             const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& srcFunctions,
-                             uint_t                                                                               level,
-                             DoFType flag = All ) const;
+   void interpolate( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+                     const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& srcFunctions,
+                     uint_t                                                                               level,
+                     DoFType                                                                              flag = All ) const;
 
-   void interpolateExtended( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                             const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& srcFunctions,
-                             uint_t                                                                               level,
-                             BoundaryUID boundaryUID ) const;
+   void interpolate( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+                     const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& srcFunctions,
+                     uint_t                                                                               level,
+                     BoundaryUID                                                                          boundaryUID ) const;
 
    /// Set all function DoFs to zero including the ones in the halos
    void setToZero( const uint_t level ) const;
