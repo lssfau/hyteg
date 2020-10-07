@@ -191,6 +191,7 @@ class PETScLUSolver : public Solver< OperatorType >
          {
             PCFactorSetUpMatSolverType( pc );
             PCFactorGetMatrix( pc, &F );
+#ifdef PETSC_HAVE_MUMPS
             for ( auto it : mumpsIcntrl_ )
             {
                MatMumpsSetIcntl( F, it.first, it.second );
@@ -199,6 +200,7 @@ class PETScLUSolver : public Solver< OperatorType >
             {
                MatMumpsSetCntl( F, it.first, it.second );
             }
+#endif
          }
          storage_->getTimingTree()->start( "Factorization" );
          PCSetUp( pc );
@@ -225,7 +227,7 @@ class PETScLUSolver : public Solver< OperatorType >
 
       storage_->getTimingTree()->start( "RHS vector setup" );
 
-      b.assign( {1.0}, {x}, level, DirichletBoundary );
+      b.assign( { 1.0 }, { x }, level, DirichletBoundary );
       bVec.createVectorFromFunction( b, num, level, All );
 
       if ( assumeSymmetry_ )
