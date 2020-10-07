@@ -3,7 +3,7 @@ Parameters
   discretization p2p1;
 
   minLevel 0;
-  maxLevel 7;
+  maxLevel 5;
 
   numEdgesPerSide 1;
 
@@ -17,8 +17,8 @@ Parameters
   preSmooth 2;
   postSmooth 0;
   incSmooth 2;
-  fmgInnerIterations 1;
-  numCycles 1;
+  fmgInnerIterations 0;
+  numCycles 5;
   absoluteResidualTolerance 1e-12;
 
   numGSVelocity 3;

@@ -78,15 +78,6 @@ void benchmark( int argc, char** argv )
    coarseGridSettings.solverType                = mainConf.getParameter< uint_t >( "coarseGridSolverType" );
 
    const uint_t scenario = mainConf.getParameter< uint_t >( "scenario" );
-   bool         RHSisZero;
-   if ( scenario == 0 )
-   {
-      RHSisZero = false;
-   }
-   else if ( scenario == 1 )
-   {
-      RHSisZero = false;
-   }
 
    Discretization discretization = Discretization::P2_P1;
    if ( discretizationString == "p1p1" )
@@ -130,6 +121,7 @@ void benchmark( int argc, char** argv )
 
    bool projectPressure                 = true;
    bool projectPressureAfterRestriction = true;
+   bool RHSisZero                       = false;
 
    WALBERLA_LOG_INFO_ON_ROOT( "########################" )
    WALBERLA_LOG_INFO_ON_ROOT( "### Scaling Workshop ###" )
@@ -143,6 +135,8 @@ void benchmark( int argc, char** argv )
       initialV = []( const hyteg::Point3D& ) { return walberla::math::realRandom(); };
       initialW = []( const hyteg::Point3D& ) { return walberla::math::realRandom(); };
       initialP = []( const hyteg::Point3D& ) { return walberla::math::realRandom(); };
+
+      RHSisZero = true;
    }
    else if ( scenario == 1 )
    {
@@ -161,6 +155,8 @@ void benchmark( int argc, char** argv )
       rhsW = []( const hyteg::Point3D& x ) {
          return 2 * std::sin( 4 * x[0] ) * std::sin( 8 * x[1] ) * std::cos( 2 * x[2] ) - 8 * std::cos( 2 * x[1] );
       };
+
+      RHSisZero = false;
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );

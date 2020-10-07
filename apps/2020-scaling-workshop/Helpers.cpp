@@ -196,9 +196,13 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
       if ( RHSisZero )
       {
-         f.uvw.u.interpolate( 0, level, All );
-         f.uvw.v.interpolate( 0, level, All );
-         f.uvw.w.interpolate( 0, level, All );
+         if ( level < maxLevel )
+         {
+            f.uvw.u.interpolate( 0, level, All );
+            f.uvw.v.interpolate( 0, level, All );
+            f.uvw.w.interpolate( 0, level, All );
+            f.p.interpolate( 0, level, All );
+         }
       }
       else
       {
@@ -209,14 +213,19 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
          velocityMassOperator.apply( tmp.uvw.u, f.uvw.u, level, All );
          velocityMassOperator.apply( tmp.uvw.v, f.uvw.v, level, All );
          velocityMassOperator.apply( tmp.uvw.w, f.uvw.w, level, All );
+
+         f.p.interpolate( 0, level, All );
       }
-      f.p.interpolate( 0, level, All );
+
    }
 
    VTKOutput vtkOutput( "vtk", "TME", storage );
    vtkOutput.add( u );
    vtkOutput.add( tmp );
-   vtkOutput.add( f );
+   if ( !RHSisZero )
+   {
+      vtkOutput.add( f );
+   }
 
    if ( vtk )
    {
