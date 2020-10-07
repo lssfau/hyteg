@@ -103,7 +103,9 @@ class UzawaSmoother : public Solver< OperatorType >
                   hyteg::DoFType                                   flag = hyteg::Inner | hyteg::NeumannBoundary,
                   const uint_t                                     numGSIterationsVelocity = 2,
                   const bool                                       symmetricGSPressure     = false,
-                  const uint_t                                     numGSIterationsPressure = 1 )
+                  const uint_t                                     numGSIterationsPressure = 1,
+                  const bool rhsZero = false,
+                  const std::vector< uint_t > rhsZeroLevels = {} )
    : storage_( storage )
    , velocitySmoother_( velocitySmoother )
    , flag_( flag )
@@ -113,6 +115,8 @@ class UzawaSmoother : public Solver< OperatorType >
    , symmetricGSPressure_( symmetricGSPressure )
    , numGSIterationsPressure_( numGSIterationsPressure )
    , r_( tmpFunction )
+   , rhsZero_( rhsZero )
+   , rhsZeroLevels_( rhsZeroLevels )
 #if UZAWA_OLD_VARIANT
    , tmp_( "uzawa_smoother_tmp", storage, minLevel, maxLevel )
 #endif
@@ -144,16 +148,33 @@ class UzawaSmoother : public Solver< OperatorType >
                      std::false_type /* tensor */,
                      std::true_type /* PSPG */ ) const
    {
-      A.divT_x.apply( x.p, r_.uvw.u, level, flag_, Replace );
-      r_.uvw.u.assign( {1.0, -1.0}, {b.uvw.u, r_.uvw.u}, level, flag_ );
-
-      A.divT_y.apply( x.p, r_.uvw.v, level, flag_, Replace );
-      r_.uvw.v.assign( {1.0, -1.0}, {b.uvw.v, r_.uvw.v}, level, flag_ );
-
-      if ( hasGlobalCells_ )
+      if ( rhsZero_ && algorithms::contains( rhsZeroLevels_, level ) )
       {
-         A.divT_z.apply( x.p, r_.uvw.w, level, flag_, Replace );
-         r_.uvw.w.assign( {1.0, -1.0}, {b.uvw.w, r_.uvw.w}, level, flag_ );
+         A.divT_x.apply( x.p, r_.uvw.u, level, flag_, Replace );
+         r_.uvw.u.assign( {-1.0}, {r_.uvw.u}, level, flag_ );
+
+         A.divT_y.apply( x.p, r_.uvw.v, level, flag_, Replace );
+         r_.uvw.v.assign( {-1.0}, {r_.uvw.v}, level, flag_ );
+
+         if ( hasGlobalCells_ )
+         {
+            A.divT_z.apply( x.p, r_.uvw.w, level, flag_, Replace );
+            r_.uvw.w.assign( {-1.0}, {r_.uvw.w}, level, flag_ );
+         }
+      }
+      else
+      {
+         A.divT_x.apply( x.p, r_.uvw.u, level, flag_, Replace );
+         r_.uvw.u.assign( {1.0, -1.0}, {b.uvw.u, r_.uvw.u}, level, flag_ );
+
+         A.divT_y.apply( x.p, r_.uvw.v, level, flag_, Replace );
+         r_.uvw.v.assign( {1.0, -1.0}, {b.uvw.v, r_.uvw.v}, level, flag_ );
+
+         if ( hasGlobalCells_ )
+         {
+            A.divT_z.apply( x.p, r_.uvw.w, level, flag_, Replace );
+            r_.uvw.w.assign( {1.0, -1.0}, {b.uvw.w, r_.uvw.w}, level, flag_ );
+         }
       }
 
       for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
@@ -170,7 +191,15 @@ class UzawaSmoother : public Solver< OperatorType >
          A.div_z.apply( x.uvw.w, r_.p, level, flag_, Add );
       }
 
-      r_.p.assign( {1.0, -1.0}, {b.p, r_.p}, level, flag_ );
+      if ( rhsZero_ && algorithms::contains( rhsZeroLevels_, level ) )
+      {
+         r_.p.assign( {-1.0}, {r_.p}, level, flag_ );
+      }
+      else
+      {
+         r_.p.assign( {1.0, -1.0}, {b.p, r_.p}, level, flag_ );
+      }
+
 
       r_.p.assign( {relaxParam_}, {r_.p}, level, flag_ );
       A.pspg_inv_diag_.apply( r_.p, x.p, level, flag_, Add );
@@ -210,16 +239,33 @@ class UzawaSmoother : public Solver< OperatorType >
                      std::false_type /* tensor */,
                      std::false_type /* PSPG */ ) const
    {
-      A.divT_x.apply( x.p, r_.uvw.u, level, flag_, Replace );
-      r_.uvw.u.assign( {1.0, -1.0}, {b.uvw.u, r_.uvw.u}, level, flag_ );
-
-      A.divT_y.apply( x.p, r_.uvw.v, level, flag_, Replace );
-      r_.uvw.v.assign( {1.0, -1.0}, {b.uvw.v, r_.uvw.v}, level, flag_ );
-
-      if ( hasGlobalCells_ )
+      if ( rhsZero_ && algorithms::contains( rhsZeroLevels_, level ) )
       {
-         A.divT_z.apply( x.p, r_.uvw.w, level, flag_, Replace );
-         r_.uvw.w.assign( {1.0, -1.0}, {b.uvw.w, r_.uvw.w}, level, flag_ );
+         A.divT_x.apply( x.p, r_.uvw.u, level, flag_, Replace );
+         r_.uvw.u.assign( {-1.0}, {r_.uvw.u}, level, flag_ );
+
+         A.divT_y.apply( x.p, r_.uvw.v, level, flag_, Replace );
+         r_.uvw.v.assign( {-1.0}, {r_.uvw.v}, level, flag_ );
+
+         if ( hasGlobalCells_ )
+         {
+            A.divT_z.apply( x.p, r_.uvw.w, level, flag_, Replace );
+            r_.uvw.w.assign( {-1.0}, {r_.uvw.w}, level, flag_ );
+         }
+      }
+      else
+      {
+         A.divT_x.apply( x.p, r_.uvw.u, level, flag_, Replace );
+         r_.uvw.u.assign( {1.0, -1.0}, {b.uvw.u, r_.uvw.u}, level, flag_ );
+
+         A.divT_y.apply( x.p, r_.uvw.v, level, flag_, Replace );
+         r_.uvw.v.assign( {1.0, -1.0}, {b.uvw.v, r_.uvw.v}, level, flag_ );
+
+         if ( hasGlobalCells_ )
+         {
+            A.divT_z.apply( x.p, r_.uvw.w, level, flag_, Replace );
+            r_.uvw.w.assign( {1.0, -1.0}, {b.uvw.w, r_.uvw.w}, level, flag_ );
+         }
       }
 
       for ( uint_t i = 0; i < numGSIterationsVelocity_; i++ )
@@ -235,7 +281,14 @@ class UzawaSmoother : public Solver< OperatorType >
          A.div_z.apply( x.uvw.w, r_.p, level, flag_, Add );
       }
 
-      r_.p.assign( {1.0, -1.0}, {b.p, r_.p}, level, flag_ );
+      if ( rhsZero_ && algorithms::contains( rhsZeroLevels_, level ) )
+      {
+         r_.p.assign( {-1.0}, {r_.p}, level, flag_ );
+      }
+      else
+      {
+         r_.p.assign( {1.0, -1.0}, {b.p, r_.p}, level, flag_ );
+      }
 
 #if UZAWA_OLD_VARIANT
       tmp_.p.interpolate( 0.0, level );
@@ -275,6 +328,8 @@ class UzawaSmoother : public Solver< OperatorType >
    uint_t                                    numGSIterationsVelocity_;
    bool                                      symmetricGSPressure_;
    uint_t                                    numGSIterationsPressure_;
+   bool rhsZero_;
+   std::vector< uint_t > rhsZeroLevels_;
 
    FunctionType r_;
 

@@ -216,7 +216,6 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
          f.p.interpolate( 0, level, All );
       }
-
    }
 
    VTKOutput vtkOutput( "vtk", "TME", storage );
@@ -283,13 +282,20 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
    auto uzawaVelocityPreconditioner =
        ( smootherSettings.symmGSVelocity ? uzawaSymmetricVelocityPreconditioner : uzawaForwardVelocityPreconditioner );
-   auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage,
+
+   std::vector< uint_t > rhsZeroLevels = {maxLevel};
+   auto                  smoother      = std::make_shared< UzawaSmoother< StokesOperator > >( storage,
                                                                         uzawaVelocityPreconditioner,
+                                                                        tmp,
                                                                         minLevel,
                                                                         maxLevel,
                                                                         smootherSettings.omega,
                                                                         Inner | NeumannBoundary,
-                                                                        smootherSettings.numGSVelocity );
+                                                                        smootherSettings.numGSVelocity,
+                                                                        false,
+                                                                        1,
+                                                                        RHSisZero,
+                                                                        rhsZeroLevels );
 
    if ( smootherSettings.estimateOmega )
    {
@@ -405,6 +411,8 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
    writeDataRow( iteration, "I", 0, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
    iteration++;
+
+   printFunctionAllocationInfo( *storage, 2 );
 
    timer->stop( "Setup" );
    timer->start( "Solve" );
