@@ -47,10 +47,22 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
       return std::make_shared< PETScSparseMatrixProxy >( matCopy );
    }
 
+#ifndef PETSC_USE_COMPLEX
    void addValue( uint_t row, uint_t col, real_t value )
    {
-      MatSetValue(
-          mat_, static_cast< PetscInt >( row ), static_cast< PetscInt >( col ), static_cast< PetscReal >( value ), ADD_VALUES );
+      PetscReal petscVal;
+
+      // check whether we need to convert between PetscReal and real_t
+      if constexpr ( std::is_same< PetscReal, real_t >::value )
+      {
+         petscVal = value;
+      }
+      else
+      {
+         static_cast< PetscReal >( value );
+      }
+
+      MatSetValue( mat_, static_cast< PetscInt >( row ), static_cast< PetscInt >( col ), petscVal, ADD_VALUES );
    }
 
    void addValues( const std::vector< uint_t >& rows, const std::vector< uint_t >& cols, const std::vector< real_t >& values )
@@ -94,6 +106,47 @@ class PETScSparseMatrixProxy : public SparseMatrixProxy
                        ADD_VALUES );
       }
    }
+
+#else
+
+   void addValue( uint_t row, uint_t col, real_t value )
+   {
+      PetscComplex petscVal = static_cast< PetscReal >( value );
+      MatSetValue( mat_, static_cast< PetscInt >( row ), static_cast< PetscInt >( col ), petscVal, ADD_VALUES );
+   }
+
+   void addValues( const std::vector< uint_t >& rows, const std::vector< uint_t >& cols, const std::vector< real_t >& values )
+   {
+      WALBERLA_ASSERT_EQUAL( values.size(), rows.size() * cols.size() );
+
+      std::vector< PetscInt >     petscRows( rows.size() );
+      std::vector< PetscInt >     petscCols( cols.size() );
+      std::vector< PetscComplex > petscVals( rows.size() * cols.size() );
+
+      // convert between datatypes
+      for ( uint_t i = 0; i < rows.size(); i++ )
+      {
+         petscRows[i] = static_cast< PetscInt >( rows[i] );
+      }
+      for ( uint_t i = 0; i < cols.size(); i++ )
+      {
+         petscCols[i] = static_cast< PetscInt >( cols[i] );
+      }
+      for ( uint_t i = 0; i < rows.size() * cols.size(); i++ )
+      {
+         petscVals[i] = static_cast< PetscReal >( values[i] );
+      }
+
+      MatSetValues( mat_,
+                    static_cast< PetscInt >( petscRows.size() ),
+                    petscRows.data(),
+                    static_cast< PetscInt >( petscCols.size() ),
+                    petscCols.data(),
+                    petscVals.data(),
+                    ADD_VALUES );
+   }
+
+#endif
 
    void createFromMatrixProduct( const std::vector< std::shared_ptr< SparseMatrixProxy > >& matrices )
    {
