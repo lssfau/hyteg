@@ -29,7 +29,7 @@ CMake will then produce Makefiles for the included tests and applications. To bu
 
 ## Documentation
 
-The [Doxygen documentation](http://hyteg.pages.walberla.net/hyteg/index.html "HyTeG Doxygen") provides some basic tutorials for example applications.
+The [Doxygen documentation](https://hyteg.pages.i10git.cs.fau.de/hyteg/index.html "HyTeG Doxygen") provides some basic tutorials for example applications.
 
 If you are interested in more background information you may either have
 a look at 
