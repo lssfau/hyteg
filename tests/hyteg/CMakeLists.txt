@@ -267,6 +267,9 @@ if(CMAKE_BUILD_TYPE MATCHES "Release")
   waLBerla_execute_test(NAME MassOperatorTestMPI COMMAND $<TARGET_FILE:MassOperatorTest> PROCESSES 2 )
 endif()
 
+waLBerla_compile_test(FILES operators/DivergenceOperatorTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DivergenceOperatorTest )
+
 waLBerla_compile_test(FILES operators/ElementwiseOperatorAdditiveApplyTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME ElementwiseOperatorAdditiveApplyTest)
 

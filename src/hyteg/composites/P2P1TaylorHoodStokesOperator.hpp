@@ -21,8 +21,10 @@
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
+#include "hyteg/mixedoperators/P1ScalarToP2VectorOperator.hpp"
 #include "hyteg/mixedoperators/P1ToP2Operator.hpp"
 #include "hyteg/mixedoperators/P2ToP1Operator.hpp"
+#include "hyteg/mixedoperators/P2VectorToP1ScalarOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 
 namespace hyteg {
@@ -39,9 +41,11 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
    , div_x( storage, minLevel, maxLevel )
    , div_y( storage, minLevel, maxLevel )
    , div_z( storage, minLevel, maxLevel )
+   , div( storage, minLevel, maxLevel )
    , divT_x( storage, minLevel, maxLevel )
    , divT_y( storage, minLevel, maxLevel )
    , divT_z( storage, minLevel, maxLevel )
+   , divT( storage, minLevel, maxLevel )
    , pspg_( storage, minLevel, maxLevel )
    , pspg_inv_diag_( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
@@ -80,6 +84,9 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
    P1ToP2ConstantDivTxOperator divT_x;
    P1ToP2ConstantDivTyOperator divT_y;
    P1ToP2ConstantDivTzOperator divT_z;
+
+   P2ToP1ConstantDivOperator  div;
+   P1ToP2ConstantDivTOperator divT;
 
    /// this operator is need in the uzawa smoother
    P1PSPGOperator        pspg_;

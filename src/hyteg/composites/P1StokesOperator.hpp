@@ -23,6 +23,8 @@
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/StokesOperatorTraits.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/p1functionspace/P1ScalarToP1VectorOperator.hpp"
+#include "hyteg/p1functionspace/P1VectorToP1ScalarOperator.hpp"
 
 namespace hyteg {
 
@@ -39,9 +41,11 @@ class P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFu
    , div_x( storage, minLevel, maxLevel )
    , div_y( storage, minLevel, maxLevel )
    , div_z( storage, minLevel, maxLevel )
+   , div( storage, minLevel, maxLevel )
    , divT_x( storage, minLevel, maxLevel )
    , divT_y( storage, minLevel, maxLevel )
    , divT_z( storage, minLevel, maxLevel )
+   , divT( storage, minLevel, maxLevel )
    , pspg( storage, minLevel, maxLevel )
    , pspg_inv_diag_( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
@@ -87,6 +91,9 @@ class P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFu
    P1PSPGOperator            pspg;
    P1PSPGInvDiagOperator     pspg_inv_diag_;
    bool                      hasGlobalCells_;
+
+   P1ConstantDivOperator  div;
+   P1ConstantDivTOperator divT;
 };
 
 template <>

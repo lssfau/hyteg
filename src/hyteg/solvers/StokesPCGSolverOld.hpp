@@ -116,10 +116,12 @@ public:
         velocityBlockSolver_->solve( stokesOperator.A, RHat.uvw.v, R.uvw.v, level );
 
         // pressure
-        stokesOperator.div_x.apply( RHat.uvw.u, RHat.p, level, flag_ | DirichletBoundary, Replace );
-        stokesOperator.div_y.apply( RHat.uvw.v, RHat.p, level, flag_ | DirichletBoundary, Add );
-        stokesOperator.div_x.apply( u.uvw.u, RHat.p, level, flag_ | DirichletBoundary, Add );
-        stokesOperator.div_y.apply( u.uvw.v, RHat.p, level, flag_ | DirichletBoundary, Add );
+        // stokesOperator.div_x.apply( RHat.uvw.u, RHat.p, level, flag_ | DirichletBoundary, Replace );
+        // stokesOperator.div_y.apply( RHat.uvw.v, RHat.p, level, flag_ | DirichletBoundary, Add );
+        // stokesOperator.div_x.apply( u.uvw.u, RHat.p, level, flag_ | DirichletBoundary, Add );
+        // stokesOperator.div_y.apply( u.uvw.v, RHat.p, level, flag_ | DirichletBoundary, Add );
+        stokesOperator.div.apply( RHat.uvw, RHat.p, level, flag_ | DirichletBoundary, Replace );
+        stokesOperator.div.apply( u.uvw, RHat.p, level, flag_ | DirichletBoundary, Add );
 
         ///////////////
         // R_tilde_0 //
