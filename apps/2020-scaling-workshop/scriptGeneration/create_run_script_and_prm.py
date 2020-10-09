@@ -46,11 +46,15 @@ def create_files(args, args_dict):
         print('Invalid machine.')
         sys.exit(1)
 
-    with open(os.path.join(args.out_dir, parameter_file_name), 'w') as f:
+    parameter_file_output_path = os.path.join(args.out_dir, parameter_file_name)
+    with open(parameter_file_output_path, 'w') as f:
         f.write(parameter_file)
+        print(f'Written .prm file to {parameter_file_output_path}')
 
-    with open(os.path.join(args.out_dir, job_file_name), 'w') as f:
+    job_file_output_path = os.path.join(args.out_dir, job_file_name)
+    with open(job_file_output_path, 'w') as f:
         f.write(job_file)
+        print(f'Written .job file to {job_file_output_path}')
 
 
 if __name__ == "__main__":
