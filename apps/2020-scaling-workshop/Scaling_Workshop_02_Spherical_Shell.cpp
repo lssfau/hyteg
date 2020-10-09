@@ -216,7 +216,7 @@ void benchmark( int argc, char** argv )
         return result;
       };
 
-      RHSisZero = false;
+      RHSisZero = true;
    }
    else
    {

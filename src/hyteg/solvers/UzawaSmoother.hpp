@@ -104,8 +104,8 @@ class UzawaSmoother : public Solver< OperatorType >
                   const uint_t                                     numGSIterationsVelocity = 2,
                   const bool                                       symmetricGSPressure     = false,
                   const uint_t                                     numGSIterationsPressure = 1,
-                  const bool rhsZero = false,
-                  const std::vector< uint_t > rhsZeroLevels = {} )
+                  const bool                                       rhsZero                 = false,
+                  const std::vector< uint_t >                      rhsZeroLevels           = {} )
    : storage_( storage )
    , velocitySmoother_( velocitySmoother )
    , flag_( flag )
@@ -138,6 +138,9 @@ class UzawaSmoother : public Solver< OperatorType >
    }
 
    void setRelaxationParameter( const real_t& omega ) { relaxParam_ = omega; }
+
+   void setRHSZero( bool rhsZero ) { rhsZero_ = rhsZero; }
+   void setRHSZeroLevels( const std::vector< uint_t > & rhsZeroLevels ) { rhsZeroLevels_ = rhsZeroLevels; }
 
  private:
    // Block-Laplace variant

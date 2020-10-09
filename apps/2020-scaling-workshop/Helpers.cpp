@@ -330,6 +330,9 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    auto fmgProlongation = std::make_shared< FMGProlongation >();
 
    auto postCycle = [&]( uint_t currentLevel ) {
+
+      smoother->setRHSZeroLevels( {currentLevel + 1} );
+
       if ( projectPressure )
       {
          vertexdof::projectMean( u.p, currentLevel );
@@ -388,6 +391,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
    if ( multigridSettings.fmgInnerIterations > 0 )
    {
+      smoother->setRHSZeroLevels( {minLevel} );
       fullMultigridSolver.solve( A, u, f, maxLevel );
    }
    else
@@ -404,6 +408,8 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
       writeDataRow( iteration, "V", 0, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
       iteration++;
    }
+
+   smoother->setRHSZeroLevels( {maxLevel} );
 
    for ( uint_t i = 1; i < multigridSettings.numCycles && ( multigridSettings.absoluteResidualTolerance < residualL2Velocity ||
                                                             multigridSettings.absoluteResidualTolerance < residualL2Pressure );
