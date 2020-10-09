@@ -16,6 +16,7 @@ endif()
 
 waLBerla_link_files_to_builddir( *.prm )
 waLBerla_link_files_to_builddir( *.py )
+waLBerla_link_files_to_builddir( *.sh )
 
 if (HYTEG_BUILD_WITH_PETSC)
 waLBerla_add_executable( NAME Scaling_Workshop_01_Cube
