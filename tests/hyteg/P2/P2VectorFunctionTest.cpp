@@ -53,8 +53,8 @@ static void testP2Function()
    P2VectorFunction< real_t > aux_f( "auxFunc", storage, minLevel, maxLevel );
 
    // Interpolate
-   std::function< real_t( const hyteg::Point3D& ) > xComp = []( const Point3D& x ) { return real_c( 2 ); };
-   std::function< real_t( const hyteg::Point3D& ) > yComp = []( const Point3D& x ) { return x[0]*x[1]; };
+   std::function< real_t( const hyteg::Point3D& ) > xComp = []( const Point3D& ) { return real_c( 2 ); };
+   std::function< real_t( const hyteg::Point3D& ) > yComp = []( const Point3D& x ) { return x[0] * x[1]; };
 
    walberla::WcTimingPool timer;
 
