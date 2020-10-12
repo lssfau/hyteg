@@ -59,9 +59,9 @@ class P1VectorFunction
       w.interpolate( expr, level, flag );
    }
 
-   void interpolate( std::vector< std::function< ValueType( const hyteg::Point3D ) > >& expr,
-                     size_t                                                             level,
-                     DoFType                                                            flag = All ) const
+   void interpolate( const std::vector< std::function< ValueType( const hyteg::Point3D& ) > >& expr,
+                     size_t                                                                    level,
+                     DoFType                                                                   flag = All ) const
    {
       WALBERLA_ASSERT_GREATER( expr.size(), 0 );
       WALBERLA_ASSERT_LESS_EQUAL( expr.size(), 3 );

@@ -64,7 +64,7 @@ static void exportFunctions2D()
 
    std::function< real_t( const hyteg::Point3D& ) > xFunc = []( const Point3D& p ) -> real_t { return -2.0 * p[0]; };
    std::function< real_t( const hyteg::Point3D& ) > yFunc = []( const Point3D& p ) -> real_t { return p[0] + p[1]; };
-   std::vector< std::function< real_t( const hyteg::Point3D ) > > vecExpr = {xFunc, yFunc};
+   std::vector< std::function< real_t( const hyteg::Point3D& ) > > vecExpr = {xFunc, yFunc};
    p1VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
    p2VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
 
@@ -104,10 +104,10 @@ static void exportFunctions3D()
    // std::function< real_t( const hyteg::Point3D& ) > xFunc = []( const Point3D& p ) -> real_t { return -2.0*p[0]; };
    // std::function< real_t( const hyteg::Point3D& ) > yFunc = []( const Point3D& p ) -> real_t { return p[0]+p[1]+p[2]; };
    // std::function< real_t( const hyteg::Point3D& ) > zFunc = []( const Point3D& p ) -> real_t { return 3.0*p[0]+p[2]; };
-   std::function< real_t( const hyteg::Point3D& ) >               xFunc   = []( const Point3D& p ) -> real_t { return p[0]; };
-   std::function< real_t( const hyteg::Point3D& ) >               yFunc   = []( const Point3D& p ) -> real_t { return p[1]; };
-   std::function< real_t( const hyteg::Point3D& ) >               zFunc   = []( const Point3D& p ) -> real_t { return p[2]; };
-   std::vector< std::function< real_t( const hyteg::Point3D ) > > vecExpr = {xFunc, yFunc, zFunc};
+   std::function< real_t( const hyteg::Point3D& ) >                xFunc   = []( const Point3D& p ) -> real_t { return p[0]; };
+   std::function< real_t( const hyteg::Point3D& ) >                yFunc   = []( const Point3D& p ) -> real_t { return p[1]; };
+   std::function< real_t( const hyteg::Point3D& ) >                zFunc   = []( const Point3D& p ) -> real_t { return p[2]; };
+   std::vector< std::function< real_t( const hyteg::Point3D& ) > > vecExpr = {xFunc, yFunc, zFunc};
 
    // Setup some functions
    P1Function< real_t > p1ScalarFunc1( "P1 scalar function 1", storage, minLevel, maxLevel );
