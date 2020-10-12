@@ -85,25 +85,31 @@ void benchmark( int argc, char** argv )
       discretization = Discretization::P1_P1;
    }
 
-   Point3D leftBottom3D( {-1, -1, -1} );
+   Point3D leftBottom3D( { 0, 0, 0 } );
 
-   auto meshInfo =
-       MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( {1, 1, 1} ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
+   std::shared_ptr< PrimitiveStorage > storage;
 
-   auto onBoundary = []( const Point3D& ) { return true; };
-   meshInfo.setMeshBoundaryFlagsByVertexLocation( 1, onBoundary );
+   {
+      auto meshInfo =
+          MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( {1, 1, 1} ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
 
-   auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
-       meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage->setMeshBoundaryFlagsInner( 0, true );
+      auto onBoundary = []( const Point3D& ) { return true; };
+      meshInfo.setMeshBoundaryFlagsByVertexLocation( 1, onBoundary );
 
-   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
+      SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      setupStorage.setMeshBoundaryFlagsInner( 0, true );
+
+      storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   }
 
    if ( domainInfoOnly )
    {
       domainInfo( storage, discretization, minLevel, maxLevel, vtk, benchmarkName );
       return;
    }
+
+   FixedSizeSQLDB db( dbFile );
+   db.setConstantEntry( "num_edges_per_side", numEdgesPerSide );
 
    std::function< real_t( const hyteg::Point3D& ) > solutionU = []( const hyteg::Point3D& ) -> real_t { return 0; };
    std::function< real_t( const hyteg::Point3D& ) > solutionV = []( const hyteg::Point3D& ) -> real_t { return 0; };
@@ -126,10 +132,11 @@ void benchmark( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "########################" )
    WALBERLA_LOG_INFO_ON_ROOT( "### Scaling Workshop ###" )
    WALBERLA_LOG_INFO_ON_ROOT( "########################" )
-   WALBERLA_LOG_INFO_ON_ROOT( "# Domain: cube" )
+   WALBERLA_LOG_INFO_ON_ROOT( "# domain:         cube" )
+   WALBERLA_LOG_INFO_ON_ROOT( "# - edges per side: " << numEdgesPerSide )
    if ( scenario == 0 )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "# Scenario 0: u, p = 0, f = 0, initial guess: rand(0, 1) " );
+      WALBERLA_LOG_INFO_ON_ROOT( "# - scenario 0: u, p = 0, f = 0, initial guess: rand(0, 1) " );
 
       initialU = []( const hyteg::Point3D& ) { return walberla::math::realRandom(); };
       initialV = []( const hyteg::Point3D& ) { return walberla::math::realRandom(); };
@@ -140,7 +147,7 @@ void benchmark( int argc, char** argv )
    }
    else if ( scenario == 1 )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "# Scenario 1: u, p = sinusoidal, f = sinusoidal, initial guess: 0 " );
+      WALBERLA_LOG_INFO_ON_ROOT( "# - scenario 1: u, p = sinusoidal, f = sinusoidal, initial guess: 0 " );
       solutionU = []( const hyteg::Point3D& x ) { return -4 * std::cos( 4 * x[2] ); };
       solutionV = []( const hyteg::Point3D& x ) { return 8 * std::cos( 8 * x[0] ); };
       solutionW = []( const hyteg::Point3D& x ) { return -2 * std::cos( 2 * x[1] ); };
@@ -183,7 +190,7 @@ void benchmark( int argc, char** argv )
           projectPressureAfterRestriction,
           vtk,
           benchmarkName,
-          dbFile,
+          db,
           timingFile,
           RHSisZero );
 }

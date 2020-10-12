@@ -275,7 +275,7 @@ void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
             bool                                                    projectPressurefterRestriction,
             bool                                                    vtk,
             std::string                                             benchmarkName,
-            std::string                                             dbFile,
+            FixedSizeSQLDB                                          dbFile,
             std::string                                             timingFile,
             bool                                                    RHSisZero );
 

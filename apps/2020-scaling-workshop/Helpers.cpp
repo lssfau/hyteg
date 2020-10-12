@@ -99,7 +99,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
                               bool                                                    projectPressurefterRestriction,
                               bool                                                    vtk,
                               const std::string&                                      benchmarkName,
-                              std::string                                             dbFile,
+                              FixedSizeSQLDB                                          db,
                               std::string                                             timingFile,
                               bool                                                    RHSisZero )
 {
@@ -161,13 +161,10 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    WALBERLA_LOG_INFO_ON_ROOT( "   + max iterations:                               " << coarseGridSettings.maxIterations )
    WALBERLA_LOG_INFO_ON_ROOT( " - app settings: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + VTK:                                          " << ( vtk ? "yes" : "no" ) )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + database file:                                " << dbFile )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    const auto storageGlobalInfo = storage->getGlobalInfo();
    WALBERLA_LOG_INFO_ON_ROOT( storageGlobalInfo );
-
-   FixedSizeSQLDB db( dbFile );
 
    uint_t iteration = 0;
 
@@ -461,7 +458,7 @@ void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
             bool                                                    projectPressurefterRestriction,
             bool                                                    vtk,
             std::string                                             benchmarkName,
-            std::string                                             dbFile,
+            FixedSizeSQLDB                                          db,
             std::string                                             timingFile,
             bool                                                    RHSisZero )
 {
@@ -494,7 +491,7 @@ void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
                                                                      projectPressurefterRestriction,
                                                                      vtk,
                                                                      benchmarkName,
-                                                                     dbFile,
+                                                                     db,
                                                                      timingFile,
                                                                      RHSisZero );
    }
@@ -527,7 +524,7 @@ void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
                                                                      projectPressurefterRestriction,
                                                                      vtk,
                                                                      benchmarkName,
-                                                                     dbFile,
+                                                                     db,
                                                                      timingFile,
                                                                      RHSisZero );
    }

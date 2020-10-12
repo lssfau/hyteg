@@ -88,16 +88,18 @@ void benchmark( int argc, char** argv )
       discretization = Discretization::P1_P1;
    }
 
-   auto meshInfo = MeshInfo::meshSphericalShell( ntan, nrad, rmin, rmax );
+   std::shared_ptr< PrimitiveStorage > storage;
+   {
+      auto meshInfo = MeshInfo::meshSphericalShell( ntan, nrad, rmin, rmax );
 
-   auto onBoundary = []( const Point3D& ) { return true; };
-   meshInfo.setMeshBoundaryFlagsByVertexLocation( 1, onBoundary );
+      auto onBoundary = []( const Point3D& ) { return true; };
+      meshInfo.setMeshBoundaryFlagsByVertexLocation( 1, onBoundary );
 
-   auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
-       meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage->setMeshBoundaryFlagsInner( 0, true );
+      SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      setupStorage.setMeshBoundaryFlagsInner( 0, true );
 
-   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
+      storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   }
 
    if ( domainInfoOnly )
    {
@@ -123,13 +125,23 @@ void benchmark( int argc, char** argv )
    bool projectPressureAfterRestriction = true;
    bool RHSisZero                       = false;
 
+   FixedSizeSQLDB db( dbFile );
+   db.setConstantEntry( "ntan", ntan );
+   db.setConstantEntry( "nrad", nrad );
+   db.setConstantEntry( "rmin", rmin );
+   db.setConstantEntry( "rmax", rmax );
+
    WALBERLA_LOG_INFO_ON_ROOT( "########################" )
    WALBERLA_LOG_INFO_ON_ROOT( "### Scaling Workshop ###" )
    WALBERLA_LOG_INFO_ON_ROOT( "########################" )
-   WALBERLA_LOG_INFO_ON_ROOT( "# Domain: spherical shell" )
+   WALBERLA_LOG_INFO_ON_ROOT( "# domain: spherical shell" )
+   WALBERLA_LOG_INFO_ON_ROOT( "# - ntan: " << ntan )
+   WALBERLA_LOG_INFO_ON_ROOT( "# - nrad: " << nrad )
+   WALBERLA_LOG_INFO_ON_ROOT( "# - rmin: " << rmin )
+   WALBERLA_LOG_INFO_ON_ROOT( "# - rmax: " << rmax )
    if ( scenario == 0 )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "# Scenario 0: u, p = 0, f = 0, initial guess: rand(0, 1) " );
+      WALBERLA_LOG_INFO_ON_ROOT( "# - scenario 0: u, p = 0, f = 0, initial guess: rand(0, 1) " );
 
       initialU = []( const hyteg::Point3D& ) { return walberla::math::realRandom(); };
       initialV = []( const hyteg::Point3D& ) { return walberla::math::realRandom(); };
@@ -140,7 +152,7 @@ void benchmark( int argc, char** argv )
    }
    else if ( scenario == 1 )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "# Scenario 1: Stokeslet, f = (1, 1, 1), initial guess 0 " );
+      WALBERLA_LOG_INFO_ON_ROOT( "# - scenario 1: Stokeslet, f = (1, 1, 1), initial guess 0 " );
 
       solutionU = []( const hyteg::Point3D& p ) -> real_t {
         const Point3D fDirection( {1, 1, 1} );
@@ -247,7 +259,7 @@ void benchmark( int argc, char** argv )
           projectPressureAfterRestriction,
           vtk,
           benchmarkName,
-          dbFile,
+          db,
           timingFile,
           RHSisZero );
 }
