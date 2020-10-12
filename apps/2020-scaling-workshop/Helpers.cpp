@@ -347,6 +347,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    errorAndResidual( A, u, f, r, tmp, solutionU, solutionV, solutionW, solutionP, maxLevel, errorFlag, RHSisZero,  residualL2Velocity, residualL2Pressure, errorL2Velocity, errorL2Pressure );
 
    printFunctionAllocationInfo( *storage, 2 );
+   printCurrentMemoryUsage();
 
    writeDataHeader();
 

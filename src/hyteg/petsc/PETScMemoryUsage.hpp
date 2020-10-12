@@ -32,7 +32,7 @@ namespace hyteg {
 ///
 /// This is not related to PETSc but uses the PETSc function PetscMemoryGetCurrentUsage() which
 /// appears to not only include PETSc's memory usage but the total.
-double getCurrentMemoryUsage()
+inline double getCurrentMemoryUsage()
 {
    PetscLogDouble mem;
    PetscMemoryGetCurrentUsage( &mem );
@@ -45,7 +45,7 @@ double getCurrentMemoryUsage()
 ///
 /// This is not related to PETSc but uses the PETSc function PetscMemoryGetCurrentUsage() which
 /// appears to not only include PETSc's memory usage but the total.
-void printCurrentMemoryUsage()
+inline void printCurrentMemoryUsage()
 {
    double locallyAllocatedMemory = getCurrentMemoryUsage();
 
