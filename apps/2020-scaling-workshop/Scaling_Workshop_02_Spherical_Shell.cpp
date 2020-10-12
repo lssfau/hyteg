@@ -90,7 +90,7 @@ void benchmark( int argc, char** argv )
 
    std::shared_ptr< PrimitiveStorage > storage;
    {
-      auto meshInfo = MeshInfo::meshSphericalShell( ntan, nrad, rmin, rmax );
+      auto meshInfo = MeshInfo::meshSphericalShell( ntan, nrad, rmin, rmax, MeshInfo::SHELLMESH_ON_THE_FLY );
 
       auto onBoundary = []( const Point3D& ) { return true; };
       meshInfo.setMeshBoundaryFlagsByVertexLocation( 1, onBoundary );
