@@ -123,6 +123,12 @@ inline uint_t numberOfLocalDoFs< P1FunctionTag >( const PrimitiveStorage& primit
 }
 
 template <>
+inline uint_t numberOfLocalDoFs< P1VectorFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
+{
+   return ( primitiveStorage.hasGlobalCells() ? 3 : 2 ) * numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level );
+}
+
+template <>
 inline uint_t numberOfLocalDoFs< EdgeDoFFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {
    return numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( level ) * primitiveStorage.getNumberOfLocalVertices() +
@@ -142,6 +148,12 @@ inline uint_t numberOfLocalDoFs< P2FunctionTag >( const PrimitiveStorage& primit
 {
    return numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level ) +
           numberOfLocalDoFs< EdgeDoFFunctionTag >( primitiveStorage, level );
+}
+
+template <>
+inline uint_t numberOfLocalDoFs< P2VectorFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
+{
+   return ( primitiveStorage.hasGlobalCells() ? 3 : 2 ) * numberOfLocalDoFs< P2FunctionTag >( primitiveStorage, level );
 }
 
 template <>

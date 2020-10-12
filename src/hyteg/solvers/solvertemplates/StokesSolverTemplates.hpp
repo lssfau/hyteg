@@ -55,13 +55,16 @@ template < typename StokesOperatorType >
 std::shared_ptr< Solver< StokesOperatorType > > stokesMinResSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                                                                     const uint_t&                              level,
                                                                     const real_t& absoluteTargetResidual,
-                                                                    const uint_t& maxIterations )
+                                                                    const uint_t& maxIterations,
+                                                                    bool printInfo = false )
 {
    auto pressurePreconditioner =
        std::make_shared< StokesPressureBlockPreconditioner< StokesOperatorType, P1LumpedInvMassOperator > >(
            storage, level, level );
    auto pressurePreconditionedMinResSolver = std::make_shared< MinResSolver< StokesOperatorType > >(
        storage, level, level, maxIterations, absoluteTargetResidual, pressurePreconditioner );
+
+   pressurePreconditionedMinResSolver->setPrintInfo( printInfo );
 
    return pressurePreconditionedMinResSolver;
 }

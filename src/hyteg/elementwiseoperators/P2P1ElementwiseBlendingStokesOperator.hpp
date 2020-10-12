@@ -23,6 +23,7 @@
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 #include "hyteg/elementwiseoperators/P1ToP2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesBlockPreconditioner.hpp"
 #include "hyteg/elementwiseoperators/P2ToP1ElementwiseOperator.hpp"
 
 namespace hyteg {
@@ -33,9 +34,14 @@ class P2P1ElementwiseBlendingStokesOperator
  public:
    typedef P2ElementwiseBlendingLaplaceOperator VelocityOperator_T;
 
-   P2P1ElementwiseBlendingStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                                                     size_t                                     minLevel,
-                                                     size_t                                     maxLevel )
+   // This typedef could be a temporary solution to allow for using
+   // the PETScBlockPreconditionedStokesSolver and for compiling
+   // the StrongFreeSlipWrapper for the P2P1ElementwiseBlendingStokesOperator
+   // typedef P2P1TaylorHoodStokesBlockPreconditioner BlockPreconditioner_T;
+
+   typedef P2P1ElementwiseBlendingStokesBlockPreconditioner BlockPreconditioner_T;
+
+   P2P1ElementwiseBlendingStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , A( storage, minLevel, maxLevel )
    , div_x( storage, minLevel, maxLevel )
@@ -44,7 +50,7 @@ class P2P1ElementwiseBlendingStokesOperator
    , divT_x( storage, minLevel, maxLevel )
    , divT_y( storage, minLevel, maxLevel )
    , divT_z( storage, minLevel, maxLevel )
-//   , pspg_( storage, minLevel, maxLevel )
+   //   , pspg_( storage, minLevel, maxLevel )
    , pspg_inv_diag_( storage, minLevel, maxLevel )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
@@ -54,8 +60,6 @@ class P2P1ElementwiseBlendingStokesOperator
                const uint_t                            level,
                const DoFType                           flag ) const
    {
-      WALBERLA_CHECK( !hasGlobalCells_, "Elementwise Stokes operator w/ blending not implemented for 3D." );
-
       A.apply( src.uvw.u, dst.uvw.u, level, flag, Replace );
       divT_x.apply( src.p, dst.uvw.u, level, flag, Add );
 
@@ -74,22 +78,20 @@ class P2P1ElementwiseBlendingStokesOperator
       {
          div_z.apply( src.uvw.w, dst.p, level, flag, Add );
       }
-
-
    }
 
    P2ElementwiseBlendingLaplaceOperator   A;
    P2ToP1ElementwiseBlendingDivxOperator  div_x;
    P2ToP1ElementwiseBlendingDivyOperator  div_y;
-   P2ToP1ElementwiseDivzOperator  div_z;
+   P2ToP1ElementwiseBlendingDivzOperator  div_z;
    P1ToP2ElementwiseBlendingDivTxOperator divT_x;
    P1ToP2ElementwiseBlendingDivTyOperator divT_y;
-   P1ToP2ElementwiseDivTzOperator         divT_z;
+   P1ToP2ElementwiseBlendingDivTzOperator divT_z;
 
    /// this operator is need in the uzawa smoother
-//   P1ElementwisePSPGOperator        pspg_;
+   //   P1ElementwisePSPGOperator        pspg_;
    P1PSPGInvDiagOperator pspg_inv_diag_;
-   bool                             hasGlobalCells_;
+   bool                  hasGlobalCells_;
 };
 
 } // namespace hyteg

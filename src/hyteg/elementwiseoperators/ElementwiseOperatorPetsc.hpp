@@ -22,6 +22,7 @@
 #include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesBlockPreconditioner.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -107,6 +108,23 @@ inline void createMatrix( const P2P1ElementwiseBlendingStokesOperator& opr,
       opr.divT_z.assembleLocalMatrix( mat, src.p, dst.uvw.w, level, flag );
       opr.div_z.assembleLocalMatrix( mat, src.uvw.w, dst.p, level, flag );
    }
+}
+
+template <>
+inline void
+    createMatrix< P2P1ElementwiseBlendingStokesBlockPreconditioner >( const P2P1ElementwiseBlendingStokesBlockPreconditioner& opr,
+                                                                      const P2P1TaylorHoodFunction< PetscInt >&               src,
+                                                                      const P2P1TaylorHoodFunction< PetscInt >&               dst,
+                                                                      const std::shared_ptr< SparseMatrixProxy >&             mat,
+                                                                      size_t  level,
+                                                                      DoFType flag )
+{
+   for ( uint_t dim = 0; dim < src.uvw.getDimension(); dim++ )
+   {
+      // need to help the compiler here to find the correct version of createMatrix
+      createMatrix< P2ElementwiseBlendingLaplaceOperator, P2Form_laplace >( opr.A, src.uvw[dim], dst.uvw[dim], mat, level, flag );
+   }
+   createMatrix( opr.P, src.p, dst.p, mat, level, flag );
 }
 
 } // namespace petsc

@@ -1,0 +1,14 @@
+Parameters
+{
+  // spherical harmonics settings
+  degree 5;
+  order  3;
+
+  // meshing parameters
+  nTan 2;
+  nRad 2;
+  level 4;
+
+  // FE space
+  feSpace P2;
+}
