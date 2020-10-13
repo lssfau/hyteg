@@ -413,7 +413,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Returns a formatted string that contains global information about the storage.
    /// Must be called by all processes!
    /// Involves global communication and should therefore not be called in performance critical code.
-   std::string getGlobalInfo() const;
+   std::string getGlobalInfo( bool onRootOnly = false ) const;
 
    /// \brief Returns the global number of primitives.
    ///

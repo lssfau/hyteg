@@ -116,9 +116,9 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
       writeDomainPartitioningVTK( storage, "vtk/", benchmarkName + "_domain" );
    }
 
-   const uint_t unknowns = numberOfGlobalDoFs< typename StokesFunction< real_t >::Tag >( *storage, maxLevel );
-   const real_t hMin     = MeshQuality::getMinimalEdgeLength( storage, maxLevel );
-   const real_t hMax     = MeshQuality::getMaximalEdgeLength( storage, maxLevel );
+   const uint_t unknowns = numberOfGlobalDoFs< typename StokesFunction< real_t >::Tag >( *storage, maxLevel, walberla::mpi::MPIManager::instance()->comm(), true );
+   const real_t hMin     = MeshQuality::getMinimalEdgeLength( storage, maxLevel, true );
+   const real_t hMax     = MeshQuality::getMaximalEdgeLength( storage, maxLevel, true );
    const auto   discretization =
        ( std::is_same< typename StokesFunction< real_t >::Tag, P2P1TaylorHoodFunctionTag >::value ? "P2-P1" : "P1-P1" );
 
