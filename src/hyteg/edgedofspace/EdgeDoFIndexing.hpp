@@ -216,20 +216,20 @@ inline EdgeDoFOrientation getEdgeDoFOrientationFromLocalIDs( const uint_t& verte
    WALBERLA_ASSERT_UNEQUAL( vertexIndex0, vertexIndex1 );
    WALBERLA_ASSERT_LESS_EQUAL( vertexIndex0, 3 );
    WALBERLA_ASSERT_LESS_EQUAL( vertexIndex1, 3 );
-   indexing::IndexIncrement vertexIndexII0, vertexIndexII1;
+   static indexing::IndexIncrement vertexIndexII0, vertexIndexII1;
    switch ( vertexIndex0 )
    {
    case 0:
-      vertexIndexII0 = indexing::IndexIncrement( 0, 0, 0 );
+      vertexIndexII0.setxyz( 0, 0, 0 );
       break;
    case 1:
-      vertexIndexII0 = indexing::IndexIncrement( 1, 0, 0 );
+      vertexIndexII0.setxyz( 1, 0, 0 );
       break;
    case 2:
-      vertexIndexII0 = indexing::IndexIncrement( 0, 1, 0 );
+      vertexIndexII0.setxyz( 0, 1, 0 );
       break;
    case 3:
-      vertexIndexII0 = indexing::IndexIncrement( 0, 0, 1 );
+      vertexIndexII0.setxyz( 0, 0, 1 );
       break;
    default:
       WALBERLA_ABORT( "Wrong vertex ID" );
@@ -237,16 +237,16 @@ inline EdgeDoFOrientation getEdgeDoFOrientationFromLocalIDs( const uint_t& verte
    switch ( vertexIndex1 )
    {
    case 0:
-      vertexIndexII1 = indexing::IndexIncrement( 0, 0, 0 );
+      vertexIndexII1.setxyz( 0, 0, 0 );
       break;
    case 1:
-      vertexIndexII1 = indexing::IndexIncrement( 1, 0, 0 );
+      vertexIndexII1.setxyz( 1, 0, 0 );
       break;
    case 2:
-      vertexIndexII1 = indexing::IndexIncrement( 0, 1, 0 );
+      vertexIndexII1.setxyz( 0, 1, 0 );
       break;
    case 3:
-      vertexIndexII1 = indexing::IndexIncrement( 0, 0, 1 );
+      vertexIndexII1.setxyz( 0, 0, 1 );
       break;
    default:
       WALBERLA_ABORT( "Wrong vertex ID" );
@@ -324,7 +324,7 @@ inline EdgeDoFOrientation convertEdgeDoFOrientationCellToFace( const EdgeDoFOrie
                                                                const uint_t&             cellLocalID2 )
 {
    uint_t                     v3 = 6 - ( cellLocalID0 + cellLocalID1 + cellLocalID2 );
-   std::map< uint_t, uint_t > cellLocalToFaceLocalIDs;
+   static std::map< uint_t, uint_t > cellLocalToFaceLocalIDs;
    cellLocalToFaceLocalIDs[cellLocalID0] = 0;
    cellLocalToFaceLocalIDs[cellLocalID1] = 1;
    cellLocalToFaceLocalIDs[cellLocalID2] = 2;

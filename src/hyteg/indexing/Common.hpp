@@ -50,6 +50,13 @@ public:
   const int & z() const { return x_[2]; }
         int & z()       { return x_[2]; }
 
+        void setxyz( const int& x, const int& y, const int& z )
+        {
+           x_[0] = x;
+           x_[1] = y;
+           x_[2] = z;
+        }
+
   IndexIncrement & operator+=( const IndexIncrement & increment )
   {
     x() += increment.x();
