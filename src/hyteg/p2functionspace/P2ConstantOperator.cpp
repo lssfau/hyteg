@@ -54,6 +54,7 @@
 #pragma warning( pop )
 #endif
 
+#include "core/OpenMP.h"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
@@ -77,6 +78,8 @@
 #include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_edgedofs_one_sided_backwards.hpp"
 
 namespace hyteg {
+
+using walberla::int_c;
 
 template < class P2Form >
 P2ConstantOperator< P2Form >::P2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -186,9 +189,16 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_edges( const P2Function< rea
 {
    this->timingTree_->start( "Macro-Edge" );
 
+   std::vector< PrimitiveID::IDType > edgeIDs;
    for ( auto& it : storage_->getEdges() )
    {
-      Edge& edge = *it.second;
+      edgeIDs.push_back( it.first );
+   }
+
+   #pragma omp parallel for default(shared)
+   for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
+   {
+      Edge& edge = *storage_->getEdge( PrimitiveID( edgeIDs[uint_c( i )] ) );
 
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, flag ) )
@@ -241,9 +251,16 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< rea
 {
    this->timingTree_->start( "Macro-Face" );
 
+   std::vector< PrimitiveID::IDType > faceIDs;
    for ( auto& it : storage_->getFaces() )
    {
-      Face& face = *it.second;
+      faceIDs.push_back( it.first );
+   }
+
+   #pragma omp parallel for default(shared)
+   for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
+   {
+      Face& face = *storage_->getFace( PrimitiveID( faceIDs[uint_c( i )] ) );
 
       const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
@@ -838,9 +855,16 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
 {
    this->timingTree_->start( "Macro-Cell" );
 
+   std::vector< PrimitiveID::IDType > cellIDs;
    for ( auto& it : storage_->getCells() )
    {
-      Cell& cell = *it.second;
+      cellIDs.push_back( it.first );
+   }
+
+   #pragma omp parallel for default(shared)
+   for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
+   {
+      Cell& cell = *storage_->getCell( PrimitiveID( cellIDs[uint_c( i )] ) );
 
       const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
       if ( testFlag( cellBC, flag ) )
@@ -865,7 +889,8 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
 
             if ( backwards )
             {
-               this->timingTree_->start( "Updating EdgeDoFs" );
+               WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "Updating EdgeDoFs" ); }
+
 
                // Splitting the SOR into multiple sweeps: one per edge type.
                // This has severe performance advantages.
@@ -975,11 +1000,9 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
                                                                                         relax,
                                                                                         v2e_opr_data );
 
-               this->timingTree_->stop( "Updating EdgeDoFs" );
+               WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->stop( "Updating EdgeDoFs" ); }
 
-
-
-               this->timingTree_->start( "Updating VertexDoFs" );
+               WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "Updating VertexDoFs" ); }
 
                P2::macrocell::generated::sor_3D_macrocell_P2_update_vertexdofs_backwards( &e_dst_data[firstIdx[eo::X]],
                                                                                           &e_dst_data[firstIdx[eo::XY]],
@@ -995,11 +1018,11 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
                                                                                           relax,
                                                                                           v2v_opr_data );
 
-               this->timingTree_->stop( "Updating VertexDoFs" );
+               WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->stop( "Updating VertexDoFs" ); }
             }
             else
             {
-               this->timingTree_->start( "Updating VertexDoFs" );
+               WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "Updating VertexDoFs" ); }
 
                P2::macrocell::generated::sor_3D_macrocell_P2_update_vertexdofs( &e_dst_data[firstIdx[eo::X]],
                                                                                 &e_dst_data[firstIdx[eo::XY]],
@@ -1015,9 +1038,9 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
                                                                                 relax,
                                                                                 v2v_opr_data );
 
-               this->timingTree_->stop( "Updating VertexDoFs" );
+               WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->stop( "Updating VertexDoFs" ); }
 
-               this->timingTree_->start( "Updating EdgeDoFs" );
+               WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "Updating EdgeDoFs" ); }
 
                // Splitting the SOR into multiple sweeps: one per edge type.
                // This has severe performance advantages.
@@ -1126,7 +1149,7 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
                                                                                           relax,
                                                                                           v2e_opr_data );
 
-               this->timingTree_->stop( "Updating EdgeDoFs" );
+               WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->stop( "Updating EdgeDoFs" ); }
             }
          }
          else
