@@ -300,7 +300,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply(const EdgeDoFFu
      #pragma omp parallel for
      for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
      {
-        Cell& cell = *this->getStorage()->getCell( cellIDs[i] );
+        Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
 
         const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
         if ( testFlag( cellBC, flag ) )
@@ -346,7 +346,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply(const EdgeDoFFu
      #pragma omp parallel for
      for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
      {
-        Face& face = *this->getStorage()->getFace( faceIDs[i] );
+        Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
 
         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
         if ( testFlag( faceBC, flag ) )
@@ -507,7 +507,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply(const EdgeDoFFu
      #pragma omp parallel for
      for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
      {
-        Edge& edge = *this->getStorage()->getEdge( edgeIDs[i] );
+        Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
 
         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
         if ( testFlag( edgeBC, flag ) )
@@ -580,21 +580,25 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply(const EdgeDoFFu
 
   this->timingTree_->start( "Macro-Vertex" );
 
-  for (auto& it : storage_->getVertices()) {
-    Vertex& vertex = *it.second;
+  std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
+  #pragma omp parallel for
+  for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
+  {
+     Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
 
-    const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-    if (testFlag(vertexBC, flag))
-    {
-      if ( storage_->hasGlobalCells() )
-      {
-        applyVertex3D( level, vertex, *getStorage(), vertexStencil3DID_, src.getVertexDataID(), dst.getVertexDataID(), updateType );
-      }
-      else
-      {
-        applyVertex( level, vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), updateType );
-      }
-    }
+     const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+     if ( testFlag( vertexBC, flag ) )
+     {
+        if ( storage_->hasGlobalCells() )
+        {
+           applyVertex3D(
+               level, vertex, *getStorage(), vertexStencil3DID_, src.getVertexDataID(), dst.getVertexDataID(), updateType );
+        }
+        else
+        {
+           applyVertex( level, vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), updateType );
+        }
+     }
   }
 
   this->timingTree_->stop( "Macro-Vertex" );

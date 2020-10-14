@@ -284,7 +284,7 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
    #pragma omp parallel for default(shared)
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[i] );
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
@@ -296,7 +296,7 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
    #pragma omp parallel for default(shared)
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
-      Face& face = *this->getStorage()->getFace( faceIDs[i] );   
+      Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );   
 
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
@@ -310,7 +310,7 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
       #pragma omp parallel for default(shared)
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         Cell& cell = *this->getStorage()->getCell( cellIDs[i] );
+         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
          {
@@ -349,7 +349,7 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
    #pragma omp parallel for default(shared)
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[i] );
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
 
       if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( edge.getMeshBoundaryFlag() ) == boundaryUID )
       {
@@ -361,7 +361,7 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
    #pragma omp parallel for default(shared)
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
-      Face& face = *this->getStorage()->getFace( faceIDs[i] );
+      Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
 
       if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( face.getMeshBoundaryFlag() ) == boundaryUID )
       {
@@ -375,7 +375,7 @@ void EdgeDoFFunction< ValueType >::interpolateExtended(
       #pragma omp parallel for default(shared)
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         Cell& cell = *this->getStorage()->getCell( cellIDs[i] );
+         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
 
          if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
          {
@@ -892,7 +892,7 @@ void EdgeDoFFunction< ValueType >::assign(
    #pragma omp parallel for default(shared)
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[i] );
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
@@ -904,7 +904,7 @@ void EdgeDoFFunction< ValueType >::assign(
       #pragma omp parallel for default(shared)
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
-      Face& face = *this->getStorage()->getFace( faceIDs[i] );
+      Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
@@ -918,7 +918,7 @@ void EdgeDoFFunction< ValueType >::assign(
       #pragma omp parallel for default(shared)
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         Cell& cell = *this->getStorage()->getCell( cellIDs[i] );
+         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
          {
@@ -939,9 +939,11 @@ void EdgeDoFFunction< ValueType >::add( const ValueType& scalar, uint_t level, D
    }
    this->startTiming( "Add (scalar)" );
 
-   for ( auto& it : this->getStorage()->getEdges() )
+   std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
+   #pragma omp parallel for default(shared)
+   for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *it.second;
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
@@ -949,9 +951,11 @@ void EdgeDoFFunction< ValueType >::add( const ValueType& scalar, uint_t level, D
       }
    }
 
-   for ( auto& it : this->getStorage()->getFaces() )
+   std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+   #pragma omp parallel for default(shared)
+   for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
-      Face& face = *it.second;
+      Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
@@ -961,9 +965,11 @@ void EdgeDoFFunction< ValueType >::add( const ValueType& scalar, uint_t level, D
 
    if ( level >= 1 )
    {
-      for ( auto& it : this->getStorage()->getCells() )
+      std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
+   #pragma omp parallel for default(shared)
+      for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         Cell& cell = *it.second;
+         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
          {
@@ -1086,9 +1092,11 @@ void EdgeDoFFunction< ValueType >::add(
       srcCellIDs.push_back( function.cellDataID_ );
    }
 
-   for ( auto& it : this->getStorage()->getEdges() )
+   std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
+#pragma omp parallel for default(shared)
+   for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *it.second;
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1096,9 +1104,11 @@ void EdgeDoFFunction< ValueType >::add(
       }
    }
 
-   for ( auto& it : this->getStorage()->getFaces() )
+   std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+   #pragma omp parallel for default(shared)
+   for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
-      Face& face = *it.second;
+      Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1108,9 +1118,11 @@ void EdgeDoFFunction< ValueType >::add(
 
    if ( level >= 1 )
    {
-      for ( auto& it : this->getStorage()->getCells() )
+      std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
+      #pragma omp parallel for default(shared)
+      for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         Cell& cell = *it.second;
+         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
          {
@@ -1450,9 +1462,11 @@ void EdgeDoFFunction< ValueType >::multElementwise(
       srcCellIDs.push_back( function.cellDataID_ );
    }
 
-   for ( const auto& it : this->getStorage()->getEdges() )
+   std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
+   #pragma omp parallel for default(shared)
+   for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *it.second;
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1460,9 +1474,11 @@ void EdgeDoFFunction< ValueType >::multElementwise(
       }
    }
 
-   for ( const auto& it : this->getStorage()->getFaces() )
+   std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+   #pragma omp parallel for default(shared)
+   for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
-      Face& face = *it.second;
+      Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1470,9 +1486,11 @@ void EdgeDoFFunction< ValueType >::multElementwise(
       }
    }
 
-   for ( const auto& it : this->getStorage()->getCells() )
+   std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
+   #pragma omp parallel for default(shared)
+   for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
    {
-      Cell& cell = *it.second;
+      Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
       if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
          edgedof::macrocell::multElementwise< ValueType >( level, cell, srcCellIDs, cellDataID_ );
@@ -1524,7 +1542,7 @@ void EdgeDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType& 
       #pragma omp parallel for default(shared)
       for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
       {
-         Edge& edge = *this->getStorage()->getEdge( edgeIDs[i] );
+         Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
          {
@@ -1538,7 +1556,7 @@ void EdgeDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType& 
       #pragma omp parallel for default(shared)
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
       {
-         Face& face = *this->getStorage()->getFace( faceIDs[i] );
+         Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
          {
@@ -1552,7 +1570,7 @@ void EdgeDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType& 
       #pragma omp parallel for default(shared)
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         Cell& cell = *this->getStorage()->getCell( cellIDs[i] );
+         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
          {

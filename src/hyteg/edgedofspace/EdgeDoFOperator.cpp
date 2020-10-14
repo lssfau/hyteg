@@ -293,7 +293,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply(const EdgeDoFFunction<real_t> &src,co
      #pragma omp parallel for
      for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
      {
-        Cell& cell = *this->getStorage()->getCell( cellIDs[i] );
+        Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
 
       const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag());
       if ( testFlag( cellBC, flag ))
@@ -363,7 +363,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply(const EdgeDoFFunction<real_t> &src,co
      #pragma omp parallel for
      for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
      {
-        Face& face = *this->getStorage()->getFace( faceIDs[i] );
+        Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
 
         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
         if ( testFlag( faceBC, flag ) )
@@ -539,7 +539,7 @@ void EdgeDoFOperator< EdgeDoFForm >::apply(const EdgeDoFFunction<real_t> &src,co
    #pragma omp parallel for
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[i] );
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
 
     const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
     if ( testFlag( edgeBC, flag ) )

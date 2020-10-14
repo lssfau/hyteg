@@ -628,9 +628,11 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
 
    this->timingTree_->start( "Macro-Vertex" );
 
-   for ( const auto& it : storage_->getVertices() )
+   std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
+   #pragma omp parallel for
+   for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
-      Vertex& vertex = *it.second;
+      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
 
       const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if ( testFlag( vertexBC, flag ) )
@@ -650,7 +652,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
       #pragma omp parallel for
       for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
       {
-         Edge& edge = *this->getStorage()->getEdge( edgeIDs[i] );
+         Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
 
           const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag());
           if ( testFlag( edgeBC, flag ))
@@ -671,7 +673,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
       #pragma omp parallel for
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
       {
-         Face& face = *this->getStorage()->getFace( faceIDs[i] );
+         Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
 
          const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
          if ( testFlag( faceBC, flag ) )
@@ -818,7 +820,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
       #pragma omp parallel for
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         Cell& cell = *this->getStorage()->getCell( cellIDs[i] );
+         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
 
          const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
          if ( testFlag( cellBC, flag ) )
