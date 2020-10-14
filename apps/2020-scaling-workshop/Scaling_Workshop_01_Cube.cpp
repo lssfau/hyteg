@@ -90,8 +90,8 @@ void benchmark( int argc, char** argv )
    std::shared_ptr< PrimitiveStorage > storage;
 
    {
-      auto meshInfo =
-          MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( {1, 1, 1} ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
+      auto meshInfo = MeshInfo::meshSymmetricCuboid(
+          leftBottom3D, Point3D( { 1, 1, 1 } ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
 
       auto onBoundary = []( const Point3D& ) { return true; };
       meshInfo.setMeshBoundaryFlagsByVertexLocation( 1, onBoundary );
@@ -125,6 +125,11 @@ void benchmark( int argc, char** argv )
    std::function< real_t( const hyteg::Point3D& ) > rhsV = []( const hyteg::Point3D& ) -> real_t { return 0; };
    std::function< real_t( const hyteg::Point3D& ) > rhsW = []( const hyteg::Point3D& ) -> real_t { return 0; };
 
+   std::minstd_rand                                 randomGenerator( 0 );
+   std::function< real_t( const hyteg::Point3D& ) > minstd_random = [randomGenerator]( const hyteg::Point3D& ) mutable -> real_t {
+      return real_c( randomGenerator() ) / real_c( randomGenerator.max() );
+   };
+
    bool projectPressure                 = true;
    bool projectPressureAfterRestriction = true;
    bool RHSisZero                       = false;
@@ -138,10 +143,10 @@ void benchmark( int argc, char** argv )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "# - scenario 0: u, p = 0, f = 0, initial guess: rand(0, 1) " );
 
-      initialU = []( const hyteg::Point3D& ) { return walberla::math::realRandom(); };
-      initialV = []( const hyteg::Point3D& ) { return walberla::math::realRandom(); };
-      initialW = []( const hyteg::Point3D& ) { return walberla::math::realRandom(); };
-      initialP = []( const hyteg::Point3D& ) { return walberla::math::realRandom(); };
+      initialU = minstd_random;
+      initialV = minstd_random;
+      initialW = minstd_random;
+      initialP = minstd_random;
 
       RHSisZero = true;
    }
