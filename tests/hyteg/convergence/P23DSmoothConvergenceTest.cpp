@@ -56,9 +56,9 @@ static void testP2SmoothConvergence( const uint_t & level, const std::string & m
   rhs.interpolate( zeros, level, All );
   x.interpolate( zeros, level, DirichletBoundary );
 
-  OpenMPManager::instance()->forceSerial();
+  walberla::OpenMPManager::instance()->forceSerial();
   x.interpolate( rand,  level, Inner );
-  OpenMPManager::instance()->resetToParallel();
+  walberla::OpenMPManager::instance()->resetToParallel();
 
   real_t discreteL2Norm;
 
