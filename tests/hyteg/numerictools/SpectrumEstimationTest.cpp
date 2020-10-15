@@ -47,6 +47,7 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/numerictools/SpectrumEstimation.hpp"
+#include "hyteg/OpenMPManager.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;
@@ -89,8 +90,11 @@ int main( int argc, char* argv[] )
   P1Function< real_t > rhs( "rhs", storage, level, level );
   P1Function< real_t > tmp( "tmp", storage, level, level );
 
+  OpenMPManager::instance()->forceSerial();
   uRand1.interpolate( randFunc, level, Inner );
   uRand2.interpolate( randFunc, level, Inner );
+  OpenMPManager::instance()->resetToParallel();
+
   uRand1.interpolate( zeros, level, DirichletBoundary );
   uRand2.interpolate( zeros, level, DirichletBoundary );
   rhs.interpolate( zeros, level, All );

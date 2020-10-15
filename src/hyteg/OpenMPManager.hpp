@@ -23,7 +23,7 @@
 #include "core/singleton/Singleton.h"
 #include "core/OpenMP.h"
 
-namespace walberla {
+namespace hyteg {
 
 /// \brief Class that may be useful to globally manage OpenMP functionality.
 class OpenMPManager : public walberla::singleton::Singleton< OpenMPManager >
@@ -35,25 +35,40 @@ class OpenMPManager : public walberla::singleton::Singleton< OpenMPManager >
    /// \brief Forces the number of OpenMP threads to 1 after this call.
    void forceSerial()
    {
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
       omp_set_num_threads(1);
+      #endif
    }
 
    /// \brief Resets the (maximum) number of OpenMP threads to the number of threads that OpenMP was configured to
    ///        during construction of this manager.
    void resetToParallel()
    {
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
       omp_set_num_threads(maxNumThreads_);
+      #endif
    }
 
    /// \brief Returns the current (maximum) number of threads.
    int numThreads() const
    {
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
       return omp_get_max_threads();
+      #else
+      return 1;
+      #endif
    }
 
  private:
 
-   OpenMPManager() : maxNumThreads_( omp_get_max_threads() ) {}
+   OpenMPManager()
+   : maxNumThreads_(
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+         omp_get_max_threads()
+#else
+         1
+#endif
+         ) {}
 
    int maxNumThreads_;
 

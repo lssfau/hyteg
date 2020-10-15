@@ -1197,7 +1197,7 @@ ValueType EdgeDoFFunction< ValueType >::dotLocal( const EdgeDoFFunction< ValueTy
    ValueType scalarProductFaces = 0;
    std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
    #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for reduction(+: scalarProductEdges)
+   #pragma omp parallel for reduction(+: scalarProductFaces)
    #endif
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
@@ -1215,7 +1215,7 @@ ValueType EdgeDoFFunction< ValueType >::dotLocal( const EdgeDoFFunction< ValueTy
    {
       std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
       #ifdef WALBERLA_BUILD_WITH_OPENMP
-      #pragma omp parallel for reduction(+: scalarProductEdges)
+      #pragma omp parallel for reduction(+: scalarProductCells)
       #endif
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {

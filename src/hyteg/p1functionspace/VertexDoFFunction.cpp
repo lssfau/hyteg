@@ -1542,10 +1542,10 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
    this->startTiming( "Dot (local)" );
    auto scalarProduct = ValueType( 0 );
 
-   ValueType scalarProductVertexs = 0;
+   ValueType scalarProductVertices = 0;
    std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
    #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for reduction(+: scalarProductVertexs)
+   #pragma omp parallel for reduction(+: scalarProductVertices)
    #endif
    for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
@@ -1553,17 +1553,17 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
 
       if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
-         scalarProductVertexs += vertexdof::macrovertex::dot( vertex, vertexDataID_, rhs.vertexDataID_, level );
+         scalarProductVertices += vertexdof::macrovertex::dot( vertex, vertexDataID_, rhs.vertexDataID_, level );
       }
    }
-   scalarProduct += scalarProductVertexs;
+   scalarProduct += scalarProductVertices;
 
    if ( level >= 1 )
    {
       ValueType scalarProductEdges = 0;
       std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
       #ifdef WALBERLA_BUILD_WITH_OPENMP
-      #pragma omp parallel for reduction(+: scalarProductVertexs)
+      #pragma omp parallel for reduction(+: scalarProductEdges)
       #endif
       for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
       {
@@ -1579,7 +1579,7 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
       ValueType scalarProductFaces = 0;
       std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
       #ifdef WALBERLA_BUILD_WITH_OPENMP
-      #pragma omp parallel for reduction(+: scalarProductVertexs)
+      #pragma omp parallel for reduction(+: scalarProductFaces)
       #endif
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
       {
@@ -1595,7 +1595,7 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
       ValueType scalarProductCells = 0;
       std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
       #ifdef WALBERLA_BUILD_WITH_OPENMP
-      #pragma omp parallel for reduction(+: scalarProductVertexs)
+      #pragma omp parallel for reduction(+: scalarProductCells)
       #endif
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
