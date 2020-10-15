@@ -15,7 +15,7 @@ def create_files(args, args_dict):
         binary_name = 'Scaling_Workshop_01_Cube'
         num_tets = (args.num_edges_per_side ** 3) * 24
 
-        base_name = '_'.join([datestamp, 'benchmark_cube', f'{args.num_nodes}_nodes', f'{args.num_cores}_cores', f'{num_tets}_tets'])
+        base_name = '_'.join([datestamp, 'benchmark_cube', f'{args.num_nodes}_nodes', f'{args.num_mpi_procs_per_node}_ppn', f'{args.num_omp_threads_per_mpi_proc}_tpp', f'{num_tets}_tets'])
         parameter_file_name = base_name + '.prm'
         args_dict['db_file'] = base_name + '.db'
         args_dict['timing_file'] = base_name + '.json'
@@ -62,7 +62,8 @@ if __name__ == "__main__":
 
     parser.add_argument("--machine", help="hawk or supermuc", type=str, required=True)
     parser.add_argument("--num_nodes", help="number of nodes to be used", type=int, required=True)
-    parser.add_argument("--num_cores", help="number of cores per node", type=int, required=True)
+    parser.add_argument("--num_mpi_procs_per_node", help="number of MPI processes per node", type=int, required=True)
+    parser.add_argument("--num_omp_threads_per_mpi_proc", help="number of OpenMP threads per MPI process", type=int, default=1)
     parser.add_argument("--walltime", default="00:10:00", help="walltime for the job")
 
     subparsers = parser.add_subparsers(dest='benchmark')

@@ -33,6 +33,8 @@
 
 namespace hyteg {
 
+using walberla::int_c;
+
 template < class VertexDoFToEdgeDoFForm >
 VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::VertexDoFToEdgeDoFOperator(
     const std::shared_ptr< PrimitiveStorage >& storage,
@@ -308,9 +310,13 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
 
    if ( level >= 1 )
    {
-      for ( auto& it : storage_->getCells() )
+      std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
+      #pragma omp parallel for default(shared)
+      #endif
+      for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         Cell& cell = *it.second;
+         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
 
          const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
          if ( testFlag( cellBC, flag ) )
@@ -366,9 +372,13 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
 
    if ( level >= 1 )
    {
-      for ( auto& it : storage_->getFaces() )
+      std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
+      #pragma omp parallel for default(shared)
+      #endif
+      for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
       {
-         Face& face = *it.second;
+         Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
 
          const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
          if ( testFlag( faceBC, flag ) )
@@ -528,9 +538,13 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
 
    this->timingTree_->start( "Macro-Edge" );
 
-   for ( auto& it : storage_->getEdges() )
+   std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
+   #pragma omp parallel for default(shared)
+   #endif
+   for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *it.second;
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
 
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, flag ) )

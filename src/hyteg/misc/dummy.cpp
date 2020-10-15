@@ -21,3 +21,6 @@
 
 void hyteg::misc::dummy( double* ) {}
 void hyteg::misc::dummy( double*, double* ) {}
+
+void hyteg::misc::dummy( void* ) {}
+void hyteg::misc::dummy( void*, void* ) {}

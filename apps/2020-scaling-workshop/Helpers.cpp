@@ -123,6 +123,16 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
        ( std::is_same< typename StokesFunction< real_t >::Tag, P2P1TaylorHoodFunctionTag >::value ? "P2-P1" : "P1-P1" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << benchmarkName )
+   WALBERLA_LOG_INFO_ON_ROOT( " - parallelism: " )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + MPI processes:                                " << walberla::mpi::MPIManager::instance()->numProcesses() );
+   WALBERLA_OPENMP_SECTION()
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "   + OpenMP threads per MPI process:               " << hyteg::OpenMPManager::instance()->numThreads() );
+   }
+   WALBERLA_NON_OPENMP_SECTION()
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "   + OpenMP disabled" );
+   }
    WALBERLA_LOG_INFO_ON_ROOT( " - space discretization: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + elements:                                     " << discretization );
    WALBERLA_LOG_INFO_ON_ROOT( "   + dimensions:                                   " << ( storage->hasGlobalCells() ? "3" : "2" ) )
