@@ -1119,7 +1119,7 @@ void EdgeDoFFunction< ValueType >::add(
    }
 
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-#ifdef WALBERLA_BUILD_WITH_OPENMP
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
    #endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
@@ -1150,8 +1150,8 @@ void EdgeDoFFunction< ValueType >::add(
    {
       std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
       #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+      #pragma omp parallel for default(shared)
+      #endif
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
          Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
@@ -1180,7 +1180,9 @@ ValueType EdgeDoFFunction< ValueType >::dotLocal( const EdgeDoFFunction< ValueTy
 
    ValueType scalarProductEdges = 0;
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for reduction(+: scalarProductEdges)
+   #endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
       Edge& edge = *this->getStorage()->getEdge( edgeIDs[ uint_c(i) ] );
@@ -1194,7 +1196,9 @@ ValueType EdgeDoFFunction< ValueType >::dotLocal( const EdgeDoFFunction< ValueTy
 
    ValueType scalarProductFaces = 0;
    std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-   #pragma omp parallel for reduction(+: scalarProductFaces)
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
+   #pragma omp parallel for reduction(+: scalarProductEdges)
+   #endif
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
       Face& face = *this->getStorage()->getFace( faceIDs[ uint_c(i) ] );
@@ -1210,7 +1214,9 @@ ValueType EdgeDoFFunction< ValueType >::dotLocal( const EdgeDoFFunction< ValueTy
    if ( level >= 1 )
    {
       std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-      #pragma omp parallel for reduction(+: scalarProductCells)
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
+      #pragma omp parallel for reduction(+: scalarProductEdges)
+      #endif
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
          Cell& cell = *this->getStorage()->getCell( cellIDs[ uint_c(i) ] );

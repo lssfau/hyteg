@@ -1534,7 +1534,9 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
 
    ValueType scalarProductVertexs = 0;
    std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for reduction(+: scalarProductVertexs)
+   #endif
    for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
       Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[ uint_c( i ) ] );
@@ -1550,7 +1552,9 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
    {
       ValueType scalarProductEdges = 0;
       std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-      #pragma omp parallel for reduction(+: scalarProductEdges)
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
+      #pragma omp parallel for reduction(+: scalarProductVertexs)
+      #endif
       for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
       {
          Edge& edge = *this->getStorage()->getEdge( edgeIDs[ uint_c( i ) ] );
@@ -1564,7 +1568,9 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
 
       ValueType scalarProductFaces = 0;
       std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-      #pragma omp parallel for reduction(+: scalarProductFaces)
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
+      #pragma omp parallel for reduction(+: scalarProductVertexs)
+      #endif
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
       {
          Face& face = *this->getStorage()->getFace( faceIDs[ uint_c( i ) ] );
@@ -1578,7 +1584,9 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
 
       ValueType scalarProductCells = 0;
       std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-      #pragma omp parallel for reduction(+: scalarProductCells)
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
+      #pragma omp parallel for reduction(+: scalarProductVertexs)
+      #endif
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
          Cell& cell = *this->getStorage()->getCell( cellIDs[ uint_c( i ) ] );
