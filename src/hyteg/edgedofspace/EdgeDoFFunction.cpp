@@ -37,6 +37,8 @@
 #include "hyteg/edgedofspace/generatedKernels/assign_3D_macrocell_edgedof_3_rhsfunctions.hpp"
 #include "hyteg/primitives/all.hpp"
 
+#include "core/OpenMP.h"
+
 namespace hyteg {
 
 using walberla::int_c;

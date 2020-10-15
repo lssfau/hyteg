@@ -35,6 +35,8 @@
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
 
+#include "core/OpenMP.h"
+
 namespace hyteg {
 
 using walberla::int_c;
