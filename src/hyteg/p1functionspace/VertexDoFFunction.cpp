@@ -305,9 +305,11 @@ void VertexDoFFunction< ValueType >::interpolate(
       srcCellIDs.push_back( function.cellDataID_ );
    }
 
-   for ( const auto& it : this->getStorage()->getVertices() )
+   std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
+   #pragma omp parallel for default(shared)
+   for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
-      Vertex& vertex = *it.second;
+      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
@@ -315,9 +317,11 @@ void VertexDoFFunction< ValueType >::interpolate(
       }
    }
 
-   for ( const auto& it : this->getStorage()->getEdges() )
+   std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
+   #pragma omp parallel for default(shared)
+   for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *it.second;
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
@@ -341,7 +345,7 @@ void VertexDoFFunction< ValueType >::interpolate(
    #pragma omp parallel for
    for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
    {
-      Cell& cell = *this->getStorage()->getCell( cellIDs[ i ] );
+      Cell& cell = *this->getStorage()->getCell( cellIDs[ uint_c( i ) ] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
       {
@@ -377,9 +381,11 @@ void VertexDoFFunction< ValueType >::interpolate(
       srcCellIDs.push_back( function.cellDataID_ );
    }
 
-   for ( const auto& it : this->getStorage()->getVertices() )
+   std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
+   #pragma omp parallel for
+   for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
-      Vertex& vertex = *it.second;
+      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[ uint_c( i ) ] );
 
       if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( vertex.getMeshBoundaryFlag() ) == boundaryUID )
       {
@@ -387,9 +393,11 @@ void VertexDoFFunction< ValueType >::interpolate(
       }
    }
 
-   for ( const auto& it : this->getStorage()->getEdges() )
+   std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
+   #pragma omp parallel for
+   for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *it.second;
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[ uint_c( i ) ] );
 
       if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( edge.getMeshBoundaryFlag() ) == boundaryUID )
       {
@@ -397,9 +405,11 @@ void VertexDoFFunction< ValueType >::interpolate(
       }
    }
 
-   for ( auto& it : this->getStorage()->getFaces() )
+   std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+   #pragma omp parallel for
+   for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
-      Face& face = *it.second;
+      Face& face = *this->getStorage()->getFace( faceIDs[ uint_c( i ) ] );
 
       if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( face.getMeshBoundaryFlag() ) == boundaryUID )
       {
@@ -407,9 +417,11 @@ void VertexDoFFunction< ValueType >::interpolate(
       }
    }
 
-   for ( const auto& it : this->getStorage()->getCells() )
+   std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
+   #pragma omp parallel for
+   for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
    {
-      Cell& cell = *it.second;
+      Cell& cell = *this->getStorage()->getCell( cellIDs[ uint_c( i ) ] );
 
       if ( boundaryCondition_.getBoundaryUIDFromMeshFlag( cell.getMeshBoundaryFlag() ) == boundaryUID )
       {
@@ -1487,7 +1499,7 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
    #pragma omp parallel for reduction(+: scalarProductVertexs)
    for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
-      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[ i ] );
+      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[ uint_c( i ) ] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1503,7 +1515,7 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
       #pragma omp parallel for reduction(+: scalarProductEdges)
       for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
       {
-         Edge& edge = *this->getStorage()->getEdge( edgeIDs[ i ] );
+         Edge& edge = *this->getStorage()->getEdge( edgeIDs[ uint_c( i ) ] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
          {
@@ -1517,7 +1529,7 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
       #pragma omp parallel for reduction(+: scalarProductFaces)
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
       {
-         Face& face = *this->getStorage()->getFace( faceIDs[ i ] );
+         Face& face = *this->getStorage()->getFace( faceIDs[ uint_c( i ) ] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
          {
@@ -1531,7 +1543,7 @@ ValueType VertexDoFFunction< ValueType >::dotLocal( const VertexDoFFunction< Val
       #pragma omp parallel for reduction(+: scalarProductCells)
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         Cell& cell = *this->getStorage()->getCell( cellIDs[ i ] );
+         Cell& cell = *this->getStorage()->getCell( cellIDs[ uint_c( i ) ] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
          {

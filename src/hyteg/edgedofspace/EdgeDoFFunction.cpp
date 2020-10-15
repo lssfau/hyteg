@@ -1151,7 +1151,7 @@ ValueType EdgeDoFFunction< ValueType >::dotLocal( const EdgeDoFFunction< ValueTy
    #pragma omp parallel for reduction(+: scalarProductEdges)
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[ i ] );
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[ uint_c(i) ] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1165,7 +1165,7 @@ ValueType EdgeDoFFunction< ValueType >::dotLocal( const EdgeDoFFunction< ValueTy
    #pragma omp parallel for reduction(+: scalarProductFaces)
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
-      Face& face = *this->getStorage()->getFace( faceIDs[ i ] );
+      Face& face = *this->getStorage()->getFace( faceIDs[ uint_c(i) ] );
 
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
@@ -1181,7 +1181,7 @@ ValueType EdgeDoFFunction< ValueType >::dotLocal( const EdgeDoFFunction< ValueTy
       #pragma omp parallel for reduction(+: scalarProductCells)
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         Cell& cell = *this->getStorage()->getCell( cellIDs[ i ] );
+         Cell& cell = *this->getStorage()->getCell( cellIDs[ uint_c(i) ] );
 
          if ( testFlag( boundaryCondition_.getBoundaryType( cell.getMeshBoundaryFlag() ), flag ) )
          {
