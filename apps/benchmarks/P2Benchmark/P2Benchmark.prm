@@ -1,5 +1,5 @@
 Parameters
 {
-  level 7;
-  mesh  ../../../data/meshes/3D/cube_24el.msh;
+  level 10;
+  mesh  ../../../data/meshes/annulus_coarse.msh;
 }
