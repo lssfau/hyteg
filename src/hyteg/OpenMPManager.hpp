@@ -35,25 +35,25 @@ class OpenMPManager : public walberla::singleton::Singleton< OpenMPManager >
    /// \brief Forces the number of OpenMP threads to 1 after this call.
    void forceSerial()
    {
-      omp_set_num_threads(1);
+      walberla::omp_set_num_threads(1);
    }
 
    /// \brief Resets the (maximum) number of OpenMP threads to the number of threads that OpenMP was configured to
    ///        during construction of this manager.
    void resetToParallel()
    {
-      omp_set_num_threads(maxNumThreads_);
+      walberla::omp_set_num_threads(maxNumThreads_);
    }
 
    /// \brief Returns the current (maximum) number of threads.
    int numThreads() const
    {
-      return omp_get_max_threads();
+      return walberla::omp_get_max_threads();
    }
 
  private:
 
-   OpenMPManager() : maxNumThreads_( omp_get_max_threads() ) {}
+   OpenMPManager() : maxNumThreads_( walberla::omp_get_max_threads() ) {}
 
    int maxNumThreads_;
 

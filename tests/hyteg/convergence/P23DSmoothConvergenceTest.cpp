@@ -56,8 +56,6 @@ static void testP2SmoothConvergence( const uint_t & level, const std::string & m
   rhs.interpolate( zeros, level, All );
   x.interpolate( zeros, level, DirichletBoundary );
 
-  WALBERLA_LOG_DEVEL_ON_ROOT(omp_get_max_threads())
-
   OpenMPManager::instance()->forceSerial();
   x.interpolate( rand,  level, Inner );
   OpenMPManager::instance()->resetToParallel();
