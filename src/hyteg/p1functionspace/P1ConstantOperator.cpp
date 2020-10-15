@@ -629,7 +629,9 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
    this->timingTree_->start( "Macro-Vertex" );
 
    std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
-   #pragma omp parallel for
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
+   #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
       Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
@@ -649,7 +651,9 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
    if ( level >= 1 )
    {
       std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-      #pragma omp parallel for
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
+      #pragma omp parallel for default(shared)
+      #endif
       for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
       {
          Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
@@ -670,7 +674,9 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
    if ( level >= 2 )
    {
       std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-      #pragma omp parallel for
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
+      #pragma omp parallel for default(shared)
+      #endif
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
       {
          Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
@@ -817,7 +823,9 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
    if ( level >= 2 )
    {
       std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-      #pragma omp parallel for
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
+      #pragma omp parallel for default(shared)
+      #endif
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
          Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );

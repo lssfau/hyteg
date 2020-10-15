@@ -127,7 +127,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    WALBERLA_LOG_INFO_ON_ROOT( "   + MPI processes:                                " << walberla::mpi::MPIManager::instance()->numProcesses() );
    WALBERLA_OPENMP_SECTION()
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "   + OpenMP threads per MPI process:               " << omp_get_max_threads() );
+      WALBERLA_LOG_INFO_ON_ROOT( "   + OpenMP threads per MPI process:               " << OpenMPManager::instance()->numThreads() );
    }
    WALBERLA_NON_OPENMP_SECTION()
    {

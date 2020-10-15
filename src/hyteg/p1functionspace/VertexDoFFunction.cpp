@@ -306,7 +306,9 @@ void VertexDoFFunction< ValueType >::interpolate(
    }
 
    std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
       Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
@@ -318,7 +320,9 @@ void VertexDoFFunction< ValueType >::interpolate(
    }
 
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
       Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
@@ -330,7 +334,9 @@ void VertexDoFFunction< ValueType >::interpolate(
    }
 
    std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
       Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
@@ -984,7 +990,9 @@ void VertexDoFFunction< ValueType >::assign(
    this->getStorage()->getTimingTree()->start( "Vertex" );
    
    std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
       Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
@@ -999,7 +1007,9 @@ void VertexDoFFunction< ValueType >::assign(
    this->getStorage()->getTimingTree()->start( "Edge" );
    
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
       Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
@@ -1014,7 +1024,9 @@ void VertexDoFFunction< ValueType >::assign(
    this->getStorage()->getTimingTree()->start( "Face" );
 
    std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
       Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
@@ -1029,7 +1041,9 @@ void VertexDoFFunction< ValueType >::assign(
    this->getStorage()->getTimingTree()->start( "Cell" );
 
    std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
    {
       Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
@@ -1174,7 +1188,9 @@ void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t&
    this->startTiming( "Add" );
 
    std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
       Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
@@ -1186,7 +1202,9 @@ void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t&
    }
 
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
       Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
@@ -1198,7 +1216,9 @@ void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t&
    }
 
    std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
       Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
@@ -1210,7 +1230,9 @@ void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t&
    }
 
    std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
    {
       Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
@@ -1342,7 +1364,9 @@ void VertexDoFFunction< ValueType >::add(
    }
 
    std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
       Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
@@ -1354,7 +1378,9 @@ void VertexDoFFunction< ValueType >::add(
    }
 
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
       Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
@@ -1366,7 +1392,9 @@ void VertexDoFFunction< ValueType >::add(
    }
 
    std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
       Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
@@ -1378,7 +1406,9 @@ void VertexDoFFunction< ValueType >::add(
    }
 
    std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
    {
       Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
@@ -1416,7 +1446,9 @@ void VertexDoFFunction< ValueType >::multElementwise(
    }
 
    std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
       Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
@@ -1428,7 +1460,9 @@ void VertexDoFFunction< ValueType >::multElementwise(
    }
 
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
       Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
@@ -1440,7 +1474,9 @@ void VertexDoFFunction< ValueType >::multElementwise(
    }
 
    std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
       Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
@@ -1452,7 +1488,9 @@ void VertexDoFFunction< ValueType >::multElementwise(
    }
 
    std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
    {
       Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
@@ -1943,7 +1981,9 @@ void VertexDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType
    if ( std::is_same< PrimitiveType, Vertex >::value )
    {
       std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
-      #pragma omp parallel for default(shared)
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
+   #pragma omp parallel for default(shared)
+   #endif
       for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
       {
          Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
@@ -1957,7 +1997,9 @@ void VertexDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType
    else if ( std::is_same< PrimitiveType, Edge >::value )
    {
       std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-      #pragma omp parallel for default(shared)
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
+   #pragma omp parallel for default(shared)
+   #endif
       for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
       {
          Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
@@ -1971,7 +2013,9 @@ void VertexDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType
    else if ( std::is_same< PrimitiveType, Face >::value )
    {
       std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-      #pragma omp parallel for default(shared)
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
+   #pragma omp parallel for default(shared)
+   #endif
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
       {
          Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
@@ -1985,7 +2029,9 @@ void VertexDoFFunction< ValueType >::interpolateByPrimitiveType( const ValueType
    else if ( std::is_same< PrimitiveType, Cell >::value )
    {
       std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-      #pragma omp parallel for default(shared)
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
+   #pragma omp parallel for default(shared)
+   #endif
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
          Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );

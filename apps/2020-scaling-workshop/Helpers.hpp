@@ -31,6 +31,7 @@
 #include "core/logging/Logging.h"
 #include "core/OpenMP.h"
 
+#include "hyteg/OpenMPManager.hpp"
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/Git.hpp"
 #include "hyteg/MeshQuality.hpp"

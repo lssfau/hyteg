@@ -195,7 +195,9 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_edges( const P2Function< rea
       edgeIDs.push_back( it.first );
    }
 
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
       Edge& edge = *storage_->getEdge( PrimitiveID( edgeIDs[uint_c( i )] ) );
@@ -257,7 +259,9 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< rea
       faceIDs.push_back( it.first );
    }
 
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
       Face& face = *storage_->getFace( PrimitiveID( faceIDs[uint_c( i )] ) );
@@ -861,7 +865,9 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
       cellIDs.push_back( it.first );
    }
 
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
    #pragma omp parallel for default(shared)
+   #endif
    for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
    {
       Cell& cell = *storage_->getCell( PrimitiveID( cellIDs[uint_c( i )] ) );
