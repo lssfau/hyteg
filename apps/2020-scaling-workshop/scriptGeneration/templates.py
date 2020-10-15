@@ -39,11 +39,11 @@ def parameter_file_01_cube(scenario: int, max_level: int, num_edges_per_side: in
 """
 
 
-def job_file_hawk(job_name: str, binary_name: str, num_nodes: int, num_cores: int, walltime: str, total_num_procs: int, paramfile_name: str,
+def job_file_hawk(job_name: str, binary_name: str, num_nodes: int, num_omp_threads_per_mpi_proc: int, walltime: str, total_num_procs: int, paramfile_name: str,
                   path: str, **kwargs):
     return f"""#!/bin/bash
 #PBS -N {job_name}
-#PBS -l select={num_nodes}:node_type=rome:mpiprocs={num_cores}
+#PBS -l select={num_nodes}:node_type=rome:mpiprocs={num_omp_threads_per_mpi_proc}
 #PBS -l walltime={walltime}
 #PBS -m abe
 #PBS -M dominik.thoennes@fau.de
@@ -62,11 +62,11 @@ cd ..
 pwd
 ls -lha
 
-mpirun -np {total_num_procs} omplace -c 0-128:st={int(128 / num_cores)} {path}{binary_name} {path}hawk/{paramfile_name}
+mpirun -np {total_num_procs} omplace -c 0-128:st={int(128 / num_omp_threads_per_mpi_proc)} {path}{binary_name} {path}hawk/{paramfile_name}
 """
 
 
-def job_file_supermuc(job_name: str, binary_name: str, num_nodes: int, num_cores: int, walltime: str, paramfile_name: str, **kwargs):
+def job_file_supermuc(job_name: str, binary_name: str, num_nodes: int, num_mpi_procs_per_node: int, num_omp_threads_per_mpi_proc: int, walltime: str, paramfile_name: str, **kwargs):
     petsc_detail_string = "-ksp_view -ksp_monitor -log_view -mat_mumps_icntl_4 2"
 
     def partition(num_nodes):
@@ -104,7 +104,7 @@ def job_file_supermuc(job_name: str, binary_name: str, num_nodes: int, num_cores
 #SBATCH --partition={partition(num_nodes)}
 #Number of nodes and MPI tasks per node:
 #SBATCH --nodes={num_nodes}
-#SBATCH --ntasks-per-node={num_cores}
+#SBATCH --ntasks-per-node={num_mpi_procs_per_node}
 {constraint}
 
 cd ..
@@ -112,6 +112,11 @@ pwd
 ls -lha
 
 source load_modules_supermuc.sh
+
+export OMP_NUM_THREADS={num_omp_threads_per_mpi_proc}
+
+export I_MPI_PIN_CELL=core
+export I_MPI_PIN_DOMAIN=omp:compact
 
 module list
 
