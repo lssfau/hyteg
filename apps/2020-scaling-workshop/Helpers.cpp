@@ -357,8 +357,14 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    errorAndResidual( A, u, f, r, tmp, solutionU, solutionV, solutionW, solutionP, maxLevel, errorFlag, RHSisZero,  residualL2Velocity, residualL2Pressure, errorL2Velocity, errorL2Pressure );
 
    printFunctionAllocationInfo( *storage, 2 );
-   printCurrentMemoryUsage( MemoryUsageDeterminationType::C_RUSAGE );
-   printCurrentMemoryUsage( MemoryUsageDeterminationType::PETSC );
+
+   double sumGBAllocatedRUsage, minGBAllocatedRUsage, maxGBAllocatedRUsage;
+   double sumGBAllocatedPetsc, minGBAllocatedPetsc, maxGBAllocatedPetsc;
+
+   printAndGetCurrentMemoryUsage(
+       sumGBAllocatedRUsage, minGBAllocatedRUsage, maxGBAllocatedRUsage, MemoryUsageDeterminationType::C_RUSAGE );
+   printAndGetCurrentMemoryUsage(
+       sumGBAllocatedPetsc, minGBAllocatedPetsc, maxGBAllocatedPetsc, MemoryUsageDeterminationType::PETSC );
 
    writeDataHeader();
 
@@ -391,6 +397,14 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    db.setConstantEntry( "coarse_grid_solver_type", coarseGridSettings.solverType );
    db.setConstantEntry( "coarse_grid_max_iterations", coarseGridSettings.maxIterations );
    db.setConstantEntry( "coarse_grid_absolute_residual_tolerance", coarseGridSettings.absoluteResidualTolerance );
+
+   db.setConstantEntry( "allocated_mem_rusage_gb_sum", sumGBAllocatedRUsage );
+   db.setConstantEntry( "allocated_mem_rusage_gb_min", minGBAllocatedRUsage );
+   db.setConstantEntry( "allocated_mem_rusage_gb_max", maxGBAllocatedRUsage );
+
+   db.setConstantEntry( "allocated_mem_petsc_gb_sum", sumGBAllocatedPetsc );
+   db.setConstantEntry( "allocated_mem_petsc_gb_min", minGBAllocatedPetsc );
+   db.setConstantEntry( "allocated_mem_petsc_gb_max", maxGBAllocatedPetsc );
 
    writeDataRow( iteration, "I", 0, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
    iteration++;

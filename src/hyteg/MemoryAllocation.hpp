@@ -79,10 +79,13 @@ inline double getCurrentMemoryUsage( MemoryUsageDeterminationType type = MemoryU
    }
 }
 
-/// \brief Prints the information on the current memory usage of the entire application.
+
+/// \brief Prints and retrieves the information on the current memory usage of the entire application.
+///
+/// In gigabytes (GB, 1e9 bytes).
 ///
 /// Involves global reduction.
-inline void printCurrentMemoryUsage( MemoryUsageDeterminationType type = MemoryUsageDeterminationType::C_RUSAGE )
+inline void printAndGetCurrentMemoryUsage( double & sumGB, double & minGB, double & maxGB, MemoryUsageDeterminationType type = MemoryUsageDeterminationType::C_RUSAGE )
 {
    std::string method;
    switch ( type )
@@ -107,6 +110,10 @@ inline void printCurrentMemoryUsage( MemoryUsageDeterminationType type = MemoryU
        walberla::mpi::allReduce( locallyAllocatedMemory, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() ) /
        1e+09;
 
+   sumGB = globalActualAllocatedMemory;
+   minGB = minActualAllocatedMemory;
+   maxGB = maxActualAllocatedMemory;
+
    WALBERLA_LOG_INFO_ON_ROOT( "========================= Memory Usage Info =========================" );
    WALBERLA_LOG_INFO_ON_ROOT( " method: " << method );
    WALBERLA_LOG_INFO_ON_ROOT( "                       +--------------+--------------+--------------+" );
@@ -119,6 +126,16 @@ inline void printCurrentMemoryUsage( MemoryUsageDeterminationType type = MemoryU
    WALBERLA_LOG_INFO_ON_ROOT( " ----------------------+--------------+--------------+--------------+" );
    WALBERLA_LOG_INFO_ON_ROOT( "=====================================================================" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
+}
+
+
+/// \brief Prints the information on the current memory usage of the entire application.
+///
+/// Involves global reduction.
+inline void printCurrentMemoryUsage( MemoryUsageDeterminationType type = MemoryUsageDeterminationType::C_RUSAGE )
+{
+   double sum, min, max;
+   printAndGetCurrentMemoryUsage( sum, min, max, type );
 }
 
 
