@@ -178,6 +178,8 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
    uint_t iteration = 0;
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Allocating functions ..." )
+
    StokesFunction< real_t > u( "u", storage, minLevel, maxLevel );
    StokesFunction< real_t > f =
        RHSisZero ? StokesFunction< real_t >( "f", storage, minLevel, maxLevel > minLevel ? maxLevel - 1 : maxLevel ) :
@@ -186,8 +188,12 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
        RHSisZero ? StokesFunction< real_t >( "r", storage, 0, 0 ) : StokesFunction< real_t >( "r", storage, minLevel, maxLevel );
    StokesFunction< real_t > tmp( "tmp", storage, minLevel, maxLevel );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Allocating and assembling operators ..." )
+
    StokesOperator       A( storage, minLevel, maxLevel );
    VelocityMassOperator velocityMassOperator( storage, minLevel, maxLevel );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Interpolating solution ..." )
 
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
@@ -224,6 +230,8 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
       }
    }
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Setting up VTK ..." )
+
    VTKOutput vtkOutput( "vtk", "TME", storage );
    vtkOutput.add( u );
    vtkOutput.add( tmp );
@@ -242,6 +250,8 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    real_t residualL2Pressure;
    real_t errorL2Velocity;
    real_t errorL2Pressure;
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Preparing solvers ..." )
 
    auto prolongationOperator = std::make_shared< Prolongation >();
    auto restrictionOperator  = std::make_shared< Restriction >( projectPressurefterRestriction );
@@ -354,9 +364,15 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    FullMultigridSolver< StokesOperator > fullMultigridSolver(
        storage, multigridSolver, fmgProlongation, minLevel, maxLevel, multigridSettings.fmgInnerIterations, postCycle );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Calculating initial error and residual ..." )
+
    errorAndResidual( A, u, f, r, tmp, solutionU, solutionV, solutionW, solutionP, maxLevel, errorFlag, RHSisZero,  residualL2Velocity, residualL2Pressure, errorL2Velocity, errorL2Pressure );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Obtaining function allocation info ..." )
+
    printFunctionAllocationInfo( *storage, 2 );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Gathering memory usage info ..." )
 
    double sumGBAllocatedRUsage, minGBAllocatedRUsage, maxGBAllocatedRUsage;
    double sumGBAllocatedPetsc, minGBAllocatedPetsc, maxGBAllocatedPetsc;
