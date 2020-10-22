@@ -28,3 +28,8 @@ waLBerla_add_executable( NAME Benchmark_03_BlendedAdvection
 waLBerla_add_executable( NAME Benchmark_04_BlendedAdvectionDiffusion
         FILES Benchmark_04_BlendedAdvectionDiffusion.cpp Helpers.cpp
         DEPENDS hyteg convection_particles sqlite)
+
+waLBerla_add_executable( NAME MantleConvection
+        FILES MantleConvection.cpp
+        DEPENDS hyteg convection_particles sqlite)
+
