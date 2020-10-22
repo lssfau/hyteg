@@ -193,6 +193,28 @@ inline void createMatrix( const StrongFreeSlipWrapper< P2P1TaylorHoodStokesOpera
    opr.assembleLocalMatrix( mat, src, dst, level, flag );
 }
 
+template <>
+inline void createMatrix( const StrongFreeSlipWrapper< P2P1ElementwiseBlendingStokesOperator, P2ProjectNormalOperator, true >& opr,
+                          const P2P1TaylorHoodFunction< PetscInt >&                                                   src,
+                          const P2P1TaylorHoodFunction< PetscInt >&                                                   dst,
+                          const std::shared_ptr< SparseMatrixProxy >&                                                 mat,
+                          size_t                                                                                      level,
+                          DoFType                                                                                     flag )
+{
+   opr.assembleLocalMatrix( mat, src, dst, level, flag );
+}
+
+template <>
+inline void createMatrix( const StrongFreeSlipWrapper< P2P1ElementwiseBlendingStokesOperator, P2ProjectNormalOperator, false >& opr,
+                          const P2P1TaylorHoodFunction< PetscInt >&                                                    src,
+                          const P2P1TaylorHoodFunction< PetscInt >&                                                    dst,
+                          const std::shared_ptr< SparseMatrixProxy >&                                                  mat,
+                          size_t                                                                                       level,
+                          DoFType                                                                                      flag )
+{
+   opr.assembleLocalMatrix( mat, src, dst, level, flag );
+}
+
 } // namespace petsc
 #endif
 
