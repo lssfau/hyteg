@@ -58,7 +58,11 @@
 
 #include "P1Elements.hpp"
 
+#include "core/OpenMP.h"
+
 namespace hyteg {
+
+using walberla::int_c;
 
 template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
 P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::P1ConstantOperator(
@@ -624,9 +628,13 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
 
    this->timingTree_->start( "Macro-Vertex" );
 
-   for ( const auto& it : storage_->getVertices() )
+   std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
+   #pragma omp parallel for default(shared)
+   #endif
+   for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
-      Vertex& vertex = *it.second;
+      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
 
       const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if ( testFlag( vertexBC, flag ) )
@@ -642,16 +650,20 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
 
    if ( level >= 1 )
    {
-     for ( const auto & it : storage_->getEdges())
-     {
-       Edge & edge = *it.second;
+      std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
+      #pragma omp parallel for default(shared)
+      #endif
+      for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
+      {
+         Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
 
-       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag());
-       if ( testFlag( edgeBC, flag ))
-       {
-         vertexdof::macroedge::apply< real_t >(
-         level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType );
-       }
+          const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag());
+          if ( testFlag( edgeBC, flag ))
+          {
+            vertexdof::macroedge::apply< real_t >(
+            level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType );
+          }
      }
    }
 
@@ -661,9 +673,13 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
 
    if ( level >= 2 )
    {
-      for ( const auto& it : storage_->getFaces() )
+      std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
+      #pragma omp parallel for default(shared)
+      #endif
+      for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
       {
-         Face& face = *it.second;
+         Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
 
          const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
          if ( testFlag( faceBC, flag ) )
@@ -674,11 +690,11 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
                {
                   if ( face.getNumNeighborCells() == 2 )
                   {
-                     this->timingTree_->start( "Two-sided" );
+                     WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "Two-sided" ); }
                   }
                   else
                   {
-                     this->timingTree_->start( "One-sided" );
+                     WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "One-sided" ); }
                   }
 
                   auto         opr_data    = face.getData( faceStencil3DID_ )->getData( level );
@@ -759,11 +775,11 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
 
                   if ( face.getNumNeighborCells() == 2 )
                   {
-                     this->timingTree_->stop( "Two-sided" );
+                     WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->stop( "Two-sided" ); }
                   }
                   else
                   {
-                     this->timingTree_->stop( "One-sided" );
+                     WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->stop( "One-sided" ); }
                   }
                }
                else
@@ -806,9 +822,13 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
 
    if ( level >= 2 )
    {
-      for ( const auto& it : storage_->getCells() )
+      std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
+      #ifdef WALBERLA_BUILD_WITH_OPENMP
+      #pragma omp parallel for default(shared)
+      #endif
+      for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         Cell& cell = *it.second;
+         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
 
          const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
          if ( testFlag( cellBC, flag ) )

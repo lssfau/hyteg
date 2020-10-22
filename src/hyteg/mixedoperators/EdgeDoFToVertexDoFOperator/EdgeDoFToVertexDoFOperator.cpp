@@ -32,7 +32,11 @@
 
 #include "EdgeDoFToVertexDoFApply.hpp"
 
+#include "core/OpenMP.h"
+
 namespace hyteg {
+
+using walberla::int_c;
 
 template < class EdgeDoFToVertexDoFForm >
 EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::EdgeDoFToVertexDoFOperator(
@@ -292,9 +296,13 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply(const EdgeDoFFu
 
   if ( level >= 2 )
   {
-     for ( auto& it : storage_->getCells() )
+     std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
+     #ifdef WALBERLA_BUILD_WITH_OPENMP
+     #pragma omp parallel for default(shared)
+     #endif
+     for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
      {
-        Cell& cell = *it.second;
+        Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
 
         const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
         if ( testFlag( cellBC, flag ) )
@@ -336,9 +344,13 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply(const EdgeDoFFu
 
   if ( level >= 1 )
   {
-     for ( auto& it : storage_->getFaces() )
+     std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+     #ifdef WALBERLA_BUILD_WITH_OPENMP
+     #pragma omp parallel for default(shared)
+     #endif
+     for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
      {
-        Face& face = *it.second;
+        Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
 
         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
         if ( testFlag( faceBC, flag ) )
@@ -347,7 +359,7 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply(const EdgeDoFFu
            {
               if ( hyteg::globalDefines::useGeneratedKernels && updateType == Add )
               {
-                 this->timingTree_->start( "Generated" );
+                 WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "Generated" ); }
                  auto dstData     = face.getData( dst.getFaceDataID() )->getPointer( level );
                  auto srcData     = face.getData( src.getFaceDataID() )->getPointer( level );
                  auto stencilData = face.getData( faceStencil3DID_ )->getData( level );
@@ -436,13 +448,13 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply(const EdgeDoFFu
                         neighbor_cell_1_local_vertex_id_1,
                         neighbor_cell_1_local_vertex_id_2 );
                  }
-                 this->timingTree_->stop( "Generated" );
+                 WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->stop( "Generated" ); }
               }
               else
               {
-                 this->timingTree_->start( "Not generated" );
+                 WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "Not generated" ); }
                  applyFace3D( level, face, *storage_, faceStencil3DID_, src.getFaceDataID(), dst.getFaceDataID(), updateType );
-                 this->timingTree_->stop( "Not generated" );
+                 WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->stop( "Not generated" ); }
               }
            }
            else
@@ -495,9 +507,13 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply(const EdgeDoFFu
 
   if ( level >= 1 )
   {
-     for ( auto& it : storage_->getEdges() )
+     std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
+     #ifdef WALBERLA_BUILD_WITH_OPENMP
+     #pragma omp parallel for default(shared)
+     #endif
+     for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
      {
-        Edge& edge = *it.second;
+        Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
 
         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
         if ( testFlag( edgeBC, flag ) )
@@ -570,21 +586,27 @@ void EdgeDoFToVertexDoFOperator< EdgeDoFToVertexDoFForm >::apply(const EdgeDoFFu
 
   this->timingTree_->start( "Macro-Vertex" );
 
-  for (auto& it : storage_->getVertices()) {
-    Vertex& vertex = *it.second;
+  std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
+  #ifdef WALBERLA_BUILD_WITH_OPENMP
+  #pragma omp parallel for default(shared)
+  #endif
+  for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
+  {
+     Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
 
-    const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-    if (testFlag(vertexBC, flag))
-    {
-      if ( storage_->hasGlobalCells() )
-      {
-        applyVertex3D( level, vertex, *getStorage(), vertexStencil3DID_, src.getVertexDataID(), dst.getVertexDataID(), updateType );
-      }
-      else
-      {
-        applyVertex( level, vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), updateType );
-      }
-    }
+     const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+     if ( testFlag( vertexBC, flag ) )
+     {
+        if ( storage_->hasGlobalCells() )
+        {
+           applyVertex3D(
+               level, vertex, *getStorage(), vertexStencil3DID_, src.getVertexDataID(), dst.getVertexDataID(), updateType );
+        }
+        else
+        {
+           applyVertex( level, vertex, vertexStencilID_, src.getVertexDataID(), dst.getVertexDataID(), updateType );
+        }
+     }
   }
 
   this->timingTree_->stop( "Macro-Vertex" );

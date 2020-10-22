@@ -35,14 +35,6 @@ namespace hyteg {
     using walberla::real_t;
     using walberla::real_c;
 
-
-    // Precise type of meshing approach
-    typedef enum {
-      SHELLMESH_ON_THE_FLY,  //!< meshing is done on-the-fly
-      SHELLMESH_CLASSIC      //!< meshing by midpoint refinement
-    } shellMeshType;
-
-   
     static void elemIdx2Tuple( uint_t ntan_, uint_t nrad_, uint_t jelem, 
                                uint_t & it, uint_t & is1, uint_t & is2, uint_t & id, uint_t & ir )
     {
@@ -308,7 +300,7 @@ namespace hyteg {
 
 
     static Point3D getVertex( uint_t idx, uint_t ntan, uint_t nrad, double iNode[12][3], uint_t dNode[10][4], std::vector< double > layers,
-                              double**** nodeCoords, shellMeshType flavour )
+                              double**** nodeCoords, MeshInfo::shellMeshType flavour )
     {
       // Find address tuple of vertex
       uint_t is1, is2, id, ir;
@@ -320,11 +312,11 @@ namespace hyteg {
       Point3D vertex;
       switch( flavour ) {
 
-      case SHELLMESH_ON_THE_FLY:
+      case MeshInfo::SHELLMESH_ON_THE_FLY:
         vertex = compCoordsOnTheFly( ntan, is1, is2, id, iNode, dNode ) * layers[ir];
         break;
 
-      case SHELLMESH_CLASSIC:
+      case MeshInfo::SHELLMESH_CLASSIC:
         {
           WALBERLA_ASSERT_NOT_NULLPTR( nodeCoords );
           double x = nodeCoords[is1][is2][id][0] * layers[ir];
@@ -551,18 +543,18 @@ namespace hyteg {
 
   } // namespace meshGenSphShell
 
-  MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, uint_t nrad, double rmin, double rmax )
+  MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, uint_t nrad, double rmin, double rmax, shellMeshType meshType )
   {
     std::vector< double > layers( nrad, 0.0 );
     for ( uint_t layer = 0; layer < nrad; layer++ )
       {
         layers[layer] = rmin + ( ( rmax - rmin ) / (double)( nrad - 1 ) ) * (double)layer;
       }
-    return meshSphericalShell( ntan, layers );
+    return meshSphericalShell( ntan, layers, meshType );
   }
 
 
-  MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< double > & layers )
+  MeshInfo MeshInfo::meshSphericalShell( uint_t ntan, const std::vector< double > & layers, shellMeshType meshType )
   {
     uint_t nrad = layers.size();
 
@@ -576,8 +568,6 @@ namespace hyteg {
     /// mesh, while the SHELLMESH_ON_THE_FLY variant has a lower memory footprint, but
     /// introduces a bias in the meshing and is _not_ equivalent to midpoint refinement.
     /// The resulting meshes are also not nested!
-    meshGenSphShell::shellMeshType shellmeshFlavour = meshGenSphShell::SHELLMESH_CLASSIC;
-    // shellMeshType meshFlavour = meshGenSphShell::SHELLMESH_ON_THE_FLY;
 
     /// Coordinates of the twelve icosahedral nodes of the base grid
     double iNode[12][3];
@@ -695,7 +685,7 @@ namespace hyteg {
 
     // if required, run setup routine for meshing unit sphere
     double**** nodeCoords = nullptr;
-    if( shellmeshFlavour == meshGenSphShell::SHELLMESH_CLASSIC ) {
+    if( meshType == shellMeshType::SHELLMESH_CLASSIC ) {
       meshGenSphShell::setupCoordsClassic( ntan, iNode, dNode, &nodeCoords );
     }
 
@@ -707,7 +697,7 @@ namespace hyteg {
  
     for ( uint_t vertexID = 0; vertexID < nVerts_; vertexID++ )
       {
-        auto vertexCoordinates = meshGenSphShell::getVertex( vertexID, ntan, nrad, iNode, dNode, layers, nodeCoords, shellmeshFlavour );
+        auto vertexCoordinates = meshGenSphShell::getVertex( vertexID, ntan, nrad, iNode, dNode, layers, nodeCoords, meshType );
         meshInfo.vertices_[ vertexID ] = MeshInfo::Vertex( vertexID, vertexCoordinates, 0 );
       }
 

@@ -25,6 +25,8 @@
 
 #include "P2MacroFace.hpp"
 
+#include "core/OpenMP.h"
+
 namespace hyteg {
 namespace P2 {
 namespace macroedge {
@@ -625,57 +627,56 @@ void smoothSOR3D(
     const PrimitiveDataID< FunctionMemory< real_t >, Edge >&                                     edgeDoFRhsId,
     const bool&                                                                                  backwards )
 {
-      storage.getTimingTree()->start( "VertexDoFs" );
-      if ( globalDefines::useGeneratedKernels )
-      {
-         smoothSOR3DUpdateVertexDoFsGenerated( level,
-                                               storage,
-                                               edge,
-                                               relax,
-                                               vertexToVertexOperatorMapId,
-                                               edgeToVertexOperatorId,
-                                               vertexToEdgeOperatorId,
-                                               edgeToEdgeOperatorId,
-                                               vertexDoFDstId,
-                                               vertexDoFRhsId,
-                                               edgeDoFDstId,
-                                               edgeDoFRhsId,
-                                               backwards );
-      }
-      else
-      {
-         smoothSOR3DUpdateVertexDoFs( level,
-                                      storage,
-                                      edge,
-                                      relax,
-                                      vertexToVertexOperatorId,
-                                      edgeToVertexOperatorId,
-                                      vertexToEdgeOperatorId,
-                                      edgeToEdgeOperatorId,
-                                      vertexDoFDstId,
-                                      vertexDoFRhsId,
-                                      edgeDoFDstId,
-                                      edgeDoFRhsId,
-                                      backwards );
-      }
-      storage.getTimingTree()->stop( "VertexDoFs" );
+   WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "VertexDoFs" ); }
+   if ( globalDefines::useGeneratedKernels )
+   {
+      smoothSOR3DUpdateVertexDoFsGenerated( level,
+                                            storage,
+                                            edge,
+                                            relax,
+                                            vertexToVertexOperatorMapId,
+                                            edgeToVertexOperatorId,
+                                            vertexToEdgeOperatorId,
+                                            edgeToEdgeOperatorId,
+                                            vertexDoFDstId,
+                                            vertexDoFRhsId,
+                                            edgeDoFDstId,
+                                            edgeDoFRhsId,
+                                            backwards );
+   }
+   else
+   {
+      smoothSOR3DUpdateVertexDoFs( level,
+                                   storage,
+                                   edge,
+                                   relax,
+                                   vertexToVertexOperatorId,
+                                   edgeToVertexOperatorId,
+                                   vertexToEdgeOperatorId,
+                                   edgeToEdgeOperatorId,
+                                   vertexDoFDstId,
+                                   vertexDoFRhsId,
+                                   edgeDoFDstId,
+                                   edgeDoFRhsId,
+                                   backwards );
+   }
+   WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "VertexDoFs" ); }
 
-      storage.getTimingTree()->start( "EdgeDoFs" );
-      smoothSOR3DUpdateEdgeDoFs( level,
-                                 storage,
-                                 edge,
-                                 relax,
-                                 vertexToVertexOperatorId,
-                                 edgeToVertexOperatorId,
-                                 vertexToEdgeOperatorId,
-                                 edgeToEdgeOperatorId,
-                                 vertexDoFDstId,
-                                 vertexDoFRhsId,
-                                 edgeDoFDstId,
-                                 edgeDoFRhsId,
-                                 backwards );
-      storage.getTimingTree()->stop( "EdgeDoFs" );
-
+   WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->start( "EdgeDoFs" ); }
+   smoothSOR3DUpdateEdgeDoFs( level,
+                              storage,
+                              edge,
+                              relax,
+                              vertexToVertexOperatorId,
+                              edgeToVertexOperatorId,
+                              vertexToEdgeOperatorId,
+                              edgeToEdgeOperatorId,
+                              vertexDoFDstId,
+                              vertexDoFRhsId,
+                              edgeDoFDstId,
+                              edgeDoFRhsId,
+                              backwards );
+   WALBERLA_NON_OPENMP_SECTION() { storage.getTimingTree()->stop( "EdgeDoFs" ); }
 }
 
 void smoothJacobi( const uint_t&                                            level,

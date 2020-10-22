@@ -25,5 +25,7 @@ namespace hyteg {
 namespace misc {
 void dummy( double* );
 void dummy( double*, double* );
+void dummy( void* );
+void dummy( void*, void* );
 } // namespace misc
 } // namespace hyteg

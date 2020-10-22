@@ -29,6 +29,7 @@
 #include "hyteg/BuildInfo.hpp"
 #include "hyteg/Git.hpp"
 #include "hyteg/LikwidWrapper.hpp"
+#include "hyteg/MemoryAllocation.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P1StokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
@@ -54,7 +55,6 @@
 #include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
-#include "hyteg/petsc/PETScMemoryUsage.hpp"
 #include "hyteg/petsc/PETScVersion.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -915,8 +915,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
       f_dc = std::make_shared< P1StokesFunction< real_t > >( "f_dc", storage, minLevel, maxLevel );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Memory usage after function allocation:" )
+   printCurrentMemoryUsage( MemoryUsageDeterminationType::C_RUSAGE );
 #ifdef HYTEG_BUILD_WITH_PETSC
-   printCurrentMemoryUsage();
+   printCurrentMemoryUsage( MemoryUsageDeterminationType::PETSC );
 #endif
 
    WALBERLA_LOG_INFO_ON_ROOT( "Assembling operators..." );
@@ -927,8 +928,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
    WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Memory usage after operator assembly:" )
+   printCurrentMemoryUsage( MemoryUsageDeterminationType::C_RUSAGE );
 #ifdef HYTEG_BUILD_WITH_PETSC
-   printCurrentMemoryUsage();
+   printCurrentMemoryUsage( MemoryUsageDeterminationType::PETSC );
 #endif
 
    long double l2ErrorU;
@@ -1326,8 +1328,9 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Memory usage after solver allocation:" )
+   printCurrentMemoryUsage( MemoryUsageDeterminationType::C_RUSAGE );
 #ifdef HYTEG_BUILD_WITH_PETSC
-   printCurrentMemoryUsage();
+   printCurrentMemoryUsage( MemoryUsageDeterminationType::PETSC );
 #endif
 
    WALBERLA_LOG_INFO_ON_ROOT( "Starting solver ..." );
@@ -1881,8 +1884,9 @@ void setup( int argc, char** argv )
    ////////////
 
    WALBERLA_LOG_INFO_ON_ROOT( "Memory usage before domain setup:" )
+   printCurrentMemoryUsage( MemoryUsageDeterminationType::C_RUSAGE );
 #ifdef HYTEG_BUILD_WITH_PETSC
-   printCurrentMemoryUsage();
+   printCurrentMemoryUsage( MemoryUsageDeterminationType::PETSC );
 #endif
 
    walberla::WcTimer timer;
@@ -2253,8 +2257,9 @@ void setup( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Memory usage after domain setup:" )
+   printCurrentMemoryUsage( MemoryUsageDeterminationType::C_RUSAGE );
 #ifdef HYTEG_BUILD_WITH_PETSC
-   printCurrentMemoryUsage();
+   printCurrentMemoryUsage( MemoryUsageDeterminationType::PETSC );
 #endif
 
    if ( outputVTK )

@@ -53,4 +53,10 @@ int generateZero< int >()
    return 0;
 }
 
+template <>
+long generateZero< long >()
+{
+   return 0;
+}
+
 } // namespace hyteg

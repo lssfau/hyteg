@@ -325,7 +325,7 @@ void runBenchmark( uint_t benchmark )
       WALBERLA_CHECK_LESS( currRes, 1.0e-14 );
       WALBERLA_CHECK_LESS( discr_l2_err_u, 1e-12 );
       WALBERLA_CHECK_LESS( discr_l2_err_v, 1e-12 );
-      WALBERLA_CHECK_LESS( discr_l2_err_p, 1e-12 );
+      WALBERLA_CHECK_LESS( discr_l2_err_p, 2e-12 );
    }
    else if ( benchmark == 1 )
    {

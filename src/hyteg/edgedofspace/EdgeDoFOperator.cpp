@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2020 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -35,7 +35,11 @@
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp"
 
+#include "core/OpenMP.h"
+
 namespace hyteg {
+
+using walberla::int_c;
 
 template < class EdgeDoFForm >
 EdgeDoFOperator< EdgeDoFForm >::EdgeDoFOperator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -287,9 +291,13 @@ void EdgeDoFOperator< EdgeDoFForm >::apply(const EdgeDoFFunction<real_t> &src,co
 
   if ( level >= 1 )
   {
-    for ( auto & it : storage_->getCells())
-    {
-      Cell & cell = *it.second;
+     std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
+     #ifdef WALBERLA_BUILD_WITH_OPENMP
+   #pragma omp parallel for default(shared)
+   #endif
+     for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
+     {
+        Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
 
       const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag());
       if ( testFlag( cellBC, flag ))
@@ -355,9 +363,13 @@ void EdgeDoFOperator< EdgeDoFForm >::apply(const EdgeDoFFunction<real_t> &src,co
 
   if ( level >= 1 )
   {
-     for ( auto& it : storage_->getFaces() )
+     std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
+     #ifdef WALBERLA_BUILD_WITH_OPENMP
+   #pragma omp parallel for default(shared)
+   #endif
+     for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
      {
-        Face& face = *it.second;
+        Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
 
         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
         if ( testFlag( faceBC, flag ) )
@@ -529,9 +541,13 @@ void EdgeDoFOperator< EdgeDoFForm >::apply(const EdgeDoFFunction<real_t> &src,co
 
   this->timingTree_->start( "Macro-Edge" );
 
-  for (auto& it : storage_->getEdges())
-  {
-    Edge& edge = *it.second;
+   std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
+   #ifdef WALBERLA_BUILD_WITH_OPENMP
+   #pragma omp parallel for default(shared)
+   #endif
+   for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
+   {
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
 
     const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
     if ( testFlag( edgeBC, flag ) )

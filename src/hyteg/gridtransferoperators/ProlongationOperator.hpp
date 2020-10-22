@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes.
+ * Copyright (c) 2017-2020 Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -20,6 +20,8 @@
 #pragma once
 
 #include "core/DataTypes.h"
+#include "core/Abort.h"
+
 #include "hyteg/types/flags.hpp"
 
 namespace hyteg {
@@ -27,10 +29,13 @@ namespace hyteg {
 template < typename FunctionType >
 class ProlongationOperator
 {
-public:
-  virtual void prolongate( const FunctionType& function, const walberla::uint_t& sourceLevel, const DoFType& flag ) const = 0;
+ public:
+   virtual void prolongate( const FunctionType& function, const walberla::uint_t& sourceLevel, const DoFType& flag ) const = 0;
 
-  virtual ~ProlongationOperator() = default;
+   virtual void prolongateAndAdd( const FunctionType& function, const walberla::uint_t& sourceLevel, const DoFType& flag ) const {
+       WALBERLA_ABORT( "Prolongate + Add not implemented." )};
+
+   virtual ~ProlongationOperator() = default;
 };
 
 } // namespace hyteg

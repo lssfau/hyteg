@@ -134,7 +134,7 @@ void P2Function< ValueType >::interpolate(
       edgeDoFFunctions.push_back( function.edgeDoFFunction_ );
    }
 
-   vertexDoFFunction_.interpolateExtended( expr, vertexDoFFunctions, level, flag );
+   vertexDoFFunction_.interpolate( expr, vertexDoFFunctions, level, flag );
    edgeDoFFunction_.interpolateExtended( expr, edgeDoFFunctions, level, flag );
 }
 
@@ -795,6 +795,7 @@ void P2Function< real_t >::evaluateGradient( const Point3D& coordinates, uint_t 
 // ========================
 template class P2Function< double >;
 template class P2Function< int >;
+template class P2Function< long >;
 
 namespace p2function {
 

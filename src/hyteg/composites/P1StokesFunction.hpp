@@ -24,6 +24,7 @@
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
+#include "hyteg/p1functionspace/VertexDoFMemory.hpp"
 
 namespace hyteg {
 
@@ -110,6 +111,12 @@ class P1StokesFunction
 
       uvw.assign( scalars, functions_uvw, level, flag );
       p.assign( scalars, functions_p, level, flag );
+   }
+
+   void add( real_t scalar, size_t level, DoFType flag = All ) const
+   {
+      uvw.add( scalar, level, flag );
+      p.add( scalar, level, flag );
    }
 
    void add( const std::vector< walberla::real_t >                                               scalars,
@@ -200,6 +207,25 @@ class P1StokesFunction
    P1VectorFunction< ValueType > uvw;
    P1Function< ValueType >       p;
 };
+
+inline unsigned long long p1p1localFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+{
+   if ( storage->hasGlobalCells() )
+   {
+      return 4 * vertexDoFLocalFunctionMemorySize( level, storage );
+   }
+   else
+   {
+      return 3 * vertexDoFLocalFunctionMemorySize( level, storage );
+   }
+}
+
+inline unsigned long long p1p1globalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+{
+   const auto memLocal = p1p1localFunctionMemorySize( level, storage );
+   const auto memGlobal = walberla::mpi::allReduce( memLocal, walberla::mpi::SUM );
+   return memGlobal;
+}
 
 }
 

@@ -120,6 +120,12 @@ class P2P1TaylorHoodFunction
       p.assign( scalars, functions_p, level, flag );
    }
 
+   void add( real_t scalar, size_t level, DoFType flag = All ) const
+   {
+      uvw.add( scalar, level, flag );
+      p.add( scalar, level, flag );
+   }
+
    void add( const std::vector< walberla::real_t >                                                     scalars,
              const std::vector< std::reference_wrapper< const P2P1TaylorHoodFunction< ValueType > > >& functions,
              size_t                                                                                    level,
@@ -221,5 +227,24 @@ class P2P1TaylorHoodFunction
    VelocityFunction_T uvw;
    PressureFunction_T p;
 };
+
+inline unsigned long long p2p1localFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+{
+   if ( storage->hasGlobalCells() )
+   {
+      return 3 * p2function::localFunctionMemorySize(level, storage) + vertexDoFLocalFunctionMemorySize( level, storage );
+   }
+   else
+   {
+      return 2 * p2function::localFunctionMemorySize(level, storage) + vertexDoFLocalFunctionMemorySize( level, storage );
+   }
+}
+
+inline unsigned long long p2p1globalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+{
+   const auto memLocal = p2p1localFunctionMemorySize( level, storage );
+   const auto memGlobal = walberla::mpi::allReduce( memLocal, walberla::mpi::SUM );
+   return memGlobal;
+}
 
 }

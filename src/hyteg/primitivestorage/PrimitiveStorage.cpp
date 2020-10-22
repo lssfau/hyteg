@@ -1363,26 +1363,66 @@ void PrimitiveStorage::initializeAndDeserializeAllPrimitiveData( walberla::mpi::
    }
 }
 
-std::string PrimitiveStorage::getGlobalInfo() const
-
+std::string PrimitiveStorage::getGlobalInfo( bool onRootOnly ) const
 {
-   const uint_t globalNumberOfVertices   = walberla::mpi::allReduce( getNumberOfLocalVertices(), walberla::mpi::SUM );
-   const uint_t globalNumberOfEdges      = walberla::mpi::allReduce( getNumberOfLocalEdges(), walberla::mpi::SUM );
-   const uint_t globalNumberOfFaces      = walberla::mpi::allReduce( getNumberOfLocalFaces(), walberla::mpi::SUM );
-   const uint_t globalNumberOfCells      = walberla::mpi::allReduce( getNumberOfLocalCells(), walberla::mpi::SUM );
-   const uint_t globalNumberOfPrimitives = walberla::mpi::allReduce( getNumberOfLocalPrimitives(), walberla::mpi::SUM );
+   uint_t globalNumberOfVertices;
+   uint_t globalNumberOfEdges;
+   uint_t globalNumberOfFaces;
+   uint_t globalNumberOfCells;
+   uint_t globalNumberOfPrimitives;
 
-   const uint_t globalMaxNumberOfVertices   = walberla::mpi::allReduce( getNumberOfLocalVertices(), walberla::mpi::MAX );
-   const uint_t globalMaxNumberOfEdges      = walberla::mpi::allReduce( getNumberOfLocalEdges(), walberla::mpi::MAX );
-   const uint_t globalMaxNumberOfFaces      = walberla::mpi::allReduce( getNumberOfLocalFaces(), walberla::mpi::MAX );
-   const uint_t globalMaxNumberOfCells      = walberla::mpi::allReduce( getNumberOfLocalCells(), walberla::mpi::MAX );
-   const uint_t globalMaxNumberOfPrimitives = walberla::mpi::allReduce( getNumberOfLocalPrimitives(), walberla::mpi::MAX );
+   uint_t globalMaxNumberOfVertices;
+   uint_t globalMaxNumberOfEdges;
+   uint_t globalMaxNumberOfFaces;
+   uint_t globalMaxNumberOfCells;
+   uint_t globalMaxNumberOfPrimitives;
 
-   const uint_t globalMinNumberOfVertices   = walberla::mpi::allReduce( getNumberOfLocalVertices(), walberla::mpi::MIN );
-   const uint_t globalMinNumberOfEdges      = walberla::mpi::allReduce( getNumberOfLocalEdges(), walberla::mpi::MIN );
-   const uint_t globalMinNumberOfFaces      = walberla::mpi::allReduce( getNumberOfLocalFaces(), walberla::mpi::MIN );
-   const uint_t globalMinNumberOfCells      = walberla::mpi::allReduce( getNumberOfLocalCells(), walberla::mpi::MIN );
-   const uint_t globalMinNumberOfPrimitives = walberla::mpi::allReduce( getNumberOfLocalPrimitives(), walberla::mpi::MIN );
+   uint_t globalMinNumberOfVertices;
+   uint_t globalMinNumberOfEdges;
+   uint_t globalMinNumberOfFaces;
+   uint_t globalMinNumberOfCells;
+   uint_t globalMinNumberOfPrimitives;
+
+   if ( onRootOnly )
+   {
+      globalNumberOfVertices   = walberla::mpi::reduce( getNumberOfLocalVertices(), walberla::mpi::SUM );
+      globalNumberOfEdges      = walberla::mpi::reduce( getNumberOfLocalEdges(), walberla::mpi::SUM );
+      globalNumberOfFaces      = walberla::mpi::reduce( getNumberOfLocalFaces(), walberla::mpi::SUM );
+      globalNumberOfCells      = walberla::mpi::reduce( getNumberOfLocalCells(), walberla::mpi::SUM );
+      globalNumberOfPrimitives = walberla::mpi::reduce( getNumberOfLocalPrimitives(), walberla::mpi::SUM );
+
+      globalMaxNumberOfVertices   = walberla::mpi::reduce( getNumberOfLocalVertices(), walberla::mpi::MAX );
+      globalMaxNumberOfEdges      = walberla::mpi::reduce( getNumberOfLocalEdges(), walberla::mpi::MAX );
+      globalMaxNumberOfFaces      = walberla::mpi::reduce( getNumberOfLocalFaces(), walberla::mpi::MAX );
+      globalMaxNumberOfCells      = walberla::mpi::reduce( getNumberOfLocalCells(), walberla::mpi::MAX );
+      globalMaxNumberOfPrimitives = walberla::mpi::reduce( getNumberOfLocalPrimitives(), walberla::mpi::MAX );
+
+      globalMinNumberOfVertices   = walberla::mpi::reduce( getNumberOfLocalVertices(), walberla::mpi::MIN );
+      globalMinNumberOfEdges      = walberla::mpi::reduce( getNumberOfLocalEdges(), walberla::mpi::MIN );
+      globalMinNumberOfFaces      = walberla::mpi::reduce( getNumberOfLocalFaces(), walberla::mpi::MIN );
+      globalMinNumberOfCells      = walberla::mpi::reduce( getNumberOfLocalCells(), walberla::mpi::MIN );
+      globalMinNumberOfPrimitives = walberla::mpi::reduce( getNumberOfLocalPrimitives(), walberla::mpi::MIN );
+   }
+   else
+   {
+      globalNumberOfVertices   = walberla::mpi::allReduce( getNumberOfLocalVertices(), walberla::mpi::SUM );
+      globalNumberOfEdges      = walberla::mpi::allReduce( getNumberOfLocalEdges(), walberla::mpi::SUM );
+      globalNumberOfFaces      = walberla::mpi::allReduce( getNumberOfLocalFaces(), walberla::mpi::SUM );
+      globalNumberOfCells      = walberla::mpi::allReduce( getNumberOfLocalCells(), walberla::mpi::SUM );
+      globalNumberOfPrimitives = walberla::mpi::allReduce( getNumberOfLocalPrimitives(), walberla::mpi::SUM );
+
+      globalMaxNumberOfVertices   = walberla::mpi::allReduce( getNumberOfLocalVertices(), walberla::mpi::MAX );
+      globalMaxNumberOfEdges      = walberla::mpi::allReduce( getNumberOfLocalEdges(), walberla::mpi::MAX );
+      globalMaxNumberOfFaces      = walberla::mpi::allReduce( getNumberOfLocalFaces(), walberla::mpi::MAX );
+      globalMaxNumberOfCells      = walberla::mpi::allReduce( getNumberOfLocalCells(), walberla::mpi::MAX );
+      globalMaxNumberOfPrimitives = walberla::mpi::allReduce( getNumberOfLocalPrimitives(), walberla::mpi::MAX );
+
+      globalMinNumberOfVertices   = walberla::mpi::allReduce( getNumberOfLocalVertices(), walberla::mpi::MIN );
+      globalMinNumberOfEdges      = walberla::mpi::allReduce( getNumberOfLocalEdges(), walberla::mpi::MIN );
+      globalMinNumberOfFaces      = walberla::mpi::allReduce( getNumberOfLocalFaces(), walberla::mpi::MIN );
+      globalMinNumberOfCells      = walberla::mpi::allReduce( getNumberOfLocalCells(), walberla::mpi::MIN );
+      globalMinNumberOfPrimitives = walberla::mpi::allReduce( getNumberOfLocalPrimitives(), walberla::mpi::MIN );
+   }
 
    const uint_t numberOfProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 

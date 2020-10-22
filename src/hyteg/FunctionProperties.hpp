@@ -175,13 +175,34 @@ inline uint_t numberOfLocalDoFs< P2P2StokesFunctionTag >( const PrimitiveStorage
    return ( primitiveStorage.hasGlobalCells() ? 4 : 3 ) * numberOfLocalDoFs< P2FunctionTag >( primitiveStorage, level );
 }
 
+template <>
+inline uint_t numberOfLocalDoFs< P1VectorFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
+{
+   return ( primitiveStorage.hasGlobalCells() ? 3 : 2 ) * numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level );
+}
+
+template <>
+inline uint_t numberOfLocalDoFs< P2VectorFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
+{
+   return ( primitiveStorage.hasGlobalCells() ? 3 : 2 ) * numberOfLocalDoFs< P2FunctionTag >( primitiveStorage, level );
+}
+
 template < typename FunctionTag_T >
 inline uint_t numberOfGlobalDoFs( const PrimitiveStorage& primitiveStorage,
                                   const uint_t&           level,
-                                  const MPI_Comm&         communicator = walberla::mpi::MPIManager::instance()->comm() )
+                                  const MPI_Comm&         communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                  const bool&             onRootOnly   = false )
 {
-   return walberla::mpi::allReduce(
-       numberOfLocalDoFs< FunctionTag_T >( primitiveStorage, level ), walberla::mpi::SUM, communicator );
+   if ( onRootOnly )
+   {
+      return walberla::mpi::reduce(
+          numberOfLocalDoFs< FunctionTag_T >( primitiveStorage, level ), walberla::mpi::SUM, 0, communicator );
+   }
+   else
+   {
+      return walberla::mpi::allReduce(
+          numberOfLocalDoFs< FunctionTag_T >( primitiveStorage, level ), walberla::mpi::SUM, communicator );
+   }
 }
 
 template < typename FunctionTag_T >

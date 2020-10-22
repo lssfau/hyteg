@@ -27,32 +27,50 @@
 namespace hyteg {
 namespace MeshQuality {
 
-inline real_t getMinimalEdgeLength( const std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t level )
+inline real_t
+    getMinimalEdgeLength( const std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t level, bool onRootOnly = false )
 {
    real_t localMin = std::numeric_limits< real_t >::max();
 
-   for( auto& it : storage->getEdges() )
+   for ( auto& it : storage->getEdges() )
    {
       Edge& edge = *it.second;
       localMin   = std::min( localMin, edge.getLength() );
    }
 
-   real_t globalMin = walberla::mpi::allReduce( localMin, walberla::mpi::MIN );
+   real_t globalMin;
+   if ( onRootOnly )
+   {
+      globalMin = walberla::mpi::reduce( localMin, walberla::mpi::MIN );
+   }
+   else
+   {
+      globalMin = walberla::mpi::allReduce( localMin, walberla::mpi::MIN );
+   }
 
    return std::pow( 2.0, -walberla::real_c( level ) ) * globalMin;
 }
 
-inline real_t getMaximalEdgeLength( const std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t level )
+inline real_t
+    getMaximalEdgeLength( const std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t level, bool onRootOnly = false )
 {
    real_t localMax = 0;
 
-   for( auto& it : storage->getEdges() )
+   for ( auto& it : storage->getEdges() )
    {
       Edge& edge = *it.second;
       localMax   = std::max( localMax, edge.getLength() );
    }
 
-   real_t globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+   real_t globalMax;
+   if ( onRootOnly )
+   {
+      globalMax = walberla::mpi::reduce( localMax, walberla::mpi::MAX );
+   }
+   else
+   {
+      globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+   }
 
    return std::pow( 2.0, -walberla::real_c( level ) ) * globalMax;
 }

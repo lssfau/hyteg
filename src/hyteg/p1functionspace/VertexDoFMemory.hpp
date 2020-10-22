@@ -62,12 +62,45 @@ inline uint_t vertexDoFMacroFaceFunctionMemorySize( const uint_t & level, const 
   return levelinfo::num_microvertices_per_face( level ) + primitive.getNumNeighborCells() * levelinfo::num_microvertices_per_face_from_width( width - 1 );
 }
 
-inline uint_t vertexDoFMacroCellFunctionMemorySize( const uint_t & level, const Primitive & primitive )
+inline uint_t vertexDoFMacroCellFunctionMemorySize( const uint_t & level, const Cell & primitive )
 {
   WALBERLA_UNUSED( primitive );
   return levelinfo::num_microvertices_per_cell( level );
 }
 
+inline unsigned long long vertexDoFLocalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+{
+   unsigned long long mem = 0;
+   
+   for ( const auto & it : storage->getVertices() )
+   {
+      mem += vertexDoFMacroVertexFunctionMemorySize( level, *it.second );
+   }
+
+   for ( const auto & it : storage->getEdges() )
+   {
+      mem += vertexDoFMacroEdgeFunctionMemorySize( level, *it.second );
+   }
+
+   for ( const auto & it : storage->getFaces() )
+   {
+      mem += vertexDoFMacroFaceFunctionMemorySize( level, *it.second );
+   }
+
+   for ( const auto & it : storage->getCells() )
+   {
+      mem += vertexDoFMacroCellFunctionMemorySize( level, *it.second );
+   }
+   
+   return mem;
+}
+
+inline unsigned long long vertexDoFGlobalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+{
+   const auto memLocal = vertexDoFLocalFunctionMemorySize( level, storage );
+   const auto memGlobal = walberla::mpi::allReduce( memLocal, walberla::mpi::SUM );
+   return memGlobal;
+}
 
 ////////////////////
 // Stencil memory //

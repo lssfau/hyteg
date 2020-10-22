@@ -35,14 +35,20 @@ class P2toP2QuadraticProlongation : public ProlongationOperator< P2Function< wal
                     const walberla::uint_t&               sourceLevel,
                     const DoFType&                        flag ) const override;
 
+   void prolongateAndAdd( const P2Function< walberla::real_t >& function,
+                          const walberla::uint_t&               sourceLevel,
+                          const DoFType&                        flag ) const override;
+
  private:
    void prolongateAdditively( const P2Function< walberla::real_t >& function,
                               const walberla::uint_t&               sourceLevel,
-                              const DoFType&                        flag ) const;
+                              const DoFType&                        flag,
+                              const UpdateType&                     updateType ) const;
 
    void prolongateAdditively3D( const P2Function< walberla::real_t >& function,
                                 const walberla::uint_t&               sourceLevel,
-                                const DoFType&                        flag ) const;
+                                const DoFType&                        flag,
+                                const UpdateType&                     updateType ) const;
 
    void prolongateStandard( const P2Function< walberla::real_t >& function,
                             const walberla::uint_t&               sourceLevel,

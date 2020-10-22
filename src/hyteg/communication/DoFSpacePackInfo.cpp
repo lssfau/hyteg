@@ -57,6 +57,7 @@ DoFSpacePackInfo< ValueType >::DoFSpacePackInfo( uint_t                         
 
 template class DoFSpacePackInfo< double >;
 template class DoFSpacePackInfo< int >;
+template class DoFSpacePackInfo< long >;
 template class DoFSpacePackInfo< uint_t >;
 
 } // namespace communication

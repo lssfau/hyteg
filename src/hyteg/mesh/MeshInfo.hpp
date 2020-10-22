@@ -276,6 +276,13 @@ public:
      DIAMOND
   } meshFlavour;
 
+  // Precise type of meshing approach
+  typedef enum
+  {
+     SHELLMESH_ON_THE_FLY, //!< meshing is done on-the-fly
+     SHELLMESH_CLASSIC     //!< meshing by midpoint refinement
+  } shellMeshType;
+
   class Vertex
   {
    public:
@@ -431,14 +438,14 @@ public:
   /// \param nrad    number of radial layers
   /// \param rmin    radius of innermost shell (core-mantle-boundary)
   /// \param rmax    radius of outermost shell
-  static MeshInfo meshSphericalShell( uint_t ntan, uint_t nrad, double rmin, double rmax );
+  static MeshInfo meshSphericalShell( uint_t ntan, uint_t nrad, double rmin, double rmax, shellMeshType meshType = shellMeshType::SHELLMESH_CLASSIC );
 
   /// Constructs a MeshInfo object for a spherical shell (externally computed radial layers)
   ///
   /// \param ntan    number of nodes along spherical diamond edge
   /// \param layers  vector that gives the radii of all layers, sorted from the
   ///                CMB outwards
-  static MeshInfo meshSphericalShell( uint_t ntan, const std::vector< double > & layers );
+  static MeshInfo meshSphericalShell( uint_t ntan, const std::vector< double > & layers, shellMeshType meshType = shellMeshType::SHELLMESH_CLASSIC );
 
   /// Constructs a MeshInfo object for a chain of triangles.
   ///
