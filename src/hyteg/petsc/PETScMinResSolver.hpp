@@ -56,6 +56,7 @@ class PETScMinResSolver : public Solver< OperatorType >
    , nullspaceVec_( numberOfLocalDoFs< typename FunctionType::Tag >( *storage, level ), "nullspaceVec", petscCommunicator_ )
    , flag_( hyteg::All )
    , nullSpaceSet_( false )
+   , reassembleMatrix_( false )
    {
       KSPCreate( petscCommunicator_, &ksp );
       KSPSetType( ksp, KSPMINRES );
@@ -70,6 +71,8 @@ class PETScMinResSolver : public Solver< OperatorType >
       if ( nullSpaceSet_ )
          MatNullSpaceDestroy( &nullspace_ );
    }
+
+   void reassembleMatrix( bool reassembleMatrix ) { reassembleMatrix_ = reassembleMatrix; }
 
    void setNullSpace( const FunctionType& nullspace )
    {
@@ -90,8 +93,18 @@ class PETScMinResSolver : public Solver< OperatorType >
       xVec.createVectorFromFunction( x, num, level );
       bVec.createVectorFromFunction( b, num, level, All );
 
-      AmatNonEliminatedBC.createMatrixFromOperatorOnce( A, level, num, All );
-      Amat.createMatrixFromOperatorOnce( A, level, num, All );
+      if ( reassembleMatrix_ )
+      {
+         AmatNonEliminatedBC.zeroEntries();
+         Amat.zeroEntries();
+         AmatNonEliminatedBC.createMatrixFromOperator( A, level, num, All );
+         Amat.createMatrixFromOperator( A, level, num, All );
+      }
+      else
+      {
+         AmatNonEliminatedBC.createMatrixFromOperatorOnce( A, level, num, All );
+         Amat.createMatrixFromOperatorOnce( A, level, num, All );
+      }
       MatCopy( AmatNonEliminatedBC.get(), Amat.get(), DIFFERENT_NONZERO_PATTERN );
 
       Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
@@ -125,6 +138,7 @@ class PETScMinResSolver : public Solver< OperatorType >
    MatNullSpace   nullspace_;
    hyteg::DoFType flag_;
    bool nullSpaceSet_;
+   bool reassembleMatrix_;
 };
 
 } // namespace hyteg
