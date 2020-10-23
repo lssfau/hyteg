@@ -24,7 +24,6 @@
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
-
 namespace hyteg {
 
 using walberla::real_c;
@@ -34,80 +33,82 @@ using namespace walberla::mpistubs;
 template < typename FunctionTag_T, typename PrimitiveType >
 inline uint_t numberOfInnerDoFs( const uint_t& level );
 
-template<>
+template <>
 inline uint_t numberOfInnerDoFs< P1FunctionTag, Vertex >( const uint_t& )
 {
    return 1;
 }
 
-template<>
+template <>
 inline uint_t numberOfInnerDoFs< P1FunctionTag, Edge >( const uint_t& level )
 {
    return levelinfo::num_microvertices_per_edge( level ) - 2 * numberOfInnerDoFs< P1FunctionTag, Vertex >( level );
 }
 
-template<>
+template <>
 inline uint_t numberOfInnerDoFs< P1FunctionTag, Face >( const uint_t& level )
 {
-   return levelinfo::num_microvertices_per_face( level ) - 3 * numberOfInnerDoFs< P1FunctionTag, Edge >( level ) - 3 * numberOfInnerDoFs< P1FunctionTag, Vertex >( level );
+   return levelinfo::num_microvertices_per_face( level ) - 3 * numberOfInnerDoFs< P1FunctionTag, Edge >( level ) -
+          3 * numberOfInnerDoFs< P1FunctionTag, Vertex >( level );
 }
 
-template<>
+template <>
 inline uint_t numberOfInnerDoFs< P1FunctionTag, Cell >( const uint_t& level )
 {
    return levelinfo::num_microvertices_per_cell( level ) - 4 * numberOfInnerDoFs< P1FunctionTag, Face >( level ) -
-   6 * numberOfInnerDoFs< P1FunctionTag, Edge >( level ) - 4 * numberOfInnerDoFs< P1FunctionTag, Vertex >( level );
+          6 * numberOfInnerDoFs< P1FunctionTag, Edge >( level ) - 4 * numberOfInnerDoFs< P1FunctionTag, Vertex >( level );
 }
 
-template<>
+template <>
 inline uint_t numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( const uint_t& )
 {
    return 0;
 }
 
-template<>
-inline uint_t numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( const uint_t & level )
+template <>
+inline uint_t numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( const uint_t& level )
 {
    return levelinfo::num_microedges_per_edge( level ) - 2 * numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( level );
 }
 
-template<>
-inline uint_t numberOfInnerDoFs< EdgeDoFFunctionTag, Face >( const uint_t & level )
+template <>
+inline uint_t numberOfInnerDoFs< EdgeDoFFunctionTag, Face >( const uint_t& level )
 {
-   return levelinfo::num_microedges_per_face( level ) - 3 * numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( level ) - 3 *  numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( level );
+   return levelinfo::num_microedges_per_face( level ) - 3 * numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( level ) -
+          3 * numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( level );
 }
 
-template<>
-inline uint_t numberOfInnerDoFs< EdgeDoFFunctionTag, Cell >( const uint_t & level )
+template <>
+inline uint_t numberOfInnerDoFs< EdgeDoFFunctionTag, Cell >( const uint_t& level )
 {
-   return levelinfo::num_microedges_per_cell( level ) - 4 * numberOfInnerDoFs< EdgeDoFFunctionTag, Face >( level )
-          - 6 * numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( level ) - 4 * numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( level );
+   return levelinfo::num_microedges_per_cell( level ) - 4 * numberOfInnerDoFs< EdgeDoFFunctionTag, Face >( level ) -
+          6 * numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( level ) -
+          4 * numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( level );
 }
 
-template<>
+template <>
 inline uint_t numberOfInnerDoFs< P2FunctionTag, Vertex >( const uint_t& level )
 {
    return numberOfInnerDoFs< P1FunctionTag, Vertex >( level ) + numberOfInnerDoFs< EdgeDoFFunctionTag, Vertex >( level );
 }
 
-template<>
+template <>
 inline uint_t numberOfInnerDoFs< P2FunctionTag, Edge >( const uint_t& level )
 {
-  return numberOfInnerDoFs< P1FunctionTag, Edge >( level ) + numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( level );
+   return numberOfInnerDoFs< P1FunctionTag, Edge >( level ) + numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( level );
 }
 
-template<>
+template <>
 inline uint_t numberOfInnerDoFs< P2FunctionTag, Face >( const uint_t& level )
 {
-  return numberOfInnerDoFs< P1FunctionTag, Face >( level ) + numberOfInnerDoFs< EdgeDoFFunctionTag, Face >( level );
+   return numberOfInnerDoFs< P1FunctionTag, Face >( level ) + numberOfInnerDoFs< EdgeDoFFunctionTag, Face >( level );
 }
 
-template<>
+template <>
 inline uint_t numberOfInnerDoFs< P2FunctionTag, Cell >( const uint_t& level )
 {
-  return numberOfInnerDoFs< P1FunctionTag, Cell >( level ) + numberOfInnerDoFs< EdgeDoFFunctionTag, Cell >( level );
+   return numberOfInnerDoFs< P1FunctionTag, Cell >( level ) + numberOfInnerDoFs< EdgeDoFFunctionTag, Cell >( level );
 }
-
 
 template < typename FunctionTag_T >
 inline uint_t numberOfLocalDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level );
@@ -115,7 +116,6 @@ inline uint_t numberOfLocalDoFs( const PrimitiveStorage& primitiveStorage, const
 template <>
 inline uint_t numberOfLocalDoFs< P1FunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {
-
    return numberOfInnerDoFs< P1FunctionTag, Vertex >( level ) * primitiveStorage.getNumberOfLocalVertices() +
           numberOfInnerDoFs< P1FunctionTag, Edge >( level ) * primitiveStorage.getNumberOfLocalEdges() +
           numberOfInnerDoFs< P1FunctionTag, Face >( level ) * primitiveStorage.getNumberOfLocalFaces() +
@@ -175,18 +175,6 @@ inline uint_t numberOfLocalDoFs< P2P2StokesFunctionTag >( const PrimitiveStorage
    return ( primitiveStorage.hasGlobalCells() ? 4 : 3 ) * numberOfLocalDoFs< P2FunctionTag >( primitiveStorage, level );
 }
 
-template <>
-inline uint_t numberOfLocalDoFs< P1VectorFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
-{
-   return ( primitiveStorage.hasGlobalCells() ? 3 : 2 ) * numberOfLocalDoFs< P1FunctionTag >( primitiveStorage, level );
-}
-
-template <>
-inline uint_t numberOfLocalDoFs< P2VectorFunctionTag >( const PrimitiveStorage& primitiveStorage, const uint_t& level )
-{
-   return ( primitiveStorage.hasGlobalCells() ? 3 : 2 ) * numberOfLocalDoFs< P2FunctionTag >( primitiveStorage, level );
-}
-
 template < typename FunctionTag_T >
 inline uint_t numberOfGlobalDoFs( const PrimitiveStorage& primitiveStorage,
                                   const uint_t&           level,
@@ -208,50 +196,47 @@ inline uint_t numberOfGlobalDoFs( const PrimitiveStorage& primitiveStorage,
 template < typename FunctionTag_T >
 inline uint_t minNumberOfLocalDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {
-  return walberla::mpi::allReduce( numberOfLocalDoFs< FunctionTag_T >( primitiveStorage, level ),
-                                   walberla::mpi::MIN,
-                                   walberla::mpi::MPIManager::instance()->comm() );
+   return walberla::mpi::allReduce( numberOfLocalDoFs< FunctionTag_T >( primitiveStorage, level ),
+                                    walberla::mpi::MIN,
+                                    walberla::mpi::MPIManager::instance()->comm() );
 }
-
 
 template < typename FunctionTag_T >
 inline uint_t maxNumberOfLocalDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {
-  return walberla::mpi::allReduce( numberOfLocalDoFs< FunctionTag_T >( primitiveStorage, level ),
-                                   walberla::mpi::MAX,
-                                   walberla::mpi::MPIManager::instance()->comm() );
+   return walberla::mpi::allReduce( numberOfLocalDoFs< FunctionTag_T >( primitiveStorage, level ),
+                                    walberla::mpi::MAX,
+                                    walberla::mpi::MPIManager::instance()->comm() );
 }
 
 template < typename FunctionTag_T >
 inline uint_t numberOfLocalInnerDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {
-  uint_t boundaryPoints = 0;
+   uint_t boundaryPoints = 0;
 
-  for ( const auto& it : primitiveStorage.getFaceIDs() )
-  {
-    if ( primitiveStorage.onBoundary( it, true ) )
-    {
-      boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Face >( level );
-    }
-  }
-  for ( const auto& it : primitiveStorage.getEdgeIDs() )
-  {
+   for ( const auto& it : primitiveStorage.getFaceIDs() )
+   {
+      if ( primitiveStorage.onBoundary( it, true ) )
+      {
+         boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Face >( level );
+      }
+   }
+   for ( const auto& it : primitiveStorage.getEdgeIDs() )
+   {
+      if ( primitiveStorage.onBoundary( it, true ) )
+      {
+         boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Edge >( level );
+      }
+   }
+   for ( const auto& it : primitiveStorage.getVertexIDs() )
+   {
+      if ( primitiveStorage.onBoundary( it, true ) )
+      {
+         boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Vertex >( level );
+      }
+   }
 
-    if ( primitiveStorage.onBoundary( it, true ) )
-    {
-      boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Edge >( level );
-    }
-  }
-  for ( const auto& it : primitiveStorage.getVertexIDs() )
-  {
-
-    if ( primitiveStorage.onBoundary( it, true ) )
-    {
-      boundaryPoints += numberOfInnerDoFs< FunctionTag_T, Vertex >( level );
-    }
-  }
-
-  return numberOfLocalDoFs< FunctionTag_T >( primitiveStorage, level ) - boundaryPoints;
+   return numberOfLocalDoFs< FunctionTag_T >( primitiveStorage, level ) - boundaryPoints;
 }
 
 /**
@@ -265,9 +250,9 @@ inline uint_t numberOfLocalInnerDoFs( const PrimitiveStorage& primitiveStorage, 
 template < typename FunctionTag_T >
 inline uint_t numberOfGlobalInnerDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {
-  return walberla::mpi::allReduce( numberOfLocalInnerDoFs< FunctionTag_T >( primitiveStorage, level ),
-                                   walberla::mpi::SUM,
-                                   walberla::mpi::MPIManager::instance()->comm() );
+   return walberla::mpi::allReduce( numberOfLocalInnerDoFs< FunctionTag_T >( primitiveStorage, level ),
+                                    walberla::mpi::SUM,
+                                    walberla::mpi::MPIManager::instance()->comm() );
 }
 
 /**
@@ -281,9 +266,9 @@ inline uint_t numberOfGlobalInnerDoFs( const PrimitiveStorage& primitiveStorage,
 template < typename FunctionTag_T >
 inline uint_t minNumberOfLocalInnerDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {
-  return walberla::mpi::allReduce( numberOfLocalInnerDoFs< FunctionTag_T >( primitiveStorage, level ),
-                                   walberla::mpi::MIN,
-                                   walberla::mpi::MPIManager::instance()->comm() );
+   return walberla::mpi::allReduce( numberOfLocalInnerDoFs< FunctionTag_T >( primitiveStorage, level ),
+                                    walberla::mpi::MIN,
+                                    walberla::mpi::MPIManager::instance()->comm() );
 }
 
 /**
@@ -297,9 +282,9 @@ inline uint_t minNumberOfLocalInnerDoFs( const PrimitiveStorage& primitiveStorag
 template < typename FunctionTag_T >
 inline uint_t maxNumberOfLocalInnerDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {
-  return walberla::mpi::allReduce( numberOfLocalInnerDoFs< FunctionTag_T >( primitiveStorage, level ),
-                                   walberla::mpi::MAX,
-                                   walberla::mpi::MPIManager::instance()->comm() );
+   return walberla::mpi::allReduce( numberOfLocalInnerDoFs< FunctionTag_T >( primitiveStorage, level ),
+                                    walberla::mpi::MAX,
+                                    walberla::mpi::MPIManager::instance()->comm() );
 }
 
 /// \brief Prints infos about the memory consumption of all functions.
@@ -314,7 +299,6 @@ inline uint_t maxNumberOfLocalInnerDoFs( const PrimitiveStorage& primitiveStorag
 ///     0: only print memory consumption
 ///     1: additionally number of functions and DoFs of each type
 ///     2: additionally list names of allocated functions
-void printFunctionAllocationInfo( const PrimitiveStorage & storage, const uint_t & verbosityLevel = 1 );
-
+void printFunctionAllocationInfo( const PrimitiveStorage& storage, const uint_t& verbosityLevel = 1 );
 
 } // namespace hyteg
