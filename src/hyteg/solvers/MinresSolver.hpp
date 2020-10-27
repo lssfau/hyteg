@@ -20,6 +20,7 @@
 #pragma once
 
 #include "core/timing/TimingTree.h"
+#include "core/Format.hpp"
 
 #include "hyteg/solvers/preconditioners/IdentityPreconditioner.hpp"
 #include "hyteg/solvers/Solver.hpp"
@@ -41,7 +42,8 @@ public:
       real_t                                     tolerance      = 1e-16,
       std::shared_ptr< Solver< OperatorType > >  preconditioner = std::make_shared< IdentityPreconditioner< OperatorType > >() )
   : maxIter_( maxIter )
-  , tolerance_( tolerance )
+  , relativeTolerance_( tolerance )
+  , absoluteTolerance_( 1e-16 )
   , printInfo_( false )
   , flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
   , preconditioner_( preconditioner )
@@ -99,7 +101,7 @@ public:
       WALBERLA_LOG_INFO_ON_ROOT("[MinRes] residuum: "<< std::scientific << std::abs(gamma_new));
     }
 
-    if (gamma_new < tolerance_)
+    if (gamma_new < absoluteTolerance_ )
     {
       if (printInfo_) {
         WALBERLA_LOG_INFO_ON_ROOT("[MinRes] converged");
@@ -151,10 +153,10 @@ public:
 
       if (printInfo_)
       {
-        WALBERLA_LOG_INFO_ON_ROOT("[MinRes] residuum: " << std::scientific << std::abs(eta));
+        WALBERLA_LOG_INFO_ON_ROOT(walberla::format("[MinRes] iter: %6d | residuum: %10.5e", i, std::abs(eta)));
       }
 
-      if (std::abs(eta)/res_start < tolerance_)
+      if (std::abs(eta)/res_start < relativeTolerance_ || std::abs(eta) < absoluteTolerance_ )
       {
         if (printInfo_)
         {
@@ -167,11 +169,14 @@ public:
   }
 
   void setPrintInfo( bool printInfo ) { printInfo_ = printInfo; }
+  void setAbsoluteTolerance( real_t absoluteTolerance ) { absoluteTolerance_ = absoluteTolerance; }
+  void setRelativeTolerance( real_t relativeTolerance ) { relativeTolerance_ = relativeTolerance; }
 
 private:
 
   uint_t       maxIter_;
-  real_t       tolerance_;
+  real_t         relativeTolerance_;
+  real_t         absoluteTolerance_;
   bool         printInfo_;
   hyteg::DoFType flag_;
 
