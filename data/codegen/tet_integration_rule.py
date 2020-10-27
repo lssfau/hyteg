@@ -3,32 +3,52 @@
 import numpy as np
 import quadpy
 
-# Tested with quadpy 0.14.11
+# Tested with quadpy 0.16.2
 # The syntax changed in more recent versions of quadpy
 
-scheme = quadpy.tetrahedron.stroud_t3_5_1()
+def quadrature_rule(scheme_name: str, geometry: str, precision=20, comment='') -> str:
+  """Returns a string containing C++-formatted quadrature points and weights."""
 
-reference_tet = np.asarray([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+  if geometry == 'tet':
+    scheme = quadpy.t3.schemes[scheme_name]()
+    reference_tet = np.asarray([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    point_type = 'Point3D'
+  elif geometry == 'triangle':
+    scheme = quadpy.t2.schemes[scheme_name]()
+    reference_tet = np.asarray([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]])
+    point_type = 'Point2D'
+  else:
+    raise Exception('Invalid geometry.')
 
-vol = quadpy.nsimplex.get_vol(reference_tet)
-tet_points = quadpy.nsimplex.transform(scheme.points.T, reference_tet.T).T
-tet_weights = vol * scheme.weights
+  vol = quadpy.tn.get_vol(reference_tet)
+  tet_points = quadpy.tn.transform(scheme.points, reference_tet.T).T
+  tet_weights = vol * scheme.weights
 
-N_int_points = tet_weights.shape[0]
+  N_int_points = tet_weights.shape[0]
 
-weight_string = np.array2string(tet_weights, precision=20, separator=',', max_line_width=1)[1:-1]
+  weight_string = np.array2string(tet_weights, precision=precision, separator=',', max_line_width=1)[1:-1]
 
-points_string = ""
-for i in range(N_int_points):
-  point_string = np.array2string(tet_points[i,:], precision=20, separator=',', max_line_width=100)[1:-1]
-  points_string += "Point3D( {{{}}} )".format(point_string)
+  points_string = ""
+  for i in range(N_int_points):
+    point_string = np.array2string(tet_points[i,:], precision=precision, separator=',', max_line_width=100)[1:-1]
+    points_string += f'{point_type}( {{{point_string}}} )'
 
-  if i != N_int_points - 1:
-    points_string += ",\n"
+    if i != N_int_points - 1:
+      points_string += ",\n"
 
-code = "/// 3DT-4: exact for polynomial integrands up to order 5\n"
-code += "/// Generated using quadpy 0.14.11 and the tetrahedron.stroud_t3_5_1() scheme\n"
-code += "static const std::array< real_t, {} > T4_weights = {{{}}};\n\n".format(N_int_points, weight_string)
-code += "static const std::array< Point3D, {} > T4_points = {{{}}};\n".format(N_int_points, points_string)
+  code = ''
+  if comment:
+    code += "f/// {comment}\n"
+  code += f"/// Generated using quadpy, version {quadpy.__version__}\n"
+  code += f"/// - scheme:    {scheme.name}\n"
+  code += f"/// - key:       {scheme_name}\n"
+  code += f"/// - degree:    {scheme.degree}\n"
+  code += f"/// - precision: {precision}\n\n"
+  code += f'static const std::array< real_t, {N_int_points} > {scheme_name}_weights = {{\n{weight_string}\n}};\n\n'
+  code += f'static const std::array< {point_type}, {N_int_points} > {scheme_name}_points = {{\n{points_string}\n}};\n'
 
-print(code)
+  return code
+
+
+# print(quadrature_rule('hammer_marlowe_stroud_5', 'triangle'))
+print(quadrature_rule('lyness_jespersen_15', 'triangle'))
