@@ -64,6 +64,7 @@ if __name__ == '__main__':
     parser.add_argument('--ra', default=1e8, help='Rayleigh number')
     parser.add_argument('--out_dir', default='.', help='output directory')
     parser.add_argument('--max_num_time_steps', default=10000, type=int)
+    parser.add_argument('--uzawa_omega', default=0.6, type=float)
 
     args = parser.parse_args()
     args_dict = vars(args)

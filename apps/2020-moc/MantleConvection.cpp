@@ -142,6 +142,8 @@ struct SolverInfo
 
    uint_t diffusionMaxNumIterations           = 10000;
    real_t diffusionAbsoluteResidualUTolerance = 10000;
+
+   real_t uzawaOmega = 0.3;
 };
 
 /// Calculates and returns
@@ -352,7 +354,9 @@ void runBenchmark( real_t      cflMax,
    WALBERLA_LOG_INFO_ON_ROOT( "   + internal heating:                             " << internalHeating )
    WALBERLA_LOG_INFO_ON_ROOT( " - app settings: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + Stokes solver:                                " << int_c( solverInfo.stokesSolverType ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + Uzawa omega:                                  " << solverInfo.uzawaOmega )
    WALBERLA_LOG_INFO_ON_ROOT( "   + diffusion solver:                             " << int_c( solverInfo.diffusionSolverType ) )
+
    if ( vtk )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "   + VTK interval:                                 " << vtkInterval )
@@ -558,7 +562,7 @@ void runBenchmark( real_t      cflMax,
           std::make_shared< StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator > >( storage, smoother );
 
       auto uzawaSmoother = std::make_shared< UzawaSmoother< StokesOperator > >(
-          storage, uzawaVelocityPreconditioner, minLevel, level, 0.6, Inner | NeumannBoundary, 10 );
+          storage, uzawaVelocityPreconditioner, minLevel, level, solverInfo.uzawaOmega, Inner | NeumannBoundary, 10 );
 
       std::shared_ptr< Solver< StokesOperator > > coarseGridSolverInternal;
 
@@ -1085,13 +1089,13 @@ int main( int argc, char** argv )
    domainInfo.nTan     = mainConf.getParameter< hyteg::uint_t >( "nTan" );
    domainInfo.nRad     = mainConf.getParameter< hyteg::uint_t >( "nRad" );
 
-   const hyteg::real_t cflMax         = mainConf.getParameter< hyteg::real_t >( "cflMax" );
-   const hyteg::real_t rayleighNumber = mainConf.getParameter< hyteg::real_t >( "rayleighNumber" );
-   const bool          fixedTimeStep  = mainConf.getParameter< bool >( "fixedTimeStep" );
-   const hyteg::real_t dtConstant     = mainConf.getParameter< hyteg::real_t >( "dtConstant" );
-   const uint_t        minLevel       = mainConf.getParameter< uint_t >( "minLevel" );
-   const uint_t        level          = mainConf.getParameter< uint_t >( "level" );
-   const hyteg::real_t simulationTime = mainConf.getParameter< hyteg::real_t >( "simulationTime" );
+   const hyteg::real_t cflMax          = mainConf.getParameter< hyteg::real_t >( "cflMax" );
+   const hyteg::real_t rayleighNumber  = mainConf.getParameter< hyteg::real_t >( "rayleighNumber" );
+   const bool          fixedTimeStep   = mainConf.getParameter< bool >( "fixedTimeStep" );
+   const hyteg::real_t dtConstant      = mainConf.getParameter< hyteg::real_t >( "dtConstant" );
+   const uint_t        minLevel        = mainConf.getParameter< uint_t >( "minLevel" );
+   const uint_t        level           = mainConf.getParameter< uint_t >( "level" );
+   const hyteg::real_t simulationTime  = mainConf.getParameter< hyteg::real_t >( "simulationTime" );
    const hyteg::uint_t maxNumTimeSteps = mainConf.getParameter< hyteg::uint_t >( "maxNumTimeSteps" );
 
    const int stokesSolverTypeInt    = mainConf.getParameter< int >( "stokesSolverType" );
@@ -1100,6 +1104,7 @@ int main( int argc, char** argv )
    solverInfo.stokesSolverType                 = static_cast< hyteg::StokesSolverType >( stokesSolverTypeInt );
    solverInfo.stokesMaxNumIterations           = mainConf.getParameter< uint_t >( "stokesMaxNumIterations" );
    solverInfo.stokesAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "stokesAbsoluteResidualUTolerance" );
+   solverInfo.uzawaOmega                       = mainConf.getParameter< real_t >( "uzawaOmega" );
 
    solverInfo.diffusionSolverType                 = static_cast< hyteg::DiffusionSolverType >( diffusionSolverTypeInt );
    solverInfo.diffusionMaxNumIterations           = mainConf.getParameter< uint_t >( "diffusionMaxNumIterations" );
