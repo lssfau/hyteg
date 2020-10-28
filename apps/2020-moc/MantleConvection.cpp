@@ -27,6 +27,7 @@
 #include "core/mpi/MPIManager.h"
 
 #include "hyteg/FunctionProperties.hpp"
+#include "hyteg/MemoryAllocation.hpp"
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/StrongFreeSlipWrapper.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
@@ -90,6 +91,24 @@ static std::string getDateTimeID()
 }
 #endif
 
+enum class StokesSolverType : int
+{
+   PETSC_MUMPS         = 0,
+   PETSC_MINRES_JACOBI = 1,
+   PETSC_MINRES_BOOMER = 2,
+   HYTEG_MINRES        = 3,
+   HYTEG_MINRES_GMG    = 4,
+   HYTEG_UZAWA_V       = 5,
+   HYTEG_UZAWA_FMG     = 6
+};
+
+enum class DiffusionSolverType : int
+{
+   PETSC_MINRES = 0,
+   HYTEG_CG     = 1,
+   HYTEG_GMG    = 2
+};
+
 struct DomainInfo
 {
    bool threeDim = false;
@@ -99,7 +118,7 @@ struct DomainInfo
    uint_t nTan = 0;
    uint_t nRad = 0;
 
-   real_t domainArea()
+   real_t domainVolume() const
    {
       if ( !threeDim )
       {
@@ -107,9 +126,22 @@ struct DomainInfo
       }
       else
       {
-         WALBERLA_ABORT( "3D not implemented." );
+         return ( 4. / 3. ) * walberla::math::pi * rMax * rMax * rMax - ( 4. / 3. ) * walberla::math::pi * rMin * rMin * rMin;
       }
    }
+};
+
+struct SolverInfo
+{
+   StokesSolverType stokesSolverType = StokesSolverType::PETSC_MUMPS;
+
+   uint_t stokesMaxNumIterations           = 10;
+   real_t stokesAbsoluteResidualUTolerance = 0;
+
+   DiffusionSolverType diffusionSolverType = DiffusionSolverType::PETSC_MINRES;
+
+   uint_t diffusionMaxNumIterations           = 10000;
+   real_t diffusionAbsoluteResidualUTolerance = 10000;
 };
 
 /// Calculates and returns
@@ -162,6 +194,28 @@ void calculateStokesResiduals( const StokesOperator&       A,
    residualP = normL2( r.p, tmp.p, Mp, level, Inner | NeumannBoundary | FreeslipBoundary );
 }
 
+template < typename UnsteadyDiffusion,
+           typename UnsteadyDiffusionOperator,
+           typename LaplaceOperator,
+           typename MassOperatorVelocity,
+           typename ScalarFuncionType >
+void calculateDiffusionResidual( UnsteadyDiffusion&               unsteadyDiffusion,
+                                 const UnsteadyDiffusionOperator& unsteadyDiffusionOperator,
+                                 const LaplaceOperator&           laplacian,
+                                 const MassOperatorVelocity&      Mu,
+                                 const ScalarFuncionType&         c,
+                                 const ScalarFuncionType&         cOld,
+                                 const ScalarFuncionType&         f,
+                                 ScalarFuncionType&               r,
+                                 ScalarFuncionType&               tmp,
+                                 uint_t                           level,
+                                 real_t&                          residual )
+{
+   unsteadyDiffusion.calculateResidual(
+       unsteadyDiffusionOperator, laplacian, Mu, c, cOld, f, f, r, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residual = normL2( r, tmp, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
+}
+
 template < typename StokesFunction, typename VelocityMass >
 real_t velocityRMS( const StokesFunction& u, const StokesFunction& tmp, const VelocityMass& M, real_t domainVolume, uint_t level )
 {
@@ -205,67 +259,70 @@ std::shared_ptr< SetupPrimitiveStorage > createSetupStorage( DomainInfo domainIn
    return setupStorage;
 }
 
-enum class StokesSolverType : int
-{
-   PETSC_MUMPS         = 0,
-   PETSC_MINRES_JACOBI = 1,
-   PETSC_MINRES_BOOMER = 2,
-   HYTEG_MINRES        = 3,
-   HYTEG_MINRES_GMG    = 4,
-   HYTEG_UZAWA_V       = 5,
-   HYTEG_UZAWA_FMG     = 6
-};
-
-enum class DiffusionSolverType : int
-{
-   PETSC_MINRES = 0,
-   HYTEG_CG     = 1
-};
-
-void runBenchmark( real_t              cflMax,
-                   real_t              rayleighNumber,
-                   bool                fixedTimeStep,
-                   real_t              dtConstant,
-                   uint_t              minLevel,
-                   uint_t              level,
-                   StokesSolverType    stokesSolverType,
-                   DiffusionSolverType diffusionSolverType,
-                   DomainInfo          domainInfo,
-                   bool                predictorCorrector,
-                   real_t              simulationTime,
-                   bool                vtk,
-                   uint_t              printInterval,
-                   uint_t              vtkInterval,
-                   std::string         outputBaseName,
-                   bool                verbose )
+void runBenchmark( real_t      cflMax,
+                   real_t      rayleighNumber,
+                   bool        fixedTimeStep,
+                   real_t      dtConstant,
+                   uint_t      minLevel,
+                   uint_t      level,
+                   SolverInfo  solverInfo,
+                   DomainInfo  domainInfo,
+                   bool        predictorCorrector,
+                   real_t      simulationTime,
+                   bool        vtk,
+                   uint_t      printInterval,
+                   uint_t      vtkInterval,
+                   std::string outputDirectory,
+                   std::string outputBaseName,
+                   bool        verbose )
 {
    walberla::WcTimer localTimer;
 
    const bool outputTimingJSON = true;
 
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Building setup storage ..." );
+   }
+
    auto setupStorage = createSetupStorage( domainInfo );
-   auto storage      = std::make_shared< PrimitiveStorage >( *setupStorage );
+
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Building distributed storage ..." );
+   }
+
+   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
    if ( vtk )
    {
-      writeDomainPartitioningVTK( storage, "vtk/", outputBaseName + "_domain" );
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Writing domain partitioning VTK ..." );
+      }
+
+      writeDomainPartitioningVTK( storage, outputDirectory, outputBaseName + "_domain" );
    }
 
    auto timer = storage->getTimingTree();
    timer->start( "Total" );
    timer->start( "Setup" );
 
-   const uint_t unknowns = numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
-   const real_t hMin     = MeshQuality::getMinimalEdgeLength( storage, level );
-   const real_t hMax     = MeshQuality::getMaximalEdgeLength( storage, level );
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Gathering domain information ..." );
+   }
+
+   const uint_t unknownsTemperature = numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
+   const uint_t unknownsStokes      = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
+   const real_t hMin                = MeshQuality::getMinimalEdgeLength( storage, level );
+   const real_t hMax                = MeshQuality::getMaximalEdgeLength( storage, level );
 
    const real_t diffusivity                 = 1.0;
    const real_t internalHeating             = 0.0;
    const real_t initialTemperatureSteepness = 10.0;
 
-   const uint_t stokesMaxIter                   = 100000;
-   const real_t stokesAbsoluteResidualTolerance = 1e-10;
-
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
    WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << outputBaseName )
    WALBERLA_LOG_INFO_ON_ROOT( " - time discretization: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + fixed time step:                              " << fixedTimeStep )
@@ -279,33 +336,44 @@ void runBenchmark( real_t              cflMax,
    }
    WALBERLA_LOG_INFO_ON_ROOT( "   + simulation time:                              " << simulationTime )
    WALBERLA_LOG_INFO_ON_ROOT( " - space discretization: " )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + rMin:                                         " << domainInfo.rMin )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + rMax:                                         " << domainInfo.rMax )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + nTan:                                         " << domainInfo.nTan )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + nRad:                                         " << domainInfo.nRad )
    WALBERLA_LOG_INFO_ON_ROOT( "   + dimensions:                                   " << ( storage->hasGlobalCells() ? "3" : "2" ) )
    WALBERLA_LOG_INFO_ON_ROOT( "   + level:                                        " << level )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns (== particles), including boundary:  " << unknowns )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns temperature, including boundary:     " << unknownsTemperature )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns Stokes, including boundary:          " << unknownsStokes )
    WALBERLA_LOG_INFO_ON_ROOT( "   + h_min:                                        " << hMin )
    WALBERLA_LOG_INFO_ON_ROOT( "   + h_max:                                        " << hMax )
    WALBERLA_LOG_INFO_ON_ROOT( " - benchmark settings: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + Rayleigh number:                              " << rayleighNumber )
    WALBERLA_LOG_INFO_ON_ROOT( "   + internal heating:                             " << internalHeating )
    WALBERLA_LOG_INFO_ON_ROOT( " - app settings: " )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + Stokes solver:                                " << int_c( stokesSolverType ) )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + diffusion solver:                             " << int_c( diffusionSolverType ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + Stokes solver:                                " << int_c( solverInfo.stokesSolverType ) )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + diffusion solver:                             " << int_c( solverInfo.diffusionSolverType ) )
    if ( vtk )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "   + VTK interval:                                 " << vtkInterval )
    }
    WALBERLA_LOG_INFO_ON_ROOT( "   + print interval:                               " << printInterval )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + output directory:                             " << outputDirectory )
    WALBERLA_LOG_INFO_ON_ROOT( "   + output base name:                             " << outputBaseName )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
-   FixedSizeSQLDB db( outputBaseName + ".db" );
+   auto storageInfo = storage->getGlobalInfo();
+   WALBERLA_LOG_INFO_ON_ROOT( storageInfo );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+
+   FixedSizeSQLDB db( outputDirectory + "/" + outputBaseName + ".db" );
 
    db.setConstantEntry( "fixed_time_step", fixedTimeStep );
    db.setConstantEntry( "cfl_max", cflMax );
    db.setConstantEntry( "dt_constant", dtConstant );
    db.setConstantEntry( "simulation_time", simulationTime );
    db.setConstantEntry( "level", uint_c( level ) );
-   db.setConstantEntry( "unknowns", uint_c( unknowns ) );
+   db.setConstantEntry( "unknowns_temperature", uint_c( unknownsTemperature ) );
+   db.setConstantEntry( "unknowns_stokes", uint_c( unknownsStokes ) );
    db.setConstantEntry( "h_min", hMin );
    db.setConstantEntry( "h_max", hMax );
    db.setConstantEntry( "num_macro_cells", uint_c( setupStorage->getNumberOfCells() ) );
@@ -320,7 +388,7 @@ void runBenchmark( real_t              cflMax,
    typedef P2P1ElementwiseBlendingStokesOperator  StokesOperator;
    typedef P2ElementwiseBlendingLaplaceOperator   LaplaceOperator;
    typedef P2ElementwiseBlendingMassOperator      MassOperatorVelocity;
-   typedef P1ElementwiseBlendingMassOperator      MassOperatorPressure;
+   typedef P1ConstantMassOperator                 MassOperatorPressure;
    typedef P2ElementwiseUnsteadyDiffusionOperator UnsteadyDiffusionOperator;
 
    BoundaryCondition bcVelocity;
@@ -330,6 +398,11 @@ void runBenchmark( real_t              cflMax,
    bcVelocity.createDirichletBC( "innerBoundaryVelocity", 1 );
    bcTemperature.createDirichletBC( "outerBoundaryTemperature", 1 );
    bcTemperature.createDirichletBC( "innerBoundaryTemperature", 1 );
+
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Allocating functions ..." );
+   }
 
    ScalarFunction c( "c", storage, minLevel, level, bcTemperature );
    ScalarFunction cPr( "cPr", storage, minLevel, level, bcTemperature );
@@ -353,6 +426,11 @@ void runBenchmark( real_t              cflMax,
       return std::exp( -initialTemperatureSteepness * ( ( radius - domainInfo.rMin ) / ( domainInfo.rMax - domainInfo.rMin ) ) );
    };
 
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Interpolating initial temperature and internal heating ..." );
+   }
+
    for ( uint_t l = 0; l <= level; l++ )
    {
       c.interpolate( initialTemperature, l, All );
@@ -363,7 +441,10 @@ void runBenchmark( real_t              cflMax,
    std::function< real_t( const Point3D& ) > normalY = []( const Point3D& x ) { return x[1] / x.norm(); };
    std::function< real_t( const Point3D& ) > normalZ = []( const Point3D& x ) { return x[2] / x.norm(); };
 
-   std::function< void( const Point3D&, Point3D& ) > normalFreeSlip = []( const Point3D& x, Point3D& n ) { n = x / x.norm(); };
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Interpolating normals ..." );
+   }
 
    for ( uint_t l = 0; l <= level; l++ )
    {
@@ -375,6 +456,11 @@ void runBenchmark( real_t              cflMax,
       }
    }
 
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Preparing operators ..." );
+   }
+
    UnsteadyDiffusionOperator diffusionOperator(
        storage, minLevel, level, 1.0, diffusivity, DiffusionTimeIntegrator::ImplicitEuler );
    auto                            A = std::make_shared< StokesOperator >( storage, minLevel, level );
@@ -383,38 +469,49 @@ void runBenchmark( real_t              cflMax,
    MassOperatorPressure            MPressure( storage, minLevel, level );
    MMOCTransport< ScalarFunction > transport( storage, setupStorage, minLevel, level, TimeSteppingScheme::RK4 );
 
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Preparing solvers ..." );
+   }
+
    std::shared_ptr< Solver< StokesOperator > > stokesSolver;
    std::shared_ptr< Solver< StokesOperator > > stokesSolverBlockPrecMinRes;
 
    real_t vCycleResidualULast = 0;
+   real_t vCycleResidualCLast = 0;
 
-   if ( stokesSolverType == StokesSolverType::PETSC_MUMPS )
+   if ( solverInfo.stokesSolverType == StokesSolverType::PETSC_MUMPS )
    {
       stokesSolver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, level );
    }
 
-   else if ( stokesSolverType == StokesSolverType::PETSC_MINRES_JACOBI ||
-             stokesSolverType == StokesSolverType::PETSC_MINRES_BOOMER )
+   else if ( solverInfo.stokesSolverType == StokesSolverType::PETSC_MINRES_JACOBI ||
+             solverInfo.stokesSolverType == StokesSolverType::PETSC_MINRES_BOOMER )
    {
       auto velocityPreconditionerType = 1;
-      if ( stokesSolverType == StokesSolverType::PETSC_MINRES_BOOMER )
+      if ( solverInfo.stokesSolverType == StokesSolverType::PETSC_MINRES_BOOMER )
       {
          velocityPreconditionerType = 3;
       }
-      auto stokesSolverTmp = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
-          storage, level, stokesAbsoluteResidualTolerance, stokesMaxIter, velocityPreconditionerType, 1 );
+      auto stokesSolverTmp =
+          std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >( storage,
+                                                                                      level,
+                                                                                      solverInfo.stokesAbsoluteResidualUTolerance,
+                                                                                      solverInfo.stokesMaxNumIterations,
+                                                                                      velocityPreconditionerType,
+                                                                                      1 );
       stokesSolverTmp->reassembleMatrix( false );
       stokesSolverTmp->setVerbose( verbose );
       stokesSolver = stokesSolverTmp;
    }
 
-   else if ( stokesSolverType == StokesSolverType::HYTEG_MINRES )
+   else if ( solverInfo.stokesSolverType == StokesSolverType::HYTEG_MINRES )
    {
       stokesSolver = solvertemplates::stokesMinResSolver< StokesOperator >(
-          storage, level, stokesAbsoluteResidualTolerance, stokesMaxIter, verbose );
+          storage, level, solverInfo.stokesAbsoluteResidualUTolerance, solverInfo.stokesMaxNumIterations, verbose );
    }
 
-   else if ( stokesSolverType == StokesSolverType::HYTEG_MINRES_GMG )
+   else if ( solverInfo.stokesSolverType == StokesSolverType::HYTEG_MINRES_GMG )
    {
       typedef CGSolver< P2ElementwiseBlendingLaplaceOperator >                 CoarseGridSolver_T;
       typedef GeometricMultigridSolver< P2ElementwiseBlendingLaplaceOperator > GMGSolver_T;
@@ -432,11 +529,11 @@ void runBenchmark( real_t              cflMax,
       typedef StokesBlockDiagonalPreconditioner< StokesOperator, P1LumpedInvMassOperator > Preconditioner_T;
       auto preconditioner = std::make_shared< Preconditioner_T >( storage, minLevel, level, 3, gmgSolver );
 
-      auto stokesSolverTmp =
-          std::make_shared< MinResSolver< StokesOperator > >( storage, minLevel, level, stokesMaxIter, 1e-30, preconditioner );
+      auto stokesSolverTmp = std::make_shared< MinResSolver< StokesOperator > >(
+          storage, minLevel, level, solverInfo.stokesMaxNumIterations, 1e-30, preconditioner );
       stokesSolverTmp->setPrintInfo( verbose );
-      stokesSolverTmp->setAbsoluteTolerance( stokesAbsoluteResidualTolerance );
-      if ( stokesSolverType == StokesSolverType::HYTEG_MINRES_GMG )
+      stokesSolverTmp->setAbsoluteTolerance( solverInfo.stokesAbsoluteResidualUTolerance );
+      if ( solverInfo.stokesSolverType == StokesSolverType::HYTEG_MINRES_GMG )
       {
          stokesSolver = stokesSolverTmp;
       }
@@ -446,7 +543,8 @@ void runBenchmark( real_t              cflMax,
       }
    }
 
-   else if ( stokesSolverType == StokesSolverType::HYTEG_UZAWA_V || stokesSolverType == StokesSolverType::HYTEG_UZAWA_FMG )
+   else if ( solverInfo.stokesSolverType == StokesSolverType::HYTEG_UZAWA_V ||
+             solverInfo.stokesSolverType == StokesSolverType::HYTEG_UZAWA_FMG )
    {
       auto prolongationOperator = std::make_shared< P2P1StokesToP2P1StokesProlongation >();
       auto restrictionOperator  = std::make_shared< P2P1StokesToP2P1StokesRestriction >( true );
@@ -459,12 +557,12 @@ void runBenchmark( real_t              cflMax,
           std::make_shared< StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator > >( storage, smoother );
 
       auto uzawaSmoother = std::make_shared< UzawaSmoother< StokesOperator > >(
-          storage, uzawaVelocityPreconditioner, minLevel, level, 0.5, Inner | NeumannBoundary, 10 );
+          storage, uzawaVelocityPreconditioner, minLevel, level, 0.6, Inner | NeumannBoundary, 10 );
 
       std::shared_ptr< Solver< StokesOperator > > coarseGridSolverInternal;
 
       auto petscSolverInternalTmp = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
-          storage, minLevel, stokesAbsoluteResidualTolerance, stokesMaxIter, 1 );
+          storage, minLevel, solverInfo.stokesAbsoluteResidualUTolerance, solverInfo.stokesMaxNumIterations, 1 );
       petscSolverInternalTmp->setVerbose( verbose );
       auto coarseGridSolver = petscSolverInternalTmp;
 
@@ -475,41 +573,42 @@ void runBenchmark( real_t              cflMax,
                                                                                              prolongationOperator,
                                                                                              minLevel,
                                                                                              level,
-                                                                                             10,
-                                                                                             10,
+                                                                                             6,
+                                                                                             6,
                                                                                              2,
                                                                                              CycleType::VCYCLE );
 
-      if ( stokesSolverType == StokesSolverType::HYTEG_UZAWA_V )
+      if ( solverInfo.stokesSolverType == StokesSolverType::HYTEG_UZAWA_V )
       {
-         auto stopIterationCallback = [&]() {
-            real_t r_u;
-            real_t r_p;
+         auto stopIterationCallback =
+             [&]( const StokesOperator& _A, const StokesFunction& _u, const StokesFunction& _b, const uint_t _level ) {
+                real_t r_u;
+                real_t r_p;
 
-            calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, r_u, r_p );
+                calculateStokesResiduals( _A, MVelocity, MPressure, _u, _b, _level, stokesResidual, stokesTmp, r_u, r_p );
 
-            auto reductionRateU = r_u / vCycleResidualULast;
+                auto reductionRateU = r_u / vCycleResidualULast;
 
-            vCycleResidualULast = r_u;
+                vCycleResidualULast = r_u;
 
-            if ( verbose )
-            {
-               WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-                   "[Uzawa] residual u: %10.5e | reduction: %10.5e | residual p: %10.5e", r_u, reductionRateU, r_p ) );
-            }
+                if ( verbose )
+                {
+                   WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+                       "[Uzawa] residual u: %10.5e | reduction: %10.5e | residual p: %10.5e", r_u, reductionRateU, r_p ) );
+                }
 
-            if ( r_u < stokesAbsoluteResidualTolerance )
-            {
-               return true;
-            }
+                if ( r_u < solverInfo.stokesAbsoluteResidualUTolerance )
+                {
+                   return true;
+                }
 
-            if ( reductionRateU > 0.8 )
-            {
-               return true;
-            }
+                if ( reductionRateU > 0.8 )
+                {
+                   return true;
+                }
 
-            return false;
-         };
+                return false;
+             };
 
          stokesSolver = std::make_shared< SolverLoop< StokesOperator > >( multigridSolver, 10, stopIterationCallback );
       }
@@ -527,22 +626,71 @@ void runBenchmark( real_t              cflMax,
 
    std::shared_ptr< Solver< UnsteadyDiffusionOperator > > diffusionLinearSolver;
 
-   if ( diffusionSolverType == DiffusionSolverType::PETSC_MINRES )
+   UnsteadyDiffusion< ScalarFunction, UnsteadyDiffusionOperator, LaplaceOperator, MassOperatorVelocity > diffusionSolver(
+       storage, minLevel, level, diffusionLinearSolver );
+
+   if ( solverInfo.diffusionSolverType == DiffusionSolverType::PETSC_MINRES )
    {
-      auto internalDiffusionSolver =
-          std::make_shared< PETScMinResSolver< UnsteadyDiffusionOperator > >( storage, level, 1e-10, 50000 );
+      auto internalDiffusionSolver = std::make_shared< PETScMinResSolver< UnsteadyDiffusionOperator > >(
+          storage, level, solverInfo.diffusionAbsoluteResidualUTolerance, solverInfo.diffusionMaxNumIterations );
       internalDiffusionSolver->reassembleMatrix( true );
       diffusionLinearSolver = internalDiffusionSolver;
    }
-   else if ( diffusionSolverType == DiffusionSolverType::HYTEG_CG )
+   else if ( solverInfo.diffusionSolverType == DiffusionSolverType::HYTEG_CG )
    {
-      auto internalDiffusionSolver = std::make_shared< CGSolver< UnsteadyDiffusionOperator > >( storage, minLevel, level );
+      auto internalDiffusionSolver = std::make_shared< CGSolver< UnsteadyDiffusionOperator > >(
+          storage, minLevel, level, solverInfo.diffusionMaxNumIterations, solverInfo.diffusionAbsoluteResidualUTolerance );
       internalDiffusionSolver->setPrintInfo( verbose );
       diffusionLinearSolver = internalDiffusionSolver;
    }
+   else if ( solverInfo.diffusionSolverType == DiffusionSolverType::HYTEG_GMG )
+   {
+      WALBERLA_ABORT( "Somethings not working here for 3D" );
+      typedef CGSolver< UnsteadyDiffusionOperator >                 CoarseGridSolver_T;
+      typedef GeometricMultigridSolver< UnsteadyDiffusionOperator > GMGSolver_T;
 
-   UnsteadyDiffusion< ScalarFunction, UnsteadyDiffusionOperator, LaplaceOperator, MassOperatorVelocity > diffusionSolver(
-       storage, minLevel, level, diffusionLinearSolver );
+      auto coarseGridSolver = std::make_shared< CoarseGridSolver_T >( storage, minLevel, level );
+      auto smoother = std::make_shared< WeightedJacobiSmoother< UnsteadyDiffusionOperator > >( storage, minLevel, level, 0.66 );
+      auto prolongationOperator = std::make_shared< P2toP2QuadraticProlongation >();
+      auto restrictionOperator  = std::make_shared< P2toP2QuadraticRestriction >();
+      auto gmgSolver            = std::make_shared< GMGSolver_T >(
+          storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, level, 3, 3 );
+
+      auto stopIterationCallback = [&]( const UnsteadyDiffusionOperator&,
+                                        const ScalarFunction& _u,
+                                        const ScalarFunction& _b,
+                                        const uint_t ) {
+         real_t r_c;
+
+         calculateDiffusionResidual( diffusionSolver, diffusionOperator, L, MVelocity, _u, cOld, _b, cTmp, cTmp2, level, r_c );
+
+         auto reductionRateC = r_c / vCycleResidualCLast;
+
+         vCycleResidualCLast = r_c;
+
+         if ( verbose )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT(
+                walberla::format( "[Diffusion GMG] residual: %10.5e | reduction: %10.5e", r_c, reductionRateC ) );
+         }
+
+         if ( r_c < solverInfo.diffusionAbsoluteResidualUTolerance )
+         {
+            return true;
+         }
+
+         if ( reductionRateC > 0.8 )
+         {
+            return true;
+         }
+
+         return false;
+      };
+
+      diffusionLinearSolver = std::make_shared< SolverLoop< UnsteadyDiffusionOperator > >( gmgSolver, 20, stopIterationCallback );
+   }
+
+   diffusionSolver.setSolver( diffusionLinearSolver );
 
    real_t timeTotal = 0;
    real_t vMax      = 0;
@@ -556,20 +704,30 @@ void runBenchmark( real_t              cflMax,
    real_t timeDiffusion = 0;
    real_t timeVTK       = 0;
 
-   hyteg::VTKOutput vtkOutput( "./vtk", outputBaseName, storage, vtkInterval );
+   hyteg::VTKOutput vtkOutput( outputDirectory, outputBaseName, storage, vtkInterval );
 
    vtkOutput.add( u );
-   vtkOutput.add( f );
    vtkOutput.add( c );
-   vtkOutput.add( outwardNormal );
-   vtkOutput.add( q );
-   vtkOutput.add( stokesResidual );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+   printFunctionAllocationInfo( *storage, 1 );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+   printCurrentMemoryUsage();
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
 
    timer->stop( "Setup" );
 
    timer->start( "Simulation" );
 
-   uint_t timeStep = 0;
+   uint_t            timeStep = 0;
+   walberla::WcTimer timeStepTimer;
+
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Initial Stokes solve ..." );
+   }
+
+   timeStepTimer.start();
 
    for ( uint_t l = 0; l <= level; l++ )
    {
@@ -616,7 +774,8 @@ void runBenchmark( real_t              cflMax,
    localTimer.end();
    timeVTK = localTimer.last();
 
-   walberla::WcTimer timeStepTimer;
+   timeStepTimer.end();
+   timeStepTotal = timeStepTimer.last();
 
    WALBERLA_LOG_INFO_ON_ROOT(
        " timestep |           dt |   time total | velocity RMS | velocity max magnitude |   residual u |   residual p |  total | Stokes |   MMOC |   diff |    VTK |" )
@@ -695,6 +854,9 @@ void runBenchmark( real_t              cflMax,
 
       diffusionOperator.setDt( 0.5 * dt );
 
+      calculateDiffusionResidual(
+          diffusionSolver, diffusionOperator, L, MVelocity, cPr, cOld, q, cTmp, cTmp2, level, vCycleResidualCLast );
+
       localTimer.start();
       diffusionSolver.step( diffusionOperator, L, MVelocity, cPr, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
       localTimer.end();
@@ -710,6 +872,9 @@ void runBenchmark( real_t              cflMax,
       cPr.interpolate( initialTemperature, level, DirichletBoundary );
 
       cOld.assign( {1.0}, {cPr}, level, All );
+
+      calculateDiffusionResidual(
+          diffusionSolver, diffusionOperator, L, MVelocity, cPr, cOld, q, cTmp, cTmp2, level, vCycleResidualCLast );
 
       localTimer.start();
       diffusionSolver.step( diffusionOperator, L, MVelocity, cPr, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
@@ -756,6 +921,9 @@ void runBenchmark( real_t              cflMax,
 
          cOld.assign( {1.0}, {c}, level, All );
 
+         calculateDiffusionResidual(
+             diffusionSolver, diffusionOperator, L, MVelocity, c, cOld, q, cTmp, cTmp2, level, vCycleResidualCLast );
+
          localTimer.start();
          diffusionSolver.step(
              diffusionOperator, L, MVelocity, c, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
@@ -774,6 +942,9 @@ void runBenchmark( real_t              cflMax,
          c.interpolate( initialTemperature, level, DirichletBoundary );
 
          cOld.assign( {1.0}, {c}, level, All );
+
+         calculateDiffusionResidual(
+             diffusionSolver, diffusionOperator, L, MVelocity, c, cOld, q, cTmp, cTmp2, level, vCycleResidualCLast );
 
          localTimer.start();
          diffusionSolver.step(
@@ -819,7 +990,7 @@ void runBenchmark( real_t              cflMax,
 
       timeTotal += dt;
 
-      vRms = velocityRMS( u, stokesTmp, MVelocity, domainInfo.domainArea(), level );
+      vRms = velocityRMS( u, stokesTmp, MVelocity, domainInfo.domainVolume(), level );
 
       localTimer.start();
       if ( vtk )
@@ -870,7 +1041,12 @@ void runBenchmark( real_t              cflMax,
 
    if ( outputTimingJSON )
    {
-      writeTimingTreeJSON( *timer, outputBaseName + "_timing.json" );
+      if ( verbose )
+      {
+         WALBERLA_LOG_INFO_ON_ROOT( "Writing timing tree to .json ..." );
+      }
+
+      writeTimingTreeJSON( *timer, outputDirectory + "/" + outputBaseName + "_timing.json" );
    }
 }
 
@@ -900,6 +1076,7 @@ int main( int argc, char** argv )
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
    hyteg::DomainInfo domainInfo;
+   hyteg::SolverInfo solverInfo;
 
    domainInfo.threeDim = mainConf.getParameter< bool >( "threeDim" );
    domainInfo.rMin     = mainConf.getParameter< hyteg::real_t >( "rMin" );
@@ -918,11 +1095,17 @@ int main( int argc, char** argv )
    const int stokesSolverTypeInt    = mainConf.getParameter< int >( "stokesSolverType" );
    const int diffusionSolverTypeInt = mainConf.getParameter< int >( "diffusionSolverType" );
 
-   auto stokesSolverType    = static_cast< hyteg::StokesSolverType >( stokesSolverTypeInt );
-   auto diffusionSolverType = static_cast< hyteg::DiffusionSolverType >( diffusionSolverTypeInt );
+   solverInfo.stokesSolverType                 = static_cast< hyteg::StokesSolverType >( stokesSolverTypeInt );
+   solverInfo.stokesMaxNumIterations           = mainConf.getParameter< uint_t >( "stokesMaxNumIterations" );
+   solverInfo.stokesAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "stokesAbsoluteResidualUTolerance" );
 
-   const std::string outputBaseName = mainConf.getParameter< std::string >( "outputBaseName" );
-   const bool        vtk            = mainConf.getParameter< bool >( "vtk" );
+   solverInfo.diffusionSolverType                 = static_cast< hyteg::DiffusionSolverType >( diffusionSolverTypeInt );
+   solverInfo.diffusionMaxNumIterations           = mainConf.getParameter< uint_t >( "diffusionMaxNumIterations" );
+   solverInfo.diffusionAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "diffusionAbsoluteResidualUTolerance" );
+
+   const std::string outputDirectory = mainConf.getParameter< std::string >( "outputDirectory" );
+   const std::string outputBaseName  = mainConf.getParameter< std::string >( "outputBaseName" );
+   const bool        vtk             = mainConf.getParameter< bool >( "vtk" );
 
    const bool verbose = mainConf.getParameter< bool >( "verbose" );
 
@@ -932,14 +1115,14 @@ int main( int argc, char** argv )
                         dtConstant,
                         minLevel,
                         level,
-                        stokesSolverType,
-                        diffusionSolverType,
+                        solverInfo,
                         domainInfo,
                         true,
                         simulationTime,
                         vtk,
                         1,
                         1,
+                        outputDirectory,
                         outputBaseName,
                         verbose );
 }
