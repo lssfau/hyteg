@@ -234,6 +234,11 @@ class UnsteadyDiffusion
    , solver_( diffusionSolver )
    {}
 
+   void setSolver( const std::shared_ptr< Solver< UnsteadyDiffusionOperatorType > >& diffusionSolver )
+   {
+      solver_ = diffusionSolver;
+   }
+
    /// \brief Performs one implicit Euler step to advance the solution of the PDE from time step n to n+1.
    ///
    /// \param A the unsteady diffusion operator instance (dt, diffusivity and time integrator are defined by this operator)
