@@ -263,6 +263,7 @@ void runBenchmark( real_t      cflMax,
                    real_t      rayleighNumber,
                    bool        fixedTimeStep,
                    real_t      dtConstant,
+                   uint_t      maxNumTimeSteps,
                    uint_t      minLevel,
                    uint_t      level,
                    SolverInfo  solverInfo,
@@ -809,7 +810,7 @@ void runBenchmark( real_t      cflMax,
 
    db.writeRowOnRoot();
 
-   while ( timeTotal < simulationTime )
+   while ( timeTotal < simulationTime && timeStep < maxNumTimeSteps )
    {
       timeStepTimer.start();
 
@@ -1091,6 +1092,7 @@ int main( int argc, char** argv )
    const uint_t        minLevel       = mainConf.getParameter< uint_t >( "minLevel" );
    const uint_t        level          = mainConf.getParameter< uint_t >( "level" );
    const hyteg::real_t simulationTime = mainConf.getParameter< hyteg::real_t >( "simulationTime" );
+   const hyteg::uint_t maxNumTimeSteps = mainConf.getParameter< hyteg::uint_t >( "maxNumTimeSteps" );
 
    const int stokesSolverTypeInt    = mainConf.getParameter< int >( "stokesSolverType" );
    const int diffusionSolverTypeInt = mainConf.getParameter< int >( "diffusionSolverType" );
@@ -1113,6 +1115,7 @@ int main( int argc, char** argv )
                         rayleighNumber,
                         fixedTimeStep,
                         dtConstant,
+                        maxNumTimeSteps,
                         minLevel,
                         level,
                         solverInfo,

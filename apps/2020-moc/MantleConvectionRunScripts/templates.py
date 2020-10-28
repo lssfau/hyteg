@@ -1,6 +1,6 @@
 
 
-def create_parameter_file(max_level: int, ra: float, output_directory: str, base_name: str, **kwargs):
+def create_parameter_file(max_level: int, ra: float, output_directory: str, base_name: str, max_num_time_steps: int, **kwargs):
     return f"""Parameters
 {{
     level {max_level};
@@ -38,6 +38,7 @@ def create_parameter_file(max_level: int, ra: float, output_directory: str, base
     diffusionMaxNumIterations 10000;
     diffusionAbsoluteResidualUTolerance 1e-12;
 
+    maxNumTimeSteps {max_num_time_steps};
     simulationTime 10;
     cflMax 0.1;
     fixedTimeStep false;
