@@ -33,3 +33,4 @@ waLBerla_add_executable( NAME MantleConvection
         FILES MantleConvection.cpp
         DEPENDS hyteg convection_particles sqlite)
 
+add_subdirectory(MantleConvectionRunScripts)
