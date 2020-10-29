@@ -57,7 +57,7 @@ const std::array< CellType, 6 > allCellTypes = {
 
 namespace macrocell {
 
-inline uint_t numCellsPerRowByType( const uint_t& level, const CellType& cellType )
+inline constexpr uint_t numCellsPerRowByType( const uint_t& level, const CellType& cellType )
 {
    switch ( cellType )
    {
@@ -74,8 +74,54 @@ inline uint_t numCellsPerRowByType( const uint_t& level, const CellType& cellTyp
    case CellType::GREEN_DOWN:
       return levelinfo::num_microedges_per_edge( level ) - 1;
    default:
-      WALBERLA_ABORT( "Invalid cell type" );
-      return 0;
+      return std::numeric_limits< uint_t >::max();
+   }
+}
+
+inline constexpr uint_t numMicroCellsPerMacroCell( const uint_t& level, const CellType& cellType )
+{
+   return levelinfo::num_microvertices_per_cell_from_width( numCellsPerRowByType( level, cellType ) );
+}
+
+inline constexpr uint_t numMicroCellsPerMacroCellTotal( const uint_t& level )
+{
+   uint_t totalNumCells = 0;
+
+   totalNumCells += numMicroCellsPerMacroCell( level, CellType::WHITE_UP );
+   totalNumCells += numMicroCellsPerMacroCell( level, CellType::BLUE_UP );
+   totalNumCells += numMicroCellsPerMacroCell( level, CellType::GREEN_UP );
+   totalNumCells += numMicroCellsPerMacroCell( level, CellType::WHITE_DOWN );
+   totalNumCells += numMicroCellsPerMacroCell( level, CellType::BLUE_DOWN );
+   totalNumCells += numMicroCellsPerMacroCell( level, CellType::GREEN_DOWN );
+
+   return totalNumCells;
+}
+
+inline constexpr uint_t index( const uint_t& level, const uint_t& x, const uint_t& y, const uint_t& z, const CellType& cellType )
+{
+   const auto width = numCellsPerRowByType( level, cellType );
+   switch ( cellType )
+   {
+   case CellType::WHITE_UP:
+      return indexing::macroCellIndex( width, x, y, z );
+   case CellType::BLUE_UP:
+      return numMicroCellsPerMacroCell( level, CellType::WHITE_UP ) + indexing::macroCellIndex( width, x, y, z );
+   case CellType::GREEN_UP:
+      return numMicroCellsPerMacroCell( level, CellType::WHITE_UP ) + numMicroCellsPerMacroCell( level, CellType::BLUE_UP ) +
+             indexing::macroCellIndex( width, x, y, z );
+   case CellType::WHITE_DOWN:
+      return numMicroCellsPerMacroCell( level, CellType::WHITE_UP ) + numMicroCellsPerMacroCell( level, CellType::BLUE_UP ) +
+             numMicroCellsPerMacroCell( level, CellType::GREEN_UP ) + indexing::macroCellIndex( width, x, y, z );
+   case CellType::BLUE_DOWN:
+      return numMicroCellsPerMacroCell( level, CellType::WHITE_UP ) + numMicroCellsPerMacroCell( level, CellType::BLUE_UP ) +
+             numMicroCellsPerMacroCell( level, CellType::GREEN_UP ) + numMicroCellsPerMacroCell( level, CellType::WHITE_DOWN ) +
+             indexing::macroCellIndex( width, x, y, z );
+   case CellType::GREEN_DOWN:
+      return numMicroCellsPerMacroCell( level, CellType::WHITE_UP ) + numMicroCellsPerMacroCell( level, CellType::BLUE_UP ) +
+             numMicroCellsPerMacroCell( level, CellType::GREEN_UP ) + numMicroCellsPerMacroCell( level, CellType::WHITE_DOWN ) +
+             numMicroCellsPerMacroCell( level, CellType::BLUE_DOWN ) + indexing::macroCellIndex( width, x, y, z );
+   default:
+      return std::numeric_limits< uint_t >::max();
    }
 }
 

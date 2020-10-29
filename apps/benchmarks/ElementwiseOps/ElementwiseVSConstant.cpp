@@ -179,15 +179,16 @@ void performBenchmark( hyteg::P2Function< double >&         src,
          {
             for ( const auto& micro : hyteg::celldof::macrocell::Iterator( level, cType, 0 ) )
             {
-               hyteg::localMatrixVectorMultiply3D( cell,
-                                                   level,
+               hyteg::Matrix10r elMat;
+               hyteg::assembleLocalElementMatrix3D( cell, level, micro, cType, elementwiseOperator.getForm(), elMat );
+               hyteg::localMatrixVectorMultiply3D( level,
                                                    micro,
                                                    cType,
                                                    srcVertexPtr,
                                                    srcEdgePtr,
                                                    dstElemVertexPtr,
                                                    dstElemEdgePtr,
-                                                   elementwiseOperator.getForm() );
+                                                   elMat );
             }
          }
       }

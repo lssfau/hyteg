@@ -17,20 +17,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+#include <memory>
+
 #include "core/Environment.h"
 #include "core/timing/TimingJSON.h"
 
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/communication/Syncing.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
-#include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/geometry/IcosahedralShellMap.hpp"
+#include "hyteg/geometry/IdentityMap.hpp"
+#include "hyteg/misc/dummy.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
-#include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/misc/dummy.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
@@ -46,34 +53,40 @@ int main( int argc, char** argv )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   auto timingTree = std::make_shared< walberla::WcTimingTree >();
+   auto              timingTree = std::make_shared< walberla::WcTimingTree >();
    walberla::WcTimer timer;
 
    //check if a config was given on command line or load default file otherwise
-   auto cfg = std::make_shared<walberla::config::Config>();
-   if( env.config() == nullptr ) {
+   auto cfg = std::make_shared< walberla::config::Config >();
+   if ( env.config() == nullptr )
+   {
       auto defaultFile = "./P2Benchmark.prm";
-      WALBERLA_LOG_PROGRESS_ON_ROOT("No Parameter file given loading default parameter file: " << defaultFile);
+      WALBERLA_LOG_PROGRESS_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
       cfg->readParameterFile( defaultFile );
-   } else {
+   }
+   else
+   {
       cfg = env.config();
    }
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
-   const uint_t level         = mainConf.getParameter< uint_t >( "level" );
+   const uint_t      level    = mainConf.getParameter< uint_t >( "level" );
    const std::string meshFile = mainConf.getParameter< std::string >( "mesh" );
 
    LIKWID_MARKER_THREADINIT;
 
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( meshFile );
-   SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 0, 0, true );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
+   MeshInfo meshInfo = MeshInfo::fromGmshFile( meshFile );
+   auto     setupStorage =
+       std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage->setMeshBoundaryFlagsOnBoundary( 0, 0, true );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( *setupStorage, timingTree );
 
-   auto storageInfo = storage->getGlobalInfo();
-   auto numVertexDoFs = numberOfGlobalDoFs< VertexDoFFunctionTag >( *storage, level );
-   auto numEdgeDoFs   = numberOfGlobalDoFs< EdgeDoFFunctionTag >( *storage, level );
+   auto storageInfo    = storage->getGlobalInfo();
+   auto numVertexDoFs  = numberOfGlobalDoFs< VertexDoFFunctionTag >( *storage, level );
+   auto numEdgeDoFs    = numberOfGlobalDoFs< EdgeDoFFunctionTag >( *storage, level );
    auto numP2DoFsTotal = numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
+
+   const uint_t numIterations = 3;
 
    WALBERLA_LOG_DEVEL_ON_ROOT( "" );
    WALBERLA_LOG_DEVEL_ON_ROOT( "=================================" );
@@ -87,20 +100,22 @@ int main( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "# vertexdofs:     " << numVertexDoFs );
    WALBERLA_LOG_INFO_ON_ROOT( "# edgedofs:       " << numEdgeDoFs );
    WALBERLA_LOG_INFO_ON_ROOT( "# total dofs:     " << numP2DoFsTotal );
+   WALBERLA_LOG_INFO_ON_ROOT( "# iterations:     " << numIterations );
 
    WALBERLA_LOG_INFO_ON_ROOT( "=== Starting measurements ===" );
 
    P2Function< real_t > src( "src", storage, level, level );
    P2Function< real_t > dst( "dst", storage, level, level );
 
-   hyteg::P2ConstantLaplaceOperator M( storage, level, level );
+   P2ConstantLaplaceOperator            L_constant_stencil( storage, level, level );
+   P2ElementwiseLaplaceOperator         L_elementwise_otf_cc( storage, level, level );
+   P2ElementwiseBlendingLaplaceOperator L_elementwise_otf_blending_id( storage, level, level );
+   P2ElementwiseBlendingLaplaceOperator L_elementwise_otf_blending_shell( storage, level, level );
+   P2ElementwiseBlendingLaplaceOperator L_elementwise_stored_blending_shell( storage, level, level );
 
-   std::function< real_t( const hyteg::Point3D& ) > someFunction = [&]( const hyteg::Point3D& point )
-   {
+   std::function< real_t( const hyteg::Point3D& ) > someFunction = [&]( const hyteg::Point3D& point ) {
       return point[0] + point[1];
    };
-
-   const uint_t numIterations = 3;
 
    LIKWID_MARKER_START( "interpolate constant" );
    timer.reset();
@@ -108,7 +123,7 @@ int main( int argc, char** argv )
       src.interpolate( 42.0, level );
    timer.end();
    LIKWID_MARKER_STOP( "interpolate constant" );
-   WALBERLA_LOG_INFO_ON_ROOT( "interpolate constant: " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "interpolate constant:             " << timer.last() );
 
    LIKWID_MARKER_START( "interpolate function" );
    timer.reset();
@@ -116,7 +131,7 @@ int main( int argc, char** argv )
       src.interpolate( someFunction, level );
    timer.end();
    LIKWID_MARKER_STOP( "interpolate function" );
-   WALBERLA_LOG_INFO_ON_ROOT( "interpolate function: " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "interpolate function:             " << timer.last() );
 
    LIKWID_MARKER_START( "assign" );
    timer.reset();
@@ -124,7 +139,7 @@ int main( int argc, char** argv )
       dst.assign( {1.0}, {src}, level );
    timer.end();
    LIKWID_MARKER_STOP( "assign" );
-   WALBERLA_LOG_INFO_ON_ROOT( "assign:               " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "assign:                           " << timer.last() );
 
    LIKWID_MARKER_START( "assign scaled" );
    timer.reset();
@@ -132,23 +147,7 @@ int main( int argc, char** argv )
       dst.assign( {1.23}, {src}, level );
    timer.end();
    LIKWID_MARKER_STOP( "assign scaled" );
-   WALBERLA_LOG_INFO_ON_ROOT( "assign scaled:        " << timer.last() );
-
-   LIKWID_MARKER_START( "apply" );
-   timer.reset();
-   for ( uint_t i = 0; i < numIterations; i++ )
-      M.apply( src, dst, level, All );
-   timer.end();
-   LIKWID_MARKER_STOP( "apply" );
-   WALBERLA_LOG_INFO_ON_ROOT( "apply:                " << timer.last() );
-
-   LIKWID_MARKER_START( "SOR" );
-   timer.reset();
-   for ( uint_t i = 0; i < numIterations; i++ )
-      M.smooth_sor( src, dst, 1.1, level, All );
-   timer.end();
-   LIKWID_MARKER_STOP( "SOR" );
-   WALBERLA_LOG_INFO_ON_ROOT( "SOR:                  " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "assign scaled:                    " << timer.last() );
 
    LIKWID_MARKER_START( "dot" );
    timer.reset();
@@ -156,7 +155,7 @@ int main( int argc, char** argv )
       src.dotGlobal( dst, level );
    timer.end();
    LIKWID_MARKER_STOP( "dot" );
-   WALBERLA_LOG_INFO_ON_ROOT( "dot:                  " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "dot:                              " << timer.last() );
 
    LIKWID_MARKER_START( "dot self" );
    timer.reset();
@@ -164,7 +163,7 @@ int main( int argc, char** argv )
       dst.dotGlobal( dst, level );
    timer.end();
    LIKWID_MARKER_STOP( "dot self" );
-   WALBERLA_LOG_INFO_ON_ROOT( "dot self:             " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "dot self:                         " << timer.last() );
 
    LIKWID_MARKER_START( "sync all" );
    timer.reset();
@@ -172,7 +171,65 @@ int main( int argc, char** argv )
       communication::syncP2FunctionBetweenPrimitives( dst, level );
    timer.end();
    LIKWID_MARKER_STOP( "sync all" );
-   WALBERLA_LOG_INFO_ON_ROOT( "sync all:             " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "sync all:                         " << timer.last() );
+
+   LIKWID_MARKER_START( "apply cc stencil" );
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_constant_stencil.apply( src, dst, level, All );
+   timer.end();
+   LIKWID_MARKER_STOP( "apply cc stencil" );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply cc stencil:                 " << timer.last() );
+
+   LIKWID_MARKER_START( "apply cc elem" );
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_elementwise_otf_cc.apply( src, dst, level, All );
+   timer.end();
+   LIKWID_MARKER_STOP( "apply cc elem" );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply cc elem:                    " << timer.last() );
+
+   LIKWID_MARKER_START( "apply blending id elem" );
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_elementwise_otf_blending_id.apply( src, dst, level, All );
+   timer.end();
+   LIKWID_MARKER_STOP( "apply blending id elem" );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply blending id elem:           " << timer.last() );
+
+   IcosahedralShellMap::setMap( *setupStorage );
+   storage = std::make_shared< PrimitiveStorage >( *setupStorage, timingTree );
+
+   LIKWID_MARKER_START( "apply blending shell elem" );
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_elementwise_otf_blending_shell.apply( src, dst, level, All );
+   timer.end();
+   LIKWID_MARKER_STOP( "apply blending shell elem" );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply blending shell elem:        " << timer.last() );
+
+   L_elementwise_stored_blending_shell.computeAndStoreLocalElementMatrices();
+   LIKWID_MARKER_START( "apply blending shell elem stored" );
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_elementwise_stored_blending_shell.apply( src, dst, level, All );
+   timer.end();
+   LIKWID_MARKER_STOP( "apply blending shell elem stored" );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply blending shell elem stored: " << timer.last() );
+
+   meshInfo = MeshInfo::fromGmshFile( meshFile );
+   setupStorage =
+       std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage->setMeshBoundaryFlagsOnBoundary( 0, 0, true );
+   storage = std::make_shared< PrimitiveStorage >( *setupStorage, timingTree );
+
+   LIKWID_MARKER_START( "SOR cc stencil" );
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_constant_stencil.smooth_sor( src, dst, 1.1, level, All );
+   timer.end();
+   LIKWID_MARKER_STOP( "SOR cc stencil" );
+   WALBERLA_LOG_INFO_ON_ROOT( "SOR cc stencil:                   " << timer.last() );
 
    misc::dummy( &dst );
    misc::dummy( &src );
@@ -181,7 +238,7 @@ int main( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( timingTreeReducedWithRemainder );
 
    nlohmann::json ttjson = nlohmann::json( timingTreeReducedWithRemainder );
-   std::ofstream o("P2Benchmark.json");
+   std::ofstream  o( "P2Benchmark.json" );
    o << ttjson;
    o.close();
 

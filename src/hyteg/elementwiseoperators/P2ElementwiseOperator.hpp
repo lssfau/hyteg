@@ -84,6 +84,12 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
       return inverseDiagonalValues_;
    };
 
+   /// \brief Pre-computes the local stiffness matrices for each (micro-)element and stores them all in memory.
+   ///
+   /// If this method is called, all subsequent calls to apply() or smooth_*() use the stored element matrices.
+   /// If the local element matrices need to be recomputed again, simply call this method again.
+   void computeAndStoreLocalElementMatrices();
+
    void smooth_jac( const P2Function< real_t >& dst,
                     const P2Function< real_t >& rhs,
                     const P2Function< real_t >& src,
@@ -209,11 +215,56 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
    std::shared_ptr< P2Function< real_t > > inverseDiagonalValues_;
 
    P2Form form_;
+
+   /// \brief Returns a reference to the a precomputed element matrix of the specified micro cell.
+   /// Probably crashes if local element matrices have not been precomputed.
+   Matrix10r& localElementMatrix3D( const Cell& cell, uint_t level, const indexing::Index& microCell, celldof::CellType cType )
+   {
+      WALBERLA_ASSERT( localElementMatricesPrecomputed_, "Cannot retrieve element matrix since it was not allocated." );
+      const auto idx = celldof::macrocell::index( level, microCell.x(), microCell.y(), microCell.z(), cType );
+      return localElementMatrices3D_[cell.getID().getID()][level][idx];
+   }
+
+   /// \brief Returns a const reference to the a precomputed element matrix of the specified micro cell.
+   /// Probably crashes if local element matrices have not been precomputed.
+   const Matrix10r&
+       localElementMatrix3D( const Cell& cell, uint_t level, const indexing::Index& microCell, celldof::CellType cType ) const
+   {
+      WALBERLA_ASSERT( localElementMatricesPrecomputed_, "Cannot retrieve element matrix since it was not allocated." );
+      const auto idx = celldof::macrocell::index( level, microCell.x(), microCell.y(), microCell.z(), cType );
+      return localElementMatrices3D_.at( cell.getID().getID() ).at( level ).at( idx );
+   }
+
+   bool localElementMatricesPrecomputed_;
+
+   /// Pre-computed local element matrices.
+   /// localElementMatrices_[macroCellID][level][cellIdx] = mat10x10
+   std::map< PrimitiveID::IDType, std::map< uint_t, std::vector< Matrix10r > > > localElementMatrices3D_;
 };
+
+template < class P2Form >
+void assembleLocalElementMatrix3D( const Cell&            cell,
+                                   uint_t                 level,
+                                   const indexing::Index& microCell,
+                                   celldof::CellType      cType,
+                                   P2Form                 form,
+                                   Matrix10r&             elMat )
+{
+   // determine coordinates of vertices of micro-element
+   std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
+   std::array< Point3D, 4 >         coords;
+   for ( uint_t k = 0; k < 4; ++k )
+   {
+      coords[k] = vertexdof::macrocell::coordinateFromIndex( level, cell, verts[k] );
+   }
+
+   // assemble local element matrix
+   form.setGeometryMap( cell.getGeometryMap() );
+   form.integrateAll( coords, elMat );
+}
 
 /// compute product of element local vector with element matrix
 ///
-/// \param cell           cell primitive we operate on
 /// \param level          level on which we operate in mesh hierarchy
 /// \param microCell      index associated with the current element = micro-cell
 /// \param cType          type of micro-cell (WHITE_UP, BLUE_DOWN, ...)
@@ -221,18 +272,17 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
 /// \param srcEdgeData    pointer to DoF data on micro-edges (for reading data)
 /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
 /// \param dstEdgeData    pointer to DoF data on micro-edges (for writing data)
+/// \param elMat          the 10x10 element matrix to be multiplied
 ///
 /// \note The src and dst data arrays must not be identical.
-template < class P2Form >
-void localMatrixVectorMultiply3D( const Cell&            cell,
-                                  uint_t                 level,
+void localMatrixVectorMultiply3D( uint_t                 level,
                                   const indexing::Index& microCell,
                                   celldof::CellType      cType,
                                   const real_t* const    srcVertexData,
                                   const real_t* const    srcEdgeData,
                                   real_t* const          dstVertexData,
                                   real_t* const          dstEdgeData,
-                                  P2Form                 form );
+                                  const Matrix10r&       elMat );
 
 typedef P2ElementwiseOperator<
     P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > >
