@@ -469,6 +469,10 @@ void runBenchmark( real_t      cflMax,
    UnsteadyDiffusionOperator diffusionOperator(
        storage, minLevel, level, 1.0, diffusivity, DiffusionTimeIntegrator::ImplicitEuler );
    auto                            A = std::make_shared< StokesOperator >( storage, minLevel, level );
+   if ( storage->hasGlobalCells() )
+   {
+      A->computeAndStoreLocalElementMatrices();
+   }
    LaplaceOperator                 L( storage, minLevel, level );
    MassOperatorVelocity            MVelocity( storage, minLevel, level );
    MassOperatorPressure            MPressure( storage, minLevel, level );
