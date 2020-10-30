@@ -308,7 +308,7 @@ void runBenchmark( real_t      cflMax,
    }
 
    auto timer = storage->getTimingTree();
-   timer->start( "Total" );
+
    timer->start( "Setup" );
 
    if ( verbose )
@@ -821,8 +821,12 @@ void runBenchmark( real_t      cflMax,
 
    db.writeRowOnRoot();
 
+   timer->stop( "Simulation" );
+
    while ( timeTotal < simulationTime && timeStep < maxNumTimeSteps )
    {
+      timer->start( "Simulation" );
+
       timeStepTimer.start();
 
       timeStep++;
@@ -1050,20 +1054,18 @@ void runBenchmark( real_t      cflMax,
              timeDiffusion,
              timeVTK ) )
       }
-   }
 
-   timer->stop( "Simulation" );
+      timer->stop( "Simulation" );
 
-   timer->stop( "Total" );
-
-   if ( outputTimingJSON )
-   {
-      if ( verbose )
+      if ( outputTimingJSON )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( "Writing timing tree to .json ..." );
-      }
+         if ( verbose )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( "Writing timing tree to .json ..." );
+         }
 
-      writeTimingTreeJSON( *timer, outputDirectory + "/" + outputBaseName + "_timing.json" );
+         writeTimingTreeJSON( *timer, outputDirectory + "/" + outputBaseName + "_up_to_ts_" + std::to_string( timeStep ) + "_timing.json" );
+      }
    }
 }
 
