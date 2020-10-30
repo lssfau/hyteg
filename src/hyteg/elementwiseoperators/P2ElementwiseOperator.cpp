@@ -106,8 +106,10 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
 
    this->startTiming( "apply" );
 
+   this->storage_->getTimingTree()->start( "sync source communication" );
    // Make sure that halos are up-to-date (can we improve communication here?)
    communication::syncP2FunctionBetweenPrimitives( src, level );
+   this->storage_->getTimingTree()->stop( "sync source communication" );
 
    if ( updateType == Replace )
    {
@@ -187,6 +189,7 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
          }
       }
 
+      this->storage_->getTimingTree()->start( "additive communication" );
       // Push result to lower-dimensional primitives
       //
       // Note: We could avoid communication here by implementing the apply() also for the respective
@@ -201,6 +204,7 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
           level, DoFType::All ^ flag, *storage_, updateType == Replace );
       dst.getEdgeDoFFunction().communicateAdditively< Cell, Edge >(
           level, DoFType::All ^ flag, *storage_, updateType == Replace );
+      this->storage_->getTimingTree()->stop( "additive communication" );
    }
 
    else

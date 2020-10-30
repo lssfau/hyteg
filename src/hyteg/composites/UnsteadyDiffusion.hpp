@@ -143,6 +143,7 @@ class P2UnsteadyDiffusionOperator : public Operator< P2Function< real_t >, P2Fun
    DiffusionTimeIntegrator getTimeIntegrator() const { return timeIntegrator_; }
 
    const P2Operator< P2LinearCombinationForm >& getOperator() const { return *unsteadyDiffusionOperator_; }
+         P2Operator< P2LinearCombinationForm >& getOperator() { return *unsteadyDiffusionOperator_; }
 
  private:
    real_t dtScaling()

@@ -436,7 +436,7 @@ void runBenchmark( real_t      cflMax,
       WALBERLA_LOG_INFO_ON_ROOT( "Interpolating initial temperature and internal heating ..." );
    }
 
-   for ( uint_t l = 0; l <= level; l++ )
+   for ( uint_t l = minLevel; l <= level; l++ )
    {
       c.interpolate( initialTemperature, l, All );
       q.interpolate( internalHeating, l, All );
@@ -451,7 +451,7 @@ void runBenchmark( real_t      cflMax,
       WALBERLA_LOG_INFO_ON_ROOT( "Interpolating normals ..." );
    }
 
-   for ( uint_t l = 0; l <= level; l++ )
+   for ( uint_t l = minLevel; l <= level; l++ )
    {
       outwardNormal.uvw.u.interpolate( normalX, l );
       outwardNormal.uvw.v.interpolate( normalY, l );
@@ -469,14 +469,17 @@ void runBenchmark( real_t      cflMax,
    UnsteadyDiffusionOperator diffusionOperator(
        storage, minLevel, level, 1.0, diffusivity, DiffusionTimeIntegrator::ImplicitEuler );
    auto                            A = std::make_shared< StokesOperator >( storage, minLevel, level );
-   if ( storage->hasGlobalCells() )
-   {
-      A->computeAndStoreLocalElementMatrices();
-   }
    LaplaceOperator                 L( storage, minLevel, level );
    MassOperatorVelocity            MVelocity( storage, minLevel, level );
    MassOperatorPressure            MPressure( storage, minLevel, level );
    MMOCTransport< ScalarFunction > transport( storage, setupStorage, minLevel, level, TimeSteppingScheme::RK4 );
+
+   if ( storage->hasGlobalCells() )
+   {
+      A->computeAndStoreLocalElementMatrices();
+      L.computeAndStoreLocalElementMatrices();
+      MVelocity.computeAndStoreLocalElementMatrices();
+   }
 
    if ( verbose )
    {
@@ -738,7 +741,7 @@ void runBenchmark( real_t      cflMax,
 
    timeStepTimer.start();
 
-   for ( uint_t l = 0; l <= level; l++ )
+   for ( uint_t l = minLevel; l <= level; l++ )
    {
       MVelocity.apply( c, f.uvw.u, l, All );
       MVelocity.apply( c, f.uvw.v, l, All );
@@ -863,6 +866,11 @@ void runBenchmark( real_t      cflMax,
 
       diffusionOperator.setDt( 0.5 * dt );
 
+      if ( storage->hasGlobalCells() )
+      {
+         diffusionOperator.getOperator().computeAndStoreLocalElementMatrices();
+      }
+
       calculateDiffusionResidual(
           diffusionSolver, diffusionOperator, L, MVelocity, cPr, cOld, q, cTmp, cTmp2, level, vCycleResidualCLast );
 
@@ -892,7 +900,7 @@ void runBenchmark( real_t      cflMax,
 
       // Stokes
 
-      for ( uint_t l = 0; l <= level; l++ )
+      for ( uint_t l = minLevel; l <= level; l++ )
       {
          MVelocity.apply( cPr, f.uvw.u, l, All );
          MVelocity.apply( cPr, f.uvw.v, l, All );
@@ -963,7 +971,7 @@ void runBenchmark( real_t      cflMax,
 
          // Stokes
 
-         for ( uint_t l = 0; l <= level; l++ )
+         for ( uint_t l = minLevel; l <= level; l++ )
          {
             MVelocity.apply( c, f.uvw.u, l, All );
             MVelocity.apply( c, f.uvw.v, l, All );
