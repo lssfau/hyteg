@@ -27,7 +27,52 @@ P1ToP2ElementwiseOperator< P1toP2Form >::P1ToP2ElementwiseOperator( const std::s
                                                                     size_t                                     minLevel,
                                                                     size_t                                     maxLevel )
 : Operator( storage, minLevel, maxLevel )
+, localElementMatricesPrecomputed_( false )
 {}
+
+template < class P1toP2Form >
+void P1ToP2ElementwiseOperator< P1toP2Form >::computeAndStoreLocalElementMatrices()
+{
+   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
+   {
+      // For 3D we work on cells and for 2D on faces
+      if ( storage_->hasGlobalCells() )
+      {
+         const uint_t numMicroCellsPerMacroCell = celldof::macrocell::numMicroCellsPerMacroCellTotal( level );
+
+         for ( const auto& it : storage_->getCells() )
+         {
+            auto cellID = it.first;
+            auto cell   = it.second;
+
+            auto& elementMatrices = localElementMatrices3D_[cellID][level];
+
+            if ( !localElementMatricesPrecomputed_ )
+            {
+               elementMatrices.resize( numMicroCellsPerMacroCell );
+            }
+
+            P1toP2Form form;
+
+            for ( const auto& cType : celldof::allCellTypes )
+            {
+               for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
+               {
+                  Matrixr< 10, 4 >& elMat = localElementMatrix3D( *cell, level, micro, cType );
+                  elMat.setAll( 0 );
+                  assembleLocalElementMatrix3D( *cell, level, micro, cType, form, elMat );
+               }
+            }
+         }
+      }
+      else
+      {
+         WALBERLA_ABORT( "Pre-computation of local element matrices not implemented for 2D." )
+      }
+   }
+
+   localElementMatricesPrecomputed_ = true;
+}
 
 template < class P1toP2Form >
 void P1ToP2ElementwiseOperator< P1toP2Form >::apply( const P1Function< real_t >& src,
@@ -96,12 +141,24 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::apply( const P1Function< real_t >&
             }
          }
 
+         Matrixr< 10, 4 > elMat;
+         P1toP2Form form;
+
          // loop over micro-cells
          for ( const auto& cType : celldof::allCellTypes )
          {
             for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
             {
-               localMatrixVectorMultiply3D( cell, level, micro, cType, srcVertexData, dstVertexData, dstEdgeData );
+               if ( localElementMatricesPrecomputed_ )
+               {
+                  elMat = localElementMatrix3D( cell, level, micro, cType );
+               }
+               else
+               {
+                  assembleLocalElementMatrix3D( cell, level, micro, cType, form, elMat );
+               }
+
+               localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, dstVertexData, dstEdgeData, elMat );
             }
          }
       }
@@ -276,28 +333,14 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixVectorMultiply2D( const
 }
 
 template < class P1toP2Form >
-void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixVectorMultiply3D( const Cell&             cell,
-                                                                           const uint_t            level,
+void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixVectorMultiply3D( const uint_t            level,
                                                                            const indexing::Index&  microCell,
                                                                            const celldof::CellType cType,
                                                                            const real_t* const     srcVertexData,
                                                                            real_t* const           dstVertexData,
-                                                                           real_t* const           dstEdgeData ) const
+                                                                           real_t* const           dstEdgeData,
+                                                                           const Matrixr< 10, 4 >& elMat  ) const
 {
-   // determine coordinates of vertices of micro-element
-   std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
-   std::array< Point3D, 4 >         coords;
-   for ( uint_t k = 0; k < 4; ++k )
-   {
-      coords[k] = vertexdof::macrocell::coordinateFromIndex( level, cell, verts[k] );
-   }
-
-   // assemble local element matrix
-   Matrixr< 10, 4 > elMat;
-   P1toP2Form       form;
-   form.setGeometryMap( cell.getGeometryMap() );
-   form.integrateAll( coords, elMat );
-
    // obtain data indices of dofs associated with micro-cell
    std::array< uint_t, 4 > vertexDoFIndices;
    vertexdof::getVertexDoFDataIndicesFromMicroCell( microCell, cType, level, vertexDoFIndices );
@@ -325,6 +368,27 @@ void P1ToP2ElementwiseOperator< P1toP2Form >::localMatrixVectorMultiply3D( const
    {
       dstEdgeData[edgeDoFIndices[k - 4]] += elVecNew[k];
    }
+}
+
+template < class P1toP2Form >
+void P1ToP2ElementwiseOperator< P1toP2Form >::assembleLocalElementMatrix3D( const Cell&            cell,
+                                                                            uint_t                 level,
+                                                                            const indexing::Index& microCell,
+                                                                            celldof::CellType      cType,
+                                                                            P1toP2Form             form,
+                                                                            Matrixr< 10, 4 >&      elMat ) const
+{
+// determine coordinates of vertices of micro-element
+   std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
+   std::array< Point3D, 4 >         coords;
+   for ( uint_t k = 0; k < 4; ++k )
+   {
+      coords[k] = vertexdof::macrocell::coordinateFromIndex( level, cell, verts[k] );
+   }
+
+   // assemble local element matrix
+   form.setGeometryMap( cell.getGeometryMap() );
+   form.integrateAll( coords, elMat );
 }
 
 #ifdef HYTEG_BUILD_WITH_PETSC

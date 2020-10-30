@@ -41,6 +41,12 @@ class P2ToP1ElementwiseOperator : public Operator< P2Function< real_t >, P1Funct
  public:
    P2ToP1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
 
+   /// \brief Pre-computes the local stiffness matrices for each (micro-)element and stores them all in memory.
+   ///
+   /// If this method is called, all subsequent calls to apply() or smooth_*() use the stored element matrices.
+   /// If the local element matrices need to be recomputed again, simply call this method again.
+   void computeAndStoreLocalElementMatrices();
+
    void apply( const P2Function< real_t >& src,
                const P1Function< real_t >& dst,
                size_t                      level,
@@ -88,7 +94,6 @@ class P2ToP1ElementwiseOperator : public Operator< P2Function< real_t >, P1Funct
 
    /// compute product of element local vector with element matrix
    ///
-   /// \param cell           cell primitive we operate on
    /// \param level          level on which we operate in mesh hierarchy
    /// \param microCell      index associated with the current element = micro-cell
    /// \param cType          type of micro-cell (WHITE_UP, BLUE_DOWN, ...)
@@ -97,13 +102,13 @@ class P2ToP1ElementwiseOperator : public Operator< P2Function< real_t >, P1Funct
    /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
    ///
    /// \note The src and dst data arrays must not be identical.
-   void localMatrixVectorMultiply3D( const Cell&             cell,
-                                     const uint_t            level,
+   void localMatrixVectorMultiply3D( const uint_t            level,
                                      const indexing::Index&  microCell,
                                      const celldof::CellType cType,
                                      const real_t* const     srcVertexData,
                                      const real_t* const     srcEdgeData,
-                                     real_t* const           dstVertexData ) const;
+                                     real_t* const           dstVertexData,
+                                     const Matrixr< 4, 10 >& elMat ) const;
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
@@ -125,6 +130,39 @@ class P2ToP1ElementwiseOperator : public Operator< P2Function< real_t >, P1Funct
                                const PetscInt* const                       srcEdgeIdx,
                                const PetscInt* const                       dstVertexIdx ) const;
 #endif
+
+   void assembleLocalElementMatrix3D( const Cell&            cell,
+                                      uint_t                 level,
+                                      const indexing::Index& microCell,
+                                      celldof::CellType      cType,
+                                      P2toP1Form             form,
+                                      Matrixr< 4, 10 >&      elMat ) const;
+
+   /// \brief Returns a reference to the a precomputed element matrix of the specified micro cell.
+   /// Probably crashes if local element matrices have not been precomputed.
+   Matrixr< 4, 10 >&
+       localElementMatrix3D( const Cell& cell, uint_t level, const indexing::Index& microCell, celldof::CellType cType )
+   {
+      WALBERLA_ASSERT( localElementMatricesPrecomputed_, "Cannot retrieve element matrix since it was not allocated." );
+      const auto idx = celldof::macrocell::index( level, microCell.x(), microCell.y(), microCell.z(), cType );
+      return localElementMatrices3D_[cell.getID().getID()][level][idx];
+   }
+
+   /// \brief Returns a const reference to the a precomputed element matrix of the specified micro cell.
+   /// Probably crashes if local element matrices have not been precomputed.
+   const Matrixr< 4, 10 >&
+       localElementMatrix3D( const Cell& cell, uint_t level, const indexing::Index& microCell, celldof::CellType cType ) const
+   {
+      WALBERLA_ASSERT( localElementMatricesPrecomputed_, "Cannot retrieve element matrix since it was not allocated." );
+      const auto idx = celldof::macrocell::index( level, microCell.x(), microCell.y(), microCell.z(), cType );
+      return localElementMatrices3D_.at( cell.getID().getID() ).at( level ).at( idx );
+   }
+
+   bool localElementMatricesPrecomputed_;
+
+   /// Pre-computed local element matrices.
+   /// localElementMatrices_[macroCellID][level][cellIdx] = mat10x10
+   std::map< PrimitiveID::IDType, std::map< uint_t, std::vector< Matrixr< 4, 10 > > > > localElementMatrices3D_;
 };
 
 typedef P2ToP1ElementwiseOperator<
