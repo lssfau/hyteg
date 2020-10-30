@@ -102,20 +102,30 @@ int main( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "# total dofs:     " << numP2DoFsTotal );
    WALBERLA_LOG_INFO_ON_ROOT( "# iterations:     " << numIterations );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "=== Starting measurements ===" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Allocating functions ..." );
 
    P2Function< real_t > src( "src", storage, level, level );
    P2Function< real_t > dst( "dst", storage, level, level );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Preparing operators ..." );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "- L_constant_stencil ..." );
    P2ConstantLaplaceOperator            L_constant_stencil( storage, level, level );
+   WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_cc ..." );
    P2ElementwiseLaplaceOperator         L_elementwise_otf_cc( storage, level, level );
+   WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_id ..." );
    P2ElementwiseBlendingLaplaceOperator L_elementwise_otf_blending_id( storage, level, level );
+   WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_shell ..." );
    P2ElementwiseBlendingLaplaceOperator L_elementwise_otf_blending_shell( storage, level, level );
+   WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_stored_blending_shell ..." );
    P2ElementwiseBlendingLaplaceOperator L_elementwise_stored_blending_shell( storage, level, level );
+   WALBERLA_LOG_INFO_ON_ROOT( "Done." );
 
    std::function< real_t( const hyteg::Point3D& ) > someFunction = [&]( const hyteg::Point3D& point ) {
-      return point[0] + point[1];
+     return point[0] + point[1];
    };
+
+   WALBERLA_LOG_INFO_ON_ROOT( "=== Starting measurements ===" );
 
    LIKWID_MARKER_START( "interpolate constant" );
    timer.reset();
