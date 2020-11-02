@@ -23,10 +23,98 @@
 #include "hyteg/forms/form_hyteg_manual/QuadratureRules.hpp"
 #include "hyteg/geometry/GeometryMap.hpp"
 
+// NOTE:
+//
+// This form is for performance evaluation of different variants.
+// Currently it implemtens the following four variants
+//
+// V_1: Treat shape functions N_i and N_j in innermost loop + computed shape function derivatives always
+// V_2: Treat shape functions N_i and N_j in innermost loop + precompute shape function derivatives
+// V_3: Treat shape function N_i in loop over i and N_j in loop over j + computed shape function derivatives always
+// V_4: Treat shape function N_i in loop over i and N_j in loop over j + precompute shape function derivatives
+//
+// To run each variant set the following macros
+// V_1: none
+// V_2: PRECOMUTE_SHAPE_FUNCTION_DERIVATIVES
+// V_3: SLOWER
+// V_4: SLOWER + PRECOMUTE_SHAPE_FUNCTION_DERIVATIVES
+//
+#define SLOWER
+// #define PRECOMUTE_SHAPE_FUNCTION_DERIVATIVES
+
+#ifdef PRECOMUTE_SHAPE_FUNCTION_DERIVATIVES
+#define SFD shapeFunctionDerivatives_[k]
+#else
+#define SFD sfd
+#endif
+
 namespace hyteg {
 
 class P2Form_laplacePimped3D : public P2FormHyTeG
 {
+#ifdef PRECOMUTE_SHAPE_FUNCTION_DERIVATIVES
+ public:
+   P2Form_laplacePimped3D()
+   {
+// Select cubature rule
+#define CUBAPOINTS cubature::T3_points
+#define CUBAWEIGHTS cubature::T3_weights
+
+      for ( uint_t k = 0; k < CUBAWEIGHTS.size(); k++ )
+      {
+         // determine barycentric coordinates for current integration point
+         real_t L2 = CUBAPOINTS[k][0];
+         real_t L3 = CUBAPOINTS[k][1];
+         real_t L4 = CUBAPOINTS[k][2];
+         real_t L1 = 1.0 - L2 - L3 - L4;
+
+         shapeFunctionDerivatives_[k][0][0] = L2 + L3 + L4 - 3.0 * L1;
+         shapeFunctionDerivatives_[k][0][1] = L2 + L3 + L4 - 3.0 * L1;
+         shapeFunctionDerivatives_[k][0][2] = L2 + L3 + L4 - 3.0 * L1;
+
+         shapeFunctionDerivatives_[k][1][0] = 4.0 * L2 - 1.0;
+         shapeFunctionDerivatives_[k][1][1] = 0.0;
+         shapeFunctionDerivatives_[k][1][2] = 0.0;
+
+         shapeFunctionDerivatives_[k][2][0] = 0.0;
+         shapeFunctionDerivatives_[k][2][1] = 4.0 * L3 - 1.0;
+         shapeFunctionDerivatives_[k][2][2] = 0.0;
+
+         shapeFunctionDerivatives_[k][3][0] = 0.0;
+         shapeFunctionDerivatives_[k][3][1] = 0.0;
+         shapeFunctionDerivatives_[k][3][2] = 4.0 * L4 - 1.0;
+
+         shapeFunctionDerivatives_[k][4][0] = 0.0;
+         shapeFunctionDerivatives_[k][4][1] = 4.0 * L4;
+         shapeFunctionDerivatives_[k][4][2] = 4.0 * L3;
+
+         shapeFunctionDerivatives_[k][5][0] = 4.0 * L4;
+         shapeFunctionDerivatives_[k][5][1] = 0.0;
+         shapeFunctionDerivatives_[k][5][2] = 4.0 * L2;
+
+         shapeFunctionDerivatives_[k][6][0] = 4.0 * L3;
+         shapeFunctionDerivatives_[k][6][1] = 4.0 * L2;
+         shapeFunctionDerivatives_[k][6][2] = 0.0;
+
+         shapeFunctionDerivatives_[k][7][0] = -4.0 * L4;
+         shapeFunctionDerivatives_[k][7][1] = -4.0 * L4;
+         shapeFunctionDerivatives_[k][7][2] = 4.0 * ( L1 - L4 );
+
+         shapeFunctionDerivatives_[k][8][0] = -4.0 * L3;
+         shapeFunctionDerivatives_[k][8][1] = 4.0 * ( L1 - L3 );
+         shapeFunctionDerivatives_[k][8][2] = -4.0 * L3;
+
+         shapeFunctionDerivatives_[k][9][0] = 4.0 * ( L1 - L2 );
+         shapeFunctionDerivatives_[k][9][1] = -4.0 * L2;
+         shapeFunctionDerivatives_[k][9][2] = -4.0 * L2;
+      }
+   };
+
+ private:
+   std::array< std::array< std::array< real_t, 3 >, 10 >, CUBAWEIGHTS.size() > shapeFunctionDerivatives_;
+
+#endif
+
  public:
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const final
    {
@@ -35,7 +123,6 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
 
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const final
    {
-
 // Select cubature rule
 #define CUBAPOINTS cubature::T3_points
 #define CUBAWEIGHTS cubature::T3_weights
@@ -98,6 +185,7 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
                           DPsi( 2, 1 ) * tmp24 - DPsi( 2, 2 ) * tmp12 + DPsi( 2, 0 ) * tmp27 - DPsi( 2, 0 ) * tmp28;
          real_t detDPsiFac = std::abs( detDPsi ) / ( detDPsi * detDPsi );
 
+#ifndef PRECOMUTE_SHAPE_FUNCTION_DERIVATIVES
          // Evaluate shape function derivatives at current integration point
          std::array< std::array< real_t, 3 >, 10 > sfd;
 
@@ -140,6 +228,7 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
          sfd[9][0] = 4.0 * ( L1 - L2 );
          sfd[9][1] = -4.0 * L2;
          sfd[9][2] = -4.0 * L2;
+#endif
 
 #ifdef SLOWER
 
@@ -149,15 +238,15 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
          // (computations on upper triangle only)
          for ( uint i = 0; i < 10; i++ )
          {
-            real_t tmp14 = sfd[i][0] * coords[0][0];
-            real_t tmp15 = sfd[i][0] * coords[2][0];
-            real_t tmp16 = sfd[i][0] * coords[3][0];
-            real_t tmp17 = sfd[i][1] * coords[0][0];
-            real_t tmp18 = sfd[i][1] * coords[1][0];
-            real_t tmp19 = sfd[i][1] * coords[3][0];
-            real_t tmp20 = sfd[i][2] * coords[0][0];
-            real_t tmp21 = sfd[i][2] * coords[1][0];
-            real_t tmp22 = sfd[i][2] * coords[2][0];
+            real_t tmp14 = SFD[i][0] * coords[0][0];
+            real_t tmp15 = SFD[i][0] * coords[2][0];
+            real_t tmp16 = SFD[i][0] * coords[3][0];
+            real_t tmp17 = SFD[i][1] * coords[0][0];
+            real_t tmp18 = SFD[i][1] * coords[1][0];
+            real_t tmp19 = SFD[i][1] * coords[3][0];
+            real_t tmp20 = SFD[i][2] * coords[0][0];
+            real_t tmp21 = SFD[i][2] * coords[1][0];
+            real_t tmp22 = SFD[i][2] * coords[2][0];
             real_t tmp23 = tmp14 * coords[2][1] - tmp14 * coords[3][1] - tmp15 * coords[0][1] + tmp15 * coords[3][1] +
                            tmp16 * coords[0][1] - tmp16 * coords[2][1] - tmp17 * coords[1][1] + tmp17 * coords[3][1] +
                            tmp18 * coords[0][1] - tmp18 * coords[3][1] - tmp19 * coords[0][1] + tmp19 * coords[1][1] +
@@ -170,15 +259,15 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
                            tmp20 * coords[1][2] - tmp20 * coords[2][2] - tmp21 * coords[0][2] + tmp21 * coords[2][2] +
                            tmp22 * coords[0][2] - tmp22 * coords[1][2];
 
-            real_t tmp30 = sfd[i][0] * coords[0][1];
-            real_t tmp31 = sfd[i][0] * coords[2][1];
-            real_t tmp32 = sfd[i][0] * coords[3][1];
-            real_t tmp33 = sfd[i][1] * coords[0][1];
-            real_t tmp34 = sfd[i][1] * coords[1][1];
-            real_t tmp35 = sfd[i][1] * coords[3][1];
-            real_t tmp36 = sfd[i][2] * coords[0][1];
-            real_t tmp37 = sfd[i][2] * coords[1][1];
-            real_t tmp38 = sfd[i][2] * coords[2][1];
+            real_t tmp30 = SFD[i][0] * coords[0][1];
+            real_t tmp31 = SFD[i][0] * coords[2][1];
+            real_t tmp32 = SFD[i][0] * coords[3][1];
+            real_t tmp33 = SFD[i][1] * coords[0][1];
+            real_t tmp34 = SFD[i][1] * coords[1][1];
+            real_t tmp35 = SFD[i][1] * coords[3][1];
+            real_t tmp36 = SFD[i][2] * coords[0][1];
+            real_t tmp37 = SFD[i][2] * coords[1][1];
+            real_t tmp38 = SFD[i][2] * coords[2][1];
 
             real_t tmp39 = tmp30 * coords[2][2] - tmp30 * coords[3][2] - tmp31 * coords[0][2] + tmp31 * coords[3][2] +
                            tmp32 * coords[0][2] - tmp32 * coords[2][2] - tmp33 * coords[1][2] + tmp33 * coords[3][2] +
@@ -188,16 +277,15 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
 
             for ( uint j = i; j < 10; j++ )
             {
-
-               real_t tmp40 = sfd[j][0] * coords[0][0];
-               real_t tmp41 = sfd[j][0] * coords[2][0];
-               real_t tmp42 = sfd[j][0] * coords[3][0];
-               real_t tmp43 = sfd[j][1] * coords[0][0];
-               real_t tmp44 = sfd[j][1] * coords[1][0];
-               real_t tmp45 = sfd[j][1] * coords[3][0];
-               real_t tmp46 = sfd[j][2] * coords[0][0];
-               real_t tmp47 = sfd[j][2] * coords[1][0];
-               real_t tmp48 = sfd[j][2] * coords[2][0];
+               real_t tmp40 = SFD[j][0] * coords[0][0];
+               real_t tmp41 = SFD[j][0] * coords[2][0];
+               real_t tmp42 = SFD[j][0] * coords[3][0];
+               real_t tmp43 = SFD[j][1] * coords[0][0];
+               real_t tmp44 = SFD[j][1] * coords[1][0];
+               real_t tmp45 = SFD[j][1] * coords[3][0];
+               real_t tmp46 = SFD[j][2] * coords[0][0];
+               real_t tmp47 = SFD[j][2] * coords[1][0];
+               real_t tmp48 = SFD[j][2] * coords[2][0];
 
                real_t tmp49 = tmp40 * coords[2][1] - tmp40 * coords[3][1] - tmp41 * coords[0][1] + tmp41 * coords[3][1] +
                               tmp42 * coords[0][1] - tmp42 * coords[2][1] - tmp43 * coords[1][1] + tmp43 * coords[3][1] +
@@ -211,15 +299,15 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
                               tmp46 * coords[1][2] - tmp46 * coords[2][2] - tmp47 * coords[0][2] + tmp47 * coords[2][2] +
                               tmp48 * coords[0][2] - tmp48 * coords[1][2];
 
-               real_t tmp51 = sfd[j][0] * coords[0][1];
-               real_t tmp52 = sfd[j][0] * coords[2][1];
-               real_t tmp53 = sfd[j][0] * coords[3][1];
-               real_t tmp54 = sfd[j][1] * coords[0][1];
-               real_t tmp55 = sfd[j][1] * coords[1][1];
-               real_t tmp56 = sfd[j][1] * coords[3][1];
-               real_t tmp57 = sfd[j][2] * coords[0][1];
-               real_t tmp58 = sfd[j][2] * coords[1][1];
-               real_t tmp59 = sfd[j][2] * coords[2][1];
+               real_t tmp51 = SFD[j][0] * coords[0][1];
+               real_t tmp52 = SFD[j][0] * coords[2][1];
+               real_t tmp53 = SFD[j][0] * coords[3][1];
+               real_t tmp54 = SFD[j][1] * coords[0][1];
+               real_t tmp55 = SFD[j][1] * coords[1][1];
+               real_t tmp56 = SFD[j][1] * coords[3][1];
+               real_t tmp57 = SFD[j][2] * coords[0][1];
+               real_t tmp58 = SFD[j][2] * coords[1][1];
+               real_t tmp59 = SFD[j][2] * coords[2][1];
 
                real_t tmp60 = tmp51 * coords[2][2] - tmp51 * coords[3][2] - tmp52 * coords[0][2] + tmp52 * coords[3][2] +
                               tmp53 * coords[0][2] - tmp53 * coords[2][2] - tmp54 * coords[1][2] + tmp54 * coords[3][2] +
@@ -250,15 +338,15 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
          {
             for ( uint j = i; j < 10; j++ )
             {
-               real_t tmp14 = sfd[i][0] * coords[0][0];
-               real_t tmp15 = sfd[i][0] * coords[2][0];
-               real_t tmp16 = sfd[i][0] * coords[3][0];
-               real_t tmp17 = sfd[i][1] * coords[0][0];
-               real_t tmp18 = sfd[i][1] * coords[1][0];
-               real_t tmp19 = sfd[i][1] * coords[3][0];
-               real_t tmp20 = sfd[i][2] * coords[0][0];
-               real_t tmp21 = sfd[i][2] * coords[1][0];
-               real_t tmp22 = sfd[i][2] * coords[2][0];
+               real_t tmp14 = SFD[i][0] * coords[0][0];
+               real_t tmp15 = SFD[i][0] * coords[2][0];
+               real_t tmp16 = SFD[i][0] * coords[3][0];
+               real_t tmp17 = SFD[i][1] * coords[0][0];
+               real_t tmp18 = SFD[i][1] * coords[1][0];
+               real_t tmp19 = SFD[i][1] * coords[3][0];
+               real_t tmp20 = SFD[i][2] * coords[0][0];
+               real_t tmp21 = SFD[i][2] * coords[1][0];
+               real_t tmp22 = SFD[i][2] * coords[2][0];
                real_t tmp23 = tmp14 * coords[2][1] - tmp14 * coords[3][1] - tmp15 * coords[0][1] + tmp15 * coords[3][1] +
                               tmp16 * coords[0][1] - tmp16 * coords[2][1] - tmp17 * coords[1][1] + tmp17 * coords[3][1] +
                               tmp18 * coords[0][1] - tmp18 * coords[3][1] - tmp19 * coords[0][1] + tmp19 * coords[1][1] +
@@ -271,15 +359,15 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
                               tmp20 * coords[1][2] - tmp20 * coords[2][2] - tmp21 * coords[0][2] + tmp21 * coords[2][2] +
                               tmp22 * coords[0][2] - tmp22 * coords[1][2];
 
-               real_t tmp30 = sfd[i][0] * coords[0][1];
-               real_t tmp31 = sfd[i][0] * coords[2][1];
-               real_t tmp32 = sfd[i][0] * coords[3][1];
-               real_t tmp33 = sfd[i][1] * coords[0][1];
-               real_t tmp34 = sfd[i][1] * coords[1][1];
-               real_t tmp35 = sfd[i][1] * coords[3][1];
-               real_t tmp36 = sfd[i][2] * coords[0][1];
-               real_t tmp37 = sfd[i][2] * coords[1][1];
-               real_t tmp38 = sfd[i][2] * coords[2][1];
+               real_t tmp30 = SFD[i][0] * coords[0][1];
+               real_t tmp31 = SFD[i][0] * coords[2][1];
+               real_t tmp32 = SFD[i][0] * coords[3][1];
+               real_t tmp33 = SFD[i][1] * coords[0][1];
+               real_t tmp34 = SFD[i][1] * coords[1][1];
+               real_t tmp35 = SFD[i][1] * coords[3][1];
+               real_t tmp36 = SFD[i][2] * coords[0][1];
+               real_t tmp37 = SFD[i][2] * coords[1][1];
+               real_t tmp38 = SFD[i][2] * coords[2][1];
 
                real_t tmp39 = tmp30 * coords[2][2] - tmp30 * coords[3][2] - tmp31 * coords[0][2] + tmp31 * coords[3][2] +
                               tmp32 * coords[0][2] - tmp32 * coords[2][2] - tmp33 * coords[1][2] + tmp33 * coords[3][2] +
@@ -287,15 +375,15 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
                               tmp36 * coords[1][2] - tmp36 * coords[2][2] - tmp37 * coords[0][2] + tmp37 * coords[2][2] +
                               tmp38 * coords[0][2] - tmp38 * coords[1][2];
 
-               real_t tmp40 = sfd[j][0] * coords[0][0];
-               real_t tmp41 = sfd[j][0] * coords[2][0];
-               real_t tmp42 = sfd[j][0] * coords[3][0];
-               real_t tmp43 = sfd[j][1] * coords[0][0];
-               real_t tmp44 = sfd[j][1] * coords[1][0];
-               real_t tmp45 = sfd[j][1] * coords[3][0];
-               real_t tmp46 = sfd[j][2] * coords[0][0];
-               real_t tmp47 = sfd[j][2] * coords[1][0];
-               real_t tmp48 = sfd[j][2] * coords[2][0];
+               real_t tmp40 = SFD[j][0] * coords[0][0];
+               real_t tmp41 = SFD[j][0] * coords[2][0];
+               real_t tmp42 = SFD[j][0] * coords[3][0];
+               real_t tmp43 = SFD[j][1] * coords[0][0];
+               real_t tmp44 = SFD[j][1] * coords[1][0];
+               real_t tmp45 = SFD[j][1] * coords[3][0];
+               real_t tmp46 = SFD[j][2] * coords[0][0];
+               real_t tmp47 = SFD[j][2] * coords[1][0];
+               real_t tmp48 = SFD[j][2] * coords[2][0];
 
                real_t tmp49 = tmp40 * coords[2][1] - tmp40 * coords[3][1] - tmp41 * coords[0][1] + tmp41 * coords[3][1] +
                               tmp42 * coords[0][1] - tmp42 * coords[2][1] - tmp43 * coords[1][1] + tmp43 * coords[3][1] +
@@ -309,15 +397,15 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
                               tmp46 * coords[1][2] - tmp46 * coords[2][2] - tmp47 * coords[0][2] + tmp47 * coords[2][2] +
                               tmp48 * coords[0][2] - tmp48 * coords[1][2];
 
-               real_t tmp51 = sfd[j][0] * coords[0][1];
-               real_t tmp52 = sfd[j][0] * coords[2][1];
-               real_t tmp53 = sfd[j][0] * coords[3][1];
-               real_t tmp54 = sfd[j][1] * coords[0][1];
-               real_t tmp55 = sfd[j][1] * coords[1][1];
-               real_t tmp56 = sfd[j][1] * coords[3][1];
-               real_t tmp57 = sfd[j][2] * coords[0][1];
-               real_t tmp58 = sfd[j][2] * coords[1][1];
-               real_t tmp59 = sfd[j][2] * coords[2][1];
+               real_t tmp51 = SFD[j][0] * coords[0][1];
+               real_t tmp52 = SFD[j][0] * coords[2][1];
+               real_t tmp53 = SFD[j][0] * coords[3][1];
+               real_t tmp54 = SFD[j][1] * coords[0][1];
+               real_t tmp55 = SFD[j][1] * coords[1][1];
+               real_t tmp56 = SFD[j][1] * coords[3][1];
+               real_t tmp57 = SFD[j][2] * coords[0][1];
+               real_t tmp58 = SFD[j][2] * coords[1][1];
+               real_t tmp59 = SFD[j][2] * coords[2][1];
 
                real_t tmp60 = tmp51 * coords[2][2] - tmp51 * coords[3][2] - tmp52 * coords[0][2] + tmp52 * coords[3][2] +
                               tmp53 * coords[0][2] - tmp53 * coords[2][2] - tmp54 * coords[1][2] + tmp54 * coords[3][2] +
