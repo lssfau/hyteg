@@ -492,6 +492,8 @@ void runBenchmark( real_t      cflMax,
 
    real_t vCycleResidualULast = 0;
    real_t vCycleResidualCLast = 0;
+   uint_t numVCycles = 0;
+   real_t averageResidualReductionU = 0;
 
    if ( solverInfo.stokesSolverType == StokesSolverType::PETSC_MUMPS )
    {
@@ -604,6 +606,9 @@ void runBenchmark( real_t      cflMax,
 
                 vCycleResidualULast = r_u;
 
+                numVCycles++;
+                averageResidualReductionU += reductionRateU;
+                
                 if ( verbose )
                 {
                    WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
@@ -764,13 +769,14 @@ void runBenchmark( real_t      cflMax,
 
    calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualP );
 
+   real_t initialResiudalU = residualU;
    vCycleResidualULast = residualU;
 
    localTimer.start();
    stokesSolver->solve( *A, u, f, level );
    localTimer.end();
    timeStokes = localTimer.last();
-
+   
    calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualP );
 
    if ( storage->hasGlobalCells() )
@@ -823,6 +829,16 @@ void runBenchmark( real_t      cflMax,
    db.setVariableEntry( "v_rms", vRms );
    db.setVariableEntry( "dt", real_c( 0 ) );
 
+   db.setVariableEntry( "initial_residual_u_predictor", initialResiudalU );
+   db.setVariableEntry( "num_v_cycles_predictor", numVCycles );
+   db.setVariableEntry( "avg_residual_reduction_u_predictor", averageResidualReductionU / real_c( numVCycles ) );
+   db.setVariableEntry( "final_residual_u_predictor", vCycleResidualULast );
+
+   db.setVariableEntry( "initial_residual_u_corrector", real_c( 0 ) );
+   db.setVariableEntry( "num_v_cycles_corrector", real_c( 0 ) );
+   db.setVariableEntry( "avg_residual_reduction_u_corrector", real_c( 0 ) );
+   db.setVariableEntry( "final_residual_u_corrector", real_c( 0 ) );
+   
    db.writeRowOnRoot();
 
    timer->stop( "Simulation" );
@@ -928,6 +944,9 @@ void runBenchmark( real_t      cflMax,
       calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualP );
 
       vCycleResidualULast = residualU;
+      initialResiudalU = residualU;
+      averageResidualReductionU = real_c( 0 );
+      numVCycles = 0;
 
       localTimer.start();
       stokesSolver->solve( *A, u, f, level );
@@ -935,6 +954,11 @@ void runBenchmark( real_t      cflMax,
       timeStokes = localTimer.last();
 
       calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualP );
+
+      db.setVariableEntry( "initial_residual_u_predictor", initialResiudalU );
+      db.setVariableEntry( "num_v_cycles_predictor", numVCycles );
+      db.setVariableEntry( "avg_residual_reduction_u_predictor", averageResidualReductionU / real_c( numVCycles ) );
+      db.setVariableEntry( "final_residual_u_predictor", vCycleResidualULast );
 
       if ( predictorCorrector )
       {
@@ -999,6 +1023,9 @@ void runBenchmark( real_t      cflMax,
          calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualP );
 
          vCycleResidualULast = residualU;
+         initialResiudalU = residualU;
+         averageResidualReductionU = real_c( 0 );
+         numVCycles = 0;
 
          localTimer.start();
          stokesSolver->solve( *A, u, f, level );
@@ -1006,11 +1033,21 @@ void runBenchmark( real_t      cflMax,
          timeStokes += localTimer.last();
 
          calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualP );
+
+         db.setVariableEntry( "initial_residual_u_corrector", initialResiudalU );
+         db.setVariableEntry( "num_v_cycles_corrector", numVCycles );
+         db.setVariableEntry( "avg_residual_reduction_u_corrector", averageResidualReductionU / real_c( numVCycles ) );
+         db.setVariableEntry( "final_residual_u_corrector", vCycleResidualULast );
       }
       else
       {
          // use predicted value
          c.assign( {1.0}, {cPr}, level, All );
+
+         db.setVariableEntry( "initial_residual_u_corrector", real_c( 0 ) );
+         db.setVariableEntry( "num_v_cycles_corrector", real_c( 0 ) );
+         db.setVariableEntry( "avg_residual_reduction_u_corrector", real_c( 0 ) );
+         db.setVariableEntry( "final_residual_u_corrector", real_c( 0 ) );
       }
 
       timeTotal += dt;
