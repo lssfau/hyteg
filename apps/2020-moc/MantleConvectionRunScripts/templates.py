@@ -1,6 +1,6 @@
 
 
-def create_parameter_file(max_level: int, ra: float, output_directory: str, base_name: str, max_num_time_steps: int, uzawa_omega: float, **kwargs):
+def create_parameter_file(max_level: int, ra: float, output_directory: str, base_name: str, max_num_time_steps: int, uzawa_omega: float, cfl: float, **kwargs):
     return f"""Parameters
 {{
     level {max_level};
@@ -41,7 +41,7 @@ def create_parameter_file(max_level: int, ra: float, output_directory: str, base
 
     maxNumTimeSteps {max_num_time_steps};
     simulationTime 10;
-    cflMax 0.1;
+    cflMax {cfl};
     fixedTimeStep false;
     dtConstant 1e-4;
     rayleighNumber 1e8;
