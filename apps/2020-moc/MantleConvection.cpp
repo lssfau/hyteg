@@ -273,6 +273,7 @@ void runBenchmark( real_t      cflMax,
                    bool        predictorCorrector,
                    real_t      simulationTime,
                    bool        vtk,
+                   bool vtkOutputVelocity,
                    uint_t      printInterval,
                    uint_t      vtkInterval,
                    std::string outputDirectory,
@@ -718,8 +719,11 @@ void runBenchmark( real_t      cflMax,
 
    hyteg::VTKOutput vtkOutput( outputDirectory, outputBaseName, storage, vtkInterval );
 
-   vtkOutput.add( u );
    vtkOutput.add( c );
+   if ( vtkOutputVelocity )
+   {
+      vtkOutput.add( u );
+   }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
    printFunctionAllocationInfo( *storage, 1 );
@@ -1127,6 +1131,7 @@ int main( int argc, char** argv )
    const std::string outputDirectory = mainConf.getParameter< std::string >( "outputDirectory" );
    const std::string outputBaseName  = mainConf.getParameter< std::string >( "outputBaseName" );
    const bool        vtk             = mainConf.getParameter< bool >( "vtk" );
+   const bool        vtkOutputVelocity             = mainConf.getParameter< bool >( "vtkOutputVelocity" );
 
    const bool verbose = mainConf.getParameter< bool >( "verbose" );
 
@@ -1142,6 +1147,7 @@ int main( int argc, char** argv )
                         true,
                         simulationTime,
                         vtk,
+                        vtkOutputVelocity,
                         1,
                         1,
                         outputDirectory,

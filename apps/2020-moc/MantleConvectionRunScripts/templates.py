@@ -46,6 +46,7 @@ def create_parameter_file(max_level: int, ra: float, output_directory: str, base
     dtConstant 1e-4;
     rayleighNumber 1e8;
     vtk true;
+    vtkOutputVelocity false;
 
     outputDirectory {output_directory};
     outputBaseName {base_name};
