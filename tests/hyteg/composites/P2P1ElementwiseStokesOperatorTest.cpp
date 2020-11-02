@@ -121,8 +121,8 @@ int main( int argc, char* argv[] )
    compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_tilted_4el.msh" ), 3, false );
    compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_tilted_4el.msh" ), 4, false );
 
-   compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" ), 3, true );
-   compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" ), 4, true );
+   compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" ), 3, false );
+   compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" ), 4, false );
 
    compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_tilted_4el.msh" ), 3, true );
    compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_tilted_4el.msh" ), 4, true );
