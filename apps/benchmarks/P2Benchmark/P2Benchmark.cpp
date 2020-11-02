@@ -114,11 +114,17 @@ int main( int argc, char** argv )
    WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_cc ..." );
    P2ElementwiseLaplaceOperator         L_elementwise_otf_cc( storage, level, level );
    WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_id ..." );
-   P2ElementwiseBlendingLaplaceOperator L_elementwise_otf_blending_id( storage, level, level );
+   P2ElementwiseBlendingLaplaceOperator L_elementwise_otf_blending_id( storage, level, level, P2Form_laplace(), false );
    WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_shell ..." );
-   P2ElementwiseBlendingLaplaceOperator L_elementwise_otf_blending_shell( storage, level, level );
+   P2ElementwiseBlendingLaplaceOperator L_elementwise_otf_blending_shell( storage, level, level, P2Form_laplace(), false );
    WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_stored_blending_shell ..." );
-   P2ElementwiseBlendingLaplaceOperator L_elementwise_stored_blending_shell( storage, level, level );
+   P2ElementwiseBlendingLaplaceOperator L_elementwise_stored_blending_shell( storage, level, level, P2Form_laplace(), false );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_id_pimped ..." );
+   P2ElementwiseBlendingLaplaceOperatorPimped3D L_elementwise_otf_blending_id_pimped( storage, level, level, P2Form_laplacePimped3D(), false );
+   WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_shell_pimped ..." );
+   P2ElementwiseBlendingLaplaceOperatorPimped3D L_elementwise_otf_blending_shell_pimped( storage, level, level, P2Form_laplacePimped3D(), false );
+
    WALBERLA_LOG_INFO_ON_ROOT( "Done." );
 
    std::function< real_t( const hyteg::Point3D& ) > someFunction = [&]( const hyteg::Point3D& point ) {
@@ -133,7 +139,7 @@ int main( int argc, char** argv )
       src.interpolate( 42.0, level );
    timer.end();
    LIKWID_MARKER_STOP( "interpolate constant" );
-   WALBERLA_LOG_INFO_ON_ROOT( "interpolate constant:             " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "interpolate constant:               " << timer.last() );
 
    LIKWID_MARKER_START( "interpolate function" );
    timer.reset();
@@ -141,7 +147,7 @@ int main( int argc, char** argv )
       src.interpolate( someFunction, level );
    timer.end();
    LIKWID_MARKER_STOP( "interpolate function" );
-   WALBERLA_LOG_INFO_ON_ROOT( "interpolate function:             " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "interpolate function:               " << timer.last() );
 
    LIKWID_MARKER_START( "assign" );
    timer.reset();
@@ -149,7 +155,7 @@ int main( int argc, char** argv )
       dst.assign( {1.0}, {src}, level );
    timer.end();
    LIKWID_MARKER_STOP( "assign" );
-   WALBERLA_LOG_INFO_ON_ROOT( "assign:                           " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "assign:                             " << timer.last() );
 
    LIKWID_MARKER_START( "assign scaled" );
    timer.reset();
@@ -157,7 +163,7 @@ int main( int argc, char** argv )
       dst.assign( {1.23}, {src}, level );
    timer.end();
    LIKWID_MARKER_STOP( "assign scaled" );
-   WALBERLA_LOG_INFO_ON_ROOT( "assign scaled:                    " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "assign scaled:                      " << timer.last() );
 
    LIKWID_MARKER_START( "dot" );
    timer.reset();
@@ -165,7 +171,7 @@ int main( int argc, char** argv )
       src.dotGlobal( dst, level );
    timer.end();
    LIKWID_MARKER_STOP( "dot" );
-   WALBERLA_LOG_INFO_ON_ROOT( "dot:                              " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "dot:                                " << timer.last() );
 
    LIKWID_MARKER_START( "dot self" );
    timer.reset();
@@ -173,7 +179,7 @@ int main( int argc, char** argv )
       dst.dotGlobal( dst, level );
    timer.end();
    LIKWID_MARKER_STOP( "dot self" );
-   WALBERLA_LOG_INFO_ON_ROOT( "dot self:                         " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "dot self:                           " << timer.last() );
 
    LIKWID_MARKER_START( "sync all" );
    timer.reset();
@@ -181,7 +187,7 @@ int main( int argc, char** argv )
       communication::syncP2FunctionBetweenPrimitives( dst, level );
    timer.end();
    LIKWID_MARKER_STOP( "sync all" );
-   WALBERLA_LOG_INFO_ON_ROOT( "sync all:                         " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "sync all:                           " << timer.last() );
 
    LIKWID_MARKER_START( "apply cc stencil" );
    timer.reset();
@@ -189,7 +195,7 @@ int main( int argc, char** argv )
       L_constant_stencil.apply( src, dst, level, All );
    timer.end();
    LIKWID_MARKER_STOP( "apply cc stencil" );
-   WALBERLA_LOG_INFO_ON_ROOT( "apply cc stencil:                 " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply cc stencil:                   " << timer.last() );
 
    LIKWID_MARKER_START( "apply cc elem" );
    timer.reset();
@@ -197,7 +203,7 @@ int main( int argc, char** argv )
       L_elementwise_otf_cc.apply( src, dst, level, All );
    timer.end();
    LIKWID_MARKER_STOP( "apply cc elem" );
-   WALBERLA_LOG_INFO_ON_ROOT( "apply cc elem:                    " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply cc elem:                      " << timer.last() );
 
    LIKWID_MARKER_START( "apply blending id elem" );
    timer.reset();
@@ -205,7 +211,15 @@ int main( int argc, char** argv )
       L_elementwise_otf_blending_id.apply( src, dst, level, All );
    timer.end();
    LIKWID_MARKER_STOP( "apply blending id elem" );
-   WALBERLA_LOG_INFO_ON_ROOT( "apply blending id elem:           " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply blending id elem:             " << timer.last() );
+
+   LIKWID_MARKER_START( "apply blending id elem (pimped)" );
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_elementwise_otf_blending_id_pimped.apply( src, dst, level, All );
+   timer.end();
+   LIKWID_MARKER_STOP( "apply blending id elem (pimped)" );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply blending id elem (pimped):    " << timer.last() );
 
    IcosahedralShellMap::setMap( *setupStorage );
    storage = std::make_shared< PrimitiveStorage >( *setupStorage, timingTree );
@@ -216,7 +230,15 @@ int main( int argc, char** argv )
       L_elementwise_otf_blending_shell.apply( src, dst, level, All );
    timer.end();
    LIKWID_MARKER_STOP( "apply blending shell elem" );
-   WALBERLA_LOG_INFO_ON_ROOT( "apply blending shell elem:        " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply blending shell elem:          " << timer.last() );
+
+   LIKWID_MARKER_START( "apply blending shell elem (pimped)" );
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_elementwise_otf_blending_shell_pimped.apply( src, dst, level, All );
+   timer.end();
+   LIKWID_MARKER_STOP( "apply blending shell elem (pimped)" );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply blending shell elem (pimped): " << timer.last() );
 
    L_elementwise_stored_blending_shell.computeAndStoreLocalElementMatrices();
    LIKWID_MARKER_START( "apply blending shell elem stored" );
@@ -225,7 +247,8 @@ int main( int argc, char** argv )
       L_elementwise_stored_blending_shell.apply( src, dst, level, All );
    timer.end();
    LIKWID_MARKER_STOP( "apply blending shell elem stored" );
-   WALBERLA_LOG_INFO_ON_ROOT( "apply blending shell elem stored: " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply blending shell elem stored:   " << timer.last() );
+   LIKWID_MARKER_START( "apply blending shell elem" );
 
    meshInfo = MeshInfo::fromGmshFile( meshFile );
    setupStorage =
@@ -239,7 +262,7 @@ int main( int argc, char** argv )
       L_constant_stencil.smooth_sor( src, dst, 1.1, level, All );
    timer.end();
    LIKWID_MARKER_STOP( "SOR cc stencil" );
-   WALBERLA_LOG_INFO_ON_ROOT( "SOR cc stencil:                   " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "SOR cc stencil:                     " << timer.last() );
 
    misc::dummy( &dst );
    misc::dummy( &src );

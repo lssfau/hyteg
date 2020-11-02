@@ -958,6 +958,9 @@ template class P2ElementwiseOperator< P2Form_mass >;
 // P2ElementwiseBlendingLaplaceOperator
 template class P2ElementwiseOperator< P2Form_laplace >;
 
+// P2ElementwiseBlendingLaplaceOperatorPimped3D
+template class P2ElementwiseOperator< P2Form_laplacePimped3D >;
+
 // P2ElementwiseLinearCombinationOperator
 template class P2ElementwiseOperator< P2LinearCombinationForm >;
 

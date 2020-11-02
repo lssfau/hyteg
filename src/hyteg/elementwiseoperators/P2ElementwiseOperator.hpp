@@ -27,6 +27,7 @@
 #include "hyteg/forms/form_fenics_generated/p2_polar_laplacian.h"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
+#include "hyteg/forms/form_hyteg_manual/P2FormLaplacePimped3D.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
@@ -301,5 +302,8 @@ typedef P2ElementwiseOperator< P2Form_laplace > P2ElementwiseBlendingLaplaceOper
 typedef P2ElementwiseOperator< P2Form_divKgrad > P2ElementwiseDivKGradOperator;
 
 typedef P2ElementwiseOperator< P2LinearCombinationForm > P2ElementwiseLinearCombinationOperator;
+
+// For testing performance
+typedef P2ElementwiseOperator< P2Form_laplacePimped3D > P2ElementwiseBlendingLaplaceOperatorPimped3D;
 
 } // namespace hyteg
