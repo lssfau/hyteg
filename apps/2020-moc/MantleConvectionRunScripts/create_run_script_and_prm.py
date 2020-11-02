@@ -7,7 +7,7 @@ from templates import create_parameter_file, job_file_hawk, job_file_supermuc
 
 
 def create_files(args, args_dict):
-    datestamp = time.strftime('%y_%m_%d-%H.%M.%S')
+    datestamp = time.strftime('%y_%m_%d-%H_%M_%S')
 
     # parameter file
     binary_name = 'MantleConvection'
