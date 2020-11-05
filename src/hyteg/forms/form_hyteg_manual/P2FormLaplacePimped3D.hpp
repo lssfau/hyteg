@@ -39,7 +39,7 @@
 // V_3: SLOWER
 // V_4: SLOWER + PRECOMUTE_SHAPE_FUNCTION_DERIVATIVES
 //
-#define SLOWER
+// #define SLOWER
 // #define PRECOMUTE_SHAPE_FUNCTION_DERIVATIVES
 
 #ifdef PRECOMUTE_SHAPE_FUNCTION_DERIVATIVES
@@ -47,6 +47,10 @@
 #else
 #define SFD sfd
 #endif
+
+// Select cubature rule
+#define CUBAPOINTS cubature::T3_points
+#define CUBAWEIGHTS cubature::T3_weights
 
 namespace hyteg {
 
@@ -56,9 +60,6 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
  public:
    P2Form_laplacePimped3D()
    {
-// Select cubature rule
-#define CUBAPOINTS cubature::T3_points
-#define CUBAWEIGHTS cubature::T3_weights
 
       for ( uint_t k = 0; k < CUBAWEIGHTS.size(); k++ )
       {
@@ -123,10 +124,6 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
 
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const final
    {
-// Select cubature rule
-#define CUBAPOINTS cubature::T3_points
-#define CUBAWEIGHTS cubature::T3_weights
-
       // initialise element matrix to zero for additive assembly
       elMat.setAll( real_c( 0 ) );
 
