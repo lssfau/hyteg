@@ -137,6 +137,9 @@ struct SolverInfo
 
    uint_t stokesMaxNumIterations           = 10;
    real_t stokesAbsoluteResidualUTolerance = 0;
+   uint_t uzawaInnerIterations             = 10;
+   uint_t uzawaPreSmooth                   = 6;
+   uint_t uzawaPostSmooth                  = 6;
 
    DiffusionSolverType diffusionSolverType = DiffusionSolverType::PETSC_MINRES;
 
@@ -179,21 +182,20 @@ void calculateStokesResiduals( const StokesOperator&       A,
                                uint_t                      level,
                                StokesFunction&             r,
                                StokesFunction&             tmp,
-                               real_t&                     residualU,
-                               real_t&                     residualP )
+                               real_t&                     residual )
 {
    tmp.interpolate( 0, level, All );
    r.interpolate( 0, level, All );
    A.apply( x, tmp, level, Inner | NeumannBoundary | FreeslipBoundary );
    r.assign( {1.0, -1.0}, {b, tmp}, level, Inner | NeumannBoundary | FreeslipBoundary );
-   residualU = normL2Squared( r.uvw.u, tmp.uvw.u, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
-   residualU += normL2Squared( r.uvw.v, tmp.uvw.v, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residual = normL2Squared( r.uvw.u, tmp.uvw.u, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residual += normL2Squared( r.uvw.v, tmp.uvw.v, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
    if ( x.getStorage()->hasGlobalCells() )
    {
-      residualU += normL2Squared( r.uvw.w, tmp.uvw.w, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
+      residual += normL2Squared( r.uvw.w, tmp.uvw.w, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
    }
-   residualU = std::sqrt( residualU );
-   residualP = normL2( r.p, tmp.p, Mp, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residual += normL2Squared( r.p, tmp.p, Mp, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residual = std::sqrt( residual );
 }
 
 template < typename UnsteadyDiffusion,
@@ -389,6 +391,11 @@ void runBenchmark( real_t      cflMax,
    db.setConstantEntry( "num_macro_primitives", uint_c( setupStorage->getNumberOfPrimitives() ) );
    db.setConstantEntry( "diffusivity", diffusivity );
 
+   db.setConstantEntry( "uzawa_omega", solverInfo.uzawaOmega );
+   db.setConstantEntry( "uzawa_inner_smooth", solverInfo.uzawaInnerIterations );
+   db.setConstantEntry( "uzawa_pre_smooth", solverInfo.uzawaPreSmooth );
+   db.setConstantEntry( "uzawa_post_smooth", solverInfo.uzawaPostSmooth );
+
    typedef P2P1TaylorHoodFunction< real_t >       StokesFunction;
    typedef P2Function< real_t >                   ScalarFunction;
    typedef P2P1ElementwiseBlendingStokesOperator  StokesOperator;
@@ -572,7 +579,7 @@ void runBenchmark( real_t      cflMax,
           std::make_shared< StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator > >( storage, smoother );
 
       auto uzawaSmoother = std::make_shared< UzawaSmoother< StokesOperator > >(
-          storage, uzawaVelocityPreconditioner, minLevel, level, solverInfo.uzawaOmega, Inner | NeumannBoundary, 10 );
+          storage, uzawaVelocityPreconditioner, minLevel, level, solverInfo.uzawaOmega, Inner | NeumannBoundary, solverInfo.uzawaInnerIterations );
 
       std::shared_ptr< Solver< StokesOperator > > coarseGridSolverInternal;
 
@@ -588,8 +595,8 @@ void runBenchmark( real_t      cflMax,
                                                                                              prolongationOperator,
                                                                                              minLevel,
                                                                                              level,
-                                                                                             6,
-                                                                                             6,
+                                                                                             solverInfo.uzawaPreSmooth,
+                                                                                             solverInfo.uzawaPostSmooth,
                                                                                              2,
                                                                                              CycleType::VCYCLE );
 
@@ -598,9 +605,14 @@ void runBenchmark( real_t      cflMax,
          auto stopIterationCallback =
              [&]( const StokesOperator& _A, const StokesFunction& _u, const StokesFunction& _b, const uint_t _level ) {
                 real_t r_u;
-                real_t r_p;
 
-                calculateStokesResiduals( _A, MVelocity, MPressure, _u, _b, _level, stokesResidual, stokesTmp, r_u, r_p );
+                calculateStokesResiduals( _A, MVelocity, MPressure, _u, _b, _level, stokesResidual, stokesTmp, r_u );
+
+                if ( numVCycles == 0 )
+                {
+                   WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
+                       "[Uzawa] iter %3d | residual: %10.5e | initial ", 0, vCycleResidualULast ) );
+                }
 
                 auto reductionRateU = r_u / vCycleResidualULast;
 
@@ -612,7 +624,7 @@ void runBenchmark( real_t      cflMax,
                 if ( verbose )
                 {
                    WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-                       "[Uzawa] residual u: %10.5e | reduction: %10.5e | residual p: %10.5e", r_u, reductionRateU, r_p ) );
+                       "[Uzawa] iter %3d | residual: %10.5e | reduction: %10.5e ", numVCycles, r_u, reductionRateU ) );
                 }
 
                 if ( r_u < solverInfo.stokesAbsoluteResidualUTolerance )
@@ -628,7 +640,7 @@ void runBenchmark( real_t      cflMax,
                 return false;
              };
 
-         stokesSolver = std::make_shared< SolverLoop< StokesOperator > >( multigridSolver, 10, stopIterationCallback );
+         stokesSolver = std::make_shared< SolverLoop< StokesOperator > >( multigridSolver, solverInfo.stokesMaxNumIterations, stopIterationCallback );
       }
       else
       {
@@ -714,7 +726,6 @@ void runBenchmark( real_t      cflMax,
    real_t vMax      = 0;
    real_t vRms      = 0;
    real_t residualU = 0;
-   real_t residualP = 0;
 
    real_t timeStepTotal = 0;
    real_t timeStokes    = 0;
@@ -767,7 +778,7 @@ void runBenchmark( real_t      cflMax,
       f.uvw.w.assign( {rayleighNumber}, {f.uvw.w}, l, All );
    }
 
-   calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualP );
+   calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
 
    real_t initialResiudalU = residualU;
    vCycleResidualULast = residualU;
@@ -777,7 +788,7 @@ void runBenchmark( real_t      cflMax,
    localTimer.end();
    timeStokes = localTimer.last();
    
-   calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualP );
+   calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
 
    if ( storage->hasGlobalCells() )
    {
@@ -800,18 +811,17 @@ void runBenchmark( real_t      cflMax,
    timeStepTotal = timeStepTimer.last();
 
    WALBERLA_LOG_INFO_ON_ROOT(
-       " timestep |           dt |   time total | velocity RMS | velocity max magnitude |   residual u |   residual p |  total | Stokes |   MMOC |   diff |    VTK |" )
+       " timestep |           dt |   time total | velocity RMS | velocity max magnitude |   residual u |  total | Stokes |   MMOC |   diff |    VTK |" )
    WALBERLA_LOG_INFO_ON_ROOT(
-       "----------+--------------+--------------+--------------+------------------------+--------------+--------------+--------+--------+--------+--------+--------+" )
+       "----------+--------------+--------------+--------------+------------------------+--------------+--------+--------+--------+--------+--------+" )
    WALBERLA_LOG_INFO_ON_ROOT(
-       walberla::format( " %8s | %12s | %12.8f | %12.4f | %22.4f | %12.5e | %12.5e | %6.2f | %6.2f | %6.2f | %6.2f | %6.2f |",
+       walberla::format( " %8s | %12s | %12.8f | %12.4f | %22.4f | %12.5e | %6.2f | %6.2f | %6.2f | %6.2f | %6.2f |",
                          "initial",
                          "-",
                          timeTotal,
                          vRms,
                          vMax,
                          residualU,
-                         residualP,
                          timeStepTotal,
                          timeStokes,
                          timeMMOC,
@@ -941,7 +951,7 @@ void runBenchmark( real_t      cflMax,
          f.uvw.w.assign( {rayleighNumber}, {f.uvw.w}, l, All );
       }
 
-      calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualP );
+      calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
 
       vCycleResidualULast = residualU;
       initialResiudalU = residualU;
@@ -953,7 +963,7 @@ void runBenchmark( real_t      cflMax,
       localTimer.end();
       timeStokes = localTimer.last();
 
-      calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualP );
+      calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
 
       db.setVariableEntry( "initial_residual_u_predictor", initialResiudalU );
       db.setVariableEntry( "num_v_cycles_predictor", numVCycles );
@@ -1020,7 +1030,7 @@ void runBenchmark( real_t      cflMax,
             f.uvw.w.assign( {rayleighNumber}, {f.uvw.w}, l, All );
          }
 
-         calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualP );
+         calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
 
          vCycleResidualULast = residualU;
          initialResiudalU = residualU;
@@ -1032,7 +1042,7 @@ void runBenchmark( real_t      cflMax,
          localTimer.end();
          timeStokes += localTimer.last();
 
-         calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualP );
+         calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
 
          db.setVariableEntry( "initial_residual_u_corrector", initialResiudalU );
          db.setVariableEntry( "num_v_cycles_corrector", numVCycles );
@@ -1081,14 +1091,13 @@ void runBenchmark( real_t      cflMax,
       if ( printInterval > 0 && timeStep % printInterval == 0 )
       {
          WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-             " %8d | %12.5e | %12.8f | %12.4f | %22.4f | %12.5e | %12.5e | %6.2f | %6.2f | %6.2f | %6.2f | %6.2f |",
+             " %8d | %12.5e | %12.8f | %12.4f | %22.4f | %12.5e | %6.2f | %6.2f | %6.2f | %6.2f | %6.2f |",
              timeStep,
              dt,
              timeTotal,
              vRms,
              vMax,
              residualU,
-             residualP,
              timeStepTotal,
              timeStokes,
              timeMMOC,
@@ -1160,6 +1169,9 @@ int main( int argc, char** argv )
    solverInfo.stokesMaxNumIterations           = mainConf.getParameter< uint_t >( "stokesMaxNumIterations" );
    solverInfo.stokesAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "stokesAbsoluteResidualUTolerance" );
    solverInfo.uzawaOmega                       = mainConf.getParameter< real_t >( "uzawaOmega" );
+   solverInfo.uzawaInnerIterations             = mainConf.getParameter< uint_t >( "uzawaInnerIterations" );
+   solverInfo.uzawaPreSmooth                   = mainConf.getParameter< uint_t >( "uzawaPreSmooth" );
+   solverInfo.uzawaPostSmooth                  = mainConf.getParameter< uint_t >( "uzawaPostSmooth" );
 
    solverInfo.diffusionSolverType                 = static_cast< hyteg::DiffusionSolverType >( diffusionSolverTypeInt );
    solverInfo.diffusionMaxNumIterations           = mainConf.getParameter< uint_t >( "diffusionMaxNumIterations" );
