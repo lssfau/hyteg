@@ -105,7 +105,7 @@ class PETScMinResSolver : public Solver< OperatorType >
          AmatNonEliminatedBC.createMatrixFromOperatorOnce( A, level, num, All );
          Amat.createMatrixFromOperatorOnce( A, level, num, All );
       }
-      MatCopy( AmatNonEliminatedBC.get(), Amat.get(), DIFFERENT_NONZERO_PATTERN );
+      MatCopy( AmatNonEliminatedBC.get(), Amat.get(), SAME_NONZERO_PATTERN );
 
       Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
       if ( nullSpaceSet_ )
