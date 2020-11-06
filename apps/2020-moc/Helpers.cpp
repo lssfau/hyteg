@@ -95,7 +95,6 @@ void solve( const MeshInfo&         meshInfo,
 
 
    auto timer = storage->getTimingTree();
-   timer->start( "Total" );
    timer->start( "Setup" );
 
    const uint_t unknowns = numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
@@ -201,12 +200,19 @@ void solve( const MeshInfo&         meshInfo,
    MassOperator                  M( storage, level, level );
    MMOCTransport< FunctionType > transport( storage, setupStorage, level, level, TimeSteppingScheme::RK4 );
 
+   std::shared_ptr< Solver< P2ElementwiseUnsteadyDiffusionOperator > > solver;
+
 #ifdef HYTEG_BUILD_WITH_PETSC
    PETScManager manager;
-   auto         solver = std::make_shared< PETScMinResSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, 1e-12 );
-#else
-   auto solver = std::make_shared< CGSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, level  );
 #endif
+   if ( enableDiffusion )
+   {
+#ifdef HYTEG_BUILD_WITH_PETSC
+      solver = std::make_shared< PETScMinResSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, 1e-12 );
+#else
+      solver = std::make_shared< CGSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, level  );
+#endif
+   }
 
    UnsteadyDiffusion< FunctionType, UnsteadyDiffusionOperator, LaplaceOperator, MassOperator > diffusionSolver(
        storage, level, level, solver );
@@ -249,6 +255,8 @@ void solve( const MeshInfo&         meshInfo,
    if ( vtk )
       vtkOutput.write( level );
 
+   printCurrentMemoryUsage();
+
    WALBERLA_LOG_INFO_ON_ROOT(
        " timestep | time total | discr. L2 error | max peak diff. | spu. osc. | total mass | mass change | vel max mag " )
    WALBERLA_LOG_INFO_ON_ROOT(
@@ -281,10 +289,11 @@ void solve( const MeshInfo&         meshInfo,
 
    timer->stop( "Setup" );
 
-   timer->start( "Simulation" );
 
    for ( uint_t i = 1; i <= numTimeSteps; i++ )
    {
+      timer->start( "Simulation" );
+
       if ( verbose )
          WALBERLA_LOG_INFO_ON_ROOT( "timestep " << i )
 
@@ -418,15 +427,12 @@ void solve( const MeshInfo&         meshInfo,
          sqlIntegerProperties.clear();
          sqlStringProperties.clear();
       }
-   }
 
-   timer->stop( "Simulation" );
-
-   timer->stop( "Total" );
-
-   if ( outputTimingJSON )
-   {
-      writeTimingTreeJSON( *timer, benchmarkName + "Timing.json" );
+      timer->stop( "Simulation" );
+      if ( outputTimingJSON )
+      {
+         writeTimingTreeJSON( *timer, dbFile + walberla::format("_Timing_ts_%04d.json", i) );
+      }
    }
 }
 

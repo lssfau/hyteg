@@ -271,11 +271,12 @@ void benchmark( int argc, char** argv )
    const bool        vtk                    = mainConf.getParameter< bool >( "vtk" );
    const uint_t      vtkInterval            = mainConf.getParameter< uint_t >( "vtkInterval" );
    const std::string dbFile                 = mainConf.getParameter< std::string >( "dbFile" );
+   const uint_t      numEdgesPerSide        = mainConf.getParameter< uint_t >( "numEdgesPerSide" );
 
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
    if ( threeDim )
    {
-      meshInfo = MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
+      meshInfo = MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
    }
    else
    {

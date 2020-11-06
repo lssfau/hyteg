@@ -36,3 +36,4 @@ if ( HYTEG_BUILD_WITH_PETSC )
 endif()
 
 add_subdirectory(MantleConvectionRunScripts)
+add_subdirectory(MOCScaling)

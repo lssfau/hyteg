@@ -29,6 +29,7 @@
 #include "core/mpi/MPIManager.h"
 #include "sqlite/SQLite.h"
 
+#include "hyteg/MemoryAllocation.hpp"
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"

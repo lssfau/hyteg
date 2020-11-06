@@ -11,8 +11,10 @@ Parameters
   resetParticles false;
   resetParticlesInterval 1;
   adjustedAdvection false;
-  vtk true;
+  vtk false;
   printInterval 1;
   vtkInterval 1;
   dbFile Benchmark_02_SwirlingAdvection.db;
+
+  numEdgesPerSide 1;
 }
