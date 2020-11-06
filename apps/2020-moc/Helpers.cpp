@@ -151,6 +151,9 @@ void solve( const MeshInfo&         meshInfo,
    WALBERLA_LOG_INFO_ON_ROOT( "   + database file:                                " << dbFile )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
+   const auto domainInfo = storage->getGlobalInfo();
+   WALBERLA_LOG_INFO_ON_ROOT( domainInfo );
+
    walberla::sqlite::SQLiteDB                 db( dbFile );
    std::map< std::string, walberla::int64_t > sqlIntegerProperties;
    std::map< std::string, double >            sqlRealProperties;

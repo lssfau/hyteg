@@ -4,7 +4,9 @@ def create_parameter_file(level: int, db_file_name: str, num_edges_per_side: int
     return f"""Parameters
 {{
     level {level};
-    numTimeSteps {2**level * num_edges_per_side};
+    numTimeSteps 10;
+    setTimeStepSizeManually true;
+    manualTimeStepSize {1.5 / (2**level * num_edges_per_side)};
     threeDim true;
 
     enableGaussianCone false;

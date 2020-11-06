@@ -1,7 +1,9 @@
 Parameters
 {
-  level 4;
+  level 5;
   numTimeSteps 15;
+  setTimeStepSizeManually false;
+  manualTimeStepSize 0.1;
   threeDim true;
 
   enableGaussianCone true;
@@ -16,5 +18,5 @@ Parameters
   vtkInterval 1;
   dbFile Benchmark_02_SwirlingAdvection.db;
 
-  numEdgesPerSide 1;
+  numEdgesPerSide 2;
 }
