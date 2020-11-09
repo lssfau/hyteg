@@ -35,14 +35,14 @@
 //
 // To run each variant set the following macros
 // V_1: none
-// V_2: PRECOMUTE_SHAPE_FUNCTION_DERIVATIVES
+// V_2: PRECOMPUTE_SHAPE_FUNCTION_DERIVATIVES
 // V_3: SLOWER
-// V_4: SLOWER + PRECOMUTE_SHAPE_FUNCTION_DERIVATIVES
+// V_4: SLOWER + PRECOMPUTE_SHAPE_FUNCTION_DERIVATIVES
 //
 // #define SLOWER
-// #define PRECOMUTE_SHAPE_FUNCTION_DERIVATIVES
+#define PRECOMPUTE_SHAPE_FUNCTION_DERIVATIVES
 
-#ifdef PRECOMUTE_SHAPE_FUNCTION_DERIVATIVES
+#ifdef PRECOMPUTE_SHAPE_FUNCTION_DERIVATIVES
 #define SFD shapeFunctionDerivatives_[k]
 #else
 #define SFD sfd
@@ -56,7 +56,7 @@ namespace hyteg {
 
 class P2Form_laplacePimped3D : public P2FormHyTeG
 {
-#ifdef PRECOMUTE_SHAPE_FUNCTION_DERIVATIVES
+#ifdef PRECOMPUTE_SHAPE_FUNCTION_DERIVATIVES
  public:
    P2Form_laplacePimped3D()
    {
@@ -109,6 +109,7 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
          shapeFunctionDerivatives_[k][9][1] = -4.0 * L2;
          shapeFunctionDerivatives_[k][9][2] = -4.0 * L2;
       }
+
    };
 
  private:
@@ -182,7 +183,8 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
                           DPsi( 2, 1 ) * tmp24 - DPsi( 2, 2 ) * tmp12 + DPsi( 2, 0 ) * tmp27 - DPsi( 2, 0 ) * tmp28;
          real_t detDPsiFac = std::abs( detDPsi ) / ( detDPsi * detDPsi );
 
-#ifndef PRECOMUTE_SHAPE_FUNCTION_DERIVATIVES
+#ifndef PRECOMPUTE_SHAPE_FUNCTION_DERIVATIVES
+
          // Evaluate shape function derivatives at current integration point
          std::array< std::array< real_t, 3 >, 10 > sfd;
 
