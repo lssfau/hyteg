@@ -13,6 +13,6 @@ Parameters
   outputVTK true;
 
   maxCycles 30;
-  mgTolerance 1e-14;
+  mgTolerance 5e-14;
   solver MG;
 }
