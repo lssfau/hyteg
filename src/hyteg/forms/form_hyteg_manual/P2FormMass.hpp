@@ -38,7 +38,8 @@ public:
 #define QUADWEIGHTS quadrature::D6_weights
 
 // "Load" kernel
-#include "hyteg/forms/form_hyteg_manual/kernels/p2_mass_integrateAll_2d.hpp"
+// #include "hyteg/forms/form_hyteg_manual/kernels/p2_mass_integrateAll_2d.hpp"
+#include "hyteg/forms/form_hyteg_manual/kernels/p2_mass_integrateAll_2d_new.hpp"
 
   };
 
@@ -49,7 +50,8 @@ public:
 #define CUBAWEIGHTS cubature::T4_weights
 
 // "Load" kernel
-#include "hyteg/forms/form_hyteg_manual/kernels/p2_mass_integrateAll_3d.hpp"
+// #include "hyteg/forms/form_hyteg_manual/kernels/p2_mass_integrateAll_3d.hpp"
+#include "hyteg/forms/form_hyteg_manual/kernels/p2_mass_integrateAll_3d_new.hpp"
   };
 };
 }
