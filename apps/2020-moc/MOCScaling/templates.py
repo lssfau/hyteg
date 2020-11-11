@@ -7,7 +7,7 @@ def create_parameter_file(level: int, db_file_name: str, num_time_steps: int, di
     numTimeSteps {num_time_steps};
     timeStepSize 0.01;
 
-    resetParticles false;
+    resetParticles true;
     resetParticlesInterval 1;
     adjustedAdvection false;
     vtk false;
