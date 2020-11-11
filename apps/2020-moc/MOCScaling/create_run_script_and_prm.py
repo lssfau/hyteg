@@ -10,7 +10,7 @@ def create_files(args, args_dict):
     datestamp = time.strftime('%y_%m_%d-%H_%M_%S')
 
     # parameter file
-    binary_name = 'Benchmark_02_SwirlingAdvection'
+    binary_name = 'Benchmark_05_PipeScaling'
 
     base_name = '_'.join(['moc', datestamp, f'nodes_{args.num_nodes}', f'tets_{args.diameter_cubes**2 * args.length_cubes * 6}'])
     parameter_file_name = base_name + '.prm'
