@@ -153,6 +153,9 @@ void benchmark( int argc, char** argv )
    VelocitySolutionY vSolution;
    VelocitySolutionZ wSolution;
 
+   WALBERLA_LOG_INFO_ON_ROOT( " - length in cubes (x):      " << lengthCubes );
+   WALBERLA_LOG_INFO_ON_ROOT( " - diameter in cubes (y, z): " << diameterCubes );
+
    solve( meshInfo,
           false,
           cSolution,
