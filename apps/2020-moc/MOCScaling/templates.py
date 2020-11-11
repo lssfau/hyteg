@@ -1,17 +1,11 @@
 
 
-def create_parameter_file(level: int, db_file_name: str, num_edges_per_side: int, **kwargs):
+def create_parameter_file(level: int, db_file_name: str, num_time_steps: int, diameter_cubes: int, length_cubes: int, **kwargs):
     return f"""Parameters
 {{
     level {level};
-    numTimeSteps 10;
-    setTimeStepSizeManually true;
-    manualTimeStepSize {1.5 / (2**level * num_edges_per_side)};
-    threeDim true;
-
-    enableGaussianCone false;
-    enableLinearCone false;
-    enableCylinder false;
+    numTimeSteps {num_time_steps};
+    timeStepSize 0.01;
 
     resetParticles false;
     resetParticlesInterval 1;
@@ -21,7 +15,8 @@ def create_parameter_file(level: int, db_file_name: str, num_edges_per_side: int
     vtkInterval 1;
     dbFile {db_file_name};
 
-    numEdgesPerSide {num_edges_per_side};
+    diameterCubes {diameter_cubes};
+    lengthCubes {length_cubes};
     }}
 """
 

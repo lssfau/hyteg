@@ -12,7 +12,7 @@ def create_files(args, args_dict):
     # parameter file
     binary_name = 'Benchmark_02_SwirlingAdvection'
 
-    base_name = '_'.join(['moc', datestamp, f'nodes_{args.num_nodes}', f'eps_{args.num_edges_per_side}'])
+    base_name = '_'.join(['moc', datestamp, f'nodes_{args.num_nodes}', f'tets_{args.diameter_cubes**2 * args.length_cubes * 6}'])
     parameter_file_name = base_name + '.prm'
     args_dict['db_file_name'] = base_name + '.db'
 
@@ -60,7 +60,9 @@ if __name__ == '__main__':
     parser.add_argument('--walltime', default='00:10:00', help='walltime for the job')
 
     parser.add_argument('--level', help='refinement level', type=int, required=True)
-    parser.add_argument('--num_edges_per_side', help='number of cubes per side', type=int, required=True)
+    parser.add_argument('--diameter_cubes', help='number of cubes in y and z direction', type=int, required=True)
+    parser.add_argument('--length_cubes', help='number of cubes in x direction', type=int, required=True)
+    parser.add_argument('--num_time_steps', default=10, help='number of time steps', type=int )
 
     args = parser.parse_args()
     args_dict = vars(args)
