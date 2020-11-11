@@ -19,118 +19,95 @@
  */
 #pragma once
 
-// Shape functions on unit tetrahedron
-#define DEFINE_P2_SHAPE_FUNCTIONS_TET
-#include "../ShapeFunctionMacros.hpp"
-#undef DEFINE_P2_SHAPE_FUNCTIONS_TET
+elMat.setAll( real_c( 0 ) );
 
-// Executing quadrature rule
-#define INTEGRATE3D(i,j)                                                                                                                             \
-  elMat(i,j) = 0.0;                                                                                                                                  \
-  for( uint_t k = 0; k < CUBAWEIGHTS.size(); k++ ) {                                                                                                 \
-    real_t L2 = CUBAPOINTS[k][0];                                                                                                                    \
-    real_t L3 = CUBAPOINTS[k][1];                                                                                                                    \
-    real_t L4 = CUBAPOINTS[k][2];                                                                                                                    \
-    real_t L1 = 1.0 - L2 - L3 - L4;                                                                                                                  \
-    mappedPt[0] = ( coords[1][0] - coords[0][0] ) * L2 + ( coords[2][0] - coords[0][0] ) * L3 + ( coords[3][0] - coords[0][0] ) * L4 + coords[0][0]; \
-    mappedPt[1] = ( coords[1][1] - coords[0][1] ) * L2 + ( coords[2][1] - coords[0][1] ) * L3 + ( coords[3][1] - coords[0][1] ) * L4 + coords[0][1]; \
-    mappedPt[2] = ( coords[1][2] - coords[0][2] ) * L2 + ( coords[2][2] - coords[0][2] ) * L3 + ( coords[3][2] - coords[0][2] ) * L4 + coords[0][2]; \
-    real_t detDPsi = std::abs( geometryMap_->evalDF( mappedPt, dummy ) );                                                                            \
-    elMat(i,j) += CUBAWEIGHTS[k] * detJacPhiInv * detDPsi * SF_N ## i * SF_N ## j;                                                                   \
-  }                                                                                                                                                  \
-  elMat(j,i) = elMat(i,j)
+const auto coords_0_0 = coords[0][0];
+const auto coords_0_1 = coords[0][1];
+const auto coords_0_2 = coords[0][2];
 
-    // compute Jacobian determinant of inverse pull-back mapping
-    real_t tmp0 = -coords[0][0];
-    real_t tmp1 = tmp0 + coords[1][0];
-    real_t tmp2 = -coords[0][1];
-    real_t tmp3 = tmp2 + coords[2][1];
-    real_t tmp4 = -coords[0][2];
-    real_t tmp5 = tmp4 + coords[3][2];
-    real_t tmp6 = tmp0 + coords[2][0];
-    real_t tmp7 = tmp2 + coords[3][1];
-    real_t tmp8 = tmp4 + coords[1][2];
-    real_t tmp9 = tmp0 + coords[3][0];
-    real_t tmp10 = tmp2 + coords[1][1];
-    real_t tmp11 = tmp4 + coords[2][2];
-    real_t detJacPhiInv = -tmp1*tmp11*tmp7 + tmp1*tmp3*tmp5 + tmp10*tmp11*tmp9 - tmp10*tmp5*tmp6 - tmp3*tmp8*tmp9 + tmp6*tmp7*tmp8;
-    detJacPhiInv = std::abs( detJacPhiInv );
+const auto coords_1_0 = coords[1][0];
+const auto coords_1_1 = coords[1][1];
+const auto coords_1_2 = coords[1][2];
 
-    // Cubature point mapped to computational tetrahedron
-    Point3D mappedPt;
+const auto coords_2_0 = coords[2][0];
+const auto coords_2_1 = coords[2][1];
+const auto coords_2_2 = coords[2][2];
 
-    // dummy matrix for evaluation of Jacobian of 3D map
-    Matrix3r dummy;
+const auto coords_3_0 = coords[3][0];
+const auto coords_3_1 = coords[3][1];
+const auto coords_3_2 = coords[3][2];
 
-    INTEGRATE3D(0,0);
-    INTEGRATE3D(0,1);
-    INTEGRATE3D(0,2);
-    INTEGRATE3D(0,3);
-    INTEGRATE3D(0,4);
-    INTEGRATE3D(0,5);
-    INTEGRATE3D(0,6);
-    INTEGRATE3D(0,7);
-    INTEGRATE3D(0,8);
-    INTEGRATE3D(0,9);
+// compute Jacobian determinant of inverse pull-back mapping
+// and location independent auxilliary values
+real_t tmp0  = -coords_0_0;
+real_t tmp1  = tmp0 + coords_1_0;
+real_t tmp2  = -coords_0_1;
+real_t tmp3  = tmp2 + coords_2_1;
+real_t tmp4  = -coords_0_2;
+real_t tmp5  = tmp4 + coords_3_2;
+real_t tmp6  = tmp0 + coords_2_0;
+real_t tmp7  = tmp2 + coords_3_1;
+real_t tmp8  = tmp4 + coords_1_2;
+real_t tmp9  = tmp0 + coords_3_0;
+real_t tmp10 = tmp2 + coords_1_1;
+real_t tmp11 = tmp4 + coords_2_2;
 
-    INTEGRATE3D(1,1);
-    INTEGRATE3D(1,2);
-    INTEGRATE3D(1,3);
-    INTEGRATE3D(1,4);
-    INTEGRATE3D(1,5);
-    INTEGRATE3D(1,6);
-    INTEGRATE3D(1,7);
-    INTEGRATE3D(1,8);
-    INTEGRATE3D(1,9);
+real_t detDPhiInv = -tmp1 * tmp11 * tmp7 + tmp1 * tmp3 * tmp5 + tmp10 * tmp11 * tmp9 - tmp10 * tmp5 * tmp6 - tmp3 * tmp8 * tmp9 +
+                    tmp6 * tmp7 * tmp8;
+detDPhiInv = std::abs( detDPhiInv );
 
-    INTEGRATE3D(2,2);
-    INTEGRATE3D(2,3);
-    INTEGRATE3D(2,4);
-    INTEGRATE3D(2,5);
-    INTEGRATE3D(2,6);
-    INTEGRATE3D(2,7);
-    INTEGRATE3D(2,8);
-    INTEGRATE3D(2,9);
+// outermost loop is over the cubature points
+for ( uint_t k = 0; k < CUBAWEIGHTS.size(); k++ )
+{
+   // determine barycentric coordinates for current integration point
+   real_t L2 = CUBAPOINTS[k][0];
+   real_t L3 = CUBAPOINTS[k][1];
+   real_t L4 = CUBAPOINTS[k][2];
+   real_t L1 = 1.0 - L2 - L3 - L4;
 
-    INTEGRATE3D(3,3);
-    INTEGRATE3D(3,4);
-    INTEGRATE3D(3,5);
-    INTEGRATE3D(3,6);
-    INTEGRATE3D(3,7);
-    INTEGRATE3D(3,8);
-    INTEGRATE3D(3,9);
+   // map point to computational element (affine map Phi^{-1} )
+   Point3D mappedPt;
+   mappedPt[0] =
+       ( coords_1_0 - coords_0_0 ) * L2 + ( coords_2_0 - coords_0_0 ) * L3 + ( coords_3_0 - coords_0_0 ) * L4 + coords_0_0;
+   mappedPt[1] =
+       ( coords_1_1 - coords_0_1 ) * L2 + ( coords_2_1 - coords_0_1 ) * L3 + ( coords_3_1 - coords_0_1 ) * L4 + coords_0_1;
+   mappedPt[2] =
+       ( coords_1_2 - coords_0_2 ) * L2 + ( coords_2_2 - coords_0_2 ) * L3 + ( coords_3_2 - coords_0_2 ) * L4 + coords_0_2;
 
-    INTEGRATE3D(4,4);
-    INTEGRATE3D(4,5);
-    INTEGRATE3D(4,6);
-    INTEGRATE3D(4,7);
-    INTEGRATE3D(4,8);
-    INTEGRATE3D(4,9);
+   // compute Jacobian determiant of blending map Psi (computational to physical element)
+   Matrix3r dummy;
+   real_t detDPsi = std::abs( geometryMap_->evalDF( mappedPt, dummy ) );
 
-    INTEGRATE3D(5,5);
-    INTEGRATE3D(5,6);
-    INTEGRATE3D(5,7);
-    INTEGRATE3D(5,8);
-    INTEGRATE3D(5,9);
+   // Evaluate shape functions at current integration point
+   std::array< real_t, 10 > sf;
 
-    INTEGRATE3D(6,6);
-    INTEGRATE3D(6,7);
-    INTEGRATE3D(6,8);
-    INTEGRATE3D(6,9);
+   sf[0] = L1 * ( real_c(2) * L1 - real_c(1) );
+   sf[1] = L2 * ( real_c(2) * L2 - real_c(1) );
+   sf[2] = L3 * ( real_c(2) * L3 - real_c(1) );
+   sf[3] = L4 * ( real_c(2) * L4 - real_c(1) );
+   sf[4] = real_c(4) * L3 * L4;
+   sf[5] = real_c(4) * L2 * L4;
+   sf[6] = real_c(4) * L2 * L3;
+   sf[7] = real_c(4) * L1 * L4;
+   sf[8] = real_c(4) * L1 * L3;
+   sf[9] = real_c(4) * L1 * L2;
 
-    INTEGRATE3D(7,7);
-    INTEGRATE3D(7,8);
-    INTEGRATE3D(7,9);
+   // compute and add contribution from current integration point to all element matrix entries
+   // (computations on upper triangle only)
+   for ( uint i = 0; i < 10; i++ )
+   {
+      for ( uint j = i; j < 10; j++ )
+      {
+        elMat( i, j ) += CUBAWEIGHTS[k] * detDPhiInv * detDPsi * sf[i] * sf[j];        
+      }
+   }
+}
 
-    INTEGRATE3D(8,8);
-    INTEGRATE3D(8,9);
-
-    INTEGRATE3D(9,9);
-
-#define UNDEFINE_P2_SHAPE_FUNCTIONS_TET
-#include "../ShapeFunctionMacros.hpp"
-#undef UNDEFINE_P2_SHAPE_FUNCTIONS_TET
-
-#undef INTEGRATE3D
-#undef CUBAPOINTS
-#undef CUBAWEIGHTS
+// set lower triangular part from symmetry
+for ( uint i = 0; i < 10; i++ )
+{
+   for ( uint j = 0; j < i; j++ )
+   {
+      elMat( i, j ) = elMat( j, i );
+   }
+}

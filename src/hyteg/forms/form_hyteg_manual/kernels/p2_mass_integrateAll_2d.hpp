@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Marcus Mohr.
+ * Copyright (c) 2020 Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,82 +19,71 @@
  */
 #pragma once
 
-// Shape functions on unit triangle
-#define DEFINE_P2_SHAPE_FUNCTIONS_TRIANGLE
-#include "../ShapeFunctionMacros.hpp"
-#undef DEFINE_P2_SHAPE_FUNCTIONS_TRIANGLE
+// Internal Documentation: This is variant V3_star
 
-// Executing quadrature rule
-#define INTEGRATE2D(i,j)                                                                                      \
-  elMat(i,j) = 0.0;                                                                                           \
-  for( uint_t k = 0; k < QUADWEIGHTS.size(); k++ ) {                                                          \
-    real_t L2 = QUADPOINTS[k][0];                                                                             \
-    real_t L3 = QUADPOINTS[k][1];                                                                             \
-    real_t L1 = 1.0 - L2 - L3;                                                                                \
-    mappedPt[0] = ( coords[1][0] - coords[0][0] ) * L2 + ( coords[2][0] - coords[0][0] ) * L3 + coords[0][0]; \
-    mappedPt[1] = ( coords[1][1] - coords[0][1] ) * L2 + ( coords[2][1] - coords[0][1] ) * L3 + coords[0][1]; \
-                                                                                                              \
-    real_t detDPsi = std::abs( geometryMap_->evalDetDF( mappedPt ) );                                         \
-    elMat(i,j) += QUADWEIGHTS[k] * detJacPhiInv * detDPsi * SF_N ## i * SF_N ## j;                            \
-  }                                                                                                           \
-  elMat(j,i) = elMat(i,j)
+elMat.setAll( real_c( 0 ) );
 
-    // compute Jacobian determinant of inverse pull-back mapping
-    real_t detJacPhiInv = ( coords[1][0] - coords[0][0] ) *  ( coords[2][1] - coords[0][1] )
-      -  ( coords[2][0] - coords[0][0] ) *  ( coords[1][1] - coords[0][1] );
-    detJacPhiInv = std::abs( detJacPhiInv );
+const auto coords_0_0 = coords[0][0];
+const auto coords_0_1 = coords[0][1];
 
-    // Quadrature point mapped to computational triangle
-    Point3D mappedPt;
+const auto coords_1_0 = coords[1][0];
+const auto coords_1_1 = coords[1][1];
 
-    // ------------
-    //  Zeroth row
-    // ------------
+const auto coords_2_0 = coords[2][0];
+const auto coords_2_1 = coords[2][1];
 
-    INTEGRATE2D(0,0);
-    INTEGRATE2D(0,1);
-    INTEGRATE2D(0,2);
-    INTEGRATE2D(0,3);
-    INTEGRATE2D(0,4);
-    INTEGRATE2D(0,5);
+// compute Jacobian determinant of inverse pull-back mapping
+real_t tmp0 = coords_0_0 - coords_1_0;
+real_t tmp1 = coords_0_1 - coords_2_1;
+real_t tmp2 = coords_0_0 - coords_2_0;
+real_t tmp3 = coords_0_1 - coords_1_1;
 
-    // -----------
-    //  First row
-    // -----------
-    INTEGRATE2D(1,1);
-    INTEGRATE2D(1,2);
-    INTEGRATE2D(1,3);
-    INTEGRATE2D(1,4);
-    INTEGRATE2D(1,5);
+real_t aux1 = tmp0 * tmp1 - tmp2 * tmp3;
+real_t aux2 = aux1 * aux1;
 
-    // ------------
-    //  Second row
-    // ------------
-    INTEGRATE2D(2,2);
-    INTEGRATE2D(2,3);
-    INTEGRATE2D(2,4);
-    INTEGRATE2D(2,5);
+real_t detDPhiInv = std::abs( aux1 );
 
-    // -----------
-    //  Third row
-    // -----------
-    INTEGRATE2D(3,3);
-    INTEGRATE2D(3,4);
-    INTEGRATE2D(3,5);
+// outermost loop is over the quadrature points
+for ( uint_t k = 0; k < QUADWEIGHTS.size(); k++ )
+{
+   // determine barycentric coordinates for current integration point
+   real_t L2 = QUADPOINTS[k][0];
+   real_t L3 = QUADPOINTS[k][1];
+   real_t L1 = 1.0 - L2 - L3;
 
-    // -----------
-    //  Forth row
-    // -----------
-    INTEGRATE2D(4,4);
-    INTEGRATE2D(4,5);
+   // map point to computational element (affine map Phi^{-1} )
+   Point3D mappedPt;
+   mappedPt[0] = ( coords_1_0 - coords_0_0 ) * L2 + ( coords_2_0 - coords_0_0 ) * L3 + coords_0_0;
+   mappedPt[1] = ( coords_1_1 - coords_0_1 ) * L2 + ( coords_2_1 - coords_0_1 ) * L3 + coords_0_1;
 
-    // -----------
-    //  Fifth row
-    // -----------
-    INTEGRATE2D(5,5);
+   // compute Jacobian determiant of blending map Psi (computational to physical element)
+   real_t detDPsi = std::abs( geometryMap_->evalDetDF( mappedPt ) );
 
-#define UNDEFINE_P2_SHAPE_FUNCTIONS_TRIANGLE
-#include "../ShapeFunctionMacros.hpp"
-#undef UNDEFINE_P2_SHAPE_FUNCTIONS_TRIANGLE
+   // Evaluate shape functions at current integration point
+   std::array< real_t, 6 > sf;
+   sf[0] = L1 * ( real_c(2) * L1 - real_c(1) );
+   sf[1] = L2 * ( real_c(2) * L2 - real_c(1) );
+   sf[2] = L3 * ( real_c(2) * L3 - real_c(1) );
+   sf[3] = real_c(4) * L2 * L3;
+   sf[4] = real_c(4) * L1 * L3;
+   sf[5] = real_c(4) * L1 * L2;
 
-#undef INTEGRATE2D
+   // compute and add contribution from current integration point to all element matrix entries
+   // (computations on upper triangle only)
+   for ( uint i = 0; i < 6; i++ )
+   {
+      for ( uint j = i; j < 6; j++ )
+      {
+         elMat( i, j ) += QUADWEIGHTS[k] * detDPhiInv * detDPsi * sf[i] * sf[j];
+      }
+   }
+}
+
+// set lower triangular part from symmetry
+for ( uint i = 0; i < 6; i++ )
+{
+   for ( uint j = 0; j < i; j++ )
+   {
+      elMat( i, j ) = elMat( j, i );
+   }
+}

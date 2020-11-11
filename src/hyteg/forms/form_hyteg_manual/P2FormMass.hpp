@@ -25,11 +25,10 @@
 
 namespace hyteg {
 
-class P2Form_mass : public P2FormHyTeG {
-
-public:
-
-  void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const final {
+class P2Form_mass : public P2FormHyTeG
+{
+ public:
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix6r& elMat ) const final{
 
 // Select quadrature rule
 // #define QUADPOINTS quadrature::D5_points
@@ -38,20 +37,18 @@ public:
 #define QUADWEIGHTS quadrature::D6_weights
 
 // "Load" kernel
-// #include "hyteg/forms/form_hyteg_manual/kernels/p2_mass_integrateAll_2d.hpp"
-#include "hyteg/forms/form_hyteg_manual/kernels/p2_mass_integrateAll_2d_new.hpp"
+#include "hyteg/forms/form_hyteg_manual/kernels/p2_mass_integrateAll_2d.hpp"
 
-  };
+   };
 
-  void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const final {
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const final{
 
 // Select quadrature rule
 #define CUBAPOINTS cubature::T4_points
 #define CUBAWEIGHTS cubature::T4_weights
 
 // "Load" kernel
-// #include "hyteg/forms/form_hyteg_manual/kernels/p2_mass_integrateAll_3d.hpp"
-#include "hyteg/forms/form_hyteg_manual/kernels/p2_mass_integrateAll_3d_new.hpp"
-  };
+#include "hyteg/forms/form_hyteg_manual/kernels/p2_mass_integrateAll_3d.hpp"
+   };
 };
-}
+} // namespace hyteg
