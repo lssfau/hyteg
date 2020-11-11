@@ -1,5 +1,17 @@
-Parameters
+Parameters_for_2D
 {
-  level 10;
-  mesh  ../../../data/meshes/annulus_coarse.msh;
+  run True;
+  level 2;
+  mesh ../../../data/meshes/annulus_coarse.msh;
+  printDetails False;
+  jsonFile P2Benchmark_2D.json;
+}
+
+Parameters_for_3D
+{
+  run True;
+  level 2;
+  mesh ../../../data/meshes/3D/tet_1el.msh;
+  printDetails False;
+  jsonFile P2Benchmark_3D.json;
 }

@@ -39,57 +39,9 @@ using namespace hyteg;
 /*
  * This benchmark meassures the time for several P2 functions on a macro face
  */
-int main( int argc, char** argv )
+
+void runFunctionTests( std::shared_ptr< PrimitiveStorage >& storage, uint_t level, walberla::WcTimer& timer )
 {
-   LIKWID_MARKER_INIT;
-
-   walberla::Environment env( argc, argv );
-   walberla::MPIManager::instance()->useWorldComm();
-
-   auto timingTree = std::make_shared< walberla::WcTimingTree >();
-   walberla::WcTimer timer;
-
-   //check if a config was given on command line or load default file otherwise
-   auto cfg = std::make_shared<walberla::config::Config>();
-   if( env.config() == nullptr ) {
-      auto defaultFile = "./P2Benchmark.prm";
-      WALBERLA_LOG_PROGRESS_ON_ROOT("No Parameter file given loading default parameter file: " << defaultFile);
-      cfg->readParameterFile( defaultFile );
-   } else {
-      cfg = env.config();
-   }
-   const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
-
-   const uint_t level         = mainConf.getParameter< uint_t >( "level" );
-   const std::string meshFile = mainConf.getParameter< std::string >( "mesh" );
-
-   LIKWID_MARKER_THREADINIT;
-
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( meshFile );
-   SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage.setMeshBoundaryFlagsOnBoundary( 0, 0, true );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
-
-   auto storageInfo = storage->getGlobalInfo();
-   auto numVertexDoFs = numberOfGlobalDoFs< VertexDoFFunctionTag >( *storage, level );
-   auto numEdgeDoFs   = numberOfGlobalDoFs< EdgeDoFFunctionTag >( *storage, level );
-   auto numP2DoFsTotal = numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
-
-   WALBERLA_LOG_DEVEL_ON_ROOT( "" );
-   WALBERLA_LOG_DEVEL_ON_ROOT( "=================================" );
-   WALBERLA_LOG_DEVEL_ON_ROOT( "===== P2 Function Benchmark =====" );
-   WALBERLA_LOG_DEVEL_ON_ROOT( "=================================" );
-   WALBERLA_LOG_DEVEL_ON_ROOT( "" );
-
-   WALBERLA_LOG_INFO_ON_ROOT( storageInfo );
-   WALBERLA_LOG_INFO_ON_ROOT( "mesh:             " << meshFile );
-   WALBERLA_LOG_INFO_ON_ROOT( "refinement level: " << level );
-   WALBERLA_LOG_INFO_ON_ROOT( "# vertexdofs:     " << numVertexDoFs );
-   WALBERLA_LOG_INFO_ON_ROOT( "# edgedofs:       " << numEdgeDoFs );
-   WALBERLA_LOG_INFO_ON_ROOT( "# total dofs:     " << numP2DoFsTotal );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "=== Starting measurements ===" );
-
    P2Function< real_t > src( "src", storage, level, level );
    P2Function< real_t > dst( "dst", storage, level, level );
 
@@ -176,14 +128,87 @@ int main( int argc, char** argv )
 
    misc::dummy( &dst );
    misc::dummy( &src );
+}
+
+
+void performBenchmarkRuns( const walberla::Config::BlockHandle& conf )
+{
+   auto              timingTree = std::make_shared< walberla::WcTimingTree >();
+   walberla::WcTimer timer;
+
+   const uint_t      level    = conf.getParameter< uint_t >( "level" );
+   const std::string meshFile = conf.getParameter< std::string >( "mesh" );
+
+   MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFile );
+   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 0, 0, true );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
+
+   auto storageInfo    = storage->getGlobalInfo();
+   auto numVertexDoFs  = numberOfGlobalDoFs< VertexDoFFunctionTag >( *storage, level );
+   auto numEdgeDoFs    = numberOfGlobalDoFs< EdgeDoFFunctionTag >( *storage, level );
+   auto numP2DoFsTotal = numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
+
+   WALBERLA_LOG_DEVEL_ON_ROOT( "" );
+   WALBERLA_LOG_DEVEL_ON_ROOT( "=================================" );
+   WALBERLA_LOG_DEVEL_ON_ROOT( "===== P2 Function Benchmark =====" );
+   WALBERLA_LOG_DEVEL_ON_ROOT( "=================================" );
+   WALBERLA_LOG_DEVEL_ON_ROOT( "" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( storageInfo );
+   WALBERLA_LOG_INFO_ON_ROOT( "mesh:             " << meshFile );
+   WALBERLA_LOG_INFO_ON_ROOT( "refinement level: " << level );
+   WALBERLA_LOG_INFO_ON_ROOT( "# vertexdofs:     " << numVertexDoFs );
+   WALBERLA_LOG_INFO_ON_ROOT( "# edgedofs:       " << numEdgeDoFs );
+   WALBERLA_LOG_INFO_ON_ROOT( "# total dofs:     " << numP2DoFsTotal );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "=== Starting measurements ===" );
+
+   runFunctionTests( storage, level, timer );
 
    auto timingTreeReducedWithRemainder = timingTree->getReduced().getCopyWithRemainder();
-   WALBERLA_LOG_INFO_ON_ROOT( timingTreeReducedWithRemainder );
-
+   if ( conf.getParameter< bool >( "printDetails" ) )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( timingTreeReducedWithRemainder );
+   }
    nlohmann::json ttjson = nlohmann::json( timingTreeReducedWithRemainder );
-   std::ofstream o("P2Benchmark.json");
+   const std::string jsonFile = conf.getParameter< std::string >( "jsonFile" );
+   std::ofstream  o( jsonFile );
    o << ttjson;
    o.close();
+}
+
+
+int main( int argc, char** argv )
+{
+   LIKWID_MARKER_INIT;
+
+   walberla::Environment env( argc, argv );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   //check if a config was given on command line or load default file otherwise
+   auto cfg = std::make_shared<walberla::config::Config>();
+   if( env.config() == nullptr ) {
+      auto defaultFile = "./P2Benchmark.prm";
+      WALBERLA_LOG_PROGRESS_ON_ROOT("No Parameter file given loading default parameter file: " << defaultFile);
+      cfg->readParameterFile( defaultFile );
+   } else {
+      cfg = env.config();
+   }
+   const walberla::Config::BlockHandle conf2D = cfg->getBlock( "Parameters_for_2D" );
+   const walberla::Config::BlockHandle conf3D = cfg->getBlock( "Parameters_for_3D" );
+
+   LIKWID_MARKER_THREADINIT;
+
+   if ( conf2D.getParameter< bool >( "run" ) )
+   {
+     performBenchmarkRuns( conf2D );
+   }
+
+   if ( conf3D.getParameter< bool >( "run" ) )
+   {
+     performBenchmarkRuns( conf3D );
+   }
 
    LIKWID_MARKER_CLOSE;
 }
