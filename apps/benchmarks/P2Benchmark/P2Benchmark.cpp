@@ -22,6 +22,10 @@
 
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/geometry/IcosahedralShellMap.hpp"
+#include "hyteg/geometry/IdentityMap.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
@@ -40,7 +44,8 @@ using namespace hyteg;
  * This benchmark meassures the time for several P2 functions on a macro face
  */
 
-void runFunctionTests( std::shared_ptr< PrimitiveStorage >& storage, uint_t level, walberla::WcTimer& timer )
+void runFunctionTests( std::shared_ptr< PrimitiveStorage >& storage, uint_t level,
+                       const uint_t numIterations, walberla::WcTimer& timer )
 {
    P2Function< real_t > src( "src", storage, level, level );
    P2Function< real_t > dst( "dst", storage, level, level );
@@ -51,8 +56,6 @@ void runFunctionTests( std::shared_ptr< PrimitiveStorage >& storage, uint_t leve
    {
       return point[0] + point[1];
    };
-
-   const uint_t numIterations = 3;
 
    LIKWID_MARKER_START( "interpolate constant" );
    timer.reset();
@@ -130,6 +133,189 @@ void runFunctionTests( std::shared_ptr< PrimitiveStorage >& storage, uint_t leve
    misc::dummy( &src );
 }
 
+void runLaplaceOperatorTests( SetupPrimitiveStorage& setupStorage, uint_t level,
+                              const uint_t numIterations, walberla::WcTimer& timer,
+                              std::shared_ptr< walberla::WcTimingTree >& timingTree )
+{
+
+   WALBERLA_LOG_INFO_ON_ROOT( "--- Timing Laplace.apply() ---" );
+
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
+   bool running3D = storage->hasGlobalCells();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Allocating functions ..." );
+
+   P2Function< real_t > src( "src", storage, level, level );
+   P2Function< real_t > dst( "dst", storage, level, level );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Preparing operators ..." );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "- L_constant_stencil ..." );
+   P2ConstantLaplaceOperator L_constant_stencil( storage, level, level );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_cc ..." );
+   P2ElementwiseLaplaceOperator L_elementwise_otf_cc( storage, level, level );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_id ..." );
+   P2ElementwiseBlendingLaplaceOperator L_elementwise_otf_blending_id( storage, level, level, P2Form_laplace(), false );
+
+   if ( running3D )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_shell ..." );
+   }
+   else
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_annulus ..." );
+   }
+   P2ElementwiseBlendingLaplaceOperator L_elementwise_otf_blending_shell( storage, level, level, P2Form_laplace(), false );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Done." );
+
+   LIKWID_MARKER_START( "apply cc stencil" );
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_constant_stencil.apply( src, dst, level, All );
+   timer.end();
+   LIKWID_MARKER_STOP( "apply cc stencil" );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply cc stencil:           " << timer.last() );
+
+   LIKWID_MARKER_START( "apply cc elem" );
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_elementwise_otf_cc.apply( src, dst, level, All );
+   timer.end();
+   LIKWID_MARKER_STOP( "apply cc elem" );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply cc elem:              " << timer.last() );
+
+   LIKWID_MARKER_START( "apply blending id elem" );
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_elementwise_otf_blending_id.apply( src, dst, level, All );
+   timer.end();
+   LIKWID_MARKER_STOP( "apply blending id elem" );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply blending id elem:     " << timer.last() );
+
+   if ( running3D )
+   {
+     IcosahedralShellMap::setMap( setupStorage );
+     storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
+     LIKWID_MARKER_START( "apply blending shell elem" );
+   }
+   else
+   {
+     AnnulusMap::setMap( setupStorage );
+     storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
+     LIKWID_MARKER_START( "apply blending annulus elem" );
+   }
+
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_elementwise_otf_blending_shell.apply( src, dst, level, All );
+   timer.end();
+   if ( running3D )
+   {
+     LIKWID_MARKER_STOP( "apply blending shell elem" );
+     WALBERLA_LOG_INFO_ON_ROOT( "apply blending shell elem:  " << timer.last() );
+   }
+   else
+   {
+     LIKWID_MARKER_STOP( "apply blending annulus elem" );
+     WALBERLA_LOG_INFO_ON_ROOT( "apply blending annulus elem:  " << timer.last() );
+   }
+
+}
+
+
+void runMassOperatorTests( SetupPrimitiveStorage& setupStorage, uint_t level,
+                              const uint_t numIterations, walberla::WcTimer& timer,
+                              std::shared_ptr< walberla::WcTimingTree >& timingTree )
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "--- Timing Mass.apply() ---" );
+
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
+   bool running3D = storage->hasGlobalCells();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Allocating functions ..." );
+
+   P2Function< real_t > src( "src", storage, level, level );
+   P2Function< real_t > dst( "dst", storage, level, level );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Preparing operators ..." );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "- L_constant_stencil ..." );
+   P2ConstantMassOperator L_constant_stencil( storage, level, level );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_cc ..." );
+   P2ElementwiseMassOperator L_elementwise_otf_cc( storage, level, level );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_id ..." );
+   P2ElementwiseBlendingMassOperator L_elementwise_otf_blending_id( storage, level, level, P2Form_mass(), false );
+
+   if ( running3D )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_shell ..." );
+   }
+   else
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_annulus ..." );
+   }
+   P2ElementwiseBlendingMassOperator L_elementwise_otf_blending_shell( storage, level, level, P2Form_mass(), false );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Done." );
+
+   LIKWID_MARKER_START( "apply cc stencil" );
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_constant_stencil.apply( src, dst, level, All );
+   timer.end();
+   LIKWID_MARKER_STOP( "apply cc stencil" );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply cc stencil:           " << timer.last() );
+
+   LIKWID_MARKER_START( "apply cc elem" );
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_elementwise_otf_cc.apply( src, dst, level, All );
+   timer.end();
+   LIKWID_MARKER_STOP( "apply cc elem" );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply cc elem:              " << timer.last() );
+
+   LIKWID_MARKER_START( "apply blending id elem" );
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_elementwise_otf_blending_id.apply( src, dst, level, All );
+   timer.end();
+   LIKWID_MARKER_STOP( "apply blending id elem" );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply blending id elem:     " << timer.last() );
+
+   if ( running3D )
+   {
+     IcosahedralShellMap::setMap( setupStorage );
+     storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
+     LIKWID_MARKER_START( "apply blending shell elem" );
+   }
+   else
+   {
+     AnnulusMap::setMap( setupStorage );
+     storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
+     LIKWID_MARKER_START( "apply blending annulus elem" );
+   }
+
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_elementwise_otf_blending_shell.apply( src, dst, level, All );
+   timer.end();
+   if ( running3D )
+   {
+     LIKWID_MARKER_STOP( "apply blending shell elem" );
+     WALBERLA_LOG_INFO_ON_ROOT( "apply blending shell elem:  " << timer.last() );
+   }
+   else
+   {
+     LIKWID_MARKER_STOP( "apply blending annulus elem" );
+     WALBERLA_LOG_INFO_ON_ROOT( "apply blending annulus elem:  " << timer.last() );
+   }
+}
+
 
 void performBenchmarkRuns( const walberla::Config::BlockHandle& conf )
 {
@@ -137,6 +323,7 @@ void performBenchmarkRuns( const walberla::Config::BlockHandle& conf )
    walberla::WcTimer timer;
 
    const uint_t      level    = conf.getParameter< uint_t >( "level" );
+   const uint_t      numIterations = conf.getParameter< uint_t >( "numIterations" );
    const std::string meshFile = conf.getParameter< std::string >( "mesh" );
 
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFile );
@@ -161,10 +348,13 @@ void performBenchmarkRuns( const walberla::Config::BlockHandle& conf )
    WALBERLA_LOG_INFO_ON_ROOT( "# vertexdofs:     " << numVertexDoFs );
    WALBERLA_LOG_INFO_ON_ROOT( "# edgedofs:       " << numEdgeDoFs );
    WALBERLA_LOG_INFO_ON_ROOT( "# total dofs:     " << numP2DoFsTotal );
+   WALBERLA_LOG_INFO_ON_ROOT( "numIterations:    " << numIterations );
 
    WALBERLA_LOG_INFO_ON_ROOT( "=== Starting measurements ===" );
 
-   runFunctionTests( storage, level, timer );
+   runFunctionTests( storage, level, numIterations, timer );
+   if ( conf.getParameter< bool >( "timeLaplace" ) ) runLaplaceOperatorTests( setupStorage, level, numIterations, timer, timingTree );
+   if ( conf.getParameter< bool >( "timeMass" ) ) runMassOperatorTests( setupStorage, level, numIterations, timer, timingTree );
 
    auto timingTreeReducedWithRemainder = timingTree->getReduced().getCopyWithRemainder();
    if ( conf.getParameter< bool >( "printDetails" ) )
