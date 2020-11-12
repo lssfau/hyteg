@@ -1,5 +1,24 @@
-Parameters
+Parameters_for_2D
 {
+  run False;
+  timeLaplace True; // True requires mesh can be mapped
+  timeMass True;    // with AnnulusMap
   level 10;
-  mesh  ../../../data/meshes/annulus_coarse.msh;
+  numIterations 10;
+  // mesh ../../../data/meshes/annulus_coarse.msh;
+  mesh ../../../data/meshes/tri_1el.msh;
+  printDetails False;
+  jsonFile P2Benchmark_2D.json;
+}
+
+Parameters_for_3D
+{
+  run True;
+  timeLaplace True; // True requires mesh can be mapped
+  timeMass True;    // with IcosahedralShellMap 
+  level 6;
+  numIterations 10;
+  mesh ../../../data/meshes/3D/tet_1el.msh;
+  printDetails False;
+  jsonFile P2Benchmark_3D.json;
 }
