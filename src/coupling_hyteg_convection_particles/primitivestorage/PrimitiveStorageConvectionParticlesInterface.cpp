@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "SetupPrimitiveStorageConvectionParticlesInterface.hpp"
+#include "PrimitiveStorageConvectionParticlesInterface.hpp"
 
 #include <algorithm>
 
@@ -33,18 +33,21 @@ using walberla::real_t;
 using walberla::uint_t;
 using walberla::convection_particles::Vec3;
 
-bool SetupPrimitiveStorageConvectionParticlesInterface::isContainedInProcessSubdomain( const uint_t rank, const Vec3& pt ) const
+bool PrimitiveStorageConvectionParticlesInterface::isContainedInProcessSubdomain( const uint_t rank, const Vec3& pt ) const
 {
    const int containingRank = findContainingProcessRank( pt );
    return (int) rank == containingRank;
 }
 
-int SetupPrimitiveStorageConvectionParticlesInterface::findContainingProcessRank( const Vec3& pt ) const
+int PrimitiveStorageConvectionParticlesInterface::findContainingProcessRank( const Vec3& pt ) const
 {
    std::set< int > containingProcessRanks;
-   if ( setupStorage_->getNumberOfCells() == 0 )
+   if ( !primitiveStorage_->hasGlobalCells() )
    {
-      for ( const auto& faceIt : setupStorage_->getFaces() )
+      auto allFaces = primitiveStorage_->getFaces();
+      allFaces.insert( primitiveStorage_->getNeighborFaces().begin(), primitiveStorage_->getNeighborFaces().end() );
+
+      for ( const auto& faceIt : allFaces )
       {
          auto faceID = faceIt.first;
          auto face   = faceIt.second;
@@ -57,13 +60,16 @@ int SetupPrimitiveStorageConvectionParticlesInterface::findContainingProcessRank
                                           Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
                                           Point2D( {face->getCoordinates().at( 2 )[0], face->getCoordinates().at( 2 )[1]} ) ) )
          {
-            containingProcessRanks.insert( static_cast< int >( setupStorage_->getTargetRank( faceID ) ) );
+            containingProcessRanks.insert( static_cast< int >( primitiveStorage_->getPrimitiveRank( faceID ) ) );
          }
       }
    }
    else
    {
-      for ( const auto& cellIt : setupStorage_->getCells() )
+      auto allCells = primitiveStorage_->getCells();
+      allCells.insert( primitiveStorage_->getNeighborCells().begin(), primitiveStorage_->getNeighborCells().end() );
+
+      for ( const auto& cellIt : allCells )
       {
          auto cellID = cellIt.first;
          auto cell   = cellIt.second;
@@ -77,7 +83,7 @@ int SetupPrimitiveStorageConvectionParticlesInterface::findContainingProcessRank
                                              cell->getCoordinates().at( 2 ),
                                              cell->getCoordinates().at( 3 ) ) )
          {
-            containingProcessRanks.insert( static_cast< int >( setupStorage_->getTargetRank( cellID ) ) );
+            containingProcessRanks.insert( static_cast< int >( primitiveStorage_->getPrimitiveRank( cellID ) ) );
          }
       }
    }
@@ -94,44 +100,28 @@ int SetupPrimitiveStorageConvectionParticlesInterface::findContainingProcessRank
    }
 }
 
-void SetupPrimitiveStorageConvectionParticlesInterface::periodicallyMapToDomain( Vec3& pt ) const
+void PrimitiveStorageConvectionParticlesInterface::periodicallyMapToDomain( Vec3& pt ) const
 {
    WALBERLA_UNUSED( pt );
 }
 
-std::vector< uint_t > SetupPrimitiveStorageConvectionParticlesInterface::getNeighborProcesses() const
+std::vector< uint_t > PrimitiveStorageConvectionParticlesInterface::getNeighborProcesses() const
 {
    std::set< uint_t > neighborProcesses;
-   if ( setupStorage_->getNumberOfCells() == 0 )
+   if ( !primitiveStorage_->hasGlobalCells() )
    {
-      for ( const auto& faceIt : setupStorage_->getFaces() )
+      for ( auto it : primitiveStorage_->getNeighborFaces() )
       {
-         auto face = faceIt.second;
-
-         for ( const auto& neighborVertexID : face->neighborVertices() )
-         {
-            auto neighborVertex = setupStorage_->getVertex( neighborVertexID );
-            for ( const auto &neighborFaceID : neighborVertex->neighborFaces() )
-            {
-               neighborProcesses.insert( setupStorage_->getTargetRank( neighborFaceID ) );
-            }
-         }
+         auto pID = it.first;
+         neighborProcesses.insert( primitiveStorage_->getPrimitiveRank( pID ) );
       }
    }
    else
    {
-      for ( const auto& cellIt : setupStorage_->getCells() )
+      for ( auto it : primitiveStorage_->getNeighborCells() )
       {
-         auto cell = cellIt.second;
-
-         for ( const auto& neighborVertexID : cell->neighborVertices() )
-         {
-            auto neighborVertex = setupStorage_->getVertex( neighborVertexID );
-            for ( const auto &neighborCellID : neighborVertex->neighborCells() )
-            {
-               neighborProcesses.insert( setupStorage_->getTargetRank( neighborCellID ) );
-            }
-         }
+         auto pID = it.first;
+         neighborProcesses.insert( primitiveStorage_->getPrimitiveRank( pID ) );
       }
    }
    neighborProcesses.erase( uint_c( walberla::mpi::MPIManager::instance()->rank() ) );
@@ -139,21 +129,24 @@ std::vector< uint_t > SetupPrimitiveStorageConvectionParticlesInterface::getNeig
    return std::vector< uint_t >( neighborProcesses.begin(), neighborProcesses.end() );
 }
 
-bool SetupPrimitiveStorageConvectionParticlesInterface::intersectsWithProcessSubdomain( const uint_t  rank,
-                                                                                        const Vec3&   pt,
-                                                                                        const real_t& radius ) const
+bool PrimitiveStorageConvectionParticlesInterface::intersectsWithProcessSubdomain( const uint_t  rank,
+                                                                                   const Vec3&   pt,
+                                                                                   const real_t& radius ) const
 {
-   if ( setupStorage_->getNumberOfCells() == 0 )
+   if ( rank != uint_c( walberla::mpi::MPIManager::instance()->rank() ) )
    {
-      for ( const auto& faceIt : setupStorage_->getFaces() )
+      return false;
+   }
+
+   if ( !primitiveStorage_->hasGlobalCells() )
+   {
+      for ( const auto& faceIt : primitiveStorage_->getFaces() )
       {
-         auto faceID = faceIt.first;
          auto face   = faceIt.second;
 
          Point2D pointOfInterest( {pt[0], pt[1]} );
 
-         if ( setupStorage_->getTargetRank( faceID ) == rank &&
-              circleTriangleIntersection( pointOfInterest,
+         if ( circleTriangleIntersection( pointOfInterest,
                                           radius,
                                           Point2D( {face->getCoordinates().at( 0 )[0], face->getCoordinates().at( 0 )[1]} ),
                                           Point2D( {face->getCoordinates().at( 1 )[0], face->getCoordinates().at( 1 )[1]} ),
@@ -165,19 +158,18 @@ bool SetupPrimitiveStorageConvectionParticlesInterface::intersectsWithProcessSub
    }
    else
    {
-      for ( const auto& cellIt : setupStorage_->getCells() )
+      for ( const auto& cellIt : primitiveStorage_->getCells() )
       {
-         auto cellID = cellIt.first;
          auto cell   = cellIt.second;
 
          Point3D pointOfInterest( {pt[0], pt[1], pt[2]} );
 
-         if ( setupStorage_->getTargetRank( cellID ) == rank && sphereTetrahedronIntersection( pointOfInterest,
-                                                                                               radius,
-                                                                                               cell->getCoordinates().at( 0 ),
-                                                                                               cell->getCoordinates().at( 1 ),
-                                                                                               cell->getCoordinates().at( 2 ),
-                                                                                               cell->getCoordinates().at( 3 ) ) )
+         if ( sphereTetrahedronIntersection( pointOfInterest,
+                                             radius,
+                                             cell->getCoordinates().at( 0 ),
+                                             cell->getCoordinates().at( 1 ),
+                                             cell->getCoordinates().at( 2 ),
+                                             cell->getCoordinates().at( 3 ) ) )
          {
             return true;
          }
@@ -186,7 +178,7 @@ bool SetupPrimitiveStorageConvectionParticlesInterface::intersectsWithProcessSub
    return false;
 }
 
-void SetupPrimitiveStorageConvectionParticlesInterface::correctParticlePosition( Vec3& pt ) const
+void PrimitiveStorageConvectionParticlesInterface::correctParticlePosition( Vec3& pt ) const
 {
    WALBERLA_UNUSED( pt );
 }

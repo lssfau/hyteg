@@ -100,7 +100,7 @@ int main( int argc, char* argv[] )
       setupStorage->setGeometryMap( edge.getID(), std::make_shared< AnnulusMap >( edge, *setupStorage ) );
    }
 
-   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
+   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
 
    storage->getTimingTree()->start( "Total" );
 
@@ -183,7 +183,7 @@ int main( int argc, char* argv[] )
    FunctionType tmp1( "tmp1", storage, minLevel, maxLevel );
 
    MassOperator                  M( storage, minLevel, maxLevel );
-   MMOCTransport< FunctionType > transport( storage, setupStorage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
+   MMOCTransport< FunctionType > transport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
    u.interpolate( vel_x, maxLevel );
    v.interpolate( vel_y, maxLevel );

@@ -298,7 +298,7 @@ void runBenchmark( real_t      cflMax,
       WALBERLA_LOG_INFO_ON_ROOT( "Building distributed storage ..." );
    }
 
-   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
+   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
 
    if ( vtk )
    {
@@ -480,7 +480,7 @@ void runBenchmark( real_t      cflMax,
    LaplaceOperator                 L( storage, minLevel, level );
    MassOperatorVelocity            MVelocity( storage, minLevel, level );
    MassOperatorPressure            MPressure( storage, minLevel, level );
-   MMOCTransport< ScalarFunction > transport( storage, setupStorage, minLevel, level, TimeSteppingScheme::RK4 );
+   MMOCTransport< ScalarFunction > transport( storage, minLevel, level, TimeSteppingScheme::RK4 );
 
    if ( storage->hasGlobalCells() )
    {

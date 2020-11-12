@@ -149,7 +149,7 @@ void simulate( int argc, char* argv[] )
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   std::shared_ptr< PrimitiveStorage >       storage = std::make_shared< PrimitiveStorage >( *setupStorage, timingTree );
+   std::shared_ptr< PrimitiveStorage >       storage = std::make_shared< PrimitiveStorage >( *setupStorage, timingTree, 3 );
 
    storage->getTimingTree()->start( "Total" );
 
@@ -240,7 +240,7 @@ void simulate( int argc, char* argv[] )
    auto gmgSolver = std::make_shared< GeometricMultigridSolver< P2P1TaylorHoodStokesOperator > >(
        storage, uzawaSmoother, coarseGridSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 3, 3, 2 );
 
-   MMOCTransport< P2Function< real_t > > transport( storage, setupStorage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
+   MMOCTransport< P2Function< real_t > > transport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
    P2ConstantUnsteadyDiffusionOperator diffusionOperator( storage, minLevel, maxLevel, dt, diffusivity, DiffusionTimeIntegrator::ImplicitEuler );
    auto                        diffusionCoarseGridSolver =

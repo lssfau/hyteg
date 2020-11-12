@@ -86,7 +86,7 @@ void solve( const MeshInfo&         meshInfo,
       }
    }
 
-   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
+   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
 
    if ( vtk )
    {
@@ -201,7 +201,7 @@ void solve( const MeshInfo&         meshInfo,
    UnsteadyDiffusionOperator     diffusionOperator( storage, level, level, diffusionDt, diffusivity, diffusionTimeIntegrator );
    LaplaceOperator               L( storage, level, level );
    MassOperator                  M( storage, level, level );
-   MMOCTransport< FunctionType > transport( storage, setupStorage, level, level, TimeSteppingScheme::RK4 );
+   MMOCTransport< FunctionType > transport( storage, level, level, TimeSteppingScheme::RK4 );
 
    std::shared_ptr< Solver< P2ElementwiseUnsteadyDiffusionOperator > > solver;
 

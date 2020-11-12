@@ -206,7 +206,7 @@ int main( int argc, char* argv[] )
    SwirlVelocityX vel_x( steps );
    SwirlVelocityY vel_y( steps );
 
-   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage, 3 );
 
    writeDomainPartitioningVTK( storage, "../../output", "MMOC2DSwirlingFlowConvectionTest_Domain" );
 
@@ -227,7 +227,7 @@ int main( int argc, char* argv[] )
    FunctionType wLastTimeStep( "wLast", storage, minLevel, maxLevel );
 
    MassOperator                  M( storage, minLevel, maxLevel );
-   MMOCTransport< FunctionType > transport( storage, setupStorage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
+   MMOCTransport< FunctionType > transport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
    c.interpolate( initialBodies, maxLevel );
    cInitial.interpolate( initialBodies, maxLevel );

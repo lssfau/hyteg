@@ -79,7 +79,7 @@ int main( int argc, char* argv[] )
    MeshInfo meshInfo = hyteg::MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage, 3 );
 
    storage->getTimingTree()->start( "Total" );
 
@@ -170,7 +170,7 @@ int main( int argc, char* argv[] )
    FunctionType tmp1( "tmp1", storage, minLevel, maxLevel );
 
    MassOperator                  M( storage, minLevel, maxLevel );
-   MMOCTransport< FunctionType > transport( storage, setupStorage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
+   MMOCTransport< FunctionType > transport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
    u.interpolate( vel_x, maxLevel );
    v.interpolate( vel_y, maxLevel );

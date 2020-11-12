@@ -171,7 +171,7 @@ void runSimulation( int argc, char** argv )
    // Domain
 
    auto setupStorage = buildSetupStorage( rMin, rMax, nTan, nRad );
-   auto storage      = std::make_shared< PrimitiveStorage >( *setupStorage );
+   auto storage      = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
 
    storage->getTimingTree()->start( "Total" );
 
@@ -248,7 +248,7 @@ void runSimulation( int argc, char** argv )
 #else
    auto stokesSolver = buildStokesSolver( storage, minLevel, maxLevel, preSmooth, postSmooth, 0.37, 0.66 );
 #endif
-   MMOCTransport< P2Function< real_t > > transport( storage, setupStorage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
+   MMOCTransport< P2Function< real_t > > transport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
    // Simulation loop
 

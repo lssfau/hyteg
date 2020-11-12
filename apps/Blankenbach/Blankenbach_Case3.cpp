@@ -289,7 +289,7 @@ void runBenchmark( real_t      cflMax,
    const bool        outputTimingJSON = true;
 
    auto setupStorage = createSetupStorage( nx );
-   auto storage      = std::make_shared< PrimitiveStorage >( *setupStorage );
+   auto storage      = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
 
    if ( vtk )
    {
@@ -417,7 +417,7 @@ void runBenchmark( real_t      cflMax,
    LaplaceOperator                 L( storage, level, level );
    MassOperatorVelocity            MVelocity( storage, level, level );
    MassOperatorPressure            MPressure( storage, level, level );
-   MMOCTransport< ScalarFunction > transport( storage, setupStorage, level, level, TimeSteppingScheme::RK4 );
+   MMOCTransport< ScalarFunction > transport( storage, level, level, TimeSteppingScheme::RK4 );
 
    auto internalDiffusionSolver = std::make_shared< CGSolver< UnsteadyDiffusionOperator > >( storage, level, level, 5000, 1e-14 );
 
