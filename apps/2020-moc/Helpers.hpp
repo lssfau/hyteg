@@ -27,10 +27,9 @@
 #include "core/DataTypes.h"
 #include "core/config/Config.h"
 #include "core/mpi/MPIManager.h"
-#include "sqlite/SQLite.h"
 
-#include "hyteg/MemoryAllocation.hpp"
 #include "hyteg/FunctionProperties.hpp"
+#include "hyteg/MemoryAllocation.hpp"
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
@@ -46,8 +45,8 @@
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/petsc/PETScLUSolver.hpp"
-#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
@@ -62,6 +61,7 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
+#include "sqlite/SQLite.h"
 
 namespace hyteg {
 namespace moc_benchmarks {
@@ -72,10 +72,10 @@ namespace moc_benchmarks {
 ///
 template < typename MassOperator >
 inline real_t normL2( const P2Function< real_t >& u,
-               const P2Function< real_t >& tmp,
-               const MassOperator&         M,
-               const uint_t&               level,
-               const DoFType&              flag )
+                      const P2Function< real_t >& tmp,
+                      const MassOperator&         M,
+                      const uint_t&               level,
+                      const DoFType&              flag )
 {
    tmp.interpolate( 0, level );
    M.apply( u, tmp, level, flag );
@@ -86,7 +86,8 @@ inline real_t normL2( const P2Function< real_t >& u,
 ///
 ///     (maxU / maxUSolution) - 1
 ///
-inline real_t maxPeakDifference( const P2Function< real_t >& u, const P2Function< real_t >& uSolution, uint_t level, DoFType flag )
+inline real_t
+    maxPeakDifference( const P2Function< real_t >& u, const P2Function< real_t >& uSolution, uint_t level, DoFType flag )
 {
    const real_t maxTempApproximate = u.getMaxValue( level, flag );
    const real_t maxTempAnalytical  = uSolution.getMaxValue( level, flag );
@@ -107,10 +108,10 @@ inline real_t spuriousOscillations( const P2Function< real_t >& u, uint_t level,
 
 template < typename MassOperator >
 inline real_t globalMass( const P2Function< real_t >& u,
-                   const P2Function< real_t >& tmp,
-                   const MassOperator&         M,
-                   const uint_t&               level,
-                   const DoFType&              flag )
+                          const P2Function< real_t >& tmp,
+                          const MassOperator&         M,
+                          const uint_t&               level,
+                          const DoFType&              flag )
 {
    tmp.interpolate( 0, level );
    M.apply( u, tmp, level, flag );
@@ -148,7 +149,7 @@ class ZeroSolution : public Solution
    real_t operator()( const Point3D& ) const override { return 0; }
 };
 
-void solve( const MeshInfo&         meshInfo,
+void solve( MeshInfo&               meshInfo,
             bool                    setBlendingMap,
             Solution&               solution,
             Solution&               velocityX,
@@ -171,7 +172,6 @@ void solve( const MeshInfo&         meshInfo,
             uint_t                  vtkInterval,
             bool                    verbose,
             std::string             dbFile );
-
 
 } // namespace moc_benchmarks
 } // namespace hyteg

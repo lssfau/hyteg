@@ -395,6 +395,14 @@ public:
   typedef std::map< std::vector< IDType >,   Face   > FaceContainer;
   typedef std::map< std::vector< IDType >,   Cell   > CellContainer;
 
+  void clear()
+  {
+     vertices_.clear();
+     edges_.clear();
+     faces_.clear();
+     cells_.clear();
+  }
+
   /// Construct empty MeshInfo (for testing)
   static MeshInfo emptyMeshInfo() { return MeshInfo(); }
 

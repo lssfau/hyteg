@@ -43,7 +43,7 @@ static std::string getDateTimeID()
 }
 #endif
 
-void solve( const MeshInfo&         meshInfo,
+void solve( MeshInfo&               meshInfo,
             bool                    setBlendingMap,
             Solution&               solution,
             Solution&               velocityX,
@@ -71,22 +71,28 @@ void solve( const MeshInfo&         meshInfo,
 
    const bool outputTimingJSON = true;
 
-   auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
-       meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   if ( setBlendingMap )
+   std::shared_ptr< PrimitiveStorage > storage;
+
    {
-      if ( setupStorage->getNumberOfCells() == 0 )
+      auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
+          meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+      if ( setBlendingMap )
       {
-         AnnulusMap::setMap( *setupStorage );
+         if ( setupStorage->getNumberOfCells() == 0 )
+         {
+            AnnulusMap::setMap( *setupStorage );
+         }
+         else
+         {
+            IcosahedralShellMap::setMap( *setupStorage );
+         }
       }
-      else
-      {
-         IcosahedralShellMap::setMap( *setupStorage );
-      }
+
+      storage = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
+      meshInfo.clear();
    }
 
-   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
 
    if ( vtk )
    {
@@ -166,11 +172,11 @@ void solve( const MeshInfo&         meshInfo,
    sqlIntegerProperties["unknowns"]                = int_c( unknowns );
    sqlRealProperties["h_min"]                      = hMin;
    sqlRealProperties["h_max"]                      = hMax;
-   sqlIntegerProperties["num_macro_cells"]         = int_c( setupStorage->getNumberOfCells() );
-   sqlIntegerProperties["num_macro_faces"]         = int_c( setupStorage->getNumberOfFaces() );
-   sqlIntegerProperties["num_macro_edges"]         = int_c( setupStorage->getNumberOfEdges() );
-   sqlIntegerProperties["num_macro_vertices"]      = int_c( setupStorage->getNumberOfVertices() );
-   sqlIntegerProperties["num_macro_primitives"]    = int_c( setupStorage->getNumberOfPrimitives() );
+   sqlIntegerProperties["num_macro_cells"]         = int_c( storage->getNumberOfGlobalCells() );
+   sqlIntegerProperties["num_macro_faces"]         = int_c( storage->getNumberOfGlobalFaces() );
+   sqlIntegerProperties["num_macro_edges"]         = int_c( storage->getNumberOfGlobalEdges() );
+   sqlIntegerProperties["num_macro_vertices"]      = int_c( storage->getNumberOfGlobalVertices() );
+   sqlIntegerProperties["num_macro_primitives"]    = int_c( storage->getNumberOfGlobalPrimitives() );
    sqlRealProperties["diffusivity"]                = diffusivity;
    sqlIntegerProperties["pure_advection"]          = !enableDiffusion;
    sqlIntegerProperties["strang_splitting"]        = strangSplitting;
