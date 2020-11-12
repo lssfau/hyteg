@@ -341,8 +341,27 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     setMeshBoundaryFlag( cellID.getID(), meshInfoCell.getBoundaryFlag() );
   }
 
+  // add indirect neighbor faces
+  for ( auto& it : faces_ )
+  {
+     auto faceID = it.first;
+     auto face   = it.second;
+
+     for ( const auto& vertexID : face->neighborVertices() )
+     {
+        auto vertex = getVertex( vertexID );
+        for ( const auto& neighborFaceID : vertex->neighborFaces() )
+        {
+           if ( neighborFaceID != faceID )
+           {
+              face->indirectNeighborFaceIDs_.push_back( neighborFaceID );
+           }
+        }
+     }
+  }
+
   // add indirect neighbor cells
-  for ( auto & it : cells_ )
+  for ( auto& it : cells_ )
   {
      auto cellID = it.first;
      auto cell   = it.second;
