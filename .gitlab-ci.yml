@@ -80,6 +80,9 @@ variables:
 intel_19_serial:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -99,6 +102,9 @@ intel_19_serial:
 intel_19_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -109,6 +115,9 @@ intel_19_mpionly:
 intel_19_serial_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -122,6 +131,9 @@ intel_19_serial_dbg:
 intel_19_mpionly_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -137,6 +149,9 @@ intel_19_mpionly_dbg:
 intel_19_hybrid_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -154,6 +169,9 @@ intel_19_hybrid_dbg_sp:
 intel_19_eigen_petsc:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/intel:19
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
@@ -171,6 +189,9 @@ intel_19_eigen_petsc:
 gcc_7_serial:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "ON"
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -190,6 +211,9 @@ gcc_7_serial:
 gcc_7_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "ON"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -207,6 +231,9 @@ gcc_7_mpionly:
 gcc_7_serial_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "ON"
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -225,6 +252,9 @@ gcc_7_serial_dbg:
 gcc_7_mpionly_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "ON"
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -240,6 +270,9 @@ gcc_7_mpionly_dbg:
 gcc_7_hybrid_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "ON"
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -260,6 +293,9 @@ gcc_7_hybrid_dbg_sp:
 gcc_7_eigen_petsc:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:7
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "ON"
       HYTEG_BUILD_WITH_PETSC: "ON"
@@ -280,6 +316,9 @@ gcc_7_eigen_petsc:
 gcc_8_serial:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -298,6 +337,9 @@ gcc_8_serial:
 gcc_8_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -314,6 +356,9 @@ gcc_8_mpionly:
 gcc_8_serial_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -333,6 +378,9 @@ gcc_8_serial_dbg:
 gcc_8_mpionly_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -350,6 +398,9 @@ gcc_8_mpionly_dbg:
 gcc_8_hybrid_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -369,6 +420,9 @@ gcc_8_hybrid_dbg_sp:
 gcc_8_eigen_petsc:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:8
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
@@ -582,6 +636,9 @@ gcc_10_eigen_petsc:
 clang_6.0_serial:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "ON"
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -601,6 +658,9 @@ clang_6.0_serial:
 clang_6.0_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "ON"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -618,6 +678,9 @@ clang_6.0_mpionly:
 clang_6.0_serial_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "ON"
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -638,6 +701,9 @@ clang_6.0_serial_dbg:
 clang_6.0_mpionly_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "ON"
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -656,6 +722,9 @@ clang_6.0_mpionly_dbg:
 clang_6.0_hybrid_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "ON"
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -676,6 +745,9 @@ clang_6.0_hybrid_dbg_sp:
 clang_6.0_eigen_petsc:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:6.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "ON"
       HYTEG_BUILD_WITH_PETSC: "ON"
@@ -696,6 +768,9 @@ clang_6.0_eigen_petsc:
 clang_7.0_serial:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -714,6 +789,9 @@ clang_7.0_serial:
 clang_7.0_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -730,6 +808,9 @@ clang_7.0_mpionly:
 clang_7.0_serial_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -749,6 +830,9 @@ clang_7.0_serial_dbg:
 clang_7.0_mpionly_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -766,6 +850,9 @@ clang_7.0_mpionly_dbg:
 clang_7.0_hybrid_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -785,6 +872,9 @@ clang_7.0_hybrid_dbg_sp:
 clang_7.0_eigen_petsc:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:7.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
@@ -804,6 +894,9 @@ clang_7.0_eigen_petsc:
 clang_8.0_serial:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -822,6 +915,9 @@ clang_8.0_serial:
 clang_8.0_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -838,6 +934,9 @@ clang_8.0_mpionly:
 clang_8.0_serial_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -857,6 +956,9 @@ clang_8.0_serial_dbg:
 clang_8.0_mpionly_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -874,6 +976,9 @@ clang_8.0_mpionly_dbg:
 clang_8.0_hybrid_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -893,6 +998,9 @@ clang_8.0_hybrid_dbg_sp:
 clang_8.0_eigen_petsc:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:8.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
@@ -912,6 +1020,9 @@ clang_8.0_eigen_petsc:
 clang_9.0_serial:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -930,6 +1041,9 @@ clang_9.0_serial:
 clang_9.0_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -946,6 +1060,9 @@ clang_9.0_mpionly:
 clang_9.0_serial_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -965,6 +1082,9 @@ clang_9.0_serial_dbg:
 clang_9.0_mpionly_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -982,6 +1102,9 @@ clang_9.0_mpionly_dbg:
 clang_9.0_hybrid_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -1001,6 +1124,9 @@ clang_9.0_hybrid_dbg_sp:
 clang_9.0_eigen_petsc:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:9.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
@@ -1020,6 +1146,9 @@ clang_9.0_eigen_petsc:
 clang_10.0_serial:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -1038,6 +1167,9 @@ clang_10.0_serial:
 clang_10.0_mpionly:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_OPENMP: "OFF"
@@ -1054,6 +1186,9 @@ clang_10.0_mpionly:
 clang_10.0_serial_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       WALBERLA_BUILD_WITH_MPI: "OFF"
@@ -1070,6 +1205,9 @@ clang_10.0_serial_dbg:
 clang_10.0_mpionly_dbg:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -1084,6 +1222,9 @@ clang_10.0_mpionly_dbg:
 clang_10.0_hybrid_dbg_sp:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       CMAKE_BUILD_TYPE: "DebugOptimized"
@@ -1097,6 +1238,9 @@ clang_10.0_eigen_petsc:
    extends: .build_template
    image: i10git.cs.fau.de:5005/walberla/buildenvs/clang:10.0
    stage: pretest
+   before_script:
+      - apt-get remove -y cmake
+      - pip3 install cmake==3.13.3
    variables:
       WALBERLA_BUILD_WITH_CUDA: "OFF"
       HYTEG_BUILD_WITH_PETSC: "ON"
@@ -1412,6 +1556,9 @@ benchmark_intel19:
    when: manual
    needs: [ ]
    allow_failure: false
+   before_script:
+     - apt-get remove -y cmake
+     - pip3 install cmake==3.13.3
 
 benchmark_gcc9:
    <<: *benchmark_definition

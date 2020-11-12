@@ -18,18 +18,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <iostream>
-#include <vector>
 #include <cassert>
-#include <sys/time.h>
+#include <iostream>
 #include <sys/resource.h>
+#include <sys/time.h>
+#include <vector>
 
-#include "hyteg/petsc/PETScWrapper.hpp"
 #include "core/Abort.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/Debug.h"
 #include "core/logging/Logging.h"
 #include "core/mpi/Reduce.h"
+
+#include "hyteg/petsc/PETScWrapper.hpp"
 
 namespace hyteg {
 
@@ -55,7 +56,7 @@ inline double getCurrentMemoryUsage( MemoryUsageDeterminationType type = MemoryU
    if ( type == MemoryUsageDeterminationType::C_RUSAGE )
    {
       struct rusage usage;
-      int gru = getrusage(RUSAGE_SELF,&usage);
+      int           gru = getrusage( RUSAGE_SELF, &usage );
       WALBERLA_ASSERT( gru == 0, "getrusage() returned an error." );
 
       // printf("ru_maxrss: %ld (maximum resident set size -- MB)\n",usage.ru_maxrss / 1024);
@@ -67,8 +68,8 @@ inline double getCurrentMemoryUsage( MemoryUsageDeterminationType type = MemoryU
    {
 #ifdef HYTEG_BUILD_WITH_PETSC
       PetscLogDouble mem;
-    PetscMemoryGetCurrentUsage( &mem );
-   return static_cast< double >( mem );
+      PetscMemoryGetCurrentUsage( &mem );
+      return static_cast< double >( mem );
 #else
       WALBERLA_ABORT( "Memory usage with PETSc requested, but HyTeG was not built with PETSc." )
 #endif
@@ -79,13 +80,13 @@ inline double getCurrentMemoryUsage( MemoryUsageDeterminationType type = MemoryU
    }
 }
 
-
-/// \brief Prints and retrieves the information on the current memory usage of the entire application.
-///
+/// \brief Prints and returns the information on the current memory usage of the entire application.
+/// Order: sum, min, max
 /// In gigabytes (GB, 1e9 bytes).
 ///
 /// Involves global reduction.
-inline void printAndGetCurrentMemoryUsage( double & sumGB, double & minGB, double & maxGB, MemoryUsageDeterminationType type = MemoryUsageDeterminationType::C_RUSAGE )
+inline std::tuple< double, double, double >
+    printAndGetCurrentMemoryUsage( MemoryUsageDeterminationType type = MemoryUsageDeterminationType::C_RUSAGE )
 {
    std::string method;
    switch ( type )
@@ -110,9 +111,7 @@ inline void printAndGetCurrentMemoryUsage( double & sumGB, double & minGB, doubl
        walberla::mpi::allReduce( locallyAllocatedMemory, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() ) /
        1e+09;
 
-   sumGB = globalActualAllocatedMemory;
-   minGB = minActualAllocatedMemory;
-   maxGB = maxActualAllocatedMemory;
+   std::make_tuple( globalActualAllocatedMemory, minActualAllocatedMemory, maxActualAllocatedMemory );
 
    WALBERLA_LOG_INFO_ON_ROOT( "========================= Memory Usage Info =========================" );
    WALBERLA_LOG_INFO_ON_ROOT( " method: " << method );
@@ -120,23 +119,22 @@ inline void printAndGetCurrentMemoryUsage( double & sumGB, double & minGB, doubl
    WALBERLA_LOG_INFO_ON_ROOT( "                       |          sum |          min |          max |" );
    WALBERLA_LOG_INFO_ON_ROOT( " ----------------------+--------------+--------------+--------------+" );
    WALBERLA_LOG_INFO_ON_ROOT( " allocated memory (GB) | "
-                                  << std::setw( 12 ) << std::fixed << std::setprecision( 3 ) << globalActualAllocatedMemory << " | "
-                                  << std::setw( 12 ) << std::fixed << std::setprecision( 3 ) << minActualAllocatedMemory << " | "
-                                  << std::setw( 12 ) << std::fixed << std::setprecision( 3 ) << maxActualAllocatedMemory << " | " );
+                              << std::setw( 12 ) << std::fixed << std::setprecision( 3 ) << globalActualAllocatedMemory << " | "
+                              << std::setw( 12 ) << std::fixed << std::setprecision( 3 ) << minActualAllocatedMemory << " | "
+                              << std::setw( 12 ) << std::fixed << std::setprecision( 3 ) << maxActualAllocatedMemory << " | " );
    WALBERLA_LOG_INFO_ON_ROOT( " ----------------------+--------------+--------------+--------------+" );
    WALBERLA_LOG_INFO_ON_ROOT( "=====================================================================" );
    WALBERLA_LOG_INFO_ON_ROOT( "" );
-}
 
+   return std::make_tuple( globalActualAllocatedMemory, minActualAllocatedMemory, maxActualAllocatedMemory );
+}
 
 /// \brief Prints the information on the current memory usage of the entire application.
 ///
 /// Involves global reduction.
 inline void printCurrentMemoryUsage( MemoryUsageDeterminationType type = MemoryUsageDeterminationType::C_RUSAGE )
 {
-   double sum, min, max;
-   printAndGetCurrentMemoryUsage( sum, min, max, type );
+   printAndGetCurrentMemoryUsage( type );
 }
 
-
-}
+} // namespace hyteg

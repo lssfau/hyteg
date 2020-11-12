@@ -116,23 +116,23 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
       writeDomainPartitioningVTK( storage, "vtk/", benchmarkName + "_domain" );
    }
 
-   const uint_t unknowns = numberOfGlobalDoFs< typename StokesFunction< real_t >::Tag >( *storage, maxLevel, walberla::mpi::MPIManager::instance()->comm(), true );
-   const real_t hMin     = MeshQuality::getMinimalEdgeLength( storage, maxLevel, true );
-   const real_t hMax     = MeshQuality::getMaximalEdgeLength( storage, maxLevel, true );
+   const uint_t unknowns = numberOfGlobalDoFs< typename StokesFunction< real_t >::Tag >(
+       *storage, maxLevel, walberla::mpi::MPIManager::instance()->comm(), true );
+   const real_t hMin = MeshQuality::getMinimalEdgeLength( storage, maxLevel, true );
+   const real_t hMax = MeshQuality::getMaximalEdgeLength( storage, maxLevel, true );
    const auto   discretization =
        ( std::is_same< typename StokesFunction< real_t >::Tag, P2P1TaylorHoodFunctionTag >::value ? "P2-P1" : "P1-P1" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << benchmarkName )
    WALBERLA_LOG_INFO_ON_ROOT( " - parallelism: " )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + MPI processes:                                " << walberla::mpi::MPIManager::instance()->numProcesses() );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       "   + MPI processes:                                " << walberla::mpi::MPIManager::instance()->numProcesses() );
    WALBERLA_OPENMP_SECTION()
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "   + OpenMP threads per MPI process:               " << hyteg::OpenMPManager::instance()->numThreads() );
+      WALBERLA_LOG_INFO_ON_ROOT(
+          "   + OpenMP threads per MPI process:               " << hyteg::OpenMPManager::instance()->numThreads() );
    }
-   WALBERLA_NON_OPENMP_SECTION()
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "   + OpenMP disabled" );
-   }
+   WALBERLA_NON_OPENMP_SECTION() { WALBERLA_LOG_INFO_ON_ROOT( "   + OpenMP disabled" ); }
    WALBERLA_LOG_INFO_ON_ROOT( " - space discretization: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + elements:                                     " << discretization );
    WALBERLA_LOG_INFO_ON_ROOT( "   + dimensions:                                   " << ( storage->hasGlobalCells() ? "3" : "2" ) )
@@ -269,7 +269,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    auto uzawaVelocityPreconditioner =
        ( smootherSettings.symmGSVelocity ? uzawaSymmetricVelocityPreconditioner : uzawaForwardVelocityPreconditioner );
 
-   std::vector< uint_t > rhsZeroLevels = {maxLevel};
+   std::vector< uint_t > rhsZeroLevels = { maxLevel };
    auto                  smoother      = std::make_shared< UzawaSmoother< StokesOperator > >( storage,
                                                                         uzawaVelocityPreconditioner,
                                                                         tmp,
@@ -347,15 +347,29 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
    auto fmgProlongation = std::make_shared< FMGProlongation >();
 
    auto postCycle = [&]( uint_t currentLevel ) {
-
-      smoother->setRHSZeroLevels( {currentLevel + 1} );
+      smoother->setRHSZeroLevels( { currentLevel + 1 } );
 
       if ( projectPressure )
       {
          vertexdof::projectMean( u.p, currentLevel );
       }
 
-      errorAndResidual( A, u, f, r, tmp, solutionU, solutionV, solutionW, solutionP, currentLevel, errorFlag, RHSisZero,  residualL2Velocity, residualL2Pressure, errorL2Velocity, errorL2Pressure );
+      errorAndResidual( A,
+                        u,
+                        f,
+                        r,
+                        tmp,
+                        solutionU,
+                        solutionV,
+                        solutionW,
+                        solutionP,
+                        currentLevel,
+                        errorFlag,
+                        RHSisZero,
+                        residualL2Velocity,
+                        residualL2Pressure,
+                        errorL2Velocity,
+                        errorL2Pressure );
 
       writeDataRow( iteration, "F", currentLevel, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
       iteration++;
@@ -366,7 +380,22 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
    WALBERLA_LOG_INFO_ON_ROOT( "Calculating initial error and residual ..." )
 
-   errorAndResidual( A, u, f, r, tmp, solutionU, solutionV, solutionW, solutionP, maxLevel, errorFlag, RHSisZero,  residualL2Velocity, residualL2Pressure, errorL2Velocity, errorL2Pressure );
+   errorAndResidual( A,
+                     u,
+                     f,
+                     r,
+                     tmp,
+                     solutionU,
+                     solutionV,
+                     solutionW,
+                     solutionP,
+                     maxLevel,
+                     errorFlag,
+                     RHSisZero,
+                     residualL2Velocity,
+                     residualL2Pressure,
+                     errorL2Velocity,
+                     errorL2Pressure );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Obtaining function allocation info ..." )
 
@@ -374,13 +403,13 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
    WALBERLA_LOG_INFO_ON_ROOT( "Gathering memory usage info ..." )
 
-   double sumGBAllocatedRUsage, minGBAllocatedRUsage, maxGBAllocatedRUsage;
-   double sumGBAllocatedPetsc, minGBAllocatedPetsc, maxGBAllocatedPetsc;
+   //double sumGBAllocatedRUsage, minGBAllocatedRUsage, maxGBAllocatedRUsage;
+   //double sumGBAllocatedPetsc, minGBAllocatedPetsc, maxGBAllocatedPetsc;
 
-   printAndGetCurrentMemoryUsage(
-       sumGBAllocatedRUsage, minGBAllocatedRUsage, maxGBAllocatedRUsage, MemoryUsageDeterminationType::C_RUSAGE );
-   printAndGetCurrentMemoryUsage(
-       sumGBAllocatedPetsc, minGBAllocatedPetsc, maxGBAllocatedPetsc, MemoryUsageDeterminationType::PETSC );
+   auto [sumGBAllocatedRUsage, minGBAllocatedRUsage, maxGBAllocatedRUsage] =
+       printAndGetCurrentMemoryUsage( MemoryUsageDeterminationType::C_RUSAGE );
+   auto [sumGBAllocatedPetsc, minGBAllocatedPetsc, maxGBAllocatedPetsc] =
+       printAndGetCurrentMemoryUsage( MemoryUsageDeterminationType::PETSC );
 
    writeDataHeader();
 
@@ -430,7 +459,7 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
    if ( multigridSettings.fmgInnerIterations > 0 )
    {
-      smoother->setRHSZeroLevels( {minLevel} );
+      smoother->setRHSZeroLevels( { minLevel } );
       fullMultigridSolver.solve( A, u, f, maxLevel );
    }
    else
@@ -442,13 +471,28 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
          vertexdof::projectMean( u.p, maxLevel );
       }
 
-      errorAndResidual( A, u, f, r, tmp, solutionU, solutionV, solutionW, solutionP, maxLevel, errorFlag, RHSisZero,  residualL2Velocity, residualL2Pressure, errorL2Velocity, errorL2Pressure );
+      errorAndResidual( A,
+                        u,
+                        f,
+                        r,
+                        tmp,
+                        solutionU,
+                        solutionV,
+                        solutionW,
+                        solutionP,
+                        maxLevel,
+                        errorFlag,
+                        RHSisZero,
+                        residualL2Velocity,
+                        residualL2Pressure,
+                        errorL2Velocity,
+                        errorL2Pressure );
 
       writeDataRow( iteration, "V", 0, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
       iteration++;
    }
 
-   smoother->setRHSZeroLevels( {maxLevel} );
+   smoother->setRHSZeroLevels( { maxLevel } );
 
    for ( uint_t i = 1; i < multigridSettings.numCycles && ( multigridSettings.absoluteResidualTolerance < residualL2Velocity ||
                                                             multigridSettings.absoluteResidualTolerance < residualL2Pressure );
@@ -461,7 +505,22 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
          vertexdof::projectMean( u.p, maxLevel );
       }
 
-      errorAndResidual( A, u, f, r, tmp, solutionU, solutionV, solutionW, solutionP, maxLevel, errorFlag, RHSisZero,  residualL2Velocity, residualL2Pressure, errorL2Velocity, errorL2Pressure );
+      errorAndResidual( A,
+                        u,
+                        f,
+                        r,
+                        tmp,
+                        solutionU,
+                        solutionV,
+                        solutionW,
+                        solutionP,
+                        maxLevel,
+                        errorFlag,
+                        RHSisZero,
+                        residualL2Velocity,
+                        residualL2Pressure,
+                        errorL2Velocity,
+                        errorL2Pressure );
 
       writeDataRow( iteration, "V", 0, errorL2Velocity, residualL2Velocity, errorL2Pressure, residualL2Pressure, db );
       iteration++;

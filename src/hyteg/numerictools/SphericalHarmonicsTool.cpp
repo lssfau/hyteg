@@ -429,7 +429,7 @@ real_t SphericalHarmonicsTool::evalVSH( uint_t deg, int ord, real_t x, real_t y,
    WALBERLA_ASSERT( ind <= 2 );
    WALBERLA_ASSERT( comp <= 2 );
    WALBERLA_ASSERT( deg <= maxDegree_ );
-   WALBERLA_ASSERT( std::abs( ord ) <= deg );
+   WALBERLA_ASSERT( walberla::uint_c( std::abs( ord ) ) <= deg );
 
    // compute radius of point
    real_t rad = sqrt( x * x + y * y + z * z );
