@@ -70,9 +70,9 @@ for ( uint_t k = 0; k < QUADWEIGHTS.size(); k++ )
 
    // compute and add contribution from current integration point to all element matrix entries
    // (computations on upper triangle only)
-   for ( uint i = 0; i < 6; i++ )
+   for ( uint_t i = 0; i < 6; i++ )
    {
-      for ( uint j = i; j < 6; j++ )
+      for ( uint_t j = i; j < 6; j++ )
       {
          elMat( i, j ) += QUADWEIGHTS[k] * detDPhiInv * detDPsi * sf[i] * sf[j];
       }
@@ -80,9 +80,9 @@ for ( uint_t k = 0; k < QUADWEIGHTS.size(); k++ )
 }
 
 // set lower triangular part from symmetry
-for ( uint i = 0; i < 6; i++ )
+for ( uint_t i = 0; i < 6; i++ )
 {
-   for ( uint j = 0; j < i; j++ )
+   for ( uint_t j = 0; j < i; j++ )
    {
       elMat( i, j ) = elMat( j, i );
    }
