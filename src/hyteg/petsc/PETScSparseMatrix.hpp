@@ -34,6 +34,7 @@
 #include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/p2functionspace/P2Petsc.hpp"
+#include "hyteg/petsc/PETScSparseMatrixInfo.hpp"
 #include "hyteg/petsc/PETScSparseMatrixProxy.hpp"
 #include "hyteg/petsc/PETScVector.hpp"
 
@@ -50,7 +51,7 @@ class PETScSparseMatrix
                       uint_t          globalSize,
                       const char      name[]            = "Mat",
                       const MPI_Comm& petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
-   : petscCommunicator_( petscCommunicator )
+   : petscCommunicator_( petscCommunicator ), assembled_( false )
    {
       MatCreate( petscCommunicator, &mat );
       MatSetType( mat, MATMPIAIJ );
@@ -83,6 +84,7 @@ class PETScSparseMatrix
 
       MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
       MatAssemblyEnd( mat, MAT_FINAL_ASSEMBLY );
+      assembled_ = true;
    }
 
    inline bool createMatrixFromOperatorOnce( const OperatorType&             op,
@@ -90,10 +92,9 @@ class PETScSparseMatrix
                                              const FunctionType< PetscInt >& numerator,
                                              DoFType                         flag = All )
    {
-      if ( assembled )
+      if ( assembled_ )
          return false;
       createMatrixFromOperator( op, level, numerator, flag );
-      assembled = true;
       return true;
    }
 
@@ -177,7 +178,7 @@ class PETScSparseMatrix
       return bcIndices;
    }
 
-   inline void reset() { assembled = false; }
+   inline void reset() { assembled_ = false; }
 
    /// \brief Sets all entries of the matrix to zero.
    inline void zeroEntries() { MatZeroEntries( mat ); }
@@ -226,10 +227,22 @@ class PETScSparseMatrix
       return norm < tol;
    }
 
+   PETScSparseMatrixInfo getInfo()
+   {
+      if ( !assembled_ )
+      {
+         WALBERLA_ABORT( "Matrix assembly must be complete before calling getInfo()!" );
+      }
+      MatInfo info;
+      MatGetInfo( mat, MAT_GLOBAL_SUM, &info );
+      PETScSparseMatrixInfo matInfo( info );
+      return matInfo;
+   };
+
  protected:
    MPI_Comm petscCommunicator_;
    Mat      mat;
-   bool     assembled;
+   bool     assembled_;
 };
 
 } // namespace hyteg
