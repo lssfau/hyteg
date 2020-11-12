@@ -117,8 +117,10 @@ class PrimitiveStorage : private walberla::NonCopyable
    typedef std::map< PrimitiveID::IDType, std::shared_ptr< Face > >      FaceMap;
    typedef std::map< PrimitiveID::IDType, std::shared_ptr< Cell > >      CellMap;
 
-   explicit PrimitiveStorage( const SetupPrimitiveStorage& setupStorage );
-   PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const std::shared_ptr< walberla::WcTimingTree >& timingTree );
+   explicit PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const uint_t& additionalHaloDepth = 0  );
+   PrimitiveStorage( const SetupPrimitiveStorage&                     setupStorage,
+                     const std::shared_ptr< walberla::WcTimingTree >& timingTree,
+                     const uint_t&                                    additionalHaloDepth = 0 );
 
    /// Returns a shared pointer to a \ref PrimitiveStorage created from the passed Gmsh file.
    static std::shared_ptr< PrimitiveStorage > createFromGmshFile( const std::string& meshFilePath );
@@ -135,6 +137,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// This memory is used to migrate the coarse grid primitives to a subset of processes.
    ///
    std::shared_ptr< PrimitiveStorage > createCopy() const;
+
+   uint_t getAdditionalHaloDepth() const { return additionalHaloDepth_; }
 
    void checkConsistency();
 
@@ -327,6 +331,18 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Returns a reference to a map of the locally existing \ref Cell instances
    const CellMap& getCells() const { return cells_; }
 
+   /// Returns a reference to a map of the neighborhood \ref Vertex instances
+   const VertexMap& getNeighborVertices() const { return neighborVertices_; }
+
+   /// Returns a reference to a map of the neighborhood \ref Edge instances
+   const EdgeMap& getNeighborEdges() const { return neighborEdges_; }
+
+   /// Returns a reference to a map of the neighborhood \ref Face instances
+   const FaceMap& getNeighborFaces() const { return neighborFaces_; }
+
+   /// Returns a reference to a map of the neighborhood \ref Cell instances
+   const CellMap& getNeighborCells() const { return neighborCells_; }
+
    ///@}
 
    /// Returns true, if the primitive lies on the boundary.
@@ -482,6 +498,14 @@ class PrimitiveStorage : private walberla::NonCopyable
    }
 
  private:
+   /// Adds the direct neighbors of the given primitives to the storage.
+   /// Calling this function several times allows us to enlarge our geometric halos.
+   void addDirectNeighbors( const SetupPrimitiveStorage&      setupStorage,
+                            const std::vector< PrimitiveID >& vertices,
+                            const std::vector< PrimitiveID >& edges,
+                            const std::vector< PrimitiveID >& faces,
+                            const std::vector< PrimitiveID >& cells );
+
    // needed to differentiate when migrating primitives
    enum PrimitiveTypeEnum
    {
@@ -653,6 +677,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// - all processes that do not own any primitives locally.
    /// Is refreshed by calling splitCommunicatorByPrimitiveDistribution().
    MPI_Comm splitComm_;
+
+   uint_t additionalHaloDepth_;
 };
 
 ////////////////////////////////////////////////

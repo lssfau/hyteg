@@ -52,11 +52,13 @@ std::shared_ptr< PrimitiveStorage > PrimitiveStorage::createFromGmshFile( const 
 }
 
 PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                     setupStorage,
-                                    const std::shared_ptr< walberla::WcTimingTree >& timingTree )
+                                    const std::shared_ptr< walberla::WcTimingTree >& timingTree,
+                                    const uint_t&                                    additionalHaloDepth )
 : primitiveDataHandlers_( 0 )
 , modificationStamp_( 0 )
 , timingTree_( timingTree )
 , hasGlobalCells_( setupStorage.getNumberOfCells() > 0 )
+, additionalHaloDepth_( additionalHaloDepth )
 {
    for ( auto it : setupStorage.getVertices() )
    {
@@ -90,11 +92,44 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
       }
    }
 
-   // Neighborhood
+   // neighbors
+   std::vector< PrimitiveID > vertices{ getVertexIDs() };
+   std::vector< PrimitiveID > edges{ getEdgeIDs() };
+   std::vector< PrimitiveID > faces{ getFaceIDs() };
+   std::vector< PrimitiveID > cells{ getCellIDs() };
+   addDirectNeighbors( setupStorage, vertices, edges, faces, cells );
 
-   for ( const auto& it : vertices_ )
+   // additionally requested neighbors
+   for ( uint_t k = 0; k < additionalHaloDepth; k += 1 )
    {
-      auto vertex = it.second;
+      std::vector< PrimitiveID > additionalVertices;
+      getNeighboringVertexIDs( additionalVertices );
+      std::vector< PrimitiveID > additionalEdges;
+      getNeighboringEdgeIDs( additionalEdges );
+      std::vector< PrimitiveID > additionalFaces;
+      getNeighboringFaceIDs( additionalFaces );
+      std::vector< PrimitiveID > additionalCells;
+      getNeighboringCellIDs( additionalCells );
+      addDirectNeighbors( setupStorage, additionalVertices, additionalEdges, additionalFaces, additionalCells );
+   }
+
+   splitCommunicatorByPrimitiveDistribution();
+
+#ifndef NDEBUG
+   checkConsistency();
+#endif
+}
+
+void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      setupStorage,
+                                           const std::vector< PrimitiveID >& vertices,
+                                           const std::vector< PrimitiveID >& edges,
+                                           const std::vector< PrimitiveID >& faces,
+                                           const std::vector< PrimitiveID >& cells )
+{
+   for ( const auto& id : vertices )
+   {
+      const Vertex* vertex = getVertex( id );
+      WALBERLA_ASSERT_NOT_NULLPTR( vertex );
 
       for ( const auto& neighborVertexID : vertex->neighborVertices() )
       {
@@ -137,9 +172,10 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
       }
    }
 
-   for ( const auto& it : edges_ )
+   for ( const auto& id : edges )
    {
-      auto edge = it.second;
+      const Edge* edge = getEdge( id );
+      WALBERLA_ASSERT_NOT_NULLPTR( edge );
 
       for ( const auto& neighborVertexID : edge->neighborVertices() )
       {
@@ -182,9 +218,10 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
       }
    }
 
-   for ( const auto& it : faces_ )
+   for ( const auto& id : faces )
    {
-      auto face = it.second;
+      const Face* face = getFace( id );
+      WALBERLA_ASSERT_NOT_NULLPTR( face );
 
       for ( const auto& neighborVertexID : face->neighborVertices() )
       {
@@ -227,9 +264,10 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
       }
    }
 
-   for ( const auto& it : cells_ )
+   for ( const auto& id : cells )
    {
-      auto cell = it.second;
+      const Cell* cell = getCell( id );
+      WALBERLA_ASSERT_NOT_NULLPTR( cell );
 
       for ( const auto& neighborVertexID : cell->neighborVertices() )
       {
@@ -279,8 +317,8 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
 #endif
 }
 
-PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage& setupStorage )
-: PrimitiveStorage( setupStorage, std::make_shared< walberla::WcTimingTree >() )
+PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const uint_t& additionalHaloDepth )
+: PrimitiveStorage( setupStorage, std::make_shared< walberla::WcTimingTree >(), additionalHaloDepth )
 {}
 
 std::shared_ptr< PrimitiveStorage > PrimitiveStorage::createCopy() const
