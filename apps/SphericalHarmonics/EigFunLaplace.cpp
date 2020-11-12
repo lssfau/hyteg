@@ -127,7 +127,7 @@ int main( int argc, char* argv[] )
    {
       WALBERLA_ABORT( "Please choose nroot from {1,2,3,4}." );
    }
-   if ( order < 0 || std::abs( order ) > degree )
+   if ( order < 0 || walberla::uint_c( std::abs( order ) ) > degree )
    {
       WALBERLA_ABORT( "Order cannot exceed degree." );
    }
