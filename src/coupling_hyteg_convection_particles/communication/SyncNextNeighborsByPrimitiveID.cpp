@@ -37,7 +37,8 @@ void SyncNextNeighborsByPrimitiveID::operator()(data::ParticleStorage& ps,
 {
    if (numProcesses_ == 1) return;
 
-   for( uint_t nbProcessRank = 0; nbProcessRank < uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ); nbProcessRank++ )
+   const auto neighboringRanks = primitiveStorage.getNeighboringRanks();
+   for ( auto nbProcessRank : neighboringRanks )
    {
       if (bs.sendBuffer(nbProcessRank).isEmpty())
       {

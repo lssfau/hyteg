@@ -1126,6 +1126,13 @@ void PrimitiveStorage::migratePrimitives( const MigrationInfo& migrationInfo )
    WALBERLA_DEBUG_SECTION() { checkConsistency(); }
 }
 
+std::set< uint_t > PrimitiveStorage::getNeighboringRanks() const
+{
+   std::set< uint_t > neighboringRanks;
+   getNeighboringRanks( neighboringRanks );
+   return neighboringRanks;
+}
+
 void PrimitiveStorage::getNeighboringRanks( std::set< uint_t >& neighboringRanks ) const
 {
    neighboringRanks.clear();

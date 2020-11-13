@@ -421,6 +421,7 @@ class PrimitiveStorage : private walberla::NonCopyable
    uint_t getModificationStamp() const { return modificationStamp_; }
 
    /// Fills the passed set with all neighboring ranks (== all ranks from primitives that are located in the direct neighborhood)
+   std::set< uint_t > getNeighboringRanks() const;
    void getNeighboringRanks( std::set< uint_t >& neighboringRanks ) const;
    void getNeighboringRanks( std::set< walberla::mpi::MPIRank >& neighboringRanks ) const;
 
