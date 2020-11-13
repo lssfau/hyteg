@@ -29,6 +29,7 @@
 #include "core/logging/Logging.h"
 #include "core/mpi/Gatherv.h"
 #include "core/mpi/OpenMPBufferSystem.h"
+#include "core/math/DistributedSample.h"
 
 #include "hyteg/communication/PackageBufferSystem.hpp"
 #include "hyteg/primitivedata/PrimitiveDataID.hpp"
@@ -1477,10 +1478,24 @@ std::string PrimitiveStorage::getGlobalInfo( bool onRootOnly ) const
    const double globalAvgNumberOfCells      = (double) globalNumberOfCells / (double) numberOfProcesses;
    const double globalAvgNumberOfPrimitives = (double) globalNumberOfPrimitives / (double) numberOfProcesses;
 
+   walberla::math::DistributedSample neighborhoodSample;
+   const auto numNeighborProcesses = getNeighboringRanks().size();
+   neighborhoodSample.castToRealAndInsert( numNeighborProcesses );
+
+   if ( onRootOnly )
+   {
+      neighborhoodSample.mpiGatherRoot();
+   }
+   else
+   {
+      neighborhoodSample.mpiAllGather();
+   }
+
    std::stringstream os;
    os << "====================== PrimitiveStorage ======================\n";
-   os << " - mesh dimensionality:        " << ( hasGlobalCells() ? "3D" : "2D" ) << "\n";
-   os << " - processes:                  " << numberOfProcesses << "\n";
+   os << " - mesh dimensionality:                " << ( hasGlobalCells() ? "3D" : "2D" ) << "\n";
+   os << " - processes:                          " << numberOfProcesses << "\n";
+   os << " - neighbor processes (min, max, avg): " << neighborhoodSample.min() << ", " << neighborhoodSample.max() << ", " << neighborhoodSample.avg() << "\n";
    os << " - primitive distribution:\n";
    os << "                +-------------------------------------------+\n"
          "                |    total |      min |      max |      avg |\n"
