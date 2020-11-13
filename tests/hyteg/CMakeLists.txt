@@ -189,6 +189,11 @@ waLBerla_execute_test(NAME DGIndexingTest)
 waLBerla_compile_test(FILES Indexing/EdgeDoFOrientationConversionTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME EdgeDoFOrientationConversionTest)
 
+if( HYTEG_BUILD_WITH_PETSC )
+waLBerla_compile_test(FILES Indexing/CouplingCountTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME CouplingCountTest)
+endif()
+
 #if(CMAKE_BUILD_TYPE MATCHES "Release")
 #  if(NOT WALBERLA_CXX_COMPILER_IS_MSVC )
 #    waLBerla_compile_test(FILES Indexing/ConstexprIndexTest.cpp DEPENDS hyteg core)
