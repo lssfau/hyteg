@@ -177,7 +177,7 @@ void benchmark( int argc, char** argv )
           "Benchmark_05_PipeScaling",
           printInterval,
           vtkInterval,
-          false,
+          true,
           dbFile );
 }
 } // namespace moc_benchmarks

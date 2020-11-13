@@ -73,6 +73,12 @@ void solve( MeshInfo&               meshInfo,
 
    std::shared_ptr< PrimitiveStorage > storage;
 
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Creating storage ..." );
+      printCurrentMemoryUsage();
+   }
+
    {
       auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
           meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -93,6 +99,11 @@ void solve( MeshInfo&               meshInfo,
       meshInfo.clear();
    }
 
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Creating storage ... done." );
+      printCurrentMemoryUsage();
+   }
 
    if ( vtk )
    {
@@ -189,6 +200,12 @@ void solve( MeshInfo&               meshInfo,
    typedef P2ElementwiseBlendingMassOperator      MassOperator;
    typedef P2ElementwiseUnsteadyDiffusionOperator UnsteadyDiffusionOperator;
 
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Allocating functions ..." );
+      printCurrentMemoryUsage();
+   }
+
    FunctionType c( "c", storage, level, level );
    FunctionType cOld( "cOld", storage, level, level );
    FunctionType cError( "cError", storage, level, level );
@@ -202,6 +219,18 @@ void solve( MeshInfo&               meshInfo,
    FunctionType uLast( "uLast", storage, level, level );
    FunctionType vLast( "vLast", storage, level, level );
    FunctionType wLast( "wLast", storage, level, level );
+
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Allocating functions ... done." );
+      printCurrentMemoryUsage();
+   }
+
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Preparing operators and solvers ..." );
+      printCurrentMemoryUsage();
+   }
 
    const real_t diffusionDt = strangSplitting ? 0.5 * dt : dt;
    UnsteadyDiffusionOperator     diffusionOperator( storage, level, level, diffusionDt, diffusivity, diffusionTimeIntegrator );
@@ -226,6 +255,18 @@ void solve( MeshInfo&               meshInfo,
    UnsteadyDiffusion< FunctionType, UnsteadyDiffusionOperator, LaplaceOperator, MassOperator > diffusionSolver(
        storage, level, level, solver );
 
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Preparing operators and solvers ... done." );
+      printCurrentMemoryUsage();
+   }
+
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Interpolating solution ..." );
+      printCurrentMemoryUsage();
+   }
+
    c.interpolate( std::function< real_t( const Point3D& ) >( std::ref( solution ) ), level );
    cSolution.interpolate( std::function< real_t( const Point3D& ) >( std::ref( solution ) ), level );
    u.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
@@ -235,7 +276,19 @@ void solve( MeshInfo&               meshInfo,
       w.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityZ ) ), level );
    }
 
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Interpolating solution ... done." );
+      printCurrentMemoryUsage();
+   }
+
    cError.assign( {1.0, -1.0}, {c, cSolution}, level, All );
+
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Calculating relevant quantities ..." );
+      printCurrentMemoryUsage();
+   }
 
    auto       discrL2     = normL2( cError, tmp, M, level, Inner );
    auto       maxPeakDiff = maxPeakDifference( c, cSolution, level, All );
@@ -245,6 +298,12 @@ void solve( MeshInfo&               meshInfo,
    auto       massChange  = ( mass / initialMass ) - 1.0;
    real_t     timeTotal   = 0;
    real_t     vMax        = velocityMaxMagnitude( u, v, w, tmp, tmp2, level, All );
+
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Calculating relevant quantities ... done." );
+      printCurrentMemoryUsage();
+   }
 
    hyteg::VTKOutput vtkOutput( "./vtk", benchmarkName, storage, vtkInterval );
 
@@ -263,8 +322,6 @@ void solve( MeshInfo&               meshInfo,
 
    if ( vtk )
       vtkOutput.write( level );
-
-   printCurrentMemoryUsage();
 
    WALBERLA_LOG_INFO_ON_ROOT(
        " timestep | time total | discr. L2 error | max peak diff. | spu. osc. | total mass | mass change | vel max mag " )
