@@ -8,6 +8,7 @@ module load devEnv/GCC
 module load cmake
 module load boost
 module load petsc
+module load parmetis/4.0.3-impi-i64-r64
 
 export CC=gcc
 export CXX=g++
