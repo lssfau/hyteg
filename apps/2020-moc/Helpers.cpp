@@ -59,6 +59,8 @@ void solve( MeshInfo&               meshInfo,
             uint_t                  resetParticlesInterval,
             bool                    adjustedAdvection,
             uint_t                  numTimeSteps,
+            bool                    parmetis,
+            uint_t                  parmetisNumProcesses,
             bool                    vtk,
             bool                    vtkOutputVelocity,
             const std::string&      benchmarkName,
@@ -82,6 +84,12 @@ void solve( MeshInfo&               meshInfo,
    {
       auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
           meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+      if ( parmetis )
+      {
+         loadbalancing::parmetis( *setupStorage, parmetisNumProcesses );
+      }
+
       setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
       if ( setBlendingMap )
       {

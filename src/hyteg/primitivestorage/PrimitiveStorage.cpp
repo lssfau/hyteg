@@ -1479,7 +1479,7 @@ std::string PrimitiveStorage::getGlobalInfo( bool onRootOnly ) const
    const double globalAvgNumberOfPrimitives = (double) globalNumberOfPrimitives / (double) numberOfProcesses;
 
    walberla::math::DistributedSample neighborhoodSample;
-   const auto numNeighborProcesses = getNeighboringRanks().size();
+   const auto numNeighborProcesses = getNeighboringRanks().size() - 1;
    neighborhoodSample.castToRealAndInsert( numNeighborProcesses );
 
    if ( onRootOnly )

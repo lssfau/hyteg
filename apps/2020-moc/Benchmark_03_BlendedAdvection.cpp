@@ -203,6 +203,8 @@ void benchmark( int argc, char** argv )
           resetParticlesInterval,
           adjustedAdvection,
           numTimeSteps,
+          false,
+          1,
           vtk,
           true,
           "Benchmark_03_BlendedAdvection",

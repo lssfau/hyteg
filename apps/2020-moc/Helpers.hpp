@@ -50,6 +50,7 @@
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
@@ -165,6 +166,8 @@ void solve( MeshInfo&               meshInfo,
             uint_t                  resetParticlesInterval,
             bool                    adjustedAdvection,
             uint_t                  numTimeSteps,
+            bool                    parmetis,
+            uint_t                  parmetisNumProcesses,
             bool                    vtk,
             bool                    vtkOutputVelocity,
             const std::string&      benchmarkName,

@@ -138,6 +138,10 @@ void benchmark( int argc, char** argv )
    const uint_t      lengthCubes            = mainConf.getParameter< uint_t >( "lengthCubes" );
    const real_t      dt                     = mainConf.getParameter< real_t >( "timeStepSize" );
 
+   const bool        parmetis                    = mainConf.getParameter< bool >( "parmetis" );
+   const uint_t      parmetisNumProcesses            = mainConf.getParameter< uint_t >( "parmetisNumProcesses" );
+
+
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
 
    WALBERLA_CHECK_EQUAL( lengthCubes % diameterCubes, 0 );
@@ -155,6 +159,8 @@ void benchmark( int argc, char** argv )
 
    WALBERLA_LOG_INFO_ON_ROOT( " - length in cubes (x):      " << lengthCubes );
    WALBERLA_LOG_INFO_ON_ROOT( " - diameter in cubes (y, z): " << diameterCubes );
+   WALBERLA_LOG_INFO_ON_ROOT( " - parmetis:                 " << parmetis );
+   WALBERLA_LOG_INFO_ON_ROOT( " - parmetis num processes:   " << parmetisNumProcesses );
 
    solve( meshInfo,
           false,
@@ -172,6 +178,8 @@ void benchmark( int argc, char** argv )
           resetParticlesInterval,
           adjustedAdvection,
           numTimeSteps,
+          parmetis,
+          parmetisNumProcesses,
           vtk,
           true,
           "Benchmark_05_PipeScaling",

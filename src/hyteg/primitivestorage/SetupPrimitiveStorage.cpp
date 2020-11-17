@@ -400,6 +400,58 @@ const Primitive * SetupPrimitiveStorage::getPrimitive( const PrimitiveID & id ) 
   return nullptr;
 }
 
+uint_t SetupPrimitiveStorage::getNumCellsOnRank( uint_t rank ) const
+{
+   uint_t n = 0;
+   for ( const auto & it : cells_ )
+   {
+      if ( getTargetRank( it.first ) == rank )
+      {
+         n++;
+      }
+   }
+   return n;
+}
+
+uint_t SetupPrimitiveStorage::getNumFacesOnRank( uint_t rank ) const
+{
+   uint_t n = 0;
+   for ( const auto & it : faces_ )
+   {
+      if ( getTargetRank( it.first ) == rank )
+      {
+         n++;
+      }
+   }
+   return n;
+}
+
+uint_t SetupPrimitiveStorage::getNumEdgesOnRank( uint_t rank ) const
+{
+   uint_t n = 0;
+   for ( const auto & it : edges_ )
+   {
+      if ( getTargetRank( it.first ) == rank )
+      {
+         n++;
+      }
+   }
+   return n;
+}
+
+uint_t SetupPrimitiveStorage::getNumVerticesOnRank( uint_t rank ) const
+{
+   uint_t n = 0;
+   for ( const auto & it : vertices_ )
+   {
+      if ( getTargetRank( it.first ) == rank )
+      {
+         n++;
+      }
+   }
+   return n;
+}
+
 void SetupPrimitiveStorage::assembleRankToSetupPrimitivesMap( RankToSetupPrimitivesMap & rankToSetupPrimitivesMap ) const
 {
   rankToSetupPrimitivesMap.clear();

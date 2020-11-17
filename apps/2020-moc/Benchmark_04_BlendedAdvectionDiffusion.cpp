@@ -166,6 +166,8 @@ void benchmark( int argc, char** argv )
           1,
           adjustedAdvection,
           numTimeSteps,
+          false,
+          1,
           vtk,
           true,
           "Benchmark_04_BlendedAdvectionDiffusion",
