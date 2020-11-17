@@ -1,6 +1,6 @@
 
 
-def create_parameter_file(level: int, db_file_name: str, num_time_steps: int, diameter_cubes: int, length_cubes: int, **kwargs):
+def create_parameter_file(level: int, db_file_name: str, num_time_steps: int, diameter_cubes: int, length_cubes: int, parmetis: bool, parmetis_num_processes: int, **kwargs):
     return f"""Parameters
 {{
     level {level};
@@ -17,6 +17,9 @@ def create_parameter_file(level: int, db_file_name: str, num_time_steps: int, di
 
     diameterCubes {diameter_cubes};
     lengthCubes {length_cubes};
+
+    parmetis {parmetis};
+    parmetisNumProcesses {parmetis_num_processes};
     }}
 """
 
