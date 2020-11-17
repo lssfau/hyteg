@@ -152,6 +152,10 @@ static void testCommonIndexing()
   testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{2, 0}}, {{1, 0}} }} ),                               indexing::FaceBoundaryDirection::BOTTOM_RIGHT_TO_LEFT, 4, 0, 1 );
   testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{2, 1}}, {{1, 1}}, {{0, 1}} }} ),                     indexing::FaceBoundaryDirection::BOTTOM_RIGHT_TO_LEFT, 4, 1, 0 );
   testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{1, 1}} }} ),                                         indexing::FaceBoundaryDirection::BOTTOM_RIGHT_TO_LEFT, 4, 1, 1 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{0, 0}}, {{0, 1}}, {{0, 2}}, {{0, 3}} }} ),           indexing::FaceBoundaryDirection::LEFT_BOTTOM_TO_TOP, 4, 0, 0 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{1, 1}} }} ),                                         indexing::FaceBoundaryDirection::LEFT_BOTTOM_TO_TOP, 4, 1, 1 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{1, 2}}, {{1, 1}}, {{1, 0}} }} ),                     indexing::FaceBoundaryDirection::LEFT_TOP_TO_BOTTOM, 4, 1, 0 );
+  testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{1, 1}} }} ),                                         indexing::FaceBoundaryDirection::LEFT_TOP_TO_BOTTOM, 4, 1, 1 );
   testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{4, 0}}, {{3, 1}}, {{2, 2}}, {{1, 3}}, {{0, 4}} }} ), indexing::FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP, 5, 0, 0 );
   testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{3, 1}}, {{2, 2}}, {{1, 3}} }} ),                     indexing::FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP, 5, 0, 1 );
   testFaceBorderIterator( std::vector< std::array< uint_t, 2 > >( {{ {{3, 0}}, {{2, 1}}, {{1, 2}}, {{0, 3}} }} ),           indexing::FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP, 5, 1, 0 );
