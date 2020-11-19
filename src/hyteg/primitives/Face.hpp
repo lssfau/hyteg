@@ -166,7 +166,7 @@ class Face : public Primitive
 
    /// Returns indirect neighbor macro-face IDs (not including self). An indirect neighbor face is a face
    /// that shares at least one macro-vertex with this cell
-   const std::vector< PrimitiveID >& getIndirectNeighborFaceDs() const { return indirectNeighborFaceIDs_; }
+   const std::vector< PrimitiveID >& getIndirectNeighborFaceIDs() const { return indirectNeighborFaceIDs_; }
 
  protected:
    /// Not public in order to guarantee that data is only added through the governing structure.
