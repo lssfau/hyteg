@@ -347,6 +347,8 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
      auto faceID = it.first;
      auto face   = it.second;
 
+     std::set< PrimitiveID > indirectNeighborsSet;
+
      for ( const auto& vertexID : face->neighborVertices() )
      {
         auto vertex = getVertex( vertexID );
@@ -354,10 +356,13 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
         {
            if ( neighborFaceID != faceID )
            {
-              face->indirectNeighborFaceIDs_.push_back( neighborFaceID );
+              indirectNeighborsSet.insert( neighborFaceID );
            }
         }
      }
+
+     face->indirectNeighborFaceIDs_.clear();
+     face->indirectNeighborFaceIDs_.insert( face->indirectNeighborFaceIDs_.begin(), indirectNeighborsSet.begin(), indirectNeighborsSet.end() );
   }
 
   // add indirect neighbor cells
@@ -366,6 +371,8 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
      auto cellID = it.first;
      auto cell   = it.second;
 
+     std::set< PrimitiveID > indirectNeighborsSet;
+
      for ( const auto& vertexID : cell->neighborVertices() )
      {
         auto vertex = getVertex( vertexID );
@@ -373,10 +380,13 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
         {
            if ( neighborCellID != cellID )
            {
-              cell->indirectNeighborCellIDs_.push_back( neighborCellID );
+              indirectNeighborsSet.insert( neighborCellID );
            }
         }
      }
+
+     cell->indirectNeighborCellIDs_.clear();
+     cell->indirectNeighborCellIDs_.insert( cell->indirectNeighborCellIDs_.begin(), indirectNeighborsSet.begin(), indirectNeighborsSet.end() );
   }
 
   loadbalancing::roundRobin( *this );
