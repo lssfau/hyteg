@@ -71,6 +71,9 @@ void roundRobin( SetupPrimitiveStorage & storage, uint_t numRanks );
 /// It is expected to result in a much better edge-cut ratio than the roundRobin algorithm. But still not optimal.
 void greedy( SetupPrimitiveStorage & storage );
 
+void greedyVolume( SetupPrimitiveStorage& setupStorage );
+
+
 
 } // namespace loadbalancing
 } // namespace hyteg

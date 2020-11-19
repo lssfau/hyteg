@@ -89,6 +89,10 @@ void solve( MeshInfo&               meshInfo,
       {
          loadbalancing::parmetis( *setupStorage, parmetisNumProcesses );
       }
+      else
+      {
+         loadbalancing::greedyVolume( *setupStorage );
+      }
 
       setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
       if ( setBlendingMap )

@@ -24,12 +24,11 @@
 
 #include "core/DataTypes.h"
 #include "core/load_balancing/ParMetisWrapper.h"
-#include "core/mpi/MPIWrapper.h"
+#include "core/mpi/Broadcast.h"
 #include "core/mpi/BufferDataTypeExtensions.h"
 #include "core/mpi/BufferSystem.h"
 #include "core/mpi/Gatherv.h"
-#include "core/mpi/Broadcast.h"
-
+#include "core/mpi/MPIWrapper.h"
 
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
@@ -39,6 +38,7 @@ namespace loadbalancing {
 using walberla::int64_c;
 using walberla::int64_t;
 using walberla::int_c;
+using walberla::real_c;
 using walberla::mpi::MPIRank;
 using namespace walberla::mpistubs;
 
@@ -65,15 +65,15 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
 
    if ( hasGlobalCells )
    {
-      for ( const auto & it : setupStorage.getFaces() )
+      for ( const auto& it : setupStorage.getFaces() )
       {
          setupStorage.setTargetRank( it.first, numProcesses );
       }
-      for ( const auto & it : setupStorage.getEdges() )
+      for ( const auto& it : setupStorage.getEdges() )
       {
          setupStorage.setTargetRank( it.first, numProcesses );
       }
-      for ( const auto & it : setupStorage.getVertices() )
+      for ( const auto& it : setupStorage.getVertices() )
       {
          setupStorage.setTargetRank( it.first, numProcesses );
       }
@@ -81,7 +81,7 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
 
    // We calculate the mapping only on a subset of processes, and then broadcast them to all processes later on.
    std::vector< PrimitiveID::IDType > globalPrimitiveIDs;
-   std::vector< uint_t > globalRanks;
+   std::vector< uint_t >              globalRanks;
 
    if ( inSubCommunicator )
    {
@@ -105,7 +105,7 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
       std::vector< int64_t > part;                 // [out] resulting partition
       MPI_Comm*              parmetisCommunicator; // MPI communicator used by parmetis
 
-      uint_t     numLocalVolumePrimitives  = 0;
+      uint_t numLocalVolumePrimitives = 0;
 
       if ( hasGlobalCells )
       {
@@ -231,13 +231,13 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
 
       for ( const auto& it : globalParmetisIDToLocalPrimitiveIDMap )
       {
-         const PrimitiveID primitiveID = it.second;
+         const PrimitiveID          primitiveID = it.second;
          std::vector< PrimitiveID > neighborIDs;
 
          if ( hasGlobalCells )
          {
             const auto cell = setupStorage.getCell( primitiveID );
-            neighborIDs = cell->getIndirectNeighborCellIDs();
+            neighborIDs     = cell->getIndirectNeighborCellIDs();
             std::set< PrimitiveID > neighborIDsUnique( neighborIDs.begin(), neighborIDs.end() );
             neighborIDs = std::vector< PrimitiveID >( neighborIDsUnique.begin(), neighborIDsUnique.end() );
          }
@@ -245,7 +245,6 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
          {
             WALBERLA_ABORT( "Not implemented for faces." )
          }
-
 
          xadj.push_back( int64_c( adjncy.size() ) );
 
@@ -262,7 +261,7 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
 
             std::set< PrimitiveID > adjVertices;
 
-            const auto primitive = setupStorage.getPrimitive( primitiveID );
+            const auto primitive         = setupStorage.getPrimitive( primitiveID );
             const auto neighborPrimitive = setupStorage.getPrimitive( neighborID );
 
             adjVertices.insert( primitive->neighborVertices().begin(), primitive->neighborVertices().end() );
@@ -352,19 +351,17 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
       // Primitive migration //
       /////////////////////////
 
-
-
       for ( uint_t partIdx = 0; partIdx < part.size(); partIdx++ )
       {
          const int64_t parmetisID  = vtxdist[rank] + int64_c( partIdx );
-         const auto primitiveID = globalParmetisIDToLocalPrimitiveIDMap[int64_c( parmetisID )];
-         const auto targetRank  = part[partIdx];
+         const auto    primitiveID = globalParmetisIDToLocalPrimitiveIDMap[int64_c( parmetisID )];
+         const auto    targetRank  = part[partIdx];
          globalPrimitiveIDs.push_back( primitiveID.getID() );
          globalRanks.push_back( uint_c( targetRank ) );
       }
 
       globalPrimitiveIDs = walberla::mpi::allGatherv( globalPrimitiveIDs, subCommunicator );
-      globalRanks = walberla::mpi::allGatherv( globalRanks, subCommunicator );
+      globalRanks        = walberla::mpi::allGatherv( globalRanks, subCommunicator );
 
       WALBERLA_CHECK_EQUAL( globalPrimitiveIDs.size(), globalRanks.size() );
    }
@@ -392,16 +389,17 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
       for ( auto it : setupStorage.getFaces() )
       {
          std::map< uint_t, uint_t > nbRanks;
-         for ( const auto & nbCell : it.second->neighborCells() )
+         for ( const auto& nbCell : it.second->neighborCells() )
          {
-            nbRanks[ setupStorage.getTargetRank( nbCell ) ] += 1;
+            nbRanks[setupStorage.getTargetRank( nbCell )] += 1;
          }
 
-         auto mostCommonNBRank = std::max_element(
-             nbRanks.begin(), nbRanks.end(),
-             []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ){
-               return a.second < b.second;
-             })->first;
+         auto mostCommonNBRank = std::max_element( nbRanks.begin(),
+                                                   nbRanks.end(),
+                                                   []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ) {
+                                                      return a.second < b.second;
+                                                   } )
+                                     ->first;
 
          setupStorage.setTargetRank( it.first, mostCommonNBRank );
       }
@@ -409,16 +407,17 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
       for ( auto it : setupStorage.getEdges() )
       {
          std::map< uint_t, uint_t > nbRanks;
-         for ( const auto & nbCell : it.second->neighborCells() )
+         for ( const auto& nbCell : it.second->neighborCells() )
          {
-            nbRanks[ setupStorage.getTargetRank( nbCell ) ] += 1;
+            nbRanks[setupStorage.getTargetRank( nbCell )] += 1;
          }
 
-         auto mostCommonNBRank = std::max_element(
-             nbRanks.begin(), nbRanks.end(),
-             []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ){
-                return a.second < b.second;
-             })->first;
+         auto mostCommonNBRank = std::max_element( nbRanks.begin(),
+                                                   nbRanks.end(),
+                                                   []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ) {
+                                                      return a.second < b.second;
+                                                   } )
+                                     ->first;
 
          setupStorage.setTargetRank( it.first, mostCommonNBRank );
       }
@@ -426,16 +425,17 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
       for ( auto it : setupStorage.getVertices() )
       {
          std::map< uint_t, uint_t > nbRanks;
-         for ( const auto & nbCell : it.second->neighborCells() )
+         for ( const auto& nbCell : it.second->neighborCells() )
          {
-            nbRanks[ setupStorage.getTargetRank( nbCell ) ] += 1;
+            nbRanks[setupStorage.getTargetRank( nbCell )] += 1;
          }
 
-         auto mostCommonNBRank = std::max_element(
-             nbRanks.begin(), nbRanks.end(),
-             []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ){
-               return a.second < b.second;
-             })->first;
+         auto mostCommonNBRank = std::max_element( nbRanks.begin(),
+                                                   nbRanks.end(),
+                                                   []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ) {
+                                                      return a.second < b.second;
+                                                   } )
+                                     ->first;
 
          setupStorage.setTargetRank( it.first, mostCommonNBRank );
       }
@@ -446,7 +446,6 @@ void parmetis( SetupPrimitiveStorage& setupStorage, uint_t subCommunicatorSize )
    }
 
    WALBERLA_LOG_DEVEL_ON_ROOT( setupStorage )
-
 }
 
 void parmetis( SetupPrimitiveStorage& setupStorage )
@@ -486,6 +485,521 @@ void roundRobin( SetupPrimitiveStorage& storage, uint_t numRanks )
 void roundRobin( SetupPrimitiveStorage& storage )
 {
    roundRobin( storage, storage.getNumberOfProcesses() );
+}
+
+void greedyVolume( SetupPrimitiveStorage& setupStorage )
+{
+   const bool   hasGlobalCells = setupStorage.getNumberOfCells() > 0;
+   const uint_t numProcesses   = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
+
+   const uint_t numGlobalVolumes       = hasGlobalCells ? setupStorage.getNumberOfCells() : setupStorage.getNumberOfFaces();
+   uint_t       remainingGlobalVolumes = numGlobalVolumes;
+
+   // Set all target ranks to invalid number
+
+   for ( const auto & it : setupStorage.getVertices() )
+   {
+      setupStorage.setTargetRank( it.first, numProcesses );
+   }
+
+   for ( const auto & it : setupStorage.getEdges() )
+   {
+      setupStorage.setTargetRank( it.first, numProcesses );
+   }
+
+   for ( const auto & it : setupStorage.getFaces() )
+   {
+      setupStorage.setTargetRank( it.first, numProcesses );
+   }
+
+   for ( const auto & it : setupStorage.getCells() )
+   {
+      setupStorage.setTargetRank( it.first, numProcesses );
+   }
+
+   const uint_t minFaces       = setupStorage.getNumberOfFaces() / numProcesses;
+   const uint_t minCells       = setupStorage.getNumberOfCells() / numProcesses;
+   const uint_t remainingFaces = setupStorage.getNumberOfFaces() % numProcesses;
+   const uint_t remainingCells = setupStorage.getNumberOfCells() % numProcesses;
+
+   for ( uint_t rank = 0; rank < numProcesses; rank++ )
+   {
+      uint_t maxVolumePrimitives = hasGlobalCells ? minCells : minFaces;
+      if ( hasGlobalCells )
+      {
+         if ( rank < remainingCells )
+         {
+            maxVolumePrimitives++;
+         }
+      }
+      else
+      {
+         if ( rank < remainingFaces )
+         {
+            maxVolumePrimitives++;
+         }
+      }
+
+      std::set< PrimitiveID > domain;
+
+
+      PrimitiveID nextPrimitive;
+
+#if 1
+      // First primitive is random volume primitive from unassigned primitives.
+      if ( hasGlobalCells )
+      {
+         for ( const auto& it : setupStorage.getCells() )
+         {
+            if ( setupStorage.getTargetRank( it.first ) == numProcesses )
+            {
+               nextPrimitive = it.first;
+            }
+         }
+      }
+      else
+      {
+         for ( const auto& it : setupStorage.getFaces() )
+         {
+            if ( setupStorage.getTargetRank( it.first ) == numProcesses )
+            {
+               nextPrimitive = it.first;
+            }
+         }
+      }
+#else
+      // First primitive is volume primitive from unassigned primitives with many already assigned neighbors.
+      real_t largestFractionAssignedNeighbors = -1;
+
+      if ( hasGlobalCells )
+      {
+         for ( const auto& it : setupStorage.getCells() )
+         {
+            if ( setupStorage.getTargetRank( it.first ) == numProcesses )
+            {
+               real_t fractionAssignedNeighbors = 0;
+               for ( const auto & neighborCell : it.second->getIndirectNeighborCellIDs() )
+               {
+                  if ( setupStorage.getTargetRank( neighborCell ) != numProcesses )
+                  {
+                     fractionAssignedNeighbors += 1.0;
+                  }
+               }
+               fractionAssignedNeighbors /= real_c( it.second->getIndirectNeighborCellIDs().size() );
+               
+               if ( fractionAssignedNeighbors > largestFractionAssignedNeighbors )
+               {
+                  largestFractionAssignedNeighbors = fractionAssignedNeighbors;
+                  nextPrimitive = it.first;   
+               }
+            }
+         }
+      }
+      else
+      {
+         for ( const auto& it : setupStorage.getFaces() )
+         {
+            if ( setupStorage.getTargetRank( it.first ) == numProcesses )
+            {
+               real_t fractionAssignedNeighbors = 0;
+               for ( const auto & neighborFace : it.second->getIndirectNeighborFaceIDs() )
+               {
+                  if ( setupStorage.getTargetRank( neighborFace ) != numProcesses )
+                  {
+                     fractionAssignedNeighbors += 1.0;
+                  }
+               }
+               fractionAssignedNeighbors /= real_c( it.second->getIndirectNeighborFaceIDs().size() );
+
+               if ( fractionAssignedNeighbors > largestFractionAssignedNeighbors )
+               {
+                  largestFractionAssignedNeighbors = fractionAssignedNeighbors;
+                  nextPrimitive = it.first;
+               }
+            }
+         }
+      }
+#endif
+
+      bool neighborFound = true;
+
+      while ( neighborFound && domain.size() < maxVolumePrimitives )
+      {
+         neighborFound = false;
+
+         // Add next primitive to own process.
+         domain.insert( nextPrimitive );
+         setupStorage.setTargetRank( nextPrimitive, rank );
+         remainingGlobalVolumes--;
+
+         // Build neighborhood.
+         std::set< PrimitiveID > neighborhood;
+         for ( const auto& itDomain : domain )
+         {
+            const auto neighborVolumes = hasGlobalCells ? setupStorage.getCell( itDomain )->getIndirectNeighborCellIDs() :
+                                                          setupStorage.getFace( itDomain )->getIndirectNeighborFaceIDs();
+            for ( const auto& itNeighborhood : neighborVolumes )
+            {
+               if ( setupStorage.getTargetRank( itNeighborhood ) == numProcesses )
+               {
+                  neighborhood.insert( itNeighborhood );
+               }
+            }
+         }
+
+         // Choose next primitive by heuristic:
+         // 1. Go through neighborhood (that is not yet owned).
+         // 2. Check how many faces, edges, and vertices the next primitives share with current domain.
+         // 3. If none share a face (edge in 2D), go to next rank
+         // 4. Choose neighbor that
+         //    a) shares most faces
+         //    b) has least unassigned neighbor cells (check only over faces)
+         //       (helps to eliminate single, unassigned cells distributed over the domain)
+         //    c) shares most edges
+         //    d) shares most vertices
+         //    e) random
+
+         uint_t sharedFaces               = 0;
+         uint_t sharedEdges               = 0;
+         uint_t sharedVertices            = 0;
+         uint_t unassignedNeighborVolumes = std::numeric_limits< uint_t >::max();
+
+         for ( const auto& itNeighborhood : neighborhood )
+         {
+            uint_t candidateSharedFaces               = 0;
+            uint_t candidateSharedEdges               = 0;
+            uint_t candidateSharedVertices            = 0;
+            uint_t candidateUnassignedNeighborVolumes = 0;
+
+            const auto candidate = setupStorage.getPrimitive( itNeighborhood );
+
+            if ( hasGlobalCells )
+            {
+               for ( const auto& it : candidate->neighborFaces() )
+               {
+                  const auto face            = setupStorage.getFace( it );
+                  const auto neighborVolumes = hasGlobalCells ? face->neighborCells() : face->neighborFaces();
+                  for ( const auto& itt : neighborVolumes )
+                  {
+                     if ( itt != candidate->getID() && setupStorage.getTargetRank( itt ) == rank )
+                     {
+                        candidateSharedFaces++;
+                     }
+                     else if ( hasGlobalCells && itt != candidate->getID() && setupStorage.getTargetRank( itt ) == numProcesses )
+                     {
+                        candidateUnassignedNeighborVolumes++;
+                     }
+                  }
+               }
+            }
+
+            for ( const auto& it : candidate->neighborEdges() )
+            {
+               const auto edge            = setupStorage.getEdge( it );
+               const auto neighborVolumes = hasGlobalCells ? edge->neighborCells() : edge->neighborFaces();
+
+               for ( const auto& itt : neighborVolumes )
+               {
+                  if ( itt != candidate->getID() && setupStorage.getTargetRank( itt ) == rank )
+                  {
+                     candidateSharedEdges++;
+                  }
+                  else if ( !hasGlobalCells && itt != candidate->getID() && setupStorage.getTargetRank( itt ) == numProcesses )
+                  {
+                     candidateUnassignedNeighborVolumes++;
+                  }
+               }
+            }
+
+            for ( const auto& it : candidate->neighborVertices() )
+            {
+               const auto vertex          = setupStorage.getVertex( it );
+               const auto neighborVolumes = hasGlobalCells ? vertex->neighborCells() : vertex->neighborFaces();
+               for ( const auto& itt : neighborVolumes )
+               {
+                  if ( itt != candidate->getID() && setupStorage.getTargetRank( itt ) == rank )
+                  {
+                     candidateSharedVertices++;
+                  }
+               }
+            }
+
+            if ( hasGlobalCells && ( candidateSharedFaces > 0 || candidateSharedEdges > 0 || candidateSharedVertices > 0 ) )
+            {
+               neighborFound = true;
+            }
+
+            if ( !hasGlobalCells && ( candidateSharedEdges > 0 || candidateSharedVertices > 0 ) )
+            {
+               neighborFound = true;
+            }
+
+            if ( hasGlobalCells )
+            {
+               if ( candidateSharedFaces > sharedFaces )
+               {
+                  nextPrimitive             = candidate->getID();
+                  sharedFaces               = candidateSharedFaces;
+                  sharedEdges               = candidateSharedEdges;
+                  sharedVertices            = candidateSharedVertices;
+                  unassignedNeighborVolumes = candidateUnassignedNeighborVolumes;
+                  continue;
+               }
+               else if ( candidateSharedFaces < sharedFaces )
+               {
+                  continue;
+               }
+            }
+
+            if ( candidateSharedEdges > sharedEdges )
+            {
+               nextPrimitive             = candidate->getID();
+               sharedFaces               = candidateSharedFaces;
+               sharedEdges               = candidateSharedEdges;
+               sharedVertices            = candidateSharedVertices;
+               unassignedNeighborVolumes = candidateUnassignedNeighborVolumes;
+               continue;
+            }
+            else if ( candidateSharedEdges < sharedEdges )
+            {
+               continue;
+            }
+
+            if ( candidateUnassignedNeighborVolumes < unassignedNeighborVolumes )
+            {
+               nextPrimitive             = candidate->getID();
+               sharedFaces               = candidateSharedFaces;
+               sharedEdges               = candidateSharedEdges;
+               sharedVertices            = candidateSharedVertices;
+               unassignedNeighborVolumes = candidateUnassignedNeighborVolumes;
+               continue;
+            }
+            else if ( candidateUnassignedNeighborVolumes > unassignedNeighborVolumes )
+            {
+               continue;
+            }
+
+            if ( candidateSharedVertices > sharedVertices )
+            {
+               nextPrimitive             = candidate->getID();
+               sharedFaces               = candidateSharedFaces;
+               sharedEdges               = candidateSharedEdges;
+               sharedVertices            = candidateSharedVertices;
+               unassignedNeighborVolumes = candidateUnassignedNeighborVolumes;
+               continue;
+            }
+            else if ( candidateSharedVertices < sharedVertices )
+            {
+               continue;
+            }
+         }
+      }
+   }
+
+   // There are in general unassigned volume primitives left now.
+   // Let's assign them to neighbor domains that they are "closest" to.
+
+   while ( remainingGlobalVolumes > 0 )
+   {
+      if ( hasGlobalCells )
+      {
+         for ( const auto& remainingCell : setupStorage.getCells() )
+         {
+            if ( setupStorage.getTargetRank( remainingCell.first ) != numProcesses )
+            {
+               continue;
+            }
+
+            // Shortcut, decide only by face neighbors.
+
+            std::map< uint_t, uint_t > nbRankCount; // rank -> count
+
+            for ( const auto& neighborFaceIt : remainingCell.second->neighborFaces() )
+            {
+               const auto neighborFace = setupStorage.getFace( neighborFaceIt );
+               for ( const auto& neighborCellIt : neighborFace->neighborCells() )
+               {
+                  if ( neighborCellIt != remainingCell.first )
+                  {
+                     const auto ncellrank = setupStorage.getTargetRank( neighborCellIt );
+                     if ( ncellrank != numProcesses )
+                     {
+                        nbRankCount[ncellrank]++;
+                     }
+                  }
+               }
+            }
+
+            if ( nbRankCount.empty() )
+            {
+               continue;
+            }
+
+            auto mostCommonNBRank = std::max_element( nbRankCount.begin(),
+                                                      nbRankCount.end(),
+                                                      []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ) {
+                                                         return a.second < b.second;
+                                                      } )
+                                        ->first;
+
+            setupStorage.setTargetRank( remainingCell.first, mostCommonNBRank );
+            remainingGlobalVolumes--;
+            if ( remainingGlobalVolumes == 0 )
+            {
+               break;
+            }
+         }
+      }
+      else
+      {
+         for ( const auto& remainingFace : setupStorage.getFaces() )
+         {
+            if ( setupStorage.getTargetRank( remainingFace.first ) != numProcesses )
+            {
+               continue;
+            }
+
+            // Shortcut, decide only by edge neighbors.
+
+            std::map< uint_t, uint_t > nbRankCount; // rank -> count
+
+            for ( const auto& neighborEdgeIt : remainingFace.second->neighborEdges() )
+            {
+               const auto neighborEdge = setupStorage.getEdge( neighborEdgeIt );
+               for ( const auto& neighborFaceIt : neighborEdge->neighborFaces() )
+               {
+                  if ( neighborFaceIt != remainingFace.first )
+                  {
+                     const auto nfacerank = setupStorage.getTargetRank( neighborFaceIt );
+                     if ( nfacerank != numProcesses )
+                     {
+                        nbRankCount[nfacerank]++;
+                     }
+                  }
+               }
+            }
+
+            if ( nbRankCount.empty() )
+            {
+               continue;
+            }
+
+            auto mostCommonNBRank = std::max_element( nbRankCount.begin(),
+                                                      nbRankCount.end(),
+                                                      []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ) {
+                                                         return a.second < b.second;
+                                                      } )
+                                        ->first;
+
+            setupStorage.setTargetRank( remainingFace.first, mostCommonNBRank );
+            remainingGlobalVolumes--;
+            if ( remainingGlobalVolumes == 0 )
+            {
+               break;
+            }
+         }
+      }
+   }
+
+   // TODO: diffusion
+
+   // Finally, we set the ranks of the lower dimensional primitives
+   // depending on the ranks of the neighboring volume-primitives.
+
+   if ( hasGlobalCells )
+   {
+      for ( auto it : setupStorage.getFaces() )
+      {
+         std::map< uint_t, uint_t > nbRanks;
+         for ( const auto& nbCell : it.second->neighborCells() )
+         {
+            nbRanks[setupStorage.getTargetRank( nbCell )] += 1;
+         }
+
+         auto mostCommonNBRank = std::max_element( nbRanks.begin(),
+                                                   nbRanks.end(),
+                                                   []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ) {
+                                                      return a.second < b.second;
+                                                   } )
+                                     ->first;
+
+         setupStorage.setTargetRank( it.first, mostCommonNBRank );
+      }
+
+      for ( auto it : setupStorage.getEdges() )
+      {
+         std::map< uint_t, uint_t > nbRanks;
+         for ( const auto& nbCell : it.second->neighborCells() )
+         {
+            nbRanks[setupStorage.getTargetRank( nbCell )] += 1;
+         }
+
+         auto mostCommonNBRank = std::max_element( nbRanks.begin(),
+                                                   nbRanks.end(),
+                                                   []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ) {
+                                                      return a.second < b.second;
+                                                   } )
+                                     ->first;
+
+         setupStorage.setTargetRank( it.first, mostCommonNBRank );
+      }
+
+      for ( auto it : setupStorage.getVertices() )
+      {
+         std::map< uint_t, uint_t > nbRanks;
+         for ( const auto& nbCell : it.second->neighborCells() )
+         {
+            nbRanks[setupStorage.getTargetRank( nbCell )] += 1;
+         }
+
+         auto mostCommonNBRank = std::max_element( nbRanks.begin(),
+                                                   nbRanks.end(),
+                                                   []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ) {
+                                                      return a.second < b.second;
+                                                   } )
+                                     ->first;
+
+         setupStorage.setTargetRank( it.first, mostCommonNBRank );
+      }
+   }
+   else
+   {
+      for ( auto it : setupStorage.getEdges() )
+      {
+         std::map< uint_t, uint_t > nbRanks;
+         for ( const auto& nbFace : it.second->neighborFaces() )
+         {
+            nbRanks[setupStorage.getTargetRank( nbFace )] += 1;
+         }
+
+         auto mostCommonNBRank = std::max_element( nbRanks.begin(),
+                                                   nbRanks.end(),
+                                                   []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ) {
+                                                      return a.second < b.second;
+                                                   } )
+                                     ->first;
+
+         setupStorage.setTargetRank( it.first, mostCommonNBRank );
+      }
+
+      for ( auto it : setupStorage.getVertices() )
+      {
+         std::map< uint_t, uint_t > nbRanks;
+         for ( const auto& nbFace : it.second->neighborFaces() )
+         {
+            nbRanks[setupStorage.getTargetRank( nbFace )] += 1;
+         }
+
+         auto mostCommonNBRank = std::max_element( nbRanks.begin(),
+                                                   nbRanks.end(),
+                                                   []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ) {
+                                                      return a.second < b.second;
+                                                   } )
+                                     ->first;
+
+         setupStorage.setTargetRank( it.first, mostCommonNBRank );
+      }
+   }
 }
 
 void greedy( SetupPrimitiveStorage& storage )

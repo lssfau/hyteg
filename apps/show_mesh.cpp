@@ -65,7 +65,7 @@ void showUsage()
              << " Then it will be exported to a VTU file for visualisation.\n\n"
              << " Also visualization of the domain partitioning, mesh boundary flags and MPI rank assignment will be output.\n"
              << " The desired load balancing approach can be steered by:\n\n"
-             << "  --load-balancing [allroot|roundrobin|greedy|parmetis] (default: roundrobin)\n\n"
+             << "  --load-balancing [allroot|roundrobin|greedy|parmetis|greedyvolume] (default: roundrobin)\n\n"
              << " Use  -v  to print info on mesh to console.\n\n"
              << std::endl;
 }
@@ -102,7 +102,8 @@ int main( int argc, char* argv[] )
       ALL_ROOT,
       ROUND_ROBIN,
       GREEDY,
-      PARMETIS
+      PARMETIS,
+      GREEDY_VOLUME
    } LoadBalancingType;
    LoadBalancingType loadBalancingType = ROUND_ROBIN;
 
@@ -202,6 +203,9 @@ int main( int argc, char* argv[] )
       } else if( strcmp( argv[4], "greedy" ) == 0 )
       {
          loadBalancingType = GREEDY;
+      } else if( strcmp( argv[4], "greedyvolume" ) == 0 )
+      {
+         loadBalancingType = GREEDY_VOLUME;
       } else if( strcmp( argv[4], "parmetis" ) == 0 )
       {
 #ifdef WALBERLA_BUILD_WITH_PARMETIS
@@ -344,6 +348,10 @@ int main( int argc, char* argv[] )
    case GREEDY:
       WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: greedy" );
       hyteg::loadbalancing::greedy( *setupStorage );
+      break;
+   case GREEDY_VOLUME:
+      WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: greedy volume" );
+      hyteg::loadbalancing::greedyVolume( *setupStorage );
       break;
    default:
       break;
