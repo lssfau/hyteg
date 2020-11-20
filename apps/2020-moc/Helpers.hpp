@@ -20,7 +20,9 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cmath>
+
 #include <core/Environment.h>
 #include <core/math/Constants.h>
 
@@ -66,6 +68,16 @@
 
 namespace hyteg {
 namespace moc_benchmarks {
+
+struct LoadBalancingOptions
+{
+   // 0: no balancing
+   // 1: cut into equal parts in x-direction
+   uint_t type = 0;
+
+   // for LB type 1
+   real_t partSizeX = 1.0;
+};
 
 /// Calculates and returns
 ///
@@ -166,8 +178,7 @@ void solve( MeshInfo&               meshInfo,
             uint_t                  resetParticlesInterval,
             bool                    adjustedAdvection,
             uint_t                  numTimeSteps,
-            bool                    parmetis,
-            uint_t                  parmetisNumProcesses,
+            LoadBalancingOptions    lbOptions,
             bool                    vtk,
             bool                    vtkOutputVelocity,
             const std::string&      benchmarkName,

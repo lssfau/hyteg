@@ -138,9 +138,9 @@ void benchmark( int argc, char** argv )
    const uint_t      lengthCubes            = mainConf.getParameter< uint_t >( "lengthCubes" );
    const real_t      dt                     = mainConf.getParameter< real_t >( "timeStepSize" );
 
-   const bool        parmetis                    = mainConf.getParameter< bool >( "parmetis" );
-   const uint_t      parmetisNumProcesses            = mainConf.getParameter< uint_t >( "parmetisNumProcesses" );
-
+   LoadBalancingOptions lbOptions;
+   lbOptions.type = mainConf.getParameter< uint_t >( "lbType" );
+   lbOptions.partSizeX = mainConf.getParameter< real_t >( "lbPartXSize" );
 
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
 
@@ -159,8 +159,8 @@ void benchmark( int argc, char** argv )
 
    WALBERLA_LOG_INFO_ON_ROOT( " - length in cubes (x):      " << lengthCubes );
    WALBERLA_LOG_INFO_ON_ROOT( " - diameter in cubes (y, z): " << diameterCubes );
-   WALBERLA_LOG_INFO_ON_ROOT( " - parmetis:                 " << parmetis );
-   WALBERLA_LOG_INFO_ON_ROOT( " - parmetis num processes:   " << parmetisNumProcesses );
+   WALBERLA_LOG_INFO_ON_ROOT( " - LB type:                  " << lbOptions.type );
+   WALBERLA_LOG_INFO_ON_ROOT( " - LB part x size:           " << lbOptions.partSizeX );
 
    solve( meshInfo,
           false,
@@ -178,8 +178,7 @@ void benchmark( int argc, char** argv )
           resetParticlesInterval,
           adjustedAdvection,
           numTimeSteps,
-          parmetis,
-          parmetisNumProcesses,
+          lbOptions,
           vtk,
           true,
           "Benchmark_05_PipeScaling",

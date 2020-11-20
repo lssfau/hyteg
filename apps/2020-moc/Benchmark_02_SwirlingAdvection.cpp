@@ -275,6 +275,9 @@ void benchmark( int argc, char** argv )
    const bool        setTimeStepSizeManually = mainConf.getParameter< bool >( "setTimeStepSizeManually" );
    const real_t      manualDT                = mainConf.getParameter< real_t >( "manualTimeStepSize" );
 
+   LoadBalancingOptions lbOptions;
+   lbOptions.type = 0;
+
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
    if ( threeDim )
    {
@@ -321,8 +324,7 @@ void benchmark( int argc, char** argv )
              resetParticlesInterval,
              adjustedAdvection,
              numTimeSteps,
-             false,
-             1,
+             lbOptions,
              vtk,
              true,
              "Benchmark_02_SwirlingAdvection",
@@ -349,8 +351,7 @@ void benchmark( int argc, char** argv )
              resetParticlesInterval,
              adjustedAdvection,
              numTimeSteps,
-             false,
-             1,
+             lbOptions,
              vtk,
              true,
              "Benchmark_02_SwirlingAdvection",

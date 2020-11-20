@@ -1,6 +1,6 @@
 Parameters
 {
-  level 4;
+  level 2;
   numTimeSteps 10;
   timeStepSize 0.01;
 
@@ -12,9 +12,9 @@ Parameters
   vtkInterval 1;
   dbFile Benchmark_05_PipeScaling.db;
 
-  diameterCubes 1;
-  lengthCubes 8;
+  diameterCubes 3;
+  lengthCubes 12;
 
-  parmetis false;
-  parmetisNumProcesses 1;
+  lbType 1;
+  lbPartXSize 1.0;
 }

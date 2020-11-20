@@ -59,8 +59,7 @@ void solve( MeshInfo&               meshInfo,
             uint_t                  resetParticlesInterval,
             bool                    adjustedAdvection,
             uint_t                  numTimeSteps,
-            bool                    parmetis,
-            uint_t                  parmetisNumProcesses,
+            LoadBalancingOptions    lbOptions,
             bool                    vtk,
             bool                    vtkOutputVelocity,
             const std::string&      benchmarkName,
@@ -85,13 +84,99 @@ void solve( MeshInfo&               meshInfo,
       auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
           meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-      if ( parmetis )
+      if ( lbOptions.type == 1 )
       {
-         loadbalancing::parmetis( *setupStorage, parmetisNumProcesses );
-      }
-      else
-      {
-         loadbalancing::greedyVolume( *setupStorage );
+         real_t eps = -1e-3;
+
+         for ( const auto & it : setupStorage->getVertices() )
+         {
+            const auto maxXCoord = it.second->getCoordinates()[0];
+
+            // round off
+            auto targetRank = int_c( ( maxXCoord + eps ) / lbOptions.partSizeX );
+            if ( targetRank < 0 )
+            {
+               targetRank = 0;
+            }
+            if ( targetRank >= walberla::mpi::MPIManager::instance()->numProcesses() )
+            {
+               targetRank = walberla::mpi::MPIManager::instance()->numProcesses() - 1;
+            }
+
+            setupStorage->setTargetRank( it.first, uint_c( targetRank ) );
+         }
+
+         for ( const auto & it : setupStorage->getEdges() )
+         {
+            // collect x-coords of all vertices
+            std::vector< real_t > xCoords;
+            for ( const auto & v : it.second->neighborVertices() )
+            {
+               xCoords.push_back( setupStorage->getVertex( v )->getCoordinates()[0] );
+            }
+            const auto maxXCoord = *std::max_element( xCoords.begin(), xCoords.end() );
+
+            // round off
+            auto targetRank = int_c( ( maxXCoord + eps ) / lbOptions.partSizeX );
+            if ( targetRank < 0 )
+            {
+               targetRank = 0;
+            }
+            if ( targetRank >= walberla::mpi::MPIManager::instance()->numProcesses() )
+            {
+               targetRank = walberla::mpi::MPIManager::instance()->numProcesses() - 1;
+            }
+
+            setupStorage->setTargetRank( it.first, uint_c( targetRank ) );
+         }
+
+         for ( const auto & it : setupStorage->getFaces() )
+         {
+            // collect x-coords of all vertices
+            std::vector< real_t > xCoords;
+            for ( const auto & v : it.second->neighborVertices() )
+            {
+               xCoords.push_back( setupStorage->getVertex( v )->getCoordinates()[0] );
+            }
+            const auto maxXCoord = *std::max_element( xCoords.begin(), xCoords.end() );
+
+            // round off
+            auto targetRank = int_c( ( maxXCoord + eps ) / lbOptions.partSizeX );
+            if ( targetRank < 0 )
+            {
+               targetRank = 0;
+            }
+            if ( targetRank >= walberla::mpi::MPIManager::instance()->numProcesses() )
+            {
+               targetRank = walberla::mpi::MPIManager::instance()->numProcesses() - 1;
+            }
+
+            setupStorage->setTargetRank( it.first, uint_c( targetRank ) );
+         }
+
+         for ( const auto & it : setupStorage->getCells() )
+         {
+            // collect x-coords of all vertices
+            std::vector< real_t > xCoords;
+            for ( const auto & v : it.second->neighborVertices() )
+            {
+               xCoords.push_back( setupStorage->getVertex( v )->getCoordinates()[0] );
+            }
+            const auto maxXCoord = *std::max_element( xCoords.begin(), xCoords.end() );
+
+            // round off
+            auto targetRank = int_c( ( maxXCoord + eps ) / lbOptions.partSizeX );
+            if ( targetRank < 0 )
+            {
+               targetRank = 0;
+            }
+            if ( targetRank >= walberla::mpi::MPIManager::instance()->numProcesses() )
+            {
+               targetRank = walberla::mpi::MPIManager::instance()->numProcesses() - 1;
+            }
+
+            setupStorage->setTargetRank( it.first, uint_c( targetRank ) );
+         }
       }
 
       setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
