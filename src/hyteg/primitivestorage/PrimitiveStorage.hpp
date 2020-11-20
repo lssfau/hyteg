@@ -360,8 +360,8 @@ class PrimitiveStorage : private walberla::NonCopyable
    /// Should not be called for other primitives.
    uint_t getNeighborPrimitiveRank( const PrimitiveID& id ) const
    {
-      WALBERLA_ASSERT( primitiveExistsInNeighborhood( id ) );
-      WALBERLA_ASSERT_GREATER( neighborRanks_.count( id.getID() ), 0 )
+      WALBERLA_ASSERT( primitiveExistsInNeighborhood( id ), "Primitive with ID " << id << " does not exist in neighborhood." );
+      WALBERLA_ASSERT_GREATER( neighborRanks_.count( id.getID() ), 0, "Primitive with ID " << id << " could not be found in neighbor ranks." )
       return neighborRanks_.at( id.getID() );
    }
 
