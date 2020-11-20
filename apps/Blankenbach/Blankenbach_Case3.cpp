@@ -289,7 +289,7 @@ void runBenchmark( real_t      cflMax,
    const bool        outputTimingJSON = true;
 
    auto setupStorage = createSetupStorage( nx );
-   auto storage      = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
+   auto storage      = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
 
    if ( vtk )
    {

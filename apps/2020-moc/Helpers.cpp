@@ -192,7 +192,7 @@ void solve( MeshInfo&               meshInfo,
          }
       }
 
-      storage = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
+      storage = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
       meshInfo.clear();
    }
 

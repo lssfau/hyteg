@@ -149,7 +149,7 @@ void simulate( int argc, char* argv[] )
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
-   std::shared_ptr< PrimitiveStorage >       storage = std::make_shared< PrimitiveStorage >( *setupStorage, timingTree, 3 );
+   std::shared_ptr< PrimitiveStorage >       storage = std::make_shared< PrimitiveStorage >( *setupStorage, timingTree, 1 );
 
    storage->getTimingTree()->start( "Total" );
 

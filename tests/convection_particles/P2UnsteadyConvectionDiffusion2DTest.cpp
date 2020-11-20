@@ -118,7 +118,7 @@ void runTest( uint_t maxLevel, uint_t steps, uint_t timeSteppingScheme, real_t d
    MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( Point2D( {-1, -1} ), Point2D( {5, 1} ), MeshInfo::CRISS, 6, 1 );
    auto     setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage, 3 );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage, 1 );
 
    storage->getTimingTree()->start( "Entire test" );
 

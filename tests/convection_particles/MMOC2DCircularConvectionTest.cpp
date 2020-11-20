@@ -111,7 +111,7 @@ int main( int argc, char* argv[] )
 
    MeshInfo meshInfo = hyteg::MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, 1, 1 );
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   auto storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage, 3 );
+   auto storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage, 1 );
 
    storage->getTimingTree()->start( "Total" );
 

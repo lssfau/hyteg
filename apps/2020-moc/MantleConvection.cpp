@@ -298,7 +298,7 @@ void runBenchmark( real_t      cflMax,
       WALBERLA_LOG_INFO_ON_ROOT( "Building distributed storage ..." );
    }
 
-   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
+   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
 
    if ( vtk )
    {

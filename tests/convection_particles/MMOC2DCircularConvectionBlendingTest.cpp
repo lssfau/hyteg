@@ -100,7 +100,7 @@ int main( int argc, char* argv[] )
       setupStorage->setGeometryMap( edge.getID(), std::make_shared< AnnulusMap >( edge, *setupStorage ) );
    }
 
-   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
+   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
 
    storage->getTimingTree()->start( "Total" );
 

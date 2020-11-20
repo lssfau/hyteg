@@ -171,7 +171,7 @@ void runSimulation( int argc, char** argv )
    // Domain
 
    auto setupStorage = buildSetupStorage( rMin, rMax, nTan, nRad );
-   auto storage      = std::make_shared< PrimitiveStorage >( *setupStorage, 3 );
+   auto storage      = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
 
    storage->getTimingTree()->start( "Total" );
 

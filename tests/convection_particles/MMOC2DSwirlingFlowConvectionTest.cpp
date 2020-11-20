@@ -206,7 +206,7 @@ int main( int argc, char* argv[] )
    SwirlVelocityX vel_x( steps );
    SwirlVelocityY vel_y( steps );
 
-   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage, 3 );
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage, 1 );
 
    writeDomainPartitioningVTK( storage, "../../output", "MMOC2DSwirlingFlowConvectionTest_Domain" );
 

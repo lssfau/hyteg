@@ -926,9 +926,9 @@ class MMOCTransport
    , numberOfCreatedParticles_( 0 )
    , particleStorage_( 10000 )
    {
-      WALBERLA_CHECK_GREATER_EQUAL( storage->getAdditionalHaloDepth(), 3, "For the particle transport implementation, "
+      WALBERLA_CHECK_GREATER_EQUAL( storage->getAdditionalHaloDepth(), 1, "For the particle transport implementation, "
                                                                           "the additional halo depth of the PrimitiveStorage "
-                                                                          "must at least be set to 3." )
+                                                                          "must at least be set to 1." )
       particleLocationRadius_ = 0.1 * MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    }
 
