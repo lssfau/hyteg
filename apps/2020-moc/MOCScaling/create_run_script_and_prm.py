@@ -64,6 +64,7 @@ if __name__ == '__main__':
     parser.add_argument('--length_cubes', help='number of cubes in x direction', type=int, required=True)
     parser.add_argument('--num_time_steps', default=10, help='number of time steps', type=int )
 
+    parser.add_argument('--lb_type', default=0, help='load balancing algorithm', type=int )
     parser.add_argument('--lb_part_x_size', default=1.0, help='load balancing x cube size', type=float )
 
     args = parser.parse_args()
