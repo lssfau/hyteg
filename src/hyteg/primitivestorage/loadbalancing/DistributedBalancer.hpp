@@ -76,6 +76,9 @@ MigrationInfo reverseDistribution( const MigrationInfo & originalMigrationInfo, 
 /// \param originalMigrationInfo the MigrationInfo that was calculated by the previous algorithm
 MigrationInfo reverseDistributionDry( const MigrationInfo & originalMigrationInfo );
 
+void diffusiveSmooth( PrimitiveStorage& storage, uint_t outerIterations, uint_t smoothingIterations );
+
+
 }
 }
 }

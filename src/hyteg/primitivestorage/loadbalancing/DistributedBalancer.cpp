@@ -21,6 +21,7 @@
 #include "hyteg/primitivestorage/loadbalancing/DistributedBalancer.hpp"
 
 #include <algorithm>
+#include <queue>
 
 #include "core/DataTypes.h"
 #include "core/debug/CheckFunctions.h"
@@ -31,11 +32,16 @@
 #include "core/mpi/MPIWrapper.h"
 
 #include "hyteg/communication/PackageBufferSystem.hpp"
+#include "hyteg/primitives/Cell.hpp"
+#include "hyteg/primitives/Edge.hpp"
+#include "hyteg/primitives/Face.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
 
 namespace hyteg {
 namespace loadbalancing {
 namespace distributed {
 
+using walberla::double_c;
 using walberla::int64_c;
 using walberla::int64_t;
 using walberla::int_c;
@@ -406,6 +412,254 @@ MigrationInfo reverseDistributionDry( const MigrationInfo& originalMigrationInfo
    MigrationInfo migrationInfo( migrationMap, numReceivingPrimitivesInverseMapping );
 
    return migrationInfo;
+}
+
+void diffusiveSmooth( PrimitiveStorage& storage, uint_t outerIterations, uint_t smoothingIterations )
+{
+#define VISUALIZE_OUTER_ITERATIONS 1
+#if VISUALIZE_OUTER_ITERATIONS
+   writeDomainPartitioningVTK( storage, "/tmp/", walberla::format( "test_diffusion_%04d", 0 ) );
+#endif
+
+   const auto ownRank = walberla::mpi::MPIManager::instance()->rank();
+   const auto comm    = walberla::mpi::MPIManager::instance()->comm();
+
+   for ( uint_t outerIteration = 0; outerIteration < outerIterations; outerIteration++ )
+   {
+      uint_t numLocalVolumes = storage.getNumberOfLocalFaces();
+
+      // Find all clusters.
+
+      std::map< uint_t, std::set< PrimitiveID > > clusters;
+      uint_t                                      currentClusterID   = 0;
+      uint_t                                      assignedPrimitives = 0;
+
+      while ( assignedPrimitives < numLocalVolumes )
+      {
+         // Choose any unassigned volume primitive.
+         PrimitiveID unassignedVolume;
+         for ( const auto& pid : storage.getFaceIDs() )
+         {
+            if ( clusters[currentClusterID].count( pid ) == 0 )
+            {
+               unassignedVolume = pid;
+               break;
+            }
+         }
+
+         std::set< PrimitiveID > nextPrimitives;
+         nextPrimitives.insert( unassignedVolume );
+
+         while ( !nextPrimitives.empty() )
+         {
+            auto currentPID = *nextPrimitives.begin();
+            nextPrimitives.erase( currentPID );
+
+            WALBERLA_CHECK( storage.faceExistsLocally( currentPID ) );
+
+            WALBERLA_CHECK_EQUAL( clusters[currentClusterID].count( currentPID ), 0 );
+            clusters[currentClusterID].insert( currentPID );
+            assignedPrimitives++;
+
+            const auto face = storage.getFace( currentPID );
+            for ( const auto& epid : face->neighborEdges() )
+            {
+               const auto edge = storage.getEdge( epid );
+               if ( edge->opposite_face_exists( currentPID ) )
+               {
+                  const auto npid = edge->get_opposite_face( currentPID );
+                  if ( storage.faceExistsLocally( npid ) && clusters[currentClusterID].count( npid ) == 0 )
+                  {
+                     nextPrimitives.insert( npid );
+                  }
+               }
+            }
+         }
+
+         currentClusterID++;
+      }
+
+      // Find largest cluster
+
+      uint_t largestClusterID = 0;
+      for ( const auto& it : clusters )
+      {
+         if ( it.second.size() > clusters[largestClusterID].size() )
+         {
+            largestClusterID = it.first;
+         }
+      }
+
+      const auto cluster = clusters[largestClusterID];
+
+      WALBERLA_CHECK_GREATER( cluster.size(), 0, "Cannot apply diffusive LB if a process is empty." )
+
+      // Init load
+
+      const double INITIAL_LOAD_TOTAL     = 1.0;
+      const double INITIAL_LOAD_PRIMITIVE = INITIAL_LOAD_TOTAL / double_c( cluster.size() );
+
+      std::map< PrimitiveID, std::map< MPIRank, double > > loadSrc;
+      std::map< PrimitiveID, std::map< MPIRank, double > > loadDst;
+
+      for ( const auto& pid : storage.getFaceIDs() )
+      {
+         loadSrc[pid][ownRank] = 0;
+         loadDst[pid][ownRank] = 0;
+      }
+
+      for ( const auto& pid : cluster )
+      {
+         loadSrc[pid][ownRank] = INITIAL_LOAD_PRIMITIVE;
+      }
+
+      for ( uint_t smoothingIteration = 0; smoothingIteration < smoothingIterations; smoothingIteration++ )
+      {
+         // Communicate loads
+
+         walberla::mpi::BufferSystem bs( comm );
+         std::set< MPIRank >         neighborRanks;
+
+         for ( const auto& pid : storage.getFaceIDs() )
+         {
+            const auto face = storage.getFace( pid );
+            for ( const auto& epid : face->neighborEdges() )
+            {
+               if ( storage.getEdge( epid )->opposite_face_exists( pid ) )
+               {
+                  const auto npid  = storage.getEdge( epid )->get_opposite_face( pid );
+                  const auto nrank = (MPIRank) storage.getPrimitiveRank( npid );
+                  for ( const auto& it : loadSrc[pid] )
+                  {
+                     auto loadrank = it.first;
+                     auto load     = it.second;
+                     bs.sendBuffer( nrank ) << pid;
+                     bs.sendBuffer( nrank ) << loadrank;
+                     bs.sendBuffer( nrank ) << load;
+                     neighborRanks.insert( nrank );
+                  }
+               }
+            }
+         }
+
+         bs.setReceiverInfo( neighborRanks, true );
+
+         bs.sendAll();
+
+         for ( auto msg = bs.begin(); msg != bs.end(); ++msg )
+         {
+            while ( !msg.buffer().isEmpty() )
+            {
+               MPIRank     loadrank;
+               PrimitiveID npid;
+               double      npload;
+               msg.buffer() >> npid;
+               msg.buffer() >> loadrank;
+               msg.buffer() >> npload;
+               loadSrc[npid][loadrank] = npload;
+            }
+         }
+
+         // Smooth
+
+         for ( const auto& dstpid : storage.getFaceIDs() )
+         {
+            loadDst[dstpid].clear();
+
+            for ( const auto& it : loadSrc[dstpid] )
+            {
+               const auto rank = it.first;
+               const auto load = it.second;
+               loadDst[dstpid][rank] += 0.25 * load;
+            }
+
+            const auto face = storage.getFace( dstpid );
+            for ( const auto& epid : face->neighborEdges() )
+            {
+               auto srcpid = dstpid;
+               if ( storage.getEdge( epid )->opposite_face_exists( dstpid ) )
+               {
+                  srcpid = storage.getEdge( epid )->get_opposite_face( dstpid );
+               }
+
+               for ( const auto& it : loadSrc[srcpid] )
+               {
+                  const auto rank = it.first;
+                  const auto load = it.second;
+                  loadDst[dstpid][rank] += 0.25 * load;
+               }
+            }
+         }
+
+         loadSrc = loadDst;
+      }
+
+      // Migrate all primitives to rank that has largest load.
+      // If that rank is no neighbor, leave the primitive as is.
+
+      MigrationMap_T             migrationMap;
+      std::map< uint_t, uint_t > numPrimitivesToBeSent;
+      uint_t                     numReceivingPrimitives = 0;
+
+      for ( const auto& pid : storage.getFaceIDs() )
+      {
+         double  maxLoad         = 0;
+         MPIRank rankWithMaxLoad = walberla::mpi::INVALID_RANK;
+
+         for ( const auto& it : loadDst[pid] )
+         {
+            const auto rank = it.first;
+            const auto load = it.second;
+
+            if ( load > maxLoad )
+            {
+               maxLoad         = load;
+               rankWithMaxLoad = rank;
+            }
+         }
+
+         if ( storage.getNeighboringRanks().count( uint_c( rankWithMaxLoad ) ) == 1 )
+         {
+            migrationMap[pid.getID()] = uint_c( rankWithMaxLoad );
+            numPrimitivesToBeSent[uint_c( rankWithMaxLoad )]++;
+         }
+      }
+
+      for ( const auto& it : storage.getPrimitiveIDs() )
+      {
+         if ( migrationMap.count( it.getID() ) == 0 )
+         {
+            migrationMap[it.getID()] = uint_c( ownRank );
+            numPrimitivesToBeSent[uint_c( ownRank )]++;
+         }
+      }
+
+      walberla::mpi::BufferSystem bs( comm );
+      auto                        nranks = storage.getNeighboringRanks();
+      nranks.insert( uint_c( ownRank ) );
+      bs.setReceiverInfo( nranks, true );
+
+      for ( auto rank : nranks )
+      {
+         bs.sendBuffer( rank ) << numPrimitivesToBeSent[rank];
+      }
+
+      bs.sendAll();
+
+      for ( auto msg = bs.begin(); msg != bs.end(); ++msg )
+      {
+         uint_t nprim;
+         msg.buffer() >> nprim;
+         numReceivingPrimitives += nprim;
+      }
+
+      MigrationInfo migrationInfo( migrationMap, numReceivingPrimitives );
+      storage.migratePrimitives( migrationInfo );
+
+#if VISUALIZE_OUTER_ITERATIONS
+      writeDomainPartitioningVTK( storage, "/tmp/", walberla::format( "test_diffusion_%04d", outerIteration + 1 ) );
+#endif
+   }
 }
 
 } // namespace distributed
