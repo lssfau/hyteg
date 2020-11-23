@@ -318,6 +318,95 @@ void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      set
 #endif
 }
 
+void PrimitiveStorage::addDirectNeighborsDistributed()
+{
+   // Let's make it simple: send all local primitives to all neighbor ranks.
+   // Receive from all neighbor ranks all their local primitives and store ranks as well.
+   // Now we could drop information we do not need, but we simply keep it.
+   
+   walberla::mpi::BufferSystem bs( walberla::mpi::MPIManager::instance()->comm() );
+   
+   bs.setReceiverInfo( getNeighboringRanks(), true );
+   
+   for ( auto nbrank : getNeighboringRanks() )
+   {
+      bs.sendBuffer( nbrank ) << getNumberOfLocalVertices(); 
+      for ( const auto & it : getVertices() )
+      {
+         bs.sendBuffer( nbrank ) << it.first;
+         bs.sendBuffer( nbrank ) << *it.second;
+      }
+
+      bs.sendBuffer( nbrank ) << getNumberOfLocalEdges();
+      for ( const auto & it : getEdges() )
+      {
+         bs.sendBuffer( nbrank ) << it.first;
+         bs.sendBuffer( nbrank ) << *it.second;
+      }
+
+      bs.sendBuffer( nbrank ) << getNumberOfLocalFaces();
+      for ( const auto & it : getFaces() )
+      {
+         bs.sendBuffer( nbrank ) << it.first;
+         bs.sendBuffer( nbrank ) << *it.second;
+      }
+
+      bs.sendBuffer( nbrank ) << getNumberOfLocalCells();
+      for ( const auto & it : getCells() )
+      {
+         bs.sendBuffer( nbrank ) << it.first;
+         bs.sendBuffer( nbrank ) << *it.second;
+      }
+   }
+   
+   bs.sendAll();
+   
+   for ( auto msg = bs.begin(); msg != bs.end(); ++msg )
+   {
+      const auto nbrank = msg.rank();
+      
+      uint_t numVertices;
+      msg.buffer() >> numVertices;
+      for ( uint_t i = 0; i < numVertices; i++ )
+      {
+         PrimitiveID::IDType id;
+         msg.buffer() >> id;
+         neighborVertices_[id] = std::make_shared< Vertex >( msg.buffer() );
+         neighborRanks_[id] = uint_c( nbrank );
+      }
+
+      uint_t numEdges;
+      msg.buffer() >> numEdges;
+      for ( uint_t i = 0; i < numEdges; i++ )
+      {
+         PrimitiveID::IDType id;
+         msg.buffer() >> id;
+         neighborEdges_[id] = std::make_shared< Edge >( msg.buffer() );
+         neighborRanks_[id] = uint_c( nbrank );
+      }
+
+      uint_t numFaces;
+      msg.buffer() >> numFaces;
+      for ( uint_t i = 0; i < numFaces; i++ )
+      {
+         PrimitiveID::IDType id;
+         msg.buffer() >> id;
+         neighborFaces_[id] = std::make_shared< Face >( msg.buffer() );
+         neighborRanks_[id] = uint_c( nbrank );
+      }
+
+      uint_t numCells;
+      msg.buffer() >> numCells;
+      for ( uint_t i = 0; i < numCells; i++ )
+      {
+         PrimitiveID::IDType id;
+         msg.buffer() >> id;
+         neighborCells_[id] = std::make_shared< Cell >( msg.buffer() );
+         neighborRanks_[id] = uint_c( nbrank );
+      }
+   }
+}
+
 PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const uint_t& additionalHaloDepth )
 : PrimitiveStorage( setupStorage, std::make_shared< walberla::WcTimingTree >(), additionalHaloDepth )
 {}
@@ -1118,6 +1207,11 @@ void PrimitiveStorage::migratePrimitives( const MigrationInfo& migrationInfo )
       // Neighborhood rank update: step 5b)
       WALBERLA_CHECK_GREATER( neighborhoodPrimitiveToFutureRankMap.count( np.getID() ), 0 );
       neighborRanks_[np.getID()] = neighborhoodPrimitiveToFutureRankMap[np.getID()];
+   }
+
+   for ( uint_t i = 0; i < additionalHaloDepth_; i++ )
+   {
+      addDirectNeighborsDistributed();
    }
 
    splitCommunicatorByPrimitiveDistribution();

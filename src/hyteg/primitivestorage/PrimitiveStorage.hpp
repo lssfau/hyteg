@@ -507,6 +507,9 @@ class PrimitiveStorage : private walberla::NonCopyable
                             const std::vector< PrimitiveID >& faces,
                             const std::vector< PrimitiveID >& cells );
 
+   /// Calling this function several times allows us to enlarge our geometric halos.
+   void addDirectNeighborsDistributed();
+
    // needed to differentiate when migrating primitives
    enum PrimitiveTypeEnum
    {
