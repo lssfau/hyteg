@@ -43,10 +43,14 @@ class FixedSizeSQLDB
    /// \param allowOverwritingValues if false, values can only be set once per row, guards a little more against accidentally
    ///                               overwriting values
    FixedSizeSQLDB( std::string dbFile, bool allowOverwritingValues = false )
-   : db_( dbFile )
-   , columnsFixed_( false )
+   : columnsFixed_( false )
    , allowOverwritingValues_( allowOverwritingValues )
-   {}
+   {
+      WALBERLA_ROOT_SECTION()
+      {
+         db_ = std::make_shared< walberla::sqlite::SQLiteDB >( dbFile );
+      }
+   }
 
    /// \brief Adds a constant entry to the database, meaning, this entry is inserted into all rows of following write calls and
    ///        cannot be changed.
@@ -112,7 +116,7 @@ class FixedSizeSQLDB
       m[key] = value;
    }
 
-   walberla::sqlite::SQLiteDB db_;
+   std::shared_ptr< walberla::sqlite::SQLiteDB > db_;
    bool                       columnsFixed_;
    bool                       allowOverwritingValues_;
 

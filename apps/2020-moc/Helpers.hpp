@@ -64,19 +64,16 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
-#include "sqlite/SQLite.h"
+#include "hyteg/dataexport/SQL.hpp"
 
 namespace hyteg {
 namespace moc_benchmarks {
 
 struct LoadBalancingOptions
 {
-   // 0: no balancing
-   // 1: cut into equal parts in x-direction
+   // 0: round robin
+   // 1: greedy
    uint_t type = 0;
-
-   // for LB type 1
-   real_t partSizeX = 1.0;
 };
 
 /// Calculates and returns

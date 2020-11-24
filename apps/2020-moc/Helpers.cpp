@@ -86,97 +86,7 @@ void solve( MeshInfo&               meshInfo,
 
       if ( lbOptions.type == 1 )
       {
-         real_t eps = -1e-3;
-
-         for ( const auto & it : setupStorage->getVertices() )
-         {
-            const auto maxXCoord = it.second->getCoordinates()[0];
-
-            // round off
-            auto targetRank = int_c( ( maxXCoord + eps ) / lbOptions.partSizeX );
-            if ( targetRank < 0 )
-            {
-               targetRank = 0;
-            }
-            if ( targetRank >= walberla::mpi::MPIManager::instance()->numProcesses() )
-            {
-               targetRank = walberla::mpi::MPIManager::instance()->numProcesses() - 1;
-            }
-
-            setupStorage->setTargetRank( it.first, uint_c( targetRank ) );
-         }
-
-         for ( const auto & it : setupStorage->getEdges() )
-         {
-            // collect x-coords of all vertices
-            std::vector< real_t > xCoords;
-            for ( const auto & v : it.second->neighborVertices() )
-            {
-               xCoords.push_back( setupStorage->getVertex( v )->getCoordinates()[0] );
-            }
-            const auto maxXCoord = *std::max_element( xCoords.begin(), xCoords.end() );
-
-            // round off
-            auto targetRank = int_c( ( maxXCoord + eps ) / lbOptions.partSizeX );
-            if ( targetRank < 0 )
-            {
-               targetRank = 0;
-            }
-            if ( targetRank >= walberla::mpi::MPIManager::instance()->numProcesses() )
-            {
-               targetRank = walberla::mpi::MPIManager::instance()->numProcesses() - 1;
-            }
-
-            setupStorage->setTargetRank( it.first, uint_c( targetRank ) );
-         }
-
-         for ( const auto & it : setupStorage->getFaces() )
-         {
-            // collect x-coords of all vertices
-            std::vector< real_t > xCoords;
-            for ( const auto & v : it.second->neighborVertices() )
-            {
-               xCoords.push_back( setupStorage->getVertex( v )->getCoordinates()[0] );
-            }
-            const auto maxXCoord = *std::max_element( xCoords.begin(), xCoords.end() );
-
-            // round off
-            auto targetRank = int_c( ( maxXCoord + eps ) / lbOptions.partSizeX );
-            if ( targetRank < 0 )
-            {
-               targetRank = 0;
-            }
-            if ( targetRank >= walberla::mpi::MPIManager::instance()->numProcesses() )
-            {
-               targetRank = walberla::mpi::MPIManager::instance()->numProcesses() - 1;
-            }
-
-            setupStorage->setTargetRank( it.first, uint_c( targetRank ) );
-         }
-
-         for ( const auto & it : setupStorage->getCells() )
-         {
-            // collect x-coords of all vertices
-            std::vector< real_t > xCoords;
-            for ( const auto & v : it.second->neighborVertices() )
-            {
-               xCoords.push_back( setupStorage->getVertex( v )->getCoordinates()[0] );
-            }
-            const auto maxXCoord = *std::max_element( xCoords.begin(), xCoords.end() );
-
-            // round off
-            auto targetRank = int_c( ( maxXCoord + eps ) / lbOptions.partSizeX );
-            if ( targetRank < 0 )
-            {
-               targetRank = 0;
-            }
-            if ( targetRank >= walberla::mpi::MPIManager::instance()->numProcesses() )
-            {
-               targetRank = walberla::mpi::MPIManager::instance()->numProcesses() - 1;
-            }
-
-            setupStorage->setTargetRank( it.first, uint_c( targetRank ) );
-         }
+         loadbalancing::greedy( *setupStorage );
       }
 
       setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -268,29 +178,27 @@ void solve( MeshInfo&               meshInfo,
    const auto domainInfo = storage->getGlobalInfo();
    WALBERLA_LOG_INFO_ON_ROOT( domainInfo );
 
-   walberla::sqlite::SQLiteDB                 db( dbFile );
-   std::map< std::string, walberla::int64_t > sqlIntegerProperties;
-   std::map< std::string, double >            sqlRealProperties;
-   std::map< std::string, std::string >       sqlStringProperties;
+   FixedSizeSQLDB db( dbFile );
 
-   sqlIntegerProperties["ts"]                      = 0;
-   sqlRealProperties["dt"]                         = dt;
-   sqlIntegerProperties["num_ts"]                  = int_c( numTimeSteps );
-   sqlIntegerProperties["level"]                   = int_c( level );
-   sqlIntegerProperties["unknowns"]                = int_c( unknowns );
-   sqlRealProperties["h_min"]                      = hMin;
-   sqlRealProperties["h_max"]                      = hMax;
-   sqlIntegerProperties["num_macro_cells"]         = int_c( storage->getNumberOfGlobalCells() );
-   sqlIntegerProperties["num_macro_faces"]         = int_c( storage->getNumberOfGlobalFaces() );
-   sqlIntegerProperties["num_macro_edges"]         = int_c( storage->getNumberOfGlobalEdges() );
-   sqlIntegerProperties["num_macro_vertices"]      = int_c( storage->getNumberOfGlobalVertices() );
-   sqlIntegerProperties["num_macro_primitives"]    = int_c( storage->getNumberOfGlobalPrimitives() );
-   sqlRealProperties["diffusivity"]                = diffusivity;
-   sqlIntegerProperties["pure_advection"]          = !enableDiffusion;
-   sqlIntegerProperties["strang_splitting"]        = strangSplitting;
-   sqlIntegerProperties["adjusted_advection"]      = adjustedAdvection;
-   sqlIntegerProperties["particle_reset"]          = resetParticles;
-   sqlIntegerProperties["particle_reset_interval"] = int_c( resetParticlesInterval );
+   db.setVariableEntry( "ts", uint_c( 0 ) );
+   
+   db.setConstantEntry( "dt", real_c( 0 ) );
+   db.setConstantEntry( "num_ts", numTimeSteps );
+   db.setConstantEntry( "level", level );
+   db.setConstantEntry( "unknowns", unknowns );
+   db.setConstantEntry( "h_min", hMin );
+   db.setConstantEntry( "h_max", hMax );
+   db.setConstantEntry( "num_macro_cells", storage->getNumberOfGlobalCells() );
+   db.setConstantEntry( "num_macro_faces",  storage->getNumberOfGlobalFaces()  );
+   db.setConstantEntry( "num_macro_edges",  storage->getNumberOfGlobalEdges()  );
+   db.setConstantEntry( "num_macro_vertices",  storage->getNumberOfGlobalVertices()  );
+   db.setConstantEntry( "num_macro_primitives",  storage->getNumberOfGlobalPrimitives()  );
+   db.setConstantEntry( "diffusivity", diffusivity );
+   db.setConstantEntry( "pure_advection", !enableDiffusion );
+   db.setConstantEntry( "strang_splitting", strangSplitting );
+   db.setConstantEntry( "adjusted_advection", adjustedAdvection );
+   db.setConstantEntry( "particle_reset", resetParticles );
+   db.setConstantEntry( "particle_reset_interval", resetParticlesInterval );
 
    typedef P2Function< real_t >                   FunctionType;
    typedef P2ElementwiseBlendingLaplaceOperator   LaplaceOperator;
@@ -434,21 +342,16 @@ void solve( MeshInfo&               meshInfo,
                                                 massChange * 100,
                                                 vMax ) )
 
-   WALBERLA_ROOT_SECTION()
-   {
-      sqlRealProperties["sim_time"]     = timeTotal;
-      sqlRealProperties["error_l2"]     = discrL2;
-      sqlRealProperties["error_peak"]   = maxPeakDiff;
-      sqlRealProperties["spurious_osc"] = spuriousOsc;
-      sqlRealProperties["mass"]         = mass;
-      sqlRealProperties["mass_change"]  = massChange;
-      sqlRealProperties["v_max"]        = vMax;
+   db.setVariableEntry( "sim_time", timeTotal );
+   db.setVariableEntry( "error_l2", discrL2 );
+   db.setVariableEntry( "error_peak", maxPeakDiff );
+   db.setVariableEntry( "spurious_osc", spuriousOsc );
+   db.setVariableEntry( "mass", mass );
+   db.setVariableEntry( "mass_change", massChange );
+   db.setVariableEntry( "v_max", vMax );
+   db.setVariableEntry( "run_time_advection", real_c( 0 ) );
 
-      db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
-      sqlRealProperties.clear();
-      sqlIntegerProperties.clear();
-      sqlStringProperties.clear();
-   }
+   db.writeRowOnRoot();
 
    timer->stop( "Setup" );
 
@@ -573,23 +476,17 @@ void solve( MeshInfo&               meshInfo,
       if ( vtk )
          vtkOutput.write( level, i );
 
-      WALBERLA_ROOT_SECTION()
-      {
-         sqlIntegerProperties["ts"]              = int_c( i );
-         sqlRealProperties["sim_time"]           = timeTotal;
-         sqlRealProperties["error_l2"]           = discrL2;
-         sqlRealProperties["error_peak"]         = maxPeakDiff;
-         sqlRealProperties["spurious_osc"]       = spuriousOsc;
-         sqlRealProperties["mass"]               = mass;
-         sqlRealProperties["mass_change"]        = massChange;
-         sqlRealProperties["run_time_advection"] = advectionTimeStepRunTime;
-         sqlRealProperties["v_max"]              = vMax;
+      db.setVariableEntry( "ts", i );
+      db.setVariableEntry( "sim_time", timeTotal );
+      db.setVariableEntry( "error_l2", discrL2 );
+      db.setVariableEntry( "error_peak", maxPeakDiff );
+      db.setVariableEntry( "spurious_osc", spuriousOsc );
+      db.setVariableEntry( "mass", mass );
+      db.setVariableEntry( "mass_change", massChange );
+      db.setVariableEntry( "run_time_advection", advectionTimeStepRunTime );
+      db.setVariableEntry( "v_max", vMax );
 
-         db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
-         sqlRealProperties.clear();
-         sqlIntegerProperties.clear();
-         sqlStringProperties.clear();
-      }
+      db.writeRowOnRoot();
 
       timer->stop( "Simulation" );
       if ( outputTimingJSON )
