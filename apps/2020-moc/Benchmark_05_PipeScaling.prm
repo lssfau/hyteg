@@ -12,9 +12,8 @@ Parameters
   vtkInterval 1;
   dbFile Benchmark_05_PipeScaling.db;
 
-  diameterCubes 3;
-  lengthCubes 12;
+  diameterCubes 1;
+  lengthCubes 8;
 
   lbType 1;
-  lbPartXSize 1.0;
 }

@@ -1,6 +1,6 @@
 
 
-def create_parameter_file(level: int, db_file_name: str, num_time_steps: int, diameter_cubes: int, length_cubes: int, lb_type: int, lb_part_x_size: float, **kwargs):
+def create_parameter_file(level: int, db_file_name: str, num_time_steps: int, diameter_cubes: int, length_cubes: int, lb_type: int, **kwargs):
     return f"""Parameters
 {{
     level {level};
@@ -19,7 +19,6 @@ def create_parameter_file(level: int, db_file_name: str, num_time_steps: int, di
     lengthCubes {length_cubes};
 
     lbType {lb_type};
-    lbPartXSize {lb_part_x_size};
     }}
 """
 
