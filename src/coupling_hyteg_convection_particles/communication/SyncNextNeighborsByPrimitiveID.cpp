@@ -27,6 +27,8 @@
 #include "SyncNextNeighborsByPrimitiveID.h"
 
 #include <convection_particles/mpi/RemoveAndNotify.h>
+#include "hyteg/primitives/Face.hpp"
+#include "hyteg/primitives/Cell.hpp"
 
 namespace walberla {
 namespace convection_particles {
@@ -42,7 +44,7 @@ void SyncNextNeighborsByPrimitiveID::operator()(data::ParticleStorage& ps,
 
    if ( onlyVolumeToVolumeCommunication )
    {
-      neighboringRanks = primitiveStorage.getNeighboringRanksOfVolumes();
+      neighboringRanks = primitiveStorage.getNeighboringVolumeRanksOfAllVolumes();
    }
    else
    {

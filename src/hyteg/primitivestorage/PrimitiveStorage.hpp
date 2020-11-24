@@ -425,11 +425,15 @@ class PrimitiveStorage : private walberla::NonCopyable
    void getNeighboringRanks( std::set< uint_t >& neighboringRanks ) const;
    void getNeighboringRanks( std::set< walberla::mpi::MPIRank >& neighboringRanks ) const;
 
-   /// Returns the neighboring ranks of primitives of a certain type only.
-   std::set< uint_t > getNeighboringRanksOfFaces() const;
-   std::set< uint_t > getNeighboringRanksOfCells() const;
-   /// Returns the set of ranks of neighbor faces if !hasGlobalCells(), neighbor cells otherwise.
-   std::set< uint_t > getNeighboringRanksOfVolumes() const;
+   /// Returns the neighboring ranks of the passed primitive that has the same primitive type.
+   /// Two primitives of same type are considered neighbors if they share at least one vertex.
+   /// This means, that the neighborhood must be extended by at least 1 during construction of the distributed PrimitiveStorage.
+   std::set< uint_t > getNeighboringFaceRanksOfFace( const PrimitiveID & facePrimitiveID ) const;
+   std::set< uint_t > getNeighboringFaceRanksOfAllFaces() const;
+   std::set< uint_t > getNeighboringCellRanksOfCell( const PrimitiveID & cellPrimitiveID ) const;
+   std::set< uint_t > getNeighboringCellRanksOfAllCells() const;
+   std::set< uint_t > getNeighboringVolumeRanksOfVolume( const PrimitiveID & volumePrimitiveID ) const;
+   std::set< uint_t > getNeighboringVolumeRanksOfAllVolumes() const;
 
    inline const std::shared_ptr< walberla::WcTimingTree >& getTimingTree() const { return timingTree_; }
 

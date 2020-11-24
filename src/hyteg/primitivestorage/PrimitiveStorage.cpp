@@ -1221,35 +1221,88 @@ void PrimitiveStorage::migratePrimitives( const MigrationInfo& migrationInfo )
    WALBERLA_DEBUG_SECTION() { checkConsistency(); }
 }
 
-std::set< uint_t > PrimitiveStorage::getNeighboringRanksOfFaces() const
+std::set< uint_t > PrimitiveStorage::getNeighboringFaceRanksOfFace( const PrimitiveID & facePrimitiveID ) const
 {
+   WALBERLA_CHECK( additionalHaloDepth_ > 0, "Additional halo depth must be larger than 0 to access neighbor faces of faces." );
+   WALBERLA_CHECK( faceExistsLocally( facePrimitiveID ), "Face " << facePrimitiveID << "does not exist locally." );
+
    std::set< uint_t > neighboringRanks;
-   for ( const auto & it : getNeighborFaces() )
+   const auto face = getFace( facePrimitiveID );
+   for ( const auto & npid : face->getIndirectNeighborFaceIDs() )
    {
-      neighboringRanks.insert( getNeighborPrimitiveRank( it.first ) );
+      WALBERLA_CHECK( faceExistsLocally( npid ) || faceExistsInNeighborhood( npid ),
+                      "Neighbor face " << npid << " of " << facePrimitiveID << " does not exist locally, nor in neighborhood." );
+      if ( faceExistsInNeighborhood( npid ) )
+      {
+         neighboringRanks.insert( getNeighborPrimitiveRank( npid ) );
+      }
    }
    return neighboringRanks;
 }
 
-std::set< uint_t > PrimitiveStorage::getNeighboringRanksOfCells() const
+std::set< uint_t > PrimitiveStorage::getNeighboringFaceRanksOfAllFaces() const
 {
-   std::set< uint_t > neighboringRanks;
-   for ( const auto & it : getNeighborCells() )
+   std::set< uint_t > neighborRanks;
+   for ( const auto & it : faces_ )
    {
-      neighboringRanks.insert( getNeighborPrimitiveRank( it.first ) );
+      const auto nr = getNeighboringFaceRanksOfFace( it.first );
+      neighborRanks.insert( nr.begin(), nr.end() );
+   }
+   return neighborRanks;
+}
+
+
+std::set< uint_t > PrimitiveStorage::getNeighboringCellRanksOfCell( const PrimitiveID & cellPrimitiveID ) const
+{
+   WALBERLA_CHECK( additionalHaloDepth_ > 0, "Additional halo depth must be larger than 0 to access neighbor cells of cells." );
+   WALBERLA_CHECK( cellExistsLocally( cellPrimitiveID ), "Cell " << cellPrimitiveID << "does not exist locally." );
+   
+   std::set< uint_t > neighboringRanks;
+   const auto cell = getCell( cellPrimitiveID );
+   for ( const auto & npid : cell->getIndirectNeighborCellIDs() )
+   {
+      WALBERLA_CHECK( cellExistsLocally( npid ) || cellExistsInNeighborhood( npid ), 
+                      "Neighbor cell " << npid << " of " << cellPrimitiveID << " does not exist locally, nor in neighborhood." );
+      if ( cellExistsInNeighborhood( npid ) )
+      {
+         neighboringRanks.insert( getNeighborPrimitiveRank( npid ) );
+      }
    }
    return neighboringRanks;
 }
 
-std::set< uint_t > PrimitiveStorage::getNeighboringRanksOfVolumes() const
+std::set< uint_t > PrimitiveStorage::getNeighboringCellRanksOfAllCells() const
+{
+   std::set< uint_t > neighborRanks;
+   for ( const auto & it : cells_ )
+   {
+      const auto nr = getNeighboringCellRanksOfCell( it.first );
+      neighborRanks.insert( nr.begin(), nr.end() );
+   }
+   return neighborRanks;
+}
+
+std::set< uint_t > PrimitiveStorage::getNeighboringVolumeRanksOfVolume( const PrimitiveID & volumePrimitiveID ) const
 {
    if ( hasGlobalCells() )
    {
-      return getNeighboringRanksOfCells();
+      return getNeighboringCellRanksOfCell( volumePrimitiveID );
    }
    else
    {
-      return getNeighboringRanksOfFaces();
+      return getNeighboringFaceRanksOfFace( volumePrimitiveID );
+   }
+}
+
+std::set< uint_t > PrimitiveStorage::getNeighboringVolumeRanksOfAllVolumes() const
+{
+   if ( hasGlobalCells() )
+   {
+      return getNeighboringFaceRanksOfAllFaces();
+   }
+   else
+   {
+      return getNeighboringCellRanksOfAllCells();
    }
 }
 
@@ -1607,7 +1660,7 @@ std::string PrimitiveStorage::getGlobalInfo( bool onRootOnly ) const
    walberla::math::DistributedSample neighborhoodSample;
    walberla::math::DistributedSample neighborhoodVolumeSample;
    const auto numNeighborProcesses = getNeighboringRanks().size();
-   const auto numNeighborVolumeProcesses = getNeighboringRanksOfVolumes().size();
+   const auto numNeighborVolumeProcesses = getNeighboringVolumeRanksOfAllVolumes().size();
    neighborhoodSample.castToRealAndInsert( numNeighborProcesses );
    neighborhoodVolumeSample.castToRealAndInsert( numNeighborVolumeProcesses );
 
