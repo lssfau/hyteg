@@ -1298,11 +1298,11 @@ std::set< uint_t > PrimitiveStorage::getNeighboringVolumeRanksOfAllVolumes() con
 {
    if ( hasGlobalCells() )
    {
-      return getNeighboringFaceRanksOfAllFaces();
+      return getNeighboringCellRanksOfAllCells();
    }
    else
    {
-      return getNeighboringCellRanksOfAllCells();
+      return getNeighboringFaceRanksOfAllFaces();
    }
 }
 
