@@ -425,6 +425,12 @@ class PrimitiveStorage : private walberla::NonCopyable
    void getNeighboringRanks( std::set< uint_t >& neighboringRanks ) const;
    void getNeighboringRanks( std::set< walberla::mpi::MPIRank >& neighboringRanks ) const;
 
+   /// Returns the neighboring ranks of primitives of a certain type only.
+   std::set< uint_t > getNeighboringRanksOfFaces() const;
+   std::set< uint_t > getNeighboringRanksOfCells() const;
+   /// Returns the set of ranks of neighbor faces if !hasGlobalCells(), neighbor cells otherwise.
+   std::set< uint_t > getNeighboringRanksOfVolumes() const;
+
    inline const std::shared_ptr< walberla::WcTimingTree >& getTimingTree() const { return timingTree_; }
 
    /// Returns a formatted string that contains global information about the storage.

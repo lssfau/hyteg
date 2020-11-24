@@ -639,7 +639,7 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
    const uint_t                                rkStages = b.size();
 
    storage.getTimingTree()->start( "Sync particles" );
-   SNN( particleStorage, storage );
+   SNN( particleStorage, storage, true );
    storage.getTimingTree()->stop( "Sync particles" );
 
    for ( uint_t step = 0; step < steps; step++ )
@@ -695,7 +695,7 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
 
          // sync particles to be able to evaluate the velocity at that point
          storage.getTimingTree()->start( "Sync particles" );
-         SNN( particleStorage, storage );
+         SNN( particleStorage, storage, true );
          storage.getTimingTree()->stop( "Sync particles" );
 
          // evaluate velocity at current particle positions and update k[stage]
@@ -732,7 +732,7 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
 
       // sync particles as position was finally updated
       storage.getTimingTree()->start( "Sync particles" );
-      SNN( particleStorage, storage );
+      SNN( particleStorage, storage, true );
       storage.getTimingTree()->stop( "Sync particles" );
    }
 }

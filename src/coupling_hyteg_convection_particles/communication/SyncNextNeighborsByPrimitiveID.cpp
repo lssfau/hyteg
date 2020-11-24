@@ -33,11 +33,22 @@ namespace convection_particles {
 namespace mpi {
 
 void SyncNextNeighborsByPrimitiveID::operator()(data::ParticleStorage& ps,
-                                                const hyteg::PrimitiveStorage & primitiveStorage) const
+                                                const hyteg::PrimitiveStorage & primitiveStorage,
+                                                bool onlyVolumeToVolumeCommunication ) const
 {
    if (numProcesses_ == 1) return;
 
-   const auto neighboringRanks = primitiveStorage.getNeighboringRanks();
+   std::set< uint_t > neighboringRanks;
+
+   if ( onlyVolumeToVolumeCommunication )
+   {
+      neighboringRanks = primitiveStorage.getNeighboringRanksOfVolumes();
+   }
+   else
+   {
+      neighboringRanks = primitiveStorage.getNeighboringRanks();
+   }
+
    for ( auto nbProcessRank : neighboringRanks )
    {
       if (bs.sendBuffer(nbProcessRank).isEmpty())

@@ -57,7 +57,12 @@ namespace mpi {
 class SyncNextNeighborsByPrimitiveID
 {
  public:
-   void operator()( data::ParticleStorage& ps, const hyteg::PrimitiveStorage& primitiveStorage ) const;
+   /// \brief Performs the communication step.
+   ///
+   /// \param ps the distributed particle storage
+   /// \param primitiveStorage the distributed primitive storage
+   /// \param onlyVolumeToVolumeCommunication if true, communication is only performed between neighboring volume primitives
+   void operator()( data::ParticleStorage& ps, const hyteg::PrimitiveStorage& primitiveStorage, bool onlyVolumeToVolumeCommunication = false ) const;
 
    int64_t getBytesSent() const { return bs.getBytesSent(); }
    int64_t getBytesReceived() const { return bs.getBytesReceived(); }

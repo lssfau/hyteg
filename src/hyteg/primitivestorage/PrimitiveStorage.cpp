@@ -1221,6 +1221,38 @@ void PrimitiveStorage::migratePrimitives( const MigrationInfo& migrationInfo )
    WALBERLA_DEBUG_SECTION() { checkConsistency(); }
 }
 
+std::set< uint_t > PrimitiveStorage::getNeighboringRanksOfFaces() const
+{
+   std::set< uint_t > neighboringRanks;
+   for ( const auto & it : getNeighborFaces() )
+   {
+      neighboringRanks.insert( getNeighborPrimitiveRank( it.first ) );
+   }
+   return neighboringRanks;
+}
+
+std::set< uint_t > PrimitiveStorage::getNeighboringRanksOfCells() const
+{
+   std::set< uint_t > neighboringRanks;
+   for ( const auto & it : getNeighborCells() )
+   {
+      neighboringRanks.insert( getNeighborPrimitiveRank( it.first ) );
+   }
+   return neighboringRanks;
+}
+
+std::set< uint_t > PrimitiveStorage::getNeighboringRanksOfVolumes() const
+{
+   if ( hasGlobalCells() )
+   {
+      return getNeighboringRanksOfCells();
+   }
+   else
+   {
+      return getNeighboringRanksOfFaces();
+   }
+}
+
 std::set< uint_t > PrimitiveStorage::getNeighboringRanks() const
 {
    std::set< uint_t > neighboringRanks;
@@ -1573,23 +1605,29 @@ std::string PrimitiveStorage::getGlobalInfo( bool onRootOnly ) const
    const double globalAvgNumberOfPrimitives = (double) globalNumberOfPrimitives / (double) numberOfProcesses;
 
    walberla::math::DistributedSample neighborhoodSample;
+   walberla::math::DistributedSample neighborhoodVolumeSample;
    const auto numNeighborProcesses = getNeighboringRanks().size();
+   const auto numNeighborVolumeProcesses = getNeighboringRanksOfVolumes().size();
    neighborhoodSample.castToRealAndInsert( numNeighborProcesses );
+   neighborhoodVolumeSample.castToRealAndInsert( numNeighborVolumeProcesses );
 
    if ( onRootOnly )
    {
       neighborhoodSample.mpiGatherRoot();
+      neighborhoodVolumeSample.mpiGatherRoot();
    }
    else
    {
       neighborhoodSample.mpiAllGather();
+      neighborhoodVolumeSample.mpiAllGather();
    }
 
    std::stringstream os;
    os << "====================== PrimitiveStorage ======================\n";
-   os << " - mesh dimensionality:                " << ( hasGlobalCells() ? "3D" : "2D" ) << "\n";
-   os << " - processes:                          " << numberOfProcesses << "\n";
-   os << " - neighbor processes (min, max, avg): " << neighborhoodSample.min() << ", " << neighborhoodSample.max() << ", " << neighborhoodSample.avg() << "\n";
+   os << " - mesh dimensionality:                              " << ( hasGlobalCells() ? "3D" : "2D" ) << "\n";
+   os << " - processes:                                        " << numberOfProcesses << "\n";
+   os << " - neighbor processes (min, max, avg):               " << neighborhoodSample.min() << ", " << neighborhoodSample.max() << ", " << neighborhoodSample.avg() << "\n";
+   os << " - neighbor processes, volumes only (min, max, avg): " << neighborhoodVolumeSample.min() << ", " << neighborhoodVolumeSample.max() << ", " << neighborhoodVolumeSample.avg() << "\n";
    os << " - primitive distribution:\n";
    os << "                +-------------------------------------------+\n"
          "                |    total |      min |      max |      avg |\n"
