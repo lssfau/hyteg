@@ -66,6 +66,11 @@ void allPrimitivesOnRoot( SetupPrimitiveStorage & storage );
 void roundRobin( SetupPrimitiveStorage & storage );
 void roundRobin( SetupPrimitiveStorage & storage, uint_t numRanks );
 
+/// \brief First balances the volume primitives by a round robin approach.
+///        Then assigns lower-dimensional primitives to neighbor-ranks that carry least amount of similar primitives.
+///        This algorithm is optimized towards low communication overhead, lower-dim primitives may not be distributed equally.
+void roundRobinVolume( SetupPrimitiveStorage& storage );
+void roundRobinVolume( SetupPrimitiveStorage& storage, uint_t numRanks );
 
 /// \brief Load balancing function for \ref SetupPrimitiveStorage that distributes all primitives in a greedy fashion.
 /// It is expected to result in a much better edge-cut ratio than the roundRobin algorithm. But still not optimal.

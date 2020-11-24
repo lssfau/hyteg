@@ -84,9 +84,16 @@ void solve( MeshInfo&               meshInfo,
       auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
           meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-      if ( lbOptions.type == 1 )
+      switch ( lbOptions.type )
       {
+      case 1:
          loadbalancing::greedy( *setupStorage );
+         break;
+      case 2:
+         loadbalancing::roundRobinVolume( *setupStorage );
+         break;
+      default:
+         break;
       }
 
       setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );

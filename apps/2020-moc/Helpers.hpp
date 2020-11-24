@@ -73,6 +73,7 @@ struct LoadBalancingOptions
 {
    // 0: round robin
    // 1: greedy
+   // 2: round robin volume
    uint_t type = 0;
 };
 

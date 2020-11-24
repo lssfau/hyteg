@@ -487,6 +487,136 @@ void roundRobin( SetupPrimitiveStorage& storage )
    roundRobin( storage, storage.getNumberOfProcesses() );
 }
 
+void roundRobinVolume( SetupPrimitiveStorage& storage, uint_t numRanks )
+{
+   SetupPrimitiveStorage::PrimitiveMap setupPrimitives;
+   storage.getSetupPrimitives( setupPrimitives );
+
+   // Set every primitive to an invalid rank to allow counting primitives per rank later on.
+   for ( const auto& it : setupPrimitives )
+   {
+      storage.setTargetRank( it.first, numRanks );
+   }
+
+   // Heuristic: let's assign primitives with consecutive IDs to the same process.
+   // Often, meshes are generated in a way that primitives with consecutive IDs are located next to each other.
+   if ( storage.getNumberOfCells() == 0 )
+   {
+      auto it = storage.getFaces().begin();
+      for ( uint_t currentRank = 0; currentRank < numRanks; currentRank++ )
+      {
+         uint_t numVolumesOnThisRank = 0;
+         while ( numVolumesOnThisRank < storage.getNumberOfFaces() / numRanks )
+         {
+            storage.setTargetRank( it->first, currentRank );
+            numVolumesOnThisRank++;
+            it++;
+         }
+
+         if ( currentRank < storage.getNumberOfFaces() % numRanks )
+         {
+            storage.setTargetRank( it->first, currentRank );
+            numVolumesOnThisRank++;
+            it++;
+         }
+      }
+      WALBERLA_CHECK( it == storage.getFaces().end() );
+   }
+   else
+   {
+      auto it = storage.getCells().begin();
+      for ( uint_t currentRank = 0; currentRank < numRanks; currentRank++ )
+      {
+         uint_t numVolumesOnThisRank = 0;
+         while ( numVolumesOnThisRank < storage.getNumberOfCells() / numRanks )
+         {
+            storage.setTargetRank( it->first, currentRank );
+            numVolumesOnThisRank++;
+            it++;
+         }
+
+         if ( currentRank < storage.getNumberOfCells() % numRanks )
+         {
+            storage.setTargetRank( it->first, currentRank );
+            numVolumesOnThisRank++;
+            it++;
+         }
+      }
+      WALBERLA_CHECK( it == storage.getCells().end() );
+   }
+
+   // Now we assign lower-dimensional primitives a rank of their higher-dimensional neighbors.
+   // To equalize the weights a little, we choose the neighbor with least amount of primitives of the current type.
+   if ( storage.getNumberOfCells() > 0 )
+   {
+      for ( const auto& it : storage.getFaces() )
+      {
+         const auto                 facePID = it.first;
+         const auto                 face    = it.second;
+         std::map< uint_t, uint_t > rankFaceCount;
+         for ( const auto& neighborCell : face->neighborCells() )
+         {
+            const auto neighborRank           = storage.getTargetRank( neighborCell );
+            const auto numFacesOnNeighborRank = storage.getNumFacesOnRank( neighborRank );
+            rankFaceCount[neighborRank]       = numFacesOnNeighborRank;
+         }
+
+         auto lessFullNBRank = std::min_element( rankFaceCount.begin(),
+                                                 rankFaceCount.end(),
+                                                 []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ) {
+                                                    return a.second < b.second;
+                                                 } )
+                                   ->first;
+         storage.setTargetRank( facePID, lessFullNBRank );
+      }
+   }
+
+   for ( const auto& it : storage.getEdges() )
+   {
+      const auto                 edgePID = it.first;
+      const auto                 edge    = it.second;
+      std::map< uint_t, uint_t > rankEdgeCount;
+      for ( const auto& neighborFace : edge->neighborFaces() )
+      {
+         const auto neighborRank           = storage.getTargetRank( neighborFace );
+         const auto numEdgesOnNeighborRank = storage.getNumEdgesOnRank( neighborRank );
+         rankEdgeCount[neighborRank]       = numEdgesOnNeighborRank;
+      }
+
+      auto lessFullNBRank =
+          std::min_element( rankEdgeCount.begin(),
+                            rankEdgeCount.end(),
+                            []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ) { return a.second < b.second; } )
+              ->first;
+      storage.setTargetRank( edgePID, lessFullNBRank );
+   }
+
+   for ( const auto& it : storage.getVertices() )
+   {
+      const auto                 vertexPID = it.first;
+      const auto                 vertex    = it.second;
+      std::map< uint_t, uint_t > rankVertexCount;
+      for ( const auto& neighborEdge : vertex->neighborEdges() )
+      {
+         const auto neighborRank              = storage.getTargetRank( neighborEdge );
+         const auto numVerticesOnNeighborRank = storage.getNumVerticesOnRank( neighborRank );
+         rankVertexCount[neighborRank]        = numVerticesOnNeighborRank;
+      }
+
+      auto lessFullNBRank =
+          std::min_element( rankVertexCount.begin(),
+                            rankVertexCount.end(),
+                            []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ) { return a.second < b.second; } )
+              ->first;
+      storage.setTargetRank( vertexPID, lessFullNBRank );
+   }
+}
+
+void roundRobinVolume( SetupPrimitiveStorage& storage )
+{
+   roundRobinVolume( storage, storage.getNumberOfProcesses() );
+}
+
 void greedyVolume( SetupPrimitiveStorage& setupStorage )
 {
    const bool   hasGlobalCells = setupStorage.getNumberOfCells() > 0;
@@ -497,22 +627,22 @@ void greedyVolume( SetupPrimitiveStorage& setupStorage )
 
    // Set all target ranks to invalid number
 
-   for ( const auto & it : setupStorage.getVertices() )
+   for ( const auto& it : setupStorage.getVertices() )
    {
       setupStorage.setTargetRank( it.first, numProcesses );
    }
 
-   for ( const auto & it : setupStorage.getEdges() )
+   for ( const auto& it : setupStorage.getEdges() )
    {
       setupStorage.setTargetRank( it.first, numProcesses );
    }
 
-   for ( const auto & it : setupStorage.getFaces() )
+   for ( const auto& it : setupStorage.getFaces() )
    {
       setupStorage.setTargetRank( it.first, numProcesses );
    }
 
-   for ( const auto & it : setupStorage.getCells() )
+   for ( const auto& it : setupStorage.getCells() )
    {
       setupStorage.setTargetRank( it.first, numProcesses );
    }
@@ -541,7 +671,6 @@ void greedyVolume( SetupPrimitiveStorage& setupStorage )
       }
 
       std::set< PrimitiveID > domain;
-
 
       PrimitiveID nextPrimitive;
 
@@ -578,7 +707,7 @@ void greedyVolume( SetupPrimitiveStorage& setupStorage )
             if ( setupStorage.getTargetRank( it.first ) == numProcesses )
             {
                real_t fractionAssignedNeighbors = 0;
-               for ( const auto & neighborCell : it.second->getIndirectNeighborCellIDs() )
+               for ( const auto& neighborCell : it.second->getIndirectNeighborCellIDs() )
                {
                   if ( setupStorage.getTargetRank( neighborCell ) != numProcesses )
                   {
@@ -586,11 +715,11 @@ void greedyVolume( SetupPrimitiveStorage& setupStorage )
                   }
                }
                fractionAssignedNeighbors /= real_c( it.second->getIndirectNeighborCellIDs().size() );
-               
+
                if ( fractionAssignedNeighbors > largestFractionAssignedNeighbors )
                {
                   largestFractionAssignedNeighbors = fractionAssignedNeighbors;
-                  nextPrimitive = it.first;   
+                  nextPrimitive                    = it.first;
                }
             }
          }
@@ -602,7 +731,7 @@ void greedyVolume( SetupPrimitiveStorage& setupStorage )
             if ( setupStorage.getTargetRank( it.first ) == numProcesses )
             {
                real_t fractionAssignedNeighbors = 0;
-               for ( const auto & neighborFace : it.second->getIndirectNeighborFaceIDs() )
+               for ( const auto& neighborFace : it.second->getIndirectNeighborFaceIDs() )
                {
                   if ( setupStorage.getTargetRank( neighborFace ) != numProcesses )
                   {
@@ -614,7 +743,7 @@ void greedyVolume( SetupPrimitiveStorage& setupStorage )
                if ( fractionAssignedNeighbors > largestFractionAssignedNeighbors )
                {
                   largestFractionAssignedNeighbors = fractionAssignedNeighbors;
-                  nextPrimitive = it.first;
+                  nextPrimitive                    = it.first;
                }
             }
          }
