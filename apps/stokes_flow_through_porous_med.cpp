@@ -104,7 +104,7 @@ int main( int argc, char* argv[] )
 #ifdef HYTEG_BUILD_WITH_PETSC
   if ( usePetsc )
   {
-    PETScManager petscManager;
+    PETScManager petscManager( &argc, &argv );
     f.uvw.u.interpolate(bc_x, level, hyteg::DirichletBoundary);
     PETScLUSolver< hyteg::P2P1TaylorHoodStokesOperator> solver( storage, level );
     solver.solve( L, u, f, level );

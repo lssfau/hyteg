@@ -46,8 +46,6 @@ void p1PetscApplyTest( const uint_t & level, const std::string & meshFile, const
 {
   WALBERLA_LOG_INFO_ON_ROOT( "level: " << level << ", mesh file: " << meshFile );
 
-  PETScManager petscManager;
-
   MeshInfo meshInfo = hyteg::MeshInfo::fromGmshFile( meshFile );
   SetupPrimitiveStorage setupStorage(meshInfo, walberla::uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -124,6 +122,7 @@ int main(int argc, char* argv[])
 {
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
+  hyteg::PETScManager petscManager( &argc, &argv );
 
   hyteg::p1PetscApplyTest( 3, "../../data/meshes/quad_4el.msh", hyteg::All,   1.0e-15 );
   hyteg::p1PetscApplyTest( 3, "../../data/meshes/annulus_coarse.msh", hyteg::All,   1.7e-13 );

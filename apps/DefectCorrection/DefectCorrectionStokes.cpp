@@ -70,7 +70,7 @@ static void defectCorrection( int argc, char** argv )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   PETScManager petscManager;
+   PETScManager petscManager( &argc, &argv );
 
    //check if a config was given on command line or load default file otherwise
    auto cfg = std::make_shared< walberla::config::Config >();

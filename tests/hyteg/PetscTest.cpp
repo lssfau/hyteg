@@ -48,7 +48,7 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   PETScManager petscManager;
+   PETScManager petscManager( &argc, &argv );
 
    std::string meshFileName = "../../data/meshes/quad_8el.msh";
 

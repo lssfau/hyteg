@@ -48,8 +48,6 @@ namespace hyteg {
 
 void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo,  const real_t & resEps, const real_t & errEpsUSum, const real_t & errEpsP )
 {
-  PETScManager petscManager;
-
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -180,6 +178,7 @@ int main( int argc, char* argv[] )
 {
   walberla::Environment walberlaEnv( argc, argv );
   walberla::MPIManager::instance()->useWorldComm();
+  hyteg::PETScManager petscManager( &argc, &argv );
 
   petscSolveTest( 2, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_center_at_origin_24el.msh" ), 4.0e-15, 0.082, 1.7 );
 

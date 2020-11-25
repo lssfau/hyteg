@@ -48,8 +48,6 @@ bool p2PetscApplyTest( const uint_t& level, const std::string& meshFile, const D
 
    const bool writeVTK = true;
 
-   PETScManager petscManager;
-
    MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -139,6 +137,7 @@ int main( int argc, char* argv[] )
 {
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
+   hyteg::PETScManager petscManager( &argc, &argv );
 
    bool succeeded = true;
 
