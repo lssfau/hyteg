@@ -545,7 +545,10 @@ void roundRobinVolume( SetupPrimitiveStorage& storage, uint_t numRanks )
       WALBERLA_CHECK( it == storage.getCells().end() );
    }
 
-   // Now we assign lower-dimensional primitives a rank of their higher-dimensional neighbors.
+   // Cache number of primitives per rank to optimize the performance of this function, by a lot.
+   std::vector< uint_t > numPrimitivesPerRank( numRanks, 0 );
+
+   // We assign lower-dimensional primitives to a rank of their higher-dimensional neighbors.
    // To equalize the weights a little, we choose the neighbor with least amount of primitives of the current type.
    if ( storage.getNumberOfCells() > 0 )
    {
@@ -557,19 +560,22 @@ void roundRobinVolume( SetupPrimitiveStorage& storage, uint_t numRanks )
          for ( const auto& neighborCell : face->neighborCells() )
          {
             const auto neighborRank           = storage.getTargetRank( neighborCell );
-            const auto numFacesOnNeighborRank = storage.getNumFacesOnRank( neighborRank );
+            const auto numFacesOnNeighborRank = numPrimitivesPerRank[neighborRank];
             rankFaceCount[neighborRank]       = numFacesOnNeighborRank;
          }
 
-         auto lessFullNBRank = std::min_element( rankFaceCount.begin(),
-                                                 rankFaceCount.end(),
-                                                 []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ) {
-                                                    return a.second < b.second;
-                                                 } )
-                                   ->first;
-         storage.setTargetRank( facePID, lessFullNBRank );
+         auto leastFullNBRank = std::min_element( rankFaceCount.begin(),
+                                                  rankFaceCount.end(),
+                                                  []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ) {
+                                                     return a.second < b.second;
+                                                  } )
+                                    ->first;
+         storage.setTargetRank( facePID, leastFullNBRank );
+         numPrimitivesPerRank[leastFullNBRank]++;
       }
    }
+
+   std::fill( numPrimitivesPerRank.begin(), numPrimitivesPerRank.end(), 0 );
 
    for ( const auto& it : storage.getEdges() )
    {
@@ -579,17 +585,20 @@ void roundRobinVolume( SetupPrimitiveStorage& storage, uint_t numRanks )
       for ( const auto& neighborFace : edge->neighborFaces() )
       {
          const auto neighborRank           = storage.getTargetRank( neighborFace );
-         const auto numEdgesOnNeighborRank = storage.getNumEdgesOnRank( neighborRank );
+         const auto numEdgesOnNeighborRank = numPrimitivesPerRank[neighborRank];
          rankEdgeCount[neighborRank]       = numEdgesOnNeighborRank;
       }
 
-      auto lessFullNBRank =
+      auto leastFullNBRank =
           std::min_element( rankEdgeCount.begin(),
                             rankEdgeCount.end(),
                             []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ) { return a.second < b.second; } )
               ->first;
-      storage.setTargetRank( edgePID, lessFullNBRank );
+      storage.setTargetRank( edgePID, leastFullNBRank );
+      numPrimitivesPerRank[leastFullNBRank]++;
    }
+
+   std::fill( numPrimitivesPerRank.begin(), numPrimitivesPerRank.end(), 0 );
 
    for ( const auto& it : storage.getVertices() )
    {
@@ -599,16 +608,17 @@ void roundRobinVolume( SetupPrimitiveStorage& storage, uint_t numRanks )
       for ( const auto& neighborEdge : vertex->neighborEdges() )
       {
          const auto neighborRank              = storage.getTargetRank( neighborEdge );
-         const auto numVerticesOnNeighborRank = storage.getNumVerticesOnRank( neighborRank );
+         const auto numVerticesOnNeighborRank = numPrimitivesPerRank[neighborRank];
          rankVertexCount[neighborRank]        = numVerticesOnNeighborRank;
       }
 
-      auto lessFullNBRank =
+      auto leastFullNBRank =
           std::min_element( rankVertexCount.begin(),
                             rankVertexCount.end(),
                             []( std::pair< uint_t, uint_t > a, std::pair< uint_t, uint_t > b ) { return a.second < b.second; } )
               ->first;
-      storage.setTargetRank( vertexPID, lessFullNBRank );
+      storage.setTargetRank( vertexPID, leastFullNBRank );
+      numPrimitivesPerRank[leastFullNBRank]++;
    }
 }
 
