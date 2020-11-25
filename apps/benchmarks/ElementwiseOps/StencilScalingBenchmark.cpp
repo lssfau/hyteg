@@ -117,7 +117,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    // Going to use PETSc's LU solver
-   PETScManager petscManager;
+   PETScManager petscManager( &argc, &argv );
 
    // Set steering parameters
    uint_t minLevel  = 2;

@@ -59,8 +59,6 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage > storage,
    WALBERLA_LOG_INFO_ON_ROOT( " Running matrix comparison for: " << tag );
    WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------------------" );
 
-   PETScManager petscManager;
-
    // determine indices and dimensions
    FuncType< PetscInt > enumerator( "enumerator", storage, level, level );
    enumerator.enumerate( level );
@@ -147,6 +145,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
+   PETScManager petscManager( &argc, &argv );
    // ----------------------------
    //  Prepare setup for 2D tests
    // ----------------------------

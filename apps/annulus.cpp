@@ -178,7 +178,7 @@ int main( int argc, char* argv[] )
    loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   PETScManager petscManager;
+   PETScManager petscManager( &argc, &argv );
 
    // --------------------------------
    //  Problem specification/solution

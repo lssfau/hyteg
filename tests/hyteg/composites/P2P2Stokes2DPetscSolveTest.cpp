@@ -47,7 +47,6 @@ namespace hyteg {
 
 void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real_t & resEps, const real_t & errEpsUSum, const real_t & errEpsP )
 {
-  PETScManager petscManager;
 
   SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -144,6 +143,7 @@ int main( int argc, char* argv[] )
 {
   walberla::Environment walberlaEnv( argc, argv );
   walberla::MPIManager::instance()->useWorldComm();
+  PETScManager petscManager( &argc, &argv );
 
   petscSolveTest( 5, hyteg::MeshInfo::fromGmshFile( "../../data/meshes/quad_center_at_origin_4el.msh" ), 3.0e-14, 0.008, 0.13 );
 

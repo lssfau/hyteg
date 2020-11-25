@@ -48,8 +48,6 @@ void petscSolveTest( const uint_t & level, const std::string & meshFileName, con
 {
    WALBERLA_LOG_INFO_ON_ROOT( "##### Mesh file: " << meshFileName << " / level: " << level << " #####" )
 
-   PETScManager petscManager;
-
    MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -140,6 +138,7 @@ int main( int argc, char* argv[] )
 {
    walberla::Environment walberlaEnv( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
+   PETScManager petscManager( &argc, &argv );
 
    petscSolveTest( 3, "../../data/meshes/quad_2el.msh",                  2.5e-05 );
    petscSolveTest( 3, "../../data/meshes/quad_4el.msh",                  1.4e-05 );

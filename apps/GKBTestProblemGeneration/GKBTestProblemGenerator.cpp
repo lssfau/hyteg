@@ -66,7 +66,7 @@ void runBenchmark( int argc, char** argv )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   PETScManager petscManager;
+   PETScManager petscManager( &argc, &argv );
 
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )

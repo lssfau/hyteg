@@ -52,7 +52,7 @@ int main( int argc, char* argv[] )
 
    LIKWID_MARKER_THREADINIT;
 
-   PETScManager petscManager;
+   PETScManager petscManager( &argc, &argv );
 
    auto cfg = std::make_shared< walberla::config::Config >();
    if( env.config() == nullptr )
