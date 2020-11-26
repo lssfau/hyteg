@@ -115,20 +115,9 @@ class P1VectorFunction
                 size_t                                                                              level,
                 DoFType                                                                             flag = All ) const
    {
-      std::vector< std::reference_wrapper< const P1Function< ValueType > > > functions_u;
-      std::vector< std::reference_wrapper< const P1Function< ValueType > > > functions_v;
-      std::vector< std::reference_wrapper< const P1Function< ValueType > > > functions_w;
-
-      for ( const P1VectorFunction< ValueType >& function : functions )
-      {
-         functions_u.push_back( function.u );
-         functions_v.push_back( function.v );
-         functions_w.push_back( function.w );
-      }
-
-      u.assign( scalars, functions_u, level, flag );
-      v.assign( scalars, functions_v, level, flag );
-      w.assign( scalars, functions_w, level, flag );
+      u.assign( scalars, filter( 0, functions ), level, flag );
+      v.assign( scalars, filter( 1, functions ), level, flag );
+      w.assign( scalars, filter( 2, functions ), level, flag );
    }
 
    void add( real_t scalar, size_t level, DoFType flag = All ) const
@@ -143,20 +132,9 @@ class P1VectorFunction
              size_t                                                                              level,
              DoFType                                                                             flag = All ) const
    {
-      std::vector< std::reference_wrapper< const P1Function< ValueType > > > functions_u;
-      std::vector< std::reference_wrapper< const P1Function< ValueType > > > functions_v;
-      std::vector< std::reference_wrapper< const P1Function< ValueType > > > functions_w;
-
-      for ( const P1VectorFunction< ValueType >& function : functions )
-      {
-         functions_u.push_back( function.u );
-         functions_v.push_back( function.v );
-         functions_w.push_back( function.w );
-      }
-
-      u.add( scalars, functions_u, level, flag );
-      v.add( scalars, functions_v, level, flag );
-      w.add( scalars, functions_w, level, flag );
+      u.add( scalars, filter( 0, functions ), level, flag );
+      v.add( scalars, filter( 1, functions ), level, flag );
+      w.add( scalars, filter( 2, functions ), level, flag );
    }
 
    walberla::real_t dotLocal( const P1VectorFunction< ValueType >& rhs, const uint_t level, const DoFType flag = All ) const
@@ -179,6 +157,35 @@ class P1VectorFunction
       u.enableTiming( timingTree );
       v.enableTiming( timingTree );
       w.enableTiming( timingTree );
+   }
+
+   template < typename OtherFunctionValueType >
+   void copyBoundaryConditionFromFunction( const P1VectorFunction< OtherFunctionValueType >& other )
+   {
+      u.setBoundaryCondition( other.u.getBoundaryCondition() );
+      v.setBoundaryCondition( other.v.getBoundaryCondition() );
+      w.setBoundaryCondition( other.w.getBoundaryCondition() );
+   }
+
+   void multElementwise( const std::vector< std::reference_wrapper< const P1VectorFunction< ValueType > > >& functions,
+                         uint_t                                                                              level,
+                         DoFType                                                                             flag = All ) const
+   {
+      u.multElementwise( filter( 0, functions ), level, flag );
+      v.multElementwise( filter( 1, functions ), level, flag );
+      w.multElementwise( filter( 2, functions ), level, flag );
+   }
+
+   ValueType getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce = true ) const
+   {
+      std::vector< ValueType > values( 3 );
+
+      for (uint_t i = 0; i < values.size(); ++i)
+      {
+         values[i] = component(i).getMaxMagnitude( level, flag, mpiReduce );
+      }
+
+      return *std::max_element( values.begin(), values.end() );
    }
 
    P1Function< ValueType >& component( uint_t idx )
@@ -211,34 +218,14 @@ class P1VectorFunction
       }
    }
 
-   const P1Function< ValueType >& operator[]( uint_t idx ) const
-   {
-      switch ( idx )
-      {
-      case 0:
-         return u;
-      case 1:
-         return v;
-      case 2:
-         return w;
-      default:
-         WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
-      }
-   }
-
    P1Function< ValueType >& operator[]( uint_t idx )
    {
-      switch ( idx )
-      {
-      case 0:
-         return u;
-      case 1:
-         return v;
-      case 2:
-         return w;
-      default:
-         WALBERLA_ABORT( "Index out of range! Must be in {0,1,2}" );
-      }
+      return component( idx );
+   }
+
+   const P1Function< ValueType >& operator[]( uint_t idx ) const
+   {
+      return component( idx );
    }
 
    P1Function< ValueType > u;
@@ -250,6 +237,17 @@ class P1VectorFunction
    uint_t getDimension() const { return component( 0 ).getStorage()->hasGlobalCells() ? 3 : 2; }
 
  private:
+
+   std::vector< std::reference_wrapper< const VectorComponentType > >
+       filter( uint_t dim, const std::vector< std::reference_wrapper< const P1VectorFunction< ValueType > > >& functions ) const
+   {
+      std::vector< std::reference_wrapper< const VectorComponentType > > functions_scalar;
+      std::transform( functions.begin(), functions.end(), std::back_inserter( functions_scalar ), [dim]( auto& function ) {
+         return std::cref( function.get().component( dim ) );
+      } );
+      return functions_scalar;
+   }
+
    const std::string functionName_;
 };
 
