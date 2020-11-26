@@ -19,16 +19,15 @@
  */
 #pragma once
 
-#include "hyteg/composites/P1VectorFunction.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/ProlongationOperator.hpp"
+#include "hyteg/p1functionspace/P1VectorFunction.hpp"
 
 namespace hyteg {
 
 class P1VectorFunctionLinearProlongation : public ProlongationOperator< P1VectorFunction< real_t > >
 {
  public:
-
    void prolongate( const P1VectorFunction< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
    {
       prolongationOperator_.prolongate( function.u, sourceLevel, flag );

@@ -19,16 +19,15 @@
  */
 #pragma once
 
-#include "hyteg/composites/P1VectorFunction.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/gridtransferoperators/RestrictionOperator.hpp"
+#include "hyteg/p1functionspace/P1VectorFunction.hpp"
 
 namespace hyteg {
 
 class P1VectorFunctionLinearRestriction : public RestrictionOperator< P1VectorFunction< real_t > >
 {
  public:
-
    void restrict( const P1VectorFunction< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
    {
       restrictionOperator_.restrict( function.u, sourceLevel, flag );
