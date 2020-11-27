@@ -143,8 +143,11 @@ class P2ToP1ElementwiseOperator : public Operator< P2Function< real_t >, P1Funct
    Matrixr< 4, 10 >&
        localElementMatrix3D( const Cell& cell, uint_t level, const indexing::Index& microCell, celldof::CellType cType )
    {
-      WALBERLA_ASSERT( localElementMatricesPrecomputed_, "Cannot retrieve element matrix since it was not allocated." );
+      WALBERLA_ASSERT( storage_->hasGlobalCells(), "Retriveing local element matrix for 3D in 2D run. Why?" )
       const auto idx = celldof::macrocell::index( level, microCell.x(), microCell.y(), microCell.z(), cType );
+      WALBERLA_ASSERT( localElementMatrices3D_.count( cell.getID().getID() ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID().getID() ).count( level ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID().getID() ).at( level ).size() > 0 )
       return localElementMatrices3D_[cell.getID().getID()][level][idx];
    }
 
@@ -153,8 +156,11 @@ class P2ToP1ElementwiseOperator : public Operator< P2Function< real_t >, P1Funct
    const Matrixr< 4, 10 >&
        localElementMatrix3D( const Cell& cell, uint_t level, const indexing::Index& microCell, celldof::CellType cType ) const
    {
-      WALBERLA_ASSERT( localElementMatricesPrecomputed_, "Cannot retrieve element matrix since it was not allocated." );
+      WALBERLA_ASSERT( storage_->hasGlobalCells(), "Retriveing local element matrix for 3D in 2D run. Why?" )
       const auto idx = celldof::macrocell::index( level, microCell.x(), microCell.y(), microCell.z(), cType );
+      WALBERLA_ASSERT( localElementMatrices3D_.count( cell.getID().getID() ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID().getID() ).count( level ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices3D_.at( cell.getID().getID() ).at( level ).size() > 0 )
       return localElementMatrices3D_.at( cell.getID().getID() ).at( level ).at( idx );
    }
 
