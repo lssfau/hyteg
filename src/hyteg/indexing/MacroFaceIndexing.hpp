@@ -229,7 +229,7 @@ public:
       coordinates_.row() = 0 + offsetToCenter;
       break;
     case FaceBoundaryDirection::BOTTOM_RIGHT_TO_LEFT:
-      coordinates_.col() = width - 1 - offsetFromVertices;
+      coordinates_.col() = width - 1 - offsetToCenter - offsetFromVertices;
       coordinates_.row() = 0 + offsetToCenter;
       break;
     case FaceBoundaryDirection::LEFT_BOTTOM_TO_TOP:
@@ -238,7 +238,7 @@ public:
       break;
     case FaceBoundaryDirection::LEFT_TOP_TO_BOTTOM:
       coordinates_.col() = 0 + offsetToCenter;
-      coordinates_.row() = width - 1 - offsetFromVertices;
+      coordinates_.row() = width - 1 - offsetToCenter - offsetFromVertices;
       break;
     case FaceBoundaryDirection::DIAGONAL_BOTTOM_TO_TOP:
       coordinates_.col() = width - 1 - offsetToCenter - offsetFromVertices;
