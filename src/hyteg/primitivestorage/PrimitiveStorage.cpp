@@ -1660,7 +1660,7 @@ std::string PrimitiveStorage::getGlobalInfo( bool onRootOnly ) const
    walberla::math::DistributedSample neighborhoodSample;
    walberla::math::DistributedSample neighborhoodVolumeSample;
    const auto numNeighborProcesses = getNeighboringRanks().size();
-   const auto numNeighborVolumeProcesses = getNeighboringVolumeRanksOfAllVolumes().size();
+   const auto numNeighborVolumeProcesses = additionalHaloDepth_ > 0 ? getNeighboringVolumeRanksOfAllVolumes().size() : 0;
    neighborhoodSample.castToRealAndInsert( numNeighborProcesses );
    neighborhoodVolumeSample.castToRealAndInsert( numNeighborVolumeProcesses );
 
@@ -1680,7 +1680,10 @@ std::string PrimitiveStorage::getGlobalInfo( bool onRootOnly ) const
    os << " - mesh dimensionality:                              " << ( hasGlobalCells() ? "3D" : "2D" ) << "\n";
    os << " - processes:                                        " << numberOfProcesses << "\n";
    os << " - neighbor processes (min, max, avg):               " << neighborhoodSample.min() << ", " << neighborhoodSample.max() << ", " << neighborhoodSample.avg() << "\n";
-   os << " - neighbor processes, volumes only (min, max, avg): " << neighborhoodVolumeSample.min() << ", " << neighborhoodVolumeSample.max() << ", " << neighborhoodVolumeSample.avg() << "\n";
+   if ( additionalHaloDepth_ > 0 )
+   {
+      os << " - neighbor processes, volumes only (min, max, avg): " << neighborhoodVolumeSample.min() << ", " << neighborhoodVolumeSample.max() << ", " << neighborhoodVolumeSample.avg() << "\n";
+   }
    os << " - primitive distribution:\n";
    os << "                +-------------------------------------------+\n"
          "                |    total |      min |      max |      avg |\n"
