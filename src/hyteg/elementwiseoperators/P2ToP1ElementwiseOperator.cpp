@@ -84,8 +84,20 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::apply( const P2Function< real_t >&
 {
    this->startTiming( "apply" );
 
-   // Make sure that halos are up-to-date (can we improve communication here?)
-   communication::syncP2FunctionBetweenPrimitives( src, level );
+   // Make sure that halos are up-to-date
+   if ( this->storage_->hasGlobalCells() )
+   {
+      // Note that the order of communication is important, since the face -> cell communication may overwrite
+      // parts of the halos that carry the macro-vertex and macro-edge unknowns.
+
+      src.communicate< Face, Cell >( level );
+      src.communicate< Edge, Cell >( level );
+      src.communicate< Vertex, Cell >( level );
+   }
+   else
+   {
+      communication::syncP2FunctionBetweenPrimitives( src, level );
+   }
 
    if ( updateType == Replace )
    {
