@@ -60,6 +60,20 @@ class P2Function : public Function< P2Function< ValueType > >
    inline const EdgeDoFFunction< ValueType >&              getEdgeDoFFunction() const { return edgeDoFFunction_; }
 
    template < typename SenderType, typename ReceiverType >
+   void startCommunication( const uint_t& level ) const
+   {
+      vertexDoFFunction_.template startCommunication< SenderType, ReceiverType >( level );
+      edgeDoFFunction_.template startCommunication< SenderType, ReceiverType >( level );
+   }
+
+   template < typename SenderType, typename ReceiverType >
+   void endCommunication( const uint_t& level ) const
+   {
+      vertexDoFFunction_.template endCommunication< SenderType, ReceiverType >( level );
+      edgeDoFFunction_.template endCommunication< SenderType, ReceiverType >( level );
+   }
+
+   template < typename SenderType, typename ReceiverType >
    void communicate( const uint_t& level ) const
    {
       vertexDoFFunction_.template communicate< SenderType, ReceiverType >( level );
