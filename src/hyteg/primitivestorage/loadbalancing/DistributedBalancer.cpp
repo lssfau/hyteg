@@ -645,7 +645,7 @@ void diffusiveSmooth( PrimitiveStorage& storage, uint_t outerIterations, uint_t 
 
       for ( auto rank : nranks )
       {
-         bs.sendBuffer( rank ) << numPrimitivesToBeSent[rank];
+         bs.sendBuffer( rank ) << numPrimitivesToBeSent[uint_c( rank )];
       }
 
       bs.sendAll();
