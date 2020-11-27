@@ -88,6 +88,20 @@ public:
 
   void communicateLocalCellToFace(const Cell *sender, Face *receiver) const override;
 
+  void packVertexForCell(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
+
+  void unpackCellFromVertex(Cell *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
+
+  void communicateLocalVertexToCell(const Vertex *sender, Cell *receiver) const override;
+  
+  void packEdgeForCell(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
+
+  void unpackCellFromEdge(Cell *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
+
+  void communicateLocalEdgeToCell(const Edge *sender, Cell *receiver) const override;
+
+
+
 private:
   using communication::DoFSpacePackInfo< ValueType >::level_;
   using communication::DoFSpacePackInfo< ValueType >::dataIDVertex_;
@@ -593,6 +607,158 @@ inline void VertexDoFPackInfo< ValueType >::communicateLocalCellToFace(const Cel
   this->storage_.lock()->getTimingTree()->stop( "VertexDoF - Cell to Face" );
 }
 
+template < typename ValueType >
+void VertexDoFPackInfo< ValueType >::packVertexForCell( const Vertex*              sender,
+                                                        const PrimitiveID&         receiver,
+                                                        walberla::mpi::SendBuffer& buffer ) const
+{
+   WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Communication Vertex -> Cell only meaningful in 3D." );
 
+   const ValueType* vertexData = sender->getData( dataIDVertex_ )->getPointer( level_ );
+
+   WALBERLA_ASSERT_GREATER( sender->getNumNeighborCells(), 0 );
+   WALBERLA_ASSERT( sender->neighborPrimitiveExists( receiver ) );
+
+   buffer << vertexData[0];
+}
+
+template < typename ValueType >
+void VertexDoFPackInfo< ValueType >::unpackCellFromVertex( Cell*                      receiver,
+                                                           const PrimitiveID&         sender,
+                                                           walberla::mpi::RecvBuffer& buffer ) const
+{
+   WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Communication Vertex -> Cell only meaningful in 3D." );
+
+   ValueType*      cellData      = receiver->getData( dataIDCell_ )->getPointer( level_ );
+   const uint_t    localVertexID = receiver->getLocalVertexID( sender );
+   indexing::Index microVertexIndexInMacroCell( 0, 0, 0 );
+   switch ( localVertexID )
+   {
+   case 1:
+      microVertexIndexInMacroCell.x() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
+   case 2:
+      microVertexIndexInMacroCell.y() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
+   case 3:
+      microVertexIndexInMacroCell.z() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
+   default:
+      break;
+   }
+   ValueType tmp;
+   buffer >> tmp;
+   cellData[vertexdof::macrocell::indexFromVertex( level_,
+                                                   microVertexIndexInMacroCell.x(),
+                                                   microVertexIndexInMacroCell.y(),
+                                                   microVertexIndexInMacroCell.z(),
+                                                   stencilDirection::VERTEX_C )] = tmp;
+}
+
+template < typename ValueType >
+void VertexDoFPackInfo< ValueType >::communicateLocalVertexToCell( const Vertex* sender, Cell* receiver ) const
+{
+   WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Communication Vertex -> Cell only meaningful in 3D." );
+
+   WALBERLA_ASSERT_GREATER( sender->getNumNeighborCells(), 0 );
+   WALBERLA_ASSERT( sender->neighborPrimitiveExists( receiver->getID() ) );
+
+   const ValueType* vertexData    = sender->getData( dataIDVertex_ )->getPointer( level_ );
+   ValueType*       cellData      = receiver->getData( dataIDCell_ )->getPointer( level_ );
+   const uint_t     localVertexID = receiver->getLocalVertexID( sender->getID() );
+   indexing::Index  microVertexIndexInMacroCell( 0, 0, 0 );
+   switch ( localVertexID )
+   {
+   case 1:
+      microVertexIndexInMacroCell.x() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
+   case 2:
+      microVertexIndexInMacroCell.y() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
+   case 3:
+      microVertexIndexInMacroCell.z() = levelinfo::num_microvertices_per_edge( level_ ) - 1;
+      break;
+   default:
+      break;
+   }
+   cellData[vertexdof::macrocell::indexFromVertex( level_,
+                                                   microVertexIndexInMacroCell.x(),
+                                                   microVertexIndexInMacroCell.y(),
+                                                   microVertexIndexInMacroCell.z(),
+                                                   stencilDirection::VERTEX_C )] = vertexData[0];
+}
+
+template < typename ValueType >
+void VertexDoFPackInfo< ValueType >::packEdgeForCell( const Edge*                sender,
+                                                      const PrimitiveID&         receiver,
+                                                      walberla::mpi::SendBuffer& buffer ) const
+{
+   WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Communication Edge -> Cell only meaningful in 3D." );
+
+   const ValueType* edgeData = sender->getData( dataIDEdge_ )->getPointer( level_ );
+
+   WALBERLA_ASSERT_GREATER( sender->getNumNeighborCells(), 0 );
+   WALBERLA_ASSERT( sender->neighborPrimitiveExists( receiver ) );
+
+   for ( const auto& it : vertexdof::macroedge::Iterator( level_ ) )
+   {
+      buffer << edgeData[vertexdof::macroedge::indexFromVertex( level_, it.x(), stencilDirection::VERTEX_C )];
+   }
+}
+
+template < typename ValueType >
+void VertexDoFPackInfo< ValueType >::unpackCellFromEdge( Cell*                      receiver,
+                                                         const PrimitiveID&         sender,
+                                                         walberla::mpi::RecvBuffer& buffer ) const
+{
+   WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Communication Edge -> Cell only meaningful in 3D." );
+
+   ValueType*         cellData                  = receiver->getData( dataIDCell_ )->getPointer( level_ );
+   const uint_t       localEdgeID               = receiver->getLocalEdgeID( sender );
+   const uint_t       iterationVertex0          = receiver->getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeID ).at( 0 );
+   const uint_t       iterationVertex1          = receiver->getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeID ).at( 1 );
+   std::set< uint_t > possibleIterationVertices = {0, 1, 2, 3};
+   possibleIterationVertices.erase( iterationVertex0 );
+   possibleIterationVertices.erase( iterationVertex1 );
+   const uint_t iterationVertex2 = *possibleIterationVertices.begin();
+
+   const uint_t edgeSize = levelinfo::num_microvertices_per_edge( level_ );
+   auto         it = vertexdof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 0 );
+   for ( uint_t i = 0; i < edgeSize; i++ )
+   {
+      ValueType tmp;
+      buffer >> tmp;
+      cellData[vertexdof::macrocell::indexFromVertex( level_, it->x(), it->y(), it->z(), stencilDirection::VERTEX_C )] = tmp;
+      it++;
+   }
+}
+
+template < typename ValueType >
+void VertexDoFPackInfo< ValueType >::communicateLocalEdgeToCell( const Edge* sender, Cell* receiver ) const
+{
+   WALBERLA_CHECK( this->storage_.lock()->hasGlobalCells(), "Communication Edge -> Cell only meaningful in 3D." );
+
+   WALBERLA_ASSERT_GREATER( sender->getNumNeighborCells(), 0 );
+   WALBERLA_ASSERT( sender->neighborPrimitiveExists( receiver->getID() ) );
+
+   const ValueType*   edgeData                  = sender->getData( dataIDEdge_ )->getPointer( level_ );
+   ValueType*         cellData                  = receiver->getData( dataIDCell_ )->getPointer( level_ );
+   const uint_t       localEdgeID               = receiver->getLocalEdgeID( sender->getID() );
+   const uint_t       iterationVertex0          = receiver->getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeID ).at( 0 );
+   const uint_t       iterationVertex1          = receiver->getEdgeLocalVertexToCellLocalVertexMaps().at( localEdgeID ).at( 1 );
+   std::set< uint_t > possibleIterationVertices = {0, 1, 2, 3};
+   possibleIterationVertices.erase( iterationVertex0 );
+   possibleIterationVertices.erase( iterationVertex1 );
+   const uint_t iterationVertex2 = *possibleIterationVertices.begin();
+
+   const uint_t edgeSize = levelinfo::num_microvertices_per_edge( level_ );
+   auto         it = vertexdof::macrocell::BoundaryIterator( level_, iterationVertex0, iterationVertex1, iterationVertex2, 0 );
+   for ( uint_t i = 0; i < edgeSize; i++ )
+   {
+      cellData[vertexdof::macrocell::indexFromVertex( level_, it->x(), it->y(), it->z(), stencilDirection::VERTEX_C )] =
+          edgeData[i];
+      it++;
+   }
+}
 
 } //namespace hyteg
