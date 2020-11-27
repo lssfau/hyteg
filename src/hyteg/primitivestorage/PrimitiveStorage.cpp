@@ -325,8 +325,13 @@ void PrimitiveStorage::addDirectNeighborsDistributed()
    // Now we could drop information we do not need, but we simply keep it.
    
    walberla::mpi::BufferSystem bs( walberla::mpi::MPIManager::instance()->comm() );
-   
-   bs.setReceiverInfo( getNeighboringRanks(), true );
+   std::set< MPIRank > nranks;
+   for ( const auto & it : getNeighboringRanks() )
+   {
+      nranks.insert( static_cast< MPIRank >( it ) );
+   }
+
+   bs.setReceiverInfo( nranks, true );
    
    for ( auto nbrank : getNeighboringRanks() )
    {

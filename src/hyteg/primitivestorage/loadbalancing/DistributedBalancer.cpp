@@ -635,8 +635,12 @@ void diffusiveSmooth( PrimitiveStorage& storage, uint_t outerIterations, uint_t 
       }
 
       walberla::mpi::BufferSystem bs( comm );
-      auto                        nranks = storage.getNeighboringRanks();
-      nranks.insert( uint_c( ownRank ) );
+      std::set< MPIRank > nranks;
+      for ( const auto & it : storage.getNeighboringRanks() )
+      {
+         nranks.insert( static_cast< MPIRank >( it ) );
+      }
+      nranks.insert( ownRank );
       bs.setReceiverInfo( nranks, true );
 
       for ( auto rank : nranks )
