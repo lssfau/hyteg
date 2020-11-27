@@ -48,6 +48,7 @@
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScMinResSolver.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
@@ -248,6 +249,8 @@ std::shared_ptr< SetupPrimitiveStorage > createSetupStorage( DomainInfo domainIn
 
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+
+   loadbalancing::roundRobinVolume( *setupStorage );
 
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
