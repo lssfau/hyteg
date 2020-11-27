@@ -73,12 +73,12 @@ int main( int argc, char** argv )
 
    LIKWID_MARKER_THREADINIT;
 
-   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_1el.msh" );
+   MeshInfo                            meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
    globalStorage                               = storage;
 
-   const size_t level = 14;
+   const size_t level = 10;
 
    auto                   src  = std::make_shared< hyteg::P1Function< real_t > >( "src", storage, level, level );
    auto                   dst1 = std::make_shared< hyteg::P1Function< real_t > >( "dst", storage, level, level );

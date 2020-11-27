@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.10)
 
 PROJECT ( hyteg )
 enable_testing()
@@ -8,9 +8,7 @@ option ( HYTEG_BUILD_WITH_EIGEN       "Build with Eigen"                        
 option ( HYTEG_BUILD_WITH_TRILINOS    "Build with Trilinos"                          OFF)
 option ( HYTEG_USE_GENERATED_KERNELS  "Use generated pystencils kernels if available" ON)
 option ( HYTEG_GIT_SUBMODULE_AUTO     "Check submodules during build"                 ON)
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+
 set(WALBERLA_OPTIMIZE_FOR_LOCALHOST ON  CACHE BOOL "Enable compiler optimizations spcific to localhost")
 set(WALBERLA_LOG_SKIPPED            ON CACHE BOOL "Log skipped cmake targets"                         )
 set(WALBERLA_DIR ${hyteg_SOURCE_DIR}/walberla CACHE  PATH  "waLBerla path")

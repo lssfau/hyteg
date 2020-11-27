@@ -63,7 +63,7 @@ void simulate( int argc, char* argv[] )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   PETScManager petscManager;
+   PETScManager petscManager( &argc, &argv );
 
    printGitInfo();
    WALBERLA_LOG_INFO_ON_ROOT( "" )

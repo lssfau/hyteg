@@ -267,7 +267,7 @@ int main( int argc, char** argv )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::PETScManager petscManager;
+   hyteg::PETScManager petscManager( &argc, &argv );
 
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )

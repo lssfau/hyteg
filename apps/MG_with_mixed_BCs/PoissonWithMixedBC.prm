@@ -1,0 +1,18 @@
+Parameters
+{
+  minLevel 2;
+  maxLevel 4;
+
+  // frequency index for 1st problem
+  freq1 2;
+
+  // frequency indices for 2nd problem
+  freq2 3;
+  freq3 2;
+
+  outputVTK true;
+
+  maxCycles 30;
+  mgTolerance 5e-14;
+  solver MG;
+}

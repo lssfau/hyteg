@@ -59,8 +59,6 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage > storage,
    WALBERLA_LOG_INFO_ON_ROOT( " Running matrix comparison for: " << tag );
    WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------------------" );
 
-   PETScManager petscManager;
-
    // determine indices and dimensions
    FuncType< PetscInt > enumerator( "enumerator", storage, level, level );
    enumerator.enumerate( level );
@@ -105,22 +103,30 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage > storage,
 
    if ( beVerbose )
    {
-      MatInfo info;
-      MatGetInfo( constantPETScMat.get(), MAT_GLOBAL_SUM, &info );
+      // MatInfo info;
       WALBERLA_LOG_INFO_ON_ROOT( "Info on constantPETScMat:" );
-      WALBERLA_LOG_INFO_ON_ROOT( "* block size ............................. " << real_c( info.block_size ) );
-      WALBERLA_LOG_INFO_ON_ROOT( "* number of nonzeros ..................... " << info.nz_allocated );
-      WALBERLA_LOG_INFO_ON_ROOT( "* memory allocated ....................... " << info.memory );
-      WALBERLA_LOG_INFO_ON_ROOT( "* no. of matrix assemblies called ........ " << info.assemblies );
-      WALBERLA_LOG_INFO_ON_ROOT( "* no. of mallocs during MatSetValues() ... " << info.mallocs << "\n" );
+      WALBERLA_LOG_INFO_ON_ROOT( "" << constantPETScMat.getInfo() );
+      // MatGetInfo( constantPETScMat.get(), MAT_GLOBAL_SUM, &info );
+      // WALBERLA_LOG_INFO_ON_ROOT( "Info on constantPETScMat:" );
+      // WALBERLA_LOG_INFO_ON_ROOT( "* block size ............................. " << real_c( info.block_size ) );
+      // WALBERLA_LOG_INFO_ON_ROOT( "* number of nonzeros (alloced) ........... " << info.nz_allocated );
+      // WALBERLA_LOG_INFO_ON_ROOT( "* number of nonzeros (used) .............. " << info.nz_used      );
+      // WALBERLA_LOG_INFO_ON_ROOT( "* number of nonzeros (unneeded) .......... " << info.nz_unneeded  );
+      // WALBERLA_LOG_INFO_ON_ROOT( "* memory allocated ....................... " << info.memory );
+      // WALBERLA_LOG_INFO_ON_ROOT( "* no. of matrix assemblies called ........ " << info.assemblies );
+      // WALBERLA_LOG_INFO_ON_ROOT( "* no. of mallocs during MatSetValues() ... " << info.mallocs << "\n" );
 
-      MatGetInfo( elemWisePETScMat.get(), MAT_GLOBAL_SUM, &info );
       WALBERLA_LOG_INFO_ON_ROOT( "Info on elemWisePETScMat:" );
-      WALBERLA_LOG_INFO_ON_ROOT( "* block size ............................. " << real_c( info.block_size ) );
-      WALBERLA_LOG_INFO_ON_ROOT( "* number of nonzeros ..................... " << info.nz_allocated );
-      WALBERLA_LOG_INFO_ON_ROOT( "* memory allocated ....................... " << info.memory );
-      WALBERLA_LOG_INFO_ON_ROOT( "* no. of matrix assemblies called ........ " << info.assemblies );
-      WALBERLA_LOG_INFO_ON_ROOT( "* no. of mallocs during MatSetValues() ... " << info.mallocs << "\n" );
+      WALBERLA_LOG_INFO_ON_ROOT( "" << elemWisePETScMat.getInfo() );
+      // MatGetInfo( elemWisePETScMat.get(), MAT_GLOBAL_SUM, &info );
+      // WALBERLA_LOG_INFO_ON_ROOT( "Info on elemWisePETScMat:" );
+      // WALBERLA_LOG_INFO_ON_ROOT( "* block size ............................. " << real_c( info.block_size ) );
+      // WALBERLA_LOG_INFO_ON_ROOT( "* number of nonzeros (alloced) ........... " << info.nz_allocated );
+      // WALBERLA_LOG_INFO_ON_ROOT( "* number of nonzeros (used) .............. " << info.nz_used      );
+      // WALBERLA_LOG_INFO_ON_ROOT( "* number of nonzeros (unneeded) .......... " << info.nz_unneeded  );
+      // WALBERLA_LOG_INFO_ON_ROOT( "* memory allocated ....................... " << info.memory );
+      // WALBERLA_LOG_INFO_ON_ROOT( "* no. of matrix assemblies called ........ " << info.assemblies );
+      // WALBERLA_LOG_INFO_ON_ROOT( "* no. of mallocs during MatSetValues() ... " << info.mallocs << "\n" );
 
       WALBERLA_LOG_INFO_ON_ROOT( "Norms of difference matrix:" );
       WALBERLA_LOG_INFO_ON_ROOT( "* Frobenius norm ...... " << normFrb );
@@ -139,6 +145,7 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
+   PETScManager petscManager( &argc, &argv );
    // ----------------------------
    //  Prepare setup for 2D tests
    // ----------------------------
@@ -149,7 +156,7 @@ int main( int argc, char* argv[] )
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
    bool beVerbose = false;
-   // bool   beVerbose = true;
+   // bool beVerbose = true;
    uint_t level = 4;
 
    // -------------------

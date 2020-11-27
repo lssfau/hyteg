@@ -290,7 +290,7 @@ int main( int argc, char* argv[] )
   auto numerator = std::make_shared< hyteg::P1StokesFunction< PetscInt > >( "numerator", storage, level, level );
    uint_t globalSize = 0;
    const uint_t localSize = numerator->enumerate(level, globalSize);
-   PETScManager petscManager;
+   PETScManager petscManager( &argc, &argv );
    PETScLUSolver< real_t, hyteg::P1StokesFunction, hyteg::P1StokesOperator > petScLUSolver( numerator, localSize, globalSize );
    f.u.assign( {1.0}, {&u.u}, level, DirichletBoundary );
    f.v.assign( {1.0}, {&u.v}, level, DirichletBoundary );

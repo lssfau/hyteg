@@ -38,8 +38,6 @@ namespace hyteg {
 
 static void test( const std::string & meshFile, const uint_t & level )
 {
-  PETScManager petscManager;
-
   auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
 
   P2P1TaylorHoodFunction< PetscInt > numerator( "numerator", storage, level, level );
@@ -63,6 +61,7 @@ int main(int argc, char* argv[])
 {
   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
   walberla::MPIManager::instance()->useWorldComm();
+  hyteg::PETScManager petscManager( &argc, &argv );
 
   for ( uint_t level = 2; level <= 3; level++ )
   {
