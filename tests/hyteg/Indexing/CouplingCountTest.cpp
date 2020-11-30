@@ -104,7 +104,7 @@ int main( int argc, char* argv[] )
    //  General behaviour
    // -------------------
    bool   beVerbose  = true;
-   bool   run2DTests = true;
+   bool   run2DTests = false;
    bool   run3DTests = true;
    uint_t maxLevel   = 2;
 
@@ -142,7 +142,8 @@ int main( int argc, char* argv[] )
    if ( run3DTests )
    {
       // std::string           meshFileName = "../../data/meshes/3D/tet_tilted_1el.msh";
-      std::string           meshFileName = "../../data/meshes/3D/pyramid_4el.msh";
+      std::string           meshFileName = "../../data/meshes/3D/pyramid_2el.msh";
+      // std::string           meshFileName = "../../data/meshes/3D/pyramid_4el.msh";
       MeshInfo              meshInfo     = MeshInfo::fromGmshFile( meshFileName );
       SetupPrimitiveStorage setupStorage3D( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
       loadbalancing::roundRobin( setupStorage3D );
@@ -158,6 +159,7 @@ int main( int argc, char* argv[] )
 
       // We start by simply using a P1-P1 operator
       compareCounts< P1ConstantMassOperator, P1Function >( storage3D, "P1-P1 (3D mesh)", maxLevel, beVerbose );
+      compareCounts< P2ConstantMassOperator, P2Function >( storage3D, "P2-P2 (3D mesh)", maxLevel, beVerbose );
    }
 
    return 0;
