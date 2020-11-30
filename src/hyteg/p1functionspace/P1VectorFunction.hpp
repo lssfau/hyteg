@@ -21,6 +21,7 @@
 #pragma once
 
 #include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/functions/VectorFunctionTools.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 
 namespace hyteg {
@@ -115,9 +116,9 @@ class P1VectorFunction
                 size_t                                                                              level,
                 DoFType                                                                             flag = All ) const
    {
-      u.assign( scalars, filter( 0, functions ), level, flag );
-      v.assign( scalars, filter( 1, functions ), level, flag );
-      w.assign( scalars, filter( 2, functions ), level, flag );
+      u.assign( scalars, vectorFunctionTools::filter( 0, functions ), level, flag );
+      v.assign( scalars, vectorFunctionTools::filter( 1, functions ), level, flag );
+      w.assign( scalars, vectorFunctionTools::filter( 2, functions ), level, flag );
    }
 
    void add( real_t scalar, size_t level, DoFType flag = All ) const
@@ -132,9 +133,9 @@ class P1VectorFunction
              size_t                                                                              level,
              DoFType                                                                             flag = All ) const
    {
-      u.add( scalars, filter( 0, functions ), level, flag );
-      v.add( scalars, filter( 1, functions ), level, flag );
-      w.add( scalars, filter( 2, functions ), level, flag );
+      u.add( scalars, vectorFunctionTools::filter( 0, functions ), level, flag );
+      v.add( scalars, vectorFunctionTools::filter( 1, functions ), level, flag );
+      w.add( scalars, vectorFunctionTools::filter( 2, functions ), level, flag );
    }
 
    walberla::real_t dotLocal( const P1VectorFunction< ValueType >& rhs, const uint_t level, const DoFType flag = All ) const
@@ -171,9 +172,9 @@ class P1VectorFunction
                          uint_t                                                                              level,
                          DoFType                                                                             flag = All ) const
    {
-      u.multElementwise( filter( 0, functions ), level, flag );
-      v.multElementwise( filter( 1, functions ), level, flag );
-      w.multElementwise( filter( 2, functions ), level, flag );
+      u.multElementwise( vectorFunctionTools::filter( 0, functions ), level, flag );
+      v.multElementwise( vectorFunctionTools::filter( 1, functions ), level, flag );
+      w.multElementwise( vectorFunctionTools::filter( 2, functions ), level, flag );
    }
 
    ValueType getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce = true ) const
@@ -237,16 +238,6 @@ class P1VectorFunction
    uint_t getDimension() const { return component( 0 ).getStorage()->hasGlobalCells() ? 3 : 2; }
 
  private:
-
-   std::vector< std::reference_wrapper< const VectorComponentType > >
-       filter( uint_t dim, const std::vector< std::reference_wrapper< const P1VectorFunction< ValueType > > >& functions ) const
-   {
-      std::vector< std::reference_wrapper< const VectorComponentType > > functions_scalar;
-      std::transform( functions.begin(), functions.end(), std::back_inserter( functions_scalar ), [dim]( auto& function ) {
-         return std::cref( function.get().component( dim ) );
-      } );
-      return functions_scalar;
-   }
 
    const std::string functionName_;
 };
