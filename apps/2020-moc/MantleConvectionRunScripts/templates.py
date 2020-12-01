@@ -30,6 +30,9 @@ def create_parameter_file(max_level: int, ra: float, output_directory: str, base
     stokesMaxNumIterations 20;
     stokesAbsoluteResidualUTolerance 1e-10;
     uzawaOmega {uzawa_omega};
+    uzawaPreSmooth 6;
+    uzawaPostSmooth 6;
+    uzawaInnerIterations 10;
 
     // PETSC_MINRES = 0,
     // HYTEG_CG     = 1
