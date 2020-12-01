@@ -22,10 +22,10 @@
 #include "core/DataTypes.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/FunctionProperties.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"

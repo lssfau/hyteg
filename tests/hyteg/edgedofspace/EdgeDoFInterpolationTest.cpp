@@ -17,14 +17,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#include "core/Environment.h"
+#include "core/debug/all.h"
+
 #include "hyteg/Levelinfo.hpp"
-#include "hyteg/FunctionMemory.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "core/Environment.h"
-#include "core/debug/all.h"
 
 using walberla::real_t;
 using namespace hyteg;

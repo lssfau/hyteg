@@ -23,7 +23,7 @@
 #include "core/math/Constants.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg/FunctionProperties.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"

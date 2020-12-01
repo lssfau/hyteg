@@ -20,8 +20,8 @@
 #pragma once
 
 #include "hyteg/communication/DoFSpacePackInfo.hpp"
-#include "hyteg/FunctionMemory.hpp"
 #include "hyteg/facedofspace/FaceDoFIndexing.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 
 namespace hyteg {
 

@@ -24,11 +24,11 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/FunctionTraits.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"

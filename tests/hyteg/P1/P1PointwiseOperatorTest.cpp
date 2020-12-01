@@ -24,11 +24,11 @@
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg/FunctionIterator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/forms/form_fenics_generated/p1_tet_diffusion.h"
+#include "hyteg/functions/FunctionIterator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/forms/form_fenics_generated/p1_tet_diffusion.h"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"

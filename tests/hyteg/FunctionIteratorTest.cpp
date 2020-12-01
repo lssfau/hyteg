@@ -21,7 +21,7 @@
 #include "core/debug/CheckFunctions.h"
 #include "core/DataTypes.h"
 
-#include "hyteg/FunctionIterator.hpp"
+#include "hyteg/functions/FunctionIterator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 

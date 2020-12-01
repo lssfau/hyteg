@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/FunctionMemory.hpp"
 #include "hyteg/gridtransferoperators/ProlongationOperator.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
 
 namespace hyteg {
 

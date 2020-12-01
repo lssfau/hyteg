@@ -22,20 +22,19 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
+#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/Visualization.hpp"
-
-#include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
-#include "hyteg/FunctionProperties.hpp"
-#include "hyteg/FunctionTraits.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
 
 namespace hyteg {
 

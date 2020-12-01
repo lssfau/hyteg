@@ -19,10 +19,10 @@
  */
 #pragma once
 
-#include "hyteg/LevelWiseMemory.hpp"
 #include "hyteg/Operator.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
+#include "hyteg/memory/LevelWiseMemory.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"

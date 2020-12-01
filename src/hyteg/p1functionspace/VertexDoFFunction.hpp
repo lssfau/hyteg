@@ -25,11 +25,11 @@
 
 #include "core/DataTypes.h"
 
-#include "hyteg/Function.hpp"
-#include "hyteg/FunctionProperties.hpp"
 #include "hyteg/boundary/BoundaryConditions.hpp"
+#include "hyteg/functions/Function.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/types/flags.hpp"
-//TODO this should be improved but we need the enum which cant be forward declared
+/// \todo This should be improved, but we need the enum which can't be forward declared
 #include "hyteg/communication/BufferedCommunication.hpp"
 
 namespace hyteg {

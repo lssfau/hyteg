@@ -21,8 +21,8 @@
 #include "core/Environment.h"
 #include "core/DataTypes.h"
 
-#include "hyteg/FunctionProperties.hpp"
-#include "hyteg/FunctionTraits.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
 
 using walberla::uint_t;
 

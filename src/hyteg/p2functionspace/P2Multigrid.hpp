@@ -22,12 +22,12 @@
 #include <core/DataTypes.h>
 
 #include "hyteg/primitives/all.hpp"
-#include "hyteg/FunctionMemory.hpp"
 #include "hyteg/StencilDirections.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 
 namespace hyteg {
 namespace P2 {

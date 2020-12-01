@@ -25,10 +25,10 @@
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg/FunctionProperties.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/misc/ExactStencilWeights.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"

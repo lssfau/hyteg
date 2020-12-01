@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "hyteg/FunctionMemory.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 
 namespace hyteg {
 

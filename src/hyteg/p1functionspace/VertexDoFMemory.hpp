@@ -25,8 +25,8 @@
 #include "hyteg/primitives/Edge.hpp"
 #include "hyteg/primitives/Face.hpp"
 
-#include "hyteg/FunctionMemory.hpp"
-#include "hyteg/StencilMemory.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/memory/StencilMemory.hpp"
 
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/types/matrix.hpp"

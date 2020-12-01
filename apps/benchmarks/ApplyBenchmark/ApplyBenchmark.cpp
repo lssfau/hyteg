@@ -24,10 +24,10 @@
 #include "core/mpi/MPIManager.h"
 #include "core/timing/TimingJSON.h"
 
-#include "hyteg/FunctionProperties.hpp"
 #include "hyteg/LikwidWrapper.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"

@@ -22,9 +22,9 @@
 #include "core/DataTypes.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/FunctionProperties.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P1StokesOperator.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"

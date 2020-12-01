@@ -22,7 +22,6 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/FunctionTraits.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/P1RowSumForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
@@ -31,6 +30,7 @@
 #include "hyteg/forms/form_fenics_generated/p2_mass.h"
 #include "hyteg/forms/form_fenics_generated/p2_tet_diffusion.h"
 #include "hyteg/forms/form_fenics_generated/p2_tet_mass.h"
+#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"

@@ -23,8 +23,8 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
-#include "hyteg/FunctionProperties.hpp"
-#include "hyteg/FunctionTraits.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/forms/P1ZeroForm.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"

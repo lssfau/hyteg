@@ -34,20 +34,20 @@
 #error "This test only works with Eigen enabled. Please enable it via -DHYTEG_BUILD_WITH_EIGEN=ON"
 #endif
 
-#include "core/math/Random.h"
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
 #include "core/math/Constants.h"
+#include "core/math/Random.h"
 
-#include "hyteg/FunctionProperties.hpp"
+#include "hyteg/OpenMPManager.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/numerictools/SpectrumEstimation.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/numerictools/SpectrumEstimation.hpp"
-#include "hyteg/OpenMPManager.hpp"
 
 using walberla::real_t;
 using walberla::uint_t;

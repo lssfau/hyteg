@@ -24,8 +24,8 @@
 #include "core/Environment.h"
 #include "core/math/Random.h"
 
-#include "hyteg/FunctionIterator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/functions/FunctionIterator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 

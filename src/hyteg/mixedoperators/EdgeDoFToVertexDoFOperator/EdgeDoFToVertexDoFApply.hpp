@@ -19,24 +19,24 @@
  */
 #pragma once
 
-#include "hyteg/primitives/Vertex.hpp"
-#include "hyteg/primitives/Edge.hpp"
-#include "hyteg/primitives/Face.hpp"
-#include "hyteg/primitives/Cell.hpp"
-#include "hyteg/StencilMemory.hpp"
-#include "hyteg/FunctionMemory.hpp"
-#include "hyteg/primitives/all.hpp"
-#include "hyteg/StencilDirections.hpp"
+#include "hyteg/Algorithms.hpp"
 #include "hyteg/Levelinfo.hpp"
+#include "hyteg/StencilDirections.hpp"
+#include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
+#include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/indexing/LocalIDMappings.hpp"
-#include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/memory/LevelWiseMemory.hpp"
+#include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
-#include "hyteg/p2functionspace/P2Elements3D.hpp"
-#include "hyteg/LevelWiseMemory.hpp"
-#include "hyteg/Algorithms.hpp"
-#include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/p2functionspace/P2Elements3D.hpp"
+#include "hyteg/primitives/Cell.hpp"
+#include "hyteg/primitives/Edge.hpp"
+#include "hyteg/primitives/Face.hpp"
+#include "hyteg/primitives/Vertex.hpp"
+#include "hyteg/primitives/all.hpp"
 
 namespace hyteg {
 namespace EdgeDoFToVertexDoF {

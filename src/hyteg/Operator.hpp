@@ -22,10 +22,10 @@
 
 #include <core/DataTypes.h>
 #include <core/timing/TimingTree.h>
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/FunctionTraits.hpp"
-
 #include <memory>
+
+#include "hyteg/functions/FunctionTraits.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
 namespace hyteg {
 

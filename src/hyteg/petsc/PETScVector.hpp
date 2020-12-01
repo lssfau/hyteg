@@ -21,7 +21,7 @@
 
 #include "core/mpi/MPIWrapper.h"
 
-#include "hyteg/FunctionProperties.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/types/flags.hpp"
 
 #include "PETScWrapper.hpp"

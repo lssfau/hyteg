@@ -38,10 +38,10 @@
 #include "core/config/Config.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/FunctionProperties.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/numerictools/SphericalHarmonicsTool.hpp"

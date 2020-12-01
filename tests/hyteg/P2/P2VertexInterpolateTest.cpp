@@ -20,7 +20,7 @@
 #include "core/DataTypes.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/FunctionMemory.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitives/all.hpp"

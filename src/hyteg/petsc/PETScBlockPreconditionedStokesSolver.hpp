@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "hyteg/FunctionIterator.hpp"
+#include "hyteg/functions/FunctionIterator.hpp"
 #include "hyteg/solvers/Solver.hpp"
 
 #include "PETScSparseMatrix.hpp"

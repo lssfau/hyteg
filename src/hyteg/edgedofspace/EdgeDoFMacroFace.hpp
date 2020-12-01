@@ -21,14 +21,14 @@
 #pragma once
 
 #include "hyteg/Algorithms.hpp"
-#include "hyteg/FunctionMemory.hpp"
-#include "hyteg/LevelWiseMemory.hpp"
 #include "hyteg/Levelinfo.hpp"
-#include "hyteg/StencilMemory.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOperatorTypeDefs.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/memory/LevelWiseMemory.hpp"
+#include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/primitives/Cell.hpp"
 #include "hyteg/primitives/Face.hpp"

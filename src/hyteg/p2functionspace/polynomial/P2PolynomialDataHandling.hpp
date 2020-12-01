@@ -20,9 +20,9 @@
 
 #pragma once
 
-#include "hyteg/primitivedata/PrimitiveDataHandling.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/p2functionspace/polynomial/P2PolynomialMemory.hpp"
-#include "hyteg/FunctionMemory.hpp"
+#include "hyteg/primitivedata/PrimitiveDataHandling.hpp"
 
 namespace hyteg {
 

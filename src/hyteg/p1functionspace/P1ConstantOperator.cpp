@@ -30,7 +30,6 @@
 #pragma warning( pop )
 #endif
 
-#include "hyteg/LevelWiseMemory.hpp"
 #include "hyteg/forms/P1RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"

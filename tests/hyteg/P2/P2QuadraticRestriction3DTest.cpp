@@ -23,9 +23,9 @@
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg/FunctionIterator.hpp"
-#include "hyteg/FunctionProperties.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/functions/FunctionIterator.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"

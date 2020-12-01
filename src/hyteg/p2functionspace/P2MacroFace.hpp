@@ -19,10 +19,10 @@
  */
 #pragma once
 
-#include "hyteg/FunctionMemory.hpp"
-#include "hyteg/LevelWiseMemory.hpp"
 #include "hyteg/PrimitiveID.hpp"
-#include "hyteg/StencilMemory.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/memory/LevelWiseMemory.hpp"
+#include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
 #include "hyteg/primitives/Face.hpp"

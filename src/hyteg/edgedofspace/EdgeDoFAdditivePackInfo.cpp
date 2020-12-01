@@ -20,13 +20,13 @@
 #include "EdgeDoFAdditivePackInfo.hpp"
 
 #include "hyteg/Algorithms.hpp"
-#include "hyteg/FunctionMemory.hpp"
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/StencilDirections.hpp"
 #include "hyteg/communication/DoFSpacePackInfo.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
 #include "hyteg/indexing/LocalIDMappings.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 
 namespace hyteg {
 

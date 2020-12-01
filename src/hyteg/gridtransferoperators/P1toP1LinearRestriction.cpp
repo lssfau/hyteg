@@ -19,12 +19,13 @@
  */
 
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
-#include "hyteg/FunctionMemory.hpp"
-#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
-#include "hyteg/Levelinfo.hpp"
+
 #include "hyteg/HytegDefinitions.hpp"
+#include "hyteg/Levelinfo.hpp"
 #include "hyteg/gridtransferoperators/generatedKernels/restrict_2D_macroface_P1_pull_additive.hpp"
 #include "hyteg/gridtransferoperators/generatedKernels/restrict_3D_macrocell_P1_pull_additive.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 
 namespace hyteg {
 
