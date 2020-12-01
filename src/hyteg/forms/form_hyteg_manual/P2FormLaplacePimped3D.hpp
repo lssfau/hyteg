@@ -235,7 +235,7 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
 
          // compute and add contribution from current integration point to all element matrix entries
          // (computations on upper triangle only)
-         for ( uint i = 0; i < 10; i++ )
+         for ( uint_t i = 0; i < 10; i++ )
          {
             real_t tmp14 = SFD[i][0] * coords[0][0];
             real_t tmp15 = SFD[i][0] * coords[2][0];
@@ -274,7 +274,7 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
                            tmp36 * coords[1][2] - tmp36 * coords[2][2] - tmp37 * coords[0][2] + tmp37 * coords[2][2] +
                            tmp38 * coords[0][2] - tmp38 * coords[1][2];
 
-            for ( uint j = i; j < 10; j++ )
+            for ( uint_t j = i; j < 10; j++ )
             {
                real_t tmp40 = SFD[j][0] * coords[0][0];
                real_t tmp41 = SFD[j][0] * coords[2][0];
@@ -333,9 +333,9 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
 #else
          // compute and add contribution from current integration point to all element matrix entries
          // (computations on upper triangle only)
-         for ( uint i = 0; i < 10; i++ )
+         for ( uint_t i = 0; i < 10; i++ )
          {
-            for ( uint j = i; j < 10; j++ )
+            for ( uint_t j = i; j < 10; j++ )
             {
                real_t tmp14 = SFD[i][0] * coords[0][0];
                real_t tmp15 = SFD[i][0] * coords[2][0];
@@ -431,9 +431,9 @@ class P2Form_laplacePimped3D : public P2FormHyTeG
       }
 
       // set lower triangular part from symmetry
-      for ( uint i = 0; i < 10; i++ )
+      for ( uint_t i = 0; i < 10; i++ )
       {
-         for ( uint j = 0; j < i; j++ )
+         for ( uint_t j = 0; j < i; j++ )
          {
             elMat( i, j ) = elMat( j, i );
          }
