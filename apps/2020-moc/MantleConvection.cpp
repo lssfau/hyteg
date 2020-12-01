@@ -1075,6 +1075,9 @@ void runBenchmark( real_t      cflMax,
       localTimer.end();
       timeVTK = localTimer.last();
 
+      timeStepTimer.end();
+      timeStepTotal = timeStepTimer.last();
+
       db.setVariableEntry( "ts", uint_c( timeStep ) );
       db.setVariableEntry( "sim_time", timeTotal );
       db.setVariableEntry( "run_time_advection", timeMMOC );
@@ -1087,9 +1090,6 @@ void runBenchmark( real_t      cflMax,
       db.setVariableEntry( "dt", dt );
 
       db.writeRowOnRoot();
-
-      timeStepTimer.end();
-      timeStepTotal = timeStepTimer.last();
 
       if ( printInterval > 0 && timeStep % printInterval == 0 )
       {
