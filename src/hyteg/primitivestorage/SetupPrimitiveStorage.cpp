@@ -341,11 +341,37 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
     setMeshBoundaryFlag( cellID.getID(), meshInfoCell.getBoundaryFlag() );
   }
 
+  // add indirect neighbor faces
+  for ( auto& it : faces_ )
+  {
+     auto faceID = it.first;
+     auto face   = it.second;
+
+     std::set< PrimitiveID > indirectNeighborsSet;
+
+     for ( const auto& vertexID : face->neighborVertices() )
+     {
+        auto vertex = getVertex( vertexID );
+        for ( const auto& neighborFaceID : vertex->neighborFaces() )
+        {
+           if ( neighborFaceID != faceID )
+           {
+              indirectNeighborsSet.insert( neighborFaceID );
+           }
+        }
+     }
+
+     face->indirectNeighborFaceIDs_.clear();
+     face->indirectNeighborFaceIDs_.insert( face->indirectNeighborFaceIDs_.begin(), indirectNeighborsSet.begin(), indirectNeighborsSet.end() );
+  }
+
   // add indirect neighbor cells
-  for ( auto & it : cells_ )
+  for ( auto& it : cells_ )
   {
      auto cellID = it.first;
      auto cell   = it.second;
+
+     std::set< PrimitiveID > indirectNeighborsSet;
 
      for ( const auto& vertexID : cell->neighborVertices() )
      {
@@ -354,10 +380,13 @@ SetupPrimitiveStorage::SetupPrimitiveStorage( const MeshInfo & meshInfo, const u
         {
            if ( neighborCellID != cellID )
            {
-              cell->indirectNeighborCellIDs_.push_back( neighborCellID );
+              indirectNeighborsSet.insert( neighborCellID );
            }
         }
      }
+
+     cell->indirectNeighborCellIDs_.clear();
+     cell->indirectNeighborCellIDs_.insert( cell->indirectNeighborCellIDs_.begin(), indirectNeighborsSet.begin(), indirectNeighborsSet.end() );
   }
 
   loadbalancing::roundRobin( *this );
@@ -379,6 +408,58 @@ const Primitive * SetupPrimitiveStorage::getPrimitive( const PrimitiveID & id ) 
   if ( faceExists( id ) )   { return getFace( id ); }
   if ( cellExists( id ) )   { return getCell( id ); }
   return nullptr;
+}
+
+uint_t SetupPrimitiveStorage::getNumCellsOnRank( uint_t rank ) const
+{
+   uint_t n = 0;
+   for ( const auto & it : cells_ )
+   {
+      if ( getTargetRank( it.first ) == rank )
+      {
+         n++;
+      }
+   }
+   return n;
+}
+
+uint_t SetupPrimitiveStorage::getNumFacesOnRank( uint_t rank ) const
+{
+   uint_t n = 0;
+   for ( const auto & it : faces_ )
+   {
+      if ( getTargetRank( it.first ) == rank )
+      {
+         n++;
+      }
+   }
+   return n;
+}
+
+uint_t SetupPrimitiveStorage::getNumEdgesOnRank( uint_t rank ) const
+{
+   uint_t n = 0;
+   for ( const auto & it : edges_ )
+   {
+      if ( getTargetRank( it.first ) == rank )
+      {
+         n++;
+      }
+   }
+   return n;
+}
+
+uint_t SetupPrimitiveStorage::getNumVerticesOnRank( uint_t rank ) const
+{
+   uint_t n = 0;
+   for ( const auto & it : vertices_ )
+   {
+      if ( getTargetRank( it.first ) == rank )
+      {
+         n++;
+      }
+   }
+   return n;
 }
 
 void SetupPrimitiveStorage::assembleRankToSetupPrimitivesMap( RankToSetupPrimitivesMap & rankToSetupPrimitivesMap ) const

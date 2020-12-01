@@ -21,7 +21,7 @@ class P2P1ElementwiseBlendingStokesBlockPreconditioner
         minLevel,
         maxLevel,
         storage->hasGlobalCells() ? std::make_shared< P1RowSumForm >( std::make_shared< P1Form_mass3D >() ) :
-                                    std::make_shared< P1RowSumForm >( std::make_shared< P1FormHyTeG >() ) )
+                                    std::make_shared< P1RowSumForm >( std::make_shared< P1Form_mass >() ) )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 

@@ -20,8 +20,11 @@
 
 #pragma once
 
-#include "hyteg/solvers/Solver.hpp"
+#include <functional>
+
 #include "core/DataTypes.h"
+
+#include "hyteg/solvers/Solver.hpp"
 
 namespace hyteg {
 
@@ -30,26 +33,47 @@ using walberla::uint_t;
 template < typename OperatorType >
 class SolverLoop : public Solver< OperatorType >
 {
-public:
+ public:
+   typedef typename OperatorType::srcType FunctionType;
 
-    typedef typename OperatorType::srcType FunctionType;
+   SolverLoop( const std::shared_ptr< Solver< OperatorType > >& solver, const uint_t& iterations )
+   : solver_( solver )
+   , iterations_( iterations )
+   , stopIterationCallback_( []( const OperatorType&, const FunctionType&, const FunctionType&, const uint_t ) { return false; } )
+   {}
 
-    SolverLoop( const std::shared_ptr< Solver< OperatorType > > & solver,
-                const uint_t & iterations ) :
-                solver_( solver ),
-                iterations_( iterations )
-    {}
+   SolverLoop( const std::shared_ptr< Solver< OperatorType > >& solver,
+               const uint_t&                                    iterations,
+               const std::function< bool( const OperatorType&, const FunctionType&, const FunctionType&, const uint_t ) >&                   stopIterationCallback )
+   : solver_( solver )
+   , iterations_( iterations )
+   , stopIterationCallback_( stopIterationCallback )
+   {}
 
-    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
-    {
+   void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
+   {
       for ( uint_t i = 0; i < iterations_; i++ )
-        solver_->solve( A, x, b, level );
-    }
+      {
+         solver_->solve( A, x, b, level );
+         if ( stopIterationCallback_( A, x, b, level ) )
+         {
+            break;
+         }
+      }
+   }
 
-private:
+   void setStopIterationCallback(
+       const std::function< bool( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) >&
+           stopIterationCallback )
+   {
+      stopIterationCallback_ = stopIterationCallback;
+   }
 
-    std::shared_ptr< Solver< OperatorType > > solver_;
-    uint_t iterations_;
+ private:
+   std::shared_ptr< Solver< OperatorType > > solver_;
+   uint_t                                    iterations_;
+   std::function< bool( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) >
+       stopIterationCallback_;
 };
 
-}
+} // namespace hyteg

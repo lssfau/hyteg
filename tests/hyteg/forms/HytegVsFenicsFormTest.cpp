@@ -43,6 +43,7 @@ using walberla::math::pi;
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivT.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
+#include "hyteg/forms/form_hyteg_manual/P2FormLaplacePimped3D.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2ToP1FormDiv.hpp"
 #include "hyteg/geometry/AffineMap2D.hpp"
@@ -378,6 +379,10 @@ void run3DTestsWithoutBlending()
    logSectionHeader( "P2 Laplace Forms (3D)" );
    compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >, P2Form_laplace, Matrix10r, 3 >(
        theTet, 3e-14 );
+
+   logSectionHeader( "P2 Laplace Forms (3D) - HyTeG pimped" );
+   compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >, P2Form_laplacePimped3D, Matrix10r, 3 >(
+       theTet, 3e-14 );
 }
 
 void run3DTestsWithAffineMap()
@@ -426,6 +431,12 @@ void run3DTestsWithAffineMap()
    logSectionHeader( "P2 Laplace Forms (3D)" );
    compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >,
                           P2Form_laplace,
+                          Matrix10r,
+                          3 >( theTet, 5e-14, map );
+
+   logSectionHeader( "P2 Laplace Forms (3D) -- HyTeG pimped" );
+   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >,
+                          P2Form_laplacePimped3D,
                           Matrix10r,
                           3 >( theTet, 5e-14, map );
 

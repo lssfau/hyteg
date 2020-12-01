@@ -51,7 +51,10 @@ class StokesBlockDiagonalPreconditioner : public Solver< OperatorType >
       {
          velocityBlockPreconditioner_->solve( A.A, x.uvw.u, b.uvw.u, level );
          velocityBlockPreconditioner_->solve( A.A, x.uvw.v, b.uvw.v, level );
-         velocityBlockPreconditioner_->solve( A.A, x.uvw.w, b.uvw.w, level );
+         if ( x.getStorage()->hasGlobalCells() )
+         {
+            velocityBlockPreconditioner_->solve( A.A, x.uvw.w, b.uvw.w, level );
+         }
       }
 
       pressureBlockPreconditioner_->apply( b.p, x.p, level, flag_, Replace );

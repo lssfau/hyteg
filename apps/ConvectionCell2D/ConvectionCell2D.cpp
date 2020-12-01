@@ -90,7 +90,7 @@ int main( int argc, char* argv[] )
    auto     setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   auto storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage );
+   auto storage = std::make_shared< hyteg::PrimitiveStorage >( *setupStorage, 3 );
 
    storage->getTimingTree()->start( "Total" );
 
@@ -148,7 +148,7 @@ int main( int argc, char* argv[] )
 
    hyteg::P2P1TaylorHoodStokesOperator   L( storage, minLevel, maxLevel );
    P2ConstantMassOperator                M( storage, minLevel, maxLevel );
-   MMOCTransport< P2Function< real_t > > transport( storage, setupStorage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
+   MMOCTransport< P2Function< real_t > > transport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
    auto pressurePreconditioner = std::make_shared<
        hyteg::StokesPressureBlockPreconditioner< hyteg::P2P1TaylorHoodStokesOperator, hyteg::P1LumpedInvMassOperator > >(

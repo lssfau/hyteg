@@ -1,0 +1,19 @@
+Parameters
+{
+  level 2;
+  numTimeSteps 10;
+  timeStepSize 0.01;
+
+  resetParticles false;
+  resetParticlesInterval 1;
+  adjustedAdvection false;
+  vtk true;
+  printInterval 1;
+  vtkInterval 1;
+  dbFile Benchmark_05_PipeScaling.db;
+
+  diameterCubes 1;
+  lengthCubes 8;
+
+  lbType 1;
+}

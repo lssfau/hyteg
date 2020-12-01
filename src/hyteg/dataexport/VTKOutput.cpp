@@ -20,6 +20,7 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 
 #include "core/Format.hpp"
+#include "vtk/UtilityFunctions.h"
 
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
@@ -37,6 +38,9 @@
 namespace hyteg {
 
 using walberla::real_c;
+using walberla::vtk::typeToString;
+using walberla::int32_c;
+using walberla::uint32_c;
 
 static void writeXMLHeader( std::ostream& output )
 {
@@ -70,19 +74,6 @@ static void writePieceFooter( std::ostream& output )
    output << "</Piece>\n";
 }
 
-static void writePointsHeader( std::ostream& output )
-{
-   output << "<Points>\n";
-   output << "<DataArray type=\"Float64\" NumberOfComponents=\"3\" format=\"ascii\">\n";
-   // VTKOutput::openDataElement( output, "Float64", "", 3, VTKOutput::VTK_DATA_FORMAT::ASCII );
-}
-
-static void writePointsFooter( std::ostream& output )
-{
-   output << "\n</DataArray>\n";
-   output << "</Points>\n";
-}
-
 VTKOutput::VTKOutput( std::string                                dir,
                       std::string                                filename,
                       const std::shared_ptr< PrimitiveStorage >& storage,
@@ -92,6 +83,7 @@ VTKOutput::VTKOutput( std::string                                dir,
 , writeFrequency_( writeFrequency )
 , write2D_( true )
 , storage_( storage )
+, vtkDataFormat_( VTK_DATA_FORMAT::ASCII )
 {
    /// set output to 3D is storage contains cells
    if ( storage->hasGlobalCells() )
@@ -149,6 +141,8 @@ void VTKOutput::writeVertexDoFData( std::ostream&                               
                                     const std::shared_ptr< PrimitiveStorage >&    storage,
                                     const uint_t&                                 level ) const
 {
+   VTKStreamWriter streamWriter( vtkDataFormat_ );
+
    if ( write2D_ )
    {
       for ( const auto& it : storage->getFaces() )
@@ -156,11 +150,10 @@ void VTKOutput::writeVertexDoFData( std::ostream&                               
          const Face& face = *it.second;
 
          size_t len = levelinfo::num_microvertices_per_face( level );
-         output << std::scientific;
 
          for ( size_t i = 0; i < len; ++i )
          {
-            output << face.getData( function.getFaceDataID() )->getPointer( level )[i] << " ";
+            streamWriter << face.getData( function.getFaceDataID() )->getPointer( level )[i];
          }
       }
    }
@@ -171,14 +164,14 @@ void VTKOutput::writeVertexDoFData( std::ostream&                               
          const Cell& cell     = *it.second;
          const auto  cellData = cell.getData( function.getCellDataID() )->getPointer( level );
 
-         output << std::scientific;
-
          for ( const auto& idxIt : vertexdof::macrocell::Iterator( level ) )
          {
-            output << cellData[vertexdof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z() )] << " ";
+            streamWriter << cellData[vertexdof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z() )];
          }
       }
    }
+
+   streamWriter.toStream( output );
 }
 
 void VTKOutput::writeP1VectorFunctionData( std::ostream&                              output,
@@ -186,6 +179,8 @@ void VTKOutput::writeP1VectorFunctionData( std::ostream&                        
                                            const std::shared_ptr< PrimitiveStorage >& storage,
                                            const uint_t&                              level ) const
 {
+   VTKStreamWriter streamWriter( vtkDataFormat_ );
+
    if ( write2D_ )
    {
       for ( const auto& it : storage->getFaces() )
@@ -193,13 +188,12 @@ void VTKOutput::writeP1VectorFunctionData( std::ostream&                        
          const Face& face = *it.second;
 
          size_t len = levelinfo::num_microvertices_per_face( level );
-         output << std::scientific;
 
          for ( size_t i = 0; i < len; ++i )
          {
-            output << face.getData( function[0].getFaceDataID() )->getPointer( level )[i] << " ";
-            output << face.getData( function[1].getFaceDataID() )->getPointer( level )[i] << " ";
-            // output << real_t(0) << " "; Paraview needs 3D vector fields to form glyphs
+            streamWriter << face.getData( function[0].getFaceDataID() )->getPointer( level )[i];
+            streamWriter << face.getData( function[1].getFaceDataID() )->getPointer( level )[i];
+            // streamWriter << real_t(0); Paraview needs 3D vector fields to form glyphs
          }
       }
    }
@@ -212,16 +206,16 @@ void VTKOutput::writeP1VectorFunctionData( std::ostream&                        
          const auto  cellData1 = cell.getData( function[1].getCellDataID() )->getPointer( level );
          const auto  cellData2 = cell.getData( function[2].getCellDataID() )->getPointer( level );
 
-         output << std::scientific;
-
          for ( const auto& idxIt : vertexdof::macrocell::Iterator( level ) )
          {
-            output << cellData0[vertexdof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z() )] << " ";
-            output << cellData1[vertexdof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z() )] << " ";
-            output << cellData2[vertexdof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z() )] << " ";
+            streamWriter << cellData0[vertexdof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z() )];
+            streamWriter << cellData1[vertexdof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z() )];
+            streamWriter << cellData2[vertexdof::macrocell::index( level, idxIt.x(), idxIt.y(), idxIt.z() )];
          }
       }
    }
+
+   streamWriter.toStream( output );
 }
 
 void VTKOutput::writeEdgeDoFData( std::ostream&                              output,
@@ -235,13 +229,13 @@ void VTKOutput::writeEdgeDoFData( std::ostream&                              out
                     dofType == VTKOutput::DoFType::EDGE_XZ || dofType == VTKOutput::DoFType::EDGE_YZ ||
                     dofType == VTKOutput::DoFType::EDGE_XYZ );
 
+   VTKStreamWriter streamWriter( vtkDataFormat_ );
+
    if ( write2D_ )
    {
       for ( const auto& it : storage->getFaces() )
       {
          const Face& face = *it.second;
-
-         output << std::scientific;
 
          switch ( dofType )
          {
@@ -249,9 +243,8 @@ void VTKOutput::writeEdgeDoFData( std::ostream&                              out
          {
             for ( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
-               output << face.getData( function.getFaceDataID() )
-                             ->getPointer( level )[edgedof::macroface::horizontalIndex( level, itIdx.col(), itIdx.row() )]
-                      << "\n";
+               streamWriter << face.getData( function.getFaceDataID() )
+                             ->getPointer( level )[edgedof::macroface::horizontalIndex( level, itIdx.col(), itIdx.row() )];
             }
             break;
          }
@@ -259,9 +252,8 @@ void VTKOutput::writeEdgeDoFData( std::ostream&                              out
          {
             for ( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
-               output << face.getData( function.getFaceDataID() )
-                             ->getPointer( level )[edgedof::macroface::verticalIndex( level, itIdx.col(), itIdx.row() )]
-                      << "\n";
+               streamWriter << face.getData( function.getFaceDataID() )
+                             ->getPointer( level )[edgedof::macroface::verticalIndex( level, itIdx.col(), itIdx.row() )];
             }
             break;
          }
@@ -269,9 +261,8 @@ void VTKOutput::writeEdgeDoFData( std::ostream&                              out
          {
             for ( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
-               output << face.getData( function.getFaceDataID() )
-                             ->getPointer( level )[edgedof::macroface::diagonalIndex( level, itIdx.col(), itIdx.row() )]
-                      << "\n";
+               streamWriter << face.getData( function.getFaceDataID() )
+                             ->getPointer( level )[edgedof::macroface::diagonalIndex( level, itIdx.col(), itIdx.row() )];
             }
             break;
          }
@@ -288,13 +279,11 @@ void VTKOutput::writeEdgeDoFData( std::ostream&                              out
          const Cell& cell     = *it.second;
          const auto  cellData = cell.getData( function.getCellDataID() )->getPointer( level );
 
-         output << std::scientific;
-
          if ( dofType == VTKOutput::DoFType::EDGE_XYZ )
          {
             for ( const auto& itIdx : edgedof::macrocell::IteratorXYZ( level ) )
             {
-               output << cellData[edgedof::macrocell::xyzIndex( level, itIdx.x(), itIdx.y(), itIdx.z() )] << "\n";
+               streamWriter << cellData[edgedof::macrocell::xyzIndex( level, itIdx.x(), itIdx.y(), itIdx.z() )];
             }
          }
          else
@@ -326,11 +315,13 @@ void VTKOutput::writeEdgeDoFData( std::ostream&                              out
                   WALBERLA_ABORT( "[VTK] Invalid DoFType" );
                   break;
                }
-               output << cellData[idx] << "\n";
+               streamWriter << cellData[idx];
             }
          }
       }
    }
+
+   streamWriter.toStream( output );
 }
 
 const std::map< VTKOutput::DoFType, std::string > VTKOutput::DoFTypeToString_ = {
@@ -355,6 +346,8 @@ void VTKOutput::writePointsForMicroVertices( std::ostream&                      
                                              const std::shared_ptr< PrimitiveStorage >& storage,
                                              const uint_t&                              level ) const
 {
+   VTKStreamWriter streamWriter( vtkDataFormat_ );
+
    if ( write2D_ )
    {
       for ( const auto& it : storage->getFaces() )
@@ -379,7 +372,7 @@ void VTKOutput::writePointsForMicroVertices( std::ostream&                      
             for ( size_t j = 0; j < inner_rowsize; ++j )
             {
                face.getGeometryMap()->evalF( x, xBlend );
-               output << std::scientific << xBlend[0] << " " << xBlend[1] << " " << xBlend[2] << " ";
+               streamWriter << xBlend[0] << xBlend[1] << xBlend[2];
                x += d0;
             }
 
@@ -398,10 +391,12 @@ void VTKOutput::writePointsForMicroVertices( std::ostream&                      
             const Point3D vtkPoint = vertexdof::macrocell::coordinateFromIndex( level, cell, idxIt );
             Point3D       xBlend;
             cell.getGeometryMap()->evalF( vtkPoint, xBlend );
-            output << std::scientific << xBlend[0] << " " << xBlend[1] << " " << xBlend[2] << "\n";
+            streamWriter << xBlend[0] << xBlend[1] << xBlend[2];
          }
       }
    }
+
+   streamWriter.toStream( output );
 }
 
 void VTKOutput::writePointsForMicroEdges( std::ostream&                              output,
@@ -409,6 +404,8 @@ void VTKOutput::writePointsForMicroEdges( std::ostream&                         
                                           const uint_t&                              level,
                                           const VTKOutput::DoFType&                  dofType ) const
 {
+   VTKStreamWriter streamWriter( vtkDataFormat_ );
+
    if ( write2D_ )
    {
       WALBERLA_ASSERT( dofType == VTKOutput::DoFType::EDGE_X || dofType == VTKOutput::DoFType::EDGE_Y ||
@@ -439,7 +436,7 @@ void VTKOutput::writePointsForMicroEdges( std::ostream&                         
                    faceBottomLeftCoords + ( real_c( itIdx.col() * 2 + 1 ) * horizontalMicroEdgeOffset +
                                             real_c( itIdx.row() * 2 ) * verticalMicroEdgeOffset );
                face.getGeometryMap()->evalF( horizontalMicroEdgePosition, xBlend );
-               output << xBlend[0] << " " << xBlend[1] << " " << xBlend[2] << "\n";
+               streamWriter << xBlend[0] << xBlend[1] << xBlend[2];
             }
             break;
          }
@@ -451,7 +448,7 @@ void VTKOutput::writePointsForMicroEdges( std::ostream&                         
                    faceBottomLeftCoords + ( real_c( itIdx.col() * 2 ) * horizontalMicroEdgeOffset +
                                             real_c( itIdx.row() * 2 + 1 ) * verticalMicroEdgeOffset );
                face.getGeometryMap()->evalF( verticalMicroEdgePosition, xBlend );
-               output << xBlend[0] << " " << xBlend[1] << " " << xBlend[2] << "\n";
+               streamWriter << xBlend[0] << xBlend[1] << xBlend[2];
             }
             break;
          }
@@ -464,7 +461,7 @@ void VTKOutput::writePointsForMicroEdges( std::ostream&                         
                                             real_c( itIdx.row() * 2 ) * verticalMicroEdgeOffset );
                const Point3D diagonalMicroEdgePosition = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
                face.getGeometryMap()->evalF( diagonalMicroEdgePosition, xBlend );
-               output << xBlend[0] << " " << xBlend[1] << " " << xBlend[2] << "\n";
+               streamWriter << xBlend[0] << xBlend[1] << xBlend[2];
             }
             break;
          }
@@ -494,7 +491,7 @@ void VTKOutput::writePointsForMicroEdges( std::ostream&                         
                                    edgedof::macrocell::xShiftFromVertex( level, cell ) +
                                    edgedof::macrocell::yShiftFromVertex( level, cell ) +
                                    edgedof::macrocell::zShiftFromVertex( level, cell );
-               output << microEdgePosition[0] << " " << microEdgePosition[1] << " " << microEdgePosition[2] << "\n";
+               streamWriter << microEdgePosition[0] << microEdgePosition[1] << microEdgePosition[2];
             }
          }
          else
@@ -529,11 +526,13 @@ void VTKOutput::writePointsForMicroEdges( std::ostream&                         
                   WALBERLA_ABORT( "[VTK] Invalid DoFType" );
                   break;
                }
-               output << microEdgePosition[0] << " " << microEdgePosition[1] << " " << microEdgePosition[2] << "\n";
+               streamWriter << microEdgePosition[0] << microEdgePosition[1] << microEdgePosition[2];
             }
          }
       }
    }
+
+   streamWriter.toStream( output );
 }
 
 void VTKOutput::writeCells2D( std::ostream&                              output,
@@ -541,30 +540,32 @@ void VTKOutput::writeCells2D( std::ostream&                              output,
                               const uint_t&                              faceWidth ) const
 {
    output << "<Cells>\n";
-   openDataElement( output, "Int32", "connectivity", 0, VTK_DATA_FORMAT::ASCII );
+   openDataElement( output, typeToString< uint64_t >(), "connectivity", 0, vtkDataFormat_ );
 
-   const uint_t numberOfCells = ( ( ( faceWidth - 1 ) * faceWidth ) / 2 ) + ( ( ( faceWidth - 2 ) * ( faceWidth - 1 ) ) / 2 );
+   VTKStreamWriter streamWriterCells( vtkDataFormat_ );
+
+   const uint64_t numberOfCells = uint64_c( ( ( faceWidth - 1 ) * faceWidth ) / 2 ) + ( ( ( faceWidth - 2 ) * ( faceWidth - 1 ) ) / 2 );
 
    // connectivity
-   size_t offset = 0;
+   uint64_t offset = 0;
 
    for ( auto& it : storage->getFaces() )
    {
       //TODO is it really unused?
       WALBERLA_UNUSED( it );
-      size_t rowsize       = faceWidth - 1;
-      size_t inner_rowsize = rowsize;
+      uint64_t rowsize       = uint64_c( faceWidth ) - 1;
+      uint64_t inner_rowsize = rowsize;
 
-      for ( size_t i = 0; i < rowsize; ++i )
+      for ( uint64_t i = 0; i < rowsize; ++i )
       {
-         for ( size_t j = 0; j < inner_rowsize - 1; ++j )
+         for ( uint64_t j = 0; j < inner_rowsize - 1; ++j )
          {
-            output << offset << " " << offset + 1 << " " << offset + inner_rowsize + 1 << " ";
-            output << offset + 1 << " " << offset + inner_rowsize + 2 << " " << offset + inner_rowsize + 1 << " ";
+            streamWriterCells << offset << offset + 1 << offset + inner_rowsize + 1;
+            streamWriterCells << offset + 1 << offset + inner_rowsize + 2 << offset + inner_rowsize + 1;
             ++offset;
          }
 
-         output << offset << " " << offset + 1 << " " << offset + inner_rowsize + 1 << " ";
+         streamWriterCells << offset << offset + 1 << offset + inner_rowsize + 1;
 
          offset += 2;
          --inner_rowsize;
@@ -573,8 +574,12 @@ void VTKOutput::writeCells2D( std::ostream&                              output,
       ++offset;
    }
 
+   streamWriterCells.toStream( output );
+
    output << "\n</DataArray>\n";
-   openDataElement( output, "Int32", "offsets", 0, VTK_DATA_FORMAT::ASCII );
+   openDataElement( output, typeToString< uint64_t >(), "offsets", 0, VTK_DATA_FORMAT::ASCII );
+
+   VTKStreamWriter streamWriterOffsets( VTK_DATA_FORMAT::ASCII );
 
    // offsets
    offset = 3;
@@ -584,13 +589,17 @@ void VTKOutput::writeCells2D( std::ostream&                              output,
 
       for ( size_t i = 0; i < numberOfCells; ++i )
       {
-         output << offset << " ";
+         streamWriterOffsets << offset;
          offset += 3;
       }
    }
 
+   streamWriterOffsets.toStream( output );
+
    output << "\n</DataArray>\n";
    openDataElement( output, "UInt8", "types", 0, VTK_DATA_FORMAT::ASCII );
+
+   VTKStreamWriter streamWriterTypes( VTK_DATA_FORMAT::ASCII );
 
    // cell types
    for ( auto& it : storage->getFaces() )
@@ -598,9 +607,11 @@ void VTKOutput::writeCells2D( std::ostream&                              output,
       WALBERLA_UNUSED( it );
       for ( size_t i = 0; i < numberOfCells; ++i )
       {
-         output << "5 ";
+         streamWriterTypes << 5;
       }
    }
+
+   streamWriterTypes.toStream( output );
 
    output << "\n</DataArray>\n";
    output << "</Cells>\n";
@@ -612,6 +623,8 @@ void VTKOutput::writeCells3D( std::ostream&                              output,
 {
    output << "<Cells>\n";
    openDataElement( output, "Int32", "connectivity", 0, VTK_DATA_FORMAT::ASCII );
+
+   VTKStreamWriter streamWriterCells( VTK_DATA_FORMAT::ASCII );
 
    // calculates the position of the point in the VTK list of points from a logical vertex index
    auto calcVTKPointArrayPosition = [width]( const indexing::Index& vertexIndex ) -> uint_t {
@@ -634,9 +647,8 @@ void VTKOutput::writeCells3D( std::ostream&                              output,
 
          for ( const auto& spanningVertexIndex : spanningVertexIndices )
          {
-            output << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+            streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
          }
-         output << "\n";
       }
 
       for ( const auto& it : indexing::CellIterator( width - 2 ) )
@@ -645,9 +657,8 @@ void VTKOutput::writeCells3D( std::ostream&                              output,
 
          for ( const auto& spanningVertexIndex : spanningVertexIndices )
          {
-            output << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+            streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
          }
-         output << "\n";
       }
 
       for ( const auto& it : indexing::CellIterator( width - 2 ) )
@@ -656,9 +667,8 @@ void VTKOutput::writeCells3D( std::ostream&                              output,
 
          for ( const auto& spanningVertexIndex : spanningVertexIndices )
          {
-            output << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+            streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
          }
-         output << "\n";
       }
 
       for ( const auto& it : indexing::CellIterator( width - 3 ) )
@@ -668,9 +678,8 @@ void VTKOutput::writeCells3D( std::ostream&                              output,
 
          for ( const auto& spanningVertexIndex : spanningVertexIndices )
          {
-            output << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+            streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
          }
-         output << "\n";
       }
 
       for ( const auto& it : indexing::CellIterator( width - 2 ) )
@@ -679,9 +688,8 @@ void VTKOutput::writeCells3D( std::ostream&                              output,
 
          for ( const auto& spanningVertexIndex : spanningVertexIndices )
          {
-            output << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+            streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
          }
-         output << "\n";
       }
 
       for ( const auto& it : indexing::CellIterator( width - 2 ) )
@@ -691,14 +699,17 @@ void VTKOutput::writeCells3D( std::ostream&                              output,
 
          for ( const auto& spanningVertexIndex : spanningVertexIndices )
          {
-            output << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex ) << " ";
+            streamWriterCells << macroCellIdx * numberOfVertices + calcVTKPointArrayPosition( spanningVertexIndex );
          }
-         output << "\n";
       }
    }
 
+   streamWriterCells.toStream( output );
+
    output << "\n</DataArray>\n";
    openDataElement( output, "Int32", "offsets", 0, VTK_DATA_FORMAT::ASCII );
+
+   VTKStreamWriter streamWriterOffsets( VTK_DATA_FORMAT::ASCII );
 
    // offsets
    uint_t offset = 4;
@@ -708,13 +719,17 @@ void VTKOutput::writeCells3D( std::ostream&                              output,
 
       for ( size_t i = 0; i < numberOfCells; ++i )
       {
-         output << offset << " ";
+         streamWriterOffsets << offset;
          offset += 4;
       }
    }
 
+   streamWriterOffsets.toStream( output );
+
    output << "\n</DataArray>\n";
    openDataElement( output, "UInt8", "types", 0, VTK_DATA_FORMAT::ASCII );
+
+   VTKStreamWriter streamWriterTypes( VTK_DATA_FORMAT::ASCII );
 
    // cell types
    for ( const auto& it : storage->getCells() )
@@ -722,9 +737,11 @@ void VTKOutput::writeCells3D( std::ostream&                              output,
       WALBERLA_UNUSED( it );
       for ( size_t i = 0; i < numberOfCells; ++i )
       {
-         output << "10 ";
+         streamWriterTypes << 10;
       }
    }
+
+   streamWriterTypes.toStream( output );
 
    output << "\n</DataArray>\n";
    output << "</Cells>\n";
@@ -755,9 +772,13 @@ void VTKOutput::writeP1( std::ostream& output, const uint_t& level ) const
       writePieceHeader( output, numberOfPoints3D, numberOfCells3D );
    }
 
-   writePointsHeader( output );
+   output << "<Points>\n";
+   openDataElement( output, "Float64", "", 3, vtkDataFormat_ );
+
    writePointsForMicroVertices( output, storage, level );
-   writePointsFooter( output );
+
+   output << "\n</DataArray>\n";
+   output << "</Points>\n";
 
    if ( write2D_ )
    {
@@ -772,7 +793,7 @@ void VTKOutput::writeP1( std::ostream& output, const uint_t& level ) const
 
    for ( const auto& function : p1Functions_ )
    {
-      openDataElement( output, "Float64", function.getFunctionName(), 1, VTK_DATA_FORMAT::ASCII );
+      openDataElement( output, "Float64", function.getFunctionName(), 1, vtkDataFormat_ );
       writeVertexDoFData( output, function, storage, level );
       output << "\n</DataArray>\n";
    }
@@ -780,7 +801,7 @@ void VTKOutput::writeP1( std::ostream& output, const uint_t& level ) const
    for ( const auto& function : p1VecFunctions_ )
    {
       uint_t dim = write2D_ ? 2 : 3;
-      openDataElement( output, "Float64", function.getFunctionName(), dim, VTK_DATA_FORMAT::ASCII );
+      openDataElement( output, "Float64", function.getFunctionName(), dim, vtkDataFormat_ );
       writeP1VectorFunctionData( output, function, storage, level );
       output << "\n</DataArray>\n";
    }
@@ -830,15 +851,20 @@ void VTKOutput::writeEdgeDoFs( std::ostream& output, const uint_t& level, const 
    {
       writePieceHeader( output, numberOfPoints3D, numberOfCells3D );
    }
-   writePointsHeader( output );
+   output << "<Points>\n";
+   openDataElement( output, "Float64", "", 3, vtkDataFormat_ );
+   
    writePointsForMicroEdges( output, storage, level, dofType );
-   writePointsFooter( output );
+   
+   output << "\n</DataArray>\n";
+   output << "</Points>\n";
+
 
    output << "<PointData>\n";
 
    for ( const auto& function : edgeDoFFunctions_ )
    {
-      openDataElement( output, "Float64", function.getFunctionName(), 1, VTK_DATA_FORMAT::ASCII );
+      openDataElement( output, "Float64", function.getFunctionName(), 1, vtkDataFormat_ );
 
       writeEdgeDoFData( output, function, storage, level, dofType );
 
@@ -876,9 +902,13 @@ void VTKOutput::writeDGDoFs( std::ostream& output, const uint_t& level ) const
 
    writePieceHeader( output, numberOfPoints, numberOfCells );
 
-   writePointsHeader( output );
+   output << "<Points>\n";
+   openDataElement( output, "Float64", "", 3, vtkDataFormat_ );
+   
    writePointsForMicroVertices( output, storage, level );
-   writePointsFooter( output );
+   
+   output << "\n</DataArray>\n";
+   output << "</Points>\n";
 
    writeCells2D( output, storage, levelinfo::num_microvertices_per_edge( level ) );
 
@@ -886,7 +916,7 @@ void VTKOutput::writeDGDoFs( std::ostream& output, const uint_t& level ) const
 
    for ( const auto& function : dgFunctions_ )
    {
-      openDataElement( output, "Float64", function.getFunctionName(), 1, VTK_DATA_FORMAT::ASCII );
+      openDataElement( output, "Float64", function.getFunctionName(), 1, vtkDataFormat_ );
 
       for ( const auto& it : storage->getFaces() )
       {
@@ -939,10 +969,14 @@ void VTKOutput::writeP2( std::ostream& output, const uint_t& level ) const
 
    writePieceHeader( output, numberOfPoints, numberOfCells );
 
-   writePointsHeader( output );
-   writePointsForMicroVertices( output, storage, level + 1 );
-   writePointsFooter( output );
+   output << "<Points>\n";
+   openDataElement( output, "Float64", "", 3, vtkDataFormat_ );
 
+   writePointsForMicroVertices( output, storage, level + 1 );
+
+   output << "\n</DataArray>\n";
+   output << "</Points>\n";
+   
    if ( write2D_ )
    {
       writeCells2D( output, storage, levelinfo::num_microvertices_per_edge( level + 1 ) );
@@ -982,51 +1016,47 @@ void VTKOutput::writeP2( std::ostream& output, const uint_t& level ) const
 void VTKOutput::writeSingleP2Function( const P2Function< real_t >& function, std::ostream& output, const uint_t& level ) const
 {
    auto storage = function.getStorage();
-   openDataElement( output, "Float64", function.getFunctionName(), 1, VTK_DATA_FORMAT::ASCII );
+   openDataElement( output, "Float64", function.getFunctionName(), 1, vtkDataFormat_ );
 
+   VTKStreamWriter streamWriter( vtkDataFormat_ );
+   
    if ( write2D_ )
    {
       for ( const auto& itFaces : storage->getFaces() )
       {
          const Face& face = *itFaces.second;
-
-         output << std::scientific;
-
+         
          for ( const auto& it : vertexdof::macroface::Iterator( level + 1, 0 ) )
          {
             if ( it.row() % 2 == 0 )
             {
                if ( it.col() % 2 == 0 )
                {
-                  output << face.getData( function.getVertexDoFFunction().getFaceDataID() )
+                  streamWriter << face.getData( function.getVertexDoFFunction().getFaceDataID() )
                                 ->getPointer( level )[vertexdof::macroface::indexFromVertex(
-                                    level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C )]
-                         << " ";
+                                    level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C )];
                }
                else
                {
-                  output << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
+                  streamWriter << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
                                 ->getPointer(
-                                    level )[edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2 )]
-                         << " ";
+                                    level )[edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2 )];
                }
             }
             else
             {
                if ( it.col() % 2 == 0 )
                {
-                  output << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
+                  streamWriter << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
                                 ->getPointer(
-                                    level )[edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 )]
-                         << " ";
+                                    level )[edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 )];
                }
                else
                {
-                  output
+                  streamWriter
                       << face.getData( function.getEdgeDoFFunction().getFaceDataID() )
                              ->getPointer(
-                                 level )[edgedof::macroface::diagonalIndex( level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 )]
-                      << " ";
+                                 level )[edgedof::macroface::diagonalIndex( level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 )];
                }
             }
          }
@@ -1040,8 +1070,6 @@ void VTKOutput::writeSingleP2Function( const P2Function< real_t >& function, std
          auto        vertexData = cell.getData( function.getVertexDoFFunction().getCellDataID() )->getPointer( level );
          auto        edgeData   = cell.getData( function.getEdgeDoFFunction().getCellDataID() )->getPointer( level );
 
-         output << std::scientific;
-
          for ( const auto& it : vertexdof::macrocell::Iterator( level + 1, 0 ) )
          {
             const auto   x   = it.x();
@@ -1052,35 +1080,36 @@ void VTKOutput::writeSingleP2Function( const P2Function< real_t >& function, std
             switch ( mod )
             {
             case 0b000:
-               output
-                   << vertexData[vertexdof::macrocell::indexFromVertex( level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )]
-                   << " ";
+               streamWriter
+                   << vertexData[vertexdof::macrocell::indexFromVertex( level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )];
                break;
             case 0b100:
-               output << edgeData[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )] << " ";
+               streamWriter << edgeData[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
                break;
             case 0b010:
-               output << edgeData[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )] << " ";
+               streamWriter << edgeData[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
                break;
             case 0b001:
-               output << edgeData[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )] << " ";
+               streamWriter << edgeData[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
                break;
             case 0b110:
-               output << edgeData[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )] << " ";
+               streamWriter << edgeData[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
                break;
             case 0b101:
-               output << edgeData[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )] << " ";
+               streamWriter << edgeData[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
                break;
             case 0b011:
-               output << edgeData[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )] << " ";
+               streamWriter << edgeData[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
                break;
             case 0b111:
-               output << edgeData[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )] << " ";
+               streamWriter << edgeData[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
                break;
             }
          }
       }
    }
+   
+   streamWriter.toStream( output );
 
    output << "\n</DataArray>\n";
 }
@@ -1090,7 +1119,9 @@ void VTKOutput::writeSingleP2VectorFunction( const P2VectorFunction< real_t >& f
                                              const uint_t&                     level ) const
 {
    auto storage = function.getStorage();
-   openDataElement( output, "Float64", function.getFunctionName(), function.getDimension(), VTK_DATA_FORMAT::ASCII );
+   openDataElement( output, "Float64", function.getFunctionName(), function.getDimension(), vtkDataFormat_ );
+
+   VTKStreamWriter streamWriter( vtkDataFormat_ );
 
    if ( write2D_ )
    {
@@ -1098,60 +1129,50 @@ void VTKOutput::writeSingleP2VectorFunction( const P2VectorFunction< real_t >& f
       {
          const Face& face = *itFaces.second;
 
-         output << std::scientific;
-
          for ( const auto& it : vertexdof::macroface::Iterator( level + 1, 0 ) )
          {
             if ( it.row() % 2 == 0 )
             {
                if ( it.col() % 2 == 0 )
                {
-                  output << face.getData( function[0].getVertexDoFFunction().getFaceDataID() )
+                  streamWriter << face.getData( function[0].getVertexDoFFunction().getFaceDataID() )
                                 ->getPointer( level )[vertexdof::macroface::indexFromVertex(
-                                    level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C )]
-                         << " ";
-                  output << face.getData( function[1].getVertexDoFFunction().getFaceDataID() )
+                                    level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C )];
+                  streamWriter << face.getData( function[1].getVertexDoFFunction().getFaceDataID() )
                                 ->getPointer( level )[vertexdof::macroface::indexFromVertex(
-                                    level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C )]
-                         << " ";
+                                    level, it.col() / 2, it.row() / 2, stencilDirection::VERTEX_C )];
                }
                else
                {
-                  output << face.getData( function[0].getEdgeDoFFunction().getFaceDataID() )
+                  streamWriter << face.getData( function[0].getEdgeDoFFunction().getFaceDataID() )
                                 ->getPointer(
-                                    level )[edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2 )]
-                         << " ";
-                  output << face.getData( function[1].getEdgeDoFFunction().getFaceDataID() )
+                                    level )[edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2 )];
+                  streamWriter << face.getData( function[1].getEdgeDoFFunction().getFaceDataID() )
                                 ->getPointer(
-                                    level )[edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2 )]
-                         << " ";
+                                    level )[edgedof::macroface::horizontalIndex( level, ( it.col() - 1 ) / 2, it.row() / 2 )];
                }
             }
             else
             {
                if ( it.col() % 2 == 0 )
                {
-                  output << face.getData( function[0].getEdgeDoFFunction().getFaceDataID() )
+                  streamWriter << face.getData( function[0].getEdgeDoFFunction().getFaceDataID() )
                                 ->getPointer(
-                                    level )[edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 )]
-                         << " ";
-                  output << face.getData( function[1].getEdgeDoFFunction().getFaceDataID() )
+                                    level )[edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 )];
+                  streamWriter << face.getData( function[1].getEdgeDoFFunction().getFaceDataID() )
                                 ->getPointer(
-                                    level )[edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 )]
-                         << " ";
+                                    level )[edgedof::macroface::verticalIndex( level, it.col() / 2, ( it.row() - 1 ) / 2 )];
                }
                else
                {
-                  output
+                  streamWriter
                       << face.getData( function[0].getEdgeDoFFunction().getFaceDataID() )
                              ->getPointer(
-                                 level )[edgedof::macroface::diagonalIndex( level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 )]
-                      << " ";
-                  output
+                                 level )[edgedof::macroface::diagonalIndex( level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 )];
+                  streamWriter
                       << face.getData( function[1].getEdgeDoFFunction().getFaceDataID() )
                              ->getPointer(
-                                 level )[edgedof::macroface::diagonalIndex( level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 )]
-                      << " ";
+                                 level )[edgedof::macroface::diagonalIndex( level, ( it.col() - 1 ) / 2, ( it.row() - 1 ) / 2 )];
                }
             }
          }
@@ -1171,7 +1192,6 @@ void VTKOutput::writeSingleP2VectorFunction( const P2VectorFunction< real_t >& f
          auto edgeData1 = cell.getData( function[1].getEdgeDoFFunction().getCellDataID() )->getPointer( level );
          auto edgeData2 = cell.getData( function[2].getEdgeDoFFunction().getCellDataID() )->getPointer( level );
 
-         output << std::scientific;
 
          for ( const auto& it : vertexdof::macrocell::Iterator( level + 1, 0 ) )
          {
@@ -1183,7 +1203,7 @@ void VTKOutput::writeSingleP2VectorFunction( const P2VectorFunction< real_t >& f
             switch ( mod )
             {
             case 0b000:
-               output
+               streamWriter
                    << vertexData0[vertexdof::macrocell::indexFromVertex( level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )]
                    << " "
                    << vertexData1[vertexdof::macrocell::indexFromVertex( level, x / 2, y / 2, z / 2, stencilDirection::VERTEX_C )]
@@ -1192,44 +1212,46 @@ void VTKOutput::writeSingleP2VectorFunction( const P2VectorFunction< real_t >& f
                    << " ";
                break;
             case 0b100:
-               output << edgeData0[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )] << " ";
-               output << edgeData1[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )] << " ";
-               output << edgeData2[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )] << " ";
+               streamWriter << edgeData0[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
+               streamWriter << edgeData1[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
+               streamWriter << edgeData2[edgedof::macrocell::xIndex( level, ( x - 1 ) / 2, y / 2, z / 2 )];
                break;
             case 0b010:
-               output << edgeData0[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )] << " ";
-               output << edgeData1[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )] << " ";
-               output << edgeData2[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )] << " ";
+               streamWriter << edgeData0[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
+               streamWriter << edgeData1[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
+               streamWriter << edgeData2[edgedof::macrocell::yIndex( level, x / 2, ( y - 1 ) / 2, z / 2 )];
                break;
             case 0b001:
-               output << edgeData0[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )] << " ";
-               output << edgeData1[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )] << " ";
-               output << edgeData2[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )] << " ";
+               streamWriter << edgeData0[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
+               streamWriter << edgeData1[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
+               streamWriter << edgeData2[edgedof::macrocell::zIndex( level, x / 2, y / 2, ( z - 1 ) / 2 )];
                break;
             case 0b110:
-               output << edgeData0[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )] << " ";
-               output << edgeData1[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )] << " ";
-               output << edgeData2[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )] << " ";
+               streamWriter << edgeData0[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
+               streamWriter << edgeData1[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
+               streamWriter << edgeData2[edgedof::macrocell::xyIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, z / 2 )];
                break;
             case 0b101:
-               output << edgeData0[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )] << " ";
-               output << edgeData1[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )] << " ";
-               output << edgeData2[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )] << " ";
+               streamWriter << edgeData0[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
+               streamWriter << edgeData1[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
+               streamWriter << edgeData2[edgedof::macrocell::xzIndex( level, ( x - 1 ) / 2, y / 2, ( z - 1 ) / 2 )];
                break;
             case 0b011:
-               output << edgeData0[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )] << " ";
-               output << edgeData1[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )] << " ";
-               output << edgeData2[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )] << " ";
+               streamWriter << edgeData0[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
+               streamWriter << edgeData1[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
+               streamWriter << edgeData2[edgedof::macrocell::yzIndex( level, x / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
                break;
             case 0b111:
-               output << edgeData0[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )] << " ";
-               output << edgeData1[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )] << " ";
-               output << edgeData2[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )] << " ";
+               streamWriter << edgeData0[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
+               streamWriter << edgeData1[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
+               streamWriter << edgeData2[edgedof::macrocell::xyzIndex( level, ( x - 1 ) / 2, ( y - 1 ) / 2, ( z - 1 ) / 2 )];
                break;
             }
          }
       }
    }
+
+   streamWriter.toStream( output );
 
    output << "\n</DataArray>\n";
 }
@@ -1368,10 +1390,21 @@ void VTKOutput::openDataElement( std::ostream&         output,
    {
       output << " NumberOfComponents=\"" << nComponents << "\"";
    }
+
    // specify format
-   WALBERLA_UNUSED( fmt );
-   WALBERLA_ASSERT( fmt == VTK_DATA_FORMAT::ASCII, "Only ASCII is supported as VTK_DATA_FORMAT at the moment" );
-   output << " format=\"ascii\">\n";
+   if ( fmt == VTK_DATA_FORMAT::ASCII )
+   {
+      output << " format=\"ascii\">\n";
+   }
+   else if ( fmt == VTK_DATA_FORMAT::BINARY )
+   {
+      output << " format=\"binary\">\n";
+   }
+   else
+   {
+      WALBERLA_ABORT( "VTK format not supported." );
+   }
+
 }
 
 void VTKOutput::syncAllFunctions( const uint_t& level ) const

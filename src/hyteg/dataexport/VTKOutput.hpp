@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "core/DataTypes.h"
+#include "vtk/Base64Writer.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
@@ -46,6 +47,13 @@ class PrimitiveStorage;
 class VTKOutput
 {
  public:
+
+   enum class VTK_DATA_FORMAT
+   {
+      ASCII,
+      BINARY
+   };
+
    ///
    /// \param dir             Directory where the files are stored
    /// \param filename        Basename of the vtk files
@@ -55,6 +63,11 @@ class VTKOutput
               std::string                                filename,
               const std::shared_ptr< PrimitiveStorage >& storage,
               const uint_t&                              writeFrequency = 1 );
+
+   void setVTKDataFormat( VTK_DATA_FORMAT vtkDataFormat )
+   {
+      vtkDataFormat_ = vtkDataFormat;
+   }
 
    void add( P1Function< real_t > function );
    void add( P2Function< real_t > function );
@@ -89,11 +102,49 @@ class VTKOutput
       P2
    };
 
-   enum class VTK_DATA_FORMAT
+   class VTKStreamWriter
    {
-      ASCII,
-      BINARY,
-      APPENDED
+    public:
+      explicit VTKStreamWriter( VTK_DATA_FORMAT vtkDataFormat )
+      : vtkDataFormat_( vtkDataFormat )
+      {
+         if ( vtkDataFormat_ == VTK_DATA_FORMAT::ASCII )
+         {
+            outputAscii_ << std::scientific;
+         }
+      }
+
+      template < typename T >
+      VTKStreamWriter& operator<<( const T& data )
+      {
+         if ( vtkDataFormat_ == VTK_DATA_FORMAT::ASCII )
+         {
+            outputAscii_ << data << "\n";
+         }
+         else if ( vtkDataFormat_ == VTK_DATA_FORMAT::BINARY )
+         {
+            outputBase64_ << data;
+         }
+
+         return *this;
+      }
+
+      void toStream( std::ostream& os )
+      {
+         if ( vtkDataFormat_ == VTK_DATA_FORMAT::ASCII )
+         {
+            os << outputAscii_.str();
+         }
+         else if ( vtkDataFormat_ == VTK_DATA_FORMAT::BINARY )
+         {
+            outputBase64_.toStream( os );
+         }
+      }
+
+    private:
+      VTK_DATA_FORMAT vtkDataFormat_;
+      std::ostringstream outputAscii_;
+      walberla::vtk::Base64Writer outputBase64_;
    };
 
    static const std::map< VTKOutput::DoFType, std::string > DoFTypeToString_;
@@ -173,6 +224,8 @@ class VTKOutput
    std::vector< DGFunction< real_t > >      dgFunctions_;
 
    std::shared_ptr< PrimitiveStorage > storage_;
+
+   VTK_DATA_FORMAT vtkDataFormat_;
 };
 
 } // namespace hyteg

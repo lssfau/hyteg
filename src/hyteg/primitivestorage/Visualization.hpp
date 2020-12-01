@@ -21,12 +21,12 @@
 
 #include <memory>
 
+#include "core/Format.hpp"
 #include "core/debug/CheckFunctions.h"
 #include "core/mpi/MPITextFile.h"
 
-#include "core/Format.hpp"
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitives/Vertex.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
 namespace hyteg {
 
@@ -38,10 +38,11 @@ enum VTK_CELL_TYPE
    VTK_TETRA    = 10
 };
 
-static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage >& storage,
-                                        const std::string&                         dir,
-                                        const std::string&                         filename,
-                                        const VTK_CELL_TYPE&                       vtkCellType )
+static void writeDomainPartitioningVTK( const PrimitiveStorage&                                         storage,
+                                        const std::string&                                              dir,
+                                        const std::string&                                              filename,
+                                        const VTK_CELL_TYPE&                                            vtkCellType,
+                                        const std::map< std::string, std::map< PrimitiveID, real_t > >& realData )
 {
    const uint_t rank              = uint_c( walberla::mpi::MPIManager::instance()->rank() );
    const uint_t numberOfProcesses = uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
@@ -50,26 +51,26 @@ static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage 
    uint_t                     numLocalPrimitives   = 0;
    uint_t                     verticesPerPrimitive = 0;
 
-   switch( vtkCellType )
+   switch ( vtkCellType )
    {
    case VTK_VERTEX:
-      storage->getVertexIDs( primitiveIDs );
-      numLocalPrimitives   = storage->getNumberOfLocalVertices();
+      storage.getVertexIDs( primitiveIDs );
+      numLocalPrimitives   = storage.getNumberOfLocalVertices();
       verticesPerPrimitive = 1;
       break;
    case VTK_LINE:
-      storage->getEdgeIDs( primitiveIDs );
-      numLocalPrimitives   = storage->getNumberOfLocalEdges();
+      storage.getEdgeIDs( primitiveIDs );
+      numLocalPrimitives   = storage.getNumberOfLocalEdges();
       verticesPerPrimitive = 2;
       break;
    case VTK_TRIANGLE:
-      storage->getFaceIDs( primitiveIDs );
-      numLocalPrimitives   = storage->getNumberOfLocalFaces();
+      storage.getFaceIDs( primitiveIDs );
+      numLocalPrimitives   = storage.getNumberOfLocalFaces();
       verticesPerPrimitive = 3;
       break;
    case VTK_TETRA:
-      storage->getCellIDs( primitiveIDs );
-      numLocalPrimitives   = storage->getNumberOfLocalCells();
+      storage.getCellIDs( primitiveIDs );
+      numLocalPrimitives   = storage.getNumberOfLocalCells();
       verticesPerPrimitive = 4;
       break;
    default:
@@ -77,71 +78,20 @@ static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage 
       break;
    }
 
-   auto getFilenameOfRank = []( const std::string& filename, const uint_t& rank ) -> std::string {
-      return walberla::format( "%s-rank-%04d.vtu", filename.c_str(), rank );
-      //return fmt::format("{}-rank-{:0>4}.vtu", filename, rank);
-   };
+   std::ostringstream rankOut;
 
    WALBERLA_ROOT_SECTION()
    {
-      std::string pvtu_filename( walberla::format( "%s/%s.pvtu", dir.c_str(), filename.c_str() ) );
-      //std::string pvtu_filename(fmt::format("{}/{}.pvtu", dir, filename));
-      std::ofstream pvtu_file;
-      pvtu_file.open( pvtu_filename.c_str() );
-
-      WALBERLA_CHECK( !!pvtu_file, "Error opening file: " << pvtu_filename );
-
-      pvtu_file << "<?xml version=\"1.0\"?>\n";
-      pvtu_file << "<VTKFile type=\"PUnstructuredGrid\" version=\"0.1\"  byte_order=\"LittleEndian\">\n";
-      pvtu_file << "  <PUnstructuredGrid GhostLevel=\"0\">\n";
-
-      // parallel point coordinates
-      pvtu_file << "    <PPoints>\n";
-      pvtu_file << "      <PDataArray type=\"Float32\" NumberOfComponents=\"3\"/>\n";
-      pvtu_file << "    </PPoints>\n";
-
-      // parallel cell connectivity and types
-      pvtu_file << "    <PCells>\n";
-      pvtu_file << "      <PDataArray type=\"Int32\" Name=\"connectivity\"/>\n";
-      pvtu_file << "      <PDataArray type=\"Int32\" Name=\"offsets\"/>\n";
-      pvtu_file << "      <PDataArray type=\"UInt8\" Name=\"types\"/>\n";
-      pvtu_file << "    </PCells>\n";
-
-      // parallel cell data
-      pvtu_file << "    <PCellData>\n";
-      pvtu_file << "      <PDataArray type=\"UInt32\" Name=\"rank\"/>\n";
-      pvtu_file << "      <PDataArray type=\"UInt32\" Name=\"meshBoundaryFlag\"/>\n";
-      pvtu_file << "      <PDataArray type=\"UInt32\" Name=\"primitiveID\"/>\n";
-      pvtu_file << "    </PCellData>\n";
-
-      // assemble files
-      for( uint_t rankIdx = 0; rankIdx < numberOfProcesses; ++rankIdx )
-      {
-         pvtu_file << "   <Piece Source=\"" << getFilenameOfRank( filename, rankIdx ) << "\"/>\n";
-      }
-
-      pvtu_file << "  </PUnstructuredGrid>\n";
-      pvtu_file << "</VTKFile>\n";
-
-      pvtu_file.close();
+      // header
+      rankOut << "<?xml version=\"1.0\"?>\n";
+      rankOut << "  <VTKFile type=\"UnstructuredGrid\" version=\"0.1\"  byte_order=\"LittleEndian\">\n";
+      rankOut << "    <UnstructuredGrid>\n";
    }
 
-   std::string vtu_filename( walberla::format( "%s/%s", dir.c_str(), getFilenameOfRank( filename, rank ).c_str() ) );
-   //std::string vtu_filename(fmt::format("{}/{}", dir, getFilenameOfRank( filename, rank )));
-   std::ofstream vtu_file;
-   vtu_file.open( vtu_filename.c_str() );
-
-   WALBERLA_CHECK( !!vtu_file, "Error opening file: " << vtu_filename );
-
-   // header
-   vtu_file << "<?xml version=\"1.0\"?>\n";
-   vtu_file << "  <VTKFile type=\"UnstructuredGrid\" version=\"0.1\"  byte_order=\"LittleEndian\">\n";
-   vtu_file << "    <UnstructuredGrid>\n";
-
-   vtu_file << "      <Piece"
-            << " NumberOfPoints=\"" << numLocalPrimitives * verticesPerPrimitive << "\""
-            << " NumberOfCells=\"" << numLocalPrimitives << "\""
-            << ">\n";
+   rankOut << "      <Piece"
+           << " NumberOfPoints=\"" << numLocalPrimitives * verticesPerPrimitive << "\""
+           << " NumberOfCells=\"" << numLocalPrimitives << "\""
+           << ">\n";
 
    /////////////////////////////
    // local point coordinates //
@@ -149,38 +99,39 @@ static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage 
 
    // map that maps the ID of the macro vertex to the position in the list in the .vtu file
    std::map< PrimitiveID::IDType, uint_t > vertexPosition;
-   vtu_file << "        <Points>\n";
-   vtu_file << "          <DataArray type=\"Float32\" NumberOfComponents=\"3\">\n";
+   rankOut << "        <Points>\n";
+   rankOut << "          <DataArray type=\"Float32\" NumberOfComponents=\"3\">\n";
    // write coordinates
    uint_t counter = 0;
-   for( const auto& primitiveID : primitiveIDs )
+   for ( const auto& primitiveID : primitiveIDs )
    {
-      if( vtkCellType == VTK_VERTEX )
+      if ( vtkCellType == VTK_VERTEX )
       {
-         auto    vertex      = storage->getVertex( primitiveID );
+         auto    vertex      = storage.getVertex( primitiveID );
          Point3D coordinates = vertex->getCoordinates();
-         vtu_file << "            " << coordinates[0] << " " << coordinates[1] << " " << coordinates[2] << "\n";
+         rankOut << "            " << coordinates[0] << " " << coordinates[1] << " " << coordinates[2] << "\n";
          WALBERLA_ASSERT_EQUAL( primitiveID.getID(), vertex->getID().getID() );
          vertexPosition[primitiveID.getID()] = counter;
          counter++;
-      } else
+      }
+      else
       {
-         auto primitive = storage->getPrimitive( primitiveID );
+         auto primitive = storage.getPrimitive( primitiveID );
          WALBERLA_ASSERT_EQUAL( primitive->getNumNeighborVertices(), verticesPerPrimitive );
-         for( const auto& neighborVertexID : primitive->neighborVertices() )
+         for ( const auto& neighborVertexID : primitive->neighborVertices() )
          {
-            WALBERLA_ASSERT( storage->vertexExistsLocally( neighborVertexID ) ||
-                             storage->vertexExistsInNeighborhood( neighborVertexID ) );
-            auto    vertex      = storage->getVertex( neighborVertexID );
+            WALBERLA_ASSERT( storage.vertexExistsLocally( neighborVertexID ) ||
+                             storage.vertexExistsInNeighborhood( neighborVertexID ) );
+            auto    vertex      = storage.getVertex( neighborVertexID );
             Point3D coordinates = vertex->getCoordinates();
-            vtu_file << "            " << coordinates[0] << " " << coordinates[1] << " " << coordinates[2] << "\n";
+            rankOut << "            " << coordinates[0] << " " << coordinates[1] << " " << coordinates[2] << "\n";
             vertexPosition[vertex->getID().getID()] = counter;
             counter++;
          }
       }
    }
-   vtu_file << "          </DataArray>\n";
-   vtu_file << "        </Points>\n";
+   rankOut << "          </DataArray>\n";
+   rankOut << "        </Points>\n";
 
    ///////////////////////////////////////
    // local cell connectivity and types //
@@ -188,102 +139,148 @@ static void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage 
 
    const uint_t offset = verticesPerPrimitive;
 
-   vtu_file << "        <Cells>\n";
+   rankOut << "        <Cells>\n";
 
    // write connectivity
-   vtu_file << "          <DataArray type=\"Int32\" Name=\"connectivity\">\n";
-   for( const auto& primitiveID : primitiveIDs )
+   rankOut << "          <DataArray type=\"Int32\" Name=\"connectivity\">\n";
+   for ( const auto& primitiveID : primitiveIDs )
    {
-      vtu_file << "            ";
-      if( vtkCellType == VTK_VERTEX )
+      rankOut << "            ";
+      if ( vtkCellType == VTK_VERTEX )
       {
-         vtu_file << vertexPosition.at( primitiveID.getID() ) << " ";
-      } else
+         rankOut << vertexPosition.at( primitiveID.getID() ) << " ";
+      }
+      else
       {
-         auto primitive = storage->getPrimitive( primitiveID );
-         for( const auto& neighborVertexID : primitive->neighborVertices() )
+         auto primitive = storage.getPrimitive( primitiveID );
+         for ( const auto& neighborVertexID : primitive->neighborVertices() )
          {
             WALBERLA_ASSERT_GREATER( vertexPosition.count( neighborVertexID.getID() ), 0 );
-            vtu_file << vertexPosition.at( neighborVertexID.getID() ) << " ";
+            rankOut << vertexPosition.at( neighborVertexID.getID() ) << " ";
          }
       }
-      vtu_file << "\n";
+      rankOut << "\n";
    }
-   vtu_file << "          </DataArray>\n";
+   rankOut << "          </DataArray>\n";
 
    // write offsets
-   vtu_file << "          <DataArray type=\"Int32\" Name=\"offsets\">\n";
-   for( uint_t primitive = 1; primitive <= numLocalPrimitives; primitive++ )
+   rankOut << "          <DataArray type=\"Int32\" Name=\"offsets\">\n";
+   for ( uint_t primitive = 1; primitive <= numLocalPrimitives; primitive++ )
    {
-      vtu_file << "            " << offset * primitive << "\n";
+      rankOut << "            " << offset * primitive << "\n";
    }
-   vtu_file << "          </DataArray>\n";
+   rankOut << "          </DataArray>\n";
 
    // write cell type
-   vtu_file << "          <DataArray type=\"UInt8\" Name=\"types\">\n";
-   for( uint_t primitive = 1; primitive <= numLocalPrimitives; primitive++ )
+   rankOut << "          <DataArray type=\"UInt8\" Name=\"types\">\n";
+   for ( uint_t primitive = 1; primitive <= numLocalPrimitives; primitive++ )
    {
-      vtu_file << "            " << (uint_t) vtkCellType << "\n";
+      rankOut << "            " << (uint_t) vtkCellType << "\n";
    }
-   vtu_file << "          </DataArray>\n";
+   rankOut << "          </DataArray>\n";
 
-   vtu_file << "        </Cells>\n";
+   rankOut << "        </Cells>\n";
 
    /////////////////////
    // local cell data //
    /////////////////////
 
-   vtu_file << "        <CellData>\n";
-   vtu_file << "          <DataArray type=\"UInt32\" Name=\"rank\">\n";
-   for( uint_t primitive = 0; primitive < numLocalPrimitives; primitive++ )
+   rankOut << "        <CellData>\n";
+   rankOut << "          <DataArray type=\"UInt32\" Name=\"rank\">\n";
+   for ( uint_t primitive = 0; primitive < numLocalPrimitives; primitive++ )
    {
-      vtu_file << "            " << rank << "\n";
+      rankOut << "            " << rank << "\n";
    }
-   vtu_file << "          </DataArray>\n";
+   rankOut << "          </DataArray>\n";
 
-   vtu_file << "          <DataArray type=\"UInt32\" Name=\"meshBoundaryFlag\">\n";
-   for( uint_t primitive = 0; primitive < numLocalPrimitives; primitive++ )
+   rankOut << "          <DataArray type=\"UInt32\" Name=\"meshBoundaryFlag\">\n";
+   for ( uint_t primitive = 0; primitive < numLocalPrimitives; primitive++ )
    {
-      vtu_file << "            " << storage->getPrimitive( primitiveIDs[primitive] )->getMeshBoundaryFlag() << "\n";
+      rankOut << "            " << storage.getPrimitive( primitiveIDs[primitive] )->getMeshBoundaryFlag() << "\n";
    }
-   vtu_file << "          </DataArray>\n";
+   rankOut << "          </DataArray>\n";
 
-   vtu_file << "          <DataArray type=\"UInt32\" Name=\"primitiveID\">\n";
-   for( uint_t primitive = 0; primitive < numLocalPrimitives; primitive++ )
+   rankOut << "          <DataArray type=\"UInt32\" Name=\"primitiveID\">\n";
+   for ( uint_t primitive = 0; primitive < numLocalPrimitives; primitive++ )
    {
-      vtu_file << "            " << uint_c( primitiveIDs[primitive].getID() ) << "\n";
+      rankOut << "            " << uint_c( primitiveIDs[primitive].getID() ) << "\n";
    }
-   vtu_file << "          </DataArray>\n";
-   vtu_file << "        </CellData>\n";
+   rankOut << "          </DataArray>\n";
 
-   vtu_file << "      </Piece>\n";
+   for ( const auto& it : realData )
+   {
+      const auto  realDataName    = it.first;
+      const auto& realDataContent = it.second;
 
-   // closing header
-   vtu_file << "    </UnstructuredGrid>\n";
-   vtu_file << "  </VTKFile>\n";
+      rankOut << "          <DataArray type=\"Float32\" Name=\"" << realDataName << "\">\n";
+      for ( uint_t primitive = 0; primitive < numLocalPrimitives; primitive++ )
+      {
+         rankOut << "            " << realDataContent.at( primitiveIDs[primitive] ) << "\n";
+      }
+      rankOut << "          </DataArray>\n";
+   }
 
-   vtu_file.close();
+   rankOut << "        </CellData>\n";
+
+   rankOut << "      </Piece>\n";
+
+   // write in parallel
+   std::string vtu_filename( walberla::format( "%s/%s.vtu", dir.c_str(), filename.c_str() ) );
+   walberla::mpi::writeMPITextFile( vtu_filename, rankOut.str() );
+
+   WALBERLA_ROOT_SECTION()
+   {
+      std::ofstream pvtu_file;
+      pvtu_file.open( vtu_filename.c_str(), std::ofstream::out | std::ofstream::app );
+      WALBERLA_CHECK( !!pvtu_file, "[VTKWriter (domain partitioning)] Error opening file: " << vtu_filename );
+      pvtu_file << "    </UnstructuredGrid>\n";
+      pvtu_file << "  </VTKFile>\n";
+      pvtu_file.close();
+   }
 }
 
-inline void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage >& storage,
-                                        const std::string&                         dir,
-                                        const std::string&                         filename )
+inline void writeDomainPartitioningVTK( const PrimitiveStorage&                                         storage,
+                                        const std::string&                                              dir,
+                                        const std::string&                                              filename,
+                                        const std::map< std::string, std::map< PrimitiveID, real_t > >& realData )
 {
    const std::string filenameVertices = filename + "_vertices";
    const std::string filenameEdges    = filename + "_edges";
    const std::string filenameFaces    = filename + "_faces";
    const std::string filenameCells    = filename + "_cells";
 
-   writeDomainPartitioningVTK( storage, dir, filenameVertices, VTK_VERTEX );
-   writeDomainPartitioningVTK( storage, dir, filenameEdges, VTK_LINE );
-   writeDomainPartitioningVTK( storage, dir, filenameFaces, VTK_TRIANGLE );
-   if( storage->hasGlobalCells() )
+   writeDomainPartitioningVTK( storage, dir, filenameVertices, VTK_VERTEX, realData );
+   writeDomainPartitioningVTK( storage, dir, filenameEdges, VTK_LINE, realData );
+   writeDomainPartitioningVTK( storage, dir, filenameFaces, VTK_TRIANGLE, realData );
+   if ( storage.hasGlobalCells() )
    {
-      writeDomainPartitioningVTK( storage, dir, filenameCells, VTK_TETRA );
+      writeDomainPartitioningVTK( storage, dir, filenameCells, VTK_TETRA, realData );
    }
 }
 
-inline void writePrimitiveStorageDistributionCSV( const std::shared_ptr< PrimitiveStorage >& storage, const std::string& filename )
+inline void writeDomainPartitioningVTK( const PrimitiveStorage& storage, const std::string& dir, const std::string& filename )
+{
+   std::map< std::string, std::map< PrimitiveID, real_t > > realData;
+   writeDomainPartitioningVTK( storage, dir, filename, realData );
+}
+
+inline void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage >& storage,
+                                        const std::string&                         dir,
+                                        const std::string&                         filename )
+{
+   writeDomainPartitioningVTK( *storage, dir, filename );
+}
+
+inline void writeDomainPartitioningVTK( const std::shared_ptr< PrimitiveStorage >&                      storage,
+                                        const std::string&                                              dir,
+                                        const std::string&                                              filename,
+                                        const std::map< std::string, std::map< PrimitiveID, real_t > >& realData )
+{
+   writeDomainPartitioningVTK( *storage, dir, filename, realData );
+}
+
+inline void writePrimitiveStorageDistributionCSV( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                  const std::string&                         filename )
 {
    uint_t rank = uint_c( walberla::mpi::MPIManager::instance()->rank() );
 
@@ -302,15 +299,15 @@ inline void writePrimitiveStorageDistributionCSV( const std::shared_ptr< Primiti
    PrimitiveStorage::PrimitiveMap primitiveMap;
    storage->getPrimitives( primitiveMap );
 
-   for( const auto& primitive : primitiveMap )
+   for ( const auto& primitive : primitiveMap )
    {
       numTotalLocalNeighbors += primitive.second->getNumNeighborVertices() + primitive.second->getNumNeighborEdges() +
                                 primitive.second->getNumNeighborFaces();
       std::vector< PrimitiveID > neighbors;
       primitive.second->getNeighborPrimitives( neighbors );
-      for( const auto& neighbor : neighbors )
+      for ( const auto& neighbor : neighbors )
       {
-         if( storage->primitiveExistsLocally( neighbor ) )
+         if ( storage->primitiveExistsLocally( neighbor ) )
          {
             numLocalLocalNeighbors++;
          }

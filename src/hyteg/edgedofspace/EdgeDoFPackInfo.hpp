@@ -88,6 +88,18 @@ class EdgeDoFPackInfo : public communication::DoFSpacePackInfo< ValueType >
 
    void communicateLocalCellToFace( const Cell* sender, Face* receiver ) const override;
 
+   void packVertexForCell(const Vertex *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
+
+   void unpackCellFromVertex(Cell *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
+
+   void communicateLocalVertexToCell(const Vertex *sender, Cell *receiver) const override;
+
+   void packEdgeForCell(const Edge *sender, const PrimitiveID &receiver, walberla::mpi::SendBuffer &buffer) const override;
+
+   void unpackCellFromEdge(Cell *receiver, const PrimitiveID &sender, walberla::mpi::RecvBuffer &buffer) const override;
+
+   void communicateLocalEdgeToCell(const Edge *sender, Cell *receiver) const override;
+
  private:
    using communication::DoFSpacePackInfo< ValueType >::level_;
    using communication::DoFSpacePackInfo< ValueType >::dataIDVertex_;

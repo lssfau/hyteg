@@ -43,9 +43,11 @@ class WeightedJacobiSmoother : public Solver< OperatorType >
                const typename OperatorType::dstType& b,
                const walberla::uint_t                level ) override
    {
+      x.getStorage()->getTimingTree()->start( "Weighted Jacobi" );
       tmp_.copyBoundaryConditionFromFunction( x );
       tmp_.assign( {1.0}, {x}, level, All );
       A.smooth_jac( x, b, tmp_, relax_, level, flag_ );
+      x.getStorage()->getTimingTree()->stop( "Weighted Jacobi" );
    }
 
  private:

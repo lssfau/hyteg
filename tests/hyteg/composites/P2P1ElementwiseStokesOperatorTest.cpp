@@ -39,7 +39,7 @@
 using walberla::real_t;
 using namespace hyteg;
 
-void compareApplyCC( const MeshInfo & meshInfo, const uint_t level )
+void compareApplyCC( const MeshInfo & meshInfo, const uint_t level, bool precomputeElementMatrices )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Test compare apply CC" )
 
@@ -60,6 +60,11 @@ void compareApplyCC( const MeshInfo & meshInfo, const uint_t level )
    // setup operators
    P2P1TaylorHoodStokesOperator stencilOp( storage, level, level );
    P2P1ElementwiseConstantCoefficientStokesOperator elemWiseOp( storage, level, level );
+
+   if ( precomputeElementMatrices )
+   {
+      elemWiseOp.computeAndStoreLocalElementMatrices();
+   }
 
    // interpolate something on src function
    auto vel_x = []( const Point3D & p ){
@@ -110,11 +115,17 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" ), 3 );
-   compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" ), 4 );
+   compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" ), 3, false );
+   compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" ), 4, false );
 
-   compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_tilted_4el.msh" ), 3 );
-   compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_tilted_4el.msh" ), 4 );
+   compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_tilted_4el.msh" ), 3, false );
+   compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_tilted_4el.msh" ), 4, false );
+
+   compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" ), 3, false );
+   compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/quad_16el.msh" ), 4, false );
+
+   compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_tilted_4el.msh" ), 3, true );
+   compareApplyCC( MeshInfo::fromGmshFile( "../../data/meshes/3D/pyramid_tilted_4el.msh" ), 4, true );
 
    return 0;
 }

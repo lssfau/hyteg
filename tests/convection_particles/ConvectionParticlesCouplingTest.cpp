@@ -18,19 +18,16 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <blockforest/Initialization.h>
 #include <convection_particles/data/ParticleStorage.h>
 #include <convection_particles/domain/BlockForestDomain.h>
 #include <convection_particles/mpi/SyncNextNeighborsNoGhosts.h>
-
-#include <blockforest/Initialization.h>
 #include <core/Environment.h>
 #include <core/mpi/MPIManager.h>
-
-#include <hyteg/primitivestorage/SetupPrimitiveStorage.hpp>
-#include "coupling_hyteg_convection_particles/setupPrimitiveStorage/SetupPrimitiveStorageConvectionParticlesInterface.hpp"
-
 #include <hyteg/geometry/Intersection.hpp>
+#include <hyteg/primitivestorage/SetupPrimitiveStorage.hpp>
 
+#include "coupling_hyteg_convection_particles/primitivestorage/PrimitiveStorageConvectionParticlesInterface.hpp"
 
 using namespace walberla;
 using namespace walberla::convection_particles;
@@ -80,8 +77,9 @@ void testSetupPrimitiveStorageCoupling2D()
 
    MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D({0, 0}), Point2D({10, 10}), MeshInfo::CRISS, 3, 3 );
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
-   SetupPrimitiveStorageConvectionParticlesInterface domain( setupStorage );
+   PrimitiveStorageConvectionParticlesInterface domain( storage );
 
    data::ParticleStorage particleStorage(100);
 
@@ -123,8 +121,9 @@ void testSetupPrimitiveStorageCoupling3D()
 
    MeshInfo meshInfo = MeshInfo::meshCuboid( Point3D({0, 0, 0}), Point3D({10, 10, 10}), 1, 1, 1 );
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
-   SetupPrimitiveStorageConvectionParticlesInterface domain( setupStorage );
+   PrimitiveStorageConvectionParticlesInterface domain( storage );
 
    data::ParticleStorage particleStorage(100);
 

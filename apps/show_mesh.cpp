@@ -65,7 +65,7 @@ void showUsage()
              << " Then it will be exported to a VTU file for visualisation.\n\n"
              << " Also visualization of the domain partitioning, mesh boundary flags and MPI rank assignment will be output.\n"
              << " The desired load balancing approach can be steered by:\n\n"
-             << "  --load-balancing [allroot|roundrobin|greedy|parmetis] (default: roundrobin)\n\n"
+             << "  --load-balancing [allroot|roundrobin|roundrobinvolume|greedy|parmetis|diffusivecluster] (default: roundrobin)\n\n"
              << " Use  -v  to print info on mesh to console.\n\n"
              << std::endl;
 }
@@ -101,8 +101,10 @@ int main( int argc, char* argv[] )
    {
       ALL_ROOT,
       ROUND_ROBIN,
+      ROUND_ROBIN_VOLUME,
       GREEDY,
-      PARMETIS
+      PARMETIS,
+      DIFFUSIVE_CLUSTER
    } LoadBalancingType;
    LoadBalancingType loadBalancingType = ROUND_ROBIN;
 
@@ -199,9 +201,15 @@ int main( int argc, char* argv[] )
       } else if( strcmp( argv[4], "roundrobin" ) == 0 )
       {
          loadBalancingType = ROUND_ROBIN;
+      } else if( strcmp( argv[4], "roundrobinvolume" ) == 0 )
+      {
+         loadBalancingType = ROUND_ROBIN_VOLUME;
       } else if( strcmp( argv[4], "greedy" ) == 0 )
       {
          loadBalancingType = GREEDY;
+      } else if( strcmp( argv[4], "diffusivecluster" ) == 0 )
+      {
+         loadBalancingType = DIFFUSIVE_CLUSTER;
       } else if( strcmp( argv[4], "parmetis" ) == 0 )
       {
 #ifdef WALBERLA_BUILD_WITH_PARMETIS
@@ -235,7 +243,7 @@ int main( int argc, char* argv[] )
       break;
 
    case RECTANGLE:
-      meshInfo = new MeshInfo( MeshInfo::meshRectangle( Point2D( {-2.0, 1.0} ), Point2D( {0.0, 3.0} ), rectMeshType, 3, 2 ) );
+      meshInfo = new MeshInfo( MeshInfo::meshRectangle( Point2D( {-2.0, 1.0} ), Point2D( {0.0, 3.0} ), rectMeshType, 16, 16 ) );
       break;
 
    case PARTIAL_ANNULUS:
@@ -243,7 +251,7 @@ int main( int argc, char* argv[] )
       break;
 
    case ANNULUS:
-      meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, 0.0, 2.0 * pi, MeshInfo::CROSS, 12, 2 ) );
+      meshInfo = new MeshInfo( MeshInfo::meshAnnulus( 1.0, 2.0, MeshInfo::CROSS, 16, 5 ) );
       break;
 
    case FACE_CHAIN:
@@ -341,9 +349,16 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: round robin" );
       hyteg::loadbalancing::roundRobin( *setupStorage );
       break;
+   case ROUND_ROBIN_VOLUME:
+      WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: round robin volume" );
+      hyteg::loadbalancing::roundRobinVolume( *setupStorage );
+      break;
    case GREEDY:
       WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: greedy" );
       hyteg::loadbalancing::greedy( *setupStorage );
+      break;
+   case DIFFUSIVE_CLUSTER:
+      hyteg::loadbalancing::roundRobin( *setupStorage );
       break;
    default:
       break;
@@ -358,8 +373,17 @@ int main( int argc, char* argv[] )
    const size_t maxLevel = std::max( minLevel, (size_t) 2 );
    const size_t outLevel = minLevel;
 
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( *setupStorage );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
 
+   switch( loadBalancingType )
+   {
+   case DIFFUSIVE_CLUSTER:
+      WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: diffusive cluster" );
+      hyteg::loadbalancing::distributed::diffusiveSmooth( *storage, 10, 1 );
+      break;
+   default:
+      break;
+   }
 
    if( beVerbose )
    {

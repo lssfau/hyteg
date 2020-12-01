@@ -38,7 +38,7 @@
 #include <convection_particles/mpi/notifications/ParticleUpdateNotification.h>
 #include <core/logging/Logging.h>
 #include <core/mpi/BufferSystem.h>
-#include <hyteg/primitivestorage/SetupPrimitiveStorage.hpp>
+#include <hyteg/primitivestorage/PrimitiveStorage.hpp>
 #include <coupling_hyteg_convection_particles/communication/ParseMessagePrimitiveIDCommunication.h>
 
 namespace walberla {
@@ -57,7 +57,12 @@ namespace mpi {
 class SyncNextNeighborsByPrimitiveID
 {
  public:
-   void operator()( data::ParticleStorage& ps, const hyteg::SetupPrimitiveStorage& setupStorage ) const;
+   /// \brief Performs the communication step.
+   ///
+   /// \param ps the distributed particle storage
+   /// \param primitiveStorage the distributed primitive storage
+   /// \param onlyVolumeToVolumeCommunication if true, communication is only performed between neighboring volume primitives
+   void operator()( data::ParticleStorage& ps, const hyteg::PrimitiveStorage& primitiveStorage, bool onlyVolumeToVolumeCommunication = false ) const;
 
    int64_t getBytesSent() const { return bs.getBytesSent(); }
    int64_t getBytesReceived() const { return bs.getBytesReceived(); }
@@ -66,7 +71,7 @@ class SyncNextNeighborsByPrimitiveID
    int64_t getNumberOfReceives() const { return bs.getNumberOfReceives(); }
 
  private:
-   void generateSynchronizationMessages( data::ParticleStorage& ps, const hyteg::SetupPrimitiveStorage& setupStorage ) const;
+   void generateSynchronizationMessages( data::ParticleStorage& ps, const hyteg::PrimitiveStorage& primitiveStorage ) const;
    mutable std::vector< uint_t > neighborRanks_; ///cache for neighbor ranks -> will be updated in operator()
 
    mutable walberla::mpi::BufferSystem bs = walberla::mpi::BufferSystem( walberla::mpi::MPIManager::instance()->comm() );

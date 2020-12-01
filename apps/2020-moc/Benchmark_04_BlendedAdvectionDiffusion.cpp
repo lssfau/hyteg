@@ -128,6 +128,9 @@ void benchmark( int argc, char** argv )
    const bool        verbose           = mainConf.getParameter< bool >( "verbose" );
    const std::string dbFile            = mainConf.getParameter< std::string >( "dbFile" );
 
+   LoadBalancingOptions lbOptions;
+   lbOptions.type = 0;
+
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
    if ( threeDim )
    {
@@ -166,6 +169,7 @@ void benchmark( int argc, char** argv )
           1,
           adjustedAdvection,
           numTimeSteps,
+          lbOptions,
           vtk,
           true,
           "Benchmark_04_BlendedAdvectionDiffusion",

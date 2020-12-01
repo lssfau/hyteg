@@ -48,7 +48,7 @@ void FixedSizeSQLDB::writeRowOnRoot()
 
    WALBERLA_ROOT_SECTION()
    {
-      db_.storeRun( integerEntries, stringEntries, doubleEntries );
+      db_->storeRun( integerEntries, stringEntries, doubleEntries );
    }
 
    columnsFixed_ = true;

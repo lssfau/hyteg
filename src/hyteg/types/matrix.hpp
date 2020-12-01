@@ -168,7 +168,7 @@ public:
     return out;
   }
 
-  PointND<T, M> mul(const PointND<T, N>& rhs)
+  PointND<T, M> mul(const PointND<T, N>& rhs) const
   {
     PointND<T, M> out;
     for (uint_t i = 0; i < M; ++i)

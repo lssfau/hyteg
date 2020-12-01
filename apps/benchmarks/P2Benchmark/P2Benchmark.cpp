@@ -17,24 +17,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+#include <memory>
+
 #include "core/Environment.h"
 #include "core/timing/TimingJSON.h"
 
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/geometry/IdentityMap.hpp"
+#include "hyteg/misc/dummy.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
-#include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/misc/dummy.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
@@ -50,11 +53,8 @@ void runFunctionTests( std::shared_ptr< PrimitiveStorage >& storage, uint_t leve
    P2Function< real_t > src( "src", storage, level, level );
    P2Function< real_t > dst( "dst", storage, level, level );
 
-   hyteg::P2ConstantLaplaceOperator M( storage, level, level );
-
-   std::function< real_t( const hyteg::Point3D& ) > someFunction = [&]( const hyteg::Point3D& point )
-   {
-      return point[0] + point[1];
+   std::function< real_t( const hyteg::Point3D& ) > someFunction = [&]( const hyteg::Point3D& point ) {
+     return point[0] + point[1];
    };
 
    LIKWID_MARKER_START( "interpolate constant" );
@@ -63,7 +63,7 @@ void runFunctionTests( std::shared_ptr< PrimitiveStorage >& storage, uint_t leve
       src.interpolate( 42.0, level );
    timer.end();
    LIKWID_MARKER_STOP( "interpolate constant" );
-   WALBERLA_LOG_INFO_ON_ROOT( "interpolate constant: " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "interpolate constant:               " << timer.last() );
 
    LIKWID_MARKER_START( "interpolate function" );
    timer.reset();
@@ -71,7 +71,7 @@ void runFunctionTests( std::shared_ptr< PrimitiveStorage >& storage, uint_t leve
       src.interpolate( someFunction, level );
    timer.end();
    LIKWID_MARKER_STOP( "interpolate function" );
-   WALBERLA_LOG_INFO_ON_ROOT( "interpolate function: " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "interpolate function:               " << timer.last() );
 
    LIKWID_MARKER_START( "assign" );
    timer.reset();
@@ -79,7 +79,7 @@ void runFunctionTests( std::shared_ptr< PrimitiveStorage >& storage, uint_t leve
       dst.assign( {1.0}, {src}, level );
    timer.end();
    LIKWID_MARKER_STOP( "assign" );
-   WALBERLA_LOG_INFO_ON_ROOT( "assign:               " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "assign:                             " << timer.last() );
 
    LIKWID_MARKER_START( "assign scaled" );
    timer.reset();
@@ -87,23 +87,7 @@ void runFunctionTests( std::shared_ptr< PrimitiveStorage >& storage, uint_t leve
       dst.assign( {1.23}, {src}, level );
    timer.end();
    LIKWID_MARKER_STOP( "assign scaled" );
-   WALBERLA_LOG_INFO_ON_ROOT( "assign scaled:        " << timer.last() );
-
-   LIKWID_MARKER_START( "apply" );
-   timer.reset();
-   for ( uint_t i = 0; i < numIterations; i++ )
-      M.apply( src, dst, level, All );
-   timer.end();
-   LIKWID_MARKER_STOP( "apply" );
-   WALBERLA_LOG_INFO_ON_ROOT( "apply:                " << timer.last() );
-
-   LIKWID_MARKER_START( "SOR" );
-   timer.reset();
-   for ( uint_t i = 0; i < numIterations; i++ )
-      M.smooth_sor( src, dst, 1.1, level, All );
-   timer.end();
-   LIKWID_MARKER_STOP( "SOR" );
-   WALBERLA_LOG_INFO_ON_ROOT( "SOR:                  " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "assign scaled:                      " << timer.last() );
 
    LIKWID_MARKER_START( "dot" );
    timer.reset();
@@ -111,7 +95,7 @@ void runFunctionTests( std::shared_ptr< PrimitiveStorage >& storage, uint_t leve
       src.dotGlobal( dst, level );
    timer.end();
    LIKWID_MARKER_STOP( "dot" );
-   WALBERLA_LOG_INFO_ON_ROOT( "dot:                  " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "dot:                                " << timer.last() );
 
    LIKWID_MARKER_START( "dot self" );
    timer.reset();
@@ -119,7 +103,7 @@ void runFunctionTests( std::shared_ptr< PrimitiveStorage >& storage, uint_t leve
       dst.dotGlobal( dst, level );
    timer.end();
    LIKWID_MARKER_STOP( "dot self" );
-   WALBERLA_LOG_INFO_ON_ROOT( "dot self:             " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "dot self:                           " << timer.last() );
 
    LIKWID_MARKER_START( "sync all" );
    timer.reset();
@@ -127,7 +111,8 @@ void runFunctionTests( std::shared_ptr< PrimitiveStorage >& storage, uint_t leve
       communication::syncP2FunctionBetweenPrimitives( dst, level );
    timer.end();
    LIKWID_MARKER_STOP( "sync all" );
-   WALBERLA_LOG_INFO_ON_ROOT( "sync all:             " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "sync all:                           " << timer.last() );
+
 
    misc::dummy( &dst );
    misc::dummy( &src );

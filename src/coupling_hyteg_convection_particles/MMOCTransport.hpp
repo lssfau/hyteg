@@ -39,11 +39,11 @@
 #include "hyteg/p2functionspace/P2MacroCell.hpp"
 #include "hyteg/p2functionspace/P2MacroFace.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "coupling_hyteg_convection_particles/communication/SyncNextNeighborsByPrimitiveID.h"
-#include "coupling_hyteg_convection_particles/setupPrimitiveStorage/SetupPrimitiveStorageConvectionParticlesInterface.hpp"
 
 #include "convection_particles/data/ParticleStorage.h"
 #include "convection_particles/mpi/SyncNextNeighborsNoGhosts.h"
+#include "coupling_hyteg_convection_particles/communication/SyncNextNeighborsByPrimitiveID.h"
+#include "coupling_hyteg_convection_particles/primitivestorage/PrimitiveStorageConvectionParticlesInterface.hpp"
 
 namespace hyteg {
 
@@ -92,18 +92,20 @@ const static std::map< TimeSteppingScheme, std::vector< real_t > > RK_c = {
     {TimeSteppingScheme::Ralston, RK_c_Ralston},
     {TimeSteppingScheme::RK4, RK_c_RK4}};
 
-inline std::vector< PrimitiveID > getNeighboringPrimitives( const PrimitiveID&           primitiveID,
-                                                            const SetupPrimitiveStorage& setupStorage )
+inline std::vector< PrimitiveID > getNeighboringPrimitives( const PrimitiveID& primitiveID, const PrimitiveStorage& storage )
 {
    std::set< PrimitiveID > neighboringPrimitives;
-   if ( setupStorage.getNumberOfCells() > 0 )
+
+   WALBERLA_CHECK( storage.primitiveExistsLocally( primitiveID ) );
+
+   if ( storage.hasGlobalCells() )
    {
       auto cellID = primitiveID;
-      auto cell   = setupStorage.getCell( cellID );
+      auto cell   = storage.getCell( cellID );
 
       for ( const auto& vertexID : cell->neighborVertices() )
       {
-         auto vertex = setupStorage.getVertex( vertexID );
+         auto vertex = storage.getVertex( vertexID );
          for ( const auto& neighborCellID : vertex->neighborCells() )
          {
             neighboringPrimitives.insert( neighborCellID );
@@ -113,11 +115,11 @@ inline std::vector< PrimitiveID > getNeighboringPrimitives( const PrimitiveID&  
    else
    {
       auto faceID = primitiveID;
-      auto face   = setupStorage.getFace( faceID );
+      auto face   = storage.getFace( faceID );
 
       for ( const auto& vertexID : face->neighborVertices() )
       {
-         auto vertex = setupStorage.getVertex( vertexID );
+         auto vertex = storage.getVertex( vertexID );
          for ( const auto& neighborFaceID : vertex->neighborFaces() )
          {
             neighboringPrimitives.insert( neighborFaceID );
@@ -127,11 +129,11 @@ inline std::vector< PrimitiveID > getNeighboringPrimitives( const PrimitiveID&  
    return std::vector< PrimitiveID >( neighboringPrimitives.begin(), neighboringPrimitives.end() );
 }
 
-inline void updateParticlePosition( const SetupPrimitiveStorage&                           setupStorage,
+inline void updateParticlePosition( const PrimitiveStorage&                                storage,
                                     walberla::convection_particles::data::ParticleStorage& particleStorage,
                                     const real_t&                                          particleLocationRadius )
 {
-   if ( setupStorage.getNumberOfCells() == 0 )
+   if ( !storage.hasGlobalCells() )
    {
       for ( auto p : particleStorage )
       {
@@ -140,7 +142,8 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
 
          // check for current cell (probability is high that we find the particle here...)
          const auto faceID = p->getContainingPrimitive();
-         const auto face   = setupStorage.getFace( faceID );
+         WALBERLA_ASSERT( storage.faceExistsLocally( faceID ) || storage.faceExistsInNeighborhood( faceID ) );
+         const auto face = storage.getFace( faceID );
 
          Point3D computationalLocation;
          face->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocation );
@@ -157,10 +160,12 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
          else
          {
             // check for neighbor cells if we did not find it in its previous cell
-            const auto neighboringFaces = getNeighboringPrimitives( faceID, setupStorage );
+            const auto neighboringFaces = getNeighboringPrimitives( faceID, storage );
             for ( const auto& neighborFaceID : neighboringFaces )
             {
-               const auto neighborFace = setupStorage.getFace( neighborFaceID );
+               WALBERLA_ASSERT( storage.faceExistsLocally( neighborFaceID ) ||
+                                storage.faceExistsInNeighborhood( neighborFaceID ) );
+               const auto neighborFace = storage.getFace( neighborFaceID );
                Point3D    computationalLocationNeighbor;
                neighborFace->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
                Point2D computationalLocationNeighbor2D( {computationalLocationNeighbor[0], computationalLocationNeighbor[1]} );
@@ -197,10 +202,12 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
             }
             else
             {
-               const auto neighboringFaces = getNeighboringPrimitives( faceID, setupStorage );
+               const auto neighboringFaces = getNeighboringPrimitives( faceID, storage );
                for ( const auto& neighborFaceID : neighboringFaces )
                {
-                  const auto neighborFace = setupStorage.getFace( neighborFaceID );
+                  WALBERLA_ASSERT( storage.faceExistsLocally( neighborFaceID ) ||
+                                   storage.faceExistsInNeighborhood( neighborFaceID ) );
+                  const auto neighborFace = storage.getFace( neighborFaceID );
                   Point3D    computationalLocationNeighbor;
                   neighborFace->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
 
@@ -233,7 +240,8 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
 
          // check for current cell (probability is high that we find the particle here...)
          const auto cellID = p->getContainingPrimitive();
-         const auto cell   = setupStorage.getCell( cellID );
+         WALBERLA_ASSERT( storage.cellExistsLocally( cellID ) || storage.cellExistsInNeighborhood( cellID ) );
+         const auto cell = storage.getCell( cellID );
 
          Point3D computationalLocation;
          cell->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocation );
@@ -257,7 +265,9 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
             const auto& neighboringCells = cell->getIndirectNeighborCellIDs();
             for ( const auto& neighborCellID : neighboringCells )
             {
-               const auto neighborCell = setupStorage.getCell( neighborCellID );
+               WALBERLA_ASSERT( storage.cellExistsLocally( neighborCellID ) ||
+                                storage.cellExistsInNeighborhood( neighborCellID ) );
+               const auto neighborCell = storage.getCell( neighborCellID );
                Point3D    computationalLocationNeighbor;
                neighborCell->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
 
@@ -301,7 +311,9 @@ inline void updateParticlePosition( const SetupPrimitiveStorage&                
                const auto& neighboringCells = cell->getIndirectNeighborCellIDs();
                for ( const auto& neighborCellID : neighboringCells )
                {
-                  const auto neighborCell = setupStorage.getCell( neighborCellID );
+                  WALBERLA_ASSERT( storage.cellExistsLocally( neighborCellID ) ||
+                                   storage.cellExistsInNeighborhood( neighborCellID ) );
+                  const auto neighborCell = storage.getCell( neighborCellID );
                   Point3D    computationalLocationNeighbor;
                   neighborCell->getGeometryMap()->evalFinv( toPoint3D( p->getPosition() ), computationalLocationNeighbor );
 
@@ -333,10 +345,10 @@ inline real_t evaluateAtParticlePosition( PrimitiveStorage&                     
                                           const walberla::convection_particles::data::ParticleStorage::Particle& particle,
                                           const uint_t&                                                          level )
 {
-//   if ( particle.getOutsideDomain() == 1 )
-//   {
-//      return real_c( 0 );
-//   }
+   //   if ( particle.getOutsideDomain() == 1 )
+   //   {
+   //      return real_c( 0 );
+   //   }
 
    real_t result;
    if ( !storage.hasGlobalCells() )
@@ -409,7 +421,6 @@ inline void evaluateAtParticlePosition( PrimitiveStorage&                       
 }
 
 inline uint_t initializeParticles( walberla::convection_particles::data::ParticleStorage& particleStorage,
-                                   const SetupPrimitiveStorage&                           setupStorage,
                                    PrimitiveStorage&                                      storage,
                                    const P2Function< real_t >&                            c,
                                    const P2Function< real_t >&                            ux,
@@ -450,7 +461,7 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
       //   continue;
 
       Point3D physicalLocation;
-      auto    primitive = setupStorage.getPrimitive( it.primitiveID() );
+      auto    primitive = storage.getPrimitive( it.primitiveID() );
       primitive->getGeometryMap()->evalF( it.coordinates(), physicalLocation );
 
       auto particleIt = particleStorage.create();
@@ -522,11 +533,11 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
 
    for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( c.getEdgeDoFFunction(), level ) )
    {
-//      if ( storage.onBoundary( it.primitiveID(), true ) )
-//         continue;
+      //      if ( storage.onBoundary( it.primitiveID(), true ) )
+      //         continue;
 
       Point3D physicalLocation;
-      auto    primitive = setupStorage.getPrimitive( it.primitiveID() );
+      auto    primitive = storage.getPrimitive( it.primitiveID() );
       primitive->getGeometryMap()->evalF( it.coordinates(), physicalLocation );
 
       auto particleIt = particleStorage.create();
@@ -591,14 +602,13 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
    // walberla::convection_particles::mpi::SyncNextNeighborsNoGhosts SNN;
    walberla::convection_particles::mpi::SyncNextNeighborsByPrimitiveID SNN;
 
-   SNN( particleStorage, setupStorage );
+   SNN( particleStorage, storage );
 
    // WALBERLA_LOG_INFO( "Particles after init sync: " << particleStorage.size() );
    return numberOfCreatedParticles;
 }
 
 inline void particleIntegration( walberla::convection_particles::data::ParticleStorage& particleStorage,
-                                 const SetupPrimitiveStorage&                           setupStorage,
                                  PrimitiveStorage&                                      storage,
                                  const P2Function< real_t >&                            ux,
                                  const P2Function< real_t >&                            uy,
@@ -629,7 +639,7 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
    const uint_t                                rkStages = b.size();
 
    storage.getTimingTree()->start( "Sync particles" );
-   SNN( particleStorage, setupStorage );
+   SNN( particleStorage, storage, true );
    storage.getTimingTree()->stop( "Sync particles" );
 
    for ( uint_t step = 0; step < steps; step++ )
@@ -680,12 +690,12 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
             }
             p->setPosition( evaluationPoint );
          }
-         updateParticlePosition( setupStorage, particleStorage, particleLocationRadius );
+         updateParticlePosition( storage, particleStorage, particleLocationRadius );
          storage.getTimingTree()->stop( "Update particle position" );
 
          // sync particles to be able to evaluate the velocity at that point
          storage.getTimingTree()->start( "Sync particles" );
-         SNN( particleStorage, setupStorage );
+         SNN( particleStorage, storage, true );
          storage.getTimingTree()->stop( "Sync particles" );
 
          // evaluate velocity at current particle positions and update k[stage]
@@ -717,12 +727,12 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
          p->setPosition( finalPosition );
          p->setStartPosition( p->getPosition() );
       }
-      updateParticlePosition( setupStorage, particleStorage, particleLocationRadius );
+      updateParticlePosition( storage, particleStorage, particleLocationRadius );
       storage.getTimingTree()->stop( "Update particle position" );
 
       // sync particles as position was finally updated
       storage.getTimingTree()->start( "Sync particles" );
-      SNN( particleStorage, setupStorage );
+      SNN( particleStorage, storage, true );
       storage.getTimingTree()->stop( "Sync particles" );
    }
 }
@@ -745,8 +755,8 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
    for ( auto p : particleStorage )
    {
       auto finalTemperature = evaluateAtParticlePosition( storage, cOld, p, level );
-      finalTemperature = std::max( finalTemperature, minTempCOld );
-      finalTemperature = std::min( finalTemperature, maxTempCOld );
+      finalTemperature      = std::max( finalTemperature, minTempCOld );
+      finalTemperature      = std::min( finalTemperature, maxTempCOld );
       p->setFinalTemperature( finalTemperature );
    }
 
@@ -902,13 +912,11 @@ template < typename FunctionType >
 class MMOCTransport
 {
  public:
-   MMOCTransport( const std::shared_ptr< PrimitiveStorage >&      storage,
-                  const std::shared_ptr< SetupPrimitiveStorage >& setupStorage,
-                  const uint_t                                    minLevel,
-                  const uint_t                                    maxLevel,
-                  const TimeSteppingScheme&                       timeSteppingSchemeConvection )
+   MMOCTransport( const std::shared_ptr< PrimitiveStorage >& storage,
+                  const uint_t                               minLevel,
+                  const uint_t                               maxLevel,
+                  const TimeSteppingScheme&                  timeSteppingSchemeConvection )
    : storage_( storage )
-   , setupStorage_( setupStorage )
    , cOld_( "cOld", storage, minLevel, maxLevel )
    , cTmp_( "cTmp", storage, minLevel, maxLevel )
    , cPlus_( "cPlus", storage, minLevel, maxLevel )
@@ -918,6 +926,9 @@ class MMOCTransport
    , numberOfCreatedParticles_( 0 )
    , particleStorage_( 10000 )
    {
+      WALBERLA_CHECK_GREATER_EQUAL( storage->getAdditionalHaloDepth(), 1, "For the particle transport implementation, "
+                                                                          "the additional halo depth of the PrimitiveStorage "
+                                                                          "must at least be set to 1." )
       particleLocationRadius_ = 0.1 * MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    }
 
@@ -946,14 +957,13 @@ class MMOCTransport
       {
          cOld_.assign( {1.0}, {c}, level, All );
          storage_->getTimingTree()->start( "Particle initialization" );
-         numberOfCreatedParticles_ = initializeParticles(
-             particleStorage_, *setupStorage_, *storage_, c, ux, uy, uz, level, Inner, timeSteppingSchemeConvection_, 0 );
+         numberOfCreatedParticles_ =
+             initializeParticles( particleStorage_, *storage_, c, ux, uy, uz, level, Inner, timeSteppingSchemeConvection_, 0 );
          storage_->getTimingTree()->stop( "Particle initialization" );
       }
 
       storage_->getTimingTree()->start( "Particle integration" );
       particleIntegration( particleStorage_,
-                           *setupStorage_,
                            *storage_,
                            ux,
                            uy,
@@ -1071,7 +1081,6 @@ class MMOCTransport
 
  private:
    const std::shared_ptr< PrimitiveStorage >             storage_;
-   const std::shared_ptr< SetupPrimitiveStorage >        setupStorage_;
    FunctionType                                          cOld_;
    FunctionType                                          cTmp_;
    FunctionType                                          cPlus_;

@@ -143,7 +143,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       }
       else
       {
-         MatCopy( AmatNonEliminatedBC.get(), Amat.get(), DIFFERENT_NONZERO_PATTERN );
+         MatCopy( AmatNonEliminatedBC.get(), Amat.get(), SAME_NONZERO_PATTERN );
          x.getStorage()->getTimingTree()->start( "Dirichlet BCs" );
          Amat.applyDirichletBCSymmetrically( x, num, bVec, level );
          x.getStorage()->getTimingTree()->stop( "Dirichlet BCs" );

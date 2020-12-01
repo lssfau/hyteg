@@ -29,6 +29,7 @@
 #include "core/logging/Logging.h"
 #include "core/mpi/Gatherv.h"
 #include "core/mpi/OpenMPBufferSystem.h"
+#include "core/math/DistributedSample.h"
 
 #include "hyteg/communication/PackageBufferSystem.hpp"
 #include "hyteg/primitivedata/PrimitiveDataID.hpp"
@@ -52,11 +53,13 @@ std::shared_ptr< PrimitiveStorage > PrimitiveStorage::createFromGmshFile( const 
 }
 
 PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                     setupStorage,
-                                    const std::shared_ptr< walberla::WcTimingTree >& timingTree )
+                                    const std::shared_ptr< walberla::WcTimingTree >& timingTree,
+                                    const uint_t&                                    additionalHaloDepth )
 : primitiveDataHandlers_( 0 )
 , modificationStamp_( 0 )
 , timingTree_( timingTree )
 , hasGlobalCells_( setupStorage.getNumberOfCells() > 0 )
+, additionalHaloDepth_( additionalHaloDepth )
 {
    for ( auto it : setupStorage.getVertices() )
    {
@@ -90,11 +93,44 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
       }
    }
 
-   // Neighborhood
+   // neighbors
+   std::vector< PrimitiveID > vertices{ getVertexIDs() };
+   std::vector< PrimitiveID > edges{ getEdgeIDs() };
+   std::vector< PrimitiveID > faces{ getFaceIDs() };
+   std::vector< PrimitiveID > cells{ getCellIDs() };
+   addDirectNeighbors( setupStorage, vertices, edges, faces, cells );
 
-   for ( const auto& it : vertices_ )
+   // additionally requested neighbors
+   for ( uint_t k = 0; k < additionalHaloDepth; k += 1 )
    {
-      auto vertex = it.second;
+      std::vector< PrimitiveID > additionalVertices;
+      getNeighboringVertexIDs( additionalVertices );
+      std::vector< PrimitiveID > additionalEdges;
+      getNeighboringEdgeIDs( additionalEdges );
+      std::vector< PrimitiveID > additionalFaces;
+      getNeighboringFaceIDs( additionalFaces );
+      std::vector< PrimitiveID > additionalCells;
+      getNeighboringCellIDs( additionalCells );
+      addDirectNeighbors( setupStorage, additionalVertices, additionalEdges, additionalFaces, additionalCells );
+   }
+
+   splitCommunicatorByPrimitiveDistribution();
+
+#ifndef NDEBUG
+   checkConsistency();
+#endif
+}
+
+void PrimitiveStorage::addDirectNeighbors( const SetupPrimitiveStorage&      setupStorage,
+                                           const std::vector< PrimitiveID >& vertices,
+                                           const std::vector< PrimitiveID >& edges,
+                                           const std::vector< PrimitiveID >& faces,
+                                           const std::vector< PrimitiveID >& cells )
+{
+   for ( const auto& id : vertices )
+   {
+      const Vertex* vertex = getVertex( id );
+      WALBERLA_ASSERT_NOT_NULLPTR( vertex );
 
       for ( const auto& neighborVertexID : vertex->neighborVertices() )
       {
@@ -137,9 +173,10 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
       }
    }
 
-   for ( const auto& it : edges_ )
+   for ( const auto& id : edges )
    {
-      auto edge = it.second;
+      const Edge* edge = getEdge( id );
+      WALBERLA_ASSERT_NOT_NULLPTR( edge );
 
       for ( const auto& neighborVertexID : edge->neighborVertices() )
       {
@@ -182,9 +219,10 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
       }
    }
 
-   for ( const auto& it : faces_ )
+   for ( const auto& id : faces )
    {
-      auto face = it.second;
+      const Face* face = getFace( id );
+      WALBERLA_ASSERT_NOT_NULLPTR( face );
 
       for ( const auto& neighborVertexID : face->neighborVertices() )
       {
@@ -227,9 +265,10 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
       }
    }
 
-   for ( const auto& it : cells_ )
+   for ( const auto& id : cells )
    {
-      auto cell = it.second;
+      const Cell* cell = getCell( id );
+      WALBERLA_ASSERT_NOT_NULLPTR( cell );
 
       for ( const auto& neighborVertexID : cell->neighborVertices() )
       {
@@ -279,8 +318,102 @@ PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage&                
 #endif
 }
 
-PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage& setupStorage )
-: PrimitiveStorage( setupStorage, std::make_shared< walberla::WcTimingTree >() )
+void PrimitiveStorage::addDirectNeighborsDistributed()
+{
+   // Let's make it simple: send all local primitives to all neighbor ranks.
+   // Receive from all neighbor ranks all their local primitives and store ranks as well.
+   // Now we could drop information we do not need, but we simply keep it.
+   
+   walberla::mpi::BufferSystem bs( walberla::mpi::MPIManager::instance()->comm() );
+   std::set< MPIRank > nranks;
+   for ( const auto & it : getNeighboringRanks() )
+   {
+      nranks.insert( static_cast< MPIRank >( it ) );
+   }
+
+   bs.setReceiverInfo( nranks, true );
+   
+   for ( auto nbrank : getNeighboringRanks() )
+   {
+      bs.sendBuffer( nbrank ) << getNumberOfLocalVertices(); 
+      for ( const auto & it : getVertices() )
+      {
+         bs.sendBuffer( nbrank ) << it.first;
+         bs.sendBuffer( nbrank ) << *it.second;
+      }
+
+      bs.sendBuffer( nbrank ) << getNumberOfLocalEdges();
+      for ( const auto & it : getEdges() )
+      {
+         bs.sendBuffer( nbrank ) << it.first;
+         bs.sendBuffer( nbrank ) << *it.second;
+      }
+
+      bs.sendBuffer( nbrank ) << getNumberOfLocalFaces();
+      for ( const auto & it : getFaces() )
+      {
+         bs.sendBuffer( nbrank ) << it.first;
+         bs.sendBuffer( nbrank ) << *it.second;
+      }
+
+      bs.sendBuffer( nbrank ) << getNumberOfLocalCells();
+      for ( const auto & it : getCells() )
+      {
+         bs.sendBuffer( nbrank ) << it.first;
+         bs.sendBuffer( nbrank ) << *it.second;
+      }
+   }
+   
+   bs.sendAll();
+   
+   for ( auto msg = bs.begin(); msg != bs.end(); ++msg )
+   {
+      const auto nbrank = msg.rank();
+      
+      uint_t numVertices;
+      msg.buffer() >> numVertices;
+      for ( uint_t i = 0; i < numVertices; i++ )
+      {
+         PrimitiveID::IDType id;
+         msg.buffer() >> id;
+         neighborVertices_[id] = std::make_shared< Vertex >( msg.buffer() );
+         neighborRanks_[id] = uint_c( nbrank );
+      }
+
+      uint_t numEdges;
+      msg.buffer() >> numEdges;
+      for ( uint_t i = 0; i < numEdges; i++ )
+      {
+         PrimitiveID::IDType id;
+         msg.buffer() >> id;
+         neighborEdges_[id] = std::make_shared< Edge >( msg.buffer() );
+         neighborRanks_[id] = uint_c( nbrank );
+      }
+
+      uint_t numFaces;
+      msg.buffer() >> numFaces;
+      for ( uint_t i = 0; i < numFaces; i++ )
+      {
+         PrimitiveID::IDType id;
+         msg.buffer() >> id;
+         neighborFaces_[id] = std::make_shared< Face >( msg.buffer() );
+         neighborRanks_[id] = uint_c( nbrank );
+      }
+
+      uint_t numCells;
+      msg.buffer() >> numCells;
+      for ( uint_t i = 0; i < numCells; i++ )
+      {
+         PrimitiveID::IDType id;
+         msg.buffer() >> id;
+         neighborCells_[id] = std::make_shared< Cell >( msg.buffer() );
+         neighborRanks_[id] = uint_c( nbrank );
+      }
+   }
+}
+
+PrimitiveStorage::PrimitiveStorage( const SetupPrimitiveStorage& setupStorage, const uint_t& additionalHaloDepth )
+: PrimitiveStorage( setupStorage, std::make_shared< walberla::WcTimingTree >(), additionalHaloDepth )
 {}
 
 std::shared_ptr< PrimitiveStorage > PrimitiveStorage::createCopy() const
@@ -1081,11 +1214,108 @@ void PrimitiveStorage::migratePrimitives( const MigrationInfo& migrationInfo )
       neighborRanks_[np.getID()] = neighborhoodPrimitiveToFutureRankMap[np.getID()];
    }
 
+   for ( uint_t i = 0; i < additionalHaloDepth_; i++ )
+   {
+      addDirectNeighborsDistributed();
+   }
+
    splitCommunicatorByPrimitiveDistribution();
 
    wasModified();
 
    WALBERLA_DEBUG_SECTION() { checkConsistency(); }
+}
+
+std::set< uint_t > PrimitiveStorage::getNeighboringFaceRanksOfFace( const PrimitiveID & facePrimitiveID ) const
+{
+   WALBERLA_CHECK( additionalHaloDepth_ > 0, "Additional halo depth must be larger than 0 to access neighbor faces of faces." );
+   WALBERLA_CHECK( faceExistsLocally( facePrimitiveID ), "Face " << facePrimitiveID << "does not exist locally." );
+
+   std::set< uint_t > neighboringRanks;
+   const auto face = getFace( facePrimitiveID );
+   for ( const auto & npid : face->getIndirectNeighborFaceIDs() )
+   {
+      WALBERLA_CHECK( faceExistsLocally( npid ) || faceExistsInNeighborhood( npid ),
+                      "Neighbor face " << npid << " of " << facePrimitiveID << " does not exist locally, nor in neighborhood." );
+      if ( faceExistsInNeighborhood( npid ) )
+      {
+         neighboringRanks.insert( getNeighborPrimitiveRank( npid ) );
+      }
+   }
+   return neighboringRanks;
+}
+
+std::set< uint_t > PrimitiveStorage::getNeighboringFaceRanksOfAllFaces() const
+{
+   std::set< uint_t > neighborRanks;
+   for ( const auto & it : faces_ )
+   {
+      const auto nr = getNeighboringFaceRanksOfFace( it.first );
+      neighborRanks.insert( nr.begin(), nr.end() );
+   }
+   return neighborRanks;
+}
+
+
+std::set< uint_t > PrimitiveStorage::getNeighboringCellRanksOfCell( const PrimitiveID & cellPrimitiveID ) const
+{
+   WALBERLA_CHECK( additionalHaloDepth_ > 0, "Additional halo depth must be larger than 0 to access neighbor cells of cells." );
+   WALBERLA_CHECK( cellExistsLocally( cellPrimitiveID ), "Cell " << cellPrimitiveID << "does not exist locally." );
+   
+   std::set< uint_t > neighboringRanks;
+   const auto cell = getCell( cellPrimitiveID );
+   for ( const auto & npid : cell->getIndirectNeighborCellIDs() )
+   {
+      WALBERLA_CHECK( cellExistsLocally( npid ) || cellExistsInNeighborhood( npid ), 
+                      "Neighbor cell " << npid << " of " << cellPrimitiveID << " does not exist locally, nor in neighborhood." );
+      if ( cellExistsInNeighborhood( npid ) )
+      {
+         neighboringRanks.insert( getNeighborPrimitiveRank( npid ) );
+      }
+   }
+   return neighboringRanks;
+}
+
+std::set< uint_t > PrimitiveStorage::getNeighboringCellRanksOfAllCells() const
+{
+   std::set< uint_t > neighborRanks;
+   for ( const auto & it : cells_ )
+   {
+      const auto nr = getNeighboringCellRanksOfCell( it.first );
+      neighborRanks.insert( nr.begin(), nr.end() );
+   }
+   return neighborRanks;
+}
+
+std::set< uint_t > PrimitiveStorage::getNeighboringVolumeRanksOfVolume( const PrimitiveID & volumePrimitiveID ) const
+{
+   if ( hasGlobalCells() )
+   {
+      return getNeighboringCellRanksOfCell( volumePrimitiveID );
+   }
+   else
+   {
+      return getNeighboringFaceRanksOfFace( volumePrimitiveID );
+   }
+}
+
+std::set< uint_t > PrimitiveStorage::getNeighboringVolumeRanksOfAllVolumes() const
+{
+   if ( hasGlobalCells() )
+   {
+      return getNeighboringCellRanksOfAllCells();
+   }
+   else
+   {
+      return getNeighboringFaceRanksOfAllFaces();
+   }
+}
+
+std::set< uint_t > PrimitiveStorage::getNeighboringRanks() const
+{
+   std::set< uint_t > neighboringRanks;
+   getNeighboringRanks( neighboringRanks );
+   return neighboringRanks;
 }
 
 void PrimitiveStorage::getNeighboringRanks( std::set< uint_t >& neighboringRanks ) const
@@ -1432,10 +1662,33 @@ std::string PrimitiveStorage::getGlobalInfo( bool onRootOnly ) const
    const double globalAvgNumberOfCells      = (double) globalNumberOfCells / (double) numberOfProcesses;
    const double globalAvgNumberOfPrimitives = (double) globalNumberOfPrimitives / (double) numberOfProcesses;
 
+   walberla::math::DistributedSample neighborhoodSample;
+   walberla::math::DistributedSample neighborhoodVolumeSample;
+   const auto numNeighborProcesses = getNeighboringRanks().size();
+   const auto numNeighborVolumeProcesses = additionalHaloDepth_ > 0 ? getNeighboringVolumeRanksOfAllVolumes().size() : 0;
+   neighborhoodSample.castToRealAndInsert( numNeighborProcesses );
+   neighborhoodVolumeSample.castToRealAndInsert( numNeighborVolumeProcesses );
+
+   if ( onRootOnly )
+   {
+      neighborhoodSample.mpiGatherRoot();
+      neighborhoodVolumeSample.mpiGatherRoot();
+   }
+   else
+   {
+      neighborhoodSample.mpiAllGather();
+      neighborhoodVolumeSample.mpiAllGather();
+   }
+
    std::stringstream os;
    os << "====================== PrimitiveStorage ======================\n";
-   os << " - mesh dimensionality:        " << ( hasGlobalCells() ? "3D" : "2D" ) << "\n";
-   os << " - processes:                  " << numberOfProcesses << "\n";
+   os << " - mesh dimensionality:                              " << ( hasGlobalCells() ? "3D" : "2D" ) << "\n";
+   os << " - processes:                                        " << numberOfProcesses << "\n";
+   os << " - neighbor processes (min, max, avg):               " << neighborhoodSample.min() << ", " << neighborhoodSample.max() << ", " << neighborhoodSample.avg() << "\n";
+   if ( additionalHaloDepth_ > 0 )
+   {
+      os << " - neighbor processes, volumes only (min, max, avg): " << neighborhoodVolumeSample.min() << ", " << neighborhoodVolumeSample.max() << ", " << neighborhoodVolumeSample.avg() << "\n";
+   }
    os << " - primitive distribution:\n";
    os << "                +-------------------------------------------+\n"
          "                |    total |      min |      max |      avg |\n"

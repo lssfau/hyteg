@@ -169,6 +169,9 @@ void benchmark( int argc, char** argv )
    const uint_t      vtkInterval            = mainConf.getParameter< uint_t >( "vtkInterval" );
    const std::string dbFile                 = mainConf.getParameter< std::string >( "dbFile" );
 
+   LoadBalancingOptions lbOptions;
+   lbOptions.type = 0;
+
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
    if ( threeDim )
    {
@@ -203,6 +206,7 @@ void benchmark( int argc, char** argv )
           resetParticlesInterval,
           adjustedAdvection,
           numTimeSteps,
+          lbOptions,
           vtk,
           true,
           "Benchmark_03_BlendedAdvection",

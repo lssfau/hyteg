@@ -45,10 +45,53 @@ P2ElementwiseOperator< P2Form >::P2ElementwiseOperator( const std::shared_ptr< P
                                                         bool                                       needsInverseDiagEntries )
 : Operator( storage, minLevel, maxLevel )
 , form_( form )
+, localElementMatricesPrecomputed_( false )
 {
    if ( needsInverseDiagEntries )
    {
       computeInverseDiagonalOperatorValues();
+   }
+}
+
+
+void localMatrixVectorMultiply3D( uint_t                 level,
+                                  const indexing::Index& microCell,
+                                  celldof::CellType      cType,
+                                  const real_t* const    srcVertexData,
+                                  const real_t* const    srcEdgeData,
+                                  real_t* const          dstVertexData,
+                                  real_t* const          dstEdgeData,
+                                  const Matrix10r&       elMat )
+{
+   // obtain data indices of dofs associated with micro-cell
+   std::array< uint_t, 4 > vertexDoFIndices;
+   vertexdof::getVertexDoFDataIndicesFromMicroCell( microCell, cType, level, vertexDoFIndices );
+
+   std::array< uint_t, 6 > edgeDoFIndices;
+   edgedof::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
+
+   // assemble local element vector
+   Point10D elVecOld, elVecNew;
+   for ( uint_t k = 0; k < 4; ++k )
+   {
+      elVecOld[k] = srcVertexData[vertexDoFIndices[k]];
+   }
+   for ( uint_t k = 4; k < 10; ++k )
+   {
+      elVecOld[k] = srcEdgeData[edgeDoFIndices[k - 4]];
+   }
+
+   // apply matrix (operator locally)
+   elVecNew = elMat.mul( elVecOld );
+
+   // redistribute result from "local" to "global vector"
+   for ( uint_t k = 0; k < 4; ++k )
+   {
+      dstVertexData[vertexDoFIndices[k]] += elVecNew[k];
+   }
+   for ( uint_t k = 4; k < 10; ++k )
+   {
+      dstEdgeData[edgeDoFIndices[k - 4]] += elVecNew[k];
    }
 }
 
@@ -63,8 +106,22 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
 
    this->startTiming( "apply" );
 
-   // Make sure that halos are up-to-date (can we improve communication here?)
-   communication::syncP2FunctionBetweenPrimitives( src, level );
+   this->storage_->getTimingTree()->start( "sync source communication" );
+   // Make sure that halos are up-to-date
+   if ( this->storage_->hasGlobalCells() )
+   {
+      // Note that the order of communication is important, since the face -> cell communication may overwrite
+      // parts of the halos that carry the macro-vertex and macro-edge unknowns.
+
+      src.communicate< Face, Cell >( level );
+      src.communicate< Edge, Cell >( level );
+      src.communicate< Vertex, Cell >( level );
+   }
+   else
+   {
+      communication::syncP2FunctionBetweenPrimitives( src, level );
+   }
+   this->storage_->getTimingTree()->stop( "sync source communication" );
 
    if ( updateType == Replace )
    {
@@ -123,17 +180,28 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
             }
          }
 
+         Matrix10r elMat;
+
          // loop over micro-cells
          for ( const auto& cType : celldof::allCellTypes )
          {
             for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
             {
-               localMatrixVectorMultiply3D< P2Form >(
-                   cell, level, micro, cType, srcVertexData, srcEdgeData, dstVertexData, dstEdgeData, form_ );
+               if ( localElementMatricesPrecomputed_ )
+               {
+                  elMat = localElementMatrix3D( cell, level, micro, cType );
+               }
+               else
+               {
+                  assembleLocalElementMatrix3D( cell, level, micro, cType, form_, elMat );
+               }
+
+               localMatrixVectorMultiply3D( level, micro, cType, srcVertexData, srcEdgeData, dstVertexData, dstEdgeData, elMat );
             }
          }
       }
 
+      this->storage_->getTimingTree()->start( "additive communication" );
       // Push result to lower-dimensional primitives
       //
       // Note: We could avoid communication here by implementing the apply() also for the respective
@@ -148,6 +216,7 @@ void P2ElementwiseOperator< P2Form >::apply( const P2Function< real_t >& src,
           level, DoFType::All ^ flag, *storage_, updateType == Replace );
       dst.getEdgeDoFFunction().communicateAdditively< Cell, Edge >(
           level, DoFType::All ^ flag, *storage_, updateType == Replace );
+      this->storage_->getTimingTree()->stop( "additive communication" );
    }
 
    else
@@ -480,59 +549,45 @@ void P2ElementwiseOperator< P2Form >::computeDiagonalOperatorValues( bool invert
 }
 
 template < class P2Form >
-void localMatrixVectorMultiply3D( const Cell&            cell,
-                                  uint_t                 level,
-                                  const indexing::Index& microCell,
-                                  celldof::CellType      cType,
-                                  const real_t* const    srcVertexData,
-                                  const real_t* const    srcEdgeData,
-                                  real_t* const          dstVertexData,
-                                  real_t* const          dstEdgeData,
-                                  P2Form                 form )
+void P2ElementwiseOperator< P2Form >::computeAndStoreLocalElementMatrices()
 {
-   // determine coordinates of vertices of micro-element
-   std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
-   std::array< Point3D, 4 >         coords;
-   for ( uint_t k = 0; k < 4; ++k )
+   for ( uint_t level = minLevel_; level <= maxLevel_; level++ )
    {
-      coords[k] = vertexdof::macrocell::coordinateFromIndex( level, cell, verts[k] );
+      // For 3D we work on cells and for 2D on faces
+      if ( storage_->hasGlobalCells() )
+      {
+         const uint_t numMicroCellsPerMacroCell = celldof::macrocell::numMicroCellsPerMacroCellTotal( level );
+
+         for ( const auto& it : storage_->getCells() )
+         {
+            auto cellID = it.first;
+            auto cell   = it.second;
+
+            auto& elementMatrices = localElementMatrices3D_[cellID][level];
+
+            if ( !localElementMatricesPrecomputed_ )
+            {
+               elementMatrices.resize( numMicroCellsPerMacroCell );
+            }
+
+            for ( const auto& cType : celldof::allCellTypes )
+            {
+               for ( const auto& micro : celldof::macrocell::Iterator( level, cType, 0 ) )
+               {
+                  Matrix10r& elMat = localElementMatrix3D( *cell, level, micro, cType );
+                  elMat.setAll( 0 );
+                  assembleLocalElementMatrix3D( *cell, level, micro, cType, form_, elMat );
+               }
+            }
+         }
+      }
+      else
+      {
+         WALBERLA_ABORT( "Pre-computation of local element matrices not implemented for 2D." )
+      }
    }
 
-   // assemble local element matrix
-   Matrix10r elMat;
-   form.setGeometryMap( cell.getGeometryMap() );
-   form.integrateAll( coords, elMat );
-
-   // obtain data indices of dofs associated with micro-cell
-   std::array< uint_t, 4 > vertexDoFIndices;
-   vertexdof::getVertexDoFDataIndicesFromMicroCell( microCell, cType, level, vertexDoFIndices );
-
-   std::array< uint_t, 6 > edgeDoFIndices;
-   edgedof::getEdgeDoFDataIndicesFromMicroCellFEniCSOrdering( microCell, cType, level, edgeDoFIndices );
-
-   // assemble local element vector
-   Point10D elVecOld, elVecNew;
-   for ( uint_t k = 0; k < 4; ++k )
-   {
-      elVecOld[k] = srcVertexData[vertexDoFIndices[k]];
-   }
-   for ( uint_t k = 4; k < 10; ++k )
-   {
-      elVecOld[k] = srcEdgeData[edgeDoFIndices[k - 4]];
-   }
-
-   // apply matrix (operator locally)
-   elVecNew = elMat.mul( elVecOld );
-
-   // redistribute result from "local" to "global vector"
-   for ( uint_t k = 0; k < 4; ++k )
-   {
-      dstVertexData[vertexDoFIndices[k]] += elVecNew[k];
-   }
-   for ( uint_t k = 4; k < 10; ++k )
-   {
-      dstEdgeData[edgeDoFIndices[k - 4]] += elVecNew[k];
-   }
+   localElementMatricesPrecomputed_ = true;
 }
 
 template < class P2Form >
@@ -915,22 +970,13 @@ template class P2ElementwiseOperator< P2Form_mass >;
 // P2ElementwiseBlendingLaplaceOperator
 template class P2ElementwiseOperator< P2Form_laplace >;
 
+// P2ElementwiseBlendingLaplaceOperatorPimped3D
+template class P2ElementwiseOperator< P2Form_laplacePimped3D >;
+
 // P2ElementwiseLinearCombinationOperator
 template class P2ElementwiseOperator< P2LinearCombinationForm >;
 
 // Needed for P2Blending(Inverse)DiagonalOperator
 template class P2ElementwiseOperator< P2RowSumForm >;
-
-// this is needed for the ElementwiseVsConstant app
-template void localMatrixVectorMultiply3D(
-    const Cell&,
-    const uint_t,
-    const indexing::Index&,
-    const celldof::CellType,
-    const real_t* const,
-    const real_t* const,
-    real_t* const,
-    real_t* const,
-    P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise > );
 
 } // namespace hyteg

@@ -26,10 +26,12 @@
 #include "core/config/Config.h"
 #include "core/mpi/MPIManager.h"
 
+#include "hyteg/Git.hpp"
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/StrongFreeSlipWrapper.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
+#include "hyteg/dataexport/SQL.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
@@ -120,14 +122,18 @@ void calculateStokesResiduals( const StokesOperator&       A,
 }
 
 template < typename StokesFunction, typename VelocityMass >
-real_t velocityRMS( const StokesFunction& u, const StokesFunction & tmp, const VelocityMass & M, real_t domainHeight, real_t domainWidth, uint_t level )
+real_t velocityRMS( const StokesFunction& u,
+                    const StokesFunction& tmp,
+                    const VelocityMass&   M,
+                    real_t                domainHeight,
+                    real_t                domainWidth,
+                    uint_t                level )
 {
-
-   auto norm = std::pow( normL2( u.uvw.u, tmp.uvw.u, M, level, All ), 2.0 ) + std::pow( normL2( u.uvw.v, tmp.uvw.v, M, level, All ), 2.0 );
+   auto norm = std::pow( normL2( u.uvw.u, tmp.uvw.u, M, level, All ), 2.0 ) +
+               std::pow( normL2( u.uvw.v, tmp.uvw.v, M, level, All ), 2.0 );
    const auto area = domainHeight * domainWidth;
    return std::sqrt( norm / area );
 }
-
 
 template < typename FunctionType >
 std::vector< real_t > evaluateHorizontalTemperatureSlice( const FunctionType& c,
@@ -143,8 +149,7 @@ std::vector< real_t > evaluateHorizontalTemperatureSlice( const FunctionType& c,
    for ( uint_t sample = 0; sample < numSamples; sample++ )
    {
       Point3D pos( {xMin + real_c( sample ) * dx, y, 0} );
-      real_t value;
-      sampleLocallyAvailable[sample] = c.evaluate( pos, level, value, 1e-5 );
+      sampleLocallyAvailable[sample] = c.evaluate( pos, level, samples[sample], 1e-5 );
    }
 
    walberla::mpi::SendBuffer sendbuffer;
@@ -170,7 +175,7 @@ std::vector< real_t > evaluateHorizontalTemperatureSlice( const FunctionType& c,
          if ( recvSamplesAvailable[sample] )
          {
             sampleGloballyAvailable[sample] = true;
-            samplesGlobal[sample] = recvSamples[sample];
+            samplesGlobal[sample]           = recvSamples[sample];
          }
       }
    }
@@ -240,7 +245,7 @@ std::shared_ptr< SetupPrimitiveStorage > createSetupStorage( uint_t nx )
 {
    WALBERLA_CHECK_EQUAL( nx % 3, 0 );
 
-   auto meshInfo     = MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1.5, 1} ), MeshInfo::CROSS, nx, (nx / 3) * 2 );
+   auto meshInfo     = MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1.5, 1} ), MeshInfo::CROSS, nx, ( nx / 3 ) * 2 );
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
@@ -277,12 +282,14 @@ void runBenchmark( real_t      cflMax,
 {
    walberla::WcTimer localTimer;
 
+   auto gitHash = gitSHA1();
+   printGitInfo();
+
    const std::string benchmarkName    = "Blankenbach_Case3";
    const bool        outputTimingJSON = true;
 
-
    auto setupStorage = createSetupStorage( nx );
-   auto storage      = std::make_shared< PrimitiveStorage >( *setupStorage );
+   auto storage      = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
 
    if ( vtk )
    {
@@ -330,34 +337,23 @@ void runBenchmark( real_t      cflMax,
    WALBERLA_LOG_INFO_ON_ROOT( "   + database file:                                " << dbFile )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
-   walberla::sqlite::SQLiteDB                 db( dbFile );
-   std::map< std::string, walberla::int64_t > sqlIntegerProperties;
-   std::map< std::string, double >            sqlRealProperties;
-   std::map< std::string, std::string >       sqlStringProperties;
+   FixedSizeSQLDB db( dbFile );
 
-   sqlIntegerProperties["ts"]                   = 0;
-   sqlIntegerProperties["fixed_time_step"]      = int_c( fixedTimeStep );
-   sqlRealProperties["cfl_max"]                 = cflMax;
-   sqlRealProperties["dt_constant"]             = dtConstant;
-   sqlRealProperties["simulation_time"]         = simulationTime;
-   sqlIntegerProperties["level"]                = int_c( level );
-   sqlIntegerProperties["unknowns"]             = int_c( unknowns );
-   sqlRealProperties["h_min"]                   = hMin;
-   sqlRealProperties["h_max"]                   = hMax;
-   sqlIntegerProperties["num_macro_cells"]      = int_c( setupStorage->getNumberOfCells() );
-   sqlIntegerProperties["num_macro_faces"]      = int_c( setupStorage->getNumberOfFaces() );
-   sqlIntegerProperties["num_macro_edges"]      = int_c( setupStorage->getNumberOfEdges() );
-   sqlIntegerProperties["num_macro_vertices"]   = int_c( setupStorage->getNumberOfVertices() );
-   sqlIntegerProperties["num_macro_primitives"] = int_c( setupStorage->getNumberOfPrimitives() );
-   sqlRealProperties["diffusivity"]             = diffusivity;
-
-   WALBERLA_ROOT_SECTION()
-   {
-      db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
-      sqlRealProperties.clear();
-      sqlIntegerProperties.clear();
-      sqlStringProperties.clear();
-   }
+   db.setConstantEntry( "git_sha1", gitHash );
+   db.setConstantEntry( "fixed_time_step", fixedTimeStep );
+   db.setConstantEntry( "cfl_max", cflMax );
+   db.setConstantEntry( "dt_constant", dtConstant );
+   db.setConstantEntry( "simulation_time", simulationTime );
+   db.setConstantEntry( "level", level );
+   db.setConstantEntry( "unknowns", unknowns );
+   db.setConstantEntry( "h_min", hMin );
+   db.setConstantEntry( "h_max", hMax );
+   db.setConstantEntry( "num_macro_cells", setupStorage->getNumberOfCells() );
+   db.setConstantEntry( "num_macro_faces", setupStorage->getNumberOfFaces() );
+   db.setConstantEntry( "num_macro_edges", setupStorage->getNumberOfEdges() );
+   db.setConstantEntry( "num_macro_vertices", setupStorage->getNumberOfVertices() );
+   db.setConstantEntry( "num_macro_primitives", setupStorage->getNumberOfPrimitives() );
+   db.setConstantEntry( "diffusivity", diffusivity );
 
    typedef P2P1TaylorHoodFunction< real_t >                                     StokesFunction;
    typedef P2Function< real_t >                                                 ScalarFunction;
@@ -421,7 +417,7 @@ void runBenchmark( real_t      cflMax,
    LaplaceOperator                 L( storage, level, level );
    MassOperatorVelocity            MVelocity( storage, level, level );
    MassOperatorPressure            MPressure( storage, level, level );
-   MMOCTransport< ScalarFunction > transport( storage, setupStorage, level, level, TimeSteppingScheme::RK4 );
+   MMOCTransport< ScalarFunction > transport( storage, level, level, TimeSteppingScheme::RK4 );
 
    auto internalDiffusionSolver = std::make_shared< CGSolver< UnsteadyDiffusionOperator > >( storage, level, level, 5000, 1e-14 );
 
@@ -430,13 +426,13 @@ void runBenchmark( real_t      cflMax,
        std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperatorFreeSlip > >( storage, level, 1e-08, 5000, 4, 1 );
    stokesSolver->reassembleMatrix( false );
 #else
-   auto stokesSolver            = solvertemplates::stokesMinResSolver< StokesOperatorFreeSlip >( storage, level, 1e-14, 5000 );
+   auto stokesSolver = solvertemplates::stokesMinResSolver< StokesOperatorFreeSlip >( storage, level, 1e-14, 5000 );
 #endif
 
    UnsteadyDiffusion< ScalarFunction, UnsteadyDiffusionOperator, LaplaceOperator, MassOperatorVelocity > diffusionSolver(
        storage, level, level, internalDiffusionSolver );
 
-   uint_t numSamples = uint_c( 1.5 / (hMin * 0.97) );
+   uint_t numSamples = uint_c( 1.5 / ( hMin * 0.97 ) );
    if ( numSamples % 2 == 0 )
       numSamples--;
 
@@ -456,7 +452,7 @@ void runBenchmark( real_t      cflMax,
    real_t timeMMOC      = 0;
    real_t timeDiffusion = 0;
 
-   hyteg::VTKOutput vtkOutput( "./vtk", benchmarkName, storage, vtkInterval );
+   VTKOutput vtkOutput( "./vtk", benchmarkName, storage, vtkInterval );
 
    vtkOutput.add( u );
    vtkOutput.add( f );
@@ -498,14 +494,35 @@ void runBenchmark( real_t      cflMax,
    f.uvw.u.assign( {rayleighNumber}, {f.uvw.u}, level, All );
    f.uvw.v.assign( {rayleighNumber}, {f.uvw.v}, level, All );
    projectNormalOperator->apply( f, level, FreeslipBoundary );
+
+   localTimer.start();
    stokesSolver->solve( AFS, u, f, level );
+   localTimer.end();
+   timeStokes = localTimer.last();
 
    vMax = velocityMaxMagnitude( u.uvw.u, u.uvw.v, uTmp, uTmp2, level, All );
 
    if ( vtk )
+   {
       vtkOutput.write( level );
+   }
 
    walberla::WcTimer timeStepTimer;
+
+   vRms = velocityRMS( u, stokesTmp, MVelocity, 1.0, 1.5, level );
+   nu   = calculateNusseltNumber( c, level, nusseltDiffH, nusseltEpsBoundary, numSamples );
+
+   db.setVariableEntry( "ts", uint_c( 0 ) );
+   db.setVariableEntry( "sim_time", timeTotal );
+   db.setVariableEntry( "run_time_advection", timeMMOC );
+   db.setVariableEntry( "run_time_stokes", timeStokes );
+   db.setVariableEntry( "run_time_time_step", timeStepTotal );
+   db.setVariableEntry( "v_max", vMax );
+   db.setVariableEntry( "v_rms", vRms );
+   db.setVariableEntry( "nu", nu );
+   db.setVariableEntry( "dt", real_c( 0 ) );
+
+   db.writeRowOnRoot();
 
    while ( timeTotal < simulationTime )
    {
@@ -541,13 +558,12 @@ void runBenchmark( real_t      cflMax,
 
       cPr.interpolate( 0, level, DirichletBoundary );
 
-      cOld.assign( { 1.0 }, { cPr }, level, All );
+      cOld.assign( {1.0}, {cPr}, level, All );
 
       diffusionOperator.setDt( 0.5 * dt );
 
       localTimer.start();
-      diffusionSolver.step(
-          diffusionOperator, L, MVelocity, cPr, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
+      diffusionSolver.step( diffusionOperator, L, MVelocity, cPr, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
       localTimer.end();
       timeDiffusion = localTimer.last();
 
@@ -560,11 +576,10 @@ void runBenchmark( real_t      cflMax,
 
       cPr.interpolate( 0, level, DirichletBoundary );
 
-      cOld.assign( { 1.0 }, { cPr }, level, All );
+      cOld.assign( {1.0}, {cPr}, level, All );
 
       localTimer.start();
-      diffusionSolver.step(
-          diffusionOperator, L, MVelocity, cPr, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
+      diffusionSolver.step( diffusionOperator, L, MVelocity, cPr, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
       localTimer.end();
       timeDiffusion += localTimer.last();
 
@@ -586,7 +601,6 @@ void runBenchmark( real_t      cflMax,
       calculateStokesResiduals(
           AFS, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU, residualV, residualP );
 
-
       if ( predictorCorrector )
       {
          // energy
@@ -595,7 +609,7 @@ void runBenchmark( real_t      cflMax,
 
          c.interpolate( 0, level, DirichletBoundary );
 
-         cOld.assign( { 1.0 }, { c }, level, All );
+         cOld.assign( {1.0}, {c}, level, All );
 
          localTimer.start();
          diffusionSolver.step(
@@ -614,7 +628,7 @@ void runBenchmark( real_t      cflMax,
 
          c.interpolate( 0, level, DirichletBoundary );
 
-         cOld.assign( { 1.0 }, { c }, level, All );
+         cOld.assign( {1.0}, {c}, level, All );
 
          localTimer.start();
          diffusionSolver.step(
@@ -649,28 +663,24 @@ void runBenchmark( real_t      cflMax,
       timeTotal += dt;
 
       vRms = velocityRMS( u, stokesTmp, MVelocity, 1.0, 1.5, level );
-      nu = calculateNusseltNumber( c, level, nusseltDiffH, nusseltEpsBoundary, numSamples );
+      nu   = calculateNusseltNumber( c, level, nusseltDiffH, nusseltEpsBoundary, numSamples );
 
       if ( vtk )
-         vtkOutput.write( level, timeStep );
-
-      WALBERLA_ROOT_SECTION()
       {
-         sqlIntegerProperties["ts"]              = int_c( timeStep );
-         sqlRealProperties["sim_time"]           = timeTotal;
-         sqlRealProperties["run_time_advection"] = timeMMOC;
-         sqlRealProperties["run_time_stokes"]    = timeStokes;
-         sqlRealProperties["run_time_time_step"] = timeStepTotal;
-         sqlRealProperties["v_max"]              = vMax;
-         sqlRealProperties["v_rms"]              = vRms;
-         sqlRealProperties["nu"]                 = nu;
-         sqlRealProperties["dt"]                 = dt;
-
-         db.storeRun( sqlIntegerProperties, sqlStringProperties, sqlRealProperties );
-         sqlRealProperties.clear();
-         sqlIntegerProperties.clear();
-         sqlStringProperties.clear();
+         vtkOutput.write( level, timeStep );
       }
+
+      db.setVariableEntry( "ts", timeStep );
+      db.setVariableEntry( "sim_time", timeTotal );
+      db.setVariableEntry( "run_time_advection", timeMMOC );
+      db.setVariableEntry( "run_time_stokes", timeStokes );
+      db.setVariableEntry( "run_time_time_step", timeStepTotal );
+      db.setVariableEntry( "v_max", vMax );
+      db.setVariableEntry( "v_rms", vRms );
+      db.setVariableEntry( "nu", nu );
+      db.setVariableEntry( "dt", dt );
+
+      db.writeRowOnRoot();
 
       timeStepTimer.end();
       timeStepTotal = timeStepTimer.last();
@@ -740,6 +750,5 @@ int main( int argc, char** argv )
    const std::string   dbFile         = mainConf.getParameter< std::string >( "dbFile" );
    const bool          vtk            = mainConf.getParameter< bool >( "vtk" );
 
-   hyteg::runBenchmark(
-       cflMax, rayleighNumber, fixedTimeStep, dtConstant, level, nx, true, simulationTime, vtk, 1, 1, dbFile );
+   hyteg::runBenchmark( cflMax, rayleighNumber, fixedTimeStep, dtConstant, level, nx, true, simulationTime, vtk, 1, 1, dbFile );
 }

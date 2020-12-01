@@ -1,0 +1,5 @@
+Parameters
+{
+  level 6;
+  mesh  ../../../data/meshes/3D/tet_1el.msh;
+}

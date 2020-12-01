@@ -96,6 +96,11 @@ public:
   void   setTargetRank( const PrimitiveID & primitiveID, const uint_t & targetRank )       { primitiveIDToTargetRankMap_[ primitiveID.getID() ] = targetRank; }
   uint_t getTargetRank( const PrimitiveID & primitiveID )                            const { return primitiveIDToTargetRankMap_.at( primitiveID.getID() ); }
 
+  uint_t getNumCellsOnRank( uint_t rank ) const;
+  uint_t getNumFacesOnRank( uint_t rank ) const;
+  uint_t getNumEdgesOnRank( uint_t rank ) const;
+  uint_t getNumVerticesOnRank( uint_t rank ) const;
+
   void setGeometryMap( const PrimitiveID & primitiveID, const std::shared_ptr<GeometryMap>& map) { getPrimitive(primitiveID)->geometryMap_ = map; }
 
   void setMeshBoundaryFlag( const PrimitiveID & primitiveID, const uint_t & meshBoundaryFlag ) { getPrimitive(primitiveID)->meshBoundaryFlag_ = meshBoundaryFlag; }

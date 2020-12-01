@@ -24,13 +24,13 @@
 #include "core/timing/Timer.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -38,7 +38,11 @@ using walberla::uint_t;
 
 namespace hyteg {
 
-void P2ElementwiseCGTest( const std::string& meshFile, const uint_t level, const real_t targetError, const bool localMPI )
+void P2ElementwiseCGTest( const std::string& meshFile,
+                          const uint_t       level,
+                          const real_t       targetError,
+                          const bool         localMPI,
+                          bool               storedElementMatrices )
 {
    const auto            meshInfo = MeshInfo::fromGmshFile( meshFile );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -47,6 +51,11 @@ void P2ElementwiseCGTest( const std::string& meshFile, const uint_t level, const
    writeDomainPartitioningVTK( storage, "../../output", "P2CGConvergenceTest_domain" );
 
    hyteg::P2ElementwiseLaplaceOperator L( storage, level, level );
+
+   if ( storedElementMatrices )
+   {
+      L.computeAndStoreLocalElementMatrices();
+   }
 
    hyteg::P2Function< real_t > r( "r", storage, level, level );
    hyteg::P2Function< real_t > f( "f", storage, level, level );
@@ -76,14 +85,14 @@ void P2ElementwiseCGTest( const std::string& meshFile, const uint_t level, const
    const real_t npoints      = npoints_helper.dotGlobal( npoints_helper, level );
    const real_t discr_l2_err = std::sqrt( err.dotGlobal( err, level ) / npoints );
 
-//   hyteg::VTKOutput vtkOutput( "../../output", "P2ElementwiseCGConvergenceTest", storage );
-//   vtkOutput.add( u );
-//   vtkOutput.add( u_exact );
-//   vtkOutput.add( f );
-//   vtkOutput.add( r );
-//   vtkOutput.add( err );
-//   vtkOutput.add( npoints_helper );
-//   vtkOutput.write( level );
+   //   hyteg::VTKOutput vtkOutput( "../../output", "P2ElementwiseCGConvergenceTest", storage );
+   //   vtkOutput.add( u );
+   //   vtkOutput.add( u_exact );
+   //   vtkOutput.add( f );
+   //   vtkOutput.add( r );
+   //   vtkOutput.add( err );
+   //   vtkOutput.add( npoints_helper );
+   //   vtkOutput.write( level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err << " (level " << level << ", mesh: " << meshFile << ")" );
    WALBERLA_CHECK_LESS( discr_l2_err, targetError );
@@ -97,23 +106,43 @@ int main( int argc, char* argv[] )
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
 
-   hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 0, 1, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 0, 1, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 0, 1, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/pyramid_2el.msh", 0, 1, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 0, 1, true );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/cube_24el.msh", 0, 1, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 0, 1, false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 0, 1, false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 0, 1, false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/pyramid_2el.msh", 0, 1, false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 0, 1, true, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/cube_24el.msh", 0, 1, true, false );
 
-   hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 1, 1.5e-05, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 1, 2e-05, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 1, 3e-06, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/pyramid_2el.msh", 1, 2e-04, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 1, 1.5e-04, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 1, 1.5e-05, false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 1, 2e-05, false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 1, 3e-06, false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/pyramid_2el.msh", 1, 2e-04, false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 1, 1.5e-04, true, false );
 
-   hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 3, 1e-7, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 3, 1e-7, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 2, 3e-6, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 3, 3e-7, true );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/pyramid_2el.msh", 2, 3e-5, false );
-   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 2, 1.7e-5, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 3, 1e-7, false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 3, 1e-7, false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 2, 3e-6, false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 3, 3e-7, true, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/pyramid_2el.msh", 2, 3e-5, false, false );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 2, 1.7e-5, true, false );
+
+//   hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 0, 1, false, true );
+//   hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 0, 1, false, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 0, 1, false, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/pyramid_2el.msh", 0, 1, false, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 0, 1, true, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/cube_24el.msh", 0, 1, true, true );
+
+//   hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 1, 1.5e-05, false, true );
+//   hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 1, 2e-05, false, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 1, 3e-06, false, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/pyramid_2el.msh", 1, 2e-04, false, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 1, 1.5e-04, true, true );
+
+//   hyteg::P2ElementwiseCGTest( "../../data/meshes//tri_1el.msh", 3, 1e-7, false, true );
+//   hyteg::P2ElementwiseCGTest( "../../data/meshes//quad_4el.msh", 3, 1e-7, false, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 2, 3e-6, false, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/tet_1el.msh", 3, 3e-7, true, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/pyramid_2el.msh", 2, 3e-5, false, true );
+   hyteg::P2ElementwiseCGTest( "../../data/meshes/3D/regular_octahedron_8el.msh", 2, 1.7e-5, true, true );
 }

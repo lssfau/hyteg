@@ -32,15 +32,14 @@ using walberla::real_t;
 using walberla::uint_t;
 using walberla::convection_particles::Vec3;
 
-class SetupPrimitiveStorageConvectionParticlesInterface : public walberla::convection_particles::domain::IDomain
+class PrimitiveStorageConvectionParticlesInterface : public walberla::convection_particles::domain::IDomain
 {
  public:
-
-   SetupPrimitiveStorageConvectionParticlesInterface( const std::shared_ptr< SetupPrimitiveStorage > & setupStorage ) :
-       setupStorage_( setupStorage )
+   PrimitiveStorageConvectionParticlesInterface( const std::shared_ptr< PrimitiveStorage > & primitiveStorage ) :
+       primitiveStorage_( primitiveStorage )
    {}
 
-   virtual ~SetupPrimitiveStorageConvectionParticlesInterface() {}
+   virtual ~PrimitiveStorageConvectionParticlesInterface() {}
 
    bool isContainedInProcessSubdomain( const uint_t rank, const Vec3& pt ) const override;
 
@@ -56,7 +55,7 @@ class SetupPrimitiveStorageConvectionParticlesInterface : public walberla::conve
 
  private:
 
-   std::shared_ptr< SetupPrimitiveStorage > setupStorage_;
+   std::shared_ptr< PrimitiveStorage > primitiveStorage_;
    std::vector< uint_t > neighborProcesses_;
 
 };

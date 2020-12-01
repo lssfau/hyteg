@@ -27,17 +27,31 @@
 #include "SyncNextNeighborsByPrimitiveID.h"
 
 #include <convection_particles/mpi/RemoveAndNotify.h>
+#include "hyteg/primitives/Face.hpp"
+#include "hyteg/primitives/Cell.hpp"
 
 namespace walberla {
 namespace convection_particles {
 namespace mpi {
 
 void SyncNextNeighborsByPrimitiveID::operator()(data::ParticleStorage& ps,
-                                                const hyteg::SetupPrimitiveStorage & setupStorage) const
+                                                const hyteg::PrimitiveStorage & primitiveStorage,
+                                                bool onlyVolumeToVolumeCommunication ) const
 {
    if (numProcesses_ == 1) return;
 
-   for( uint_t nbProcessRank = 0; nbProcessRank < uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ); nbProcessRank++ )
+   std::set< uint_t > neighboringRanks;
+
+   if ( onlyVolumeToVolumeCommunication )
+   {
+      neighboringRanks = primitiveStorage.getNeighboringVolumeRanksOfAllVolumes();
+   }
+   else
+   {
+      neighboringRanks = primitiveStorage.getNeighboringRanks();
+   }
+
+   for ( auto nbProcessRank : neighboringRanks )
    {
       if (bs.sendBuffer(nbProcessRank).isEmpty())
       {
@@ -45,7 +59,7 @@ void SyncNextNeighborsByPrimitiveID::operator()(data::ParticleStorage& ps,
          bs.sendBuffer(nbProcessRank) << walberla::uint8_c(0);
       }
    }
-   generateSynchronizationMessages(ps, setupStorage);
+   generateSynchronizationMessages(ps, primitiveStorage);
 
    // size of buffer is unknown and changes with each send
    bs.setReceiverInfoFromSendBufferState(false, true);
@@ -67,7 +81,7 @@ void SyncNextNeighborsByPrimitiveID::operator()(data::ParticleStorage& ps,
 }
 
 void SyncNextNeighborsByPrimitiveID::generateSynchronizationMessages(data::ParticleStorage& ps,
-                                                                     const hyteg::SetupPrimitiveStorage & setupStorage) const
+                                                                     const hyteg::PrimitiveStorage & primitiveStorage) const
 {
    const uint_t ownRank = uint_c(rank_);
 
@@ -96,7 +110,9 @@ void SyncNextNeighborsByPrimitiveID::generateSynchronizationMessages(data::Parti
       WALBERLA_LOG_DETAIL( "Processing local particle " << pIt->getUid() );
 
       //particle has left subdomain?
-      const auto ownerRank = setupStorage.getTargetRank( pIt->getContainingPrimitive() );
+      WALBERLA_CHECK(    primitiveStorage.primitiveExistsLocally( pIt->getContainingPrimitive() )
+                      || primitiveStorage.primitiveExistsInNeighborhood( pIt->getContainingPrimitive() ) )
+      const auto ownerRank = primitiveStorage.getPrimitiveRank( pIt->getContainingPrimitive() );
       if( ownerRank != ownRank )
       {
          WALBERLA_LOG_DETAIL( "Local particle " << pIt->getUid() << " is no longer on process " << ownRank << " but on process " << ownerRank );

@@ -166,6 +166,42 @@ public:
   }
   ///@}
 
+  /// @name Vertex to Cell
+  ///@{
+  virtual void packVertexForCell( const Vertex* sender, const PrimitiveID& receiver, walberla::mpi::SendBuffer& buffer ) const
+  {
+     WALBERLA_ABORT( "Macro-vertex to macro-cell communication not implemented!" );
+  }
+
+  virtual void unpackCellFromVertex( Cell* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const
+  {
+     WALBERLA_ABORT( "Macro-vertex to macro-cell communication not implemented!" );
+  }
+
+  virtual void communicateLocalVertexToCell( const Vertex* sender, Cell* receiver ) const
+  {
+     WALBERLA_ABORT( "Macro-vertex to macro-cell communication not implemented!" );
+  }
+  ///@}
+
+  /// @name Edge to Cell
+  ///@{
+  virtual void packEdgeForCell( const Edge* sender, const PrimitiveID& receiver, walberla::mpi::SendBuffer& buffer ) const
+  {
+     WALBERLA_ABORT( "Macro-edge to macro-cell communication not implemented!" );
+  }
+
+  virtual void unpackCellFromEdge( Cell* receiver, const PrimitiveID& sender, walberla::mpi::RecvBuffer& buffer ) const
+  {
+     WALBERLA_ABORT( "Macro-edge to macro-cell communication not implemented!" );
+  }
+
+  virtual void communicateLocalEdgeToCell( const Edge* sender, Cell* receiver ) const
+  {
+     WALBERLA_ABORT( "Macro-edge to macro-cell communication not implemented!" );
+  }
+  ///@}
+
   /// @name Generic communication methods
   ///@{
   template< typename SenderType, typename ReceiverType >
@@ -225,6 +261,16 @@ inline void PackInfo::pack< Cell, Vertex > ( const Cell * sender, const Primitiv
 {
   packCellForVertex( sender, receiverID, sendBuffer );
 }
+template<>
+inline void PackInfo::pack< Vertex, Cell > ( const Vertex * sender, const PrimitiveID & receiverID, walberla::mpi::SendBuffer & sendBuffer ) const
+{
+   packVertexForCell( sender, receiverID, sendBuffer );
+}
+template<>
+inline void PackInfo::pack< Edge, Cell > ( const Edge * sender, const PrimitiveID & receiverID, walberla::mpi::SendBuffer & sendBuffer ) const
+{
+   packEdgeForCell( sender, receiverID, sendBuffer );
+}
 
 
 template<>
@@ -271,6 +317,16 @@ template<>
 inline void PackInfo::unpack< Cell, Vertex > ( Vertex * receiver, const PrimitiveID & senderID, walberla::mpi::RecvBuffer & recvBuffer ) const
 {
   unpackVertexFromCell( receiver, senderID, recvBuffer );
+}
+template<>
+inline void PackInfo::unpack< Vertex, Cell > ( Cell * receiver, const PrimitiveID & senderID, walberla::mpi::RecvBuffer & recvBuffer ) const
+{
+   unpackCellFromVertex( receiver, senderID, recvBuffer );
+}
+template<>
+inline void PackInfo::unpack< Edge, Cell > ( Cell * receiver, const PrimitiveID & senderID, walberla::mpi::RecvBuffer & recvBuffer ) const
+{
+   unpackCellFromEdge( receiver, senderID, recvBuffer );
 }
 
 
@@ -319,7 +375,16 @@ inline void PackInfo::communicateLocal< Cell, Vertex >( const Cell * sender, Ver
 {
   communicateLocalCellToVertex( sender, receiver );
 }
-
+template<>
+inline void PackInfo::communicateLocal< Vertex, Cell >( const Vertex * sender, Cell * receiver ) const
+{
+   communicateLocalVertexToCell( sender, receiver );
+}
+template<>
+inline void PackInfo::communicateLocal< Edge, Cell >( const Edge * sender, Cell * receiver ) const
+{
+   communicateLocalEdgeToCell( sender, receiver );
+}
 
 
 } // namespace communication

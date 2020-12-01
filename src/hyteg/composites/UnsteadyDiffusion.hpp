@@ -143,6 +143,7 @@ class P2UnsteadyDiffusionOperator : public Operator< P2Function< real_t >, P2Fun
    DiffusionTimeIntegrator getTimeIntegrator() const { return timeIntegrator_; }
 
    const P2Operator< P2LinearCombinationForm >& getOperator() const { return *unsteadyDiffusionOperator_; }
+         P2Operator< P2LinearCombinationForm >& getOperator() { return *unsteadyDiffusionOperator_; }
 
  private:
    real_t dtScaling()
@@ -233,6 +234,11 @@ class UnsteadyDiffusion
    , fWeak_( "fWeak", storage, minLevel, maxLevel )
    , solver_( diffusionSolver )
    {}
+
+   void setSolver( const std::shared_ptr< Solver< UnsteadyDiffusionOperatorType > >& diffusionSolver )
+   {
+      solver_ = diffusionSolver;
+   }
 
    /// \brief Performs one implicit Euler step to advance the solution of the PDE from time step n to n+1.
    ///

@@ -258,24 +258,31 @@ void benchmark( int argc, char** argv )
 
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
-   const uint_t      numTimeSteps           = mainConf.getParameter< uint_t >( "numTimeSteps" );
-   const uint_t      level                  = mainConf.getParameter< uint_t >( "level" );
-   const bool        threeDim               = mainConf.getParameter< bool >( "threeDim" );
-   const bool        resetParticles         = mainConf.getParameter< bool >( "resetParticles" );
-   const uint_t      resetParticlesInterval = mainConf.getParameter< uint_t >( "resetParticlesInterval" );
-   const bool        adjustedAdvection      = mainConf.getParameter< bool >( "adjustedAdvection" );
-   const bool        enableCylinder         = mainConf.getParameter< bool >( "enableCylinder" );
-   const bool        enableLinearCone       = mainConf.getParameter< bool >( "enableLinearCone" );
-   const bool        enableGaussianCone     = mainConf.getParameter< bool >( "enableGaussianCone" );
-   const uint_t      printInterval          = mainConf.getParameter< uint_t >( "printInterval" );
-   const bool        vtk                    = mainConf.getParameter< bool >( "vtk" );
-   const uint_t      vtkInterval            = mainConf.getParameter< uint_t >( "vtkInterval" );
-   const std::string dbFile                 = mainConf.getParameter< std::string >( "dbFile" );
+   const uint_t      numTimeSteps            = mainConf.getParameter< uint_t >( "numTimeSteps" );
+   const uint_t      level                   = mainConf.getParameter< uint_t >( "level" );
+   const bool        threeDim                = mainConf.getParameter< bool >( "threeDim" );
+   const bool        resetParticles          = mainConf.getParameter< bool >( "resetParticles" );
+   const uint_t      resetParticlesInterval  = mainConf.getParameter< uint_t >( "resetParticlesInterval" );
+   const bool        adjustedAdvection       = mainConf.getParameter< bool >( "adjustedAdvection" );
+   const bool        enableCylinder          = mainConf.getParameter< bool >( "enableCylinder" );
+   const bool        enableLinearCone        = mainConf.getParameter< bool >( "enableLinearCone" );
+   const bool        enableGaussianCone      = mainConf.getParameter< bool >( "enableGaussianCone" );
+   const uint_t      printInterval           = mainConf.getParameter< uint_t >( "printInterval" );
+   const bool        vtk                     = mainConf.getParameter< bool >( "vtk" );
+   const uint_t      vtkInterval             = mainConf.getParameter< uint_t >( "vtkInterval" );
+   const std::string dbFile                  = mainConf.getParameter< std::string >( "dbFile" );
+   const uint_t      numEdgesPerSide         = mainConf.getParameter< uint_t >( "numEdgesPerSide" );
+   const bool        setTimeStepSizeManually = mainConf.getParameter< bool >( "setTimeStepSizeManually" );
+   const real_t      manualDT                = mainConf.getParameter< real_t >( "manualTimeStepSize" );
+
+   LoadBalancingOptions lbOptions;
+   lbOptions.type = 0;
 
    MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
    if ( threeDim )
    {
-      meshInfo = MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 );
+      meshInfo =
+          MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
    }
    else
    {
@@ -283,7 +290,11 @@ void benchmark( int argc, char** argv )
    }
 
    const real_t tEnd = 1.5;
-   const real_t dt   = tEnd / real_c( numTimeSteps );
+   real_t       dt   = tEnd / real_c( numTimeSteps );
+   if ( setTimeStepSizeManually )
+   {
+      dt = manualDT;
+   }
 
    TempSolution      cSolution( enableGaussianCone, enableLinearCone, enableCylinder );
    VelocitySolutionX uSolution( tEnd );
@@ -313,6 +324,7 @@ void benchmark( int argc, char** argv )
              resetParticlesInterval,
              adjustedAdvection,
              numTimeSteps,
+             lbOptions,
              vtk,
              true,
              "Benchmark_02_SwirlingAdvection",
@@ -339,6 +351,7 @@ void benchmark( int argc, char** argv )
              resetParticlesInterval,
              adjustedAdvection,
              numTimeSteps,
+             lbOptions,
              vtk,
              true,
              "Benchmark_02_SwirlingAdvection",
