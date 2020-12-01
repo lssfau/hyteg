@@ -18,25 +18,25 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "core/math/Random.h"
+#include <numeric>
+
 #include "core/DataTypes.h"
+#include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/communication/Syncing.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/petsc/PETScVector.hpp"
-#include "hyteg/FunctionTraits.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/communication/Syncing.hpp"
-
-#include <numeric>
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 using walberla::real_t;
 

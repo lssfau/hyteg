@@ -23,12 +23,12 @@
 #include "core/math/MatrixMxN.h"
 #include "core/mpi/MPIWrapper.h"
 
-#include "hyteg/FunctionIterator.hpp"
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "hyteg/functions/FunctionIterator.hpp"
 #include "hyteg/geometry/Intersection.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"

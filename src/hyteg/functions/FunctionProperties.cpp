@@ -18,13 +18,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "FunctionProperties.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 
+#include "hyteg/FunctionMemory.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
+#include "hyteg/functions/Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
-
-#include "Function.hpp"
-#include "FunctionMemory.hpp"
 
 namespace hyteg {
 

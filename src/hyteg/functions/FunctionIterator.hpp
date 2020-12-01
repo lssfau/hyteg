@@ -22,13 +22,13 @@
 
 #include "core/DataTypes.h"
 
-#include "hyteg/FunctionProperties.hpp"
-#include "hyteg/FunctionTraits.hpp"
 #include "hyteg/PrimitiveID.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
+#include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
-#include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/indexing/Common.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"

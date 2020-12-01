@@ -20,17 +20,17 @@
 
 #pragma once
 
-#include <utility>
 #include <functional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "core/mpi/Gather.h"
 
-#include "hyteg/FunctionTraits.hpp"
-#include "hyteg/FunctionProperties.hpp"
 #include "hyteg/Operator.hpp"
 #include "hyteg/communication/BufferedCommunication.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/types/flags.hpp"
 #include "hyteg/types/pointnd.hpp"
 

@@ -35,7 +35,6 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/FunctionProperties.hpp"
 #include "hyteg/composites/P1StokesOperator.hpp"
 
 #ifndef HYTEG_BUILD_WITH_PETSC

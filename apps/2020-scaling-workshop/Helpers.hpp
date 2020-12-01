@@ -32,7 +32,6 @@
 #include "core/OpenMP.h"
 
 #include "hyteg/OpenMPManager.hpp"
-#include "hyteg/FunctionProperties.hpp"
 #include "hyteg/Git.hpp"
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/MemoryAllocation.hpp"
@@ -41,6 +40,7 @@
 #include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"

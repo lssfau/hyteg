@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include "hyteg/FunctionTraits.hpp"
 #include "hyteg/Levelinfo.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
 namespace hyteg {
