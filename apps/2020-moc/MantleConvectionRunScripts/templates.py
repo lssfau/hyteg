@@ -1,6 +1,6 @@
 
 
-def create_parameter_file(max_level: int, ra: float, output_directory: str, base_name: str, max_num_time_steps: int, uzawa_omega: float, cfl: float, **kwargs):
+def create_parameter_file(max_level: int, ra: float, output_directory: str, base_name: str, max_num_time_steps: int, uzawa_omega: float, cfl: float, uzawa_pre: int, uzawa_post: int, uzawa_inner: int, **kwargs):
     return f"""Parameters
 {{
     level {max_level};
@@ -30,9 +30,9 @@ def create_parameter_file(max_level: int, ra: float, output_directory: str, base
     stokesMaxNumIterations 20;
     stokesAbsoluteResidualUTolerance 1e-10;
     uzawaOmega {uzawa_omega};
-    uzawaPreSmooth 6;
-    uzawaPostSmooth 6;
-    uzawaInnerIterations 10;
+    uzawaPreSmooth {uzawa_pre};
+    uzawaPostSmooth {uzawa_post};
+    uzawaInnerIterations {uzawa_inner};
 
     // PETSC_MINRES = 0,
     // HYTEG_CG     = 1

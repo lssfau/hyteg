@@ -67,6 +67,10 @@ if __name__ == '__main__':
     parser.add_argument('--max_num_time_steps', default=10000, type=int)
     parser.add_argument('--uzawa_omega', default=0.6, type=float)
 
+    parser.add_argument('--uzawa_pre', default=10, type=int)
+    parser.add_argument('--uzawa_post', default=10, type=int)
+    parser.add_argument('--uzawa_inner', default=6, type=int)
+
     args = parser.parse_args()
     args_dict = vars(args)
 
