@@ -23,12 +23,12 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
+#include "hyteg/Levelinfo.hpp"
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/FunctionMemory.hpp"
-#include "hyteg/Levelinfo.hpp"
 
 namespace hyteg {
 

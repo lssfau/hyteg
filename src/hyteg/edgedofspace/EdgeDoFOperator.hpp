@@ -20,15 +20,15 @@
 #pragma once
 
 #include "hyteg/Algorithms.hpp"
-#include "hyteg/LevelWiseMemory.hpp"
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/Operator.hpp"
-#include "hyteg/StencilMemory.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOperatorTypeDefs.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/indexing/DistanceCoordinateSystem.hpp"
+#include "hyteg/memory/LevelWiseMemory.hpp"
+#include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/p2functionspace/P2Elements3D.hpp"
 
 namespace hyteg {

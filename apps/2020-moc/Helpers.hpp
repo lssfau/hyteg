@@ -29,7 +29,6 @@
 #include "core/config/Config.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/MemoryAllocation.hpp"
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/dataexport/SQL.hpp"
@@ -41,6 +40,7 @@
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
+#include "hyteg/memory/MemoryAllocation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"

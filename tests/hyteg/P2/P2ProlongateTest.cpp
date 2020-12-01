@@ -22,11 +22,11 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
-#include "hyteg/FunctionMemory.hpp"
 #include "hyteg/StencilDirections.hpp"
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"

@@ -19,13 +19,13 @@
  */
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 
-#include "hyteg/FunctionMemory.hpp"
 #include "hyteg/gridtransferoperators/generatedKernels/restrict_2D_macroface_P2_update_edgedofs.hpp"
 #include "hyteg/gridtransferoperators/generatedKernels/restrict_2D_macroface_P2_update_edgedofs_level_0_to_1.hpp"
 #include "hyteg/gridtransferoperators/generatedKernels/restrict_2D_macroface_P2_update_vertexdofs.hpp"
 #include "hyteg/gridtransferoperators/generatedKernels/restrict_3D_macrocell_P2_update_vertexdofs.hpp"
 #include "hyteg/gridtransferoperators/generatedKernels/restrict_3D_macrocell_P2_update_edgedofs.hpp"
 #include "hyteg/gridtransferoperators/generatedKernels/restrict_3D_macrocell_P2_update_edgedofs_level_1_to_0.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/p2functionspace/P2Multigrid.hpp"
 
 namespace hyteg {

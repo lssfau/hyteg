@@ -21,15 +21,12 @@
 
 #include <array>
 
-#include "hyteg/LevelWiseMemory.hpp"
 #include "hyteg/Operator.hpp"
-#include "hyteg/StencilMemory.hpp"
-#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
-#include "hyteg/LevelWiseMemory.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
+#include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
+#include "hyteg/memory/LevelWiseMemory.hpp"
+#include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 

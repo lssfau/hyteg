@@ -20,15 +20,15 @@
 
 #pragma once
 
-#include "hyteg/StencilMemory.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
-#include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
-#include "hyteg/primitives/Vertex.hpp"
-#include "hyteg/primitives/Edge.hpp"
-#include "hyteg/primitives/Face.hpp"
 #include "core/DataTypes.h"
 
+#include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
+#include "hyteg/memory/StencilMemory.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
+#include "hyteg/primitives/Edge.hpp"
+#include "hyteg/primitives/Face.hpp"
+#include "hyteg/primitives/Vertex.hpp"
 
 namespace hyteg {
 namespace P2 {

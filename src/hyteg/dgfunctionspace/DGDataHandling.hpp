@@ -19,7 +19,7 @@
  */
 #pragma once
 
-#include "hyteg/FunctionMemory.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/primitives/all.hpp"
 #include "DGMemory.hpp"
 

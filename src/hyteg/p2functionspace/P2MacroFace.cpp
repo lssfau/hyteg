@@ -19,18 +19,11 @@
  */
 #include "P2MacroFace.hpp"
 
-#include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
-
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
-#include "hyteg/LevelWiseMemory.hpp"
-#include "hyteg/StencilMemory.hpp"
-#include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
-#include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
-#include "hyteg/primitives/Face.hpp"
-#include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 
 namespace hyteg {
 namespace P2 {

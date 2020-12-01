@@ -17,16 +17,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hyteg/FunctionMemory.hpp"
+#include "core/debug/all.h"
+#include "core/mpi/all.h"
+
 #include "hyteg/StencilDirections.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/indexing/MacroFaceIndexing.hpp"
-
-#include "core/mpi/all.h"
-#include "core/debug/all.h"
+#include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 using namespace hyteg;
 

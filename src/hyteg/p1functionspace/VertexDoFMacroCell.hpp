@@ -20,24 +20,24 @@
 
 #pragma once
 
-#include "core/debug/all.h"
 #include "core/DataTypes.h"
+#include "core/debug/all.h"
 #include "core/math/Matrix3.h"
 
-#include "hyteg/primitives/Cell.hpp"
-#include "hyteg/Levelinfo.hpp"
-#include "hyteg/indexing/Common.hpp"
-#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
-#include "hyteg/FunctionMemory.hpp"
-#include "hyteg/StencilMemory.hpp"
-#include "hyteg/types/flags.hpp"
-#include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/Algorithms.hpp"
-#include "hyteg/indexing/DistanceCoordinateSystem.hpp"
-#include "hyteg/LevelWiseMemory.hpp"
+#include "hyteg/Levelinfo.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
+#include "hyteg/indexing/Common.hpp"
+#include "hyteg/indexing/DistanceCoordinateSystem.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/memory/LevelWiseMemory.hpp"
+#include "hyteg/memory/StencilMemory.hpp"
+#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
+#include "hyteg/petsc/PETScWrapper.hpp"
+#include "hyteg/primitives/Cell.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
+#include "hyteg/types/flags.hpp"
 
 namespace hyteg {
 namespace vertexdof {

@@ -23,7 +23,6 @@
 
 #include "core/OpenMP.h"
 
-#include "hyteg/FunctionMemory.hpp"
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
@@ -31,6 +30,7 @@
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/Intersection.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/p1functionspace/VertexDoFAdditivePackInfo.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"

@@ -25,16 +25,15 @@
 #include <core/math/Constants.h>
 
 #include "core/DataTypes.h"
+#include "core/OpenMP.h"
 #include "core/config/Config.h"
 #include "core/debug/Debug.h"
-#include "core/mpi/MPIManager.h"
 #include "core/logging/Logging.h"
-#include "core/OpenMP.h"
+#include "core/mpi/MPIManager.h"
 
-#include "hyteg/OpenMPManager.hpp"
 #include "hyteg/Git.hpp"
 #include "hyteg/MeshQuality.hpp"
-#include "hyteg/MemoryAllocation.hpp"
+#include "hyteg/OpenMPManager.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
 #include "hyteg/dataexport/SQL.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
@@ -47,6 +46,7 @@
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
+#include "hyteg/memory/MemoryAllocation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/numerictools/CFDHelpers.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"

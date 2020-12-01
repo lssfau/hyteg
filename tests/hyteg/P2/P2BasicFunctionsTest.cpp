@@ -26,10 +26,10 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
-#include "hyteg/FunctionMemory.hpp"
 #include "hyteg/PrimitiveID.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitives/all.hpp"

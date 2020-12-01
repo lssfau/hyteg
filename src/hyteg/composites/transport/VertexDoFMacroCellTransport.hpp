@@ -22,10 +22,10 @@
 #include "core/DataTypes.h"
 #include "core/debug/all.h"
 
-#include "hyteg/FunctionMemory.hpp"
 #include "hyteg/Levelinfo.hpp"
-#include "hyteg/StencilMemory.hpp"
 #include "hyteg/indexing/Common.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/primitives/Cell.hpp"
