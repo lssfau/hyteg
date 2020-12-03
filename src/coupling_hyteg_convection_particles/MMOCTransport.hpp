@@ -340,8 +340,9 @@ inline void updateParticlePosition( const PrimitiveStorage&                     
    }
 }
 
+template < typename FunctionType >
 inline real_t evaluateAtParticlePosition( PrimitiveStorage&                                                      storage,
-                                          const P2Function< real_t >&                                            function,
+                                          const FunctionType&                                                    function,
                                           const walberla::convection_particles::data::ParticleStorage::Particle& particle,
                                           const uint_t&                                                          level )
 {
@@ -357,11 +358,23 @@ inline real_t evaluateAtParticlePosition( PrimitiveStorage&                     
       Face&   face = *storage.getFace( particle.getContainingPrimitive() );
       Point3D computationalLocation;
       face.getGeometryMap()->evalFinv( toPoint3D( particle.getPosition() ), computationalLocation );
-      result = P2::macroface::evaluate( level,
-                                        face,
-                                        computationalLocation,
-                                        function.getVertexDoFFunction().getFaceDataID(),
-                                        function.getEdgeDoFFunction().getFaceDataID() );
+
+      if constexpr ( std::is_same< FunctionType, P1Function< real_t > >::value )
+      {
+         result = vertexdof::macroface::evaluate( level, face, computationalLocation, function.getFaceDataID() );
+      }
+      else if constexpr ( std::is_same< FunctionType, P2Function< real_t > >::value )
+      {
+         result = P2::macroface::evaluate( level,
+                                           face,
+                                           computationalLocation,
+                                           function.getVertexDoFFunction().getFaceDataID(),
+                                           function.getEdgeDoFFunction().getFaceDataID() );
+      }
+      else
+      {
+         WALBERLA_ABORT( "Not implemented for this discretization." )
+      }
    }
    else
    {
@@ -369,17 +382,30 @@ inline real_t evaluateAtParticlePosition( PrimitiveStorage&                     
       Cell&   cell = *storage.getCell( particle.getContainingPrimitive() );
       Point3D computationalLocation;
       cell.getGeometryMap()->evalFinv( toPoint3D( particle.getPosition() ), computationalLocation );
-      result = P2::macrocell::evaluate( level,
-                                        cell,
-                                        computationalLocation,
-                                        function.getVertexDoFFunction().getCellDataID(),
-                                        function.getEdgeDoFFunction().getCellDataID() );
+
+      if constexpr ( std::is_same< FunctionType, P1Function< real_t > >::value )
+      {
+         result = vertexdof::macrocell::evaluate( level, cell, computationalLocation, function.getCellDataID() );
+      }
+      else if constexpr ( std::is_same< FunctionType, P2Function< real_t > >::value )
+      {
+         result = P2::macrocell::evaluate( level,
+                                           cell,
+                                           computationalLocation,
+                                           function.getVertexDoFFunction().getCellDataID(),
+                                           function.getEdgeDoFFunction().getCellDataID() );
+      }
+      else
+      {
+         WALBERLA_ABORT( "Not implemented for this discretization." )
+      }
    }
    return result;
 }
 
+template < typename FunctionType >
 inline void evaluateAtParticlePosition( PrimitiveStorage&                                                      storage,
-                                        const std::vector< P2Function< real_t > >&                             functions,
+                                        const std::vector< FunctionType >&                                     functions,
                                         const walberla::convection_particles::data::ParticleStorage::Particle& particle,
                                         const uint_t&                                                          level,
                                         std::vector< real_t >&                                                 results )
@@ -394,11 +420,22 @@ inline void evaluateAtParticlePosition( PrimitiveStorage&                       
 
       for ( uint_t i = 0; i < functions.size(); i++ )
       {
-         results[i] = P2::macroface::evaluate( level,
-                                               face,
-                                               computationalLocation,
-                                               functions[i].getVertexDoFFunction().getFaceDataID(),
-                                               functions[i].getEdgeDoFFunction().getFaceDataID() );
+         if constexpr ( std::is_same< FunctionType, P1Function< real_t > >::value )
+         {
+            results[i] = vertexdof::macroface::evaluate( level, face, computationalLocation, functions[i].getFaceDataID() );
+         }
+         else if constexpr ( std::is_same< FunctionType, P2Function< real_t > >::value )
+         {
+            results[i] = P2::macroface::evaluate( level,
+                                                  face,
+                                                  computationalLocation,
+                                                  functions[i].getVertexDoFFunction().getFaceDataID(),
+                                                  functions[i].getEdgeDoFFunction().getFaceDataID() );
+         }
+         else
+         {
+            WALBERLA_ABORT( "Not implemented for this discretization." )
+         }
       }
    }
    else
@@ -408,24 +445,50 @@ inline void evaluateAtParticlePosition( PrimitiveStorage&                       
 
       for ( uint_t i = 0; i < functions.size(); i++ )
       {
-         vertexDataIDs.push_back( functions[i].getVertexDoFFunction().getCellDataID() );
-         edgeDataIDs.push_back( functions[i].getEdgeDoFFunction().getCellDataID() );
+         if constexpr ( std::is_same< FunctionType, P1Function< real_t > >::value )
+         {
+            vertexDataIDs.push_back( functions[i].getCellDataID() );
+         }
+         else if constexpr ( std::is_same< FunctionType, P2Function< real_t > >::value )
+         {
+            vertexDataIDs.push_back( functions[i].getVertexDoFFunction().getCellDataID() );
+            edgeDataIDs.push_back( functions[i].getEdgeDoFFunction().getCellDataID() );
+         }
+         else
+         {
+            WALBERLA_ABORT( "Not implemented for this discretization." )
+         }
       }
 
       WALBERLA_CHECK( storage.cellExistsLocally( particle.getContainingPrimitive() ) );
       Cell&   cell = *storage.getCell( particle.getContainingPrimitive() );
       Point3D computationalLocation;
       cell.getGeometryMap()->evalFinv( toPoint3D( particle.getPosition() ), computationalLocation );
-      P2::macrocell::evaluate( level, cell, computationalLocation, vertexDataIDs, edgeDataIDs, results );
+      if constexpr ( std::is_same< FunctionType, P1Function< real_t > >::value )
+      {
+         for ( uint_t i = 0; i < functions.size(); i++ )
+         {
+            results[i] = vertexdof::macrocell::evaluate( level, cell, computationalLocation, functions[i].getCellDataID() );
+         }
+      }
+      else if constexpr ( std::is_same< FunctionType, P2Function< real_t > >::value )
+      {
+         P2::macrocell::evaluate( level, cell, computationalLocation, vertexDataIDs, edgeDataIDs, results );
+      }
+      else
+      {
+         WALBERLA_ABORT( "Not implemented for this discretization." )
+      }
    }
 }
 
+template < typename FunctionType >
 inline uint_t initializeParticles( walberla::convection_particles::data::ParticleStorage& particleStorage,
                                    PrimitiveStorage&                                      storage,
-                                   const P2Function< real_t >&                            c,
-                                   const P2Function< real_t >&                            ux,
-                                   const P2Function< real_t >&                            uy,
-                                   const P2Function< real_t >&                            uz,
+                                   const FunctionType&                                    c,
+                                   const FunctionType&                                    ux,
+                                   const FunctionType&                                    uy,
+                                   const FunctionType&                                    uz,
                                    const uint_t&                                          level,
                                    const DoFType&,
                                    const TimeSteppingScheme& timeSteppingScheme,
@@ -455,144 +518,220 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
    const std::vector< real_t >&                b        = RK_b.at( timeSteppingScheme );
    const uint_t                                rkStages = b.size();
 
-   for ( auto it : FunctionIterator< vertexdof::VertexDoFFunction< real_t > >( c.getVertexDoFFunction(), level ) )
+   if constexpr ( std::is_same< FunctionType, P1Function< real_t > >::value )
    {
-      // if ( storage.onBoundary( it.primitiveID(), true ) )
-      //   continue;
+      for ( auto it : FunctionIterator< vertexdof::VertexDoFFunction< real_t > >( c, level ) )
+      {
+         // if ( storage.onBoundary( it.primitiveID(), true ) )
+         //   continue;
 
-      Point3D physicalLocation;
-      auto    primitive = storage.getPrimitive( it.primitiveID() );
-      primitive->getGeometryMap()->evalF( it.coordinates(), physicalLocation );
+         Point3D physicalLocation;
+         auto    primitive = storage.getPrimitive( it.primitiveID() );
+         primitive->getGeometryMap()->evalF( it.coordinates(), physicalLocation );
 
-      auto particleIt = particleStorage.create();
-      particleIt->setOwner( (int) rank );
-      particleIt->setPosition( toVec3( physicalLocation ) );
-      particleIt->setStartPosition( toVec3( physicalLocation ) );
-      particleIt->setStartDoFType( 0 ); // 0 == vertexdof
-      particleIt->setStartEdgeDoFOrientation( it.edgeDoFOrientation() );
-      particleIt->setStartPrimitiveID( it.primitiveID() );
-      particleIt->setStartIndex( it.index() );
-      particleIt->setStartProcess( rank );
-      particleIt->getKRef().resize( rkStages );
+         auto particleIt = particleStorage.create();
+         particleIt->setOwner( (int) rank );
+         particleIt->setPosition( toVec3( physicalLocation ) );
+         particleIt->setStartPosition( toVec3( physicalLocation ) );
+         particleIt->setStartDoFType( 0 ); // 0 == vertexdof
+         particleIt->setStartEdgeDoFOrientation( it.edgeDoFOrientation() );
+         particleIt->setStartPrimitiveID( it.primitiveID() );
+         particleIt->setStartIndex( it.index() );
+         particleIt->setStartProcess( rank );
+         particleIt->getKRef().resize( rkStages );
 
-      PrimitiveID containingPrimitiveID = it.primitiveID();
-      if ( !storage.hasGlobalCells() && !it.isOnMacroFace() )
-      {
-         // 2D
-         containingPrimitiveID = *std::min_element( storage.getPrimitive( it.primitiveID() )->neighborFaces().begin(),
-                                                    storage.getPrimitive( it.primitiveID() )->neighborFaces().end() );
-      }
-      else if ( storage.hasGlobalCells() && !it.isOnMacroCell() )
-      {
-         // 3D
-         containingPrimitiveID = *std::min_element( storage.getPrimitive( it.primitiveID() )->neighborCells().begin(),
-                                                    storage.getPrimitive( it.primitiveID() )->neighborCells().end() );
-      }
-      particleIt->setContainingPrimitive( containingPrimitiveID );
+         PrimitiveID containingPrimitiveID = it.primitiveID();
+         if ( !storage.hasGlobalCells() && !it.isOnMacroFace() )
+         {
+            // 2D
+            containingPrimitiveID = *std::min_element( storage.getPrimitive( it.primitiveID() )->neighborFaces().begin(),
+                                                       storage.getPrimitive( it.primitiveID() )->neighborFaces().end() );
+         }
+         else if ( storage.hasGlobalCells() && !it.isOnMacroCell() )
+         {
+            // 3D
+            containingPrimitiveID = *std::min_element( storage.getPrimitive( it.primitiveID() )->neighborCells().begin(),
+                                                       storage.getPrimitive( it.primitiveID() )->neighborCells().end() );
+         }
+         particleIt->setContainingPrimitive( containingPrimitiveID );
 
-      if ( it.isOnMacroVertex() )
-      {
-         particleIt->getKRef()[0][0] = storage.getVertex( it.primitiveID() )
-                                           ->getData( ux.getVertexDoFFunction().getVertexDataID() )
-                                           ->getPointer( level )[it.arrayIndex()];
-         particleIt->getKRef()[0][1] = storage.getVertex( it.primitiveID() )
-                                           ->getData( uy.getVertexDoFFunction().getVertexDataID() )
-                                           ->getPointer( level )[it.arrayIndex()];
-         if ( storage.hasGlobalCells() )
-            particleIt->getKRef()[0][2] = storage.getVertex( it.primitiveID() )
-                                              ->getData( uz.getVertexDoFFunction().getVertexDataID() )
-                                              ->getPointer( level )[it.arrayIndex()];
-      }
-      if ( it.isOnMacroEdge() )
-      {
-         particleIt->getKRef()[0][0] = storage.getEdge( it.primitiveID() )
-                                           ->getData( ux.getVertexDoFFunction().getEdgeDataID() )
-                                           ->getPointer( level )[it.arrayIndex()];
-         particleIt->getKRef()[0][1] = storage.getEdge( it.primitiveID() )
-                                           ->getData( uy.getVertexDoFFunction().getEdgeDataID() )
-                                           ->getPointer( level )[it.arrayIndex()];
-         if ( storage.hasGlobalCells() )
-            particleIt->getKRef()[0][2] = storage.getEdge( it.primitiveID() )
-                                              ->getData( uz.getVertexDoFFunction().getEdgeDataID() )
-                                              ->getPointer( level )[it.arrayIndex()];
-      }
-      if ( it.isOnMacroFace() )
-      {
-         particleIt->getKRef()[0][0] = storage.getFace( it.primitiveID() )
-                                           ->getData( ux.getVertexDoFFunction().getFaceDataID() )
-                                           ->getPointer( level )[it.arrayIndex()];
-         particleIt->getKRef()[0][1] = storage.getFace( it.primitiveID() )
-                                           ->getData( uy.getVertexDoFFunction().getFaceDataID() )
-                                           ->getPointer( level )[it.arrayIndex()];
-         if ( storage.hasGlobalCells() )
-            particleIt->getKRef()[0][2] = storage.getFace( it.primitiveID() )
-                                              ->getData( uz.getVertexDoFFunction().getFaceDataID() )
-                                              ->getPointer( level )[it.arrayIndex()];
+         if ( it.isOnMacroVertex() )
+         {
+            particleIt->getKRef()[0][0] =
+                storage.getVertex( it.primitiveID() )->getData( ux.getVertexDataID() )->getPointer( level )[it.arrayIndex()];
+            particleIt->getKRef()[0][1] =
+                storage.getVertex( it.primitiveID() )->getData( uy.getVertexDataID() )->getPointer( level )[it.arrayIndex()];
+            if ( storage.hasGlobalCells() )
+               particleIt->getKRef()[0][2] =
+                   storage.getVertex( it.primitiveID() )->getData( uz.getVertexDataID() )->getPointer( level )[it.arrayIndex()];
+         }
+         if ( it.isOnMacroEdge() )
+         {
+            particleIt->getKRef()[0][0] =
+                storage.getEdge( it.primitiveID() )->getData( ux.getEdgeDataID() )->getPointer( level )[it.arrayIndex()];
+            particleIt->getKRef()[0][1] =
+                storage.getEdge( it.primitiveID() )->getData( uy.getEdgeDataID() )->getPointer( level )[it.arrayIndex()];
+            if ( storage.hasGlobalCells() )
+               particleIt->getKRef()[0][2] =
+                   storage.getEdge( it.primitiveID() )->getData( uz.getEdgeDataID() )->getPointer( level )[it.arrayIndex()];
+         }
+         if ( it.isOnMacroFace() )
+         {
+            particleIt->getKRef()[0][0] =
+                storage.getFace( it.primitiveID() )->getData( ux.getFaceDataID() )->getPointer( level )[it.arrayIndex()];
+            particleIt->getKRef()[0][1] =
+                storage.getFace( it.primitiveID() )->getData( uy.getFaceDataID() )->getPointer( level )[it.arrayIndex()];
+            if ( storage.hasGlobalCells() )
+               particleIt->getKRef()[0][2] =
+                   storage.getFace( it.primitiveID() )->getData( uz.getFaceDataID() )->getPointer( level )[it.arrayIndex()];
+         }
       }
    }
-
-   for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( c.getEdgeDoFFunction(), level ) )
+   else if constexpr ( std::is_same< FunctionType, P2Function< real_t > >::value )
    {
-      //      if ( storage.onBoundary( it.primitiveID(), true ) )
-      //         continue;
-
-      Point3D physicalLocation;
-      auto    primitive = storage.getPrimitive( it.primitiveID() );
-      primitive->getGeometryMap()->evalF( it.coordinates(), physicalLocation );
-
-      auto particleIt = particleStorage.create();
-      particleIt->setOwner( (int) rank );
-      particleIt->setPosition( toVec3( physicalLocation ) );
-      particleIt->setStartPosition( toVec3( physicalLocation ) );
-      particleIt->setStartDoFType( 1 ); // 1 == edgedof
-      particleIt->setStartEdgeDoFOrientation( it.edgeDoFOrientation() );
-      particleIt->setStartPrimitiveID( it.primitiveID() );
-      particleIt->setStartIndex( it.index() );
-      particleIt->setStartProcess( rank );
-      particleIt->getKRef().resize( rkStages );
-
-      PrimitiveID containingPrimitiveID = it.primitiveID();
-      if ( !storage.hasGlobalCells() && !it.isOnMacroFace() )
+      for ( auto it : FunctionIterator< vertexdof::VertexDoFFunction< real_t > >( c.getVertexDoFFunction(), level ) )
       {
-         // 2D
-         containingPrimitiveID = *std::min_element( storage.getPrimitive( it.primitiveID() )->neighborFaces().begin(),
-                                                    storage.getPrimitive( it.primitiveID() )->neighborFaces().end() );
-      }
-      else if ( storage.hasGlobalCells() && !it.isOnMacroCell() )
-      {
-         // 3D
-         containingPrimitiveID = *std::min_element( storage.getPrimitive( it.primitiveID() )->neighborCells().begin(),
-                                                    storage.getPrimitive( it.primitiveID() )->neighborCells().end() );
-      }
-      particleIt->setContainingPrimitive( containingPrimitiveID );
+         // if ( storage.onBoundary( it.primitiveID(), true ) )
+         //   continue;
 
-      WALBERLA_CHECK( !it.isOnMacroVertex() );
-      if ( it.isOnMacroEdge() )
-      {
-         particleIt->getKRef()[0][0] = storage.getEdge( it.primitiveID() )
-                                           ->getData( ux.getEdgeDoFFunction().getEdgeDataID() )
-                                           ->getPointer( level )[it.arrayIndex()];
-         particleIt->getKRef()[0][1] = storage.getEdge( it.primitiveID() )
-                                           ->getData( uy.getEdgeDoFFunction().getEdgeDataID() )
-                                           ->getPointer( level )[it.arrayIndex()];
-         if ( storage.hasGlobalCells() )
-            particleIt->getKRef()[0][2] = storage.getEdge( it.primitiveID() )
-                                              ->getData( uz.getEdgeDoFFunction().getEdgeDataID() )
+         Point3D physicalLocation;
+         auto    primitive = storage.getPrimitive( it.primitiveID() );
+         primitive->getGeometryMap()->evalF( it.coordinates(), physicalLocation );
+
+         auto particleIt = particleStorage.create();
+         particleIt->setOwner( (int) rank );
+         particleIt->setPosition( toVec3( physicalLocation ) );
+         particleIt->setStartPosition( toVec3( physicalLocation ) );
+         particleIt->setStartDoFType( 0 ); // 0 == vertexdof
+         particleIt->setStartEdgeDoFOrientation( it.edgeDoFOrientation() );
+         particleIt->setStartPrimitiveID( it.primitiveID() );
+         particleIt->setStartIndex( it.index() );
+         particleIt->setStartProcess( rank );
+         particleIt->getKRef().resize( rkStages );
+
+         PrimitiveID containingPrimitiveID = it.primitiveID();
+         if ( !storage.hasGlobalCells() && !it.isOnMacroFace() )
+         {
+            // 2D
+            containingPrimitiveID = *std::min_element( storage.getPrimitive( it.primitiveID() )->neighborFaces().begin(),
+                                                       storage.getPrimitive( it.primitiveID() )->neighborFaces().end() );
+         }
+         else if ( storage.hasGlobalCells() && !it.isOnMacroCell() )
+         {
+            // 3D
+            containingPrimitiveID = *std::min_element( storage.getPrimitive( it.primitiveID() )->neighborCells().begin(),
+                                                       storage.getPrimitive( it.primitiveID() )->neighborCells().end() );
+         }
+         particleIt->setContainingPrimitive( containingPrimitiveID );
+
+         if ( it.isOnMacroVertex() )
+         {
+            particleIt->getKRef()[0][0] = storage.getVertex( it.primitiveID() )
+                                              ->getData( ux.getVertexDoFFunction().getVertexDataID() )
                                               ->getPointer( level )[it.arrayIndex()];
-      }
-      if ( it.isOnMacroFace() )
-      {
-         particleIt->getKRef()[0][0] = storage.getFace( it.primitiveID() )
-                                           ->getData( ux.getEdgeDoFFunction().getFaceDataID() )
-                                           ->getPointer( level )[it.arrayIndex()];
-         particleIt->getKRef()[0][1] = storage.getFace( it.primitiveID() )
-                                           ->getData( uy.getEdgeDoFFunction().getFaceDataID() )
-                                           ->getPointer( level )[it.arrayIndex()];
-         if ( storage.hasGlobalCells() )
-            particleIt->getKRef()[0][2] = storage.getFace( it.primitiveID() )
-                                              ->getData( uz.getEdgeDoFFunction().getFaceDataID() )
+            particleIt->getKRef()[0][1] = storage.getVertex( it.primitiveID() )
+                                              ->getData( uy.getVertexDoFFunction().getVertexDataID() )
                                               ->getPointer( level )[it.arrayIndex()];
+            if ( storage.hasGlobalCells() )
+               particleIt->getKRef()[0][2] = storage.getVertex( it.primitiveID() )
+                                                 ->getData( uz.getVertexDoFFunction().getVertexDataID() )
+                                                 ->getPointer( level )[it.arrayIndex()];
+         }
+         if ( it.isOnMacroEdge() )
+         {
+            particleIt->getKRef()[0][0] = storage.getEdge( it.primitiveID() )
+                                              ->getData( ux.getVertexDoFFunction().getEdgeDataID() )
+                                              ->getPointer( level )[it.arrayIndex()];
+            particleIt->getKRef()[0][1] = storage.getEdge( it.primitiveID() )
+                                              ->getData( uy.getVertexDoFFunction().getEdgeDataID() )
+                                              ->getPointer( level )[it.arrayIndex()];
+            if ( storage.hasGlobalCells() )
+               particleIt->getKRef()[0][2] = storage.getEdge( it.primitiveID() )
+                                                 ->getData( uz.getVertexDoFFunction().getEdgeDataID() )
+                                                 ->getPointer( level )[it.arrayIndex()];
+         }
+         if ( it.isOnMacroFace() )
+         {
+            particleIt->getKRef()[0][0] = storage.getFace( it.primitiveID() )
+                                              ->getData( ux.getVertexDoFFunction().getFaceDataID() )
+                                              ->getPointer( level )[it.arrayIndex()];
+            particleIt->getKRef()[0][1] = storage.getFace( it.primitiveID() )
+                                              ->getData( uy.getVertexDoFFunction().getFaceDataID() )
+                                              ->getPointer( level )[it.arrayIndex()];
+            if ( storage.hasGlobalCells() )
+               particleIt->getKRef()[0][2] = storage.getFace( it.primitiveID() )
+                                                 ->getData( uz.getVertexDoFFunction().getFaceDataID() )
+                                                 ->getPointer( level )[it.arrayIndex()];
+         }
       }
+
+      for ( auto it : FunctionIterator< EdgeDoFFunction< real_t > >( c.getEdgeDoFFunction(), level ) )
+      {
+         //      if ( storage.onBoundary( it.primitiveID(), true ) )
+         //         continue;
+
+         Point3D physicalLocation;
+         auto    primitive = storage.getPrimitive( it.primitiveID() );
+         primitive->getGeometryMap()->evalF( it.coordinates(), physicalLocation );
+
+         auto particleIt = particleStorage.create();
+         particleIt->setOwner( (int) rank );
+         particleIt->setPosition( toVec3( physicalLocation ) );
+         particleIt->setStartPosition( toVec3( physicalLocation ) );
+         particleIt->setStartDoFType( 1 ); // 1 == edgedof
+         particleIt->setStartEdgeDoFOrientation( it.edgeDoFOrientation() );
+         particleIt->setStartPrimitiveID( it.primitiveID() );
+         particleIt->setStartIndex( it.index() );
+         particleIt->setStartProcess( rank );
+         particleIt->getKRef().resize( rkStages );
+
+         PrimitiveID containingPrimitiveID = it.primitiveID();
+         if ( !storage.hasGlobalCells() && !it.isOnMacroFace() )
+         {
+            // 2D
+            containingPrimitiveID = *std::min_element( storage.getPrimitive( it.primitiveID() )->neighborFaces().begin(),
+                                                       storage.getPrimitive( it.primitiveID() )->neighborFaces().end() );
+         }
+         else if ( storage.hasGlobalCells() && !it.isOnMacroCell() )
+         {
+            // 3D
+            containingPrimitiveID = *std::min_element( storage.getPrimitive( it.primitiveID() )->neighborCells().begin(),
+                                                       storage.getPrimitive( it.primitiveID() )->neighborCells().end() );
+         }
+         particleIt->setContainingPrimitive( containingPrimitiveID );
+
+         WALBERLA_CHECK( !it.isOnMacroVertex() );
+         if ( it.isOnMacroEdge() )
+         {
+            particleIt->getKRef()[0][0] = storage.getEdge( it.primitiveID() )
+                                              ->getData( ux.getEdgeDoFFunction().getEdgeDataID() )
+                                              ->getPointer( level )[it.arrayIndex()];
+            particleIt->getKRef()[0][1] = storage.getEdge( it.primitiveID() )
+                                              ->getData( uy.getEdgeDoFFunction().getEdgeDataID() )
+                                              ->getPointer( level )[it.arrayIndex()];
+            if ( storage.hasGlobalCells() )
+               particleIt->getKRef()[0][2] = storage.getEdge( it.primitiveID() )
+                                                 ->getData( uz.getEdgeDoFFunction().getEdgeDataID() )
+                                                 ->getPointer( level )[it.arrayIndex()];
+         }
+         if ( it.isOnMacroFace() )
+         {
+            particleIt->getKRef()[0][0] = storage.getFace( it.primitiveID() )
+                                              ->getData( ux.getEdgeDoFFunction().getFaceDataID() )
+                                              ->getPointer( level )[it.arrayIndex()];
+            particleIt->getKRef()[0][1] = storage.getFace( it.primitiveID() )
+                                              ->getData( uy.getEdgeDoFFunction().getFaceDataID() )
+                                              ->getPointer( level )[it.arrayIndex()];
+            if ( storage.hasGlobalCells() )
+               particleIt->getKRef()[0][2] = storage.getFace( it.primitiveID() )
+                                                 ->getData( uz.getEdgeDoFFunction().getFaceDataID() )
+                                                 ->getPointer( level )[it.arrayIndex()];
+         }
+      }
+   }
+   else
+   {
+      WALBERLA_ABORT( "Not implemented for this discretization." )
    }
 
    const uint_t numberOfCreatedParticles = particleStorage.size();
@@ -608,14 +747,15 @@ inline uint_t initializeParticles( walberla::convection_particles::data::Particl
    return numberOfCreatedParticles;
 }
 
+template < typename FunctionType >
 inline void particleIntegration( walberla::convection_particles::data::ParticleStorage& particleStorage,
                                  PrimitiveStorage&                                      storage,
-                                 const P2Function< real_t >&                            ux,
-                                 const P2Function< real_t >&                            uy,
-                                 const P2Function< real_t >&                            uz,
-                                 const P2Function< real_t >&                            uxLastTimeStep,
-                                 const P2Function< real_t >&                            uyLastTimeStep,
-                                 const P2Function< real_t >&                            uzLastTimeStep,
+                                 const FunctionType&                                    ux,
+                                 const FunctionType&                                    uy,
+                                 const FunctionType&                                    uz,
+                                 const FunctionType&                                    uxLastTimeStep,
+                                 const FunctionType&                                    uyLastTimeStep,
+                                 const FunctionType&                                    uzLastTimeStep,
                                  const real_t&                                          dt,
                                  const uint_t&                                          level,
                                  const DoFType&,
@@ -654,10 +794,10 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
 
       storage.getTimingTree()->start( "Evaluate at particle position" );
 
-      std::vector< real_t >               results( {0, 0} );
-      std::vector< real_t >               resultsLastTimeStep( {0, 0} );
-      std::vector< P2Function< real_t > > functions             = {ux, uy};
-      std::vector< P2Function< real_t > > functionsLastTimeStep = {uxLastTimeStep, uyLastTimeStep};
+      std::vector< real_t >       results( {0, 0} );
+      std::vector< real_t >       resultsLastTimeStep( {0, 0} );
+      std::vector< FunctionType > functions             = {ux, uy};
+      std::vector< FunctionType > functionsLastTimeStep = {uxLastTimeStep, uyLastTimeStep};
       if ( storage.hasGlobalCells() )
       {
          results.push_back( 0 );
@@ -737,13 +877,15 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
    }
 }
 
+template < typename FunctionType >
 inline void evaluateTemperature( walberla::convection_particles::data::ParticleStorage& particleStorage,
                                  PrimitiveStorage&                                      storage,
-                                 const P2Function< real_t >&                            c,
-                                 const P2Function< real_t >&                            cOld,
+                                 const FunctionType&                                    c,
+                                 const FunctionType&                                    cOld,
                                  const uint_t&                                          level,
                                  const DoFType&,
-                                 const uint_t& numberOfCreatedParticles )
+                                 const uint_t& numberOfCreatedParticles,
+                                 const bool    globalMaxLimiter = true )
 {
    communication::syncFunctionBetweenPrimitives( cOld, level );
 
@@ -755,8 +897,11 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
    for ( auto p : particleStorage )
    {
       auto finalTemperature = evaluateAtParticlePosition( storage, cOld, p, level );
-      finalTemperature      = std::max( finalTemperature, minTempCOld );
-      finalTemperature      = std::min( finalTemperature, maxTempCOld );
+      if ( globalMaxLimiter )
+      {
+         finalTemperature = std::max( finalTemperature, minTempCOld );
+         finalTemperature = std::min( finalTemperature, maxTempCOld );
+      }
       p->setFinalTemperature( finalTemperature );
    }
 
@@ -872,37 +1017,99 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
          {
             auto vertex = storage.getVertex( primitiveID );
             WALBERLA_CHECK_EQUAL( dofType, 0 );
-            vertex->getData( c.getVertexDoFFunction().getVertexDataID() )->getPointer( level )[0] = temp;
+            if constexpr ( std::is_same< FunctionType, P1Function< real_t > >::value )
+            {
+               vertex->getData( c.getVertexDataID() )->getPointer( level )[0] = temp;
+            }
+            else if constexpr ( std::is_same< FunctionType, P2Function< real_t > >::value )
+            {
+               vertex->getData( c.getVertexDoFFunction().getVertexDataID() )->getPointer( level )[0] = temp;
+            }
+            else
+            {
+               WALBERLA_ABORT( "Not implemented for this discretization." );
+            }
          }
          else if ( storage.edgeExistsLocally( primitiveID ) )
          {
             auto edge = storage.getEdge( primitiveID );
-            if ( dofType == 0 )
-               edge->getData( c.getVertexDoFFunction().getEdgeDataID() )
-                   ->getPointer( level )[vertexdof::macroedge::index( level, index.x() )] = temp;
+            if constexpr ( std::is_same< FunctionType, P1Function< real_t > >::value )
+            {
+               WALBERLA_CHECK_EQUAL( dofType, 0 );
+               edge->getData( c.getEdgeDataID() )->getPointer( level )[vertexdof::macroedge::index( level, index.x() )] = temp;
+            }
+            else if constexpr ( std::is_same< FunctionType, P2Function< real_t > >::value )
+            {
+               if ( dofType == 0 )
+               {
+                  edge->getData( c.getVertexDoFFunction().getEdgeDataID() )
+                      ->getPointer( level )[vertexdof::macroedge::index( level, index.x() )] = temp;
+               }
+               else
+               {
+                  edge->getData( c.getEdgeDoFFunction().getEdgeDataID() )
+                      ->getPointer( level )[edgedof::macroedge::index( level, index.x() )] = temp;
+               }
+            }
             else
-               edge->getData( c.getEdgeDoFFunction().getEdgeDataID() )
-                   ->getPointer( level )[edgedof::macroedge::index( level, index.x() )] = temp;
+            {
+               WALBERLA_ABORT( "Not implemented for this discretization." );
+            }
          }
          else if ( storage.faceExistsLocally( primitiveID ) )
          {
             auto face = storage.getFace( primitiveID );
-            if ( dofType == 0 )
-               face->getData( c.getVertexDoFFunction().getFaceDataID() )
+            if constexpr ( std::is_same< FunctionType, P1Function< real_t > >::value )
+            {
+               WALBERLA_CHECK_EQUAL( dofType, 0 );
+               face->getData( c.getFaceDataID() )
                    ->getPointer( level )[vertexdof::macroface::index( level, index.x(), index.y() )] = temp;
+            }
+            else if constexpr ( std::is_same< FunctionType, P2Function< real_t > >::value )
+            {
+               if ( dofType == 0 )
+               {
+                  face->getData( c.getVertexDoFFunction().getFaceDataID() )
+                      ->getPointer( level )[vertexdof::macroface::index( level, index.x(), index.y() )] = temp;
+               }
+               else
+               {
+                  face->getData( c.getEdgeDoFFunction().getFaceDataID() )
+                      ->getPointer( level )[edgedof::macroface::index( level, index.x(), index.y(), orientation )] = temp;
+               }
+            }
             else
-               face->getData( c.getEdgeDoFFunction().getFaceDataID() )
-                   ->getPointer( level )[edgedof::macroface::index( level, index.x(), index.y(), orientation )] = temp;
+            {
+               WALBERLA_ABORT( "Not implemented for this discretization." );
+            }
          }
          else if ( storage.cellExistsLocally( primitiveID ) )
          {
             auto cell = storage.getCell( primitiveID );
-            if ( dofType == 0 )
-               cell->getData( c.getVertexDoFFunction().getCellDataID() )
+            if constexpr ( std::is_same< FunctionType, P1Function< real_t > >::value )
+            {
+               WALBERLA_CHECK_EQUAL( dofType, 0 );
+               cell->getData( c.getCellDataID() )
                    ->getPointer( level )[vertexdof::macrocell::index( level, index.x(), index.y(), index.z() )] = temp;
+            }
+            else if constexpr ( std::is_same< FunctionType, P2Function< real_t > >::value )
+            {
+               if ( dofType == 0 )
+               {
+                  cell->getData( c.getVertexDoFFunction().getCellDataID() )
+                      ->getPointer( level )[vertexdof::macrocell::index( level, index.x(), index.y(), index.z() )] = temp;
+               }
+               else
+               {
+                  cell->getData( c.getEdgeDoFFunction().getCellDataID() )
+                      ->getPointer( level )[edgedof::macrocell::index( level, index.x(), index.y(), index.z(), orientation )] =
+                      temp;
+               }
+            }
             else
-               cell->getData( c.getEdgeDoFFunction().getCellDataID() )
-                   ->getPointer( level )[edgedof::macrocell::index( level, index.x(), index.y(), index.z(), orientation )] = temp;
+            {
+               WALBERLA_ABORT( "Not implemented for this discretization." );
+            }
          }
       }
    }
@@ -926,9 +1133,11 @@ class MMOCTransport
    , numberOfCreatedParticles_( 0 )
    , particleStorage_( 10000 )
    {
-      WALBERLA_CHECK_GREATER_EQUAL( storage->getAdditionalHaloDepth(), 1, "For the particle transport implementation, "
-                                                                          "the additional halo depth of the PrimitiveStorage "
-                                                                          "must at least be set to 1." )
+      WALBERLA_CHECK_GREATER_EQUAL( storage->getAdditionalHaloDepth(),
+                                    1,
+                                    "For the particle transport implementation, "
+                                    "the additional halo depth of the PrimitiveStorage "
+                                    "must at least be set to 1." )
       particleLocationRadius_ = 0.1 * MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    }
 
