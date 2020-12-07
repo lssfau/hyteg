@@ -22,7 +22,6 @@
 
 #include <algorithm>
 #include <cmath>
-
 #include <core/Environment.h>
 #include <core/math/Constants.h>
 
@@ -34,6 +33,7 @@
 #include "hyteg/MemoryAllocation.hpp"
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
+#include "hyteg/dataexport/SQL.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
@@ -64,7 +64,6 @@
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
 #include "coupling_hyteg_convection_particles/MMOCTransport.hpp"
-#include "hyteg/dataexport/SQL.hpp"
 
 namespace hyteg {
 namespace moc_benchmarks {
@@ -81,12 +80,9 @@ struct LoadBalancingOptions
 ///
 ///     ||u||_L2 = sqrt( u^T M u )
 ///
-template < typename MassOperator >
-inline real_t normL2( const P2Function< real_t >& u,
-                      const P2Function< real_t >& tmp,
-                      const MassOperator&         M,
-                      const uint_t&               level,
-                      const DoFType&              flag )
+template < typename FunctionType, typename MassOperator >
+inline real_t
+    normL2( const FunctionType& u, const FunctionType& tmp, const MassOperator& M, const uint_t& level, const DoFType& flag )
 {
    tmp.interpolate( 0, level );
    M.apply( u, tmp, level, flag );
@@ -97,8 +93,8 @@ inline real_t normL2( const P2Function< real_t >& u,
 ///
 ///     (maxU / maxUSolution) - 1
 ///
-inline real_t
-    maxPeakDifference( const P2Function< real_t >& u, const P2Function< real_t >& uSolution, uint_t level, DoFType flag )
+template < typename FunctionType >
+inline real_t maxPeakDifference( const FunctionType& u, const FunctionType& uSolution, uint_t level, DoFType flag )
 {
    const real_t maxTempApproximate = u.getMaxValue( level, flag );
    const real_t maxTempAnalytical  = uSolution.getMaxValue( level, flag );
@@ -110,19 +106,17 @@ inline real_t
 ///
 ///    var(t) := max(u_h) - min(u_h)
 ///
-inline real_t spuriousOscillations( const P2Function< real_t >& u, uint_t level, DoFType flag )
+template < typename FunctionType >
+inline real_t spuriousOscillations( const FunctionType& u, uint_t level, DoFType flag )
 {
    const real_t maxTemp = u.getMaxValue( level, flag );
    const real_t minTemp = u.getMinValue( level, flag );
    return maxTemp - minTemp;
 }
 
-template < typename MassOperator >
-inline real_t globalMass( const P2Function< real_t >& u,
-                          const P2Function< real_t >& tmp,
-                          const MassOperator&         M,
-                          const uint_t&               level,
-                          const DoFType&              flag )
+template < typename FunctionType, typename MassOperator >
+inline real_t
+    globalMass( const FunctionType& u, const FunctionType& tmp, const MassOperator& M, const uint_t& level, const DoFType& flag )
 {
    tmp.interpolate( 0, level );
    M.apply( u, tmp, level, flag );
@@ -160,6 +154,7 @@ class ZeroSolution : public Solution
    real_t operator()( const Point3D& ) const override { return 0; }
 };
 
+template < typename FunctionType_T, typename LaplaceOperator_T, typename MassOperator_T, typename UnsteadyDiffusionOperator_T >
 void solve( MeshInfo&               meshInfo,
             bool                    setBlendingMap,
             Solution&               solution,
@@ -175,6 +170,7 @@ void solve( MeshInfo&               meshInfo,
             bool                    resetParticles,
             uint_t                  resetParticlesInterval,
             bool                    adjustedAdvection,
+            bool                    globalMaxLimiter,
             uint_t                  numTimeSteps,
             LoadBalancingOptions    lbOptions,
             bool                    vtk,
