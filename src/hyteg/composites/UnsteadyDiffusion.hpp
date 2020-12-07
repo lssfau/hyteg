@@ -22,12 +22,16 @@
 
 #include <core/math/MatrixMxN.h>
 
+#include "hyteg/Operator.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
 #include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
+#include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/forms/P1LinearCombinationForm.hpp"
+#include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/geometry/Intersection.hpp"
@@ -67,17 +71,21 @@ enum class DiffusionTimeIntegrator
 /// \f$ \mathcal{L} = - \Delta \f$ the negative Laplacian, and \f$ \theta \in \{0.5, 1\} \f$ for Crank-Nicolson or implicit Euler.
 ///
 /// To solve the unsteady diffusion equation, see UnsteadyDiffusion.
-template < template < class > class P2Operator, typename LaplaceForm_T, typename MassForm_T >
-class P2UnsteadyDiffusionOperator : public Operator< P2Function< real_t >, P2Function< real_t > >
+template < typename FunctionType,
+           template < class > class Operator_T,
+           typename LaplaceForm_T,
+           typename MassForm_T,
+           typename LinearCombinationForm_T >
+class UnsteadyDiffusionOperator : public Operator< FunctionType, FunctionType >
 {
  public:
-   P2UnsteadyDiffusionOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                                const uint_t&                              minLevel,
-                                const uint_t&                              maxLevel,
-                                const real_t&                              dt,
-                                const real_t&                              diffusionCoefficient,
-                                const DiffusionTimeIntegrator&             timeIntegrator )
-   : Operator( storage, minLevel, maxLevel )
+   UnsteadyDiffusionOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                              const uint_t&                              minLevel,
+                              const uint_t&                              maxLevel,
+                              const real_t&                              dt,
+                              const real_t&                              diffusionCoefficient,
+                              const DiffusionTimeIntegrator&             timeIntegrator )
+   : Operator< FunctionType, FunctionType >( storage, minLevel, maxLevel )
    , storage_( storage )
    , minLevel_( minLevel )
    , maxLevel_( maxLevel )
@@ -90,40 +98,40 @@ class P2UnsteadyDiffusionOperator : public Operator< P2Function< real_t >, P2Fun
       setDt( dt );
    }
 
-   void apply( const P2Function< real_t >& src,
-               const P2Function< real_t >& dst,
-               const uint_t&               level,
-               const DoFType&              flag,
-               const UpdateType&           updateType = Replace ) const
+   void apply( const FunctionType& src,
+               const FunctionType& dst,
+               const uint_t&       level,
+               const DoFType&      flag,
+               const UpdateType&   updateType = Replace ) const
    {
       unsteadyDiffusionOperator_->apply( src, dst, level, flag, updateType );
    }
 
-   void smooth_sor( const P2Function< real_t >& dst,
-                    const P2Function< real_t >& rhs,
-                    const real_t&               relax,
-                    size_t                      level,
-                    DoFType                     flag,
-                    const bool&                 backwards = false ) const
+   void smooth_sor( const FunctionType& dst,
+                    const FunctionType& rhs,
+                    const real_t&       relax,
+                    size_t              level,
+                    DoFType             flag,
+                    const bool&         backwards = false ) const
    {
       unsteadyDiffusionOperator_->smooth_sor( dst, rhs, relax, level, flag, backwards );
    }
 
-   void smooth_gs( const P2Function< real_t >& dst,
-                   const P2Function< real_t >& rhs,
-                   size_t                      level,
-                   DoFType                     flag,
-                   const bool&                 backwards = false ) const
+   void smooth_gs( const FunctionType& dst,
+                   const FunctionType& rhs,
+                   size_t              level,
+                   DoFType             flag,
+                   const bool&         backwards = false ) const
    {
       smooth_sor( dst, rhs, 1.0, level, flag, backwards );
    }
 
-   void smooth_jac( const P2Function< real_t >& dst,
-                    const P2Function< real_t >& rhs,
-                    const P2Function< real_t >& src,
-                    const real_t&               relax,
-                    size_t                      level,
-                    DoFType                     flag ) const
+   void smooth_jac( const FunctionType& dst,
+                    const FunctionType& rhs,
+                    const FunctionType& src,
+                    const real_t&       relax,
+                    size_t              level,
+                    DoFType             flag ) const
    {
       unsteadyDiffusionOperator_->smooth_jac( dst, rhs, src, relax, level, flag );
    }
@@ -133,17 +141,17 @@ class P2UnsteadyDiffusionOperator : public Operator< P2Function< real_t >, P2Fun
    void setDt( const real_t& dt )
    {
       dt_                        = dt;
-      unsteadyDiffusionOperator_ = std::make_shared< P2Operator< P2LinearCombinationForm > >(
+      unsteadyDiffusionOperator_ = std::make_shared< Operator_T< LinearCombinationForm_T > >(
           storage_,
           minLevel_,
           maxLevel_,
-          P2LinearCombinationForm( {1.0, dtScaling() * dt * diffusionCoefficient_}, {massForm_.get(), laplaceForm_.get()} ) );
+          LinearCombinationForm_T( {1.0, dtScaling() * dt * diffusionCoefficient_}, {massForm_.get(), laplaceForm_.get()} ) );
    }
 
    DiffusionTimeIntegrator getTimeIntegrator() const { return timeIntegrator_; }
 
-   const P2Operator< P2LinearCombinationForm >& getOperator() const { return *unsteadyDiffusionOperator_; }
-         P2Operator< P2LinearCombinationForm >& getOperator() { return *unsteadyDiffusionOperator_; }
+   const Operator_T< LinearCombinationForm_T >& getOperator() const { return *unsteadyDiffusionOperator_; }
+   Operator_T< LinearCombinationForm_T >&       getOperator() { return *unsteadyDiffusionOperator_; }
 
  private:
    real_t dtScaling()
@@ -166,22 +174,48 @@ class P2UnsteadyDiffusionOperator : public Operator< P2Function< real_t >, P2Fun
    std::shared_ptr< LaplaceForm_T >                         laplaceForm_;
    std::shared_ptr< MassForm_T >                            massForm_;
    DiffusionTimeIntegrator                                  timeIntegrator_;
-   std::shared_ptr< P2Operator< P2LinearCombinationForm > > unsteadyDiffusionOperator_;
+   std::shared_ptr< Operator_T< LinearCombinationForm_T > > unsteadyDiffusionOperator_;
 
    real_t dt_;
 };
 
-typedef P2UnsteadyDiffusionOperator<
+typedef UnsteadyDiffusionOperator<
+    P1Function< real_t >,
+    P1ConstantOperator,
+    P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise >,
+    P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >,
+    P1LinearCombinationForm >
+    P1ConstantUnsteadyDiffusionOperator;
+
+typedef UnsteadyDiffusionOperator<
+    P2Function< real_t >,
     P2ConstantOperator,
     P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, p2_tet_diffusion_cell_integral_0_otherwise >,
-    P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >
+    P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise >,
+    P2LinearCombinationForm >
     P2ConstantUnsteadyDiffusionOperator;
 
 /// This unsteady diffusion operator supports blending.
-typedef P2UnsteadyDiffusionOperator< P2ElementwiseOperator, P2Form_laplace, P2Form_mass > P2ElementwiseUnsteadyDiffusionOperator;
+typedef UnsteadyDiffusionOperator< P2Function< real_t >,
+                                   P2ElementwiseOperator,
+                                   P2Form_laplace,
+                                   P2Form_mass,
+                                   P2LinearCombinationForm >
+    P2ElementwiseUnsteadyDiffusionOperator;
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 namespace petsc {
+template <>
+inline void createMatrix< P1ConstantUnsteadyDiffusionOperator >( const P1ConstantUnsteadyDiffusionOperator& opr,
+                                                                 const P1Function< PetscInt >&                 src,
+                                                                 const P1Function< PetscInt >&                 dst,
+                                                                 const std::shared_ptr< SparseMatrixProxy >&   mat,
+                                                                 uint_t                                        level,
+                                                                 DoFType                                       flag )
+{
+   createMatrix( opr.getOperator(), src, dst, mat, level, flag );
+}
+
 template <>
 inline void createMatrix< P2ConstantUnsteadyDiffusionOperator >( const P2ConstantUnsteadyDiffusionOperator&  opr,
                                                                  const P2Function< PetscInt >&               src,

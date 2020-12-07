@@ -26,6 +26,7 @@
 #include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
+#include "hyteg/forms/P1LinearCombinationForm.hpp"
 #include "hyteg/p1functionspace/P1Elements.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
@@ -212,6 +213,8 @@ typedef P1ElementwiseOperator< P1FenicsForm< p1_polar_laplacian_cell_integral_0_
 
 typedef P1ElementwiseOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >
     P1ElementwiseMassOperator;
+
+typedef P1ElementwiseOperator< P1LinearCombinationForm > P1ElementwiseLinearCombinationOperator;
 
 typedef P1ElementwiseOperator< P1Form_mass >   P1ElementwiseBlendingMassOperator;
 typedef P1ElementwiseOperator< P1Form_mass3D > P1ElementwiseBlendingMassOperator3D;

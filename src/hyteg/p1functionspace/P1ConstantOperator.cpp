@@ -1707,6 +1707,7 @@ template class P1ConstantOperator< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p
 
 template class P1ConstantOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwise, p2_tet_pspg_tet_cell_integral_0_otherwise > >;
 
+template class P1ConstantOperator< P1LinearCombinationForm >;
 template class P1ConstantOperator< P2LinearCombinationForm >;
 template class P1ConstantOperator< P2RowSumForm >;
 
