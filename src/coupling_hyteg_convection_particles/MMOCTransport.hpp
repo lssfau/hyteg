@@ -1152,7 +1152,8 @@ class MMOCTransport
               const DoFType&      flag,
               const real_t&       dt,
               const uint_t&       innerSteps,
-              const bool&         resetParticles = true )
+              const bool&         resetParticles   = true,
+              const bool&         globalMaxLimiter = true )
    {
       storage_->getTimingTree()->start( "MMOCTransport" );
 
@@ -1189,7 +1190,7 @@ class MMOCTransport
       storage_->getTimingTree()->stop( "Particle integration" );
 
       storage_->getTimingTree()->start( "Temperature evaluation" );
-      evaluateTemperature( particleStorage_, *storage_, c, cOld_, level, Inner, numberOfCreatedParticles_ );
+      evaluateTemperature( particleStorage_, *storage_, c, cOld_, level, Inner, numberOfCreatedParticles_, globalMaxLimiter );
       storage_->getTimingTree()->stop( "Temperature evaluation" );
 
       storage_->getTimingTree()->stop( "MMOCTransport" );
@@ -1209,7 +1210,8 @@ class MMOCTransport
               const uint_t&       innerSteps,
               const MassOperator& massOperator,
               const real_t&       allowedRelativeMassDifference,
-              const real_t&       dtPertubationAdjustedAdvection )
+              const real_t&       dtPertubationAdjustedAdvection,
+              const bool&         globalMaxLimiter = true )
    {
       cOld_.copyBoundaryConditionFromFunction( c );
       cTmp_.copyBoundaryConditionFromFunction( c );
@@ -1224,7 +1226,7 @@ class MMOCTransport
       massOperator.apply( c, cTmp_, level, flag );
       auto massBefore = cTmp_.sumGlobal( level, flag );
 
-      step( c, ux, uy, uz, uxLastTimeStep, uyLastTimeStep, uzLastTimeStep, level, flag, dt, innerSteps, true );
+      step( c, ux, uy, uz, uxLastTimeStep, uyLastTimeStep, uzLastTimeStep, level, flag, dt, innerSteps, true, globalMaxLimiter );
 
       // calculate new mass
       massOperator.apply( c, cTmp_, level, flag );
@@ -1248,7 +1250,8 @@ class MMOCTransport
             flag,
             dt + dtPertubationAdjustedAdvection,
             innerSteps,
-            true );
+            true,
+            globalMaxLimiter );
       step( cMinus_,
             ux,
             uy,
@@ -1260,7 +1263,8 @@ class MMOCTransport
             flag,
             dt - dtPertubationAdjustedAdvection,
             innerSteps,
-            true );
+            true,
+            globalMaxLimiter );
       storage_->getTimingTree()->stop( "MMOC with adjusted advection" );
 
       // max/min assign functions
