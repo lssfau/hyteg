@@ -1,19 +1,20 @@
 Parameters
 {
-  level 5;
-  numTimeSteps 6283;
+  level 7;
+  numTimeSteps 628;
   threeDim false;
+  spaceDiscretization P1;
 
   enableGaussianCone true;
   enableLinearCone true;
   enableCylinder true;
 
-  resetParticles false;
-  resetParticlesInterval 10;
+  resetParticles true;
+  resetParticlesInterval 100;
   adjustedAdvection false;
-  globalMaxLimiter true;
+  globalMaxLimiter false;
 
-  vtk false;
+  vtk true;
   printInterval 1;
   vtkInterval 1;
   dbFile Benchmark_01_CircularAdvection.db;

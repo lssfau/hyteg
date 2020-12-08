@@ -171,7 +171,7 @@ void benchmark( int argc, char** argv )
                                                     !rotationOnly || resetParticles,
                                                     1,
                                                     adjustedAdvection,
-                                                    true,
+                                                    false,
                                                     numTimeSteps,
                                                     lbOptions,
                                                     vtk,

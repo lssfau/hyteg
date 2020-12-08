@@ -29,6 +29,7 @@
 #include "core/config/Config.h"
 #include "core/mpi/MPIManager.h"
 
+#include "hyteg/Git.hpp"
 #include "hyteg/FunctionProperties.hpp"
 #include "hyteg/MemoryAllocation.hpp"
 #include "hyteg/MeshQuality.hpp"

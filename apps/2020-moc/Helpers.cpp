@@ -193,8 +193,11 @@ void solve( MeshInfo&               meshInfo,
 
    FixedSizeSQLDB db( dbFile );
 
+   auto gitsha = gitSHA1();
+
    db.setVariableEntry( "ts", uint_c( 0 ) );
 
+   db.setConstantEntry( "git_sha", gitsha );
    db.setConstantEntry( "element_type", elementType );
    db.setConstantEntry( "dt", real_c( 0 ) );
    db.setConstantEntry( "num_ts", numTimeSteps );
