@@ -890,8 +890,14 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
    communication::syncFunctionBetweenPrimitives( cOld, level );
 
    // limiting temperature evaluation
-   const auto minTempCOld = cOld.getMinValue( level );
-   const auto maxTempCOld = cOld.getMaxValue( level );
+   real_t minTempCOld = 0;
+   real_t maxTempCOld = 0;
+
+   if ( globalMaxLimiter )
+   {
+      minTempCOld = cOld.getMinValue( level );
+      maxTempCOld = cOld.getMaxValue( level );
+   }
 
    // evaluate temperature at final position
    for ( auto p : particleStorage )

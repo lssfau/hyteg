@@ -178,7 +178,7 @@ void benchmark( int argc, char** argv )
                                                     resetParticles,
                                                     resetParticlesInterval,
                                                     adjustedAdvection,
-                                                    true,
+                                                    false,
                                                     numTimeSteps,
                                                     lbOptions,
                                                     vtk,
