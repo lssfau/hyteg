@@ -172,6 +172,7 @@ void benchmark( int argc, char** argv )
                                                     1,
                                                     adjustedAdvection,
                                                     false,
+                                                    false,
                                                     numTimeSteps,
                                                     lbOptions,
                                                     vtk,

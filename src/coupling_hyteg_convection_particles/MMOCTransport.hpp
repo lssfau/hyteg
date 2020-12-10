@@ -344,12 +344,13 @@ template < typename FunctionType >
 inline real_t evaluateAtParticlePosition( PrimitiveStorage&                                                      storage,
                                           const FunctionType&                                                    function,
                                           const walberla::convection_particles::data::ParticleStorage::Particle& particle,
-                                          const uint_t&                                                          level )
+                                          const uint_t&                                                          level,
+                                          const bool& setParticlesOutsideDomainToZero )
 {
-   //   if ( particle.getOutsideDomain() == 1 )
-   //   {
-   //      return real_c( 0 );
-   //   }
+   if ( setParticlesOutsideDomainToZero && particle.getOutsideDomain() == 1 )
+   {
+      return real_c( 0 );
+   }
 
    real_t result;
    if ( !storage.hasGlobalCells() )
@@ -408,8 +409,18 @@ inline void evaluateAtParticlePosition( PrimitiveStorage&                       
                                         const std::vector< FunctionType >&                                     functions,
                                         const walberla::convection_particles::data::ParticleStorage::Particle& particle,
                                         const uint_t&                                                          level,
-                                        std::vector< real_t >&                                                 results )
+                                        std::vector< real_t >&                                                 results,
+                                        const bool& setParticlesOutsideDomainToZero )
 {
+   if ( setParticlesOutsideDomainToZero && particle.getOutsideDomain() == 1 )
+   {
+      for ( uint_t i = 0; i < functions.size(); i++ )
+      {
+         results[i] = real_c( 0 );
+      }
+      return;
+   }
+
    if ( !storage.hasGlobalCells() )
    {
       WALBERLA_CHECK( storage.faceExistsLocally( particle.getContainingPrimitive() ) );
@@ -761,7 +772,8 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
                                  const DoFType&,
                                  const uint_t&             steps,
                                  const TimeSteppingScheme& timeSteppingScheme,
-                                 const real_t&             particleLocationRadius )
+                                 const real_t&             particleLocationRadius,
+                                 const bool&               setParticlesOutsideDomainToZero )
 {
    communication::syncFunctionBetweenPrimitives( ux, level );
    communication::syncFunctionBetweenPrimitives( uy, level );
@@ -808,7 +820,7 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
 
       for ( auto p : particleStorage )
       {
-         evaluateAtParticlePosition( storage, functions, p, level, results );
+         evaluateAtParticlePosition( storage, functions, p, level, results, setParticlesOutsideDomainToZero );
          p->getKRef()[0][0] = -results[0];
          p->getKRef()[0][1] = -results[1];
          if ( storage.hasGlobalCells() )
@@ -844,8 +856,9 @@ inline void particleIntegration( walberla::convection_particles::data::ParticleS
          storage.getTimingTree()->start( "Evaluate at particle position" );
          for ( auto p : particleStorage )
          {
-            evaluateAtParticlePosition( storage, functions, p, level, results );
-            evaluateAtParticlePosition( storage, functionsLastTimeStep, p, level, resultsLastTimeStep );
+            evaluateAtParticlePosition( storage, functions, p, level, results, setParticlesOutsideDomainToZero );
+            evaluateAtParticlePosition(
+                storage, functionsLastTimeStep, p, level, resultsLastTimeStep, setParticlesOutsideDomainToZero );
             p->getKRef()[stage][0] = -( ( 1.0 - c[stage] ) * results[0] + c[stage] * resultsLastTimeStep[0] );
             p->getKRef()[stage][1] = -( ( 1.0 - c[stage] ) * results[1] + c[stage] * resultsLastTimeStep[1] );
             if ( storage.hasGlobalCells() )
@@ -885,7 +898,8 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
                                  const uint_t&                                          level,
                                  const DoFType&,
                                  const uint_t& numberOfCreatedParticles,
-                                 const bool    globalMaxLimiter = true )
+                                 const bool    globalMaxLimiter                = true,
+                                 const bool    setParticlesOutsideDomainToZero = false )
 {
    communication::syncFunctionBetweenPrimitives( cOld, level );
 
@@ -902,7 +916,7 @@ inline void evaluateTemperature( walberla::convection_particles::data::ParticleS
    // evaluate temperature at final position
    for ( auto p : particleStorage )
    {
-      auto finalTemperature = evaluateAtParticlePosition( storage, cOld, p, level );
+      auto finalTemperature = evaluateAtParticlePosition( storage, cOld, p, level, setParticlesOutsideDomainToZero );
       if ( globalMaxLimiter )
       {
          finalTemperature = std::max( finalTemperature, minTempCOld );
@@ -1158,8 +1172,9 @@ class MMOCTransport
               const DoFType&      flag,
               const real_t&       dt,
               const uint_t&       innerSteps,
-              const bool&         resetParticles   = true,
-              const bool&         globalMaxLimiter = true )
+              const bool&         resetParticles                  = true,
+              const bool&         globalMaxLimiter                = true,
+              const bool&         setParticlesOutsideDomainToZero = false )
    {
       storage_->getTimingTree()->start( "MMOCTransport" );
 
@@ -1192,11 +1207,20 @@ class MMOCTransport
                            Inner,
                            innerSteps,
                            timeSteppingSchemeConvection_,
-                           particleLocationRadius_ );
+                           particleLocationRadius_,
+                           setParticlesOutsideDomainToZero );
       storage_->getTimingTree()->stop( "Particle integration" );
 
       storage_->getTimingTree()->start( "Temperature evaluation" );
-      evaluateTemperature( particleStorage_, *storage_, c, cOld_, level, Inner, numberOfCreatedParticles_, globalMaxLimiter );
+      evaluateTemperature( particleStorage_,
+                           *storage_,
+                           c,
+                           cOld_,
+                           level,
+                           Inner,
+                           numberOfCreatedParticles_,
+                           globalMaxLimiter,
+                           setParticlesOutsideDomainToZero );
       storage_->getTimingTree()->stop( "Temperature evaluation" );
 
       storage_->getTimingTree()->stop( "MMOCTransport" );
@@ -1217,7 +1241,8 @@ class MMOCTransport
               const MassOperator& massOperator,
               const real_t&       allowedRelativeMassDifference,
               const real_t&       dtPertubationAdjustedAdvection,
-              const bool&         globalMaxLimiter = true )
+              const bool&         globalMaxLimiter                = true,
+              const bool&         setParticlesOutsideDomainToZero = false )
    {
       cOld_.copyBoundaryConditionFromFunction( c );
       cTmp_.copyBoundaryConditionFromFunction( c );
@@ -1232,7 +1257,20 @@ class MMOCTransport
       massOperator.apply( c, cTmp_, level, flag );
       auto massBefore = cTmp_.sumGlobal( level, flag );
 
-      step( c, ux, uy, uz, uxLastTimeStep, uyLastTimeStep, uzLastTimeStep, level, flag, dt, innerSteps, true, globalMaxLimiter );
+      step( c,
+            ux,
+            uy,
+            uz,
+            uxLastTimeStep,
+            uyLastTimeStep,
+            uzLastTimeStep,
+            level,
+            flag,
+            dt,
+            innerSteps,
+            true,
+            globalMaxLimiter,
+            setParticlesOutsideDomainToZero );
 
       // calculate new mass
       massOperator.apply( c, cTmp_, level, flag );
@@ -1257,7 +1295,8 @@ class MMOCTransport
             dt + dtPertubationAdjustedAdvection,
             innerSteps,
             true,
-            globalMaxLimiter );
+            globalMaxLimiter,
+            setParticlesOutsideDomainToZero );
       step( cMinus_,
             ux,
             uy,
@@ -1270,7 +1309,8 @@ class MMOCTransport
             dt - dtPertubationAdjustedAdvection,
             innerSteps,
             true,
-            globalMaxLimiter );
+            globalMaxLimiter,
+            setParticlesOutsideDomainToZero );
       storage_->getTimingTree()->stop( "MMOC with adjusted advection" );
 
       // max/min assign functions

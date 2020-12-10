@@ -60,6 +60,7 @@ void solve( MeshInfo&               meshInfo,
             uint_t                  resetParticlesInterval,
             bool                    adjustedAdvection,
             bool                    globalMaxLimiter,
+            bool                    setParticlesOutsideDomainToZero,
             uint_t                  numTimeSteps,
             LoadBalancingOptions    lbOptions,
             bool                    vtk,
@@ -145,7 +146,7 @@ void solve( MeshInfo&               meshInfo,
       resetParticlesInterval = 1;
    }
 
-   const auto elementType = ( std::is_same< FunctionType_T, P1Function<real_t> >::value ? "P1" : "P2" );
+   const std::string elementType = ( std::is_same< FunctionType_T, P1Function< real_t > >::value ? "P1" : "P2" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << benchmarkName )
    WALBERLA_LOG_INFO_ON_ROOT( " - time discretization: " )
@@ -193,7 +194,7 @@ void solve( MeshInfo&               meshInfo,
 
    FixedSizeSQLDB db( dbFile );
 
-   auto gitsha = gitSHA1();
+   const std::string gitsha = gitSHA1();
 
    db.setVariableEntry( "ts", uint_c( 0 ) );
 
@@ -423,8 +424,22 @@ void solve( MeshInfo&               meshInfo,
       {
          const real_t adjustedAdvectionPertubation = 0.1 * ( hMin / vMax );
          localTimer.start();
-         transport.step(
-             c, u, v, w, uLast, vLast, wLast, level, Inner, dt, 1, M, 0.0, adjustedAdvectionPertubation, globalMaxLimiter );
+         transport.step( c,
+                         u,
+                         v,
+                         w,
+                         uLast,
+                         vLast,
+                         wLast,
+                         level,
+                         Inner,
+                         dt,
+                         1,
+                         M,
+                         0.0,
+                         adjustedAdvectionPertubation,
+                         globalMaxLimiter,
+                         setParticlesOutsideDomainToZero );
          localTimer.end();
          advectionTimeStepRunTime = localTimer.last();
       }
@@ -443,7 +458,8 @@ void solve( MeshInfo&               meshInfo,
                          dt,
                          1,
                          i == 1 || ( resetParticles && i % resetParticlesInterval == 0 ),
-                         globalMaxLimiter );
+                         globalMaxLimiter,
+                         setParticlesOutsideDomainToZero );
          localTimer.end();
          advectionTimeStepRunTime = localTimer.last();
       }
@@ -533,6 +549,7 @@ template void
         uint_t                  resetParticlesInterval,
         bool                    adjustedAdvection,
         bool                    globalMaxLimiter,
+        bool                    setParticlesOutsideDomainToZero,
         uint_t                  numTimeSteps,
         LoadBalancingOptions    lbOptions,
         bool                    vtk,
@@ -562,6 +579,7 @@ template void solve< P2Function< real_t >,
                                                                uint_t                  resetParticlesInterval,
                                                                bool                    adjustedAdvection,
                                                                bool                    globalMaxLimiter,
+                                                               bool                    setParticlesOutsideDomainToZero,
                                                                uint_t                  numTimeSteps,
                                                                LoadBalancingOptions    lbOptions,
                                                                bool                    vtk,
