@@ -264,16 +264,9 @@ void solve( MeshInfo&               meshInfo,
 
    std::shared_ptr< Solver< UnsteadyDiffusionOperator > > solver;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-   PETScManager manager;
-#endif
    if ( enableDiffusion )
    {
-#ifdef HYTEG_BUILD_WITH_PETSC
-      solver = std::make_shared< PETScMinResSolver< UnsteadyDiffusionOperator > >( storage, level, 1e-12 );
-#else
-      solver = std::make_shared< CGSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, level );
-#endif
+      solver = std::make_shared< CGSolver< UnsteadyDiffusionOperator > >( storage, level, level, std::numeric_limits< uint_t >::max(), 1e-12 );
    }
 
    UnsteadyDiffusion< FunctionType, UnsteadyDiffusionOperator, LaplaceOperator, MassOperator > diffusionSolver(
