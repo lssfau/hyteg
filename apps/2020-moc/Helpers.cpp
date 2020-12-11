@@ -200,7 +200,7 @@ void solve( MeshInfo&               meshInfo,
 
    db.setConstantEntry( "git_sha", gitsha );
    db.setConstantEntry( "element_type", elementType );
-   db.setConstantEntry( "dt", real_c( 0 ) );
+   db.setConstantEntry( "dt", dt );
    db.setConstantEntry( "num_ts", numTimeSteps );
    db.setConstantEntry( "level", level );
    db.setConstantEntry( "unknowns", unknowns );
