@@ -130,7 +130,7 @@ void solve( MeshInfo&               meshInfo,
    auto timer = storage->getTimingTree();
    timer->start( "Setup" );
 
-   const uint_t unknowns = numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
+   const uint_t unknowns = numberOfGlobalDoFs< typename FunctionType_T::Tag >( *storage, level );
    const real_t hMin     = MeshQuality::getMinimalEdgeLength( storage, level );
    const real_t hMax     = MeshQuality::getMaximalEdgeLength( storage, level );
 
