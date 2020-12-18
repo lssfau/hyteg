@@ -32,6 +32,7 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
+#include "hyteg/p1functionspace/P1VectorFunction_AltKind.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
@@ -87,8 +88,8 @@ static void testVectorFunction( bool beVerbose, std::string tag )
       std::string fName = tag + "VectorFunctionExportViaComponents";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
       VTKOutput vtkOutput( fPath, fName, storage );
-      vtkOutput.add( vec_f[0] );
-      vtkOutput.add( vec_f[1] );
+      vtkOutput.add( dynamic_cast<typename vfType::VectorComponentType& >(vec_f[0]) );
+      vtkOutput.add( dynamic_cast<typename vfType::VectorComponentType& >(vec_f[1]) );
       vtkOutput.write( maxLevel );
 
       std::string fName2 = tag + "VectorFunctionExport";
@@ -115,6 +116,9 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( " Testing P1VectorFunction" );
    WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
    hyteg::testVectorFunction< hyteg::P1VectorFunction< walberla::real_t > >( true, "P1" );
+
+   // alternative implementation approach
+   hyteg::testVectorFunction< hyteg::P1VectorFunction_AltKind< walberla::real_t > >( true, "P1_alt_kind" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
    WALBERLA_LOG_INFO_ON_ROOT( " Testing P2VectorFunction" );

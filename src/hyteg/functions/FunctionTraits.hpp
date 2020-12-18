@@ -46,6 +46,7 @@ struct P1StokesFunctionTag {};
 struct P2P1TaylorHoodFunctionTag {};
 struct P2P2StokesFunctionTag {};
 struct P1VectorFunctionTag {};
+struct P1VectorFunctionTag_AltKind {};
 struct P2VectorFunctionTag {};
 
 
@@ -82,6 +83,9 @@ class P2P2StokesFunction;
 
 template< typename VType >
 class P1VectorFunction;
+
+template< typename VType >
+class P1VectorFunction_AltKind;
 
 template< typename VType >
 class P2VectorFunction;
@@ -173,6 +177,16 @@ struct FunctionTrait< P1VectorFunction< VType > >
    typedef P1VectorFunctionTag Tag;
 
    static std::string getTypeName() { return "P1VectorFunction"; }
+};
+
+/// P1VectorFunction specialization (AltKind)
+template< typename VType >
+struct FunctionTrait< P1VectorFunction_AltKind< VType > >
+{
+   typedef VType ValueType;
+   typedef P1VectorFunctionTag_AltKind Tag;
+
+   static std::string getTypeName() { return "P1VectorFunction_AltKind"; }
 };
 
 /// P2VectorFunction specialization
