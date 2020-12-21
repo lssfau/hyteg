@@ -102,7 +102,6 @@ namespace hyteg {
     // Export indices of DoFs fixed by Dirichlet boundary conditions and add
     // code to Matlab script to truly eliminate them from the final matrix
     if( elimDirichletBC ) {
-       hyteg::petsc::applyDirichletBC( numerator, indices, level );
       ofs << "DirichletDoFs = [" << indices[0] + 1;
       for( auto k = indices.begin() + 1; k != indices.end(); ++k ) {
         ofs << ", " << *k + 1;
