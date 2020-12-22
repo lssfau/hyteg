@@ -19,7 +19,8 @@
  */
 #pragma once
 
-// todo includes
+#include "hyteg/primitives/all.hpp"
+
 
 namespace hyteg {
 
@@ -27,7 +28,7 @@ using walberla::real_t;
 
 namespace stencil {
 
-// container class for 2D edge stencil directions
+// container class for 2D stencil directions
 struct Directions2D
 {
    Directions2D() {}
