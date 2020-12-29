@@ -434,6 +434,8 @@ void runBenchmark( real_t      cflMax,
    StokesFunction stokesTmp( "stokesTmp", storage, minLevel, level, bcVelocity );
    StokesFunction stokesResidual( "stokesResidual", storage, minLevel, level, bcVelocity );
 
+   ScalarFunction uMagnitudeSquared( "uMagnitudeSquared", storage, minLevel, level, bcVelocity );
+
    ScalarFunction uTmp( "uTmp", storage, minLevel, level, bcVelocity );
    ScalarFunction uTmp2( "uTmp2", storage, minLevel, level, bcVelocity );
 
@@ -742,6 +744,10 @@ void runBenchmark( real_t      cflMax,
    if ( vtkOutputVelocity )
    {
       vtkOutput.add( u );
+   }
+   else
+   {
+      vtkOutput.add( uMagnitudeSquared );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -1066,6 +1072,15 @@ void runBenchmark( real_t      cflMax,
       timeTotal += dt;
 
       vRms = velocityRMS( u, stokesTmp, MVelocity, domainInfo.domainVolume(), level );
+
+      if ( storage->hasGlobalCells() )
+      {
+         vMax = velocityMaxMagnitude( u.uvw.u, u.uvw.v, u.uvw.w, uTmp, uMagnitudeSquared, level, All );
+      }
+      else
+      {
+         vMax = velocityMaxMagnitude( u.uvw.u, u.uvw.v, uTmp, uMagnitudeSquared, level, All );
+      }
 
       localTimer.start();
       if ( vtk )
