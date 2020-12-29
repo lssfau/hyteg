@@ -8,44 +8,11 @@ executables = {
     1: 'Benchmark_01_CircularAdvection',
     2: 'Benchmark_02_SwirlingAdvection',
     4: 'Benchmark_04_BlendedAdvectionDiffusion',
+    5: 'Benchmark_01_CircularAdvection',
 }
 
 parameterizations = {
     1: [
-        # h and dt convergence measurements, adj. adv. tests
-        # {'threeDim': False, 'level': 4, 'numTimeSteps': 62, 'resetParticles': False, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False},
-        # {'threeDim': False, 'level': 5, 'numTimeSteps': 62, 'resetParticles': False, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False},
-        # {'threeDim': False, 'level': 6, 'numTimeSteps': 62, 'resetParticles': False, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False},
-        # {'threeDim': False, 'level': 7, 'numTimeSteps': 62, 'resetParticles': False, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False},
-        #
-        # {'threeDim': False, 'level': 5, 'numTimeSteps': 628, 'resetParticles': False, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False},
-        # {'threeDim': False, 'level': 6, 'numTimeSteps': 628, 'resetParticles': False, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False},
-        #
-        # {'threeDim': False, 'level': 5, 'numTimeSteps': 6283, 'resetParticles': False, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False},
-        # {'threeDim': False, 'level': 6, 'numTimeSteps': 6283, 'resetParticles': False, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False},
-        #
-        # {'threeDim': False, 'level': 4, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False},
-        # {'threeDim': False, 'level': 5, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False},
-        # {'threeDim': False, 'level': 6, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False},
-        # {'threeDim': False, 'level': 7, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False},
-        #
-        # {'threeDim': False, 'level': 5, 'numTimeSteps': 628, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False},
-        # {'threeDim': False, 'level': 6, 'numTimeSteps': 628, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False},
-        #
-        # {'threeDim': False, 'level': 5, 'numTimeSteps': 6283, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False},
-        # {'threeDim': False, 'level': 6, 'numTimeSteps': 6283, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False},
-        #
-        # {'threeDim': False, 'level': 4, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': True, 'printInterval': 1, 'vtk': False},
-        # {'threeDim': False, 'level': 5, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': True, 'printInterval': 1, 'vtk': False},
-        # {'threeDim': False, 'level': 6, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': True, 'printInterval': 1, 'vtk': False},
-        # {'threeDim': False, 'level': 7, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': True, 'printInterval': 1, 'vtk': False},
-        #
-        # {'threeDim': False, 'level': 5, 'numTimeSteps': 628, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': True, 'printInterval': 1, 'vtk': False},
-        # {'threeDim': False, 'level': 6, 'numTimeSteps': 628, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': True, 'printInterval': 1, 'vtk': False},
-        #
-        # {'threeDim': False, 'level': 5, 'numTimeSteps': 6283, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': True, 'printInterval': 1, 'vtk': False},
-        # {'threeDim': False, 'level': 6, 'numTimeSteps': 6283, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': True, 'printInterval': 1, 'vtk': False},
-
         # comparison with FCT
         {'threeDim': False, 'spaceDiscretization': 'P1', 'level': 7, 'numTimeSteps': 6283, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False, 'globalMaxLimiter': False},
         {'threeDim': False, 'spaceDiscretization': 'P1', 'level': 7, 'numTimeSteps': 6283, 'resetParticles': True, 'resetParticlesInterval': 10, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False, 'globalMaxLimiter': False},
@@ -70,6 +37,23 @@ parameterizations = {
         {'threeDim': False, 'spaceDiscretization': 'P1', 'level': 7, 'numTimeSteps': 98, 'resetParticles': False, 'resetParticlesInterval': 10000, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False, 'globalMaxLimiter': False},
     ],
 
+    5: [
+        {'threeDim': False, 'spaceDiscretization': 'P2', 'level': 6, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False, 'globalMaxLimiter': False, 'enableGaussianCone': True, 'enableLinearCone': False, 'enableCylinder': False},
+        {'threeDim': False, 'spaceDiscretization': 'P2', 'level': 6, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 10, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False, 'globalMaxLimiter': False, 'enableGaussianCone': True, 'enableLinearCone': False, 'enableCylinder': False},
+        {'threeDim': False, 'spaceDiscretization': 'P2', 'level': 6, 'numTimeSteps': 62, 'resetParticles': False, 'resetParticlesInterval': 100, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False, 'globalMaxLimiter': False, 'enableGaussianCone': True, 'enableLinearCone': False, 'enableCylinder': False},
+
+        {'threeDim': False, 'spaceDiscretization': 'P2', 'level': 6, 'numTimeSteps': 628, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False, 'globalMaxLimiter': False, 'enableGaussianCone': True, 'enableLinearCone': False, 'enableCylinder': False},
+        {'threeDim': False, 'spaceDiscretization': 'P2', 'level': 6, 'numTimeSteps': 628, 'resetParticles': True, 'resetParticlesInterval': 10, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False, 'globalMaxLimiter': False, 'enableGaussianCone': True, 'enableLinearCone': False, 'enableCylinder': False},
+        {'threeDim': False, 'spaceDiscretization': 'P2', 'level': 6, 'numTimeSteps': 628, 'resetParticles': True, 'resetParticlesInterval': 100, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False, 'globalMaxLimiter': False, 'enableGaussianCone': True, 'enableLinearCone': False, 'enableCylinder': False},
+        {'threeDim': False, 'spaceDiscretization': 'P2', 'level': 6, 'numTimeSteps': 628, 'resetParticles': False, 'resetParticlesInterval': 1000, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False, 'globalMaxLimiter': False, 'enableGaussianCone': True, 'enableLinearCone': False, 'enableCylinder': False},
+
+        {'threeDim': False, 'spaceDiscretization': 'P2', 'level': 6, 'numTimeSteps': 6283, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False, 'globalMaxLimiter': False, 'enableGaussianCone': True, 'enableLinearCone': False, 'enableCylinder': False},
+        {'threeDim': False, 'spaceDiscretization': 'P2', 'level': 6, 'numTimeSteps': 6283, 'resetParticles': True, 'resetParticlesInterval': 10, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False, 'globalMaxLimiter': False, 'enableGaussianCone': True, 'enableLinearCone': False, 'enableCylinder': False},
+        {'threeDim': False, 'spaceDiscretization': 'P2', 'level': 6, 'numTimeSteps': 6283, 'resetParticles': True, 'resetParticlesInterval': 100, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False, 'globalMaxLimiter': False, 'enableGaussianCone': True, 'enableLinearCone': False, 'enableCylinder': False},
+        {'threeDim': False, 'spaceDiscretization': 'P2', 'level': 6, 'numTimeSteps': 6283, 'resetParticles': True, 'resetParticlesInterval': 1000, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False, 'globalMaxLimiter': False, 'enableGaussianCone': True, 'enableLinearCone': False, 'enableCylinder': False},
+        {'threeDim': False, 'spaceDiscretization': 'P2', 'level': 6, 'numTimeSteps': 6283, 'resetParticles': False, 'resetParticlesInterval': 10000, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False, 'globalMaxLimiter': False, 'enableGaussianCone': True, 'enableLinearCone': False, 'enableCylinder': False},
+    ],
+
     2: [
         {'threeDim': True, 'spaceDiscretization': 'P1', 'level': 5, 'numTimeSteps': 15, 'resetParticles': False, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False, 'globalMaxLimiter': False},
         {'threeDim': True, 'spaceDiscretization': 'P1', 'level': 6, 'numTimeSteps': 15, 'resetParticles': False, 'adjustedAdvection': False, 'printInterval': 1, 'vtk': False, 'globalMaxLimiter': False},
@@ -89,33 +73,13 @@ parameterizations = {
         {'threeDim': False, 'level': 5, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-3, 'printInterval': 1, 'vtk': False, 'strangSplitting': False},
         {'threeDim': False, 'level': 6, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-3, 'printInterval': 1, 'vtk': False, 'strangSplitting': False},
 
-        {'threeDim': False, 'level': 4, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-3, 'printInterval': 1, 'vtk': False, 'strangSplitting': True},
-        {'threeDim': False, 'level': 5, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-3, 'printInterval': 1, 'vtk': False, 'strangSplitting': True},
-        {'threeDim': False, 'level': 6, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-3, 'printInterval': 1, 'vtk': False, 'strangSplitting': True},
-
-        {'threeDim': False, 'level': 4, 'numTimeSteps': 124, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-3, 'printInterval': 1, 'vtk': False, 'strangSplitting': False},
-        {'threeDim': False, 'level': 5, 'numTimeSteps': 124, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-3, 'printInterval': 1, 'vtk': False, 'strangSplitting': False},
-        {'threeDim': False, 'level': 6, 'numTimeSteps': 124, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-3, 'printInterval': 1, 'vtk': False, 'strangSplitting': False},
-
-        {'threeDim': False, 'level': 4, 'numTimeSteps': 124, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-3, 'printInterval': 1, 'vtk': False, 'strangSplitting': True},
-        {'threeDim': False, 'level': 5, 'numTimeSteps': 124, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-3, 'printInterval': 1, 'vtk': False, 'strangSplitting': True},
-        {'threeDim': False, 'level': 6, 'numTimeSteps': 124, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-3, 'printInterval': 1, 'vtk': False, 'strangSplitting': True},
+        {'threeDim': False, 'level': 4, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-5, 'printInterval': 1, 'vtk': False, 'strangSplitting': False},
+        {'threeDim': False, 'level': 5, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-5, 'printInterval': 1, 'vtk': False, 'strangSplitting': False},
+        {'threeDim': False, 'level': 6, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-5, 'printInterval': 1, 'vtk': False, 'strangSplitting': False},
 
         {'threeDim': False, 'level': 4, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-7, 'printInterval': 1, 'vtk': False, 'strangSplitting': False},
         {'threeDim': False, 'level': 5, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-7, 'printInterval': 1, 'vtk': False, 'strangSplitting': False},
         {'threeDim': False, 'level': 6, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-7, 'printInterval': 1, 'vtk': False, 'strangSplitting': False},
-
-        {'threeDim': False, 'level': 4, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-7, 'printInterval': 1, 'vtk': False, 'strangSplitting': True},
-        {'threeDim': False, 'level': 5, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-7, 'printInterval': 1, 'vtk': False, 'strangSplitting': True},
-        {'threeDim': False, 'level': 6, 'numTimeSteps': 62, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-7, 'printInterval': 1, 'vtk': False, 'strangSplitting': True},
-
-        {'threeDim': False, 'level': 4, 'numTimeSteps': 124, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-7, 'printInterval': 1, 'vtk': False, 'strangSplitting': False},
-        {'threeDim': False, 'level': 5, 'numTimeSteps': 124, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-7, 'printInterval': 1, 'vtk': False, 'strangSplitting': False},
-        {'threeDim': False, 'level': 6, 'numTimeSteps': 124, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-7, 'printInterval': 1, 'vtk': False, 'strangSplitting': False},
-
-        {'threeDim': False, 'level': 4, 'numTimeSteps': 124, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-7, 'printInterval': 1, 'vtk': False, 'strangSplitting': True},
-        {'threeDim': False, 'level': 5, 'numTimeSteps': 124, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-7, 'printInterval': 1, 'vtk': False, 'strangSplitting': True},
-        {'threeDim': False, 'level': 6, 'numTimeSteps': 124, 'resetParticles': True, 'resetParticlesInterval': 1, 'adjustedAdvection': False, 'diffusivity': 1e-7, 'printInterval': 1, 'vtk': False, 'strangSplitting': True},
     ]
 }
 
@@ -145,6 +109,7 @@ def run_all_configs(benchmark_id):
         with open(out_file, 'w') as f:
             f.write(completed_process.stdout)
 
-run_all_configs(1)
-# run_all_configs(2)
-# run_all_configs(4)
+#run_all_configs(1)
+#run_all_configs(2)
+#run_all_configs(4)
+run_all_configs(5)
