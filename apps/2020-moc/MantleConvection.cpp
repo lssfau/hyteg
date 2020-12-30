@@ -138,6 +138,7 @@ struct SolverInfo
 
    uint_t stokesMaxNumIterations           = 10;
    real_t stokesAbsoluteResidualUTolerance = 0;
+   real_t stokesRelativeResidualUTolerance = 0;
    uint_t uzawaInnerIterations             = 10;
    uint_t uzawaPreSmooth                   = 6;
    uint_t uzawaPostSmooth                  = 6;
@@ -399,6 +400,9 @@ void runBenchmark( real_t      cflMax,
    db.setConstantEntry( "uzawa_pre_smooth", solverInfo.uzawaPreSmooth );
    db.setConstantEntry( "uzawa_post_smooth", solverInfo.uzawaPostSmooth );
 
+   db.setConstantEntry( "stokes_absolute_residual_threshold", solverInfo.stokesAbsoluteResidualUTolerance );
+   db.setConstantEntry( "stokes_relative_residual_threshold", solverInfo.stokesRelativeResidualUTolerance );
+
    typedef P2P1TaylorHoodFunction< real_t >       StokesFunction;
    typedef P2Function< real_t >                   ScalarFunction;
    typedef P2P1ElementwiseBlendingStokesOperator  StokesOperator;
@@ -502,6 +506,7 @@ void runBenchmark( real_t      cflMax,
    std::shared_ptr< Solver< StokesOperator > > stokesSolver;
    std::shared_ptr< Solver< StokesOperator > > stokesSolverBlockPrecMinRes;
 
+   real_t initialResiudalU = 0;
    real_t vCycleResidualULast = 0;
    real_t vCycleResidualCLast = 0;
    uint_t numVCycles = 0;
@@ -632,13 +637,21 @@ void runBenchmark( real_t      cflMax,
                        "[Uzawa] iter %3d | residual: %10.5e | reduction: %10.5e ", numVCycles, r_u, reductionRateU ) );
                 }
 
+                if ( r_u / initialResiudalU < solverInfo.stokesRelativeResidualUTolerance )
+                {
+                   WALBERLA_LOG_INFO_ON_ROOT( "[Uzawa] reached relative residual threshold" )
+                   return true;
+                }
+
                 if ( r_u < solverInfo.stokesAbsoluteResidualUTolerance )
                 {
+                   WALBERLA_LOG_INFO_ON_ROOT( "[Uzawa] reached absolute residual threshold" )
                    return true;
                 }
 
                 if ( reductionRateU > 0.8 )
                 {
+                   WALBERLA_LOG_INFO_ON_ROOT( "[Uzawa] reached convergence rate threshold" )
                    return true;
                 }
 
@@ -789,7 +802,7 @@ void runBenchmark( real_t      cflMax,
 
    calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
 
-   real_t initialResiudalU = residualU;
+   initialResiudalU = residualU;
    vCycleResidualULast = residualU;
 
    localTimer.start();
@@ -1186,6 +1199,7 @@ int main( int argc, char** argv )
    solverInfo.stokesSolverType                 = static_cast< hyteg::StokesSolverType >( stokesSolverTypeInt );
    solverInfo.stokesMaxNumIterations           = mainConf.getParameter< uint_t >( "stokesMaxNumIterations" );
    solverInfo.stokesAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "stokesAbsoluteResidualUTolerance" );
+   solverInfo.stokesRelativeResidualUTolerance = mainConf.getParameter< real_t >( "stokesRelativeResidualUTolerance" );
    solverInfo.uzawaOmega                       = mainConf.getParameter< real_t >( "uzawaOmega" );
    solverInfo.uzawaInnerIterations             = mainConf.getParameter< uint_t >( "uzawaInnerIterations" );
    solverInfo.uzawaPreSmooth                   = mainConf.getParameter< uint_t >( "uzawaPreSmooth" );

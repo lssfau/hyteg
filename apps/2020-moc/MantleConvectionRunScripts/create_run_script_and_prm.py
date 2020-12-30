@@ -71,6 +71,9 @@ if __name__ == '__main__':
     parser.add_argument('--uzawa_post', default=10, type=int)
     parser.add_argument('--uzawa_inner', default=6, type=int)
 
+    parser.add_argument('--stokes_abs_tol', default=1e-6, type=float)
+    parser.add_argument('--stokes_rel_tol', default=1e-6, type=float)
+
     args = parser.parse_args()
     args_dict = vars(args)
 
