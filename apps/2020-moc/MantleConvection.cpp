@@ -752,6 +752,7 @@ void runBenchmark( real_t      cflMax,
    real_t timeVTK       = 0;
 
    hyteg::VTKOutput vtkOutput( outputDirectory, outputBaseName, storage, vtkInterval );
+   vtkOutput.setVTKDataFormat( VTKOutput::VTK_DATA_FORMAT::BINARY );
 
    vtkOutput.add( c );
    if ( vtkOutputVelocity )
@@ -814,11 +815,11 @@ void runBenchmark( real_t      cflMax,
 
    if ( storage->hasGlobalCells() )
    {
-      vMax = velocityMaxMagnitude( u.uvw.u, u.uvw.v, u.uvw.w, uTmp, uTmp2, level, All );
+      vMax = velocityMaxMagnitude( u.uvw.u, u.uvw.v, u.uvw.w, uTmp, uMagnitudeSquared, level, All );
    }
    else
    {
-      vMax = velocityMaxMagnitude( u.uvw.u, u.uvw.v, uTmp, uTmp2, level, All );
+      vMax = velocityMaxMagnitude( u.uvw.u, u.uvw.v, uTmp, uMagnitudeSquared, level, All );
    }
 
    localTimer.start();
