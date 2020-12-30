@@ -1213,6 +1213,7 @@ int main( int argc, char** argv )
    const std::string outputBaseName  = mainConf.getParameter< std::string >( "outputBaseName" );
    const bool        vtk             = mainConf.getParameter< bool >( "vtk" );
    const bool        vtkOutputVelocity             = mainConf.getParameter< bool >( "vtkOutputVelocity" );
+   const uint_t        vtkOutputInterval             = mainConf.getParameter< uint_t >( "vtkOutputInterval" );
 
    const bool verbose = mainConf.getParameter< bool >( "verbose" );
 
@@ -1230,7 +1231,7 @@ int main( int argc, char** argv )
                         vtk,
                         vtkOutputVelocity,
                         1,
-                        1,
+                        vtkOutputInterval,
                         outputDirectory,
                         outputBaseName,
                         verbose );
