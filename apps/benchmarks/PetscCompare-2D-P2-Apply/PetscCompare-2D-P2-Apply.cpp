@@ -66,6 +66,7 @@ int main( int argc, char* argv[] )
    }
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
    const uint_t                        level    = mainConf.getParameter< uint_t >( "level" );
+   const std::string level_string = "-level" + ( level < 10 ? "0" + std::to_string( level ) : std::to_string( level ) );
 
    wcTimingTreeApp.start( "Mesh setup + load balancing" );
 
@@ -140,24 +141,24 @@ int main( int argc, char* argv[] )
    LIKWID_MARKER_STOP( "PETSc-setup" );
 
    wcTimingTreeApp.start( "HyTeG apply" );
-   LIKWID_MARKER_START( "HyTeG-apply" );
+   LIKWID_MARKER_START( std::string("HyTeG-apply" + level_string).c_str() );
    for ( int i = 0; i < 10; i++ )
    {
       mass.apply( x, y, level, hyteg::Inner );
    }
-   LIKWID_MARKER_STOP( "HyTeG-apply" );
+   LIKWID_MARKER_STOP( std::string("HyTeG-apply" + level_string).c_str() );
    wcTimingTreeApp.stop( "HyTeG apply" );
 
    //vecPetsc.print("../output/vector0.vec");
    PetscErrorCode ierr;
 
    wcTimingTreeApp.start( "Petsc apply" );
-   LIKWID_MARKER_START( "Petsc-MatMult" );
+   LIKWID_MARKER_START( std::string("Petsc-MatMult" + level_string).c_str() );
    for ( int i = 0; i < 10; i++ )
    {
       ierr = MatMult( matPetsc.get(), vecPetsc.get(), dstvecPetsc.get() );
    }
-   LIKWID_MARKER_STOP( "Petsc-MatMult" );
+   LIKWID_MARKER_STOP( std::string("Petsc-MatMult" + level_string).c_str() );
    wcTimingTreeApp.stop( "Petsc apply" );
 
    CHKERRQ( ierr );
