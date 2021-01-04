@@ -28,10 +28,7 @@
 #include <map>
 #include "core/Macros.h"
 #define RESTRICT WALBERLA_RESTRICT
-#include "sor_3D_macroface_P1_backwards_impl.hpp"
 #include "sor_3D_macroface_P1_impl.hpp"
-#include "sor_3D_macroface_P1_one_sided_backwards_impl.hpp"
-#include "sor_3D_macroface_P1_one_sided_impl.hpp"
 
 namespace hyteg {
 namespace vertexdof {
