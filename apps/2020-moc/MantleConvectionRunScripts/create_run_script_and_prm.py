@@ -78,7 +78,7 @@ if __name__ == '__main__':
     parser.add_argument('--stokes_rel_tol', default=1e-6, type=float)
 
     parser.add_argument('--vtk_interval', default=10, type=int)
-    parser.add_argument('--vtk_vertex_dofs', default=10, type=int)
+    parser.add_argument('--vtk_vertex_dofs', default=False, type=bool)
 
     args = parser.parse_args()
     args_dict = vars(args)
