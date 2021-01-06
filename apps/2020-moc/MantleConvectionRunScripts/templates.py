@@ -1,7 +1,7 @@
 
 
 def create_parameter_file(max_level: int, ra: float, output_directory: str, base_name: str, max_num_time_steps: int, uzawa_omega: float, cfl: float, uzawa_pre: int, uzawa_post: int, uzawa_inner: int,
-                          stokes_rel_tol: float, stokes_abs_tol: float, ntan: int, nrad: int, vtk_interval: int, **kwargs):
+                          stokes_rel_tol: float, stokes_abs_tol: float, ntan: int, nrad: int, vtk_interval: int, vtk_vertex_dofs: bool, **kwargs):
     return f"""Parameters
 {{
     level {max_level};
@@ -53,6 +53,7 @@ def create_parameter_file(max_level: int, ra: float, output_directory: str, base
     vtk true;
     vtkOutputVelocity false;
     vtkOutputInterval {vtk_interval};
+    vtkOutputVertexDoFs {vtk_vertex_dofs};
 
     outputDirectory {output_directory};
     outputBaseName {base_name};

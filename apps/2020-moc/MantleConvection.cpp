@@ -48,10 +48,10 @@
 #include "hyteg/petsc/PETScLUSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScMinResSolver.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/FullMultigridSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
@@ -279,9 +279,10 @@ void runBenchmark( real_t      cflMax,
                    bool        predictorCorrector,
                    real_t      simulationTime,
                    bool        vtk,
-                   bool vtkOutputVelocity,
+                   bool        vtkOutputVelocity,
                    uint_t      printInterval,
                    uint_t      vtkInterval,
+                   bool        vtkOutputVertexDoFs,
                    std::string outputDirectory,
                    std::string outputBaseName,
                    bool        verbose )
@@ -506,10 +507,10 @@ void runBenchmark( real_t      cflMax,
    std::shared_ptr< Solver< StokesOperator > > stokesSolver;
    std::shared_ptr< Solver< StokesOperator > > stokesSolverBlockPrecMinRes;
 
-   real_t initialResiudalU = 0;
-   real_t vCycleResidualULast = 0;
-   real_t vCycleResidualCLast = 0;
-   uint_t numVCycles = 0;
+   real_t initialResiudalU          = 0;
+   real_t vCycleResidualULast       = 0;
+   real_t vCycleResidualCLast       = 0;
+   uint_t numVCycles                = 0;
    real_t averageResidualReductionU = 0;
 
    if ( solverInfo.stokesSolverType == StokesSolverType::PETSC_MUMPS )
@@ -588,8 +589,13 @@ void runBenchmark( real_t      cflMax,
       auto uzawaVelocityPreconditioner =
           std::make_shared< StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator > >( storage, smoother );
 
-      auto uzawaSmoother = std::make_shared< UzawaSmoother< StokesOperator > >(
-          storage, uzawaVelocityPreconditioner, minLevel, level, solverInfo.uzawaOmega, Inner | NeumannBoundary, solverInfo.uzawaInnerIterations );
+      auto uzawaSmoother = std::make_shared< UzawaSmoother< StokesOperator > >( storage,
+                                                                                uzawaVelocityPreconditioner,
+                                                                                minLevel,
+                                                                                level,
+                                                                                solverInfo.uzawaOmega,
+                                                                                Inner | NeumannBoundary,
+                                                                                solverInfo.uzawaInnerIterations );
 
       std::shared_ptr< Solver< StokesOperator > > coarseGridSolverInternal;
 
@@ -620,8 +626,8 @@ void runBenchmark( real_t      cflMax,
 
                 if ( numVCycles == 0 )
                 {
-                   WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-                       "[Uzawa] iter %3d | residual: %10.5e | initial ", 0, vCycleResidualULast ) );
+                   WALBERLA_LOG_INFO_ON_ROOT(
+                       walberla::format( "[Uzawa] iter %3d | residual: %10.5e | initial ", 0, vCycleResidualULast ) );
                 }
 
                 auto reductionRateU = r_u / vCycleResidualULast;
@@ -630,7 +636,7 @@ void runBenchmark( real_t      cflMax,
 
                 numVCycles++;
                 averageResidualReductionU += reductionRateU;
-                
+
                 if ( verbose )
                 {
                    WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
@@ -658,7 +664,8 @@ void runBenchmark( real_t      cflMax,
                 return false;
              };
 
-         stokesSolver = std::make_shared< SolverLoop< StokesOperator > >( multigridSolver, solverInfo.stokesMaxNumIterations, stopIterationCallback );
+         stokesSolver = std::make_shared< SolverLoop< StokesOperator > >(
+             multigridSolver, solverInfo.stokesMaxNumIterations, stopIterationCallback );
       }
       else
       {
@@ -754,14 +761,38 @@ void runBenchmark( real_t      cflMax,
    hyteg::VTKOutput vtkOutput( outputDirectory, outputBaseName, storage, vtkInterval );
    vtkOutput.setVTKDataFormat( VTKOutput::VTK_DATA_FORMAT::BINARY );
 
-   vtkOutput.add( c );
-   if ( vtkOutputVelocity )
+   if ( vtkOutputVertexDoFs )
    {
-      vtkOutput.add( u );
+      vtkOutput.add( c.getVertexDoFFunction() );
    }
    else
    {
-      vtkOutput.add( uMagnitudeSquared );
+      vtkOutput.add( c );
+   }
+
+   if ( vtkOutputVelocity )
+   {
+      if ( vtkOutputVertexDoFs )
+      {
+         vtkOutput.add( u.uvw.u.getVertexDoFFunction() );
+         vtkOutput.add( u.uvw.v.getVertexDoFFunction() );
+         vtkOutput.add( u.uvw.w.getVertexDoFFunction() );
+      }
+      else
+      {
+         vtkOutput.add( u );
+      }
+   }
+   else
+   {
+      if ( vtkOutputVertexDoFs )
+      {
+         vtkOutput.add( uMagnitudeSquared.getVertexDoFFunction() );
+      }
+      else
+      {
+         vtkOutput.add( uMagnitudeSquared );
+      }
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
@@ -803,14 +834,14 @@ void runBenchmark( real_t      cflMax,
 
    calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
 
-   initialResiudalU = residualU;
+   initialResiudalU    = residualU;
    vCycleResidualULast = residualU;
 
    localTimer.start();
    stokesSolver->solve( *A, u, f, level );
    localTimer.end();
    timeStokes = localTimer.last();
-   
+
    calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
 
    if ( storage->hasGlobalCells() )
@@ -871,7 +902,7 @@ void runBenchmark( real_t      cflMax,
    db.setVariableEntry( "num_v_cycles_corrector", real_c( 0 ) );
    db.setVariableEntry( "avg_residual_reduction_u_corrector", real_c( 0 ) );
    db.setVariableEntry( "final_residual_u_corrector", real_c( 0 ) );
-   
+
    db.writeRowOnRoot();
 
    timer->stop( "Simulation" );
@@ -976,10 +1007,10 @@ void runBenchmark( real_t      cflMax,
 
       calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
 
-      vCycleResidualULast = residualU;
-      initialResiudalU = residualU;
+      vCycleResidualULast       = residualU;
+      initialResiudalU          = residualU;
       averageResidualReductionU = real_c( 0 );
-      numVCycles = 0;
+      numVCycles                = 0;
 
       localTimer.start();
       stokesSolver->solve( *A, u, f, level );
@@ -1055,10 +1086,10 @@ void runBenchmark( real_t      cflMax,
 
          calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
 
-         vCycleResidualULast = residualU;
-         initialResiudalU = residualU;
+         vCycleResidualULast       = residualU;
+         initialResiudalU          = residualU;
          averageResidualReductionU = real_c( 0 );
-         numVCycles = 0;
+         numVCycles                = 0;
 
          localTimer.start();
          stokesSolver->solve( *A, u, f, level );
@@ -1122,19 +1153,19 @@ void runBenchmark( real_t      cflMax,
 
       if ( printInterval > 0 && timeStep % printInterval == 0 )
       {
-         WALBERLA_LOG_INFO_ON_ROOT( walberla::format(
-             " %8d | %12.5e | %12.8f | %12.4f | %22.4f | %12.5e | %6.2f | %6.2f | %6.2f | %6.2f | %6.2f |",
-             timeStep,
-             dt,
-             timeTotal,
-             vRms,
-             vMax,
-             residualU,
-             timeStepTotal,
-             timeStokes,
-             timeMMOC,
-             timeDiffusion,
-             timeVTK ) )
+         WALBERLA_LOG_INFO_ON_ROOT(
+             walberla::format( " %8d | %12.5e | %12.8f | %12.4f | %22.4f | %12.5e | %6.2f | %6.2f | %6.2f | %6.2f | %6.2f |",
+                               timeStep,
+                               dt,
+                               timeTotal,
+                               vRms,
+                               vMax,
+                               residualU,
+                               timeStepTotal,
+                               timeStokes,
+                               timeMMOC,
+                               timeDiffusion,
+                               timeVTK ) )
       }
 
       timer->stop( "Simulation" );
@@ -1146,7 +1177,8 @@ void runBenchmark( real_t      cflMax,
             WALBERLA_LOG_INFO_ON_ROOT( "Writing timing tree to .json ..." );
          }
 
-         writeTimingTreeJSON( *timer, outputDirectory + "/" + outputBaseName + "_up_to_ts_" + std::to_string( timeStep ) + "_timing.json" );
+         writeTimingTreeJSON(
+             *timer, outputDirectory + "/" + outputBaseName + "_up_to_ts_" + std::to_string( timeStep ) + "_timing.json" );
       }
    }
 }
@@ -1210,11 +1242,12 @@ int main( int argc, char** argv )
    solverInfo.diffusionMaxNumIterations           = mainConf.getParameter< uint_t >( "diffusionMaxNumIterations" );
    solverInfo.diffusionAbsoluteResidualUTolerance = mainConf.getParameter< real_t >( "diffusionAbsoluteResidualUTolerance" );
 
-   const std::string outputDirectory = mainConf.getParameter< std::string >( "outputDirectory" );
-   const std::string outputBaseName  = mainConf.getParameter< std::string >( "outputBaseName" );
-   const bool        vtk             = mainConf.getParameter< bool >( "vtk" );
-   const bool        vtkOutputVelocity             = mainConf.getParameter< bool >( "vtkOutputVelocity" );
-   const uint_t        vtkOutputInterval             = mainConf.getParameter< uint_t >( "vtkOutputInterval" );
+   const std::string outputDirectory     = mainConf.getParameter< std::string >( "outputDirectory" );
+   const std::string outputBaseName      = mainConf.getParameter< std::string >( "outputBaseName" );
+   const bool        vtk                 = mainConf.getParameter< bool >( "vtk" );
+   const bool        vtkOutputVelocity   = mainConf.getParameter< bool >( "vtkOutputVelocity" );
+   const uint_t      vtkOutputInterval   = mainConf.getParameter< uint_t >( "vtkOutputInterval" );
+   const bool        vtkOutputVertexDoFs = mainConf.getParameter< bool >( "vtkOutputVertexDoFs" );
 
    const bool verbose = mainConf.getParameter< bool >( "verbose" );
 
@@ -1233,6 +1266,7 @@ int main( int argc, char** argv )
                         vtkOutputVelocity,
                         1,
                         vtkOutputInterval,
+                        vtkOutputVertexDoFs,
                         outputDirectory,
                         outputBaseName,
                         verbose );
