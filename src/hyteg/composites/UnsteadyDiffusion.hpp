@@ -179,9 +179,12 @@ class UnsteadyDiffusionOperator : public Operator< FunctionType, FunctionType >
    real_t dt_;
 };
 
+template< typename P1Form >
+using P1ConstantOperatorSingleTemplateParamter = P1ConstantOperator< P1Form, false, false, false >;
+
 typedef UnsteadyDiffusionOperator<
     P1Function< real_t >,
-    P1ConstantOperator,
+    P1ConstantOperatorSingleTemplateParamter,
     P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise >,
     P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >,
     P1LinearCombinationForm >
