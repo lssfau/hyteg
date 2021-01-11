@@ -19,13 +19,13 @@
  */
 #pragma once
 
-#include "hyteg/FunctionIterator.hpp"
 #include "hyteg/Operator.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/forms/P1RowSumForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
+#include "hyteg/functions/FunctionIterator.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p2functionspace/P2Petsc.hpp"

@@ -22,11 +22,11 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
-#include "hyteg/FunctionProperties.hpp"
-#include "hyteg/FunctionTraits.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"

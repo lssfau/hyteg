@@ -19,17 +19,17 @@
  */
 #pragma once
 
-#include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
-#include "hyteg/indexing/LocalIDMappings.hpp"
-#include "hyteg/FunctionMemory.hpp"
-#include "hyteg/StencilMemory.hpp"
-#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
-#include "hyteg/primitives/all.hpp"
-#include "hyteg/Levelinfo.hpp"
-#include "hyteg/LevelWiseMemory.hpp"
-#include "hyteg/p2functionspace/P2Elements3D.hpp"
 #include "hyteg/Algorithms.hpp"
+#include "hyteg/Levelinfo.hpp"
+#include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
+#include "hyteg/indexing/LocalIDMappings.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/memory/LevelWiseMemory.hpp"
+#include "hyteg/memory/StencilMemory.hpp"
+#include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
+#include "hyteg/p2functionspace/P2Elements3D.hpp"
+#include "hyteg/primitives/all.hpp"
 
 namespace hyteg {
 namespace VertexDoFToEdgeDoF{

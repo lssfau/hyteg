@@ -19,7 +19,6 @@
  */
 #include "EdgeDoFFunction.hpp"
 
-#include "hyteg/FunctionProperties.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFAdditivePackInfo.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
@@ -35,6 +34,7 @@
 #include "hyteg/edgedofspace/generatedKernels/assign_3D_macrocell_edgedof_1_rhsfunction.hpp"
 #include "hyteg/edgedofspace/generatedKernels/assign_3D_macrocell_edgedof_2_rhsfunctions.hpp"
 #include "hyteg/edgedofspace/generatedKernels/assign_3D_macrocell_edgedof_3_rhsfunctions.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/primitives/all.hpp"
 
 #include "core/OpenMP.h"

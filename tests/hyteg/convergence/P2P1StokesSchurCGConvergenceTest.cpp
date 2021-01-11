@@ -22,20 +22,19 @@
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
+#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
+#include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/FunctionProperties.hpp"
-#include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
-
-#include "hyteg/solvers/controlflow/SolverLoop.hpp"
-#include "hyteg/solvers/StokesPCGSolverOld.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
-#include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
-#include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
+#include "hyteg/solvers/StokesPCGSolverOld.hpp"
+#include "hyteg/solvers/controlflow/SolverLoop.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;

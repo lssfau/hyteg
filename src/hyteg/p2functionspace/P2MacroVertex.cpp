@@ -19,13 +19,13 @@
  */
 #include "P2MacroVertex.hpp"
 
-#include "hyteg/FunctionMemory.hpp"
 #include "hyteg/Levelinfo.hpp"
-#include "hyteg/StencilMemory.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/memory/StencilMemory.hpp"
+#include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/primitives/all.hpp"
-#include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
 
 using walberla::real_t;
 

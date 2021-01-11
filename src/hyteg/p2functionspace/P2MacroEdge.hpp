@@ -19,9 +19,9 @@
  */
 #pragma once
 
-#include "hyteg/FunctionMemory.hpp"
 #include "hyteg/PrimitiveID.hpp"
-#include "hyteg/StencilMemory.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/primitives/Edge.hpp"
 
 namespace hyteg {

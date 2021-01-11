@@ -22,12 +22,12 @@
 
 #include "core/DataTypes.h"
 
-#include "hyteg/LevelWiseMemory.hpp"
-#include "hyteg/StencilMemory.hpp"
+#include "hyteg/memory/LevelWiseMemory.hpp"
+#include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFOperator.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFOperator.hpp"
-#include "hyteg/primitives/Cell.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
+#include "hyteg/primitives/Cell.hpp"
 
 namespace hyteg {
 namespace P2 {

@@ -21,7 +21,6 @@
 
 #include "hyteg/types/pointnd.hpp"
 #include <core/DataTypes.h>
-#include <core/Deprecated.h>
 #include <hyteg/types/flags.hpp>
 #include <hyteg/primitives/Primitive.hpp>
 #include <hyteg/mesh/MeshInfo.hpp>

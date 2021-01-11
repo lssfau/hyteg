@@ -21,8 +21,8 @@
 
 #include "core/DataTypes.h"
 
-#include "hyteg/Function.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
+#include "hyteg/functions/Function.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/p1functionspace/VertexDoFMemory.hpp"

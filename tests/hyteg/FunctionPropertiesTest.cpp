@@ -21,8 +21,8 @@
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/FunctionProperties.hpp"
 
 using walberla::uint_t;
 

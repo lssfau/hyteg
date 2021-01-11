@@ -17,17 +17,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+#include "core/DataTypes.h"
+#include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
-#include "core/Environment.h"
-#include "core/DataTypes.h"
 
+#include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/FunctionMemory.hpp"
 #include "hyteg/p1functionspace/VertexDoFMemory.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 using walberla::uint_t;
 

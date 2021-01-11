@@ -21,12 +21,12 @@
 #pragma once
 
 #include "hyteg/Algorithms.hpp"
-#include "hyteg/FunctionMemory.hpp"
-#include "hyteg/LevelWiseMemory.hpp"
 #include "hyteg/Levelinfo.hpp"
-#include "hyteg/StencilMemory.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOperatorTypeDefs.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/memory/LevelWiseMemory.hpp"
+#include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/p2functionspace/P2Elements3D.hpp"
 #include "hyteg/primitives/Cell.hpp"

@@ -25,11 +25,11 @@
 #include "core/config/Config.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/FunctionProperties.hpp"
 #include "hyteg/composites/P1BlendingStokesOperator.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/StrongFreeSlipWrapper.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ProjectNormalOperator.hpp"

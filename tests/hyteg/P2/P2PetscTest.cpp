@@ -17,19 +17,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "core/math/Random.h"
 #include "core/DataTypes.h"
+#include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
-#include "hyteg/petsc/PETScSparseMatrix.hpp"
-#include "hyteg/FunctionTraits.hpp"
-
 
 using walberla::real_t;
 

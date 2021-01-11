@@ -24,7 +24,7 @@
 
 #include "core/debug/CheckFunctions.h"
 
-#include "hyteg/forms/P2Form.hpp"
+#include "hyteg/forms/P1Form.hpp"
 
 namespace hyteg {
 

@@ -19,8 +19,8 @@
  */
 #include "DoFSpacePackInfo.hpp"
 
-#include "hyteg/FunctionMemory.hpp"
 #include "hyteg/communication/PackInfo.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/primitivedata/PrimitiveDataID.hpp"
 
 namespace hyteg {

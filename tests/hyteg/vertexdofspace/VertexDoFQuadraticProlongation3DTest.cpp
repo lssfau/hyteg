@@ -20,21 +20,21 @@
 
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
-#include "core/timing/Timer.h"
 #include "core/math/Random.h"
+#include "core/timing/Timer.h"
 
-#include "hyteg/FunctionProperties.hpp"
-#include "hyteg/p1functionspace/VertexDoFFunction.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/gridtransferoperators/P1toP1QuadraticProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1QuadraticProlongationThroughP2Injection.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/VertexDoFFunction.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/dataexport/VTKOutput.hpp"
 
 using walberla::real_t;
 using walberla::real_c;

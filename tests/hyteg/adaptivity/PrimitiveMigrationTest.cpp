@@ -24,13 +24,13 @@
 #include "core/mpi/RecvBuffer.h"
 #include "core/mpi/SendBuffer.h"
 
-#include "hyteg/primitives/Primitive.hpp"
-#include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/primitivestorage/Visualization.hpp"
-#include "hyteg/LevelWiseMemory.hpp"
 #include "hyteg/indexing/Common.hpp"
+#include "hyteg/memory/LevelWiseMemory.hpp"
+#include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/primitives/Primitive.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 using walberla::uint_t;
 

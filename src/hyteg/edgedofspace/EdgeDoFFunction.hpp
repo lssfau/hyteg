@@ -21,8 +21,8 @@
 
 #include "core/mpi/all.h"
 
-#include "hyteg/Function.hpp"
 #include "hyteg/boundary/BoundaryConditions.hpp"
+#include "hyteg/functions/Function.hpp"
 
 namespace hyteg {
 

@@ -23,9 +23,9 @@
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg/FunctionProperties.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/forms/form_fenics_generated/p1_tet_diffusion.h"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"

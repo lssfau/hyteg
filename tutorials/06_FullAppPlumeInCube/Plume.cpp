@@ -186,11 +186,11 @@
 #include "core/math/Constants.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/FunctionProperties.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P1StokesOperator.hpp"
 #include "hyteg/composites/P1Transport.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"

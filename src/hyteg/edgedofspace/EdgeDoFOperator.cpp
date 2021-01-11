@@ -19,7 +19,6 @@
  */
 #include "EdgeDoFOperator.hpp"
 
-#include "hyteg/FunctionMemory.hpp"
 #include "hyteg/HytegDefinitions.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"

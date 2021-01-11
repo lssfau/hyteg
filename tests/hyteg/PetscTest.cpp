@@ -22,7 +22,7 @@
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
 
-#include "hyteg/FunctionProperties.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"

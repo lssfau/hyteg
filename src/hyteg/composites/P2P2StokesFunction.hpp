@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "hyteg/FunctionProperties.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 

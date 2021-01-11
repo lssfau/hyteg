@@ -20,14 +20,14 @@
 #pragma once
 
 #include "hyteg/Algorithms.hpp"
-#include "hyteg/LevelWiseMemory.hpp"
 #include "hyteg/Levelinfo.hpp"
-#include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/Operator.hpp"
-#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFOperatorTypeDefs.hpp"
+#include "hyteg/memory/LevelWiseMemory.hpp"
+#include "hyteg/petsc/PETScWrapper.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 namespace hyteg {
 

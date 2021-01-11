@@ -19,7 +19,6 @@
  */
 #include <core/Environment.h>
 #include <core/timing/Timer.h>
-#include <hyteg/FunctionProperties.hpp>
 
 #include "hyteg/MeshQuality.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
@@ -27,6 +26,7 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGUpwindOperator.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"

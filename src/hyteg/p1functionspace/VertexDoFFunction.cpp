@@ -21,33 +21,33 @@
 
 #include <utility>
 
-#include "hyteg/Function.hpp"
-#include "hyteg/FunctionMemory.hpp"
-#include "hyteg/FunctionProperties.hpp"
+#include "core/OpenMP.h"
+
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
+#include "hyteg/functions/Function.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/geometry/Intersection.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/p1functionspace/VertexDoFAdditivePackInfo.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "hyteg/p1functionspace/VertexDoFPackInfo.hpp"
-#include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p1functionspace/generatedKernels/add_2D_macroface_vertexdof_1_rhsfunction.hpp"
+#include "hyteg/p1functionspace/generatedKernels/add_2D_macroface_vertexdof_2_rhsfunctions.hpp"
+#include "hyteg/p1functionspace/generatedKernels/add_2D_macroface_vertexdof_3_rhsfunctions.hpp"
+#include "hyteg/p1functionspace/generatedKernels/add_3D_macrocell_vertexdof_1_rhsfunction.hpp"
 #include "hyteg/p1functionspace/generatedKernels/assign_2D_macroface_vertexdof_1_rhsfunction.hpp"
 #include "hyteg/p1functionspace/generatedKernels/assign_2D_macroface_vertexdof_2_rhsfunctions.hpp"
 #include "hyteg/p1functionspace/generatedKernels/assign_2D_macroface_vertexdof_3_rhsfunctions.hpp"
 #include "hyteg/p1functionspace/generatedKernels/assign_3D_macrocell_vertexdof_1_rhsfunction.hpp"
 #include "hyteg/p1functionspace/generatedKernels/assign_3D_macrocell_vertexdof_2_rhsfunctions.hpp"
 #include "hyteg/p1functionspace/generatedKernels/assign_3D_macrocell_vertexdof_3_rhsfunctions.hpp"
-#include "hyteg/p1functionspace/generatedKernels/add_2D_macroface_vertexdof_1_rhsfunction.hpp"
-#include "hyteg/p1functionspace/generatedKernels/add_2D_macroface_vertexdof_2_rhsfunctions.hpp"
-#include "hyteg/p1functionspace/generatedKernels/add_2D_macroface_vertexdof_3_rhsfunctions.hpp"
-#include "hyteg/p1functionspace/generatedKernels/add_3D_macrocell_vertexdof_1_rhsfunction.hpp"
-
-#include "core/OpenMP.h"
+#include "hyteg/p2functionspace/P2Function.hpp"
 
 namespace hyteg {
 namespace vertexdof {

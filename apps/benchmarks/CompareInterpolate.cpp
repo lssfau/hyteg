@@ -20,12 +20,12 @@
 #include "core/Environment.h"
 #include "core/debug/TestSubsystem.h"
 
-#include "hyteg/LikwidWrapper.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/Levelinfo.hpp"
+#include "hyteg/LikwidWrapper.hpp"
+#include "hyteg/memory/FunctionMemory.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
-#include "hyteg/FunctionMemory.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
