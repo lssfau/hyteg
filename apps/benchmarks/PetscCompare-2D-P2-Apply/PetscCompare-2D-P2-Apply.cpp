@@ -67,6 +67,7 @@ int main( int argc, char* argv[] )
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
    const uint_t                        level    = mainConf.getParameter< uint_t >( "level" );
    const std::string level_string = "-level" + ( level < 10 ? "0" + std::to_string( level ) : std::to_string( level ) );
+   const uint_t      iterations   = mainConf.getParameter< uint_t >( "iterations" );
 
    wcTimingTreeApp.start( "Mesh setup + load balancing" );
 
@@ -142,7 +143,7 @@ int main( int argc, char* argv[] )
 
    wcTimingTreeApp.start( "HyTeG apply" );
    LIKWID_MARKER_START( std::string("HyTeG-apply" + level_string).c_str() );
-   for ( int i = 0; i < 10; i++ )
+   for ( uint_t i = 0; i < iterations; i++ )
    {
       mass.apply( x, y, level, hyteg::Inner );
    }
@@ -154,7 +155,7 @@ int main( int argc, char* argv[] )
 
    wcTimingTreeApp.start( "Petsc apply" );
    LIKWID_MARKER_START( std::string("Petsc-MatMult" + level_string).c_str() );
-   for ( int i = 0; i < 10; i++ )
+   for ( uint_t i = 0; i < iterations; i++ )
    {
       ierr = MatMult( matPetsc.get(), vecPetsc.get(), dstvecPetsc.get() );
    }
@@ -206,6 +207,10 @@ int main( int argc, char* argv[] )
                                               << walberla::MPIManager::instance()->numProcesses() << " | "
                                               << wcTimingTreeApp["HyTeG apply"].last() << " | "
                                               << wcTimingTreeApp["Petsc apply"].last() << " | " );
+   if ( mainConf.getParameter< bool >( "petscMatOutput" ) )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( matPetsc.getInfo() );
+   }
 
    LIKWID_MARKER_CLOSE;
 }

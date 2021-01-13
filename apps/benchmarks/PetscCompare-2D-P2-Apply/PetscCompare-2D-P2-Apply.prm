@@ -1,7 +1,9 @@
 Parameters
 {
   level 8;
+  iterations 10;
   VTKOutput false;
+  petscMatOutput false;
   printTiming false;
 
   useMeshFile false;
