@@ -144,6 +144,10 @@ void runLaplaceOperatorTests( SetupPrimitiveStorage& setupStorage, uint_t level,
    WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_id ..." );
    P2ElementwiseBlendingLaplaceOperator L_elementwise_otf_blending_id( storage, level, level, P2Form_laplace(), false );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_stored_blending_id ..." );
+   P2ElementwiseBlendingLaplaceOperator L_elementwise_stored_blending_id( storage, level, level, P2Form_laplace(), false );
+   L_elementwise_stored_blending_id.computeAndStoreLocalElementMatrices();
+
    if ( running3D )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_shell ..." );
@@ -162,7 +166,7 @@ void runLaplaceOperatorTests( SetupPrimitiveStorage& setupStorage, uint_t level,
       L_constant_stencil.apply( src, dst, level, All );
    timer.end();
    LIKWID_MARKER_STOP( "apply cc stencil" );
-   WALBERLA_LOG_INFO_ON_ROOT( "apply cc stencil:           " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply cc stencil:              " << timer.last() );
 
    LIKWID_MARKER_START( "apply cc elem" );
    timer.reset();
@@ -170,7 +174,7 @@ void runLaplaceOperatorTests( SetupPrimitiveStorage& setupStorage, uint_t level,
       L_elementwise_otf_cc.apply( src, dst, level, All );
    timer.end();
    LIKWID_MARKER_STOP( "apply cc elem" );
-   WALBERLA_LOG_INFO_ON_ROOT( "apply cc elem:              " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply cc elem:                 " << timer.last() );
 
    LIKWID_MARKER_START( "apply blending id elem" );
    timer.reset();
@@ -178,7 +182,15 @@ void runLaplaceOperatorTests( SetupPrimitiveStorage& setupStorage, uint_t level,
       L_elementwise_otf_blending_id.apply( src, dst, level, All );
    timer.end();
    LIKWID_MARKER_STOP( "apply blending id elem" );
-   WALBERLA_LOG_INFO_ON_ROOT( "apply blending id elem:     " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply blending id elem:        " << timer.last() );
+
+   LIKWID_MARKER_START( "apply blending id elem stored" );
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_elementwise_stored_blending_id.apply( src, dst, level, All );
+   timer.end();
+   LIKWID_MARKER_STOP( "apply blending id elem stored" );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply blending id elem stored: " << timer.last() );
 
    if ( running3D )
    {
@@ -200,12 +212,12 @@ void runLaplaceOperatorTests( SetupPrimitiveStorage& setupStorage, uint_t level,
    if ( running3D )
    {
      LIKWID_MARKER_STOP( "apply blending shell elem" );
-     WALBERLA_LOG_INFO_ON_ROOT( "apply blending shell elem:  " << timer.last() );
+     WALBERLA_LOG_INFO_ON_ROOT( "apply blending shell elem:     " << timer.last() );
    }
    else
    {
      LIKWID_MARKER_STOP( "apply blending annulus elem" );
-     WALBERLA_LOG_INFO_ON_ROOT( "apply blending annulus elem:  " << timer.last() );
+     WALBERLA_LOG_INFO_ON_ROOT( "apply blending annulus elem:     " << timer.last() );
    }
 
 }
@@ -236,6 +248,10 @@ void runMassOperatorTests( SetupPrimitiveStorage& setupStorage, uint_t level,
    WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_id ..." );
    P2ElementwiseBlendingMassOperator L_elementwise_otf_blending_id( storage, level, level, P2Form_mass(), false );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_stored_blending_id ..." );
+   P2ElementwiseBlendingMassOperator L_elementwise_stored_blending_id( storage, level, level, P2Form_mass(), false );
+   L_elementwise_stored_blending_id.computeAndStoreLocalElementMatrices();
+
    if ( running3D )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_shell ..." );
@@ -254,7 +270,7 @@ void runMassOperatorTests( SetupPrimitiveStorage& setupStorage, uint_t level,
       L_constant_stencil.apply( src, dst, level, All );
    timer.end();
    LIKWID_MARKER_STOP( "apply cc stencil" );
-   WALBERLA_LOG_INFO_ON_ROOT( "apply cc stencil:           " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply cc stencil:              " << timer.last() );
 
    LIKWID_MARKER_START( "apply cc elem" );
    timer.reset();
@@ -262,7 +278,7 @@ void runMassOperatorTests( SetupPrimitiveStorage& setupStorage, uint_t level,
       L_elementwise_otf_cc.apply( src, dst, level, All );
    timer.end();
    LIKWID_MARKER_STOP( "apply cc elem" );
-   WALBERLA_LOG_INFO_ON_ROOT( "apply cc elem:              " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply cc elem:                 " << timer.last() );
 
    LIKWID_MARKER_START( "apply blending id elem" );
    timer.reset();
@@ -270,7 +286,15 @@ void runMassOperatorTests( SetupPrimitiveStorage& setupStorage, uint_t level,
       L_elementwise_otf_blending_id.apply( src, dst, level, All );
    timer.end();
    LIKWID_MARKER_STOP( "apply blending id elem" );
-   WALBERLA_LOG_INFO_ON_ROOT( "apply blending id elem:     " << timer.last() );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply blending id elem:        " << timer.last() );
+
+   LIKWID_MARKER_START( "apply blending id elem stored" );
+   timer.reset();
+   for ( uint_t i = 0; i < numIterations; i++ )
+      L_elementwise_stored_blending_id.apply( src, dst, level, All );
+   timer.end();
+   LIKWID_MARKER_STOP( "apply blending id elem stored" );
+   WALBERLA_LOG_INFO_ON_ROOT( "apply blending id elem stored: " << timer.last() );
 
    if ( running3D )
    {
@@ -292,12 +316,12 @@ void runMassOperatorTests( SetupPrimitiveStorage& setupStorage, uint_t level,
    if ( running3D )
    {
      LIKWID_MARKER_STOP( "apply blending shell elem" );
-     WALBERLA_LOG_INFO_ON_ROOT( "apply blending shell elem:  " << timer.last() );
+     WALBERLA_LOG_INFO_ON_ROOT( "apply blending shell elem:     " << timer.last() );
    }
    else
    {
      LIKWID_MARKER_STOP( "apply blending annulus elem" );
-     WALBERLA_LOG_INFO_ON_ROOT( "apply blending annulus elem:  " << timer.last() );
+     WALBERLA_LOG_INFO_ON_ROOT( "apply blending annulus elem:     " << timer.last() );
    }
 }
 

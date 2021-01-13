@@ -102,6 +102,10 @@ class VTKOutput
       P2
    };
 
+   /// Wrapper class that handles writing data in ASCII or binary format.
+   ///
+   /// \tparam DTypeInVTK data type that the input data is converted to before writing it to the VTK file
+   template< typename DTypeInVTK >
    class VTKStreamWriter
    {
     public:
@@ -119,11 +123,11 @@ class VTKOutput
       {
          if ( vtkDataFormat_ == VTK_DATA_FORMAT::ASCII )
          {
-            outputAscii_ << data << "\n";
+            outputAscii_ << static_cast< DTypeInVTK >( data ) << "\n";
          }
          else if ( vtkDataFormat_ == VTK_DATA_FORMAT::BINARY )
          {
-            outputBase64_ << data;
+            outputBase64_ << static_cast< DTypeInVTK >( data );
          }
 
          return *this;

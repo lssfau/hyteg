@@ -1,16 +1,19 @@
 Parameters
 {
-  level 5;
-  numTimeSteps 62;
+  level 7;
+  numTimeSteps 628;
   threeDim false;
+  spaceDiscretization P1;
 
   enableGaussianCone true;
   enableLinearCone true;
   enableCylinder true;
 
   resetParticles true;
-  resetParticlesInterval 10;
+  resetParticlesInterval 100;
   adjustedAdvection false;
+  globalMaxLimiter false;
+
   vtk true;
   printInterval 1;
   vtkInterval 1;

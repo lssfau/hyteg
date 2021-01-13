@@ -22,6 +22,7 @@
 #include <array>
 
 #include "hyteg/Operator.hpp"
+#include "hyteg/forms/P1LinearCombinationForm.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
@@ -228,5 +229,7 @@ typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_
     P1ToP1DivTyVertexToVertexConstantOperator;
 typedef P1ConstantOperator< P1FenicsForm< fenics::UndefinedAssembly, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >
     P1ToP1DivTzVertexToVertexConstantOperator;
+
+typedef P1ConstantOperator< P1LinearCombinationForm > P1ConstantLinearCombinationOperator;
 
 } // namespace hyteg

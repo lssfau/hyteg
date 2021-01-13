@@ -721,6 +721,8 @@ template class P1ElementwiseOperator< P1FenicsForm< p1_mass_cell_integral_0_othe
 template class P1ElementwiseOperator<
     P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >;
 
+template class P1ElementwiseOperator< P1LinearCombinationForm >;
+
 // P1ElementwiseBlendingMassOperator
 template class P1ElementwiseOperator< P1Form_mass >;
 

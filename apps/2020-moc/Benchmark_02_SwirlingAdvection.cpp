@@ -274,6 +274,8 @@ void benchmark( int argc, char** argv )
    const uint_t      numEdgesPerSide         = mainConf.getParameter< uint_t >( "numEdgesPerSide" );
    const bool        setTimeStepSizeManually = mainConf.getParameter< bool >( "setTimeStepSizeManually" );
    const real_t      manualDT                = mainConf.getParameter< real_t >( "manualTimeStepSize" );
+   const bool        globalMaxLimiter        = mainConf.getParameter< bool >( "globalMaxLimiter" );
+   const std::string spaceDiscretization     = mainConf.getParameter< std::string >( "spaceDiscretization" );
 
    LoadBalancingOptions lbOptions;
    lbOptions.type = 0;
@@ -308,7 +310,10 @@ void benchmark( int argc, char** argv )
 
    if ( threeDim )
    {
-      solve( meshInfo,
+      if ( spaceDiscretization == "P1" )
+      {
+         solve< P1Function< real_t >, P1ConstantLaplaceOperator, P1ConstantMassOperator, P1ConstantUnsteadyDiffusionOperator >(
+             meshInfo,
              false,
              cSolution3D,
              uSolution3D,
@@ -323,6 +328,8 @@ void benchmark( int argc, char** argv )
              resetParticles,
              resetParticlesInterval,
              adjustedAdvection,
+             globalMaxLimiter,
+             false,
              numTimeSteps,
              lbOptions,
              vtk,
@@ -332,10 +339,46 @@ void benchmark( int argc, char** argv )
              vtkInterval,
              false,
              dbFile );
+      }
+      else
+      {
+         solve< P2Function< real_t >,
+                P2ElementwiseBlendingLaplaceOperator,
+                P2ElementwiseBlendingMassOperator,
+                P2ElementwiseUnsteadyDiffusionOperator >( meshInfo,
+                                                          false,
+                                                          cSolution3D,
+                                                          uSolution3D,
+                                                          vSolution3D,
+                                                          wSolution3D,
+                                                          dt,
+                                                          1.0,
+                                                          level,
+                                                          DiffusionTimeIntegrator::ImplicitEuler,
+                                                          false,
+                                                          false,
+                                                          resetParticles,
+                                                          resetParticlesInterval,
+                                                          adjustedAdvection,
+                                                          globalMaxLimiter,
+                                                          false,
+                                                          numTimeSteps,
+                                                          lbOptions,
+                                                          vtk,
+                                                          true,
+                                                          "Benchmark_02_SwirlingAdvection",
+                                                          printInterval,
+                                                          vtkInterval,
+                                                          false,
+                                                          dbFile );
+      }
    }
    else
    {
-      solve( meshInfo,
+      if ( spaceDiscretization == "P1" )
+      {
+         solve< P1Function< real_t >, P1ConstantLaplaceOperator, P1ConstantMassOperator, P1ConstantUnsteadyDiffusionOperator >(
+             meshInfo,
              false,
              cSolution,
              uSolution,
@@ -350,6 +393,8 @@ void benchmark( int argc, char** argv )
              resetParticles,
              resetParticlesInterval,
              adjustedAdvection,
+             globalMaxLimiter,
+             false,
              numTimeSteps,
              lbOptions,
              vtk,
@@ -359,6 +404,39 @@ void benchmark( int argc, char** argv )
              vtkInterval,
              false,
              dbFile );
+      }
+      else
+      {
+         solve< P2Function< real_t >,
+                P2ElementwiseBlendingLaplaceOperator,
+                P2ElementwiseBlendingMassOperator,
+                P2ElementwiseUnsteadyDiffusionOperator >( meshInfo,
+                                                          false,
+                                                          cSolution,
+                                                          uSolution,
+                                                          vSolution,
+                                                          wSolution,
+                                                          dt,
+                                                          1.0,
+                                                          level,
+                                                          DiffusionTimeIntegrator::ImplicitEuler,
+                                                          false,
+                                                          false,
+                                                          resetParticles,
+                                                          resetParticlesInterval,
+                                                          adjustedAdvection,
+                                                          globalMaxLimiter,
+                                                          false,
+                                                          numTimeSteps,
+                                                          lbOptions,
+                                                          vtk,
+                                                          true,
+                                                          "Benchmark_02_SwirlingAdvection",
+                                                          printInterval,
+                                                          vtkInterval,
+                                                          false,
+                                                          dbFile );
+      }
    }
 }
 } // namespace moc_benchmarks

@@ -278,8 +278,8 @@ inline bool isPointInTetrahedron( const Point3D& pointOfInterest,
    const auto distFace2 = distanceToPlane( pointOfInterest, tetVertex2, faceInwardNormalOpposingVertex1 );
    const auto distFace3 = distanceToPlane( pointOfInterest, tetVertex3, faceInwardNormalOpposingVertex0 );
 
-   return distFace0 >= -real_c( 1e-08 ) && distFace1 >= -real_c( 1e-08 ) && distFace2 >= -real_c( 1e-08 ) &&
-          distFace3 >= -real_c( 1e-08 );
+   return distFace0 >= 0 && distFace1 >= 0 && distFace2 >= 0 &&
+          distFace3 >= 0;
 }
 
 /// Returns true if the passed point is located in (or on) the passed tetrahedron.

@@ -168,6 +168,8 @@ void benchmark( int argc, char** argv )
    const bool        vtk                    = mainConf.getParameter< bool >( "vtk" );
    const uint_t      vtkInterval            = mainConf.getParameter< uint_t >( "vtkInterval" );
    const std::string dbFile                 = mainConf.getParameter< std::string >( "dbFile" );
+   const bool        globalMaxLimiter       = mainConf.getParameter< bool >( "globalMaxLimiter" );
+   const std::string spaceDiscretization    = mainConf.getParameter< std::string >( "spaceDiscretization" );
 
    LoadBalancingOptions lbOptions;
    lbOptions.type = 0;
@@ -190,7 +192,10 @@ void benchmark( int argc, char** argv )
    VelocitySolutionY vSolution;
    VelocitySolutionZ wSolution( threeDim );
 
-   solve( meshInfo,
+   if ( spaceDiscretization == "P1" )
+   {
+      solve< P1Function< real_t >, P1ConstantLaplaceOperator, P1ConstantMassOperator, P1ConstantUnsteadyDiffusionOperator >(
+          meshInfo,
           false,
           cSolution,
           uSolution,
@@ -205,6 +210,8 @@ void benchmark( int argc, char** argv )
           resetParticles,
           resetParticlesInterval,
           adjustedAdvection,
+          globalMaxLimiter,
+          true,
           numTimeSteps,
           lbOptions,
           vtk,
@@ -214,6 +221,39 @@ void benchmark( int argc, char** argv )
           vtkInterval,
           false,
           dbFile );
+   }
+   else
+   {
+      solve< P2Function< real_t >,
+             P2ElementwiseBlendingLaplaceOperator,
+             P2ElementwiseBlendingMassOperator,
+             P2ElementwiseUnsteadyDiffusionOperator >( meshInfo,
+                                                       false,
+                                                       cSolution,
+                                                       uSolution,
+                                                       vSolution,
+                                                       wSolution,
+                                                       dt,
+                                                       1.0,
+                                                       level,
+                                                       DiffusionTimeIntegrator::ImplicitEuler,
+                                                       false,
+                                                       false,
+                                                       resetParticles,
+                                                       resetParticlesInterval,
+                                                       adjustedAdvection,
+                                                       globalMaxLimiter,
+                                                       true,
+                                                       numTimeSteps,
+                                                       lbOptions,
+                                                       vtk,
+                                                       true,
+                                                       "Benchmark_01_CircularAdvection",
+                                                       printInterval,
+                                                       vtkInterval,
+                                                       false,
+                                                       dbFile );
+   }
 }
 } // namespace moc_benchmarks
 } // namespace hyteg
