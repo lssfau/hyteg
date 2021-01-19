@@ -77,8 +77,10 @@ void showUsage() {
   std::stringstream mesg;
 
   mesg << "Please specify the following two parameters in the given order:\n\n"
-       << "  <level>      on which level do you want the operator to be set up?\n"
-       << "  <operator>   which operator do you want to export?\n\n"
+       << "  <level>               on which level do you want the operator to be set up?\n"
+       << "  <operator>            which operator do you want to export?\n\n"
+       << "Optionally also give\n\n"
+       << "  <name of Gmsh file>   if none is given unit square will be meshed with two triangles\n\n"
        << " Choices available for <operator> are\n";
 
   for( auto it = oprMap.begin(); it != oprMap.end(); ++it ) {
@@ -102,10 +104,12 @@ int main( int argc, char* argv[] ) {
   WALBERLA_LOG_DEVEL_ON_ROOT( "" );
 
   // Process command-line
-  if( argc < 3 || argc > 3 ) {
+  if( argc < 3 || argc > 4 ) {
     showUsage();
     WALBERLA_ABORT( "\n" );
   }
+
+  bool useMeshFile = (argc == 4) ? true : false;
 
   uint_t level = static_cast<uint_t>( std::stoul( argv[1] ) );
   std::string oprName  = ( argv[2] );
@@ -119,15 +123,17 @@ int main( int argc, char* argv[] ) {
   bool elim = oprMap[ oprName ].elimDirichletBC;
 
   // Mesh generation
-  WALBERLA_LOG_INFO_ON_ROOT( "Generating criss mesh on unit square" );
   MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
-  // Point2D cornerLL( { 0.0, 0.0 } );
-  // Point2D cornerUR( { 1.0, 1.0 } );
-  // meshInfo = MeshInfo::meshRectangle( cornerLL, cornerUR, MeshInfo::CRISS, 1, 1 );
-
-  // meshInfo = MeshInfo::fromGmshFile( "../data/meshes/3D/tet_tilted_1el.msh" );
-  meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_1el.msh" );
-  // meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_2el.msh" );
+  if( useMeshFile ) {
+    WALBERLA_LOG_INFO_ON_ROOT( "Generating mesh from file " << argv[3] );
+    meshInfo = MeshInfo::fromGmshFile( argv[3] );
+  }
+  else {
+    WALBERLA_LOG_INFO_ON_ROOT( "Generating criss mesh on unit square" );
+    Point2D cornerLL( { 0.0, 0.0 } );
+    Point2D cornerUR( { 1.0, 1.0 } );
+    meshInfo = MeshInfo::meshRectangle( cornerLL, cornerUR, MeshInfo::CRISS, 1, 1 );
+  }
 
   SetupPrimitiveStorage setupStorage( meshInfo,
                                       uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
