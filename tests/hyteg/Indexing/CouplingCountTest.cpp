@@ -23,7 +23,7 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/FunctionTraits.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
@@ -104,8 +104,8 @@ int main( int argc, char* argv[] )
    //  General behaviour
    // -------------------
    bool   beVerbose  = true;
-   bool   run2DTests = false;
-   bool   run3DTests = true;
+   bool   run2DTests = true;
+   bool   run3DTests = false;
    uint_t maxLevel   = 2;
 
    // ----------------------------

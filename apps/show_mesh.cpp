@@ -23,7 +23,7 @@
 #include "core/timing/Timer.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/FunctionTraits.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"

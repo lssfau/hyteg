@@ -20,7 +20,7 @@
 
 #include <typeinfo>
 
-#include "hyteg/FunctionProperties.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/indexing/CouplingCount.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 

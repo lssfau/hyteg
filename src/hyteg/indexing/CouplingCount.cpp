@@ -20,7 +20,7 @@
 
 #include "hyteg/indexing/CouplingCount.hpp"
 
-#include "hyteg/FunctionProperties.hpp"
+#include "hyteg/functions/FunctionProperties.hpp"
 // #include "hyteg/indexing/MacroEdgeIndexing.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
