@@ -109,23 +109,39 @@ int main( int argc, char* argv[] ) {
 
   uint_t level = static_cast<uint_t>( std::stoul( argv[1] ) );
   std::string oprName  = ( argv[2] );
-  operatorTag oprTag   = oprMap[ oprName ].oprEnum;
-  std::string matName  = oprMap[ oprName ].matName;
+  if( oprMap.find( oprName ) == oprMap.end() ) {
+    WALBERLA_LOG_INFO_ON_ROOT( "Sorry, but '" << oprName << "' does not seem to be a valid choice." );
+    WALBERLA_ABORT( "\n" );
+  }
+  operatorTag oprTag   = oprMap.at( oprName ).oprEnum;
+  std::string matName  = oprMap.at( oprName ).matName;
   std::string fileName = oprName + ".m";
   bool elim = oprMap[ oprName ].elimDirichletBC;
 
   // Mesh generation
   WALBERLA_LOG_INFO_ON_ROOT( "Generating criss mesh on unit square" );
   MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
-  Point2D cornerLL( { 0.0, 0.0 } );
-  Point2D cornerUR( { 1.0, 1.0 } );
-  meshInfo = MeshInfo::meshRectangle( cornerLL, cornerUR, MeshInfo::CRISS, 1, 1 );
+  // Point2D cornerLL( { 0.0, 0.0 } );
+  // Point2D cornerUR( { 1.0, 1.0 } );
+  // meshInfo = MeshInfo::meshRectangle( cornerLL, cornerUR, MeshInfo::CRISS, 1, 1 );
+
+  // meshInfo = MeshInfo::fromGmshFile( "../data/meshes/3D/tet_tilted_1el.msh" );
+  meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_1el.msh" );
+  // meshInfo = MeshInfo::fromGmshFile( "../data/meshes/tri_2el.msh" );
 
   SetupPrimitiveStorage setupStorage( meshInfo,
                                       uint_c ( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
+  setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+
   hyteg::loadbalancing::roundRobin( setupStorage );
   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+  // Should elimination of Dirichlet DoFs be symmetric?
+  bool symm = true;
+
+  // Should exportOperator() be verbose?
+  bool verb = true;
 
   // Operator creation and export
   switch( oprTag ) {
@@ -137,7 +153,7 @@ int main( int argc, char* argv[] ) {
     {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Laplace operator for P1 elements" );
       hyteg::P1ConstantLaplaceOperator opr( storage, level, level );
-      exportOperator< P1ConstantLaplaceOperator >( opr, fileName, matName, storage, level, elim );
+      exportOperator< P1ConstantLaplaceOperator >( opr, fileName, matName, storage, level, elim, symm, verb );
     }
     break;
 
@@ -145,7 +161,7 @@ int main( int argc, char* argv[] ) {
     {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Mass operator for P1 elements" );
       hyteg::P1ConstantMassOperator opr( storage, level, level );
-      exportOperator< P1ConstantMassOperator >( opr, fileName, matName, storage, level, elim );
+      exportOperator< P1ConstantMassOperator >( opr, fileName, matName, storage, level, elim, symm, verb );
     }
     break;
 
@@ -156,7 +172,7 @@ int main( int argc, char* argv[] ) {
     {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Laplace operator for P2 elements" );
       hyteg::P2ConstantLaplaceOperator opr( storage, level, level );
-      exportOperator< P2ConstantLaplaceOperator >( opr, fileName, matName, storage, level, elim );
+      exportOperator< P2ConstantLaplaceOperator >( opr, fileName, matName, storage, level, elim, symm, verb );
     }
     break;
 
@@ -164,7 +180,7 @@ int main( int argc, char* argv[] ) {
     {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Mass operator for P2 elements" );
       hyteg::P2ConstantMassOperator opr( storage, level, level );
-      exportOperator< P2ConstantMassOperator >( opr, fileName, matName, storage, level, elim );
+      exportOperator< P2ConstantMassOperator >( opr, fileName, matName, storage, level, elim, symm, verb );
     }
     break;
 
@@ -175,7 +191,7 @@ int main( int argc, char* argv[] ) {
     {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Stokes Operator for P2-P1 element" );
       hyteg::P2P1TaylorHoodStokesOperator opr( storage, level, level );
-      exportOperator< P2P1TaylorHoodStokesOperator >( opr, fileName, matName, storage, level, elim );
+      exportOperator< P2P1TaylorHoodStokesOperator >( opr, fileName, matName, storage, level, elim, symm, verb );
     }
     break;
   }

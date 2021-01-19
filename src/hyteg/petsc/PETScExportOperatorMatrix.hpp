@@ -55,13 +55,14 @@ namespace hyteg {
                        std::shared_ptr< PrimitiveStorage > storage,
                        uint_t level,
                        bool elimDirichletBC,
+                       bool elimSymmetric = false,
                        bool beVerbose = false ) {
 
     // Get dimension of function space
     uint_t localDoFs  = hyteg::numberOfLocalDoFs < typename OperatorType::srcType::Tag >( *storage, level );
     uint_t globalDoFs = hyteg::numberOfGlobalDoFs< typename OperatorType::srcType::Tag >( *storage, level );
     if(  localDoFs != globalDoFs ) {
-      WALBERLA_ABORT( "localDoFs and globalDoFs must agree for this app!" );
+      WALBERLA_ABORT( "localDoFs and globalDoFs must agree for exportOperator()!" );
     }
     if( beVerbose ) {
       WALBERLA_LOG_INFO_ON_ROOT( " * Dimension of function space is " << globalDoFs );
@@ -85,7 +86,19 @@ namespace hyteg {
     // Zero rows and columns of "Dirichlet DoFs"
     std::vector< PetscInt > indices;
     if( elimDirichletBC ) {
-      indices = petscMatrix.applyDirichletBCSymmetrically( numerator, level );
+      if( elimSymmetric ) {
+        if( beVerbose ) {
+          WALBERLA_LOG_INFO_ON_ROOT( " * Performing symmetric elimination of Dirichlet DoFs" );
+        }
+        indices = petscMatrix.applyDirichletBCSymmetrically( numerator, level );
+      }
+      else {
+        if( beVerbose ) {
+          WALBERLA_LOG_INFO_ON_ROOT( " * Performing non-symmetric elimination of Dirichlet DoFs" );
+        }
+        hyteg::petsc::applyDirichletBC( numerator, indices, level );
+        petscMatrix.applyDirichletBC( numerator, level );
+      }
     }
 
     // Write out matrix
@@ -102,7 +115,6 @@ namespace hyteg {
     // Export indices of DoFs fixed by Dirichlet boundary conditions and add
     // code to Matlab script to truly eliminate them from the final matrix
     if( elimDirichletBC ) {
-       hyteg::petsc::applyDirichletBC( numerator, indices, level );
       ofs << "DirichletDoFs = [" << indices[0] + 1;
       for( auto k = indices.begin() + 1; k != indices.end(); ++k ) {
         ofs << ", " << *k + 1;

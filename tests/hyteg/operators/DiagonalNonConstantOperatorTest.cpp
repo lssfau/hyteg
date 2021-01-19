@@ -209,8 +209,8 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage >& storage,
    }
 
    // export operators for diagnosis
-   // exportOperator< cOperType >( cOper, "DiagonalMatrix_cOper.m", "cMat", storage, level, false, true );
-   // exportOperator< vOperType >( vOper, "DiagonalMatrix_vOper.m", "vMat", storage, level, false, true );
+   // exportOperator< cOperType >( cOper, "DiagonalMatrix_cOper.m", "cMat", storage, level, false, false, true );
+   // exportOperator< vOperType >( vOper, "DiagonalMatrix_vOper.m", "vMat", storage, level, false, false, true );
 
    std::array< real_t, 3 > limits = {bound, bound, bound};
 
