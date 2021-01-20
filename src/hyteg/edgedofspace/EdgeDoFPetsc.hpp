@@ -37,123 +37,6 @@ using walberla::uint_t;
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
-inline void createVectorFromFunction( const EdgeDoFFunction< PetscReal >&   function,
-                                      const EdgeDoFFunction< PetscInt >&    numerator,
-                                      const std::shared_ptr< VectorProxy >& vec,
-                                      uint_t                                level,
-                                      DoFType                               flag )
-{
-   for ( auto& it : function.getStorage()->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if ( testFlag( edgeBC, flag ) )
-      {
-         macroedge::createVectorFromFunction< PetscReal >(
-             level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
-      }
-   }
-
-   for ( auto& it : function.getStorage()->getFaces() )
-   {
-      Face& face = *it.second;
-
-      const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, flag ) )
-      {
-         macroface::createVectorFromFunction< PetscReal >(
-             level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
-      }
-   }
-
-   for ( auto& it : function.getStorage()->getCells() )
-   {
-      Cell& cell = *it.second;
-
-      const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-      if ( testFlag( cellBC, flag ) )
-      {
-         macrocell::createVectorFromFunction< PetscReal >(
-             level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
-      }
-   }
-}
-
-inline void createFunctionFromVector( const EdgeDoFFunction< PetscReal >&   function,
-                                      const EdgeDoFFunction< PetscInt >&    numerator,
-                                      const std::shared_ptr< VectorProxy >& vec,
-                                      uint_t                                level,
-                                      DoFType                               flag )
-{
-   function.startCommunication< Vertex, Edge >( level );
-   function.endCommunication< Vertex, Edge >( level );
-
-   for ( auto& it : function.getStorage()->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if ( testFlag( edgeBC, flag ) )
-      {
-         edgedof::macroedge::createFunctionFromVector< PetscReal >(
-             level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
-      }
-   }
-
-   function.startCommunication< Edge, Face >( level );
-   function.endCommunication< Edge, Face >( level );
-
-   for ( auto& it : function.getStorage()->getFaces() )
-   {
-      Face& face = *it.second;
-
-      const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, flag ) )
-      {
-         edgedof::macroface::createFunctionFromVector< PetscReal >(
-             level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
-      }
-   }
-
-   for ( auto& it : function.getStorage()->getCells() )
-   {
-      Cell& cell = *it.second;
-
-      const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-      if ( testFlag( cellBC, flag ) )
-      {
-         edgedof::macrocell::createFunctionFromVector< PetscReal >(
-             level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
-      }
-   }
-}
-
-inline void applyDirichletBC( const EdgeDoFFunction< PetscInt >& numerator, std::vector< PetscInt >& mat, uint_t level )
-{
-   for ( auto& it : numerator.getStorage()->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = numerator.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if ( testFlag( edgeBC, DirichletBoundary ) )
-      {
-         edgedof::macroedge::applyDirichletBC( level, edge, mat, numerator.getEdgeDataID() );
-      }
-   }
-
-   for ( auto& it : numerator.getStorage()->getFaces() )
-   {
-      Face& face = *it.second;
-
-      const DoFType faceBC = numerator.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, DirichletBoundary ) )
-      {
-         edgedof::macroface::applyDirichletBC( level, face, mat, numerator.getFaceDataID() );
-      }
-   }
-}
-
 inline void saveEdgeOperator( const uint_t&                                              Level,
                               const Edge&                                                edge,
                               const PrimitiveDataID< StencilMemory< real_t >, Edge >&    operatorId,
@@ -622,6 +505,127 @@ inline void saveCellIdentityOperator( const uint_t&                             
    }
 }
 
+} // namespace edgedof
+
+namespace petsc {
+
+inline void createVectorFromFunction( const EdgeDoFFunction< PetscReal >&   function,
+                                      const EdgeDoFFunction< PetscInt >&    numerator,
+                                      const std::shared_ptr< VectorProxy >& vec,
+                                      uint_t                                level,
+                                      DoFType                               flag )
+{
+   for ( auto& it : function.getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if ( testFlag( edgeBC, flag ) )
+      {
+         edgedof::macroedge::createVectorFromFunction< PetscReal >(
+             level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
+      }
+   }
+
+   for ( auto& it : function.getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+      if ( testFlag( faceBC, flag ) )
+      {
+         edgedof::macroface::createVectorFromFunction< PetscReal >(
+             level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
+      }
+   }
+
+   for ( auto& it : function.getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+
+      const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+      if ( testFlag( cellBC, flag ) )
+      {
+         edgedof::macrocell::createVectorFromFunction< PetscReal >(
+             level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
+      }
+   }
+}
+
+inline void createFunctionFromVector( const EdgeDoFFunction< PetscReal >&   function,
+                                      const EdgeDoFFunction< PetscInt >&    numerator,
+                                      const std::shared_ptr< VectorProxy >& vec,
+                                      uint_t                                level,
+                                      DoFType                               flag )
+{
+   function.startCommunication< Vertex, Edge >( level );
+   function.endCommunication< Vertex, Edge >( level );
+
+   for ( auto& it : function.getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      const DoFType edgeBC = function.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if ( testFlag( edgeBC, flag ) )
+      {
+         edgedof::macroedge::createFunctionFromVector< PetscReal >(
+             level, edge, function.getEdgeDataID(), numerator.getEdgeDataID(), vec );
+      }
+   }
+
+   function.startCommunication< Edge, Face >( level );
+   function.endCommunication< Edge, Face >( level );
+
+   for ( auto& it : function.getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      const DoFType faceBC = function.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+      if ( testFlag( faceBC, flag ) )
+      {
+         edgedof::macroface::createFunctionFromVector< PetscReal >(
+             level, face, function.getFaceDataID(), numerator.getFaceDataID(), vec );
+      }
+   }
+
+   for ( auto& it : function.getStorage()->getCells() )
+   {
+      Cell& cell = *it.second;
+
+      const DoFType cellBC = function.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+      if ( testFlag( cellBC, flag ) )
+      {
+         edgedof::macrocell::createFunctionFromVector< PetscReal >(
+             level, cell, function.getCellDataID(), numerator.getCellDataID(), vec );
+      }
+   }
+}
+
+inline void applyDirichletBC( const EdgeDoFFunction< PetscInt >& numerator, std::vector< PetscInt >& mat, uint_t level )
+{
+   for ( auto& it : numerator.getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      const DoFType edgeBC = numerator.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if ( testFlag( edgeBC, DirichletBoundary ) )
+      {
+         edgedof::macroedge::applyDirichletBC( level, edge, mat, numerator.getEdgeDataID() );
+      }
+   }
+
+   for ( auto& it : numerator.getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      const DoFType faceBC = numerator.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+      if ( testFlag( faceBC, DirichletBoundary ) )
+      {
+         edgedof::macroface::applyDirichletBC( level, face, mat, numerator.getFaceDataID() );
+      }
+   }
+}
+
 template < class OperatorType >
 inline void createMatrix( const OperatorType&                         opr,
                           const EdgeDoFFunction< PetscInt >&          src,
@@ -641,11 +645,12 @@ inline void createMatrix( const OperatorType&                         opr,
       {
          if ( storage->hasGlobalCells() )
          {
-            saveEdgeOperator3D( level, edge, *storage, opr.getEdgeStencil3DID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
+            edgedof::saveEdgeOperator3D(
+                level, edge, *storage, opr.getEdgeStencil3DID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
          }
          else
          {
-            saveEdgeOperator( level, edge, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
+            edgedof::saveEdgeOperator( level, edge, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
          }
       }
    }
@@ -661,12 +666,12 @@ inline void createMatrix( const OperatorType&                         opr,
          {
             if ( storage->hasGlobalCells() )
             {
-               saveFaceOperator3D(
+               edgedof::saveFaceOperator3D(
                    level, face, *storage, opr.getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
             }
             else
             {
-               saveFaceOperator( level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+               edgedof::saveFaceOperator( level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
             }
          }
       }
@@ -678,7 +683,7 @@ inline void createMatrix( const OperatorType&                         opr,
          const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
          if ( testFlag( cellBC, flag ) )
          {
-            saveCellOperator( level, cell, opr.getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
+            edgedof::saveCellOperator( level, cell, opr.getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
          }
       }
    }
