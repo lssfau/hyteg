@@ -39,7 +39,7 @@ inline void createVectorFromFunction( const P2Function< PetscReal >&        func
                                       DoFType                               flag )
 {
    createVectorFromFunction( function.getVertexDoFFunction(), numerator.getVertexDoFFunction(), vec, level, flag );
-   edgedof::createVectorFromFunction( function.getEdgeDoFFunction(), numerator.getEdgeDoFFunction(), vec, level, flag );
+   createVectorFromFunction( function.getEdgeDoFFunction(), numerator.getEdgeDoFFunction(), vec, level, flag );
 }
 
 inline void createFunctionFromVector( const P2Function< PetscReal >&        function,
@@ -49,13 +49,13 @@ inline void createFunctionFromVector( const P2Function< PetscReal >&        func
                                       DoFType                               flag )
 {
    createFunctionFromVector( function.getVertexDoFFunction(), numerator.getVertexDoFFunction(), vec, level, flag );
-   edgedof::createFunctionFromVector( function.getEdgeDoFFunction(), numerator.getEdgeDoFFunction(), vec, level, flag );
+   createFunctionFromVector( function.getEdgeDoFFunction(), numerator.getEdgeDoFFunction(), vec, level, flag );
 }
 
 inline void applyDirichletBC( const P2Function< PetscInt >& numerator, std::vector< PetscInt >& mat, uint_t level )
 {
    applyDirichletBC( numerator.getVertexDoFFunction(), mat, level );
-   edgedof::applyDirichletBC( numerator.getEdgeDoFFunction(), mat, level );
+   applyDirichletBC( numerator.getEdgeDoFFunction(), mat, level );
 }
 
 template < class OperatorType >
@@ -67,11 +67,9 @@ inline void createMatrix( const OperatorType&                         opr,
                           DoFType                                     flag )
 {
    createMatrix( opr.getVertexToVertexOpr(), src.getVertexDoFFunction(), dst.getVertexDoFFunction(), mat, level, flag );
-   EdgeDoFToVertexDoF::createMatrix(
-       opr.getEdgeToVertexOpr(), src.getEdgeDoFFunction(), dst.getVertexDoFFunction(), mat, level, flag );
-   VertexDoFToEdgeDoF::createMatrix(
-       opr.getVertexToEdgeOpr(), src.getVertexDoFFunction(), dst.getEdgeDoFFunction(), mat, level, flag );
-   edgedof::createMatrix( opr.getEdgeToEdgeOpr(), src.getEdgeDoFFunction(), dst.getEdgeDoFFunction(), mat, level, flag );
+   createMatrix( opr.getEdgeToVertexOpr(), src.getEdgeDoFFunction(), dst.getVertexDoFFunction(), mat, level, flag );
+   createMatrix( opr.getVertexToEdgeOpr(), src.getVertexDoFFunction(), dst.getEdgeDoFFunction(), mat, level, flag );
+   createMatrix( opr.getEdgeToEdgeOpr(), src.getEdgeDoFFunction(), dst.getEdgeDoFFunction(), mat, level, flag );
 }
 
 } // namespace petsc

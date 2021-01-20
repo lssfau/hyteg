@@ -433,6 +433,10 @@ inline void
    }
 }
 
+} // namespace EdgeDoFToVertexDoF
+
+namespace petsc {
+
 template < class OperatorType >
 inline void createMatrix( const OperatorType&                         opr,
                           const EdgeDoFFunction< PetscInt >&          src,
@@ -452,12 +456,13 @@ inline void createMatrix( const OperatorType&                         opr,
       {
          if ( storage->hasGlobalCells() )
          {
-            saveVertexOperator3D(
+            EdgeDoFToVertexDoF::saveVertexOperator3D(
                 level, vertex, *storage, opr.getVertexStencil3DID(), src.getVertexDataID(), dst.getVertexDataID(), mat );
          }
          else
          {
-            saveVertexOperator( level, vertex, opr.getVertexStencilID(), src.getVertexDataID(), dst.getVertexDataID(), mat );
+            EdgeDoFToVertexDoF::saveVertexOperator(
+                level, vertex, opr.getVertexStencilID(), src.getVertexDataID(), dst.getVertexDataID(), mat );
          }
       }
    }
@@ -473,12 +478,13 @@ inline void createMatrix( const OperatorType&                         opr,
          {
             if ( storage->hasGlobalCells() )
             {
-               saveEdgeOperator3D(
+               EdgeDoFToVertexDoF::saveEdgeOperator3D(
                    level, edge, *storage, opr.getEdgeStencil3DID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
             }
             else
             {
-               saveEdgeOperator( level, edge, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
+               EdgeDoFToVertexDoF::saveEdgeOperator(
+                   level, edge, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
             }
          }
       }
@@ -495,12 +501,13 @@ inline void createMatrix( const OperatorType&                         opr,
          {
             if ( storage->hasGlobalCells() )
             {
-               saveFaceOperator3D(
+               EdgeDoFToVertexDoF::saveFaceOperator3D(
                    level, face, *storage, opr.getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
             }
             else
             {
-               saveFaceOperator( level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+               EdgeDoFToVertexDoF::saveFaceOperator(
+                   level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
             }
          }
       }
@@ -512,7 +519,8 @@ inline void createMatrix( const OperatorType&                         opr,
          const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
          if ( testFlag( cellBC, flag ) )
          {
-            saveCellOperator( level, cell, opr.getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
+            EdgeDoFToVertexDoF::saveCellOperator(
+                level, cell, opr.getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
          }
       }
    }
@@ -521,4 +529,5 @@ inline void createMatrix( const OperatorType&                         opr,
 #endif
 
 } // namespace EdgeDoFToVertexDoF
+
 } // namespace hyteg

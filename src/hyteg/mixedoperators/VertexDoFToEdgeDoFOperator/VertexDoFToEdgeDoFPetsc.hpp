@@ -345,6 +345,10 @@ inline void saveCellOperator( const uint_t&                                     
    }
 }
 
+} // namespace VertexDoFToEdgeDoF
+
+namespace petsc {
+
 template < class OperatorType >
 inline void createMatrix( const OperatorType&                         opr,
                           const P1Function< PetscInt >&               src,
@@ -364,11 +368,11 @@ inline void createMatrix( const OperatorType&                         opr,
       {
          if ( storage->hasGlobalCells() )
          {
-            saveEdgeOperator3D( level, edge, *storage, opr.getEdgeStencil3DID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
+            VertexDoFToEdgeDoF::saveEdgeOperator3D( level, edge, *storage, opr.getEdgeStencil3DID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
          }
          else
          {
-            saveEdgeOperator( level, edge, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
+            VertexDoFToEdgeDoF::saveEdgeOperator( level, edge, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
          }
       }
    }
@@ -384,12 +388,12 @@ inline void createMatrix( const OperatorType&                         opr,
          {
             if ( storage->hasGlobalCells() )
             {
-               saveFaceOperator3D(
+               VertexDoFToEdgeDoF::saveFaceOperator3D(
                    level, face, *storage, opr.getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
             }
             else
             {
-               saveFaceOperator( level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+               VertexDoFToEdgeDoF::saveFaceOperator( level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
             }
          }
       }
@@ -401,7 +405,7 @@ inline void createMatrix( const OperatorType&                         opr,
          const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
          if ( testFlag( cellBC, flag ) )
          {
-            saveCellOperator( level, cell, opr.getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
+            VertexDoFToEdgeDoF::saveCellOperator( level, cell, opr.getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
          }
       }
    }
