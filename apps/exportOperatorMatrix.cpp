@@ -55,7 +55,7 @@ using walberla::math::pi;
 using namespace hyteg;
 
 
-typedef enum { P1MASS, P1LAPLACE, P2MASS, P2LAPLACE, P2P1STOKES } operatorTag;
+typedef enum { P1MASS, P1LAPLACE, P2MASS, P2LAPLACE, P2P1STOKES, P2EDGEMASS } operatorTag;
 
 typedef struct {
   operatorTag oprEnum;
@@ -64,11 +64,12 @@ typedef struct {
 } oprInfo;
 
 std::map<std::string, oprInfo> oprMap = {
-  {  "P1Mass",     { P1MASS,     "MassOpP1",     false } },
-  {  "P1Diff",     { P1LAPLACE,  "DiffOpP1",     true  } },
-  {  "P2Mass",     { P2MASS,     "MassOpP2",     false } },
-  {  "P2Diff",     { P2LAPLACE,  "DiffOpP2",     true  } },
-  {  "P2P1Stokes", { P2P1STOKES, "StokesOpP2P1", true  } }
+  {  "P1Mass",     { P1MASS,     "MassOpP1",          false } },
+  {  "P1Diff",     { P1LAPLACE,  "DiffOpP1",          true  } },
+  {  "P2Mass",     { P2MASS,     "MassOpP2",          false } },
+  {  "P2Diff",     { P2LAPLACE,  "DiffOpP2",          true  } },
+  {  "P2P1Stokes", { P2P1STOKES, "StokesOpP2P1",      true  } },
+  {  "P2EdgeMass", { P2EDGEMASS, "MassOpP2_EdgeDoFs", false } }
 };
 
 
@@ -187,6 +188,15 @@ int main( int argc, char* argv[] ) {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Mass operator for P2 elements" );
       hyteg::P2ConstantMassOperator opr( storage, level, level );
       exportOperator< P2ConstantMassOperator >( opr, fileName, matName, storage, level, elim, symm, verb );
+    }
+    break;
+
+  case P2EDGEMASS:
+    {
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting Mass operator for P2 elements (EdgeDoFs only)" );
+      typedef EdgeDoFOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > > P2EdgeDoFMassOperator;
+      P2EdgeDoFMassOperator opr( storage, level, level );
+      exportOperator< P2EdgeDoFMassOperator >( opr, fileName, matName, storage, level, elim, symm, verb );
     }
     break;
 
