@@ -113,7 +113,7 @@ uint_t getEdgeDoFToVertexDoFCouplingsForFaceToCell( uint_t level )
 /// If you need different levels run the refCellCouplingCount app and add the values.
 uint_t getEdgeDoFToVertexDoFCouplingsForEdgeToCell( uint_t level, uint_t logicalEdgeID )
 {
-   std::array< std::array< uint_t, 6 >, 7 > edge2cell;
+   std::array< std::array< uint_t, 6 >, 8 > edge2cell;
    edge2cell[0] = {0, 0, 0, 0, 0, 0};
    edge2cell[1] = {1, 1, 1, 1, 1, 1};
    edge2cell[2] = {7, 15, 7, 7, 15, 7};
