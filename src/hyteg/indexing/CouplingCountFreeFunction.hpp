@@ -48,6 +48,7 @@ uint_t getNumberOfGlobalDoFCouplings( const opType& oper, uint_t level )
 
    typedef Operator< P1Function< real_t >, P1Function< real_t > > P1ScalarOp;
    typedef Operator< P2Function< real_t >, P2Function< real_t > > P2ScalarOp;
+   typedef Operator< EdgeDoFFunction< real_t >, EdgeDoFFunction< real_t > > EdgeDoFScalarOp;
 
    // Scalar P1 operators
    if ( dynamic_cast< const P1ScalarOp* >( &oper ) )
@@ -59,6 +60,12 @@ uint_t getNumberOfGlobalDoFCouplings( const opType& oper, uint_t level )
    else if ( dynamic_cast< const P2ScalarOp* >( &oper ) )
    {
       nCouplings = countLocalDoFCouplings< P2FunctionTag, P2FunctionTag >( oper.getStorage(), level );
+   }
+
+   // Scalar EdgeDoF operators
+   else if ( dynamic_cast< const EdgeDoFScalarOp* >( &oper ) )
+   {
+      nCouplings = countLocalDoFCouplings< EdgeDoFFunctionTag, EdgeDoFFunctionTag >( oper.getStorage(), level );
    }
 
    // P2-P1 Taylor-Hood pure Stokes variants
