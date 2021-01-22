@@ -23,12 +23,13 @@
 #include "core/math/Random.h"
 #include "core/mpi/MPIManager.h"
 
-#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
+#include "hyteg/edgedofspace/EdgeDoFPetsc.hpp"
 #include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/indexing/CouplingCountFreeFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1VectorToP1ScalarOperator.hpp"
@@ -105,8 +106,8 @@ int main( int argc, char* argv[] )
    // -------------------
    bool   beVerbose  = true;
    bool   run2DTests = true;
-   bool   run3DTests = false;
-   uint_t maxLevel   = 2;
+   bool   run3DTests = true;
+   uint_t maxLevel   = 3;
 
    // ----------------------------
    //  Prepare setup for 2D tests
@@ -134,6 +135,10 @@ int main( int argc, char* argv[] )
       compareCounts< P2ConstantMassOperator, P2Function >( storage, "P2-P2 Scalar Operator (2D mesh)", maxLevel, beVerbose );
       compareCounts< P2P1TaylorHoodStokesOperator, P2P1TaylorHoodFunction >(
           storage, "P2-P1 Taylor Hood Stokes (2D mesh)", maxLevel, beVerbose );
+
+      typedef EdgeDoFOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >
+          P2EdgeDoFMassOperator;
+      compareCounts< P2EdgeDoFMassOperator, EdgeDoFFunction >( storage, "EdgeDoF-EdgeDoF (2D mesh)", maxLevel, beVerbose );
    }
 
    // ----------------------------
@@ -142,10 +147,14 @@ int main( int argc, char* argv[] )
    if ( run3DTests )
    {
       // std::string           meshFileName = "../../data/meshes/3D/tet_tilted_1el.msh";
-      std::string           meshFileName = "../../data/meshes/3D/pyramid_2el.msh";
+      // std::string           meshFileName = "../../data/meshes/3D/pyramid_2el.msh";
+      // std::string           meshFileName = "../../data/meshes/3D/three_tets_with_two_joint_faces.msh";
       // std::string           meshFileName = "../../data/meshes/3D/pyramid_4el.msh";
-      MeshInfo              meshInfo     = MeshInfo::fromGmshFile( meshFileName );
+      std::string meshFileName = "../../data/meshes/3D/regular_octahedron_8el.msh";
+      // std::string           meshFileName = "../../data/meshes/3D/cube_4120el.msh";
+      MeshInfo              meshInfo = MeshInfo::fromGmshFile( meshFileName );
       SetupPrimitiveStorage setupStorage3D( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+      setupStorage3D.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
       loadbalancing::roundRobin( setupStorage3D );
       std::shared_ptr< PrimitiveStorage > storage3D = std::make_shared< PrimitiveStorage >( setupStorage3D );
 
@@ -154,11 +163,17 @@ int main( int argc, char* argv[] )
          WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------------------------------" );
          WALBERLA_LOG_INFO_ON_ROOT( " Primitives for 3D Tests                                " );
          WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------------------------------" );
+         WALBERLA_LOG_INFO_ON_ROOT( "Meshfile generated from '" << meshFileName << "'" );
          WALBERLA_LOG_INFO_ON_ROOT( "" << setupStorage3D );
       }
 
       // We start by simply using a P1-P1 operator
       compareCounts< P1ConstantMassOperator, P1Function >( storage3D, "P1-P1 (3D mesh)", maxLevel, beVerbose );
+
+      typedef EdgeDoFOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >
+          P2EdgeDoFMassOperator;
+      compareCounts< P2EdgeDoFMassOperator, EdgeDoFFunction >( storage3D, "E-E (3D mesh)", maxLevel, beVerbose );
+
       compareCounts< P2ConstantMassOperator, P2Function >( storage3D, "P2-P2 (3D mesh)", maxLevel, beVerbose );
    }
 

@@ -21,7 +21,6 @@
 #include "hyteg/indexing/CouplingCount.hpp"
 
 #include "hyteg/functions/FunctionProperties.hpp"
-// #include "hyteg/indexing/MacroEdgeIndexing.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/primitives/Edge.hpp"
@@ -293,6 +292,16 @@ uint_t countLocalDoFCouplings< EdgeDoFFunctionTag, EdgeDoFFunctionTag >( const s
    // ============
    else
    {
+#ifdef BROKEN_IMPLEMENTATION
+      // This attempt at a direct implementation only works for a single tetrahedron
+      // if the mesh contains more than one cell, the implementation gives
+      // factor * ( 2^lvl - 2 ) too few couplings, where the factor depends on the
+      // specific mesh in some (to me) unknown way.
+      //
+      // Decided to keep source code for the moment, because it is still nagging me
+      // that it does not work correctly. Also we can use it to compute the couplings
+      // for a mesh with a single tet.
+
       // -----------------------------------------------------------------------
       //  determine basic coupling numbers for a single cell as building blocks
       // -----------------------------------------------------------------------
@@ -312,16 +321,19 @@ uint_t countLocalDoFCouplings< EdgeDoFFunctionTag, EdgeDoFFunctionTag >( const s
       uint_t nFace2Cell = nCell2Face / 4 + 15 * ( ( 1ul << level ) - 1 );
       uint_t nFace2Face = nDoFsOnFace > 0 ? 5 * nDoFsOnFace - 3 * nDoFsOnEdge : 0;
       uint_t nFace2Edge = nDoFsOnFace > 0 ? 3 * ( 2 * nDoFsOnEdge - 2 ) : 0;
+      WALBERLA_LOG_INFO_ON_ROOT( "nFace2Cell = " << nFace2Cell );
+      WALBERLA_LOG_INFO_ON_ROOT( "nFace2Face = " << nFace2Face );
+      WALBERLA_LOG_INFO_ON_ROOT( "nFace2Edge = " << nFace2Edge );
 
       // EDGE
       // we include the couplings to faces and edges that are only connected to
-      // an edge by its vertices into nEdge2Cell (to avoid double counting)
+      // an edge by its vertices later
       uint_t nEdge2Cell = nCell2Edge / 6;
       uint_t nEdge2Face = nDoFsOnFace > 0 ? ( 2 * nDoFsOnEdge - 2 ) : 0;
       uint_t nEdge2Edge = nDoFsOnEdge;
-      // WALBERLA_LOG_INFO_ON_ROOT( "nEdge2Cell = " << nEdge2Cell );
-      // WALBERLA_LOG_INFO_ON_ROOT( "nEdge2Face = " << nEdge2Face );
-      // WALBERLA_LOG_INFO_ON_ROOT( "nEdge2Edge = " << nEdge2Edge );
+      WALBERLA_LOG_INFO_ON_ROOT( "nEdge2Cell = " << nEdge2Cell );
+      WALBERLA_LOG_INFO_ON_ROOT( "nEdge2Face = " << nEdge2Face );
+      WALBERLA_LOG_INFO_ON_ROOT( "nEdge2Edge = " << nEdge2Edge );
 
       // --------------------------------------------------
       //  now sum up couplings for the existing primitives
@@ -330,17 +342,19 @@ uint_t countLocalDoFCouplings< EdgeDoFFunctionTag, EdgeDoFFunctionTag >( const s
       // CELLS
       uint_t nCells = storage->getCellIDs().size();
       nCouplings += nCells * ( nCell2Cell + nCell2Face + nCell2Edge );
-      // WALBERLA_LOG_INFO_ON_ROOT( " --> nCouplings CELL (stop) = " << nCouplings );
+      WALBERLA_LOG_INFO_ON_ROOT( " --> nCouplings CELL (stop) = " << nCouplings );
 
       // FACES
+      uint_t crosscheck = nCouplings;
       for ( auto faceID : storage->getFaceIDs() )
       {
          const Face* face = storage->getFace( faceID );
          nCouplings += face->getNumNeighborCells() * nFace2Cell + nFace2Face + nFace2Edge;
       }
-      // WALBERLA_LOG_INFO_ON_ROOT( " --> nCouplings FACE (stop) = " << nCouplings );
+      WALBERLA_LOG_INFO_ON_ROOT( " --> nCouplings FACE (stop) = " << nCouplings - crosscheck );
 
       // EDGES
+      crosscheck = nCouplings;
       for ( auto edgeID : storage->getEdgeIDs() )
       {
          const Edge* edge = storage->getEdge( edgeID );
@@ -348,18 +362,72 @@ uint_t countLocalDoFCouplings< EdgeDoFFunctionTag, EdgeDoFFunctionTag >( const s
          nCouplings += edge->getNumNeighborFaces() * nEdge2Face;
          nCouplings += edge->getNumNeighborCells() * nEdge2Cell;
 
+         // WALBERLA_LOG_INFO_ON_ROOT( " --> edge->getNumNeighborFaces() = " << edge->getNumNeighborFaces() );
+
          // one extra coupling for each macro-edge that connects to this edge besides ourselves
          nCouplings += getEdgesAttachedToEdge( storage, edgeID ).size();
 
-         if( level == 0 ) {
-           nCouplings += 1 * edge->getNumNeighborCells();  // for opposite edge in cell
+         if ( level == 0 )
+         {
+            nCouplings += 1 * edge->getNumNeighborCells(); // for opposite edge in cell
          }
-         else {
-           nCouplings += 2 * edge->getNumNeighborCells();  // for two non-attached faces of each attached cell
+         else
+         {
+            nCouplings += 2 * edge->getNumNeighborCells(); // for two non-attached faces of each attached cell
          }
       }
 
-      // WALBERLA_LOG_INFO_ON_ROOT( " --> nCouplings EDGE (stop) = " << nCouplings );
+      WALBERLA_LOG_INFO_ON_ROOT( " --> nCouplings EDGE (stop) = " << nCouplings - crosscheck );
+
+#else
+
+      // IDEA: The idea of the implementation below is to assemble the coupling count from known pre-computed
+      //       and hard-coded quantities. These are the number of couplings for a single tetrahedron and
+      //       those of a single triangular face.
+      //       However, by doing so we remove too much, i.e. we remove the self-couplings for all EdgeDoFs
+      //       on edges fully inside the domain. So we need to re-add those.
+      //
+      //       Note that the numbers are hardcoded up to level 7. If you need different levels run this function
+      //       with the code above for a single cell mesh and for a single triangle and add the values.
+
+      nCouplings                                = 0;
+      std::array< uint_t, 8 > nCouplingsOneFace = {9, 33, 126, 492, 1944, 7728, 30816, 123072};
+      std::array< uint_t, 8 > nCouplingsOneCell = {36, 217, 1474, 10788, 82376, 643472, 5085984, 40441408};
+
+      if ( level > 7 )
+      {
+         WALBERLA_ABORT( "getEdgeDoFToVertexDoFCouplingsForCell: values for requested level not available!" );
+      }
+      else
+      {
+         // Sum up cell contributions
+         uint_t nCells = storage->getCellIDs().size();
+         nCouplings += nCells * nCouplingsOneCell[level];
+         // WALBERLA_LOG_INFO_ON_ROOT( " --> total couplings from CELLS = " << nCouplings );
+
+         // Subtract face contributions that are included twice
+         uint_t crosscheck = nCouplings;
+         for ( auto faceID : storage->getFaceIDs() )
+         {
+            const Face* face = storage->getFace( faceID );
+            nCouplings -= ( face->getNumNeighborCells() - 1 ) * nCouplingsOneFace[level];
+         }
+         // WALBERLA_LOG_INFO_ON_ROOT( " --> total FACE couplings counted twice = " << crosscheck - nCouplings );
+
+         // Re-add self-couplings on interior edges
+         crosscheck         = nCouplings;
+         uint_t nDoFsOnEdge = numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( level );
+         for ( auto edgeID : storage->getEdgeIDs() )
+         {
+            if ( !storage->onBoundary( edgeID ) )
+            {
+               nCouplings += nDoFsOnEdge;
+            }
+         }
+         // WALBERLA_LOG_INFO_ON_ROOT( " --> total EDGE couplings re-added = " << nCouplings - crosscheck );
+      }
+
+#endif
    }
 
    return nCouplings;
@@ -420,12 +488,9 @@ uint_t countLocalDoFCouplings< EdgeDoFFunctionTag, VertexDoFFunctionTag >( const
       uint_t nCells = storage->getCellIDs().size();
       nCouplings += nCellTotal * nCells;
       nCouplings += 4 * ( nFace2Lost + nFace2Cell ) * nCells;
-      // WALBERLA_LOG_INFO_ON_ROOT( " --> nCouplings Cell (stop) = " << nCouplings );
 
       // FACES
-      nCouplings += (nFace2Face + 3 * nFace2Edge) * storage->getFaceIDs().size();
-
-      // WALBERLA_LOG_INFO_ON_ROOT( " --> nCouplings Face (stop) = " << nCouplings );
+      nCouplings += ( nFace2Face + 3 * nFace2Edge ) * storage->getFaceIDs().size();
 
       // EDGES
 
@@ -441,7 +506,7 @@ uint_t countLocalDoFCouplings< EdgeDoFFunctionTag, VertexDoFFunctionTag >( const
 
             // one coupling for each macro-edge that connects to this edge besides ourself
             if ( level > 0 )
-              nCouplings += getEdgesAttachedToEdge( storage, edgeID ).size();
+               nCouplings += getEdgesAttachedToEdge( storage, edgeID ).size();
 
             for ( auto cellID : edge->neighborCells() )
             {
@@ -459,7 +524,6 @@ uint_t countLocalDoFCouplings< EdgeDoFFunctionTag, VertexDoFFunctionTag >( const
             }
          }
       }
-      // WALBERLA_LOG_INFO_ON_ROOT( " --> nCouplings Edges (stop) = " << nCouplings );
 
       // VERTICES
       for ( auto vtxID : storage->getVertexIDs() )
@@ -476,11 +540,7 @@ uint_t countLocalDoFCouplings< EdgeDoFFunctionTag, VertexDoFFunctionTag >( const
          }
          nCouplings += edgesInSupport.size();
       }
-      // WALBERLA_LOG_INFO_ON_ROOT( " --> nCouplings Vertex (stop) = " << nCouplings );
    }
-
-   // HACK
-   // nCouplings += level == 2 ? 3 : 0;    <-- so the error seems to be with V->E
 
    return nCouplings;
 }
@@ -490,11 +550,7 @@ uint_t countLocalDoFCouplings< P2FunctionTag, P2FunctionTag >( const std::shared
 {
    uint_t VV = countLocalDoFCouplings< P1FunctionTag, P1FunctionTag >( storage, level );
    uint_t EE = countLocalDoFCouplings< EdgeDoFFunctionTag, EdgeDoFFunctionTag >( storage, level );
-
-   WALBERLA_LOG_INFO_ON_ROOT( " V -> V = " << VV );
-   WALBERLA_LOG_INFO_ON_ROOT( " E -> E = " << EE );
    uint_t EV = countLocalDoFCouplings< EdgeDoFFunctionTag, VertexDoFFunctionTag >( storage, level );
-   WALBERLA_LOG_INFO_ON_ROOT( " E -> V = " << EV );
 
    return VV + EE + 2 * EV;
 }
@@ -545,7 +601,7 @@ uint_t countLocalDoFCouplings< P2FunctionTag, P1FunctionTag >( const std::shared
 
 // -------------------------------------------------------------------------------------------------------------------------------------
 // NOTE: Should we ever have 2D surface operators in 3D the implementations below might become a problem,
-//       as they equates dimension of the vector function with that of the mesh
+//       as they equate dimension of the vector function with that of the mesh
 template <>
 uint_t countLocalDoFCouplings< P1VectorFunctionTag, P1FunctionTag >( const std::shared_ptr< PrimitiveStorage >& storage,
                                                                      uint_t                                     level )
