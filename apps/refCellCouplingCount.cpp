@@ -272,11 +272,6 @@ uint_t getFaceCouplingsForFace( const uint_t&                                   
 
          for ( uint_t neighborCellID = 0; neighborCellID < face.getNumNeighborCells(); neighborCellID++ )
          {
-            const Cell&  neighborCell = *( storage.getCell( face.neighborCells().at( neighborCellID ) ) );
-            const uint_t localFaceID  = neighborCell.getLocalFaceID( face.getID() );
-
-            const auto centerIndexInCell =
-                edgedof::macroface::getIndexInNeighboringMacroCell( centerIndexInFace, face, neighborCellID, storage, level );
             const auto cellCenterOrientation =
                 edgedof::macroface::getOrientattionInNeighboringMacroCell( faceCenterOrientation, face, neighborCellID, storage );
 
@@ -284,33 +279,7 @@ uint_t getFaceCouplingsForFace( const uint_t&                                   
             {
                for ( const auto& stencilIt : opr_data[neighborCellID][cellCenterOrientation][leafOrientation] )
                {
-                  const auto stencilOffset = stencilIt.first;
-
-                  const auto leafOrientationInFace = edgedof::macrocell::getOrientattionInNeighboringMacroFace(
-                      leafOrientation, neighborCell, localFaceID, storage );
-
-                  const auto leafIndexInCell = centerIndexInCell + stencilOffset;
-                  const auto leafIndexInFace = leafOrientation == edgedof::EdgeDoFOrientation::XYZ ?
-                                                   edgedof::macrocell::getIndexInNeighboringMacroFaceXYZ(
-                                                       leafIndexInCell, neighborCell, localFaceID, storage, level ) :
-                                                   edgedof::macrocell::getIndexInNeighboringMacroFace(
-                                                       leafIndexInCell, neighborCell, localFaceID, storage, level );
-
-                  WALBERLA_ASSERT_LESS_EQUAL( leafIndexInFace.z(), 1 )
-
-                  uint_t leafArrayIndexInFace;
-                  if ( algorithms::contains( edgedof::faceLocalEdgeDoFOrientations, leafOrientationInFace ) &&
-                       leafIndexInFace.z() == 0 )
-                  {
-                     leafArrayIndexInFace =
-                         edgedof::macroface::index( level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientationInFace );
-                  }
-                  else
-                  {
-                     leafArrayIndexInFace = edgedof::macroface::index(
-                         level, leafIndexInFace.x(), leafIndexInFace.y(), leafOrientationInFace, neighborCellID );
-                  }
-
+                  WALBERLA_UNUSED( stencilIt );
                   numTotalCouplings++;
                }
             }
@@ -389,8 +358,6 @@ uint_t getEdgeCouplingsForEdge( const uint_t&                                   
 
                WALBERLA_ASSERT_EQUAL( onCellFacesSet.size(), onCellFacesSetOnEdge.size() )
 
-               uint_t leafArrayIndexOnEdge = std::numeric_limits< uint_t >::max();
-
                const auto cellLocalIDsOfNeighborFaces =
                    indexing::cellLocalEdgeIDsToCellLocalNeighborFaceIDs.at( cellLocalEdgeID );
                std::vector< uint_t > cellLocalIDsOfNeighborFacesWithLeafOnThem;
@@ -399,56 +366,6 @@ uint_t getEdgeCouplingsForEdge( const uint_t&                                   
                                       onCellFacesSet.begin(),
                                       onCellFacesSet.end(),
                                       std::back_inserter( cellLocalIDsOfNeighborFacesWithLeafOnThem ) );
-
-               if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 0 )
-               {
-                  // leaf in macro-cell
-                  leafArrayIndexOnEdge = edgedof::macroedge::indexOnNeighborCell(
-                      level, leafIndexOnEdge.x(), neighborCellID, edge.getNumNeighborFaces(), leafOrientationOnEdge );
-               }
-               else if ( cellLocalIDsOfNeighborFacesWithLeafOnThem.size() == 1 )
-               {
-                  // leaf on macro-face
-                  WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ) )
-
-                  const auto cellLocalFaceID = *cellLocalIDsOfNeighborFacesWithLeafOnThem.begin();
-                  const auto facePrimitiveID = neighborCell.neighborFaces().at( cellLocalFaceID );
-                  WALBERLA_ASSERT( std::find( edge.neighborFaces().begin(), edge.neighborFaces().end(), facePrimitiveID ) !=
-                                   edge.neighborFaces().end() )
-
-                  // The leaf orientation on the edge must be X, Y or XY since it is located on a neighboring face.
-                  // Therefore we need to know the three spanning vertex IDs and convert the leaf orientation again.
-                  const auto spanningCellLocalVertices = indexing::cellLocalFaceIDsToSpanningVertexIDs.at( cellLocalFaceID );
-                  std::array< uint_t, 4 > faceBasisInCell;
-                  if ( spanningCellLocalVertices.count( basisInCell.at( 2 ) ) == 1 )
-                  {
-                     faceBasisInCell = basisInCell;
-                  }
-                  else
-                  {
-                     WALBERLA_ASSERT( spanningCellLocalVertices.count( basisInCell.at( 3 ) ) == 1 );
-                     faceBasisInCell    = basisInCell;
-                     faceBasisInCell[2] = basisInCell.at( 3 );
-                     faceBasisInCell[3] = basisInCell.at( 2 );
-                  }
-
-                  const auto leafIndexOnEdgeGhostLayer = indexing::basisConversion(
-                      leafIndexInCell, {0, 1, 2, 3}, faceBasisInCell, levelinfo::num_microedges_per_edge( level ) );
-                  const auto leafOrientationOnEdgeGhostLayer = edgedof::convertEdgeDoFOrientationCellToFace(
-                      leafOrientationInCell, faceBasisInCell.at( 0 ), faceBasisInCell.at( 1 ), faceBasisInCell.at( 2 ) );
-
-                  const auto localFaceIDOnEdge = edge.face_index( facePrimitiveID );
-                  leafArrayIndexOnEdge         = edgedof::macroedge::indexOnNeighborFace(
-                      level, leafIndexOnEdgeGhostLayer.x(), localFaceIDOnEdge, leafOrientationOnEdgeGhostLayer );
-               }
-               else
-               {
-                  // leaf on macro-edge
-                  WALBERLA_ASSERT_EQUAL( cellLocalIDsOfNeighborFacesWithLeafOnThem.size(), 2 )
-                  WALBERLA_ASSERT( !edgedof::macrocell::isInnerEdgeDoF( level, leafIndexInCell, leafOrientationInCell ) )
-                  WALBERLA_ASSERT_EQUAL( leafOrientationOnEdge, edgedof::EdgeDoFOrientation::X )
-                  leafArrayIndexOnEdge = edgedof::macroedge::index( level, leafIndexOnEdge.x() );
-               }
                count++;
             }
          }
@@ -829,7 +746,7 @@ std::array<uint_t,3> getEdgeCouplingsForEdge(
 
    auto opr_data = edge.getData( operatorId )->getData( level );
 
-   uint_t cellLocalEdgeID;
+   uint_t cellLocalEdgeID = 0;
 
    for ( const auto& centerIndexOnEdge : hyteg::vertexdof::macroedge::Iterator( level, 1 ) )
    {

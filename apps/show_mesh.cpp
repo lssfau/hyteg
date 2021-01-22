@@ -232,7 +232,7 @@ int main( int argc, char* argv[] )
 
    bool reportDoFCount = false;
    uint_t dofLevel = 0;
-   for ( uint_t k = 0; k < argc-1; k++ )
+   for ( int k = 0; k < argc-1; k++ )
    {
       if ( strcmp( argv[k], "--dofs" ) == 0 )
       {
