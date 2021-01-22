@@ -591,10 +591,10 @@ uint_t countLocalDoFCouplings< P2FunctionTag, P1FunctionTag >( const std::shared
    // ============
    else
    {
-      WALBERLA_ABORT( "Mission a failure!" );
+      uint_t VV  = countLocalDoFCouplings< P1FunctionTag, P1FunctionTag >( storage, level );
+      uint_t EV  = countLocalDoFCouplings< EdgeDoFFunctionTag, VertexDoFFunctionTag >( storage, level );
+      nCouplings = VV + EV;
    }
-
-   WALBERLA_LOG_INFO_ON_ROOT( "p2 <-> p1 = " << nCouplings );
 
    return nCouplings;
 }

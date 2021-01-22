@@ -78,7 +78,6 @@ void compareCounts( std::shared_ptr< PrimitiveStorage > storage, std::string tag
 
       // setup operator
       opType oper( storage, level, level );
-      // uint_t nnzHyTeG = oper.getNumberOfGlobalDoFCouplings( level );
       uint_t nnzHyTeG = indexing::getNumberOfGlobalDoFCouplings( oper, level );
 
       // assemble matrix
@@ -169,12 +168,12 @@ int main( int argc, char* argv[] )
 
       // We start by simply using a P1-P1 operator
       compareCounts< P1ConstantMassOperator, P1Function >( storage3D, "P1-P1 (3D mesh)", maxLevel, beVerbose );
-
       typedef EdgeDoFOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >
           P2EdgeDoFMassOperator;
       compareCounts< P2EdgeDoFMassOperator, EdgeDoFFunction >( storage3D, "E-E (3D mesh)", maxLevel, beVerbose );
-
       compareCounts< P2ConstantMassOperator, P2Function >( storage3D, "P2-P2 (3D mesh)", maxLevel, beVerbose );
+      compareCounts< P2P1TaylorHoodStokesOperator, P2P1TaylorHoodFunction >(
+          storage3D, "P2-P1 Taylor Hood Stokes (3D mesh)", maxLevel, beVerbose );
    }
 
    return 0;
