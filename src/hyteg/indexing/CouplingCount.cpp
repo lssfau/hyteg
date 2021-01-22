@@ -345,7 +345,7 @@ uint_t countLocalDoFCouplings< EdgeDoFFunctionTag, EdgeDoFFunctionTag >( const s
       WALBERLA_LOG_INFO_ON_ROOT( " --> nCouplings CELL (stop) = " << nCouplings );
 
       // FACES
-      uint_t crosscheck = nCouplings;
+      // uint_t crosscheck = nCouplings;
       for ( auto faceID : storage->getFaceIDs() )
       {
          const Face* face = storage->getFace( faceID );
@@ -354,7 +354,7 @@ uint_t countLocalDoFCouplings< EdgeDoFFunctionTag, EdgeDoFFunctionTag >( const s
       WALBERLA_LOG_INFO_ON_ROOT( " --> nCouplings FACE (stop) = " << nCouplings - crosscheck );
 
       // EDGES
-      crosscheck = nCouplings;
+      // crosscheck = nCouplings;
       for ( auto edgeID : storage->getEdgeIDs() )
       {
          const Edge* edge = storage->getEdge( edgeID );
@@ -406,7 +406,7 @@ uint_t countLocalDoFCouplings< EdgeDoFFunctionTag, EdgeDoFFunctionTag >( const s
          // WALBERLA_LOG_INFO_ON_ROOT( " --> total couplings from CELLS = " << nCouplings );
 
          // Subtract face contributions that are included twice
-         uint_t crosscheck = nCouplings;
+         // uint_t crosscheck = nCouplings;
          for ( auto faceID : storage->getFaceIDs() )
          {
             const Face* face = storage->getFace( faceID );
@@ -415,7 +415,7 @@ uint_t countLocalDoFCouplings< EdgeDoFFunctionTag, EdgeDoFFunctionTag >( const s
          // WALBERLA_LOG_INFO_ON_ROOT( " --> total FACE couplings counted twice = " << crosscheck - nCouplings );
 
          // Re-add self-couplings on interior edges
-         crosscheck         = nCouplings;
+         // crosscheck         = nCouplings;
          uint_t nDoFsOnEdge = numberOfInnerDoFs< EdgeDoFFunctionTag, Edge >( level );
          for ( auto edgeID : storage->getEdgeIDs() )
          {
