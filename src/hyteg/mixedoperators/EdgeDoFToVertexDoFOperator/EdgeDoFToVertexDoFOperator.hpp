@@ -22,6 +22,7 @@
 #include "hyteg/Operator.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
+#include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
 #include "hyteg/memory/LevelWiseMemory.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -257,11 +258,16 @@ typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< hyteg::fenics::NoAssemble, hyt
 typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_div_cell_integral_0_otherwise > > EdgeToVertexDivxOperator;
 typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< p2_div_cell_integral_1_otherwise > > EdgeToVertexDivyOperator;
 
-typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise > >
+typedef EdgeDoFToVertexDoFOperator<
+    P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, p2_to_p1_tet_div_tet_cell_integral_0_otherwise > >
     P2ToP1DivxEdgeToVertexOperator;
-typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise > >
+
+typedef EdgeDoFToVertexDoFOperator<
+    P2ToP1FenicsForm< p2_to_p1_div_cell_integral_1_otherwise, p2_to_p1_tet_div_tet_cell_integral_1_otherwise > >
     P2ToP1DivyEdgeToVertexOperator;
-typedef EdgeDoFToVertexDoFOperator< P2FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise > >
+
+typedef EdgeDoFToVertexDoFOperator<
+    P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise > >
     P2ToP1DivzEdgeToVertexOperator;
 
 } // namespace hyteg

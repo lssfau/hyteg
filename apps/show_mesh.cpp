@@ -23,6 +23,7 @@
 #include "core/timing/Timer.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -67,6 +68,7 @@ void showUsage()
              << " The desired load balancing approach can be steered by:\n\n"
              << "  --load-balancing [allroot|roundrobin|roundrobinvolume|greedy|parmetis|diffusivecluster] (default: roundrobin)\n\n"
              << " Use  -v  to print info on mesh to console.\n\n"
+             << " Use  --dofs <lvl>  to print number of DoFs on refinement level lvl.\n\n"
              << std::endl;
 }
 
@@ -108,7 +110,7 @@ int main( int argc, char* argv[] )
    } LoadBalancingType;
    LoadBalancingType loadBalancingType = ROUND_ROBIN;
 
-   if( argc < 3 || argc > 6 )
+   if( argc < 3 || argc > 8 )
    {
       showUsage();
       WALBERLA_ABORT( "Please provide command-line parameters!" );
@@ -226,6 +228,21 @@ int main( int argc, char* argv[] )
    if( ( argc == 4 || argc == 6 ) && ( strcmp( argv[3], "-v" ) == 0 || strcmp( argv[5], "-v" ) == 0 ) )
    {
       beVerbose = true;
+   }
+
+   bool reportDoFCount = false;
+   uint_t dofLevel = 0;
+   for ( int k = 0; k < argc-1; k++ )
+   {
+      if ( strcmp( argv[k], "--dofs" ) == 0 )
+      {
+        reportDoFCount = true;
+        dofLevel = (uint_t)atoi( argv[k+1] );
+      }
+   }
+   if ( strcmp( argv[argc - 1], "--dofs" ) == 0 )
+   {
+      WALBERLA_ABORT( "You need to give a level after '--dofs'" );
    }
 
    // ------------
@@ -411,6 +428,18 @@ int main( int argc, char* argv[] )
    vtkOutput.add( someData );
    WALBERLA_LOG_INFO_ON_ROOT( "Output goes to file with basename: " << vtkFileName );
    vtkOutput.write( outLevel );
+
+   // -------------------
+   //  Report DoF Counts
+   // -------------------
+   if( reportDoFCount ) {
+     uint_t vDoFs = numberOfGlobalDoFs< VertexDoFFunctionTag >( *storage, dofLevel );
+     uint_t eDoFs = numberOfGlobalDoFs< EdgeDoFFunctionTag >( *storage, dofLevel );
+     WALBERLA_LOG_INFO_ON_ROOT( "\nDOF INFO:" );
+     WALBERLA_LOG_INFO_ON_ROOT( "level ............ " << dofLevel );
+     WALBERLA_LOG_INFO_ON_ROOT( "# vertex DoFs .... " << vDoFs );
+     WALBERLA_LOG_INFO_ON_ROOT( "# edge DoFs ...... " << eDoFs );
+   }
 
    delete meshInfo;
    delete setupStorage;

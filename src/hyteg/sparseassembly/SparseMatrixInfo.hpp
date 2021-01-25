@@ -26,10 +26,11 @@ namespace hyteg {
 
 /// \brief This class provides generic access to information on a sparse matrix
 ///
-/// The information on the sparse matrix must be provided by the underlying sparse matrix library
-/// by implementing a corresponding child class.
+/// The information on the sparse matrix must be provided by the underlying
+/// sparse matrix library by implementing a corresponding child class.
 class SparseMatrixInfo
 {
+  virtual uint_t getNNZ() const = 0;
 };
 
 } // namespace hyteg

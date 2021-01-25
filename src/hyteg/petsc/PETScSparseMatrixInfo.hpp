@@ -35,6 +35,9 @@ class PETScSparseMatrixInfo : public SparseMatrixInfo
    PETScSparseMatrixInfo( MatInfo info )
    : info_( info ){};
 
+   /// returns the number of (used) non-zero entries in the matrix
+   uint_t getNNZ() const final { return info_.nz_used; };
+
    friend std::ostream& operator<<( std::ostream& os, const PETScSparseMatrixInfo& matInfo );
 
  private:
