@@ -64,59 +64,6 @@ const P1Element elementNE = {{SD::VERTEX_C, SD::VERTEX_E, SD::VERTEX_N}};
 const P1Element elementN = {{SD::VERTEX_C, SD::VERTEX_N, SD::VERTEX_NW}};
 const P1Element elementNW = {{SD::VERTEX_C, SD::VERTEX_NW, SD::VERTEX_W}};
 
-#if 0
-// ordered
-const P1Element elementSWOrd = {{SD::VERTEX_C, SD::VERTEX_W, SD::VERTEX_S}};
-const P1Element elementSOrd = {{SD::VERTEX_S, SD::VERTEX_SE, SD::VERTEX_C}};
-const P1Element elementSEOrd = {{SD::VERTEX_E, SD::VERTEX_C, SD::VERTEX_SE}};
-const P1Element elementNEOrd = {{SD::VERTEX_C, SD::VERTEX_E, SD::VERTEX_N}};
-const P1Element elementNOrd = {{SD::VERTEX_N, SD::VERTEX_NW, SD::VERTEX_C}};
-const P1Element elementNWOrd = {{SD::VERTEX_W, SD::VERTEX_C, SD::VERTEX_NW}};
-
-static const std::array<P1Element, 3> P1GrayElements =
-{{
- elementS,
- elementNE,
- elementNW
- }};
-
-static const std::array<P1Element, 3> P1BlueElements =
-{{
- elementSW,
- elementSE,
- elementN
- }};
-
-static const std::array<StencilMap, 3> P1GrayStencilMaps =
-{{
- {{vertexdof::stencilIndexFromVertex(elementS[0]), vertexdof::stencilIndexFromVertex(elementS[1]), vertexdof::stencilIndexFromVertex(elementS[2])}},
- {{vertexdof::stencilIndexFromVertex(elementNE[0]), vertexdof::stencilIndexFromVertex(elementNE[1]), vertexdof::stencilIndexFromVertex(elementNE[2])}},
- {{vertexdof::stencilIndexFromVertex(elementNW[0]), vertexdof::stencilIndexFromVertex(elementNW[1]), vertexdof::stencilIndexFromVertex(elementNW[2])}}
- }};
-
-static const std::array<StencilMap, 3> P1BlueStencilMaps =
-{{
- {{vertexdof::stencilIndexFromVertex(elementSW[0]), vertexdof::stencilIndexFromVertex(elementSW[1]), vertexdof::stencilIndexFromVertex(elementSW[2])}},
- {{vertexdof::stencilIndexFromVertex(elementSE[0]), vertexdof::stencilIndexFromVertex(elementSE[1]), vertexdof::stencilIndexFromVertex(elementSE[2])}},
- {{vertexdof::stencilIndexFromVertex(elementN[0]), vertexdof::stencilIndexFromVertex(elementN[1]), vertexdof::stencilIndexFromVertex(elementN[2])}}
- }};
-
-static const std::array<DoFMap, 3> P1GrayDoFMaps =
-{{
- {{2, 0, 1}},
- {{0, 1, 2}},
- {{1, 2, 0}}
- }};
-
-
-static const std::array<DoFMap, 3> P1BlueDoFMaps =
-{{
- {{0, 1, 2}},
- {{1, 2, 0}},
- {{2, 0, 1}}
- }};
-#endif
-
 inline StencilMap convertStencilDirectionsToIndices( const P1Element & element )
 {
   return {{ vertexdof::stencilIndexFromVertex( element[0] ), vertexdof::stencilIndexFromVertex( element[1] ), vertexdof::stencilIndexFromVertex( element[2] ) }};
@@ -131,10 +78,6 @@ inline void assembleP1LocalStencil(const StencilMap &stencilMap, const DoFMap &d
 }
 
 }
-
-
-
-
 
 namespace P1Elements3D {
 
@@ -668,28 +611,30 @@ inline std::vector< real_t > assembleP1LocalStencil( const std::shared_ptr< Prim
         const auto facePrimitiveID = macroCell->neighborFaces()[localFaceIDInCell];
         // To get the correct indexing basis, we check which one results in a zero entry in the z coordinate.
         const auto firstTestIndexingBasis  = indexingBasis;
-        const auto secondTestIndexingBasis = std::array< uint_t, 4 >({ indexingBasis[0], indexingBasis[1], indexingBasis[3], indexingBasis[2] });
+        const std::array< uint_t, 4 > secondTestIndexingBasis = { indexingBasis[0], indexingBasis[1], indexingBasis[3], indexingBasis[2] };
         const auto edgeLocalIndexInDirFirst  = indexing::basisConversion( cellLocalIndexInDir, { 0, 1, 2, 3 }, firstTestIndexingBasis, levelinfo::num_microvertices_per_edge ( level ) );
         const auto edgeLocalIndexInDirSecond = indexing::basisConversion( cellLocalIndexInDir, { 0, 1, 2, 3 }, secondTestIndexingBasis, levelinfo::num_microvertices_per_edge ( level ) );
         WALBERLA_ASSERT_UNEQUAL( edgeLocalIndexInDirFirst.z(), edgeLocalIndexInDirSecond.z() );
         WALBERLA_ASSERT( edgeLocalIndexInDirFirst.z() == 0 || edgeLocalIndexInDirSecond.z() == 0 );
-        const auto faceLocalIndexInDir = edgeLocalIndexInDirFirst.z() == 0 ? edgeLocalIndexInDirFirst : edgeLocalIndexInDirSecond;
+        const hyteg::indexing::Index faceLocalIndexInDir = edgeLocalIndexInDirFirst.z() == 0 ? edgeLocalIndexInDirFirst : edgeLocalIndexInDirSecond;
         WALBERLA_ASSERT_EQUAL( faceLocalIndexInDir.y(), 1 );
-        const auto faceLocalStencilDirection = [ microVertexIndex, faceLocalIndexInDir ]
+        stencilDirection faceLocalStencilDirection;
+
+        const auto xOffset = static_cast< int >( faceLocalIndexInDir.x() ) - static_cast< int >( microVertexIndex.x() );
+        if ( xOffset == 0 )
         {
-            const auto xOffset = static_cast< int >( faceLocalIndexInDir.x() ) - static_cast< int >( microVertexIndex.x() );
-            switch ( xOffset )
-            {
-              case 0:
-                return sd::VERTEX_E;
-              case -1:
-                return sd::VERTEX_W;
-              default:
-              WALBERLA_ASSERT( false, "[P1Elements][Edge] Invalid offsets" );
-                return sd::VERTEX_C;
-            }
-        }();
-        stencil[ vertexdof::macroedge::stencilIndexOnNeighborFace( faceLocalStencilDirection, edge.face_index( facePrimitiveID ) ) ] += stencilWeight;
+           faceLocalStencilDirection = sd::VERTEX_E;
+        }
+        else if ( xOffset == -1 )
+        {
+           faceLocalStencilDirection = sd::VERTEX_W;
+        }
+        else
+        {
+           WALBERLA_ABORT( "[P1Elements][Edge] Invalid offsets" );
+        }
+        stencil[vertexdof::macroedge::stencilIndexOnNeighborFace( faceLocalStencilDirection,
+                                                                  edge.face_index( facePrimitiveID ) )] += stencilWeight;
       }
       else if ( intersectingFaces.size() == 0 )
       {
