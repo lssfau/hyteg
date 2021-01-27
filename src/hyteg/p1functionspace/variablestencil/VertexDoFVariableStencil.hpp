@@ -21,7 +21,6 @@
 
 #include "core/debug/all.h"
 
-// #include "hyteg/dgfunctionspace/DGFaceIndex.hpp"
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/Macros.hpp"
 #include "hyteg/p1functionspace/P1Elements.hpp"
@@ -142,8 +141,6 @@ inline void smoothGSVariableStencil(uint_t Level,
                                     const PrimitiveDataID<FunctionMemory<ValueType>, Face> &dstId,
                                     const PrimitiveDataID<FunctionMemory<ValueType>, Face> &rhsId)
 {
-   typedef stencilDirection SD;
-
    uint_t rowsize       = levelinfo::num_microvertices_per_edge( Level );
    uint_t inner_rowsize = rowsize;
 

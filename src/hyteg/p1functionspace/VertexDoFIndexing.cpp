@@ -136,7 +136,7 @@ uint_t stencilIndexOnEdge( const stencilDirection& dir )
    }
 }
 
-uint_t stencilIndexOnNeighborFace( const stencilDirection& dir, const uint_t& faceID )
+uint_t stencilIndexOnNeighborFace( const stencilDirection dir, const uint_t faceID )
 {
    typedef stencilDirection sD;
    WALBERLA_ASSERT( dir == sD::VERTEX_W || dir == sD::VERTEX_E );
