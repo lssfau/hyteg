@@ -190,8 +190,9 @@ waLBerla_compile_test(FILES Indexing/EdgeDoFOrientationConversionTest.cpp DEPEND
 waLBerla_execute_test(NAME EdgeDoFOrientationConversionTest)
 
 if( HYTEG_BUILD_WITH_PETSC )
-waLBerla_compile_test(FILES Indexing/CouplingCountTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME CouplingCountTest)
+  waLBerla_compile_test(FILES Indexing/CouplingCountTest.cpp DEPENDS hyteg core)
+  waLBerla_execute_test(NAME CouplingCountTest COMMAND $<TARGET_FILE:CouplingCountTest> )
+  waLBerla_execute_test(NAME ParallelCouplingCountTest3 COMMAND $<TARGET_FILE:CouplingCountTest> PROCESSES 3 )
 endif()
 
 #if(CMAKE_BUILD_TYPE MATCHES "Release")
