@@ -390,9 +390,9 @@ void solve( MeshInfo&               meshInfo,
       auto tsVelocityCurrent = lagrangeIntervalLength * lagrangeIntervalIdx + (lagrangeIntervalLength - lagrangeIntervalInnerIdx) - 1;
       auto tsVelocityNext = lagrangeIntervalLength * lagrangeIntervalIdx + (lagrangeIntervalLength - lagrangeIntervalInnerIdx);
 
-      velocityX.setTime( startTimeX + dt * tsVelocityCurrent );
-      velocityY.setTime( startTimeY + dt * tsVelocityCurrent );
-      velocityZ.setTime( startTimeZ + dt * tsVelocityCurrent );
+      velocityX.setTime( startTimeX + dt * real_c(tsVelocityCurrent) );
+      velocityY.setTime( startTimeY + dt * real_c(tsVelocityCurrent) );
+      velocityZ.setTime( startTimeZ + dt * real_c(tsVelocityCurrent) );
 
       uLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
       vLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
@@ -401,9 +401,9 @@ void solve( MeshInfo&               meshInfo,
          wLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityZ ) ), level );
       }
 
-      velocityX.setTime( startTimeX + dt * tsVelocityNext );
-      velocityY.setTime( startTimeY + dt * tsVelocityNext );
-      velocityZ.setTime( startTimeZ + dt * tsVelocityNext );
+      velocityX.setTime( startTimeX + dt * real_c(tsVelocityNext) );
+      velocityY.setTime( startTimeY + dt * real_c(tsVelocityNext) );
+      velocityZ.setTime( startTimeZ + dt * real_c(tsVelocityNext) );
 
       u.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
       v.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
