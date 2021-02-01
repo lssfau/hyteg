@@ -142,6 +142,10 @@ class Solution
    /// Increments the current time by dt.
    void incTime( real_t dt ) { currentTime_ += dt; };
 
+   void setTime( real_t currentTime ) { currentTime_ = currentTime; }
+
+   real_t currentTime() const { return currentTime_; }
+
  protected:
    real_t currentTime_;
 };
