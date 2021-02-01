@@ -136,7 +136,7 @@ void solve( MeshInfo&               meshInfo,
 
    if ( !resetParticles )
    {
-      resetParticlesInterval = numTimeSteps + 1;
+      resetParticlesInterval = numTimeSteps;
    }
 
    const bool forcedParticleReset = adjustedAdvection || enableDiffusion;
@@ -367,6 +367,10 @@ void solve( MeshInfo&               meshInfo,
 
    timer->stop( "Setup" );
 
+   auto startTimeX = velocityX.currentTime();
+   auto startTimeY = velocityY.currentTime();
+   auto startTimeZ = velocityZ.currentTime();
+
    for ( uint_t i = 1; i <= numTimeSteps; i++ )
    {
       timer->start( "Simulation" );
@@ -377,15 +381,30 @@ void solve( MeshInfo&               meshInfo,
       if ( verbose )
          WALBERLA_LOG_INFO_ON_ROOT( "interpolating velocity" )
 
+      // To implement re-init intervals > 1 for time dependent velocity fields, we need to
+      // reverse the the velocity field over the period in which the solution is transported
+      // in the Lagrangian domain.
+      auto lagrangeIntervalLength = resetParticlesInterval;
+      auto lagrangeIntervalIdx = (i - 1) / lagrangeIntervalLength;
+      auto lagrangeIntervalInnerIdx = (i - 1) % lagrangeIntervalLength;
+      auto tsVelocityCurrent = lagrangeIntervalLength * lagrangeIntervalIdx + (lagrangeIntervalLength - lagrangeIntervalInnerIdx) - 1;
+      auto tsVelocityNext = lagrangeIntervalLength * lagrangeIntervalIdx + (lagrangeIntervalLength - lagrangeIntervalInnerIdx);
+
+      velocityX.setTime( startTimeX + dt * real_c(tsVelocityCurrent) );
+      velocityY.setTime( startTimeY + dt * real_c(tsVelocityCurrent) );
+      velocityZ.setTime( startTimeZ + dt * real_c(tsVelocityCurrent) );
+
       uLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
       vLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
       if ( storage->hasGlobalCells() )
       {
          wLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityZ ) ), level );
       }
-      velocityX.incTime( dt );
-      velocityY.incTime( dt );
-      velocityZ.incTime( dt );
+
+      velocityX.setTime( startTimeX + dt * real_c(tsVelocityNext) );
+      velocityY.setTime( startTimeY + dt * real_c(tsVelocityNext) );
+      velocityZ.setTime( startTimeZ + dt * real_c(tsVelocityNext) );
+
       u.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
       v.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
       if ( storage->hasGlobalCells() )
@@ -450,7 +469,7 @@ void solve( MeshInfo&               meshInfo,
                          Inner,
                          dt,
                          1,
-                         i == 1 || ( resetParticles && i % resetParticlesInterval == 0 ),
+                         i == 1 || ( resetParticles && (i-1) % resetParticlesInterval == 0 ),
                          globalMaxLimiter,
                          setParticlesOutsideDomainToZero );
          localTimer.end();
