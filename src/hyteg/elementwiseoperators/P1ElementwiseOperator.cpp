@@ -735,4 +735,7 @@ template class P1ElementwiseOperator< P1Form_laplace >;
 // Needed for P1Blending(Inverse)DiagonalOperator
 template class P1ElementwiseOperator< P1RowSumForm >;
 
+template class P1ElementwiseOperator< P1DivKGradAffine >;
+
+
 } // namespace hyteg

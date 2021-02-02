@@ -979,4 +979,7 @@ template class P2ElementwiseOperator< P2LinearCombinationForm >;
 // Needed for P2Blending(Inverse)DiagonalOperator
 template class P2ElementwiseOperator< P2RowSumForm >;
 
+template class P2ElementwiseOperator< P2DivKGradAffine >;
+
+
 } // namespace hyteg

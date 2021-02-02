@@ -88,6 +88,11 @@ waLBerla_compile_test(FILES convergence/P2ElementwiseCGConvergenceTest.cpp DEPEN
 waLBerla_execute_test(NAME P2ElementwiseCGConvergenceTest)
 waLBerla_execute_test(NAME P2ElementwiseCGConvergenceTestMPI COMMAND $<TARGET_FILE:P2ElementwiseCGConvergenceTest> PROCESSES 2 )
 
+waLBerla_compile_test(FILES convergence/ElementwiseDivKGradCGConvergenceTest.cpp DEPENDS hyteg core)
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+  waLBerla_execute_test(NAME ElementwiseDivKGradCGConvergenceTest)
+endif()
+
 waLBerla_compile_test(FILES convergence/P2SmoothConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2SmoothConvergenceTest)
 

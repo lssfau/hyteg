@@ -25,6 +25,7 @@
 #include "hyteg/forms/form_fenics_generated/p1_polar_laplacian.h"
 #include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/P1DivKGradAffine.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
 #include "hyteg/forms/P1LinearCombinationForm.hpp"
 #include "hyteg/p1functionspace/P1Elements.hpp"
@@ -220,5 +221,7 @@ typedef P1ElementwiseOperator< P1Form_mass >   P1ElementwiseBlendingMassOperator
 typedef P1ElementwiseOperator< P1Form_mass3D > P1ElementwiseBlendingMassOperator3D;
 
 typedef P1ElementwiseOperator< P1Form_laplace > P1ElementwiseBlendingLaplaceOperator;
+
+typedef P1ElementwiseOperator< P1DivKGradAffine > P1ElementwiseAffineDivKGradOperator;
 
 } // namespace hyteg
