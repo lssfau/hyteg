@@ -29,7 +29,7 @@
 namespace hyteg {
 
 template < typename ValueType >
-class P1VectorFunction_AltKind : public CSFVectorFunction< ValueType >
+class P1VectorFunction_AltKind : public CSFVectorFunction< P1Function< ValueType > >
 {
  public:
    using valueType = ValueType;
@@ -44,19 +44,19 @@ class P1VectorFunction_AltKind : public CSFVectorFunction< ValueType >
                              const std::shared_ptr< PrimitiveStorage >& storage,
                              size_t                                     minLevel,
                              size_t                                     maxLevel )
-   : CSFVectorFunction< ValueType >( _name )
+   : CSFVectorFunction< P1Function< ValueType > >( _name )
    {
-     this->compFunc_.clear();
-     this->compFunc_.push_back( std::make_shared< P1Function< ValueType > >( _name + "_u", storage, minLevel, maxLevel ) );
-     this->compFunc_.push_back( std::make_shared< P1Function< ValueType > >( _name + "_v", storage, minLevel, maxLevel ) );
-   
-     if( storage->hasGlobalCells() ) {
-       this->compFunc_.push_back( std::make_shared< P1Function< ValueType > >( _name + "_w", storage, minLevel, maxLevel ) );
-     }
+      this->compFunc_.clear();
+      this->compFunc_.push_back( std::make_shared< P1Function< ValueType > >( _name + "_u", storage, minLevel, maxLevel ) );
+      this->compFunc_.push_back( std::make_shared< P1Function< ValueType > >( _name + "_v", storage, minLevel, maxLevel ) );
+
+      if ( storage->hasGlobalCells() )
+      {
+         this->compFunc_.push_back( std::make_shared< P1Function< ValueType > >( _name + "_w", storage, minLevel, maxLevel ) );
+      }
    }
 
    bool isDummy() const { return false; }
-
 };
 
 } // namespace hyteg

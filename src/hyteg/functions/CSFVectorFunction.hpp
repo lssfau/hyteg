@@ -34,10 +34,16 @@ using walberla::uint_t;
 /// This is the base class for all function classes in HyTeG representing vector fileds
 /// which have scalar component functions, i.e. where the VectorClass is basically a
 /// Container for Scalar Functions (CSF)
-template < typename ValueType >
+template < typename FunctionType >
 class CSFVectorFunction : public GenericFunction
 {
  public:
+
+   typedef typename FunctionTrait< FunctionType >::Tag       Tag;
+   typedef typename FunctionTrait< FunctionType >::ValueType valueType;
+
+   using VectorComponentType = FunctionType;
+
    CSFVectorFunction( const std::string name )
    : functionName_( name )
    {}
@@ -52,26 +58,26 @@ class CSFVectorFunction : public GenericFunction
    /// @name Component access
    /// Methods for component function access
    /// @{
-   Function< ValueType >& component( uint_t idx )
+   FunctionType& component( uint_t idx )
    {
       WALBERLA_ASSERT_LESS( idx, compFunc_.size() );
       return *( compFunc_[idx] );
    }
 
-   const Function< ValueType >& component( uint_t idx ) const
+   const FunctionType& component( uint_t idx ) const
    {
       WALBERLA_ASSERT_LESS( idx, compFunc_.size() );
       return *( compFunc_[idx] );
    }
 
-   Function< ValueType >& operator[]( uint_t idx ) { return component( idx ); }
+   FunctionType& operator[]( uint_t idx ) { return component( idx ); }
 
-   const Function< ValueType >& operator[]( uint_t idx ) const { return component( idx ); }
+   const FunctionType& operator[]( uint_t idx ) const { return component( idx ); }
    /// @}
 
-   void multElementwise( const std::vector< std::reference_wrapper< const CSFVectorFunction< ValueType > > >& functions,
-                         uint_t                                                                               level,
-                         DoFType                                                                              flag = All ) const
+   void multElementwise( const std::vector < std::reference_wrapper< const CSFVectorFunction< FunctionType > > >& functions,
+                         uint_t  level,
+                         DoFType flag = All ) const
    {
       for ( uint_t k = 0; k < compFunc_.size(); k++ )
       {
@@ -79,7 +85,7 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   void interpolate( const std::function< ValueType( const hyteg::Point3D& ) >& expr, size_t level, DoFType flag = All ) const
+   void interpolate( const std::function< valueType( const hyteg::Point3D& ) >& expr, size_t level, DoFType flag = All ) const
    {
       for ( uint_t k = 0; k < compFunc_.size(); k++ )
       {
@@ -87,7 +93,7 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   void interpolate( const ValueType& constant, size_t level, DoFType flag = All ) const
+   void interpolate( const valueType& constant, size_t level, DoFType flag = All ) const
    {
       for ( uint_t k = 0; k < compFunc_.size(); k++ )
       {
@@ -95,7 +101,7 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   void interpolate( const std::vector< std::function< ValueType( const hyteg::Point3D& ) > >& expr,
+   void interpolate( const std::vector< std::function< valueType( const hyteg::Point3D& ) > >& expr,
                      size_t                                                                    level,
                      DoFType                                                                   flag = All ) const
    {
@@ -104,7 +110,7 @@ class CSFVectorFunction : public GenericFunction
 
       for ( uint_t k = 0; k < expr.size(); ++k )
       {
-         compFunc_[k].interpolate( expr[k], level, flag );
+         compFunc_[k]->interpolate( expr[k], level, flag );
       }
    }
 
@@ -112,18 +118,18 @@ class CSFVectorFunction : public GenericFunction
    {
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
-         compFunc_[k].add( scalar, level, flag );
+         compFunc_[k]->add( scalar, level, flag );
       }
    }
 
-   void add( const std::vector< walberla::real_t >                                                scalars,
-             const std::vector< std::reference_wrapper< const CSFVectorFunction< ValueType > > >& functions,
-             size_t                                                                               level,
-             DoFType                                                                              flag = All ) const
+   void add( const std::vector< walberla::real_t >                                                   scalars,
+             const std::vector< std::reference_wrapper< const CSFVectorFunction< FunctionType > > >& functions,
+             size_t                                                                                  level,
+             DoFType                                                                                 flag = All ) const
    {
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
-         compFunc_[k].add( scalars, vectorFunctionTools::filter( k, functions ), level, flag );
+         compFunc_[k]->add( scalars, vectorFunctionTools::filter( k, functions ), level, flag );
       }
    }
 
@@ -135,8 +141,8 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   template < typename OtherFunctionValueType >
-   void copyBoundaryConditionFromFunction( const CSFVectorFunction< OtherFunctionValueType >& other )
+   template < typename OtherFunctionType >
+   void copyBoundaryConditionFromFunction( const CSFVectorFunction< OtherFunctionType >& other )
    {
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
@@ -144,7 +150,7 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   void swap( const CSFVectorFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
+   void swap( const CSFVectorFunction< FunctionType >& other, const uint_t& level, const DoFType& flag = All ) const
    {
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
@@ -152,10 +158,10 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   void assign( const std::vector< walberla::real_t >                                                scalars,
-                const std::vector< std::reference_wrapper< const CSFVectorFunction< ValueType > > >& functions,
-                size_t                                                                               level,
-                DoFType                                                                              flag = All ) const
+   void assign( const std::vector< walberla::real_t >                                                   scalars,
+                const std::vector< std::reference_wrapper< const CSFVectorFunction< FunctionType > > >& functions,
+                size_t                                                                                  level,
+                DoFType                                                                                 flag = All ) const
    {
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
@@ -163,26 +169,26 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   walberla::real_t dotLocal( const CSFVectorFunction< ValueType >& rhs, const uint_t level, const DoFType flag = All ) const
+   walberla::real_t dotLocal( const CSFVectorFunction< FunctionType >& rhs, const uint_t level, const DoFType flag = All ) const
    {
-      ValueType sum = ValueType( 0 );
+      valueType sum = valueType( 0 );
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
-         sum += compFunc_[k]->dotLocal( *rhs[k], level, flag );
+         sum += compFunc_[k]->dotLocal( rhs[k], level, flag );
       }
       return sum;
    }
 
-   walberla::real_t dotGlobal( const CSFVectorFunction< ValueType >& rhs, const uint_t level, const DoFType flag = All ) const
+   walberla::real_t dotGlobal( const CSFVectorFunction< FunctionType >& rhs, const uint_t level, const DoFType flag = All ) const
    {
       auto sum = dotLocal( rhs, level, flag );
       walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
       return sum;
    }
 
-   ValueType getMaxComponentMagnitude( uint_t level, DoFType flag, bool mpiReduce = true ) const
+   valueType getMaxComponentMagnitude( uint_t level, DoFType flag, bool mpiReduce = true ) const
    {
-      std::vector< ValueType > values;
+      std::vector< valueType > values;
 
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
@@ -206,7 +212,7 @@ class CSFVectorFunction : public GenericFunction
    ///                                storage of the other function, and as values the MPI ranks of the processes that own these
    ///                                primitives regarding the storage this function lives on.
    ///
-   void copyFrom( const CSFVectorFunction< ValueType >&          other,
+   void copyFrom( const CSFVectorFunction< FunctionType >&       other,
                   const uint_t&                                  level,
                   const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
@@ -219,8 +225,8 @@ class CSFVectorFunction : public GenericFunction
    }
 
  protected:
-   const std::string                                       functionName_;
-   std::vector< std::shared_ptr< Function< ValueType > > > compFunc_;
+   const std::string                              functionName_;
+   std::vector< std::shared_ptr< FunctionType > > compFunc_;
 };
 
 } // namespace hyteg

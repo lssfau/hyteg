@@ -34,6 +34,8 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 
+#include "hyteg/p1functionspace/P1VectorFunction_AltKind.hpp"
+
 namespace hyteg {
 
 using walberla::real_c;
@@ -77,6 +79,13 @@ class VTKOutput
 
    void add( P1VectorFunction< real_t > function );
    void add( P2VectorFunction< real_t > function );
+
+   // For testing the new CFSVectorFunction class (workaround)
+   void add( P1VectorFunction_AltKind< real_t > function ) {
+     for( uint_t k = 0; k < function.getDimension(); k++ ) {
+       p1Functions_.push_back( function[k] );
+     }
+   }
 
    void add( P1StokesFunction< real_t > function );
    void add( P2P1TaylorHoodFunction< real_t > function );
