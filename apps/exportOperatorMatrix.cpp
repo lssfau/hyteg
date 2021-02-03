@@ -79,7 +79,8 @@ void showUsage() {
 
   mesg << "Please specify the following two parameters in the given order:\n\n"
        << "  <level>               on which level do you want the operator to be set up?\n"
-       << "  <operator>            which operator do you want to export?\n\n"
+       << "  <operator>            which operator do you want to export?\n"
+       << "  <format>              either Matlab or MatrixMarket\n\n"
        << "Optionally also give\n\n"
        << "  <name of Gmsh file>   if none is given unit square will be meshed with two triangles\n\n"
        << " Choices available for <operator> are\n";
@@ -105,12 +106,12 @@ int main( int argc, char* argv[] ) {
   WALBERLA_LOG_DEVEL_ON_ROOT( "" );
 
   // Process command-line
-  if( argc < 3 || argc > 4 ) {
+  if( argc < 4 || argc > 5 ) {
     showUsage();
     WALBERLA_ABORT( "\n" );
   }
 
-  bool useMeshFile = (argc == 4) ? true : false;
+  bool useMeshFile = (argc == 5) ? true : false;
 
   uint_t level = static_cast<uint_t>( std::stoul( argv[1] ) );
   std::string oprName  = ( argv[2] );
@@ -120,14 +121,31 @@ int main( int argc, char* argv[] ) {
   }
   operatorTag oprTag   = oprMap.at( oprName ).oprEnum;
   std::string matName  = oprMap.at( oprName ).matName;
-  std::string fileName = oprName + ".m";
   bool elim = oprMap[ oprName ].elimDirichletBC;
+
+  // determine output format and filename postfix
+  PetscViewerFormat format = PETSC_VIEWER_ASCII_MATLAB;
+  std::string fileName = oprName;
+  std::string fmtOpt = argv[3];
+  if ( fmtOpt == "Matlab" ) {
+    format = PETSC_VIEWER_ASCII_MATLAB;
+    fileName.append( ".m" );
+  }
+  else if ( fmtOpt == "MatrixMarket" ) {
+    format = PETSC_VIEWER_ASCII_MATRIXMARKET;
+    fileName.append( ".mtx" );
+  }
+  else {
+    WALBERLA_LOG_INFO_ON_ROOT( "Format option '" << fmtOpt << "' not valid!\n" );
+    showUsage();
+    WALBERLA_ABORT( "\n" );
+  }
 
   // Mesh generation
   MeshInfo meshInfo = MeshInfo::emptyMeshInfo();
   if( useMeshFile ) {
-    WALBERLA_LOG_INFO_ON_ROOT( "Generating mesh from file " << argv[3] );
-    meshInfo = MeshInfo::fromGmshFile( argv[3] );
+    WALBERLA_LOG_INFO_ON_ROOT( "Generating mesh from file " << argv[4] );
+    meshInfo = MeshInfo::fromGmshFile( argv[4] );
   }
   else {
     WALBERLA_LOG_INFO_ON_ROOT( "Generating criss mesh on unit square" );
@@ -147,7 +165,7 @@ int main( int argc, char* argv[] ) {
   // Should elimination of Dirichlet DoFs be symmetric?
   bool symm = true;
 
-  // Should exportOperator() be verbose?
+  // Should petsc::exportOperator() be verbose?
   bool verb = true;
 
   // Operator creation and export
@@ -160,7 +178,7 @@ int main( int argc, char* argv[] ) {
     {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Laplace operator for P1 elements" );
       hyteg::P1ConstantLaplaceOperator opr( storage, level, level );
-      exportOperator< P1ConstantLaplaceOperator >( opr, fileName, matName, storage, level, elim, symm, verb );
+      petsc::exportOperator< P1ConstantLaplaceOperator >( opr, fileName, matName, format, storage, level, elim, symm, verb );
     }
     break;
 
@@ -168,7 +186,7 @@ int main( int argc, char* argv[] ) {
     {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Mass operator for P1 elements" );
       hyteg::P1ConstantMassOperator opr( storage, level, level );
-      exportOperator< P1ConstantMassOperator >( opr, fileName, matName, storage, level, elim, symm, verb );
+      petsc::exportOperator< P1ConstantMassOperator >( opr, fileName, matName, format, storage, level, elim, symm, verb );
     }
     break;
 
@@ -179,7 +197,7 @@ int main( int argc, char* argv[] ) {
     {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Laplace operator for P2 elements" );
       hyteg::P2ConstantLaplaceOperator opr( storage, level, level );
-      exportOperator< P2ConstantLaplaceOperator >( opr, fileName, matName, storage, level, elim, symm, verb );
+      petsc::exportOperator< P2ConstantLaplaceOperator >( opr, fileName, matName, format, storage, level, elim, symm, verb );
     }
     break;
 
@@ -187,7 +205,7 @@ int main( int argc, char* argv[] ) {
     {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Mass operator for P2 elements" );
       hyteg::P2ConstantMassOperator opr( storage, level, level );
-      exportOperator< P2ConstantMassOperator >( opr, fileName, matName, storage, level, elim, symm, verb );
+      petsc::exportOperator< P2ConstantMassOperator >( opr, fileName, matName, format, storage, level, elim, symm, verb );
     }
     break;
 
@@ -196,7 +214,7 @@ int main( int argc, char* argv[] ) {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Mass operator for P2 elements (EdgeDoFs only)" );
       typedef EdgeDoFOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > > P2EdgeDoFMassOperator;
       P2EdgeDoFMassOperator opr( storage, level, level );
-      exportOperator< P2EdgeDoFMassOperator >( opr, fileName, matName, storage, level, elim, symm, verb );
+      petsc::exportOperator< P2EdgeDoFMassOperator >( opr, fileName, matName, format, storage, level, elim, symm, verb );
     }
     break;
 
@@ -207,7 +225,7 @@ int main( int argc, char* argv[] ) {
     {
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting Stokes Operator for P2-P1 element" );
       hyteg::P2P1TaylorHoodStokesOperator opr( storage, level, level );
-      exportOperator< P2P1TaylorHoodStokesOperator >( opr, fileName, matName, storage, level, elim, symm, verb );
+      petsc::exportOperator< P2P1TaylorHoodStokesOperator >( opr, fileName, matName, format, storage, level, elim, symm, verb );
     }
     break;
   }
