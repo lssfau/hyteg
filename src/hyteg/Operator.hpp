@@ -66,6 +66,15 @@ public:
   //    return nCouplings;
   // };
 
+  virtual void apply( const SourceFunction&      src,
+                      const DestinationFunction& dst,
+                      size_t                     level,
+                      DoFType                    flag,
+                      UpdateType                 updateType = Replace ) const
+  {
+     WALBERLA_ABORT( "Problem with inheritance, this function should have been overridden in the derived class!" );
+  };
+
 protected:
 
   const std::shared_ptr< PrimitiveStorage > storage_;
