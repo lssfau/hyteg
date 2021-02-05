@@ -66,6 +66,7 @@ public:
   //    return nCouplings;
   // };
 
+  // Needed in VectorToVectorOperator
   virtual void apply( const SourceFunction&      src,
                       const DestinationFunction& dst,
                       size_t                     level,

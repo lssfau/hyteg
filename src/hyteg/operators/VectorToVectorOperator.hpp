@@ -59,7 +59,7 @@ class VectorToVectorOperator : public Operator< SrcVecFuncType, DstVecFuncType >
    };
 
    /// Potentially we want to distinguish flag and updateType between components by passing a vector?
-   void apply( const SrcVecFuncType& src, const DstVecFuncType& dst, size_t level, DoFType flag, UpdateType updateType = Replace )
+   void apply( const SrcVecFuncType& src, const DstVecFuncType& dst, size_t level, DoFType flag, UpdateType updateType = Replace ) const
    {
       WALBERLA_ASSERT_EQUAL( dim_, src.getDimension() );
       WALBERLA_ASSERT_EQUAL( dim_, dst.getDimension() );
@@ -77,8 +77,7 @@ class VectorToVectorOperator : public Operator< SrcVecFuncType, DstVecFuncType >
             }
          }
       }
-   }
-   const;
+   };
 
    void setSubOperator( uint_t i, uint_t j, std::shared_ptr< scalarOpType> subOp ) {
      WALBERLA_ASSERT_LESS_EQUAL( i, dim_ );
