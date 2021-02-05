@@ -20,15 +20,17 @@
 #pragma once
 
 #include "hyteg/composites/P1StokesFunction.hpp"
+#include "hyteg/composites/StokesOperatorTraits.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 
 namespace hyteg {
 
-class P1EpsilonStokesOperator
+class P1EpsilonStokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFunction< real_t > >
 {
  public:
    P1EpsilonStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
-   : A_uu( storage, minLevel, maxLevel )
+   : Operator( storage, minLevel, maxLevel )
+   , A_uu( storage, minLevel, maxLevel )
    , A_uv( storage, minLevel, maxLevel )
    , A_vu( storage, minLevel, maxLevel )
    , A_vv( storage, minLevel, maxLevel )
@@ -43,16 +45,16 @@ class P1EpsilonStokesOperator
    {
       WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
-      A_uu.apply( src.u, dst.u, level, flag, Replace );
-      A_uv.apply( src.v, dst.u, level, flag, Add );
-      divT_x.apply( src.p, dst.u, level, flag, Add );
+      A_uu.apply( src.uvw.u, dst.uvw.u, level, flag, Replace );
+      A_uv.apply( src.uvw.v, dst.uvw.u, level, flag, Add );
+      divT_x.apply( src.p, dst.uvw.u, level, flag, Add );
 
-      A_vu.apply( src.u, dst.v, level, flag, Replace );
-      A_vv.apply( src.v, dst.v, level, flag, Add );
-      divT_y.apply( src.p, dst.v, level, flag, Add );
+      A_vu.apply( src.uvw.u, dst.uvw.v, level, flag, Replace );
+      A_vv.apply( src.uvw.v, dst.uvw.v, level, flag, Add );
+      divT_y.apply( src.p, dst.uvw.v, level, flag, Add );
 
-      div_x.apply( src.u, dst.p, level, flag | DirichletBoundary, Replace );
-      div_y.apply( src.v, dst.p, level, flag | DirichletBoundary, Add );
+      div_x.apply( src.uvw.u, dst.p, level, flag | DirichletBoundary, Replace );
+      div_y.apply( src.uvw.v, dst.p, level, flag | DirichletBoundary, Add );
       pspg.apply( src.p, dst.p, level, flag | DirichletBoundary, Add );
    }
 
@@ -73,6 +75,7 @@ struct has_pspg_block< P1EpsilonStokesOperator >
    static const bool value = true;
 };
 
+template <>
 struct tensor_variant< P1EpsilonStokesOperator >
 {
    static const bool value = true;
