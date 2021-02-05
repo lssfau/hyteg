@@ -21,13 +21,13 @@
 
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/forms/P1LinearCombinationForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_generated/p1_polar_laplacian.h"
 #include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/P1DivKGradAffine.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
-#include "hyteg/forms/P1LinearCombinationForm.hpp"
 #include "hyteg/p1functionspace/P1Elements.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
@@ -41,9 +41,7 @@ template < class P1Form >
 class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
 {
  public:
-   P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                          size_t                                     minLevel,
-                          size_t                                     maxLevel );
+   P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
 
    P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                           size_t                                     minLevel,
@@ -220,7 +218,18 @@ typedef P1ElementwiseOperator< P1LinearCombinationForm > P1ElementwiseLinearComb
 typedef P1ElementwiseOperator< P1Form_mass >   P1ElementwiseBlendingMassOperator;
 typedef P1ElementwiseOperator< P1Form_mass3D > P1ElementwiseBlendingMassOperator3D;
 
+typedef P1ElementwiseOperator< P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >
+    P1ElementwisePSPGOperator;
+
 typedef P1ElementwiseOperator< P1Form_laplace > P1ElementwiseBlendingLaplaceOperator;
+
+typedef P1ElementwiseOperator< P1FenicsForm< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise > > P1ElementwiseDivXOperator;
+typedef P1ElementwiseOperator< P1FenicsForm< p1_div_cell_integral_1_otherwise, p1_tet_div_tet_cell_integral_1_otherwise > > P1ElementwiseDivYOperator;
+typedef P1ElementwiseOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_div_tet_cell_integral_2_otherwise > > P1ElementwiseDivZOperator;
+
+typedef P1ElementwiseOperator< P1FenicsForm< p1_divt_cell_integral_0_otherwise, p1_tet_divt_tet_cell_integral_0_otherwise > > P1ElementwiseDivTXOperator;
+typedef P1ElementwiseOperator< P1FenicsForm< p1_divt_cell_integral_1_otherwise, p1_tet_divt_tet_cell_integral_1_otherwise > > P1ElementwiseDivTYOperator;
+typedef P1ElementwiseOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet_cell_integral_2_otherwise > > P1ElementwiseDivTZOperator;
 
 typedef P1ElementwiseOperator< P1DivKGradAffine > P1ElementwiseAffineDivKGradOperator;
 

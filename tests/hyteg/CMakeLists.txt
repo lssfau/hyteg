@@ -93,6 +93,11 @@ if(CMAKE_BUILD_TYPE MATCHES "Release")
   waLBerla_execute_test(NAME ElementwiseDivKGradCGConvergenceTest)
 endif()
 
+waLBerla_compile_test(FILES convergence/ElementwiseEpsilonMinResConvergenceTest.cpp DEPENDS hyteg core)
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+  waLBerla_execute_test(NAME ElementwiseEpsilonMinResConvergenceTest)
+endif()
+
 waLBerla_compile_test(FILES convergence/P2SmoothConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2SmoothConvergenceTest)
 

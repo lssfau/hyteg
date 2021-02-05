@@ -21,6 +21,10 @@
 #include "P1ElementwiseOperator.hpp"
 
 #include "hyteg/forms/P1RowSumForm.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_0_0.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_0_1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_1_0.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_1_1.hpp"
 
 namespace hyteg {
 
@@ -737,5 +741,17 @@ template class P1ElementwiseOperator< P1RowSumForm >;
 
 template class P1ElementwiseOperator< P1DivKGradAffine >;
 
+template class P1ElementwiseOperator< P1FenicsForm< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise > >;
+template class P1ElementwiseOperator< P1FenicsForm< p1_div_cell_integral_1_otherwise, p1_tet_div_tet_cell_integral_1_otherwise > >;
+template class P1ElementwiseOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_div_tet_cell_integral_2_otherwise > >;
+
+template class P1ElementwiseOperator< P1FenicsForm< p1_divt_cell_integral_0_otherwise, p1_tet_divt_tet_cell_integral_0_otherwise > >;
+template class P1ElementwiseOperator< P1FenicsForm< p1_divt_cell_integral_1_otherwise, p1_tet_divt_tet_cell_integral_1_otherwise > >;
+template class P1ElementwiseOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet_cell_integral_2_otherwise > >;
+
+template class P1ElementwiseOperator< P1EpsilonAffine_0_0 >;
+template class P1ElementwiseOperator< P1EpsilonAffine_0_1 >;
+template class P1ElementwiseOperator< P1EpsilonAffine_1_0 >;
+template class P1ElementwiseOperator< P1EpsilonAffine_1_1 >;
 
 } // namespace hyteg

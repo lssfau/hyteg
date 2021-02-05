@@ -41,7 +41,7 @@ class P1EpsilonStokesOperator : public Operator< P1StokesFunction< real_t >, P1S
    , pspg( storage, minLevel, maxLevel )
    {}
 
-   void apply( P1StokesFunction< real_t >& src, P1StokesFunction< real_t >& dst, size_t level, DoFType flag )
+   void apply( const P1StokesFunction< real_t >& src, const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const
    {
       WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 
