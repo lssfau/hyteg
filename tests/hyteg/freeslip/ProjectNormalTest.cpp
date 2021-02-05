@@ -88,7 +88,7 @@ static void testProjectNormal( )
    if (storage->hasGlobalCells())
       u.uvw.w.interpolate( [=](auto & p){ return normalInterpolant(p)[2]; }, level );
    WALBERLA_CHECK_GREATER( u.dotGlobal(u, level, FreeslipBoundary), 1 );
-   projectNormalOperator.apply( u, level, FreeslipBoundary );
+   projectNormalOperator.project( u, level, FreeslipBoundary );
    WALBERLA_CHECK_LESS( u.dotGlobal(u, level, FreeslipBoundary), 1e-14 );
 
    // we check if a tangential function is not changed by the projection operator:
@@ -99,7 +99,7 @@ static void testProjectNormal( )
       uTan.uvw.w.interpolate(0, level );
    u.assign({1}, {uTan}, level, All);
    WALBERLA_CHECK_GREATER( u.dotGlobal(u, level, FreeslipBoundary), 1 );
-   projectNormalOperator.apply( u, level, FreeslipBoundary );
+   projectNormalOperator.project( u, level, FreeslipBoundary );
    StokesFunctionType diff( "diff", storage, level, level );
    diff.assign( {1, -1}, {u, uTan}, level, All );
    WALBERLA_CHECK_LESS( diff.dotGlobal(diff, level, All), 1e-14 );

@@ -496,7 +496,7 @@ void runBenchmark( real_t      cflMax,
    f.uvw.v.multElementwise( {f.uvw.v, upwardNormal.uvw.v}, level );
    f.uvw.u.assign( {rayleighNumber}, {f.uvw.u}, level, All );
    f.uvw.v.assign( {rayleighNumber}, {f.uvw.v}, level, All );
-   projectNormalOperator->apply( f, level, FreeslipBoundary );
+   projectNormalOperator->project( f, level, FreeslipBoundary );
 
    localTimer.start();
    stokesSolver->solve( AFS, u, f, level );
@@ -606,7 +606,7 @@ void runBenchmark( real_t      cflMax,
       f.uvw.v.multElementwise( {f.uvw.v, upwardNormal.uvw.v}, level );
       f.uvw.u.assign( {rayleighNumber}, {f.uvw.u}, level, All );
       f.uvw.v.assign( {rayleighNumber}, {f.uvw.v}, level, All );
-      projectNormalOperator->apply( f, level, FreeslipBoundary );
+      projectNormalOperator->project( f, level, FreeslipBoundary );
 
       localTimer.start();
       stokesSolver->solve( AFS, u, f, level );
@@ -662,7 +662,7 @@ void runBenchmark( real_t      cflMax,
          f.uvw.v.multElementwise( {f.uvw.v, upwardNormal.uvw.v}, level );
          f.uvw.u.assign( {rayleighNumber}, {f.uvw.u}, level, All );
          f.uvw.v.assign( {rayleighNumber}, {f.uvw.v}, level, All );
-         projectNormalOperator->apply( f, level, FreeslipBoundary );
+         projectNormalOperator->project( f, level, FreeslipBoundary );
 
          localTimer.start();
          stokesSolver->solve( AFS, u, f, level );

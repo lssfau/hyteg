@@ -31,19 +31,19 @@ P2ProjectNormalOperator::P2ProjectNormalOperator( const std::shared_ptr< Primiti
 , edgeDoFOperator( storage, minLevel, maxLevel, normal_function )
 {}
 
-void P2ProjectNormalOperator::apply( const P2Function< real_t >& dst_u,
-                                     const P2Function< real_t >& dst_v,
-                                     const P2Function< real_t >& dst_w,
-                                     size_t                      level,
-                                     DoFType                     flag ) const
+void P2ProjectNormalOperator::project( const P2Function< real_t >& dst_u,
+                                       const P2Function< real_t >& dst_v,
+                                       const P2Function< real_t >& dst_w,
+                                       size_t                      level,
+                                       DoFType                     flag ) const
 {
-   p1Operator.apply( dst_u.getVertexDoFFunction(), dst_v.getVertexDoFFunction(), dst_w.getVertexDoFFunction(), level, flag );
-   edgeDoFOperator.apply( dst_u.getEdgeDoFFunction(), dst_v.getEdgeDoFFunction(), dst_w.getEdgeDoFFunction(), level, flag );
+   p1Operator.project( dst_u.getVertexDoFFunction(), dst_v.getVertexDoFFunction(), dst_w.getVertexDoFFunction(), level, flag );
+   edgeDoFOperator.project( dst_u.getEdgeDoFFunction(), dst_v.getEdgeDoFFunction(), dst_w.getEdgeDoFFunction(), level, flag );
 }
 
-void P2ProjectNormalOperator::apply( const P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag ) const
+void P2ProjectNormalOperator::project( const P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag ) const
 {
-   apply( dst.uvw.u, dst.uvw.v, dst.uvw.w, level, flag );
+   project( dst.uvw.u, dst.uvw.v, dst.uvw.w, level, flag );
 }
 
 #ifdef HYTEG_BUILD_WITH_PETSC

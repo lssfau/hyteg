@@ -36,13 +36,13 @@ P1ProjectNormalOperator::P1ProjectNormalOperator( const std::shared_ptr< Primiti
 , normal_function_( normal_function )
 {}
 
-void P1ProjectNormalOperator::apply( const P1Function< real_t >& dst_u,
-                                     const P1Function< real_t >& dst_v,
-                                     const P1Function< real_t >& dst_w,
-                                     size_t                      level,
-                                     DoFType                     flag ) const
+void P1ProjectNormalOperator::project( const P1Function< real_t >& dst_u,
+                                       const P1Function< real_t >& dst_v,
+                                       const P1Function< real_t >& dst_w,
+                                       size_t                      level,
+                                       DoFType                     flag ) const
 {
-   this->startTiming( "Apply" );
+   this->startTiming( "Project" );
    dst_u.communicate< Vertex, Edge >( level );
    dst_u.communicate< Edge, Face >( level );
    dst_u.communicate< Face, Cell >( level );
@@ -151,12 +151,12 @@ void P1ProjectNormalOperator::apply( const P1Function< real_t >& dst_u,
 
    this->timingTree_->stop( "Macro-Face" );
 
-   this->stopTiming( "Apply" );
+   this->stopTiming( "Project" );
 }
 
-void P1ProjectNormalOperator::apply( const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const
+void P1ProjectNormalOperator::project( const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const
 {
-   apply( dst.uvw.u, dst.uvw.v, dst.uvw.w, level, flag );
+   project( dst.uvw.u, dst.uvw.v, dst.uvw.w, level, flag );
 }
 
 #ifdef HYTEG_BUILD_WITH_PETSC

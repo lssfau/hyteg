@@ -41,13 +41,13 @@ class P2ProjectNormalOperator : public Operator< P2Function< real_t >, P2Functio
 
    ~P2ProjectNormalOperator() override = default;
 
-   void apply( const P2Function< real_t >& dst_u,
-               const P2Function< real_t >& dst_v,
-               const P2Function< real_t >& dst_w,
-               size_t                      level,
-               DoFType                     flag ) const;
+   void project( const P2Function< real_t >& dst_u,
+                 const P2Function< real_t >& dst_v,
+                 const P2Function< real_t >& dst_w,
+                 size_t                      level,
+                 DoFType                     flag ) const;
 
-   void apply( const P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag ) const;
+   void project( const P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag ) const;
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    /// Assemble operator as sparse matrix

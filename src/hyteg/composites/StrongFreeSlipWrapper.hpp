@@ -82,7 +82,7 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
       if ( PreProjection && projFlag_ != None )
       {
          tmp_->assign( {1}, {src}, level, All );
-         projOp_->apply( *tmp_, level, projFlag_ );
+         projOp_->project( *tmp_, level, projFlag_ );
          op_->apply( *tmp_, dst, level, flag );
       }
       else
@@ -91,7 +91,7 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
       }
 
       if ( projFlag_ != None )
-         projOp_->apply( dst, level, projFlag_ );
+         projOp_->project( dst, level, projFlag_ );
    }
 
 #ifdef HYTEG_BUILD_WITH_PETSC
