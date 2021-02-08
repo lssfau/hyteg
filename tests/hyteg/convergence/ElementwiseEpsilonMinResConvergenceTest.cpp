@@ -35,13 +35,18 @@
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/petsc/PETScBlockPreconditionedStokesSolver.hpp"
 #include "hyteg/petsc/PETScExportOperatorMatrix.hpp"
+#include "hyteg/petsc/PETScLUSolver.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
+#include "hyteg/solvers/Solver.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
@@ -93,13 +98,13 @@ std::function< real_t( const hyteg::Point3D& ) > shellRhsW = []( const hyteg::Po
    return 2 * std::sin( 4 * x[0] ) * std::sin( 8 * x[1] ) * std::cos( 2 * x[2] ) - 8 * std::cos( 2 * x[1] );
 };
 
-template < typename StokesOperator, typename FunctionType, typename VelocityMassOperator >
-void convergenceTest( bool threeDim, uint_t level, real_t toleranceVelocityComponents, real_t tolerancePressure )
+template < typename StokesOperator, typename FunctionType, typename VelocityMassOperator, bool ThreeDim >
+void convergenceTest( uint_t level, real_t toleranceVelocityComponents, real_t tolerancePressure )
 {
    const auto minLevel = 2;
    const auto maxLevel = level;
 
-   const auto solverTargetResidual = 1e-12;
+   const auto solverTargetResidual = 1e-8;
    const auto solverMaxIterations  = 10000;
 
    const auto enableVTK = false;
@@ -117,9 +122,9 @@ void convergenceTest( bool threeDim, uint_t level, real_t toleranceVelocityCompo
    std::function< real_t( const Point3D& ) > rhsV;
    std::function< real_t( const Point3D& ) > rhsW;
 
-   if ( threeDim )
+   if ( ThreeDim )
    {
-      meshInfo = MeshInfo::meshCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 0 } ), 1, 1, 1 );
+      meshInfo = MeshInfo::meshCuboid( Point3D( { 0, 0, 0 } ), Point3D( { 1, 1, 1 } ), 1, 1, 1 );
 
       exactU = shellExactU;
       exactV = shellExactV;
@@ -167,14 +172,14 @@ void convergenceTest( bool threeDim, uint_t level, real_t toleranceVelocityCompo
 
    u.uvw.u.interpolate( exactU, maxLevel, hyteg::DirichletBoundary );
    u.uvw.v.interpolate( exactV, maxLevel, hyteg::DirichletBoundary );
-   if ( threeDim )
+   if ( ThreeDim )
    {
       u.uvw.w.interpolate( exactW, maxLevel, hyteg::DirichletBoundary );
    }
 
    uExact.uvw.u.interpolate( exactU, maxLevel );
    uExact.uvw.v.interpolate( exactV, maxLevel );
-   if ( threeDim )
+   if ( ThreeDim )
    {
       uExact.uvw.w.interpolate( exactW, maxLevel );
    }
@@ -182,20 +187,30 @@ void convergenceTest( bool threeDim, uint_t level, real_t toleranceVelocityCompo
 
    tmp.uvw.u.interpolate( rhsU, maxLevel );
    tmp.uvw.v.interpolate( rhsV, maxLevel );
-   if ( threeDim )
+   if ( ThreeDim )
    {
       tmp.uvw.w.interpolate( rhsW, maxLevel );
    }
 
    M.apply( tmp.uvw.u, f.uvw.u, maxLevel, All );
    M.apply( tmp.uvw.v, f.uvw.v, maxLevel, All );
-   if ( threeDim )
+   if ( ThreeDim )
    {
       M.apply( tmp.uvw.w, f.uvw.w, maxLevel, All );
    }
 
-   auto solver = solvertemplates::stokesMinResSolver< StokesOperator >(
-       storage, maxLevel, solverTargetResidual, solverMaxIterations, false );
+   std::shared_ptr< Solver< StokesOperator > > solver;
+
+   if constexpr ( ThreeDim )
+   {
+      solver = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
+          storage, maxLevel, solverTargetResidual, solverMaxIterations, 1, 1 );
+   }
+   else
+   {
+      solver = solvertemplates::stokesMinResSolver< StokesOperator >(
+          storage, maxLevel, solverTargetResidual, solverMaxIterations, false );
+   }
 
    solver->solve( A, u, f, maxLevel );
 
@@ -239,64 +254,101 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   WALBERLA_LOG_INFO_ON_ROOT( "" )
-   WALBERLA_LOG_INFO_ON_ROOT( "### P1, 2D, reference ###" )
-   WALBERLA_LOG_INFO_ON_ROOT( "" )
+   hyteg::PETScManager petscManager( &argc, &argv );
 
-   hyteg::convergenceTest< hyteg::P1EpsilonStokesOperator,
-       hyteg::P1StokesFunction< walberla::real_t >,
-       hyteg::P1ElementwiseMassOperator >( false, 3, 6.9e-2, 1.8 );
-   hyteg::convergenceTest< hyteg::P1EpsilonStokesOperator,
-       hyteg::P1StokesFunction< walberla::real_t >,
-       hyteg::P1ElementwiseMassOperator >( false, 4, 2.7e-2, 1.7 );
-   hyteg::convergenceTest< hyteg::P1EpsilonStokesOperator,
-       hyteg::P1StokesFunction< walberla::real_t >,
-       hyteg::P1ElementwiseMassOperator >( false, 5, 2.7e-2, 1.7 );
+   bool longrun = false;
+   for ( int i = 0; i < argc; i++ )
+   {
+      auto arg = std::string( argv[i] );
+      if ( arg == "--longrun" )
+      {
+         longrun = true;
+      }
+   }
+
+   if ( longrun )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "--longrun flag was set!" );
+   }
+   else
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "--longrun flag was NOT set!" );
+   }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" )
-   WALBERLA_LOG_INFO_ON_ROOT( "### P1, 2D, new ###" )
+   WALBERLA_LOG_INFO_ON_ROOT( "### P1, 2D ###" )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    hyteg::convergenceTest< hyteg::P1P1ElementwiseAffineEpsilonStokesOperator,
-       hyteg::P1StokesFunction< walberla::real_t >,
-       hyteg::P1ElementwiseMassOperator >( false, 3, 6.9e-2, 1.8 );
+                           hyteg::P1StokesFunction< walberla::real_t >,
+                           hyteg::P1ElementwiseMassOperator,
+                           false >( 3, 6.9e-2, 1.8 );
    hyteg::convergenceTest< hyteg::P1P1ElementwiseAffineEpsilonStokesOperator,
-       hyteg::P1StokesFunction< walberla::real_t >,
-       hyteg::P1ElementwiseMassOperator >( false, 4, 2.7e-2, 1.7 );
+                           hyteg::P1StokesFunction< walberla::real_t >,
+                           hyteg::P1ElementwiseMassOperator,
+                           false >( 4, 2.7e-2, 1.7 );
    hyteg::convergenceTest< hyteg::P1P1ElementwiseAffineEpsilonStokesOperator,
-       hyteg::P1StokesFunction< walberla::real_t >,
-       hyteg::P1ElementwiseMassOperator >( false, 5, 2.7e-2, 1.7 );
+                           hyteg::P1StokesFunction< walberla::real_t >,
+                           hyteg::P1ElementwiseMassOperator,
+                           false >( 5, 2.7e-2, 1.7 );
 
    WALBERLA_LOG_INFO_ON_ROOT( "" )
-   WALBERLA_LOG_INFO_ON_ROOT( "### P2, 2D, reference ###" )
+   WALBERLA_LOG_INFO_ON_ROOT( "### P1, 3D ###" )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
-   hyteg::convergenceTest< hyteg::P2P1ElementwiseConstantCoefficientStokesOperator,
-                           hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
-                           hyteg::P2ElementwiseMassOperator >( false, 2, 2.7e-2, 1.7 );
-
-   hyteg::convergenceTest< hyteg::P2P1ElementwiseConstantCoefficientStokesOperator,
-                           hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
-                           hyteg::P2ElementwiseMassOperator >( false, 3, 1.8e-3, 3.3e-1 );
-
-   hyteg::convergenceTest< hyteg::P2P1ElementwiseConstantCoefficientStokesOperator,
-                           hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
-                           hyteg::P2ElementwiseMassOperator >( false, 4, 1.2e-4, 7.3e-2 );
+   hyteg::convergenceTest< hyteg::P1P1ElementwiseAffineEpsilonStokesOperator,
+                           hyteg::P1StokesFunction< walberla::real_t >,
+                           hyteg::P1ElementwiseMassOperator,
+                           true >( 3, 5.9e-1, 2.4e+1 );
+   hyteg::convergenceTest< hyteg::P1P1ElementwiseAffineEpsilonStokesOperator,
+                           hyteg::P1StokesFunction< walberla::real_t >,
+                           hyteg::P1ElementwiseMassOperator,
+                           true >( 4, 2.2e-1, 8.7e+0 );
+   if ( longrun )
+   {
+      hyteg::convergenceTest< hyteg::P1P1ElementwiseAffineEpsilonStokesOperator,
+                              hyteg::P1StokesFunction< walberla::real_t >,
+                              hyteg::P1ElementwiseMassOperator,
+                              true >( 5, 6.8e-2, 2.4e+0 );
+   }
 
    WALBERLA_LOG_INFO_ON_ROOT( "" )
-   WALBERLA_LOG_INFO_ON_ROOT( "### P2, 2D, new ###" )
+   WALBERLA_LOG_INFO_ON_ROOT( "### P2, 2D ###" )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
    hyteg::convergenceTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator,
-       hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
-       hyteg::P2ElementwiseMassOperator >( false, 2, 2.7e-2, 2.2 );
+                           hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
+                           hyteg::P2ElementwiseMassOperator,
+                           false >( 2, 2.7e-2, 2.2 );
 
    hyteg::convergenceTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator,
-       hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
-       hyteg::P2ElementwiseMassOperator >( false, 3, 1.8e-3, 3.8e-1 );
+                           hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
+                           hyteg::P2ElementwiseMassOperator,
+                           false >( 3, 1.8e-3, 3.8e-1 );
 
    hyteg::convergenceTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator,
-       hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
-       hyteg::P2ElementwiseMassOperator >( false, 4, 1.2e-4, 7.8e-2 );
+                           hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
+                           hyteg::P2ElementwiseMassOperator,
+                           false >( 4, 1.2e-4, 7.8e-2 );
 
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
+   WALBERLA_LOG_INFO_ON_ROOT( "### P2, 3D ###" )
+   WALBERLA_LOG_INFO_ON_ROOT( "" )
+
+   hyteg::convergenceTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator,
+                           hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
+                           hyteg::P2ElementwiseMassOperator,
+                           true >( 2, 5.9e-1, 2.4e+1 );
+   hyteg::convergenceTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator,
+                           hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
+                           hyteg::P2ElementwiseMassOperator,
+                           true >( 3, 2.2e-1, 8.7e+0 );
+
+   if ( longrun )
+   {
+      hyteg::convergenceTest< hyteg::P2P1ElementwiseAffineEpsilonStokesOperator,
+                              hyteg::P2P1TaylorHoodFunction< walberla::real_t >,
+                              hyteg::P2ElementwiseMassOperator,
+                              true >( 4, 6.8e-2, 2.4e+0 );
+   }
 }

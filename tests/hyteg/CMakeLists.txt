@@ -95,7 +95,10 @@ endif()
 
 waLBerla_compile_test(FILES convergence/ElementwiseEpsilonMinResConvergenceTest.cpp DEPENDS hyteg core)
 if(CMAKE_BUILD_TYPE MATCHES "Release")
-  waLBerla_execute_test(NAME ElementwiseEpsilonMinResConvergenceTest)
+  if( HYTEG_BUILD_WITH_PETSC )
+    waLBerla_execute_test(NAME ElementwiseEpsilonMinResConvergenceTest)
+    waLBerla_execute_test(NAME ElementwiseEpsilonMinResConvergenceTestLongrun COMMAND $<TARGET_FILE:ElementwiseEpsilonMinResConvergenceTest> --longrun LABELS longrun)
+  endif()
 endif()
 
 waLBerla_compile_test(FILES convergence/P2SmoothConvergenceTest.cpp DEPENDS hyteg core)

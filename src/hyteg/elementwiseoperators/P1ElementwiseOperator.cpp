@@ -23,8 +23,13 @@
 #include "hyteg/forms/P1RowSumForm.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_0_0.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_0_1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_0_2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_1_0.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_1_1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_1_2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_2_0.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_2_1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_2_2.hpp"
 
 namespace hyteg {
 
@@ -751,7 +756,12 @@ template class P1ElementwiseOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_d
 
 template class P1ElementwiseOperator< P1EpsilonAffine_0_0 >;
 template class P1ElementwiseOperator< P1EpsilonAffine_0_1 >;
+template class P1ElementwiseOperator< P1EpsilonAffine_0_2 >;
 template class P1ElementwiseOperator< P1EpsilonAffine_1_0 >;
 template class P1ElementwiseOperator< P1EpsilonAffine_1_1 >;
+template class P1ElementwiseOperator< P1EpsilonAffine_1_2 >;
+template class P1ElementwiseOperator< P1EpsilonAffine_2_0 >;
+template class P1ElementwiseOperator< P1EpsilonAffine_2_1 >;
+template class P1ElementwiseOperator< P1EpsilonAffine_2_2 >;
 
 } // namespace hyteg

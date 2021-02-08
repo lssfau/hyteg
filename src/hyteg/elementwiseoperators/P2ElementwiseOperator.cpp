@@ -983,7 +983,14 @@ template class P2ElementwiseOperator< P2DivKGradAffine >;
 
 template class P2ElementwiseOperator< P2EpsilonAffine_0_0 >;
 template class P2ElementwiseOperator< P2EpsilonAffine_0_1 >;
+template class P2ElementwiseOperator< P2EpsilonAffine_0_2 >;
+
 template class P2ElementwiseOperator< P2EpsilonAffine_1_0 >;
 template class P2ElementwiseOperator< P2EpsilonAffine_1_1 >;
+template class P2ElementwiseOperator< P2EpsilonAffine_1_2 >;
+
+template class P2ElementwiseOperator< P2EpsilonAffine_2_0 >;
+template class P2ElementwiseOperator< P2EpsilonAffine_2_1 >;
+template class P2ElementwiseOperator< P2EpsilonAffine_2_2 >;
 
 } // namespace hyteg

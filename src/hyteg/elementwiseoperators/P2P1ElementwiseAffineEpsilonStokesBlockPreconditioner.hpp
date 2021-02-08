@@ -19,8 +19,10 @@
  */
 #pragma once
 
-#include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
-#include "hyteg/elementwiseoperators/P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner.hpp"
+#include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
+#include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
+#include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
+#include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/P2EpsilonAffine_0_0.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/P2EpsilonAffine_0_1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/P2EpsilonAffine_0_2.hpp"
@@ -34,15 +36,13 @@
 
 namespace hyteg {
 
-class P2P1ElementwiseAffineEpsilonStokesOperator
+class P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner
 : public Operator< P2P1TaylorHoodFunction< real_t >, P2P1TaylorHoodFunction< real_t > >
 {
  public:
-   typedef P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner BlockPreconditioner_T;
-
-   P2P1ElementwiseAffineEpsilonStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                                               uint_t                                     minLevel,
-                                               uint_t                                     maxLevel )
+   P2P1ElementwiseAffineEpsilonStokesBlockPreconditioner( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                          uint_t                                     minLevel,
+                                                          uint_t                                     maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , A_0_0( storage, minLevel, maxLevel )
    , A_0_1( storage, minLevel, maxLevel )
@@ -53,54 +53,13 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
    , A_2_0( storage, minLevel, maxLevel )
    , A_2_1( storage, minLevel, maxLevel )
    , A_2_2( storage, minLevel, maxLevel )
-   , div_x( storage, minLevel, maxLevel )
-   , div_y( storage, minLevel, maxLevel )
-   , div_z( storage, minLevel, maxLevel )
-   , divT_x( storage, minLevel, maxLevel )
-   , divT_y( storage, minLevel, maxLevel )
-   , divT_z( storage, minLevel, maxLevel )
+   , P( storage,
+        minLevel,
+        maxLevel,
+        storage->hasGlobalCells() ? std::make_shared< P1RowSumForm >( std::make_shared< P1Form_mass3D >() ) :
+                                    std::make_shared< P1RowSumForm >( std::make_shared< P1Form_mass >() ) )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
-
-   void computeAndStoreLocalElementMatrices() { WALBERLA_ABORT( "Not implemented." ) }
-
-   void apply( const P2P1TaylorHoodFunction< real_t >& src,
-               const P2P1TaylorHoodFunction< real_t >& dst,
-               const uint_t                            level,
-               const DoFType                           flag ) const
-   {
-      A_0_0.apply( src.uvw.u, dst.uvw.u, level, flag );
-      A_0_1.apply( src.uvw.v, dst.uvw.u, level, flag, Add );
-      if ( hasGlobalCells_ )
-      {
-         A_0_2.apply( src.uvw.w, dst.uvw.u, level, flag, Add );
-      }
-
-      divT_x.apply( src.p, dst.uvw.u, level, flag, Add );
-
-      A_1_0.apply( src.uvw.u, dst.uvw.v, level, flag );
-      A_1_1.apply( src.uvw.v, dst.uvw.v, level, flag, Add );
-      if ( hasGlobalCells_ )
-      {
-         A_1_2.apply( src.uvw.w, dst.uvw.v, level, flag, Add );
-      }
-      divT_y.apply( src.p, dst.uvw.v, level, flag, Add );
-
-      if ( hasGlobalCells_ )
-      {
-         A_2_0.apply( src.uvw.u, dst.uvw.w, level, flag );
-         A_2_1.apply( src.uvw.v, dst.uvw.w, level, flag, Add );
-         A_2_2.apply( src.uvw.w, dst.uvw.w, level, flag, Add );
-         divT_z.apply( src.p, dst.uvw.w, level, flag, Add );
-      }
-
-      div_x.apply( src.uvw.u, dst.p, level, flag );
-      div_y.apply( src.uvw.v, dst.p, level, flag, Add );
-      if ( hasGlobalCells_ )
-      {
-         div_z.apply( src.uvw.w, dst.p, level, flag, Add );
-      }
-   }
 
    P2ElementwiseOperator< P2EpsilonAffine_0_0 > A_0_0;
    P2ElementwiseOperator< P2EpsilonAffine_0_1 > A_0_1;
@@ -112,15 +71,9 @@ class P2P1ElementwiseAffineEpsilonStokesOperator
 
    P2ElementwiseOperator< P2EpsilonAffine_2_0 > A_2_0;
    P2ElementwiseOperator< P2EpsilonAffine_2_1 > A_2_1;
-   P2ElementwiseOperator< P2EpsilonAffine_2_2 > A_2_2;
+   P2ElementwiseOperator< P2EpsilonAffine_2_1 > A_2_2;
 
-   P2ToP1ElementwiseDivxOperator div_x;
-   P2ToP1ElementwiseDivyOperator div_y;
-   P2ToP1ElementwiseDivzOperator div_z;
-
-   P1ToP2ElementwiseDivTxOperator divT_x;
-   P1ToP2ElementwiseDivTyOperator divT_y;
-   P1ToP2ElementwiseDivTzOperator divT_z;
+   P1BlendingLumpedDiagonalOperator P;
 
    bool hasGlobalCells_;
 };
