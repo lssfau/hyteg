@@ -64,6 +64,8 @@ endif()
 if(WALBERLA_CXX_COMPILER_IS_CLANG)
     add_flag( CMAKE_CXX_FLAGS "-Wno-missing-braces" )
     add_flag( CMAKE_CXX_FLAGS "-Wno-parentheses-equality" )
+    # TOOO: fix missing overrwrites and enable this waring
+    add_flag( CMAKE_CXX_FLAGS "-Wno-inconsistent-missing-override")
 endif()
 
 # MSVC generates so many warnings that the CI log gets too large to complete the job successfully
