@@ -203,10 +203,16 @@ int main( int argc, char* argv[] )
 
    WALBERLA_CHECK_FLOAT_EQUAL( y.dotGlobal( oneFunc, level, hyteg::Inner ), z.dotGlobal( oneFunc, level, hyteg::Inner ) )
 
-   WALBERLA_LOG_INFO_ON_ROOT( std::scientific << " | " << numberOfFaces << " | " << level << " | " << totalDoFs << " | "
-                                              << walberla::MPIManager::instance()->numProcesses() << " | "
-                                              << wcTimingTreeApp["HyTeG apply"].last() << " | "
-                                              << wcTimingTreeApp["Petsc apply"].last() << " | " );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       walberla::format( "%6s |%6s |%14s |%6s |%6s |%10s |%10s", "faces", "level", "dof", "iter", "procs", "hyteg", "petsc" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%6u |%6u |%14u |%6u |%6u |%10.2e |%10.2e",
+                                                numberOfFaces,
+                                                level,
+                                                totalDoFs,
+                                                iterations,
+                                                walberla::MPIManager::instance()->numProcesses(),
+                                                wcTimingTreeApp["HyTeG apply"].last(),
+                                                wcTimingTreeApp["Petsc apply"].last() ) )
    if ( mainConf.getParameter< bool >( "petscMatOutput" ) )
    {
       WALBERLA_LOG_INFO_ON_ROOT( matPetsc.getInfo() );
