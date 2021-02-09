@@ -27,8 +27,8 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/P1DivKGradAffine.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/P2DivKGradAffine.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_div_k_grad_affine_q4.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -115,7 +115,7 @@ void ElementwiseDivKGradCGTest( const std::string& meshFile, const uint_t level,
 
 void runAllTestsP1()
 {
-   typedef P1DivKGradAffine                  FormType;
+   typedef forms::p1_div_k_grad_affine_q3    FormType;
    typedef P1ElementwiseOperator< FormType > ElementwiseOperator;
    typedef P1ElementwiseMassOperator         MassOperator;
    typedef P1Function< real_t >              FunctionType;
@@ -139,7 +139,7 @@ void runAllTestsP1()
 
 void runAllTestsP2()
 {
-   typedef P2DivKGradAffine                  FormType;
+   typedef forms::p2_div_k_grad_affine_q4    FormType;
    typedef P2ElementwiseOperator< FormType > ElementwiseOperator;
    typedef P2ElementwiseMassOperator         MassOperator;
    typedef P2Function< real_t >              FunctionType;

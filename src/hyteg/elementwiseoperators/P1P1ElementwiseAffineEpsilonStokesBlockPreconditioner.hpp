@@ -23,15 +23,15 @@
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
 #include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_0_0.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_0_1.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_0_2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_1_0.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_1_1.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_1_2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_2_0.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_2_1.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/P1EpsilonAffine_2_2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_0_0_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_0_1_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_0_2_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_1_0_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_1_1_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_1_2_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_2_0_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_2_1_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_2_2_affine_q2.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
 namespace hyteg {
@@ -61,17 +61,17 @@ class P1P1ElementwiseAffineEpsilonStokesBlockPreconditioner
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
-   P1ElementwiseOperator< P1EpsilonAffine_0_0 > A_0_0;
-   P1ElementwiseOperator< P1EpsilonAffine_0_1 > A_0_1;
-   P1ElementwiseOperator< P1EpsilonAffine_0_2 > A_0_2;
+   P1ElementwiseOperator< forms::p1_epsiloncc_0_0_affine_q2 > A_0_0;
+   P1ElementwiseOperator< forms::p1_epsiloncc_0_1_affine_q2 > A_0_1;
+   P1ElementwiseOperator< forms::p1_epsiloncc_0_2_affine_q2 > A_0_2;
 
-   P1ElementwiseOperator< P1EpsilonAffine_1_0 > A_1_0;
-   P1ElementwiseOperator< P1EpsilonAffine_1_1 > A_1_1;
-   P1ElementwiseOperator< P1EpsilonAffine_1_2 > A_1_2;
+   P1ElementwiseOperator< forms::p1_epsiloncc_1_0_affine_q2 > A_1_0;
+   P1ElementwiseOperator< forms::p1_epsiloncc_1_1_affine_q2 > A_1_1;
+   P1ElementwiseOperator< forms::p1_epsiloncc_1_2_affine_q2 > A_1_2;
 
-   P1ElementwiseOperator< P1EpsilonAffine_2_0 > A_2_0;
-   P1ElementwiseOperator< P1EpsilonAffine_2_1 > A_2_1;
-   P1ElementwiseOperator< P1EpsilonAffine_2_1 > A_2_2;
+   P1ElementwiseOperator< forms::p1_epsiloncc_2_0_affine_q2 > A_2_0;
+   P1ElementwiseOperator< forms::p1_epsiloncc_2_1_affine_q2 > A_2_1;
+   P1ElementwiseOperator< forms::p1_epsiloncc_2_2_affine_q2 > A_2_2;
 
    P1BlendingLumpedDiagonalOperator P;
 

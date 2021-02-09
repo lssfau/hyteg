@@ -25,16 +25,16 @@
 #include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_generated/p2_polar_laplacian.h"
-#include "hyteg/forms/form_hyteg_generated/p2/P2DivKGradAffine.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/P2EpsilonAffine_0_0.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/P2EpsilonAffine_0_1.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/P2EpsilonAffine_0_2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/P2EpsilonAffine_1_0.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/P2EpsilonAffine_1_1.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/P2EpsilonAffine_1_2.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/P2EpsilonAffine_2_0.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/P2EpsilonAffine_2_1.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/P2EpsilonAffine_2_2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_div_k_grad_affine_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_epsiloncc_0_0_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_epsiloncc_0_1_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_epsiloncc_0_2_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_epsiloncc_1_0_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_epsiloncc_1_1_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_epsiloncc_1_2_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_epsiloncc_2_0_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_epsiloncc_2_1_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_epsiloncc_2_2_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplacePimped3D.hpp"
@@ -319,7 +319,7 @@ typedef P2ElementwiseOperator< P2Form_divKgrad > P2ElementwiseDivKGradOperator;
 
 typedef P2ElementwiseOperator< P2LinearCombinationForm > P2ElementwiseLinearCombinationOperator;
 
-typedef P2ElementwiseOperator< P2DivKGradAffine > P2ElementwiseAffineDivKGradOperator;
+typedef P2ElementwiseOperator< forms::p2_div_k_grad_affine_q4 > P2ElementwiseAffineDivKGradOperator;
 
 // For testing performance
 typedef P2ElementwiseOperator< P2Form_laplacePimped3D > P2ElementwiseBlendingLaplaceOperatorPimped3D;
