@@ -152,6 +152,11 @@ if(CMAKE_BUILD_TYPE MATCHES "Release")
   endif()
 endif()
 
+waLBerla_compile_test(FILES convergence/StokesVarViscPopovTest.cpp DEPENDS hyteg core )
+if(CMAKE_BUILD_TYPE MATCHES "Release")
+  waLBerla_execute_test(NAME StokesVarViscPopovTest)
+endif()
+
 ## convection ##
 
 waLBerla_compile_test(FILES convection/Upwind2DCircularConvectionTest.cpp DEPENDS hyteg core)

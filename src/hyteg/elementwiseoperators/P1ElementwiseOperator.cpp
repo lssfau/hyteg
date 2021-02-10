@@ -30,6 +30,15 @@
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_2_0_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_2_1_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_2_2_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_0_0_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_0_1_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_0_2_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_1_0_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_1_1_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_1_2_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_2_0_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_2_1_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_2_2_affine_q2.hpp"
 
 namespace hyteg {
 
@@ -763,5 +772,15 @@ template class P1ElementwiseOperator< forms::p1_epsiloncc_1_2_affine_q2 >;
 template class P1ElementwiseOperator< forms::p1_epsiloncc_2_0_affine_q2 >;
 template class P1ElementwiseOperator< forms::p1_epsiloncc_2_1_affine_q2 >;
 template class P1ElementwiseOperator< forms::p1_epsiloncc_2_2_affine_q2 >;
+
+template class P1ElementwiseOperator< forms::p1_epsilonvar_0_0_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_0_1_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_0_2_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_1_0_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_1_1_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_1_2_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_2_0_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_2_1_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_2_2_affine_q2 >;
 
 } // namespace hyteg
