@@ -33,41 +33,9 @@
 namespace hyteg {
 namespace forms {
 
-   void p1_epsiloncc_2_2_affine_q2::integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 3 >& elMat ) const
+   void p1_epsiloncc_2_2_affine_q2::integrateAll( const std::array< Point3D, 3 >& , Matrix< real_t, 3, 3 >&  ) const
    {
-      real_t p_affine_0_0 = coords[0][0];
-      real_t p_affine_0_1 = coords[0][1];
-      real_t p_affine_1_0 = coords[1][0];
-      real_t p_affine_1_1 = coords[1][1];
-      real_t p_affine_2_0 = coords[2][0];
-      real_t p_affine_2_1 = coords[2][1];
-      real_t q_p_0_0 = 0.16666666666666666;
-      real_t q_p_0_1 = 0.66666666666666663;
-      real_t q_p_1_0 = 0.66666666666666663;
-      real_t q_p_1_1 = 0.16666666666666666;
-      real_t q_p_2_0 = 0.16666666666666666;
-      real_t q_p_2_1 = 0.16666666666666666;
-      real_t w_p_0 = 0.16666666666666666;
-      real_t w_p_1 = 0.16666666666666666;
-      real_t w_p_2 = 0.16666666666666666;
-      real_t a_0_0 = 0;
-      real_t a_0_1 = 0;
-      real_t a_0_2 = 0;
-      real_t a_1_0 = 0;
-      real_t a_1_1 = 0;
-      real_t a_1_2 = 0;
-      real_t a_2_0 = 0;
-      real_t a_2_1 = 0;
-      real_t a_2_2 = 0;
-      (elMat(0, 0)) = a_0_0;
-      (elMat(0, 1)) = a_0_1;
-      (elMat(0, 2)) = a_0_2;
-      (elMat(1, 0)) = a_1_0;
-      (elMat(1, 1)) = a_1_1;
-      (elMat(1, 2)) = a_1_2;
-      (elMat(2, 0)) = a_2_0;
-      (elMat(2, 1)) = a_2_1;
-      (elMat(2, 2)) = a_2_2;
+      
    }
 
    void p1_epsiloncc_2_2_affine_q2::integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const
@@ -84,22 +52,6 @@ namespace forms {
       real_t p_affine_3_0 = coords[3][0];
       real_t p_affine_3_1 = coords[3][1];
       real_t p_affine_3_2 = coords[3][2];
-      real_t q_p_0_0 = 0.13819660112501059;
-      real_t q_p_0_1 = 0.13819660112501059;
-      real_t q_p_0_2 = 0.58541019662496829;
-      real_t q_p_1_0 = 0.13819660112501059;
-      real_t q_p_1_1 = 0.58541019662496829;
-      real_t q_p_1_2 = 0.13819660112501059;
-      real_t q_p_2_0 = 0.58541019662496829;
-      real_t q_p_2_1 = 0.13819660112501059;
-      real_t q_p_2_2 = 0.13819660112501059;
-      real_t q_p_3_0 = 0.13819660112501059;
-      real_t q_p_3_1 = 0.13819660112501059;
-      real_t q_p_3_2 = 0.13819660112501059;
-      real_t w_p_0 = 0.041666666666666657;
-      real_t w_p_1 = 0.041666666666666657;
-      real_t w_p_2 = 0.041666666666666657;
-      real_t w_p_3 = 0.041666666666666657;
       real_t tmp_0 = -p_affine_0_0;
       real_t tmp_1 = p_affine_1_0 + tmp_0;
       real_t tmp_2 = -p_affine_0_1;
@@ -178,31 +130,31 @@ namespace forms {
       real_t tmp_75 = tmp_37*tmp_72;
       real_t tmp_76 = tmp_46*tmp_72;
       real_t tmp_77 = tmp_62*(tmp_23*tmp_74 + tmp_35*tmp_75 + tmp_44*tmp_76);
-      real_t tmp_78 = tmp_77*w_p_0 + tmp_77*w_p_1 + tmp_77*w_p_2 + tmp_77*w_p_3;
+      real_t tmp_78 = 0.16666666666666663*tmp_77;
       real_t tmp_79 = tmp_62*(tmp_33*tmp_75 + tmp_42*tmp_76 + tmp_74*tmp_8);
-      real_t tmp_80 = tmp_79*w_p_0 + tmp_79*w_p_1 + tmp_79*w_p_2 + tmp_79*w_p_3;
+      real_t tmp_80 = 0.16666666666666663*tmp_79;
       real_t tmp_81 = tmp_62*(tmp_27*tmp_30 + tmp_36*tmp_39 + tmp_45*tmp_48);
       real_t tmp_82 = tmp_62*((tmp_23*tmp_23)*tmp_71 + (tmp_35*tmp_35)*tmp_72 + (tmp_44*tmp_44)*tmp_72);
       real_t tmp_83 = tmp_62*(tmp_23*tmp_71*tmp_8 + tmp_33*tmp_35*tmp_72 + tmp_42*tmp_44*tmp_72);
-      real_t tmp_84 = tmp_83*w_p_0 + tmp_83*w_p_1 + tmp_83*w_p_2 + tmp_83*w_p_3;
+      real_t tmp_84 = 0.16666666666666663*tmp_83;
       real_t tmp_85 = tmp_62*(tmp_27*tmp_29 + tmp_34*tmp_39 + tmp_43*tmp_48);
       real_t tmp_86 = tmp_62*((tmp_33*tmp_33)*tmp_72 + (tmp_42*tmp_42)*tmp_72 + tmp_71*(tmp_8*tmp_8));
-      real_t a_0_0 = tmp_63*w_p_0 + tmp_63*w_p_1 + tmp_63*w_p_2 + tmp_63*w_p_3;
-      real_t a_0_1 = tmp_66*w_p_0 + tmp_66*w_p_1 + tmp_66*w_p_2 + tmp_66*w_p_3;
-      real_t a_0_2 = tmp_67*w_p_0 + tmp_67*w_p_1 + tmp_67*w_p_2 + tmp_67*w_p_3;
-      real_t a_0_3 = tmp_68*w_p_0 + tmp_68*w_p_1 + tmp_68*w_p_2 + tmp_68*w_p_3;
-      real_t a_1_0 = tmp_69*w_p_0 + tmp_69*w_p_1 + tmp_69*w_p_2 + tmp_69*w_p_3;
-      real_t a_1_1 = tmp_73*w_p_0 + tmp_73*w_p_1 + tmp_73*w_p_2 + tmp_73*w_p_3;
+      real_t a_0_0 = 0.16666666666666663*tmp_63;
+      real_t a_0_1 = 0.16666666666666663*tmp_66;
+      real_t a_0_2 = 0.16666666666666663*tmp_67;
+      real_t a_0_3 = 0.16666666666666663*tmp_68;
+      real_t a_1_0 = 0.16666666666666663*tmp_69;
+      real_t a_1_1 = 0.16666666666666663*tmp_73;
       real_t a_1_2 = tmp_78;
       real_t a_1_3 = tmp_80;
-      real_t a_2_0 = tmp_81*w_p_0 + tmp_81*w_p_1 + tmp_81*w_p_2 + tmp_81*w_p_3;
+      real_t a_2_0 = 0.16666666666666663*tmp_81;
       real_t a_2_1 = tmp_78;
-      real_t a_2_2 = tmp_82*w_p_0 + tmp_82*w_p_1 + tmp_82*w_p_2 + tmp_82*w_p_3;
+      real_t a_2_2 = 0.16666666666666663*tmp_82;
       real_t a_2_3 = tmp_84;
-      real_t a_3_0 = tmp_85*w_p_0 + tmp_85*w_p_1 + tmp_85*w_p_2 + tmp_85*w_p_3;
+      real_t a_3_0 = 0.16666666666666663*tmp_85;
       real_t a_3_1 = tmp_80;
       real_t a_3_2 = tmp_84;
-      real_t a_3_3 = tmp_86*w_p_0 + tmp_86*w_p_1 + tmp_86*w_p_2 + tmp_86*w_p_3;
+      real_t a_3_3 = 0.16666666666666663*tmp_86;
       (elMat(0, 0)) = a_0_0;
       (elMat(0, 1)) = a_0_1;
       (elMat(0, 2)) = a_0_2;

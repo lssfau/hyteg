@@ -71,7 +71,7 @@ class p1_diffusion_affine_q2 : public P1FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    abs    assignments    function_calls
    ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              102     165       2      1            134                 0
+   ///                                               72     135       2      1            118                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 

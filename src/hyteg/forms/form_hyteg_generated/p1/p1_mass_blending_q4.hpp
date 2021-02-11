@@ -59,7 +59,7 @@ class p1_mass_blending_q4 : public P1FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    abs    assignments    function_calls
    ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              101     144       0      7             88                 6
+   ///                                               65     114       0      7             70                 6
    ///
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 3 >& elMat ) const override;
 
@@ -71,7 +71,7 @@ class p1_mass_blending_q4 : public P1FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    abs    assignments    function_calls
    ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              409     575       0     12            250                11
+   ///                                              277     465       0     12            206                11
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 

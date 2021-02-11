@@ -59,7 +59,7 @@ class p2_diffusion_blending_q3 : public P2FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    abs    assignments    function_calls
    ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              275     448       5      5            273                 4
+   ///                                              251     440       5      5            261                 4
    ///
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 6, 6 >& elMat ) const override;
 
@@ -71,7 +71,7 @@ class p2_diffusion_blending_q3 : public P2FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    abs    assignments    function_calls
    ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                             1743    2478       7      7           1084                 6
+   ///                                             1665    2424       7      7           1060                 6
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 

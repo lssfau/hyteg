@@ -71,7 +71,7 @@ class p2_diffusion_affine_q2 : public P2FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    abs    assignments    function_calls
    ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              959    1450       2      1            764                 0
+   ///                                              943    1414       2      1            748                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 

@@ -62,16 +62,7 @@ class p2_epsilonvar_2_2_affine_q2 : public P2FormHyTeG
 
  public:
 
-   /// \brief Integrates the weak form over the passed element (vertices in computational space).
-   ///
-   /// - element geometry:                       triangle, dim: 2, vertices: 3
-   /// - element matrix dimensions (rows, cols): (6, 6)
-   /// - quadrature rule:                        Dunavant 2 | points: 3, degree: 2, test tolerance: 2.22e-16
-   /// - floating point operations:
-   ///                                             adds    muls    divs    abs    assignments    function_calls
-   ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                                0       0       0      0             87                 0
-   ///
+   /// \brief Not implemented - does nothing.
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 6, 6 >& elMat ) const override;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
@@ -82,7 +73,7 @@ class p2_epsilonvar_2_2_affine_q2 : public P2FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    abs    assignments    function_calls
    ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                             1047    1672       2      1            890                 4
+   ///                                              995    1648       2      1            874                 4
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 

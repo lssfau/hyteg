@@ -51,15 +51,15 @@ class p1_div_k_grad_affine_q3 : public P1FormHyTeG
 
    p1_div_k_grad_affine_q3() { WALBERLA_ABORT("Not implemented."); }
 
-   p1_div_k_grad_affine_q3( std::function< real_t ( const Point3D & ) > _callback2D, std::function< real_t ( const Point3D & ) > _callback3D )
-   : callback2D(_callback2D)
-   , callback3D(_callback3D)
+   p1_div_k_grad_affine_q3( std::function< real_t ( const Point3D & ) > _callback3D, std::function< real_t ( const Point3D & ) > _callback2D )
+   : callback3D(_callback3D)
+   , callback2D(_callback2D)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback2D;
    std::function< real_t ( const Point3D & ) > callback3D;
+   std::function< real_t ( const Point3D & ) > callback2D;
 
 
  public:
@@ -72,7 +72,7 @@ class p1_div_k_grad_affine_q3 : public P1FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    abs    assignments    function_calls
    ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              110     155       2      1             95                 4
+   ///                                               94     163       2      1             83                 4
    ///
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 3 >& elMat ) const override;
 
@@ -84,7 +84,7 @@ class p1_div_k_grad_affine_q3 : public P1FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    abs    assignments    function_calls
    ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              417     520       2      1            234                 6
+   ///                                              363     538       2      1            210                 6
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const override;
 

@@ -33,41 +33,9 @@
 namespace hyteg {
 namespace forms {
 
-   void p1_epsilonvar_0_2_affine_q2::integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 3 >& elMat ) const
+   void p1_epsilonvar_0_2_affine_q2::integrateAll( const std::array< Point3D, 3 >& , Matrix< real_t, 3, 3 >&  ) const
    {
-      real_t p_affine_0_0 = coords[0][0];
-      real_t p_affine_0_1 = coords[0][1];
-      real_t p_affine_1_0 = coords[1][0];
-      real_t p_affine_1_1 = coords[1][1];
-      real_t p_affine_2_0 = coords[2][0];
-      real_t p_affine_2_1 = coords[2][1];
-      real_t q_p_0_0 = 0.16666666666666666;
-      real_t q_p_0_1 = 0.66666666666666663;
-      real_t q_p_1_0 = 0.66666666666666663;
-      real_t q_p_1_1 = 0.16666666666666666;
-      real_t q_p_2_0 = 0.16666666666666666;
-      real_t q_p_2_1 = 0.16666666666666666;
-      real_t w_p_0 = 0.16666666666666666;
-      real_t w_p_1 = 0.16666666666666666;
-      real_t w_p_2 = 0.16666666666666666;
-      real_t a_0_0 = 0;
-      real_t a_0_1 = 0;
-      real_t a_0_2 = 0;
-      real_t a_1_0 = 0;
-      real_t a_1_1 = 0;
-      real_t a_1_2 = 0;
-      real_t a_2_0 = 0;
-      real_t a_2_1 = 0;
-      real_t a_2_2 = 0;
-      (elMat(0, 0)) = a_0_0;
-      (elMat(0, 1)) = a_0_1;
-      (elMat(0, 2)) = a_0_2;
-      (elMat(1, 0)) = a_1_0;
-      (elMat(1, 1)) = a_1_1;
-      (elMat(1, 2)) = a_1_2;
-      (elMat(2, 0)) = a_2_0;
-      (elMat(2, 1)) = a_2_1;
-      (elMat(2, 2)) = a_2_2;
+      
    }
 
    void p1_epsilonvar_0_2_affine_q2::integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const
@@ -88,27 +56,11 @@ namespace forms {
       real_t Scalar_Variable_Coefficient_3D_1_0 = 0;
       real_t Scalar_Variable_Coefficient_3D_2_0 = 0;
       real_t Scalar_Variable_Coefficient_3D_3_0 = 0;
-      real_t q_p_0_0 = 0.13819660112501059;
-      real_t q_p_0_1 = 0.13819660112501059;
-      real_t q_p_0_2 = 0.58541019662496829;
-      real_t q_p_1_0 = 0.13819660112501059;
-      real_t q_p_1_1 = 0.58541019662496829;
-      real_t q_p_1_2 = 0.13819660112501059;
-      real_t q_p_2_0 = 0.58541019662496829;
-      real_t q_p_2_1 = 0.13819660112501059;
-      real_t q_p_2_2 = 0.13819660112501059;
-      real_t q_p_3_0 = 0.13819660112501059;
-      real_t q_p_3_1 = 0.13819660112501059;
-      real_t q_p_3_2 = 0.13819660112501059;
-      real_t w_p_0 = 0.041666666666666657;
-      real_t w_p_1 = 0.041666666666666657;
-      real_t w_p_2 = 0.041666666666666657;
-      real_t w_p_3 = 0.041666666666666657;
-      Scalar_Variable_Coefficient_3D( p_affine_0_0 + q_p_0_0*(-p_affine_0_0 + p_affine_1_0) + q_p_0_1*(-p_affine_0_0 + p_affine_2_0) + q_p_0_2*(-p_affine_0_0 + p_affine_3_0), p_affine_0_1 + q_p_0_0*(-p_affine_0_1 + p_affine_1_1) + q_p_0_1*(-p_affine_0_1 + p_affine_2_1) + q_p_0_2*(-p_affine_0_1 + p_affine_3_1), p_affine_0_2 + q_p_0_0*(-p_affine_0_2 + p_affine_1_2) + q_p_0_1*(-p_affine_0_2 + p_affine_2_2) + q_p_0_2*(-p_affine_0_2 + p_affine_3_2), &Scalar_Variable_Coefficient_3D_0_0 );
-      Scalar_Variable_Coefficient_3D( p_affine_0_0 + q_p_1_0*(-p_affine_0_0 + p_affine_1_0) + q_p_1_1*(-p_affine_0_0 + p_affine_2_0) + q_p_1_2*(-p_affine_0_0 + p_affine_3_0), p_affine_0_1 + q_p_1_0*(-p_affine_0_1 + p_affine_1_1) + q_p_1_1*(-p_affine_0_1 + p_affine_2_1) + q_p_1_2*(-p_affine_0_1 + p_affine_3_1), p_affine_0_2 + q_p_1_0*(-p_affine_0_2 + p_affine_1_2) + q_p_1_1*(-p_affine_0_2 + p_affine_2_2) + q_p_1_2*(-p_affine_0_2 + p_affine_3_2), &Scalar_Variable_Coefficient_3D_1_0 );
-      Scalar_Variable_Coefficient_3D( p_affine_0_0 + q_p_2_0*(-p_affine_0_0 + p_affine_1_0) + q_p_2_1*(-p_affine_0_0 + p_affine_2_0) + q_p_2_2*(-p_affine_0_0 + p_affine_3_0), p_affine_0_1 + q_p_2_0*(-p_affine_0_1 + p_affine_1_1) + q_p_2_1*(-p_affine_0_1 + p_affine_2_1) + q_p_2_2*(-p_affine_0_1 + p_affine_3_1), p_affine_0_2 + q_p_2_0*(-p_affine_0_2 + p_affine_1_2) + q_p_2_1*(-p_affine_0_2 + p_affine_2_2) + q_p_2_2*(-p_affine_0_2 + p_affine_3_2), &Scalar_Variable_Coefficient_3D_2_0 );
-      Scalar_Variable_Coefficient_3D( p_affine_0_0 + q_p_3_0*(-p_affine_0_0 + p_affine_1_0) + q_p_3_1*(-p_affine_0_0 + p_affine_2_0) + q_p_3_2*(-p_affine_0_0 + p_affine_3_0), p_affine_0_1 + q_p_3_0*(-p_affine_0_1 + p_affine_1_1) + q_p_3_1*(-p_affine_0_1 + p_affine_2_1) + q_p_3_2*(-p_affine_0_1 + p_affine_3_1), p_affine_0_2 + q_p_3_0*(-p_affine_0_2 + p_affine_1_2) + q_p_3_1*(-p_affine_0_2 + p_affine_2_2) + q_p_3_2*(-p_affine_0_2 + p_affine_3_2), &Scalar_Variable_Coefficient_3D_3_0 );
-      real_t tmp_0 = Scalar_Variable_Coefficient_3D_0_0*w_p_0;
+      Scalar_Variable_Coefficient_3D( 0.13819660112501042*p_affine_0_0 + 0.13819660112501059*p_affine_1_0 + 0.13819660112501059*p_affine_2_0 + 0.58541019662496829*p_affine_3_0, 0.13819660112501042*p_affine_0_1 + 0.13819660112501059*p_affine_1_1 + 0.13819660112501059*p_affine_2_1 + 0.58541019662496829*p_affine_3_1, 0.13819660112501042*p_affine_0_2 + 0.13819660112501059*p_affine_1_2 + 0.13819660112501059*p_affine_2_2 + 0.58541019662496829*p_affine_3_2, &Scalar_Variable_Coefficient_3D_0_0 );
+      Scalar_Variable_Coefficient_3D( 0.13819660112501048*p_affine_0_0 + 0.13819660112501059*p_affine_1_0 + 0.58541019662496829*p_affine_2_0 + 0.13819660112501059*p_affine_3_0, 0.13819660112501048*p_affine_0_1 + 0.13819660112501059*p_affine_1_1 + 0.58541019662496829*p_affine_2_1 + 0.13819660112501059*p_affine_3_1, 0.13819660112501048*p_affine_0_2 + 0.13819660112501059*p_affine_1_2 + 0.58541019662496829*p_affine_2_2 + 0.13819660112501059*p_affine_3_2, &Scalar_Variable_Coefficient_3D_1_0 );
+      Scalar_Variable_Coefficient_3D( 0.13819660112501053*p_affine_0_0 + 0.58541019662496829*p_affine_1_0 + 0.13819660112501059*p_affine_2_0 + 0.13819660112501059*p_affine_3_0, 0.13819660112501053*p_affine_0_1 + 0.58541019662496829*p_affine_1_1 + 0.13819660112501059*p_affine_2_1 + 0.13819660112501059*p_affine_3_1, 0.13819660112501053*p_affine_0_2 + 0.58541019662496829*p_affine_1_2 + 0.13819660112501059*p_affine_2_2 + 0.13819660112501059*p_affine_3_2, &Scalar_Variable_Coefficient_3D_2_0 );
+      Scalar_Variable_Coefficient_3D( 0.58541019662496807*p_affine_0_0 + 0.13819660112501059*p_affine_1_0 + 0.13819660112501059*p_affine_2_0 + 0.13819660112501059*p_affine_3_0, 0.58541019662496807*p_affine_0_1 + 0.13819660112501059*p_affine_1_1 + 0.13819660112501059*p_affine_2_1 + 0.13819660112501059*p_affine_3_1, 0.58541019662496807*p_affine_0_2 + 0.13819660112501059*p_affine_1_2 + 0.13819660112501059*p_affine_2_2 + 0.13819660112501059*p_affine_3_2, &Scalar_Variable_Coefficient_3D_3_0 );
+      real_t tmp_0 = 0.041666666666666657*Scalar_Variable_Coefficient_3D_0_0;
       real_t tmp_1 = -p_affine_0_1;
       real_t tmp_2 = p_affine_1_1 + tmp_1;
       real_t tmp_3 = -p_affine_0_2;
@@ -152,9 +104,9 @@ namespace forms {
       real_t tmp_41 = std::abs(p_affine_0_0*tmp_31 - p_affine_0_0*tmp_38 + p_affine_0_1*tmp_34 - p_affine_0_1*tmp_39 + p_affine_0_2*tmp_37 - p_affine_0_2*tmp_40 - p_affine_1_0*tmp_31 + p_affine_1_0*tmp_38 - p_affine_1_1*tmp_34 + p_affine_1_1*tmp_39 - p_affine_1_2*tmp_37 + p_affine_1_2*tmp_40 + p_affine_2_0*tmp_33 - p_affine_2_0*tmp_36 - p_affine_2_1*tmp_30 + p_affine_2_1*tmp_35 + p_affine_2_2*tmp_29 - p_affine_2_2*tmp_32 - p_affine_3_0*tmp_33 + p_affine_3_0*tmp_36 + p_affine_3_1*tmp_30 - p_affine_3_1*tmp_35 - p_affine_3_2*tmp_29 + p_affine_3_2*tmp_32);
       real_t tmp_42 = tmp_41*(-tmp_22*tmp_26 - tmp_22*tmp_27 - tmp_22*tmp_28);
       real_t tmp_43 = 4*tmp_25*tmp_42;
-      real_t tmp_44 = Scalar_Variable_Coefficient_3D_1_0*w_p_1;
-      real_t tmp_45 = Scalar_Variable_Coefficient_3D_2_0*w_p_2;
-      real_t tmp_46 = Scalar_Variable_Coefficient_3D_3_0*w_p_3;
+      real_t tmp_44 = 0.041666666666666657*Scalar_Variable_Coefficient_3D_1_0;
+      real_t tmp_45 = 0.041666666666666657*Scalar_Variable_Coefficient_3D_2_0;
+      real_t tmp_46 = 0.041666666666666657*Scalar_Variable_Coefficient_3D_3_0;
       real_t tmp_47 = tmp_0*tmp_24;
       real_t tmp_48 = 2.0*tmp_21;
       real_t tmp_49 = tmp_42*tmp_48;

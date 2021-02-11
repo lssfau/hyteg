@@ -51,15 +51,15 @@ class p2_epsilonvar_1_1_affine_q2 : public P2FormHyTeG
 
    p2_epsilonvar_1_1_affine_q2() { WALBERLA_ABORT("Not implemented."); }
 
-   p2_epsilonvar_1_1_affine_q2( std::function< real_t ( const Point3D & ) > _callback2D, std::function< real_t ( const Point3D & ) > _callback3D )
-   : callback2D(_callback2D)
-   , callback3D(_callback3D)
+   p2_epsilonvar_1_1_affine_q2( std::function< real_t ( const Point3D & ) > _callback3D, std::function< real_t ( const Point3D & ) > _callback2D )
+   : callback3D(_callback3D)
+   , callback2D(_callback2D)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback2D;
    std::function< real_t ( const Point3D & ) > callback3D;
+   std::function< real_t ( const Point3D & ) > callback2D;
 
 
  public:
@@ -72,7 +72,7 @@ class p2_epsilonvar_1_1_affine_q2 : public P2FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    abs    assignments    function_calls
    ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              210     436       2      1            277                 3
+   ///                                              192     430       2      1            268                 3
    ///
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 6, 6 >& elMat ) const override;
 
@@ -84,7 +84,7 @@ class p2_epsilonvar_1_1_affine_q2 : public P2FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    abs    assignments    function_calls
    ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                             1047    1672       2      1            890                 4
+   ///                                              995    1648       2      1            874                 4
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 

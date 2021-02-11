@@ -59,7 +59,7 @@ class p2_epsiloncc_0_0_affine_q2 : public P2FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    abs    assignments    function_calls
    ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              259     497       2      1            285                 0
+   ///                                              253     485       2      1            276                 0
    ///
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 6, 6 >& elMat ) const override;
 
@@ -71,7 +71,7 @@ class p2_epsiloncc_0_0_affine_q2 : public P2FormHyTeG
    /// - floating point operations:
    ///                                             adds    muls    divs    abs    assignments    function_calls
    ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                             1445    2224       2      1            973                 0
+   ///                                             1433    2188       2      1            957                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
 
