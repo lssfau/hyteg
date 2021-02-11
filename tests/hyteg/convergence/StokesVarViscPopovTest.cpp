@@ -113,6 +113,7 @@ class PopovParameters
       {
          return a * x + b * y + c;
       }
+      WALBERLA_UNUSED( z );
       WALBERLA_ABORT( "Not implemented." );
    }
 
@@ -122,6 +123,7 @@ class PopovParameters
       {
          return beta1 * ( a * x + b * y + c ) + beta2;
       }
+      WALBERLA_UNUSED( z );
       WALBERLA_ABORT( "Not implemented." );
    }
 
