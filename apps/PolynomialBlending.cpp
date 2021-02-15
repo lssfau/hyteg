@@ -31,6 +31,7 @@
 
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator_new.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/p1functionspace/P1PolynomialBlendingOperator.hpp"
 
@@ -82,7 +83,8 @@ enum StencilType
   NONE      = -1,
   CONST     = 0,
   VARIABLE  = 1,
-  LSQP      = 2
+  LSQP      = 2,
+  CONST_NEW = 3
 };
 
 template <StencilType T>
@@ -135,6 +137,7 @@ struct FE_Space<ElementType::P1, StencilType::NONE>
   using Mass = hyteg::P1BlendingMassOperator;
 
   using LaplaceCONST = hyteg::P1ConstantLaplaceOperator;
+  using LaplaceCONST_NEW = hyteg::P1ConstantLaplaceOperator_new;
   using LaplaceVAR = hyteg::P1BlendingLaplaceOperator;
   using LaplaceLSQP = hyteg::P1PolynomialBlendingLaplaceOperator;
 };
@@ -149,6 +152,7 @@ struct FE_Space<ElementType::P2, StencilType::NONE>
   using Mass = hyteg::P2BlendingMassOperator;
 
   using LaplaceCONST = hyteg::P2ConstantLaplaceOperator;
+  using LaplaceCONST_NEW = hyteg::P2ConstantLaplaceOperator; // new p2 operator not implemented yet
   using LaplaceVAR = hyteg::P2BlendingLaplaceOperator;
   using LaplaceLSQP = hyteg::P2SurrogateLaplaceOperator;
 };
@@ -192,6 +196,17 @@ struct FE_Space<P,StencilType::CONST> : public P_Space<P>, public OperatorHandle
 
   using typename P_Space<P>::Mass;
   using Laplace = typename P_Space<P>::LaplaceCONST;
+};
+
+template<ElementType P>
+struct FE_Space<P,StencilType::CONST_NEW> : public P_Space<P>, public OperatorHandler<StencilType::CONST_NEW>
+{
+  using typename P_Space<P>::Function;
+  using typename P_Space<P>::Restriction;
+  using typename P_Space<P>::Prolongation;
+
+  using typename P_Space<P>::Mass;
+  using Laplace = typename P_Space<P>::LaplaceCONST_NEW;
 };
 
 // ================================================
@@ -314,6 +329,10 @@ void solveTmpl(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel,
           name += "const";
           break;
 
+        case StencilType::CONST_NEW:
+          name += "const_NEW";
+          break;
+
         case StencilType::VARIABLE:
           name += "var";
           break;
@@ -345,6 +364,11 @@ void solve(const StencilType T, const uint_t interpolationLevel, std::shared_ptr
     case CONST:
       WALBERLA_LOG_INFO_ON_ROOT("Operatortype: Constant Stencil");
       solveTmpl<P, CONST>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
+      break;
+
+    case CONST_NEW:
+      WALBERLA_LOG_INFO_ON_ROOT("Operatortype: NEW Constant Stencil");
+      solveTmpl<P, CONST_NEW>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
       break;
 
     case VARIABLE:
