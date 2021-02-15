@@ -22,7 +22,7 @@
 #include <array>
 
 #include "hyteg/Operator.hpp"
-#include "hyteg/memory/levelWiseMemory.hpp"
+#include "hyteg/memory/LevelWiseMemory.hpp"
 #include "hyteg/memory/StencilMemory.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
@@ -41,18 +41,59 @@
 namespace hyteg {
 
 using walberla::real_t;
+using walberla::int_c;
 
 template < class P1Form >
 class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 {
+ protected:
+   using Operator< P1Function< real_t >, P1Function< real_t >>::storage_;
+
  public:
-   P1Operator(const std::shared_ptr< PrimitiveStorage >& storage, size_t minlevel, size_t maxlevel)
-      : P1Operator<P1Form>(storage, minLvel, maxlevel, P1Form())
+   P1Operator(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel)
+      : P1Operator<P1Form>(storage, minLevel, maxLevel, P1Form())
    {}
 
-   P1Operator(const std::shared_ptr< PrimitiveStorage >& storage, size_t minlevel, size_t maxlevel, const P1Form& form)
-      : Operator(storage, minlevel, maxlevel), form_(form)
-   {}
+   P1Operator(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form& form)
+      : Operator(storage, minLevel, maxLevel), form_(form)
+   {
+      auto cellP1StencilMemoryDataHandling =
+         std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell >>(
+            minLevel_, maxLevel_);
+
+      auto face3DP1StencilMemoryDataHandling =
+         std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face >>(
+            minLevel_, maxLevel_);
+
+      auto edge3DP1StencilMemoryDataHandling =
+         std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< vertexdof::macroedge::StencilMap_T >, Edge >>(
+            minLevel_, maxLevel_);
+
+      auto faceP1StencilMemoryDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Face >>(
+                                                minLevel_, maxLevel_, vertexDoFMacroFaceStencilMemorySize);
+      auto edgeP1StencilMemoryDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Edge >>(
+                                                minLevel_, maxLevel_, vertexDoFMacroEdgeStencilMemorySize);
+      auto vertexP1StencilMemoryDataHandling = std::make_shared< MemoryDataHandling< StencilMemory< real_t >, Vertex >>(
+                                                  minLevel_, maxLevel_, vertexDoFMacroVertexStencilMemorySize);
+
+      storage->addCellData(cellStencilID_, cellP1StencilMemoryDataHandling, "P1OperatorCellStencil");
+      storage->addFaceData(faceStencilID_, faceP1StencilMemoryDataHandling, "P1OperatorFaceStencil");
+      storage->addFaceData(faceStencil3DID_, face3DP1StencilMemoryDataHandling, "P1OperatorFace3DStencil");
+      storage->addEdgeData(edgeStencilID_, edgeP1StencilMemoryDataHandling, "P1OperatorEdgeStencil");
+      storage->addEdgeData(edgeStencil3DID_, edge3DP1StencilMemoryDataHandling, "P1OperatorEdge3DStencil");
+      storage->addVertexData(vertexStencilID_, vertexP1StencilMemoryDataHandling, "P1OperatorVertexStencil");
+
+      // pre-assemble vertex stencils
+      if (storage_->hasGlobalCells())
+      {
+         assemble_stencil_vertices3D();
+      }
+      else
+      {
+         assemble_stencil_vertices();
+      }
+
+   }
 
    ~P1Operator() override = default;
 
@@ -206,7 +247,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       if (backwards)
       {
          WALBERLA_CHECK(globalDefines::useGeneratedKernels, "Backward SOR only implemented in generated kernels.")
-         WALBERLA_CHECK(backwards_sor_available, "Backward SOR not implemented for this operator.")
+         WALBERLA_CHECK(backwards_sor_available(), "Backward SOR not implemented for this operator.")
 
          this->startTiming("SOR backwards");
       }
@@ -276,7 +317,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
    void smooth_jac(const P1Function< real_t >& dst,
                    const P1Function< real_t >& rhs,
-                   const P1Function< real_t >& tmp,
+                   const P1Function< real_t >& src,
                    const real_t&               relax,
                    size_t                      level,
                    DoFType                     flag) const
@@ -289,7 +330,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
       // perform Jacobi update step
       dst.multElementwise({*getInverseDiagonalValues(), dst}, level, flag);
-      dst.assign({1.0, omega}, {src, dst}, level, flag);
+      dst.assign({1.0, relax}, {src, dst}, level, flag);
 
       this->stopTiming("smooth_jac");
    }
@@ -322,15 +363,103 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
    const PrimitiveDataID< StencilMemory< real_t >, Edge >& getEdgeStencilID() const { return edgeStencilID_; }
 
-   const PrimitiveDataID< levelWiseMemory< vertexdof::macroface::StencilMap_T >, Edge >& getEdgeStencil3DID() const { return edgeStencil3DID_; }
+   const PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Edge >& getEdgeStencil3DID() const { return edgeStencil3DID_; }
 
    const PrimitiveDataID< StencilMemory< real_t >, Face >& getFaceStencilID() const { return faceStencilID_; }
 
-   const PrimitiveDataID< levelWiseMemory< vertexdof::macroface::StencilMap_T >, Face >& getFaceStencil3DID() const { return faceStencil3DID_; }
+   const PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face >& getFaceStencil3DID() const { return faceStencil3DID_; }
 
-   const PrimitiveDataID< levelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell >&  getCellStencilID() const { return cellStencilID_; }
+   const PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell >&  getCellStencilID() const { return cellStencilID_; }
 
  private:
+
+   // assemble stencils for all macro-vertices
+   void assemble_stencil_vertices3D()
+   {
+      for (uint_t level = minLevel_; level <= maxLevel_; level++)
+      {
+         for (const auto& it : storage_->getVertices())
+         {
+            auto vertex        = it.second;
+            auto stencilSize   = vertex->getData(getVertexStencilID())->getSize(level);
+            auto stencilMemory = vertex->getData(getVertexStencilID())->getPointer(level);
+
+            form_.setGeometryMap(vertex->getGeometryMap());
+            auto stencil =
+               P1Elements::P1Elements3D::assembleP1LocalStencil(storage_, *vertex, indexing::Index(0, 0, 0), level, form_);
+
+            WALBERLA_ASSERT_EQUAL(stencilSize, stencil.size());
+
+            for (uint_t i = 0; i < stencilSize; i++)
+            {
+               stencilMemory[i] = stencil[i];
+            }
+         }
+      }
+   }
+
+   // assemble stencils for all macro-vertices
+   void assemble_stencil_vertices()
+   {
+      using namespace P1Elements::P1Elements2D;
+      typedef stencilDirection sD;
+
+      for (uint_t level = minLevel_; level <= maxLevel_; ++level)
+      {
+         for (auto& it : storage_->getVertices())
+         {
+            Vertex& vertex = *it.second;
+
+            auto vertex_stencil = vertex.getData(vertexStencilID_)->getPointer(level);
+
+            uint_t rowsize = levelinfo::num_microvertices_per_edge(level);
+
+            Point3D x;
+            Point3D d0;
+            Point3D d2;
+
+            real_t h = 1.0 / (walberla::real_c(rowsize - 1));
+
+            uint_t neighborId = 0;
+
+            for (auto& faceId : vertex.neighborFaces())
+            {
+               Face* face       = storage_->getFace(faceId);
+               form_.setGeometryMap(face->getGeometryMap());
+
+               uint_t                     v_i       = face->vertex_index(vertex.getID());
+               std::vector< PrimitiveID > adj_edges = face->adjacent_edges(vertex.getID());
+
+               x  = face->coords[v_i];
+               d0 = (face->coords[face->vertex_index(storage_->getEdge(adj_edges[0])->get_opposite_vertex(vertex.getID()))] -
+                     x) *
+                    h;
+               d2 = (face->coords[face->vertex_index(storage_->getEdge(adj_edges[1])->get_opposite_vertex(vertex.getID()))] -
+                     x) *
+                    h;
+
+               Point3D matrixRow;
+               form_.integrate({{x, x + d0, x + d2}}, matrixRow);
+
+               uint_t i = 1;
+
+               // iterate over adjacent edges
+               for (auto& edgeId : adj_edges)
+               {
+                  uint_t edge_idx = vertex.edge_index(edgeId) + 1;
+
+                  vertex_stencil[edge_idx] += matrixRow[i];
+                  i += 1;
+               }
+
+               // add contribution of center vertex
+               vertex_stencil[0] += matrixRow[0];
+
+               ++neighborId;
+            }
+         }
+      }
+   }
 
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
@@ -345,7 +474,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
          if (!inverseDiagonalValues_)
          {
             inverseDiagonalValues_ =
-               std::make_shared< P1Function< real_t >>("inverse diagonal entries", storage_, minlevel_, maxlevel_);
+               std::make_shared< P1Function< real_t >>("inverse diagonal entries", storage_, minLevel_, maxLevel_);
          }
 
          targetFunction = inverseDiagonalValues_;
@@ -354,13 +483,13 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       {
          if (!diagonalValues_)
          {
-            diagonalValues_ = std::make_shared< P1Function< real_t >>("diagonal entries", storage_, minlevel_, maxlevel_);
+            diagonalValues_ = std::make_shared< P1Function< real_t >>("diagonal entries", storage_, minLevel_, maxLevel_);
          }
 
          targetFunction = diagonalValues_;
       }
 
-      for (uint_t level = minlevel_; level <= maxlevel_; level++)
+      for (uint_t level = minLevel_; level <= maxLevel_; level++)
       {
          for (const auto& it : storage_->getVertices())
          {
@@ -459,8 +588,6 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       }
    }
 
-
-
    void smooth_sor_macro_vertices(const P1Function< real_t >& dst,
                                   const P1Function< real_t >& rhs,
                                   real_t                      relax,
@@ -506,7 +633,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
          if (testFlag(edgeBC, flag))
          {
             smooth_sor_edge(
-               level, edge, dst.getEdgeDataID(), rhs.getEdgeDataID(), relax, backwards);
+               edge, dst.getEdgeDataID(), rhs.getEdgeDataID(), level, relax, backwards);
          }
       }
 
@@ -535,12 +662,12 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
                if (globalDefines::useGeneratedKernels)
                {
                   smooth_sor_face3D_generated(
-                     level, face, dst.getFaceDataID(), rhs.getFaceDataID(), relax, backwards);
+                     face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards);
                }
                else
                {
                   smooth_sor_face3D(
-                     level, face, dst.getFaceDataID(), rhs.getFaceDataID(), relax, backwards);
+                     face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards);
                }
             }
             else
@@ -548,12 +675,12 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
                if (globalDefines::useGeneratedKernels)
                {
                   smooth_sor_face_generated(
-                     level, face, dst.getFaceDataID(), rhs.getFaceDataID(), relax, backwards);
+                     face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards);
                }
                else
                {
                   smooth_sor_face(
-                     level, face, dst.getFaceDataID(), rhs.getFaceDataID(), relax, backwards);
+                     face, dst.getFaceDataID(), rhs.getFaceDataID(), level, relax, backwards);
                }
             }
          }
@@ -582,12 +709,12 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
             if (globalDefines::useGeneratedKernels)
             {
                smooth_sor_cell_generated(
-                  level, cell, dst.getCellDataID(), rhs.getCellDataID(), relax, backwards);
+                  cell, dst.getCellDataID(), rhs.getCellDataID(), level, relax, backwards);
             }
             else
             {
                smooth_sor_cell(
-                  level, cell, dst.getCellDataID(), rhs.getCellDataID(), relax, backwards);
+                  cell, dst.getCellDataID(), rhs.getCellDataID(), level, relax, backwards);
             }
          }
       }
@@ -595,10 +722,9 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       this->timingTree_->stop("Macro-Cell");
    }
 
-
    // apply the operator to all DoF on a given macro-edge
    inline void apply_edge(Edge& edge, const PrimitiveDataID<FunctionMemory< real_t >, Edge>& srcId,
-                          const PrimitiveDataID<FunctionMemory< real_t >, Edge>& dstId, const uint_t& level, UpdateType update)
+                          const PrimitiveDataID<FunctionMemory< real_t >, Edge>& dstId, const uint_t& level, UpdateType update) const
    {
 
       using sD = stencilDirection;
@@ -659,7 +785,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
    // apply the operator to all DoF on a given macro-face
    inline void apply_face3D(Face& face, const PrimitiveDataID<FunctionMemory< real_t >, Face>& srcId,
-                            const PrimitiveDataID<FunctionMemory< real_t >, Face>& dstId, const uint_t& level, UpdateType update)
+                            const PrimitiveDataID<FunctionMemory< real_t >, Face>& dstId, const uint_t& level, UpdateType update) const
    {
       auto&   opr_data = face.getData(faceStencil3DID_)->getData(level);
       real_t* src      = face.getData(srcId)->getPointer(level);
@@ -675,16 +801,16 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
          for (uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++)
          {
-            auto neighborCell = storage_.getCell(face.neighborCells().at(neighborCellIdx));
+            auto neighborCell = storage_->getCell(face.neighborCells().at(neighborCellIdx));
             auto centerIndexInCell =
-               vertexdof::macroface::getIndexInNeighboringMacroCell(idxIt, face, neighborCellIdx, storage_, level);
+               vertexdof::macroface::getIndexInNeighboringMacroCell(idxIt, face, neighborCellIdx, *storage_, level);
 
             for (auto stencilIt : opr_data[neighborCellIdx])
             {
                auto weight               = stencilIt.second;
                auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first;
                auto leafIndexInMacroFace = vertexdof::macrocell::getIndexInNeighboringMacroFace(
-                                              leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID(face.getID()), storage_, level);
+                                              leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID(face.getID()), *storage_, level);
 
                uint_t leafArrayIndexInMacroFace;
 
@@ -715,7 +841,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
    // apply the operator to all DoF on a given macro-face
    inline void apply_face(Face& face, const PrimitiveDataID<FunctionMemory< real_t >, Face>& srcId,
-                          const PrimitiveDataID<FunctionMemory< real_t >, Face>& dstId, const uint_t& level, UpdateType update)
+                          const PrimitiveDataID<FunctionMemory< real_t >, Face>& dstId, const uint_t& level, UpdateType update) const
    {
       uint_t rowsize       = levelinfo::num_microvertices_per_edge(level);
       uint_t inner_rowsize = rowsize;
@@ -784,7 +910,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
    // apply the operator to all DoF on a given macro-cell
    inline void apply_cell(Cell& cell, const PrimitiveDataID<FunctionMemory< real_t >, Cell>& srcId,
-                          const PrimitiveDataID<FunctionMemory< real_t >, Cell>& dstId, const uint_t& level, UpdateType update)
+                          const PrimitiveDataID<FunctionMemory< real_t >, Cell>& dstId, const uint_t& level, UpdateType update) const
    {
       typedef stencilDirection sd;
 
@@ -831,7 +957,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    // apply the sor-operator to all DoF on a given macro-edge
    inline void smooth_sor_edge(Edge& edge, const PrimitiveDataID<FunctionMemory< real_t >, Edge>& dstId,
                                const PrimitiveDataID<FunctionMemory< real_t >, Edge>& rhsId, const uint_t& level, real_t relax,
-                               const bool& backwards = false)
+                               const bool& backwards = false) const
    {
 
       using sD = stencilDirection;
@@ -897,7 +1023,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    // apply the sor-operator to all DoF on a given macro-face
    inline void smooth_sor_face3D(Face& face, const PrimitiveDataID<FunctionMemory< real_t >, Face>& dstId,
                                  const PrimitiveDataID<FunctionMemory< real_t >, Face>& rhsId, const uint_t& level, real_t relax,
-                                 const bool& backwards = false)
+                                 const bool& backwards = false) const
    {
       WALBERLA_UNUSED(backwards);
 
@@ -916,7 +1042,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
       auto invCenterWeight = 1.0 / centerWeight;
 
-      for (const auto& idxIt : Iterator(level, 1))
+      for (const auto& idxIt : vertexdof::macroface::Iterator(level, 1))
       {
          real_t tmp = rhs[vertexdof::macroface::index(level, idxIt.x(), idxIt.y())];
 
@@ -934,9 +1060,9 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
          for (uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++)
          {
-            auto neighborCell = storage_.getCell(face.neighborCells().at(neighborCellIdx));
+            auto neighborCell = storage_->getCell(face.neighborCells().at(neighborCellIdx));
             auto centerIndexInCell =
-               vertexdof::macroface::getIndexInNeighboringMacroCell(idxIt, face, neighborCellIdx, storage_, level);
+               vertexdof::macroface::getIndexInNeighboringMacroCell(idxIt, face, neighborCellIdx, *storage_, level);
 
             for (auto stencilIt : opr_data[neighborCellIdx])
             {
@@ -945,8 +1071,8 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
                auto weight               = stencilIt.second;
                auto leafIndexInMacroCell = centerIndexInCell + stencilIt.first;
-               auto leafIndexInMacroFace = macrocell::getIndexInNeighboringMacroFace(
-                                              leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID(face.getID()), storage_, level);
+               auto leafIndexInMacroFace = vertexdof::macrocell::getIndexInNeighboringMacroFace(
+                                              leafIndexInMacroCell, *neighborCell, neighborCell->getLocalFaceID(face.getID()), *storage_, level);
 
                uint_t leafArrayIndexInMacroFace;
 
@@ -974,7 +1100,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    // apply the sor-operator to all DoF on a given macro-face
    inline void smooth_sor_face(Face& face, const PrimitiveDataID<FunctionMemory< real_t >, Face>& dstId,
                                const PrimitiveDataID<FunctionMemory< real_t >, Face>& rhsId, const uint_t& level, real_t relax,
-                               const bool& backwards = false)
+                               const bool& backwards = false) const
    {
       WALBERLA_UNUSED(backwards);
 
@@ -1041,7 +1167,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    // apply the sor-operator to all DoF on a given macro-cell
    virtual void smooth_sor_cell(Cell& cell, const PrimitiveDataID<FunctionMemory< real_t >, Cell>& dstId,
                                 const PrimitiveDataID<FunctionMemory< real_t >, Cell>& rhsId, const uint_t& level, real_t relax,
-                                const bool& backwards = false)
+                                const bool& backwards = false) const
    {
       WALBERLA_UNUSED(backwards);
 
@@ -1075,7 +1201,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
          for (const auto& neighbor : vertexdof::macrocell::neighborsWithoutCenter)
          {
             const uint_t idx = vertexdof::macrocell::indexFromVertex(level, x, y, z, neighbor);
-            tmp -= operatorData[ logicalIndexOffsetFromVertex(neighbor) ] * dst[ idx ];
+            tmp -= operatorData[ vertexdof::logicalIndexOffsetFromVertex(neighbor) ] * dst[ idx ];
          }
 
          dst[ centerIdx ] = (1.0 - relax) * dst[ centerIdx ] + tmp * relax * inverseCenterWeight;
@@ -1089,7 +1215,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    May be overridden in child-class if generated kernels are available
    */
    virtual void apply_face3D_generated(Face& face, const PrimitiveDataID<FunctionMemory< real_t >, Face>& srcId,
-                                       const PrimitiveDataID<FunctionMemory< real_t >, Face>& dstId, const uint_t& level, UpdateType update)
+                                       const PrimitiveDataID<FunctionMemory< real_t >, Face>& dstId, const uint_t& level, UpdateType update) const
    {
       apply_face3D(face, srcId, dstId, level, update);
    }
@@ -1098,7 +1224,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       May be overridden in child-class if generated kernels are available
    */
    virtual void apply_face_generated(Face& face, const PrimitiveDataID<FunctionMemory< real_t >, Face>& srcId,
-                                     const PrimitiveDataID<FunctionMemory< real_t >, Face>& dstId, const uint_t& level, UpdateType update)
+                                     const PrimitiveDataID<FunctionMemory< real_t >, Face>& dstId, const uint_t& level, UpdateType update) const
    {
       apply_face(face, srcId, dstId, level, update);
    }
@@ -1107,7 +1233,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       May be overridden in child-class if generated kernels are available
    */
    virtual void apply_cell_generated(Cell& cell, const PrimitiveDataID<FunctionMemory< real_t >, Cell>& srcId,
-                                     const PrimitiveDataID<FunctionMemory< real_t >, Cell>& dstId, const uint_t& level, UpdateType update)
+                                     const PrimitiveDataID<FunctionMemory< real_t >, Cell>& dstId, const uint_t& level, UpdateType update) const
    {
       apply_cell(cell, srcId, dstId, level, update);
    }
@@ -1117,7 +1243,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    */
    virtual void smooth_sor_face3D_generated(Face& face, const PrimitiveDataID<FunctionMemory< real_t >, Face>& dstId,
                                             const PrimitiveDataID<FunctionMemory< real_t >, Face>& rhsId, const uint_t& level, real_t relax,
-                                            const bool& backwards = false)
+                                            const bool& backwards = false) const
    {
       smooth_sor_face3D(face, dstId, rhsId, level, relax, backwards);
    }
@@ -1127,7 +1253,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    */
    virtual void smooth_sor_face_generated(Face& face, const PrimitiveDataID<FunctionMemory< real_t >, Face>& dstId,
                                           const PrimitiveDataID<FunctionMemory< real_t >, Face>& rhsId, const uint_t& level, real_t relax,
-                                          const bool& backwards = false)
+                                          const bool& backwards = false) const
    {
       smooth_sor_face(face, dstId, rhsId, level, relax, backwards);
    }
@@ -1137,7 +1263,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    */
    virtual void smooth_sor_cell_generated(Cell& cell, const PrimitiveDataID<FunctionMemory< real_t >, Cell>& dstId,
                                           const PrimitiveDataID<FunctionMemory< real_t >, Cell>& rhsId, const uint_t& level, real_t relax,
-                                          const bool& backwards = false)
+                                          const bool& backwards = false) const
    {
       smooth_sor_cell(cell, dstId, rhsId, level, relax, backwards);
    }
@@ -1146,7 +1272,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
    /* Initialize assembly of variable edge stencil.
    */
-   inline void assemble_variableStencil_edge_init(Edge& edge, const uint_t level)
+   inline void assemble_variableStencil_edge_init(Edge& edge, const uint_t level) const
    {
       real_t h = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
 
@@ -1164,16 +1290,19 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
          dx_   = h * edge.getDirection();
 
          Face*  faceS   = storage_->getFace(edge.neighborFaces()[0]);
-         Face*  faceN   = nullptr;
-
-         if (edge.getNumNeighborFaces() == 2)
-         {
-            faceN   = storage_->getFace(edge.neighborFaces()[1]);
-         }
-
          formS_.setGeometryMap(faceS->getGeometryMap());
 
-         if (faceN) formN_.setGeometryMap(faceN->getGeometryMap());
+         Face*  faceN   = nullptr;
+         if (edge.getNumNeighborFaces() == 2)
+         {
+            north_ = true;
+            faceN   = storage_->getFace(edge.neighborFaces()[1]);
+            formN_.setGeometryMap(faceN->getGeometryMap());
+         }
+         else
+         {
+            north_ = false;
+         }
 
          stencil_directions_2D_ = stencil::Directions2D(h, edge, faceS, faceN);
       }
@@ -1181,11 +1310,11 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
    /* assembly of variable edge stencil (requires assemble_variableStencil_edge_init() for appropriate edge and level).
    */
-   inline void assemble_variableStencil_edge(real_t* edge_stencil, const uint_t i)
+   inline void assemble_variableStencil_edge(real_t* edge_stencil, const uint_t i) const
    {
       Point3D x = x0_ + i * dx_;
 
-      // 3D version
+      // 3D version (old version)
       if (storage_->hasGlobalCells())
       {
          //todo
@@ -1202,7 +1331,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
             formS_, {x, x + stencil_directions_2D_.SE, x + stencil_directions_2D_.E}, P1Elements::P1Elements2D::elementSE, edge_stencil);
 
          // north face
-         if (north)
+         if (north_)
          {
             vertexdof::variablestencil::assembleLocalStencil< P1Form >(
                formN_, {x, x + stencil_directions_2D_.E, x + stencil_directions_2D_.N}, P1Elements::P1Elements2D::elementNE, edge_stencil);
@@ -1214,9 +1343,16 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       }
    }
 
+   /* assembly of variable edge stencil (requires assemble_variableStencil_edge_init() for appropriate edge and level).
+   */
+   inline void assemble_variableStencil_edge3D(vertexdof::macroedge::StencilMap_T& edge_stencil, const uint_t i) const
+   {
+      // todo
+   }
+
    /* Initialize assembly of variable face stencil.
    */
-   inline void assemble_variableStencil_face_init(Face& face, const uint_t level)
+   inline void assemble_variableStencil_face_init(Face& face, const uint_t level) const
    {
       real_t h = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
 
@@ -1241,115 +1377,110 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
    /* assembly of variable face stencil (requires assemble_variableStencil_face_init() for appropriate face and level).
    */
-   inline void assemble_variableStencil_face(real_t* face_stencil, const uint_t i, const uint_t j)
+   inline void assemble_variableStencil_face(real_t* face_stencil, const uint_t i, const uint_t j) const
    {
       Point3D x = x0_ + i * dx_ + j * dy_;
 
-      // 3D version
-      if (storage_->hasGlobalCells())
-      {
-         //todo
-      }
-      // 2D version
-      else
-      {
-         vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-            form, {x, x + stencil_directions_2D_.W, x + stencil_directions_2D_.S}, P1Elements::P1Elements2D::elementSW, face_stencil);
-         vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-            form, {x, x + stencil_directions_2D_.S, x + stencil_directions_2D_.SE}, P1Elements::P1Elements2D::elementS, face_stencil);
-         vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-            form, {x, x + stencil_directions_2D_.SE, x + stencil_directions_2D_.E}, P1Elements::P1Elements2D::elementSE, face_stencil);
-         vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-            form, {x, x + stencil_directions_2D_.E, x + stencil_directions_2D_.N}, P1Elements::P1Elements2D::elementNE, face_stencil);
-         vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-            form, {x, x + stencil_directions_2D_.N, x + stencil_directions_2D_.NW}, P1Elements::P1Elements2D::elementN, face_stencil);
-         vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-            form, {x, x + stencil_directions_2D_.NW, x + stencil_directions_2D_.W}, P1Elements::P1Elements2D::elementNW, face_stencil);
-      }
+      vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+         form_, {x, x + stencil_directions_2D_.W, x + stencil_directions_2D_.S}, P1Elements::P1Elements2D::elementSW, face_stencil);
+      vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+         form_, {x, x + stencil_directions_2D_.S, x + stencil_directions_2D_.SE}, P1Elements::P1Elements2D::elementS, face_stencil);
+      vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+         form_, {x, x + stencil_directions_2D_.SE, x + stencil_directions_2D_.E}, P1Elements::P1Elements2D::elementSE, face_stencil);
+      vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+         form_, {x, x + stencil_directions_2D_.E, x + stencil_directions_2D_.N}, P1Elements::P1Elements2D::elementNE, face_stencil);
+      vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+         form_, {x, x + stencil_directions_2D_.N, x + stencil_directions_2D_.NW}, P1Elements::P1Elements2D::elementN, face_stencil);
+      vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+         form_, {x, x + stencil_directions_2D_.NW, x + stencil_directions_2D_.W}, P1Elements::P1Elements2D::elementNW, face_stencil);
    }
 
    /* assembly of variable face stencil (requires assemble_variableStencil_face_init() for appropriate face and level).
    */
-   inline void assemble_variableStencil_face3D(vertexdof::macroface::StencilMap_T& face_stencil, const uint_t i, const uint_t j)
+   inline void assemble_variableStencil_face3D(vertexdof::macroface::StencilMap_T& face_stencil, const uint_t i, const uint_t j) const
    {
       // todo
    }
 
    /* Initialize assembly of variable cell stencil.
    */
-   inline void assemble_variableStencil_cell_init(Cell& cell, const uint_t level)
+   inline void assemble_variableStencil_cell_init(Cell& cell, const uint_t level) const
    {
       //todo
    }
 
    /* assembly of variable cell stencil (requires assemble_variableStencil_cell_init() for appropriate cell and level).
    */
-   inline void assemble_variableStencil_cell(vertexdof::macrocell::StencilMap_T& cell_stencil, const uint_t i, const uint_t j, const uint_t k)
+   inline void assemble_variableStencil_cell(vertexdof::macrocell::StencilMap_T& cell_stencil, const uint_t i, const uint_t j, const uint_t k) const
    {
       //todo
    }
 
    ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+   // return true if backwards sor is implemented for this operator, false otherwise
+   virtual const bool backwards_sor_available() const = 0;
+
    std::shared_ptr< P1Function< real_t >> diagonalValues_;
    std::shared_ptr< P1Function< real_t >> inverseDiagonalValues_;
 
    // general data for stencil assembly
-   Point3D x0_, dx_, dy_, dz_;
+   mutable Point3D x0_, dx_, dy_, dz_;
 
    // data for edge stencil assembly
-   stencil::Directions2D stencil_directions_2D_;
-   P1Form formS_, formN_;
+   mutable stencil::Directions2D stencil_directions_2D_;
+   mutable P1Form formS_, formN_;
+   mutable bool north_;
 
    PrimitiveDataID< StencilMemory< real_t >, Vertex > vertexStencilID_;
    PrimitiveDataID< StencilMemory< real_t >, Edge >   edgeStencilID_;
    PrimitiveDataID< StencilMemory< real_t >, Face >   faceStencilID_;
-   PrimitiveDataID< levelWiseMemory< vertexdof::macroedge::StencilMap_T >, Edge > edgeStencil3DID_;
-   PrimitiveDataID< levelWiseMemory< vertexdof::macroface::StencilMap_T >, Face > faceStencil3DID_;
-   PrimitiveDataID< levelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell > cellStencilID_;
+   PrimitiveDataID< LevelWiseMemory< vertexdof::macroedge::StencilMap_T >, Edge > edgeStencil3DID_;
+   PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face > faceStencil3DID_;
+   PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell > cellStencilID_;
 
-   P1Form form_;
+   mutable P1Form form_;
 
    /// VIRTUAL CALLBACK FUNCTIONS -- TO BE IMPLEMENTED IN CHILD CLASSES (e.g. constant, variable, surrogate, ...) ///
 
    /* Initialize assembly of variable edge stencil.
       Will be called before iterating over edge whenever the stencil is applied.
    */
-   virtual void assemble_stencil_edge_init(Edge& edge, const uint_t level) = 0;
+   virtual void assemble_stencil_edge_init(Edge& edge, const uint_t level) const = 0;
 
    /* Assembly of edge stencil.
       Will be called before stencil is applied to a particuar edge-DoF.
       @return true if edge_stencil has been modified, false otherwise
    */
-   virtual bool assemble_stencil_edge(real_t* edge_stencil, const uint_t i) = 0;
+   virtual bool assemble_stencil_edge(real_t* edge_stencil, const uint_t i) const = 0;
 
    /* Initialize assembly of face stencil.
       Will be called before iterating over face whenever the stencil is applied.
    */
-   virtual void assemble_stencil_face_init(Face& face, const uint_t level) = 0;
+   virtual void assemble_stencil_face_init(Face& face, const uint_t level) const = 0;
 
    /* Assembly of face stencil.
       Will be called before stencil is applied to a particuar face-DoF of a 2d domain.
       @return true if face_stencil has been modified, false otherwise
    */
-   virtual bool assemble_stencil_face(real_t* face_stencil, const uint_t i, const uint_t j) = 0;
+   virtual bool assemble_stencil_face(real_t* face_stencil, const uint_t i, const uint_t j) const = 0;
 
    /* Assembly of face stencil.
       Will be called before stencil is applied to a particuar face-DoF of a 3D domain.
       @return true if face_stencil has been modified, false otherwise
    */
-   virtual bool assemble_stencil_face3D(vertexdof::macroface::StencilMap_T& face_stencil, const uint_t i, const uint_t j) = 0;
+   virtual bool assemble_stencil_face3D(vertexdof::macroface::StencilMap_T& face_stencil, const uint_t i, const uint_t j) const = 0;
 
    /* Initialize assembly of cell stencil.
       Will be called before iterating over cell whenever the stencil is applied.
    */
-   virtual void assemble_stencil_cell_init(Cell& cell, const uint_t level) = 0;
+   virtual void assemble_stencil_cell_init(Cell& cell, const uint_t level) const = 0;
 
    /* Assembly of cell stencil.
       Will be called before stencil is applied to a particuar cell-DoF.
       @return true if cell_stencil has been modified, false otherwise
    */
-   virtual bool assemble_stencil_cell(vertexdof::macrocell::StencilMap_T& cell_stencil, const uint_t i, const uint_t j, const uint_t k) = 0;
+   virtual bool assemble_stencil_cell(vertexdof::macrocell::StencilMap_T& cell_stencil, const uint_t i, const uint_t j, const uint_t k) const = 0;
 
 };
 
