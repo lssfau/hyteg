@@ -33,6 +33,7 @@
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator_new.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
+#include "hyteg/p1functionspace/P1VariableOperator_new.hpp"
 #include "hyteg/p1functionspace/P1PolynomialBlendingOperator.hpp"
 
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -84,7 +85,8 @@ enum StencilType
   CONST     = 0,
   VARIABLE  = 1,
   LSQP      = 2,
-  CONST_NEW = 3
+  CONST_NEW = 3,
+  VARIABLE_NEW   = 4
 };
 
 template <StencilType T>
@@ -139,6 +141,7 @@ struct FE_Space<ElementType::P1, StencilType::NONE>
   using LaplaceCONST = hyteg::P1ConstantLaplaceOperator;
   using LaplaceCONST_NEW = hyteg::P1ConstantLaplaceOperator_new;
   using LaplaceVAR = hyteg::P1BlendingLaplaceOperator;
+  using LaplaceVAR_NEW = hyteg::P1BlendingLaplaceOperator_new;
   using LaplaceLSQP = hyteg::P1PolynomialBlendingLaplaceOperator;
 };
 
@@ -152,8 +155,9 @@ struct FE_Space<ElementType::P2, StencilType::NONE>
   using Mass = hyteg::P2BlendingMassOperator;
 
   using LaplaceCONST = hyteg::P2ConstantLaplaceOperator;
-  using LaplaceCONST_NEW = hyteg::P2ConstantLaplaceOperator; // new p2 operator not implemented yet
+  using LaplaceCONST_NEW = hyteg::P2ConstantLaplaceOperator; //TODO new p2 operator not implemented yet
   using LaplaceVAR = hyteg::P2BlendingLaplaceOperator;
+  using LaplaceVAR_NEW = hyteg::P2BlendingLaplaceOperator;//TODO new p2 operator not implemented yet
   using LaplaceLSQP = hyteg::P2SurrogateLaplaceOperator;
 };
 
@@ -169,6 +173,17 @@ struct FE_Space<P, StencilType::VARIABLE> : public P_Space<P>, public OperatorHa
 
   using typename P_Space<P>::Mass;
   using Laplace = typename P_Space<P>::LaplaceVAR;
+};
+
+template<ElementType P>
+struct FE_Space<P,StencilType::VARIABLE_NEW> : public P_Space<P>, public OperatorHandler<StencilType::VARIABLE_NEW>
+{
+  using typename P_Space<P>::Function;
+  using typename P_Space<P>::Restriction;
+  using typename P_Space<P>::Prolongation;
+
+  using typename P_Space<P>::Mass;
+  using Laplace = typename P_Space<P>::LaplaceVAR_NEW;
 };
 
 template<ElementType P>
@@ -209,6 +224,8 @@ struct FE_Space<P,StencilType::CONST_NEW> : public P_Space<P>, public OperatorHa
   using Laplace = typename P_Space<P>::LaplaceCONST_NEW;
 };
 
+
+
 // ================================================
 
 template <ElementType P, StencilType T>
@@ -234,6 +251,7 @@ void solveTmpl(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel,
 
   // operator
   auto L = FE::template make_shared<typename FE::Laplace>(storage, minLevel, maxLevel);
+  // auto L_compare = FE_Space<P, VARIABLE>::template make_shared<typename FE_Space<P, VARIABLE>::Laplace>(storage, minLevel, maxLevel);
 
   // exact solution
   u_exact.interpolate(exact, maxLevel);
@@ -280,6 +298,7 @@ void solveTmpl(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel,
       // compute residual
       res_old = res;
       L->apply(u, Lu, maxLevel, hyteg::Inner, Replace);
+      // L_compare->apply(u, Lu, maxLevel, hyteg::Inner, Replace);
       r.assign({1.0, -1.0}, {f, Lu}, maxLevel, hyteg::Inner);
       M.apply(r, tmp, maxLevel, hyteg::All, Replace);
       res = std::sqrt(r.dotGlobal(tmp, maxLevel, hyteg::Inner));
@@ -308,6 +327,8 @@ void solveTmpl(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel,
       // solve
       auto start = walberla::timing::getWcTime();
       GMGSolver.solve(*L, u, f, maxLevel);
+      // for (uint_t i = 0; i < max_cg_iter; ++i)
+        // smoother->solve(*L, u, f, maxLevel);
       auto end = walberla::timing::getWcTime();
       vCycleTime = end - start;
       solveTime += vCycleTime;
@@ -335,6 +356,10 @@ void solveTmpl(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel,
 
         case StencilType::VARIABLE:
           name += "var";
+          break;
+
+        case StencilType::VARIABLE_NEW:
+          name += "var_NEW";
           break;
 
         case StencilType::LSQP:
@@ -374,6 +399,11 @@ void solve(const StencilType T, const uint_t interpolationLevel, std::shared_ptr
     case VARIABLE:
       WALBERLA_LOG_INFO_ON_ROOT("Operatortype: Variable Stencil");
       solveTmpl<P, VARIABLE>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
+      break;
+
+    case VARIABLE_NEW:
+      WALBERLA_LOG_INFO_ON_ROOT("Operatortype: NEW Variable Stencil");
+      solveTmpl<P, VARIABLE_NEW>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs);
       break;
 
     case LSQP:
@@ -433,7 +463,8 @@ int main(int argc, char* argv[])
   if (argc == 1)
   {
     walberla::shared_ptr<walberla::config::Config> cfg_(new walberla::config::Config);
-    cfg_->readParameterFile("../data/param/PolynomialBlending.prm");
+    // cfg_->readParameterFile("../data/param/PolynomialBlending.prm");
+    cfg_->readParameterFile("../hyteg/data/param/PolynomialBlending.prm");
     cfg = cfg_;
   }
   else
