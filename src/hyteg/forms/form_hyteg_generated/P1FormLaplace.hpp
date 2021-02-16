@@ -53,6 +53,11 @@ public:
     out[1] = tmp16*(tmp11*(tmp10 - tmp9) + tmp7*(-tmp4 + tmp6));
     out[2] = -tmp12*tmp14*tmp15*(0.5*tmp11*tmp8 + 0.5*tmp2*tmp7);
   }
+
+  void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const
+  {
+    WALBERLA_ABORT( "P1Form_laplace not implemented for 3D" )
+  }
 };
 
 }
