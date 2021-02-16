@@ -511,7 +511,11 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
                for (auto idx : vertexdof::macroedge::Iterator(level))
                {
-                  assemble_stencil_edge(stencilMemory, idx.x());
+                  if (variableStencil())
+                  {
+                     edge->getData(edgeStencilID_)->setToZero(level);
+                     assemble_stencil_edge(stencilMemory, idx.x());
+                  }
 
                   targetMemory[vertexdof::macroedge::index(level, idx.x())] = stencilMemory[vertexdof::macroedge::stencilIndexOnEdge(stencilDirection::VERTEX_C)];
                }
@@ -535,7 +539,10 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
                   if (storage_->hasGlobalCells())
                   {
-                     assemble_stencil_face3D(stencilMap, idx.x(), idx.y());
+                     if (variableStencil())
+                     {
+                        assemble_stencil_face3D(stencilMap, idx.x(), idx.y());
+                     }
 
                      for (uint_t neighborCellID = 0; neighborCellID < face->getNumNeighborCells(); neighborCellID++)
                      {
@@ -550,7 +557,11 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
                   }
                   else
                   {
-                     assemble_stencil_face(stencilMemory, idx.x(), idx.y());
+                     if (variableStencil())
+                     {
+                        face->getData(faceStencilID_)->setToZero(level);
+                        assemble_stencil_face(stencilMemory, idx.x(), idx.y());
+                     }
 
                      centerValue = stencilMemory[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)];
                   }
@@ -572,7 +583,10 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
                for (auto idx : vertexdof::macrocell::Iterator(level))
                {
-                  assemble_stencil_cell(stencilMap, idx.x(), idx.y(), idx.z());
+                  if (variableStencil())
+                  {
+                     assemble_stencil_cell(stencilMap, idx.x(), idx.y(), idx.z());
+                  }
 
                   real_t centerValue = stencilMap[indexing::IndexIncrement({0, 0, 0})];
 
@@ -740,7 +754,11 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
       for (size_t i = 1; i < rowsize - 1; ++i)
       {
-         assemble_stencil_edge(opr_data, i);
+         if (variableStencil())
+         {
+            edge.getData(edgeStencilID_)->setToZero(level);
+            assemble_stencil_edge(opr_data, i);
+         }
 
          const auto stencilIdxW = vertexdof::macroedge::stencilIndexOnEdge(sD::VERTEX_W);
          const auto stencilIdxC = vertexdof::macroedge::stencilIndexOnEdge(sD::VERTEX_C);
@@ -795,7 +813,10 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
       for (const auto& idxIt : vertexdof::macroface::Iterator(level, 1))
       {
-         assemble_stencil_face3D(opr_data, idxIt.x(), idxIt.y());
+         if (variableStencil())
+         {
+            assemble_stencil_face3D(opr_data, idxIt.x(), idxIt.y());
+         }
 
          real_t tmp = real_c(0);
 
@@ -858,7 +879,11 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       {
          for (uint_t i = 1; i < inner_rowsize - 2; ++i)
          {
-            assemble_stencil_face(opr_data, i, j);
+            if (variableStencil())
+            {
+               face.getData(faceStencilID_)->setToZero(level);
+               assemble_stencil_face(opr_data, i, j);
+            }
 
             if (face.getNumNeighborCells() == 0)
             {
@@ -928,7 +953,10 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
          const uint_t y = it.y();
          const uint_t z = it.z();
 
-         assemble_stencil_cell(operatorData, x, y, z);
+         if (variableStencil())
+         {
+            assemble_stencil_cell(operatorData, x, y, z);
+         }
 
          const uint_t centerIdx = vertexdof::macrocell::indexFromVertex(level, x, y, z, sd::VERTEX_C);
 
@@ -985,8 +1013,10 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       {
          const uint_t i = uint_c(ii);
 
-         if (assemble_stencil_edge(opr_data, i))
+         if (variableStencil())
          {
+            edge.getData(edgeStencilID_)->setToZero(level);
+            assemble_stencil_edge(opr_data, i);
             invCenterWeight = 1.0 / opr_data[ stencilIdxC ];
          }
 
@@ -1046,8 +1076,9 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       {
          real_t tmp = rhs[vertexdof::macroface::index(level, idxIt.x(), idxIt.y())];
 
-         if (assemble_stencil_face3D(opr_data, idxIt.x(), idxIt.y()))
+         if (variableStencil())
          {
+            assemble_stencil_face3D(opr_data, idxIt.x(), idxIt.y());
             centerWeight = real_c(0);
 
             for (uint_t neighborCellIdx = 0; neighborCellIdx < face.getNumNeighborCells(); neighborCellIdx++)
@@ -1121,8 +1152,10 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       {
          for (uint_t i = 1; i < inner_rowsize - 2; ++i)
          {
-            if (assemble_stencil_face(opr_data, i, j))
+            if (variableStencil())
             {
+               face.getData(faceStencilID_)->setToZero(level);
+               assemble_stencil_face(opr_data, i, j);
                invCenterWeight = 1.0 / opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)];
             }
 
@@ -1189,8 +1222,9 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
          const uint_t y = it.y();
          const uint_t z = it.z();
 
-         if (assemble_stencil_cell(operatorData, x, y, z))
+         if (variableStencil())
          {
+            assemble_stencil_cell(operatorData, x, y, z);
             inverseCenterWeight = 1.0 / operatorData[ { 0, 0, 0 } ];
          }
 
@@ -1280,6 +1314,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       // 3D version
       if (storage_->hasGlobalCells())
       {
+         WALBERLA_ABORT("P1Operator not implemented for 3D")
          //todo
       }
       // 2D version
@@ -1317,6 +1352,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       // 3D version (old version)
       if (storage_->hasGlobalCells())
       {
+         WALBERLA_ABORT("P1Operator not implemented for 3D")
          //todo
       }
       // 2D version
@@ -1348,6 +1384,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    inline void assemble_variableStencil_edge3D(vertexdof::macroedge::StencilMap_T& edge_stencil, const uint_t i) const
    {
       // todo
+      WALBERLA_ABORT("P1Operator not implemented for 3D")
    }
 
    /* Initialize assembly of variable face stencil.
@@ -1360,6 +1397,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       if (storage_->hasGlobalCells())
       {
          //todo
+         WALBERLA_ABORT("P1Operator not implemented for 3D")
       }
       // 2D version
       else
@@ -1400,6 +1438,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    inline void assemble_variableStencil_face3D(vertexdof::macroface::StencilMap_T& face_stencil, const uint_t i, const uint_t j) const
    {
       // todo
+      WALBERLA_ABORT("P1Operator not implemented for 3D")
    }
 
    /* Initialize assembly of variable cell stencil.
@@ -1407,6 +1446,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    inline void assemble_variableStencil_cell_init(Cell& cell, const uint_t level) const
    {
       //todo
+      WALBERLA_ABORT("P1Operator not implemented for 3D")
    }
 
    /* assembly of variable cell stencil (requires assemble_variableStencil_cell_init() for appropriate cell and level).
@@ -1414,12 +1454,16 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    inline void assemble_variableStencil_cell(vertexdof::macrocell::StencilMap_T& cell_stencil, const uint_t i, const uint_t j, const uint_t k) const
    {
       //todo
+      WALBERLA_ABORT("P1Operator not implemented for 3D")
    }
 
    ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
    // return true if backwards sor is implemented for this operator, false otherwise
-   virtual const bool backwards_sor_available() const = 0;
+   virtual bool backwards_sor_available() const = 0;
+
+   // return true if the stencil has to be recomputed for every DoF
+   virtual bool variableStencil() const = 0;
 
    std::shared_ptr< P1Function< real_t >> diagonalValues_;
    std::shared_ptr< P1Function< real_t >> inverseDiagonalValues_;
@@ -1450,9 +1494,8 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
    /* Assembly of edge stencil.
       Will be called before stencil is applied to a particuar edge-DoF.
-      @return true if edge_stencil has been modified, false otherwise
    */
-   virtual bool assemble_stencil_edge(real_t* edge_stencil, const uint_t i) const = 0;
+   virtual void assemble_stencil_edge(real_t* edge_stencil, const uint_t i) const = 0;
 
    /* Initialize assembly of face stencil.
       Will be called before iterating over face whenever the stencil is applied.
@@ -1461,15 +1504,13 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
    /* Assembly of face stencil.
       Will be called before stencil is applied to a particuar face-DoF of a 2d domain.
-      @return true if face_stencil has been modified, false otherwise
    */
-   virtual bool assemble_stencil_face(real_t* face_stencil, const uint_t i, const uint_t j) const = 0;
+   virtual void assemble_stencil_face(real_t* face_stencil, const uint_t i, const uint_t j) const = 0;
 
    /* Assembly of face stencil.
       Will be called before stencil is applied to a particuar face-DoF of a 3D domain.
-      @return true if face_stencil has been modified, false otherwise
    */
-   virtual bool assemble_stencil_face3D(vertexdof::macroface::StencilMap_T& face_stencil, const uint_t i, const uint_t j) const = 0;
+   virtual void assemble_stencil_face3D(vertexdof::macroface::StencilMap_T& face_stencil, const uint_t i, const uint_t j) const = 0;
 
    /* Initialize assembly of cell stencil.
       Will be called before iterating over cell whenever the stencil is applied.
@@ -1478,9 +1519,8 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
    /* Assembly of cell stencil.
       Will be called before stencil is applied to a particuar cell-DoF.
-      @return true if cell_stencil has been modified, false otherwise
    */
-   virtual bool assemble_stencil_cell(vertexdof::macrocell::StencilMap_T& cell_stencil, const uint_t i, const uint_t j, const uint_t k) const = 0;
+   virtual void assemble_stencil_cell(vertexdof::macrocell::StencilMap_T& cell_stencil, const uint_t i, const uint_t j, const uint_t k) const = 0;
 
 };
 

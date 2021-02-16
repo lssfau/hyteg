@@ -134,10 +134,9 @@ class P1ConstantOperator_new : public P1Operator<P1Form>
 
    /* Assembly of edge stencil.
       Will be called before stencil is applied to a particuar edge-DoF.
-      @return true if edge_stencil has been modified, false otherwise
    */
-   inline bool assemble_stencil_edge(real_t* edge_stencil, const uint_t i) const
-   {return false;}
+   inline void assemble_stencil_edge(real_t* edge_stencil, const uint_t i) const
+   {}
 
    /* Initialize assembly of face stencil.
       Will be called before iterating over face whenever the stencil is applied.
@@ -147,17 +146,15 @@ class P1ConstantOperator_new : public P1Operator<P1Form>
 
    /* Assembly of face stencil.
       Will be called before stencil is applied to a particuar face-DoF of a 2d domain.
-      @return true if face_stencil has been modified, false otherwise
    */
-   inline bool assemble_stencil_face(real_t* face_stencil, const uint_t i, const uint_t j) const
-   {return false;}
+   inline void assemble_stencil_face(real_t* face_stencil, const uint_t i, const uint_t j) const
+   {}
 
    /* Assembly of face stencil.
       Will be called before stencil is applied to a particuar face-DoF of a 3D domain.
-      @return true if face_stencil has been modified, false otherwise
    */
-   inline bool assemble_stencil_face3D(vertexdof::macroface::StencilMap_T& face_stencil, const uint_t i, const uint_t j) const
-   {return false;}
+   inline void assemble_stencil_face3D(vertexdof::macroface::StencilMap_T& face_stencil, const uint_t i, const uint_t j) const
+   {}
 
    /* Initialize assembly of cell stencil.
       Will be called before iterating over cell whenever the stencil is applied.
@@ -167,10 +164,9 @@ class P1ConstantOperator_new : public P1Operator<P1Form>
 
    /* Assembly of cell stencil.
       Will be called before stencil is applied to a particuar cell-DoF.
-      @return true if cell_stencil has been modified, false otherwise
    */
-   inline bool assemble_stencil_cell(vertexdof::macrocell::StencilMap_T& cell_stencil, const uint_t i, const uint_t j, const uint_t k) const
-   {return false;}
+   inline void assemble_stencil_cell(vertexdof::macrocell::StencilMap_T& cell_stencil, const uint_t i, const uint_t j, const uint_t k) const
+   {}
 
    /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -514,7 +510,8 @@ class P1ConstantOperator_new : public P1Operator<P1Form>
       }
    }
 
-   inline const bool backwards_sor_available() const {return true;}
+   inline bool backwards_sor_available() const {return true;}
+   inline bool variableStencil() const {return false;}
 
    // assemble stencils for macro-edges, -faces and -cells
    void assembleStencils()
