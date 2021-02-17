@@ -1314,8 +1314,11 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       // 3D version
       if (storage_->hasGlobalCells())
       {
-         WALBERLA_ABORT("P1Operator not implemented for 3D")
-         //todo
+         // new map not yet used -> prepare only linear stencil memory
+         form_.setGeometryMap(edge.getGeometryMap());
+         level_ = level;
+         edge_ = &edge;
+         stencilSize_ = edge.getData(edgeStencilID_)->getSize(level);
       }
       // 2D version
       else
@@ -1328,6 +1331,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
          formS_.setGeometryMap(faceS->getGeometryMap());
 
          Face*  faceN   = nullptr;
+
          if (edge.getNumNeighborFaces() == 2)
          {
             north_ = true;
@@ -1352,8 +1356,16 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       // 3D version (old version)
       if (storage_->hasGlobalCells())
       {
-         WALBERLA_ABORT("P1Operator not implemented for 3D")
-         //todo
+         // new map not yet used -> use old linear stencil memory
+         auto stencil = P1Elements::P1Elements3D::assembleP1LocalStencil(
+                           storage_, *edge_, indexing::Index(i, 0, 0), level_, form_);
+
+         WALBERLA_ASSERT_EQUAL(stencilSize_, stencil.size());
+
+         for (uint_t i = 0; i < stencilSize_; i++)
+         {
+            edge_stencil[i] = stencil[i];
+         }
       }
       // 2D version
       else
@@ -1383,8 +1395,8 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    */
    inline void assemble_variableStencil_edge3D(vertexdof::macroedge::StencilMap_T& edge_stencil, const uint_t i) const
    {
-      // todo
-      WALBERLA_ABORT("P1Operator not implemented for 3D")
+      // todo // new map not yet used -> use old linear stencil memory
+      WALBERLA_ABORT("Assembly with new stencil map not yet implemented for edge-stencils!")
    }
 
    /* Initialize assembly of variable face stencil.
@@ -1396,8 +1408,9 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       // 3D version
       if (storage_->hasGlobalCells())
       {
-         //todo
-         WALBERLA_ABORT("P1Operator not implemented for 3D")
+         form_.setGeometryMap(face.getGeometryMap());
+         level_ = level;
+         face_ = &face;
       }
       // 2D version
       else
@@ -1417,6 +1430,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    */
    inline void assemble_variableStencil_face(real_t* face_stencil, const uint_t i, const uint_t j) const
    {
+      WALBERLA_ASSERT(!(storage_->hasGlobalCells()));
       Point3D x = x0_ + i * dx_ + j * dy_;
 
       vertexdof::variablestencil::assembleLocalStencil< P1Form >(
@@ -1437,24 +1451,33 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    */
    inline void assemble_variableStencil_face3D(vertexdof::macroface::StencilMap_T& face_stencil, const uint_t i, const uint_t j) const
    {
-      // todo
-      WALBERLA_ABORT("P1Operator not implemented for 3D")
+      WALBERLA_ASSERT(storage_->hasGlobalCells());
+
+      for (uint_t neighborCellID = 0; neighborCellID < face_->getNumNeighborCells(); ++neighborCellID)
+      {
+         auto neighborCell = storage_->getCell(face_->neighborCells().at(neighborCellID));
+         auto vertexAssemblyIndexInCell =
+            vertexdof::macroface::getIndexInNeighboringMacroCell({ i, j, 0 }, *face_, neighborCellID, *storage_, level_);
+         face_stencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
+                                           storage_, *neighborCell, vertexAssemblyIndexInCell, level_, form_);
+      }
    }
 
    /* Initialize assembly of variable cell stencil.
    */
    inline void assemble_variableStencil_cell_init(Cell& cell, const uint_t level) const
    {
-      //todo
-      WALBERLA_ABORT("P1Operator not implemented for 3D")
+      form_.setGeometryMap(cell.getGeometryMap());
+      level_ = level;
+      cell_ = &cell;
    }
 
    /* assembly of variable cell stencil (requires assemble_variableStencil_cell_init() for appropriate cell and level).
    */
    inline void assemble_variableStencil_cell(vertexdof::macrocell::StencilMap_T& cell_stencil, const uint_t i, const uint_t j, const uint_t k) const
    {
-      //todo
-      WALBERLA_ABORT("P1Operator not implemented for 3D")
+      cell_stencil = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
+                        storage_, *cell_, indexing::Index(i, j, k), level_, form_);
    }
 
    ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1468,14 +1491,6 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    std::shared_ptr< P1Function< real_t >> diagonalValues_;
    std::shared_ptr< P1Function< real_t >> inverseDiagonalValues_;
 
-   // general data for stencil assembly
-   mutable Point3D x0_, dx_, dy_, dz_;
-
-   // data for edge stencil assembly
-   mutable stencil::Directions2D stencil_directions_2D_;
-   mutable P1Form formS_, formN_;
-   mutable bool north_;
-
    PrimitiveDataID< StencilMemory< real_t >, Vertex > vertexStencilID_;
    PrimitiveDataID< StencilMemory< real_t >, Edge >   edgeStencilID_;
    PrimitiveDataID< StencilMemory< real_t >, Face >   faceStencilID_;
@@ -1483,7 +1498,24 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    PrimitiveDataID< LevelWiseMemory< vertexdof::macroface::StencilMap_T >, Face > faceStencil3DID_;
    PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell > cellStencilID_;
 
+   // general data for stencil assembly
+   mutable Point3D x0_, dx_, dy_, dz_;
+   mutable uint_t level_;
    mutable P1Form form_;
+
+   // data for edge stencil assembly
+   mutable stencil::Directions2D stencil_directions_2D_;
+   mutable P1Form formS_, formN_;
+   mutable bool north_;
+   mutable Edge* edge_;
+   mutable uint_t stencilSize_;
+
+   // data for face stencil assembly
+   mutable Face* face_;
+
+   // data for cell stencil assembly
+   mutable Cell* cell_;
+
 
    /// VIRTUAL CALLBACK FUNCTIONS -- TO BE IMPLEMENTED IN CHILD CLASSES (e.g. constant, variable, surrogate, ...) ///
 
