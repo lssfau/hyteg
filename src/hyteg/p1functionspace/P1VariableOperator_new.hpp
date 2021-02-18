@@ -193,7 +193,10 @@ class P1VariableOperator_new : public P1Operator<P1Form>
 #endif
 };
 
-typedef P1VariableOperator_new< P1Form_laplace > P1BlendingLaplaceOperator_new;
+// todo: use correct forms
+// typedef P1VariableOperator_new< P1Form_laplace > P1BlendingLaplaceOperator_new;
+typedef P1VariableOperator_new< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > > P1BlendingLaplaceOperator_new;
+// typedef P1VariableOperator_new< P1Form_mass >    P1BlendingMassOperator_new;
 typedef P1VariableOperator_new< P1Form_mass >    P1BlendingMassOperator_new;
 
 // typedef P1VariableOperator< P1Form_epsilon_11 > P1BlendingEpsilonOperator_11;

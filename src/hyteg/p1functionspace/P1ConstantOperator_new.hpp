@@ -549,14 +549,14 @@ class P1ConstantOperator_new : public P1Operator<P1Form>
          {
             Edge& edge = *it.second;
             auto  stencilMemory = edge.getData(edgeStencilID_)->getPointer(level);
-            auto& stencilMap    = edge.getData(edgeStencil3DID_)->getData(level);
+            // auto& stencilMap    = edge.getData(edgeStencil3DID_)->getData(level);
 
             assemble_variableStencil_edge_init(edge, level);
 
-            if (storage_->hasGlobalCells())
-            {
-               assemble_variableStencil_edge3D(stencilMap, 1);
-            }
+            // if (storage_->hasGlobalCells()) //! not implemented yet
+            // {
+            //    assemble_variableStencil_edge3D(stencilMap, 1);
+            // }
 
             assemble_variableStencil_edge(stencilMemory, 1); // also assemble old version of 3D stencil
          }

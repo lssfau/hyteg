@@ -1,7 +1,7 @@
 Parameters
 {
   level_h_coarse 2;
-  level_h_fine 5;
+  level_h_fine 3;
   elementType 1;
   operatorType 4; # 0=constant, 1=variable, 2=polynomial, 3=new_constant, 4=new_variable;
 
@@ -10,17 +10,18 @@ Parameters
   minPolyDegree 7;
   maxPolyDegree 7;
 
-  annulus 1;# else rectangle;
-  blending 1;
-  nX 8;
-  nY 4;
+  annulus 0;# else rectangle;
+  blending 0;
+  nX 2;
+  nY 2;
+  nZ 2;
   macro_refinement 0;
 
   max_outer_iter 15;
   max_cg_iter 100;
-  mg_tolerance 1e-8;
-  coarse_tolerance 1e-10;
+  mg_tolerance 1e-10;
+  coarse_tolerance 1e-8;
 
-  vtkOutput 0;
+  vtkOutput 1;
   show_macrogrid 0;
 }

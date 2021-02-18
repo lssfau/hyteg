@@ -136,7 +136,7 @@ struct FE_Space<ElementType::P1, StencilType::NONE>
   using Restriction = hyteg::P1toP1LinearRestriction;
   using Prolongation = hyteg::P1toP1LinearProlongation;
 
-  using Mass = hyteg::P1BlendingMassOperator;
+  using Mass = hyteg::P1ConstantMassOperator; //! todo use new form for blending mass
 
   using LaplaceCONST = hyteg::P1ConstantLaplaceOperator;
   using LaplaceCONST_NEW = hyteg::P1ConstantLaplaceOperator_new;
@@ -152,12 +152,12 @@ struct FE_Space<ElementType::P2, StencilType::NONE>
   using Restriction = hyteg::P2toP2QuadraticRestriction;
   using Prolongation = hyteg::P2toP2QuadraticProlongation;
 
-  using Mass = hyteg::P2BlendingMassOperator;
+  using Mass = hyteg::P2ConstantMassOperator; //! todo use new form for blending mass
 
   using LaplaceCONST = hyteg::P2ConstantLaplaceOperator;
-  using LaplaceCONST_NEW = hyteg::P2ConstantLaplaceOperator; //TODO new p2 operator not implemented yet
+  using LaplaceCONST_NEW = hyteg::P2ConstantLaplaceOperator; //todo new p2 operator not implemented yet
   using LaplaceVAR = hyteg::P2BlendingLaplaceOperator;
-  using LaplaceVAR_NEW = hyteg::P2BlendingLaplaceOperator;//TODO new p2 operator not implemented yet
+  using LaplaceVAR_NEW = hyteg::P2BlendingLaplaceOperator;//todo new p2 operator not implemented yet
   using LaplaceLSQP = hyteg::P2SurrogateLaplaceOperator;
 };
 
@@ -367,10 +367,12 @@ void solveTmpl(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel,
           break;
       }
 
-      hyteg::VTKOutput vtkOutput("../output", name, storage);
+      hyteg::VTKOutput vtkOutput("output", name, storage);
       vtkOutput.add(u);
       vtkOutput.add(err);
       vtkOutput.add(r);
+      vtkOutput.add(u_exact);
+      vtkOutput.add(f);
       vtkOutput.write(maxLevel, 0);
     }
 
@@ -489,9 +491,11 @@ int main(int argc, char* argv[])
   const bool annulus = parameters.getParameter<bool>("annulus");
   uint_t nX = parameters.getParameter<uint_t>("nX");
   uint_t nY = parameters.getParameter<uint_t>("nY");
+  uint_t nZ = parameters.getParameter<uint_t>("nZ");
   const uint_t macroLevel = parameters.getParameter<uint_t>("macro_refinement");
   nX = nX << macroLevel;
   nY = nY << macroLevel;
+  nZ = nZ << macroLevel;
 
   const uint_t minPolyDegree = parameters.getParameter<uint_t>("minPolyDegree");
   const uint_t maxPolyDegree = parameters.getParameter<uint_t>("maxPolyDegree");
@@ -509,6 +513,12 @@ int main(int argc, char* argv[])
 
   if (annulus)
   {
+    if (nZ > 0)
+    {
+      // todo
+      WALBERLA_ABORT("spherical shell not supported yet!");
+    }
+
     WALBERLA_LOG_INFO_ON_ROOT("Geometry: Annulus");
     if (blending)
     {
@@ -521,7 +531,14 @@ int main(int argc, char* argv[])
   }
   else
   {
-    WALBERLA_LOG_INFO_ON_ROOT("Geometry: Rectangle");
+    if (nZ == 0)
+    {
+      WALBERLA_LOG_INFO_ON_ROOT("Geometry: Rectangle");
+    }
+    else
+    {
+      WALBERLA_LOG_INFO_ON_ROOT("Geometry: Cube");
+    }
   }
 
 
@@ -533,6 +550,14 @@ int main(int argc, char* argv[])
   c_function rhs = [](const hyteg::Point3D & x) {return 2*pi*pi*sin(pi*x[0])*sin(pi* x[1]);};
 
   MeshInfo meshInfo = MeshInfo::meshRectangle(Point2D({0.0, 0.0}), Point2D({1.0, 1.0}), MeshInfo::CRISS, nX, nY);
+
+  if (nZ > 0)
+  {
+    exact = [](const hyteg::Point3D& x) { return sin(pi*x[0])*sin(pi*x[1])*sin(pi*x[2]); };
+    rhs = [](const hyteg::Point3D& x) { return 3*pi*pi*sin(pi*x[0])*sin(pi*x[1])*sin(pi*x[2]); };
+
+    meshInfo = MeshInfo::meshCuboid(Point3D({0.0,0.0,0.0}), Point3D({1.0,1.0,1.0}), nX, nY, nZ);
+  }
 
   /// case annulus
   Point3D circleCenter{{0, 0, 0}};
