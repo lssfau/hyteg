@@ -106,7 +106,7 @@ class FunctionMemory
    /// Returns a pointer to the first entry of the allocated array
    inline ValueType* getPointer( const uint_t& level ) const
    {
-      WALBERLA_CHECK( hasLevel( level ), "Requested level not allocated" );
+      WALBERLA_CHECK( hasLevel( level ), "Requested level " << level << " not allocated" );
       return data_.at( level )->data();
    }
 
