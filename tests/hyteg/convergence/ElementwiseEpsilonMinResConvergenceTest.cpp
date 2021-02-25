@@ -201,16 +201,17 @@ void convergenceTest( uint_t level, real_t toleranceVelocityComponents, real_t t
 
    std::shared_ptr< Solver< StokesOperator > > solver;
 
-   if constexpr ( ThreeDim )
-   {
-      solver = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
-          storage, maxLevel, solverTargetResidual, solverMaxIterations, 1, 1 );
-   }
-   else
-   {
-      solver = solvertemplates::stokesMinResSolver< StokesOperator >(
-          storage, maxLevel, solverTargetResidual, solverMaxIterations, false );
-   }
+#ifdef HYTEG_BUILD_WITH_PETSC
+
+   solver = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
+       storage, maxLevel, solverTargetResidual, solverMaxIterations, 1, 1 );
+
+#else
+
+   solver = solvertemplates::stokesMinResSolver< StokesOperator >(
+       storage, maxLevel, solverTargetResidual, solverMaxIterations, false );
+
+#endif
 
    solver->solve( A, u, f, maxLevel );
 
@@ -254,7 +255,9 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
+#ifdef HYTEG_BUILD_WITH_PETSC
    hyteg::PETScManager petscManager( &argc, &argv );
+#endif
 
    bool longrun = false;
    for ( int i = 0; i < argc; i++ )
