@@ -37,14 +37,14 @@ using walberla::math::pi;
 #include "hyteg/forms/form_hyteg_generated/P1FormDivT.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/P1MassAffine.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/P1DiffusionAffine.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/P1MassBlending.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/P1DiffusionBlending.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/P2MassAffine.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/P2DiffusionAffine.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/P2MassBlending.hpp"
-#include "hyteg/forms/form_hyteg_generated/p2/P2DiffusionBlending.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_affine_qe.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_diffusion_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_diffusion_blending_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_mass_affine_qe.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1ToP2FormDivT.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDiv.hpp"
@@ -153,7 +153,8 @@ void compareUsingAffineMap( const std::array< Point3D, dim + 1 >& element, real_
 void run2DTestsWithoutBlending()
 {
    // define our test triangle
-   std::array< Point3D, 3 > triangle{Point3D( {-0.7, -2.0, 0.0} ), Point3D( {1.0, 1.0, 0.0} ), Point3D( {-1.0, 0.5, 0.0} )};
+   std::array< Point3D, 3 > triangle{
+       Point3D( { -0.7, -2.0, 0.0 } ), Point3D( { 1.0, 1.0, 0.0 } ), Point3D( { -1.0, 0.5, 0.0 } ) };
    // std::array< Point3D, 3 > triangle{Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 0.0, 0.0} ), Point3D( {0.0, 1.0, 0.0} )};
 
    logSectionHeader( "P1 Mass Forms" );
@@ -235,20 +236,23 @@ void run2DTestsWithoutBlending()
    // HyTeG form generator tests
 
    logSectionHeader( "P1 diffusion, 2D, no blending (HFG)" );
-   compareForms< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >, P1DiffusionAffine, Matrix3r, 2 >(
-       triangle, 1e-15 );
+   compareForms< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >,
+                 forms::p1_diffusion_affine_q2,
+                 Matrix3r,
+                 2 >( triangle, 1e-15 );
 
    logSectionHeader( "P1 mass, 2D, no blending (HFG)" );
-   compareForms< P1FenicsForm< p1_mass_cell_integral_0_otherwise, fenics::NoAssemble >, P1MassAffine, Matrix3r, 2 >( triangle,
-                                                                                                                    1e-15 );
+   compareForms< P1FenicsForm< p1_mass_cell_integral_0_otherwise, fenics::NoAssemble >, forms::p1_mass_affine_qe, Matrix3r, 2 >(
+       triangle, 1e-15 );
    logSectionHeader( "P2 diffusion, 2D, no blending (HFG)" );
-   compareForms< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >, P2DiffusionAffine, Matrix6r, 2 >(
-       triangle, 5e-14 );
+   compareForms< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >,
+                 forms::p2_diffusion_affine_q2,
+                 Matrix6r,
+                 2 >( triangle, 5e-14 );
 
    logSectionHeader( "P2 mass, 2D, no blending (HFG)" );
-   compareForms< P2FenicsForm< p2_mass_cell_integral_0_otherwise, fenics::NoAssemble >, P2MassAffine, Matrix6r, 2 >( triangle,
-                                                                                                                     5e-14 );
-
+   compareForms< P2FenicsForm< p2_mass_cell_integral_0_otherwise, fenics::NoAssemble >, forms::p2_mass_affine_qe, Matrix6r, 2 >(
+       triangle, 5e-14 );
 }
 
 void run2DTestsWithAffineMap()
@@ -260,11 +264,12 @@ void run2DTestsWithAffineMap()
    mat( 0, 1 )  = -std::sin( phi );
    mat( 1, 0 )  = +std::sin( phi ) * 2.25;
    mat( 1, 1 )  = +std::cos( phi ) * 2.25;
-   Point2D vec( {-7.0, 3.0} );
+   Point2D vec( { -7.0, 3.0 } );
    auto    map = std::make_shared< AffineMap2D >( mat, vec );
 
    // define our test triangle
-   std::array< Point3D, 3 > triangle{Point3D( {-0.7, -2.0, 0.0} ), Point3D( {1.0, 1.0, 0.0} ), Point3D( {-1.0, 0.5, 0.0} )};
+   std::array< Point3D, 3 > triangle{
+       Point3D( { -0.7, -2.0, 0.0 } ), Point3D( { 1.0, 1.0, 0.0 } ), Point3D( { -1.0, 0.5, 0.0 } ) };
    // std::array< Point3D, 3 > triangle{Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 0.0, 0.0} ), Point3D( {0.0, 1.0, 0.0} )};
 
    logSectionHeader( "P1 Mass Forms" );
@@ -346,25 +351,28 @@ void run2DTestsWithAffineMap()
    // HyTeG form generator test
 
    logSectionHeader( "P1 mass, 2D, with blending (HFG)" );
-   compareUsingAffineMap< P1FenicsForm< p1_mass_cell_integral_0_otherwise, fenics::NoAssemble >, P1MassBlending, Matrix3r, 2 >(
-       triangle, 2.4e-15, map );
+   compareUsingAffineMap< P1FenicsForm< p1_mass_cell_integral_0_otherwise, fenics::NoAssemble >,
+                          forms::p1_mass_blending_q4,
+                          Matrix3r,
+                          2 >( triangle, 2.4e-15, map );
 
    logSectionHeader( "P2 mass, 2D, with blending (HFG)" );
-   compareUsingAffineMap< P2FenicsForm< p2_mass_cell_integral_0_otherwise, fenics::NoAssemble >, P2MassBlending, Matrix6r, 2 >(
-       triangle, 8e-14, map );
+   compareUsingAffineMap< P2FenicsForm< p2_mass_cell_integral_0_otherwise, fenics::NoAssemble >,
+                          forms::p2_mass_blending_q4,
+                          Matrix6r,
+                          2 >( triangle, 8e-14, map );
 
    logSectionHeader( "P1 diffusion, 2D, with blending (HFG)" );
    compareUsingAffineMap< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >,
-       P1DiffusionBlending,
-       Matrix3r,
-       2 >( triangle, 3e-15, map );
+                          forms::p1_diffusion_blending_q3,
+                          Matrix3r,
+                          2 >( triangle, 3e-15, map );
 
    logSectionHeader( "P2 diffusion, 2D, with blending (HFG)" );
    compareUsingAffineMap< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >,
-       P2DiffusionBlending,
-       Matrix6r,
-       2 >( triangle, 1e-13, map );
-
+                          forms::p2_diffusion_blending_q3,
+                          Matrix6r,
+                          2 >( triangle, 1e-13, map );
 }
 
 void run3DTestsWithoutBlending()
@@ -375,11 +383,10 @@ void run3DTestsWithoutBlending()
 
    // std::array<Point3D,4> theTet{ Point3D({0.0, 0.0, 0.0}), Point3D({1.0, 0.0, 0.0}), Point3D({0.0, 1.0, 0.0}), Point3D({0.0, 0.0, 1.0}) };
 
-   std::array< Point3D, 4 > theTet{
-     Point3D( { 1.80901699437495e-01,  1.31432778029783e-01, 8.61803398874989e-01 } ),
-     Point3D( { 1.80901699437495e-01, -1.31432778029783e-01, 8.61803398874989e-01 } ),
-     Point3D( { 1.80901699437495e-01,  1.31432778029783e-01, 1.11180339887499e+00 } ),
-     Point3D( { 0.00000000000000e+00,  0.00000000000000e+00, 1.25000000000000e+00 } ) };
+   std::array< Point3D, 4 > theTet{ Point3D( { 1.80901699437495e-01, 1.31432778029783e-01, 8.61803398874989e-01 } ),
+                                    Point3D( { 1.80901699437495e-01, -1.31432778029783e-01, 8.61803398874989e-01 } ),
+                                    Point3D( { 1.80901699437495e-01, 1.31432778029783e-01, 1.11180339887499e+00 } ),
+                                    Point3D( { 0.00000000000000e+00, 0.00000000000000e+00, 1.25000000000000e+00 } ) };
 
    logSectionHeader( "P1 Mass Forms (3D)" );
    compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >( theTet,
@@ -430,26 +437,35 @@ void run3DTestsWithoutBlending()
        theTet, 3e-14 );
 
    logSectionHeader( "P2 Laplace Forms (3D) - HyTeG pimped" );
-   compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >, P2Form_laplacePimped3D, Matrix10r, 3 >(
-       theTet, 3e-14 );
+   compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >,
+                 P2Form_laplacePimped3D,
+                 Matrix10r,
+                 3 >( theTet, 3e-14 );
 
    // HyTeG form generator test
 
    logSectionHeader( "P1 mass, 3D, no blending (HFG)" );
-   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1MassAffine, Matrix4r, 3 >( theTet,
-                                                                                                                          1e-15 );
+   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >,
+                 forms::p1_mass_affine_qe,
+                 Matrix4r,
+                 3 >( theTet, 1e-15 );
    logSectionHeader( "P2 mass, 3D, no blending (HFG)" );
-   compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >, P2MassAffine, Matrix10r, 3 >(
-       theTet, 1e-15 );
+   compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >,
+                 forms::p2_mass_affine_qe,
+                 Matrix10r,
+                 3 >( theTet, 1e-15 );
 
    logSectionHeader( "P1 diffusion, 3D, no blending (HFG)" );
-   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_diffusion_cell_integral_0_otherwise >, P1DiffusionAffine, Matrix4r, 3 >(
-       theTet, 3e-14 );
+   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_diffusion_cell_integral_0_otherwise >,
+                 forms::p1_diffusion_affine_q2,
+                 Matrix4r,
+                 3 >( theTet, 3e-14 );
 
    logSectionHeader( "P2 diffusion, 3D, no blending (HFG)" );
-   compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >, P2DiffusionAffine, Matrix10r, 3 >(
-       theTet, 3e-14 );
-
+   compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >,
+                 forms::p2_diffusion_affine_q2,
+                 Matrix10r,
+                 3 >( theTet, 3e-14 );
 }
 
 void run3DTestsWithAffineMap()
@@ -477,15 +493,15 @@ void run3DTestsWithAffineMap()
 #endif
 #undef CHALLENGING
 
-   Point3D vec( {-7.0, 3.0, 2.0} );
+   Point3D vec( { -7.0, 3.0, 2.0 } );
    auto    map = std::make_shared< AffineMap3D >( mat, vec );
 
    // define our test tetrahedrons
-   Point3D                  v1( {0.0, 0.00, 0.0} );
-   Point3D                  v2( {1.0, 1.00, 0.0} );
-   Point3D                  v3( {-1.0, 0.50, 0.0} );
-   Point3D                  v4( {0.3, 0.21, -1.2} );
-   std::array< Point3D, 4 > theTet{v1, v2, v3, v4};
+   Point3D                  v1( { 0.0, 0.00, 0.0 } );
+   Point3D                  v2( { 1.0, 1.00, 0.0 } );
+   Point3D                  v3( { -1.0, 0.50, 0.0 } );
+   Point3D                  v4( { 0.3, 0.21, -1.2 } );
+   std::array< Point3D, 4 > theTet{ v1, v2, v3, v4 };
 
    logSectionHeader( "P1 Mass Forms (3D)" );
    compareUsingAffineMap< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >(
@@ -528,25 +544,28 @@ void run3DTestsWithAffineMap()
    // HyTeG form generator test
 
    logSectionHeader( "P1 mass, 3D, with blending (HFG)" );
-   compareUsingAffineMap< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1MassBlending, Matrix4r, 3 >(
-       theTet, 5e-15, map );
+   compareUsingAffineMap< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >,
+                          forms::p1_mass_blending_q4,
+                          Matrix4r,
+                          3 >( theTet, 5e-15, map );
 
    logSectionHeader( "P2 mass, 3D, with blending (HFG)" );
-   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >, P2MassBlending, Matrix10r, 3 >(
-       theTet, 1e-15, map );
+   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >,
+                          forms::p2_mass_blending_q4,
+                          Matrix10r,
+                          3 >( theTet, 1e-15, map );
 
    logSectionHeader( "P1 diffusion, 3D, with blending (HFG)" );
    compareUsingAffineMap< P1FenicsForm< fenics::NoAssemble, p1_tet_diffusion_cell_integral_0_otherwise >,
-       P1DiffusionBlending,
-       Matrix4r,
-       3 >( theTet, 1e-15, map );
+                          forms::p1_diffusion_blending_q3,
+                          Matrix4r,
+                          3 >( theTet, 1e-15, map );
 
    logSectionHeader( "P2 diffusion, 3D, with blending (HFG)" );
    compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >,
-       P2DiffusionBlending,
-       Matrix10r,
-       3 >( theTet, 5e-14, map );
-
+                          forms::p2_diffusion_blending_q3,
+                          Matrix10r,
+                          3 >( theTet, 5e-14, map );
 }
 
 int main( int argc, char** argv )
