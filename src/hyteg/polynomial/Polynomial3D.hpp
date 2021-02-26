@@ -111,8 +111,6 @@ class Polynomial3D
       return error;
    }
 
-   inline friend std::ostream& operator<<(std::ostream& os, const Polynomial3D<Basis>& poly);
-
  private:
    const uint_t degree_;
    const uint_t numCoefficients_;
@@ -125,7 +123,7 @@ inline std::ostream& operator<<(std::ostream& os, const Polynomial3D<Basis>& pol
 {
    os << "[" << poly.getCoefficients(0);
 
-   for (size_t i = 0; i < poly.numCoefficients_; ++i)
+   for (size_t i = 1; i < poly.getNumCoefficients(poly.getDegree()); ++i)
    {
       os << ", " << poly.getCoefficient(i);
    }

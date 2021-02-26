@@ -62,6 +62,11 @@ class Polynomial2D {
     coeffs_[idx] = value;
   }
 
+  void addToCoefficient(uint_t idx, real_t value) {
+    WALBERLA_ASSERT(idx < numCoefficients_);
+    coeffs_[idx] += value;
+  }
+
   real_t getCoefficient(uint_t idx) const {
     WALBERLA_ASSERT(idx < numCoefficients_);
     return coeffs_[idx];
@@ -70,6 +75,12 @@ class Polynomial2D {
   void scale(real_t scalar) {
     for (uint_t i = 0; i < numCoefficients_; ++i) {
       coeffs_[i] *= scalar;
+    }
+  }
+
+  void setZero() {
+    for (uint_t i = 0; i < numCoefficients_; ++i) {
+      coeffs_[i] = real_t(0.0);
     }
   }
 
