@@ -300,7 +300,7 @@ class Polynomial3DEvaluator{
   void setY(real_t y) { evaluator_.setY(y); }
 
   // evaluate p|yz(x)
-  real_t evalX(real_t x) { evaluator_.evalX(y); }
+  real_t evalX(real_t x) { evaluator_.evalX(x); }
 
  private:
   uint_t              degree_;  // polynomial degree

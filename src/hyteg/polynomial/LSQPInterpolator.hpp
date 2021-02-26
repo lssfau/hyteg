@@ -54,13 +54,13 @@ constexpr uint_t GetNumInterpolationPoints(uint_t level)
 template<LSQPType Type>
 constexpr uint_t GetNumInterpolationPoints3D(uint_t level)
 {
-   const uint_t ip_on_edge = levelinfo::num_microvertices_per_edge(lvl) - 2;
-   const uint_t ip_on_face = levelinfo::num_microvertices_per_face(lvl) - 3 * ip_on_edge - 3;
+   const uint_t ip_on_edge = levelinfo::num_microvertices_per_edge(level) - 2;
+   const uint_t ip_on_face = levelinfo::num_microvertices_per_face(level) - 3 * ip_on_edge - 3;
 
    switch (Type)
    {
       case LSQPType::VERTEX:
-         return levelinfo::num_microvertices_per_cell(lvl) - 4 * ip_on_face - 6 * ip_on_edge - 4;
+         return levelinfo::num_microvertices_per_cell(level) - 4 * ip_on_face - 6 * ip_on_edge - 4;
 
       // todo other node types
       default:
