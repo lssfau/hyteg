@@ -62,7 +62,7 @@ if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_execute_test(NAME P1P1StokesUzawaConvergenceTest)
 endif()
 
-if(CMAKE_BUILD_TYPE MATCHES "Release")
+if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   waLBerla_compile_test(FILES convergence/P1Stokes3DMinResConvergenceTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME P1Stokes3DMinResConvergenceTest)
 
@@ -89,12 +89,12 @@ waLBerla_execute_test(NAME P2ElementwiseCGConvergenceTest)
 waLBerla_execute_test(NAME P2ElementwiseCGConvergenceTestMPI COMMAND $<TARGET_FILE:P2ElementwiseCGConvergenceTest> PROCESSES 2 )
 
 waLBerla_compile_test(FILES convergence/ElementwiseDivKGradCGConvergenceTest.cpp DEPENDS hyteg core)
-if(CMAKE_BUILD_TYPE MATCHES "Release")
+if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   waLBerla_execute_test(NAME ElementwiseDivKGradCGConvergenceTest)
 endif()
 
 waLBerla_compile_test(FILES convergence/ElementwiseEpsilonMinResConvergenceTest.cpp DEPENDS hyteg core)
-if(CMAKE_BUILD_TYPE MATCHES "Release")
+if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   if( HYTEG_BUILD_WITH_PETSC )
     waLBerla_execute_test(NAME ElementwiseEpsilonMinResConvergenceTest)
     waLBerla_execute_test(NAME ElementwiseEpsilonMinResConvergenceTestLongrun COMMAND $<TARGET_FILE:ElementwiseEpsilonMinResConvergenceTest> --longrun LABELS longrun)
@@ -125,7 +125,7 @@ waLBerla_execute_test(NAME P2GMGPRefinementConvergenceTestMPI COMMAND $<TARGET_F
 waLBerla_compile_test(FILES convergence/P2P1StokesMinResConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2P1StokesMinResConvergenceTest)
 
-if(CMAKE_BUILD_TYPE MATCHES "Release")
+if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   waLBerla_compile_test(FILES convergence/P2P1StokesSchurCGConvergenceTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME P2P1StokesSchurCGConvergenceTest)
 endif()
@@ -146,14 +146,14 @@ waLBerla_compile_test(FILES convergence/P2UnsteadyDiffusion2DTest.cpp DEPENDS hy
 waLBerla_execute_test(NAME P2UnsteadyDiffusion2DTest)
 
 waLBerla_compile_test(FILES convergence/P2UnsteadyDiffusionBlending2DTest.cpp DEPENDS hyteg core )
-if(CMAKE_BUILD_TYPE MATCHES "Release")
+if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   if (HYTEG_BUILD_WITH_PETSC)
     waLBerla_execute_test(NAME P2UnsteadyDiffusionBlending2DTest)
   endif()
 endif()
 
 waLBerla_compile_test(FILES convergence/StokesVarViscPopovTest.cpp DEPENDS hyteg core )
-if(CMAKE_BUILD_TYPE MATCHES "Release")
+if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   waLBerla_execute_test(NAME StokesVarViscPopovTest)
 endif()
 
@@ -286,7 +286,7 @@ waLBerla_compile_test(FILES operators/SimpleVertexDoFToEdgeDoFOperatorTest.cpp D
 waLBerla_execute_test(NAME SimpleVertexDoFToEdgeDoFOperatorTest)
 
 waLBerla_compile_test(FILES operators/MassOperatorTest.cpp DEPENDS hyteg core)
-if(CMAKE_BUILD_TYPE MATCHES "Release")
+if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   waLBerla_execute_test(NAME MassOperatorTest )
   waLBerla_execute_test(NAME MassOperatorTestMPI COMMAND $<TARGET_FILE:MassOperatorTest> PROCESSES 2 )
 endif()
@@ -600,11 +600,11 @@ waLBerla_compile_test(FILES blending/IcosahedralShellMapTest.cpp DEPENDS hyteg c
 waLBerla_execute_test(NAME IcosahedralShellMapTest COMMAND $<TARGET_FILE:IcosahedralShellMapTest> )
 
 waLBerla_compile_test(FILES blending/AffineMap3DTest.cpp DEPENDS hyteg core)
-if(CMAKE_BUILD_TYPE MATCHES "Release")
+if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   waLBerla_execute_test(NAME AffineMap3DTest1 COMMAND $<TARGET_FILE:AffineMap3DTest> )
 endif()
 
-if(CMAKE_BUILD_TYPE MATCHES "Release")
+if(NOT CMAKE_BUILD_TYPE MATCHES "Debug")
   if(NOT WALBERLA_CXX_COMPILER_IS_INTEL)
   waLBerla_compile_test(FILES blending/P2P1StokesElementwiseAnnulusBlendingTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME P2P1StokesElementwiseAnnulusBlendingTest COMMAND   $<TARGET_FILE:P2P1StokesElementwiseAnnulusBlendingTest> )
