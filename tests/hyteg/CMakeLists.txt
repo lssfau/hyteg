@@ -154,7 +154,9 @@ endif()
 
 waLBerla_compile_test(FILES convergence/StokesVarViscPopovTest.cpp DEPENDS hyteg core )
 if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-  waLBerla_execute_test(NAME StokesVarViscPopovTest)
+  if (HYTEG_BUILD_WITH_PETSC)
+    waLBerla_execute_test(NAME StokesVarViscPopovTest)
+  endif()
 endif()
 
 ## convection ##
