@@ -1,20 +1,20 @@
 Parameters
 {
   level_h_coarse 2;
-  level_h_fine 3;
-  elementType 1;
-  operatorType 4; # 0=constant, 1=variable, 2=polynomial, 3=new_constant, 4=new_variable;
+  level_h_fine 6;
+  elementType 2;
+  operatorType 2; # 0=constant, 1=variable, 2=polynomial, 3=new_constant, 4=new_variable;
 
   # parameters for surrogate polynomials;
   interpolationLevel 4;
-  minPolyDegree 7;
-  maxPolyDegree 7;
+  minPolyDegree 8;
+  maxPolyDegree 8;
 
   annulus 0;# else rectangle;
   blending 0;
   nX 2;
   nY 2;
-  nZ 2;
+  nZ 0;
   macro_refinement 0;
 
   max_outer_iter 15;
@@ -22,6 +22,6 @@ Parameters
   mg_tolerance 1e-10;
   coarse_tolerance 1e-8;
 
-  vtkOutput 1;
+  vtkOutput 0;
   show_macrogrid 0;
 }

@@ -73,7 +73,7 @@ class LSQPInterpolator
 {
  public:
 
-   LSQPInterpolator(uint_t degree, uint_t interpolationLevel)
+   LSQPInterpolator(uint_t degree = 0 uint_t interpolationLevel = 0)
       : degree_(degree),
         numCoefficients_(Polynomial2D<Basis>::getNumCoefficients(degree)),
         interpolationLevel_(interpolationLevel),
@@ -138,7 +138,7 @@ class LSQPInterpolator3D
 {
  public:
 
-   LSQPInterpolator3D(uint_t degree, uint_t interpolationLevel)
+   LSQPInterpolator3D(uint_t degree = 0, uint_t interpolationLevel = 0)
       : degree_(degree),
         interpolationLevel_(interpolationLevel),
         numCoefficients_(Polynomial3D<Basis>::getNumCoefficients(degree)),
