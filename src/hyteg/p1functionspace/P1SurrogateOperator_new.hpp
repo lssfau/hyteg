@@ -132,6 +132,7 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
       // storage->addEdgeData(edgePoly3DID_, edge3DDataHandling, "P1OperatorEdge3DStencil");
 
       // compute polynomial coefficients
+      // todo perform QR only once
       if (storage_->hasGlobalCells())
       {
          interpolate3D(polyDegree, interpolationLevel);
@@ -205,6 +206,17 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
       }
 
       // initialize polynomial evaluator
+      for (auto& it : storage_->getFaces())
+      {
+         auto stencilSize   = it.second->getData(faceStencilID_)->getSize(maxLevel_);
+
+         for (uint_t c = 0; c < stencilSize; ++c)
+         {
+            facePolyEvaluator_.push_back(Polynomial2DEvaluator(polyDegree));
+         }
+
+         break; // we use the same evaluator for all faces
+      }
 
    }
 
@@ -274,6 +286,19 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
             }
          }
       }
+
+      // initialize polynomial evaluator
+      for (auto& it : storage_->getCells())
+      {
+         auto& stencilMemory  = it.second->getData(cellStencilID_)->getData(maxLevel_);
+
+         for (auto& it : stencilMemory)
+         {
+            facePolyEvaluator_[it.first] = Polynomial3DEvaluator(polyDegree);
+         }
+
+         break; // we use the same evaluator for all cells
+      }
    }
 
    /// stencil assembly ///////////
@@ -299,20 +324,33 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
    */
    inline void assemble_stencil_face_init(Face& face, const uint_t level) const
    {
-      assemble_variableStencil_face_init(face, level);
+      if (storage_->hasGlobalCells())
+      {
+         assemble_variableStencil_face_init(face, level);
+      }
+      else
+      {
+         h_ = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
+
+         auto& stencilPoly  = face.getData(facePolyID_)->getData(level);
+
+         for (uint_t c = 0; c < facePolyEvaluator_.size(); ++c)
+         {
+            facePolyEvaluator_[c].setPolynomial(stencilPoly[c]);
+         }
+      }
+
    }
 
    inline void assemble_stencil_face_init_y(const uint_t j) const
    {
-      real_t y = h_ * j;
-
       if (!(storage_->hasGlobalCells()))
       {
-         auto& stencilPoly  = face_->getData(facePolyID_)->getData(level_);
+         real_t y = h_ * j;
 
-         for (auto& p : stencilPoly)
+         for (auto& evaluator : facePolyEvaluator_)
          {
-            p.setY(y);
+            evaluator.setY(y);
          }
       }
    }
@@ -324,11 +362,9 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
    {
       real_t x = h_ * i;
 
-      auto& stencilPoly  = face_->getData(facePolyID_)->getData(level_);
-
-      for (uint_t c = 0; c < stencilPoly.size(); ++c)
+      for (uint_t c = 0; c < facePolyEvaluator_.size(); ++c)
       {
-         face_stencil[c] = stencilPoly[c].evalX(x);
+         face_stencil[c] = facePolyEvaluator_[c].evalX(x);
       }
    }
 
@@ -345,18 +381,23 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
    */
    inline void assemble_stencil_cell_init(Cell& cell, const uint_t level) const
    {
-      assemble_variableStencil_cell_init(cell, level);
+      h_ = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
+
+      auto& stencilPoly  = cell.getData(cellPolyID_)->getData(level);
+
+      for (auto& [idx,evaluator] : cellPolyEvaluator_)
+      {
+         evaluator.setPolynomial(stencilPoly[idx]);
+      }
    }
 
    inline void assemble_stencil_cell_init_z(const uint_t k) const
    {
       real_t z = h_ * k;
 
-      auto& stencilPoly  = cell_->getData(cellPolyID_)->getData(level_);
-
-      for (auto& it : stencilPoly)
+      for (auto& [idx,evaluator] : cellPolyEvaluator_)
       {
-         it.second.setZ(z);
+         evaluator.setZ(z);
       }
    }
 
@@ -364,11 +405,9 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
    {
       real_t y = h_ * j;
 
-      auto& stencilPoly  = cell_->getData(cellPolyID_)->getData(level_);
-
-      for (auto& it : stencilPoly)
+      for (auto& [idx,evaluator] : cellPolyEvaluator_)
       {
-         it.second.setY(y);
+         evaluator.setY(y);
       }
    }
 
@@ -379,11 +418,9 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
    {
       real_t x = h_ * i;
 
-      auto& stencilPoly  = cell_->getData(cellPolyID_)->getData(level_);
-
-      for (auto& it : stencilPoly)
+      for (auto& [idx,evaluator] : cellPolyEvaluator_)
       {
-         cell_stencil[it.first] = it.second.evalX(x);
+         cell_stencil[idx] = evaluator.evalX(x);
       }
    }
 
