@@ -179,26 +179,12 @@ parameterizations_base = {
     'fmg-cube-p2p1': {'discretization': 'p2p1', 'minLevel': 0, 'maxLevel': 5, 'numEdgesPerSide': 1, 'vtk': False, 'numCycles': 1, 'absoluteResidualTolerance': 1e-12,
                       'estimateOmega': False, 'omega': 0.2, 'coarseGridSolverType': 1, 'normCalculationLevelIncrement': 1, 'fmgInnerIterations': 0},
 
-    5: {'discretization': 'p1p1', 'minLevel': 0, 'maxLevel': 6, 'numEdgesPerSide': 1, 'vtk': False, 'numCycles': 1, 'absoluteResidualTolerance': 1e-12,
-        'estimateOmega': False, 'omega': 0.570751, 'omegaEstimationLevel': 6, 'omegaEstimationIterations': 20,
-        'coarseGridSolverType': 0, 'normCalculationLevelIncrement': 1},
+    'fmg-pipe-p1p1': {'discretization': 'p1p1', 'minLevel': 0, 'maxLevel': 5, 'numEdgesPerSide': 1, 'vtk': False, 'numCycles': 1, 'absoluteResidualTolerance': 1e-12,
+                      'estimateOmega': False, 'omega': 0.3, 'coarseGridSolverType': 1, 'normCalculationLevelIncrement': 1, 'fmgInnerIterations': 0},
 
-    6: {'discretization': 'p2p1', 'minLevel': 0, 'maxLevel': 4, 'numEdgesPerSide': 1, 'vtk': False, 'numCycles': 1,
-        'absoluteResidualTolerance': 1e-12,
-        'estimateOmega': False, 'omega': 0.2,
-        'coarseGridSolverType': 0, 'normCalculationLevelIncrement': 1,
-        'calculateDiscretizationError': True,
-        'DiscretizationErrorSolver.preSmooth': 7,
-        'DiscretizationErrorSolver.postSmooth': 7,
-        'DiscretizationErrorSolver.incSmooth': 2,
-        'DiscretizationErrorSolver.fmgInnerIterations': 2,
-        'DiscretizationErrorSolver.numCycles': 50,
-        'DiscretizationErrorSolver.absoluteResidualTolerance': 1e-12,
-        'DiscretizationErrorSolver.numGSVelocity': 4,
-        'DiscretizationErrorSolver.symmGSVelocity': False,
-        'DiscretizationErrorSolver.estimateOmega': False,
-        'DiscretizationErrorSolver.omega': 0.2,
-        'DiscretizationErrorSolver.coarseGridSolverType': 0},
+    'fmg-pipe-p2p1': {'discretization': 'p2p1', 'minLevel': 0, 'maxLevel': 4, 'numEdgesPerSide': 1, 'vtk': False, 'numCycles': 1, 'absoluteResidualTolerance': 1e-12,
+                      'estimateOmega': False, 'omega': 0.4, 'coarseGridSolverType': 1, 'normCalculationLevelIncrement': 1, 'fmgInnerIterations': 0},
+
 }
 
 parameterizations = {
@@ -235,14 +221,18 @@ parameterizations = {
         {'maxLevel': 4},
     ],
 
-    'fmg-cube-p1p1': [],
-    'fmg-cube-p2p1': [],
-    5: [],
+    'fmg-cube-p1p1' : [],
+    'fmg-cube-p2p1' : [],
 
-    6: [{'preSmooth': 1, 'postSmooth': 3, 'incSmooth': 2, 'fmgInnerIterations': 1, 'numGSVelocity': 3, 'symmGSVelocity': False},
-        {'preSmooth': 1, 'postSmooth': 2, 'incSmooth': 1, 'fmgInnerIterations': 1, 'numGSVelocity': 3, 'symmGSVelocity': False},
-        {'preSmooth': 0, 'postSmooth': 2, 'incSmooth': 1, 'fmgInnerIterations': 1, 'numGSVelocity': 3, 'symmGSVelocity': False},],
+    # $(1, 0, 3, 1, \hat{\mathbf{A}}_f, 3)$
+    # $(1, 0, 2, 1, \hat{\mathbf{A}}_f, 2)$
+    'fmg-pipe-p1p1': [{'preSmooth': 1, 'postSmooth': 0, 'incSmooth': 3, 'fmgInnerIterations': 1, 'numGSVelocity': 3, 'symmGSVelocity': False},
+                      {'preSmooth': 1, 'postSmooth': 0, 'incSmooth': 2, 'fmgInnerIterations': 1, 'numGSVelocity': 2, 'symmGSVelocity': False}],
 
+    # $(1, 2, 3, 1, \hat{\mathbf{A}}_f, 4)$
+    # $(1, 2, 3, 1, \hat{\mathbf{A}}_f, 2)$
+    'fmg-pipe-p2p1': [{'preSmooth': 1, 'postSmooth': 2, 'incSmooth': 3, 'fmgInnerIterations': 1, 'numGSVelocity': 4, 'symmGSVelocity': False},
+                      {'preSmooth': 1, 'postSmooth': 2, 'incSmooth': 3, 'fmgInnerIterations': 1, 'numGSVelocity': 2, 'symmGSVelocity': False}],
 }
 
 for prm in ['omega-cube-p1p1-1-1-2-1symm', 'omega-cube-p1p1-2-2-2-1symm', 'omega-cube-p1p1-3-3-2-1symm', 'omega-cube-p1p1-1-1-2-3fwd', 'omega-cube-p1p1-2-2-2-3fwd', 'omega-cube-p1p1-3-3-2-3fwd',
@@ -314,5 +304,8 @@ def run_all_configs(benchmark_id):
 # for prm in ['discr-cube-p1p1', 'discr-cube-p2p1']:
 #     run_all_configs(prm)
 
-for prm in ['fmg-cube-p1p1', 'fmg-cube-p2p1']:
+# for prm in ['fmg-cube-p1p1', 'fmg-cube-p2p1']:
+#     run_all_configs(prm)
+
+for prm in ['fmg-pipe-p1p1', 'fmg-pipe-p2p1']:
     run_all_configs(prm)

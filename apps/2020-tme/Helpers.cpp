@@ -63,6 +63,8 @@ void writeDataRow( uint_t          iteration,
                    real_t          errorL2Pressure,
                    real_t          errorRelL2Pressure,
                    real_t          residualL2Pressure,
+                   real_t          errorL2GridIncrementVelocity,
+                   real_t          errorL2GridIncrementPressure,
                    FixedSizeSQLDB& db )
 {
    std::string fmgLevelString = "-";
@@ -80,6 +82,8 @@ void writeDataRow( uint_t          iteration,
    db.setVariableEntry( "error_l2_pressure", errorL2Pressure );
    db.setVariableEntry( "error_rel_l2_pressure", errorRelL2Pressure );
    db.setVariableEntry( "residual_l2_pressure", residualL2Pressure );
+   db.setVariableEntry( "error_l2_grid_increment_velocity", errorL2GridIncrementVelocity );
+   db.setVariableEntry( "error_l2_grid_increment_pressure", errorL2GridIncrementPressure );
 
    db.writeRowOnRoot();
 
@@ -206,6 +210,11 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
    StokesFunction< real_t > tmp( "tmp", storage, minLevel, errorLevel );
    StokesFunction< real_t > tmpFMG( "tmpFMG", storage, minLevel, errorLevel );
    StokesFunction< real_t > exact( "exact", storage, minLevel, errorLevel );
+   // compute on level l the quantity
+   //   || u_l - I_{l-1}^l u_{l-1} ||_2
+   // which should converge as the discretization error
+   StokesFunction< real_t > uFMGSolution( "u_fmg_solution", storage, minLevel, errorLevel );
+   StokesFunction< real_t > errGridIncrement( "error_grid_increment", storage, minLevel, errorLevel );
 
    StokesOperator       A( storage, minLevel, errorLevel );
    VelocityMassOperator MVelocity( storage, minLevel, errorLevel );
@@ -334,6 +343,7 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
       }
 
       tmpFMG.assign( {1.0}, {u}, currentLevel, All );
+      uFMGSolution.assign( {1.0}, {u}, currentLevel, All );
 
       const auto fmgErrorLevel = currentLevel + errorCalculationLevelIncrement;
       for ( uint_t prolongationSourceLevel = currentLevel; prolongationSourceLevel < fmgErrorLevel; prolongationSourceLevel++ )
@@ -346,6 +356,14 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
       if ( currentLevel == maxLevel )
       {
          error( u, uSolution, maxLevel, errorFlag, errDiscr );
+      }
+
+      // grid increment error
+      if ( currentLevel > 0 )
+      {
+         errGridIncrement.assign( {1.0}, {uFMGSolution}, currentLevel - 1, All );
+         prolongationOperator->prolongate( errGridIncrement, currentLevel - 1, All );
+         errGridIncrement.assign( {1.0, -1.0}, {uFMGSolution, errGridIncrement}, currentLevel, All );
       }
 
       auto errorL2VelocityFMG    = normL2Velocity( err, MVelocity, tmp, fmgErrorLevel, errorFlag );
@@ -362,6 +380,9 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
          errorRelL2PressureFMG = normL2Scalar( errDiscr.p, MPressure, tmp.p, maxLevel, errorFlag ) / solutionNormVelocity;
       }
 
+      auto errorL2GridIncrementVelocity = normL2Velocity( errGridIncrement, MVelocity, tmp, currentLevel, errorFlag );
+      auto errorL2GridIncrementPressure = normL2Scalar( errGridIncrement.p, MPressure, tmp.p, currentLevel, errorFlag );
+
       writeDataRow( iteration,
                     "F",
                     currentLevel,
@@ -371,6 +392,8 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
                     errorL2PressureFMG,
                     errorRelL2PressureFMG,
                     residualL2PressureFMG,
+                    errorL2GridIncrementVelocity,
+                    errorL2GridIncrementPressure,
                     db );
       iteration++;
    };
@@ -443,6 +466,8 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
                  errorL2Pressure,
                  errorAlgL2Pressure,
                  residualL2Pressure,
+                 0,
+                 0,
                  db );
    iteration++;
 
@@ -501,6 +526,8 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
                     errorL2Pressure,
                     errorAlgL2Pressure,
                     residualL2Pressure,
+                    0,
+                    0,
                     db );
       iteration++;
    }
@@ -547,6 +574,8 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
                     errorL2Pressure,
                     errorAlgL2Pressure,
                     residualL2Pressure,
+                    0,
+                    0,
                     db );
       iteration++;
    }
