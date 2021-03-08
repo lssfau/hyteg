@@ -225,11 +225,11 @@ parameterizations = {
 
     'fmg-pipe-p1p1': [{'preSmooth': 1, 'postSmooth': 0, 'incSmooth': 2, 'fmgInnerIterations': 1, 'numGSVelocity': 2, 'symmGSVelocity': False},
                       {'preSmooth': 1, 'postSmooth': 2, 'incSmooth': 2, 'fmgInnerIterations': 1, 'numGSVelocity': 2, 'symmGSVelocity': False},
-                      {'preSmooth': 1, 'postSmooth': 1, 'incSmooth': 1, 'fmgInnerIterations': 1, 'numGSVelocity': 1, 'symmGSVelocity': False, 'solveWithCoarseGridSolverOnEachFMGLevel': True}],
+                      {'preSmooth': 1, 'postSmooth': 1, 'incSmooth': 1, 'fmgInnerIterations': 1, 'numGSVelocity': 1, 'symmGSVelocity': False, 'solveWithCoarseGridSolverOnEachFMGLevel': True, 'maxIterations': 10000}],
 
     'fmg-pipe-p2p1': [{'preSmooth': 1, 'postSmooth': 2, 'incSmooth': 3, 'fmgInnerIterations': 1, 'numGSVelocity': 2, 'symmGSVelocity': False},
                       {'preSmooth': 2, 'postSmooth': 3, 'incSmooth': 3, 'fmgInnerIterations': 1, 'numGSVelocity': 2, 'symmGSVelocity': False},
-                      {'preSmooth': 1, 'postSmooth': 1, 'incSmooth': 1, 'fmgInnerIterations': 1, 'numGSVelocity': 1, 'symmGSVelocity': False, 'solveWithCoarseGridSolverOnEachFMGLevel': True}],
+                      {'preSmooth': 1, 'postSmooth': 1, 'incSmooth': 1, 'fmgInnerIterations': 1, 'numGSVelocity': 1, 'symmGSVelocity': False, 'solveWithCoarseGridSolverOnEachFMGLevel': True, 'maxIterations': 10000}],
 }
 
 for prm in ['omega-cube-p1p1-1-1-2-1symm', 'omega-cube-p1p1-2-2-2-1symm', 'omega-cube-p1p1-3-3-2-1symm', 'omega-cube-p1p1-1-1-2-3fwd', 'omega-cube-p1p1-2-2-2-3fwd', 'omega-cube-p1p1-3-3-2-3fwd',
