@@ -324,19 +324,22 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
    // iterative or direct solver to solve on each level - obtaining discretization accuracy
    // used to indicate incremental error reduction rate
    std::vector< std::shared_ptr< Solver< StokesOperator > > > fmgLevelWiseSolver;
-   for ( uint_t l = 0; l <= maxLevel; l++ )
+   if ( solveWithCoarseGridSolverOnEachFMGLevel )
    {
-      if ( coarseGridSettings.solverType == 0 )
+      for ( uint_t l = 0; l <= maxLevel; l++ )
       {
-         auto slvr = std::make_shared< PETScLUSolver< StokesOperator > >( storage, l );
-         fmgLevelWiseSolver.push_back( slvr );
-      }
-      else
-      {
-         auto slvr = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
-             storage, l, coarseGridSettings.absoluteResidualTolerance, coarseGridSettings.maxIterations, 1 );
-         slvr->setVerbose( true );
-         fmgLevelWiseSolver.push_back( slvr );
+         if ( coarseGridSettings.solverType == 0 )
+         {
+            auto slvr = std::make_shared< PETScLUSolver< StokesOperator > >( storage, l );
+            fmgLevelWiseSolver.push_back( slvr );
+         }
+         else
+         {
+            auto slvr = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
+                storage, l, coarseGridSettings.absoluteResidualTolerance, coarseGridSettings.maxIterations, 1 );
+            slvr->setVerbose( true );
+            fmgLevelWiseSolver.push_back( slvr );
+         }
       }
    }
 
