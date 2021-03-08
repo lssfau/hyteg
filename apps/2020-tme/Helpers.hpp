@@ -40,6 +40,7 @@
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
+#include "hyteg/gridtransferoperators/P1toP1InjectionRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -125,7 +126,7 @@ inline void residual( const StokesFunctionType< real_t >& u,
                       StokesFunctionType< real_t >&       r )
 {
    A.apply( u, tmp, level, flag );
-   r.assign( {1.0, -1.0}, {f, tmp}, level, flag );
+   r.assign( { 1.0, -1.0 }, { f, tmp }, level, flag );
 }
 
 template < template < typename > class StokesFunctionType >
@@ -135,7 +136,7 @@ inline void error( const StokesFunctionType< real_t >& u,
                    DoFType                             flag,
                    StokesFunctionType< real_t >&       error )
 {
-   error.assign( {1.0, -1.0}, {u, exact}, level, flag );
+   error.assign( { 1.0, -1.0 }, { u, exact }, level, flag );
 }
 
 enum class Discretization
@@ -204,6 +205,7 @@ void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
             bool                                                    projectPressurefterRestriction,
             bool                                                    calculateDiscretizationError,
             uint_t                                                  normCalculationLevelIncrement,
+            bool                                                    solveWithCoarseGridSolverOnEachFMGLevel,
             bool                                                    vtk,
             const std::string&                                      benchmarkName,
             bool                                                    verbose,
