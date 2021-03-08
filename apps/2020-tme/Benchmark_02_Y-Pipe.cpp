@@ -73,7 +73,7 @@ void benchmark( int argc, char** argv )
 
    const uint_t normCalculationLevelIncrement = mainConf.getParameter< uint_t >( "normCalculationLevelIncrement" );
 
-   const bool solveWithCoarseGridSolverOnEachFMGLevel = mainConf.getParameter< uint_t >( "solveWithCoarseGridSolverOnEachFMGLevel" );
+   const bool solveWithCoarseGridSolverOnEachFMGLevel = mainConf.getParameter< bool >( "solveWithCoarseGridSolverOnEachFMGLevel" );
 
    MultigridSettings multigridSettings;
    multigridSettings.preSmooth                 = mainConf.getParameter< uint_t >( "preSmooth" );

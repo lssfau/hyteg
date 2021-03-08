@@ -92,7 +92,7 @@ void benchmark( int argc, char** argv )
 
    const uint_t normCalculationLevelIncrement = mainConf.getParameter< uint_t >( "normCalculationLevelIncrement" );
    const bool   solveWithCoarseGridSolverOnEachFMGLevel =
-       mainConf.getParameter< uint_t >( "solveWithCoarseGridSolverOnEachFMGLevel" );
+       mainConf.getParameter< bool >( "solveWithCoarseGridSolverOnEachFMGLevel" );
 
    Discretization discretization = Discretization::P2_P1;
    if ( discretizationString == "p1p1" )
