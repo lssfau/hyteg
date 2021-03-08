@@ -179,12 +179,11 @@ parameterizations_base = {
     'fmg-cube-p2p1': {'discretization': 'p2p1', 'minLevel': 0, 'maxLevel': 5, 'numEdgesPerSide': 1, 'vtk': False, 'numCycles': 1, 'absoluteResidualTolerance': 1e-12,
                       'estimateOmega': False, 'omega': 0.2, 'coarseGridSolverType': 1, 'normCalculationLevelIncrement': 1, 'fmgInnerIterations': 0},
 
-    'fmg-pipe-p1p1': {'discretization': 'p1p1', 'minLevel': 0, 'maxLevel': 5, 'numEdgesPerSide': 1, 'vtk': False, 'numCycles': 1, 'absoluteResidualTolerance': 1e-12,
+    'fmg-pipe-p1p1': {'discretization': 'p1p1', 'minLevel': 0, 'maxLevel': 4, 'numEdgesPerSide': 1, 'vtk': False, 'numCycles': 1, 'absoluteResidualTolerance': 1e-12,
                       'estimateOmega': False, 'omega': 0.3, 'coarseGridSolverType': 1, 'normCalculationLevelIncrement': 1, 'fmgInnerIterations': 0},
 
-    'fmg-pipe-p2p1': {'discretization': 'p2p1', 'minLevel': 0, 'maxLevel': 4, 'numEdgesPerSide': 1, 'vtk': False, 'numCycles': 1, 'absoluteResidualTolerance': 1e-12,
+    'fmg-pipe-p2p1': {'discretization': 'p2p1', 'minLevel': 0, 'maxLevel': 3, 'numEdgesPerSide': 1, 'vtk': False, 'numCycles': 1, 'absoluteResidualTolerance': 1e-12,
                       'estimateOmega': False, 'omega': 0.4, 'coarseGridSolverType': 1, 'normCalculationLevelIncrement': 1, 'fmgInnerIterations': 0},
-
 }
 
 parameterizations = {
@@ -224,15 +223,13 @@ parameterizations = {
     'fmg-cube-p1p1' : [],
     'fmg-cube-p2p1' : [],
 
-    # $(1, 0, 3, 1, \hat{\mathbf{A}}_f, 3)$
-    # $(1, 0, 2, 1, \hat{\mathbf{A}}_f, 2)$
-    'fmg-pipe-p1p1': [{'preSmooth': 1, 'postSmooth': 0, 'incSmooth': 3, 'fmgInnerIterations': 1, 'numGSVelocity': 3, 'symmGSVelocity': False},
-                      {'preSmooth': 1, 'postSmooth': 0, 'incSmooth': 2, 'fmgInnerIterations': 1, 'numGSVelocity': 2, 'symmGSVelocity': False}],
+    'fmg-pipe-p1p1': [{'preSmooth': 1, 'postSmooth': 0, 'incSmooth': 2, 'fmgInnerIterations': 1, 'numGSVelocity': 2, 'symmGSVelocity': False},
+                      {'preSmooth': 1, 'postSmooth': 2, 'incSmooth': 2, 'fmgInnerIterations': 1, 'numGSVelocity': 2, 'symmGSVelocity': False},
+                      {'preSmooth': 1, 'postSmooth': 1, 'incSmooth': 1, 'fmgInnerIterations': 1, 'numGSVelocity': 1, 'symmGSVelocity': False, 'solveWithCoarseGridSolverOnEachFMGLevel': True}],
 
-    # $(1, 2, 3, 1, \hat{\mathbf{A}}_f, 4)$
-    # $(1, 2, 3, 1, \hat{\mathbf{A}}_f, 2)$
-    'fmg-pipe-p2p1': [{'preSmooth': 1, 'postSmooth': 2, 'incSmooth': 3, 'fmgInnerIterations': 1, 'numGSVelocity': 4, 'symmGSVelocity': False},
-                      {'preSmooth': 1, 'postSmooth': 2, 'incSmooth': 3, 'fmgInnerIterations': 1, 'numGSVelocity': 2, 'symmGSVelocity': False}],
+    'fmg-pipe-p2p1': [{'preSmooth': 1, 'postSmooth': 2, 'incSmooth': 3, 'fmgInnerIterations': 1, 'numGSVelocity': 2, 'symmGSVelocity': False},
+                      {'preSmooth': 2, 'postSmooth': 3, 'incSmooth': 3, 'fmgInnerIterations': 1, 'numGSVelocity': 2, 'symmGSVelocity': False},
+                      {'preSmooth': 1, 'postSmooth': 1, 'incSmooth': 1, 'fmgInnerIterations': 1, 'numGSVelocity': 1, 'symmGSVelocity': False, 'solveWithCoarseGridSolverOnEachFMGLevel': True}],
 }
 
 for prm in ['omega-cube-p1p1-1-1-2-1symm', 'omega-cube-p1p1-2-2-2-1symm', 'omega-cube-p1p1-3-3-2-1symm', 'omega-cube-p1p1-1-1-2-3fwd', 'omega-cube-p1p1-2-2-2-3fwd', 'omega-cube-p1p1-3-3-2-3fwd',
