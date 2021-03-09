@@ -23,8 +23,7 @@
 
 #ifdef HYTEG_BUILD_WITH_EIGEN
 
-#include "Polynomial2D.hpp"
-#include "Polynomial3D.hpp"
+#include "Polynomial.hpp"
 
 namespace hyteg {
 
@@ -73,7 +72,7 @@ class LSQPInterpolator
 {
  public:
 
-   LSQPInterpolator(uint_t degree = 0 uint_t interpolationLevel = 0)
+   LSQPInterpolator(uint_t degree = 0, uint_t interpolationLevel = 0)
       : degree_(degree),
         numCoefficients_(Polynomial2D<Basis>::getNumCoefficients(degree)),
         interpolationLevel_(interpolationLevel),
