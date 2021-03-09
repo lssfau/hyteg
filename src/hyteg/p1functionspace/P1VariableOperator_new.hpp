@@ -20,13 +20,8 @@
 
 #pragma once
 
-#include <array>
 #include "hyteg/p1functionspace/P1Operator.hpp"
 
-#include <hyteg/p1functionspace/VertexDoFMacroEdge.hpp>
-#include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
-#include <hyteg/p1functionspace/VertexDoFMacroVertex.hpp>
-#include <hyteg/p1functionspace/variablestencil/VertexDoFVariableStencil.hpp>
 
 #include "hyteg/forms/form_hyteg_generated/P1FormDiv.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormDivT.hpp"
@@ -34,10 +29,7 @@
 #include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormPSPG.hpp"
-#include "hyteg/p1functionspace/VertexDoFMemory.hpp"
-#include "hyteg/types/pointnd.hpp"
 
-#include "P1DataHandling.hpp"
 
 namespace hyteg {
 

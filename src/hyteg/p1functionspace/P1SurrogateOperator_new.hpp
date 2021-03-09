@@ -20,13 +20,13 @@
 
 #pragma once
 
-#include <array>
+// #include <array>
 #include "hyteg/p1functionspace/P1Operator.hpp"
 
-#include <hyteg/p1functionspace/VertexDoFMacroEdge.hpp>
-#include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
-#include <hyteg/p1functionspace/VertexDoFMacroVertex.hpp>
-#include <hyteg/p1functionspace/variablestencil/VertexDoFVariableStencil.hpp>
+// #include <hyteg/p1functionspace/VertexDoFMacroEdge.hpp>
+// #include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
+// #include <hyteg/p1functionspace/VertexDoFMacroVertex.hpp>
+// #include <hyteg/p1functionspace/variablestencil/VertexDoFVariableStencil.hpp>
 
 #include "hyteg/forms/form_hyteg_generated/P1FormDiv.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormDivT.hpp"
@@ -34,14 +34,14 @@
 #include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormPSPG.hpp"
-#include "hyteg/p1functionspace/VertexDoFMemory.hpp"
-#include "hyteg/types/pointnd.hpp"
+// #include "hyteg/p1functionspace/VertexDoFMemory.hpp"
+// #include "hyteg/types/pointnd.hpp"
 
 #include "hyteg/polynomial/PolynomialEvaluator.hpp"
-#include "hyteg/polynomial/SimplePolynomial.hpp"
+// #include "hyteg/polynomial/SimplePolynomial.hpp"
 #include "hyteg/polynomial/LSQPInterpolator.hpp"
 
-#include "P1DataHandling.hpp"
+// #include "P1DataHandling.hpp"
 
 namespace hyteg {
 
@@ -103,11 +103,11 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
    using P1Operator<P1Form>::assemble_variableStencil_cell;
 
  public:
-   P1SurrogateOperator_new(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, uint_t polyDegree, uint_t interpolationLevel)
-      : P1SurrogateOperator_new<P1Form>(storage, minLevel, maxLevel, uint_t polyDegree, uint_t interpolationLevel, P1Form())
+   P1SurrogateOperator_new(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel)
+      : P1SurrogateOperator_new<P1Form>(storage, minLevel, maxLevel, P1Form())
    {}
 
-   P1SurrogateOperator_new(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, uint_t polyDegree, uint_t interpolationLevel, const P1Form& form)
+   P1SurrogateOperator_new(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form& form)
       : P1Operator<P1Form>(storage, minLevel, maxLevel, form)
    {
       WALBERLA_LOG_INFO_ON_ROOT("=== CTOR NEW SURROGATE OPERATOR ===");
@@ -115,22 +115,16 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
       // todo add polynomials for macro-bounaries
       auto cellDataHandling =
          std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory<StencilPoly_cell>, Cell >>(minLevel_, maxLevel_);
-      // auto face3DDataHandling =
-      //    std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory<StencilPoly_face3D>, Face >>( minLevel_, maxLevel_);
-      // auto edge3DDataHandling =
-      //    std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory<StencilPoly_edge3D>, Edge >>( minLevel_, maxLevel_);
 
       auto faceDataHandling =
-         std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory<StencilPoly_face>, Face >>(minLevel_, maxLevel_, vertexDoFMacroFaceStencilMemorySize);
-      // auto edgeDataHandling =
-      // std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory<StencilPoly_edge>, Edge >>(minLevel_, maxLevel_, vertexDoFMacroEdgeStencilMemorySize);
+         std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory<StencilPoly_face>, Face >>(minLevel_, maxLevel_);//, vertexDoFMacroFaceStencilMemorySize);
 
       storage->addCellData(cellPolyID_, cellDataHandling, "P1OperatorCellPolynomial");
       storage->addFaceData(facePolyID_, faceDataHandling, "P1OperatorFacePolynomial");
-      // storage->addFaceData(facePoly3DID_, face3DDataHandling, "P1OperatorFace3DStencil");
-      // storage->addEdgeData(edgePolyID_, edgeDataHandling, "P1OperatorEdgeStencil");
-      // storage->addEdgeData(edgePoly3DID_, edge3DDataHandling, "P1OperatorEdge3DStencil");
+   }
 
+   void interpolateStencils(uint_t polyDegree, uint_t interpolationLevel)
+   {
       // compute polynomial coefficients
       // todo perform QR only once
       if (storage_->hasGlobalCells())
@@ -244,10 +238,10 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
             // initialize polynomials
             assemble_variableStencil_cell(stencilMemory, 1, 1, 1);
 
-            for (auto& it : stencilMemory)
+            for (auto& [idx,val] : stencilMemory)
             {
-               stencilPoly[it.first] = Poly3D(polyDegree);
-               interpolator[it.first] = Interpolator3D(polyDegree, interpolationLevel);
+               stencilPoly.insert_or_assign(idx, Poly3D(polyDegree));
+               interpolator.insert_or_assign(idx, Interpolator3D(polyDegree, interpolationLevel));
             }
 
             // add sample points
@@ -270,9 +264,9 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
 
                      assemble_variableStencil_cell(stencilMemory, i << lvlDiff, j << lvlDiff, k << lvlDiff);
 
-                     for (auto& it : stencilMemory)
+                     for (auto& [idx,val] : stencilMemory)
                      {
-                        interpolator[it.first].addInterpolationPoint(x, it.second);
+                        interpolator[idx].addInterpolationPoint(x, val);
                      }
 
                   }
@@ -280,9 +274,9 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
             }
 
             // find polynomials by L2 fit
-            for (auto& it : interpolator)
+            for (auto& [idx,interp] : interpolator)
             {
-               it.second.interpolate(stencilPoly[it.first]);
+               interp.interpolate(stencilPoly[idx]);
             }
          }
       }
@@ -292,9 +286,9 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
       {
          auto& stencilMemory  = it.second->getData(cellStencilID_)->getData(maxLevel_);
 
-         for (auto& it : stencilMemory)
+         for (auto& [idx,val] : stencilMemory)
          {
-            facePolyEvaluator_[it.first] = Polynomial3DEvaluator(polyDegree);
+            cellPolyEvaluator_.insert_or_assign(idx, Polynomial3DEvaluator(polyDegree));
          }
 
          break; // we use the same evaluator for all cells
@@ -432,8 +426,8 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
    PrimitiveDataID< LevelWiseMemory< StencilPoly_face >, Face > facePolyID_;
    PrimitiveDataID< LevelWiseMemory< StencilPoly_cell >, Cell > cellPolyID_;
 
-   Evaluator_cell cellPolyEvaluator_;
-   Evaluator_face facePolyEvaluator_;
+   mutable Evaluator_cell cellPolyEvaluator_;
+   mutable Evaluator_face facePolyEvaluator_;
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    void createMatrix_impl(P1Function< real_t >& src, P1Function< real_t >& dst, Mat& mat, size_t level, DoFType flag)
@@ -482,9 +476,9 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
 
 // todo: use correct forms
 // typedef P1SurrogateOperator_new< P1Form_laplace > P1BlendingLaplaceOperator_new;
-typedef P1SurrogateOperator_new< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise >> P1BlendingLaplaceOperator_new;
+typedef P1SurrogateOperator_new< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise >> P1SurrogateLaplaceOperator_new;
 // typedef P1SurrogateOperator_new< P1Form_mass >    P1BlendingMassOperator_new;
-typedef P1SurrogateOperator_new< P1Form_mass >    P1BlendingMassOperator_new;
+typedef P1SurrogateOperator_new< P1Form_mass >    P1SurrogateMassOperator_new;
 
 // typedef P1VariableOperator< P1Form_epsilon_11 > P1BlendingEpsilonOperator_11;
 // typedef P1VariableOperator< P1Form_epsilon_12 > P1BlendingEpsilonOperator_12;
