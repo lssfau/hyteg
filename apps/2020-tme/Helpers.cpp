@@ -202,6 +202,13 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
    WALBERLA_LOG_INFO_ON_ROOT( "   + database file:                                " << dbFile )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
 
+   std::map< uint_t, uint_t > unknownsLevel;
+   for ( uint_t l = minLevel; l <= maxLevel; l++ )
+   {
+      unknownsLevel[l] = numberOfGlobalDoFs< typename StokesFunction< real_t >::Tag >( *storage, l );
+      WALBERLA_LOG_INFO_ON_ROOT( "unknowns on level " << l << ": " << unknownsLevel[l] );
+   }
+
    FixedSizeSQLDB db( dbFile );
 
    uint_t iteration = 0;
