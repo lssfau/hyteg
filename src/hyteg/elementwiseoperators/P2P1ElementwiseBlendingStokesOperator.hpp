@@ -58,12 +58,18 @@ class P2P1ElementwiseBlendingStokesOperator
    void computeAndStoreLocalElementMatrices()
    {
       A.computeAndStoreLocalElementMatrices();
+
       div_x.computeAndStoreLocalElementMatrices();
       div_y.computeAndStoreLocalElementMatrices();
-      div_z.computeAndStoreLocalElementMatrices();
+
       divT_x.computeAndStoreLocalElementMatrices();
       divT_y.computeAndStoreLocalElementMatrices();
-      divT_z.computeAndStoreLocalElementMatrices();
+
+      if ( hasGlobalCells_ )
+      {
+         div_z.computeAndStoreLocalElementMatrices();
+         divT_z.computeAndStoreLocalElementMatrices();
+      }
    }
 
    void apply( const P2P1TaylorHoodFunction< real_t >& src,
