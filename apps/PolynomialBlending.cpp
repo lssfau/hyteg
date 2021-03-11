@@ -437,7 +437,7 @@ void solve(const StencilType T, const uint_t interpolationLevel, std::shared_ptr
 
     case LSQP:
       WALBERLA_LOG_INFO_ON_ROOT("Operatortype: Surrogate Polynomial Stencil");
-      WALBERLA_LOG_INFO_ON_ROOT("Interpolation level: " << interpolationLevel);
+      WALBERLA_LOG_INFO_ON_ROOT("Interpolation level: " << interpolationLevel << ", polynomial degree: " << polyDegree);
 
       FE_Space<P,LSQP>::setInterpolationLevel(interpolationLevel);
       solveTmpl<P, LSQP>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs, polyDegree, interpolationLevel);
@@ -445,7 +445,7 @@ void solve(const StencilType T, const uint_t interpolationLevel, std::shared_ptr
 
     case LSQP_NEW:
       WALBERLA_LOG_INFO_ON_ROOT("Operatortype: NEW Surrogate Polynomial Stencil");
-      WALBERLA_LOG_INFO_ON_ROOT("Interpolation level: " << interpolationLevel);
+      WALBERLA_LOG_INFO_ON_ROOT("Interpolation level: " << interpolationLevel << ", polynomial degree: " << polyDegree);
 
       solveTmpl<P, LSQP_NEW>(storage, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk, exact, boundary, rhs, polyDegree, interpolationLevel);
       break;

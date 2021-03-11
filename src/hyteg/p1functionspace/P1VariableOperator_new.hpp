@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Benjamin Mann, Daniel Drzisga, Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2021 Benjamin Mann
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -36,27 +36,8 @@ namespace hyteg {
 template < class P1Form >
 class P1VariableOperator_new : public P1Operator<P1Form>
 {
-   // todo: remove unneccessary stuff
    using P1Operator<P1Form>::P1Operator;
    using P1Operator<P1Form>::storage_;
-   using P1Operator<P1Form>::diagonalValues_;
-   using P1Operator<P1Form>::inverseDiagonalValues_;
-   using P1Operator<P1Form>::x0_;
-   using P1Operator<P1Form>::dx_;
-   using P1Operator<P1Form>::dy_;
-   using P1Operator<P1Form>::dz_;
-   using P1Operator<P1Form>::stencil_directions_2D_;
-   using P1Operator<P1Form>::formS_;
-   using P1Operator<P1Form>::formN_;
-   using P1Operator<P1Form>::form_;
-   using P1Operator<P1Form>::minLevel_;
-   using P1Operator<P1Form>::maxLevel_;
-   using P1Operator<P1Form>::vertexStencilID_;
-   using P1Operator<P1Form>::edgeStencilID_;
-   using P1Operator<P1Form>::faceStencilID_;
-   using P1Operator<P1Form>::edgeStencil3DID_;
-   using P1Operator<P1Form>::faceStencil3DID_;
-   using P1Operator<P1Form>::cellStencilID_;
    using P1Operator<P1Form>::assemble_variableStencil_edge_init;
    using P1Operator<P1Form>::assemble_variableStencil_face_init;
    using P1Operator<P1Form>::assemble_variableStencil_cell_init;
@@ -68,7 +49,7 @@ class P1VariableOperator_new : public P1Operator<P1Form>
 
  public:
    P1VariableOperator_new(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel)
-      : P1VariableOperator_new<P1Form>(storage, minLevel, maxLevel, P1Form())
+      : P1VariableOperator_new(storage, minLevel, maxLevel, P1Form())
    {}
 
    P1VariableOperator_new(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form& form)
@@ -140,49 +121,6 @@ class P1VariableOperator_new : public P1Operator<P1Form>
    inline bool backwards_sor_available() const {return false;}
    inline bool variableStencil() const {return true;}
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-   void createMatrix_impl(P1Function< real_t >& src, P1Function< real_t >& dst, Mat& mat, size_t level, DoFType flag)
-   {
-      for (auto& it : storage_->getVertices())
-      {
-         Vertex& vertex = *it.second;
-
-         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType(vertex.getMeshBoundaryFlag());
-
-         if (testFlag(vertexBC, flag))
-         {
-            WALBERLA_ABORT("To be implemented")
-            //        P1Vertex::saveOperator(vertex, vertexLocalMatrixID_, src.getVertexDataID(), dst.getVertexDataID(), mat, level);
-         }
-      }
-
-      for (auto& it : storage_->getEdges())
-      {
-         Edge& edge = *it.second;
-
-         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType(edge.getMeshBoundaryFlag());
-
-         if (testFlag(edgeBC, flag))
-         {
-            WALBERLA_ABORT("To be implemented")
-            //        P1Edge::saveOperator(level, edge, edgeLocalMatrixID_, src.getEdgeDataID(), dst.getEdgeDataID(), mat);
-         }
-      }
-
-      for (auto& it : storage_->getFaces())
-      {
-         Face& face = *it.second;
-
-         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType(face.getMeshBoundaryFlag());
-
-         if (testFlag(faceBC, flag))
-         {
-            WALBERLA_ABORT("To be implemented")
-            //        P1Face::saveOperator(level, face, faceLocalMatrixID_, src.getFaceDataID(), dst.getFaceDataID(), mat);
-         }
-      }
-   }
-#endif
 };
 
 // todo: use correct forms

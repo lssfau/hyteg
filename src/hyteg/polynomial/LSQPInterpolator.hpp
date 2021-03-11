@@ -72,7 +72,7 @@ class LSQPInterpolator
 {
  public:
 
-   LSQPInterpolator(uint_t degree = 0, uint_t interpolationLevel = 0)
+   LSQPInterpolator(uint_t degree = 0, uint_t interpolationLevel = 0, bool suppressWarnings = false)
       : degree_(degree),
         numCoefficients_(Polynomial2D<Basis>::getNumCoefficients(degree)),
         interpolationLevel_(interpolationLevel),
@@ -81,7 +81,7 @@ class LSQPInterpolator
         A(numInterpolationPoints_, Polynomial2D<Basis>::getNumCoefficients(degree)),
         rhs(numInterpolationPoints_, 1)
    {
-      if (numInterpolationPoints_ < numCoefficients_)
+      if (!suppressWarnings && (numInterpolationPoints_ < numCoefficients_))
       {
          WALBERLA_LOG_WARNING("Polynomial interpolation may have poor quality since there are less interpolation points "
                               "than coefficients. Please try to increase the interpolation level to fix this.");
@@ -137,7 +137,7 @@ class LSQPInterpolator3D
 {
  public:
 
-   LSQPInterpolator3D(uint_t degree = 0, uint_t interpolationLevel = 0)
+   LSQPInterpolator3D(uint_t degree = 0, uint_t interpolationLevel = 0, bool suppressWarnings = false)
       : degree_(degree),
         interpolationLevel_(interpolationLevel),
         numCoefficients_(Polynomial3D<Basis>::getNumCoefficients(degree)),
@@ -146,7 +146,7 @@ class LSQPInterpolator3D
         A(numInterpolationPoints_, numCoefficients_),
         rhs(numInterpolationPoints_, 1)
    {
-      if (numInterpolationPoints_ < numCoefficients_)
+      if (!suppressWarnings && (numInterpolationPoints_ < numCoefficients_))
       {
          WALBERLA_LOG_WARNING("Polynomial interpolation may have poor quality since there are less interpolation points "
                               "than coefficients. Please try to increase the interpolation level to fix this.");

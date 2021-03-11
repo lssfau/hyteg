@@ -43,6 +43,7 @@ public:
 
   void setPolynomial(const Polynomial2& poly)
   {
+    WALBERLA_ASSERT(poly.getDegree() == degree_, "Polynomial degrees don't match!");
     poly2_ = &poly;
   }
 
@@ -277,6 +278,7 @@ class Polynomial3DEvaluator{
 
   void setPolynomial(const Polynomial3& poly)
   {
+    WALBERLA_ASSERT(poly.getDegree() == degree_, "Polynomial degrees don't match!");
     poly_ = &poly;
   }
 

@@ -51,7 +51,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
  public:
    P1Operator(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel)
-      : P1Operator<P1Form>(storage, minLevel, maxLevel, P1Form())
+      : P1Operator(storage, minLevel, maxLevel, P1Form())
    {}
 
    P1Operator(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form& form)
@@ -513,7 +513,6 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
                {
                   if (variableStencil())
                   {
-                     edge->getData(edgeStencilID_)->setToZero(level);
                      assemble_stencil_edge(stencilMemory, idx.x());
                   }
 
@@ -568,7 +567,6 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
                      {
                         if (variableStencil())
                         {
-                           face->getData(faceStencilID_)->setToZero(level);
                            assemble_stencil_face(stencilMemory, i, j);
                         }
 
@@ -831,7 +829,6 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       {
          if (variableStencil())
          {
-            edge.getData(edgeStencilID_)->setToZero(level);
             assemble_stencil_edge(opr_data, i);
          }
 
@@ -959,7 +956,6 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
          {
             if (variableStencil())
             {
-               face.getData(faceStencilID_)->setToZero(level);
                assemble_stencil_face(opr_data, i, j);
             }
 
@@ -1138,7 +1134,6 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
          if (variableStencil())
          {
-            edge.getData(edgeStencilID_)->setToZero(level);
             assemble_stencil_edge(opr_data, i);
             invCenterWeight = 1.0 / opr_data[ stencilIdxC ];
          }
@@ -1280,7 +1275,6 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
          {
             if (variableStencil())
             {
-               face.getData(faceStencilID_)->setToZero(level);
                assemble_stencil_face(opr_data, i, j);
                invCenterWeight = 1.0 / opr_data[vertexdof::stencilIndexFromVertex(stencilDirection::VERTEX_C)];
             }
@@ -1472,22 +1466,20 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    */
    inline void assemble_variableStencil_edge_init(Edge& edge, const uint_t level) const
    {
-      h_ = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
-
+      h_             = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
+      level_         = level;
+      stencilSize_   = edge.getData(edgeStencilID_)->getSize(level);
+      edge_          = &edge;
 
       // 3D version
       if (storage_->hasGlobalCells())
       {
          // new map not yet used -> prepare only linear stencil memory
          form_.setGeometryMap(edge.getGeometryMap());
-         level_ = level;
-         edge_ = &edge;
-         stencilSize_ = edge.getData(edgeStencilID_)->getSize(level);
       }
       // 2D version
       else
       {
-         // todo factor out common stuff
          x0_    = edge.getCoordinates()[0];
          dx_   = h_ * edge.getDirection();
 
@@ -1534,6 +1526,8 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       // 2D version
       else
       {
+         std::memset(edge_stencil, 0, stencilSize_ * sizeof(real_t));
+
          // south face
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
             formS_, {x, x + stencil_directions_2D_.W, x + stencil_directions_2D_.S}, P1Elements::P1Elements2D::elementSW, edge_stencil);
@@ -1567,24 +1561,24 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    */
    inline void assemble_variableStencil_face_init(Face& face, const uint_t level) const
    {
-      h_ = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
+      h_             = 1.0 / (walberla::real_c(levelinfo::num_microvertices_per_edge(level) - 1));
+      level_         = level;
+      stencilSize_   = face.getData(faceStencilID_)->getSize(level);
+      face_          = &face;
+
+      form_.setGeometryMap(face.getGeometryMap());
 
       // 3D version
       if (storage_->hasGlobalCells())
       {
-         form_.setGeometryMap(face.getGeometryMap());
-         level_ = level;
-         face_ = &face;
+         // nothing to do here
       }
       // 2D version
       else
       {
-         // todo factor out common stuff
          x0_ = face.coords[0];
          dx_ = h_ * (face.coords[1] - face.coords[0]);
          dy_ = h_ * (face.coords[2] - face.coords[0]);
-
-         form_.setGeometryMap(face.getGeometryMap());
 
          stencil_directions_2D_ = stencil::Directions2D(h_, face);
       }
@@ -1594,6 +1588,8 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    */
    inline void assemble_variableStencil_face(real_t* face_stencil, const uint_t i, const uint_t j) const
    {
+      std::memset(face_stencil, 0, stencilSize_ * sizeof(real_t));
+
       WALBERLA_ASSERT(!(storage_->hasGlobalCells()));
       Point3D x = x0_ + i * dx_ + j * dy_;
 

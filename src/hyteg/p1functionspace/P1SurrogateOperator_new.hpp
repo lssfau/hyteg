@@ -20,13 +20,7 @@
 
 #pragma once
 
-// #include <array>
 #include "hyteg/p1functionspace/P1Operator.hpp"
-
-// #include <hyteg/p1functionspace/VertexDoFMacroEdge.hpp>
-// #include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
-// #include <hyteg/p1functionspace/VertexDoFMacroVertex.hpp>
-// #include <hyteg/p1functionspace/variablestencil/VertexDoFVariableStencil.hpp>
 
 #include "hyteg/forms/form_hyteg_generated/P1FormDiv.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormDivT.hpp"
@@ -34,14 +28,9 @@
 #include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormPSPG.hpp"
-// #include "hyteg/p1functionspace/VertexDoFMemory.hpp"
-// #include "hyteg/types/pointnd.hpp"
 
 #include "hyteg/polynomial/PolynomialEvaluator.hpp"
-// #include "hyteg/polynomial/SimplePolynomial.hpp"
 #include "hyteg/polynomial/LSQPInterpolator.hpp"
-
-// #include "P1DataHandling.hpp"
 
 namespace hyteg {
 
@@ -51,40 +40,25 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
    using Poly2D = Polynomial2D<MonomialBasis2D>;
    using Poly3D = Polynomial3D<MonomialBasis3D>;
 
+   // todo add polynomials for macro-faces in 3D
+
    using StencilPoly_cell = std::map< indexing::IndexIncrement, Poly3D >;
    // using StencilPoly_face3D = std::map< uint_t, StencilPoly_cell > ;
-   // using StencilPoly_edge3D = std::map< uint_t, StencilPoly_cell > ;
    using StencilPoly_face = std::vector<Poly2D>;
-   // using StencilPoly_edge = std::vector<Poly1D>;
 
    using Interpolator3D = LSQPInterpolator3D<MonomialBasis3D, LSQPType::VERTEX>;
    using Interpolator2D = LSQPInterpolator<MonomialBasis2D, LSQPType::VERTEX>;
-   // todo using Interpolator1D = ...
    using Interpolator_cell = std::map<indexing::IndexIncrement, Interpolator3D>;
    // using Interpolator_face3D = std::map< uint_t, Interpolator_cell > ;
    using Interpolator_face = std::vector<Interpolator2D>;
 
    using Evaluator_cell = std::map< indexing::IndexIncrement, Polynomial3DEvaluator >;
+   // using Evaluator_face3D = std::map< uint_t, Evaluator_cell > ;
    using Evaluator_face = std::vector<Polynomial2DEvaluator>;
 
-
-   // todo: remove unneccessary stuff
    using P1Operator<P1Form>::P1Operator;
    using P1Operator<P1Form>::storage_;
-   using P1Operator<P1Form>::diagonalValues_;
-   using P1Operator<P1Form>::inverseDiagonalValues_;
-   using P1Operator<P1Form>::x0_;
-   using P1Operator<P1Form>::dx_;
-   using P1Operator<P1Form>::dy_;
-   using P1Operator<P1Form>::dz_;
-   using P1Operator<P1Form>::stencil_directions_2D_;
-   using P1Operator<P1Form>::formS_;
-   using P1Operator<P1Form>::formN_;
-   using P1Operator<P1Form>::form_;
-   using P1Operator<P1Form>::face_;
-   using P1Operator<P1Form>::cell_;
    using P1Operator<P1Form>::h_;
-   using P1Operator<P1Form>::level_;
    using P1Operator<P1Form>::minLevel_;
    using P1Operator<P1Form>::maxLevel_;
    using P1Operator<P1Form>::vertexStencilID_;
@@ -104,7 +78,7 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
 
  public:
    P1SurrogateOperator_new(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel)
-      : P1SurrogateOperator_new<P1Form>(storage, minLevel, maxLevel, P1Form())
+      : P1SurrogateOperator_new(storage, minLevel, maxLevel, P1Form())
    {}
 
    P1SurrogateOperator_new(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form& form)
@@ -117,7 +91,7 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
          std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory<StencilPoly_cell>, Cell >>(minLevel_, maxLevel_);
 
       auto faceDataHandling =
-         std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory<StencilPoly_face>, Face >>(minLevel_, maxLevel_);//, vertexDoFMacroFaceStencilMemorySize);
+         std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory<StencilPoly_face>, Face >>(minLevel_, maxLevel_);
 
       storage->addCellData(cellPolyID_, cellDataHandling, "P1OperatorCellPolynomial");
       storage->addFaceData(facePolyID_, faceDataHandling, "P1OperatorFacePolynomial");
@@ -135,20 +109,23 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
       {
          interpolate2D(polyDegree, interpolationLevel);
       }
+
    }
 
  protected:
 
+   static const uint_t faceStencilSize2D = 9;
+
    /* interpolate polynomials
    */
-   void interpolate2D(uint_t polyDegree, uint_t interpolationLevel)
+   void interpolate2D(uint_t polyDegree, uint_t maxInterpolationLevel)
    {
       for (uint_t level = minLevel_; level <= maxLevel_; ++level)
       {
-         const uint_t il = std::min(level, interpolationLevel);
-         const uint_t lvlDiff = level - il;
-         const uint_t rowsizeY = levelinfo::num_microvertices_per_edge(il);
-         const real_t h_il = 1.0 / (walberla::real_c(rowsizeY - 1));
+         const uint_t interpolationLevel  = std::min(level, maxInterpolationLevel);
+         const uint_t lvlDiff             = level - interpolationLevel;
+         const uint_t rowsizeY            = levelinfo::num_microvertices_per_edge(interpolationLevel);
+         const real_t h_il                = 1.0 / (walberla::real_c(rowsizeY - 1));
 
          for (auto& it : storage_->getFaces())
          {
@@ -161,12 +138,13 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
             assemble_variableStencil_face_init(face, level);
 
             // initialize polynomials
-            auto stencilSize   = face.getData(faceStencilID_)->getSize(level);
+            // auto stencilSize   = face.getData(faceStencilID_)->getSize(level); // always returns 27!
+            auto stencilSize = faceStencilSize2D;
 
             for (uint_t c = 0; c < stencilSize; ++c)
             {
                stencilPoly.push_back(Poly2D(polyDegree));
-               interpolator.push_back(Interpolator2D(polyDegree, interpolationLevel));
+               interpolator.push_back(Interpolator2D(polyDegree, interpolationLevel, level<maxLevel_));
             }
 
             // add sample points
@@ -202,7 +180,8 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
       // initialize polynomial evaluator
       for (auto& it : storage_->getFaces())
       {
-         auto stencilSize   = it.second->getData(faceStencilID_)->getSize(maxLevel_);
+         // auto stencilSize   = it.second->getData(faceStencilID_)->getSize(maxLevel_); // always returns 27!
+         auto stencilSize = faceStencilSize2D;
 
          for (uint_t c = 0; c < stencilSize; ++c)
          {
@@ -216,14 +195,14 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
 
    /* interpolate polynomials
    */
-   void interpolate3D(uint_t polyDegree, uint_t interpolationLevel)
+   void interpolate3D(uint_t polyDegree, uint_t maxInterpolationLevel)
    {
       for (uint_t level = minLevel_; level <= maxLevel_; ++level)
       {
-         const uint_t il = std::min(level, interpolationLevel);
-         const uint_t lvlDiff = level - il;
-         const uint_t rowsizeZ = levelinfo::num_microvertices_per_edge(il);
-         const real_t h_il = 1.0 / (walberla::real_c(rowsizeZ - 1));
+         const uint_t interpolationLevel  = std::min(level, maxInterpolationLevel);
+         const uint_t lvlDiff             = level - interpolationLevel;
+         const uint_t rowsizeZ            = levelinfo::num_microvertices_per_edge(interpolationLevel);
+         const real_t h_il                = 1.0 / (walberla::real_c(rowsizeZ - 1));
 
          for (const auto& it : storage_->getCells())
          {
@@ -241,7 +220,7 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
             for (auto& [idx,val] : stencilMemory)
             {
                stencilPoly.insert_or_assign(idx, Poly3D(polyDegree));
-               interpolator.insert_or_assign(idx, Interpolator3D(polyDegree, interpolationLevel));
+               interpolator.insert_or_assign(idx, Interpolator3D(polyDegree, interpolationLevel, level<maxLevel_));
             }
 
             // add sample points
@@ -429,49 +408,6 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
    mutable Evaluator_cell cellPolyEvaluator_;
    mutable Evaluator_face facePolyEvaluator_;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-   void createMatrix_impl(P1Function< real_t >& src, P1Function< real_t >& dst, Mat& mat, size_t level, DoFType flag)
-   {
-      for (auto& it : storage_->getVertices())
-      {
-         Vertex& vertex = *it.second;
-
-         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType(vertex.getMeshBoundaryFlag());
-
-         if (testFlag(vertexBC, flag))
-         {
-            WALBERLA_ABORT("To be implemented")
-            //        P1Vertex::saveOperator(vertex, vertexLocalMatrixID_, src.getVertexDataID(), dst.getVertexDataID(), mat, level);
-         }
-      }
-
-      for (auto& it : storage_->getEdges())
-      {
-         Edge& edge = *it.second;
-
-         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType(edge.getMeshBoundaryFlag());
-
-         if (testFlag(edgeBC, flag))
-         {
-            WALBERLA_ABORT("To be implemented")
-            //        P1Edge::saveOperator(level, edge, edgeLocalMatrixID_, src.getEdgeDataID(), dst.getEdgeDataID(), mat);
-         }
-      }
-
-      for (auto& it : storage_->getFaces())
-      {
-         Face& face = *it.second;
-
-         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType(face.getMeshBoundaryFlag());
-
-         if (testFlag(faceBC, flag))
-         {
-            WALBERLA_ABORT("To be implemented")
-            //        P1Face::saveOperator(level, face, faceLocalMatrixID_, src.getFaceDataID(), dst.getFaceDataID(), mat);
-         }
-      }
-   }
-#endif
 };
 
 // todo: use correct forms
