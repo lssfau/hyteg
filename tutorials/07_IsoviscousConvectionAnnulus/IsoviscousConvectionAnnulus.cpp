@@ -37,6 +37,8 @@
  *
  * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Domain setup
  *
+ * \section IsoviscousConvectionAnnulus-functionsandoperators Function spaces and operators
+ *
  * We now define the function spaces and operators that we need in our app.
  *
  * In HyTeG, there are multiple implementations of the same linear operator.
@@ -56,10 +58,14 @@
  * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Function setup
  * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Operator setup
  *
+ * \section IsoviscousConvectionAnnulus-initialcondition Initial and boundary conditions
+ *
  * Analytical functions can be interpolated (think 'sampled') into the finite element functions by a call to interpolate.
  * Here we define an initial (and boundary) temperature function for the mantle.
  *
  * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Initial temperature
+ *
+ * \section IsoviscousConvectionAnnulus-solvers Solvers
  *
  * We solve the non-linear system by splitting it into three components that are solved in an alternating fashion.
  *
@@ -104,6 +110,8 @@
  *
  * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Max velocity
  *
+ * \section IsoviscousConvectionAnnulus-output Output
+ *
  * VTK output is pretty straightforward ...
  *
  * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp VTK write
@@ -113,6 +121,8 @@
  * one process (e.g. root). If necessary, relevant, distributed data should be reduced first.
  *
  * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp DB
+ *
+ * \section IsoviscousConvectionAnnulus-timeloop Time loop
  *
  * As discussed, we compute the time-step size via a CFL condition.
  *
@@ -135,6 +145,8 @@
  * \snippet tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp Stokes
  *
  *
+ * \section IsoviscousConvectionAnnulus-fullApp Full Application
+ * \include tutorials/07_IsoviscousConvectionAnnulus/IsoviscousConvectionAnnulus.cpp
 */
 
 #include <cmath>
