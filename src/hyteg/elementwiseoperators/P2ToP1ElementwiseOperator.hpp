@@ -163,9 +163,9 @@ class P2ToP1ElementwiseOperator : public Operator< P2Function< real_t >, P1Funct
    {
       WALBERLA_ASSERT( !storage_->hasGlobalCells(), "Retriveing local element matrix for 2D in 3D run. Why?" )
       const auto idx = facedof::macroface::index( level, microFace.x(), microFace.y(), fType );
-      WALBERLA_ASSERT( localElementMatrices2D_.count( cell.getID().getID() ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices2D_.at( cell.getID().getID() ).count( level ) > 0 )
-      WALBERLA_ASSERT( localElementMatrices2D_.at( cell.getID().getID() ).at( level ).size() > 0 )
+      WALBERLA_ASSERT( localElementMatrices2D_.count( face.getID().getID() ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID().getID() ).count( level ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID().getID() ).at( level ).size() > 0 )
       return localElementMatrices2D_.at( face.getID().getID() ).at( level ).at( idx );
    }
 
