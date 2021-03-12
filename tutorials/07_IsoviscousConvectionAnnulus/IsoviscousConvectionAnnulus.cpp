@@ -26,6 +26,25 @@
  * \brief In this tutorial we will set up a complete app that will solve a coupled system
  * of the Stokes equations and the convection-diffusion equation.
  *
+ * \sectino IsoviscousConvectionAnnulus-equations Governing equations
+ *
+ * We are in this tutorial considering a 2D simulation of isoviscous convection on an annular domain.
+ * The convection is modeled using the Boussinesq-approximation, by coupling the Stokes equations to an advection-diffusion
+ * equation. The system is given as:
+ *
+ * \f$ -\Delta u + \nabla p = \text{Ra} c g \f$
+ *
+ * \f$ \nabla u = 0 \f$
+ *
+ * \f$ \frac{\partial}{\partial t}c + u \cdot \nabla c - \kappa \nabla c = q \f$
+ *
+ * where \f$u\f$ is the velocity of the fluid, \f$p\f$ the pressure, \f$c\f$ the temperature,
+ * \f$q\f$ internal heating, \f$\text{Ra}\f$ the dimensionless Rayleigh number, \f$\kappa\f$ a diffusivity constant
+ * and \f$g\f$ the gravitational force.
+ *
+ * For simplicity, we set \f$\kappa = 1\f$  and steer the vigor of convection soloely through the Rayleigh number.
+ * Also we assume no internal heating.
+ *
  * \section IsoviscousConvectionAnnulus-domain Domain
  *
  * The annulus domain is created in four steps.

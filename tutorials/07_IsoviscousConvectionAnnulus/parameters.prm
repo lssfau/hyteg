@@ -20,7 +20,7 @@ Parameters
 
     maxNumTimeSteps 100;
     simulationTime 10;
-    cflMax 2;
+    cflMax 1;
 
     rayleighNumber 1e8;
 
