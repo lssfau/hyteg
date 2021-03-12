@@ -107,12 +107,6 @@ class LSQPInterpolator
       WALBERLA_ASSERT(offset_ == numInterpolationPoints_, "Not enough interpolation points were added");
       WALBERLA_ASSERT(degree_ == poly.getDegree(), "Polynomial degrees don't match!");
 
-      // if (numInterpolationPoints_ < poly.getNumCoefficients(poly.getDegree()))
-      // {
-      //    WALBERLA_LOG_WARNING("Polynomial interpolation may have poor quality since there are less interpolation points "
-      //                         "than coefficients. Please try to increase the interpolation level to fix this.");
-      // }
-
       Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> coeffs;
       coeffs = A.colPivHouseholderQr().solve(rhs);
 

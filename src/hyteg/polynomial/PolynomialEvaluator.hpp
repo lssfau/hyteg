@@ -45,6 +45,7 @@ public:
   {
     WALBERLA_ASSERT(poly.getDegree() == degree_, "Polynomial degrees don't match!");
     poly2_ = &poly;
+    // std::cout << "ptr to poly2_ = " << poly2_ << std::endl;
   }
 
   real_t eval(const Point2D &x) const {
@@ -52,6 +53,7 @@ public:
   }
 
   void setY(real_t y) {
+    // std::cout << "Evaluator2D(q=" << degree_ << ")::setY of p2 with q = "<< poly2_->getDegree() << "\n";
 
     for (uint_t degree = 0; degree <= degree_; ++degree) {
       poly1_.setCoefficient(degree, 0.0);
@@ -260,15 +262,16 @@ private:
 class Polynomial3DEvaluator{
  public:
 
-  // typedef Polynomial1D<MonomialBasis1D> Polynomial1;
+  typedef Polynomial1D<MonomialBasis1D> Polynomial1;
   typedef Polynomial2D<MonomialBasis2D> Polynomial2;
   typedef Polynomial3D<MonomialBasis3D> Polynomial3;
 
   Polynomial3DEvaluator(uint_t degree)
     : degree_(degree)
     , poly_z_(degree)
-    , evaluator_z_(poly_z_)
-  {}
+    , poly_yz_(degree)
+  {
+  }
 
   Polynomial3DEvaluator(const Polynomial3& poly)
     : Polynomial3DEvaluator(poly.getDegree())
@@ -284,7 +287,6 @@ class Polynomial3DEvaluator{
 
   // restrict polynomial p to z
   void setZ(real_t z) {
-
     poly_z_.setZero();
 
     // idx of coefficient c_ijk of 3d polynoial
@@ -317,29 +319,41 @@ class Polynomial3DEvaluator{
   }
 
   // restrict polynomial p|z to y
-  void setY(real_t y) { evaluator_z_.setY(y); }
+  void setY(real_t y) {
+    poly_yz_.setZero();
+
+    uint_t start = 0;
+    real_t y_k;
+
+    for (uint_t coeff = 0; coeff <= degree_; ++coeff) {
+
+      uint_t idx = start;
+      y_k = real_t(1.0);
+
+      for(uint_t degree = 0; degree <= degree_-coeff; ++degree) {
+
+        poly_yz_.addToCoefficient(coeff, poly_z_.getCoefficient(idx) * y_k);
+
+        idx += coeff + degree + 2;
+        y_k *= y;
+      }
+
+      start += coeff + 1;
+    }
+  }
 
   // evaluate p|yz(x)
-  real_t evalX(real_t x) { return evaluator_z_.evalX(x); }
-
-template<uint_t Degree>
-  real_t setStartX(real_t x, real_t h)
-  {
-    return evaluator_z_.setStartX<Degree>(x,h);
+  real_t evalX(real_t x) const {
+    return poly_yz_.eval(x);
   }
 
-  template<uint_t Degree>
-  real_t incrementEval()
-  {
-    return evaluator_z_.incrementEval<Degree>();
-  }
  private:
 
   const Polynomial3*  poly_;    // 3d polynomial p
 
   uint_t              degree_;  // polynomial degree
-  Polynomial2         poly_z_;  // poly_ restricted to given z, i.e., p|z
-  Polynomial2DEvaluator evaluator_z_; // evaluator for poly_z_
+  Polynomial2         poly_z_;  // p restricted to given z, i.e., p|z
+  Polynomial1         poly_yz_;  // p|z restricted to given y, i.e., p|yz
 
 };
 

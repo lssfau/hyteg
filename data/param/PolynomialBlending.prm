@@ -1,7 +1,7 @@
 Parameters
 {
-  level_h_coarse 9;
-  level_h_fine 9;
+  level_h_coarse 2;
+  level_h_fine 5;
 
   # use P1 or P2 elements;
   elementType 1;
@@ -11,23 +11,23 @@ Parameters
   # 1: variable;
   # 2: polynomial;
   # 3: new_constant;
-  # 4: new_variable$
+  # 4: new_variable;
   # 5: new_polynomial;
-  operatorType 5;
+  operatorType 4;
 
   # parameters for surrogate polynomials;
   interpolationLevel 5;
-  polyDegree 12;
+  polyDegree 5;
 
   annulus 0;# else rectangle;
   blending 0;
-  nX 2;
-  nY 2;
-  nZ 0;
+  nX 1;
+  nY 1;
+  nZ 1;
   macro_refinement 0;
 
   max_outer_iter 3;
-  max_cg_iter 1;
+  max_cg_iter 1000;
   mg_tolerance 1e-10;
   coarse_tolerance 1e-8;
 

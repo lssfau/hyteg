@@ -132,10 +132,7 @@ class Polynomial
 
    inline void setZero()
    {
-      for (uint_t i = 0; i < numCoefficients_; ++i)
-      {
-         coeffs_[i] = real_t(0.0);
-      }
+      std::memset(coeffs_.data(), 0, numCoefficients_ * sizeof(real_t));
    }
 
    real_t lInfinityError(const Polynomial& rhs)
