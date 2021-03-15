@@ -90,7 +90,7 @@ Optional:
   or to download Eigen at all.
 
 * MPI (e.g. [OpenMPI](https://www.open-mpi.org/ "OpenMPI homepage")) for parallel runs
-* [PETSc](https://www.mcs.anl.gov/petsc/ "PETSc homepage") for efficient coarse grid solvers
+* [PETSc](https://www.mcs.anl.gov/petsc/ "PETSc homepage") and/or [Trilinos](https://trilinos.github.io/ "Trilinos homepage") for efficient coarse grid solvers
 * [ParMETIS](http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview "ParMETIS homepage") for high-quality load balancing
 
 
