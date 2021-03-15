@@ -572,8 +572,6 @@ void runBenchmark( real_t      cflMax,
 
    calculateStokesResiduals( *A, MVelocity, MPressure, u, f, maxLevel, stokesResidual, stokesTmp, residual );
 
-   real_t initialResiudal = residual;
-
    localTimer.start();
 
    /// [Stokes solve initial]
@@ -688,8 +686,6 @@ void runBenchmark( real_t      cflMax,
       /// [RHS update]
 
       calculateStokesResiduals( *A, MVelocity, MPressure, u, f, maxLevel, stokesResidual, stokesTmp, residual );
-
-      initialResiudal = residual;
 
       localTimer.start();
       /// [Stokes]
