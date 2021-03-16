@@ -149,26 +149,24 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
  private:
    /// compute product of element local vector with element matrix
    ///
-   /// \param face           face primitive we operate on
    /// \param level          level on which we operate in mesh hierarchy
-   /// \param xIdx           column index of vertex specifying micro-element
-   /// \param yIdx           row index of vertex specifying micro-element
-   /// \param element        element specification w.r.t. to micro-vertex
+   /// \param microFace      index associated with the current element = micro-face
+   /// \param fType          type of micro-face (GRAY or BLUE)
    /// \param srcVertexData  pointer to DoF data on micro-vertices (for reading data)
    /// \param srcEdgeData    pointer to DoF data on micro-edges (for reading data)
    /// \param dstVertexData  pointer to DoF data on micro-vertices (for writing data)
    /// \param dstEdgeData    pointer to DoF data on micro-edges (for writing data)
+   /// \param elMat          the 6x6 element matrix to be multiplied
    ///
    /// \note The src and dst data arrays must not be identical.
-   void localMatrixVectorMultiply2D( const Face&                  face,
-                                     const uint_t                 level,
-                                     const uint_t                 xIdx,
-                                     const uint_t                 yIdx,
-                                     const P2Elements::P2Element& element,
-                                     const real_t* const          srcVertexData,
-                                     const real_t* const          srcEdgeData,
-                                     real_t* const                dstVertexData,
-                                     real_t* const                dstEdgeData ) const;
+   void localMatrixVectorMultiply2D( uint_t                 level,
+                                     const indexing::Index& microFace,
+                                     facedof::FaceType      fType,
+                                     const real_t* const    srcVertexData,
+                                     const real_t* const    srcEdgeData,
+                                     real_t* const          dstVertexData,
+                                     real_t* const          dstEdgeData,
+                                     const Matrix6r&        elMat ) const;
 
    /// Compute contributions to operator diagonal for given micro-face
    ///
@@ -236,6 +234,31 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
 
    P2Form form_;
 
+   /// \brief Returns a reference to the a precomputed element matrix of the specified micro face.
+   /// Probably crashes if local element matrices have not been precomputed.
+   Matrix6r& localElementMatrix2D( const Face& face, uint_t level, const indexing::Index& microFace, facedof::FaceType fType )
+   {
+      WALBERLA_ASSERT( !storage_->hasGlobalCells(), "Retriveing local element matrix for 2D in 3D run. Why?" )
+      const auto idx = facedof::macroface::index( level, microFace.x(), microFace.y(), fType );
+      WALBERLA_ASSERT( localElementMatrices2D_.count( face.getID().getID() ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID().getID() ).count( level ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID().getID() ).at( level ).size() > 0 )
+      return localElementMatrices2D_[face.getID().getID()][level][idx];
+   }
+
+   /// \brief Returns a const reference to the a precomputed element matrix of the specified micro face.
+   /// Probably crashes if local element matrices have not been precomputed.
+   const Matrix6r&
+       localElementMatrix2D( const Face& face, uint_t level, const indexing::Index& microFace, facedof::FaceType fType ) const
+   {
+      WALBERLA_ASSERT( !storage_->hasGlobalCells(), "Retriveing local element matrix for 2D in 3D run. Why?" )
+      const auto idx = facedof::macroface::index( level, microFace.x(), microFace.y(), fType );
+      WALBERLA_ASSERT( localElementMatrices2D_.count( face.getID().getID() ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID().getID() ).count( level ) > 0 )
+      WALBERLA_ASSERT( localElementMatrices2D_.at( face.getID().getID() ).at( level ).size() > 0 )
+      return localElementMatrices2D_.at( face.getID().getID() ).at( level ).at( idx );
+   }
+
    /// \brief Returns a reference to the a precomputed element matrix of the specified micro cell.
    /// Probably crashes if local element matrices have not been precomputed.
    Matrix10r& localElementMatrix3D( const Cell& cell, uint_t level, const indexing::Index& microCell, celldof::CellType cType )
@@ -264,9 +287,34 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
    bool localElementMatricesPrecomputed_;
 
    /// Pre-computed local element matrices.
-   /// localElementMatrices_[macroCellID][level][cellIdx] = mat10x10
+   /// localElementMatrices2D_[macroCellID][level][cellIdx] = mat6x6
+   std::map< PrimitiveID::IDType, std::map< uint_t, std::vector< Matrix6r > > > localElementMatrices2D_;
+
+   /// Pre-computed local element matrices.
+   /// localElementMatrices3D_[macroCellID][level][cellIdx] = mat10x10
    std::map< PrimitiveID::IDType, std::map< uint_t, std::vector< Matrix10r > > > localElementMatrices3D_;
 };
+
+template < class P2Form >
+void assembleLocalElementMatrix2D( const Face&            face,
+                                   uint_t                 level,
+                                   const indexing::Index& microFace,
+                                   facedof::FaceType      fType,
+                                   P2Form                 form,
+                                   Matrix6r&              elMat )
+{
+   // determine coordinates of vertices of micro-element
+   std::array< indexing::Index, 3 > verts = facedof::macroface::getMicroVerticesFromMicroFace( microFace, fType );
+   std::array< Point3D, 3 >         coords;
+   for ( uint_t k = 0; k < 3; ++k )
+   {
+      coords[k] = vertexdof::macroface::coordinateFromIndex( level, face, verts[k] );
+   }
+
+   // assemble local element matrix
+   form.setGeometryMap( face.getGeometryMap() );
+   form.integrateAll( coords, elMat );
+}
 
 template < class P2Form >
 void assembleLocalElementMatrix3D( const Cell&            cell,

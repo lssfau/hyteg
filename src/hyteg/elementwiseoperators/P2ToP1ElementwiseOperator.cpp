@@ -67,13 +67,37 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::computeAndStoreLocalElementMatrice
       }
       else
       {
-         WALBERLA_ABORT( "Pre-computation of local element matrices not implemented for 2D." )
+         const uint_t numMicroFacesPerMacroFace = levelinfo::num_microfaces_per_face( level );
+
+         for ( const auto& it : storage_->getFaces() )
+         {
+            auto faceID = it.first;
+            auto face   = it.second;
+
+            auto& elementMatrices = localElementMatrices2D_[faceID][level];
+
+            if ( !localElementMatricesPrecomputed_ )
+            {
+               elementMatrices.resize( numMicroFacesPerMacroFace );
+            }
+
+            P2toP1Form form;
+
+            for ( const auto& fType : facedof::allFaceTypes )
+            {
+               for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
+               {
+                  Matrixr< 3, 6 >& elMat = localElementMatrix2D( *face, level, micro, fType );
+                  elMat.setAll( 0 );
+                  assembleLocalElementMatrix2D( *face, level, micro, fType, form, elMat );
+               }
+            }
+         }
       }
    }
 
    localElementMatricesPrecomputed_ = true;
 }
-
 
 template < class P2toP1Form >
 void P2ToP1ElementwiseOperator< P2toP1Form >::apply( const P2Function< real_t >& src,
@@ -143,7 +167,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::apply( const P2Function< real_t >&
          }
 
          Matrixr< 4, 10 > elMat;
-         P2toP1Form form;
+         P2toP1Form       form;
 
          // loop over micro-cells
          for ( const auto& cType : celldof::allCellTypes )
@@ -184,9 +208,6 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::apply( const P2Function< real_t >&
          Point3D x1( face.coords[1] );
          Point3D x2( face.coords[2] );
 
-         uint_t                   rowsize       = levelinfo::num_microvertices_per_edge( level );
-         uint_t                   inner_rowsize = rowsize;
-         uint_t                   xIdx, yIdx;
          Point3D                  v0, v1, v2;
          indexing::Index          nodeIdx;
          indexing::IndexIncrement offset;
@@ -216,28 +237,26 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::apply( const P2Function< real_t >&
             }
          }
 
-         // now loop over micro-faces of macro-face
-         for ( yIdx = 0; yIdx < rowsize - 2; ++yIdx )
+         Matrixr< 3, 6 > elMat;
+         P2toP1Form       form;
+
+         // loop over micro-faces
+         for ( const auto& fType : facedof::allFaceTypes )
          {
-            // loop over vertices in row with two associated triangles
-            for ( xIdx = 1; xIdx < inner_rowsize - 1; ++xIdx )
+            for ( const auto& micro : facedof::macroface::Iterator( level, fType, 0 ) )
             {
-               // we associate two elements with current micro-vertex
-               localMatrixVectorMultiply2D(
-                   face, level, xIdx, yIdx, P2Elements::P2Face::elementN, srcVertexData, srcEdgeData, dstVertexData );
-               localMatrixVectorMultiply2D(
-                   face, level, xIdx, yIdx, P2Elements::P2Face::elementNW, srcVertexData, srcEdgeData, dstVertexData );
+               if ( localElementMatricesPrecomputed_ )
+               {
+                  elMat = localElementMatrix2D( face, level, micro, fType );
+               }
+               else
+               {
+                  assembleLocalElementMatrix2D( face, level, micro, fType, form, elMat );
+               }
+
+               localMatrixVectorMultiply2D( level, micro, fType, srcVertexData, srcEdgeData, dstVertexData, elMat );
             }
-            --inner_rowsize;
-
-            // final micro-vertex in row has only one associated micro-face
-            localMatrixVectorMultiply2D(
-                face, level, xIdx, yIdx, P2Elements::P2Face::elementNW, srcVertexData, srcEdgeData, dstVertexData );
          }
-
-         // top north-west micro-element not treated, yet
-         localMatrixVectorMultiply2D(
-             face, level, 1, yIdx, P2Elements::P2Face::elementNW, srcVertexData, srcEdgeData, dstVertexData );
       }
 
       // Push result to lower-dimensional primitives
@@ -251,63 +270,43 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::apply( const P2Function< real_t >&
    this->stopTiming( "apply" );
 }
 
+
 template < class P2toP1Form >
-void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixVectorMultiply2D( const Face&                  face,
-                                                                           const uint_t                 level,
-                                                                           const uint_t                 xIdx,
-                                                                           const uint_t                 yIdx,
-                                                                           const P2Elements::P2Element& element,
-                                                                           const real_t* const          srcVertexData,
-                                                                           const real_t* const          srcEdgeData,
-                                                                           real_t* const                dstVertexData ) const
+void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixVectorMultiply2D( uint_t                 level,
+                                                                   const indexing::Index& microFace,
+                                                                   facedof::FaceType      fType,
+                                                                   const real_t* const    srcVertexData,
+                                                                   const real_t* const    srcEdgeData,
+                                                                   real_t* const          dstVertexData,
+                                                                   const Matrixr< 3, 6 >&        elMat ) const
 {
-   WALBERLA_ASSERT_UNEQUAL( srcVertexData, dstVertexData );
+   // obtain data indices of dofs associated with micro-face
+   std::array< uint_t, 3 > vertexDoFIndices;
+   vertexdof::getVertexDoFDataIndicesFromMicroFace( microFace, fType, level, vertexDoFIndices );
 
-   Matrixr< 3, 6 >          elMat;
-   Point6D                  elVecOld;
-   Point3D                  elVecNew;
-   indexing::Index          nodeIdx;
-   indexing::IndexIncrement offset;
-   Point3D                  v0, v1, v2;
-   std::array< uint_t, 6 >  dofDataIdx;
-   P2toP1Form               form;
+   std::array< uint_t, 3 > edgeDoFIndices;
+   edgedof::getEdgeDoFDataIndicesFromMicroFaceFEniCSOrdering( microFace, fType, level, edgeDoFIndices );
 
-   // determine vertices of micro-element
-   nodeIdx = indexing::Index( xIdx, yIdx, 0 );
-   v0      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx );
-   offset  = vertexdof::logicalIndexOffsetFromVertex( element[1] );
-   v1      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
-   offset  = vertexdof::logicalIndexOffsetFromVertex( element[2] );
-   v2      = vertexdof::macroface::coordinateFromIndex( level, face, nodeIdx + offset );
-
-   // assemble local element matrix
-   form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( {v0, v1, v2}, elMat );
-
-   // assemble local element vector (note the tweaked ordering to go along with FEniCS indexing)
-   dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
-   dofDataIdx[1] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[1] );
-   dofDataIdx[2] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[2] );
-
-   dofDataIdx[3] = edgedof::macroface::indexFromVertex( level, xIdx, yIdx, element[4] );
-   dofDataIdx[4] = edgedof::macroface::indexFromVertex( level, xIdx, yIdx, element[5] );
-   dofDataIdx[5] = edgedof::macroface::indexFromVertex( level, xIdx, yIdx, element[3] );
-
-   elVecOld[0] = srcVertexData[dofDataIdx[0]];
-   elVecOld[1] = srcVertexData[dofDataIdx[1]];
-   elVecOld[2] = srcVertexData[dofDataIdx[2]];
-
-   elVecOld[3] = srcEdgeData[dofDataIdx[3]];
-   elVecOld[4] = srcEdgeData[dofDataIdx[4]];
-   elVecOld[5] = srcEdgeData[dofDataIdx[5]];
+   // assemble local element vector
+   Point6D elVecOld;
+   Point3D elVecNew;
+   for ( uint_t k = 0; k < 3; ++k )
+   {
+      elVecOld[k] = srcVertexData[vertexDoFIndices[k]];
+   }
+   for ( uint_t k = 3; k < 6; ++k )
+   {
+      elVecOld[k] = srcEdgeData[edgeDoFIndices[k - 3]];
+   }
 
    // apply matrix (operator locally)
    elVecNew = elMat.mul( elVecOld );
 
    // redistribute result from "local" to "global vector"
-   dstVertexData[dofDataIdx[0]] += elVecNew[0];
-   dstVertexData[dofDataIdx[1]] += elVecNew[1];
-   dstVertexData[dofDataIdx[2]] += elVecNew[2];
+   for ( uint_t k = 0; k < 3; ++k )
+   {
+      dstVertexData[vertexDoFIndices[k]] += elVecNew[k];
+   }
 }
 
 template < class P2toP1Form >
@@ -346,6 +345,27 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixVectorMultiply3D( const
    {
       dstVertexData[vertexDoFIndices[k]] += elVecNew[k];
    }
+}
+
+template < class P2toP1Form >
+void P2ToP1ElementwiseOperator< P2toP1Form >::assembleLocalElementMatrix2D( const Face&            face,
+                                                                            uint_t                 level,
+                                                                            const indexing::Index& microFace,
+                                                                            facedof::FaceType      fType,
+                                                                            P2toP1Form             form,
+                                                                            Matrixr< 3, 6 >&       elMat ) const
+{
+   // determine coordinates of vertices of micro-element
+   std::array< indexing::Index, 3 > verts = facedof::macroface::getMicroVerticesFromMicroFace( microFace, fType );
+   std::array< Point3D, 3 >         coords;
+   for ( uint_t k = 0; k < 3; ++k )
+   {
+      coords[k] = vertexdof::macroface::coordinateFromIndex( level, face, verts[k] );
+   }
+
+   // assemble local element matrix
+   form.setGeometryMap( face.getGeometryMap() );
+   form.integrateAll( coords, elMat );
 }
 
 template < class P2toP1Form >
@@ -510,7 +530,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixAssembly2D( const std::
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( {v0, v1, v2}, elMat );
+   form.integrateAll( { v0, v1, v2 }, elMat );
 
    // determine global indices of our local DoFs (note the tweaked ordering to go along with FEniCS indexing)
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );

@@ -208,7 +208,7 @@ void assembleVertexToEdgeStencils(
 
                const auto vertexToEdgeStencilMap = P2Elements::P2Elements3D::calculateVertexToEdgeStencilInMacroCell(
                    edgedof::macrocell::getInnerIndexByOrientation( centerOrientation ), centerOrientation, cell, level, form );
-               for ( const auto stencilIt : vertexToEdgeStencilMap )
+               for ( const auto & stencilIt : vertexToEdgeStencilMap )
                {
                   vertexToEdgeStencilMemory[centerOrientation][stencilIt.first] = stencilIt.second;
                }

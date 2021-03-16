@@ -25,6 +25,7 @@
 #include "hyteg/HytegDefinitions.hpp"
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/indexing/MacroEdgeIndexing.hpp"
+#include "hyteg/facedofspace/FaceDoFIndexing.hpp"
 
 namespace hyteg {
 namespace vertexdof {
@@ -741,15 +742,31 @@ uint_t stencilIndexFromBlueFace( const stencilDirection& dir )
 // ##############
 // ### Others ###
 // ##############
-void getVertexDoFDataIndicesFromMicroCell( const indexing::Index & microCellIndex,
-                                           const celldof::CellType & cellType,
-                                           const uint_t level,
-                                           std::array<uint_t, 4>& vertexDoFIndices )
+
+void getVertexDoFDataIndicesFromMicroFace( const indexing::Index&   microFaceIndex,
+                                           const facedof::FaceType& faceType,
+                                           const uint_t             level,
+                                           std::array< uint_t, 3 >& vertexDoFIndices )
 {
-  std::array<indexing::Index, 4> verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCellIndex, cellType );
-  for( uint_t k = 0; k < 4; ++k ) {
-    vertexDoFIndices[k] = vertexdof::macrocell::indexFromVertex( level, verts[k].col(), verts[k].row(), verts[k].dep(), stencilDirection::VERTEX_C );
-  }
+   std::array< indexing::Index, 3 > verts = facedof::macroface::getMicroVerticesFromMicroFace( microFaceIndex, faceType );
+   for ( uint_t k = 0; k < 3; ++k )
+   {
+      vertexDoFIndices[k] =
+          vertexdof::macroface::indexFromVertex( level, verts[k].col(), verts[k].row(), stencilDirection::VERTEX_C );
+   }
+}
+
+void getVertexDoFDataIndicesFromMicroCell( const indexing::Index&   microCellIndex,
+                                           const celldof::CellType& cellType,
+                                           const uint_t             level,
+                                           std::array< uint_t, 4 >& vertexDoFIndices )
+{
+   std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCellIndex, cellType );
+   for ( uint_t k = 0; k < 4; ++k )
+   {
+      vertexDoFIndices[k] = vertexdof::macrocell::indexFromVertex(
+          level, verts[k].col(), verts[k].row(), verts[k].dep(), stencilDirection::VERTEX_C );
+   }
 }
 
 } // namespace vertexdof

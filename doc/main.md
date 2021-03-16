@@ -15,14 +15,10 @@ The only external dependency for our framework is
 also developed at our group.
 We use a lot of core functionality and included it therefore as a submodule.
 
-Additionally we require a compiler that supports C++14.
+Additionally we require a compiler that supports C++17.
 
-If the compiler does not contain the `std::filesystem` library then 
-[Boost](https://www.boost.org/doc/libs/1_71_0/libs/filesystem/doc/index.htm) 
-is alsorequired to provide it.
-
-Last but not least MPI is required if the application should be executed
-in parallel for example [Open MPI](https://www.open-mpi.org/)
+MPI is required if the application should be executed
+in parallel. For example using [Open MPI](https://www.open-mpi.org/).
 
 ### Obtain the software
 To build HyTeG, clone the HyTeG and the waLBerla source code:
@@ -55,7 +51,7 @@ build our whole framework:
 ### Customizing the build
 
 CMake build as customize by providing the `cmake` command with addtional
-varialbes using `-D...`. For example to change the compiler to clang one
+variables using `-D...`. For example to change the compiler to clang one
 uses:
 
     cmake ../hyteg -DCMAKE_CXX_COMPILER=clang++
@@ -80,19 +76,18 @@ MPI is enabled by default but can be disabled using:
 
 #### PETSc
 
-We implemented an interface to [PETSc](https://www.mcs.anl.gov/petsc/),
+We implement an interface to [PETSc](https://www.mcs.anl.gov/petsc/),
 which can be used as a preconditioner or solver for suitable applications.
 
-One has to include the wrapper PETScWrapper.hpp and  enable PETSc in CMake:
+One has to include the wrapper `PETScWrapper.hpp` and enable PETSc in CMake:
 
     -DHYTEG_BUILD_WITH_PETSC=ON
-
-\todo: write petsc tutorial
 
 #### Eigen
 
 The [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) template
-library is also available through EigenWrapper.hpp .
+library is also available through `EigenWrapper.hpp`. Eigen is automatically
+cloned as a submodule. So you do not need to download it. Instead, simply set
 
     -DHYTEG_BUILD_WITTH_EIGEN=ON
 
