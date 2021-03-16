@@ -9,6 +9,10 @@ endif()
 waLBerla_link_files_to_builddir( *.prm )
 waLBerla_link_files_to_builddir( *.py )
 
+waLBerla_add_executable( NAME SpMVvsGSBenchmark
+        FILES SpMVvsGSBenchmark.cpp
+        DEPENDS hyteg sqlite)
+
 if (HYTEG_BUILD_WITH_PETSC)
 waLBerla_add_executable( NAME Benchmark_01_Cube
         FILES Benchmark_01_Cube.cpp Helpers.cpp
