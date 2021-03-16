@@ -278,6 +278,7 @@ void runBenchmark( real_t      cflMax,
                    bool        vtk,
                    uint_t      printInterval,
                    uint_t      vtkInterval,
+                   bool        strangSplitting,
                    std::string dbFile )
 {
    walberla::WcTimer localTimer;
@@ -318,6 +319,7 @@ void runBenchmark( real_t      cflMax,
    {
       WALBERLA_LOG_INFO_ON_ROOT( "   + max CFL:                                      " << cflMax )
    }
+   WALBERLA_LOG_INFO_ON_ROOT( "   + Strang splitting:                             " << ( strangSplitting ? "yes" : "no" ) )
    WALBERLA_LOG_INFO_ON_ROOT( "   + simulation time:                              " << simulationTime )
    WALBERLA_LOG_INFO_ON_ROOT( " - space discretization: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + dimensions:                                   " << ( storage->hasGlobalCells() ? "3" : "2" ) )
@@ -354,6 +356,7 @@ void runBenchmark( real_t      cflMax,
    db.setConstantEntry( "num_macro_vertices", setupStorage->getNumberOfVertices() );
    db.setConstantEntry( "num_macro_primitives", setupStorage->getNumberOfPrimitives() );
    db.setConstantEntry( "diffusivity", diffusivity );
+   db.setConstantEntry( "strang_splitting", strangSplitting );
 
    typedef P2P1TaylorHoodFunction< real_t >                                     StokesFunction;
    typedef P2Function< real_t >                                                 ScalarFunction;
@@ -560,12 +563,24 @@ void runBenchmark( real_t      cflMax,
 
       cOld.assign( {1.0}, {cPr}, level, All );
 
-      diffusionOperator.setDt( 0.5 * dt );
+      if ( strangSplitting )
+      {
+         diffusionOperator.setDt( 0.5 * dt );
+      }
+      else
+      {
+         diffusionOperator.setDt( dt );
+      }
 
-      localTimer.start();
-      diffusionSolver.step( diffusionOperator, L, MVelocity, cPr, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
-      localTimer.end();
-      timeDiffusion = localTimer.last();
+      timeDiffusion = 0;
+      if ( strangSplitting )
+      {
+         localTimer.start();
+         diffusionSolver.step(
+             diffusionOperator, L, MVelocity, cPr, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
+         localTimer.end();
+         timeDiffusion += localTimer.last();
+      }
 
       localTimer.start();
       transport.step( cPr, u.uvw.u, u.uvw.v, u.uvw.w, uLast.uvw.u, uLast.uvw.v, uLast.uvw.w, level, All, dt, 1, true );
@@ -611,11 +626,14 @@ void runBenchmark( real_t      cflMax,
 
          cOld.assign( {1.0}, {c}, level, All );
 
-         localTimer.start();
-         diffusionSolver.step(
-             diffusionOperator, L, MVelocity, c, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
-         localTimer.end();
-         timeDiffusion += localTimer.last();
+         if ( strangSplitting )
+         {
+            localTimer.start();
+            diffusionSolver.step(
+                diffusionOperator, L, MVelocity, c, cOld, q, q, level, Inner | NeumannBoundary | FreeslipBoundary );
+            localTimer.end();
+            timeDiffusion += localTimer.last();
+         }
 
          // advection
 
@@ -740,15 +758,17 @@ int main( int argc, char** argv )
 
    const walberla::Config::BlockHandle mainConf = cfg->getBlock( "Parameters" );
 
-   const hyteg::real_t cflMax         = mainConf.getParameter< hyteg::real_t >( "cflMax" );
-   const hyteg::real_t rayleighNumber = mainConf.getParameter< hyteg::real_t >( "rayleighNumber" );
-   const bool          fixedTimeStep  = mainConf.getParameter< bool >( "fixedTimeStep" );
-   const hyteg::real_t dtConstant     = mainConf.getParameter< hyteg::real_t >( "dtConstant" );
-   const uint_t        level          = mainConf.getParameter< uint_t >( "level" );
-   const hyteg::real_t simulationTime = mainConf.getParameter< hyteg::real_t >( "simulationTime" );
-   const hyteg::uint_t nx             = mainConf.getParameter< hyteg::uint_t >( "nx" );
-   const std::string   dbFile         = mainConf.getParameter< std::string >( "dbFile" );
-   const bool          vtk            = mainConf.getParameter< bool >( "vtk" );
+   const hyteg::real_t cflMax          = mainConf.getParameter< hyteg::real_t >( "cflMax" );
+   const hyteg::real_t rayleighNumber  = mainConf.getParameter< hyteg::real_t >( "rayleighNumber" );
+   const bool          fixedTimeStep   = mainConf.getParameter< bool >( "fixedTimeStep" );
+   const hyteg::real_t dtConstant      = mainConf.getParameter< hyteg::real_t >( "dtConstant" );
+   const uint_t        level           = mainConf.getParameter< uint_t >( "level" );
+   const hyteg::real_t simulationTime  = mainConf.getParameter< hyteg::real_t >( "simulationTime" );
+   const hyteg::uint_t nx              = mainConf.getParameter< hyteg::uint_t >( "nx" );
+   const std::string   dbFile          = mainConf.getParameter< std::string >( "dbFile" );
+   const bool          vtk             = mainConf.getParameter< bool >( "vtk" );
+   const bool          strangSplitting = mainConf.getParameter< bool >( "strangSplitting", true );
 
-   hyteg::runBenchmark( cflMax, rayleighNumber, fixedTimeStep, dtConstant, level, nx, true, simulationTime, vtk, 1, 1, dbFile );
+   hyteg::runBenchmark(
+       cflMax, rayleighNumber, fixedTimeStep, dtConstant, level, nx, true, simulationTime, vtk, 1, 1, strangSplitting, dbFile );
 }

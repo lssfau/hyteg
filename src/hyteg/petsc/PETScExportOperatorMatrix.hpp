@@ -21,103 +21,147 @@
 
 #include <fstream>
 
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/petsc/PETScVector.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
 namespace hyteg {
 
-  /// \brief Exports matrix associated wit given operator to an ASCII file
-  ///
-  /// Uses PETSc functionality to generate the matrix associated with the given operator
-  /// and export if to a file in ASCII forma which can be executed as a Matlab function.
-  ///
-  /// \param op               the operator to export
-  /// \param fName            name of file to write matrix to
-  /// \param mName            name of matrix, must be different from base part of fName;
-  ///                         when the script is executed in Matlab this will be the final
-  ///                         name of the sparse matrix
-  /// \param storage          primitive storage
-  /// \param level            refinement level on which the operator matrix should be generated
-  /// \param elimDirichletBC  whether to zero row/columns for Dirichlet boundary values
-  /// \param beVerbose        should function be talkative or not
-  ///
-  template <class OperatorType>
-  void exportOperator( OperatorType& op,
-                       std::string fName,
-                       std::string matrixName,
-                       std::shared_ptr< PrimitiveStorage > storage,
-                       uint_t level,
-                       bool elimDirichletBC,
-                       bool beVerbose = false ) {
+namespace petsc {
 
-    // Get dimension of function space
-    uint_t localDoFs  = hyteg::numberOfLocalDoFs < typename OperatorType::srcType::Tag >( *storage, level );
-    uint_t globalDoFs = hyteg::numberOfGlobalDoFs< typename OperatorType::srcType::Tag >( *storage, level );
-    if(  localDoFs != globalDoFs ) {
-      WALBERLA_ABORT( "localDoFs and globalDoFs must agree for this app!" );
-    }
-    if( beVerbose ) {
-      WALBERLA_LOG_INFO_ON_ROOT( " * Dimension of function space is " << globalDoFs );
-    }
+/// \brief Auxilliary routine for pimping PETSC_VIEWER_ASCII_MATLAB file
+void pimpMatlabFile( std::string fName, std::string matrixName, bool elimDirichletBC, std::vector< PetscInt >& indices )
+{
+   // Make Matlab be a little talkative
+   std::ofstream ofs;
+   ofs.open( fName.c_str(), std::ofstream::out | std::ofstream::app );
+   ofs << "fprintf( 'Constructed matrix %s\\n', '" << matrixName << "' );\n";
 
-    // Fire up PETSc
-    if( beVerbose ) {
-      WALBERLA_LOG_INFO_ON_ROOT( " * Firing up PETSc" );
-    }
-    PETScManager pmgr;
-
-    // Create PETSc matrix
-    if( beVerbose ) {
-      WALBERLA_LOG_INFO_ON_ROOT( " * Converting Operator to PETSc matrix" );
-    }
-    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType > petscMatrix( localDoFs, globalDoFs, matrixName.c_str() );
-    typename OperatorType::srcType::template FunctionType< PetscInt > numerator( "numerator", storage, level, level );
-    numerator.enumerate( level );
-    petscMatrix.createMatrixFromOperator( op, level, numerator );
-
-    // Zero rows and columns of "Dirichlet DoFs"
-    std::vector< PetscInt > indices;
-    if( elimDirichletBC ) {
-      indices = petscMatrix.applyDirichletBCSymmetrically( numerator, level );
-    }
-
-    // Write out matrix
-    if( beVerbose ) {
-      WALBERLA_LOG_INFO_ON_ROOT( " * Exporting Operator to file '" << fName << "'" );
-    }
-    petscMatrix.print( fName.c_str() );
-
-    // Now make Matlab be a little talkative
-    std::ofstream ofs;
-    ofs.open( fName.c_str(), std::ofstream::out | std::ofstream::app );
-    ofs << "fprintf( 'Constructed matrix %s\\n', '" << matrixName << "' );\n";
-
-    // Export indices of DoFs fixed by Dirichlet boundary conditions and add
-    // code to Matlab script to truly eliminate them from the final matrix
-    if( elimDirichletBC ) {
-       hyteg::petsc::applyDirichletBC( numerator, indices, level );
+   // Export indices of DoFs fixed by Dirichlet boundary conditions and add
+   // code to Matlab script to truly eliminate them from the final matrix
+   if ( elimDirichletBC )
+   {
       ofs << "DirichletDoFs = [" << indices[0] + 1;
-      for( auto k = indices.begin() + 1; k != indices.end(); ++k ) {
-        ofs << ", " << *k + 1;
+      for ( auto k = indices.begin() + 1; k != indices.end(); ++k )
+      {
+         ofs << ", " << *k + 1;
       }
       ofs << "];\n"
           << "tmpIndices = ~ismember( 1:size(" << matrixName << ",1), DirichletDoFs );\n"
           << matrixName << " = " << matrixName << "( tmpIndices, tmpIndices );\n"
           << "clear tmpIndices;\n"
           << "fprintf( 'Eliminated DoFs fixed by Dirichlet BCs from matrix\\n' );\n";
-    }
+   }
 
-    // Close file explicitely
-    ofs.close();
-  }
+   // Close file explicitely
+   ofs.close();
+}
 
-} // hyteg
+/// \brief Exports matrix associated with given operator to an ASCII file
+///
+/// Uses PETSc functionality to generate the matrix associated with the given operator
+/// and export if to a file in ASCII forma which can be executed as a Matlab function.
+///
+/// \param op               the operator to export
+/// \param fName            name of file to write matrix to
+/// \param mName            name of matrix, must be different from base part of fName;
+///                         when the script is executed in Matlab this will be the final
+///                         name of the sparse matrix
+/// \param format           output format, any PetscViewerFormat is possible (e.g. PETSC_VIEWER_ASCII_MATRIXMARKET
+///                         or PETSC_VIEWER_ASCII_MATLAB)
+/// \param storage          primitive storage
+/// \param level            refinement level on which the operator matrix should be generated
+/// \param elimDirichletBC  whether to zero row/columns for Dirichlet boundary values
+/// \param beVerbose        should function be talkative or not
+///
+template < class OperatorType >
+void exportOperator( OperatorType&                       op,
+                     std::string                         fName,
+                     std::string                         matrixName,
+                     PetscViewerFormat                   format,
+                     std::shared_ptr< PrimitiveStorage > storage,
+                     uint_t                              level,
+                     bool                                elimDirichletBC,
+                     bool                                elimSymmetric = false,
+                     bool                                beVerbose     = false )
+{
+   // Get dimension of function space
+   uint_t localDoFs  = hyteg::numberOfLocalDoFs< typename OperatorType::srcType::Tag >( *storage, level );
+   uint_t globalDoFs = hyteg::numberOfGlobalDoFs< typename OperatorType::srcType::Tag >( *storage, level );
+   if ( localDoFs != globalDoFs )
+   {
+      WALBERLA_ABORT( "localDoFs and globalDoFs must agree for exportOperator()!" );
+   }
+   if ( beVerbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( " * Dimension of function space is " << globalDoFs );
+   }
+
+   // Fire up PETSc
+   if ( beVerbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( " * Firing up PETSc" );
+   }
+   PETScManager pmgr;
+
+   // Create PETSc matrix
+   if ( beVerbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( " * Converting Operator to PETSc matrix" );
+   }
+   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType > petscMatrix(
+       localDoFs, globalDoFs, matrixName.c_str() );
+   typename OperatorType::srcType::template FunctionType< PetscInt > numerator( "numerator", storage, level, level );
+   numerator.enumerate( level );
+   petscMatrix.createMatrixFromOperator( op, level, numerator );
+
+   // Zero rows and columns of "Dirichlet DoFs"
+   std::vector< PetscInt > indices;
+   if ( elimDirichletBC )
+   {
+      if ( elimSymmetric )
+      {
+         if ( beVerbose )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( " * Performing symmetric elimination of Dirichlet DoFs" );
+         }
+         indices = petscMatrix.applyDirichletBCSymmetrically( numerator, level );
+      }
+      else
+      {
+         if ( beVerbose )
+         {
+            WALBERLA_LOG_INFO_ON_ROOT( " * Performing non-symmetric elimination of Dirichlet DoFs" );
+         }
+         hyteg::petsc::applyDirichletBC( numerator, indices, level );
+         petscMatrix.applyDirichletBC( numerator, level );
+      }
+   }
+
+   // Write out matrix
+   if ( beVerbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( " * Exporting Operator to file '" << fName << "'" );
+   }
+   petscMatrix.print( fName.c_str(), format );
+
+   // Enhance output depending on format
+   switch ( format )
+   {
+   case PETSC_VIEWER_ASCII_MATLAB:
+      pimpMatlabFile( fName, matrixName, elimDirichletBC, indices );
+      break;
+   default:
+      break;
+   }
+}
+
+} // namespace petsc
+} // namespace hyteg
 
 #endif

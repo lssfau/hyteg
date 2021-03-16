@@ -20,9 +20,10 @@
 
 #pragma once
 
+#include <memory>
+
 #include <core/DataTypes.h>
 #include <core/timing/TimingTree.h>
-#include <memory>
 
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -54,7 +55,18 @@ public:
 
   uint_t getMaxLevel() const { return maxLevel_; }
 
- protected:
+  // See the free function of the same name. Method might be revived, if we implement a base class for composite
+  // operators
+  //
+  // uint_t getNumberOfGlobalDoFCouplings( uint_t level ) const
+  // {
+  //    uint_t nCouplings =
+  //        indexing::countLocalDoFCouplings< typename srcType::Tag, typename dstType::Tag >( storage_, level );
+  //     walberla::mpi::allReduceInplace( nCouplings, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+  //    return nCouplings;
+  // };
+
+protected:
 
   const std::shared_ptr< PrimitiveStorage > storage_;
   const uint_t minLevel_;
@@ -83,4 +95,4 @@ public:
   }
 };
 
-}
+} // namespace hyteg

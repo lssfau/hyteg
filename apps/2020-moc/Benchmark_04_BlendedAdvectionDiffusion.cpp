@@ -45,7 +45,6 @@ namespace moc_benchmarks {
 
 const real_t INITIAL_DIFFUSIVITY_TIME_PRODUCT = 1e-03 * 2 * pi;
 
-
 class TempSolution : public Solution
 {
  public:
@@ -153,30 +152,36 @@ void benchmark( int argc, char** argv )
    VelocitySolutionY vSolution;
    VelocitySolutionZ wSolution;
 
-   solve( meshInfo,
-          true,
-          cSolution,
-          uSolution,
-          vSolution,
-          wSolution,
-          dt,
-          diffusivity,
-          level,
-          crankNicolson ? DiffusionTimeIntegrator::CrankNicolson : DiffusionTimeIntegrator::ImplicitEuler,
-          !rotationOnly,
-          strangSplitting,
-          !rotationOnly || resetParticles,
-          1,
-          adjustedAdvection,
-          numTimeSteps,
-          lbOptions,
-          vtk,
-          true,
-          "Benchmark_04_BlendedAdvectionDiffusion",
-          printInterval,
-          vtkInterval,
-          verbose,
-          dbFile );
+   solve< P2Function< real_t >,
+          P2ElementwiseBlendingLaplaceOperator,
+          P2ElementwiseBlendingMassOperator,
+          P2ElementwiseUnsteadyDiffusionOperator >( meshInfo,
+                                                    true,
+                                                    cSolution,
+                                                    uSolution,
+                                                    vSolution,
+                                                    wSolution,
+                                                    dt,
+                                                    diffusivity,
+                                                    level,
+                                                    crankNicolson ? DiffusionTimeIntegrator::CrankNicolson :
+                                                                    DiffusionTimeIntegrator::ImplicitEuler,
+                                                    !rotationOnly,
+                                                    strangSplitting,
+                                                    !rotationOnly || resetParticles,
+                                                    1,
+                                                    adjustedAdvection,
+                                                    false,
+                                                    false,
+                                                    numTimeSteps,
+                                                    lbOptions,
+                                                    vtk,
+                                                    true,
+                                                    "Benchmark_04_BlendedAdvectionDiffusion",
+                                                    printInterval,
+                                                    vtkInterval,
+                                                    verbose,
+                                                    dbFile );
 }
 } // namespace moc_benchmarks
 } // namespace hyteg

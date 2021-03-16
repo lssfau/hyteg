@@ -60,12 +60,25 @@ if __name__ == '__main__':
     parser.add_argument('--num_mpi_procs_per_node', help='number of MPI processes per node', type=int, required=True)
     parser.add_argument('--walltime', default='01:00:00', help='walltime for the job')
 
+    parser.add_argument('--ntan', default=5, help='parameter for spherical shell mesh', type=int)
+    parser.add_argument('--nrad', default=4, help='parameter for spherical shell mesh', type=int)
+
     parser.add_argument('--max_level', default=5, help='max level for multigrid', type=int)
     parser.add_argument('--ra', default=1e8, help='Rayleigh number')
     parser.add_argument('--cfl', default=1.0, help='CFL number')
     parser.add_argument('--out_dir', default='.', help='output directory')
     parser.add_argument('--max_num_time_steps', default=10000, type=int)
     parser.add_argument('--uzawa_omega', default=0.6, type=float)
+
+    parser.add_argument('--uzawa_pre', default=10, type=int)
+    parser.add_argument('--uzawa_post', default=10, type=int)
+    parser.add_argument('--uzawa_inner', default=6, type=int)
+
+    parser.add_argument('--stokes_abs_tol', default=1e-6, type=float)
+    parser.add_argument('--stokes_rel_tol', default=1e-6, type=float)
+
+    parser.add_argument('--vtk_interval', default=10, type=int)
+    parser.add_argument('--vtk_vertex_dofs', default=False, type=bool)
 
     args = parser.parse_args()
     args_dict = vars(args)

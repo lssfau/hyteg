@@ -979,4 +979,30 @@ template class P2ElementwiseOperator< P2LinearCombinationForm >;
 // Needed for P2Blending(Inverse)DiagonalOperator
 template class P2ElementwiseOperator< P2RowSumForm >;
 
+template class P2ElementwiseOperator< forms::p2_div_k_grad_affine_q4 >;
+
+template class P2ElementwiseOperator< forms::p2_epsiloncc_0_0_affine_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsiloncc_0_1_affine_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsiloncc_0_2_affine_q2 >;
+
+template class P2ElementwiseOperator< forms::p2_epsiloncc_1_0_affine_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsiloncc_1_1_affine_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsiloncc_1_2_affine_q2 >;
+
+template class P2ElementwiseOperator< forms::p2_epsiloncc_2_0_affine_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsiloncc_2_1_affine_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsiloncc_2_2_affine_q2 >;
+
+template class P2ElementwiseOperator< forms::p2_epsilonvar_0_0_affine_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsilonvar_0_1_affine_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsilonvar_0_2_affine_q2 >;
+
+template class P2ElementwiseOperator< forms::p2_epsilonvar_1_0_affine_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsilonvar_1_1_affine_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsilonvar_1_2_affine_q2 >;
+
+template class P2ElementwiseOperator< forms::p2_epsilonvar_2_0_affine_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsilonvar_2_1_affine_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsilonvar_2_2_affine_q2 >;
+
 } // namespace hyteg

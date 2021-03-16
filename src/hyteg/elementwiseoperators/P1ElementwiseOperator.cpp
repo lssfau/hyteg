@@ -21,6 +21,24 @@
 #include "P1ElementwiseOperator.hpp"
 
 #include "hyteg/forms/P1RowSumForm.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_0_0_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_0_1_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_0_2_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_1_0_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_1_1_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_1_2_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_2_0_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_2_1_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsiloncc_2_2_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_0_0_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_0_1_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_0_2_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_1_0_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_1_1_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_1_2_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_2_0_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_2_1_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_2_2_affine_q2.hpp"
 
 namespace hyteg {
 
@@ -721,6 +739,8 @@ template class P1ElementwiseOperator< P1FenicsForm< p1_mass_cell_integral_0_othe
 template class P1ElementwiseOperator<
     P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >;
 
+template class P1ElementwiseOperator< P1LinearCombinationForm >;
+
 // P1ElementwiseBlendingMassOperator
 template class P1ElementwiseOperator< P1Form_mass >;
 
@@ -732,5 +752,35 @@ template class P1ElementwiseOperator< P1Form_laplace >;
 
 // Needed for P1Blending(Inverse)DiagonalOperator
 template class P1ElementwiseOperator< P1RowSumForm >;
+
+template class P1ElementwiseOperator< forms::p1_div_k_grad_affine_q3 >;
+
+template class P1ElementwiseOperator< P1FenicsForm< p1_div_cell_integral_0_otherwise, p1_tet_div_tet_cell_integral_0_otherwise > >;
+template class P1ElementwiseOperator< P1FenicsForm< p1_div_cell_integral_1_otherwise, p1_tet_div_tet_cell_integral_1_otherwise > >;
+template class P1ElementwiseOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_div_tet_cell_integral_2_otherwise > >;
+
+template class P1ElementwiseOperator< P1FenicsForm< p1_divt_cell_integral_0_otherwise, p1_tet_divt_tet_cell_integral_0_otherwise > >;
+template class P1ElementwiseOperator< P1FenicsForm< p1_divt_cell_integral_1_otherwise, p1_tet_divt_tet_cell_integral_1_otherwise > >;
+template class P1ElementwiseOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet_cell_integral_2_otherwise > >;
+
+template class P1ElementwiseOperator< forms::p1_epsiloncc_0_0_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsiloncc_0_1_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsiloncc_0_2_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsiloncc_1_0_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsiloncc_1_1_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsiloncc_1_2_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsiloncc_2_0_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsiloncc_2_1_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsiloncc_2_2_affine_q2 >;
+
+template class P1ElementwiseOperator< forms::p1_epsilonvar_0_0_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_0_1_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_0_2_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_1_0_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_1_1_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_1_2_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_2_0_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_2_1_affine_q2 >;
+template class P1ElementwiseOperator< forms::p1_epsilonvar_2_2_affine_q2 >;
 
 } // namespace hyteg

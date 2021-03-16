@@ -1,0 +1,14 @@
+Parameters
+{
+    level 3;
+    nx 3; // must be multiple of 3
+    simulationTime 3;
+    cflMax 1.0;
+    fixedTimeStep false;
+    dtConstant 1e-4;
+    rayleighNumber 218000;
+    vtk false;
+    strangSplitting false;
+
+    dbFile ra_218000_cfl_1p0_level_3_nx_3_strang_0.db;
+}

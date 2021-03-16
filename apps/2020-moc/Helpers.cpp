@@ -43,6 +43,7 @@ static std::string getDateTimeID()
 }
 #endif
 
+template < typename FunctionType_T, typename LaplaceOperator_T, typename MassOperator_T, typename UnsteadyDiffusionOperator_T >
 void solve( MeshInfo&               meshInfo,
             bool                    setBlendingMap,
             Solution&               solution,
@@ -58,6 +59,8 @@ void solve( MeshInfo&               meshInfo,
             bool                    resetParticles,
             uint_t                  resetParticlesInterval,
             bool                    adjustedAdvection,
+            bool                    globalMaxLimiter,
+            bool                    setParticlesOutsideDomainToZero,
             uint_t                  numTimeSteps,
             LoadBalancingOptions    lbOptions,
             bool                    vtk,
@@ -124,17 +127,16 @@ void solve( MeshInfo&               meshInfo,
       writeDomainPartitioningVTK( storage, "vtk/", benchmarkName + "_domain" );
    }
 
-
    auto timer = storage->getTimingTree();
    timer->start( "Setup" );
 
-   const uint_t unknowns = numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
+   const uint_t unknowns = numberOfGlobalDoFs< typename FunctionType_T::Tag >( *storage, level );
    const real_t hMin     = MeshQuality::getMinimalEdgeLength( storage, level );
    const real_t hMax     = MeshQuality::getMaximalEdgeLength( storage, level );
 
    if ( !resetParticles )
    {
-      resetParticlesInterval = numTimeSteps + 1;
+      resetParticlesInterval = numTimeSteps;
    }
 
    const bool forcedParticleReset = adjustedAdvection || enableDiffusion;
@@ -144,12 +146,15 @@ void solve( MeshInfo&               meshInfo,
       resetParticlesInterval = 1;
    }
 
+   const std::string elementType = ( std::is_same< FunctionType_T, P1Function< real_t > >::value ? "P1" : "P2" );
+
    WALBERLA_LOG_INFO_ON_ROOT( "Benchmark name: " << benchmarkName )
    WALBERLA_LOG_INFO_ON_ROOT( " - time discretization: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + dt:                                           " << dt )
    WALBERLA_LOG_INFO_ON_ROOT( "   + time steps:                                   " << numTimeSteps )
    WALBERLA_LOG_INFO_ON_ROOT( "   + time final:                                   " << real_c( numTimeSteps ) * dt )
    WALBERLA_LOG_INFO_ON_ROOT( " - space discretization: " )
+   WALBERLA_LOG_INFO_ON_ROOT( "   + element type:                                 " << elementType )
    WALBERLA_LOG_INFO_ON_ROOT( "   + dimensions:                                   " << ( storage->hasGlobalCells() ? "3" : "2" ) )
    WALBERLA_LOG_INFO_ON_ROOT( "   + level:                                        " << level )
    WALBERLA_LOG_INFO_ON_ROOT( "   + unknowns (== particles), including boundary:  " << unknowns )
@@ -164,7 +169,8 @@ void solve( MeshInfo&               meshInfo,
        << ( enableDiffusion ?
                 ( diffusionTimeIntegrator == DiffusionTimeIntegrator::ImplicitEuler ? "implicit Euler" : "Crank-Nicolson" ) :
                 "disabled" ) )
-   WALBERLA_LOG_INFO_ON_ROOT( "   + Strang splitting:                             " << ( enableDiffusion && strangSplitting ? "yes" : "disabled" ))
+   WALBERLA_LOG_INFO_ON_ROOT(
+       "   + Strang splitting:                             " << ( enableDiffusion && strangSplitting ? "yes" : "disabled" ) )
    WALBERLA_LOG_INFO_ON_ROOT( "   + adjusted advection:                           " << ( adjustedAdvection ? "yes" : "no" ) )
    WALBERLA_LOG_INFO_ON_ROOT( "   + particle reset:                               "
                               << ( resetParticles ? "yes" : "no" ) << ( forcedParticleReset ? " (forced)" : "" ) )
@@ -172,6 +178,7 @@ void solve( MeshInfo&               meshInfo,
    {
       WALBERLA_LOG_INFO_ON_ROOT( "   + particle reset interval:                      " << resetParticlesInterval );
    }
+   WALBERLA_LOG_INFO_ON_ROOT( "   + global max limiter:                           " << ( globalMaxLimiter ? "yes" : "no" ) )
    WALBERLA_LOG_INFO_ON_ROOT( " - app settings: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + VTK:                                          " << ( vtk ? "yes" : "no" ) )
    if ( vtk )
@@ -187,30 +194,35 @@ void solve( MeshInfo&               meshInfo,
 
    FixedSizeSQLDB db( dbFile );
 
+   const std::string gitsha = gitSHA1();
+
    db.setVariableEntry( "ts", uint_c( 0 ) );
-   
-   db.setConstantEntry( "dt", real_c( 0 ) );
+
+   db.setConstantEntry( "git_sha", gitsha );
+   db.setConstantEntry( "element_type", elementType );
+   db.setConstantEntry( "dt", dt );
    db.setConstantEntry( "num_ts", numTimeSteps );
    db.setConstantEntry( "level", level );
    db.setConstantEntry( "unknowns", unknowns );
    db.setConstantEntry( "h_min", hMin );
    db.setConstantEntry( "h_max", hMax );
    db.setConstantEntry( "num_macro_cells", storage->getNumberOfGlobalCells() );
-   db.setConstantEntry( "num_macro_faces",  storage->getNumberOfGlobalFaces()  );
-   db.setConstantEntry( "num_macro_edges",  storage->getNumberOfGlobalEdges()  );
-   db.setConstantEntry( "num_macro_vertices",  storage->getNumberOfGlobalVertices()  );
-   db.setConstantEntry( "num_macro_primitives",  storage->getNumberOfGlobalPrimitives()  );
+   db.setConstantEntry( "num_macro_faces", storage->getNumberOfGlobalFaces() );
+   db.setConstantEntry( "num_macro_edges", storage->getNumberOfGlobalEdges() );
+   db.setConstantEntry( "num_macro_vertices", storage->getNumberOfGlobalVertices() );
+   db.setConstantEntry( "num_macro_primitives", storage->getNumberOfGlobalPrimitives() );
    db.setConstantEntry( "diffusivity", diffusivity );
    db.setConstantEntry( "pure_advection", !enableDiffusion );
    db.setConstantEntry( "strang_splitting", strangSplitting );
    db.setConstantEntry( "adjusted_advection", adjustedAdvection );
    db.setConstantEntry( "particle_reset", resetParticles );
    db.setConstantEntry( "particle_reset_interval", resetParticlesInterval );
+   db.setConstantEntry( "global_max_limiter", globalMaxLimiter );
 
-   typedef P2Function< real_t >                   FunctionType;
-   typedef P2ElementwiseBlendingLaplaceOperator   LaplaceOperator;
-   typedef P2ElementwiseBlendingMassOperator      MassOperator;
-   typedef P2ElementwiseUnsteadyDiffusionOperator UnsteadyDiffusionOperator;
+   typedef FunctionType_T              FunctionType;
+   typedef LaplaceOperator_T           LaplaceOperator;
+   typedef MassOperator_T              MassOperator;
+   typedef UnsteadyDiffusionOperator_T UnsteadyDiffusionOperator;
 
    if ( verbose )
    {
@@ -244,24 +256,17 @@ void solve( MeshInfo&               meshInfo,
       printCurrentMemoryUsage();
    }
 
-   const real_t diffusionDt = strangSplitting ? 0.5 * dt : dt;
+   const real_t                  diffusionDt = strangSplitting ? 0.5 * dt : dt;
    UnsteadyDiffusionOperator     diffusionOperator( storage, level, level, diffusionDt, diffusivity, diffusionTimeIntegrator );
    LaplaceOperator               L( storage, level, level );
    MassOperator                  M( storage, level, level );
    MMOCTransport< FunctionType > transport( storage, level, level, TimeSteppingScheme::RK4 );
 
-   std::shared_ptr< Solver< P2ElementwiseUnsteadyDiffusionOperator > > solver;
+   std::shared_ptr< Solver< UnsteadyDiffusionOperator > > solver;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-   PETScManager manager;
-#endif
    if ( enableDiffusion )
    {
-#ifdef HYTEG_BUILD_WITH_PETSC
-      solver = std::make_shared< PETScMinResSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, 1e-12 );
-#else
-      solver = std::make_shared< CGSolver< P2ElementwiseUnsteadyDiffusionOperator > >( storage, level, level  );
-#endif
+      solver = std::make_shared< CGSolver< UnsteadyDiffusionOperator > >( storage, level, level, std::numeric_limits< uint_t >::max(), 1e-12 );
    }
 
    UnsteadyDiffusion< FunctionType, UnsteadyDiffusionOperator, LaplaceOperator, MassOperator > diffusionSolver(
@@ -362,6 +367,9 @@ void solve( MeshInfo&               meshInfo,
 
    timer->stop( "Setup" );
 
+   auto startTimeX = velocityX.currentTime();
+   auto startTimeY = velocityY.currentTime();
+   auto startTimeZ = velocityZ.currentTime();
 
    for ( uint_t i = 1; i <= numTimeSteps; i++ )
    {
@@ -373,15 +381,30 @@ void solve( MeshInfo&               meshInfo,
       if ( verbose )
          WALBERLA_LOG_INFO_ON_ROOT( "interpolating velocity" )
 
+      // To implement re-init intervals > 1 for time dependent velocity fields, we need to
+      // reverse the the velocity field over the period in which the solution is transported
+      // in the Lagrangian domain.
+      auto lagrangeIntervalLength = resetParticlesInterval;
+      auto lagrangeIntervalIdx = (i - 1) / lagrangeIntervalLength;
+      auto lagrangeIntervalInnerIdx = (i - 1) % lagrangeIntervalLength;
+      auto tsVelocityCurrent = lagrangeIntervalLength * lagrangeIntervalIdx + (lagrangeIntervalLength - lagrangeIntervalInnerIdx) - 1;
+      auto tsVelocityNext = lagrangeIntervalLength * lagrangeIntervalIdx + (lagrangeIntervalLength - lagrangeIntervalInnerIdx);
+
+      velocityX.setTime( startTimeX + dt * real_c(tsVelocityCurrent) );
+      velocityY.setTime( startTimeY + dt * real_c(tsVelocityCurrent) );
+      velocityZ.setTime( startTimeZ + dt * real_c(tsVelocityCurrent) );
+
       uLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
       vLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
       if ( storage->hasGlobalCells() )
       {
          wLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityZ ) ), level );
       }
-      velocityX.incTime( dt );
-      velocityY.incTime( dt );
-      velocityZ.incTime( dt );
+
+      velocityX.setTime( startTimeX + dt * real_c(tsVelocityNext) );
+      velocityY.setTime( startTimeY + dt * real_c(tsVelocityNext) );
+      velocityZ.setTime( startTimeZ + dt * real_c(tsVelocityNext) );
+
       u.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
       v.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
       if ( storage->hasGlobalCells() )
@@ -413,7 +436,22 @@ void solve( MeshInfo&               meshInfo,
       {
          const real_t adjustedAdvectionPertubation = 0.1 * ( hMin / vMax );
          localTimer.start();
-         transport.step( c, u, v, w, uLast, vLast, wLast, level, Inner, dt, 1, M, 0.0, adjustedAdvectionPertubation );
+         transport.step( c,
+                         u,
+                         v,
+                         w,
+                         uLast,
+                         vLast,
+                         wLast,
+                         level,
+                         Inner,
+                         dt,
+                         1,
+                         M,
+                         0.0,
+                         adjustedAdvectionPertubation,
+                         globalMaxLimiter,
+                         setParticlesOutsideDomainToZero );
          localTimer.end();
          advectionTimeStepRunTime = localTimer.last();
       }
@@ -431,7 +469,9 @@ void solve( MeshInfo&               meshInfo,
                          Inner,
                          dt,
                          1,
-                         i == 1 || ( resetParticles && i % resetParticlesInterval == 0 ) );
+                         i == 1 || ( resetParticles && (i-1) % resetParticlesInterval == 0 ),
+                         globalMaxLimiter,
+                         setParticlesOutsideDomainToZero );
          localTimer.end();
          advectionTimeStepRunTime = localTimer.last();
       }
@@ -498,10 +538,69 @@ void solve( MeshInfo&               meshInfo,
       timer->stop( "Simulation" );
       if ( outputTimingJSON )
       {
-         writeTimingTreeJSON( *timer, dbFile + walberla::format("_Timing_ts_%04d.json", i) );
+         writeTimingTreeJSON( *timer, dbFile + walberla::format( "_Timing_ts_%04d.json", i ) );
       }
    }
 }
+
+template void
+    solve< P1Function< real_t >, P1ConstantLaplaceOperator, P1ConstantMassOperator, P1ConstantUnsteadyDiffusionOperator >(
+        MeshInfo&               meshInfo,
+        bool                    setBlendingMap,
+        Solution&               solution,
+        Solution&               velocityX,
+        Solution&               velocityY,
+        Solution&               velocityZ,
+        real_t                  dt,
+        real_t                  diffusivity,
+        uint_t                  level,
+        DiffusionTimeIntegrator diffusionTimeIntegrator,
+        bool                    enableDiffusion,
+        bool                    strangSplitting,
+        bool                    resetParticles,
+        uint_t                  resetParticlesInterval,
+        bool                    adjustedAdvection,
+        bool                    globalMaxLimiter,
+        bool                    setParticlesOutsideDomainToZero,
+        uint_t                  numTimeSteps,
+        LoadBalancingOptions    lbOptions,
+        bool                    vtk,
+        bool                    vtkOutputVelocity,
+        const std::string&      benchmarkName,
+        uint_t                  printInterval,
+        uint_t                  vtkInterval,
+        bool                    verbose,
+        std::string             dbFile );
+
+template void solve< P2Function< real_t >,
+                     P2ElementwiseBlendingLaplaceOperator,
+                     P2ElementwiseBlendingMassOperator,
+                     P2ElementwiseUnsteadyDiffusionOperator >( MeshInfo&               meshInfo,
+                                                               bool                    setBlendingMap,
+                                                               Solution&               solution,
+                                                               Solution&               velocityX,
+                                                               Solution&               velocityY,
+                                                               Solution&               velocityZ,
+                                                               real_t                  dt,
+                                                               real_t                  diffusivity,
+                                                               uint_t                  level,
+                                                               DiffusionTimeIntegrator diffusionTimeIntegrator,
+                                                               bool                    enableDiffusion,
+                                                               bool                    strangSplitting,
+                                                               bool                    resetParticles,
+                                                               uint_t                  resetParticlesInterval,
+                                                               bool                    adjustedAdvection,
+                                                               bool                    globalMaxLimiter,
+                                                               bool                    setParticlesOutsideDomainToZero,
+                                                               uint_t                  numTimeSteps,
+                                                               LoadBalancingOptions    lbOptions,
+                                                               bool                    vtk,
+                                                               bool                    vtkOutputVelocity,
+                                                               const std::string&      benchmarkName,
+                                                               uint_t                  printInterval,
+                                                               uint_t                  vtkInterval,
+                                                               bool                    verbose,
+                                                               std::string             dbFile );
 
 } // namespace moc_benchmarks
 } // namespace hyteg

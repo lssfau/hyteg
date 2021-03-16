@@ -1,6 +1,7 @@
 
 
-def create_parameter_file(max_level: int, ra: float, output_directory: str, base_name: str, max_num_time_steps: int, uzawa_omega: float, cfl: float, **kwargs):
+def create_parameter_file(max_level: int, ra: float, output_directory: str, base_name: str, max_num_time_steps: int, uzawa_omega: float, cfl: float, uzawa_pre: int, uzawa_post: int, uzawa_inner: int,
+                          stokes_rel_tol: float, stokes_abs_tol: float, ntan: int, nrad: int, vtk_interval: int, vtk_vertex_dofs: bool, **kwargs):
     return f"""Parameters
 {{
     level {max_level};
@@ -13,8 +14,8 @@ def create_parameter_file(max_level: int, ra: float, output_directory: str, base
     // nRad 2;
     // threeDim false;
 
-    nTan 3;
-    nRad 3;
+    nTan {ntan};
+    nRad {nrad};
     threeDim true;
 
     // PETSC_MUMPS         = 0,
@@ -28,8 +29,12 @@ def create_parameter_file(max_level: int, ra: float, output_directory: str, base
     stokesSolverType 5;
 
     stokesMaxNumIterations 20;
-    stokesAbsoluteResidualUTolerance 1e-10;
+    stokesAbsoluteResidualUTolerance {stokes_abs_tol};
+    stokesRelativeResidualUTolerance {stokes_rel_tol};
     uzawaOmega {uzawa_omega};
+    uzawaPreSmooth {uzawa_pre};
+    uzawaPostSmooth {uzawa_post};
+    uzawaInnerIterations {uzawa_inner};
 
     // PETSC_MINRES = 0,
     // HYTEG_CG     = 1
@@ -47,6 +52,8 @@ def create_parameter_file(max_level: int, ra: float, output_directory: str, base
     rayleighNumber 1e8;
     vtk true;
     vtkOutputVelocity false;
+    vtkOutputInterval {vtk_interval};
+    vtkOutputVertexDoFs {vtk_vertex_dofs};
 
     outputDirectory {output_directory};
     outputBaseName {base_name};

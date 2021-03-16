@@ -98,12 +98,11 @@ class PETScSparseMatrix
       return true;
    }
 
-   inline void print( const std::string& name )
+   inline void print( const std::string& name, PetscViewerFormat format = PETSC_VIEWER_ASCII_MATRIXMARKET )
    {
       PetscViewer viewer;
       PetscViewerASCIIOpen( petscCommunicator_, name.c_str(), &viewer );
-      PetscViewerPushFormat( viewer, PETSC_VIEWER_ASCII_MATLAB );
-      //PetscViewerMatlabOpen(PETSC_COMM_WORLD,name,FILE_MODE_WRITE,&viewer);
+      PetscViewerPushFormat( viewer, format );
       MatView( mat, viewer );
       PetscViewerDestroy( &viewer );
    }

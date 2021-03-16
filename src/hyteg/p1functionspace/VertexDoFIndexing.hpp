@@ -71,7 +71,7 @@ uint_t indexFromVertex( const uint_t& level, const uint_t& x, const stencilDirec
 
 uint_t stencilIndexOnEdge( const stencilDirection& dir );
 
-uint_t stencilIndexOnNeighborFace( const stencilDirection& dir, const uint_t& faceID );
+uint_t stencilIndexOnNeighborFace( const stencilDirection dir, const uint_t faceID );
 
 uint_t stencilIndexOnNeighborCell( const uint_t& cellID, const uint_t& numNeighborFaces );
 

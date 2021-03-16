@@ -14,47 +14,47 @@ template < typename FunctionType >
 real_t velocityMaxMagnitude( const FunctionType& velocityX,
                              const FunctionType& velocityY,
                              const FunctionType& velocityZ,
-                             const FunctionType& tmp1,
-                             const FunctionType& tmp2,
+                             const FunctionType& tmp,
+                             const FunctionType& magnitudeSquared,
                              const uint_t & level,
                              const DoFType & flag )
 {
-   tmp2.interpolate( 0, level, flag );
+   magnitudeSquared.interpolate( 0, level, flag );
 
-   tmp1.assign( {1.0}, {velocityX}, level, flag );
-   tmp1.multElementwise( {tmp1, tmp1}, level, flag );
-   tmp2.assign( {1.0, 1.0}, {tmp2, tmp1}, level, flag );
+   tmp.assign( {1.0}, {velocityX}, level, flag );
+   tmp.multElementwise( {tmp, tmp}, level, flag );
+   magnitudeSquared.assign( {1.0, 1.0}, {magnitudeSquared, tmp}, level, flag );
 
-   tmp1.assign( {1.0}, {velocityY}, level, flag );
-   tmp1.multElementwise( {tmp1, tmp1}, level, flag );
-   tmp2.assign( {1.0, 1.0}, {tmp2, tmp1}, level, flag );
+   tmp.assign( {1.0}, {velocityY}, level, flag );
+   tmp.multElementwise( {tmp, tmp}, level, flag );
+   magnitudeSquared.assign( {1.0, 1.0}, {magnitudeSquared, tmp}, level, flag );
 
-   tmp1.assign( {1.0}, {velocityZ}, level, flag );
-   tmp1.multElementwise( {tmp1, tmp1}, level, flag );
-   tmp2.assign( {1.0, 1.0}, {tmp2, tmp1}, level, flag );
+   tmp.assign( {1.0}, {velocityZ}, level, flag );
+   tmp.multElementwise( {tmp, tmp}, level, flag );
+   magnitudeSquared.assign( {1.0, 1.0}, {magnitudeSquared, tmp}, level, flag );
 
-   return std::sqrt( tmp2.getMaxMagnitude( level, flag ) );
+   return std::sqrt( magnitudeSquared.getMaxMagnitude( level, flag ) );
 }
 
 template < typename FunctionType >
 real_t velocityMaxMagnitude( const FunctionType& velocityX,
                              const FunctionType& velocityY,
-                             const FunctionType& tmp1,
-                             const FunctionType& tmp2,
+                             const FunctionType& tmp,
+                             const FunctionType& magnitudeSquared,
                              const uint_t & level,
                              const DoFType & flag )
 {
-   tmp2.interpolate( 0, level, flag );
+   magnitudeSquared.interpolate( 0, level, flag );
 
-   tmp1.assign( {1.0}, {velocityX}, level, flag );
-   tmp1.multElementwise( {tmp1, tmp1}, level, flag );
-   tmp2.assign( {1.0, 1.0}, {tmp2, tmp1}, level, flag );
+   tmp.assign( {1.0}, {velocityX}, level, flag );
+   tmp.multElementwise( {tmp, tmp}, level, flag );
+   magnitudeSquared.assign( {1.0, 1.0}, {magnitudeSquared, tmp}, level, flag );
 
-   tmp1.assign( {1.0}, {velocityY}, level, flag );
-   tmp1.multElementwise( {tmp1, tmp1}, level, flag );
-   tmp2.assign( {1.0, 1.0}, {tmp2, tmp1}, level, flag );
+   tmp.assign( {1.0}, {velocityY}, level, flag );
+   tmp.multElementwise( {tmp, tmp}, level, flag );
+   magnitudeSquared.assign( {1.0, 1.0}, {magnitudeSquared, tmp}, level, flag );
 
-   return std::sqrt( tmp2.getMaxMagnitude( level, flag ) );
+   return std::sqrt( magnitudeSquared.getMaxMagnitude( level, flag ) );
 }
 
 } // namespace hyteg

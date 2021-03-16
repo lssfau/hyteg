@@ -22,7 +22,6 @@
 
 #include <array>
 #include <core/DataTypes.h>
-#include <core/Deprecated.h>
 #include <core/debug/CheckFunctions.h>
 #include <hyteg/Math.hpp>
 #include <hyteg/primitives/Primitive.hpp>

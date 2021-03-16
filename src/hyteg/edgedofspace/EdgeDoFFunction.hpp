@@ -63,6 +63,11 @@ template < typename ValueType >
 class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
 {
  public:
+   typedef ValueType valueType;
+
+   template < typename VType >
+   using FunctionType = EdgeDoFFunction< VType >;
+
    EdgeDoFFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage );
 
    EdgeDoFFunction( const std::string&                         name,

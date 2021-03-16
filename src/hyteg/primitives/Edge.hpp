@@ -28,7 +28,6 @@
 #include <hyteg/primitives/Primitive.hpp>
 
 #include <core/DataTypes.h>
-#include <core/Deprecated.h>
 
 namespace hyteg {
 

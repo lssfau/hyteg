@@ -22,8 +22,6 @@
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
-#include "hyteg/forms/form_fenics_generated/p1_to_p2_divt.h"
-#include "hyteg/forms/form_fenics_generated/p1_to_p2_tet_divt_tet.h"
 #include "hyteg/forms/form_hyteg_manual/P1ToP2FormDivT.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
@@ -32,6 +30,17 @@
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+
+#ifdef _MSC_VER
+#pragma warning( push, 0 )
+#endif
+
+#include "hyteg/forms/form_fenics_generated/p1_to_p2_divt.h"
+#include "hyteg/forms/form_fenics_generated/p1_to_p2_tet_divt_tet.h"
+
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
 
 namespace hyteg {
 

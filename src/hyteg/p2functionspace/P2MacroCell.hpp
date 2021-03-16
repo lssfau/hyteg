@@ -35,16 +35,17 @@ namespace macrocell {
 
 using walberla::real_t;
 using walberla::uint_t;
+using walberla::int_c;
 using indexing::Index;
 using indexing::IndexIncrement;
 
 template < typename ValueType >
-inline void evaluate( const uint_t&                                            level,
-                      const Cell&                                              cell,
-                      const Point3D&                                           coordinates,
-                      const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >& vertexDoFDataIDs,
-                      const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >& edgeDoFDataIDs,
-                      std::vector< ValueType > & results )
+inline void evaluate( const uint_t&,
+                      const Cell&,
+                      const Point3D&,
+                      const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >&,
+                      const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Cell > >&,
+                      std::vector< ValueType >& )
 {
    WALBERLA_ABORT( "P2 3D evaluate not implemented for this data type-" )
 }
@@ -83,10 +84,14 @@ inline void evaluate( const uint_t&                                            l
    auto microTet2 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[2] );
    auto microTet3 = vertexdof::macrocell::coordinateFromIndex( level, cell, microCellIndices[3] );
 
-   IndexIncrement vertexIndex0 = IndexIncrement( microCellIndices[0].x(), microCellIndices[0].y(), microCellIndices[0].z() );
-   IndexIncrement vertexIndex1 = IndexIncrement( microCellIndices[1].x(), microCellIndices[1].y(), microCellIndices[1].z() );
-   IndexIncrement vertexIndex2 = IndexIncrement( microCellIndices[2].x(), microCellIndices[2].y(), microCellIndices[2].z() );
-   IndexIncrement vertexIndex3 = IndexIncrement( microCellIndices[3].x(), microCellIndices[3].y(), microCellIndices[3].z() );
+   IndexIncrement vertexIndex0 =
+       IndexIncrement( int_c( microCellIndices[0].x() ), int_c( microCellIndices[0].y() ), int_c( microCellIndices[0].z() ) );
+   IndexIncrement vertexIndex1 =
+       IndexIncrement( int_c( microCellIndices[1].x() ), int_c( microCellIndices[1].y() ), int_c( microCellIndices[1].z() ) );
+   IndexIncrement vertexIndex2 =
+       IndexIncrement( int_c( microCellIndices[2].x() ), int_c( microCellIndices[2].y() ), int_c( microCellIndices[2].z() ) );
+   IndexIncrement vertexIndex3 =
+       IndexIncrement( int_c( microCellIndices[3].x() ), int_c( microCellIndices[3].y() ), int_c( microCellIndices[3].z() ) );
 
    auto edgeIndex0 = edgedof::calcEdgeDoFIndex( vertexIndex0, vertexIndex1 );
    auto edgeIndex1 = edgedof::calcEdgeDoFIndex( vertexIndex0, vertexIndex2 );
@@ -117,12 +122,12 @@ inline void evaluate( const uint_t&                                            l
    const auto tetV3ArrayIdx =
        vertexdof::macrocell::index( level, microCellIndices[3].x(), microCellIndices[3].y(), microCellIndices[3].z() );
 
-   const auto tetE0ArrayIdx = edgedof::macrocell::index( level, edgeIndex0.x(), edgeIndex0.y(), edgeIndex0.z(), edgeOrientation0 );
-   const auto tetE1ArrayIdx = edgedof::macrocell::index( level, edgeIndex1.x(), edgeIndex1.y(), edgeIndex1.z(), edgeOrientation1 );
-   const auto tetE2ArrayIdx = edgedof::macrocell::index( level, edgeIndex2.x(), edgeIndex2.y(), edgeIndex2.z(), edgeOrientation2 );
-   const auto tetE3ArrayIdx = edgedof::macrocell::index( level, edgeIndex3.x(), edgeIndex3.y(), edgeIndex3.z(), edgeOrientation3 );
-   const auto tetE4ArrayIdx = edgedof::macrocell::index( level, edgeIndex4.x(), edgeIndex4.y(), edgeIndex4.z(), edgeOrientation4 );
-   const auto tetE5ArrayIdx = edgedof::macrocell::index( level, edgeIndex5.x(), edgeIndex5.y(), edgeIndex5.z(), edgeOrientation5 );
+   const auto tetE0ArrayIdx = edgedof::macrocell::index( level, uint_c(edgeIndex0.x()), uint_c(edgeIndex0.y()), uint_c(edgeIndex0.z()), edgeOrientation0 );
+   const auto tetE1ArrayIdx = edgedof::macrocell::index( level, uint_c(edgeIndex1.x()), uint_c(edgeIndex1.y()), uint_c(edgeIndex1.z()), edgeOrientation1 );
+   const auto tetE2ArrayIdx = edgedof::macrocell::index( level, uint_c(edgeIndex2.x()), uint_c(edgeIndex2.y()), uint_c(edgeIndex2.z()), edgeOrientation2 );
+   const auto tetE3ArrayIdx = edgedof::macrocell::index( level, uint_c(edgeIndex3.x()), uint_c(edgeIndex3.y()), uint_c(edgeIndex3.z()), edgeOrientation3 );
+   const auto tetE4ArrayIdx = edgedof::macrocell::index( level, uint_c(edgeIndex4.x()), uint_c(edgeIndex4.y()), uint_c(edgeIndex4.z()), edgeOrientation4 );
+   const auto tetE5ArrayIdx = edgedof::macrocell::index( level, uint_c(edgeIndex5.x()), uint_c(edgeIndex5.y()), uint_c(edgeIndex5.z()), edgeOrientation5 );
 
 
    for ( uint_t i = 0; i < results.size(); i++ )

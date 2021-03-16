@@ -21,9 +21,9 @@
 
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesBlockPreconditioner.hpp"
+#include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesBlockPreconditioner.hpp"
 #include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/p2functionspace/P2Petsc.hpp"
-#include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesBlockPreconditioner.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 
@@ -83,34 +83,30 @@ inline void createMatrix( const OperatorType&                         opr,
 {
    createMatrix( opr.A, src.uvw.u, dst.uvw.u, mat, level, flag );
    createMatrix( opr.divT_x.getVertexToVertexOpr(), src.p, dst.uvw.u.getVertexDoFFunction(), mat, level, flag );
-   VertexDoFToEdgeDoF::createMatrix( opr.divT_x.getVertexToEdgeOpr(), src.p, dst.uvw.u.getEdgeDoFFunction(), mat, level, flag );
+   createMatrix( opr.divT_x.getVertexToEdgeOpr(), src.p, dst.uvw.u.getEdgeDoFFunction(), mat, level, flag );
 
    createMatrix( opr.A, src.uvw.v, dst.uvw.v, mat, level, flag );
    createMatrix( opr.divT_y.getVertexToVertexOpr(), src.p, dst.uvw.v.getVertexDoFFunction(), mat, level, flag );
-   VertexDoFToEdgeDoF::createMatrix( opr.divT_y.getVertexToEdgeOpr(), src.p, dst.uvw.v.getEdgeDoFFunction(), mat, level, flag );
+   createMatrix( opr.divT_y.getVertexToEdgeOpr(), src.p, dst.uvw.v.getEdgeDoFFunction(), mat, level, flag );
 
    if ( src.uvw.u.getStorage()->hasGlobalCells() )
    {
       createMatrix( opr.A, src.uvw.w, dst.uvw.w, mat, level, flag );
       createMatrix( opr.divT_z.getVertexToVertexOpr(), src.p, dst.uvw.w.getVertexDoFFunction(), mat, level, flag );
-      VertexDoFToEdgeDoF::createMatrix(
-          opr.divT_z.getVertexToEdgeOpr(), src.p, dst.uvw.w.getEdgeDoFFunction(), mat, level, flag );
+      createMatrix( opr.divT_z.getVertexToEdgeOpr(), src.p, dst.uvw.w.getEdgeDoFFunction(), mat, level, flag );
    }
 
    createMatrix(
        opr.div_x.getVertexToVertexOpr(), src.uvw.u.getVertexDoFFunction(), dst.p, mat, level, flag | DirichletBoundary );
-   EdgeDoFToVertexDoF::createMatrix(
-       opr.div_x.getEdgeToVertexOpr(), src.uvw.u.getEdgeDoFFunction(), dst.p, mat, level, flag | DirichletBoundary );
+   createMatrix( opr.div_x.getEdgeToVertexOpr(), src.uvw.u.getEdgeDoFFunction(), dst.p, mat, level, flag | DirichletBoundary );
    createMatrix(
        opr.div_y.getVertexToVertexOpr(), src.uvw.v.getVertexDoFFunction(), dst.p, mat, level, flag | DirichletBoundary );
-   EdgeDoFToVertexDoF::createMatrix(
-       opr.div_y.getEdgeToVertexOpr(), src.uvw.v.getEdgeDoFFunction(), dst.p, mat, level, flag | DirichletBoundary );
+   createMatrix( opr.div_y.getEdgeToVertexOpr(), src.uvw.v.getEdgeDoFFunction(), dst.p, mat, level, flag | DirichletBoundary );
    if ( src.uvw.u.getStorage()->hasGlobalCells() )
    {
       createMatrix(
           opr.div_z.getVertexToVertexOpr(), src.uvw.w.getVertexDoFFunction(), dst.p, mat, level, flag | DirichletBoundary );
-      EdgeDoFToVertexDoF::createMatrix(
-          opr.div_z.getEdgeToVertexOpr(), src.uvw.w.getEdgeDoFFunction(), dst.p, mat, level, flag | DirichletBoundary );
+      createMatrix( opr.div_z.getEdgeToVertexOpr(), src.uvw.w.getEdgeDoFFunction(), dst.p, mat, level, flag | DirichletBoundary );
    }
 }
 

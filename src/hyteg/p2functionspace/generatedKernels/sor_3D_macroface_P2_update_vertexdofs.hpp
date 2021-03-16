@@ -28,7 +28,6 @@
 #include <map>
 #include "core/Macros.h"
 #define RESTRICT WALBERLA_RESTRICT
-#include "sor_3D_macroface_P2_update_vertexdofs_backwards_impl.hpp"
 #include "sor_3D_macroface_P2_update_vertexdofs_impl.hpp"
 
 namespace hyteg {

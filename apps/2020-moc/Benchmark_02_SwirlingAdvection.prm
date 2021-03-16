@@ -1,6 +1,7 @@
 Parameters
 {
-  level 5;
+  spaceDiscretization P1;
+  level 6;
   numTimeSteps 15;
   setTimeStepSizeManually false;
   manualTimeStepSize 0.1;
@@ -13,10 +14,12 @@ Parameters
   resetParticles false;
   resetParticlesInterval 1;
   adjustedAdvection false;
-  vtk false;
+  globalMaxLimiter false;
+
+  vtk true;
   printInterval 1;
   vtkInterval 1;
   dbFile Benchmark_02_SwirlingAdvection.db;
 
-  numEdgesPerSide 2;
+  numEdgesPerSide 1;
 }
