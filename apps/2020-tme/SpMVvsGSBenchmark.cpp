@@ -58,7 +58,7 @@ void run()
    const uint_t minLevel        = 1;
    const uint_t maxLevel        = 8;
    const uint_t numEdgesPerSide = 1;
-   const uint_t numIterations   = 5;
+   const uint_t numIterations   = 100;
 
    const auto dateTimeID = getDateTimeID();
 
