@@ -1058,6 +1058,28 @@ pages:
   tags:
    - docker
 
+# second job that builds the documentation on other branches than the master
+
+docu_build:
+  image: i10git.cs.fau.de:5005/walberla/buildenvs/gcc:9
+  script:
+   - export CCACHE_BASEDIR=$CI_PROJECT_DIR
+   - cd $CI_PROJECT_DIR/doc
+   - python3 checkImages.py
+   - mkdir $CI_PROJECT_DIR/build
+   - cd $CI_PROJECT_DIR/build
+   - cmake ..
+   - make doc_hyteg
+   - mkdir $CI_PROJECT_DIR/public
+   - mv doc/html/* $CI_PROJECT_DIR/public/
+  artifacts:
+    paths:
+    - public
+  except:
+    - master
+  tags:
+   - docker
+
 
 ###############################################################################
 ##                                                                           ##
