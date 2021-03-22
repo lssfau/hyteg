@@ -61,7 +61,19 @@ class p2_diffusion_blending_q3 : public P2FormHyTeG
    ///                                           ------  ------  ------  -----  -------------  ----------------
    ///                                              251     440       5      5            261                 4
    ///
-   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 6, 6 >& elMat ) const override;
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 6, 6 >& elMat ) const;
+
+   /// \brief Integrates the weak form over the passed element (vertices in computational space).
+   ///
+   /// - element geometry:                       triangle, dim: 2, vertices: 3
+   /// - element matrix dimensions (rows, cols): (6, 6)
+   /// - quadrature rule:                        Hillion 7 | points: 4, degree: 3, test tolerance: 2.22e-16
+   /// - floating point operations:
+   ///                                             adds    muls    divs    abs    assignments    function_calls
+   ///                                           ------  ------  ------  -----  -------------  ----------------
+   ///                                              146     236       5      5            138                 4
+   ///
+   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 6 >& elMat ) const;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
@@ -73,7 +85,19 @@ class p2_diffusion_blending_q3 : public P2FormHyTeG
    ///                                           ------  ------  ------  -----  -------------  ----------------
    ///                                             1665    2424       7      7           1060                 6
    ///
-   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const override;
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const;
+
+   /// \brief Integrates the weak form over the passed element (vertices in computational space).
+   ///
+   /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
+   /// - element matrix dimensions (rows, cols): (10, 10)
+   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - floating point operations:
+   ///                                             adds    muls    divs    abs    assignments    function_calls
+   ///                                           ------  ------  ------  -----  -------------  ----------------
+   ///                                              738    1020       7      7            493                 6
+   ///
+   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const;
 
  private:
 
