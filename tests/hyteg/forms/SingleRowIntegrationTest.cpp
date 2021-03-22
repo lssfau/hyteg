@@ -18,10 +18,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-// compare element matrices from FEniCS forms and HyTeG forms
-#include <cfenv>
 #include <core/Environment.h>
 #include <core/math/Constants.h>
+
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
+
+#include "hyteg/forms/form_hyteg_generated/p2/p2_diffusion_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_diffusion_blending_q3.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
@@ -97,9 +101,32 @@ int main( int argc, char** argv )
    std::array< Point3D, 3 > element2D = {
        Point3D( { 0.1, 0.345, 0 } ), Point3D( { 0.2, 0.083745, 0 } ), Point3D( { 0.985, 0.3, 0 } ) };
 
+   std::array< Point3D, 4 > element3D = { Point3D( { 0.1, 0.345, 0.3 } ),
+                                          Point3D( { 0.2, 0.083745, 0.9 } ),
+                                          Point3D( { 0.985, 0.3, 0.48 } ),
+                                          Point3D( { 0.23, 0.434, 0.0001 } ) };
+
    forms::p1_diffusion_affine_q2 form_p1_diffusion_affine_q2;
+   forms::p2_diffusion_affine_q2 form_p2_diffusion_affine_q2;
+
+   forms::p1_diffusion_blending_q3 form_p1_diffusion_blending_q3;
+   forms::p2_diffusion_blending_q3 form_p2_diffusion_blending_q3;
+
+   auto identityMap = std::make_shared< IdentityMap >();
+   form_p1_diffusion_blending_q3.setGeometryMap( identityMap );
+   form_p2_diffusion_blending_q3.setGeometryMap( identityMap );
 
    compareRows< forms::p1_diffusion_affine_q2, 2, 3, 3 >( form_p1_diffusion_affine_q2, element2D, 0, 1e-16 );
+   compareRows< forms::p1_diffusion_affine_q2, 3, 4, 4 >( form_p1_diffusion_affine_q2, element3D, 0, 1e-16 );
+
+   compareRows< forms::p2_diffusion_affine_q2, 2, 6, 6 >( form_p2_diffusion_affine_q2, element2D, 0, 1e-16 );
+   compareRows< forms::p2_diffusion_affine_q2, 3, 10, 10 >( form_p2_diffusion_affine_q2, element3D, 0, 1e-16 );
+
+   compareRows< forms::p1_diffusion_blending_q3, 2, 3, 3 >( form_p1_diffusion_blending_q3, element2D, 0, 1e-16 );
+   compareRows< forms::p1_diffusion_blending_q3, 3, 4, 4 >( form_p1_diffusion_blending_q3, element3D, 0, 1e-16 );
+
+   compareRows< forms::p2_diffusion_blending_q3, 2, 6, 6 >( form_p2_diffusion_blending_q3, element2D, 0, 1e-16 );
+   compareRows< forms::p2_diffusion_blending_q3, 3, 10, 10 >( form_p2_diffusion_blending_q3, element3D, 0, 1e-16 );
 
    return EXIT_SUCCESS;
 }
