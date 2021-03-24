@@ -37,9 +37,9 @@ class P2P1StokesToP2P1StokesProlongation : public ProlongationOperator< P2P1Tayl
                     const uint_t&                           sourceLevel,
                     const DoFType&                          flag ) const override
    {
-      quadraticProlongationOperator_.prolongate( function.uvw.u, sourceLevel, flag );
-      quadraticProlongationOperator_.prolongate( function.uvw.v, sourceLevel, flag );
-      quadraticProlongationOperator_.prolongate( function.uvw.w, sourceLevel, flag );
+      quadraticProlongationOperator_.prolongate( function.uvw[0], sourceLevel, flag );
+      quadraticProlongationOperator_.prolongate( function.uvw[1], sourceLevel, flag );
+      quadraticProlongationOperator_.prolongate( function.uvw[2], sourceLevel, flag );
       linearProlongationOperator_.prolongate( function.p, sourceLevel, flag );
    }
 
@@ -47,9 +47,9 @@ class P2P1StokesToP2P1StokesProlongation : public ProlongationOperator< P2P1Tayl
                           const uint_t&                           sourceLevel,
                           const DoFType&                          flag ) const override
    {
-      quadraticProlongationOperator_.prolongateAndAdd( function.uvw.u, sourceLevel, flag );
-      quadraticProlongationOperator_.prolongateAndAdd( function.uvw.v, sourceLevel, flag );
-      quadraticProlongationOperator_.prolongateAndAdd( function.uvw.w, sourceLevel, flag );
+      quadraticProlongationOperator_.prolongateAndAdd( function.uvw[0], sourceLevel, flag );
+      quadraticProlongationOperator_.prolongateAndAdd( function.uvw[1], sourceLevel, flag );
+      quadraticProlongationOperator_.prolongateAndAdd( function.uvw[2], sourceLevel, flag );
       linearProlongationOperator_.prolongateAndAdd( function.p, sourceLevel, flag );
    }
 

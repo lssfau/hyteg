@@ -43,7 +43,7 @@ void P2ProjectNormalOperator::project( const P2Function< real_t >& dst_u,
 
 void P2ProjectNormalOperator::project( const P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag ) const
 {
-   project( dst.uvw.u, dst.uvw.v, dst.uvw.w, level, flag );
+   project( dst.uvw[0], dst.uvw[1], dst.uvw[2], level, flag );
 }
 
 #ifdef HYTEG_BUILD_WITH_PETSC

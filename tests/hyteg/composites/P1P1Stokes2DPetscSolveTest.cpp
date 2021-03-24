@@ -73,30 +73,25 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   walberla::math::seedRandomGenerator( 0 );
   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) { return walberla::math::realRandom( 0.0, 1.0 ); };
 
-  b.uvw.u.interpolate( exactU, level, hyteg::DirichletBoundary );
-  b.uvw.v.interpolate( exactV, level, hyteg::DirichletBoundary );
-
-  x.uvw.u.interpolate( exactU, level, DirichletBoundary );
-  x.uvw.v.interpolate( exactV, level, DirichletBoundary );
-
-  x_exact.uvw.u.interpolate( exactU, level );
-  x_exact.uvw.v.interpolate( exactV, level );
+  b.uvw.interpolate( {exactU, exactV}, level, hyteg::DirichletBoundary );
+  x.uvw.interpolate( {exactU, exactV}, level, DirichletBoundary );
+  x_exact.uvw.interpolate( {exactU, exactV}, level );
   x_exact.p.interpolate( exactP, level );
 
-//  VTKOutput vtkOutput("../../output", "P1P1Stokes2DPetscSolve", storage);
-//  vtkOutput.add( x.u );
-//  vtkOutput.add( x.v );
-//  vtkOutput.add( x.p );
-//  vtkOutput.add( x_exact.u );
-//  vtkOutput.add( x_exact.v );
-//  vtkOutput.add( x_exact.p );
-//  vtkOutput.add( err.u );
-//  vtkOutput.add( err.v );
-//  vtkOutput.add( err.p );
-//  vtkOutput.add( b.u );
-//  vtkOutput.add( b.v );
-//  vtkOutput.add( b.p );
-//  vtkOutput.write( level, 0 );
+  //  VTKOutput vtkOutput("../../output", "P1P1Stokes2DPetscSolve", storage);
+  //  vtkOutput.add( x.u );
+  //  vtkOutput.add( x.v );
+  //  vtkOutput.add( x.p );
+  //  vtkOutput.add( x_exact.u );
+  //  vtkOutput.add( x_exact.v );
+  //  vtkOutput.add( x_exact.p );
+  //  vtkOutput.add( err.u );
+  //  vtkOutput.add( err.v );
+  //  vtkOutput.add( err.p );
+  //  vtkOutput.add( b.u );
+  //  vtkOutput.add( b.v );
+  //  vtkOutput.add( b.p );
+  //  vtkOutput.write( level, 0 );
 
   uint_t localDoFs1 = hyteg::numberOfLocalDoFs< P1StokesFunctionTag >( *storage, level );
   uint_t globalDoFs1 = hyteg::numberOfGlobalDoFs< P1StokesFunctionTag >( *storage, level );
@@ -117,8 +112,8 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
 
   err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
-  real_t discr_l2_err_1_u = std::sqrt( err.uvw.u.dotGlobal( err.uvw.u, level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_v = std::sqrt( err.uvw.v.dotGlobal( err.uvw.v, level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level ) / (real_t) globalDoFs1 );
   real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFs1 );
   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
 

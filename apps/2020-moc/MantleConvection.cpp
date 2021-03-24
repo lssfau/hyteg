@@ -189,12 +189,12 @@ void calculateStokesResiduals( const StokesOperator&       A,
    tmp.interpolate( 0, level, All );
    r.interpolate( 0, level, All );
    A.apply( x, tmp, level, Inner | NeumannBoundary | FreeslipBoundary );
-   r.assign( {1.0, -1.0}, {b, tmp}, level, Inner | NeumannBoundary | FreeslipBoundary );
-   residual = normL2Squared( r.uvw.u, tmp.uvw.u, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
-   residual += normL2Squared( r.uvw.v, tmp.uvw.v, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
+   r.assign( { 1.0, -1.0 }, { b, tmp }, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residual = normL2Squared( r.uvw[0], tmp.uvw[0], Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
+   residual += normL2Squared( r.uvw[1], tmp.uvw[1], Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
    if ( x.getStorage()->hasGlobalCells() )
    {
-      residual += normL2Squared( r.uvw.w, tmp.uvw.w, Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
+      residual += normL2Squared( r.uvw[2], tmp.uvw[2], Mu, level, Inner | NeumannBoundary | FreeslipBoundary );
    }
    residual += normL2Squared( r.p, tmp.p, Mp, level, Inner | NeumannBoundary | FreeslipBoundary );
    residual = std::sqrt( residual );
@@ -225,12 +225,12 @@ void calculateDiffusionResidual( UnsteadyDiffusion&               unsteadyDiffus
 template < typename StokesFunction, typename VelocityMass >
 real_t velocityRMS( const StokesFunction& u, const StokesFunction& tmp, const VelocityMass& M, real_t domainVolume, uint_t level )
 {
-   auto norm = std::pow( normL2( u.uvw.u, tmp.uvw.u, M, level, All ), 2.0 ) +
-               std::pow( normL2( u.uvw.v, tmp.uvw.v, M, level, All ), 2.0 );
+   auto norm = std::pow( normL2( u.uvw[0], tmp.uvw[0], M, level, All ), 2.0 ) +
+               std::pow( normL2( u.uvw[1], tmp.uvw[1], M, level, All ), 2.0 );
 
    if ( u.getStorage()->hasGlobalCells() )
    {
-      norm += std::pow( normL2( u.uvw.w, tmp.uvw.w, M, level, All ), 2.0 );
+      norm += std::pow( normL2( u.uvw[2], tmp.uvw[2], M, level, All ), 2.0 );
    }
 
    return std::sqrt( norm / domainVolume );
@@ -471,11 +471,10 @@ void runBenchmark( real_t      cflMax,
 
    for ( uint_t l = minLevel; l <= level; l++ )
    {
-      outwardNormal.uvw.u.interpolate( normalX, l );
-      outwardNormal.uvw.v.interpolate( normalY, l );
+      outwardNormal.uvw.interpolate( { normalX, normalY }, l );
       if ( storage->hasGlobalCells() )
       {
-         outwardNormal.uvw.w.interpolate( normalZ, l );
+         outwardNormal.uvw.interpolate( { normalX, normalY, normalZ }, l );
       }
    }
 
@@ -774,9 +773,9 @@ void runBenchmark( real_t      cflMax,
    {
       if ( vtkOutputVertexDoFs )
       {
-         vtkOutput.add( u.uvw.u.getVertexDoFFunction() );
-         vtkOutput.add( u.uvw.v.getVertexDoFFunction() );
-         vtkOutput.add( u.uvw.w.getVertexDoFFunction() );
+         vtkOutput.add( u.uvw[0].getVertexDoFFunction() );
+         vtkOutput.add( u.uvw[1].getVertexDoFFunction() );
+         vtkOutput.add( u.uvw[2].getVertexDoFFunction() );
       }
       else
       {
@@ -817,19 +816,15 @@ void runBenchmark( real_t      cflMax,
 
    for ( uint_t l = minLevel; l <= level; l++ )
    {
-      MVelocity.apply( c, f.uvw.u, l, All );
-      MVelocity.apply( c, f.uvw.v, l, All );
+      MVelocity.apply( c, f.uvw[0], l, All );
+      MVelocity.apply( c, f.uvw[1], l, All );
       if ( storage->hasGlobalCells() )
       {
-         MVelocity.apply( c, f.uvw.w, l, All );
+         MVelocity.apply( c, f.uvw[2], l, All );
       }
 
-      f.uvw.u.multElementwise( {f.uvw.u, outwardNormal.uvw.u}, l );
-      f.uvw.v.multElementwise( {f.uvw.v, outwardNormal.uvw.v}, l );
-      f.uvw.w.multElementwise( {f.uvw.w, outwardNormal.uvw.w}, l );
-      f.uvw.u.assign( {rayleighNumber}, {f.uvw.u}, l, All );
-      f.uvw.v.assign( {rayleighNumber}, {f.uvw.v}, l, All );
-      f.uvw.w.assign( {rayleighNumber}, {f.uvw.w}, l, All );
+      f.uvw.multElementwise( { f.uvw, outwardNormal.uvw }, l );
+      f.uvw.assign( { rayleighNumber }, { f.uvw }, l, All );
    }
 
    calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
@@ -846,11 +841,11 @@ void runBenchmark( real_t      cflMax,
 
    if ( storage->hasGlobalCells() )
    {
-      vMax = velocityMaxMagnitude( u.uvw.u, u.uvw.v, u.uvw.w, uTmp, uMagnitudeSquared, level, All );
+      vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], u.uvw[2], uTmp, uMagnitudeSquared, level, All );
    }
    else
    {
-      vMax = velocityMaxMagnitude( u.uvw.u, u.uvw.v, uTmp, uMagnitudeSquared, level, All );
+      vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uMagnitudeSquared, level, All );
    }
 
    localTimer.start();
@@ -919,11 +914,11 @@ void runBenchmark( real_t      cflMax,
 
       if ( storage->hasGlobalCells() )
       {
-         vMax = velocityMaxMagnitude( u.uvw.u, u.uvw.v, u.uvw.w, uTmp, uTmp2, level, All );
+         vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], u.uvw[2], uTmp, uTmp2, level, All );
       }
       else
       {
-         vMax = velocityMaxMagnitude( u.uvw.u, u.uvw.v, uTmp, uTmp2, level, All );
+         vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uTmp2, level, All );
       }
 
       real_t dt;
@@ -941,16 +936,16 @@ void runBenchmark( real_t      cflMax,
       // advection
 
       // start value for predictor
-      cPr.assign( {1.0}, {c}, level, All );
+      cPr.assign( { 1.0 }, { c }, level, All );
 
       // let's just use the current velocity for the prediction
-      uLast.assign( {1.0}, {u}, level, All );
+      uLast.assign( { 1.0 }, { u }, level, All );
 
       // diffusion
 
       cPr.interpolate( initialTemperature, level, DirichletBoundary );
 
-      cOld.assign( {1.0}, {cPr}, level, All );
+      cOld.assign( { 1.0 }, { cPr }, level, All );
 
       diffusionOperator.setDt( 0.5 * dt );
 
@@ -968,7 +963,7 @@ void runBenchmark( real_t      cflMax,
       timeDiffusion = localTimer.last();
 
       localTimer.start();
-      transport.step( cPr, u.uvw.u, u.uvw.v, u.uvw.w, uLast.uvw.u, uLast.uvw.v, uLast.uvw.w, level, All, dt, 1, true );
+      transport.step( cPr, u.uvw[0], u.uvw[1], u.uvw[2], uLast.uvw[0], uLast.uvw[1], uLast.uvw[2], level, All, dt, 1, true );
       localTimer.end();
       timeMMOC = localTimer.last();
 
@@ -976,7 +971,7 @@ void runBenchmark( real_t      cflMax,
 
       cPr.interpolate( initialTemperature, level, DirichletBoundary );
 
-      cOld.assign( {1.0}, {cPr}, level, All );
+      cOld.assign( { 1.0 }, { cPr }, level, All );
 
       calculateDiffusionResidual(
           diffusionSolver, diffusionOperator, L, MVelocity, cPr, cOld, q, cTmp, cTmp2, level, vCycleResidualCLast );
@@ -990,19 +985,15 @@ void runBenchmark( real_t      cflMax,
 
       for ( uint_t l = minLevel; l <= level; l++ )
       {
-         MVelocity.apply( cPr, f.uvw.u, l, All );
-         MVelocity.apply( cPr, f.uvw.v, l, All );
+         MVelocity.apply( cPr, f.uvw[0], l, All );
+         MVelocity.apply( cPr, f.uvw[1], l, All );
          if ( storage->hasGlobalCells() )
          {
-            MVelocity.apply( cPr, f.uvw.w, l, All );
+            MVelocity.apply( cPr, f.uvw[2], l, All );
          }
 
-         f.uvw.u.multElementwise( {f.uvw.u, outwardNormal.uvw.u}, l );
-         f.uvw.v.multElementwise( {f.uvw.v, outwardNormal.uvw.v}, l );
-         f.uvw.w.multElementwise( {f.uvw.w, outwardNormal.uvw.w}, l );
-         f.uvw.u.assign( {rayleighNumber}, {f.uvw.u}, l, All );
-         f.uvw.v.assign( {rayleighNumber}, {f.uvw.v}, l, All );
-         f.uvw.w.assign( {rayleighNumber}, {f.uvw.w}, l, All );
+         f.uvw.multElementwise( { f.uvw, outwardNormal.uvw }, l );
+         f.uvw.assign( { rayleighNumber }, { f.uvw }, l, All );
       }
 
       calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
@@ -1032,7 +1023,7 @@ void runBenchmark( real_t      cflMax,
 
          c.interpolate( initialTemperature, level, DirichletBoundary );
 
-         cOld.assign( {1.0}, {c}, level, All );
+         cOld.assign( { 1.0 }, { c }, level, All );
 
          calculateDiffusionResidual(
              diffusionSolver, diffusionOperator, L, MVelocity, c, cOld, q, cTmp, cTmp2, level, vCycleResidualCLast );
@@ -1046,7 +1037,7 @@ void runBenchmark( real_t      cflMax,
          // advection
 
          localTimer.start();
-         transport.step( c, u.uvw.u, u.uvw.v, u.uvw.w, uLast.uvw.u, uLast.uvw.v, uLast.uvw.w, level, All, dt, 1, true );
+         transport.step( c, u.uvw[0], u.uvw[1], u.uvw[2], uLast.uvw[0], uLast.uvw[1], uLast.uvw[2], level, All, dt, 1, true );
          localTimer.end();
          timeMMOC += localTimer.last();
 
@@ -1054,7 +1045,7 @@ void runBenchmark( real_t      cflMax,
 
          c.interpolate( initialTemperature, level, DirichletBoundary );
 
-         cOld.assign( {1.0}, {c}, level, All );
+         cOld.assign( { 1.0 }, { c }, level, All );
 
          calculateDiffusionResidual(
              diffusionSolver, diffusionOperator, L, MVelocity, c, cOld, q, cTmp, cTmp2, level, vCycleResidualCLast );
@@ -1069,19 +1060,15 @@ void runBenchmark( real_t      cflMax,
 
          for ( uint_t l = minLevel; l <= level; l++ )
          {
-            MVelocity.apply( c, f.uvw.u, l, All );
-            MVelocity.apply( c, f.uvw.v, l, All );
+            MVelocity.apply( c, f.uvw[0], l, All );
+            MVelocity.apply( c, f.uvw[1], l, All );
             if ( storage->hasGlobalCells() )
             {
-               MVelocity.apply( c, f.uvw.w, l, All );
+               MVelocity.apply( c, f.uvw[2], l, All );
             }
 
-            f.uvw.u.multElementwise( {f.uvw.u, outwardNormal.uvw.u}, l );
-            f.uvw.v.multElementwise( {f.uvw.v, outwardNormal.uvw.v}, l );
-            f.uvw.w.multElementwise( {f.uvw.w, outwardNormal.uvw.w}, l );
-            f.uvw.u.assign( {rayleighNumber}, {f.uvw.u}, l, All );
-            f.uvw.v.assign( {rayleighNumber}, {f.uvw.v}, l, All );
-            f.uvw.w.assign( {rayleighNumber}, {f.uvw.w}, l, All );
+            f.uvw.multElementwise( { f.uvw, outwardNormal.uvw }, l );
+            f.uvw.assign( { rayleighNumber }, { f.uvw }, l, All );
          }
 
          calculateStokesResiduals( *A, MVelocity, MPressure, u, f, level, stokesResidual, stokesTmp, residualU );
@@ -1106,7 +1093,7 @@ void runBenchmark( real_t      cflMax,
       else
       {
          // use predicted value
-         c.assign( {1.0}, {cPr}, level, All );
+         c.assign( { 1.0 }, { cPr }, level, All );
 
          db.setVariableEntry( "initial_residual_u_corrector", real_c( 0 ) );
          db.setVariableEntry( "num_v_cycles_corrector", real_c( 0 ) );
@@ -1120,11 +1107,11 @@ void runBenchmark( real_t      cflMax,
 
       if ( storage->hasGlobalCells() )
       {
-         vMax = velocityMaxMagnitude( u.uvw.u, u.uvw.v, u.uvw.w, uTmp, uMagnitudeSquared, level, All );
+         vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], u.uvw[2], uTmp, uMagnitudeSquared, level, All );
       }
       else
       {
-         vMax = velocityMaxMagnitude( u.uvw.u, u.uvw.v, uTmp, uMagnitudeSquared, level, All );
+         vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uMagnitudeSquared, level, All );
       }
 
       localTimer.start();

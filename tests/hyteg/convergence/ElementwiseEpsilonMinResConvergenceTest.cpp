@@ -170,33 +170,25 @@ void convergenceTest( uint_t level, real_t toleranceVelocityComponents, real_t t
    vtk.add( f );
    vtk.add( err );
 
-   u.uvw.u.interpolate( exactU, maxLevel, hyteg::DirichletBoundary );
-   u.uvw.v.interpolate( exactV, maxLevel, hyteg::DirichletBoundary );
    if ( ThreeDim )
    {
-      u.uvw.w.interpolate( exactW, maxLevel, hyteg::DirichletBoundary );
+     u.uvw.interpolate( { exactU, exactV, exactW }, maxLevel, hyteg::DirichletBoundary );
+     uExact.uvw.interpolate( { exactU, exactV, exactW }, maxLevel );
+     tmp.uvw.interpolate( { rhsU, rhsV, rhsW }, maxLevel );
+   }
+   else {
+     u.uvw.interpolate( { exactU, exactV }, maxLevel, hyteg::DirichletBoundary );
+     uExact.uvw.interpolate( { exactU, exactV }, maxLevel );
+     tmp.uvw.interpolate( { rhsU, rhsV }, maxLevel );
    }
 
-   uExact.uvw.u.interpolate( exactU, maxLevel );
-   uExact.uvw.v.interpolate( exactV, maxLevel );
-   if ( ThreeDim )
-   {
-      uExact.uvw.w.interpolate( exactW, maxLevel );
-   }
    uExact.p.interpolate( exactP, maxLevel );
 
-   tmp.uvw.u.interpolate( rhsU, maxLevel );
-   tmp.uvw.v.interpolate( rhsV, maxLevel );
+   M.apply( tmp.uvw[0], f.uvw[0], maxLevel, All );
+   M.apply( tmp.uvw[1], f.uvw[1], maxLevel, All );
    if ( ThreeDim )
    {
-      tmp.uvw.w.interpolate( rhsW, maxLevel );
-   }
-
-   M.apply( tmp.uvw.u, f.uvw.u, maxLevel, All );
-   M.apply( tmp.uvw.v, f.uvw.v, maxLevel, All );
-   if ( ThreeDim )
-   {
-      M.apply( tmp.uvw.w, f.uvw.w, maxLevel, All );
+      M.apply( tmp.uvw[2], f.uvw[2], maxLevel, All );
    }
 
    std::shared_ptr< Solver< StokesOperator > > solver;
@@ -230,9 +222,9 @@ void convergenceTest( uint_t level, real_t toleranceVelocityComponents, real_t t
    uint_t velocityCompDoFs = numberOfGlobalDoFs< typename FunctionType::VelocityFunction_T::Tag >( *storage, maxLevel ) / 3;
    uint_t pressureCompDoFs = numberOfGlobalDoFs< typename FunctionType::PressureFunction_T::Tag >( *storage, maxLevel );
 
-   real_t discr_l2_err_u = std::sqrt( err.uvw.u.dotGlobal( err.uvw.u, maxLevel ) / real_c( velocityCompDoFs ) );
-   real_t discr_l2_err_v = std::sqrt( err.uvw.v.dotGlobal( err.uvw.v, maxLevel ) / real_c( velocityCompDoFs ) );
-   real_t discr_l2_err_w = std::sqrt( err.uvw.w.dotGlobal( err.uvw.w, maxLevel ) / real_c( velocityCompDoFs ) );
+   real_t discr_l2_err_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], maxLevel ) / real_c( velocityCompDoFs ) );
+   real_t discr_l2_err_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], maxLevel ) / real_c( velocityCompDoFs ) );
+   real_t discr_l2_err_w = std::sqrt( err.uvw[2].dotGlobal( err.uvw[2], maxLevel ) / real_c( velocityCompDoFs ) );
    real_t discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, maxLevel ) / real_c( pressureCompDoFs ) );
    real_t residuum_l2    = std::sqrt( r.dotGlobal( r, maxLevel ) / real_c( 3 * velocityCompDoFs + pressureCompDoFs ) );
 

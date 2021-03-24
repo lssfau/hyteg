@@ -125,11 +125,11 @@ class P2ConstantVectorLaplaceOperator : public VectorToVectorOperator< P2VectorF
 };
 
 
-class P1VectorOperator : public VectorToVectorOperator< P1VectorFunction_AltKind< real_t >, P1VectorFunction_AltKind< real_t > >
+class P1VectorOperator : public VectorToVectorOperator< P1VectorFunction< real_t >, P1VectorFunction< real_t > >
 {
  public:
    P1VectorOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
-     : VectorToVectorOperator< P1VectorFunction_AltKind< real_t >, P1VectorFunction_AltKind< real_t > >( storage, minLevel, maxLevel )
+     : VectorToVectorOperator< P1VectorFunction< real_t >, P1VectorFunction< real_t > >( storage, minLevel, maxLevel )
    {};
 };
 

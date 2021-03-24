@@ -75,7 +75,9 @@ class P2P2StokesFunction
                 size_t                                                                                level,
                 DoFType                                                                               flag = All ) const
    {
-      std::vector< std::reference_wrapper< const P2VectorFunction< ValueType > > > functions_uvw;
+      // Admittedly that is not nice!
+      // std::vector< std::reference_wrapper< const P2VectorFunction< ValueType > > > functions_uvw;
+      std::vector< std::reference_wrapper< const CSFVectorFunction< P2Function< ValueType > > > > functions_uvw;
       std::vector< std::reference_wrapper< const P2Function< ValueType > > >       functions_p;
 
       for ( const P2P2StokesFunction< ValueType >& function : functions )
@@ -93,7 +95,9 @@ class P2P2StokesFunction
              size_t                                                                                level,
              DoFType                                                                               flag = All ) const
    {
-      std::vector< std::reference_wrapper< const P2VectorFunction< ValueType > > > functions_uvw;
+      // Admittedly that is not nice!
+      // std::vector< std::reference_wrapper< const P2VectorFunction< ValueType > > > functions_uvw;
+      std::vector< std::reference_wrapper< const CSFVectorFunction< P2Function< ValueType > > > > functions_uvw;
       std::vector< std::reference_wrapper< const P2Function< ValueType > > >       functions_p;
 
       for ( const P2P2StokesFunction< ValueType >& function : functions )
@@ -133,9 +137,9 @@ class P2P2StokesFunction
          offset += static_cast< ValueType >( vertexDoFsPerRank[i] );
       }
 
-      uvw.u.enumerate( level, offset );
-      uvw.v.enumerate( level, offset );
-      uvw.w.enumerate( level, offset );
+      uvw[0].enumerate( level, offset );
+      uvw[1].enumerate( level, offset );
+      uvw[2].enumerate( level, offset );
       p.enumerate( level, offset );
    }
 

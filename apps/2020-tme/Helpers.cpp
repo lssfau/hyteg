@@ -213,9 +213,7 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
 
    for ( uint_t level = minLevel; level <= errorLevel; level++ )
    {
-      exact.uvw.u.interpolate( solutionU, level, All );
-      exact.uvw.v.interpolate( solutionV, level, All );
-      exact.uvw.w.interpolate( solutionW, level, All );
+      exact.uvw.interpolate( { solutionU, solutionV, solutionW },level, All );
       exact.p.interpolate( solutionP, level, All );
 
       if ( projectPressure )
@@ -223,17 +221,12 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
          vertexdof::projectMean( exact.p, level );
       }
 
-      u.uvw.u.interpolate( solutionU, level, DirichletBoundary );
-      u.uvw.v.interpolate( solutionV, level, DirichletBoundary );
-      u.uvw.w.interpolate( solutionW, level, DirichletBoundary );
+      u.uvw.interpolate( { solutionU, solutionV, solutionW },level, DirichletBoundary );
+      tmp.uvw.interpolate( { rhsU, rhsV, rhsW }, level, All );
 
-      tmp.uvw.u.interpolate( rhsU, level, All );
-      tmp.uvw.v.interpolate( rhsV, level, All );
-      tmp.uvw.w.interpolate( rhsW, level, All );
-
-      MVelocity.apply( tmp.uvw.u, f.uvw.u, level, All );
-      MVelocity.apply( tmp.uvw.v, f.uvw.v, level, All );
-      MVelocity.apply( tmp.uvw.w, f.uvw.w, level, All );
+      MVelocity.apply( tmp.uvw[0], f.uvw[0], level, All );
+      MVelocity.apply( tmp.uvw[1], f.uvw[1], level, All );
+      MVelocity.apply( tmp.uvw[2], f.uvw[2], level, All );
    }
 
    const auto solutionNormVelocity = normL2Velocity( uSolution, MVelocity, tmp, maxLevel, errorFlag );

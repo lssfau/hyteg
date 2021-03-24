@@ -53,9 +53,11 @@ class P2P1TaylorHoodFunction
                            size_t                                     minLevel,
                            size_t                                     maxLevel,
                            BoundaryCondition                          velocityBC )
-   : uvw( _name + "_vector", storage, minLevel, maxLevel, velocityBC )
+   : uvw( _name + "_vector", storage, minLevel, maxLevel )
    , p( _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
-   {}
+   {
+     uvw.setBoundaryCondition( velocityBC );
+   }
 
    std::shared_ptr< PrimitiveStorage > getStorage() const { return uvw.getStorage(); }
 
@@ -107,7 +109,9 @@ class P2P1TaylorHoodFunction
                 size_t                                                                                    level,
                 DoFType                                                                                   flag = All ) const
    {
-      std::vector< std::reference_wrapper< const VelocityFunction_T > > functions_uvw;
+      // Admittedly that is not nice!
+      // std::vector< std::reference_wrapper< const VelocityFunction_T > > functions_uvw;
+      std::vector< std::reference_wrapper< const CSFVectorFunction< P2Function< ValueType > > > > functions_uvw;
       std::vector< std::reference_wrapper< const PressureFunction_T > > functions_p;
 
       for ( const P2P1TaylorHoodFunction< ValueType >& function : functions )
@@ -131,7 +135,9 @@ class P2P1TaylorHoodFunction
              size_t                                                                                    level,
              DoFType                                                                                   flag = All ) const
    {
-      std::vector< std::reference_wrapper< const VelocityFunction_T > > functions_uvw;
+      // Admittedly that is not nice!
+      // std::vector< std::reference_wrapper< const VelocityFunction_T > > functions_uvw;
+      std::vector< std::reference_wrapper< const CSFVectorFunction< P2Function< ValueType > > > > functions_uvw;
       std::vector< std::reference_wrapper< const PressureFunction_T > > functions_p;
 
       for ( const P2P1TaylorHoodFunction< ValueType >& function : functions )

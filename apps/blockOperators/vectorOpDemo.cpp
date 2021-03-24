@@ -114,8 +114,8 @@ int main( int argc, char* argv[] )
    // ============
    //  Testing P1
    // ============
-   P1VectorFunction_AltKind< real_t > inputP1( "input", storage, level, level );
-   P1VectorFunction_AltKind< real_t > outputP1( "output", storage, level, level );
+   P1VectorFunction< real_t > inputP1( "input", storage, level, level );
+   P1VectorFunction< real_t > outputP1( "output", storage, level, level );
 
    inputP1.interpolate( {inFunc1, inFunc2}, level );
 

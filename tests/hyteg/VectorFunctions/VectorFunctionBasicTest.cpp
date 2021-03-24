@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2021 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -18,8 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hyteg/p2functionspace/P2VectorFunction.hpp"
-
 #include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
@@ -32,8 +30,8 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
-#include "hyteg/p1functionspace/P1VectorFunction_AltKind.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
@@ -62,17 +60,17 @@ static void testVectorFunction( bool beVerbose, std::string tag )
    walberla::WcTimingPool timer;
 
    timer["Interpolate"].start();
-   vec_f.interpolate( {xComp, yComp}, maxLevel, DoFType::All );
+   vec_f.interpolate( { xComp, yComp }, maxLevel, DoFType::All );
    timer["Interpolate"].end();
 
    // Assign
    timer["Assign"].start();
-   aux_f.assign( {3.0}, {vec_f}, maxLevel, DoFType::All );
+   aux_f.assign( { 3.0 }, { vec_f }, maxLevel, DoFType::All );
    timer["Assign"].end();
 
    // Add
    timer["Add"].start();
-   aux_f.add( {{4.0, 3.0}}, {{vec_f, vec_f}}, maxLevel, DoFType::All );
+   aux_f.add( { { 4.0, 3.0 } }, { { vec_f, vec_f } }, maxLevel, DoFType::All );
    timer["Add"].end();
 
    // Dot
@@ -88,8 +86,8 @@ static void testVectorFunction( bool beVerbose, std::string tag )
       std::string fName = tag + "VectorFunctionExportViaComponents";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
       VTKOutput vtkOutput( fPath, fName, storage );
-      vtkOutput.add( dynamic_cast<typename vfType::VectorComponentType& >(vec_f[0]) );
-      vtkOutput.add( dynamic_cast<typename vfType::VectorComponentType& >(vec_f[1]) );
+      vtkOutput.add( dynamic_cast< typename vfType::VectorComponentType& >( vec_f[0] ) );
+      vtkOutput.add( dynamic_cast< typename vfType::VectorComponentType& >( vec_f[1] ) );
       vtkOutput.write( maxLevel );
 
       std::string fName2 = tag + "VectorFunctionExport";
@@ -116,9 +114,6 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( " Testing P1VectorFunction" );
    WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
    hyteg::testVectorFunction< hyteg::P1VectorFunction< walberla::real_t > >( true, "P1" );
-
-   // alternative implementation approach
-   hyteg::testVectorFunction< hyteg::P1VectorFunction_AltKind< walberla::real_t > >( true, "P1_alt_kind" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
    WALBERLA_LOG_INFO_ON_ROOT( " Testing P2VectorFunction" );

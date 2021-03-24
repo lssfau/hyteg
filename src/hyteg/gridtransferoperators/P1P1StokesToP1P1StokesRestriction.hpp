@@ -41,9 +41,9 @@ class P1P1StokesToP1P1StokesRestriction : public RestrictionOperator< P1StokesFu
 
    void restrict( const P1StokesFunction< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
    {
-      restrictionOperator_.restrict( function.uvw.u, sourceLevel, flag );
-      restrictionOperator_.restrict( function.uvw.v, sourceLevel, flag );
-      restrictionOperator_.restrict( function.uvw.w, sourceLevel, flag );
+      restrictionOperator_.restrict( function.uvw[0], sourceLevel, flag );
+      restrictionOperator_.restrict( function.uvw[1], sourceLevel, flag );
+      restrictionOperator_.restrict( function.uvw[2], sourceLevel, flag );
       restrictionOperator_.restrict( function.p, sourceLevel, flag );
 
       if ( projectMeanAfterRestriction_ )

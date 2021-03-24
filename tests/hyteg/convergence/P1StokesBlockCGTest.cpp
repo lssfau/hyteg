@@ -62,11 +62,8 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > rhs   = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones  = []( const hyteg::Point3D& ) { return 1.0; };
 
-   u.uvw.u.interpolate( exact, maxLevel, hyteg::DirichletBoundary );
-   u.uvw.v.interpolate( exact, maxLevel, hyteg::DirichletBoundary );
-
-   u_exact.uvw.u.interpolate( exact, maxLevel );
-   u_exact.uvw.v.interpolate( exact, maxLevel );
+   u.uvw.interpolate( { exact, exact }, maxLevel, hyteg::DirichletBoundary );
+   u_exact.uvw.interpolate( { exact, exact }, maxLevel );
 
    auto solver = hyteg::CGSolver< hyteg::P1StokesBlockLaplaceOperator >( storage, minLevel, maxLevel );
    walberla::WcTimer timer;

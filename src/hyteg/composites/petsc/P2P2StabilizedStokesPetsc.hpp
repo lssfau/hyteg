@@ -33,11 +33,11 @@ inline void createVectorFromFunction( const P2P2StokesFunction< PetscReal >& fun
                                       uint_t                                 level,
                                       DoFType                                flag )
 {
-   createVectorFromFunction( function.uvw.u, numerator.uvw.u, vec, level, flag );
-   createVectorFromFunction( function.uvw.v, numerator.uvw.v, vec, level, flag );
-   if ( function.uvw.u.getStorage()->hasGlobalCells() )
+   createVectorFromFunction( function.uvw[0], numerator.uvw[0], vec, level, flag );
+   createVectorFromFunction( function.uvw[1], numerator.uvw[1], vec, level, flag );
+   if ( function.uvw[0].getStorage()->hasGlobalCells() )
    {
-      createVectorFromFunction( function.uvw.w, numerator.uvw.w, vec, level, flag );
+      createVectorFromFunction( function.uvw[2], numerator.uvw[2], vec, level, flag );
    }
    createVectorFromFunction( function.p, numerator.p, vec, level, flag );
 }
@@ -48,22 +48,22 @@ inline void createFunctionFromVector( const P2P2StokesFunction< PetscReal >& fun
                                       uint_t                                 level,
                                       DoFType                                flag )
 {
-   createFunctionFromVector( function.uvw.u, numerator.uvw.u, vec, level, flag );
-   createFunctionFromVector( function.uvw.v, numerator.uvw.v, vec, level, flag );
-   if ( function.uvw.u.getStorage()->hasGlobalCells() )
+   createFunctionFromVector( function.uvw[0], numerator.uvw[0], vec, level, flag );
+   createFunctionFromVector( function.uvw[1], numerator.uvw[1], vec, level, flag );
+   if ( function.uvw[0].getStorage()->hasGlobalCells() )
    {
-      createFunctionFromVector( function.uvw.w, numerator.uvw.w, vec, level, flag );
+      createFunctionFromVector( function.uvw[2], numerator.uvw[2], vec, level, flag );
    }
    createFunctionFromVector( function.p, numerator.p, vec, level, flag );
 }
 
 inline void applyDirichletBC( const P2P2StokesFunction< PetscInt >& numerator, std::vector< PetscInt >& mat, uint_t level )
 {
-   applyDirichletBC( numerator.uvw.u, mat, level );
-   applyDirichletBC( numerator.uvw.v, mat, level );
-   if ( numerator.uvw.u.getStorage()->hasGlobalCells() )
+   applyDirichletBC( numerator.uvw[0], mat, level );
+   applyDirichletBC( numerator.uvw[1], mat, level );
+   if ( numerator.uvw[0].getStorage()->hasGlobalCells() )
    {
-      applyDirichletBC( numerator.uvw.w, mat, level );
+      applyDirichletBC( numerator.uvw[2], mat, level );
    }
    //  applyDirichletBC(numerator.p, mat, level);
 }
@@ -76,23 +76,23 @@ inline void createMatrix( const OperatorType&                         opr,
                           size_t                                      level,
                           DoFType                                     flag )
 {
-   createMatrix( opr.A, src.uvw.u, dst.uvw.u, mat, level, flag );
-   createMatrix( opr.divT_x, src.p, dst.uvw.u, mat, level, flag );
+   createMatrix( opr.A, src.uvw[0], dst.uvw[0], mat, level, flag );
+   createMatrix( opr.divT_x, src.p, dst.uvw[0], mat, level, flag );
 
-   createMatrix( opr.A, src.uvw.v, dst.uvw.v, mat, level, flag );
-   createMatrix( opr.divT_y, src.p, dst.uvw.v, mat, level, flag );
+   createMatrix( opr.A, src.uvw[1], dst.uvw[1], mat, level, flag );
+   createMatrix( opr.divT_y, src.p, dst.uvw[1], mat, level, flag );
 
-   if ( src.uvw.u.getStorage()->hasGlobalCells() )
+   if ( src.uvw[0].getStorage()->hasGlobalCells() )
    {
-      createMatrix( opr.A, src.uvw.w, dst.uvw.w, mat, level, flag );
-      createMatrix( opr.divT_z, src.p, dst.uvw.w, mat, level, flag );
+      createMatrix( opr.A, src.uvw[2], dst.uvw[2], mat, level, flag );
+      createMatrix( opr.divT_z, src.p, dst.uvw[2], mat, level, flag );
    }
 
-   createMatrix( opr.div_x, src.uvw.u, dst.p, mat, level, flag | DirichletBoundary );
-   createMatrix( opr.div_y, src.uvw.v, dst.p, mat, level, flag | DirichletBoundary );
-   if ( src.uvw.u.getStorage()->hasGlobalCells() )
+   createMatrix( opr.div_x, src.uvw[0], dst.p, mat, level, flag | DirichletBoundary );
+   createMatrix( opr.div_y, src.uvw[1], dst.p, mat, level, flag | DirichletBoundary );
+   if ( src.uvw[0].getStorage()->hasGlobalCells() )
    {
-      createMatrix( opr.div_z, src.uvw.w, dst.p, mat, level, flag | DirichletBoundary );
+      createMatrix( opr.div_z, src.uvw[2], dst.p, mat, level, flag | DirichletBoundary );
    }
    createMatrix( opr.pspg, src.p, dst.p, mat, level, flag | DirichletBoundary );
 }
