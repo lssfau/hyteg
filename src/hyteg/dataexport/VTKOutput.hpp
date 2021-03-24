@@ -35,6 +35,7 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 
 #include "hyteg/p1functionspace/P1VectorFunction_AltKind.hpp"
+#include "hyteg/p2functionspace/P2VectorFunction_AltKind.hpp"
 
 namespace hyteg {
 
@@ -84,6 +85,11 @@ class VTKOutput
    void add( P1VectorFunction_AltKind< real_t > function ) {
      for( uint_t k = 0; k < function.getDimension(); k++ ) {
        p1Functions_.push_back( function[k] );
+     }
+   }
+   void add( P2VectorFunction_AltKind< real_t > function ) {
+     for( uint_t k = 0; k < function.getDimension(); k++ ) {
+       p2Functions_.push_back( function[k] );
      }
    }
 

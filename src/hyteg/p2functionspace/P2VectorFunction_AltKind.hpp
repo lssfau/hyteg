@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Dominik Thoennes, Marcus Mohr, Nils Kohl, Andreas Wagner.
+ * Copyright (c) 2021 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -29,22 +29,22 @@
 namespace hyteg {
 
 template < typename ValueType >
-class P1VectorFunction_AltKind : public CSFVectorFunction< P1Function< ValueType > >
+class P2VectorFunction_AltKind : public CSFVectorFunction< P2Function< ValueType > >
 {
  public:
    using valueType = ValueType;
 
-   using FunctionType = P1VectorFunction_AltKind< ValueType >;
+   using FunctionType = P2VectorFunction_AltKind< ValueType >;
 
-   using VectorComponentType = P1Function< ValueType >;
+   using VectorComponentType = P2Function< ValueType >;
 
-   using Tag = typename FunctionTrait< P1VectorFunction< ValueType > >::Tag;
+   using Tag = typename FunctionTrait< P2VectorFunction< ValueType > >::Tag;
 
-   P1VectorFunction_AltKind( const std::string&                         _name,
+   P2VectorFunction_AltKind( const std::string&                         _name,
                              const std::shared_ptr< PrimitiveStorage >& storage,
                              size_t                                     minLevel,
                              size_t                                     maxLevel )
-   : CSFVectorFunction< P1Function< ValueType > >( _name )
+   : CSFVectorFunction< P2Function< ValueType > >( _name )
    {
       this->compFunc_.clear();
       this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_u", storage, minLevel, maxLevel ) );
