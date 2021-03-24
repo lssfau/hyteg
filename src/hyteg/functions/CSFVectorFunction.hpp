@@ -24,6 +24,7 @@
 
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/GenericFunction.hpp"
+#include "hyteg/functions/VectorFunctionTools.hpp"
 
 namespace hyteg {
 
@@ -48,12 +49,16 @@ class CSFVectorFunction : public GenericFunction
    : functionName_( name )
    {}
 
+   /// @name Query Functions
+   /// Methods for questioning object for certain properties
+   /// @{
    const std::string& getFunctionName() const { return functionName_; }
 
    std::shared_ptr< PrimitiveStorage > getStorage() const { return compFunc_[0]->getStorage(); }
 
    /// \note Dimension of VectorFunction is decoupled from storage now
    uint_t getDimension() const { return compFunc_.size(); }
+   /// @}
 
    /// @name Component access
    /// Methods for component function access
@@ -141,6 +146,21 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
+   /// @name Bondary Conditions
+   /// Methods for handling boundary conditions
+   /// @{
+
+   /// Returns a BoundaryCondition object, which is identical for all component functions
+   BoundaryCondition getBoundaryCondition() const { return compFunc_[0]->getBoundaryCondition(); }
+
+   /// Set boundary conditions, will be identical for all component functions
+   void setBoundaryCondition( BoundaryCondition bc ) {
+      for ( uint_t k = 0; k < compFunc_.size(); ++k )
+      {
+         compFunc_[k]->setBoundaryCondition( bc );
+      }
+   }
+
    template < typename OtherFunctionType >
    void copyBoundaryConditionFromFunction( const CSFVectorFunction< OtherFunctionType >& other )
    {
@@ -149,12 +169,13 @@ class CSFVectorFunction : public GenericFunction
          compFunc_[k]->setBoundaryCondition( vectorFunctionTools::filter( k, other ).getBoundaryCondition() );
       }
    }
+   /// @}
 
    void swap( const CSFVectorFunction< FunctionType >& other, const uint_t& level, const DoFType& flag = All ) const
    {
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
-         compFunc_[k]->swap( other.u, level, flag );
+         compFunc_[k]->swap( other[k], level, flag );
       }
    }
 
