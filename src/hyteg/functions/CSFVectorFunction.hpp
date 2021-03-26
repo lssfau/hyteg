@@ -110,10 +110,15 @@ class CSFVectorFunction : public GenericFunction
                      size_t                                                                    level,
                      DoFType                                                                   flag = All ) const
    {
-      WALBERLA_ASSERT_GREATER( expr.size(), 0 );
-      WALBERLA_ASSERT_EQUAL( expr.size(), compFunc_.size() );
-
-      for ( uint_t k = 0; k < expr.size(); ++k )
+      WALBERLA_ASSERT_GREATER_EQUAL( expr.size(), compFunc_.size() );
+      WALBERLA_DEBUG_SECTION()
+      {
+         if ( expr.size() > compFunc_.size() )
+         {
+            WALBERLA_LOG_WARNING_ON_ROOT( "CSFVectorFunction::interpolate(): Ignoring excess std::functions!" );
+         }
+      }
+      for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
          compFunc_[k]->interpolate( expr[k], level, flag );
       }
