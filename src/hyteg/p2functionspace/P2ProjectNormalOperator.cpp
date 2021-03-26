@@ -43,7 +43,18 @@ void P2ProjectNormalOperator::project( const P2Function< real_t >& dst_u,
 
 void P2ProjectNormalOperator::project( const P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag ) const
 {
-   project( dst.uvw[0], dst.uvw[1], dst.uvw[2], level, flag );
+   // This way of delegation will not work for 2D case, as there ist no dst.uvw[2]
+   // project( dst.uvw[0], dst.uvw[1], dst.uvw[2], level, flag );
+
+   // UGLY FIX (for 2D the 3rd component function is not accessed later on anyway!)
+   if ( dst.uvw.getDimension() == 2 )
+   {
+      project( dst.uvw[0], dst.uvw[1], dst.uvw[0], level, flag );
+   }
+   else
+   {
+      project( dst.uvw[0], dst.uvw[1], dst.uvw[2], level, flag );
+   }
 }
 
 #ifdef HYTEG_BUILD_WITH_PETSC

@@ -156,7 +156,114 @@ void P1ProjectNormalOperator::project( const P1Function< real_t >& dst_u,
 
 void P1ProjectNormalOperator::project( const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const
 {
-   project( dst.uvw[0], dst.uvw[1], dst.uvw[2], level, flag );
+   // This way of delegation will not work for 2D case, as there ist no dst.uvw[2]
+   // project( dst.uvw[0], dst.uvw[1], dst.uvw[2], level, flag );
+
+   this->startTiming( "Project" );
+
+   for ( uint_t k = 0; k < dst.uvw.getDimension(); k++ )
+   {
+      dst.uvw[k].communicate< Vertex, Edge >( level );
+      dst.uvw[k].communicate< Edge, Face >( level );
+      dst.uvw[k].communicate< Face, Cell >( level );
+   }
+
+   for ( uint_t k = 0; k < dst.uvw.getDimension(); k++ )
+   {
+      dst.uvw[k].communicate< Cell, Face >( level );
+      dst.uvw[k].communicate< Face, Edge >( level );
+      dst.uvw[k].communicate< Edge, Vertex >( level );
+   }
+
+   this->timingTree_->start( "Macro-Vertex" );
+
+   for ( const auto& it : storage_->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+
+      const DoFType vertexBC = dst.uvw.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+      if ( testFlag( vertexBC, flag ) )
+      {
+         if ( storage_->hasGlobalCells() )
+         {
+            vertexdof::macrovertex::projectNormal3D< real_t >( level,
+                                                               vertex,
+                                                               storage_,
+                                                               normal_function_,
+                                                               dst.uvw[0].getVertexDataID(),
+                                                               dst.uvw[1].getVertexDataID(),
+                                                               dst.uvw[2].getVertexDataID() );
+         }
+         else
+         {
+            vertexdof::macrovertex::projectNormal2D< real_t >(
+                level, vertex, storage_, normal_function_, dst.uvw[0].getVertexDataID(), dst.uvw[1].getVertexDataID() );
+         }
+      }
+   }
+
+   this->timingTree_->stop( "Macro-Vertex" );
+
+   this->timingTree_->start( "Macro-Edge" );
+
+   if ( level >= 1 )
+   {
+      for ( const auto& it : storage_->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         const DoFType edgeBC = dst.uvw.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if ( testFlag( edgeBC, flag ) )
+         {
+            if ( storage_->hasGlobalCells() )
+            {
+               vertexdof::macroedge::projectNormal3D< real_t >( level,
+                                                                edge,
+                                                                storage_,
+                                                                normal_function_,
+                                                                dst.uvw[0].getEdgeDataID(),
+                                                                dst.uvw[1].getEdgeDataID(),
+                                                                dst.uvw[2].getEdgeDataID() );
+            }
+            else
+            {
+               vertexdof::macroedge::projectNormal2D< real_t >(
+                   level, edge, storage_, normal_function_, dst.uvw[0].getEdgeDataID(), dst.uvw[1].getEdgeDataID() );
+            }
+         }
+      }
+   }
+
+   this->timingTree_->stop( "Macro-Edge" );
+
+   this->timingTree_->start( "Macro-Face" );
+
+   if ( level >= 2 )
+   {
+      for ( const auto& it : storage_->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = dst.uvw.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            if ( storage_->hasGlobalCells() )
+            {
+               vertexdof::macroface::projectNormal3D< real_t >( level,
+                                                                face,
+                                                                storage_,
+                                                                normal_function_,
+                                                                dst.uvw[0].getFaceDataID(),
+                                                                dst.uvw[1].getFaceDataID(),
+                                                                dst.uvw[2].getFaceDataID() );
+            }
+         }
+      }
+   }
+
+   this->timingTree_->stop( "Macro-Face" );
+
+   this->stopTiming( "Project" );
 }
 
 #ifdef HYTEG_BUILD_WITH_PETSC
