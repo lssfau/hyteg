@@ -119,8 +119,8 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   u.uvw.interpolate( { collidingFlow_x, collidingFlow_y }, maxLevel, hyteg::DirichletBoundary );
-   uExact.uvw.interpolate( { collidingFlow_x, collidingFlow_y }, maxLevel );
+   u.uvw.interpolate( {collidingFlow_x, collidingFlow_y, zero}, maxLevel, hyteg::DirichletBoundary );
+   uExact.uvw.interpolate( {collidingFlow_x, collidingFlow_y, zero}, maxLevel );
    uExact.p.interpolate( collidingFlow_p, maxLevel );
 
    if ( writeVTK )

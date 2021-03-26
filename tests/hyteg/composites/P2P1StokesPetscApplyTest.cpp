@@ -108,8 +108,11 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
    err.assign( {1.0, -1.0}, {hhgDst, petscDst}, level, location );
    auto maxError = err.uvw[0].getMaxMagnitude( level );
    maxError = std::max(maxError,err.uvw[1].getMaxMagnitude( level ));
-   maxError = std::max(maxError,err.uvw[2].getMaxMagnitude( level ));
-   maxError = std::max(maxError,err.p.getMaxMagnitude( level ));
+   if ( err.uvw.getDimension() == 3 )
+   {
+      maxError = std::max( maxError, err.uvw[2].getMaxMagnitude( level ) );
+   }
+   maxError = std::max( maxError, err.p.getMaxMagnitude( level ) );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Error max Magnitude = " << maxError << " eps: " << eps );
 

@@ -222,9 +222,12 @@ void convergenceTest( uint_t level, real_t toleranceVelocityComponents, real_t t
    uint_t velocityCompDoFs = numberOfGlobalDoFs< typename FunctionType::VelocityFunction_T::Tag >( *storage, maxLevel ) / 3;
    uint_t pressureCompDoFs = numberOfGlobalDoFs< typename FunctionType::PressureFunction_T::Tag >( *storage, maxLevel );
 
-   real_t discr_l2_err_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], maxLevel ) / real_c( velocityCompDoFs ) );
-   real_t discr_l2_err_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], maxLevel ) / real_c( velocityCompDoFs ) );
-   real_t discr_l2_err_w = std::sqrt( err.uvw[2].dotGlobal( err.uvw[2], maxLevel ) / real_c( velocityCompDoFs ) );
+   real_t discr_l2_err_u = real_c(0);
+   real_t discr_l2_err_v = real_c(0);
+   real_t discr_l2_err_w = real_c(0);
+   for( uint_t k = 0; k < err.uvw.getDimension(); k++ ) {
+     discr_l2_err_u = std::sqrt( err.uvw[k].dotGlobal( err.uvw[k], maxLevel ) / real_c( velocityCompDoFs ) );
+   }
    real_t discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, maxLevel ) / real_c( pressureCompDoFs ) );
    real_t residuum_l2    = std::sqrt( r.dotGlobal( r, maxLevel ) / real_c( 3 * velocityCompDoFs + pressureCompDoFs ) );
 

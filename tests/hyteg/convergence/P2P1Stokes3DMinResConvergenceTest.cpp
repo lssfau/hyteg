@@ -164,12 +164,12 @@ void stokesMinResConvergenceTest()
 #if 0
    u.w.interpolate( inflowPoiseuille, maxLevel, hyteg::DirichletBoundary );
 #else
-   u.uvw.interpolate( { collidingFlow_x, collidingFlow_y } , maxLevel, hyteg::DirichletBoundary );
-   uExact.uvw.interpolate( { collidingFlow_x, collidingFlow_y }, maxLevel );
+   u.uvw.interpolate( {collidingFlow_x, collidingFlow_y, zero}, maxLevel, hyteg::DirichletBoundary );
+   uExact.uvw.interpolate( {collidingFlow_x, collidingFlow_y, zero}, maxLevel );
    uExact.p.interpolate( collidingFlow_p, maxLevel );
 #endif
 
-//   vtkOutput.write( maxLevel, 0 );
+   //   vtkOutput.write( maxLevel, 0 );
 
    typedef hyteg::StokesPressureBlockPreconditioner< P2P1StokesOperator, hyteg::P1LumpedInvMassOperator >
         PressurePreconditioner_T;

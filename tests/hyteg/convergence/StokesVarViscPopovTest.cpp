@@ -430,7 +430,9 @@ void popovBenchmark( uint_t          level,
 
    real_t discr_l2_err_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], maxLevel ) / real_c( velocityCompDoFs ) );
    real_t discr_l2_err_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], maxLevel ) / real_c( velocityCompDoFs ) );
-   real_t discr_l2_err_w = std::sqrt( err.uvw[2].dotGlobal( err.uvw[2], maxLevel ) / real_c( velocityCompDoFs ) );
+   real_t discr_l2_err_w = err.uvw.getDimension() == 3 ?
+                               std::sqrt( err.uvw[2].dotGlobal( err.uvw[2], maxLevel ) / real_c( velocityCompDoFs ) ) :
+                               real_c( 0 );
    real_t discr_l2_err_p = std::sqrt( err.p.dotGlobal( err.p, maxLevel ) / real_c( pressureCompDoFs ) );
 
    errorResults.addErrorsL2( maxLevel, discr_l2_err_u, discr_l2_err_v, discr_l2_err_w, discr_l2_err_p );

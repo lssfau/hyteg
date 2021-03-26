@@ -217,9 +217,7 @@ class P2P1TaylorHoodFunction
 
    void setVelocityBoundaryCondition( BoundaryCondition bc )
    {
-      uvw[0].setBoundaryCondition( bc );
-      uvw[1].setBoundaryCondition( bc );
-      uvw[2].setBoundaryCondition( bc );
+      uvw.setBoundaryCondition( bc );
    }
 
    void setPressureBoundaryCondition( BoundaryCondition bc ) { p.setBoundaryCondition( bc ); }
