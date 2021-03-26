@@ -190,9 +190,10 @@ class P2P1TaylorHoodFunction
          offset += static_cast< ValueType >( doFsPerRank[i] );
       }
 
-      uvw[0].enumerate( level, offset );
-      uvw[1].enumerate( level, offset );
-      uvw[2].enumerate( level, offset );
+      for ( uint_t k = 0; k < uvw.getDimension(); k++ )
+      {
+         uvw[k].enumerate( level, offset );
+      }
       p.enumerate( level, offset );
    }
 
