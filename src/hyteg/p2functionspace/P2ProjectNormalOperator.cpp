@@ -47,14 +47,8 @@ void P2ProjectNormalOperator::project( const P2P1TaylorHoodFunction< real_t >& d
    // project( dst.uvw[0], dst.uvw[1], dst.uvw[2], level, flag );
 
    // UGLY FIX (for 2D the 3rd component function is not accessed later on anyway!)
-   if ( dst.uvw.getDimension() == 2 )
-   {
-      project( dst.uvw[0], dst.uvw[1], dst.uvw[0], level, flag );
-   }
-   else
-   {
-      project( dst.uvw[0], dst.uvw[1], dst.uvw[2], level, flag );
-   }
+   uint_t idx = dst.uvw.getDimension() == 2 ? 0 : 2;
+   project( dst.uvw[0], dst.uvw[1], dst.uvw[idx], level, flag );
 }
 
 #ifdef HYTEG_BUILD_WITH_PETSC
@@ -71,6 +65,17 @@ void P2ProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< Sparse
    edgeDoFOperator.assembleLocalMatrix(
        mat, numU.getEdgeDoFFunction(), numV.getEdgeDoFFunction(), numW.getEdgeDoFFunction(), level, flag );
 }
+
+void P2ProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                   const P2VectorFunction< PetscInt >&         num,
+                                                   uint_t                                      level,
+                                                   DoFType                                     flag )
+{
+   // UGLY FIX (for 2D the 3rd component function is not accessed later on anyway!)
+   uint_t idx = num.getDimension() == 2 ? 0 : 2;
+   assembleLocalMatrix( mat, num[0], num[1], num[idx], level, flag );
+}
+
 #endif
 
 } // namespace hyteg

@@ -113,7 +113,8 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
       hyteg::petsc::createMatrix< OpType >( *op_, numeratorSrc, numeratorDst, matProxyOp, level, flag );
 
       auto matProxyProjectionPost = mat->createCopy();
-      projOp_->assembleLocalMatrix( matProxyProjectionPost, numeratorSrc.uvw[0], numeratorSrc.uvw[1], numeratorSrc.uvw[2], level, projFlag_ );
+      // projOp_->assembleLocalMatrix( matProxyProjectionPost, numeratorSrc.uvw[0], numeratorSrc.uvw[1], numeratorSrc.uvw[2], level, projFlag_ );
+      projOp_->assembleLocalMatrix( matProxyProjectionPost, numeratorSrc.uvw, level, projFlag_ );
 
       // we need the Id also in the pressure block
       petsc::saveIdentityOperator( numeratorDst.p, matProxyProjectionPost, level, All );
@@ -125,7 +126,8 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
       if ( PreProjection )
       {
          auto matProxyProjectionPre = mat->createCopy();
-         projOp_->assembleLocalMatrix( matProxyProjectionPre, numeratorSrc.uvw[0], numeratorSrc.uvw[1], numeratorSrc.uvw[2], level, projFlag_ );
+         // projOp_->assembleLocalMatrix( matProxyProjectionPre, numeratorSrc.uvw[0], numeratorSrc.uvw[1], numeratorSrc.uvw[2], level, projFlag_ );
+         projOp_->assembleLocalMatrix( matProxyProjectionPre, numeratorSrc.uvw, level, projFlag_ );
 
          petsc::saveIdentityOperator( numeratorDst.p, matProxyProjectionPre, level, All );
 
