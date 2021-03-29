@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "hyteg/gridtransferoperators/P1toP2Conversion.hpp"
+#include "hyteg/gridtransferoperators/P2toP1Conversion.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/gridtransferoperators/ProlongationOperator.hpp"
 #include "hyteg/memory/FunctionMemory.hpp"
@@ -41,9 +43,9 @@ public:
 
   inline void prolongate( const P1Function< real_t >& function, const uint_t& sourceLevel, const DoFType& flag ) const override
   {
-    tmp_.assign( function, sourceLevel - 1, All );
+    P1toP2Conversion( function, tmp_, sourceLevel - 1, All );
     quadraticProlongation_.prolongate( tmp_, sourceLevel - 1, flag );
-    function.assign( tmp_, sourceLevel + 1, All );
+    P2toP1Conversion( tmp_, function, sourceLevel + 1, All );
   }
 
 private:

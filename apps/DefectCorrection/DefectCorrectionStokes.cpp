@@ -30,6 +30,8 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
+#include "hyteg/gridtransferoperators/P1toP2Conversion.hpp"
+#include "hyteg/gridtransferoperators/P2toP1Conversion.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
@@ -39,10 +41,10 @@
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
-#include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
@@ -170,8 +172,10 @@ static void defectCorrection( int argc, char** argv )
    tmp_P2.uvw.v.interpolate( rhsV, maxLevel - 1, All );
    M_P2.apply( tmp_P2.uvw.u, f_P2.uvw.u, maxLevel - 1, All );
    M_P2.apply( tmp_P2.uvw.v, f_P2.uvw.v, maxLevel - 1, All );
-   f_P2_on_P1_space.uvw.u.assign( f_P2.uvw.u, maxLevel, All );
-   f_P2_on_P1_space.uvw.v.assign( f_P2.uvw.v, maxLevel, All );
+   // f_P2_on_P1_space.uvw.u.assign( f_P2.uvw.u, maxLevel, All );
+   // f_P2_on_P1_space.uvw.v.assign( f_P2.uvw.v, maxLevel, All );
+   P2toP1Conversion( f_P2.uvw.u, f_P2_on_P1_space.uvw.u, maxLevel, All );
+   P2toP1Conversion( f_P2.uvw.v, f_P2_on_P1_space.uvw.v, maxLevel, All );
 
    tmp.uvw.u.interpolate( rhsU, maxLevel, All );
    tmp.uvw.v.interpolate( rhsV, maxLevel, All );
@@ -263,17 +267,17 @@ static void defectCorrection( int argc, char** argv )
 
       // A_higher_order * u (quadratic)
       // u_quadratic is given by direct injection of the linear coefficients
-      u_P2.uvw.u.assign( u.uvw.u, maxLevel - 1, All );
-      u_P2.uvw.v.assign( u.uvw.v, maxLevel - 1, All );
-      u_P2.uvw.w.assign( u.uvw.w, maxLevel - 1, All );
-      u_P2.p.assign( u.p, maxLevel - 1, All );
+      P1toP2Conversion( u.uvw.u, u_P2.uvw.u, maxLevel - 1, All );
+      P1toP2Conversion( u.uvw.v, u_P2.uvw.v, maxLevel - 1, All );
+      P1toP2Conversion( u.uvw.w, u_P2.uvw.w, maxLevel - 1, All );
+      P1toP2Conversion( u.p, u_P2.p, maxLevel - 1, All );
 
       A_P2.apply( u_P2, Au_P2, maxLevel - 1, Inner );
 
-      Au_P2_converted_to_P1.uvw.u.assign( Au_P2.uvw.u, maxLevel, All );
-      Au_P2_converted_to_P1.uvw.v.assign( Au_P2.uvw.v, maxLevel, All );
-      Au_P2_converted_to_P1.uvw.w.assign( Au_P2.uvw.w, maxLevel, All );
-      Au_P2_converted_to_P1.p.assign( Au_P2.p, maxLevel, All );
+      P2toP1Conversion( Au_P2.uvw.u, Au_P2_converted_to_P1.uvw.u, maxLevel, All );
+      P2toP1Conversion( Au_P2.uvw.v, Au_P2_converted_to_P1.uvw.v, maxLevel, All );
+      P2toP1Conversion( Au_P2.uvw.w, Au_P2_converted_to_P1.uvw.w, maxLevel, All );
+      P2toP1Conversion( Au_P2.p, Au_P2_converted_to_P1.p, maxLevel, All );
 
       // defect correction
       // f_correction = f - (A_higher_order * u^i-1) + (A * u^i-1)
