@@ -19,7 +19,6 @@
  */
 
 #include "hyteg/gridtransferoperators/P2toP1Conversion.hpp"
-
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
@@ -154,9 +153,29 @@ void P1toP2Conversion( const P1Function< ValueType >& src,
    storage->getTimingTree()->stop( "P1toP2Conversion" );
 }
 
+template < typename ValueType >
+void P1toP2Conversion( const P1VectorFunction< ValueType >& src,
+                       const P2VectorFunction< ValueType >& dst,
+                       const uint_t&                        P2Level,
+                       const DoFType&                       flag )
+{
+   for ( uint_t k = 0; k < src.getDimension(); k++ )
+   {
+      P1toP2Conversion( src[k], dst[k], P2Level, flag );
+   }
+}
+
+// -------------------------
+//  Explicit instantiations
+// -------------------------
 template void P1toP2Conversion< real_t >( const P1Function< real_t >& src,
                                           const P2Function< real_t >& dst,
                                           const uint_t&               P2Level,
                                           const DoFType&              flag );
+
+template void P1toP2Conversion( const P1VectorFunction< real_t >& src,
+                                const P2VectorFunction< real_t >& dst,
+                                const uint_t&                     P2Level,
+                                const DoFType&                    flag );
 
 } // namespace hyteg

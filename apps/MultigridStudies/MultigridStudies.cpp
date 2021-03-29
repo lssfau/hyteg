@@ -754,24 +754,19 @@ void DCStokesRHSSetup< P1StokesOperator, P1StokesFunction< real_t > >( const std
    tmp_P2.uvw.interpolate( { rhsU, rhsV }, p2Level, All );
    M_P2.apply( tmp_P2.uvw[0], f_P2.uvw[0], p2Level, All );
    M_P2.apply( tmp_P2.uvw[1], f_P2.uvw[1], p2Level, All );
-   P2toP1Conversion( f_P2.uvw[0], f_P2_on_P1_space.uvw[0], p1Level, All );
-   P2toP1Conversion( f_P2.uvw[1], f_P2_on_P1_space.uvw[1], p1Level, All );
+   P2toP1Conversion( f_P2.uvw, f_P2_on_P1_space.uvw, p1Level, All );
 
    // A * u (linear)
    p1StokesOperator.apply( u, Au_P1, p1Level, Inner );
 
    // A_higher_order * u (quadratic)
    // u_quadratic is given by direct injection of the linear coefficients
-   P1toP2Conversion( u.uvw.u, u_P2.uvw.u, p2Level, All );
-   P1toP2Conversion( u.uvw.v, u_P2.uvw.v, p2Level, All );
-   P1toP2Conversion( u.uvw.w, u_P2.uvw.w, p2Level, All );
+   P1toP2Conversion( u.uvw, u_P2.uvw, p2Level, All );
    P1toP2Conversion( u.p, u_P2.p, p2Level, All );
 
    A_P2.apply( u_P2, Au_P2, p2Level, Inner );
 
-   P2toP1Conversion( Au_P2.uvw[0], Au_P2_converted_to_P1.uvw[0], p1Level, All );
-   P2toP1Conversion( Au_P2.uvw[1], Au_P2_converted_to_P1.uvw[1], p1Level, All );
-   P2toP1Conversion( Au_P2.uvw[2], Au_P2_converted_to_P1.uvw[2], p1Level, All );
+   P2toP1Conversion( Au_P2.uvw, Au_P2_converted_to_P1.uvw, p1Level, All );
    P2toP1Conversion( Au_P2.p, Au_P2_converted_to_P1.p, p1Level, All );
 
    // defect correction

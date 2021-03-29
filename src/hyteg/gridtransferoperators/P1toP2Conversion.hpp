@@ -21,7 +21,9 @@
 #pragma once
 
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2VectorFunction.hpp"
 
 namespace hyteg {
 
@@ -34,4 +36,15 @@ void P1toP2Conversion( const P1Function< ValueType >& src,
                        const P2Function< ValueType >& dst,
                        const uint_t&                  P2Level,
                        const DoFType&                 flag = All );
-}
+
+/// Convert a P1 to a P2 vector function
+///
+/// The function takes a P1VectorFunction on level (P2Level-1) and converts it to a P2VectorFunction on level P2Level by
+/// assigning the DoFs of the P1VectorFunction to those of the P2VectorFunction on the coarser mesh level.
+template < typename ValueType >
+void P1toP2Conversion( const P1VectorFunction< ValueType >& src,
+                       const P2VectorFunction< ValueType >& dst,
+                       const uint_t&                        P2Level,
+                       const DoFType&                       flag = All );
+
+} // namespace hyteg

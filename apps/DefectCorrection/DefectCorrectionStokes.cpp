@@ -169,8 +169,7 @@ static void defectCorrection( int argc, char** argv )
    tmp_P2.uvw.interpolate( { rhsU, rhsV }, maxLevel - 1, All );
    M_P2.apply( tmp_P2.uvw[0], f_P2.uvw[0], maxLevel - 1, All );
    M_P2.apply( tmp_P2.uvw[1], f_P2.uvw[1], maxLevel - 1, All );
-   P2toP1Conversion( f_P2.uvw[0] f_P2_on_P1_space.uvw[0], maxLevel, All );
-   P2toP1Conversion( f_P2.uvw[1], f_P2_on_P1_space.uvw[1], maxLevel, All );
+   P2toP1Conversion( f_P2.uvw, f_P2_on_P1_space.uvw, maxLevel, All );
 
    tmp.uvw.interpolate( { rhsU, rhsV }, maxLevel, All );
    M_P1.apply( tmp.uvw[0], f.uvw[0], maxLevel, All );
@@ -261,16 +260,12 @@ static void defectCorrection( int argc, char** argv )
 
       // A_higher_order * u (quadratic)
       // u_quadratic is given by direct injection of the linear coefficients
-      P1toP2Conversion( u.uvw[0], u_P2.uvw[0], maxLevel - 1, All );
-      P1toP2Conversion( u.uvw[1], u_P2.uvw[1], maxLevel - 1, All );
-      P1toP2Conversion( u.uvw[2], u_P2.uvw[2], maxLevel - 1, All );
+      P1toP2Conversion( u.uvw, u_P2.uvw, maxLevel - 1, All );
       P1toP2Conversion( u.p, u_P2.p, maxLevel - 1, All );
 
       A_P2.apply( u_P2, Au_P2, maxLevel - 1, Inner );
 
-      P2toP1Conversion( Au_P2.uvw[0], Au_P2_converted_to_P1.uvw[0], maxLevel, All );
-      P2toP1Conversion( Au_P2.uvw[1], Au_P2_converted_to_P1.uvw[1], maxLevel, All );
-      P2toP1Conversion( Au_P2.uvw[2], Au_P2_converted_to_P1.uvw[2], maxLevel, All );
+      P2toP1Conversion( Au_P2.uvw, Au_P2_converted_to_P1.uvw, maxLevel, All );
       P2toP1Conversion( Au_P2.p, Au_P2_converted_to_P1.p, maxLevel, All );
 
       // defect correction
