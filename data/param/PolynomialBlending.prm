@@ -16,7 +16,7 @@ Parameters
   operatorType 4;
 
   # parameters for surrogate polynomials;
-  interpolationLevel 5;
+  interpolationLevel 4;
   polyDegree 5;
 
   annulus 0;# else rectangle;

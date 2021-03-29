@@ -22,12 +22,8 @@
 
 #include "hyteg/p1functionspace/P1Operator.hpp"
 
-#include "hyteg/forms/form_hyteg_generated/P1FormDiv.hpp"
-#include "hyteg/forms/form_hyteg_generated/P1FormDivT.hpp"
-#include "hyteg/forms/form_hyteg_generated/P1FormEpsilon.hpp"
-#include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
-#include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
-#include "hyteg/forms/form_hyteg_generated/P1FormPSPG.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
 
 #include "hyteg/polynomial/PolynomialEvaluator.hpp"
 #include "hyteg/polynomial/LSQPInterpolator.hpp"
@@ -411,10 +407,12 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
 };
 
 // todo: use correct forms
+typedef P1SurrogateOperator_new< forms::p1_diffusion_blending_q3 > P1SurrogateLaplaceOperator_new;
 // typedef P1SurrogateOperator_new< P1Form_laplace > P1BlendingLaplaceOperator_new;
-typedef P1SurrogateOperator_new< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise >> P1SurrogateLaplaceOperator_new;
+// typedef P1SurrogateOperator_new< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise >> P1SurrogateLaplaceOperator_new;
 // typedef P1SurrogateOperator_new< P1Form_mass >    P1BlendingMassOperator_new;
-typedef P1SurrogateOperator_new< P1Form_mass >    P1SurrogateMassOperator_new;
+// typedef P1SurrogateOperator_new< P1Form_mass >    P1SurrogateMassOperator_new;
+typedef P1SurrogateOperator_new< forms::p1_mass_blending_q4 >    P1SurrogateMassOperator_new;
 
 // typedef P1VariableOperator< P1Form_epsilon_11 > P1BlendingEpsilonOperator_11;
 // typedef P1VariableOperator< P1Form_epsilon_12 > P1BlendingEpsilonOperator_12;
