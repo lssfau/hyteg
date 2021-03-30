@@ -160,8 +160,6 @@ class P2Function : public Function< P2Function< ValueType > >
                 uint_t                                                                        level,
                 DoFType                                                                       flag = All ) const;
 
-   void assign( const P1Function< ValueType >& src, const uint_t& P2Level, const DoFType& flag = All ) const;
-
    void add( const ValueType& scalar, uint_t level, DoFType flag = All ) const;
 
    void add( const std::vector< ValueType >&                                               scalars,

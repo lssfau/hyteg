@@ -42,8 +42,10 @@
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/gridtransferoperators/P1toP1QuadraticProlongation.hpp"
+#include "hyteg/gridtransferoperators/P1toP2Conversion.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
+#include "hyteg/gridtransferoperators/P2toP1Conversion.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "hyteg/memory/MemoryAllocation.hpp"
@@ -759,25 +761,29 @@ void DCStokesRHSSetup< P1StokesOperator, P1StokesFunction< real_t > >( const std
    tmp_P2.uvw.v.interpolate( rhsV, p2Level, All );
    M_P2.apply( tmp_P2.uvw.u, f_P2.uvw.u, p2Level, All );
    M_P2.apply( tmp_P2.uvw.v, f_P2.uvw.v, p2Level, All );
-   f_P2_on_P1_space.uvw.u.assign( f_P2.uvw.u, p1Level, All );
-   f_P2_on_P1_space.uvw.v.assign( f_P2.uvw.v, p1Level, All );
+   P2toP1Conversion( f_P2.uvw.u, f_P2_on_P1_space.uvw.u, p1Level, All );
+   P2toP1Conversion( f_P2.uvw.v, f_P2_on_P1_space.uvw.v, p1Level, All );
 
    // A * u (linear)
    p1StokesOperator.apply( u, Au_P1, p1Level, Inner );
 
    // A_higher_order * u (quadratic)
    // u_quadratic is given by direct injection of the linear coefficients
-   u_P2.uvw.u.assign( u.uvw.u, p2Level, All );
-   u_P2.uvw.v.assign( u.uvw.v, p2Level, All );
-   u_P2.uvw.w.assign( u.uvw.w, p2Level, All );
-   u_P2.p.assign( u.p, p2Level, All );
+   // u_P2.uvw.u.assign( u.uvw.u, p2Level, All );
+   // u_P2.uvw.v.assign( u.uvw.v, p2Level, All );
+   // u_P2.uvw.w.assign( u.uvw.w, p2Level, All );
+   // u_P2.p.assign( u.p, p2Level, All );
+   P1toP2Conversion( u.uvw.u, u_P2.uvw.u, p2Level, All );
+   P1toP2Conversion( u.uvw.v, u_P2.uvw.v, p2Level, All );
+   P1toP2Conversion( u.uvw.w, u_P2.uvw.w, p2Level, All );
+   P1toP2Conversion( u.p, u_P2.p, p2Level, All );
 
    A_P2.apply( u_P2, Au_P2, p2Level, Inner );
 
-   Au_P2_converted_to_P1.uvw.u.assign( Au_P2.uvw.u, p1Level, All );
-   Au_P2_converted_to_P1.uvw.v.assign( Au_P2.uvw.v, p1Level, All );
-   Au_P2_converted_to_P1.uvw.w.assign( Au_P2.uvw.w, p1Level, All );
-   Au_P2_converted_to_P1.p.assign( Au_P2.p, p1Level, All );
+   P2toP1Conversion( Au_P2.uvw.u, Au_P2_converted_to_P1.uvw.u, p1Level, All );
+   P2toP1Conversion( Au_P2.uvw.v, Au_P2_converted_to_P1.uvw.v, p1Level, All );
+   P2toP1Conversion( Au_P2.uvw.w, Au_P2_converted_to_P1.uvw.w, p1Level, All );
+   P2toP1Conversion( Au_P2.p, Au_P2_converted_to_P1.p, p1Level, All );
 
    // defect correction
    // f_correction = f - (A_higher_order * u^i-1) + (A * u^i-1)
