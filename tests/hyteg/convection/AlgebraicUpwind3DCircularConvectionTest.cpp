@@ -134,6 +134,10 @@ int main( int argc, char* argv[] )
      return conicalBody( x ) + gaussianCone( x ) + slottedCylinder( x );
    };
 
+   std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& x ) -> real_t {
+     return real_c(0);
+   };
+
    auto vel_x = []( const hyteg::Point3D& x ) -> real_t {
      return 0.5 - x[1];
    };
@@ -144,17 +148,16 @@ int main( int argc, char* argv[] )
 
    writeDomainPartitioningVTK( storage, "../../output", "AlgebraicUpwind3DCircularConvectionTest_Domain" );
 
-   typedef P1Function< real_t >   FunctionType;
-   typedef P1ConstantMassOperator MassOperator;
+   typedef P1Function< real_t >       FunctionType;
+   typedef P1VectorFunction< real_t > VFType;
+   typedef P1ConstantMassOperator     MassOperator;
 
    FunctionType c( "c", storage, minLevel, maxLevel );
    FunctionType cInitial( "cInitial", storage, minLevel, maxLevel );
    FunctionType cError( "cError", storage, minLevel, maxLevel );
    FunctionType cMass( "cError", storage, minLevel, maxLevel );
-   FunctionType u( "u", storage, minLevel, maxLevel );
-   FunctionType v( "v", storage, minLevel, maxLevel );
-   FunctionType w( "w", storage, minLevel, maxLevel );
    FunctionType velocityMagnitude( "velocityMagnitude", storage, minLevel, maxLevel );
+   VFType       velocity( "velocity", storage, minLevel, maxLevel );
 
    FunctionType tmp0( "tmp0", storage, minLevel, maxLevel );
    FunctionType tmp1( "tmp1", storage, minLevel, maxLevel );
@@ -162,9 +165,7 @@ int main( int argc, char* argv[] )
    MassOperator                  M( storage, minLevel, maxLevel );
    P1Transport                   transport( storage, minLevel, maxLevel );
 
-   u.interpolate( vel_x, maxLevel );
-   v.interpolate( vel_y, maxLevel );
-   w.interpolate( 0, maxLevel );
+   velocity.interpolate( {vel_x, vel_y, zero}, maxLevel );
    c.interpolate( initialBodies, maxLevel );
    cInitial.interpolate( initialBodies, maxLevel );
 
@@ -173,7 +174,7 @@ int main( int argc, char* argv[] )
      return Point3D( {values[0], values[1], values[2]} ).norm();
    };
 
-   velocityMagnitude.interpolate( magnitude, { u, v, w }, maxLevel, All );
+   velocityMagnitude.interpolate( magnitude, { velocity[0], velocity[1], velocity[2] }, maxLevel, All );
 
 //   hyteg::VTKOutput vtkOutput( "../../output", "AlgebraicUpwind3DCircularConvectionTest", storage );
 //
@@ -198,7 +199,7 @@ int main( int argc, char* argv[] )
 
    for ( uint_t i = 1; i <= outerSteps; i++ )
    {
-      transport.step( c, u, v, w, maxLevel, Inner, dt, 0 );
+      transport.step( c, velocity, maxLevel, Inner, dt, 0 );
 
       cError.assign( {1.0, -1.0}, {c, cInitial}, maxLevel, All );
       max_temp = c.getMaxMagnitude( maxLevel, All );

@@ -245,7 +245,7 @@ int main( int argc, char* argv[] )
          time += dt;
          WALBERLA_LOG_INFO("time = " << time);
 
-         transportOperator.step(temp, u.uvw[0], u.uvw[1], u.uvw[2], maxLevel, Inner, dt, viscosity);
+         transportOperator.step( temp, u.uvw, maxLevel, Inner, dt, viscosity );
          ++transportStep;
 
          if( transportStep % plotFrequency == 0 && mainConf.getParameter< bool >( "VTKOutput" ) )

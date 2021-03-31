@@ -353,7 +353,7 @@ int main( int argc, char* argv[] )
       for ( uint_t innerSteps = 0; innerSteps < numTimeStepsPerStokesStep; ++innerSteps )
       {
          time += dt;
-         transportOperator.step( temp, u.uvw[0], u.uvw[1], u.uvw[2], maxLevel, Inner, dt, viscosity );
+         transportOperator.step( temp, u.uvw, maxLevel, Inner, dt, viscosity );
          if ( vtkEnabled )
             vtkOutput.write( maxLevel, innerSteps + numTimeStepsPerStokesStep * stokesStep );
       }
