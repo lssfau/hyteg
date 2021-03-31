@@ -27,11 +27,11 @@
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp"
 #include "hyteg/elementwiseoperators/P2P1ElementwiseConstantCoefficientStokesOperator.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/trilinos/TrilinosVector.hpp"
-#include "hyteg/petsc/PETScManager.hpp"
-#include "hyteg/petsc/PETScSparseMatrix.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -62,9 +62,7 @@ void testSparseMatrix()
 
    auto f = []( const Point3D& p ) -> real_t { return std::sin( p[0] ) + 0.5 * p[1]; };
 
-   src.uvw.u.interpolate( f, level, All );
-   src.uvw.v.interpolate( f, level, All );
-   src.uvw.w.interpolate( f, level, All );
+   src.uvw.interpolate( {f, f, f}, level, All );
    src.p.interpolate( f, level, All );
 
    trilinos::TrilinosSparseMatrix< OperatorType, P2P1TaylorHoodFunction > matrix( storage, level );
@@ -83,9 +81,9 @@ void testSparseMatrix()
 
    error.assign( {1.0, -1.0}, {dstTrilinos, dstHyteg}, level, All );
 
-   const auto maxMagnitudeU = error.uvw.u.getMaxMagnitude( level );
-   const auto maxMagnitudeV = error.uvw.v.getMaxMagnitude( level );
-   const auto maxMagnitudeW = error.uvw.w.getMaxMagnitude( level );
+   const auto maxMagnitudeU = error.uvw[0].getMaxMagnitude( level );
+   const auto maxMagnitudeV = error.uvw[1].getMaxMagnitude( level );
+   const auto maxMagnitudeW = error.uvw[2].getMaxMagnitude( level );
    const auto maxMagnitudeP = error.p.getMaxMagnitude( level );
 
    WALBERLA_CHECK_LESS( maxMagnitudeU, 1e-14 );
@@ -95,7 +93,7 @@ void testSparseMatrix()
 }
 
 #ifdef HYTEG_BUILD_WITH_PETSC
-template< typename OperatorType >
+template < typename OperatorType >
 void compareSparseMatrixMatlabOutput()
 {
    PETScManager manager;
@@ -110,7 +108,7 @@ void compareSparseMatrixMatlabOutput()
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
-   OperatorType op( storage, level, level );
+   OperatorType                       op( storage, level, level );
    P2P1TaylorHoodFunction< PetscInt > numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
 
@@ -119,13 +117,10 @@ void compareSparseMatrixMatlabOutput()
    trilinosMatrix.applyDirichletBoundaryConditions( numerator );
    trilinosMatrix.exportToMatlabFormat( "../../output/TrilinosMatlabExport.m", "MyTrilinosMatrix" );
 
-
    PETScSparseMatrix< OperatorType, P2P1TaylorHoodFunction > petscMatrix( storage, level );
    petscMatrix.createMatrixFromOperator( op, level, numerator );
    petscMatrix.applyDirichletBC( numerator, level );
    petscMatrix.print( "../../output/PetscMatlabExport.m" );
-
-
 }
 #endif
 

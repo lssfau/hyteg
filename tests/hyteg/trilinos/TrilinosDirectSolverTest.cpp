@@ -87,12 +87,12 @@ void trilinosSolveScalarTest( const uint_t&   solverType,
    x.interpolate( exact, level, DirichletBoundary );
    x_exact.interpolate( exact, level );
 
-//   VTKOutput vtkOutput( "../../output", "P2LaplaceTrilinosSolve", storage );
-//   vtkOutput.add( x );
-//   vtkOutput.add( x_exact );
-//   vtkOutput.add( err );
-//   vtkOutput.add( b );
-//   vtkOutput.write( level, 0 );
+   //   VTKOutput vtkOutput( "../../output", "P2LaplaceTrilinosSolve", storage );
+   //   vtkOutput.add( x );
+   //   vtkOutput.add( x_exact );
+   //   vtkOutput.add( err );
+   //   vtkOutput.add( b );
+   //   vtkOutput.write( level, 0 );
 
    uint_t localDoFs  = numberOfLocalDoFs< P2FunctionTag >( *storage, level );
    uint_t globalDoFs = numberOfGlobalDoFs< P2FunctionTag >( *storage, level );
@@ -128,7 +128,7 @@ void trilinosSolveScalarTest( const uint_t&   solverType,
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error = " << discr_l2_err );
    WALBERLA_LOG_INFO_ON_ROOT( "residuum = " << residuum_l2 );
 
-//   vtkOutput.write( level, 1 );
+   //   vtkOutput.write( level, 1 );
 
    WALBERLA_CHECK_LESS( residuum_l2, resEps );
    WALBERLA_CHECK_LESS( discr_l2_err, errEps );
@@ -199,43 +199,37 @@ void trilinosSolveStokesTest( const uint_t&   solverType,
    //   std::function< real_t( const hyteg::Point3D& ) > exactP = []( const hyteg::Point3D& xx ) { return real_c(60) * std::pow( xx[0], 2.0 ) * xx[1] - real_c(20) * std::pow( xx[1], 3.0 ); };
    //   std::function< real_t( const hyteg::Point3D& ) > zero =   []( const hyteg::Point3D&    ) { return real_c(0); };
 
-   btmp.uvw.u.interpolate( forceU, level, Inner );
-   btmp.uvw.v.interpolate( forceV, level, Inner );
-   btmp.uvw.w.interpolate( forceW, level, Inner );
+   btmp.uvw.interpolate( {forceU, forceV, forceW}, level, Inner );
 
-   M.apply( btmp.uvw.u, b.uvw.u, level, All );
-   M.apply( btmp.uvw.v, b.uvw.v, level, All );
-   M.apply( btmp.uvw.w, b.uvw.w, level, All );
+   M.apply( btmp.uvw[0], b.uvw[0], level, All );
+   M.apply( btmp.uvw[1], b.uvw[1], level, All );
+   M.apply( btmp.uvw[2], b.uvw[2], level, All );
 
-   x.uvw.u.interpolate( exactU, level, DirichletBoundary );
-   x.uvw.v.interpolate( exactV, level, DirichletBoundary );
-   x.uvw.w.interpolate( exactW, level, DirichletBoundary );
+   x.uvw.interpolate( {exactU, exactV, exactW}, level, DirichletBoundary );
 
-   x_exact.uvw.u.interpolate( exactU, level );
-   x_exact.uvw.v.interpolate( exactV, level );
-   x_exact.uvw.w.interpolate( exactW, level );
+   x_exact.uvw.interpolate( {exactU, exactV, exactW}, level );
    x_exact.p.interpolate( exactP, level );
 
    vertexdof::projectMean( x_exact.p, level );
 
-//   VTKOutput vtkOutput( "../../output", "P2P1Stokes3DTrilinosSolve", storage );
-//   vtkOutput.add( x.u );
-//   vtkOutput.add( x.v );
-//   vtkOutput.add( x.w );
-//   vtkOutput.add( x.p );
-//   vtkOutput.add( x_exact.u );
-//   vtkOutput.add( x_exact.v );
-//   vtkOutput.add( x_exact.w );
-//   vtkOutput.add( x_exact.p );
-//   vtkOutput.add( err.u );
-//   vtkOutput.add( err.v );
-//   vtkOutput.add( err.w );
-//   vtkOutput.add( err.p );
-//   vtkOutput.add( b.u );
-//   vtkOutput.add( b.v );
-//   vtkOutput.add( b.w );
-//   vtkOutput.add( b.p );
-//   vtkOutput.write( level, 0 );
+   //   VTKOutput vtkOutput( "../../output", "P2P1Stokes3DTrilinosSolve", storage );
+   //   vtkOutput.add( x.u );
+   //   vtkOutput.add( x.v );
+   //   vtkOutput.add( x.w );
+   //   vtkOutput.add( x.p );
+   //   vtkOutput.add( x_exact.u );
+   //   vtkOutput.add( x_exact.v );
+   //   vtkOutput.add( x_exact.w );
+   //   vtkOutput.add( x_exact.p );
+   //   vtkOutput.add( err.u );
+   //   vtkOutput.add( err.v );
+   //   vtkOutput.add( err.w );
+   //   vtkOutput.add( err.p );
+   //   vtkOutput.add( b.u );
+   //   vtkOutput.add( b.v );
+   //   vtkOutput.add( b.w );
+   //   vtkOutput.add( b.p );
+   //   vtkOutput.write( level, 0 );
 
    uint_t localDoFs1         = numberOfLocalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
    uint_t globalDoFs1        = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, level );
@@ -269,9 +263,9 @@ void trilinosSolveStokesTest( const uint_t&   solverType,
    err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
    real_t discr_l2_err     = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_1_u = std::sqrt( err.uvw.u.dotGlobal( err.uvw.u, level ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_1_v = std::sqrt( err.uvw.v.dotGlobal( err.uvw.v, level ) / (real_t) globalDoFs1 );
-   real_t discr_l2_err_1_w = std::sqrt( err.uvw.w.dotGlobal( err.uvw.w, level ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level ) / (real_t) globalDoFs1 );
+   real_t discr_l2_err_1_w = std::sqrt( err.uvw[2].dotGlobal( err.uvw[2], level ) / (real_t) globalDoFs1 );
    real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFs1 );
    real_t residuum_l2_1    = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
 
@@ -282,7 +276,7 @@ void trilinosSolveStokesTest( const uint_t&   solverType,
    WALBERLA_LOG_INFO_ON_ROOT( "discrete L2 error p = " << discr_l2_err_1_p );
    WALBERLA_LOG_INFO_ON_ROOT( "residuum 1  = " << residuum_l2_1 );
 
-//   vtkOutput.write( level, 1 );
+   //   vtkOutput.write( level, 1 );
 
    WALBERLA_CHECK_LESS( residuum_l2_1, resEps );
    WALBERLA_CHECK_LESS( discr_l2_err_1_u + discr_l2_err_1_v, errEpsUSum );
@@ -303,14 +297,14 @@ int main( int argc, char* argv[] )
 
    trilinosSolveScalarTest( 0, 0, 3, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 1e-14, 1e-04 );
 
-//   trilinosSolveStokesTest(
-//       0, 0, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
-//   trilinosSolveStokesTest(
-//       1, 0, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
-//   trilinosSolveStokesTest(
-//       2, 0, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
-//   trilinosSolveStokesTest(
-//       2, 1, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
+   //   trilinosSolveStokesTest(
+   //       0, 0, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
+   //   trilinosSolveStokesTest(
+   //       1, 0, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
+   //   trilinosSolveStokesTest(
+   //       2, 0, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
+   //   trilinosSolveStokesTest(
+   //       2, 1, 2, MeshInfo::meshCuboid( Point3D( {0, 0, 0} ), Point3D( {1, 1, 1} ), 1, 1, 1 ), 2.9e-12, 0.021, 0.33 );
 
    return EXIT_SUCCESS;
 }
