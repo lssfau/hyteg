@@ -179,16 +179,6 @@ struct FunctionTrait< P1VectorFunction< VType > >
    static std::string getTypeName() { return "P1VectorFunction"; }
 };
 
-/// P1VectorFunction specialization (AltKind)
-template< typename VType >
-struct FunctionTrait< P1VectorFunction_AltKind< VType > >
-{
-   typedef VType ValueType;
-   typedef P1VectorFunctionTag_AltKind Tag;
-
-   static std::string getTypeName() { return "P1VectorFunction_AltKind"; }
-};
-
 /// P2VectorFunction specialization
 template< typename VType >
 struct FunctionTrait< P2VectorFunction< VType > >

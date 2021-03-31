@@ -41,7 +41,7 @@
 namespace hyteg {
 
 template < typename vfType >
-static void testVectorFunction( bool beVerbose, std::string tag )
+static void testVectorFunction( bool beVerbose, std::string tag, std::string typeName )
 {
    const uint_t minLevel = 2;
    const uint_t maxLevel = 4;
@@ -52,6 +52,11 @@ static void testVectorFunction( bool beVerbose, std::string tag )
 
    vfType vec_f( "vecFunc", storage, minLevel, maxLevel );
    vfType aux_f( "auxFunc", storage, minLevel, maxLevel );
+
+   // Testing traits
+   FunctionTrait< vfType > vfKind;
+   WALBERLA_LOG_INFO_ON_ROOT( "Detected typename is: '" << vfKind.getTypeName() << "'" );
+   WALBERLA_CHECK_EQUAL( typeName, FunctionTrait< vfType >::getTypeName() );
 
    // Interpolate
    std::function< real_t( const hyteg::Point3D& ) > xComp = []( const Point3D& ) { return real_c( 2 ); };
@@ -113,12 +118,12 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
    WALBERLA_LOG_INFO_ON_ROOT( " Testing P1VectorFunction" );
    WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
-   hyteg::testVectorFunction< hyteg::P1VectorFunction< walberla::real_t > >( true, "P1" );
+   hyteg::testVectorFunction< hyteg::P1VectorFunction< walberla::real_t > >( true, "P1", "P1VectorFunction" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
    WALBERLA_LOG_INFO_ON_ROOT( " Testing P2VectorFunction" );
    WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
-   hyteg::testVectorFunction< hyteg::P2VectorFunction< walberla::real_t > >( true, "P2" );
+   hyteg::testVectorFunction< hyteg::P2VectorFunction< walberla::real_t > >( true, "P2", "P2VectorFunction" );
 
    return EXIT_SUCCESS;
 }
