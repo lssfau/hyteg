@@ -7,6 +7,7 @@
 stages:
    - pretest
    - test
+   - benchmark
 
 variables:
    GIT_SUBMODULE_STRATEGY: normal
@@ -1326,6 +1327,9 @@ benchmark_ClangBuildAnalyzer:
        - $CI_PROJECT_DIR/build/apps/benchmarks/ApplyPerformanceAnalysis-2D-P2/*.pdf
        - $CI_PROJECT_DIR/build/apps/benchmarks/ApplyPerformanceAnalysis-2D-P2/*.txt
      expire_in: 1 weeks
+   when: manual
+   needs: [ ]
+   stage: benchmark
 
 benchmark_intel19:
    <<: *benchmark_definition
