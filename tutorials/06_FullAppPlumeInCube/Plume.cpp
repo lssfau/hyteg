@@ -325,8 +325,8 @@ int main( int argc, char* argv[] )
    {
       /// [Simulation Stokes]
       // mass matrix applied to temperature and stored in right-hand side vector
-      M.apply( temp, f.uvw.w, maxLevel, All );
-      f.uvw.w.assign( { convectivity }, { f.uvw.w }, maxLevel, All );
+      M.apply( temp, f.uvw[2], maxLevel, All );
+      f.uvw[2].assign( { convectivity }, { f.uvw[2] }, maxLevel, All );
 
       real_t currentResidualL2 = calculateResidual();
 
@@ -353,7 +353,7 @@ int main( int argc, char* argv[] )
       for ( uint_t innerSteps = 0; innerSteps < numTimeStepsPerStokesStep; ++innerSteps )
       {
          time += dt;
-         transportOperator.step( temp, u.uvw.u, u.uvw.v, u.uvw.w, maxLevel, Inner, dt, viscosity );
+         transportOperator.step( temp, u.uvw[0], u.uvw[1], u.uvw[2], maxLevel, Inner, dt, viscosity );
          if ( vtkEnabled )
             vtkOutput.write( maxLevel, innerSteps + numTimeStepsPerStokesStep * stokesStep );
       }
