@@ -135,6 +135,7 @@ int main( int argc, char* argv[] )
    };
 
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& x ) -> real_t {
+     WALBERLA_UNUSED( x );
      return real_c(0);
    };
 
