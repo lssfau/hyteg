@@ -99,10 +99,8 @@ class P1StokesFunction
                 size_t                                                                              level,
                 DoFType                                                                             flag = All ) const
    {
-      // Admittedly that is not nice!
-      // std::vector< std::reference_wrapper< const P1VectorFunction< ValueType > > > functions_uvw;
-      std::vector< std::reference_wrapper< const CSFVectorFunction< P1Function< ValueType > > > > functions_uvw;
-      std::vector< std::reference_wrapper< const P1Function< ValueType > > >                      functions_p;
+      std::vector< std::reference_wrapper< const P1VectorFunction< ValueType > > > functions_uvw;
+      std::vector< std::reference_wrapper< const P1Function< ValueType > > >       functions_p;
 
       for ( const P1StokesFunction< ValueType >& function : functions )
       {
@@ -125,10 +123,8 @@ class P1StokesFunction
              size_t                                                                              level,
              DoFType                                                                             flag = All ) const
    {
-      // Admittedly that is not nice!
-      // std::vector< std::reference_wrapper< const P1VectorFunction< ValueType > > > functions_uvw;
-      std::vector< std::reference_wrapper< const CSFVectorFunction< P1Function< ValueType > > > > functions_uvw;
-      std::vector< std::reference_wrapper< const P1Function< ValueType > > >                      functions_p;
+      std::vector< std::reference_wrapper< const P1VectorFunction< ValueType > > > functions_uvw;
+      std::vector< std::reference_wrapper< const P1Function< ValueType > > >       functions_p;
 
       for ( const P1StokesFunction< ValueType >& function : functions )
       {

@@ -109,9 +109,7 @@ class P2P1TaylorHoodFunction
                 size_t                                                                                    level,
                 DoFType                                                                                   flag = All ) const
    {
-      // Admittedly that is not nice!
-      // std::vector< std::reference_wrapper< const VelocityFunction_T > > functions_uvw;
-      std::vector< std::reference_wrapper< const CSFVectorFunction< P2Function< ValueType > > > > functions_uvw;
+      std::vector< std::reference_wrapper< const VelocityFunction_T > > functions_uvw;
       std::vector< std::reference_wrapper< const PressureFunction_T > > functions_p;
 
       for ( const P2P1TaylorHoodFunction< ValueType >& function : functions )
@@ -135,9 +133,7 @@ class P2P1TaylorHoodFunction
              size_t                                                                                    level,
              DoFType                                                                                   flag = All ) const
    {
-      // Admittedly that is not nice!
-      // std::vector< std::reference_wrapper< const VelocityFunction_T > > functions_uvw;
-      std::vector< std::reference_wrapper< const CSFVectorFunction< P2Function< ValueType > > > > functions_uvw;
+      std::vector< std::reference_wrapper< const VelocityFunction_T > > functions_uvw;
       std::vector< std::reference_wrapper< const PressureFunction_T > > functions_p;
 
       for ( const P2P1TaylorHoodFunction< ValueType >& function : functions )

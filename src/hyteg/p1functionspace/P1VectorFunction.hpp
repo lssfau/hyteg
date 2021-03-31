@@ -29,14 +29,14 @@
 namespace hyteg {
 
 template < typename ValueType >
-class P1VectorFunction : public CSFVectorFunction< P1Function< ValueType > >
+class P1VectorFunction : public CSFVectorFunction< P1VectorFunction< ValueType > >
 {
  public:
    using valueType = ValueType;
 
    using FunctionType = P1VectorFunction< ValueType >;
 
-   using VectorComponentType = P1Function< ValueType >;
+   typedef P1Function< ValueType > VectorComponentType;
 
    using Tag = typename FunctionTrait< P1VectorFunction< ValueType > >::Tag;
 
@@ -44,7 +44,7 @@ class P1VectorFunction : public CSFVectorFunction< P1Function< ValueType > >
                      const std::shared_ptr< PrimitiveStorage >& storage,
                      size_t                                     minLevel,
                      size_t                                     maxLevel )
-   : CSFVectorFunction< P1Function< ValueType > >( _name )
+   : CSFVectorFunction< P1VectorFunction< ValueType > >( _name )
    {
       this->compFunc_.clear();
       this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_u", storage, minLevel, maxLevel ) );
