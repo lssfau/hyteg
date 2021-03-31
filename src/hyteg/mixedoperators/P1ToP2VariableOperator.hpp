@@ -22,91 +22,96 @@
 
 #include <array>
 #include <hyteg/Operator.hpp>
-
-#include "hyteg/types/pointnd.hpp"
-
+#include <hyteg/communication/Syncing.hpp>
 #include <hyteg/mixedoperators/variablestencil/P2P1VariableStencilCommon.hpp>
-
-#include "hyteg/forms/form_hyteg_manual/P1ToP2FormDivT.hpp"
-#include "hyteg/forms/form_hyteg_manual/P2ToP1FormDiv.hpp"
-
 #include <hyteg/p1functionspace/VertexDoFFunction.hpp>
 #include <hyteg/p2functionspace/P2Function.hpp>
 
-#include <hyteg/communication/Syncing.hpp>
+#include "hyteg/forms/form_hyteg_manual/P1ToP2FormDivT.hpp"
+#include "hyteg/forms/form_hyteg_manual/P2ToP1FormDiv.hpp"
+#include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
 
 using walberla::real_t;
 
-template< class P1ToP2Form >
-class P1ToP2VariableOperator : public Operator<P1Function<real_t>, P2Function<real_t>>
+template < class P1ToP2Form >
+class P1ToP2VariableOperator : public Operator< P1Function< real_t >, P2Function< real_t > >
 {
  public:
-
-   P1ToP2VariableOperator(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel)
-      : Operator(storage, minLevel, maxLevel)
+   P1ToP2VariableOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   : Operator( storage, minLevel, maxLevel )
    {}
 
-   void apply(const P1Function< real_t >& src,
-              const P2Function< real_t >& dst,
-              size_t                      level,
-              DoFType                     flag,
-              UpdateType                  updateType = Replace) const
+   void apply( const P1Function< real_t >& src,
+               const P2Function< real_t >& dst,
+               size_t                      level,
+               DoFType                     flag,
+               UpdateType                  updateType = Replace ) const
    {
-      communication::syncFunctionBetweenPrimitives(src, level);
+      communication::syncFunctionBetweenPrimitives( src, level );
 
-      const vertexdof::VertexDoFFunction<real_t>&  dstVertexDoF   = dst.getVertexDoFFunction();
-      const EdgeDoFFunction<real_t>&               dstEdgeDoF     = dst.getEdgeDoFFunction();
+      const vertexdof::VertexDoFFunction< real_t >& dstVertexDoF = dst.getVertexDoFFunction();
+      const EdgeDoFFunction< real_t >&              dstEdgeDoF   = dst.getEdgeDoFFunction();
 
-      for (auto& it : storage_->getVertices())
+      for ( auto& it : storage_->getVertices() )
       {
          hyteg::Vertex& vertex = *it.second;
 
-         const DoFType vtxFlag = dst.getBoundaryCondition().getBoundaryType(vertex.getMeshBoundaryFlag());
+         const DoFType vtxFlag = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
 
-         if (testFlag(vtxFlag, flag))
+         if ( testFlag( vtxFlag, flag ) )
          {
-            P1toP2::variablestencil::macrovertex::applyVariableStencil<P1ToP2Form>(level, vertex, storage_, src.getVertexDataID(), dstVertexDoF.getVertexDataID(), updateType);
+            P1toP2::variablestencil::macrovertex::applyVariableStencil< P1ToP2Form >(
+                level, vertex, storage_, src.getVertexDataID(), dstVertexDoF.getVertexDataID(), updateType );
          }
       }
 
-      for (auto& it : storage_->getEdges())
+      for ( auto& it : storage_->getEdges() )
       {
          hyteg::Edge& edge = *it.second;
 
-         const DoFType edgeFlag = dst.getBoundaryCondition().getBoundaryType(edge.getMeshBoundaryFlag());
+         const DoFType edgeFlag = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
 
-         if (testFlag(edgeFlag, flag))
+         if ( testFlag( edgeFlag, flag ) )
          {
-            P1toP2::variablestencil::macroedge::applyVariableStencil<P1ToP2Form>(level, edge, storage_, src.getEdgeDataID(), dstVertexDoF.getEdgeDataID(), dstEdgeDoF.getEdgeDataID(), updateType);
+            P1toP2::variablestencil::macroedge::applyVariableStencil< P1ToP2Form >( level,
+                                                                                    edge,
+                                                                                    storage_,
+                                                                                    src.getEdgeDataID(),
+                                                                                    dstVertexDoF.getEdgeDataID(),
+                                                                                    dstEdgeDoF.getEdgeDataID(),
+                                                                                    updateType );
          }
       }
 
-      for (auto& it : storage_->getFaces())
+      for ( auto& it : storage_->getFaces() )
       {
          hyteg::Face& face = *it.second;
 
-         const DoFType faceFlag = dst.getBoundaryCondition().getBoundaryType(face.getMeshBoundaryFlag());
+         const DoFType faceFlag = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
 
-         if (testFlag(faceFlag, flag))
+         if ( testFlag( faceFlag, flag ) )
          {
-            P1toP2::variablestencil::macroface::applyVariableStencil<P1ToP2Form>(level, face, src.getFaceDataID(), dstVertexDoF.getFaceDataID(), dstEdgeDoF.getFaceDataID(), updateType);
+            P1toP2::variablestencil::macroface::applyVariableStencil< P1ToP2Form >(
+                level, face, src.getFaceDataID(), dstVertexDoF.getFaceDataID(), dstEdgeDoF.getFaceDataID(), updateType );
          }
       }
 
-      if (storage_->hasGlobalCells())
+      if ( storage_->hasGlobalCells() )
       {
-         WALBERLA_ABORT("P1ToP2VariableOperator not implemented for 3D")
+         WALBERLA_ABORT( "P1ToP2VariableOperator not implemented for 3D" )
       }
    }
 
-   void smooth_gs(P1Function< real_t >& dst, P2Function< real_t >& rhs, size_t level, DoFType flag)
+   void smooth_gs( P1Function< real_t >& dst, P2Function< real_t >& rhs, size_t level, DoFType flag )
    {
-      WALBERLA_ABORT("not implemented");
+      WALBERLA_ABORT( "not implemented" );
    }
 };
 
-typedef P1ToP2VariableOperator< P1ToP2Form_divt< 0 >> P1ToP2BlendingDivTxOperator;
-typedef P1ToP2VariableOperator< P1ToP2Form_divt< 1 >> P1ToP2BlendingDivTyOperator;
-}
+typedef P1ToP2VariableOperator< P1ToP2Form_divt< 0 > > P1ToP2BlendingDivTxOperator;
+typedef P1ToP2VariableOperator< P1ToP2Form_divt< 1 > > P1ToP2BlendingDivTyOperator;
+typedef P1ToP2VariableOperator< P1ToP2Form_divt< 2 > > P1ToP2BlendingDivTzOperator;
+
+} // namespace hyteg

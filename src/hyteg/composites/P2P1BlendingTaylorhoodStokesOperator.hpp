@@ -79,10 +79,10 @@ class P2P1BlendingTaylorHoodStokesOperator
    P2BlendingLaplaceOperator     A;
    P2ToP1BlendingDivxOperator    div_x;
    P2ToP1BlendingDivyOperator    div_y;
-   P2ToP1ConstantDivzOperator    div_z;
+   P2ToP1BlendingDivzOperator    div_z;
    P1ToP2BlendingDivTxOperator   divT_x;
    P1ToP2BlendingDivTyOperator   divT_y;
-   P1ToP2ConstantDivTzOperator   divT_z;
+   P1ToP2BlendingDivTzOperator   divT_z;
 
    /// this operator is need in the uzawa smoother
    // P1PSPGOperator        pspg_;
