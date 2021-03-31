@@ -97,10 +97,10 @@ class P2P1SurrogateTaylorHoodStokesOperator
    P2SurrogateLaplaceOperator       A;
    P2ToP1SurrogateDivxOperator      div_x;
    P2ToP1SurrogateDivyOperator      div_y;
-   P2ToP1ConstantDivzOperator       div_z;
+   P2ToP1BlendingDivzOperator       div_z;
    P1ToP2SurrogateDivTxOperator     divT_x;
    P1ToP2SurrogateDivTyOperator     divT_y;
-   P1ToP2ConstantDivTzOperator      divT_z;
+   P1ToP2BlendingDivTzOperator      divT_z;
 
    /// this operator is need in the uzawa smoother
    // P1PSPGOperator        pspg_;
