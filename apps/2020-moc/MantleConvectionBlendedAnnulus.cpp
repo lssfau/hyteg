@@ -160,8 +160,8 @@ void runSimulation( int argc, char** argv )
    // Rayleigh number. With increasing Rayleigh number, the more does advection dominate diffusion.
    const real_t rayleighNumber = mainConf.getParameter< real_t >( "rayleighNumber" );
 
-   const bool writeVTK    = mainConf.getParameter< bool >( "writeVTK" );
-   const bool printTiming = mainConf.getParameter< bool >( "printTiming" );
+   const bool        writeVTK        = mainConf.getParameter< bool >( "writeVTK" );
+   const bool        printTiming     = mainConf.getParameter< bool >( "printTiming" );
    const std::string outputDirectory = mainConf.getParameter< std::string >( "outputDirectory" );
 
    WALBERLA_LOG_INFO_ON_ROOT( " - level:        " << maxLevel )
@@ -219,8 +219,7 @@ void runSimulation( int argc, char** argv )
       return std::sin( std::atan2( x[1], x[0] ) );
    };
 
-   outwardNormalField.uvw.u.interpolate( normalX, maxLevel );
-   outwardNormalField.uvw.v.interpolate( normalY, maxLevel );
+   outwardNormalField.uvw.interpolate( { normalX, normalY }, maxLevel );
 
    // VTK
 
@@ -259,14 +258,12 @@ void runSimulation( int argc, char** argv )
 
    for ( uint_t i = 1; i <= stepsTotal; i++ )
    {
-      uLast.assign( {1.0}, {u}, maxLevel, All );
+      uLast.assign( { 1.0 }, { u }, maxLevel, All );
 
-      M.apply( c, f.uvw.u, maxLevel, All );
-      M.apply( c, f.uvw.v, maxLevel, All );
-      f.uvw.u.multElementwise( {f.uvw.u, outwardNormalField.uvw.u}, maxLevel );
-      f.uvw.v.multElementwise( {f.uvw.v, outwardNormalField.uvw.v}, maxLevel );
-      f.uvw.u.assign( {rayleighNumber}, {f.uvw.u}, maxLevel, All );
-      f.uvw.v.assign( {rayleighNumber}, {f.uvw.v}, maxLevel, All );
+      M.apply( c, f.uvw[0], maxLevel, All );
+      M.apply( c, f.uvw[1], maxLevel, All );
+      f.uvw.multElementwise( { f.uvw, outwardNormalField.uvw }, maxLevel );
+      f.uvw.assign( { rayleighNumber }, { f.uvw }, maxLevel, All );
 
       uint_t numVCycles      = 0;
       real_t currentResidual = std::numeric_limits< real_t >::max();
@@ -274,7 +271,7 @@ void runSimulation( int argc, char** argv )
       {
          stokesSolver->solve( L, u, f, maxLevel );
          L.apply( u, tmp, maxLevel, Inner | NeumannBoundary );
-         r.assign( {1.0, -1.0}, {f, tmp}, maxLevel, Inner | NeumannBoundary );
+         r.assign( { 1.0, -1.0 }, { f, tmp }, maxLevel, Inner | NeumannBoundary );
          currentResidual = std::sqrt( r.dotGlobal( r, maxLevel, Inner | NeumannBoundary ) / real_c( totalDoFsStokes ) );
          numVCycles++;
          if ( !( numVCycles < maxNumVCycles && currentResidual > stokesResidualTolerance ) )
@@ -283,10 +280,10 @@ void runSimulation( int argc, char** argv )
              walberla::format( " %6s | %12s | %14s | %12s | %8d | %15e ", "", "", "", "", numVCycles, currentResidual ) )
       }
 
-      const auto maxVelocity = velocityMaxMagnitude( u.uvw.u, u.uvw.v, tmp.uvw.u, tmp.uvw.v, maxLevel, All );
+      const auto maxVelocity = velocityMaxMagnitude( u.uvw[0], u.uvw[1], tmp.uvw[0], tmp.uvw[1], maxLevel, All );
       const auto dt          = ( cflUpperBound / maxVelocity ) * hMin;
 
-      transport.step( c, u.uvw.u, u.uvw.v, u.uvw.w, uLast.uvw.u, uLast.uvw.v, uLast.uvw.w,  maxLevel, Inner, dt, 1, true );
+      transport.step( c, u.uvw[0], u.uvw[1], u.uvw[2], uLast.uvw[0], uLast.uvw[1], uLast.uvw[2], maxLevel, Inner, dt, 1, true );
 
       if ( writeVTK )
       {

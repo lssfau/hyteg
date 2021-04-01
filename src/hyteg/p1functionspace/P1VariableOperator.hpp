@@ -54,7 +54,7 @@ class P1VariableOperator : public Operator< P1Function< real_t >, P1Function< re
                const P1Function< real_t >& dst,
                size_t                      level,
                DoFType                     flag,
-               UpdateType                  updateType = Replace ) const
+               UpdateType                  updateType = Replace ) const override final
    {
       WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 

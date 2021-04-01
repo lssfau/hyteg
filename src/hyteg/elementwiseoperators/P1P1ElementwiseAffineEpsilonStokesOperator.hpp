@@ -76,36 +76,36 @@ class P1P1ElementwiseAffineEpsilonStokesOperator : public Operator< P1StokesFunc
                const uint_t                      level,
                const DoFType                     flag ) const
    {
-      A_0_0.apply( src.uvw.u, dst.uvw.u, level, flag );
-      A_0_1.apply( src.uvw.v, dst.uvw.u, level, flag, Add );
+      A_0_0.apply( src.uvw[0], dst.uvw[0], level, flag );
+      A_0_1.apply( src.uvw[1], dst.uvw[0], level, flag, Add );
       if ( hasGlobalCells_ )
       {
-         A_0_2.apply( src.uvw.w, dst.uvw.u, level, flag, Add );
+         A_0_2.apply( src.uvw[2], dst.uvw[0], level, flag, Add );
       }
 
-      divT_x.apply( src.p, dst.uvw.u, level, flag, Add );
+      divT_x.apply( src.p, dst.uvw[0], level, flag, Add );
 
-      A_1_0.apply( src.uvw.u, dst.uvw.v, level, flag );
-      A_1_1.apply( src.uvw.v, dst.uvw.v, level, flag, Add );
+      A_1_0.apply( src.uvw[0], dst.uvw[1], level, flag );
+      A_1_1.apply( src.uvw[1], dst.uvw[1], level, flag, Add );
       if ( hasGlobalCells_ )
       {
-         A_1_2.apply( src.uvw.w, dst.uvw.v, level, flag, Add );
+         A_1_2.apply( src.uvw[2], dst.uvw[1], level, flag, Add );
       }
-      divT_y.apply( src.p, dst.uvw.v, level, flag, Add );
+      divT_y.apply( src.p, dst.uvw[1], level, flag, Add );
 
       if ( hasGlobalCells_ )
       {
-         A_2_0.apply( src.uvw.u, dst.uvw.w, level, flag );
-         A_2_1.apply( src.uvw.v, dst.uvw.w, level, flag, Add );
-         A_2_2.apply( src.uvw.w, dst.uvw.w, level, flag, Add );
-         divT_z.apply( src.p, dst.uvw.w, level, flag, Add );
+         A_2_0.apply( src.uvw[0], dst.uvw[2], level, flag );
+         A_2_1.apply( src.uvw[1], dst.uvw[2], level, flag, Add );
+         A_2_2.apply( src.uvw[2], dst.uvw[2], level, flag, Add );
+         divT_z.apply( src.p, dst.uvw[2], level, flag, Add );
       }
 
-      div_x.apply( src.uvw.u, dst.p, level, flag );
-      div_y.apply( src.uvw.v, dst.p, level, flag, Add );
+      div_x.apply( src.uvw[0], dst.p, level, flag );
+      div_y.apply( src.uvw[1], dst.p, level, flag, Add );
       if ( hasGlobalCells_ )
       {
-         div_z.apply( src.uvw.w, dst.p, level, flag, Add );
+         div_z.apply( src.uvw[2], dst.p, level, flag, Add );
       }
 
       pspg.apply( src.p, dst.p, level, flag, Add );

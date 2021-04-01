@@ -271,7 +271,7 @@ void calculateErrorAndResidualStokes( const uint_t&                             
                                       const std::function< real_t( const Point3D& ) >& exactP,
                                       const bool&                                      projectPressure )
 {
-   auto numU = numberOfGlobalDoFs< typename Function::VelocityFunction_T::VectorComponentType::Tag >( *u.uvw.u.getStorage(), level );
+   auto numU = numberOfGlobalDoFs< typename Function::VelocityFunction_T::VectorComponentType::Tag >( *u.uvw[0].getStorage(), level );
    auto numP = numberOfGlobalDoFs< typename Function::PressureFunction_T::Tag >( *u.p.getStorage(), level );
 
    // residual (storing in error function to minimize mem overhead)
@@ -281,11 +281,11 @@ void calculateErrorAndResidualStokes( const uint_t&                             
    error.assign( {1.0, -1.0}, {f, error}, level, All );
 
    real_t sumVelocityResidualDot = 0.0;
-   sumVelocityResidualDot += error.uvw.u.dotGlobal( error.uvw.u, level, Inner | NeumannBoundary );
-   sumVelocityResidualDot += error.uvw.v.dotGlobal( error.uvw.v, level, Inner | NeumannBoundary );
-   if ( error.uvw.w.getStorage()->hasGlobalCells() )
+   sumVelocityResidualDot += error.uvw[0].dotGlobal( error.uvw[0], level, Inner | NeumannBoundary );
+   sumVelocityResidualDot += error.uvw[1].dotGlobal( error.uvw[1], level, Inner | NeumannBoundary );
+   if ( error.uvw[2].getStorage()->hasGlobalCells() )
    {
-      sumVelocityResidualDot += error.uvw.w.dotGlobal( error.uvw.w, level, Inner | NeumannBoundary );
+      sumVelocityResidualDot += error.uvw[2].dotGlobal( error.uvw[2], level, Inner | NeumannBoundary );
       sumVelocityResidualDot /= real_c( (long double) ( 3 * numU ) );
    }
    else
@@ -298,9 +298,7 @@ void calculateErrorAndResidualStokes( const uint_t&                             
 
    // error
 
-   error.uvw.u.interpolate( exactU, level, All );
-   error.uvw.v.interpolate( exactV, level, All );
-   error.uvw.w.interpolate( exactW, level, All );
+   error.uvw.interpolate( { exactU, exactV, exactW }, level, All );
    error.p.interpolate( exactP, level, All );
    error.assign( {1.0, -1.0}, {error, u}, level, All );
 
@@ -310,11 +308,11 @@ void calculateErrorAndResidualStokes( const uint_t&                             
    }
 
    real_t sumVelocityErrorDot = 0.0;
-   sumVelocityErrorDot += error.uvw.u.dotGlobal( error.uvw.u, level, Inner | NeumannBoundary );
-   sumVelocityErrorDot += error.uvw.v.dotGlobal( error.uvw.v, level, Inner | NeumannBoundary );
-   if ( error.uvw.w.getStorage()->hasGlobalCells() )
+   sumVelocityErrorDot += error.uvw[0].dotGlobal( error.uvw[0], level, Inner | NeumannBoundary );
+   sumVelocityErrorDot += error.uvw[1].dotGlobal( error.uvw[1], level, Inner | NeumannBoundary );
+   if ( error.uvw[2].getStorage()->hasGlobalCells() )
    {
-      sumVelocityErrorDot += error.uvw.w.dotGlobal( error.uvw.w, level, Inner | NeumannBoundary );
+      sumVelocityErrorDot += error.uvw[2].dotGlobal( error.uvw[2], level, Inner | NeumannBoundary );
       sumVelocityErrorDot /= real_c( (long double) ( 3 * numU ) );
    }
    else
@@ -385,16 +383,12 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
    StokesOperator A( storage, level, level );
    MassOperator   M( storage, level, level );
 
-   u.uvw.u.interpolate( exactU, level, DirichletBoundary );
-   u.uvw.v.interpolate( exactV, level, DirichletBoundary );
-   u.uvw.w.interpolate( exactW, level, DirichletBoundary );
+   u.uvw.interpolate( { exactU, exactV, exactW }, level, DirichletBoundary );
+   tmp.uvw.interpolate( { rhsU, rhsV, rhsW }, level, All );
 
-   tmp.uvw.u.interpolate( rhsU, level, All );
-   tmp.uvw.v.interpolate( rhsV, level, All );
-   tmp.uvw.w.interpolate( rhsW, level, All );
-   M.apply( tmp.uvw.u, f.uvw.u, level, All );
-   M.apply( tmp.uvw.v, f.uvw.v, level, All );
-   M.apply( tmp.uvw.w, f.uvw.w, level, All );
+   M.apply( tmp.uvw[0], f.uvw[0], level, All );
+   M.apply( tmp.uvw[1], f.uvw[1], level, All );
+   M.apply( tmp.uvw[2], f.uvw[2], level, All );
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    // auto solver = std::make_shared< PETScMinResSolver< StokesOperator > >( storage, level, 1e-16 );
@@ -757,32 +751,22 @@ void DCStokesRHSSetup< P1StokesOperator, P1StokesFunction< real_t > >( const std
 
    timer.reset();
    // set up higher order RHS
-   tmp_P2.uvw.u.interpolate( rhsU, p2Level, All );
-   tmp_P2.uvw.v.interpolate( rhsV, p2Level, All );
-   M_P2.apply( tmp_P2.uvw.u, f_P2.uvw.u, p2Level, All );
-   M_P2.apply( tmp_P2.uvw.v, f_P2.uvw.v, p2Level, All );
-   P2toP1Conversion( f_P2.uvw.u, f_P2_on_P1_space.uvw.u, p1Level, All );
-   P2toP1Conversion( f_P2.uvw.v, f_P2_on_P1_space.uvw.v, p1Level, All );
+   tmp_P2.uvw.interpolate( { rhsU, rhsV }, p2Level, All );
+   M_P2.apply( tmp_P2.uvw[0], f_P2.uvw[0], p2Level, All );
+   M_P2.apply( tmp_P2.uvw[1], f_P2.uvw[1], p2Level, All );
+   P2toP1Conversion( f_P2.uvw, f_P2_on_P1_space.uvw, p1Level, All );
 
    // A * u (linear)
    p1StokesOperator.apply( u, Au_P1, p1Level, Inner );
 
    // A_higher_order * u (quadratic)
    // u_quadratic is given by direct injection of the linear coefficients
-   // u_P2.uvw.u.assign( u.uvw.u, p2Level, All );
-   // u_P2.uvw.v.assign( u.uvw.v, p2Level, All );
-   // u_P2.uvw.w.assign( u.uvw.w, p2Level, All );
-   // u_P2.p.assign( u.p, p2Level, All );
-   P1toP2Conversion( u.uvw.u, u_P2.uvw.u, p2Level, All );
-   P1toP2Conversion( u.uvw.v, u_P2.uvw.v, p2Level, All );
-   P1toP2Conversion( u.uvw.w, u_P2.uvw.w, p2Level, All );
+   P1toP2Conversion( u.uvw, u_P2.uvw, p2Level, All );
    P1toP2Conversion( u.p, u_P2.p, p2Level, All );
 
    A_P2.apply( u_P2, Au_P2, p2Level, Inner );
 
-   P2toP1Conversion( Au_P2.uvw.u, Au_P2_converted_to_P1.uvw.u, p1Level, All );
-   P2toP1Conversion( Au_P2.uvw.v, Au_P2_converted_to_P1.uvw.v, p1Level, All );
-   P2toP1Conversion( Au_P2.uvw.w, Au_P2_converted_to_P1.uvw.w, p1Level, All );
+   P2toP1Conversion( Au_P2.uvw, Au_P2_converted_to_P1.uvw, p1Level, All );
    P2toP1Conversion( Au_P2.p, Au_P2_converted_to_P1.p, p1Level, All );
 
    // defect correction
@@ -959,9 +943,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
 
    if ( outputVTK )
    {
-      error.uvw.u.interpolate( exactU, maxLevel );
-      error.uvw.v.interpolate( exactV, maxLevel );
-      error.uvw.w.interpolate( exactW, maxLevel );
+      error.uvw.interpolate( { exactU, exactV, exactW }, maxLevel );
       error.p.interpolate( exactP, maxLevel );
 
       VTKOutput exactSolutionVTKOutput( "vtk", "MultigridStudiesExact", storage );
@@ -977,17 +959,13 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
    timer.reset();
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
-      u.uvw.u.interpolate( exactU, level, DirichletBoundary );
-      u.uvw.v.interpolate( exactV, level, DirichletBoundary );
-      u.uvw.w.interpolate( exactW, level, DirichletBoundary );
+      u.uvw.interpolate( { exactU, exactV, exactW }, level, DirichletBoundary );
 
       // using error as tmp function here
-      error.uvw.u.interpolate( rhsU, level, All );
-      error.uvw.v.interpolate( rhsV, level, All );
-      error.uvw.w.interpolate( rhsW, level, All );
-      M.apply( error.uvw.u, f.uvw.u, level, All );
-      M.apply( error.uvw.v, f.uvw.v, level, All );
-      M.apply( error.uvw.w, f.uvw.w, level, All );
+      error.uvw.interpolate( { rhsU, rhsV, rhsW }, level, All );
+      M.apply( error.uvw[0], f.uvw[0], level, All );
+      M.apply( error.uvw[1], f.uvw[1], level, All );
+      M.apply( error.uvw[2], f.uvw[2], level, All );
    }
    timer.end();
    WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );

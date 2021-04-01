@@ -85,7 +85,7 @@ static void demoProjectNormal( const std::shared_ptr< walberla::config::Config >
    vtkOutput.add( u );
 
    u.interpolate( 1, level );
-   projectNormalOperator.apply( u, level, FreeslipBoundary );
+   projectNormalOperator.project( u, level, FreeslipBoundary );
 
    if ( writeVTK )
       vtkOutput.write( level, 0 );

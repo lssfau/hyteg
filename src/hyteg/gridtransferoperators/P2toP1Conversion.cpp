@@ -152,9 +152,29 @@ void P2toP1Conversion( const P2Function< ValueType >& src,
    storage->getTimingTree()->stop( "P2toP1Conversion" );
 }
 
+template < typename ValueType >
+void P2toP1Conversion( const P2VectorFunction< ValueType >& src,
+                       const P1VectorFunction< ValueType >& dst,
+                       const uint_t&                        P1Level,
+                       const DoFType&                       flag )
+{
+   for ( uint_t k = 0; k < src.getDimension(); k++ )
+   {
+      P2toP1Conversion( src[k], dst[k], P1Level, flag );
+   }
+}
+
+// -------------------------
+//  Explicit instantiations
+// -------------------------
 template void P2toP1Conversion< real_t >( const P2Function< real_t >& src,
                                           const P1Function< real_t >& dst,
                                           const uint_t&               P1Level,
                                           const DoFType&              flag );
+
+template void P2toP1Conversion( const P2VectorFunction< real_t >& src,
+                                const P1VectorFunction< real_t >& dst,
+                                const uint_t&                     P1Level,
+                                const DoFType&                    flag );
 
 } // namespace hyteg

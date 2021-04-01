@@ -21,8 +21,8 @@
 
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/EmptySolver.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
 
 namespace hyteg {
 
@@ -32,12 +32,13 @@ class StokesBlockDiagonalPreconditioner : public Solver< OperatorType >
  public:
    typedef typename OperatorType::srcType FunctionType;
 
-   StokesBlockDiagonalPreconditioner( const std::shared_ptr< PrimitiveStorage >& storage,
-                                      uint_t                                     minLevel,
-                                      uint_t                                     maxLevel,
-                                      uint_t                                     velocityPreconditionSteps,
-                                      std::shared_ptr< hyteg::Solver< typename OperatorType::VelocityOperator_T > >
-                                          velocityBlockPreconditioner = std::make_shared< hyteg::IdentityPreconditioner< typename OperatorType::VelocityOperator_T > >() )
+   StokesBlockDiagonalPreconditioner(
+       const std::shared_ptr< PrimitiveStorage >&                                    storage,
+       uint_t                                                                        minLevel,
+       uint_t                                                                        maxLevel,
+       uint_t                                                                        velocityPreconditionSteps,
+       std::shared_ptr< hyteg::Solver< typename OperatorType::VelocityOperator_T > > velocityBlockPreconditioner =
+           std::make_shared< hyteg::IdentityPreconditioner< typename OperatorType::VelocityOperator_T > >() )
    : velocityPreconditionSteps_( velocityPreconditionSteps )
    , flag_( hyteg::Inner | hyteg::NeumannBoundary )
    , velocityBlockPreconditioner_( velocityBlockPreconditioner )
@@ -47,24 +48,22 @@ class StokesBlockDiagonalPreconditioner : public Solver< OperatorType >
    // y = M^{-1} * x
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, uint_t level ) override
    {
-      for( uint_t steps = 0; steps < velocityPreconditionSteps_; steps++ )
+      for ( uint_t steps = 0; steps < velocityPreconditionSteps_; steps++ )
       {
-         velocityBlockPreconditioner_->solve( A.A, x.uvw.u, b.uvw.u, level );
-         velocityBlockPreconditioner_->solve( A.A, x.uvw.v, b.uvw.v, level );
-         if ( x.getStorage()->hasGlobalCells() )
+         for ( uint_t k = 0; k < x.uvw.getDimension(); k++ )
          {
-            velocityBlockPreconditioner_->solve( A.A, x.uvw.w, b.uvw.w, level );
+            velocityBlockPreconditioner_->solve( A.A, x.uvw[k], b.uvw[k], level );
          }
-      }
 
-      pressureBlockPreconditioner_->apply( b.p, x.p, level, flag_, Replace );
+         pressureBlockPreconditioner_->apply( b.p, x.p, level, flag_, Replace );
+      }
    }
 
  private:
-   uint_t                                                                      velocityPreconditionSteps_;
+   uint_t                                                                        velocityPreconditionSteps_;
    hyteg::DoFType                                                                flag_;
    std::shared_ptr< hyteg::Solver< typename OperatorType::VelocityOperator_T > > velocityBlockPreconditioner_;
-   std::shared_ptr< pressureBlockPreconditionerType >                          pressureBlockPreconditioner_;
+   std::shared_ptr< pressureBlockPreconditionerType >                            pressureBlockPreconditioner_;
 };
 
 } // namespace hyteg

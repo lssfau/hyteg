@@ -41,13 +41,13 @@ class P2ProjectNormalOperator : public Operator< P2Function< real_t >, P2Functio
 
    ~P2ProjectNormalOperator() override = default;
 
-   void apply( const P2Function< real_t >& dst_u,
-               const P2Function< real_t >& dst_v,
-               const P2Function< real_t >& dst_w,
-               size_t                      level,
-               DoFType                     flag ) const;
+   void project( const P2Function< real_t >& dst_u,
+                 const P2Function< real_t >& dst_v,
+                 const P2Function< real_t >& dst_w,
+                 size_t                      level,
+                 DoFType                     flag ) const;
 
-   void apply( const P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag ) const;
+   void project( const P2P1TaylorHoodFunction< real_t >& dst, size_t level, DoFType flag ) const;
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    /// Assemble operator as sparse matrix
@@ -63,6 +63,18 @@ class P2ProjectNormalOperator : public Operator< P2Function< real_t >, P2Functio
                              const P2Function< PetscInt >&               numU,
                              const P2Function< PetscInt >&               numV,
                              const P2Function< PetscInt >&               numW,
+                             uint_t                                      level,
+                             DoFType                                     flag );
+
+   /// Assemble operator as sparse matrix
+   ///
+   /// \param mat   a sparse matrix proxy
+   /// \param num   P2VectorFunction for determining row indices
+   /// \param level level in mesh hierarchy for which local operator is to be assembled
+   /// \param flag  determines on which primitives this operator is assembled
+   ///
+   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                             const P2VectorFunction< PetscInt >&         num,
                              uint_t                                      level,
                              DoFType                                     flag );
 #endif

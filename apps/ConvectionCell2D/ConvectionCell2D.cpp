@@ -86,7 +86,7 @@ int main( int argc, char* argv[] )
 
    //////////////////////////////////////////
 
-   MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( Point2D( {0, 0} ), Point2D( {1, 1} ), MeshInfo::CRISS, 2, 2 );
+   MeshInfo meshInfo     = hyteg::MeshInfo::meshRectangle( Point2D( { 0, 0 } ), Point2D( { 1, 1 } ), MeshInfo::CRISS, 2, 2 );
    auto     setupStorage = std::make_shared< SetupPrimitiveStorage >(
        meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -154,9 +154,11 @@ int main( int argc, char* argv[] )
        hyteg::StokesPressureBlockPreconditioner< hyteg::P2P1TaylorHoodStokesOperator, hyteg::P1LumpedInvMassOperator > >(
        storage, minLevel, maxLevel );
    auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< P2P1TaylorHoodStokesOperator::VelocityOperator_T > >();
-   auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< P2P1TaylorHoodStokesOperator > >( storage, gaussSeidel );
-   auto smoother =
-       std::make_shared< hyteg::UzawaSmoother< hyteg::P2P1TaylorHoodStokesOperator > >( storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.37 );
+   auto uzawaVelocityPreconditioner =
+       std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< P2P1TaylorHoodStokesOperator > >( storage,
+                                                                                                                  gaussSeidel );
+   auto smoother = std::make_shared< hyteg::UzawaSmoother< hyteg::P2P1TaylorHoodStokesOperator > >(
+       storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.37 );
    auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P2P1TaylorHoodStokesOperator > >(
        storage, minLevel, minLevel, 1000, 1e-12, pressurePreconditioner );
    auto restrictionOperator  = std::make_shared< hyteg::P2P1StokesToP2P1StokesRestriction >();
@@ -181,13 +183,13 @@ int main( int argc, char* argv[] )
 
    for ( uint_t i = 1; i <= stepsTotal; i++ )
    {
-      uLast.assign( {1.0}, {u}, maxLevel, All );
-      M.apply( c, f.uvw.v, maxLevel, All );
-      f.uvw.v.assign( {mainConf.getParameter< real_t >( "convectivity" )}, {f.uvw.v}, maxLevel, All );
+      uLast.assign( { 1.0 }, { u }, maxLevel, All );
+      M.apply( c, f.uvw[1], maxLevel, All );
+      f.uvw[1].assign( { mainConf.getParameter< real_t >( "convectivity" ) }, { f.uvw[1] }, maxLevel, All );
 
       gmgLoop.solve( L, u, f, maxLevel );
 
-      transport.step( c, u.uvw.u, u.uvw.v, u.uvw.w, uLast.uvw.u, uLast.uvw.v, uLast.uvw.w, maxLevel, Inner, dt, 1, true );
+      transport.step( c, u.uvw[0], u.uvw[1], u.uvw[2], uLast.uvw[0], uLast.uvw[1], uLast.uvw[2], maxLevel, Inner, dt, 1, true );
 
       max_temp = c.getMaxMagnitude( maxLevel, All );
       M.apply( c, cMass, maxLevel, All );

@@ -21,7 +21,9 @@
 #pragma once
 
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2VectorFunction.hpp"
 
 namespace hyteg {
 
@@ -34,4 +36,15 @@ void P2toP1Conversion( const P2Function< ValueType >& src,
                        const P1Function< ValueType >& dst,
                        const uint_t&                  P1Level,
                        const DoFType&                 flag = All );
-}
+
+/// Convert a P2 to a P1 vector function
+///
+/// The function takes a P2VectorFunction on level (P1Level-1) and converts it to a P1VectorFunction on level P1Level by
+/// assigning the DoFs of the P2VectorFunction to those of the P1VectorFunction on the finer level.
+template < typename ValueType >
+void P2toP1Conversion( const P2VectorFunction< ValueType >& src,
+                       const P1VectorFunction< ValueType >& dst,
+                       const uint_t&                        P1Level,
+                       const DoFType&                       flag = All );
+
+} // namespace hyteg

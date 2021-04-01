@@ -88,12 +88,12 @@ int main(int argc, char* argv[])
   uint_t npoints = (uint_t) r.dotGlobal(r, maxLevel);
   r.interpolate(zero, maxLevel);
 
-  u.uvw.u.interpolate(rand, maxLevel, hyteg::Inner);
-  u.uvw.v.interpolate(rand, maxLevel, hyteg::Inner);
+  u.uvw[0].interpolate(rand, maxLevel, hyteg::Inner);
+  u.uvw[1].interpolate(rand, maxLevel, hyteg::Inner);
   u.p.interpolate(rand, maxLevel, hyteg::All);
 
-  u.uvw.u.interpolate(zero, maxLevel, hyteg::DirichletBoundary);
-  u.uvw.v.interpolate(zero, maxLevel, hyteg::DirichletBoundary);
+  u.uvw[0].interpolate(zero, maxLevel, hyteg::DirichletBoundary);
+  u.uvw[1].interpolate(zero, maxLevel, hyteg::DirichletBoundary);
 
   L.apply(u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary);
   r.assign({1.0, -1.0}, { f, r }, maxLevel, hyteg::Inner | hyteg::NeumannBoundary);

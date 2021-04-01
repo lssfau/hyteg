@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2017-2021 Dominik Thoennes, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -18,8 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hyteg/p2functionspace/P2VectorFunction.hpp"
-
 #include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
@@ -30,17 +28,20 @@
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
-// Perform some basic test to check that methods of P2VectorFunction
-// can be called and executed (and instantiated, see restrict and
-// prolongate below ;-)
+// Perform some basic test to check that methods of P[12]VectorFunctions
+// can be instantiated, called, executed and exported
 
 namespace hyteg {
 
-static void testP2Function()
+template < typename vfType >
+static void testVectorFunction( bool beVerbose, std::string tag, std::string typeName )
 {
    const uint_t minLevel = 2;
    const uint_t maxLevel = 4;
@@ -49,8 +50,13 @@ static void testP2Function()
    SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   P2VectorFunction< real_t > vec_f( "vecFunc", storage, minLevel, maxLevel );
-   P2VectorFunction< real_t > aux_f( "auxFunc", storage, minLevel, maxLevel );
+   vfType vec_f( "vecFunc", storage, minLevel, maxLevel );
+   vfType aux_f( "auxFunc", storage, minLevel, maxLevel );
+
+   // Testing traits
+   FunctionTrait< vfType > vfKind;
+   WALBERLA_LOG_INFO_ON_ROOT( "Detected typename is: '" << vfKind.getTypeName() << "'" );
+   WALBERLA_CHECK_EQUAL( typeName, FunctionTrait< vfType >::getTypeName() );
 
    // Interpolate
    std::function< real_t( const hyteg::Point3D& ) > xComp = []( const Point3D& ) { return real_c( 2 ); };
@@ -59,17 +65,17 @@ static void testP2Function()
    walberla::WcTimingPool timer;
 
    timer["Interpolate"].start();
-   vec_f.interpolate( {xComp, yComp}, maxLevel, DoFType::All );
+   vec_f.interpolate( { xComp, yComp }, maxLevel, DoFType::All );
    timer["Interpolate"].end();
 
    // Assign
    timer["Assign"].start();
-   aux_f.assign( {3.0}, {vec_f}, maxLevel, DoFType::All );
+   aux_f.assign( { 3.0 }, { vec_f }, maxLevel, DoFType::All );
    timer["Assign"].end();
 
    // Add
    timer["Add"].start();
-   aux_f.add( {{4.0, 3.0}}, {{vec_f, vec_f}}, maxLevel, DoFType::All );
+   aux_f.add( { { 4.0, 3.0 } }, { { vec_f, vec_f } }, maxLevel, DoFType::All );
    timer["Add"].end();
 
    // Dot
@@ -79,18 +85,17 @@ static void testP2Function()
    WALBERLA_LOG_INFO_ON_ROOT( "dot product = " << scalarProduct );
 
    // Output VTK
-   bool beVerbose = true;
    if ( beVerbose )
    {
       std::string fPath = "../../output";
-      std::string fName = "P2VectorFunctionTest";
+      std::string fName = tag + "VectorFunctionExportViaComponents";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
       VTKOutput vtkOutput( fPath, fName, storage );
-      vtkOutput.add( vec_f[0] );
-      vtkOutput.add( vec_f[1] );
+      vtkOutput.add( dynamic_cast< typename vfType::VectorComponentType& >( vec_f[0] ) );
+      vtkOutput.add( dynamic_cast< typename vfType::VectorComponentType& >( vec_f[1] ) );
       vtkOutput.write( maxLevel );
 
-      std::string fName2 = "P2VectorFunctionExport";
+      std::string fName2 = tag + "VectorFunctionExport";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName2 << "'" );
       VTKOutput vtkOutput2( fPath, fName2, storage );
       vtkOutput2.add( vec_f );
@@ -109,7 +114,16 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
-   hyteg::testP2Function();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
+   WALBERLA_LOG_INFO_ON_ROOT( " Testing P1VectorFunction" );
+   WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
+   hyteg::testVectorFunction< hyteg::P1VectorFunction< walberla::real_t > >( true, "P1", "P1VectorFunction" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
+   WALBERLA_LOG_INFO_ON_ROOT( " Testing P2VectorFunction" );
+   WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
+   hyteg::testVectorFunction< hyteg::P2VectorFunction< walberla::real_t > >( true, "P2", "P2VectorFunction" );
 
    return EXIT_SUCCESS;
 }
