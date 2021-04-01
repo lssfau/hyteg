@@ -46,7 +46,6 @@ struct P1StokesFunctionTag {};
 struct P2P1TaylorHoodFunctionTag {};
 struct P2P2StokesFunctionTag {};
 struct P1VectorFunctionTag {};
-struct P1VectorFunctionTag_AltKind {};
 struct P2VectorFunctionTag {};
 
 
