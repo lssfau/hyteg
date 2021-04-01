@@ -28,7 +28,7 @@ namespace hyteg {
 using walberla::real_t;
 
 template < class operX_t, class operY_t, class operZ_t >
-class P1ScalarToP1VectorOperator : public Operator< P1VectorFunction< real_t >, P1Function< real_t > >
+class P1ScalarToP1VectorOperator : public Operator< P1Function< real_t >, P1VectorFunction< real_t > >
 {
  public:
    P1ScalarToP1VectorOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
