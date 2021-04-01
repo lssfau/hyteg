@@ -42,7 +42,7 @@ class P1VectorToP1ScalarOperator : public Operator< P1VectorFunction< real_t >, 
                const P1Function< real_t >&       dst,
                size_t                            level,
                DoFType                           flag,
-               UpdateType                        updateType = Replace ) const
+               UpdateType                        updateType = Replace ) const override final
    {
       std::array< UpdateType, 3 > ut = {updateType, Add, Add};
       operX.apply( src[0], dst, level, flag, ut[0] );

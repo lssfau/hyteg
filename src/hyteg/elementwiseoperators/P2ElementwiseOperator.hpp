@@ -78,7 +78,7 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                const P2Function< real_t >& dst,
                size_t                      level,
                DoFType                     flag,
-               UpdateType                  updateType = Replace ) const;
+               UpdateType                  updateType = Replace ) const override final;
 
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
