@@ -917,6 +917,61 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
    timer.end();
    WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
 
+   storage->getTimingTree()->start( "SpMV and Uzawa measurements" );
+   const uint_t numSpMVandGSIterations = 10;
+
+   for ( uint_t l = 1; l <= maxLevel; l++ )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Measuring time of " << numSpMVandGSIterations << " SpMV on level " << l << " ..." );
+      error.interpolate( 0.42, l );
+      storage->getTimingTree()->start( "SpMV level " + std::to_string(l) );
+      timer.reset();
+      for ( uint_t i = 0; i < numSpMVandGSIterations; i++ )
+      {
+         storage->getTimingTree()->start( "SpMV iteration " + std::to_string(i) );
+         A.apply( error, u, l, Inner | NeumannBoundary );
+         storage->getTimingTree()->stop( "SpMV iteration " + std::to_string(i) );
+      }
+      timer.end();
+      storage->getTimingTree()->stop( "SpMV level " + std::to_string(l) );
+      u.interpolate( 0, l );
+      error.interpolate( 0, l );
+      WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
+   }
+
+   for ( uint_t l = 1; l <= maxLevel; l++ )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "Measuring time of " << numSpMVandGSIterations << " Uzawa relaxations (with single fwd GS) on level " << l << " ..." );
+      u.interpolate( 0.42, l );
+      f.interpolate( 0.42, l );
+      {
+         std::shared_ptr< Solver< typename StokesOperator::VelocityOperator_T > > scalarSmoother;
+         scalarSmoother = std::make_shared< SORSmoother< typename StokesOperator::VelocityOperator_T > >( velocitySorRelax );
+
+         auto uzawaVelocityPreconditioner =
+             std::make_shared< StokesVelocityBlockBlockDiagonalPreconditioner< StokesOperator > >( storage, scalarSmoother );
+
+         auto smoother = std::make_shared< UzawaSmoother< StokesOperator > >(
+             storage, uzawaVelocityPreconditioner, error, l, l, sorRelax, Inner | NeumannBoundary, 1, false, 1 );
+
+         storage->getTimingTree()->start( "Uzawa level " + std::to_string(l) );
+         timer.reset();
+         for ( uint_t i = 0; i < numSpMVandGSIterations; i++ )
+         {
+            storage->getTimingTree()->start( "Uzawa iteration " + std::to_string(i) );
+            smoother->solve( A, u, f, l );
+            storage->getTimingTree()->stop( "Uzawa iteration " + std::to_string(i) );
+         }
+         timer.end();
+         storage->getTimingTree()->stop( "Uzawa level " + std::to_string(l) );
+      }
+      u.interpolate( 0, l );
+      f.interpolate( 0, l );
+      error.interpolate( 0, l );
+      WALBERLA_LOG_INFO_ON_ROOT( "... done. Took " << timer.last() << " s" );
+   }
+   storage->getTimingTree()->stop( "SpMV and Uzawa measurements" );
+
    WALBERLA_LOG_INFO_ON_ROOT( "Memory usage after operator assembly:" )
    printCurrentMemoryUsage( MemoryUsageDeterminationType::C_RUSAGE );
 #ifdef HYTEG_BUILD_WITH_PETSC
@@ -1041,7 +1096,7 @@ void MultigridStokes( const std::shared_ptr< PrimitiveStorage >&              st
 
    sqlIntegerProperties["total_dofs"] = int64_c( totalDoFs );
 
-   storage->getTimingTree()->reset();
+   // storage->getTimingTree()->reset();
 
    walberla::WcTimer timerFMGErrorCalculation;
    double            timeError;

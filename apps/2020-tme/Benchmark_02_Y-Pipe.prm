@@ -28,6 +28,7 @@ Parameters
   maxIterations 1000;
   coarseGridAbsoluteResidualTolerance 1e-12;
 
+  solveWithCoarseGridSolverOnEachFMGLevel false;
   calculateDiscretizationError false;
 
   DiscretizationErrorSolver

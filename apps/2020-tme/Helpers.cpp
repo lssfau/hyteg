@@ -46,7 +46,7 @@ static std::string getDateTimeID()
 void writeDataHeader()
 {
    WALBERLA_LOG_INFO_ON_ROOT(
-       " iteration | iteration type | FMG level | L2 error velocity | L2 alg err. rel. vel. | L2 residual velocity | L2 error pressure | L2 alg err. rel. pre. | L2 residual pressure " );
+       " iteration | iteration type | FMG level | L2 error velocity | L2 alg err. rel. vel. | L2 err. grid inc. vel. | L2 residual velocity | L2 error pressure | L2 alg err. rel. pre. | L2 err. grid inc. pre. | L2 residual pressure " );
    WALBERLA_LOG_INFO_ON_ROOT(
        "-----------+----------------+-----------+-------------------+-----------------------+----------------------+-------------------+-----------------------+----------------------" );
 }
@@ -63,6 +63,8 @@ void writeDataRow( uint_t          iteration,
                    real_t          errorL2Pressure,
                    real_t          errorRelL2Pressure,
                    real_t          residualL2Pressure,
+                   real_t          errorL2GridIncrementVelocity,
+                   real_t          errorL2GridIncrementPressure,
                    FixedSizeSQLDB& db )
 {
    std::string fmgLevelString = "-";
@@ -80,19 +82,24 @@ void writeDataRow( uint_t          iteration,
    db.setVariableEntry( "error_l2_pressure", errorL2Pressure );
    db.setVariableEntry( "error_rel_l2_pressure", errorRelL2Pressure );
    db.setVariableEntry( "residual_l2_pressure", residualL2Pressure );
+   db.setVariableEntry( "error_l2_grid_increment_velocity", errorL2GridIncrementVelocity );
+   db.setVariableEntry( "error_l2_grid_increment_pressure", errorL2GridIncrementPressure );
 
    db.writeRowOnRoot();
 
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9d | %14s | %9s | %17.5e | %21.5e | %20.5e | %17.5e | %21.5e | %20.5e ",
-                                                iteration,
-                                                iterationType.c_str(),
-                                                fmgLevelString.c_str(),
-                                                errorL2Velocity,
-                                                errorRelL2Velocity,
-                                                residualL2Velocity,
-                                                errorL2Pressure,
-                                                errorRelL2Pressure,
-                                                residualL2Pressure ) );
+   WALBERLA_LOG_INFO_ON_ROOT(
+       walberla::format( " %9d | %14s | %9s | %17.5e | %21.5e | %22.5e | %20.5e | %17.5e | %21.5e | %22.5e | %20.5e ",
+                         iteration,
+                         iterationType.c_str(),
+                         fmgLevelString.c_str(),
+                         errorL2Velocity,
+                         errorRelL2Velocity,
+                         errorL2GridIncrementVelocity,
+                         residualL2Velocity,
+                         errorL2Pressure,
+                         errorRelL2Pressure,
+                         errorL2GridIncrementPressure,
+                         residualL2Pressure ) );
 }
 
 template < template < typename > class StokesFunction,
@@ -121,6 +128,7 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
                           bool                                                    calculateDiscretizationError,
                           bool                                                    discretizationErrorWasCalculated,
                           uint_t                                                  errorCalculationLevelIncrement,
+                          bool                                                    solveWithCoarseGridSolverOnEachFMGLevel,
                           bool                                                    vtk,
                           const std::string&                                      benchmarkName,
                           bool                                                    verbose,
@@ -187,10 +195,19 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
    WALBERLA_LOG_INFO_ON_ROOT( "   + max iterations:                               " << coarseGridSettings.maxIterations )
    WALBERLA_LOG_INFO_ON_ROOT( " - app settings: " )
    WALBERLA_LOG_INFO_ON_ROOT( "   + error interpolation level:                    " << errorLevel )
+   WALBERLA_LOG_INFO_ON_ROOT(
+       "   + solve on each FMG level:                      " << ( solveWithCoarseGridSolverOnEachFMGLevel ? "yes" : "no" ) )
    WALBERLA_LOG_INFO_ON_ROOT( "   + VTK:                                          " << ( vtk ? "yes" : "no" ) )
    WALBERLA_LOG_INFO_ON_ROOT( "   + verbose:                                      " << verbose )
    WALBERLA_LOG_INFO_ON_ROOT( "   + database file:                                " << dbFile )
    WALBERLA_LOG_INFO_ON_ROOT( "" )
+
+   std::map< uint_t, uint_t > unknownsLevel;
+   for ( uint_t l = minLevel; l <= maxLevel; l++ )
+   {
+      unknownsLevel[l] = numberOfGlobalDoFs< typename StokesFunction< real_t >::Tag >( *storage, l );
+      WALBERLA_LOG_INFO_ON_ROOT( "unknowns on level " << l << ": " << unknownsLevel[l] );
+   }
 
    FixedSizeSQLDB db( dbFile );
 
@@ -206,6 +223,11 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
    StokesFunction< real_t > tmp( "tmp", storage, minLevel, errorLevel );
    StokesFunction< real_t > tmpFMG( "tmpFMG", storage, minLevel, errorLevel );
    StokesFunction< real_t > exact( "exact", storage, minLevel, errorLevel );
+   // compute on level l the quantity
+   //   || u_l - I_{l-1}^l u_{l-1} ||_2
+   // which should converge as the discretization error
+   StokesFunction< real_t > uFMGSolution( "u_fmg_solution", storage, minLevel, errorLevel );
+   StokesFunction< real_t > errGridIncrement( "error_grid_increment", storage, minLevel, errorLevel );
 
    StokesOperator       A( storage, minLevel, errorLevel );
    VelocityMassOperator MVelocity( storage, minLevel, errorLevel );
@@ -299,6 +321,28 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
       coarseGridSolverInternal = petscSolverInternalTmp;
    }
 
+   // iterative or direct solver to solve on each level - obtaining discretization accuracy
+   // used to indicate incremental error reduction rate
+   std::vector< std::shared_ptr< Solver< StokesOperator > > > fmgLevelWiseSolver;
+   if ( solveWithCoarseGridSolverOnEachFMGLevel )
+   {
+      for ( uint_t l = 0; l <= maxLevel; l++ )
+      {
+         if ( coarseGridSettings.solverType == 0 )
+         {
+            auto slvr = std::make_shared< PETScLUSolver< StokesOperator > >( storage, l );
+            fmgLevelWiseSolver.push_back( slvr );
+         }
+         else
+         {
+            auto slvr = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >(
+                storage, l, coarseGridSettings.absoluteResidualTolerance, coarseGridSettings.maxIterations, 1 );
+            slvr->setVerbose( true );
+            fmgLevelWiseSolver.push_back( slvr );
+         }
+      }
+   }
+
    auto coarseGridSolver = std::make_shared< TimedSolver< StokesOperator > >( coarseGridSolverInternal );
 
    auto multigridSolver = std::make_shared< GeometricMultigridSolver< StokesOperator > >( storage,
@@ -316,6 +360,13 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
    auto fmgProlongation = std::make_shared< FMGProlongation >();
 
    auto postCycle = [&]( uint_t currentLevel ) {
+
+      if (solveWithCoarseGridSolverOnEachFMGLevel)
+      {
+         fmgLevelWiseSolver[currentLevel]->solve( A, u, f, currentLevel );
+      }
+
+
       if ( projectPressure )
       {
          vertexdof::projectMean( u.p, currentLevel );
@@ -326,7 +377,8 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
          tmpFMG.interpolate( 0, l, All );
       }
 
-      tmpFMG.assign( {1.0}, {u}, currentLevel, All );
+      tmpFMG.assign( { 1.0 }, { u }, currentLevel, All );
+      uFMGSolution.assign( { 1.0 }, { u }, currentLevel, All );
 
       const auto fmgErrorLevel = currentLevel + errorCalculationLevelIncrement;
       for ( uint_t prolongationSourceLevel = currentLevel; prolongationSourceLevel < fmgErrorLevel; prolongationSourceLevel++ )
@@ -339,6 +391,14 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
       if ( currentLevel == maxLevel )
       {
          error( u, uSolution, maxLevel, errorFlag, errDiscr );
+      }
+
+      // grid increment error
+      if ( currentLevel > 0 )
+      {
+         errGridIncrement.assign( { 1.0 }, { uFMGSolution }, currentLevel - 1, All );
+         prolongationOperator->prolongate( errGridIncrement, currentLevel - 1, All );
+         errGridIncrement.assign( { 1.0, -1.0 }, { uFMGSolution, errGridIncrement }, currentLevel, All );
       }
 
       auto errorL2VelocityFMG    = normL2Velocity( err, MVelocity, tmp, fmgErrorLevel, errorFlag );
@@ -355,6 +415,9 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
          errorRelL2PressureFMG = normL2Scalar( errDiscr.p, MPressure, tmp.p, maxLevel, errorFlag ) / solutionNormVelocity;
       }
 
+      auto errorL2GridIncrementVelocity = normL2Velocity( errGridIncrement, MVelocity, tmp, currentLevel, errorFlag );
+      auto errorL2GridIncrementPressure = normL2Scalar( errGridIncrement.p, MPressure, tmp.p, currentLevel, errorFlag );
+
       writeDataRow( iteration,
                     "F",
                     currentLevel,
@@ -364,6 +427,8 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
                     errorL2PressureFMG,
                     errorRelL2PressureFMG,
                     residualL2PressureFMG,
+                    errorL2GridIncrementVelocity,
+                    errorL2GridIncrementPressure,
                     db );
       iteration++;
    };
@@ -426,6 +491,7 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
    db.setConstantEntry( "coarse_grid_absolute_residual_tolerance", coarseGridSettings.absoluteResidualTolerance );
 
    db.setConstantEntry( "error_calculation_level_increment", errorCalculationLevelIncrement );
+   db.setConstantEntry( "solve_with_coarse_grid_solver_on_each_fmg_level", solveWithCoarseGridSolverOnEachFMGLevel );
 
    writeDataRow( iteration,
                  "I",
@@ -436,6 +502,8 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
                  errorL2Pressure,
                  errorAlgL2Pressure,
                  residualL2Pressure,
+                 0,
+                 0,
                  db );
    iteration++;
 
@@ -494,6 +562,8 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
                     errorL2Pressure,
                     errorAlgL2Pressure,
                     residualL2Pressure,
+                    0,
+                    0,
                     db );
       iteration++;
    }
@@ -540,6 +610,8 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
                     errorL2Pressure,
                     errorAlgL2Pressure,
                     residualL2Pressure,
+                    0,
+                    0,
                     db );
       iteration++;
    }
@@ -553,14 +625,14 @@ void solveImplementation( const std::shared_ptr< PrimitiveStorage >&            
    {
       for ( uint_t l = minLevel; l <= maxLevel; l++ )
       {
-         uSolution.assign( {1.0}, {u}, maxLevel, All );
+         uSolution.assign( { 1.0 }, { u }, maxLevel, All );
       }
    }
 }
 
-void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
-            Discretization                                          discretization,
-            bool                                                    ,
+void solve( const std::shared_ptr< PrimitiveStorage >& storage,
+            Discretization                             discretization,
+            bool,
             const std::function< real_t( const hyteg::Point3D& ) >& solutionU,
             const std::function< real_t( const hyteg::Point3D& ) >& solutionV,
             const std::function< real_t( const hyteg::Point3D& ) >& solutionW,
@@ -580,6 +652,7 @@ void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
             bool                                                    projectPressurefterRestriction,
             bool                                                    calculateDiscretizationError,
             uint_t                                                  normCalculationLevelIncrement,
+            bool                                                    solveWithCoarseGridSolverOnEachFMGLevel,
             bool                                                    vtk,
             const std::string&                                      benchmarkName,
             bool                                                    verbose,
@@ -617,6 +690,7 @@ void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
                                                                     true,
                                                                     false,
                                                                     normCalculationLevelIncrement,
+                                                                    solveWithCoarseGridSolverOnEachFMGLevel,
                                                                     false,
                                                                     benchmarkName,
                                                                     verbose,
@@ -648,6 +722,7 @@ void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
                                                                  false,
                                                                  calculateDiscretizationError,
                                                                  normCalculationLevelIncrement,
+                                                                 solveWithCoarseGridSolverOnEachFMGLevel,
                                                                  vtk,
                                                                  benchmarkName,
                                                                  verbose,
@@ -676,14 +751,15 @@ void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
                                                                     rhsW,
                                                                     minLevel,
                                                                     maxLevel,
-                                                                    multigridSettings,
-                                                                    smootherSettings,
-                                                                    coarseGridSettings,
+                                                                    multigridSettingsDiscrError,
+                                                                    smootherSettingsDiscrError,
+                                                                    coarseGridSettingsDiscrError,
                                                                     projectPressure,
                                                                     projectPressurefterRestriction,
                                                                     true,
                                                                     false,
                                                                     normCalculationLevelIncrement,
+                                                                    solveWithCoarseGridSolverOnEachFMGLevel,
                                                                     false,
                                                                     benchmarkName,
                                                                     verbose,
@@ -715,6 +791,7 @@ void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
                                                                  false,
                                                                  calculateDiscretizationError,
                                                                  normCalculationLevelIncrement,
+                                                                 solveWithCoarseGridSolverOnEachFMGLevel,
                                                                  vtk,
                                                                  benchmarkName,
                                                                  verbose,

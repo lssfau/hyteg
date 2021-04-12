@@ -367,5 +367,149 @@ def supermuc_scaling():
                         with open(job_file_name, "w") as f:
                             f.write(job_string)
 
+def supermuc_scaling_tme():
+
+    cube_base_config_fmg = {"weak": {}}
+    configs = []
+
+    num_gs_velocity = 2
+
+    for discr, omega in [("P1", 0.1), ("P2", 0.2)]:
+        for prepost, inc in [(1, 1), (2, 1), (1, 2)]:
+            config_name = f"{discr}-prepost{prepost}-inc{inc}"
+            configs.append(config_name)
+            cube_base_config_fmg["weak"][config_name] = {
+                "discretization": discr,
+                "fmg_r": 1,
+                "max_level": 8,
+                "num_cycles": 1,
+                "pre": prepost,
+                "post": prepost,
+                "inc": inc,
+                "num_gs_velocity": num_gs_velocity,
+                "omega": omega,
+            }
+
+    cube_base_config_fmg["weak_fast"] = cube_base_config_fmg["weak"]
+    cube_base_config_fmg["weak_large"] = cube_base_config_fmg["weak"]
+    cube_base_config_fmg["weak_large_3072_27fps"] = cube_base_config_fmg["weak"]
+    cube_base_config_fmg["weak_large_3072_28fps"] = cube_base_config_fmg["weak"]
+    cube_base_config_fmg["weak_large_3072_29fps"] = cube_base_config_fmg["weak"]
+
+    node_dep_parameters_cube = {
+        "weak": {
+            1: {"num_faces_per_side": 1},
+            2: {"num_faces_per_side": 2},
+            6: {"num_faces_per_side": 3},
+            12: {"num_faces_per_side": 4},
+            24: {"num_faces_per_side": 5},
+            48: {"num_faces_per_side": 6},
+            96: {"num_faces_per_side": 8},
+            192: {"num_faces_per_side": 10},
+            384: {"num_faces_per_side": 13},
+            768: {"num_faces_per_side": 16},
+            1536: {"num_faces_per_side": 20},
+            3072: {"num_faces_per_side": 26},
+        },
+        "weak_large": {
+            1: {"num_faces_per_side": 1},
+            2: {"num_faces_per_side": 2},
+            6: {"num_faces_per_side": 3},
+            12: {"num_faces_per_side": 4},
+            24: {"num_faces_per_side": 5},
+            48: {"num_faces_per_side": 6},
+            96: {"num_faces_per_side": 8},
+            192: {"num_faces_per_side": 10},
+            384: {"num_faces_per_side": 13},
+            768: {"num_faces_per_side": 16},
+            1536: {"num_faces_per_side": 20},
+            3072: {"num_faces_per_side": 26},
+        },
+        "weak_large_3072_27fps": {
+            3072: {"num_faces_per_side": 27},
+        },
+        "weak_large_3072_28fps": {
+            3072: {"num_faces_per_side": 28},
+        },
+        "weak_large_3072_29fps": {
+            3072: {"num_faces_per_side": 29},
+        },
+        "weak_fast": {
+            2: {"num_faces_per_side": 1},
+            6: {"num_faces_per_side": 2},
+            12: {"num_faces_per_side": 3},
+            24: {"num_faces_per_side": 4},
+            48: {"num_faces_per_side": 5},
+            96: {"num_faces_per_side": 6},
+            192: {"num_faces_per_side": 8},
+            384: {"num_faces_per_side": 10},
+            768: {"num_faces_per_side": 13},
+            1536: {"num_faces_per_side": 16},
+            3072: {"num_faces_per_side": 20},
+        },
+        "strong": {
+            1: {"num_faces_per_side": 6},
+            2: {"num_faces_per_side": 6},
+            6: {"num_faces_per_side": 6},
+            12: {"num_faces_per_side": 6},
+            24: {"num_faces_per_side": 6},
+            48: {"num_faces_per_side": 6},
+            96: {"num_faces_per_side": 6},
+        }
+    }
+
+    some_id = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H-%M-%S')
+
+    coarse_grid_solver_string = {
+        (0, 0): "MUMPS",
+        (1, 0): "MinRes-AMG",
+        (1, 1): "MinRes-Jacobi",
+        (1, 2): "MinRes-Schur"
+    }
+
+    for config in configs:
+        for scaling_type in ["weak", "weak_fast", "weak_large"]:
+            for coarse_grid_tol in [1e-12]:
+                for coarse_grid_solver_type, coarse_grid_preconditioner_type in [(1, 1)]:
+
+                    if "weak_large" in scaling_type:
+                        ppn = 24
+                    else:
+                        ppn = 48
+
+                    base_config = cube_base_config_fmg[scaling_type][config]
+                    base_config["coarse_grid_tol"] = coarse_grid_tol
+                    base_config["coarse_grid_solver_type"] = coarse_grid_solver_type
+                    base_config["coarse_grid_preconditioner_type"] = coarse_grid_preconditioner_type
+                    node_dep_parameters = node_dep_parameters_cube[scaling_type]
+
+                    for num_nodes, prms in node_dep_parameters.items():
+                        # some_id = str(uuid4())
+                        job_name = "mg_studies_{}_{}_cgstype_{}_cgtol_{:.2e}_{}nodes_{}".format(
+                            scaling_type, config, coarse_grid_solver_string[(coarse_grid_solver_type, coarse_grid_preconditioner_type)],
+                            coarse_grid_tol, num_nodes, some_id)
+                        prm_file_name = job_name + ".prm"
+                        job_file_name = job_name + ".job"
+
+                        timing_file = job_name + ".json"
+                        db_file = job_name + ".db"
+
+                        prm_string_prm_dict = {}
+                        prm_string_prm_dict.update(base_config)
+                        prm_string_prm_dict.update(prms)
+                        prm_string_prm_dict["timing_file"] = timing_file
+                        prm_string_prm_dict["db_file"] = db_file
+
+                        prm_string = supermuc_scaling_prm_file_string(**prm_string_prm_dict)
+                        job_string = supermuc_job_file_string(job_name=job_name, wall_clock_limit="0:30:00",
+                                                              num_nodes=num_nodes, prm_file=prm_file_name, ppn=ppn, petsc_detail=True)
+
+                        with open(prm_file_name, "w") as f:
+                            f.write(prm_string)
+                        with open(job_file_name, "w") as f:
+                            f.write(job_string)
+
+
 if __name__ == "__main__":
-    supermuc_scaling()
+    # supermuc_scaling()
+    supermuc_scaling_tme()

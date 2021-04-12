@@ -30,4 +30,5 @@ Parameters
   coarseGridAbsoluteResidualTolerance 1e-12;
 
   normCalculationLevelIncrement 1;
+  solveWithCoarseGridSolverOnEachFMGLevel false;
 }
