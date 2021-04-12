@@ -331,7 +331,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
                const P1Function< real_t >& dst,
                const size_t                level,
                DoFType                     flag,
-               UpdateType                  updateType = Replace ) const
+               UpdateType                  updateType = Replace ) const override final
    {
       WALBERLA_ASSERT_NOT_IDENTICAL( std::addressof( src ), std::addressof( dst ) );
 

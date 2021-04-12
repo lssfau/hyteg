@@ -219,7 +219,7 @@ void assembleEdgeToVertexStencils(
             {
                const auto edgeToVertexStencilMap = P2Elements::P2Elements3D::calculateEdgeToVertexStencilInMacroCell(
                    indexing::Index( 1, 1, 1 ), leafOrientation, cell, level, form );
-               for ( const auto stencilIt : edgeToVertexStencilMap )
+               for ( const auto & stencilIt : edgeToVertexStencilMap )
                {
                   edgeToVertexStencilMemory[leafOrientation][stencilIt.first] = stencilIt.second;
                }

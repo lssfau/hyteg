@@ -22,18 +22,19 @@
 #include "core/logging/Logging.h"
 #include "core/timing/Timer.h"
 
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
-#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/gridtransferoperators/P1toP1InjectionRestriction.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
-#include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/solvers/FAS.hpp"
-#include "hyteg/solvers/GeometricMultigridSolver.hpp"
-#include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "hyteg/gridtransferoperators/P2toP1Conversion.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
+#include "hyteg/solvers/FAS.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -160,7 +161,8 @@ int main( int argc, char* argv[] )
   // build RHS (quadratic, then restrict with weighting)
   quadraticTmp.interpolate( rhs, maxLevel - 1, hyteg::All );
   M_P2.apply( quadraticTmp, quadraticRhs, maxLevel - 1, hyteg::All );
-  f.assign( quadraticRhs, maxLevel, hyteg::All );
+  // f.assign( quadraticRhs, maxLevel, hyteg::All );
+  P2toP1Conversion( quadraticRhs, f, maxLevel, hyteg::All );
 
   restrictionOperator->restrict( f, maxLevel, All );
   f.assign( {1.0, -4.0 / 3.0, 4.0 / 3.0}, {f, IAu, AIu}, maxLevel - 1 );

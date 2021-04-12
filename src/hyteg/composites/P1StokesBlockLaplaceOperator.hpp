@@ -38,9 +38,10 @@ class P1StokesBlockLaplaceOperator : public Operator< P1StokesFunction< real_t >
                const DoFType                     flag,
                const UpdateType                  updateType ) const
    {
-      A.apply( src.uvw.u, dst.uvw.u, level, flag, updateType );
-      A.apply( src.uvw.v, dst.uvw.v, level, flag, updateType );
-      A.apply( src.p, dst.p, level, flag, updateType );
+      for ( uint_t k = 0; k < src.uvw.getDimension(); k++ )
+      {
+         A.apply( src.uvw[k], dst.uvw[k], level, flag, updateType );
+      }
    }
 
    P1ConstantLaplaceOperator A;

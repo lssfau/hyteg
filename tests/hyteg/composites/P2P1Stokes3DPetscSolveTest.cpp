@@ -111,18 +111,12 @@ void petscSolveTest( const uint_t & solverType, const uint_t & blockPrecondition
   M.apply( btmp.w, b.w, level, All );
 #endif
 
-  b.uvw.u.interpolate( exactU, level, DirichletBoundary );
-  b.uvw.v.interpolate( exactV, level, DirichletBoundary );
-  b.uvw.w.interpolate( exactW, level, DirichletBoundary );
-  b.p.interpolate( zero,   level, All );
+  b.uvw.interpolate( { exactU, exactV, exactW }, level, DirichletBoundary );
+  b.p.interpolate( zero, level, All );
 
-  x.uvw.u.interpolate( exactU, level, DirichletBoundary );
-  x.uvw.v.interpolate( exactV, level, DirichletBoundary );
-  x.uvw.w.interpolate( exactW, level, DirichletBoundary );
+  x.uvw.interpolate( { exactU, exactV, exactW }, level, DirichletBoundary );
 
-  x_exact.uvw.u.interpolate( exactU, level );
-  x_exact.uvw.v.interpolate( exactV, level );
-  x_exact.uvw.w.interpolate( exactW, level );
+  x_exact.uvw.interpolate( { exactU, exactV, exactW }, level );
   x_exact.p.interpolate( exactP, level );
 
   hyteg::vertexdof::projectMean( x_exact.p, level );
@@ -221,9 +215,9 @@ void petscSolveTest( const uint_t & solverType, const uint_t & blockPrecondition
   err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
   real_t discr_l2_err = std::sqrt( err.dotGlobal( err, level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_u = std::sqrt( err.uvw.u.dotGlobal( err.uvw.u, level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_v = std::sqrt( err.uvw.v.dotGlobal( err.uvw.v, level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_w = std::sqrt( err.uvw.w.dotGlobal( err.uvw.w, level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_w = std::sqrt( err.uvw[2].dotGlobal( err.uvw[2], level ) / (real_t) globalDoFs1 );
   real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFs1 );
   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
 

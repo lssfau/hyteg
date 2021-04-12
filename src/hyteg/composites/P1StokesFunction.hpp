@@ -163,40 +163,22 @@ class P1StokesFunction
          offset += static_cast< ValueType >( vertexDoFsPerRank[i] );
       }
 
-      uvw.u.enumerate( level, offset );
-      uvw.v.enumerate( level, offset );
-      uvw.w.enumerate( level, offset );
+      for ( uint_t k = 0; k < uvw.getDimension(); k++ )
+      {
+         uvw[k].enumerate( level, offset );
+      }
       p.enumerate( level, offset );
    }
 
-   BoundaryCondition getVelocityBoundaryCondition() const
-   {
-      auto bc_u = uvw.u.getBoundaryCondition();
-      WALBERLA_DEBUG_SECTION()
-      {
-         auto bc_v = uvw.v.getBoundaryCondition();
-         WALBERLA_CHECK_EQUAL( bc_u, bc_v, "Velocity components do not have same boundary conditions." );
-         if ( uvw.u.getStorage()->hasGlobalCells() )
-         {
-            auto bc_w = uvw.w.getBoundaryCondition();
-            WALBERLA_CHECK_EQUAL( bc_u, bc_w, "Velocity components do not have same boundary conditions." );
-         }
-      }
-      return bc_u;
-   }
+   BoundaryCondition getVelocityBoundaryCondition() const { return uvw.getBoundaryCondition(); }
 
    BoundaryCondition getPressureBoundaryCondition() const { return p.getBoundaryCondition(); }
 
-   void setVelocityBoundaryCondition( BoundaryCondition bc )
-   {
-      uvw.u.setBoundaryCondition( bc );
-      uvw.v.setBoundaryCondition( bc );
-      uvw.w.setBoundaryCondition( bc );
-   }
+   void setVelocityBoundaryCondition( BoundaryCondition bc ) { uvw.setBoundaryCondition( bc ); }
 
    void setPressureBoundaryCondition( BoundaryCondition bc ) { p.setBoundaryCondition( bc ); }
 
-   template< typename OtherFunctionValueType >
+   template < typename OtherFunctionValueType >
    void copyBoundaryConditionFromFunction( const P1StokesFunction< OtherFunctionValueType >& other )
    {
       setVelocityBoundaryCondition( other.getVelocityBoundaryCondition() );
@@ -207,7 +189,7 @@ class P1StokesFunction
    P1Function< ValueType >       p;
 };
 
-inline unsigned long long p1p1localFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+inline unsigned long long p1p1localFunctionMemorySize( const uint_t& level, const std::shared_ptr< PrimitiveStorage >& storage )
 {
    if ( storage->hasGlobalCells() )
    {
@@ -219,12 +201,11 @@ inline unsigned long long p1p1localFunctionMemorySize( const uint_t & level, con
    }
 }
 
-inline unsigned long long p1p1globalFunctionMemorySize( const uint_t & level, const std::shared_ptr< PrimitiveStorage > & storage )
+inline unsigned long long p1p1globalFunctionMemorySize( const uint_t& level, const std::shared_ptr< PrimitiveStorage >& storage )
 {
-   const auto memLocal = p1p1localFunctionMemorySize( level, storage );
+   const auto memLocal  = p1p1localFunctionMemorySize( level, storage );
    const auto memGlobal = walberla::mpi::allReduce( memLocal, walberla::mpi::SUM );
    return memGlobal;
 }
 
-}
-
+} // namespace hyteg

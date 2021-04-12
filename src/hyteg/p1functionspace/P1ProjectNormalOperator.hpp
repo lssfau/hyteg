@@ -39,13 +39,13 @@ class P1ProjectNormalOperator : public Operator< P1Function< real_t >, P1Functio
 
    ~P1ProjectNormalOperator() override = default;
 
-   void apply( const P1Function< real_t >& dst_u,
-               const P1Function< real_t >& dst_v,
-               const P1Function< real_t >& dst_w,
-               size_t                      level,
-               DoFType                     flag ) const;
+   void project( const P1Function< real_t >& dst_u,
+                 const P1Function< real_t >& dst_v,
+                 const P1Function< real_t >& dst_w,
+                 size_t                      level,
+                 DoFType                     flag ) const;
 
-   void apply( const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const;
+   void project( const P1StokesFunction< real_t >& dst, size_t level, DoFType flag ) const;
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    /// Assemble operator as sparse matrix
