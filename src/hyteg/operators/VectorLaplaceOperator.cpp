@@ -54,7 +54,7 @@ VectorLaplaceOperator< VecFuncType, SubOpType >::VectorLaplaceOperator( const st
       this->subOper_[1][0] = zero;
       this->subOper_[1][1] = lapl;
    }
-};
+}
 
 // P1ConstantVectorLaplaceOperator
 template class VectorLaplaceOperator< P1VectorFunction< real_t >, P1ConstantLaplaceOperator >;

@@ -54,7 +54,7 @@ VectorMassOperator< VecFuncType, SubOpType >::VectorMassOperator( const std::sha
       this->subOper_[1][0] = zero;
       this->subOper_[1][1] = lapl;
    }
-};
+}
 
 // P1ConstantVectorMassOperator
 template class VectorMassOperator< P1VectorFunction< real_t >, P1ConstantMassOperator >;

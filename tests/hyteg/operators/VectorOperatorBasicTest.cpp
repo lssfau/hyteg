@@ -42,8 +42,13 @@ namespace hyteg {
 template < typename vfType, typename opType >
 static void runTest( bool beVerbose, std::string tag, std::string opName )
 {
+   if ( beVerbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "checking " << opName );
+   }
 
-   WALBERLA_LOG_INFO_ON_ROOT( "checking " << opName );
+   // not using this currently
+   WALBERLA_UNUSED( tag );
 
    const uint_t minLevel = 3;
    const uint_t maxLevel = 3;
