@@ -35,6 +35,7 @@ using walberla::math::pi;
 #include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormDiv.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormDivT.hpp"
+#include "hyteg/forms/form_hyteg_generated/P1FormEpsilon.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q2.hpp"
@@ -181,6 +182,30 @@ void run2DTestsWithoutBlending()
    compareForms< P1FenicsForm< p1_divt_cell_integral_1_otherwise, fenics::NoAssemble >, P1Form_divT_2, Matrix3r, 2 >( triangle,
                                                                                                                       1.2e-14 );
 
+   logSectionHeader( "P1 Epsilon_11 Forms" );
+   compareForms< P1FenicsForm< p1_stokes_epsilon_cell_integral_0_otherwise, fenics::NoAssemble >,
+                 P1Form_epsilon_11,
+                 Matrix3r,
+                 2 >( triangle, 1.2e-14 );
+
+   logSectionHeader( "P1 Epsilon_12 Forms" );
+   compareForms< P1FenicsForm< p1_stokes_epsilon_cell_integral_1_otherwise, fenics::NoAssemble >,
+                 P1Form_epsilon_12,
+                 Matrix3r,
+                 2 >( triangle, 1.2e-14 );
+
+   logSectionHeader( "P1 Epsilon_21 Forms" );
+   compareForms< P1FenicsForm< p1_stokes_epsilon_cell_integral_2_otherwise, fenics::NoAssemble >,
+                 P1Form_epsilon_21,
+                 Matrix3r,
+                 2 >( triangle, 1.2e-14 );
+
+   logSectionHeader( "P1 Epsilon_22 Forms" );
+   compareForms< P1FenicsForm< p1_stokes_epsilon_cell_integral_3_otherwise, fenics::NoAssemble >,
+                 P1Form_epsilon_22,
+                 Matrix3r,
+                 2 >( triangle, 1.2e-14 );
+
    logSectionHeader( "P2 Mass Forms" );
    compareForms< P2FenicsForm< p2_mass_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_mass, Matrix6r, 2 >( triangle,
                                                                                                                     5e-14 );
@@ -323,6 +348,18 @@ void run2DTestsWithAffineMap()
    logSectionHeader( "P1 DivY^T Forms" );
    compareUsingAffineMap< P1FenicsForm< p1_divt_cell_integral_1_otherwise, fenics::NoAssemble >, P1Form_divT_2, Matrix3r, 2 >(
        triangle, 5e-14, map );
+
+   logSectionHeader( "P1 Epsilon_11 Forms" );
+   compareUsingAffineMap< P1FenicsForm< p1_stokes_epsilon_cell_integral_0_otherwise, fenics::NoAssemble >,
+                          P1Form_epsilon_11,
+                          Matrix3r,
+                          2 >( triangle, 1.2e-14, map );
+
+   logSectionHeader( "P1 Epsilon_12 Forms" );
+   compareUsingAffineMap< P1FenicsForm< p1_stokes_epsilon_cell_integral_1_otherwise, fenics::NoAssemble >,
+                          P1Form_epsilon_12,
+                          Matrix3r,
+                          2 >( triangle, 1.2e-14, map );
 
    logSectionHeader( "P1ToP2 DivX^T Forms" );
    compareUsingAffineMap< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, fenics::NoAssemble >,
