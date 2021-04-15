@@ -475,6 +475,8 @@ waLBerla_execute_test(NAME P2P1ElementwiseStokesOperatorTest)
 ## VectorFunctions ##
 waLBerla_compile_test(FILES VectorFunctions/VectorFunctionBasicTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME VectorFunctionBasicTest)
+waLBerla_compile_test(FILES operators/VectorOperatorBasicTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME VectorOperatorBasicTest)
 
 ## Other ##
 
