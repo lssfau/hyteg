@@ -169,7 +169,7 @@ int main( int argc, char* argv[] )
 
    level = 3;
    compareMatrices< P2ConstantLaplaceOperator, P2ElementwiseLaplaceOperator, P2Function >(
-       storage, "P2Laplace", level, {1.5e-12, 1e-13, 1.5e-13}, beVerbose );
+       storage, "P2Laplace", level, {1.5e-12, 1.5e-13, 1.5e-13}, beVerbose );
    compareMatrices< P2ConstantMassOperator, P2ElementwiseMassOperator, P2Function >(
        storage, "P2Mass", level, {1e-16, 1e-17, 1e-17}, beVerbose );
    compareMatrices< P2ConstantLaplaceOperator, P2ElementwiseDivKGradOperator, P2Function >(
