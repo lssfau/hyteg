@@ -103,6 +103,11 @@ void MeshInfo::setMeshBoundaryFlagsByVertexLocation( const uint_t&              
    }
 }
 
+void MeshInfo::addVertex( const Vertex & vertex )
+{
+   vertices_[vertex.getID()] = vertex;
+}
+
 void MeshInfo::addEdge( const Edge & edge )
 {
   WALBERLA_CHECK_UNEQUAL( edge.getVertices()[0], edge.getVertices()[1], "[Mesh] Mesh contains edge with zero length." );

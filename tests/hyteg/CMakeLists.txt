@@ -616,6 +616,9 @@ if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   endif()
 endif()
 
+waLBerla_compile_test(FILES blending/TokamakMapTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME TokamakMapTest)
+
 ## Elementwise Operators ##
 if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES operators/ElementwiseOperatorPetscTest.cpp DEPENDS hyteg core)
@@ -683,3 +686,6 @@ waLBerla_execute_test(NAME TrilinosSparseMatrixTest)
 waLBerla_compile_test(FILES trilinos/TrilinosDirectSolverTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME TrilinosDirectSolverTest)
 endif()
+
+waLBerla_compile_test(FILES meshes/TokamakLaplaceTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DonutLaplaceTest)

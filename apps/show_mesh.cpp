@@ -42,34 +42,37 @@ using namespace hyteg;
 
 void showUsage()
 {
-   std::cout << "\n --------\n  USAGE:\n --------\n\n"
-             << " show_mesh demonstrates generation of a MeshInfo object by one of the\n following methods:\n\n"
-             << " 1) by importing a file in Gmsh format\n"
-             << " 2) by meshing a rectangle in a certain flavour\n"
-             << " 3) by meshing a full or partial annulus\n"
-             << " 4) by generating a strip of chained triangles\n"
-             << " 5) by meshing a thick spherical shell (w/ or w/o blending)\n"
-             << " 6) by meshing a rectangular cuboid\n\n"
-             << " 7) by meshing a symmetric rectangular cuboid\n\n"
-             << " 8) by meshing a T-domain using the cubed domain generator\n\n"
-             << " This is steered by choosing one of the options below:\n\n"
-             << "  --file <name of Gmsh file>\n"
-             << "  --rect [criss|cross|crisscross|diamond]\n"
-             << "  --annulus [full|partial]\n"
-             << "  --face-chain [numFaces]\n"
-             << "  --spherical-shell [ntan]\n"
-             << "  --blended-spherical-shell [ntan]\n"
-             << "  --cuboid [nHint]\n"
-             << "  --symm-cuboid [nSubCubes]\n"
-             << "  --t-domain [nCubesInEachDirection]\n\n"
-             << " The generated base mesh will be tested be doing two levels of refinement.\n"
-             << " Then it will be exported to a VTU file for visualisation.\n\n"
-             << " Also visualization of the domain partitioning, mesh boundary flags and MPI rank assignment will be output.\n"
-             << " The desired load balancing approach can be steered by:\n\n"
-             << "  --load-balancing [allroot|roundrobin|roundrobinvolume|greedy|parmetis|diffusivecluster] (default: roundrobin)\n\n"
-             << " Use  -v  to print info on mesh to console.\n\n"
-             << " Use  --dofs <lvl>  to print number of DoFs on refinement level lvl.\n\n"
-             << std::endl;
+   std::cout
+       << "\n --------\n  USAGE:\n --------\n\n"
+       << " show_mesh demonstrates generation of a MeshInfo object by one of the\n following methods:\n\n"
+       << " 1) by importing a file in Gmsh format\n"
+       << " 2) by meshing a rectangle in a certain flavour\n"
+       << " 3) by meshing a full or partial annulus\n"
+       << " 4) by generating a strip of chained triangles\n"
+       << " 5) by meshing a thick spherical shell (w/ or w/o blending)\n"
+       << " 6) by meshing a rectangular cuboid\n"
+       << " 7) by meshing a symmetric rectangular cuboid\n"
+       << " 8) by meshing a T-domain using the cubed domain generator\n"
+       << " 9) by meshing a Tokamak\n\n"
+       << " This is steered by choosing one of the options below:\n\n"
+       << "  --file <name of Gmsh file>\n"
+       << "  --rect [criss|cross|crisscross|diamond]\n"
+       << "  --annulus [full|partial]\n"
+       << "  --face-chain [numFaces]\n"
+       << "  --spherical-shell [ntan]\n"
+       << "  --blended-spherical-shell [ntan]\n"
+       << "  --cuboid [nHint]\n"
+       << "  --symm-cuboid [nSubCubes]\n"
+       << "  --t-domain [nCubesInEachDirection]\n"
+       << "  --tokamak\n\n"
+       << " The generated base mesh will be tested be doing two levels of refinement.\n"
+       << " Then it will be exported to a VTU file for visualisation.\n\n"
+       << " Also visualization of the domain partitioning, mesh boundary flags and MPI rank assignment will be output.\n"
+       << " The desired load balancing approach can be steered by:\n\n"
+       << "  --load-balancing [allroot|roundrobin|roundrobinvolume|greedy|parmetis|diffusivecluster] (default: roundrobin)\n\n"
+       << " Use  -v  to print info on mesh to console.\n\n"
+       << " Use  --dofs <lvl>  to print number of DoFs on refinement level lvl.\n\n"
+       << std::endl;
 }
 
 int main( int argc, char* argv[] )
@@ -86,7 +89,8 @@ int main( int argc, char* argv[] )
       SPHERICAL_SHELL,
       CUBOID,
       SYMM_CUBOID,
-      T_DOMAIN
+      T_DOMAIN,
+      TOKAMAK
    } meshDomainType;
    meshDomainType        meshDomain;
    MeshInfo::meshFlavour rectMeshType = MeshInfo::CROSS;
@@ -96,8 +100,8 @@ int main( int argc, char* argv[] )
    uint_t                ntan         = 5;
    uint_t                nHint        = 1;
    // std::vector< real_t > layers       = {0.5, 0.6, 0.7, 0.8};
-   std::vector< real_t > layers       = {1.0, 2.0};
-   uint_t                numFaces     = 2;
+   std::vector< real_t > layers    = { 1.0, 2.0 };
+   uint_t                numFaces  = 2;
 
    typedef enum
    {
@@ -110,134 +114,161 @@ int main( int argc, char* argv[] )
    } LoadBalancingType;
    LoadBalancingType loadBalancingType = ROUND_ROBIN;
 
-   if( argc < 3 || argc > 8 )
+   if ( argc < 3 || argc > 8 )
    {
       showUsage();
       WALBERLA_ABORT( "Please provide command-line parameters!" );
-   } else if( strcmp( argv[1], "--file" ) == 0 )
+   }
+   else if ( strcmp( argv[1], "--file" ) == 0 )
    {
-      meshDomain                     = FROM_FILE;
-      meshFileName                   = std::string( argv[2] );
-      auto pos                       = meshFileName.find_last_of( '/' );
+      meshDomain   = FROM_FILE;
+      meshFileName = std::string( argv[2] );
+      auto pos     = meshFileName.find_last_of( '/' );
       pos == meshFileName.npos ? pos = 0 : ++pos;
-      vtkFileName                    = meshFileName.substr( pos, meshFileName.length() - 4 );
-   } else if( strcmp( argv[1], "--rect" ) == 0 )
+      vtkFileName = meshFileName.substr( pos, meshFileName.length() - 4 );
+   }
+   else if ( strcmp( argv[1], "--rect" ) == 0 )
    {
       meshDomain = RECTANGLE;
-      if( strcmp( argv[2], "criss" ) == 0 )
+      if ( strcmp( argv[2], "criss" ) == 0 )
       {
          rectMeshType = MeshInfo::CRISS;
          vtkFileName  = std::string( "rectMeshCriss" );
-      } else if( strcmp( argv[2], "cross" ) == 0 )
+      }
+      else if ( strcmp( argv[2], "cross" ) == 0 )
       {
          rectMeshType = MeshInfo::CROSS;
          vtkFileName  = std::string( "rectMeshCross" );
-      } else if( strcmp( argv[2], "crisscross" ) == 0 )
+      }
+      else if ( strcmp( argv[2], "crisscross" ) == 0 )
       {
          rectMeshType = MeshInfo::CRISSCROSS;
          vtkFileName  = std::string( "rectMeshCrissCross" );
-      } else if( strcmp( argv[2], "diamond" ) == 0 )
+      }
+      else if ( strcmp( argv[2], "diamond" ) == 0 )
       {
          rectMeshType = MeshInfo::DIAMOND;
          vtkFileName  = std::string( "rectMeshDiamond" );
-      } else
+      }
+      else
       {
          WALBERLA_ABORT( "Flavour for rect mesh not recognised!" );
       }
-   } else if( strcmp( argv[1], "--annulus" ) == 0 )
+   }
+   else if ( strcmp( argv[1], "--annulus" ) == 0 )
    {
-      if( strcmp( argv[2], "full" ) == 0 )
+      if ( strcmp( argv[2], "full" ) == 0 )
       {
          meshDomain  = ANNULUS;
          vtkFileName = std::string( "annulusMesh" );
-      } else if( strcmp( argv[2], "partial" ) == 0 )
+      }
+      else if ( strcmp( argv[2], "partial" ) == 0 )
       {
          meshDomain  = PARTIAL_ANNULUS;
          vtkFileName = std::string( "partialAnnulusMesh" );
-      } else
+      }
+      else
       {
          WALBERLA_ABORT( "Subtype of --annulus not recognised!" );
       }
-   } else if( strcmp( argv[1], "--face-chain" ) == 0 )
+   }
+   else if ( strcmp( argv[1], "--face-chain" ) == 0 )
    {
       numFaces    = uint_c( std::stoi( argv[2] ) );
       meshDomain  = FACE_CHAIN;
       vtkFileName = std::string( "faceChain" );
-   } else if( strcmp( argv[1], "--spherical-shell" ) == 0 )
+   }
+   else if ( strcmp( argv[1], "--spherical-shell" ) == 0 )
    {
       ntan        = uint_c( std::stoi( argv[2] ) );
       meshDomain  = SPHERICAL_SHELL;
       blending    = false;
       vtkFileName = std::string( "sphericalShell" );
-   } else if( strcmp( argv[1], "--blended-spherical-shell" ) == 0 )
+   }
+   else if ( strcmp( argv[1], "--blended-spherical-shell" ) == 0 )
    {
       ntan        = uint_c( std::stoi( argv[2] ) );
       meshDomain  = SPHERICAL_SHELL;
       blending    = true;
       vtkFileName = std::string( "blendedSphericalShell" );
-   } else if( strcmp( argv[1], "--cuboid" ) == 0 )
+   }
+   else if ( strcmp( argv[1], "--cuboid" ) == 0 )
    {
       nHint       = uint_c( std::stoi( argv[2] ) );
       meshDomain  = CUBOID;
       vtkFileName = std::string( "cuboidMesh" );
-   } else if( strcmp( argv[1], "--symm-cuboid" ) == 0 )
+   }
+   else if ( strcmp( argv[1], "--symm-cuboid" ) == 0 )
    {
-     nHint       = uint_c( std::stoi( argv[2] ) );
-     meshDomain  = SYMM_CUBOID;
-     vtkFileName = std::string( "symmCuboidMesh" );
-   } else if( strcmp( argv[1], "--t-domain" ) == 0 )
+      nHint       = uint_c( std::stoi( argv[2] ) );
+      meshDomain  = SYMM_CUBOID;
+      vtkFileName = std::string( "symmCuboidMesh" );
+   }
+   else if ( strcmp( argv[1], "--t-domain" ) == 0 )
    {
       nHint       = uint_c( std::stoi( argv[2] ) );
       meshDomain  = T_DOMAIN;
       vtkFileName = std::string( "tDomain" );
-   } else
+   }
+   else if ( strcmp( argv[1], "--donut" ) == 0 )
+   {
+      meshDomain  = TOKAMAK;
+      vtkFileName = std::string( "tokamak" );
+   }
+   else
    {
       WALBERLA_ABORT( "Could not understand command-line args!" );
    }
 
-   if( argc > 4 && argc < 7 && strcmp( argv[3], "--load-balancing" ) == 0 )
+   if ( argc > 4 && argc < 7 && strcmp( argv[3], "--load-balancing" ) == 0 )
    {
-      if( strcmp( argv[4], "allroot" ) == 0 )
+      if ( strcmp( argv[4], "allroot" ) == 0 )
       {
          loadBalancingType = ALL_ROOT;
-      } else if( strcmp( argv[4], "roundrobin" ) == 0 )
+      }
+      else if ( strcmp( argv[4], "roundrobin" ) == 0 )
       {
          loadBalancingType = ROUND_ROBIN;
-      } else if( strcmp( argv[4], "roundrobinvolume" ) == 0 )
+      }
+      else if ( strcmp( argv[4], "roundrobinvolume" ) == 0 )
       {
          loadBalancingType = ROUND_ROBIN_VOLUME;
-      } else if( strcmp( argv[4], "greedy" ) == 0 )
+      }
+      else if ( strcmp( argv[4], "greedy" ) == 0 )
       {
          loadBalancingType = GREEDY;
-      } else if( strcmp( argv[4], "diffusivecluster" ) == 0 )
+      }
+      else if ( strcmp( argv[4], "diffusivecluster" ) == 0 )
       {
          loadBalancingType = DIFFUSIVE_CLUSTER;
-      } else if( strcmp( argv[4], "parmetis" ) == 0 )
+      }
+      else if ( strcmp( argv[4], "parmetis" ) == 0 )
       {
 #ifdef WALBERLA_BUILD_WITH_PARMETIS
          loadBalancingType = PARMETIS;
 #else
          WALBERLA_ABORT( "Framework was not built with ParMetis." );
 #endif
-      } else
+      }
+      else
       {
          WALBERLA_ABORT( "Could not understand command-line args. Possibly invalid load balancing approach." );
       }
    }
 
-   if( ( argc == 4 || argc == 6 ) && ( strcmp( argv[3], "-v" ) == 0 || strcmp( argv[5], "-v" ) == 0 ) )
+   if ( ( argc == 4 || argc == 6 ) && ( strcmp( argv[3], "-v" ) == 0 || strcmp( argv[5], "-v" ) == 0 ) )
    {
       beVerbose = true;
    }
 
-   bool reportDoFCount = false;
-   uint_t dofLevel = 0;
-   for ( int k = 0; k < argc-1; k++ )
+   bool   reportDoFCount = false;
+   uint_t dofLevel       = 0;
+   for ( int k = 0; k < argc - 1; k++ )
    {
       if ( strcmp( argv[k], "--dofs" ) == 0 )
       {
-        reportDoFCount = true;
-        dofLevel = (uint_t)atoi( argv[k+1] );
+         reportDoFCount = true;
+         dofLevel       = (uint_t) atoi( argv[k + 1] );
       }
    }
    if ( strcmp( argv[argc - 1], "--dofs" ) == 0 )
@@ -253,14 +284,15 @@ int main( int argc, char* argv[] )
 
    WALBERLA_LOG_INFO_ON_ROOT( "HyTeG Show Mesh Test\n" );
 
-   switch( meshDomain )
+   switch ( meshDomain )
    {
    case FROM_FILE:
       meshInfo = new MeshInfo( MeshInfo::fromGmshFile( meshFileName ) );
       break;
 
    case RECTANGLE:
-      meshInfo = new MeshInfo( MeshInfo::meshRectangle( Point2D( {-2.0, 1.0} ), Point2D( {0.0, 3.0} ), rectMeshType, 16, 16 ) );
+      meshInfo =
+          new MeshInfo( MeshInfo::meshRectangle( Point2D( { -2.0, 1.0 } ), Point2D( { 0.0, 3.0 } ), rectMeshType, 16, 16 ) );
       break;
 
    case PARTIAL_ANNULUS:
@@ -280,42 +312,42 @@ int main( int argc, char* argv[] )
       break;
 
    case CUBOID:
-      meshInfo = new MeshInfo( MeshInfo::meshCuboid( Point3D( { -1.0, -1.0, 0.0 } ),
-                                                     Point3D( {  2.0,  0.0, 2.0 } ),
-                                                     nHint + 1, nHint + 1, nHint ) );
+      meshInfo = new MeshInfo(
+          MeshInfo::meshCuboid( Point3D( { -1.0, -1.0, 0.0 } ), Point3D( { 2.0, 0.0, 2.0 } ), nHint + 1, nHint + 1, nHint ) );
       break;
 
-     case SYMM_CUBOID:
-      meshInfo = new MeshInfo( MeshInfo::meshSymmetricCuboid( Point3D( { -1.0, -1.0, -1.0 } ),
-                                                              Point3D( {  1.0,  1.0,  1.0 } ),
-                                                              nHint, nHint, nHint ) );
+   case SYMM_CUBOID:
+      meshInfo = new MeshInfo(
+          MeshInfo::meshSymmetricCuboid( Point3D( { -1.0, -1.0, -1.0 } ), Point3D( { 1.0, 1.0, 1.0 } ), nHint, nHint, nHint ) );
       break;
-     case T_DOMAIN:
-     {
-        std::set< std::array< int, 3 > > cubes;
-        cubes.insert( {0, 0, 0} );
-        for ( int i = 0; i <= walberla::int_c( nHint ); i++ )
-        {
-           cubes.insert( {-i, 0, 0} );
-           cubes.insert( {0, i, 0} );
-           cubes.insert( {0, -i, 0} );
-        }
-        meshInfo = new MeshInfo( MeshInfo::meshCubedDomain( cubes, 1 ) );
-        break;
-     }
+   case T_DOMAIN: {
+      std::set< std::array< int, 3 > > cubes;
+      cubes.insert( { 0, 0, 0 } );
+      for ( int i = 0; i <= walberla::int_c( nHint ); i++ )
+      {
+         cubes.insert( { -i, 0, 0 } );
+         cubes.insert( { 0, i, 0 } );
+         cubes.insert( { 0, -i, 0 } );
+      }
+      meshInfo = new MeshInfo( MeshInfo::meshCubedDomain( cubes, 1 ) );
+      break;
+   }
+   case TOKAMAK:
+      meshInfo = new MeshInfo( MeshInfo::meshTokamak( 24, 3, 0.7, 1.6, 0.7, true, true ) );
+      break;
    }
 
    // ----------------
    //  Log mesh info
    // ----------------
 
-   if( beVerbose )
+   if ( beVerbose )
    {
       MeshInfo::VertexContainer verts = meshInfo->getVertices();
       std::ostringstream        msg;
 
       msg << "VERTEX INFO:\n";
-      for( const auto& it : verts )
+      for ( const auto& it : verts )
       {
          msg << "node " << it.first << ": mesh boundary flag = " << it.second.getBoundaryFlag()
              << " | pos = " << it.second.getCoordinates() << "\n";
@@ -325,7 +357,7 @@ int main( int argc, char* argv[] )
 
       msg << "EDGE INFO: (vertex indices)\n";
       MeshInfo::EdgeContainer edges = meshInfo->getEdges();
-      for( const auto& it : edges )
+      for ( const auto& it : edges )
       {
          std::array< MeshInfo::IDType, 2 > node = it.second.getVertices();
          msg << node[0] << " <--> " << node[1] << " : mesh boundary flag = " << it.second.getBoundaryFlag() << std::endl;
@@ -335,7 +367,7 @@ int main( int argc, char* argv[] )
 
       msg << "FACE INFO (vertex indices):\n";
       MeshInfo::FaceContainer faces = meshInfo->getFaces();
-      for( const auto& it : faces )
+      for ( const auto& it : faces )
       {
          std::vector< MeshInfo::IDType > node = it.second.getVertices();
          msg << node[0] << " <--> " << node[1] << " <--> " << node[2] << " : mesh boundary flag = " << it.second.getBoundaryFlag()
@@ -349,14 +381,16 @@ int main( int argc, char* argv[] )
    setupStorage = new SetupPrimitiveStorage( *meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    // check, if blending for spherical shell needs to be done
-   if( blending ) {
-     if( meshDomain == SPHERICAL_SHELL ) {
-       IcosahedralShellMap::setMap( *setupStorage );
-       WALBERLA_LOG_INFO_ON_ROOT( "added geometry map for blending" );
-     }
+   if ( blending )
+   {
+      if ( meshDomain == SPHERICAL_SHELL )
+      {
+         IcosahedralShellMap::setMap( *setupStorage );
+         WALBERLA_LOG_INFO_ON_ROOT( "added geometry map for blending" );
+      }
    }
 
-   switch( loadBalancingType )
+   switch ( loadBalancingType )
    {
    case ALL_ROOT:
       WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: all on root" );
@@ -381,7 +415,7 @@ int main( int argc, char* argv[] )
       break;
    }
 
-   if( beVerbose )
+   if ( beVerbose )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "" << *setupStorage );
    }
@@ -392,7 +426,7 @@ int main( int argc, char* argv[] )
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( *setupStorage, 1 );
 
-   switch( loadBalancingType )
+   switch ( loadBalancingType )
    {
    case DIFFUSIVE_CLUSTER:
       WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: diffusive cluster" );
@@ -402,14 +436,14 @@ int main( int argc, char* argv[] )
       break;
    }
 
-   if( beVerbose )
+   if ( beVerbose )
    {
-     std::string pInfo = storage->getGlobalInfo();
-     WALBERLA_LOG_INFO_ON_ROOT( "" << pInfo );
+      std::string pInfo = storage->getGlobalInfo();
+      WALBERLA_LOG_INFO_ON_ROOT( "" << pInfo );
    }
 
 #ifdef WALBERLA_BUILD_WITH_PARMETIS
-   if( loadBalancingType == PARMETIS )
+   if ( loadBalancingType == PARMETIS )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "Load balancing: parmetis" );
       hyteg::loadbalancing::distributed::parmetis( *storage );
@@ -423,7 +457,9 @@ int main( int argc, char* argv[] )
 
    hyteg::VTKOutput                                 vtkOutput( "../output", vtkFileName, storage );
    hyteg::P1Function< real_t >                      someData( "test data", storage, minLevel, maxLevel );
-   std::function< real_t( const hyteg::Point3D& ) > myFunc = []( const hyteg::Point3D& xx ) { return xx[0] * xx[0] - xx[1] * xx[1]; };
+   std::function< real_t( const hyteg::Point3D& ) > myFunc = []( const hyteg::Point3D& xx ) {
+      return xx[0] * xx[0] - xx[1] * xx[1];
+   };
    someData.interpolate( myFunc, maxLevel );
    vtkOutput.add( someData );
    WALBERLA_LOG_INFO_ON_ROOT( "Output goes to file with basename: " << vtkFileName );
@@ -432,13 +468,14 @@ int main( int argc, char* argv[] )
    // -------------------
    //  Report DoF Counts
    // -------------------
-   if( reportDoFCount ) {
-     uint_t vDoFs = numberOfGlobalDoFs< VertexDoFFunctionTag >( *storage, dofLevel );
-     uint_t eDoFs = numberOfGlobalDoFs< EdgeDoFFunctionTag >( *storage, dofLevel );
-     WALBERLA_LOG_INFO_ON_ROOT( "\nDOF INFO:" );
-     WALBERLA_LOG_INFO_ON_ROOT( "level ............ " << dofLevel );
-     WALBERLA_LOG_INFO_ON_ROOT( "# vertex DoFs .... " << vDoFs );
-     WALBERLA_LOG_INFO_ON_ROOT( "# edge DoFs ...... " << eDoFs );
+   if ( reportDoFCount )
+   {
+      uint_t vDoFs = numberOfGlobalDoFs< VertexDoFFunctionTag >( *storage, dofLevel );
+      uint_t eDoFs = numberOfGlobalDoFs< EdgeDoFFunctionTag >( *storage, dofLevel );
+      WALBERLA_LOG_INFO_ON_ROOT( "\nDOF INFO:" );
+      WALBERLA_LOG_INFO_ON_ROOT( "level ............ " << dofLevel );
+      WALBERLA_LOG_INFO_ON_ROOT( "# vertex DoFs .... " << vDoFs );
+      WALBERLA_LOG_INFO_ON_ROOT( "# edge DoFs ...... " << eDoFs );
    }
 
    delete meshInfo;
