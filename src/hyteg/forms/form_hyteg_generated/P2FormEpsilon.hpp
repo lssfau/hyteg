@@ -47,7 +47,7 @@ class P2Form_epsilon_11 : public P2FormHyTeG {
       real_t tmp15 = DF(1,0)*tmp5 + DF(1,1)*tmp6;
       real_t tmp16 = -tmp13 - tmp14 + tmp15;
       real_t tmp17 = 16.0*tmp11;
-      real_t tmp18 = 2*callback( x_tilde, geometryMap_ )*std::fabs(tmp10*tmp9);
+      real_t tmp18 = 2*std::fabs(tmp10*tmp9);
       real_t tmp19 = tmp2 + tmp4;
       real_t tmp20 = 4.0*x_hat[0];
       real_t tmp21 = tmp20 - 1.0;
@@ -287,7 +287,7 @@ class P2Form_epsilon_11 : public P2FormHyTeG {
       real_t tmp75 = -tmp39*tmp71 - tmp44*tmp72 - tmp70*tmp9;
       real_t tmp76 = -tmp49*tmp70 - tmp51*tmp71 - tmp53*tmp72;
       real_t tmp77 = tmp73*tmp74 + tmp74*tmp75 + tmp74*tmp76;
-      real_t tmp78 = 2*callback( x_tilde, geometryMap_ )*std::fabs(tmp16*tmp33);
+      real_t tmp78 = 2*std::fabs(tmp16*tmp33);
       real_t tmp79 = 0.5*tmp47 + 0.5*tmp55 + 0.5*tmp60;
       real_t tmp80 = tmp0 - 1.0;
       real_t tmp81 = 1.0*tmp80;
@@ -681,8 +681,6 @@ class P2Form_epsilon_11 : public P2FormHyTeG {
       evalQuadraturePoint3D(x_hat, x_tilde, coords, DF, 0.04166666666666666, elMat);
    }
 
-   static std::function< real_t( const Point3D&, const std::shared_ptr< GeometryMap >& ) > callback;
-
 };
 
 class P2Form_epsilon_12 : public P2FormHyTeG {
@@ -702,7 +700,7 @@ class P2Form_epsilon_12 : public P2FormHyTeG {
       real_t tmp10 = DF(0,0)*tmp4 + DF(0,1)*tmp5;
       real_t tmp11 = DF(0,0)*DF(1,1) - DF(0,1)*DF(1,0);
       real_t tmp12 = coords[0][0]*coords[1][1] - coords[0][0]*coords[2][1] - coords[0][1]*coords[1][0] + coords[0][1]*coords[2][0] + coords[1][0]*coords[2][1] - coords[1][1]*coords[2][0];
-      real_t tmp13 = callback( x_tilde, geometryMap_ )*std::fabs(tmp11*tmp12)/(std::pow(tmp11, 2)*std::pow(tmp12, 2));
+      real_t tmp13 = std::fabs(tmp11*tmp12)/(std::pow(tmp11, 2)*std::pow(tmp12, 2));
       real_t tmp14 = tmp13*(tmp10 - tmp8 - tmp9);
       real_t tmp15 = tmp1 + tmp3;
       real_t tmp16 = 4.0*x_hat[0];
@@ -906,7 +904,7 @@ class P2Form_epsilon_12 : public P2FormHyTeG {
       real_t tmp57 = tmp48*tmp53 + tmp49*tmp54 + tmp50*tmp55;
       real_t tmp58 = -tmp33*tmp54 - tmp37*tmp55 - tmp4*tmp53;
       real_t tmp59 = tmp43*tmp56 + tmp43*tmp57 + tmp43*tmp58;
-      real_t tmp60 = callback( x_tilde, geometryMap_ )*std::fabs(tmp11*tmp28);
+      real_t tmp60 = std::fabs(tmp11*tmp28);
       real_t tmp61 = 4*tmp60;
       real_t tmp62 = tmp59*tmp61;
       real_t tmp63 = tmp59*tmp60;
@@ -1224,8 +1222,6 @@ class P2Form_epsilon_12 : public P2FormHyTeG {
       evalQuadraturePoint3D(x_hat, x_tilde, coords, DF, 0.04166666666666666, elMat);
    }
 
-   static std::function< real_t( const Point3D&, const std::shared_ptr< GeometryMap >& ) > callback;
-
 };
 
 class P2Form_epsilon_13 : public P2FormHyTeG {
@@ -1308,7 +1304,7 @@ class P2Form_epsilon_13 : public P2FormHyTeG {
       real_t tmp63 = -tmp46*tmp59 - tmp49*tmp60 - tmp52*tmp61;
       real_t tmp64 = -tmp54*tmp59 - tmp55*tmp60 - tmp56*tmp61;
       real_t tmp65 = tmp43*tmp62 + tmp43*tmp63 + tmp43*tmp64;
-      real_t tmp66 = callback( x_tilde, geometryMap_ )*std::fabs(tmp15*tmp28);
+      real_t tmp66 = std::fabs(tmp15*tmp28);
       real_t tmp67 = 4*tmp66;
       real_t tmp68 = tmp65*tmp67;
       real_t tmp69 = tmp65*tmp66;
@@ -1626,8 +1622,6 @@ class P2Form_epsilon_13 : public P2FormHyTeG {
       evalQuadraturePoint3D(x_hat, x_tilde, coords, DF, 0.04166666666666666, elMat);
    }
 
-   static std::function< real_t( const Point3D&, const std::shared_ptr< GeometryMap >& ) > callback;
-
 };
 
 class P2Form_epsilon_21 : public P2FormHyTeG {
@@ -1647,7 +1641,7 @@ class P2Form_epsilon_21 : public P2FormHyTeG {
       real_t tmp10 = DF(1,0)*tmp4 + DF(1,1)*tmp5;
       real_t tmp11 = DF(0,0)*DF(1,1) - DF(0,1)*DF(1,0);
       real_t tmp12 = coords[0][0]*coords[1][1] - coords[0][0]*coords[2][1] - coords[0][1]*coords[1][0] + coords[0][1]*coords[2][0] + coords[1][0]*coords[2][1] - coords[1][1]*coords[2][0];
-      real_t tmp13 = callback( x_tilde, geometryMap_ )*std::fabs(tmp11*tmp12)/(std::pow(tmp11, 2)*std::pow(tmp12, 2));
+      real_t tmp13 = std::fabs(tmp11*tmp12)/(std::pow(tmp11, 2)*std::pow(tmp12, 2));
       real_t tmp14 = tmp13*(tmp10 - tmp8 - tmp9);
       real_t tmp15 = tmp1 + tmp3;
       real_t tmp16 = 4.0*x_hat[0];
@@ -1851,7 +1845,7 @@ class P2Form_epsilon_21 : public P2FormHyTeG {
       real_t tmp57 = -tmp31*tmp54 - tmp34*tmp55 - tmp53*tmp7;
       real_t tmp58 = -tmp42*tmp53 - tmp44*tmp54 - tmp46*tmp55;
       real_t tmp59 = tmp40*tmp56 + tmp40*tmp57 + tmp40*tmp58;
-      real_t tmp60 = callback( x_tilde, geometryMap_ )*std::fabs(tmp14*tmp27);
+      real_t tmp60 = std::fabs(tmp14*tmp27);
       real_t tmp61 = 4*tmp60;
       real_t tmp62 = tmp59*tmp61;
       real_t tmp63 = tmp59*tmp60;
@@ -2169,8 +2163,6 @@ class P2Form_epsilon_21 : public P2FormHyTeG {
       evalQuadraturePoint3D(x_hat, x_tilde, coords, DF, 0.04166666666666666, elMat);
    }
 
-   static std::function< real_t( const Point3D&, const std::shared_ptr< GeometryMap >& ) > callback;
-
 };
 
 class P2Form_epsilon_22 : public P2FormHyTeG {
@@ -2195,7 +2187,7 @@ class P2Form_epsilon_22 : public P2FormHyTeG {
       real_t tmp15 = DF(1,0)*tmp5 + DF(1,1)*tmp6;
       real_t tmp16 = -tmp13 - tmp14 + tmp15;
       real_t tmp17 = 8.0*tmp11;
-      real_t tmp18 = 2*callback( x_tilde, geometryMap_ )*std::fabs(tmp10*tmp9);
+      real_t tmp18 = 2*std::fabs(tmp10*tmp9);
       real_t tmp19 = tmp2 + tmp4;
       real_t tmp20 = 4.0*x_hat[0];
       real_t tmp21 = tmp20 - 1.0;
@@ -2431,7 +2423,7 @@ class P2Form_epsilon_22 : public P2FormHyTeG {
       real_t tmp69 = tmp40*tmp68;
       real_t tmp70 = -tmp43*tmp63 - tmp45*tmp64 - tmp47*tmp65;
       real_t tmp71 = tmp40*tmp70;
-      real_t tmp72 = 2*callback( x_tilde, geometryMap_ )*std::fabs(tmp14*tmp27);
+      real_t tmp72 = 2*std::fabs(tmp14*tmp27);
       real_t tmp73 = tmp37 - 1.0;
       real_t tmp74 = 1.0*tmp73;
       real_t tmp75 = tmp48*tmp74;
@@ -2825,8 +2817,6 @@ class P2Form_epsilon_22 : public P2FormHyTeG {
       evalQuadraturePoint3D(x_hat, x_tilde, coords, DF, 0.04166666666666666, elMat);
    }
 
-   static std::function< real_t( const Point3D&, const std::shared_ptr< GeometryMap >& ) > callback;
-
 };
 
 class P2Form_epsilon_23 : public P2FormHyTeG {
@@ -2909,7 +2899,7 @@ class P2Form_epsilon_23 : public P2FormHyTeG {
       real_t tmp63 = -tmp35*tmp60 - tmp40*tmp61 - tmp5*tmp59;
       real_t tmp64 = -tmp48*tmp59 - tmp50*tmp60 - tmp52*tmp61;
       real_t tmp65 = tmp46*tmp62 + tmp46*tmp63 + tmp46*tmp64;
-      real_t tmp66 = callback( x_tilde, geometryMap_ )*std::fabs(tmp12*tmp29);
+      real_t tmp66 = std::fabs(tmp12*tmp29);
       real_t tmp67 = 4*tmp66;
       real_t tmp68 = tmp65*tmp67;
       real_t tmp69 = tmp65*tmp66;
@@ -3311,7 +3301,7 @@ class P2Form_epsilon_31 : public P2FormHyTeG {
       real_t tmp63 = -tmp46*tmp59 - tmp49*tmp60 - tmp52*tmp61;
       real_t tmp64 = -tmp54*tmp59 - tmp55*tmp60 - tmp56*tmp61;
       real_t tmp65 = tmp43*tmp62 + tmp43*tmp63 + tmp43*tmp64;
-      real_t tmp66 = callback( x_tilde, geometryMap_ )*std::fabs(tmp15*tmp28);
+      real_t tmp66 = std::fabs(tmp15*tmp28);
       real_t tmp67 = 4*tmp66;
       real_t tmp68 = tmp65*tmp67;
       real_t tmp69 = tmp65*tmp66;
@@ -3629,8 +3619,6 @@ class P2Form_epsilon_31 : public P2FormHyTeG {
       evalQuadraturePoint3D(x_hat, x_tilde, coords, DF, 0.04166666666666666, elMat);
    }
 
-   static std::function< real_t( const Point3D&, const std::shared_ptr< GeometryMap >& ) > callback;
-
 };
 
 class P2Form_epsilon_32 : public P2FormHyTeG {
@@ -3713,7 +3701,7 @@ class P2Form_epsilon_32 : public P2FormHyTeG {
       real_t tmp63 = tmp54*tmp59 + tmp55*tmp60 + tmp56*tmp61;
       real_t tmp64 = -tmp33*tmp60 - tmp37*tmp61 - tmp59*tmp8;
       real_t tmp65 = tmp43*tmp62 + tmp43*tmp63 + tmp43*tmp64;
-      real_t tmp66 = callback( x_tilde, geometryMap_ )*std::fabs(tmp15*tmp28);
+      real_t tmp66 = std::fabs(tmp15*tmp28);
       real_t tmp67 = 4*tmp66;
       real_t tmp68 = tmp65*tmp67;
       real_t tmp69 = tmp65*tmp66;
@@ -4031,8 +4019,6 @@ class P2Form_epsilon_32 : public P2FormHyTeG {
       evalQuadraturePoint3D(x_hat, x_tilde, coords, DF, 0.04166666666666666, elMat);
    }
 
-   static std::function< real_t( const Point3D&, const std::shared_ptr< GeometryMap >& ) > callback;
-
 };
 
 class P2Form_epsilon_33 : public P2FormHyTeG {
@@ -4127,7 +4113,7 @@ class P2Form_epsilon_33 : public P2FormHyTeG {
       real_t tmp75 = -tmp39*tmp71 - tmp44*tmp72 - tmp70*tmp9;
       real_t tmp76 = -tmp49*tmp70 - tmp51*tmp71 - tmp53*tmp72;
       real_t tmp77 = tmp73*tmp74 + tmp74*tmp75 + tmp74*tmp76;
-      real_t tmp78 = 2*callback( x_tilde, geometryMap_ )*std::fabs(tmp16*tmp33);
+      real_t tmp78 = 2*std::fabs(tmp16*tmp33);
       real_t tmp79 = 0.5*tmp47 + 0.5*tmp55 + 0.5*tmp60;
       real_t tmp80 = tmp0 - 1.0;
       real_t tmp81 = 1.0*tmp80;
@@ -4520,8 +4506,6 @@ class P2Form_epsilon_33 : public P2FormHyTeG {
       geometryMap_->evalDF(x_tilde, DF);
       evalQuadraturePoint3D(x_hat, x_tilde, coords, DF, 0.04166666666666666, elMat);
    }
-
-   static std::function< real_t( const Point3D&, const std::shared_ptr< GeometryMap >& ) > callback;
 
 };
 

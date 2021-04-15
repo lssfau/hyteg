@@ -38,6 +38,7 @@ using walberla::math::pi;
 #include "hyteg/forms/form_hyteg_generated/P1FormEpsilon.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
+#include "hyteg/forms/form_hyteg_generated/P2FormEpsilon.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_affine_qe.hpp"
@@ -278,6 +279,30 @@ void run2DTestsWithoutBlending()
    logSectionHeader( "P2 mass, 2D, no blending (HFG)" );
    compareForms< P2FenicsForm< p2_mass_cell_integral_0_otherwise, fenics::NoAssemble >, forms::p2_mass_affine_qe, Matrix6r, 2 >(
        triangle, 5e-14 );
+
+   logSectionHeader( "P2 Epsilon_11 Forms" );
+   compareForms< P2FenicsForm< p2_stokes_epsilon_cell_integral_0_otherwise, fenics::NoAssemble >,
+                 P2Form_epsilon_11,
+                 Matrix6r,
+                 2 >( triangle, 5e-13 );
+
+   logSectionHeader( "P2 Epsilon_12 Forms" );
+   compareForms< P2FenicsForm< p2_stokes_epsilon_cell_integral_1_otherwise, fenics::NoAssemble >,
+                 P2Form_epsilon_12,
+                 Matrix6r,
+                 2 >( triangle, 5e-13 );
+
+   logSectionHeader( "P2 Epsilon_21 Forms" );
+   compareForms< P2FenicsForm< p2_stokes_epsilon_cell_integral_2_otherwise, fenics::NoAssemble >,
+                 P2Form_epsilon_21,
+                 Matrix6r,
+                 2 >( triangle, 5e-13 );
+
+   logSectionHeader( "P2 Epsilon_22 Forms" );
+   compareForms< P2FenicsForm< p2_stokes_epsilon_cell_integral_3_otherwise, fenics::NoAssemble >,
+                 P2Form_epsilon_22,
+                 Matrix6r,
+                 2 >( triangle, 5e-13 );
 }
 
 void run2DTestsWithAffineMap()
@@ -384,6 +409,18 @@ void run2DTestsWithAffineMap()
                           P2Form_laplace,
                           Matrix6r,
                           2 >( triangle, 1e-13, map );
+
+   logSectionHeader( "P2 Epsilon_11 Forms" );
+   compareUsingAffineMap< P2FenicsForm< p2_stokes_epsilon_cell_integral_0_otherwise, fenics::NoAssemble >,
+                          P2Form_epsilon_11,
+                          Matrix6r,
+                          2 >( triangle, 5e-13, map );
+
+   logSectionHeader( "P2 Epsilon_12 Forms" );
+   compareUsingAffineMap< P2FenicsForm< p2_stokes_epsilon_cell_integral_1_otherwise, fenics::NoAssemble >,
+                          P2Form_epsilon_12,
+                          Matrix6r,
+                          2 >( triangle, 5e-13, map );
 
    // HyTeG form generator test
 

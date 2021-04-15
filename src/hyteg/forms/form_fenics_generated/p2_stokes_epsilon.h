@@ -25,24 +25,24 @@
 //  representation:                 'auto'
 //  split:                          False
 
-#ifndef __P2_DIVT_H
-#define __P2_DIVT_H
+#ifndef __P2_STOKES_EPSILON_H
+#define __P2_STOKES_EPSILON_H
 #include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
 #include "hyteg/fenics/ufc.h"
 
-class p2_divt_finite_element_0: public ufc::finite_element
+class p2_stokes_epsilon_finite_element_0: public ufc::finite_element
 {
 public:
 
-  p2_divt_finite_element_0() : ufc::finite_element()
+  p2_stokes_epsilon_finite_element_0() : ufc::finite_element()
   {
     // Do nothing
   }
 
-  ~p2_divt_finite_element_0() override
+  ~p2_stokes_epsilon_finite_element_0() override
   {
     // Do nothing
   }
@@ -817,22 +817,22 @@ public:
 
   ufc::finite_element * create() const final override
   {
-    return new p2_divt_finite_element_0();
+    return new p2_stokes_epsilon_finite_element_0();
   }
 
 };
 
 
-class p2_divt_finite_element_1: public ufc::finite_element
+class p2_stokes_epsilon_finite_element_1: public ufc::finite_element
 {
 public:
 
-  p2_divt_finite_element_1() : ufc::finite_element()
+  p2_stokes_epsilon_finite_element_1() : ufc::finite_element()
   {
     // Do nothing
   }
 
-  ~p2_divt_finite_element_1() override
+  ~p2_stokes_epsilon_finite_element_1() override
   {
     // Do nothing
   }
@@ -1985,9 +1985,9 @@ public:
     switch (i)
     {
     case 0:
-        return new p2_divt_finite_element_0();
+        return new p2_stokes_epsilon_finite_element_0();
     case 1:
-        return new p2_divt_finite_element_0();
+        return new p2_stokes_epsilon_finite_element_0();
     default:
         return nullptr;
     }
@@ -1995,22 +1995,22 @@ public:
 
   ufc::finite_element * create() const final override
   {
-    return new p2_divt_finite_element_1();
+    return new p2_stokes_epsilon_finite_element_1();
   }
 
 };
 
 
-class p2_divt_finite_element_2: public ufc::finite_element
+class p2_stokes_epsilon_finite_element_2: public ufc::finite_element
 {
 public:
 
-  p2_divt_finite_element_2() : ufc::finite_element()
+  p2_stokes_epsilon_finite_element_2() : ufc::finite_element()
   {
     // Do nothing
   }
 
-  ~p2_divt_finite_element_2() override
+  ~p2_stokes_epsilon_finite_element_2() override
   {
     // Do nothing
   }
@@ -3322,22 +3322,22 @@ public:
 
   ufc::finite_element * create() const final override
   {
-    return new p2_divt_finite_element_2();
+    return new p2_stokes_epsilon_finite_element_2();
   }
 
 };
 
 
-class p2_divt_dofmap_0: public ufc::dofmap
+class p2_stokes_epsilon_dofmap_0: public ufc::dofmap
 {
 public:
 
-  p2_divt_dofmap_0() : ufc::dofmap()
+  p2_stokes_epsilon_dofmap_0() : ufc::dofmap()
   {
     // Do nothing
   }
 
-  ~p2_divt_dofmap_0() override
+  ~p2_stokes_epsilon_dofmap_0() override
   {
     // Do nothing
   }
@@ -3515,22 +3515,22 @@ public:
 
   ufc::dofmap * create() const final override
   {
-    return new p2_divt_dofmap_0();
+    return new p2_stokes_epsilon_dofmap_0();
   }
 
 };
 
 
-class p2_divt_dofmap_1: public ufc::dofmap
+class p2_stokes_epsilon_dofmap_1: public ufc::dofmap
 {
 public:
 
-  p2_divt_dofmap_1() : ufc::dofmap()
+  p2_stokes_epsilon_dofmap_1() : ufc::dofmap()
   {
     // Do nothing
   }
 
-  ~p2_divt_dofmap_1() override
+  ~p2_stokes_epsilon_dofmap_1() override
   {
     // Do nothing
   }
@@ -3733,9 +3733,9 @@ public:
     switch (i)
     {
     case 0:
-        return new p2_divt_dofmap_0();
+        return new p2_stokes_epsilon_dofmap_0();
     case 1:
-        return new p2_divt_dofmap_0();
+        return new p2_stokes_epsilon_dofmap_0();
     default:
         return nullptr;
     }
@@ -3743,22 +3743,22 @@ public:
 
   ufc::dofmap * create() const final override
   {
-    return new p2_divt_dofmap_1();
+    return new p2_stokes_epsilon_dofmap_1();
   }
 
 };
 
 
-class p2_divt_dofmap_2: public ufc::dofmap
+class p2_stokes_epsilon_dofmap_2: public ufc::dofmap
 {
 public:
 
-  p2_divt_dofmap_2() : ufc::dofmap()
+  p2_stokes_epsilon_dofmap_2() : ufc::dofmap()
   {
     // Do nothing
   }
 
-  ~p2_divt_dofmap_2() override
+  ~p2_stokes_epsilon_dofmap_2() override
   {
     // Do nothing
   }
@@ -3965,22 +3965,22 @@ public:
 
   ufc::dofmap * create() const final override
   {
-    return new p2_divt_dofmap_2();
+    return new p2_stokes_epsilon_dofmap_2();
   }
 
 };
 
 
-class p2_divt_coordinate_mapping_1: public ufc::coordinate_mapping
+class p2_stokes_epsilon_coordinate_mapping_1: public ufc::coordinate_mapping
 {
 public:
 
-  p2_divt_coordinate_mapping_1() : ufc::coordinate_mapping()
+  p2_stokes_epsilon_coordinate_mapping_1() : ufc::coordinate_mapping()
   {
     // Do nothing
   }
 
-  ~p2_divt_coordinate_mapping_1() override
+  ~p2_stokes_epsilon_coordinate_mapping_1() override
   {
     // Do nothing
   }
@@ -3992,7 +3992,7 @@ public:
 
   ufc::coordinate_mapping * create() const final override
   {
-    return new p2_divt_coordinate_mapping_1();
+    return new p2_stokes_epsilon_coordinate_mapping_1();
   }
 
   std::size_t geometric_dimension() const final override
@@ -4012,12 +4012,12 @@ public:
 
   ufc::finite_element * create_coordinate_finite_element() const final override
   {
-    return new p2_divt_finite_element_1();
+    return new p2_stokes_epsilon_finite_element_1();
   }
 
   ufc::dofmap * create_coordinate_dofmap() const final override
   {
-    return new p2_divt_dofmap_1();
+    return new p2_stokes_epsilon_dofmap_1();
   }
 
   void compute_physical_coordinates(
@@ -4025,7 +4025,7 @@ public:
       const double * X,
       const double * coordinate_dofs) const final override
   {
-    p2_divt_finite_element_0 xelement;
+    p2_stokes_epsilon_finite_element_0 xelement;
     double phi[3];
     for (std::size_t ip = 0; ip < num_points; ++ip)
     {
@@ -4106,7 +4106,7 @@ public:
       const double * X,
       const double * coordinate_dofs) const final override
   {
-    p2_divt_finite_element_0 xelement;
+    p2_stokes_epsilon_finite_element_0 xelement;
     double dphi[6];
     for (std::size_t ip = 0; ip < num_points; ++ip)
     {
@@ -4175,16 +4175,16 @@ public:
 };
 
 
-class p2_divt_cell_integral_0_otherwise: public ufc::cell_integral
+class p2_stokes_epsilon_cell_integral_0_otherwise: public ufc::cell_integral
 {
 public:
 
-  p2_divt_cell_integral_0_otherwise() : ufc::cell_integral()
+  p2_stokes_epsilon_cell_integral_0_otherwise() : ufc::cell_integral()
   {
 
   }
 
-  ~p2_divt_cell_integral_0_otherwise() override
+  ~p2_stokes_epsilon_cell_integral_0_otherwise() override
   {
 
   }
@@ -4206,198 +4206,446 @@ return enabled;
     // num_cells:         None
     // optimize:          True
     // precision:         16
-    // quadrature_degree: 3
+    // quadrature_degree: 2
     // quadrature_rule:   'default'
     // representation:    'uflacs'
     // 
     // and the following integral 0 metadata:
     // 
-    // estimated_polynomial_degree: 3
+    // estimated_polynomial_degree: 2
     // optimize:                    True
     // precision:                   16
-    // quadrature_degree:           3
+    // quadrature_degree:           2
     // quadrature_rule:             'default'
     // representation:              'uflacs'
     // Precomputed values of basis functions and precomputations
     // FE* dimensions: [entities][points][dofs]
     // PI* dimensions: [entities][dofs][dofs] or [entities][dofs]
     // PM* dimensions: [entities][dofs][dofs]
-    alignas(32) static const double FE3_C0_D01_Q6[1][1][2] = { { { -1.0, 1.0 } } };
+    alignas(32) static const double FE3_C0_D01_Q3[1][1][2] = { { { -1.0, 1.0 } } };
     // Unstructured piecewise computations
-    const double J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q6[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q6[0][0][1];
-    const double J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q6[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q6[0][0][1];
-    const double J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q6[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q6[0][0][1];
-    const double J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q6[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q6[0][0][1];
-    alignas(32) double sp[8];
-    sp[0] = J_c0 * J_c3;
-    sp[1] = J_c1 * J_c2;
-    sp[2] = sp[0] + -1 * sp[1];
-    sp[3] = J_c3 / sp[2];
-    sp[4] = -1 * J_c2 / sp[2];
-    sp[5] = std::abs(sp[2]);
-    sp[6] = -1 * sp[3] * sp[5];
-    sp[7] = -1 * sp[4] * sp[5];
-    A[0] = -0.06666666666666651 * sp[6] + -0.06666666666666646 * sp[7];
-    A[1] = 0.03333333333333335 * sp[6] + 0.03333333333333327 * sp[7];
-    A[2] = 0.03333333333333321 * sp[6] + 0.03333333333333324 * sp[7];
-    A[3] = 0.03333333333333358 * sp[6] + 0.03333333333333256 * sp[7];
-    A[4] = -0.1 * sp[6] + -0.1000000000000009 * sp[7];
-    A[5] = -0.09999999999999988 * sp[6] + -0.1000000000000008 * sp[7];
-    A[6] = -0.03333333333333331 * sp[6];
-    A[7] = 0.06666666666666654 * sp[6];
-    A[8] = -0.03333333333333324 * sp[6];
-    A[9] = 0.09999999999999999 * sp[6];
-    A[10] = -0.03333333333333362 * sp[6];
-    A[11] = 0.09999999999999984 * sp[6];
-    A[12] = -0.03333333333333328 * sp[7];
-    A[13] = -0.03333333333333328 * sp[7];
-    A[14] = 0.06666666666666653 * sp[7];
-    A[15] = 0.1000000000000003 * sp[7];
-    A[16] = 0.1000000000000003 * sp[7];
-    A[17] = -0.03333333333333323 * sp[7];
-    A[18] = -0.03333333333333324 * sp[6] + -0.03333333333333315 * sp[7];
-    A[19] = -0.03333333333333327 * sp[6] + 0.06666666666666639 * sp[7];
-    A[20] = 0.06666666666666639 * sp[6] + -0.03333333333333337 * sp[7];
-    A[21] = 0.2666666666666662 * sp[6] + 0.2666666666666643 * sp[7];
-    A[22] = 0.2666666666666662 * sp[6] + 0.133333333333331 * sp[7];
-    A[23] = 0.133333333333333 * sp[6] + 0.2666666666666645 * sp[7];
-    A[24] = 0.03333333333333324 * sp[6] + 0.09999999999999964 * sp[7];
-    A[25] = 0.03333333333333327 * sp[6];
-    A[26] = -0.06666666666666639 * sp[6] + -0.09999999999999976 * sp[7];
-    A[27] = -0.2666666666666662 * sp[6] + -0.1333333333333317 * sp[7];
-    A[28] = -0.2666666666666662 * sp[6];
-    A[29] = -0.133333333333333 * sp[6] + 0.1333333333333351 * sp[7];
-    A[30] = 0.09999999999999984 * sp[6] + 0.03333333333333329 * sp[7];
-    A[31] = -0.09999999999999989 * sp[6] + -0.0666666666666665 * sp[7];
-    A[32] = 0.03333333333333332 * sp[7];
-    A[33] = -0.1333333333333336 * sp[6] + -0.2666666666666667 * sp[7];
-    A[34] = 0.1333333333333337 * sp[6] + -0.1333333333333331 * sp[7];
-    A[35] = -0.2666666666666668 * sp[7];
-  }
-
-};
-
-
-class p2_divt_cell_integral_1_otherwise: public ufc::cell_integral
-{
-public:
-
-  p2_divt_cell_integral_1_otherwise() : ufc::cell_integral()
-  {
-
-  }
-
-  ~p2_divt_cell_integral_1_otherwise() override
-  {
-
-  }
-
-  const std::vector<bool> & enabled_coefficients() const final override
-  {
-static const std::vector<bool> enabled({});
-return enabled;
-  }
-
-  void tabulate_tensor(double * A,
-                       const double * const * w,
-                       const double * coordinate_dofs,
-                       int cell_orientation) const final override
-  {
-    // This function was generated using 'uflacs' representation
-    // with the following integrals metadata:
-    // 
-    // num_cells:         None
-    // optimize:          True
-    // precision:         16
-    // quadrature_degree: 3
-    // quadrature_rule:   'default'
-    // representation:    'uflacs'
-    // 
-    // and the following integral 0 metadata:
-    // 
-    // estimated_polynomial_degree: 3
-    // optimize:                    True
-    // precision:                   16
-    // quadrature_degree:           3
-    // quadrature_rule:             'default'
-    // representation:              'uflacs'
-    // Precomputed values of basis functions and precomputations
-    // FE* dimensions: [entities][points][dofs]
-    // PI* dimensions: [entities][dofs][dofs] or [entities][dofs]
-    // PM* dimensions: [entities][dofs][dofs]
-    alignas(32) static const double FE3_C0_D01_Q6[1][1][2] = { { { -1.0, 1.0 } } };
-    // Unstructured piecewise computations
-    const double J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q6[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q6[0][0][1];
-    const double J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q6[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q6[0][0][1];
-    const double J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q6[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q6[0][0][1];
-    const double J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q6[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q6[0][0][1];
-    alignas(32) double sp[8];
+    const double J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q3[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q3[0][0][1];
+    const double J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q3[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q3[0][0][1];
+    const double J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q3[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q3[0][0][1];
+    const double J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q3[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q3[0][0][1];
+    alignas(32) double sp[23];
     sp[0] = J_c0 * J_c3;
     sp[1] = J_c1 * J_c2;
     sp[2] = sp[0] + -1 * sp[1];
     sp[3] = J_c0 / sp[2];
     sp[4] = -1 * J_c1 / sp[2];
-    sp[5] = std::abs(sp[2]);
-    sp[6] = -1 * sp[3] * sp[5];
-    sp[7] = -1 * sp[4] * sp[5];
-    A[0] = -0.06666666666666651 * sp[7] + -0.06666666666666646 * sp[6];
-    A[1] = 0.03333333333333335 * sp[7] + 0.03333333333333327 * sp[6];
-    A[2] = 0.03333333333333321 * sp[7] + 0.03333333333333324 * sp[6];
-    A[3] = 0.03333333333333358 * sp[7] + 0.03333333333333256 * sp[6];
-    A[4] = -0.1 * sp[7] + -0.1000000000000009 * sp[6];
-    A[5] = -0.09999999999999988 * sp[7] + -0.1000000000000008 * sp[6];
-    A[6] = -0.03333333333333331 * sp[7];
-    A[7] = 0.06666666666666654 * sp[7];
-    A[8] = -0.03333333333333324 * sp[7];
-    A[9] = 0.09999999999999999 * sp[7];
-    A[10] = -0.03333333333333362 * sp[7];
-    A[11] = 0.09999999999999984 * sp[7];
-    A[12] = -0.03333333333333328 * sp[6];
-    A[13] = -0.03333333333333328 * sp[6];
-    A[14] = 0.06666666666666653 * sp[6];
-    A[15] = 0.1000000000000003 * sp[6];
-    A[16] = 0.1000000000000003 * sp[6];
-    A[17] = -0.03333333333333323 * sp[6];
-    A[18] = -0.03333333333333324 * sp[7] + -0.03333333333333315 * sp[6];
-    A[19] = -0.03333333333333327 * sp[7] + 0.06666666666666639 * sp[6];
-    A[20] = 0.06666666666666639 * sp[7] + -0.03333333333333337 * sp[6];
-    A[21] = 0.2666666666666662 * sp[7] + 0.2666666666666643 * sp[6];
-    A[22] = 0.2666666666666662 * sp[7] + 0.133333333333331 * sp[6];
-    A[23] = 0.133333333333333 * sp[7] + 0.2666666666666645 * sp[6];
-    A[24] = 0.03333333333333324 * sp[7] + 0.09999999999999964 * sp[6];
-    A[25] = 0.03333333333333327 * sp[7];
-    A[26] = -0.06666666666666639 * sp[7] + -0.09999999999999976 * sp[6];
-    A[27] = -0.2666666666666662 * sp[7] + -0.1333333333333317 * sp[6];
-    A[28] = -0.2666666666666662 * sp[7];
-    A[29] = -0.133333333333333 * sp[7] + 0.1333333333333351 * sp[6];
-    A[30] = 0.09999999999999984 * sp[7] + 0.03333333333333329 * sp[6];
-    A[31] = -0.09999999999999989 * sp[7] + -0.0666666666666665 * sp[6];
-    A[32] = 0.03333333333333332 * sp[6];
-    A[33] = -0.1333333333333336 * sp[7] + -0.2666666666666667 * sp[6];
-    A[34] = 0.1333333333333337 * sp[7] + -0.1333333333333331 * sp[6];
-    A[35] = -0.2666666666666668 * sp[6];
+    sp[5] = sp[3] * sp[3];
+    sp[6] = sp[3] * sp[4];
+    sp[7] = sp[4] * sp[4];
+    sp[8] = J_c3 / sp[2];
+    sp[9] = -1 * J_c2 / sp[2];
+    sp[10] = sp[9] * sp[9];
+    sp[11] = sp[8] * sp[9];
+    sp[12] = sp[8] * sp[8];
+    sp[13] = sp[5] + sp[10];
+    sp[14] = sp[6] + sp[11];
+    sp[15] = sp[12] + sp[7];
+    sp[16] = sp[13] + sp[10];
+    sp[17] = sp[14] + sp[11];
+    sp[18] = sp[15] + sp[12];
+    sp[19] = std::abs(sp[2]);
+    sp[20] = sp[16] * sp[19];
+    sp[21] = sp[17] * sp[19];
+    sp[22] = sp[18] * sp[19];
+    A[0] = 0.5 * sp[22] + 0.5 * sp[21] + 0.5 * sp[21] + 0.5 * sp[20];
+    A[1] = 0.1666666666666678 * sp[22] + 0.1666666666666665 * sp[21];
+    A[2] = 0.1666666666666664 * sp[21] + 0.1666666666666655 * sp[20];
+    A[3] = 0.0;
+    A[4] = -0.6666666666666685 * sp[21] + -0.6666666666666682 * sp[20];
+    A[5] = -0.6666666666666685 * sp[22] + -0.6666666666666675 * sp[21];
+    A[6] = 0.1666666666666678 * sp[22] + 0.1666666666666665 * sp[21];
+    A[7] = 0.5 * sp[22];
+    A[8] = -0.1666666666666666 * sp[21];
+    A[9] = 0.6666666666666636 * sp[21];
+    A[10] = 0.0;
+    A[11] = -0.6666666666666679 * sp[22] + -0.6666666666666666 * sp[21];
+    A[12] = 0.1666666666666664 * sp[21] + 0.1666666666666655 * sp[20];
+    A[13] = -0.1666666666666666 * sp[21];
+    A[14] = 0.5 * sp[20];
+    A[15] = 0.6666666666666667 * sp[21];
+    A[16] = -0.6666666666666667 * sp[21] + -0.6666666666666646 * sp[20];
+    std::fill(A + 17, A + 19, 0.0);
+    A[19] = 0.6666666666666636 * sp[21];
+    A[20] = 0.6666666666666667 * sp[21];
+    A[21] = 1.333333333333329 * sp[22] + 0.6666666666666556 * sp[21] + 0.6666666666666556 * sp[21] + 1.333333333333314 * sp[20];
+    A[22] = -1.333333333333329 * sp[22] + -0.6666666666666602 * sp[21] + -0.6666666666666556 * sp[21];
+    A[23] = -0.666666666666665 * sp[21] + -0.6666666666666659 * sp[21] + -1.333333333333324 * sp[20];
+    A[24] = -0.6666666666666685 * sp[21] + -0.6666666666666682 * sp[20];
+    A[25] = 0.0;
+    A[26] = -0.6666666666666667 * sp[21] + -0.6666666666666646 * sp[20];
+    A[27] = -1.333333333333329 * sp[22] + -0.6666666666666556 * sp[21] + -0.6666666666666602 * sp[21];
+    A[28] = 1.333333333333329 * sp[22] + 0.6666666666666602 * sp[21] + 0.6666666666666602 * sp[21] + 1.333333333333332 * sp[20];
+    A[29] = 0.666666666666665 * sp[21] + 0.6666666666666705 * sp[21];
+    A[30] = -0.6666666666666685 * sp[22] + -0.6666666666666675 * sp[21];
+    A[31] = -0.6666666666666679 * sp[22] + -0.6666666666666666 * sp[21];
+    A[32] = 0.0;
+    A[33] = -0.6666666666666659 * sp[21] + -0.666666666666665 * sp[21] + -1.333333333333324 * sp[20];
+    A[34] = 0.6666666666666705 * sp[21] + 0.666666666666665 * sp[21];
+    A[35] = 1.333333333333336 * sp[22] + 0.6666666666666675 * sp[21] + 0.6666666666666675 * sp[21] + 1.333333333333334 * sp[20];
   }
 
 };
 
 
-class p2_divt_form_0: public ufc::form
+class p2_stokes_epsilon_cell_integral_1_otherwise: public ufc::cell_integral
 {
 public:
 
-  p2_divt_form_0() : ufc::form()
+  p2_stokes_epsilon_cell_integral_1_otherwise() : ufc::cell_integral()
+  {
+
+  }
+
+  ~p2_stokes_epsilon_cell_integral_1_otherwise() override
+  {
+
+  }
+
+  const std::vector<bool> & enabled_coefficients() const final override
+  {
+static const std::vector<bool> enabled({});
+return enabled;
+  }
+
+  void tabulate_tensor(double * A,
+                       const double * const * w,
+                       const double * coordinate_dofs,
+                       int cell_orientation) const final override
+  {
+    // This function was generated using 'uflacs' representation
+    // with the following integrals metadata:
+    // 
+    // num_cells:         None
+    // optimize:          True
+    // precision:         16
+    // quadrature_degree: 2
+    // quadrature_rule:   'default'
+    // representation:    'uflacs'
+    // 
+    // and the following integral 0 metadata:
+    // 
+    // estimated_polynomial_degree: 2
+    // optimize:                    True
+    // precision:                   16
+    // quadrature_degree:           2
+    // quadrature_rule:             'default'
+    // representation:              'uflacs'
+    // Precomputed values of basis functions and precomputations
+    // FE* dimensions: [entities][points][dofs]
+    // PI* dimensions: [entities][dofs][dofs] or [entities][dofs]
+    // PM* dimensions: [entities][dofs][dofs]
+    alignas(32) static const double FE3_C0_D01_Q3[1][1][2] = { { { -1.0, 1.0 } } };
+    // Unstructured piecewise computations
+    const double J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q3[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q3[0][0][1];
+    const double J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q3[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q3[0][0][1];
+    const double J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q3[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q3[0][0][1];
+    const double J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q3[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q3[0][0][1];
+    alignas(32) double sp[16];
+    sp[0] = J_c0 * J_c3;
+    sp[1] = J_c1 * J_c2;
+    sp[2] = sp[0] + -1 * sp[1];
+    sp[3] = J_c0 / sp[2];
+    sp[4] = -1 * J_c1 / sp[2];
+    sp[5] = J_c3 / sp[2];
+    sp[6] = -1 * J_c2 / sp[2];
+    sp[7] = sp[3] * sp[5];
+    sp[8] = sp[3] * sp[6];
+    sp[9] = sp[5] * sp[4];
+    sp[10] = sp[4] * sp[6];
+    sp[11] = std::abs(sp[2]);
+    sp[12] = sp[7] * sp[11];
+    sp[13] = sp[8] * sp[11];
+    sp[14] = sp[9] * sp[11];
+    sp[15] = sp[10] * sp[11];
+    A[0] = 0.5 * sp[14] + 0.5 * sp[15] + 0.5 * sp[12] + 0.5 * sp[13];
+    A[1] = 0.1666666666666678 * sp[14] + 0.1666666666666665 * sp[12];
+    A[2] = 0.1666666666666664 * sp[15] + 0.1666666666666655 * sp[13];
+    A[3] = 0.0;
+    A[4] = -0.6666666666666685 * sp[15] + -0.6666666666666682 * sp[13];
+    A[5] = -0.6666666666666685 * sp[14] + -0.6666666666666675 * sp[12];
+    A[6] = 0.1666666666666678 * sp[14] + 0.1666666666666665 * sp[15];
+    A[7] = 0.5 * sp[14];
+    A[8] = -0.1666666666666666 * sp[15];
+    A[9] = 0.6666666666666636 * sp[15];
+    A[10] = 0.0;
+    A[11] = -0.6666666666666679 * sp[14] + -0.6666666666666666 * sp[15];
+    A[12] = 0.1666666666666664 * sp[12] + 0.1666666666666655 * sp[13];
+    A[13] = -0.1666666666666666 * sp[12];
+    A[14] = 0.5 * sp[13];
+    A[15] = 0.6666666666666667 * sp[12];
+    A[16] = -0.6666666666666667 * sp[12] + -0.6666666666666646 * sp[13];
+    std::fill(A + 17, A + 19, 0.0);
+    A[19] = 0.6666666666666636 * sp[12];
+    A[20] = 0.6666666666666667 * sp[15];
+    A[21] = 1.333333333333329 * sp[14] + 0.6666666666666556 * sp[15] + 0.6666666666666556 * sp[12] + 1.333333333333314 * sp[13];
+    A[22] = -1.333333333333329 * sp[14] + -0.6666666666666602 * sp[15] + -0.6666666666666556 * sp[12];
+    A[23] = -0.666666666666665 * sp[15] + -0.6666666666666659 * sp[12] + -1.333333333333324 * sp[13];
+    A[24] = -0.6666666666666685 * sp[12] + -0.6666666666666682 * sp[13];
+    A[25] = 0.0;
+    A[26] = -0.6666666666666667 * sp[15] + -0.6666666666666646 * sp[13];
+    A[27] = -1.333333333333329 * sp[14] + -0.6666666666666556 * sp[15] + -0.6666666666666602 * sp[12];
+    A[28] = 1.333333333333329 * sp[14] + 0.6666666666666602 * sp[15] + 0.6666666666666602 * sp[12] + 1.333333333333332 * sp[13];
+    A[29] = 0.666666666666665 * sp[15] + 0.6666666666666705 * sp[12];
+    A[30] = -0.6666666666666685 * sp[14] + -0.6666666666666675 * sp[15];
+    A[31] = -0.6666666666666679 * sp[14] + -0.6666666666666666 * sp[12];
+    A[32] = 0.0;
+    A[33] = -0.6666666666666659 * sp[15] + -0.666666666666665 * sp[12] + -1.333333333333324 * sp[13];
+    A[34] = 0.6666666666666705 * sp[15] + 0.666666666666665 * sp[12];
+    A[35] = 1.333333333333336 * sp[14] + 0.6666666666666675 * sp[15] + 0.6666666666666675 * sp[12] + 1.333333333333334 * sp[13];
+  }
+
+};
+
+
+class p2_stokes_epsilon_cell_integral_2_otherwise: public ufc::cell_integral
+{
+public:
+
+  p2_stokes_epsilon_cell_integral_2_otherwise() : ufc::cell_integral()
+  {
+
+  }
+
+  ~p2_stokes_epsilon_cell_integral_2_otherwise() override
+  {
+
+  }
+
+  const std::vector<bool> & enabled_coefficients() const final override
+  {
+static const std::vector<bool> enabled({});
+return enabled;
+  }
+
+  void tabulate_tensor(double * A,
+                       const double * const * w,
+                       const double * coordinate_dofs,
+                       int cell_orientation) const final override
+  {
+    // This function was generated using 'uflacs' representation
+    // with the following integrals metadata:
+    // 
+    // num_cells:         None
+    // optimize:          True
+    // precision:         16
+    // quadrature_degree: 2
+    // quadrature_rule:   'default'
+    // representation:    'uflacs'
+    // 
+    // and the following integral 0 metadata:
+    // 
+    // estimated_polynomial_degree: 2
+    // optimize:                    True
+    // precision:                   16
+    // quadrature_degree:           2
+    // quadrature_rule:             'default'
+    // representation:              'uflacs'
+    // Precomputed values of basis functions and precomputations
+    // FE* dimensions: [entities][points][dofs]
+    // PI* dimensions: [entities][dofs][dofs] or [entities][dofs]
+    // PM* dimensions: [entities][dofs][dofs]
+    alignas(32) static const double FE3_C0_D01_Q3[1][1][2] = { { { -1.0, 1.0 } } };
+    // Unstructured piecewise computations
+    const double J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q3[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q3[0][0][1];
+    const double J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q3[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q3[0][0][1];
+    const double J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q3[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q3[0][0][1];
+    const double J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q3[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q3[0][0][1];
+    alignas(32) double sp[16];
+    sp[0] = J_c0 * J_c3;
+    sp[1] = J_c1 * J_c2;
+    sp[2] = sp[0] + -1 * sp[1];
+    sp[3] = J_c0 / sp[2];
+    sp[4] = -1 * J_c1 / sp[2];
+    sp[5] = J_c3 / sp[2];
+    sp[6] = -1 * J_c2 / sp[2];
+    sp[7] = sp[3] * sp[5];
+    sp[8] = sp[3] * sp[6];
+    sp[9] = sp[5] * sp[4];
+    sp[10] = sp[4] * sp[6];
+    sp[11] = std::abs(sp[2]);
+    sp[12] = sp[7] * sp[11];
+    sp[13] = sp[8] * sp[11];
+    sp[14] = sp[9] * sp[11];
+    sp[15] = sp[10] * sp[11];
+    A[0] = 0.5 * sp[14] + 0.5 * sp[12] + 0.5 * sp[15] + 0.5 * sp[13];
+    A[1] = 0.1666666666666678 * sp[14] + 0.1666666666666665 * sp[15];
+    A[2] = 0.1666666666666664 * sp[12] + 0.1666666666666655 * sp[13];
+    A[3] = 0.0;
+    A[4] = -0.6666666666666685 * sp[12] + -0.6666666666666682 * sp[13];
+    A[5] = -0.6666666666666685 * sp[14] + -0.6666666666666675 * sp[15];
+    A[6] = 0.1666666666666678 * sp[14] + 0.1666666666666665 * sp[12];
+    A[7] = 0.5 * sp[14];
+    A[8] = -0.1666666666666666 * sp[12];
+    A[9] = 0.6666666666666636 * sp[12];
+    A[10] = 0.0;
+    A[11] = -0.6666666666666679 * sp[14] + -0.6666666666666666 * sp[12];
+    A[12] = 0.1666666666666664 * sp[15] + 0.1666666666666655 * sp[13];
+    A[13] = -0.1666666666666666 * sp[15];
+    A[14] = 0.5 * sp[13];
+    A[15] = 0.6666666666666667 * sp[15];
+    A[16] = -0.6666666666666667 * sp[15] + -0.6666666666666646 * sp[13];
+    std::fill(A + 17, A + 19, 0.0);
+    A[19] = 0.6666666666666636 * sp[15];
+    A[20] = 0.6666666666666667 * sp[12];
+    A[21] = 1.333333333333329 * sp[14] + 0.6666666666666556 * sp[12] + 0.6666666666666556 * sp[15] + 1.333333333333314 * sp[13];
+    A[22] = -1.333333333333329 * sp[14] + -0.6666666666666602 * sp[12] + -0.6666666666666556 * sp[15];
+    A[23] = -0.666666666666665 * sp[12] + -0.6666666666666659 * sp[15] + -1.333333333333324 * sp[13];
+    A[24] = -0.6666666666666685 * sp[15] + -0.6666666666666682 * sp[13];
+    A[25] = 0.0;
+    A[26] = -0.6666666666666667 * sp[12] + -0.6666666666666646 * sp[13];
+    A[27] = -1.333333333333329 * sp[14] + -0.6666666666666556 * sp[12] + -0.6666666666666602 * sp[15];
+    A[28] = 1.333333333333329 * sp[14] + 0.6666666666666602 * sp[12] + 0.6666666666666602 * sp[15] + 1.333333333333332 * sp[13];
+    A[29] = 0.666666666666665 * sp[12] + 0.6666666666666705 * sp[15];
+    A[30] = -0.6666666666666685 * sp[14] + -0.6666666666666675 * sp[12];
+    A[31] = -0.6666666666666679 * sp[14] + -0.6666666666666666 * sp[15];
+    A[32] = 0.0;
+    A[33] = -0.6666666666666659 * sp[12] + -0.666666666666665 * sp[15] + -1.333333333333324 * sp[13];
+    A[34] = 0.6666666666666705 * sp[12] + 0.666666666666665 * sp[15];
+    A[35] = 1.333333333333336 * sp[14] + 0.6666666666666675 * sp[12] + 0.6666666666666675 * sp[15] + 1.333333333333334 * sp[13];
+  }
+
+};
+
+
+class p2_stokes_epsilon_cell_integral_3_otherwise: public ufc::cell_integral
+{
+public:
+
+  p2_stokes_epsilon_cell_integral_3_otherwise() : ufc::cell_integral()
+  {
+
+  }
+
+  ~p2_stokes_epsilon_cell_integral_3_otherwise() override
+  {
+
+  }
+
+  const std::vector<bool> & enabled_coefficients() const final override
+  {
+static const std::vector<bool> enabled({});
+return enabled;
+  }
+
+  void tabulate_tensor(double * A,
+                       const double * const * w,
+                       const double * coordinate_dofs,
+                       int cell_orientation) const final override
+  {
+    // This function was generated using 'uflacs' representation
+    // with the following integrals metadata:
+    // 
+    // num_cells:         None
+    // optimize:          True
+    // precision:         16
+    // quadrature_degree: 2
+    // quadrature_rule:   'default'
+    // representation:    'uflacs'
+    // 
+    // and the following integral 0 metadata:
+    // 
+    // estimated_polynomial_degree: 2
+    // optimize:                    True
+    // precision:                   16
+    // quadrature_degree:           2
+    // quadrature_rule:             'default'
+    // representation:              'uflacs'
+    // Precomputed values of basis functions and precomputations
+    // FE* dimensions: [entities][points][dofs]
+    // PI* dimensions: [entities][dofs][dofs] or [entities][dofs]
+    // PM* dimensions: [entities][dofs][dofs]
+    alignas(32) static const double FE3_C0_D01_Q3[1][1][2] = { { { -1.0, 1.0 } } };
+    // Unstructured piecewise computations
+    const double J_c0 = coordinate_dofs[0] * FE3_C0_D01_Q3[0][0][0] + coordinate_dofs[2] * FE3_C0_D01_Q3[0][0][1];
+    const double J_c3 = coordinate_dofs[1] * FE3_C0_D01_Q3[0][0][0] + coordinate_dofs[5] * FE3_C0_D01_Q3[0][0][1];
+    const double J_c1 = coordinate_dofs[0] * FE3_C0_D01_Q3[0][0][0] + coordinate_dofs[4] * FE3_C0_D01_Q3[0][0][1];
+    const double J_c2 = coordinate_dofs[1] * FE3_C0_D01_Q3[0][0][0] + coordinate_dofs[3] * FE3_C0_D01_Q3[0][0][1];
+    alignas(32) double sp[23];
+    sp[0] = J_c0 * J_c3;
+    sp[1] = J_c1 * J_c2;
+    sp[2] = sp[0] + -1 * sp[1];
+    sp[3] = J_c0 / sp[2];
+    sp[4] = -1 * J_c1 / sp[2];
+    sp[5] = sp[3] * sp[3];
+    sp[6] = sp[3] * sp[4];
+    sp[7] = sp[4] * sp[4];
+    sp[8] = J_c3 / sp[2];
+    sp[9] = -1 * J_c2 / sp[2];
+    sp[10] = sp[9] * sp[9];
+    sp[11] = sp[8] * sp[9];
+    sp[12] = sp[8] * sp[8];
+    sp[13] = sp[5] + sp[10];
+    sp[14] = sp[6] + sp[11];
+    sp[15] = sp[12] + sp[7];
+    sp[16] = sp[13] + sp[5];
+    sp[17] = sp[14] + sp[6];
+    sp[18] = sp[15] + sp[7];
+    sp[19] = std::abs(sp[2]);
+    sp[20] = sp[16] * sp[19];
+    sp[21] = sp[17] * sp[19];
+    sp[22] = sp[18] * sp[19];
+    A[0] = 0.5 * sp[22] + 0.5 * sp[21] + 0.5 * sp[21] + 0.5 * sp[20];
+    A[1] = 0.1666666666666678 * sp[22] + 0.1666666666666665 * sp[21];
+    A[2] = 0.1666666666666664 * sp[21] + 0.1666666666666655 * sp[20];
+    A[3] = 0.0;
+    A[4] = -0.6666666666666685 * sp[21] + -0.6666666666666682 * sp[20];
+    A[5] = -0.6666666666666685 * sp[22] + -0.6666666666666675 * sp[21];
+    A[6] = 0.1666666666666678 * sp[22] + 0.1666666666666665 * sp[21];
+    A[7] = 0.5 * sp[22];
+    A[8] = -0.1666666666666666 * sp[21];
+    A[9] = 0.6666666666666636 * sp[21];
+    A[10] = 0.0;
+    A[11] = -0.6666666666666679 * sp[22] + -0.6666666666666666 * sp[21];
+    A[12] = 0.1666666666666664 * sp[21] + 0.1666666666666655 * sp[20];
+    A[13] = -0.1666666666666666 * sp[21];
+    A[14] = 0.5 * sp[20];
+    A[15] = 0.6666666666666667 * sp[21];
+    A[16] = -0.6666666666666667 * sp[21] + -0.6666666666666646 * sp[20];
+    std::fill(A + 17, A + 19, 0.0);
+    A[19] = 0.6666666666666636 * sp[21];
+    A[20] = 0.6666666666666667 * sp[21];
+    A[21] = 1.333333333333329 * sp[22] + 0.6666666666666556 * sp[21] + 0.6666666666666556 * sp[21] + 1.333333333333314 * sp[20];
+    A[22] = -1.333333333333329 * sp[22] + -0.6666666666666602 * sp[21] + -0.6666666666666556 * sp[21];
+    A[23] = -0.666666666666665 * sp[21] + -0.6666666666666659 * sp[21] + -1.333333333333324 * sp[20];
+    A[24] = -0.6666666666666685 * sp[21] + -0.6666666666666682 * sp[20];
+    A[25] = 0.0;
+    A[26] = -0.6666666666666667 * sp[21] + -0.6666666666666646 * sp[20];
+    A[27] = -1.333333333333329 * sp[22] + -0.6666666666666556 * sp[21] + -0.6666666666666602 * sp[21];
+    A[28] = 1.333333333333329 * sp[22] + 0.6666666666666602 * sp[21] + 0.6666666666666602 * sp[21] + 1.333333333333332 * sp[20];
+    A[29] = 0.666666666666665 * sp[21] + 0.6666666666666705 * sp[21];
+    A[30] = -0.6666666666666685 * sp[22] + -0.6666666666666675 * sp[21];
+    A[31] = -0.6666666666666679 * sp[22] + -0.6666666666666666 * sp[21];
+    A[32] = 0.0;
+    A[33] = -0.6666666666666659 * sp[21] + -0.666666666666665 * sp[21] + -1.333333333333324 * sp[20];
+    A[34] = 0.6666666666666705 * sp[21] + 0.666666666666665 * sp[21];
+    A[35] = 1.333333333333336 * sp[22] + 0.6666666666666675 * sp[21] + 0.6666666666666675 * sp[21] + 1.333333333333334 * sp[20];
+  }
+
+};
+
+
+class p2_stokes_epsilon_form_0: public ufc::form
+{
+public:
+
+  p2_stokes_epsilon_form_0() : ufc::form()
   {
     // Do nothing
   }
 
-  ~p2_divt_form_0() override
+  ~p2_stokes_epsilon_form_0() override
   {
     // Do nothing
   }
 
   const char * signature() const final override
   {
-    return "78b378cb71db096cc29c68f8e3890e4fbad66d918523d6af2961af1befd62e12035060a3ae344e9602c6f93193ebf795e0fce93a18a2c995426e1718935c01e5";
+    return "11a830e8153a314cb666a604afdcf0a71e6f1ebac9bd285a8f79c1c769dd79a6d6ca4d566a5c85c18ed1955205473c4a4b5205627a449ca91bf2aa235d5e173d";
   }
 
   std::size_t rank() const final override
@@ -4418,17 +4666,17 @@ public:
 
   ufc::finite_element * create_coordinate_finite_element() const final override
   {
-    return new p2_divt_finite_element_1();
+    return new p2_stokes_epsilon_finite_element_1();
   }
 
   ufc::dofmap * create_coordinate_dofmap() const final override
   {
-    return new p2_divt_dofmap_1();
+    return new p2_stokes_epsilon_dofmap_1();
    }
 
   ufc::coordinate_mapping * create_coordinate_mapping() const final override
   {
-    return new p2_divt_coordinate_mapping_1();
+    return new p2_stokes_epsilon_coordinate_mapping_1();
   }
 
   ufc::finite_element * create_finite_element(std::size_t i) const final override
@@ -4436,9 +4684,9 @@ public:
     switch (i)
     {
     case 0:
-        return new p2_divt_finite_element_2();
+        return new p2_stokes_epsilon_finite_element_2();
     case 1:
-        return new p2_divt_finite_element_2();
+        return new p2_stokes_epsilon_finite_element_2();
     default:
         return nullptr;
     }
@@ -4449,9 +4697,9 @@ public:
     switch (i)
     {
     case 0:
-        return new p2_divt_dofmap_2();
+        return new p2_stokes_epsilon_dofmap_2();
     case 1:
-        return new p2_divt_dofmap_2();
+        return new p2_stokes_epsilon_dofmap_2();
     default:
         return nullptr;
     }
@@ -4579,7 +4827,7 @@ public:
 
   ufc::cell_integral * create_default_cell_integral() const final override
   {
-    return new p2_divt_cell_integral_0_otherwise();
+    return new p2_stokes_epsilon_cell_integral_0_otherwise();
   }
 
   ufc::exterior_facet_integral * create_default_exterior_facet_integral() const final override
@@ -4620,23 +4868,23 @@ public:
 };
 
 
-class p2_divt_form_1: public ufc::form
+class p2_stokes_epsilon_form_1: public ufc::form
 {
 public:
 
-  p2_divt_form_1() : ufc::form()
+  p2_stokes_epsilon_form_1() : ufc::form()
   {
     // Do nothing
   }
 
-  ~p2_divt_form_1() override
+  ~p2_stokes_epsilon_form_1() override
   {
     // Do nothing
   }
 
   const char * signature() const final override
   {
-    return "6cd8e2dae4c05beef04a67f49394c6269c54905543e4894bc5d9056db3bc0ae0cdefb8cf4974a10be2bd4b1d8c721aa83007f5c2b4281eb3fd151814053dfa41";
+    return "0ba8c7f40157c399aed86e6e58da4e270fcf293973bffe2cce1429fbbe423588f94c08669ef266fc49d139a710d25a1343a6f30bc35b344e7c6572a108b20170";
   }
 
   std::size_t rank() const final override
@@ -4657,17 +4905,17 @@ public:
 
   ufc::finite_element * create_coordinate_finite_element() const final override
   {
-    return new p2_divt_finite_element_1();
+    return new p2_stokes_epsilon_finite_element_1();
   }
 
   ufc::dofmap * create_coordinate_dofmap() const final override
   {
-    return new p2_divt_dofmap_1();
+    return new p2_stokes_epsilon_dofmap_1();
    }
 
   ufc::coordinate_mapping * create_coordinate_mapping() const final override
   {
-    return new p2_divt_coordinate_mapping_1();
+    return new p2_stokes_epsilon_coordinate_mapping_1();
   }
 
   ufc::finite_element * create_finite_element(std::size_t i) const final override
@@ -4675,9 +4923,9 @@ public:
     switch (i)
     {
     case 0:
-        return new p2_divt_finite_element_2();
+        return new p2_stokes_epsilon_finite_element_2();
     case 1:
-        return new p2_divt_finite_element_2();
+        return new p2_stokes_epsilon_finite_element_2();
     default:
         return nullptr;
     }
@@ -4688,9 +4936,9 @@ public:
     switch (i)
     {
     case 0:
-        return new p2_divt_dofmap_2();
+        return new p2_stokes_epsilon_dofmap_2();
     case 1:
-        return new p2_divt_dofmap_2();
+        return new p2_stokes_epsilon_dofmap_2();
     default:
         return nullptr;
     }
@@ -4818,7 +5066,485 @@ public:
 
   ufc::cell_integral * create_default_cell_integral() const final override
   {
-    return new p2_divt_cell_integral_1_otherwise();
+    return new p2_stokes_epsilon_cell_integral_1_otherwise();
+  }
+
+  ufc::exterior_facet_integral * create_default_exterior_facet_integral() const final override
+  {
+    return nullptr;
+  }
+
+  ufc::interior_facet_integral * create_default_interior_facet_integral() const final override
+  {
+    return nullptr;
+  }
+
+  ufc::vertex_integral * create_default_vertex_integral() const final override
+  {
+    return nullptr;
+  }
+
+  ufc::custom_integral * create_default_custom_integral() const final override
+  {
+    return nullptr;
+  }
+
+  ufc::cutcell_integral * create_default_cutcell_integral() const final override
+  {
+    return nullptr;
+  }
+
+  ufc::interface_integral * create_default_interface_integral() const final override
+  {
+    return nullptr;
+  }
+
+  ufc::overlap_integral * create_default_overlap_integral() const final override
+  {
+    return nullptr;
+  }
+
+};
+
+
+class p2_stokes_epsilon_form_2: public ufc::form
+{
+public:
+
+  p2_stokes_epsilon_form_2() : ufc::form()
+  {
+    // Do nothing
+  }
+
+  ~p2_stokes_epsilon_form_2() override
+  {
+    // Do nothing
+  }
+
+  const char * signature() const final override
+  {
+    return "71f66db88251c4dca4d89adcf532558d85195467e6485fef42d16ffa3ccf44fa509f666f49375742862869b30681a17a5de815a57f01669f4eef1f2756e69887";
+  }
+
+  std::size_t rank() const final override
+  {
+    return 2;
+  }
+
+  std::size_t num_coefficients() const final override
+  {
+    return 0;
+  }
+
+  std::size_t original_coefficient_position(std::size_t i) const final override
+  {
+    throw std::runtime_error("Invalid original coefficient index.");
+    return i;
+  }
+
+  ufc::finite_element * create_coordinate_finite_element() const final override
+  {
+    return new p2_stokes_epsilon_finite_element_1();
+  }
+
+  ufc::dofmap * create_coordinate_dofmap() const final override
+  {
+    return new p2_stokes_epsilon_dofmap_1();
+   }
+
+  ufc::coordinate_mapping * create_coordinate_mapping() const final override
+  {
+    return new p2_stokes_epsilon_coordinate_mapping_1();
+  }
+
+  ufc::finite_element * create_finite_element(std::size_t i) const final override
+  {
+    switch (i)
+    {
+    case 0:
+        return new p2_stokes_epsilon_finite_element_2();
+    case 1:
+        return new p2_stokes_epsilon_finite_element_2();
+    default:
+        return nullptr;
+    }
+  }
+
+  ufc::dofmap * create_dofmap(std::size_t i) const final override
+  {
+    switch (i)
+    {
+    case 0:
+        return new p2_stokes_epsilon_dofmap_2();
+    case 1:
+        return new p2_stokes_epsilon_dofmap_2();
+    default:
+        return nullptr;
+    }
+  }
+
+  std::size_t max_cell_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_exterior_facet_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_interior_facet_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_vertex_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_custom_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_cutcell_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_interface_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_overlap_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  bool has_cell_integrals() const final override
+  {
+    return true;
+  }
+
+  bool has_exterior_facet_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_interior_facet_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_vertex_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_custom_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_cutcell_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_interface_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_overlap_integrals() const final override
+  {
+    return false;
+  }
+
+  ufc::cell_integral * create_cell_integral(std::size_t subdomain_id) const final override
+  {
+    return nullptr;
+  }
+
+  ufc::exterior_facet_integral * create_exterior_facet_integral(std::size_t subdomain_id) const final override
+  {
+    return nullptr;
+  }
+
+  ufc::interior_facet_integral * create_interior_facet_integral(std::size_t subdomain_id) const final override
+  {
+    return nullptr;
+  }
+
+  ufc::vertex_integral * create_vertex_integral(std::size_t subdomain_id) const final override
+  {
+    return nullptr;
+  }
+
+  ufc::custom_integral * create_custom_integral(std::size_t subdomain_id) const final override
+  {
+    return nullptr;
+  }
+
+  ufc::cutcell_integral * create_cutcell_integral(std::size_t subdomain_id) const final override
+  {
+    return nullptr;
+  }
+
+  ufc::interface_integral * create_interface_integral(std::size_t subdomain_id) const final override
+  {
+    return nullptr;
+  }
+
+  ufc::overlap_integral * create_overlap_integral(std::size_t subdomain_id) const final override
+  {
+    return nullptr;
+  }
+
+  ufc::cell_integral * create_default_cell_integral() const final override
+  {
+    return new p2_stokes_epsilon_cell_integral_2_otherwise();
+  }
+
+  ufc::exterior_facet_integral * create_default_exterior_facet_integral() const final override
+  {
+    return nullptr;
+  }
+
+  ufc::interior_facet_integral * create_default_interior_facet_integral() const final override
+  {
+    return nullptr;
+  }
+
+  ufc::vertex_integral * create_default_vertex_integral() const final override
+  {
+    return nullptr;
+  }
+
+  ufc::custom_integral * create_default_custom_integral() const final override
+  {
+    return nullptr;
+  }
+
+  ufc::cutcell_integral * create_default_cutcell_integral() const final override
+  {
+    return nullptr;
+  }
+
+  ufc::interface_integral * create_default_interface_integral() const final override
+  {
+    return nullptr;
+  }
+
+  ufc::overlap_integral * create_default_overlap_integral() const final override
+  {
+    return nullptr;
+  }
+
+};
+
+
+class p2_stokes_epsilon_form_3: public ufc::form
+{
+public:
+
+  p2_stokes_epsilon_form_3() : ufc::form()
+  {
+    // Do nothing
+  }
+
+  ~p2_stokes_epsilon_form_3() override
+  {
+    // Do nothing
+  }
+
+  const char * signature() const final override
+  {
+    return "b1487e6d7b2709c7a91e26b433f7820ce11d05e4288bdf954933461f3a278d479edec9733b9f11e47e5179a2b588582d8b5ddaaba68db539603bfed820eaacc5";
+  }
+
+  std::size_t rank() const final override
+  {
+    return 2;
+  }
+
+  std::size_t num_coefficients() const final override
+  {
+    return 0;
+  }
+
+  std::size_t original_coefficient_position(std::size_t i) const final override
+  {
+    throw std::runtime_error("Invalid original coefficient index.");
+    return i;
+  }
+
+  ufc::finite_element * create_coordinate_finite_element() const final override
+  {
+    return new p2_stokes_epsilon_finite_element_1();
+  }
+
+  ufc::dofmap * create_coordinate_dofmap() const final override
+  {
+    return new p2_stokes_epsilon_dofmap_1();
+   }
+
+  ufc::coordinate_mapping * create_coordinate_mapping() const final override
+  {
+    return new p2_stokes_epsilon_coordinate_mapping_1();
+  }
+
+  ufc::finite_element * create_finite_element(std::size_t i) const final override
+  {
+    switch (i)
+    {
+    case 0:
+        return new p2_stokes_epsilon_finite_element_2();
+    case 1:
+        return new p2_stokes_epsilon_finite_element_2();
+    default:
+        return nullptr;
+    }
+  }
+
+  ufc::dofmap * create_dofmap(std::size_t i) const final override
+  {
+    switch (i)
+    {
+    case 0:
+        return new p2_stokes_epsilon_dofmap_2();
+    case 1:
+        return new p2_stokes_epsilon_dofmap_2();
+    default:
+        return nullptr;
+    }
+  }
+
+  std::size_t max_cell_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_exterior_facet_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_interior_facet_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_vertex_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_custom_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_cutcell_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_interface_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  std::size_t max_overlap_subdomain_id() const final override
+  {
+    return 0;
+  }
+
+  bool has_cell_integrals() const final override
+  {
+    return true;
+  }
+
+  bool has_exterior_facet_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_interior_facet_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_vertex_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_custom_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_cutcell_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_interface_integrals() const final override
+  {
+    return false;
+  }
+
+  bool has_overlap_integrals() const final override
+  {
+    return false;
+  }
+
+  ufc::cell_integral * create_cell_integral(std::size_t subdomain_id) const final override
+  {
+    return nullptr;
+  }
+
+  ufc::exterior_facet_integral * create_exterior_facet_integral(std::size_t subdomain_id) const final override
+  {
+    return nullptr;
+  }
+
+  ufc::interior_facet_integral * create_interior_facet_integral(std::size_t subdomain_id) const final override
+  {
+    return nullptr;
+  }
+
+  ufc::vertex_integral * create_vertex_integral(std::size_t subdomain_id) const final override
+  {
+    return nullptr;
+  }
+
+  ufc::custom_integral * create_custom_integral(std::size_t subdomain_id) const final override
+  {
+    return nullptr;
+  }
+
+  ufc::cutcell_integral * create_cutcell_integral(std::size_t subdomain_id) const final override
+  {
+    return nullptr;
+  }
+
+  ufc::interface_integral * create_interface_integral(std::size_t subdomain_id) const final override
+  {
+    return nullptr;
+  }
+
+  ufc::overlap_integral * create_overlap_integral(std::size_t subdomain_id) const final override
+  {
+    return nullptr;
+  }
+
+  ufc::cell_integral * create_default_cell_integral() const final override
+  {
+    return new p2_stokes_epsilon_cell_integral_3_otherwise();
   }
 
   ufc::exterior_facet_integral * create_default_exterior_facet_integral() const final override
