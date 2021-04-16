@@ -386,7 +386,7 @@ void run2DTestsWithAffineMap()
 
    logSectionHeader( "P2 Mass Forms" );
    compareUsingAffineMap< P2FenicsForm< p2_mass_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_mass, Matrix6r, 2 >(
-       triangle, 8e-14, map );
+       triangle, 1e-13, map );
 
    logSectionHeader( "P2ToP1 DivX Forms" );
    compareUsingAffineMap< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, fenics::NoAssemble >,
