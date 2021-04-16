@@ -67,8 +67,8 @@ MeshInfo MeshInfo::meshTokamak( uint_t numSlices,
                                 real_t innerRadius,
                                 real_t outerRadius,
                                 real_t radiusZ,
-                                bool   cutSide,
-                                bool   cutTopAndBottom )
+                                uint_t cutSide,
+                                uint_t cutTopAndBottom )
 {
    MeshInfo meshInfo;
 
@@ -108,7 +108,7 @@ MeshInfo MeshInfo::meshTokamak( uint_t numSlices,
             slicesUpper[slice].push_back( vertexUpper.getID() );
             meshInfo.addVertex( vertexUpper );
 
-            if ( cutSide && x_idx == width - 1 )
+            if ( x_idx >= width - cutSide )
             {
                trashVertices.push_back( vertexUpper.getID() );
             }
@@ -121,7 +121,7 @@ MeshInfo MeshInfo::meshTokamak( uint_t numSlices,
                slicesLower[slice].push_back( vertexLower.getID() );
                meshInfo.addVertex( vertexLower );
 
-               if ( cutTopAndBottom && z_idx == width - 1 )
+               if ( z_idx >= width - cutTopAndBottom )
                {
                   trashVertices.push_back( vertexUpper.getID() );
                   trashVertices.push_back( vertexLower.getID() );
@@ -149,12 +149,12 @@ MeshInfo MeshInfo::meshTokamak( uint_t numSlices,
       {
          for ( uint_t x_idx = 0; x_idx + z_idx < width - 1; x_idx++ )
          {
-            if ( cutSide && x_idx == width - 2 )
+            if ( x_idx >= width - cutSide - 1 )
             {
                continue;
             }
 
-            if ( cutTopAndBottom && z_idx == width - 2 )
+            if ( z_idx >= width - cutTopAndBottom - 1 )
             {
                continue;
             }

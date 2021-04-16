@@ -565,8 +565,8 @@ class MeshInfo
                                 real_t innerRadius,
                                 real_t outerRadius,
                                 real_t radiusZ,
-                                bool   cutSide,
-                                bool   cutTopAndBottom );
+                                uint_t cutSide,
+                                uint_t cutTopAndBottom );
 
    /// Returns vertices of the mesh
    const VertexContainer& getVertices() const { return vertices_; };

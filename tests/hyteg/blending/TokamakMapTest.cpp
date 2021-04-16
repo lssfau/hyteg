@@ -49,13 +49,13 @@ int main( int argc, char* argv[] )
    const bool   writeVTK = true;
 
    const uint_t numSlices       = 24;
-   const uint_t numRadialEdges  = 4;
+   const uint_t numRadialEdges  = 5;
    const real_t innerRadius     = 0.7;
    const real_t outerRadius     = 1.5;
    const real_t radiusZ         = 0.7;
-   const bool   cutSide         = true;
-   const bool   cutTopAndBottom = true;
-   const real_t blendingCenterRadius = 1.1;
+   const uint_t cutSide         = 1;
+   const uint_t cutTopAndBottom = 3;
+   const real_t blendingCenterRadius = 1.0;
 
    const auto meshInfo =
        MeshInfo::meshTokamak( numSlices, numRadialEdges, innerRadius, outerRadius, radiusZ, cutSide, cutTopAndBottom );

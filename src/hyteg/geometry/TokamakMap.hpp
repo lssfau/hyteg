@@ -50,8 +50,8 @@ class TokamakMap : public GeometryMap
                real_t                       innerRadius,
                real_t                       outerRadius,
                real_t                       radiusZ,
-               bool                         cutSide,
-               bool                         cutTopAndBottom,
+               uint_t                         cutSide,
+               uint_t                         cutTopAndBottom,
                real_t                       blendingCenterRadius )
    : numSlices_( numSlices )
    , numRadialEdges_( numRadialEdges )
@@ -72,8 +72,8 @@ class TokamakMap : public GeometryMap
                real_t                       innerRadius,
                real_t                       outerRadius,
                real_t                       radiusZ,
-               bool                         cutSide,
-               bool                         cutTopAndBottom,
+               uint_t                         cutSide,
+               uint_t                         cutTopAndBottom,
                real_t                       blendingCenterRadius )
    : numSlices_( numSlices )
    , numRadialEdges_( numRadialEdges )
@@ -98,8 +98,8 @@ class TokamakMap : public GeometryMap
                real_t                       innerRadius,
                real_t                       outerRadius,
                real_t                       radiusZ,
-               bool                         cutSide,
-               bool                         cutTopAndBottom,
+               uint_t                         cutSide,
+               uint_t                         cutTopAndBottom,
                real_t                       blendingCenterRadius )
    : numSlices_( numSlices )
    , numRadialEdges_( numRadialEdges )
@@ -124,8 +124,8 @@ class TokamakMap : public GeometryMap
                real_t                       innerRadius,
                real_t                       outerRadius,
                real_t                       radiusZ,
-               bool                         cutSide,
-               bool                         cutTopAndBottom,
+               uint_t                         cutSide,
+               uint_t                         cutTopAndBottom,
                real_t                       blendingCenterRadius )
    : numSlices_( numSlices )
    , numRadialEdges_( numRadialEdges )
@@ -161,26 +161,26 @@ class TokamakMap : public GeometryMap
       xnew[2] = xold[2];
 
       // identify all vertices of the slice-polygon
-      auto numTangentialEdgesRespectingCut = cutTopAndBottom_ ? ( numRadialEdges_ - 1 ) : numRadialEdges_;
+      auto numTangentialEdgesRespectingCut = numRadialEdges_ - cutTopAndBottom_;
       auto radialEdgeLength                = ( outerRadius_ - innerRadius_ ) / real_c( numRadialEdges_ );
       auto tangentialEdgeLength            = radiusZ_ / real_c( numRadialEdges_ );
 
       Point3D polygonVertexCenterOuter(
           { outerRadiusRespectingCut_ * std::cos( phi ), outerRadiusRespectingCut_ * std::sin( phi ), 0 } );
-      Point3D polygonVertexCenterCutTop = polygonVertexCenterOuter + Point3D( { 0, 0, tangentialEdgeLength } );
-      Point3D polygonVertexCenterCutBot = polygonVertexCenterOuter + Point3D( { 0, 0, -tangentialEdgeLength } );
+      Point3D polygonVertexCenterCutTop = polygonVertexCenterOuter + Point3D( { 0, 0, real_c(cutSide_) * tangentialEdgeLength } );
+      Point3D polygonVertexCenterCutBot = polygonVertexCenterOuter + Point3D( { 0, 0, - real_c(cutSide_) * tangentialEdgeLength } );
 
       Point3D polygonVertexTop( { innerRadius_ * std::cos( phi ),
                                   innerRadius_ * std::sin( phi ),
                                   real_c( numTangentialEdgesRespectingCut ) * tangentialEdgeLength } );
       Point3D polygonVertexTopCut =
-          polygonVertexTop + Point3D( { radialEdgeLength * std::cos( phi ), radialEdgeLength * std::sin( phi ), 0 } );
+          polygonVertexTop + Point3D( { real_c(cutTopAndBottom_) * radialEdgeLength * std::cos( phi ), real_c(cutTopAndBottom_) * radialEdgeLength * std::sin( phi ), 0 } );
 
       Point3D polygonVertexBot( { innerRadius_ * std::cos( phi ),
                                   innerRadius_ * std::sin( phi ),
                                   -real_c( numTangentialEdgesRespectingCut ) * tangentialEdgeLength } );
       Point3D polygonVertexBotCut =
-          polygonVertexBot + Point3D( { radialEdgeLength * std::cos( phi ), radialEdgeLength * std::sin( phi ), 0 } );
+          polygonVertexBot + Point3D( { real_c(cutTopAndBottom_) * radialEdgeLength * std::cos( phi ), real_c(cutTopAndBottom_) * radialEdgeLength * std::sin( phi ), 0 } );
 
       std::vector< Point3D > slicePolygon;
 
@@ -232,7 +232,11 @@ class TokamakMap : public GeometryMap
       xnew[2] = r * ( r2 / r0 ) * std::sin( theta );
    }
 
-   real_t evalDF( const Point3D& x, Matrix3r& DFx ) const final { return 0; }
+   real_t evalDF( const Point3D& x, Matrix3r& DFx ) const final
+   {
+      WALBERLA_ABORT( "Not implemented." )
+      return 0;
+   }
 
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const
    {
@@ -245,8 +249,8 @@ class TokamakMap : public GeometryMap
                        real_t                 innerRadius,
                        real_t                 outerRadius,
                        real_t                 radiusZ,
-                       bool                   cutSide,
-                       bool                   cutTopAndBottom,
+                       uint_t                   cutSide,
+                       uint_t                   cutTopAndBottom,
                        real_t                 blendingCenterRadius )
    {
       for ( auto it : setupStorage.getCells() )
@@ -361,11 +365,8 @@ class TokamakMap : public GeometryMap
       innerPrismMidPoint_ = innerSliceLeftPoint + 0.5 * ( innerSliceRightPoint - innerSliceLeftPoint );
       innerPrismNormal_   = innerPrismMidPoint_ / innerPrismMidPoint_.norm();
 
-      outerRadiusRespectingCut_ = outerRadius_;
-      if ( cutSide_ )
-      {
-         outerRadiusRespectingCut_ -= radialEdgeLength;
-      }
+      outerRadiusRespectingCut_ = outerRadius_ - real_c( cutSide_ ) * radialEdgeLength;
+
       Point3D outerEdgeLeftPoint(
           { outerRadiusRespectingCut_ * std::cos( leftSlicePhi ), outerRadiusRespectingCut_ * std::sin( leftSlicePhi ), 0 } );
       Point3D outerEdgeRightPoint(
@@ -454,8 +455,8 @@ class TokamakMap : public GeometryMap
    // height in z-direction from z == 0, including tip even if cutTopAndBottom == true
    real_t radiusZ_;
 
-   bool cutSide_;
-   bool cutTopAndBottom_;
+   uint_t cutSide_;
+   uint_t cutTopAndBottom_;
 
    // midpoint of the inner prism plane, before blending!
    Point3D innerPrismMidPoint_;
