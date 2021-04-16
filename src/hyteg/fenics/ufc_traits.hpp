@@ -28,6 +28,15 @@ class p1_tet_div_tet_cell_integral_2_otherwise;
 class p1_tet_divt_tet_cell_integral_0_otherwise;
 class p1_tet_divt_tet_cell_integral_1_otherwise;
 class p1_tet_divt_tet_cell_integral_2_otherwise;
+class p1_tet_stokes_epsilon_tet_cell_integral_0_otherwise;
+class p1_tet_stokes_epsilon_tet_cell_integral_1_otherwise;
+class p1_tet_stokes_epsilon_tet_cell_integral_2_otherwise;
+class p1_tet_stokes_epsilon_tet_cell_integral_3_otherwise;
+class p1_tet_stokes_epsilon_tet_cell_integral_4_otherwise;
+class p1_tet_stokes_epsilon_tet_cell_integral_5_otherwise;
+class p1_tet_stokes_epsilon_tet_cell_integral_6_otherwise;
+class p1_tet_stokes_epsilon_tet_cell_integral_7_otherwise;
+class p1_tet_stokes_epsilon_tet_cell_integral_8_otherwise;
 class p1_tet_mass_cell_integral_0_otherwise;
 class p1_tet_pspg_tet_cell_integral_0_otherwise;
 
@@ -40,6 +49,15 @@ class p2_tet_div_tet_cell_integral_2_otherwise;
 class p2_tet_divt_tet_cell_integral_0_otherwise;
 class p2_tet_divt_tet_cell_integral_1_otherwise;
 class p2_tet_divt_tet_cell_integral_2_otherwise;
+class p2_tet_stokes_epsilon_tet_cell_integral_0_otherwise;
+class p2_tet_stokes_epsilon_tet_cell_integral_1_otherwise;
+class p2_tet_stokes_epsilon_tet_cell_integral_2_otherwise;
+class p2_tet_stokes_epsilon_tet_cell_integral_3_otherwise;
+class p2_tet_stokes_epsilon_tet_cell_integral_4_otherwise;
+class p2_tet_stokes_epsilon_tet_cell_integral_5_otherwise;
+class p2_tet_stokes_epsilon_tet_cell_integral_6_otherwise;
+class p2_tet_stokes_epsilon_tet_cell_integral_7_otherwise;
+class p2_tet_stokes_epsilon_tet_cell_integral_8_otherwise;
 
 class p2_to_p1_tet_div_tet_cell_integral_0_otherwise;
 class p2_to_p1_tet_div_tet_cell_integral_1_otherwise;
@@ -66,6 +84,15 @@ template<> struct UFCTrait< p1_tet_div_tet_cell_integral_2_otherwise > { typedef
 template<> struct UFCTrait< p1_tet_divt_tet_cell_integral_0_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
 template<> struct UFCTrait< p1_tet_divt_tet_cell_integral_1_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
 template<> struct UFCTrait< p1_tet_divt_tet_cell_integral_2_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p1_tet_stokes_epsilon_tet_cell_integral_0_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p1_tet_stokes_epsilon_tet_cell_integral_1_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p1_tet_stokes_epsilon_tet_cell_integral_2_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p1_tet_stokes_epsilon_tet_cell_integral_3_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p1_tet_stokes_epsilon_tet_cell_integral_4_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p1_tet_stokes_epsilon_tet_cell_integral_5_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p1_tet_stokes_epsilon_tet_cell_integral_6_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p1_tet_stokes_epsilon_tet_cell_integral_7_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p1_tet_stokes_epsilon_tet_cell_integral_8_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
 template<> struct UFCTrait< p1_tet_mass_cell_integral_0_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
 template<> struct UFCTrait< p1_tet_pspg_tet_cell_integral_0_otherwise > { typedef Matrix4r LocalStiffnessMatrix_T; };
 
@@ -78,6 +105,15 @@ template<> struct UFCTrait< p2_tet_div_tet_cell_integral_2_otherwise >   { typed
 template<> struct UFCTrait< p2_tet_divt_tet_cell_integral_0_otherwise >  { typedef Matrix10r LocalStiffnessMatrix_T; };
 template<> struct UFCTrait< p2_tet_divt_tet_cell_integral_1_otherwise >  { typedef Matrix10r LocalStiffnessMatrix_T; };
 template<> struct UFCTrait< p2_tet_divt_tet_cell_integral_2_otherwise >  { typedef Matrix10r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p2_tet_stokes_epsilon_tet_cell_integral_0_otherwise > { typedef Matrix10r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p2_tet_stokes_epsilon_tet_cell_integral_1_otherwise > { typedef Matrix10r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p2_tet_stokes_epsilon_tet_cell_integral_2_otherwise > { typedef Matrix10r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p2_tet_stokes_epsilon_tet_cell_integral_3_otherwise > { typedef Matrix10r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p2_tet_stokes_epsilon_tet_cell_integral_4_otherwise > { typedef Matrix10r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p2_tet_stokes_epsilon_tet_cell_integral_5_otherwise > { typedef Matrix10r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p2_tet_stokes_epsilon_tet_cell_integral_6_otherwise > { typedef Matrix10r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p2_tet_stokes_epsilon_tet_cell_integral_7_otherwise > { typedef Matrix10r LocalStiffnessMatrix_T; };
+template<> struct UFCTrait< p2_tet_stokes_epsilon_tet_cell_integral_8_otherwise > { typedef Matrix10r LocalStiffnessMatrix_T; };
 
 template<> struct UFCTrait< p2_to_p1_tet_div_tet_cell_integral_0_otherwise > { typedef Matrixr<4, 10> LocalStiffnessMatrix_T; };
 template<> struct UFCTrait< p2_to_p1_tet_div_tet_cell_integral_1_otherwise > { typedef Matrixr<4, 10> LocalStiffnessMatrix_T; };
