@@ -280,6 +280,7 @@ void run2DTestsWithoutBlending()
    compareForms< P2FenicsForm< p2_mass_cell_integral_0_otherwise, fenics::NoAssemble >, forms::p2_mass_affine_qe, Matrix6r, 2 >(
        triangle, 5e-14 );
 
+#ifdef P2_EPSILON_TEST
    logSectionHeader( "P2 Epsilon_11 Forms" );
    compareForms< P2FenicsForm< p2_stokes_epsilon_cell_integral_0_otherwise, fenics::NoAssemble >,
                  P2Form_epsilon_11,
@@ -303,6 +304,7 @@ void run2DTestsWithoutBlending()
                  P2Form_epsilon_22,
                  Matrix6r,
                  2 >( triangle, 5e-13 );
+#endif
 }
 
 void run2DTestsWithAffineMap()
@@ -410,6 +412,7 @@ void run2DTestsWithAffineMap()
                           Matrix6r,
                           2 >( triangle, 1e-13, map );
 
+#ifdef P2_EPSILON_TEST
    logSectionHeader( "P2 Epsilon_11 Forms" );
    compareUsingAffineMap< P2FenicsForm< p2_stokes_epsilon_cell_integral_0_otherwise, fenics::NoAssemble >,
                           P2Form_epsilon_11,
@@ -421,6 +424,7 @@ void run2DTestsWithAffineMap()
                           P2Form_epsilon_12,
                           Matrix6r,
                           2 >( triangle, 5e-13, map );
+#endif
 
    // HyTeG form generator test
 
