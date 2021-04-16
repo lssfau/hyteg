@@ -619,6 +619,9 @@ endif()
 waLBerla_compile_test(FILES blending/TokamakMapTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME TokamakMapTest)
 
+waLBerla_compile_test(FILES blending/PolygonDistanceTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME PolygonDistanceTest )
+
 ## Elementwise Operators ##
 if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES operators/ElementwiseOperatorPetscTest.cpp DEPENDS hyteg core)

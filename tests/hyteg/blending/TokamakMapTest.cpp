@@ -49,19 +49,20 @@ int main( int argc, char* argv[] )
    const bool   writeVTK = true;
 
    const uint_t numSlices       = 24;
-   const uint_t numRadialEdges  = 3;
+   const uint_t numRadialEdges  = 4;
    const real_t innerRadius     = 0.7;
-   const real_t outerRadius     = 1.6;
+   const real_t outerRadius     = 1.5;
    const real_t radiusZ         = 0.7;
    const bool   cutSide         = true;
    const bool   cutTopAndBottom = true;
+   const real_t blendingCenterRadius = 1.1;
 
    const auto meshInfo =
        MeshInfo::meshTokamak( numSlices, numRadialEdges, innerRadius, outerRadius, radiusZ, cutSide, cutTopAndBottom );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-   TokamakMap::setMap( setupStorage, numSlices, numRadialEdges, innerRadius, outerRadius, radiusZ, cutSide, cutTopAndBottom );
+   TokamakMap::setMap( setupStorage, numSlices, numRadialEdges, innerRadius, outerRadius, radiusZ, cutSide, cutTopAndBottom, blendingCenterRadius );
 
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
