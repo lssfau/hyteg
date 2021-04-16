@@ -8,66 +8,40 @@ import numpy as np
 from sympy import *
 import random
 
+#------- coordinates ---------#
 x, y, z = symbols('x y z')
 
-def test():
+def torusCoords(R, x, y, z):
+    ψ = atan2(y, x)  # angle anlong torus
+    # polar coordinates (φ,r) on crosssection
+    φ = atan2(z, sqrt(x*x + y*y) - R)
+    r = sqrt(R*R + x*x + y*y + z*z - 2*R*sqrt(x*x + y*y))
+
+    return (ψ,φ,r)
+
+
+#------ sample solutions -------#
+
+def tokamak_jump():
+    R_torus = symbols('R_torus')
+    r_torus = symbols('r_torus')
+    ψ,φ,r = torusCoords(R_torus, x,y,z)
+    # parameters to adjust position, width and limits of jump
+    d_jump,r_jump,k_min,k_max = symbols('d_jump r_jump k_min k_max')
+
+    u = cos(pi/2*r/r_torus)*sin(pi*z/r_torus)
+    k = k_min + 0.5 * (k_max - k_min) * (1 + tanh(7 / d_jump * (r - r_jump)))
+
+    return u,k
+
+
+def example():
     u = sin(pi*x)*sin(pi*y)*sin(pi*z)
     k = 1
-    return (k,u)
+    return (u,k)
 
 
-# def φ(x,y):
-#     return atan2(y,x)
-
-# def r(x,y):
-#     return sqrt(x*x + y*y)
-
-# def annulus():
-#     u = sin(4*φ(x,y))*sin(2*r(x,y))
-#     return (1,u)
-
-# def smooth_jump():
-#     α,φ = symbols('alpha phi')
-#     k = 2+tanh(α*(x-0.5));
-#     u = sin(φ*pi*x)*sinh(pi*y)
-#     return (k,u)
-
-
-# def basic_example():
-#     k = 1 + 3*x + 4*y + 7*x**2
-#     u = sin(x)*sinh(y)
-
-#     return (k,u)
-
-# def poly_5():
-#     random.seed(5618947216424)
-#     k = 1 + random.random()*x + random.random()*y + random.random()*x**2 + random.random() * x * y + random.random() * y**2
-#     k = k + random.random()*x**3 + random.random() * x**2 * y + random.random() * x * y**2 + random.random()*y**3
-#     k = k + random.random()*x**4 + random.random() * x**3 * y + random.random() * x**2 * y**2 + random.random()* x * y**3 + random.random() * y**4
-#     k = k + random.random()*x**5 + random.random() * x**4 * y + random.random() * x**3 * y**2 + random.random() * x**2 * y**3 + random.random() * x * y**4 + random.random() * y**5
-#     u = x**3 * y**2 / (x*y + 1)
-
-#     return (k,u)
-
-# def plume_example():
-
-#     alpha = 30
-#     beta = 10
-
-#     R = sqrt((x-0.5)**2)
-
-#     trunk = exp(-10*beta*R**2)
-#     top = exp(-beta*R**2 - alpha*(y-1.5*(R+0.5)*(1.0-R-0.5)-0.3)**2)
-
-#     def sigmf(var, a, c):
-#         return 1/(1+exp(-a*(var-c)))
-
-#     k = sigmf(1-y, 17, 0.465) * trunk * 0.98 + 0.89*top + 1
-
-#     u = sin(x)*sinh(y)
-
-#     return (k,u)
-
+#------------ functions to compute rhs -------------#
 
 def gradient(u):
     return np.array([diff(u, x), diff(u, y), diff(u, z)])
@@ -75,13 +49,30 @@ def gradient(u):
 def divergence(u):
     return diff(u[0],x) + diff(u[1],y) + diff(u[2],z)
 
+
+
 if __name__ == '__main__':
 
-    # exact solution and divergence coefficient
-    k, u = test()
+    # exact solution and diffusion coefficient
+    u,k = tokamak_jump()
+
+    print('u =', u)
+    u = simplify(u)
+    print(' = ', u)
+
+    print('k =', k)
+    k = simplify(k)
+    print(' = ', k)
 
     # Right hand side
     f = -divergence(k * gradient(u))
+
+    print('∇⋅(k∇u) = f =', f)
+    f = simplify(f)
+    print(' = ', f)
+
+    print('=========================================')
+
 
 
     # Generate code
@@ -95,3 +86,12 @@ if __name__ == '__main__':
     print(function_template('coeff', ccode(simplify(k))))
     print(function_template('exact', ccode(simplify(u))))
     print(function_template('rhs', ccode(simplify(f))))
+
+    # tokamak jump c++
+    #
+    # parameters for analytic solution and diffusion coefficient:
+    # double R_torus;       // torus radius
+    # double r_torus;       // radius of torus crosssection
+    # double r_jump;        // location of the jump (r_jump in [0,r_torus])
+    # double k_min, k_max;  // min/max value of coefficient
+    # double d_jump;        // smoothed width of jump, i.e. |coeff(r) - k_min| ≈ 0 for r < (r_jump - d_jump/2) and |coeff(r) - k_max| ≈ 0 for r > (r_jump + d_jump/2)
