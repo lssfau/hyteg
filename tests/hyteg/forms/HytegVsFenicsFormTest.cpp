@@ -295,7 +295,6 @@ void run2DTestsWithoutBlending()
                  Matrixr< 6, 3 >,
                  2 >( triangle, 1.2e-14 );
 
-#ifdef P2_EPSILON_TEST
    logSectionHeader( "P2 Epsilon_11 Forms" );
    compareForms< P2FenicsForm< p2_stokes_epsilon_cell_integral_0_otherwise, fenics::NoAssemble >,
                  P2Form_epsilon_11,
@@ -319,7 +318,6 @@ void run2DTestsWithoutBlending()
                  P2Form_epsilon_22,
                  Matrix6r,
                  2 >( triangle, 5e-13 );
-#endif
 
    // HyTeG form generator tests
 
