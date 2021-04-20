@@ -523,8 +523,9 @@ class MeshInfo
    ///
    /// The domain is constructed by projection of a chain of triangular prisms on a torus with normal in z-direction.
    /// By default, a slice of the mesh has thus a triangular geometry, with the base facing towards the origin.
-   /// The cutSide and cutTop parameters can be set to true to cut off the "peaks" at the outer boundary and
-   /// top and bottom boundary respectively. This makes the mesh "more smooth" and better resembles the geometry of the ITER or JET.
+   /// The cutSide and cutTop parameters can be set to positive integers or zero. If greater 0, the domain is cut off from the the
+   /// "peaks" at the outer boundary and top and bottom boundary respectively. This helps to better resembles the geometry of the
+   /// ITER or JET and especially to produce better blended elements.
    ///
    /// A slice looks roughly like this (x coord to the right, z coord upwards):
    ///
@@ -538,9 +539,8 @@ class MeshInfo
    ///    \|
    ///     +
    ///
-   /// This example has numRadialEdges == 2. Each triangle is top (or bottom) of a triangluar prism.
-   ///
-   /// With cutSide == true, it would look similar to:
+   /// This example has numRadialEdges == 2 and cutSide == cutTopAndBottom == 0. Each triangle is top (or bottom) of a triangular
+   /// prism. With cutSide == 1, it would look similar to:
    ///
    ///     +
    ///    /|
@@ -554,11 +554,11 @@ class MeshInfo
    ///
    /// \param numSlices        number of radial slices
    /// \param numRadialEdges   number of radial edges at z == 0 - this includes the full triangles, even if cut* are set to true
-   /// \param innerRadius      distance of the inner boundary to the origin
+   /// \param innerRadius      distance of the inner boundary to the origin (measured from the points where two slices intersect)
    /// \param outerRadius      distance of the outer boundary to the origin (also includes the full domain, as if cut* is set to false)
    /// \param radiusZ          height of the domain measured from z == 0
-   /// \param cutSide          set to true to cut off the outermost triangular prisms
-   /// \param cutTopAndBottom  set to true to cut off the top and bottom triangular prisms
+   /// \param cutSide          number of layers that are cut off from the side
+   /// \param cutTopAndBottom  number of layers that are cut off from the top and bottom
    ///
    static MeshInfo meshTokamak( uint_t numSlices,
                                 uint_t numRadialEdges,
@@ -567,6 +567,13 @@ class MeshInfo
                                 real_t radiusZ,
                                 uint_t cutSide,
                                 uint_t cutTopAndBottom );
+
+   static MeshInfo meshTorus( uint_t                numToroidalSlices,
+                              uint_t                numPoloidalSlices,
+                              real_t                radiusOriginToCenterOfTube,
+                              std::vector< real_t > tubeLayerRadii,
+                              real_t                toroidalStartAngle = 0,
+                              real_t                poloidalStartAngle = 0 );
 
    /// Returns vertices of the mesh
    const VertexContainer& getVertices() const { return vertices_; };

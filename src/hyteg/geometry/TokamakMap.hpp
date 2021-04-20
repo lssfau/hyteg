@@ -25,6 +25,7 @@
 
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/geometry/Polygons.hpp"
+#include "hyteg/geometry/Torus.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 using walberla::int_c;
@@ -45,44 +46,53 @@ class TokamakMap : public GeometryMap
  public:
    TokamakMap( const Cell&                  cell,
                const SetupPrimitiveStorage& setupStorage,
-               uint_t                       numSlices,
-               uint_t                       numRadialEdges,
-               real_t                       innerRadius,
-               real_t                       outerRadius,
-               real_t                       radiusZ,
-               uint_t                         cutSide,
-               uint_t                         cutTopAndBottom,
-               real_t                       blendingCenterRadius )
-   : numSlices_( numSlices )
-   , numRadialEdges_( numRadialEdges )
-   , innerRadius_( innerRadius )
-   , outerRadius_( outerRadius )
-   , radiusZ_( radiusZ )
-   , cutSide_( cutSide )
-   , cutTopAndBottom_( cutTopAndBottom )
-   , blendingCenterRadius_( blendingCenterRadius )
+               uint_t                       numToroidalSlices,
+               uint_t                       numPoloidalSlices,
+               real_t                       radiusOriginToCenterOfTube,
+               std::vector< real_t >        tubeLayerRadii,
+               real_t                       toroidalStartAngle,
+               real_t                       poloidalStartAngle,
+               real_t                       delta,
+               real_t                       r0,
+               real_t                       r1,
+               real_t                       r2 )
+   : numToroidalSlices_( numToroidalSlices )
+   , numPoloidalSlices_( numPoloidalSlices )
+   , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
+   , tubeLayerRadii_( tubeLayerRadii )
+   , toroidalStartAngle_( toroidalStartAngle )
+   , poloidalStartAngle_( poloidalStartAngle )
+   , delta_( delta )
+   , r0_( r0 )
+   , r1_( r1 )
+   , r2_( r2 )
+
    {
       identifyPrism( cell );
    }
 
    TokamakMap( const Face&                  face,
                const SetupPrimitiveStorage& setupStorage,
-               uint_t                       numSlices,
-               uint_t                       numRadialEdges,
-               real_t                       innerRadius,
-               real_t                       outerRadius,
-               real_t                       radiusZ,
-               uint_t                         cutSide,
-               uint_t                         cutTopAndBottom,
-               real_t                       blendingCenterRadius )
-   : numSlices_( numSlices )
-   , numRadialEdges_( numRadialEdges )
-   , innerRadius_( innerRadius )
-   , outerRadius_( outerRadius )
-   , radiusZ_( radiusZ )
-   , cutSide_( cutSide )
-   , cutTopAndBottom_( cutTopAndBottom )
-   , blendingCenterRadius_( blendingCenterRadius )
+               uint_t                       numToroidalSlices,
+               uint_t                       numPoloidalSlices,
+               real_t                       radiusOriginToCenterOfTube,
+               std::vector< real_t >        tubeLayerRadii,
+               real_t                       toroidalStartAngle,
+               real_t                       poloidalStartAngle,
+               real_t                       delta,
+               real_t                       r0,
+               real_t                       r1,
+               real_t                       r2 )
+   : numToroidalSlices_( numToroidalSlices )
+   , numPoloidalSlices_( numPoloidalSlices )
+   , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
+   , tubeLayerRadii_( tubeLayerRadii )
+   , toroidalStartAngle_( toroidalStartAngle )
+   , poloidalStartAngle_( poloidalStartAngle )
+   , delta_( delta )
+   , r0_( r0 )
+   , r1_( r1 )
+   , r2_( r2 )
    {
       std::vector< PrimitiveID > neighborCells;
       face.getNeighborCells( neighborCells );
@@ -93,22 +103,26 @@ class TokamakMap : public GeometryMap
 
    TokamakMap( const Edge&                  edge,
                const SetupPrimitiveStorage& setupStorage,
-               uint_t                       numSlices,
-               uint_t                       numRadialEdges,
-               real_t                       innerRadius,
-               real_t                       outerRadius,
-               real_t                       radiusZ,
-               uint_t                         cutSide,
-               uint_t                         cutTopAndBottom,
-               real_t                       blendingCenterRadius )
-   : numSlices_( numSlices )
-   , numRadialEdges_( numRadialEdges )
-   , innerRadius_( innerRadius )
-   , outerRadius_( outerRadius )
-   , radiusZ_( radiusZ )
-   , cutSide_( cutSide )
-   , cutTopAndBottom_( cutTopAndBottom )
-   , blendingCenterRadius_( blendingCenterRadius )
+               uint_t                       numToroidalSlices,
+               uint_t                       numPoloidalSlices,
+               real_t                       radiusOriginToCenterOfTube,
+               std::vector< real_t >        tubeLayerRadii,
+               real_t                       toroidalStartAngle,
+               real_t                       poloidalStartAngle,
+               real_t                       delta,
+               real_t                       r0,
+               real_t                       r1,
+               real_t                       r2 )
+   : numToroidalSlices_( numToroidalSlices )
+   , numPoloidalSlices_( numPoloidalSlices )
+   , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
+   , tubeLayerRadii_( tubeLayerRadii )
+   , toroidalStartAngle_( toroidalStartAngle )
+   , poloidalStartAngle_( poloidalStartAngle )
+   , delta_( delta )
+   , r0_( r0 )
+   , r1_( r1 )
+   , r2_( r2 )
    {
       std::vector< PrimitiveID > neighborCells;
       edge.getNeighborCells( neighborCells );
@@ -119,22 +133,26 @@ class TokamakMap : public GeometryMap
 
    TokamakMap( const Vertex&                vertex,
                const SetupPrimitiveStorage& setupStorage,
-               uint_t                       numSlices,
-               uint_t                       numRadialEdges,
-               real_t                       innerRadius,
-               real_t                       outerRadius,
-               real_t                       radiusZ,
-               uint_t                         cutSide,
-               uint_t                         cutTopAndBottom,
-               real_t                       blendingCenterRadius )
-   : numSlices_( numSlices )
-   , numRadialEdges_( numRadialEdges )
-   , innerRadius_( innerRadius )
-   , outerRadius_( outerRadius )
-   , radiusZ_( radiusZ )
-   , cutSide_( cutSide )
-   , cutTopAndBottom_( cutTopAndBottom )
-   , blendingCenterRadius_( blendingCenterRadius )
+               uint_t                       numToroidalSlices,
+               uint_t                       numPoloidalSlices,
+               real_t                       radiusOriginToCenterOfTube,
+               std::vector< real_t >        tubeLayerRadii,
+               real_t                       toroidalStartAngle,
+               real_t                       poloidalStartAngle,
+               real_t                       delta,
+               real_t                       r0,
+               real_t                       r1,
+               real_t                       r2 )
+   : numToroidalSlices_( numToroidalSlices )
+   , numPoloidalSlices_( numPoloidalSlices )
+   , radiusOriginToCenterOfTube_( radiusOriginToCenterOfTube )
+   , tubeLayerRadii_( tubeLayerRadii )
+   , toroidalStartAngle_( toroidalStartAngle )
+   , poloidalStartAngle_( poloidalStartAngle )
+   , delta_( delta )
+   , r0_( r0 )
+   , r1_( r1 )
+   , r2_( r2 )
    {
       std::vector< PrimitiveID > neighborCells;
       vertex.getNeighborCells( neighborCells );
@@ -147,95 +165,126 @@ class TokamakMap : public GeometryMap
 
    void evalF( const Point3D& xold, Point3D& xnew ) const
    {
-      auto innerSliceNormalD    = -innerPrismMidPoint_.dot( innerPrismNormal_ );
-      auto distanceToInnerPlane = innerPrismNormal_.dot( xold ) + innerSliceNormalD;
-      auto prismRadialThickness = ( outerPrismMidPoint_ - innerPrismMidPoint_ ).norm();
-
-      auto newRadialDistance =
-          innerRadius_ + ( distanceToInnerPlane / prismRadialThickness ) * ( outerRadiusRespectingCut_ - innerRadius_ );
-      auto phi = std::atan2( xold[1], xold[0] );
-      phi      = std::fmod( ( phi + 2 * pi ), 2 * pi );
-
-      xnew[0] = newRadialDistance * std::cos( phi );
-      xnew[1] = newRadialDistance * std::sin( phi );
-      xnew[2] = xold[2];
-
-      // identify all vertices of the slice-polygon
-      auto numTangentialEdgesRespectingCut = numRadialEdges_ - cutTopAndBottom_;
-      auto radialEdgeLength                = ( outerRadius_ - innerRadius_ ) / real_c( numRadialEdges_ );
-      auto tangentialEdgeLength            = radiusZ_ / real_c( numRadialEdges_ );
-
-      Point3D polygonVertexCenterOuter(
-          { outerRadiusRespectingCut_ * std::cos( phi ), outerRadiusRespectingCut_ * std::sin( phi ), 0 } );
-      Point3D polygonVertexCenterCutTop = polygonVertexCenterOuter + Point3D( { 0, 0, real_c(cutSide_) * tangentialEdgeLength } );
-      Point3D polygonVertexCenterCutBot = polygonVertexCenterOuter + Point3D( { 0, 0, - real_c(cutSide_) * tangentialEdgeLength } );
-
-      Point3D polygonVertexTop( { innerRadius_ * std::cos( phi ),
-                                  innerRadius_ * std::sin( phi ),
-                                  real_c( numTangentialEdgesRespectingCut ) * tangentialEdgeLength } );
-      Point3D polygonVertexTopCut =
-          polygonVertexTop + Point3D( { real_c(cutTopAndBottom_) * radialEdgeLength * std::cos( phi ), real_c(cutTopAndBottom_) * radialEdgeLength * std::sin( phi ), 0 } );
-
-      Point3D polygonVertexBot( { innerRadius_ * std::cos( phi ),
-                                  innerRadius_ * std::sin( phi ),
-                                  -real_c( numTangentialEdgesRespectingCut ) * tangentialEdgeLength } );
-      Point3D polygonVertexBotCut =
-          polygonVertexBot + Point3D( { real_c(cutTopAndBottom_) * radialEdgeLength * std::cos( phi ), real_c(cutTopAndBottom_) * radialEdgeLength * std::sin( phi ), 0 } );
-
-      std::vector< Point3D > slicePolygon;
-
-      slicePolygon.push_back( polygonVertexCenterOuter );
-      if ( cutSide_ )
-      {
-         slicePolygon.push_back( polygonVertexCenterCutTop );
-      }
-      if ( cutTopAndBottom_ )
-      {
-         slicePolygon.push_back( polygonVertexTopCut );
-      }
-      slicePolygon.push_back( polygonVertexTop );
-      slicePolygon.push_back( polygonVertexBot );
-
-      if ( cutTopAndBottom_ )
-      {
-         slicePolygon.push_back( polygonVertexBotCut );
-      }
-      if ( cutSide_ )
-      {
-         slicePolygon.push_back( polygonVertexCenterCutBot );
-      }
-
-      auto center = blendingCenterRadius_ * Point3D( { std::cos( phi ), std::sin( phi ), 0 } );
-
-      real_t r;
-      real_t theta;
-
-      fractionalRadiusToPolygonBoundary( xnew, center, slicePolygon, r, theta );
-
-      //      auto tubeRadius  = 0.5;
-      //      auto torusRadius = 0.8;
-
-      //      xnew[0] = ( torusRadius + r * tubeRadius * std::cos( angle ) ) * std::cos( phi );
-      //      xnew[1] = ( torusRadius + r * tubeRadius * std::cos( angle ) ) * std::sin( phi );
-      //      xnew[2] = r * tubeRadius * std::sin( angle );
-
-      auto r_z  = r * std::sin( theta );
-      auto r_xy = r * std::cos( theta );
-
-      real_t r0           = outerRadius_;
-      real_t r1           = innerRadius_;
-      real_t r2           = r1 * 1.55;
-      real_t arcsin_delta = 0.5;
-
-      xnew[0] = ( 1 + r * ( r1 / r0 ) * std::cos( theta + arcsin_delta * std::sin( theta ) ) ) * std::cos( phi );
-      xnew[1] = ( 1 + r * ( r1 / r0 ) * std::cos( theta + arcsin_delta * std::sin( theta ) ) ) * std::sin( phi );
-      xnew[2] = r * ( r2 / r0 ) * std::sin( theta );
+      auto xold_0 = xold[0];
+      auto xold_1 = xold[1];
+      auto xold_2 = xold[2];
+      auto tmp0   = pow( pow( xold_0, 2 ) + pow( xold_1, 2 ), -1.0 / 2.0 );
+      auto tmp1   = radiusOriginToCenterOfTube_ * tmp0;
+      auto tmp2   = 0.5 * toroidalAngleIncrement_;
+      auto tmp3   = sin( tmp2 + toroidalAngleIncrement_ * toroidalPrism_ + toroidalStartAngle_ - atan2( xold_1, xold_0 ) +
+                       1.5707963267948966 ) /
+                  sin( tmp2 - 1.5707963267948966 );
+      auto tmp4  = -tmp1 * xold_0 - tmp3 * xold_0;
+      auto tmp5  = tmp0 * xold_0;
+      auto tmp6  = -tmp1 * xold_1 - tmp3 * xold_1;
+      auto tmp7  = tmp0 * xold_1;
+      auto tmp8  = atan2( xold_2, tmp4 * tmp5 + tmp6 * tmp7 );
+      auto tmp9  = ( ( tmp8 < 0 ) ? ( tmp8 + 6.2831853071795862 ) : ( tmp8 ) );
+      auto tmp10 = sin( tmp9 );
+      auto tmp11 = 0.5 * poloidalAngleIncrement_;
+      auto tmp12 = sqrt( pow( tmp4, 2 ) + pow( tmp6, 2 ) + pow( xold_2, 2 ) ) *
+                   sin( poloidalAngleIncrement_ * poloidalPrism_ + poloidalStartAngle_ + tmp11 - tmp9 + 1.5707963267948966 ) /
+                   ( r0_ * tubeLayerRadiiBack_ * sin( tmp11 - 1.5707963267948966 ) );
+      auto tmp13 = -r1_ * tmp12 * cos( tmp10 * asin( delta_ ) + tmp9 ) + 1;
+      xnew[0]    = tmp13 * tmp5;
+      xnew[1]    = tmp13 * tmp7;
+      xnew[2]    = -r2_ * tmp10 * tmp12;
    }
 
-   real_t evalDF( const Point3D& x, Matrix3r& DFx ) const final
+   real_t evalDF( const Point3D& xold, Matrix3r& DF ) const final
    {
-      WALBERLA_ABORT( "Not implemented." )
-      return 0;
+      auto xold_0 = xold[0];
+      auto xold_1 = xold[1];
+      auto xold_2 = xold[2];
+      auto tmp0   = pow( xold_0, 2 );
+      auto tmp1   = pow( xold_1, 2 );
+      auto tmp2   = tmp0 + tmp1;
+      auto tmp3   = pow( tmp2, -1.0 / 2.0 );
+      auto tmp4   = radiusOriginToCenterOfTube_ * tmp3;
+      auto tmp5   = 0.5 * toroidalAngleIncrement_;
+      auto tmp6   = 1.0 / sin( tmp5 - 1.5707963267948966 );
+      auto tmp7 =
+          tmp5 + toroidalAngleIncrement_ * toroidalPrism_ + toroidalStartAngle_ - atan2( xold_1, xold_0 ) + 1.5707963267948966;
+      auto tmp8  = tmp6 * sin( tmp7 );
+      auto tmp9  = -tmp4 * xold_0 - tmp8 * xold_0;
+      auto tmp10 = tmp3 * tmp9;
+      auto tmp11 = -tmp4 * xold_1 - tmp8 * xold_1;
+      auto tmp12 = tmp11 * tmp3;
+      auto tmp13 = tmp10 * xold_0 + tmp12 * xold_1;
+      auto tmp14 = atan2( xold_2, tmp13 );
+      auto tmp15 = -poloidalStartAngle_ + tmp14;
+      auto tmp16 = ( ( poloidalStartAngle_ - tmp14 > 0 ) ? ( tmp15 + 6.2831853071795862 ) : ( tmp15 ) );
+      auto tmp17 = asin( delta_ );
+      auto tmp18 = sin( tmp16 );
+      auto tmp19 = tmp16 + tmp17 * tmp18;
+      auto tmp20 = cos( tmp19 );
+      auto tmp21 = pow( xold_2, 2 );
+      auto tmp22 = sqrt( pow( tmp11, 2 ) + tmp21 + pow( tmp9, 2 ) );
+      auto tmp23 = 1.0 / r0_;
+      auto tmp24 = 1.0 / tubeLayerRadiiBack_;
+      auto tmp25 = 0.5 * poloidalAngleIncrement_;
+      auto tmp26 = 1.0 / sin( tmp25 - 1.5707963267948966 );
+      auto tmp27 = poloidalAngleIncrement_ * poloidalPrism_ + poloidalStartAngle_ - tmp16 + tmp25 + 1.5707963267948966;
+      auto tmp28 = tmp23 * tmp24 * tmp26 * sin( tmp27 );
+      auto tmp29 = tmp22 * tmp28;
+      auto tmp30 = r1_ * tmp29;
+      auto tmp31 = -tmp20 * tmp30 + 1;
+      auto tmp32 = tmp3 * tmp31;
+      auto tmp33 = pow( tmp2, -3.0 / 2.0 );
+      auto tmp34 = tmp0 * tmp33;
+      auto tmp35 = r1_ * tmp20;
+      auto tmp36 = xold_0 * xold_1;
+      auto tmp37 = tmp33 * tmp36;
+      auto tmp38 = radiusOriginToCenterOfTube_ * tmp37;
+      auto tmp39 = 2 * tmp38;
+      auto tmp40 = tmp6 * cos( tmp7 ) / tmp2;
+      auto tmp41 = tmp1 * tmp40;
+      auto tmp42 = ( 1.0 / 2.0 ) * tmp11;
+      auto tmp43 = radiusOriginToCenterOfTube_ * tmp34;
+      auto tmp44 = tmp36 * tmp40;
+      auto tmp45 = 2 * tmp44;
+      auto tmp46 = -2 * tmp4 - 2 * tmp8;
+      auto tmp47 = ( 1.0 / 2.0 ) * tmp9;
+      auto tmp48 = tmp28 / tmp22;
+      auto tmp49 = tmp48 * ( tmp42 * ( tmp39 - 2 * tmp41 ) + tmp47 * ( 2 * tmp43 - tmp45 + tmp46 ) );
+      auto tmp50 = tmp3 * xold_1;
+      auto tmp51 = -tmp4 - tmp8;
+      auto tmp52 = tmp3 * xold_0;
+      auto tmp53 = 1.0 / ( pow( tmp13, 2 ) + tmp21 );
+      auto tmp54 = tmp53 * xold_2;
+      auto tmp55 =
+          tmp54 * ( tmp10 - tmp11 * tmp37 - tmp34 * tmp9 + tmp50 * ( tmp38 - tmp41 ) + tmp52 * ( tmp43 - tmp44 + tmp51 ) );
+      auto tmp56 = tmp22 * tmp23 * tmp24 * tmp26 * cos( tmp27 );
+      auto tmp57 = tmp35 * tmp56;
+      auto tmp58 = cos( tmp16 );
+      auto tmp59 = tmp17 * tmp58;
+      auto tmp60 = tmp30 * sin( tmp19 );
+      auto tmp61 = -tmp35 * tmp49 - tmp55 * tmp57 + tmp60 * ( -tmp55 * tmp59 - tmp55 );
+      auto tmp62 = -tmp31 * tmp37;
+      auto tmp63 = tmp0 * tmp40;
+      auto tmp64 = tmp1 * tmp33;
+      auto tmp65 = radiusOriginToCenterOfTube_ * tmp64;
+      auto tmp66 = tmp42 * ( tmp45 + tmp46 + 2 * tmp65 ) + tmp47 * ( tmp39 + 2 * tmp63 );
+      auto tmp67 = tmp35 * tmp48;
+      auto tmp68 =
+          tmp54 * ( -tmp11 * tmp64 + tmp12 - tmp37 * tmp9 + tmp50 * ( tmp44 + tmp51 + tmp65 ) + tmp52 * ( tmp38 + tmp63 ) );
+      auto tmp69 = -tmp57 * tmp68 + tmp60 * ( -tmp59 * tmp68 - tmp68 ) - tmp66 * tmp67;
+      auto tmp70 = tmp13 * tmp53;
+      auto tmp71 = tmp56 * tmp70;
+      auto tmp72 = tmp35 * tmp71 + tmp60 * ( tmp59 * tmp70 + tmp70 ) - tmp67 * xold_2;
+      auto tmp73 = r2_ * tmp18;
+      auto tmp74 = r2_ * tmp29 * tmp58;
+      auto tmp75 = tmp56 * tmp73;
+      auto tmp76 = tmp48 * tmp73;
+      DF( 0, 0 ) = -tmp31 * tmp34 + tmp32 + tmp52 * tmp61;
+      DF( 0, 1 ) = tmp52 * tmp69 + tmp62;
+      DF( 0, 2 ) = tmp52 * tmp72;
+      DF( 1, 0 ) = tmp50 * tmp61 + tmp62;
+      DF( 1, 1 ) = -tmp31 * tmp64 + tmp32 + tmp50 * tmp69;
+      DF( 1, 2 ) = tmp50 * tmp72;
+      DF( 2, 0 ) = -tmp49 * tmp73 + tmp55 * tmp74 - tmp55 * tmp75;
+      DF( 2, 1 ) = -tmp66 * tmp76 + tmp68 * tmp74 - tmp68 * tmp75;
+      DF( 2, 2 ) = -tmp70 * tmp74 + tmp71 * tmp73 - tmp76 * xold_2;
    }
 
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const
@@ -244,14 +293,16 @@ class TokamakMap : public GeometryMap
    }
 
    static void setMap( SetupPrimitiveStorage& setupStorage,
-                       uint_t                 numSlices,
-                       uint_t                 numRadialEdges,
-                       real_t                 innerRadius,
-                       real_t                 outerRadius,
-                       real_t                 radiusZ,
-                       uint_t                   cutSide,
-                       uint_t                   cutTopAndBottom,
-                       real_t                 blendingCenterRadius )
+                       uint_t                 numToroidalSlices,
+                       uint_t                 numPoloidalSlices,
+                       real_t                 radiusOriginToCenterOfTube,
+                       std::vector< real_t >  tubeLayerRadii,
+                       real_t                 toroidalStartAngle,
+                       real_t                 poloidalStartAngle,
+                       real_t                 delta,
+                       real_t                 r0,
+                       real_t                 r1,
+                       real_t                 r2 )
    {
       for ( auto it : setupStorage.getCells() )
       {
@@ -259,14 +310,16 @@ class TokamakMap : public GeometryMap
          setupStorage.setGeometryMap( cell.getID(),
                                       std::make_shared< TokamakMap >( cell,
                                                                       setupStorage,
-                                                                      numSlices,
-                                                                      numRadialEdges,
-                                                                      innerRadius,
-                                                                      outerRadius,
-                                                                      radiusZ,
-                                                                      cutSide,
-                                                                      cutTopAndBottom,
-                                                                      blendingCenterRadius ) );
+                                                                      numToroidalSlices,
+                                                                      numPoloidalSlices,
+                                                                      radiusOriginToCenterOfTube,
+                                                                      tubeLayerRadii,
+                                                                      toroidalStartAngle,
+                                                                      poloidalStartAngle,
+                                                                      delta,
+                                                                      r0,
+                                                                      r1,
+                                                                      r2 ) );
       }
 
       for ( auto it : setupStorage.getFaces() )
@@ -275,14 +328,16 @@ class TokamakMap : public GeometryMap
          setupStorage.setGeometryMap( face.getID(),
                                       std::make_shared< TokamakMap >( face,
                                                                       setupStorage,
-                                                                      numSlices,
-                                                                      numRadialEdges,
-                                                                      innerRadius,
-                                                                      outerRadius,
-                                                                      radiusZ,
-                                                                      cutSide,
-                                                                      cutTopAndBottom,
-                                                                      blendingCenterRadius ) );
+                                                                      numToroidalSlices,
+                                                                      numPoloidalSlices,
+                                                                      radiusOriginToCenterOfTube,
+                                                                      tubeLayerRadii,
+                                                                      toroidalStartAngle,
+                                                                      poloidalStartAngle,
+                                                                      delta,
+                                                                      r0,
+                                                                      r1,
+                                                                      r2 ) );
       }
 
       for ( auto it : setupStorage.getEdges() )
@@ -291,14 +346,16 @@ class TokamakMap : public GeometryMap
          setupStorage.setGeometryMap( edge.getID(),
                                       std::make_shared< TokamakMap >( edge,
                                                                       setupStorage,
-                                                                      numSlices,
-                                                                      numRadialEdges,
-                                                                      innerRadius,
-                                                                      outerRadius,
-                                                                      radiusZ,
-                                                                      cutSide,
-                                                                      cutTopAndBottom,
-                                                                      blendingCenterRadius ) );
+                                                                      numToroidalSlices,
+                                                                      numPoloidalSlices,
+                                                                      radiusOriginToCenterOfTube,
+                                                                      tubeLayerRadii,
+                                                                      toroidalStartAngle,
+                                                                      poloidalStartAngle,
+                                                                      delta,
+                                                                      r0,
+                                                                      r1,
+                                                                      r2 ) );
       }
 
       for ( auto it : setupStorage.getVertices() )
@@ -307,14 +364,16 @@ class TokamakMap : public GeometryMap
          setupStorage.setGeometryMap( vertex.getID(),
                                       std::make_shared< TokamakMap >( vertex,
                                                                       setupStorage,
-                                                                      numSlices,
-                                                                      numRadialEdges,
-                                                                      innerRadius,
-                                                                      outerRadius,
-                                                                      radiusZ,
-                                                                      cutSide,
-                                                                      cutTopAndBottom,
-                                                                      blendingCenterRadius ) );
+                                                                      numToroidalSlices,
+                                                                      numPoloidalSlices,
+                                                                      radiusOriginToCenterOfTube,
+                                                                      tubeLayerRadii,
+                                                                      toroidalStartAngle,
+                                                                      poloidalStartAngle,
+                                                                      delta,
+                                                                      r0,
+                                                                      r1,
+                                                                      r2 ) );
       }
    }
 
@@ -338,8 +397,15 @@ class TokamakMap : public GeometryMap
    ///@}
 
  private:
+   real_t angle( Point3D a, Point3D b ) const { return std::acos( a.dot( b ) / ( a.norm() * b.norm() ) ); }
+
    void identifyPrism( const Cell& cell )
    {
+      tubeLayerRadiiBack_ = tubeLayerRadii_.back();
+
+      toroidalAngleIncrement_ = 2 * pi / real_c( numToroidalSlices_ );
+      poloidalAngleIncrement_ = 2 * pi / real_c( numPoloidalSlices_ );
+
       auto    coords = cell.getCoordinates();
       Point3D centroid( { 0, 0, 0 } );
       for ( uint_t i = 0; i < 4; i++ )
@@ -348,132 +414,70 @@ class TokamakMap : public GeometryMap
       }
       centroid *= 0.25;
 
-      auto radialEdgeLength     = ( outerRadius_ - innerRadius_ ) / real_c( numRadialEdges_ );
-      auto tangentialEdgeLength = radiusZ_ / real_c( numRadialEdges_ );
+      auto toroidalAngle = atan2( centroid[1], centroid[0] );
+      toroidalAngle -= toroidalStartAngle_;
+      if ( toroidalAngle < 0 )
+      {
+         toroidalAngle += 2 * pi;
+      }
+      toroidalPrism_ = uint_c( toroidalAngle / toroidalAngleIncrement_ );
 
-      auto phi = std::atan2( centroid[1], centroid[0] );
-      phi      = std::fmod( ( phi + 2 * pi ), 2 * pi );
+      // to find out the poloidal prism we need to do some more work ...
 
-      auto prismAngle = ( 2 * pi ) / real_c( numSlices_ );
-      auto prismID_   = uint_c( phi / prismAngle );
+      // first project the centroid to the torus (toroidal)
+      {
+         auto alpha = toroidalAngle - toroidalStartAngle_ - real_c( toroidalPrism_ ) * toroidalAngleIncrement_;
+         auto beta  = 0.5 * ( pi - toroidalAngleIncrement_ );
+         auto gamma = pi - alpha - beta;
+         auto toroidalRadiusNew =
+             ( std::sin( gamma ) * ( std::sqrt( centroid[0] * centroid[0] + centroid[1] * centroid[1] ) / std::sin( beta ) ) );
 
-      auto leftSlicePhi  = real_c( prismID_ ) * prismAngle;
-      auto rightSlicePhi = real_c( ( prismID_ + 1 ) % numSlices_ ) * prismAngle;
+         centroid[0] = toroidalRadiusNew * std::cos( toroidalAngle );
+         centroid[1] = toroidalRadiusNew * std::sin( toroidalAngle );
+         centroid[2] = centroid[2];
+      }
 
-      Point3D innerSliceLeftPoint( { innerRadius_ * std::cos( leftSlicePhi ), innerRadius_ * std::sin( leftSlicePhi ), 0 } );
-      Point3D innerSliceRightPoint( { innerRadius_ * std::cos( rightSlicePhi ), innerRadius_ * std::sin( rightSlicePhi ), 0 } );
-      innerPrismMidPoint_ = innerSliceLeftPoint + 0.5 * ( innerSliceRightPoint - innerSliceLeftPoint );
-      innerPrismNormal_   = innerPrismMidPoint_ / innerPrismMidPoint_.norm();
+      // then we rotate the mapped centroid around the z-axis and translate it to the origin
+      // this way we can find the angle and therefore the prism ID via polar coordinates in the x-z-plane
 
-      outerRadiusRespectingCut_ = outerRadius_ - real_c( cutSide_ ) * radialEdgeLength;
+      auto C                     = torusCoordinates( radiusOriginToCenterOfTube_, 0, toroidalAngle, 0 );
+      auto centroidTrafoToOrigin = centroid - C;
+      centroidTrafoToOrigin      = Point3D(
+          { std::cos( -toroidalAngle ) * centroidTrafoToOrigin[0] - std::sin( -toroidalAngle ) * centroidTrafoToOrigin[1],
+            std::sin( -toroidalAngle ) * centroidTrafoToOrigin[0] + std::cos( -toroidalAngle ) * centroidTrafoToOrigin[1],
+            centroidTrafoToOrigin[2] } );
 
-      Point3D outerEdgeLeftPoint(
-          { outerRadiusRespectingCut_ * std::cos( leftSlicePhi ), outerRadiusRespectingCut_ * std::sin( leftSlicePhi ), 0 } );
-      Point3D outerEdgeRightPoint(
-          { outerRadiusRespectingCut_ * std::cos( rightSlicePhi ), outerRadiusRespectingCut_ * std::sin( rightSlicePhi ), 0 } );
-      outerPrismMidPoint_ = outerEdgeLeftPoint + 0.5 * ( outerEdgeRightPoint - outerEdgeLeftPoint );
-
-      //      ///////////////
-      //      /// Sectors ///
-      //      ///////////////
-      //
-      //      // define a center, could be chosen "arbitrarily"
-      //      // blendingCenterRadius_ = innerRadius_ + 0.5 * ( outerRadiusRespectingCut_ - innerRadius_ );
-      //
-      //      Point2D center2D( { blendingCenterRadius_, 0 } );
-      //
-      //      Point2D bottomOuter = Point2D( { outerRadiusRespectingCut_, 0 } );
-      //      Point2D outerCut    = bottomOuter + Point2D( { 0, tangentialEdgeLength } );
-      //
-      //      Point2D topCut( { innerRadius_ + radialEdgeLength, real_c( numRadialEdges_ - 1 ) * radialEdgeLength } );
-      //      Point2D top = topCut + Point2D( { -radialEdgeLength, tangentialEdgeLength } );
-      //      if ( cutTopAndBottom_ )
-      //      {
-      //         top -= Point2D( { 0, tangentialEdgeLength } );
-      //      }
-      //
-      //      Point2D innerBottom( { innerRadius_, 0 } );
-      //
-      //      bottomOuter -= center2D;
-      //      outerCut -= center2D;
-      //      topCut -= center2D;
-      //      top -= center2D;
-      //      innerBottom -= center2D;
-      //
-      //      // angle = atan2(vector2.y, vector2.x) - atan2(vector1.y, vector1.x);
-      //
-      //      sectorOuterRadiiFromCenter_.push_back( bottomOuter.norm() );
-      //      sectorOuterAnglesFromCenter_.push_back( std::atan2( bottomOuter[1], bottomOuter[0] ) );
-      //
-      //      if ( cutSide_ )
-      //      {
-      //         auto v1 = -bottomOuter;
-      //         auto v2 = outerCut - bottomOuter;
-      //         sectorOuterOpposingAnglesFromCenter_.push_back( std::atan2( v2[1], v2[0] ) - std::atan2( v1[1], v1[0] ) );
-      //      }
-      //      else
-      //      {
-      //         auto v1 = -bottomOuter;
-      //         auto v2 = top - bottomOuter;
-      //         sectorOuterOpposingAnglesFromCenter_.push_back( std::atan2( v2[1], v2[0] ) - std::atan2( v1[1], v1[0] ) );
-      //      }
-      //
-      //      if ( cutSide_ )
-      //      {
-      //         sectorOuterRadiiFromCenter_.push_back( outerCut.norm() );
-      //         sectorOuterAnglesFromCenter_.push_back( std::atan2( outerCut[1], outerCut[0] ) );
-      //         auto v1 = -outerCut;
-      //         auto v2 = topCut - outerCut;
-      //         sectorOuterOpposingAnglesFromCenter_.push_back( std::atan2( v2[1], v2[0] ) - std::atan2( v1[1], v1[0] ) );
-      //
-      //         sectorOuterRadiiFromCenter_.push_back( topCut.norm() );
-      //         sectorOuterAnglesFromCenter_.push_back( std::atan2( topCut[1], topCut[0] ) );
-      //         v1 = -topCut;
-      //         v2 = top - topCut;
-      //         sectorOuterOpposingAnglesFromCenter_.push_back( std::atan2( v2[1], v2[0] ) - std::atan2( v1[1], v1[0] ) );
-      //      }
-      //
-      //      sectorOuterRadiiFromCenter_.push_back( top.norm() );
-      //      sectorOuterAnglesFromCenter_.push_back( std::atan2( top[1], top[0] ) );
-      //      auto v1 = -top;
-      //      auto v2 = innerBottom - top;
-      //      sectorOuterOpposingAnglesFromCenter_.push_back( std::atan2( v2[1], v2[0] ) - std::atan2( v1[1], v1[0] ) );
-      //
-      //      sectorOuterRadiiFromCenter_.push_back( innerBottom.norm() );
+      auto poloidalAngle = std::atan2( centroidTrafoToOrigin[2], centroidTrafoToOrigin[0] );
+      poloidalAngle -= poloidalStartAngle_;
+      if ( poloidalAngle < 0 )
+      {
+         poloidalAngle += 2 * pi;
+      }
+      poloidalPrism_ = uint_c( ( poloidalAngle ) / poloidalAngleIncrement_ );
    }
 
-   // number of slices or prisms
-   uint_t numSlices_;
+   uint_t                numToroidalSlices_;
+   uint_t                numPoloidalSlices_;
+   real_t                radiusOriginToCenterOfTube_;
+   std::vector< real_t > tubeLayerRadii_;
+   real_t                toroidalStartAngle_;
+   real_t                poloidalStartAngle_;
 
-   // number of edges in radial direction, including the tip, even if cutSide == true
-   uint_t numRadialEdges_;
+   real_t toroidalAngleIncrement_;
+   real_t poloidalAngleIncrement_;
 
-   // inner and outer radii at the slices that interface two prisms, also count triangle tip if cutSide == true
-   real_t innerRadius_;
-   real_t outerRadius_;
+   uint_t toroidalPrism_;
+   uint_t poloidalPrism_;
 
-   // height in z-direction from z == 0, including tip even if cutTopAndBottom == true
-   real_t radiusZ_;
+   Point3D sliceCenterFront_;
+   Point3D sliceCenterBack_;
 
-   uint_t cutSide_;
-   uint_t cutTopAndBottom_;
+   real_t delta_;
+   real_t r0_;
+   real_t r1_;
+   real_t r2_;
 
-   // midpoint of the inner prism plane, before blending!
-   Point3D innerPrismMidPoint_;
-   // outward pointing normal at the inner prism mid point
-   Point3D innerPrismNormal_;
-   // midpoint outer prism line (or plane if cutSide == true), before blending!
-   Point3D outerPrismMidPoint_;
-
-   // outer radius of the slice taking the cutSide setting into account, if cutSide == false, this is equal to outerRadius_ of the slice
-   real_t outerRadiusRespectingCut_;
-
-   // radius of the center point to perform the blending of the slices, assuming the center point is always at z == 0
-   real_t blendingCenterRadius_;
-   //
-   //   std::vector< real_t > sectorOuterRadiiFromCenter_;
-   //   std::vector< real_t > sectorOuterAnglesFromCenter_;
-   //   std::vector< real_t > sectorOuterOpposingAnglesFromCenter_;
+   real_t tubeLayerRadiiBack_;
 };
 
 } // end of namespace hyteg

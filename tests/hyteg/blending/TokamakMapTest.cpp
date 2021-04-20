@@ -48,21 +48,46 @@ int main( int argc, char* argv[] )
    const uint_t maxLevel = 3;
    const bool   writeVTK = true;
 
-   const uint_t numSlices       = 24;
-   const uint_t numRadialEdges  = 5;
-   const real_t innerRadius     = 0.7;
-   const real_t outerRadius     = 1.5;
-   const real_t radiusZ         = 0.7;
-   const uint_t cutSide         = 1;
-   const uint_t cutTopAndBottom = 3;
+   const uint_t numSlices            = 24;
+   const uint_t numRadialEdges       = 5;
+   const real_t innerRadius          = 0.7;
+   const real_t outerRadius          = 1.5;
+   const real_t radiusZ              = 0.7;
+   const uint_t cutSide              = 2;
+   const uint_t cutTopAndBottom      = 3;
    const real_t blendingCenterRadius = 1.0;
 
-   const auto meshInfo =
-       MeshInfo::meshTokamak( numSlices, numRadialEdges, innerRadius, outerRadius, radiusZ, cutSide, cutTopAndBottom );
+   const uint_t                numToroidalSlices          = 12;
+   const uint_t                numPoloidalSlices          = 6;
+   const real_t                radiusOriginToCenterOfTube = 1.3;
+   const std::vector< real_t > tubeLayerRadii             = { 0.3 };
+   const real_t                torodialStartAngle         = 0;
+   const real_t                polodialStartAngle         = 2.0 * pi / 12.0;
+
+   const real_t delta = sin( 0.5 );
+   const real_t r0    = radiusOriginToCenterOfTube;
+   const real_t r1    = 0.3;
+   const real_t r2    = 0.3;
+
+   // const auto meshInfo =
+   //     MeshInfo::meshTokamak( numSlices, numRadialEdges, innerRadius, outerRadius, radiusZ, cutSide, cutTopAndBottom );
+   const auto meshInfo = MeshInfo::meshTorus(
+       numToroidalSlices, numPoloidalSlices, radiusOriginToCenterOfTube, tubeLayerRadii, torodialStartAngle, polodialStartAngle );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-   TokamakMap::setMap( setupStorage, numSlices, numRadialEdges, innerRadius, outerRadius, radiusZ, cutSide, cutTopAndBottom, blendingCenterRadius );
+   // TokamakMap::setMap( setupStorage, numSlices, numRadialEdges, innerRadius, outerRadius, radiusZ, cutSide, cutTopAndBottom, blendingCenterRadius );
+   TokamakMap::setMap( setupStorage,
+                       numToroidalSlices,
+                       numPoloidalSlices,
+                       radiusOriginToCenterOfTube,
+                       tubeLayerRadii,
+                       torodialStartAngle,
+                       polodialStartAngle,
+                       delta,
+                       r0,
+                       r1,
+                       r2 );
 
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
