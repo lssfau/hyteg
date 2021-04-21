@@ -143,12 +143,24 @@ void testTokamak( uint_t level, real_t errorL2Max )
 
 int main( int argc, char* argv[] )
 {
-   walberla::Environment walberlaEnv( argc, argv );
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
 
+   bool longrun = false;
+   for ( int i = 0; i < argc; i++ )
+   {
+      auto arg = std::string( argv[i] );
+      if ( arg == "--longrun" )
+      {
+         longrun = true;
+      }
+   }
+
    testTokamak( 2, 8.2e-03 );
-   testTokamak( 3, 2.9e-03 );
+   if ( longrun )
+   {
+      testTokamak( 3, 2.9e-03 );
+   }
 
    return 0;
 }
