@@ -121,7 +121,7 @@ MigrationMap_T parmetis( PrimitiveStorage& storage )
    }
 
    // Reverse the mapping (for convenience)
-   for ( const auto it : localPrimitiveIDToGlobalParmetisIDMap )
+   for ( const auto& it : localPrimitiveIDToGlobalParmetisIDMap )
    {
       WALBERLA_ASSERT_EQUAL( globalParmetisIDToLocalPrimitiveIDMap.count( it.second ), 0 );
       globalParmetisIDToLocalPrimitiveIDMap[it.second] = PrimitiveID( it.first );
