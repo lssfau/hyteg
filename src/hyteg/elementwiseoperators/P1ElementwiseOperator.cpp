@@ -39,6 +39,7 @@
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_2_0_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_2_1_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsilonvar_2_2_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
 
 namespace hyteg {
 
@@ -748,7 +749,7 @@ template class P1ElementwiseOperator< P1Form_mass >;
 template class P1ElementwiseOperator< P1Form_mass3D >;
 
 // P1ElementwiseBlendingLaplaceOperator
-template class P1ElementwiseOperator< P1Form_laplace >;
+template class P1ElementwiseOperator< forms::p1_diffusion_blending_q3 >;
 
 // Needed for P1Blending(Inverse)DiagonalOperator
 template class P1ElementwiseOperator< P1RowSumForm >;
