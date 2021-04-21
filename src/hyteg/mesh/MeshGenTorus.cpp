@@ -48,14 +48,16 @@ static std::vector< MeshInfo::Cell > cellsBottomLeftPrism( std::vector< uint_t >
    return cells;
 }
 
-static std::vector< MeshInfo::Cell > cellsTopRightPrism( std::vector< uint_t > vertexIDs_XZY )
-{
-   std::vector< MeshInfo::Cell > cells;
-   cells.push_back( MeshInfo::Cell( { vertexIDs_XZY[0], vertexIDs_XZY[4], vertexIDs_XZY[3], vertexIDs_XZY[2] }, 0 ) );
-   cells.push_back( MeshInfo::Cell( { vertexIDs_XZY[0], vertexIDs_XZY[1], vertexIDs_XZY[2], vertexIDs_XZY[4] }, 0 ) );
-   cells.push_back( MeshInfo::Cell( { vertexIDs_XZY[2], vertexIDs_XZY[3], vertexIDs_XZY[4], vertexIDs_XZY[5] }, 0 ) );
-   return cells;
-}
+// do not remove, might want to use that later on
+//
+//static std::vector< MeshInfo::Cell > cellsTopRightPrism( std::vector< uint_t > vertexIDs_XZY )
+//{
+//   std::vector< MeshInfo::Cell > cells;
+//   cells.push_back( MeshInfo::Cell( { vertexIDs_XZY[0], vertexIDs_XZY[4], vertexIDs_XZY[3], vertexIDs_XZY[2] }, 0 ) );
+//   cells.push_back( MeshInfo::Cell( { vertexIDs_XZY[0], vertexIDs_XZY[1], vertexIDs_XZY[2], vertexIDs_XZY[4] }, 0 ) );
+//   cells.push_back( MeshInfo::Cell( { vertexIDs_XZY[2], vertexIDs_XZY[3], vertexIDs_XZY[4], vertexIDs_XZY[5] }, 0 ) );
+//   return cells;
+//}
 
 MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
                               uint_t                numPoloidalSlices,
@@ -66,7 +68,7 @@ MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
 {
    MeshInfo meshInfo;
 
-   WALBERLA_CHECK_EQUAL( tubeLayerRadii.size(), 1 );
+   WALBERLA_CHECK_EQUAL( tubeLayerRadii.size(), 1, "Only single tube layer is currently supported." );
 
    uint_t id = 0;
 
