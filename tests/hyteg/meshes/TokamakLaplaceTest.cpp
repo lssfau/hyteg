@@ -38,36 +38,25 @@ using walberla::uint_t;
 
 using namespace hyteg;
 
-int main( int argc, char* argv[] )
+void testTokamak( uint_t level, real_t errorL2Max )
 {
-   walberla::Environment walberlaEnv( argc, argv );
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
-   walberla::MPIManager::instance()->useWorldComm();
+   const uint_t maxLevel = level;
 
-   const uint_t minLevel = 3;
-   const uint_t maxLevel = 3;
-   const bool   writeVTK = true;
+   const uint_t minLevel = maxLevel;
+   const bool   writeVTK = false;
 
-   //   const uint_t numSlices       = 24;
-   //   const uint_t numRadialEdges  = 5;
-   //   const real_t innerRadius     = 0.7;
-   //   const real_t outerRadius     = 1.5;
-   //   const real_t radiusZ         = 0.7;
-   //   const uint_t cutSide         = 1;
-   //   const uint_t cutTopAndBottom = 3;
-   //   const real_t blendingCenterRadius = 1.0;
+   // ITER configuration
 
-   const uint_t                numToroidalSlices          = 12;
+   const uint_t                numToroidalSlices          = 8;
    const uint_t                numPoloidalSlices          = 6;
-   const real_t                radiusOriginToCenterOfTube = 1.3;
-   const std::vector< real_t > tubeLayerRadii             = { 0.3 };
-   const real_t                torodialStartAngle         = 0;
-   const real_t                polodialStartAngle         = 2.0 * pi / 12.0;
+   const real_t                radiusOriginToCenterOfTube = 6.2;
+   const std::vector< real_t > tubeLayerRadii             = { 3 };
+   const real_t                torodialStartAngle         = 0.0;
+   const real_t                polodialStartAngle         = 2.0 * pi / real_c( 2 * numPoloidalSlices );
 
-   const real_t delta = sin( 0.5 );
-   const real_t r0    = radiusOriginToCenterOfTube;
-   const real_t r1    = 0.3;
-   const real_t r2    = 0.3;
+   real_t delta = sin( 0.33 );
+   real_t r1    = 2.0;
+   real_t r2    = 3.7;
 
    const auto meshInfo = MeshInfo::meshTorus(
        numToroidalSlices, numPoloidalSlices, radiusOriginToCenterOfTube, tubeLayerRadii, torodialStartAngle, polodialStartAngle );
@@ -82,7 +71,6 @@ int main( int argc, char* argv[] )
                        torodialStartAngle,
                        polodialStartAngle,
                        delta,
-                       r0,
                        r1,
                        r2 );
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -95,8 +83,9 @@ int main( int argc, char* argv[] )
 
    LaplaceOperator_T laplaceOperator( storage, minLevel, maxLevel );
 
-   std::function< real_t( const Point3D& ) > exact = []( const Point3D& p ) -> real_t {
-      return sin( p[0] ) * sinh( p[1] ) * p[2];
+   std::function< real_t( const Point3D& ) > exact = [&]( const Point3D& p ) -> real_t {
+      return sin( p[0] / radiusOriginToCenterOfTube ) * sinh( p[1] / radiusOriginToCenterOfTube ) *
+             ( p[2] / tubeLayerRadii.back() );
    };
 
    std::function< real_t( const Point3D& ) > zero = []( const Point3D& ) -> real_t { return 0.0; };
@@ -119,7 +108,7 @@ int main( int argc, char* argv[] )
    uExact.interpolate( exact, maxLevel, DoFType::All );
 
    auto solver = CGSolver< LaplaceOperator_T >( storage, minLevel, maxLevel );
-   solver.setPrintInfo( true );
+   solver.setPrintInfo( false );
 
    VTKOutput vtkOutput( "../../output", "TokamakLaplaceTest", storage );
    vtkOutput.add( u );
@@ -146,8 +135,20 @@ int main( int argc, char* argv[] )
    auto discrL2Residual = std::sqrt( res.dotGlobal( res, maxLevel, DoFType::Inner ) / real_c( unknowns ) );
    auto discrL2Error    = std::sqrt( err.dotGlobal( err, maxLevel, DoFType::Inner ) / real_c( unknowns ) );
 
-   WALBERLA_LOG_INFO( "Residual L2 on level " << maxLevel << ": " << std::scientific << discrL2Residual
-                                              << " | Error L2: " << discrL2Error );
+   WALBERLA_LOG_INFO_ON_ROOT( "Residual L2 on level " << maxLevel << ": " << std::scientific << discrL2Residual
+                                                      << " | Error L2: " << discrL2Error );
+
+   WALBERLA_CHECK_LESS( discrL2Error, errorL2Max );
+}
+
+int main( int argc, char* argv[] )
+{
+   walberla::Environment walberlaEnv( argc, argv );
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   testTokamak( 2, 8.2e-03 );
+   testTokamak( 3, 2.9e-03 );
 
    return 0;
 }

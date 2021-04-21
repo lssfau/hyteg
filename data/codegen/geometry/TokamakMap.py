@@ -115,20 +115,20 @@ def evalF():
     xnew_0 = (
         radiusOriginToCenterOfTube_
         + (poloidalRadiusNew / tubeLayerRadiiBack_)
-        * (r1_ / radiusOriginToCenterOfTube_)
+        * r1_
         * sp.cos(poloidalAngle + sp.asin(delta_) * sp.sin(poloidalAngle))
     ) * sp.cos(toroidalAngle)
 
     xnew_1 = (
         radiusOriginToCenterOfTube_
         + (poloidalRadiusNew / tubeLayerRadiiBack_)
-        * (r1_ / radiusOriginToCenterOfTube_)
+        * r1_
         * sp.cos(poloidalAngle + sp.asin(delta_) * sp.sin(poloidalAngle))
     ) * sp.sin(toroidalAngle)
 
     xnew_2 = (
         (poloidalRadiusNew / tubeLayerRadiiBack_)
-        * (r2_ / radiusOriginToCenterOfTube_)
+        * r2_
         * sp.sin(poloidalAngle)
     )
 
@@ -137,9 +137,9 @@ def evalF():
 
     for a in tmp_assignments:
         code.append(f"auto {a[0]} = {sp.ccode(a[1])};")
-    code.append(f"xnew[0] = {xnew[0]};")
-    code.append(f"xnew[1] = {xnew[1]};")
-    code.append(f"xnew[2] = {xnew[2]};")
+    code.append(f"xnew[0] = {sp.ccode(xnew[0])};")
+    code.append(f"xnew[1] = {sp.ccode(xnew[1])};")
+    code.append(f"xnew[2] = {sp.ccode(xnew[2])};")
 
     code = "\n".join(code)
 

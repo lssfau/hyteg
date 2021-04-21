@@ -691,4 +691,6 @@ waLBerla_execute_test(NAME TrilinosDirectSolverTest)
 endif()
 
 waLBerla_compile_test(FILES meshes/TokamakLaplaceTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME DonutLaplaceTest)
+if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+  waLBerla_execute_test(NAME TokamakLaplaceTest)
+endif()

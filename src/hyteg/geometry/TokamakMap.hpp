@@ -151,6 +151,8 @@ class TokamakMap : public GeometryMap
 
    void evalF( const Point3D& xold, Point3D& xnew ) const
    {
+      // generated with data/codegen/geometry/TokamakMap.py
+
       auto xold_0 = xold[0];
       auto xold_1 = xold[1];
       auto xold_2 = xold[2];
@@ -173,7 +175,7 @@ class TokamakMap : public GeometryMap
       auto tmp14 = poloidalAngleIncrement_ * poloidalPrism_;
       auto tmp15 = sqrt( pow( tmp4, 2 ) + pow( tmp6, 2 ) + pow( xold_2, 2 ) ) *
                    sin( -tmp10 + tmp13 + ( ( tmp14 < 0 ) ? ( tmp14 + 6.2831853071795862 ) : ( tmp14 ) ) + 1.5707963267948966 ) /
-                   ( radiusOriginToCenterOfTube_ * tubeLayerRadiiBack_ * sin( tmp13 - 1.5707963267948966 ) );
+                   ( tubeLayerRadiiBack_ * sin( tmp13 - 1.5707963267948966 ) );
       auto tmp16 = -r1_ * tmp15 * cos( tmp11 + tmp12 * asin( delta_ ) ) + radiusOriginToCenterOfTube_;
       xnew[0]    = tmp16 * tmp5;
       xnew[1]    = tmp16 * tmp7;
@@ -182,6 +184,8 @@ class TokamakMap : public GeometryMap
 
    real_t evalDF( const Point3D& xold, Matrix3r& DF ) const final
    {
+      // generated with data/codegen/geometry/TokamakMap.py
+
       auto xold_0 = xold[0];
       auto xold_1 = xold[1];
       auto xold_2 = xold[2];
@@ -210,72 +214,71 @@ class TokamakMap : public GeometryMap
       auto tmp21 = cos( tmp20 );
       auto tmp22 = pow( xold_2, 2 );
       auto tmp23 = sqrt( pow( tmp10, 2 ) + pow( tmp12, 2 ) + tmp22 );
-      auto tmp24 = 1.0 / radiusOriginToCenterOfTube_;
-      auto tmp25 = 1.0 / tubeLayerRadiiBack_;
-      auto tmp26 = 0.5 * poloidalAngleIncrement_;
-      auto tmp27 = 1.0 / sin( tmp26 - 1.5707963267948966 );
-      auto tmp28 = poloidalAngleIncrement_ * poloidalPrism_;
-      auto tmp29 = -tmp17 + tmp26 + ( ( tmp28 < 0 ) ? ( tmp28 + 6.2831853071795862 ) : ( tmp28 ) ) + 1.5707963267948966;
-      auto tmp30 = tmp24 * tmp25 * tmp27 * sin( tmp29 );
-      auto tmp31 = tmp23 * tmp30;
-      auto tmp32 = r1_ * tmp31;
-      auto tmp33 = radiusOriginToCenterOfTube_ - tmp21 * tmp32;
-      auto tmp34 = tmp3 * tmp33;
-      auto tmp35 = pow( tmp2, -3.0 / 2.0 );
-      auto tmp36 = tmp0 * tmp35;
-      auto tmp37 = r1_ * tmp21;
-      auto tmp38 = xold_0 * xold_1;
-      auto tmp39 = tmp35 * tmp38;
-      auto tmp40 = radiusOriginToCenterOfTube_ * tmp39;
-      auto tmp41 = 2 * tmp40;
-      auto tmp42 = tmp7 * cos( tmp8 ) / tmp2;
-      auto tmp43 = tmp1 * tmp42;
-      auto tmp44 = ( 1.0 / 2.0 ) * tmp12;
-      auto tmp45 = radiusOriginToCenterOfTube_ * tmp36;
-      auto tmp46 = tmp38 * tmp42;
-      auto tmp47 = 2 * tmp46;
-      auto tmp48 = -2 * tmp5 - 2 * tmp9;
-      auto tmp49 = ( 1.0 / 2.0 ) * tmp10;
-      auto tmp50 = tmp30 / tmp23;
-      auto tmp51 = tmp50 * ( tmp44 * ( tmp41 - 2 * tmp43 ) + tmp49 * ( 2 * tmp45 - tmp47 + tmp48 ) );
-      auto tmp52 = tmp3 * xold_1;
-      auto tmp53 = -tmp5 - tmp9;
-      auto tmp54 = tmp3 * xold_0;
-      auto tmp55 = 1.0 / ( pow( tmp14, 2 ) + tmp22 );
-      auto tmp56 = tmp55 * xold_2;
-      auto tmp57 =
-          tmp56 * ( -tmp10 * tmp36 + tmp11 - tmp12 * tmp39 + tmp52 * ( tmp40 - tmp43 ) + tmp54 * ( tmp45 - tmp46 + tmp53 ) );
-      auto tmp58 = tmp23 * tmp24 * tmp25 * tmp27 * cos( tmp29 );
-      auto tmp59 = tmp37 * tmp58;
-      auto tmp60 = cos( tmp18 );
-      auto tmp61 = tmp4 * tmp60;
-      auto tmp62 = tmp32 * sin( tmp20 );
-      auto tmp63 = -tmp37 * tmp51 - tmp57 * tmp59 + tmp62 * ( -tmp57 * tmp61 - tmp57 );
-      auto tmp64 = -tmp33 * tmp39;
-      auto tmp65 = tmp0 * tmp42;
-      auto tmp66 = tmp1 * tmp35;
-      auto tmp67 = radiusOriginToCenterOfTube_ * tmp66;
-      auto tmp68 = tmp44 * ( tmp47 + tmp48 + 2 * tmp67 ) + tmp49 * ( tmp41 + 2 * tmp65 );
-      auto tmp69 = tmp37 * tmp50;
-      auto tmp70 =
-          tmp56 * ( -tmp10 * tmp39 - tmp12 * tmp66 + tmp13 + tmp52 * ( tmp46 + tmp53 + tmp67 ) + tmp54 * ( tmp40 + tmp65 ) );
-      auto tmp71 = -tmp59 * tmp70 + tmp62 * ( -tmp61 * tmp70 - tmp70 ) - tmp68 * tmp69;
-      auto tmp72 = tmp14 * tmp55;
-      auto tmp73 = tmp58 * tmp72;
-      auto tmp74 = tmp37 * tmp73 + tmp62 * ( tmp61 * tmp72 + tmp72 ) - tmp69 * xold_2;
-      auto tmp75 = r2_ * tmp19;
-      auto tmp76 = r2_ * tmp31 * tmp60;
-      auto tmp77 = tmp58 * tmp75;
-      auto tmp78 = tmp50 * tmp75;
-      DF( 0, 0 ) = -tmp33 * tmp36 + tmp34 + tmp54 * tmp63;
-      DF( 0, 1 ) = tmp54 * tmp71 + tmp64;
-      DF( 0, 2 ) = tmp54 * tmp74;
-      DF( 1, 0 ) = tmp52 * tmp63 + tmp64;
-      DF( 1, 1 ) = -tmp33 * tmp66 + tmp34 + tmp52 * tmp71;
-      DF( 1, 2 ) = tmp52 * tmp74;
-      DF( 2, 0 ) = -tmp51 * tmp75 + tmp57 * tmp76 - tmp57 * tmp77;
-      DF( 2, 1 ) = -tmp68 * tmp78 + tmp70 * tmp76 - tmp70 * tmp77;
-      DF( 2, 2 ) = -tmp72 * tmp76 + tmp73 * tmp75 - tmp78 * xold_2;
+      auto tmp24 = 1.0 / tubeLayerRadiiBack_;
+      auto tmp25 = 0.5 * poloidalAngleIncrement_;
+      auto tmp26 = 1.0 / sin( tmp25 - 1.5707963267948966 );
+      auto tmp27 = poloidalAngleIncrement_ * poloidalPrism_;
+      auto tmp28 = -tmp17 + tmp25 + ( ( tmp27 < 0 ) ? ( tmp27 + 6.2831853071795862 ) : ( tmp27 ) ) + 1.5707963267948966;
+      auto tmp29 = tmp24 * tmp26 * sin( tmp28 );
+      auto tmp30 = tmp23 * tmp29;
+      auto tmp31 = r1_ * tmp30;
+      auto tmp32 = radiusOriginToCenterOfTube_ - tmp21 * tmp31;
+      auto tmp33 = tmp3 * tmp32;
+      auto tmp34 = pow( tmp2, -3.0 / 2.0 );
+      auto tmp35 = tmp0 * tmp34;
+      auto tmp36 = r1_ * tmp21;
+      auto tmp37 = xold_0 * xold_1;
+      auto tmp38 = tmp34 * tmp37;
+      auto tmp39 = radiusOriginToCenterOfTube_ * tmp38;
+      auto tmp40 = 2 * tmp39;
+      auto tmp41 = tmp7 * cos( tmp8 ) / tmp2;
+      auto tmp42 = tmp1 * tmp41;
+      auto tmp43 = ( 1.0 / 2.0 ) * tmp12;
+      auto tmp44 = radiusOriginToCenterOfTube_ * tmp35;
+      auto tmp45 = tmp37 * tmp41;
+      auto tmp46 = 2 * tmp45;
+      auto tmp47 = -2 * tmp5 - 2 * tmp9;
+      auto tmp48 = ( 1.0 / 2.0 ) * tmp10;
+      auto tmp49 = tmp29 / tmp23;
+      auto tmp50 = tmp49 * ( tmp43 * ( tmp40 - 2 * tmp42 ) + tmp48 * ( 2 * tmp44 - tmp46 + tmp47 ) );
+      auto tmp51 = tmp3 * xold_1;
+      auto tmp52 = -tmp5 - tmp9;
+      auto tmp53 = tmp3 * xold_0;
+      auto tmp54 = 1.0 / ( pow( tmp14, 2 ) + tmp22 );
+      auto tmp55 = tmp54 * xold_2;
+      auto tmp56 =
+          tmp55 * ( -tmp10 * tmp35 + tmp11 - tmp12 * tmp38 + tmp51 * ( tmp39 - tmp42 ) + tmp53 * ( tmp44 - tmp45 + tmp52 ) );
+      auto tmp57 = tmp23 * tmp24 * tmp26 * cos( tmp28 );
+      auto tmp58 = tmp36 * tmp57;
+      auto tmp59 = cos( tmp18 );
+      auto tmp60 = tmp4 * tmp59;
+      auto tmp61 = tmp31 * sin( tmp20 );
+      auto tmp62 = -tmp36 * tmp50 - tmp56 * tmp58 + tmp61 * ( -tmp56 * tmp60 - tmp56 );
+      auto tmp63 = -tmp32 * tmp38;
+      auto tmp64 = tmp0 * tmp41;
+      auto tmp65 = tmp1 * tmp34;
+      auto tmp66 = radiusOriginToCenterOfTube_ * tmp65;
+      auto tmp67 = tmp43 * ( tmp46 + tmp47 + 2 * tmp66 ) + tmp48 * ( tmp40 + 2 * tmp64 );
+      auto tmp68 = tmp36 * tmp49;
+      auto tmp69 =
+          tmp55 * ( -tmp10 * tmp38 - tmp12 * tmp65 + tmp13 + tmp51 * ( tmp45 + tmp52 + tmp66 ) + tmp53 * ( tmp39 + tmp64 ) );
+      auto tmp70 = -tmp58 * tmp69 + tmp61 * ( -tmp60 * tmp69 - tmp69 ) - tmp67 * tmp68;
+      auto tmp71 = tmp14 * tmp54;
+      auto tmp72 = tmp57 * tmp71;
+      auto tmp73 = tmp36 * tmp72 + tmp61 * ( tmp60 * tmp71 + tmp71 ) - tmp68 * xold_2;
+      auto tmp74 = r2_ * tmp19;
+      auto tmp75 = r2_ * tmp30 * tmp59;
+      auto tmp76 = tmp57 * tmp74;
+      auto tmp77 = tmp49 * tmp74;
+      DF( 0, 0 ) = -tmp32 * tmp35 + tmp33 + tmp53 * tmp62;
+      DF( 0, 1 ) = tmp53 * tmp70 + tmp63;
+      DF( 0, 2 ) = tmp53 * tmp73;
+      DF( 1, 0 ) = tmp51 * tmp62 + tmp63;
+      DF( 1, 1 ) = -tmp32 * tmp65 + tmp33 + tmp51 * tmp70;
+      DF( 1, 2 ) = tmp51 * tmp73;
+      DF( 2, 0 ) = -tmp50 * tmp74 + tmp56 * tmp75 - tmp56 * tmp76;
+      DF( 2, 1 ) = -tmp67 * tmp77 + tmp69 * tmp75 - tmp69 * tmp76;
+      DF( 2, 2 ) = -tmp71 * tmp75 + tmp72 * tmp74 - tmp77 * xold_2;
    }
 
    void serializeSubClass( walberla::mpi::SendBuffer& sendBuffer ) const
