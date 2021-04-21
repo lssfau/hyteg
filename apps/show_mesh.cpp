@@ -53,7 +53,7 @@ void showUsage()
        << " 6) by meshing a rectangular cuboid\n"
        << " 7) by meshing a symmetric rectangular cuboid\n"
        << " 8) by meshing a T-domain using the cubed domain generator\n"
-       << " 9) by meshing a Tokamak\n\n"
+       << " 9) by meshing a torus\n\n"
        << " This is steered by choosing one of the options below:\n\n"
        << "  --file <name of Gmsh file>\n"
        << "  --rect [criss|cross|crisscross|diamond]\n"
@@ -64,7 +64,7 @@ void showUsage()
        << "  --cuboid [nHint]\n"
        << "  --symm-cuboid [nSubCubes]\n"
        << "  --t-domain [nCubesInEachDirection]\n"
-       << "  --tokamak\n\n"
+       << "  --torus\n\n"
        << " The generated base mesh will be tested be doing two levels of refinement.\n"
        << " Then it will be exported to a VTU file for visualisation.\n\n"
        << " Also visualization of the domain partitioning, mesh boundary flags and MPI rank assignment will be output.\n"
@@ -90,7 +90,7 @@ int main( int argc, char* argv[] )
       CUBOID,
       SYMM_CUBOID,
       T_DOMAIN,
-      TOKAMAK
+      TORUS
    } meshDomainType;
    meshDomainType        meshDomain;
    MeshInfo::meshFlavour rectMeshType = MeshInfo::CROSS;
@@ -100,8 +100,8 @@ int main( int argc, char* argv[] )
    uint_t                ntan         = 5;
    uint_t                nHint        = 1;
    // std::vector< real_t > layers       = {0.5, 0.6, 0.7, 0.8};
-   std::vector< real_t > layers    = { 1.0, 2.0 };
-   uint_t                numFaces  = 2;
+   std::vector< real_t > layers   = { 1.0, 2.0 };
+   uint_t                numFaces = 2;
 
    typedef enum
    {
@@ -210,10 +210,10 @@ int main( int argc, char* argv[] )
       meshDomain  = T_DOMAIN;
       vtkFileName = std::string( "tDomain" );
    }
-   else if ( strcmp( argv[1], "--donut" ) == 0 )
+   else if ( strcmp( argv[1], "--torus" ) == 0 )
    {
-      meshDomain  = TOKAMAK;
-      vtkFileName = std::string( "tokamak" );
+      meshDomain  = TORUS;
+      vtkFileName = std::string( "torus" );
    }
    else
    {
@@ -332,8 +332,21 @@ int main( int argc, char* argv[] )
       meshInfo = new MeshInfo( MeshInfo::meshCubedDomain( cubes, 1 ) );
       break;
    }
-   case TOKAMAK:
-      meshInfo = new MeshInfo( MeshInfo::meshTokamak( 24, 3, 0.7, 1.6, 0.7, true, true ) );
+   case TORUS:
+
+      const uint_t                numToroidalSlices          = 8;
+      const uint_t                numPoloidalSlices          = 6;
+      const real_t                radiusOriginToCenterOfTube = 6.2;
+      const std::vector< real_t > tubeLayerRadii             = { 3 };
+      const real_t                torodialStartAngle         = 0.0;
+      const real_t                polodialStartAngle         = 2.0 * pi / real_c( 2 * numPoloidalSlices );
+
+      meshInfo = new MeshInfo( MeshInfo::meshTorus( numToroidalSlices,
+                                                    numPoloidalSlices,
+                                                    radiusOriginToCenterOfTube,
+                                                    tubeLayerRadii,
+                                                    torodialStartAngle,
+                                                    polodialStartAngle ) );
       break;
    }
 
