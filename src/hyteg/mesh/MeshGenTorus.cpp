@@ -37,12 +37,6 @@ using walberla::uint_c;
 using walberla::uint_t;
 using walberla::math::pi;
 
-static uint_t sliceIndex( uint_t width, uint_t x, uint_t z )
-{
-   const uint_t rowOffset = z * ( width + 1 ) - ( ( ( z + 1 ) * ( z ) ) / 2 );
-   return rowOffset + x;
-}
-
 /// Given all 6 vertex IDs of a triangluar prism hull, the following functions return the correct mapping to the three cells.
 
 static std::vector< MeshInfo::Cell > cellsBottomLeftPrism( std::vector< uint_t > vertexIDs_XZY )

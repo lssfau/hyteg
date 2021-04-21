@@ -36,23 +36,6 @@ def evalF():
 
     # 1. Blend onto torus (toroidal)
 
-    """
-
-      //      auto toroidalAngle = atan2( xold[1], xold[0] );
-      //
-      //      {
-      //         auto alpha             = toroidalAngle - toroidalStartAngle_ - real_c( toroidalPrism_ ) * toroidalAngleIncrement_;
-      //         auto beta              = 0.5 * ( pi - toroidalAngleIncrement_ );
-      //         auto gamma             = pi - alpha - beta;
-      //         auto toroidalRadiusNew = ( std::sin( gamma ) * ( std::sqrt( xold[0] * xold[0] + xold[1] * xold[1] ) / std::sin( beta ) ) );
-      //
-      //         xnew[0] = toroidalRadiusNew * std::cos( toroidalAngle );
-      //         xnew[1] = toroidalRadiusNew * std::sin( toroidalAngle );
-      //         xnew[2] = xold[2];
-      //      }
-
-    """
-
     toroidalAngle = sp.atan2(xold_1, xold_0)
 
     alpha = (
@@ -70,26 +53,6 @@ def evalF():
     xnew_2 = xold_2
 
     # 2. Blend onto torus (poloidal)
-
-    """
-    // then we rotate the mapped centroid around the z-axis and translate it to the origin
-      // this way we can find the angle and therefore the prism ID via polar coordinates in the x-z-plane
-
-      auto C = torusCoordinates( radiusOriginToCenterOfTube_, 0, toroidalAngle,  0 );
-      auto centroidTrafoToOrigin = centroid - C;
-      centroidTrafoToOrigin = Point3D( {
-                                       std::cos( -toroidalAngle ) * centroidTrafoToOrigin[0] - std::sin( -toroidalAngle ) * centroidTrafoToOrigin[1],
-                                       std::sin( -toroidalAngle ) * centroidTrafoToOrigin[0] + std::cos( -toroidalAngle ) * centroidTrafoToOrigin[1],
-                                       centroidTrafoToOrigin[2]
-                                   } );
-
-      auto poloidalAngle = std::atan2( centroidTrafoToOrigin[2], centroidTrafoToOrigin[0] );
-      if ( poloidalAngle < 0 )
-      {
-         poloidalAngle += 2 * pi;
-      }
-      poloidalPrism_ = uint_c((poloidalAngle - poloidalStartAngle_) /  poloidalAngleIncrement_);
-    """
 
     c_0, c_1, c_2 = torus_coordinates(radiusOriginToCenterOfTube_, 0, toroidalAngle, 0)
 
@@ -113,28 +76,11 @@ def evalF():
         (poloidalAngle + 2 * np.pi, poloidalAngle < 0), (poloidalAngle, True)
     )
 
-    """
-
-         auto poloidalAnglePrism = poloidalStartAngle_ + real_c( poloidalPrism_ ) * poloidalAngleIncrement_;
-         auto C = torusCoordinates( radiusOriginToCenterOfTube_, 0, toroidalAngle,  0 );
-         auto A = torusCoordinates( radiusOriginToCenterOfTube_, tubeLayerRadii_.back(), toroidalAngle,  poloidalAnglePrism );
-
-         auto pLocal = xnew - C;
-         auto aLocal = A - C;
-
-         auto poloidalAngle = angle( aLocal, pLocal );
-         auto alpha = poloidalAngle - poloidalAnglePrism;
-         auto beta = 0.5 * ( pi - poloidalAngleIncrement_ );
-         auto gamma = pi - alpha - beta;
-
-         auto poloidalRadiusNew = ( std::sin( gamma ) * ( pLocal.norm() / std::sin( beta ) ) );
-
-         xnew = torusCoordinates( radiusOriginToCenterOfTube_, poloidalRadiusNew, toroidalAngle, poloidalAngle );
-
-
-    """
-
-    poloidalAnglePrism = poloidalStartAngle_ + poloidalPrism_ * poloidalAngleIncrement_
+    poloidalAnglePrism = poloidalPrism_ * poloidalAngleIncrement_
+    poloidalAnglePrism = sp.Piecewise(
+        (poloidalAnglePrism + 2 * np.pi, poloidalAnglePrism < 0),
+        (poloidalAnglePrism, True),
+    )
     a_0, a_1, a_2 = torus_coordinates(
         radiusOriginToCenterOfTube_,
         tubeLayerRadiiBack_,
@@ -150,33 +96,40 @@ def evalF():
     beta = 0.5 * (np.pi - poloidalAngleIncrement_)
     gamma = np.pi - alpha - beta
     poloidalRadiusNew = sp.sin(gamma) * (
-        sp.sqrt(pLocal_0 ** 2 + pLocal_1 ** 2 + pLocal_2 ** 2) / sp.sin(beta)
+        (sp.sqrt(pLocal_0 ** 2 + pLocal_1 ** 2 + pLocal_2 ** 2) / sp.sin(beta))
     )
 
     xnew_0, xnew_1, xnew_2 = torus_coordinates(
-        radiusOriginToCenterOfTube_, poloidalRadiusNew, toroidalAngle, poloidalAngle
+        radiusOriginToCenterOfTube_,
+        poloidalRadiusNew,
+        toroidalAngle,
+        poloidalAngle + poloidalStartAngle_,
     )
 
-    # 3. It's tokamak time
+    # # 3. It's tokamak time
 
-    r0_, r1_, r2_, delta_ = sp.symbols("r0_ r1_ r2_ delta_")
+    r1_, r2_, delta_ = sp.symbols("r1_ r2_ delta_")
+
+    poloidalAngle += poloidalStartAngle_
 
     xnew_0 = (
-        1
+        radiusOriginToCenterOfTube_
         + (poloidalRadiusNew / tubeLayerRadiiBack_)
-        * (r1_ / r0_)
+        * (r1_ / radiusOriginToCenterOfTube_)
         * sp.cos(poloidalAngle + sp.asin(delta_) * sp.sin(poloidalAngle))
     ) * sp.cos(toroidalAngle)
 
     xnew_1 = (
-        1
+        radiusOriginToCenterOfTube_
         + (poloidalRadiusNew / tubeLayerRadiiBack_)
-        * (r1_ / r0_)
+        * (r1_ / radiusOriginToCenterOfTube_)
         * sp.cos(poloidalAngle + sp.asin(delta_) * sp.sin(poloidalAngle))
     ) * sp.sin(toroidalAngle)
 
     xnew_2 = (
-        (poloidalRadiusNew / tubeLayerRadiiBack_) * (r2_ / r0_) * sp.sin(poloidalAngle)
+        (poloidalRadiusNew / tubeLayerRadiiBack_)
+        * (r2_ / radiusOriginToCenterOfTube_)
+        * sp.sin(poloidalAngle)
     )
 
     tmp_symbols = sp.numbered_symbols("tmp")
@@ -230,10 +183,21 @@ def evalDF():
 
 
 if __name__ == "__main__":
-    code, _, _ = evalF()
-    print(code)
 
+    code, _, _ = evalF()
+
+    print("###############")
+    print("### evalF() ###")
+    print("###############")
+    print()
+    print(code)
     print()
 
     code = evalDF()
+
+    print("################")
+    print("### evalDF() ###")
+    print("################")
+    print()
     print(code)
+    print()
