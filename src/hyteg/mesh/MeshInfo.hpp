@@ -516,7 +516,7 @@ class MeshInfo
    /// \brief Meshes a torus around the z-axis.
    ///
    /// The GeometryMap TokamakMap provides a blending function that maps this mesh onto a tokamak geometry.
-   /// The very same map can be paramerized so that is reduces to the special case of a torus.
+   /// The very same map can be parameterized so that is reduces to the special case of a torus.
    ///
    /// \param setupStorage the SetupPrimitiveStorage instance
    /// \param numToroidalSlices number of prisms in toroidal direction (along the ring)
