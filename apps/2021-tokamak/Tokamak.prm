@@ -1,0 +1,57 @@
+Parameters
+{
+    // ##################
+    // # discretization #
+    // ##################
+
+    elementType p1;
+
+    minLevel 0;
+    maxLevel 3;
+
+    // ##########
+    // # domain #
+    // ##########
+
+    numToroidalSlices          8;
+    numPoloidalSlices          6;
+    radiusOriginToCenterOfTube 6.2;
+    tubeLayerRadii             3; // list
+    torodialStartAngle         0;
+    polodialStartAngle         0;
+
+    delta                      0.32404302839;
+    r1                         2.0;
+    r2                         3.7;
+
+    // ------------------
+    // ITER configuration
+    // ------------------
+    //
+    // radiusOriginToCenterOfTube 6.2;
+    // delta                      0.32404302839; // == sin(0.33)
+    // r1                         2.0;
+    // r2                         3.7;
+
+    // ##########
+    // # solver #
+    // ##########
+
+    // solvers:
+    // cg:       HyTeG CG
+    // gmg_wjac: HyTeG GMG with weighted Jacobi relaxation
+
+    solverType                gmg_wjac;
+    preSmooth                 3;
+    postSmooth                3;
+    relativeResidualReduction 1e-06;
+
+    // ################
+    // # app settings #
+    // ################
+
+    coarseMeshAndQuit false;
+    dbFile            Tokamak.db;
+    vtk               true;
+    vtkDirectory      ./vtk;
+}

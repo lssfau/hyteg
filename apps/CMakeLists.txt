@@ -93,6 +93,7 @@ add_subdirectory(ConvectionCell2D)
 add_subdirectory(2020-moc)
 add_subdirectory(2020-tme)
 add_subdirectory(2020-scaling-workshop)
+add_subdirectory(2021-tokamak)
 add_subdirectory(GKBTestProblemGeneration)
 add_subdirectory(SphericalHarmonics)
 
