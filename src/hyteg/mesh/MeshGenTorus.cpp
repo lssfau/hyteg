@@ -48,16 +48,14 @@ static std::vector< MeshInfo::Cell > cellsBottomLeftPrism( std::vector< uint_t >
    return cells;
 }
 
-// do not remove, might want to use that later on
-//
-//static std::vector< MeshInfo::Cell > cellsTopRightPrism( std::vector< uint_t > vertexIDs_XZY )
-//{
-//   std::vector< MeshInfo::Cell > cells;
-//   cells.push_back( MeshInfo::Cell( { vertexIDs_XZY[0], vertexIDs_XZY[4], vertexIDs_XZY[3], vertexIDs_XZY[2] }, 0 ) );
-//   cells.push_back( MeshInfo::Cell( { vertexIDs_XZY[0], vertexIDs_XZY[1], vertexIDs_XZY[2], vertexIDs_XZY[4] }, 0 ) );
-//   cells.push_back( MeshInfo::Cell( { vertexIDs_XZY[2], vertexIDs_XZY[3], vertexIDs_XZY[4], vertexIDs_XZY[5] }, 0 ) );
-//   return cells;
-//}
+static std::vector< MeshInfo::Cell > cellsTopRightPrism( std::vector< uint_t > vertexIDs_XZY )
+{
+   std::vector< MeshInfo::Cell > cells;
+   cells.push_back( MeshInfo::Cell( { vertexIDs_XZY[0], vertexIDs_XZY[4], vertexIDs_XZY[3], vertexIDs_XZY[2] }, 0 ) );
+   cells.push_back( MeshInfo::Cell( { vertexIDs_XZY[0], vertexIDs_XZY[1], vertexIDs_XZY[2], vertexIDs_XZY[4] }, 0 ) );
+   cells.push_back( MeshInfo::Cell( { vertexIDs_XZY[2], vertexIDs_XZY[3], vertexIDs_XZY[4], vertexIDs_XZY[5] }, 0 ) );
+   return cells;
+}
 
 MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
                               uint_t                numPoloidalSlices,
@@ -68,14 +66,14 @@ MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
 {
    MeshInfo meshInfo;
 
-   WALBERLA_CHECK_EQUAL( tubeLayerRadii.size(), 1, "Only single tube layer is currently supported." );
-
    uint_t id = 0;
 
    auto toroidalAngleIncrement = 2 * pi / real_c( numToroidalSlices );
    auto poloidalAngleIncrement = 2 * pi / real_c( numPoloidalSlices );
 
-   std::vector< std::vector< uint_t > > slices( numToroidalSlices );
+   // slices[toroidalSlice][layer][poloidalVertex]
+   std::map< uint_t, std::map< uint_t, std::map< uint_t, uint_t > > > slices;
+   // std::vector< std::vector< uint_t > > slices( numToroidalSlices );
 
    for ( uint_t toroidalSlice = 0; toroidalSlice < numToroidalSlices; toroidalSlice++ )
    {
@@ -84,21 +82,43 @@ MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
       // center vertex
       Point3D coords = torusCoordinates( radiusOriginToCenterOfTube, 0, toroidalAngle, 0 );
 
-      auto vertex = MeshInfo::Vertex( id++, coords, 0 );
-      slices[toroidalSlice].push_back( vertex.getID() );
+      auto vertex                 = MeshInfo::Vertex( id++, coords, 0 );
+      slices[toroidalSlice][0][0] = vertex.getID();
       meshInfo.addVertex( vertex );
+//      WALBERLA_LOG_DEVEL_ON_ROOT( "Added vertex id " << vertex.getID() << " at: toro " << toroidalSlice << ", layer " << 0
+//                                                     << " polo " << 0 );
 
-      for ( uint_t layer = 0; layer < tubeLayerRadii.size(); layer++ )
+      for ( uint_t layer = 1; layer <= tubeLayerRadii.size(); layer++ )
       {
          for ( uint_t poloidalSlice = 0; poloidalSlice < numPoloidalSlices; poloidalSlice++ )
          {
             auto poloidalAngle = poloidalStartAngle + real_c( poloidalSlice ) * poloidalAngleIncrement;
 
-            coords = torusCoordinates( radiusOriginToCenterOfTube, tubeLayerRadii[layer], toroidalAngle, poloidalAngle );
+            auto coordsFirstVertex =
+                torusCoordinates( radiusOriginToCenterOfTube, tubeLayerRadii[layer - 1], toroidalAngle, poloidalAngle );
+            auto coordsNextVertex = torusCoordinates(
+                radiusOriginToCenterOfTube, tubeLayerRadii[layer - 1], toroidalAngle, poloidalAngle + poloidalAngleIncrement );
 
-            vertex = MeshInfo::Vertex( id++, coords, 0 );
-            slices[toroidalSlice].push_back( vertex.getID() );
+            auto coordsOffsetVector = ( coordsNextVertex - coordsFirstVertex ) * ( real_c( 1 ) / real_c( layer ) );
+
+            auto poloidalVertex = poloidalSlice * layer;
+
+            vertex                                       = MeshInfo::Vertex( id++, coordsFirstVertex, 0 );
+            slices[toroidalSlice][layer][poloidalVertex] = vertex.getID();
             meshInfo.addVertex( vertex );
+//            WALBERLA_LOG_DEVEL_ON_ROOT( "Added vertex id " << vertex.getID() << " at: toro " << toroidalSlice << ", layer "
+//                                                           << layer << " polo " << poloidalVertex );
+
+            for ( uint_t l = 1; l < layer; l++ )
+            {
+               poloidalVertex                               = poloidalSlice * layer + l;
+               coords                                       = coordsFirstVertex + real_c( l ) * coordsOffsetVector;
+               vertex                                       = MeshInfo::Vertex( id++, coords, 0 );
+               slices[toroidalSlice][layer][poloidalVertex] = vertex.getID();
+               meshInfo.addVertex( vertex );
+//               WALBERLA_LOG_DEVEL_ON_ROOT( " asdfAdded vertex id " << vertex.getID() << " at: toro " << toroidalSlice
+//                                                                   << ", layer " << layer << " polo " << poloidalVertex );
+            }
          }
       }
    }
@@ -109,43 +129,111 @@ MeshInfo MeshInfo::meshTorus( uint_t                numToroidalSlices,
       {
          for ( uint_t poloidalSlice = 0; poloidalSlice < numPoloidalSlices; poloidalSlice++ )
          {
-            std::vector< uint_t > prismVerticesFront;
-            std::vector< uint_t > prismVerticesBack;
-
             uint_t prismFronSlice = toroidalSlice;
             uint_t prismBackSlice = toroidalSlice + 1 == numToroidalSlices ? 0 : toroidalSlice + 1;
 
-            // center vertex
-            prismVerticesFront.push_back( slices[prismFronSlice][0] );
-            prismVerticesBack.push_back( slices[prismBackSlice][0] );
+            auto numTriangles = 2 * layer + 1;
 
-            if ( poloidalSlice == numPoloidalSlices - 1 )
+            for ( uint_t t = 0; t < numTriangles; t++ )
             {
-               prismVerticesFront.push_back( slices[prismFronSlice][poloidalSlice + 1] );
-               prismVerticesFront.push_back( slices[prismFronSlice][1] );
+               std::vector< uint_t > prismVerticesFront;
+               std::vector< uint_t > prismVerticesBack;
 
-               prismVerticesBack.push_back( slices[prismBackSlice][poloidalSlice + 1] );
-               prismVerticesBack.push_back( slices[prismBackSlice][1] );
-            }
-            else
-            {
-               prismVerticesFront.push_back( slices[prismFronSlice][poloidalSlice + 1] );
-               prismVerticesFront.push_back( slices[prismFronSlice][poloidalSlice + 2] );
+               if ( t % 2 == 0 )
+               {
+                  // inner node
+                  if ( layer == 0 )
+                  {
+                     // degenerate case where the triangle is connected to the center
+                     prismVerticesFront.push_back( slices[prismFronSlice][layer][0] );
+                     prismVerticesBack.push_back( slices[prismBackSlice][layer][0] );
+                  }
+                  else
+                  {
+                     if ( poloidalSlice == numPoloidalSlices - 1 && t == numTriangles - 1 )
+                     {
+                        prismVerticesFront.push_back( slices[prismFronSlice][layer][0] );
+                        prismVerticesBack.push_back( slices[prismBackSlice][layer][0] );
+                     }
+                     else
+                     {
+                        prismVerticesFront.push_back( slices[prismFronSlice][layer][poloidalSlice * ( layer ) + ( t / 2 )] );
+                        prismVerticesBack.push_back( slices[prismBackSlice][layer][poloidalSlice * ( layer ) + ( t / 2 )] );
+                     }
+                  }
 
-               prismVerticesBack.push_back( slices[prismBackSlice][poloidalSlice + 1] );
-               prismVerticesBack.push_back( slices[prismBackSlice][poloidalSlice + 2] );
-            }
+                  // outer nodes
+                  if ( poloidalSlice == numPoloidalSlices - 1 && t == numTriangles - 1 )
+                  {
+                     prismVerticesFront.push_back( slices[prismFronSlice][layer + 1][poloidalSlice * ( layer + 1 ) + ( t / 2 )] );
+                     prismVerticesBack.push_back( slices[prismBackSlice][layer + 1][poloidalSlice * ( layer + 1 ) + ( t / 2 )] );
 
-            auto cells = cellsBottomLeftPrism( { prismVerticesFront[0],
-                                                 prismVerticesFront[1],
-                                                 prismVerticesFront[2],
-                                                 prismVerticesBack[0],
-                                                 prismVerticesBack[1],
-                                                 prismVerticesBack[2] } );
+                     prismVerticesFront.push_back( slices[prismFronSlice][layer + 1][0] );
+                     prismVerticesBack.push_back( slices[prismBackSlice][layer + 1][0] );
+                  }
+                  else
+                  {
+                     prismVerticesFront.push_back( slices[prismFronSlice][layer + 1][poloidalSlice * ( layer + 1 ) + ( t / 2 )] );
+                     prismVerticesBack.push_back( slices[prismBackSlice][layer + 1][poloidalSlice * ( layer + 1 ) + ( t / 2 )] );
 
-            for ( const auto& cell : cells )
-            {
-               meshInfo.addCellAndAllEdgesAndFaces( cell );
+                     prismVerticesFront.push_back(
+                         slices[prismFronSlice][layer + 1][poloidalSlice * ( layer + 1 ) + ( t / 2 ) + 1] );
+                     prismVerticesBack.push_back(
+                         slices[prismBackSlice][layer + 1][poloidalSlice * ( layer + 1 ) + ( t / 2 ) + 1] );
+                  }
+
+                  auto cells = cellsBottomLeftPrism( { prismVerticesFront[0],
+                                                       prismVerticesFront[1],
+                                                       prismVerticesFront[2],
+                                                       prismVerticesBack[0],
+                                                       prismVerticesBack[1],
+                                                       prismVerticesBack[2] } );
+
+                  for ( const auto& cell : cells )
+                  {
+                     meshInfo.addCellAndAllEdgesAndFaces( cell );
+                  }
+               }
+               else
+               {
+                  // t % 2 == 1
+                  WALBERLA_CHECK_GREATER( layer, 0 );
+
+                  // inner nodes
+                  if ( poloidalSlice == numPoloidalSlices - 1 && t == numTriangles - 2 )
+                  {
+                     prismVerticesFront.push_back( slices[prismFronSlice][layer][poloidalSlice * ( layer ) + ( t / 2 )] );
+                     prismVerticesBack.push_back( slices[prismBackSlice][layer][poloidalSlice * ( layer ) + ( t / 2 )] );
+
+                     prismVerticesFront.push_back( slices[prismFronSlice][layer][0] );
+                     prismVerticesBack.push_back( slices[prismBackSlice][layer][0] );
+                  }
+                  else
+                  {
+                     prismVerticesFront.push_back( slices[prismFronSlice][layer][poloidalSlice * ( layer ) + ( t / 2 )] );
+                     prismVerticesBack.push_back( slices[prismBackSlice][layer][poloidalSlice * ( layer ) + ( t / 2 )] );
+
+                     prismVerticesFront.push_back( slices[prismFronSlice][layer][poloidalSlice * ( layer ) + ( t / 2 ) + 1] );
+                     prismVerticesBack.push_back( slices[prismBackSlice][layer][poloidalSlice * ( layer ) + ( t / 2 ) + 1] );
+                  }
+
+                  // outer node
+                  prismVerticesFront.push_back(
+                      slices[prismFronSlice][layer + 1][poloidalSlice * ( layer + 1 ) + ( t / 2 ) + 1] );
+                  prismVerticesBack.push_back( slices[prismBackSlice][layer + 1][poloidalSlice * ( layer + 1 ) + ( t / 2 ) + 1] );
+
+                  auto cells = cellsTopRightPrism( { prismVerticesFront[0],
+                                                     prismVerticesFront[1],
+                                                     prismVerticesFront[2],
+                                                     prismVerticesBack[0],
+                                                     prismVerticesBack[1],
+                                                     prismVerticesBack[2] } );
+
+                  for ( const auto& cell : cells )
+                  {
+                     meshInfo.addCellAndAllEdgesAndFaces( cell );
+                  }
+               }
             }
          }
       }

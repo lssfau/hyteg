@@ -48,12 +48,12 @@ int main( int argc, char* argv[] )
 
    // ITER configuration
 
-   const uint_t                numToroidalSlices          = 8;
-   const uint_t                numPoloidalSlices          = 6;
+   const uint_t                numToroidalSlices          = 20;
+   const uint_t                numPoloidalSlices          = 8;
    const real_t                radiusOriginToCenterOfTube = 6.2;
-   const std::vector< real_t > tubeLayerRadii             = { 3 };
+   const std::vector< real_t > tubeLayerRadii             = { 1.2, 2.2, 3 };
    const real_t                torodialStartAngle         = 0.0;
-   const real_t                polodialStartAngle         = 2.0 * pi / real_c( 2 * numPoloidalSlices );
+   const real_t                polodialStartAngle         = 0; // 2.0 * pi / real_c( 2 * numPoloidalSlices );
 
    real_t delta = sin( 0.33 );
    real_t r1    = 2.0;
@@ -101,6 +101,10 @@ int main( int argc, char* argv[] )
 
    VTKOutput vtkOutput( "../../output", "TokamakMapTest", storage );
    vtkOutput.add( u );
+
+   auto globalStorageInfo = storage->getGlobalInfo();
+   WALBERLA_LOG_INFO_ON_ROOT( globalStorageInfo );
+   WALBERLA_LOG_INFO_ON_ROOT( "DoFs on max level (" << maxLevel << "): " << numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel ) );
 
    if ( writeVTK )
    {
