@@ -7,7 +7,7 @@ Parameters
     elementType p1;
 
     minLevel 0;
-    maxLevel 3;
+    maxLevel 4;
 
     // ##########
     // # domain #
@@ -23,6 +23,15 @@ Parameters
     delta                      0.32404302839;
     r1                         2.0;
     r2                         3.7;
+
+    coeff_R0                         6.2;
+    coeff_R1                         2.0;
+    coeff_R2                         4.0;
+    coeff_delta                      0.32404302839;
+    coeff_r_jump                     0.5;
+    coeff_d_jump                     0.1;
+    coeff_k_min                      1e0;
+    coeff_k_max                      1e4;
 
     // ------------------
     // ITER configuration
@@ -40,8 +49,9 @@ Parameters
     // solvers:
     // cg:       HyTeG CG
     // gmg_wjac: HyTeG GMG with weighted Jacobi relaxation
+    // fmg_wjac: HyTeG FMG with weighted Jacobi relaxation, and subsequent v-cylces until convergence
 
-    solverType                gmg_wjac;
+    solverType                fmg_wjac;
     preSmooth                 3;
     postSmooth                3;
     relativeResidualReduction 1e-06;
