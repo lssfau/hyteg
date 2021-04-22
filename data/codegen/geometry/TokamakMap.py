@@ -126,11 +126,7 @@ def evalF():
         * sp.cos(poloidalAngle + sp.asin(delta_) * sp.sin(poloidalAngle))
     ) * sp.sin(toroidalAngle)
 
-    xnew_2 = (
-        (poloidalRadiusNew / tubeLayerRadiiBack_)
-        * r2_
-        * sp.sin(poloidalAngle)
-    )
+    xnew_2 = (poloidalRadiusNew / tubeLayerRadiiBack_) * r2_ * sp.sin(poloidalAngle)
 
     tmp_symbols = sp.numbered_symbols("tmp")
     tmp_assignments, xnew = sp.cse([xnew_0, xnew_1, xnew_2], symbols=tmp_symbols)
@@ -176,6 +172,8 @@ def evalDF():
     for row in range(rows):
         for col in range(cols):
             code.append(f"DF({row}, {col}) = {entries[row * cols + col]};")
+
+    code.append("return DF.det();")
 
     code = "\n".join(code)
 
