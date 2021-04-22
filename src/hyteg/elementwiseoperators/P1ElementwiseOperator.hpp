@@ -27,6 +27,7 @@
 #include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
 #include "hyteg/p1functionspace/P1Elements.hpp"
@@ -233,5 +234,6 @@ typedef P1ElementwiseOperator< P1FenicsForm< p1_divt_cell_integral_1_otherwise, 
 typedef P1ElementwiseOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet_cell_integral_2_otherwise > > P1ElementwiseDivTZOperator;
 
 typedef P1ElementwiseOperator< forms::p1_div_k_grad_affine_q3 > P1ElementwiseAffineDivKGradOperator;
+typedef P1ElementwiseOperator< forms::p1_div_k_grad_blending_q3 > P1ElementwiseBlendingDivKGradOperator;
 
 } // namespace hyteg
