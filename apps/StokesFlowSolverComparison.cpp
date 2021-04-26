@@ -113,8 +113,7 @@ public:
 
        //tmpRHS_->u.interpolate(velocityUBC_, level, hyteg::DirichletBoundary);
        //tmpRHS_->v.interpolate(velocityVBC_, level, hyteg::DirichletBoundary);
-       tmpRHS_->uvw.u.assign( {1.0}, {x.uvw.u}, level, hyteg::DirichletBoundary);
-       tmpRHS_->uvw.v.assign( {1.0}, {x.uvw.v}, level, hyteg::DirichletBoundary);
+       tmpRHS_->uvw.assign( {1.0}, {x.uvw}, level, hyteg::DirichletBoundary);
        PETScLUSolver< Operator_T> solver( storage_, level );
        solver.solve(A, x, *tmpRHS_, level );
     }
@@ -264,8 +263,7 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
   std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
   std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-  exactSolution.uvw.u.interpolate( solutionU, maxLevel, DoFType::All );
-  exactSolution.uvw.v.interpolate( solutionV, maxLevel, DoFType::All );
+  exactSolution.uvw.interpolate( { solutionU, solutionV }, maxLevel, DoFType::All );
   exactSolution.p.interpolate( solutionP, maxLevel, DoFType::All );
 
   ////////////////////////
@@ -315,18 +313,16 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
   // Boundary conditions //
   /////////////////////////
 
-  u.uvw.u.interpolate( setUVelocityBC, maxLevel, hyteg::DirichletBoundary );
-  u.uvw.v.interpolate( setVVelocityBC, maxLevel, hyteg::DirichletBoundary );
+  u.uvw.interpolate( { setUVelocityBC, setVVelocityBC }, maxLevel, hyteg::DirichletBoundary );
 
 
   /////////////////////
   // Right-hand side //
   /////////////////////
 
-  tmp.uvw.u.interpolate( setUVelocityRHS, maxLevel, hyteg::All );
-  tmp.uvw.v.interpolate( setVVelocityRHS, maxLevel, hyteg::All );
-  MassVelocity.apply( tmp.uvw.u, f.uvw.u, maxLevel, hyteg::All );
-  MassVelocity.apply( tmp.uvw.v, f.uvw.v, maxLevel, hyteg::All );
+  tmp.uvw.interpolate( { setUVelocityRHS, setVVelocityRHS }, maxLevel, hyteg::All );
+  MassVelocity.apply( tmp.uvw[0], f.uvw[0], maxLevel, hyteg::All );
+  MassVelocity.apply( tmp.uvw[1], f.uvw[1], maxLevel, hyteg::All );
   // f.u.interpolate( setUVelocityRHS, maxLevel, hyteg::All );
   // f.v.interpolate( setVVelocityRHS, maxLevel, hyteg::All );
 
@@ -337,26 +333,21 @@ void run( const MeshInfo & meshInfo, const uint_t & minLevel, const uint_t & max
 
   hyteg::VTKOutput vtkOutput("../output", "StokesFlowSolverComparison", storage);
 
-  vtkOutput.add( r.uvw.u );
-  vtkOutput.add( r.uvw.v );
+  vtkOutput.add( r.uvw );
   vtkOutput.add( r.p );
 
-  vtkOutput.add( f.uvw.u );
-  vtkOutput.add( f.uvw.v );
+  vtkOutput.add( f.uvw );
   vtkOutput.add( f.p );
 
-  vtkOutput.add( u.uvw.u );
-  vtkOutput.add( u.uvw.v );
+  vtkOutput.add( u.uvw );
   vtkOutput.add( u.p );
 
   if ( compareWithAnalyticalSolution )
   {
-    vtkOutput.add( exactSolution.uvw.u );
-    vtkOutput.add( exactSolution.uvw.v );
+    vtkOutput.add( exactSolution.uvw );
     vtkOutput.add( exactSolution.p );
 
-    vtkOutput.add( error.uvw.u );
-    vtkOutput.add( error.uvw.v );
+    vtkOutput.add( error.uvw );
     vtkOutput.add( error.p );
   }
 

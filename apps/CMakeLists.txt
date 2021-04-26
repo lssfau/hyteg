@@ -95,3 +95,5 @@ add_subdirectory(2020-tme)
 add_subdirectory(2020-scaling-workshop)
 add_subdirectory(GKBTestProblemGeneration)
 add_subdirectory(SphericalHarmonics)
+
+add_subdirectory(blockOperators)

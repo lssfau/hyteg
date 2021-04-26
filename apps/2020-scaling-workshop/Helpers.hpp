@@ -182,9 +182,9 @@ inline void errorAndResidual( const StokesOperator&               A,
         return sol - values[0];
       };
 
-      tmp.uvw.u.interpolate( errorU, {u.uvw.u}, level, flag );
-      tmp.uvw.v.interpolate( errorV, {u.uvw.v}, level, flag );
-      tmp.uvw.w.interpolate( errorW, {u.uvw.w}, level, flag );
+      tmp.uvw[0].interpolate( errorU, {u.uvw[0]}, level, flag );
+      tmp.uvw[1].interpolate( errorV, {u.uvw[1]}, level, flag );
+      tmp.uvw[2].interpolate( errorW, {u.uvw[2]}, level, flag );
       tmp.p.interpolate( errorP, {u.p}, level, flag );
 
       errorL2Velocity = pointwiseScaledL2Norm( tmp.uvw, level );
@@ -198,9 +198,9 @@ inline void errorAndResidual( const StokesOperator&               A,
       residualL2Velocity = pointwiseScaledL2Norm( r.uvw, level );
       residualL2Pressure = pointwiseScaledL2Norm( r.p, level );
 
-      tmp.uvw.u.interpolate( solutionU, level, All );
-      tmp.uvw.v.interpolate( solutionV, level, All );
-      tmp.uvw.w.interpolate( solutionW, level, All );
+      tmp.uvw[0].interpolate( solutionU, level, All );
+      tmp.uvw[1].interpolate( solutionV, level, All );
+      tmp.uvw[2].interpolate( solutionW, level, All );
       tmp.p.interpolate( solutionP, level, All );
       error( u, tmp, level, flag, r );
 

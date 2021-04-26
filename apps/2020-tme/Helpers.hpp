@@ -40,6 +40,7 @@
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
+#include "hyteg/gridtransferoperators/P1toP1InjectionRestriction.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P2P1StokesToP2P1StokesRestriction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -108,9 +109,9 @@ inline real_t normL2Velocity( const StokesFunctionType< real_t >& u,
                               uint_t                              level,
                               DoFType                             flag )
 {
-   auto normUSquare = normL2ScalarSquare( u.uvw.u, M, tmp.uvw.u, level, flag );
-   auto normVSquare = normL2ScalarSquare( u.uvw.v, M, tmp.uvw.v, level, flag );
-   auto normWSquare = normL2ScalarSquare( u.uvw.w, M, tmp.uvw.w, level, flag );
+   auto normUSquare = normL2ScalarSquare( u.uvw[0], M, tmp.uvw[0], level, flag );
+   auto normVSquare = normL2ScalarSquare( u.uvw[1], M, tmp.uvw[1], level, flag );
+   auto normWSquare = normL2ScalarSquare( u.uvw[2], M, tmp.uvw[2], level, flag );
 
    return std::sqrt( normUSquare + normVSquare + normWSquare );
 }
@@ -125,7 +126,7 @@ inline void residual( const StokesFunctionType< real_t >& u,
                       StokesFunctionType< real_t >&       r )
 {
    A.apply( u, tmp, level, flag );
-   r.assign( {1.0, -1.0}, {f, tmp}, level, flag );
+   r.assign( { 1.0, -1.0 }, { f, tmp }, level, flag );
 }
 
 template < template < typename > class StokesFunctionType >
@@ -135,7 +136,7 @@ inline void error( const StokesFunctionType< real_t >& u,
                    DoFType                             flag,
                    StokesFunctionType< real_t >&       error )
 {
-   error.assign( {1.0, -1.0}, {u, exact}, level, flag );
+   error.assign( { 1.0, -1.0 }, { u, exact }, level, flag );
 }
 
 enum class Discretization
@@ -204,6 +205,7 @@ void solve( const std::shared_ptr< PrimitiveStorage >&              storage,
             bool                                                    projectPressurefterRestriction,
             bool                                                    calculateDiscretizationError,
             uint_t                                                  normCalculationLevelIncrement,
+            bool                                                    solveWithCoarseGridSolverOnEachFMGLevel,
             bool                                                    vtk,
             const std::string&                                      benchmarkName,
             bool                                                    verbose,

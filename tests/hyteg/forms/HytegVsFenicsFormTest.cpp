@@ -571,8 +571,12 @@ void run3DTestsWithAffineMap()
 int main( int argc, char** argv )
 {
 #ifndef __APPLE__
+   // clang 9 seams to produce a problem related to vectorized division
+   // https://stackoverflow.com/questions/63125919/how-to-avoid-floating-point-exceptions-in-unused-simd-lanes
+#if __clang_major__ != 9
    // abort in case of common floating-point exceptions
    feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+#endif
 #endif
    // environment stuff
    walberla::mpi::Environment MPIenv( argc, argv );

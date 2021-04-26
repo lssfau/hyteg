@@ -105,7 +105,11 @@ class DiagonalNonConstantOperator : public Operator< typename opType< formType >
       }
    }
 
-   void apply( const funcType& src, const funcType& dst, size_t level, DoFType flag, UpdateType updateType = Replace ) const
+   void apply( const funcType& src,
+               const funcType& dst,
+               size_t          level,
+               DoFType         flag,
+               UpdateType      updateType = Replace ) const override final
    {
       std::shared_ptr< funcType > opVals = InvertDiagonal ? oper_->getInverseDiagonalValues() : oper_->getDiagonalValues();
       if ( updateType == Replace )

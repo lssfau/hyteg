@@ -133,9 +133,10 @@ class P2P2StokesFunction
          offset += static_cast< ValueType >( vertexDoFsPerRank[i] );
       }
 
-      uvw.u.enumerate( level, offset );
-      uvw.v.enumerate( level, offset );
-      uvw.w.enumerate( level, offset );
+      for ( uint_t k = 0; k < uvw.getDimension(); k++ )
+      {
+         uvw[k].enumerate( level, offset );
+      }
       p.enumerate( level, offset );
    }
 

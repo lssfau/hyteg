@@ -55,34 +55,34 @@ class P2P1BlendingTaylorHoodStokesOperator
    {
       WALBERLA_CHECK(!hasGlobalCells_, "Variable Stokes operator not implemented for 3D.");
 
-      A.apply(src.uvw.u, dst.uvw.u, level, flag, Replace);
-      divT_x.apply(src.p, dst.uvw.u, level, flag, Add);
+      A.apply(src.uvw[0], dst.uvw[0], level, flag, Replace);
+      divT_x.apply(src.p, dst.uvw[0], level, flag, Add);
 
-      A.apply(src.uvw.v, dst.uvw.v, level, flag, Replace);
-      divT_y.apply(src.p, dst.uvw.v, level, flag, Add);
+      A.apply(src.uvw[1], dst.uvw[1], level, flag, Replace);
+      divT_y.apply(src.p, dst.uvw[1], level, flag, Add);
 
       if (hasGlobalCells_)
       {
-         A.apply(src.uvw.w, dst.uvw.w, level, flag, Replace);
-         divT_z.apply(src.p, dst.uvw.w, level, flag, Add);
+         A.apply(src.uvw[2], dst.uvw[2], level, flag, Replace);
+         divT_z.apply(src.p, dst.uvw[2], level, flag, Add);
       }
 
-      div_x.apply(src.uvw.u, dst.p, level, flag, Replace);
-      div_y.apply(src.uvw.v, dst.p, level, flag, Add);
+      div_x.apply(src.uvw[0], dst.p, level, flag, Replace);
+      div_y.apply(src.uvw[1], dst.p, level, flag, Add);
 
       if (hasGlobalCells_)
       {
-         div_z.apply(src.uvw.w, dst.p, level, flag, Add);
+         div_z.apply(src.uvw[2], dst.p, level, flag, Add);
       }
    }
 
    P2BlendingLaplaceOperator     A;
    P2ToP1BlendingDivxOperator    div_x;
    P2ToP1BlendingDivyOperator    div_y;
-   P2ToP1ConstantDivzOperator    div_z;
+   P2ToP1BlendingDivzOperator    div_z;
    P1ToP2BlendingDivTxOperator   divT_x;
    P1ToP2BlendingDivTyOperator   divT_y;
-   P1ToP2ConstantDivTzOperator   divT_z;
+   P1ToP2BlendingDivTzOperator   divT_z;
 
    /// this operator is need in the uzawa smoother
    // P1PSPGOperator        pspg_;

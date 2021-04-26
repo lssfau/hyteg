@@ -30,6 +30,8 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
+#include "hyteg/gridtransferoperators/P1toP2Conversion.hpp"
+#include "hyteg/gridtransferoperators/P2toP1Conversion.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
@@ -39,10 +41,10 @@
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
-#include "hyteg/solvers/GaussSeidelSmoother.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
 
@@ -158,25 +160,20 @@ static void defectCorrection( int argc, char** argv )
    // vtkP2.add( Au_P2 );
 
    // boundary conditions and setup
-   u.uvw.u.interpolate( exactU, maxLevel, DirichletBoundary );
-   u.uvw.v.interpolate( exactV, maxLevel, DirichletBoundary );
+   u.uvw.interpolate( { exactU, exactV }, maxLevel, DirichletBoundary );
 
-   exact.uvw.u.interpolate( exactU, maxLevel, All );
-   exact.uvw.v.interpolate( exactV, maxLevel, All );
+   exact.uvw.interpolate( { exactU, exactV }, maxLevel, All );
    exact.p.interpolate( exactP, maxLevel, All );
    vertexdof::projectMean( exact.p, maxLevel );
 
-   tmp_P2.uvw.u.interpolate( rhsU, maxLevel - 1, All );
-   tmp_P2.uvw.v.interpolate( rhsV, maxLevel - 1, All );
-   M_P2.apply( tmp_P2.uvw.u, f_P2.uvw.u, maxLevel - 1, All );
-   M_P2.apply( tmp_P2.uvw.v, f_P2.uvw.v, maxLevel - 1, All );
-   f_P2_on_P1_space.uvw.u.assign( f_P2.uvw.u, maxLevel, All );
-   f_P2_on_P1_space.uvw.v.assign( f_P2.uvw.v, maxLevel, All );
+   tmp_P2.uvw.interpolate( { rhsU, rhsV }, maxLevel - 1, All );
+   M_P2.apply( tmp_P2.uvw[0], f_P2.uvw[0], maxLevel - 1, All );
+   M_P2.apply( tmp_P2.uvw[1], f_P2.uvw[1], maxLevel - 1, All );
+   P2toP1Conversion( f_P2.uvw, f_P2_on_P1_space.uvw, maxLevel, All );
 
-   tmp.uvw.u.interpolate( rhsU, maxLevel, All );
-   tmp.uvw.v.interpolate( rhsV, maxLevel, All );
-   M_P1.apply( tmp.uvw.u, f.uvw.u, maxLevel, All );
-   M_P1.apply( tmp.uvw.v, f.uvw.v, maxLevel, All );
+   tmp.uvw.interpolate( { rhsU, rhsV }, maxLevel, All );
+   M_P1.apply( tmp.uvw[0], f.uvw[0], maxLevel, All );
+   M_P1.apply( tmp.uvw[1], f.uvw[1], maxLevel, All );
 
    // solver
    // auto petscSolver           = std::make_shared< PETScMinResSolver< P1StokesOperator > >( storage, maxLevel, 1e-14 );
@@ -196,7 +193,7 @@ static void defectCorrection( int argc, char** argv )
 
 
   const auto numP1DoFs = numberOfGlobalDoFs< P1FunctionTag >( *storage, maxLevel );
-  auto       l2ErrorU  = std::sqrt( error.uvw.u.dotGlobal( error.uvw.u, maxLevel, All ) / real_c( numP1DoFs ) );
+  auto       l2ErrorU  = std::sqrt( error.uvw[0].dotGlobal( error.uvw[0], maxLevel, All ) / real_c( numP1DoFs ) );
 //  auto       l2ErrorV  = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
 //  auto       l2ErrorW  = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
 //  auto       l2ErrorP  = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );
@@ -205,7 +202,7 @@ static void defectCorrection( int argc, char** argv )
   error.assign( {1.0, -1.0}, {exact, u}, maxLevel, All );
   // vtkP1.write( maxLevel, i+1 );
   // vtkP2.write( maxLevel-1, i+1 );
-  l2ErrorU = std::sqrt( error.uvw.u.dotGlobal( error.uvw.u, maxLevel, All ) / real_c( numP1DoFs ) );
+  l2ErrorU = std::sqrt( error.uvw[0].dotGlobal( error.uvw[0], maxLevel, All ) / real_c( numP1DoFs ) );
   //       l2ErrorV = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
   //       l2ErrorW = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
   //       l2ErrorP = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );
@@ -227,7 +224,7 @@ static void defectCorrection( int argc, char** argv )
        error.assign( {1.0, -1.0}, {exact, u}, maxLevel, All );
        // vtkP1.write( maxLevel, i+1 );
        // vtkP2.write( maxLevel-1, i+1 );
-       l2ErrorU = std::sqrt( error.uvw.u.dotGlobal( error.uvw.u, maxLevel, All ) / real_c( numP1DoFs ) );
+       l2ErrorU = std::sqrt( error.uvw[0].dotGlobal( error.uvw[0], maxLevel, All ) / real_c( numP1DoFs ) );
 //       l2ErrorV = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
 //       l2ErrorW = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
 //       l2ErrorP = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );
@@ -263,17 +260,13 @@ static void defectCorrection( int argc, char** argv )
 
       // A_higher_order * u (quadratic)
       // u_quadratic is given by direct injection of the linear coefficients
-      u_P2.uvw.u.assign( u.uvw.u, maxLevel - 1, All );
-      u_P2.uvw.v.assign( u.uvw.v, maxLevel - 1, All );
-      u_P2.uvw.w.assign( u.uvw.w, maxLevel - 1, All );
-      u_P2.p.assign( u.p, maxLevel - 1, All );
+      P1toP2Conversion( u.uvw, u_P2.uvw, maxLevel - 1, All );
+      P1toP2Conversion( u.p, u_P2.p, maxLevel - 1, All );
 
       A_P2.apply( u_P2, Au_P2, maxLevel - 1, Inner );
 
-      Au_P2_converted_to_P1.uvw.u.assign( Au_P2.uvw.u, maxLevel, All );
-      Au_P2_converted_to_P1.uvw.v.assign( Au_P2.uvw.v, maxLevel, All );
-      Au_P2_converted_to_P1.uvw.w.assign( Au_P2.uvw.w, maxLevel, All );
-      Au_P2_converted_to_P1.p.assign( Au_P2.p, maxLevel, All );
+      P2toP1Conversion( Au_P2.uvw, Au_P2_converted_to_P1.uvw, maxLevel, All );
+      P2toP1Conversion( Au_P2.p, Au_P2_converted_to_P1.p, maxLevel, All );
 
       // defect correction
       // f_correction = f - (A_higher_order * u^i-1) + (A * u^i-1)
@@ -294,7 +287,7 @@ static void defectCorrection( int argc, char** argv )
               error.assign( {1.0, -1.0}, {exact, u}, maxLevel, All );
               // vtkP1.write( maxLevel, i+1 );
               // vtkP2.write( maxLevel-1, i+1 );
-              l2ErrorU = std::sqrt( error.uvw.u.dotGlobal( error.uvw.u, maxLevel, All ) / real_c( numP1DoFs ) );
+              l2ErrorU = std::sqrt( error.uvw[0].dotGlobal( error.uvw[0], maxLevel, All ) / real_c( numP1DoFs ) );
 //              l2ErrorV = std::sqrt( error.v.dotGlobal( error.v, maxLevel, All ) / real_c( numP1DoFs ) );
 //              l2ErrorW = std::sqrt( error.w.dotGlobal( error.w, maxLevel, All ) / real_c( numP1DoFs ) );
 //              l2ErrorP = std::sqrt( error.p.dotGlobal( error.p, maxLevel, All ) / real_c( numP1DoFs ) );

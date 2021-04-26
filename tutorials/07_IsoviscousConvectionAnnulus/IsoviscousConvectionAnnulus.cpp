@@ -300,8 +300,8 @@ void calculateStokesResiduals( const StokesOperator&       A,
 
    A.apply( x, tmp, level, Inner );
    r.assign( { 1.0, -1.0 }, { b, tmp }, level, Inner );
-   residual = normL2Squared( r.uvw.u, tmp.uvw.u, Mu, level, Inner );
-   residual += normL2Squared( r.uvw.v, tmp.uvw.v, Mu, level, Inner );
+   residual = normL2Squared( r.uvw[0], tmp.uvw[0], Mu, level, Inner );
+   residual += normL2Squared( r.uvw[1], tmp.uvw[1], Mu, level, Inner );
    residual += normL2Squared( r.p, tmp.p, Mp, level, Inner );
    residual = std::sqrt( residual );
 }
@@ -465,8 +465,7 @@ void runBenchmark( real_t      cflMax,
    std::function< real_t( const Point3D& ) > normalX = []( const Point3D& x ) { return x[0] / x.norm(); };
    std::function< real_t( const Point3D& ) > normalY = []( const Point3D& x ) { return x[1] / x.norm(); };
 
-   outwardNormal.uvw.u.interpolate( normalX, maxLevel );
-   outwardNormal.uvw.v.interpolate( normalY, maxLevel );
+   outwardNormal.uvw.interpolate( {normalX, normalY}, maxLevel );
 
    A->computeAndStoreLocalElementMatrices();
    L.computeAndStoreLocalElementMatrices();
@@ -560,14 +559,11 @@ void runBenchmark( real_t      cflMax,
    timeStepTimer.start();
 
    /// [RHS]
-   MVelocity.apply( c, f.uvw.u, maxLevel, All );
-   MVelocity.apply( c, f.uvw.v, maxLevel, All );
+   MVelocity.apply( c, f.uvw[0], maxLevel, All );
+   MVelocity.apply( c, f.uvw[1], maxLevel, All );
 
-   f.uvw.u.multElementwise( { f.uvw.u, outwardNormal.uvw.u }, maxLevel );
-   f.uvw.v.multElementwise( { f.uvw.v, outwardNormal.uvw.v }, maxLevel );
-
-   f.uvw.u.assign( { rayleighNumber }, { f.uvw.u }, maxLevel, All );
-   f.uvw.v.assign( { rayleighNumber }, { f.uvw.v }, maxLevel, All );
+   f.uvw.multElementwise( { f.uvw, outwardNormal.uvw }, maxLevel );
+   f.uvw.assign( { rayleighNumber }, { f.uvw }, maxLevel, All );
    /// [RHS]
 
    calculateStokesResiduals( *A, MVelocity, MPressure, u, f, maxLevel, stokesResidual, stokesTmp, residual );
@@ -589,7 +585,7 @@ void runBenchmark( real_t      cflMax,
    calculateStokesResiduals( *A, MVelocity, MPressure, u, f, maxLevel, stokesResidual, stokesTmp, residual );
 
    /// [Max velocity]
-   vMax = velocityMaxMagnitude( u.uvw.u, u.uvw.v, uTmp, uMagnitudeSquared, maxLevel, All );
+   vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uMagnitudeSquared, maxLevel, All );
    /// [Max velocity]
 
    localTimer.start();
@@ -642,7 +638,7 @@ void runBenchmark( real_t      cflMax,
       // new time step size
 
       /// [CFL]
-      vMax      = velocityMaxMagnitude( u.uvw.u, u.uvw.v, uTmp, uTmp2, maxLevel, All );
+      vMax      = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uTmp2, maxLevel, All );
       real_t dt = ( cflMax / vMax ) * hMin;
       /// [CFL]
 
@@ -653,7 +649,7 @@ void runBenchmark( real_t      cflMax,
       localTimer.start();
 
       /// [Advection]
-      transport.step( c, u.uvw.u, u.uvw.v, u.uvw.w, u.uvw.u, u.uvw.v, u.uvw.w, maxLevel, All, dt, 1, true );
+      transport.step( c, u.uvw[0], u.uvw[1], u.uvw[2], u.uvw[0], u.uvw[1], u.uvw[2], maxLevel, All, dt, 1, true );
       /// [Advection]
       localTimer.end();
       timeMMOC = localTimer.last();
@@ -676,13 +672,11 @@ void runBenchmark( real_t      cflMax,
       // Stokes
 
       /// [RHS update]
-      MVelocity.apply( c, f.uvw.u, maxLevel, All );
-      MVelocity.apply( c, f.uvw.v, maxLevel, All );
+      MVelocity.apply( c, f.uvw[0], maxLevel, All );
+      MVelocity.apply( c, f.uvw[1], maxLevel, All );
 
-      f.uvw.u.multElementwise( { f.uvw.u, outwardNormal.uvw.u }, maxLevel );
-      f.uvw.v.multElementwise( { f.uvw.v, outwardNormal.uvw.v }, maxLevel );
-      f.uvw.u.assign( { rayleighNumber }, { f.uvw.u }, maxLevel, All );
-      f.uvw.v.assign( { rayleighNumber }, { f.uvw.v }, maxLevel, All );
+      f.uvw.multElementwise( { f.uvw, outwardNormal.uvw }, maxLevel );
+      f.uvw.assign( { rayleighNumber }, { f.uvw }, maxLevel, All );
       /// [RHS update]
 
       calculateStokesResiduals( *A, MVelocity, MPressure, u, f, maxLevel, stokesResidual, stokesTmp, residual );
@@ -701,7 +695,7 @@ void runBenchmark( real_t      cflMax,
 
       timeTotal += dt;
 
-      vMax = velocityMaxMagnitude( u.uvw.u, u.uvw.v, uTmp, uMagnitudeSquared, maxLevel, All );
+      vMax = velocityMaxMagnitude( u.uvw[0], u.uvw[1], uTmp, uMagnitudeSquared, maxLevel, All );
 
       localTimer.start();
       if ( vtk )

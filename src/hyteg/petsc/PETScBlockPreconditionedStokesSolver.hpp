@@ -273,19 +273,19 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
                        uint_t                              level,
                        const P1StokesFunction< PetscInt >& numerator )
    {
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw.u, level ) )
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw[0], level ) )
       {
          velocityIndices.push_back( dof.value() );
       }
 
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw.v, level ) )
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw[1], level ) )
       {
          velocityIndices.push_back( dof.value() );
       }
 
       if ( storage.hasGlobalCells() )
       {
-         for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw.w, level ) )
+         for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw[2], level ) )
          {
             velocityIndices.push_back( dof.value() );
          }
@@ -302,30 +302,30 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
                        uint_t                                    level,
                        const P2P1TaylorHoodFunction< PetscInt >& numerator )
    {
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw.u.getVertexDoFFunction(), level ) )
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw[0].getVertexDoFFunction(), level ) )
       {
          velocityIndices.push_back( dof.value() );
       }
-      for ( auto dof : FunctionIterator< EdgeDoFFunction< PetscInt > >( numerator.uvw.u.getEdgeDoFFunction(), level ) )
+      for ( auto dof : FunctionIterator< EdgeDoFFunction< PetscInt > >( numerator.uvw[0].getEdgeDoFFunction(), level ) )
       {
          velocityIndices.push_back( dof.value() );
       }
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw.v.getVertexDoFFunction(), level ) )
+      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw[1].getVertexDoFFunction(), level ) )
       {
          velocityIndices.push_back( dof.value() );
       }
-      for ( auto dof : FunctionIterator< EdgeDoFFunction< PetscInt > >( numerator.uvw.v.getEdgeDoFFunction(), level ) )
+      for ( auto dof : FunctionIterator< EdgeDoFFunction< PetscInt > >( numerator.uvw[1].getEdgeDoFFunction(), level ) )
       {
          velocityIndices.push_back( dof.value() );
       }
       if ( storage.hasGlobalCells() )
       {
          for ( auto dof :
-               FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw.w.getVertexDoFFunction(), level ) )
+               FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw[2].getVertexDoFFunction(), level ) )
          {
             velocityIndices.push_back( dof.value() );
          }
-         for ( auto dof : FunctionIterator< EdgeDoFFunction< PetscInt > >( numerator.uvw.w.getEdgeDoFFunction(), level ) )
+         for ( auto dof : FunctionIterator< EdgeDoFFunction< PetscInt > >( numerator.uvw[2].getEdgeDoFFunction(), level ) )
          {
             velocityIndices.push_back( dof.value() );
          }

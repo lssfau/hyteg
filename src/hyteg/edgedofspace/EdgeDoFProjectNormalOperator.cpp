@@ -35,13 +35,13 @@ EdgeDoFProjectNormalOperator::EdgeDoFProjectNormalOperator(
 , normal_function_( normal_function )
 {}
 
-void EdgeDoFProjectNormalOperator::apply( const EdgeDoFFunction< real_t >& dst_u,
-                                          const EdgeDoFFunction< real_t >& dst_v,
-                                          const EdgeDoFFunction< real_t >& dst_w,
-                                          size_t                           level,
-                                          DoFType                          flag ) const
+void EdgeDoFProjectNormalOperator::project( const EdgeDoFFunction< real_t >& dst_u,
+                                            const EdgeDoFFunction< real_t >& dst_v,
+                                            const EdgeDoFFunction< real_t >& dst_w,
+                                            size_t                           level,
+                                            DoFType                          flag ) const
 {
-   this->startTiming( "Apply" );
+   this->startTiming( "Project" );
    dst_u.communicate< Vertex, Edge >( level );
    dst_u.communicate< Edge, Face >( level );
    dst_u.communicate< Face, Cell >( level );
@@ -121,7 +121,7 @@ void EdgeDoFProjectNormalOperator::apply( const EdgeDoFFunction< real_t >& dst_u
 
    this->timingTree_->stop( "Macro-Face" );
 
-   this->stopTiming( "Apply" );
+   this->stopTiming( "Project" );
 }
 
 #ifdef HYTEG_BUILD_WITH_PETSC
