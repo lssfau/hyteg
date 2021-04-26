@@ -568,7 +568,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
           std::make_shared< FullMultigridSolver< LaplaceOperator_T > >( storage, gmgSolver, prolongation, minLevel, maxLevel );
 
       solverPre = fmgSolver;
-      solver = gmgSolver;
+      solver    = gmgSolver;
    }
    else
    {
@@ -722,7 +722,7 @@ void run( int argc, char** argv )
       tokamak< P1Function< real_t >,
                forms::p1_div_k_grad_blending_q3,
                P1ElementwiseBlendingDivKGradOperator,
-               P1ElementwiseMassOperator,
+               P1ElementwiseBlendingMassOperator,
                P1toP1LinearRestriction,
                P1toP1LinearProlongation >( tokamakDomain, discretization, solverSettings, appSettings );
    }

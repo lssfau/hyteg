@@ -51,7 +51,7 @@ Parameters
     // gmg_wjac: HyTeG GMG with weighted Jacobi relaxation
     // fmg_wjac: HyTeG FMG with weighted Jacobi relaxation, and subsequent v-cylces until convergence
 
-    solverType                fmg_wjac;
+    solverType                gmg_wjac;
     preSmooth                 3;
     postSmooth                3;
     relativeResidualReduction 1e-06;
