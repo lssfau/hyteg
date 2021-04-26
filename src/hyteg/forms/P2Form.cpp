@@ -48,11 +48,15 @@ void P2Form::integrateRow( const uint_t & row, const std::array< Point3D, 4 >& c
 
 void P2Form::integrateRow0( const std::array< Point3D, 3 >& coords, Matrixr< 1, 6 >& elMat ) const
 {
+   WALBERLA_UNUSED( coords );
+   WALBERLA_UNUSED( elMat );
    WALBERLA_ABORT( "P2Form::integrateRow() not implemented for row 0" );
 }
 
 void P2Form::integrateRow0( const std::array< Point3D, 4 >& coords, Matrixr< 1, 10 >& elMat ) const
 {
+   WALBERLA_UNUSED( coords );
+   WALBERLA_UNUSED( elMat );
    WALBERLA_ABORT( "P2Form::integrateRow() not implemented for row 0" );
 }
 
