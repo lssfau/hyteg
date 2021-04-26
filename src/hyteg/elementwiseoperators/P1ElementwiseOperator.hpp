@@ -29,6 +29,7 @@
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
 #include "hyteg/p1functionspace/P1Elements.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -215,10 +216,9 @@ typedef P1ElementwiseOperator< P1FenicsForm< p1_polar_laplacian_cell_integral_0_
 typedef P1ElementwiseOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > >
     P1ElementwiseMassOperator;
 
-typedef P1ElementwiseOperator< P1LinearCombinationForm > P1ElementwiseLinearCombinationOperator;
+typedef P1ElementwiseOperator< forms::p1_mass_blending_q4 > P1ElementwiseBlendingMassOperator;
 
-typedef P1ElementwiseOperator< P1Form_mass >   P1ElementwiseBlendingMassOperator;
-typedef P1ElementwiseOperator< P1Form_mass3D > P1ElementwiseBlendingMassOperator3D;
+typedef P1ElementwiseOperator< P1LinearCombinationForm > P1ElementwiseLinearCombinationOperator;
 
 typedef P1ElementwiseOperator< P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > >
     P1ElementwisePSPGOperator;

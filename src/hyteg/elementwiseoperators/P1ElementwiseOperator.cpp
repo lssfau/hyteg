@@ -744,11 +744,8 @@ template class P1ElementwiseOperator<
 
 template class P1ElementwiseOperator< P1LinearCombinationForm >;
 
-// P1ElementwiseBlendingMassOperator
-template class P1ElementwiseOperator< P1Form_mass >;
-
 // P1ElementwiseBlendingMassOperator3D
-template class P1ElementwiseOperator< P1Form_mass3D >;
+template class P1ElementwiseOperator< forms::p1_mass_blending_q4 >;
 
 // P1ElementwiseBlendingLaplaceOperator
 template class P1ElementwiseOperator< forms::p1_diffusion_blending_q3 >;
