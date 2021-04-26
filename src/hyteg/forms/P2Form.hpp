@@ -66,6 +66,8 @@ class P2Form : public Form
       WALBERLA_ABORT( "Not implemented." );
    }
 
+   virtual void integrateRow( const uint_t & row, const std::array< Point3D, 3 >& coords, Matrixr< 1, 6 >& elMat ) const;
+
    // ----------------------------
    //  3D versions for tetrahedra
    // ----------------------------
@@ -85,6 +87,8 @@ class P2Form : public Form
    {
       WALBERLA_ABORT( "P2LinearCombinationFenicsForm not implemented for 3D!" );
    }
+
+   virtual void integrateRow( const uint_t & row, const std::array< Point3D, 4 >& coords, Matrixr< 1, 10 >& elMat ) const;
 
    // --------------------------------------------------
    //  3D versions for tetrahedra (using new interface)
@@ -139,6 +143,11 @@ class P2Form : public Form
    /// \param coords  The coordinates of the four vertices of the tetrahedron
    /// \param elMat   On return is filled with the matrix entries
    virtual void integrateAll( const std::array< Point3D, 4 >& coords, Matrix10r& elMat ) const {}
+
+ private:
+
+   virtual void integrateRow0( const std::array< Point3D, 3 >& coords, Matrixr< 1, 6 >& elMat ) const;
+   virtual void integrateRow0( const std::array< Point3D, 4 >& coords, Matrixr< 1, 10 >& elMat ) const;
 };
 
 } // namespace hyteg
