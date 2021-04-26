@@ -39,27 +39,14 @@ namespace forms {
 
 /// Implementation of the integration of a weak form over an element.
 ///
-/// - name:        p1_div_k_grad_affine_q3
-/// - description: 
+/// - name:        p1_pspg_affine_q2
+/// - description: Implements bilinear form for PSPG stabilisation.
 /// - trial space: Lagrange, degree: 1
 /// - test space:  Lagrange, degree: 1
 ///
-class p1_div_k_grad_affine_q3 : public P1FormHyTeG
+class p1_pspg_affine_q2 : public P1FormHyTeG
 {
 
- public:
-
-   p1_div_k_grad_affine_q3() { WALBERLA_ABORT("Not implemented."); }
-
-   p1_div_k_grad_affine_q3( std::function< real_t ( const Point3D & ) > _callback3D, std::function< real_t ( const Point3D & ) > _callback2D )
-   : callback3D(_callback3D)
-   , callback2D(_callback2D)
-   {}
-
- private:
-
-   std::function< real_t ( const Point3D & ) > callback3D;
-   std::function< real_t ( const Point3D & ) > callback2D;
 
 
  public:
@@ -68,11 +55,11 @@ class p1_div_k_grad_affine_q3 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Hillion 7 | points: 4, degree: 3, test tolerance: 2.22e-16
+   /// - quadrature rule:                        exact
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               94     163       2       0      1             83                 4
+   ///                                               55      77       1       0      1             74                 0
    ///
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 3 >& elMat ) const;
 
@@ -80,11 +67,11 @@ class p1_div_k_grad_affine_q3 : public P1FormHyTeG
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
    /// - element matrix dimensions (rows, cols): (3, 3)
-   /// - quadrature rule:                        Hillion 7 | points: 4, degree: 3, test tolerance: 2.22e-16
+   /// - quadrature rule:                        exact
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                               59      92       1       0      1             48                 4
+   ///                                               43      69       1       0      1             48                 0
    ///
    void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 3 >& elMat ) const;
 
@@ -92,11 +79,11 @@ class p1_div_k_grad_affine_q3 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              363     538       2       0      1            210                 6
+   ///                                               72     136       2       1      1            118                 0
    ///
    void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const;
 
@@ -104,19 +91,13 @@ class p1_div_k_grad_affine_q3 : public P1FormHyTeG
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
    /// - element matrix dimensions (rows, cols): (4, 4)
-   /// - quadrature rule:                        Xiao-Gimbutas 3 | points: 6, degree: 3, test tolerance: 2.379e-17
+   /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
    /// - floating point operations:
    ///                                             adds    muls    divs    pows    abs    assignments    function_calls
    ///                                           ------  ------  ------  ------  -----  -------------  ----------------
-   ///                                              210     297       1       0      1            130                 6
+   ///                                               60      90       1       1      1             68                 0
    ///
    void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const;
-
- private:
-
-   void Scalar_Variable_Coefficient_2D( real_t in_0, real_t in_1, real_t * out_0 ) const;
-
-   void Scalar_Variable_Coefficient_3D( real_t in_0, real_t in_1, real_t in_2, real_t * out_0 ) const;
 
 };
 
