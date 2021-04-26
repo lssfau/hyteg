@@ -243,7 +243,7 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------------------------" );
    for ( uint_t caseIdx = 1; caseIdx <= 10; caseIdx++ )
    {
-      checkVolume< P1ElementwiseBlendingMassOperator3D >( setupStorage, caseIdx, level );
+      checkVolume< P1ElementwiseBlendingMassOperator >( setupStorage, caseIdx, level );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------------------------" );
