@@ -60,8 +60,9 @@ Parameters
     // # app settings #
     // ################
 
-    coarseMeshAndQuit false;
-    dbFile            Tokamak.db;
-    vtk               true;
-    vtkDirectory      ./vtk;
+    coarseMeshAndQuit         false;
+    dbFile                    Tokamak.db;
+    vtk                       true;
+    vtkDirectory              ./vtk;
+    precomputeElementMatrices true;
 }

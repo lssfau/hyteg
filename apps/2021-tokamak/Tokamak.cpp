@@ -143,16 +143,18 @@ struct AppSettings
    bool        coarseMeshAndQuit;
    bool        vtk;
    std::string vtkDirectory;
+   bool        precomputeElementMatrices;
 
    std::string toString() const
    {
       std::stringstream ss;
       ss << "App settings"
          << "\n";
-      ss << "  - DB file:              " << dbFile << "\n";
-      ss << "  - coarse mesh and quit: " << ( coarseMeshAndQuit ? "true" : "false" ) << "\n";
-      ss << "  - VTK:                  " << ( vtk ? "true" : "false" ) << "\n";
-      ss << "  - VTK directory:        " << vtkDirectory << "\n";
+      ss << "  - DB file:                       " << dbFile << "\n";
+      ss << "  - coarse mesh and quit:          " << ( coarseMeshAndQuit ? "true" : "false" ) << "\n";
+      ss << "  - VTK:                           " << ( vtk ? "true" : "false" ) << "\n";
+      ss << "  - VTK directory:                 " << vtkDirectory << "\n";
+      ss << "  - precomputing element matrices: " << ( precomputeElementMatrices ? "true" : "false" ) << "\n";
       return ss.str();
    }
 };
@@ -223,6 +225,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    db.setConstantEntry( "coarseMeshAndQuit", appSettings.coarseMeshAndQuit );
    db.setConstantEntry( "vtk", appSettings.vtk );
    db.setConstantEntry( "vtkDirectory", appSettings.vtkDirectory );
+   db.setConstantEntry( "precomputeElementMatrices", appSettings.precomputeElementMatrices );
 
    const auto minLevel = discretization.minLevel;
    const auto maxLevel = discretization.maxLevel;
@@ -575,6 +578,13 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    Function_T err( "err", storage, minLevel, maxLevel );
    Function_T k( "k", storage, minLevel, maxLevel );
 
+   if ( appSettings.precomputeElementMatrices )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "[progress] Precomputing element matrices ..." )
+      A.computeAndStoreLocalElementMatrices();
+      M.computeAndStoreLocalElementMatrices();
+   }
+
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Interpolating boundary conditions, coefficient, and exact solution ..." )
 
    for ( uint_t l = minLevel; l <= maxLevel; l++ )
@@ -675,7 +685,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
 
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Solving ..." )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " iteration |  residual | res. rate |     error " ) )
-   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ----------+----------+-----------+-----------" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ----------+-----------+-----------+-----------" ) )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9s | %9.2e | %9s | %9.2e", "initial", residualL2, "-", errorL2 ) )
 
    if ( solverSettings.solverType == CG )
@@ -806,10 +816,11 @@ void run( int argc, char** argv )
    solverSettings.preSmooth                 = mainConf.getParameter< uint_t >( "preSmooth" );
    solverSettings.postSmooth                = mainConf.getParameter< uint_t >( "postSmooth" );
 
-   appSettings.dbFile            = mainConf.getParameter< std::string >( "dbFile" );
-   appSettings.coarseMeshAndQuit = mainConf.getParameter< bool >( "coarseMeshAndQuit" );
-   appSettings.vtk               = mainConf.getParameter< bool >( "vtk" );
-   appSettings.vtkDirectory      = mainConf.getParameter< std::string >( "vtkDirectory" );
+   appSettings.dbFile                    = mainConf.getParameter< std::string >( "dbFile" );
+   appSettings.coarseMeshAndQuit         = mainConf.getParameter< bool >( "coarseMeshAndQuit" );
+   appSettings.vtk                       = mainConf.getParameter< bool >( "vtk" );
+   appSettings.vtkDirectory              = mainConf.getParameter< std::string >( "vtkDirectory" );
+   appSettings.precomputeElementMatrices = mainConf.getParameter< bool >( "precomputeElementMatrices" );
 
    if ( discretization.elementType == "p1" )
    {
