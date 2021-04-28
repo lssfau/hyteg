@@ -48,12 +48,32 @@ using walberla::uint_t;
 
 namespace hyteg {
 
+// Solver types
+const std::string CG       = "cg";
+const std::string GMG_WJAC = "gmg_wjac";
+const std::string FMG_WJAC = "fmg_wjac";
+
 struct SolverSettings
 {
    std::string solverType;
    real_t      relativeResidualReduction;
    uint_t      preSmooth;
    uint_t      postSmooth;
+
+   std::string toString() const
+   {
+      std::stringstream ss;
+      ss << "Solver settings"
+         << "\n";
+      ss << "  - solver:                      " << solverType << "\n";
+      ss << "  - relative residual reduction: " << relativeResidualReduction << "\n";
+      if ( solverType == GMG_WJAC || solverType == FMG_WJAC )
+      {
+         ss << "  - pre smooth:                  " << preSmooth << "\n";
+         ss << "  - post smooth:                 " << postSmooth << "\n";
+      }
+      return ss.str();
+   }
 };
 
 struct Discretization
@@ -61,6 +81,17 @@ struct Discretization
    std::string elementType;
    uint_t      minLevel;
    uint_t      maxLevel;
+
+   std::string toString() const
+   {
+      std::stringstream ss;
+      ss << "Discretization"
+         << "\n";
+      ss << "  - element type: " << elementType << "\n";
+      ss << "  - min level:    " << minLevel << "\n";
+      ss << "  - max level:    " << maxLevel << "\n";
+      return ss.str();
+   }
 };
 
 struct TokamakDomain
@@ -84,6 +115,26 @@ struct TokamakDomain
    real_t coeff_d_jump;
    real_t coeff_k_min;
    real_t coeff_k_max;
+
+   std::string toString() const
+   {
+      std::stringstream ss;
+      ss << "Tokamak domain and PDE config"
+         << "\n";
+      ss << "  - toroidal slices:     " << numToroidalSlices << "\n";
+      ss << "  - poloidal slices:     " << numPoloidalSlices << "\n";
+      ss << "  - tube layer radii:    [";
+      for ( auto r : tubeLayerRadii )
+      {
+         ss << r << " ";
+      }
+      ss << "]\n";
+      ss << "  - coeff min:           " << coeff_k_min << "\n";
+      ss << "  - coeff max:           " << coeff_k_max << "\n";
+      ss << "  - coeff jump location: " << coeff_r_jump << "\n";
+      ss << "  - coeff jump width:    " << coeff_d_jump << "\n";
+      return ss.str();
+   }
 };
 
 struct AppSettings
@@ -92,6 +143,18 @@ struct AppSettings
    bool        coarseMeshAndQuit;
    bool        vtk;
    std::string vtkDirectory;
+
+   std::string toString() const
+   {
+      std::stringstream ss;
+      ss << "App settings"
+         << "\n";
+      ss << "  - DB file:              " << dbFile << "\n";
+      ss << "  - coarse mesh and quit: " << ( coarseMeshAndQuit ? "true" : "false" ) << "\n";
+      ss << "  - VTK:                  " << ( vtk ? "true" : "false" ) << "\n";
+      ss << "  - VTK directory:        " << vtkDirectory << "\n";
+      return ss.str();
+   }
 };
 
 void writeDBEntry( FixedSizeSQLDB db, uint_t entryID, real_t residual, real_t error )
@@ -101,8 +164,6 @@ void writeDBEntry( FixedSizeSQLDB db, uint_t entryID, real_t residual, real_t er
    db.setVariableEntry( "error", error );
 
    db.writeRowOnRoot();
-
-   WALBERLA_LOG_INFO_ON_ROOT( "residual: " << residual << " | error: " << error )
 }
 
 template < typename Function_T, typename LaplaceOperator_T >
@@ -166,17 +227,12 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    const auto minLevel = discretization.minLevel;
    const auto maxLevel = discretization.maxLevel;
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Input parameters:" )
-   WALBERLA_LOG_INFO_ON_ROOT( "  - element type: " << discretization.elementType )
-   WALBERLA_LOG_INFO_ON_ROOT( "  - min level: " << minLevel )
-   WALBERLA_LOG_INFO_ON_ROOT( "  - max level: " << maxLevel )
+   WALBERLA_LOG_INFO_ON_ROOT( solverSettings.toString() );
+   WALBERLA_LOG_INFO_ON_ROOT( discretization.toString() );
+   WALBERLA_LOG_INFO_ON_ROOT( tokamakDomain.toString() );
+   WALBERLA_LOG_INFO_ON_ROOT( appSettings.toString() );
 
-   for ( uint_t i = 0; i < tokamakDomain.tubeLayerRadii.size(); i++ )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "  - tube layer radius " << i << ": " << tokamakDomain.tubeLayerRadii[i] )
-   }
-
-   WALBERLA_LOG_INFO_ON_ROOT( "Setting up torus mesh ..." )
+   WALBERLA_LOG_INFO_ON_ROOT( "[progress] Setting up torus mesh ..." )
 
    const auto meshInfo = MeshInfo::meshTorus( tokamakDomain.numToroidalSlices,
                                               tokamakDomain.numPoloidalSlices,
@@ -188,7 +244,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Setting up tokamak blending map ..." )
+   WALBERLA_LOG_INFO_ON_ROOT( "[progress] Setting up tokamak blending map ..." )
 
    TokamakMap::setMap( setupStorage,
                        tokamakDomain.numToroidalSlices,
@@ -205,9 +261,25 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
 
    WALBERLA_CHECK( storage->hasGlobalCells() );
 
+   const auto domainInfo = storage->getGlobalInfo();
+   WALBERLA_LOG_INFO_ON_ROOT( domainInfo );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "DoFs" )
+   WALBERLA_LOG_INFO_ON_ROOT( "level |          inner |          total " )
+   WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------------" )
+   for ( uint_t l = minLevel; l <= maxLevel; l++ )
+   {
+      const auto numInnerDoFs = numberOfGlobalInnerDoFs< typename Function_T::Tag >( *storage, l );
+      const auto numDoFs      = numberOfGlobalDoFs< typename Function_T::Tag >( *storage, l );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%5d | %14d | %14d", l, numInnerDoFs, numDoFs ) );
+      db.setConstantEntry( "dofs_inner_level_" + std::to_string( l ), numInnerDoFs );
+      db.setConstantEntry( "dofs_total_level_" + std::to_string( l ), numDoFs );
+   }
+   WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------------" )
+
    if ( appSettings.vtk || appSettings.coarseMeshAndQuit )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Writing domain parititoning VTK ..." )
+      WALBERLA_LOG_INFO_ON_ROOT( "[progress] Writing domain parititoning VTK ..." )
 
       writeDomainPartitioningVTK( storage, appSettings.vtkDirectory, "TokamakDomain" );
 
@@ -217,7 +289,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
       }
    }
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Allocation of functions and operator setup ..." )
+   WALBERLA_LOG_INFO_ON_ROOT( "[progress] Allocation of functions and operator setup ..." )
 
    // parameters for analytic solution and diffusion coefficient:
    double R0     = tokamakDomain.coeff_R0;     // torus radius
@@ -503,7 +575,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    Function_T err( "err", storage, minLevel, maxLevel );
    Function_T k( "k", storage, minLevel, maxLevel );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Interpolating boundary conditions, coefficient, and exact solution ..." )
+   WALBERLA_LOG_INFO_ON_ROOT( "[progress] Interpolating boundary conditions, coefficient, and exact solution ..." )
 
    for ( uint_t l = minLevel; l <= maxLevel; l++ )
    {
@@ -514,20 +586,20 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
       k.interpolate( coeff, maxLevel, DoFType::All );
    }
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Setting up solver ..." )
+   WALBERLA_LOG_INFO_ON_ROOT( "[progress] Setting up solver ..." )
 
    const auto numInnerUnknowns = numberOfGlobalInnerDoFs< typename Function_T::Tag >( *storage, maxLevel );
 
    std::shared_ptr< Solver< LaplaceOperator_T > > solverPre;
    std::shared_ptr< Solver< LaplaceOperator_T > > solver;
 
-   if ( solverSettings.solverType == "cg" )
+   if ( solverSettings.solverType == CG )
    {
       auto cgSolver = std::make_shared< CGSolver< LaplaceOperator_T > >( storage, minLevel, maxLevel );
       cgSolver->setPrintInfo( true );
       solver = cgSolver;
    }
-   else if ( solverSettings.solverType == "gmg_wjac" )
+   else if ( solverSettings.solverType == GMG_WJAC )
    {
       auto restriction  = std::make_shared< Restriction_T >();
       auto prolongation = std::make_shared< Prolongation_T >();
@@ -546,7 +618,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
                                                                                           solverSettings.postSmooth );
       solver         = gmgSolver;
    }
-   else if ( solverSettings.solverType == "fmg_wjac" )
+   else if ( solverSettings.solverType == FMG_WJAC )
    {
       auto restriction  = std::make_shared< Restriction_T >();
       auto prolongation = std::make_shared< Prolongation_T >();
@@ -584,7 +656,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    uint_t dbEntry = 0;
    real_t errorL2;
    real_t residualL2;
-   WALBERLA_LOG_INFO_ON_ROOT( "Initial residual and error calculation ..." )
+   WALBERLA_LOG_INFO_ON_ROOT( "[progress] Initial residual and error calculation ..." )
    errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
 
    const real_t initialResidualL2 = residualL2;
@@ -594,41 +666,63 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
 
    if ( appSettings.vtk )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Writing VTK ..." )
+      WALBERLA_LOG_INFO_ON_ROOT( "[progress] Writing VTK ..." )
       vtkOutput.write( maxLevel, 0 );
    }
 
-   if ( solverSettings.solverType == "cg" )
+   int  iteration      = 1;
+   auto lastResidualL2 = initialResidualL2;
+
+   WALBERLA_LOG_INFO_ON_ROOT( "[progress] Solving ..." )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " iteration |  residual | res. rate |     error " ) )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ----------+----------+-----------+-----------" ) )
+   WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9s | %9.2e | %9s | %9.2e", "initial", residualL2, "-", errorL2 ) )
+
+   if ( solverSettings.solverType == CG )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Solving with CG ..." )
       solver->solve( A, u, f, maxLevel );
+      errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
+      writeDBEntry( db, dbEntry, residualL2, errorL2 );
+      auto residualRate = residualL2 / lastResidualL2;
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9s | %9.2e | %9.2e | %9.2e", "final", residualL2, residualRate, errorL2 ) )
    }
-   else if ( solverSettings.solverType == "gmg_wjac" )
+   else if ( solverSettings.solverType == GMG_WJAC )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Solving with GMG v-cycles (w-Jacobi) ..." )
       while ( residualL2 / initialResidualL2 > solverSettings.relativeResidualReduction )
       {
          solver->solve( A, u, f, maxLevel );
          errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
          writeDBEntry( db, dbEntry, residualL2, errorL2 );
          dbEntry++;
+         auto residualRate = residualL2 / lastResidualL2;
+         lastResidualL2    = residualL2;
+         WALBERLA_LOG_INFO_ON_ROOT(
+             walberla::format( " %9d | %9.2e | %9.2e | %9.2e", iteration, residualL2, residualRate, errorL2 ) )
+         iteration++;
       }
    }
-   else if ( solverSettings.solverType == "fmg_wjac" )
+   else if ( solverSettings.solverType == FMG_WJAC )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Solving with FMG (w-Jacobi) ..." )
       solverPre->solve( A, u, f, maxLevel );
       errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
       writeDBEntry( db, dbEntry, residualL2, errorL2 );
       dbEntry++;
+      auto residualRate = residualL2 / lastResidualL2;
+      lastResidualL2    = residualL2;
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9s | %9.2e | %9.2e | %9.2e", "FMG", residualL2, residualRate, errorL2 ) )
+      iteration++;
 
-      WALBERLA_LOG_INFO_ON_ROOT( "Solving with GMG v-cycles (w-Jacobi) ..." )
       while ( residualL2 / initialResidualL2 > solverSettings.relativeResidualReduction )
       {
          solver->solve( A, u, f, maxLevel );
          errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
          writeDBEntry( db, dbEntry, residualL2, errorL2 );
          dbEntry++;
+         residualRate   = residualL2 / lastResidualL2;
+         lastResidualL2 = residualL2;
+         WALBERLA_LOG_INFO_ON_ROOT(
+             walberla::format( " %9d | %9.2e | %9.2e | %9.2e", iteration, residualL2, residualRate, errorL2 ) )
+         iteration++;
       }
    }
    else
@@ -636,7 +730,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
       WALBERLA_ABORT( "Invalid solver type: " << solverSettings.solverType )
    }
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Residual and error calculation ..." )
+   WALBERLA_LOG_INFO_ON_ROOT( "[progress] Residual and error calculation ..." )
    errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
 
    writeDBEntry( db, dbEntry, residualL2, errorL2 );
@@ -644,7 +738,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
 
    if ( appSettings.vtk )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "Writing VTK ..." )
+      WALBERLA_LOG_INFO_ON_ROOT( "[progress] Writing VTK ..." )
       vtkOutput.write( maxLevel, 1 );
    }
 }
