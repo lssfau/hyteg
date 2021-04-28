@@ -93,11 +93,18 @@ class PETScVector
       hyteg::petsc::createFunctionFromVector( src, numerator, proxy, level, flag );
    }
 
-   void print( const char filename[] )
+   void print( const char filename[], bool binary = false, PetscViewerFormat format = PETSC_VIEWER_ASCII_MATRIXMARKET )
    {
       PetscViewer viewer;
-      PetscViewerASCIIOpen( petscCommunicator_, filename, &viewer );
-      PetscViewerPushFormat( viewer, PETSC_VIEWER_ASCII_MATLAB );
+      if ( binary )
+      {
+         PetscViewerBinaryOpen( petscCommunicator_, filename, FILE_MODE_WRITE, &viewer );
+      }
+      else
+      {
+         PetscViewerASCIIOpen( petscCommunicator_, filename, &viewer );
+         PetscViewerPushFormat( viewer, format );
+      }
       VecView( vec, viewer );
       PetscViewerDestroy( &viewer );
    }

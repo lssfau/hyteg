@@ -65,4 +65,8 @@ Parameters
     vtk                       true;
     vtkDirectory              ./vtk;
     precomputeElementMatrices true;
+
+    outputLinearSystem         false;
+    outputLinearSystemBaseName test;
+    outputLinearSystemFormat   ascii_matlab;  // either ascii_matlab or binary
 }

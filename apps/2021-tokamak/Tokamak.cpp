@@ -31,6 +31,8 @@
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/petsc/PETScExportFunctionAsVector.hpp"
+#include "hyteg/petsc/PETScExportLinearSystem.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -144,17 +146,23 @@ struct AppSettings
    bool        vtk;
    std::string vtkDirectory;
    bool        precomputeElementMatrices;
+   bool        outputLinearSystem;
+   std::string outputLinearSystemBaseName;
+   std::string outputLinearSystemFormat;
 
    std::string toString() const
    {
       std::stringstream ss;
       ss << "App settings"
          << "\n";
-      ss << "  - DB file:                       " << dbFile << "\n";
-      ss << "  - coarse mesh and quit:          " << ( coarseMeshAndQuit ? "true" : "false" ) << "\n";
-      ss << "  - VTK:                           " << ( vtk ? "true" : "false" ) << "\n";
-      ss << "  - VTK directory:                 " << vtkDirectory << "\n";
-      ss << "  - precomputing element matrices: " << ( precomputeElementMatrices ? "true" : "false" ) << "\n";
+      ss << "  - DB file:                          " << dbFile << "\n";
+      ss << "  - coarse mesh and quit:             " << ( coarseMeshAndQuit ? "true" : "false" ) << "\n";
+      ss << "  - VTK:                              " << ( vtk ? "true" : "false" ) << "\n";
+      ss << "  - VTK directory:                    " << vtkDirectory << "\n";
+      ss << "  - precomputing element matrices:    " << ( precomputeElementMatrices ? "true" : "false" ) << "\n";
+      ss << "  - output linear system and vectors: " << ( outputLinearSystem ? "true" : "false" ) << "\n";
+      ss << "  - output linear system base name:   " << outputLinearSystemBaseName << "\n";
+      ss << "  - output linear system format:      " << outputLinearSystemFormat << "\n";
       return ss.str();
    }
 };
@@ -189,7 +197,7 @@ void errorAndResidual( const LaplaceOperator_T& A,
    residualL2 = std::sqrt( r.dotGlobal( r, level, DoFType::Inner ) / real_c( numInnerUnknowns ) );
 }
 
-template < typename Function_T,
+template < template < class > class Function_T,
            typename LaplaceForm_T,
            typename LaplaceOperator_T,
            typename MassOperator_T,
@@ -226,6 +234,8 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    db.setConstantEntry( "vtk", appSettings.vtk );
    db.setConstantEntry( "vtkDirectory", appSettings.vtkDirectory );
    db.setConstantEntry( "precomputeElementMatrices", appSettings.precomputeElementMatrices );
+   db.setConstantEntry( "outputLinearSystem", appSettings.outputLinearSystem );
+   db.setConstantEntry( "outputLinearSystemBaseName", appSettings.outputLinearSystemBaseName );
 
    const auto minLevel = discretization.minLevel;
    const auto maxLevel = discretization.maxLevel;
@@ -272,8 +282,8 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------------" )
    for ( uint_t l = minLevel; l <= maxLevel; l++ )
    {
-      const auto numInnerDoFs = numberOfGlobalInnerDoFs< typename Function_T::Tag >( *storage, l );
-      const auto numDoFs      = numberOfGlobalDoFs< typename Function_T::Tag >( *storage, l );
+      const auto numInnerDoFs = numberOfGlobalInnerDoFs< typename Function_T< real_t >::Tag >( *storage, l );
+      const auto numDoFs      = numberOfGlobalDoFs< typename Function_T< real_t >::Tag >( *storage, l );
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%5d | %14d | %14d", l, numInnerDoFs, numDoFs ) );
       db.setConstantEntry( "dofs_inner_level_" + std::to_string( l ), numInnerDoFs );
       db.setConstantEntry( "dofs_total_level_" + std::to_string( l ), numDoFs );
@@ -571,12 +581,12 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    LaplaceOperator_T A( storage, minLevel, maxLevel, form );
    MassOperator_T    M( storage, minLevel, maxLevel );
 
-   Function_T u( "u", storage, minLevel, maxLevel );
-   Function_T f( "f", storage, minLevel, maxLevel );
-   Function_T uExact( "u_exact", storage, minLevel, maxLevel );
-   Function_T r( "r", storage, minLevel, maxLevel );
-   Function_T err( "err", storage, minLevel, maxLevel );
-   Function_T k( "k", storage, minLevel, maxLevel );
+   Function_T< real_t > u( "u", storage, minLevel, maxLevel );
+   Function_T< real_t > f( "f", storage, minLevel, maxLevel );
+   Function_T< real_t > uExact( "u_exact", storage, minLevel, maxLevel );
+   Function_T< real_t > r( "r", storage, minLevel, maxLevel );
+   Function_T< real_t > err( "err", storage, minLevel, maxLevel );
+   Function_T< real_t > k( "k", storage, minLevel, maxLevel );
 
    if ( appSettings.precomputeElementMatrices )
    {
@@ -596,9 +606,38 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
       k.interpolate( coeff, maxLevel, DoFType::All );
    }
 
+   if ( appSettings.outputLinearSystem )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "[progress] Writing linear system to file ..." )
+      exportLinearSystem< LaplaceOperator_T, P1Function, P1FunctionTag >( A,
+                                                                          f,
+                                                                          uExact,
+                                                                          appSettings.outputLinearSystemBaseName + "_A.m",
+                                                                          "A",
+                                                                          appSettings.outputLinearSystemBaseName + "_b.m",
+                                                                          "b",
+                                                                          storage,
+                                                                          maxLevel,
+                                                                          true,
+                                                                          true,
+                                                                          appSettings.outputLinearSystemFormat == "binary",
+                                                                          PETSC_VIEWER_ASCII_MATLAB );
+
+      WALBERLA_LOG_INFO_ON_ROOT( "[progress] Writing interpolated (exact) solution vector to file ..." )
+
+      exportFunction< Function_T, typename Function_T< real_t >::Tag >( uExact,
+                                                                        appSettings.outputLinearSystemBaseName + "_u_exact.m",
+                                                                        "u_exact",
+                                                                        storage,
+                                                                        maxLevel,
+                                                                        true,
+                                                                        appSettings.outputLinearSystemFormat == "binary",
+                                                                        PETSC_VIEWER_ASCII_MATLAB );
+   }
+
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Setting up solver ..." )
 
-   const auto numInnerUnknowns = numberOfGlobalInnerDoFs< typename Function_T::Tag >( *storage, maxLevel );
+   const auto numInnerUnknowns = numberOfGlobalInnerDoFs< typename Function_T< real_t >::Tag >( *storage, maxLevel );
 
    std::shared_ptr< Solver< LaplaceOperator_T > > solverPre;
    std::shared_ptr< Solver< LaplaceOperator_T > > solver;
@@ -743,6 +782,20 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Residual and error calculation ..." )
    errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
 
+   if ( appSettings.outputLinearSystem )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "[progress] Writing computed solution vector to file ..." )
+
+      exportFunction< Function_T, typename Function_T< real_t >::Tag >( u,
+                                                                        appSettings.outputLinearSystemBaseName + "_u_comp.m",
+                                                                        "u_comp",
+                                                                        storage,
+                                                                        maxLevel,
+                                                                        true,
+                                                                        appSettings.outputLinearSystemFormat == "binary",
+                                                                        PETSC_VIEWER_ASCII_MATLAB );
+   }
+
    writeDBEntry( db, dbEntry, residualL2, errorL2 );
    dbEntry++;
 
@@ -816,15 +869,18 @@ void run( int argc, char** argv )
    solverSettings.preSmooth                 = mainConf.getParameter< uint_t >( "preSmooth" );
    solverSettings.postSmooth                = mainConf.getParameter< uint_t >( "postSmooth" );
 
-   appSettings.dbFile                    = mainConf.getParameter< std::string >( "dbFile" );
-   appSettings.coarseMeshAndQuit         = mainConf.getParameter< bool >( "coarseMeshAndQuit" );
-   appSettings.vtk                       = mainConf.getParameter< bool >( "vtk" );
-   appSettings.vtkDirectory              = mainConf.getParameter< std::string >( "vtkDirectory" );
-   appSettings.precomputeElementMatrices = mainConf.getParameter< bool >( "precomputeElementMatrices" );
+   appSettings.dbFile                     = mainConf.getParameter< std::string >( "dbFile" );
+   appSettings.coarseMeshAndQuit          = mainConf.getParameter< bool >( "coarseMeshAndQuit" );
+   appSettings.vtk                        = mainConf.getParameter< bool >( "vtk" );
+   appSettings.vtkDirectory               = mainConf.getParameter< std::string >( "vtkDirectory" );
+   appSettings.precomputeElementMatrices  = mainConf.getParameter< bool >( "precomputeElementMatrices" );
+   appSettings.outputLinearSystem         = mainConf.getParameter< bool >( "outputLinearSystem" );
+   appSettings.outputLinearSystemBaseName = mainConf.getParameter< std::string >( "outputLinearSystemBaseName" );
+   appSettings.outputLinearSystemFormat   = mainConf.getParameter< std::string >( "outputLinearSystemFormat" );
 
    if ( discretization.elementType == "p1" )
    {
-      tokamak< P1Function< real_t >,
+      tokamak< P1Function,
                forms::p1_div_k_grad_blending_q3,
                P1ElementwiseBlendingDivKGradOperator,
                P1ElementwiseBlendingMassOperator,

@@ -51,7 +51,9 @@ void exportFunction( const FunctionType< real_t >&       function,
                      std::string                         vectorName,
                      std::shared_ptr< PrimitiveStorage > storage,
                      uint_t                              level,
-                     bool                                beVerbose = false )
+                     bool                                beVerbose = false,
+                     bool                                binary    = false,
+                     PetscViewerFormat                   format    = PETSC_VIEWER_ASCII_MATRIXMARKET )
 {
    // Get dimension of function space
    uint_t localDoFs  = hyteg::numberOfLocalDoFs< FunctionTag >( *storage, level );
@@ -84,7 +86,7 @@ void exportFunction( const FunctionType< real_t >&       function,
    {
       WALBERLA_LOG_INFO_ON_ROOT( " * Exporting vector to file '" << fileName << "'" );
    }
-   petscVector.print( fileName.c_str() );
+   petscVector.print( fileName.c_str(), binary, format );
 }
 
 } // namespace hyteg
