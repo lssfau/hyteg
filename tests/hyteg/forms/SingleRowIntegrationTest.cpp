@@ -81,7 +81,7 @@ void compareRows( const Form& form, const std::array< Point3D, dim + 1 >& elemen
 
    for ( uint_t col = 0; col < cols; col++ )
    {
-      elRowOfFullMat( row, col ) = elRow( row, col );
+      elRowOfFullMat( row, col ) = elMat( row, col );
    }
 
    real_t error = normOfDifference( elRow, elRowOfFullMat, elRowDifference );
@@ -117,17 +117,19 @@ int main( int argc, char** argv )
    form_p1_diffusion_blending_q3.setGeometryMap( identityMap );
    form_p2_diffusion_blending_q3.setGeometryMap( identityMap );
 
-   compareRows< forms::p1_diffusion_affine_q2, 2, 3, 3 >( form_p1_diffusion_affine_q2, element2D, 0, 1e-16 );
-   compareRows< forms::p1_diffusion_affine_q2, 3, 4, 4 >( form_p1_diffusion_affine_q2, element3D, 0, 1e-16 );
+   const double eps = 1e-14;
 
-   compareRows< forms::p2_diffusion_affine_q2, 2, 6, 6 >( form_p2_diffusion_affine_q2, element2D, 0, 1e-16 );
-   compareRows< forms::p2_diffusion_affine_q2, 3, 10, 10 >( form_p2_diffusion_affine_q2, element3D, 0, 1e-16 );
+   compareRows< forms::p1_diffusion_affine_q2, 2, 3, 3 >( form_p1_diffusion_affine_q2, element2D, 0, eps );
+   compareRows< forms::p1_diffusion_affine_q2, 3, 4, 4 >( form_p1_diffusion_affine_q2, element3D, 0, eps );
 
-   compareRows< forms::p1_diffusion_blending_q3, 2, 3, 3 >( form_p1_diffusion_blending_q3, element2D, 0, 1e-16 );
-   compareRows< forms::p1_diffusion_blending_q3, 3, 4, 4 >( form_p1_diffusion_blending_q3, element3D, 0, 1e-16 );
+   compareRows< forms::p2_diffusion_affine_q2, 2, 6, 6 >( form_p2_diffusion_affine_q2, element2D, 0, eps );
+   compareRows< forms::p2_diffusion_affine_q2, 3, 10, 10 >( form_p2_diffusion_affine_q2, element3D, 0, eps );
 
-   compareRows< forms::p2_diffusion_blending_q3, 2, 6, 6 >( form_p2_diffusion_blending_q3, element2D, 0, 1e-16 );
-   compareRows< forms::p2_diffusion_blending_q3, 3, 10, 10 >( form_p2_diffusion_blending_q3, element3D, 0, 1e-16 );
+   compareRows< forms::p1_diffusion_blending_q3, 2, 3, 3 >( form_p1_diffusion_blending_q3, element2D, 0, eps );
+   compareRows< forms::p1_diffusion_blending_q3, 3, 4, 4 >( form_p1_diffusion_blending_q3, element3D, 0, eps );
+
+   compareRows< forms::p2_diffusion_blending_q3, 2, 6, 6 >( form_p2_diffusion_blending_q3, element2D, 0, eps );
+   compareRows< forms::p2_diffusion_blending_q3, 3, 10, 10 >( form_p2_diffusion_blending_q3, element3D, 0, eps );
 
    return EXIT_SUCCESS;
 }
