@@ -308,7 +308,6 @@ int main( int argc, char** argv )
        std::make_unique< SetupPrimitiveStorage >( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
 
-   checkArea< P1ElementwiseBlendingMassOperator3D >( primStore, 1.0, "P1ElementwiseBlendingMassOperator3D", 2, 6e-8 );
    checkArea< P2ElementwiseBlendingMassOperator >( primStore, 1.0, "P2ElementwiseBlendingMassOperator", 2, 6e-8 );
 
    // Test with affine mapping
@@ -332,7 +331,6 @@ int main( int argc, char** argv )
    AffineMap3D::setMap( *setStore.get(), matAffineMap, vecAffineMap );
    primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
 
-   checkArea< P1ElementwiseBlendingMassOperator3D >( primStore, 2.0, "P1ElementwiseBlendingMassOperator3D", 2, 6e-8 );
    checkArea< P2ElementwiseBlendingMassOperator >( primStore, 2.0, "P2ElementwiseBlendingMassOperator", 2, 6e-8 );
 
    // Test with thick spherical shell
@@ -343,8 +341,6 @@ int main( int argc, char** argv )
    IcosahedralShellMap::setMap( *setStore.get() );
    primStore = std::make_shared< PrimitiveStorage >( *setStore.get() );
 
-   checkArea< P1ElementwiseBlendingMassOperator3D >(
-       primStore, 4.0 / 3.0 * pi * 7.0, "P1ElementwiseBlendingMassOperator3D", 2, 5e-6 );
    checkArea< P2ElementwiseBlendingMassOperator >(
        primStore, 4.0 / 3.0 * pi * 7.0, "P2ElementwiseBlendingMassOperator", 2, 5e-6 );
 
