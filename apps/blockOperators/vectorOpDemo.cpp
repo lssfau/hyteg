@@ -30,7 +30,7 @@
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/numerictools/SphericalHarmonicsTool.hpp"
-#include "hyteg/operators/VectorToVectorOperator.hpp"
+#include "hyteg/operators/VectorLaplaceOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
@@ -119,8 +119,7 @@ int main( int argc, char* argv[] )
 
    inputP1.interpolate( {inFunc1, inFunc2}, level );
 
-   // Thia time use factory approach to generate the operator object
-   P1VectorOperator vecLapP1 = generateP1VectorLaplaceOperator( storage, level, level );
+   P1ElementwiseVectorLaplaceOperator vecLapP1( storage, level, level );
    vecLapP1.apply( inputP1, outputP1, level, Inner );
 
    // output data for visualisation

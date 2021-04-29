@@ -39,12 +39,12 @@ namespace forms {
 
 /// Implementation of the integration of a weak form over an element.
 ///
-/// - name:        p2_diffusion_affine_q2
-/// - description: 
-/// - trial space: Lagrange, degree: 2
-/// - test space:  Lagrange, degree: 2
+/// - name:        p1_pspg_affine_q2
+/// - description: Implements bilinear form for PSPG stabilisation.
+/// - trial space: Lagrange, degree: 1
+/// - test space:  Lagrange, degree: 1
 ///
-class p2_diffusion_affine_q2 : public P2FormHyTeG
+class p1_pspg_affine_q2 : public P1FormHyTeG
 {
 
 
@@ -54,50 +54,50 @@ class p2_diffusion_affine_q2 : public P2FormHyTeG
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
-   /// - element matrix dimensions (rows, cols): (6, 6)
+   /// - element matrix dimensions (rows, cols): (3, 3)
    /// - quadrature rule:                        exact
    /// - floating point operations:
-   ///                                             adds    muls    divs    abs    assignments    function_calls
-   ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              330     328       3      1            267                 0
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                               55      77       1       0      1             74                 0
    ///
-   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 6, 6 >& elMat ) const;
+   void integrateAll( const std::array< Point3D, 3 >& coords, Matrix< real_t, 3, 3 >& elMat ) const;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
    /// - element geometry:                       triangle, dim: 2, vertices: 3
-   /// - element matrix dimensions (rows, cols): (6, 6)
+   /// - element matrix dimensions (rows, cols): (3, 3)
    /// - quadrature rule:                        exact
    /// - floating point operations:
-   ///                                             adds    muls    divs    abs    assignments    function_calls
-   ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              168     216       3      1            115                 0
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                               43      69       1       0      1             48                 0
    ///
-   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 6 >& elMat ) const;
+   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrix< real_t, 1, 3 >& elMat ) const;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
-   /// - element matrix dimensions (rows, cols): (10, 10)
+   /// - element matrix dimensions (rows, cols): (4, 4)
    /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
    /// - floating point operations:
-   ///                                             adds    muls    divs    abs    assignments    function_calls
-   ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              943    1414       2      1            748                 0
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                               72     136       2       1      1            118                 0
    ///
-   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 10, 10 >& elMat ) const;
+   void integrateAll( const std::array< Point3D, 4 >& coords, Matrix< real_t, 4, 4 >& elMat ) const;
 
    /// \brief Integrates the weak form over the passed element (vertices in computational space).
    ///
    /// - element geometry:                       tetrahedron, dim: 3, vertices: 4
-   /// - element matrix dimensions (rows, cols): (10, 10)
+   /// - element matrix dimensions (rows, cols): (4, 4)
    /// - quadrature rule:                        Vioreanu-Rokhlin 1 | points: 4, degree: 2, test tolerance: 2.379e-17
    /// - floating point operations:
-   ///                                             adds    muls    divs    abs    assignments    function_calls
-   ///                                           ------  ------  ------  -----  -------------  ----------------
-   ///                                              340     444       1      1            225                 0
+   ///                                             adds    muls    divs    pows    abs    assignments    function_calls
+   ///                                           ------  ------  ------  ------  -----  -------------  ----------------
+   ///                                               60      90       1       1      1             68                 0
    ///
-   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 10 >& elMat ) const;
+   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrix< real_t, 1, 4 >& elMat ) const;
 
 };
 

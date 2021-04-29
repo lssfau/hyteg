@@ -479,6 +479,8 @@ waLBerla_execute_test(NAME P2P1ElementwiseStokesOperatorTest)
 ## VectorFunctions ##
 waLBerla_compile_test(FILES VectorFunctions/VectorFunctionBasicTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME VectorFunctionBasicTest)
+waLBerla_compile_test(FILES operators/VectorOperatorBasicTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME VectorOperatorBasicTest)
 
 ## Other ##
 
@@ -655,6 +657,9 @@ endif()
 ## Form Evaluation ##
 waLBerla_compile_test(FILES forms/HytegVsFenicsFormTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME HytegVsFenicsFormTest )
+
+waLBerla_compile_test(FILES forms/SingleRowIntegrationTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME SingleRowIntegrationTest )
 
 ## Floating point exceptions ##
 waLBerla_compile_test(FILES fpe/invertElementwiseTest.cpp DEPENDS hyteg core)
