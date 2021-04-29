@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Dominik Thoennes, Marcus Mohr, Nils Kohl, Andreas Wagner.
+ * Copyright (c) 2017-2021 Dominik Thoennes, Marcus Mohr, Nils Kohl, Andreas Wagner.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -55,8 +55,6 @@ class P1VectorFunction : public CSFVectorFunction< P1VectorFunction< ValueType >
          this->compFunc_.push_back( std::make_shared< VectorComponentType >( _name + "_w", storage, minLevel, maxLevel ) );
       }
    }
-
-   bool isDummy() const { return false; }
 };
 
 } // namespace hyteg
