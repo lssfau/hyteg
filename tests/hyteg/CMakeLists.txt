@@ -231,6 +231,10 @@ endif()
 waLBerla_compile_test(FILES math/IntersectionTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME IntersectionTest)
 
+## meshes ##
+waLBerla_compile_test(FILES meshes/RefineCoarseMeshTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME RefineCoarseMeshTest)
+
 ## VertexDoFSpace ##
 
 waLBerla_compile_test(FILES vertexdofspace/VertexDoFFunctionTest.cpp DEPENDS hyteg core)

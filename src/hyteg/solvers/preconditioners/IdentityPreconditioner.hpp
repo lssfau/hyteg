@@ -20,7 +20,10 @@
 #pragma once
 #include <vector>
 
+#include "core/DataTypes.h"
+
 #include "hyteg/solvers/Solver.hpp"
+#include "hyteg/types/flags.hpp"
 
 namespace hyteg {
 
@@ -36,9 +39,9 @@ class IdentityPreconditioner : public Solver< OperatorType >
    void solve( const OperatorType&,
                const typename OperatorType::srcType& x,
                const typename OperatorType::dstType& b,
-               const uint_t                          level ) override
+               const walberla::uint_t                level ) override
    {
-      x.assign( {1.0}, {b}, level, flag_ );
+      x.assign( { 1.0 }, { b }, level, flag_ );
    }
 
  private:
