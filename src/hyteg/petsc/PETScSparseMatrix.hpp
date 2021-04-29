@@ -98,11 +98,18 @@ class PETScSparseMatrix
       return true;
    }
 
-   inline void print( const std::string& name, PetscViewerFormat format = PETSC_VIEWER_ASCII_MATRIXMARKET )
+   inline void print( const std::string& name, bool binary = false, PetscViewerFormat format = PETSC_VIEWER_ASCII_MATRIXMARKET )
    {
       PetscViewer viewer;
-      PetscViewerASCIIOpen( petscCommunicator_, name.c_str(), &viewer );
-      PetscViewerPushFormat( viewer, format );
+      if ( binary )
+      {
+         PetscViewerBinaryOpen( petscCommunicator_, name.c_str(), FILE_MODE_WRITE, &viewer );
+      }
+      else
+      {
+         PetscViewerASCIIOpen( petscCommunicator_, name.c_str(), &viewer );
+         PetscViewerPushFormat( viewer, format );
+      }
       MatView( mat, viewer );
       PetscViewerDestroy( &viewer );
    }

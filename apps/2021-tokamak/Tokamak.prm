@@ -1,0 +1,72 @@
+Parameters
+{
+    // ##################
+    // # discretization #
+    // ##################
+
+    elementType p1;
+
+    minLevel 0;
+    maxLevel 4;
+
+    // ##########
+    // # domain #
+    // ##########
+
+    numToroidalSlices          8;
+    numPoloidalSlices          6;
+    radiusOriginToCenterOfTube 6.2;
+    tubeLayerRadii             3; // list
+    torodialStartAngle         0;
+    polodialStartAngle         0;
+
+    delta                      0.32404302839;
+    r1                         2.0;
+    r2                         3.7;
+
+    coeff_R0                         6.2;
+    coeff_R1                         2.0;
+    coeff_R2                         4.0;
+    coeff_delta                      0.32404302839;
+    coeff_r_jump                     0.5;
+    coeff_d_jump                     0.1;
+    coeff_k_min                      1e0;
+    coeff_k_max                      1e4;
+
+    // ------------------
+    // ITER configuration
+    // ------------------
+    //
+    // radiusOriginToCenterOfTube 6.2;
+    // delta                      0.32404302839; // == sin(0.33)
+    // r1                         2.0;
+    // r2                         3.7;
+
+    // ##########
+    // # solver #
+    // ##########
+
+    // solvers:
+    // cg:       HyTeG CG
+    // gmg_wjac: HyTeG GMG with weighted Jacobi relaxation
+    // fmg_wjac: HyTeG FMG with weighted Jacobi relaxation, and subsequent v-cycles until convergence
+
+    solverType                gmg_wjac;
+    preSmooth                 3;
+    postSmooth                3;
+    relativeResidualReduction 1e-06;
+
+    // ################
+    // # app settings #
+    // ################
+
+    coarseMeshAndQuit         false;
+    dbFile                    Tokamak.db;
+    vtk                       true;
+    vtkDirectory              ./vtk;
+    precomputeElementMatrices true;
+
+    outputLinearSystem         false;
+    outputLinearSystemBaseName test;
+    outputLinearSystemFormat   ascii_matlab;  // either ascii_matlab or binary
+}

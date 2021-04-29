@@ -206,7 +206,7 @@ void assembleEdgeToEdgeStencils(
                       cell,
                       level,
                       form );
-                  for ( const auto stencilIt : edgeToEdgeStencilMap )
+                  for ( const auto& stencilIt : edgeToEdgeStencilMap )
                   {
                      edgeToEdgeStencilMemory[centerOrientation][leafOrientation][stencilIt.first] = stencilIt.second;
                   }
