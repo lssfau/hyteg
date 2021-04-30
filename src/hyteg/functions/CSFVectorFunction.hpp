@@ -140,7 +140,7 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   void add( real_t scalar, size_t level, DoFType flag = All ) const
+   void add( valueType scalar, size_t level, DoFType flag = All ) const
    {
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
       {
@@ -148,7 +148,7 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   void add( const std::vector< walberla::real_t >                                    scalars,
+   void add( const std::vector< valueType >                                           scalars,
              const std::vector< std::reference_wrapper< const VectorFunctionType > >& functions,
              size_t                                                                   level,
              DoFType                                                                  flag = All ) const
@@ -201,7 +201,7 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   void assign( const std::vector< walberla::real_t >                                    scalars,
+   void assign( const std::vector< valueType >                                           scalars,
                 const std::vector< std::reference_wrapper< const VectorFunctionType > >& functions,
                 size_t                                                                   level,
                 DoFType                                                                  flag = All ) const
@@ -212,7 +212,7 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   walberla::real_t dotLocal( const VectorFunctionType& rhs, const uint_t level, const DoFType flag = All ) const
+   valueType dotLocal( const VectorFunctionType& rhs, const uint_t level, const DoFType flag = All ) const
    {
       valueType sum = valueType( 0 );
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
@@ -222,7 +222,7 @@ class CSFVectorFunction : public GenericFunction
       return sum;
    }
 
-   walberla::real_t dotGlobal( const VectorFunctionType& rhs, const uint_t level, const DoFType flag = All ) const
+   valueType dotGlobal( const VectorFunctionType& rhs, const uint_t level, const DoFType flag = All ) const
    {
       auto sum = dotLocal( rhs, level, flag );
       walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
