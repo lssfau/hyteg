@@ -110,24 +110,27 @@ void solveProblem( std::shared_ptr< hyteg::PrimitiveStorage >& storage, uint_t l
       WALBERLA_LOG_INFO_ON_ROOT( "* no. of matrix assemblies called ........ " << info.assemblies );
       WALBERLA_LOG_INFO_ON_ROOT( "* no. of mallocs during MatSetValues() ... " << info.mallocs << "\n" );
 
-      WALBERLA_LOG_INFO_ON_ROOT( "* no. of global DoFs (HyTeG) ............. " << globalDoFs );
-      WALBERLA_LOG_INFO_ON_ROOT( "* no. of local DoFs (HyTeG) .............. " << localDoFs );
-      WALBERLA_LOG_INFO_ON_ROOT( "* no. of global inner DoFs (HyTeG) ....... "
-                                 << numberOfGlobalInnerDoFs< enumTag >( *storage, level ) );
-      break;
+      // WALBERLA_LOG_INFO_ON_ROOT( "* no. of global DoFs (HyTeG) ............. " << globalDoFs );
+      // WALBERLA_LOG_INFO_ON_ROOT( "* no. of local DoFs (HyTeG) .............. " << localDoFs );
+      // uint_t globalDoFCount = numberOfGlobalInnerDoFs< enumTag >( *storage, level );
+      // WALBERLA_LOG_INFO_ON_ROOT( "* no. of global inner DoFs (HyTeG) ....... "
+      //                             << globalDoFCount );
+      // break;
    }
-   // [fallthrough]];
+   [[fallthrough]];
    case 1:
    {
       WALBERLA_LOG_INFO_ON_ROOT( "* no. of global DoFs (HyTeG) ............. " << globalDoFs );
       WALBERLA_LOG_INFO_ON_ROOT( "* no. of local DoFs (HyTeG) .............. " << localDoFs );
-      WALBERLA_LOG_INFO_ON_ROOT( "* no. of global inner DoFs (HyTeG) ....... "
-                                 << numberOfGlobalInnerDoFs< enumTag >( *storage, level ) );
+      uint_t globalDoFCount = numberOfGlobalInnerDoFs< enumTag >( *storage, level );
+      WALBERLA_LOG_INFO_ON_ROOT( "* no. of global inner DoFs (HyTeG) ....... " << globalDoFCount );
       break;
    }
    default:
    {}
    }
+
+   WALBERLA_LOG_INFO_ON_ROOT( " Entering PETSc solve " );
 
    // let PETSc solve the problem
    PETScLUSolver< opType > solver( storage, level );
@@ -177,6 +180,11 @@ int main( int argc, char* argv[] )
    }
    loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   if ( verbosity > 1 )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "" << setupStorage );
+   }
 
    PETScManager petscManager( &argc, &argv );
 
