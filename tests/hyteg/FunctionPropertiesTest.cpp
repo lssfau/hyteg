@@ -42,10 +42,21 @@ void testFunctionProperties( const std::string& meshFileName,
    const uint_t numLocalDoFs  = numberOfLocalDoFs< FunctionTag_T >( *storage, level );
    const uint_t numInnerDoFs = numberOfGlobalInnerDoFs< FunctionTag_T >(*storage, level);
 
-   //local and global DoFs are the same in non parallel case:
-   WALBERLA_CHECK_EQUAL( numGlobalDoFs, numLocalDoFs )
+   bool verbose = false;
+   if ( verbose )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "numGlobalDoFs = " << numGlobalDoFs );
+      WALBERLA_LOG_INFO_ON_ROOT( "numGlobalInnerDoFs = " << numInnerDoFs );
+   }
+
    WALBERLA_CHECK_EQUAL( expectedGlobalDoFs, numGlobalDoFs )
    WALBERLA_CHECK_EQUAL( expectedInnerDoFs, numInnerDoFs )
+
+   if ( walberla::mpi::MPIManager::instance()->numProcesses() == 1 )
+   {
+      //local and global DoFs are the same in non parallel case:
+      WALBERLA_CHECK_EQUAL( numGlobalDoFs, numLocalDoFs )
+   }
 }
 
 } // namespace hyteg
