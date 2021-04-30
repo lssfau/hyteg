@@ -32,17 +32,19 @@
 
 namespace hyteg {
 
-real_t runTest(uint_t coarseRefinements)
+real_t runTest(uint_t coarseRefinements, uint_t level)
 {
-   const uint_t level = 2;
-//   const hyteg::MeshInfo meshInfo(
-//       MeshInfo::meshSymmetricCuboid( Point3D( { -1.0, -1.0, -1.0 } ), Point3D( { 1.0, 1.0, 1.0 } ), 1.0, 1.0, 1.0 ) );
-   //MeshInfo meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/tet_1el.msh" );
-   const hyteg::MeshInfo coarseMeshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/regular_octahedron_8el.msh" );
-   const hyteg::MeshInfo meshInfo{MeshInfo::refinedCoarseMesh(coarseMeshInfo, coarseRefinements)};
+   hyteg::MeshInfo meshInfo =
+       MeshInfo::meshSymmetricCuboid( Point3D( { -1.0, -1.0, -1.0 } ),
+                                      Point3D( { 1.0, 1.0, 1.0 } ),
+                                      1.0, 1.0, 1.0 );
+   meshInfo = MeshInfo::fromGmshFile( "../../data/meshes/3D/cube_6el.msh" );
+   if (coarseRefinements > 0 ) {
+      meshInfo = MeshInfo::refinedCoarseMesh(meshInfo, coarseRefinements);
+   }
    SetupPrimitiveStorage               setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
-   hyteg::writeDomainPartitioningVTK( storage, ".", "domain_partitioning" );
 
    P1ConstantLaplaceOperator laplaceOperator3D( storage, level, level );
 
@@ -82,7 +84,7 @@ real_t runTest(uint_t coarseRefinements)
    uExact.interpolate( exact, level, DoFType::All );
    oneFunction.interpolate( one, level, DoFType::All );
 
-   auto solver = CGSolver< P1ConstantLaplaceOperator >( storage, level, level,1000, 1e-10 );
+   auto solver = CGSolver< P1ConstantLaplaceOperator >( storage, level, level );
    //solver.setPrintInfo(true);
    solver.solve( laplaceOperator3D, u, f, level );
 
@@ -91,7 +93,7 @@ real_t runTest(uint_t coarseRefinements)
 
    auto discrL2Error    = std::sqrt( err.dotGlobal( err, level, DoFType::Inner ) / real_c( numUnknowns ) );
 
-   writeDomainPartitioningVTK( storage, ".", "RefineCoarseMeshTest_Domain" + std::to_string(coarseRefinements) );
+   writeDomainPartitioningVTK( storage, ".", "RefineCoarseMeshTest" + std::to_string(coarseRefinements) );
    VTKOutput vtkOutput(".", "RefineCoarseMeshTest" + std::to_string(coarseRefinements), storage);
    vtkOutput.add( u );
    vtkOutput.add( err );
@@ -106,6 +108,18 @@ int main( int argc, char** argv )
 {
    walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
    walberla::MPIManager::instance()->useWorldComm();
-   WALBERLA_LOG_DEVEL("discrL2Error:" << hyteg::runTest(0);)
-   WALBERLA_LOG_DEVEL("discrL2Error Refined:" << hyteg::runTest(1);)
+   walberla::real_t l2errors[3];
+   for( uint_t i = 0; i < 3; i++ ){
+      l2errors[i] = hyteg::runTest(0,3 + i);
+   }
+   WALBERLA_LOG_DEVEL("discrL2Error            level 3 : " << l2errors[0])
+   WALBERLA_LOG_DEVEL("discrL2Error            level 4 : " << l2errors[1] << " rate: " << l2errors[1] / l2errors[0])
+   WALBERLA_LOG_DEVEL("discrL2Error            level 5 : " << l2errors[2] << " rate: " << l2errors[2] / l2errors[1])
+
+   for( uint_t i = 0; i < 3; i++ ){
+      l2errors[i] = hyteg::runTest(1,2 + i);
+   }
+   WALBERLA_LOG_DEVEL("discrL2Error Refined 1, level 2 : " << l2errors[0])
+   WALBERLA_LOG_DEVEL("discrL2Error Refined 1, level 3 : " << l2errors[1] << " rate: " << l2errors[1] / l2errors[0])
+   WALBERLA_LOG_DEVEL("discrL2Error Refined 1, level 4 : " << l2errors[2] << " rate: " << l2errors[2] / l2errors[1])
 }

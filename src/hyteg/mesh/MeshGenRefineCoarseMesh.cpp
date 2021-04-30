@@ -90,7 +90,7 @@ MeshInfo MeshInfo::refinedCoarseMesh( const MeshInfo& originalMesh, uint_t refin
    // end of lambda function
 
    MeshInfo newMesh = originalMesh;
-   for ( uint_t steps = 0; steps <= refinementSteps; steps++ )
+   for ( uint_t steps = 1; steps <= refinementSteps; steps++ )
    {
       newMesh = refineOnce( newMesh );
    }
