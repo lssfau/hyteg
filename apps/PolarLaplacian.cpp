@@ -190,7 +190,8 @@ void solve_using_geometry_map( MeshInfo& meshInfo, walberla::Config::BlockHandle
   WALBERLA_LOG_INFO_ON_ROOT( " *** MG: L_2 norm of error = " << std::scientific << errNorm );
   WALBERLA_LOG_INFO_ON_ROOT( " *** MG: max norm of error = " << std::scientific << maxNorm );
   WALBERLA_LOG_INFO_ON_ROOT( " *** MG: maxLevel = " << maxLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( " *** MG: #DoFs = " << numberOfGlobalInnerDoFs<P1FunctionTag>( *storage, maxLevel ) );
+  uint_t aux = numberOfGlobalInnerDoFs<P1FunctionTag>( *storage, maxLevel );
+  WALBERLA_LOG_INFO_ON_ROOT( " *** MG: #DoFs = " << aux );
 
   // output data for visualisation
   if( outputVTK ) {
@@ -263,7 +264,8 @@ void solve_using_pimped_form( MeshInfo& meshInfo, walberla::Config::BlockHandle&
   WALBERLA_LOG_INFO_ON_ROOT( " *** MG: L_2 norm of error = " << std::scientific << errNorm );
   WALBERLA_LOG_INFO_ON_ROOT( " *** MG: max norm of error = " << std::scientific << maxNorm );
   WALBERLA_LOG_INFO_ON_ROOT( " *** MG: maxLevel = " << maxLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( " *** MG: #DoFs = " << numberOfGlobalInnerDoFs<P1FunctionTag>( *storage, maxLevel ) );
+  uint_t aux = numberOfGlobalInnerDoFs<P1FunctionTag>( *storage, maxLevel );
+  WALBERLA_LOG_INFO_ON_ROOT( " *** MG: #DoFs = " << aux );
 
   // output data for visualisation
   if( outputVTK ) {
