@@ -1161,6 +1161,35 @@ class MMOCTransport
       particleLocationRadius_ = 0.1 * MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    }
 
+   template < typename VectorFunctionType >
+   void step( const FunctionType&       c,
+              const VectorFunctionType& u,
+              const VectorFunctionType& uLastTimeStep,
+              const uint_t&             level,
+              const DoFType&            flag,
+              const real_t&             dt,
+              const uint_t&             innerSteps,
+              const bool&               resetParticles                  = true,
+              const bool&               globalMaxLimiter                = true,
+              const bool&               setParticlesOutsideDomainToZero = false )
+   {
+      uint_t aux = u.getDimension() == 3 ? 2 : 0;
+      step( c,
+            u[0],
+            u[1],
+            u[aux],
+            uLastTimeStep[0],
+            uLastTimeStep[1],
+            uLastTimeStep[aux],
+            level,
+            flag,
+            dt,
+            innerSteps,
+            resetParticles,
+            globalMaxLimiter,
+            setParticlesOutsideDomainToZero );
+   }
+
    void step( const FunctionType& c,
               const FunctionType& ux,
               const FunctionType& uy,
