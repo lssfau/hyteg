@@ -649,7 +649,7 @@ void runBenchmark( real_t      cflMax,
       localTimer.start();
 
       /// [Advection]
-      transport.step( c, u.uvw[0], u.uvw[1], u.uvw[2], u.uvw[0], u.uvw[1], u.uvw[2], maxLevel, All, dt, 1, true );
+      transport.step( c, u.uvw, u.uvw, maxLevel, All, dt, 1, true );
       /// [Advection]
       localTimer.end();
       timeMMOC = localTimer.last();
