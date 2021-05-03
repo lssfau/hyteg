@@ -649,7 +649,8 @@ void runBenchmark( real_t      cflMax,
       localTimer.start();
 
       /// [Advection]
-      transport.step( c, u.uvw[0], u.uvw[1], u.uvw[2], u.uvw[0], u.uvw[1], u.uvw[2], maxLevel, All, dt, 1, true );
+      uint_t fix = u.uvw.getDimension() == 3 ? 2 : 0; // issue #150: temporary fix until interface is adapted to vector functions
+      transport.step( c, u.uvw[0], u.uvw[1], u.uvw[fix], u.uvw[0], u.uvw[1], u.uvw[fix], maxLevel, All, dt, 1, true );
       /// [Advection]
       localTimer.end();
       timeMMOC = localTimer.last();
