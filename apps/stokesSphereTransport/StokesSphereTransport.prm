@@ -24,7 +24,7 @@ Parameters
   vtkOutput true;
   vtkFrequency 1;
   vtkBaseFile StokesSphereTransport_lel;
-  vtkDirectory output_5;
+  vtkDirectory output;
   vtkOutputLevel 3; // P1 level, max output level <= maxLevel but will output only the vertex unknowns (cannot output all DoFs)
   exitAfterWriteDomain false;
 }

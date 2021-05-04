@@ -161,11 +161,9 @@ void runTest( uint_t maxLevel, uint_t steps, uint_t timeSteppingScheme, real_t d
    FunctionType cMass( "cMass", storage, minLevel, maxLevel );
    FunctionType tmp0( "tmp0", storage, minLevel, maxLevel );
    FunctionType tmp1( "tmp1", storage, minLevel, maxLevel );
-   FunctionType u( "u", storage, minLevel, maxLevel );
-   FunctionType v( "v", storage, minLevel, maxLevel );
-   FunctionType w( "w", storage, minLevel, maxLevel );
    FunctionType f( "f", storage, minLevel, maxLevel );
    FunctionType fOld( "fOld", storage, minLevel, maxLevel );
+   typename FunctionTrait< FunctionType >::AssocVectorFunctionType uv( "uv", storage, minLevel, maxLevel );
 
    UnsteadyDiffusionOperator     diffusionOperator( storage, minLevel, maxLevel, dt, diffusivity, timeIntegrator );
    LaplaceOperator               L( storage, minLevel, maxLevel );
@@ -183,14 +181,12 @@ void runTest( uint_t maxLevel, uint_t steps, uint_t timeSteppingScheme, real_t d
    UnsteadyDiffusion< P2Function< real_t >, P2ConstantUnsteadyDiffusionOperator, P2ConstantLaplaceOperator, P2ConstantMassOperator > diffusionSolver(
        storage, minLevel, maxLevel, solverLoop );
 
-   u.interpolate( vel_x, maxLevel );
-   v.interpolate( vel_y, maxLevel );
+   uv.interpolate( { vel_x, vel_y }, maxLevel );
    c.interpolate( solution, maxLevel );
 
    hyteg::VTKOutput vtkOutput( "../../output", "P2UnsteadyConvectionDiffusion2DTest", storage );
 
-   vtkOutput.add( u );
-   vtkOutput.add( v );
+   vtkOutput.add( uv );
    vtkOutput.add( c );
    vtkOutput.add( cSolution );
    vtkOutput.add( cError );
@@ -226,7 +222,7 @@ void runTest( uint_t maxLevel, uint_t steps, uint_t timeSteppingScheme, real_t d
 
       cSolution.interpolate( solution, maxLevel, All );
 
-      transport.step( c, u, v, w, u, v, w, maxLevel, Inner, dt, 1 );
+      transport.step( c, uv, uv, maxLevel, Inner, dt, 1 );
 
       fOld.assign( {1.0}, {f}, maxLevel, All );
       cOld.assign( {1.0}, {c}, maxLevel, All );

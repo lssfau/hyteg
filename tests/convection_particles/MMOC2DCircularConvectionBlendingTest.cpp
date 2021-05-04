@@ -171,10 +171,8 @@ void test( uint_t level, real_t errorE1Limit, real_t errorE2Limit )
    FunctionType cInitial( "cInitial", storage, minLevel, maxLevel );
    FunctionType cError( "cError", storage, minLevel, maxLevel );
    FunctionType cMass( "cError", storage, minLevel, maxLevel );
-   FunctionType u( "u", storage, minLevel, maxLevel );
-   FunctionType v( "v", storage, minLevel, maxLevel );
-   FunctionType w( "w", storage, minLevel, maxLevel );
    FunctionType velocityMagnitude( "velocityMagnitude", storage, minLevel, maxLevel );
+   typename FunctionTrait< FunctionType >::AssocVectorFunctionType uv( "uv", storage, minLevel, maxLevel );
 
    FunctionType tmp0( "tmp0", storage, minLevel, maxLevel );
    FunctionType tmp1( "tmp1", storage, minLevel, maxLevel );
@@ -182,8 +180,7 @@ void test( uint_t level, real_t errorE1Limit, real_t errorE2Limit )
    MassOperator                  M( storage, minLevel, maxLevel );
    MMOCTransport< FunctionType > transport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
-   u.interpolate( vel_x, maxLevel );
-   v.interpolate( vel_y, maxLevel );
+   uv.interpolate( {vel_x, vel_y}, maxLevel );
    c.interpolate( initialBodies, maxLevel );
    cInitial.interpolate( initialBodies, maxLevel );
 
@@ -192,12 +189,11 @@ void test( uint_t level, real_t errorE1Limit, real_t errorE2Limit )
       return Point3D( {values[0], values[1], 0} ).norm();
    };
 
-   velocityMagnitude.interpolate( magnitude, {u, v}, maxLevel, All );
+   velocityMagnitude.interpolate( magnitude, {uv[0], uv[1]}, maxLevel, All );
 
    VTKOutput vtkOutput( "../../output", "MMOC2DCircularConvectionBlendingTest", storage );
 
-   vtkOutput.add( u );
-   vtkOutput.add( v );
+   vtkOutput.add( uv );
    vtkOutput.add( c );
    vtkOutput.add( cError );
    vtkOutput.add( cInitial );
@@ -219,7 +215,7 @@ void test( uint_t level, real_t errorE1Limit, real_t errorE2Limit )
 
    for ( uint_t i = 1; i <= outerSteps; i++ )
    {
-      transport.step( c, u, v, w, u, v, w, maxLevel, Inner, dt, innerSteps, i == 1 );
+      transport.step( c, uv, uv, maxLevel, Inner, dt, innerSteps, i == 1 );
 
       cError.assign( {1.0, -1.0}, {c, cInitial}, maxLevel, All );
       max_temp = c.getMaxMagnitude( maxLevel, All );
