@@ -283,7 +283,7 @@ void runSimulation( int argc, char** argv )
       const auto maxVelocity = velocityMaxMagnitude( u.uvw[0], u.uvw[1], tmp.uvw[0], tmp.uvw[1], maxLevel, All );
       const auto dt          = ( cflUpperBound / maxVelocity ) * hMin;
 
-      transport.step( c, u.uvw[0], u.uvw[1], u.uvw[2], uLast.uvw[0], uLast.uvw[1], uLast.uvw[2], maxLevel, Inner, dt, 1, true );
+      transport.step( c, u.uvw, uLast.uvw, maxLevel, Inner, dt, 1, true );
 
       if ( writeVTK )
       {

@@ -237,12 +237,15 @@ void solve( MeshInfo&               meshInfo,
    FunctionType cMass( "cMass", storage, level, level );
    FunctionType tmp( "tmp", storage, level, level );
    FunctionType tmp2( "tmp2", storage, level, level );
-   FunctionType u( "u", storage, level, level );
-   FunctionType v( "v", storage, level, level );
-   FunctionType w( "w", storage, level, level );
-   FunctionType uLast( "uLast", storage, level, level );
-   FunctionType vLast( "vLast", storage, level, level );
-   FunctionType wLast( "wLast", storage, level, level );
+   
+   typename FunctionTrait< FunctionType >::AssocVectorFunctionType uvw( "uvw", storage, level, level );
+   typename FunctionTrait< FunctionType >::AssocVectorFunctionType uvwLast( "uvwLast", storage, level, level );
+   // FunctionType u( "u", storage, level, level );
+   // FunctionType v( "v", storage, level, level );
+   // FunctionType w( "w", storage, level, level );
+   // FunctionType uLast( "uLast", storage, level, level );
+   // FunctionType vLast( "vLast", storage, level, level );
+   // FunctionType wLast( "wLast", storage, level, level );
 
    if ( verbose )
    {
@@ -286,11 +289,11 @@ void solve( MeshInfo&               meshInfo,
 
    c.interpolate( std::function< real_t( const Point3D& ) >( std::ref( solution ) ), level );
    cSolution.interpolate( std::function< real_t( const Point3D& ) >( std::ref( solution ) ), level );
-   u.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
-   v.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
+   uvw[0].interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
+   uvw[1].interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
    if ( storage->hasGlobalCells() )
    {
-      w.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityZ ) ), level );
+      uvw[2].interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityZ ) ), level );
    }
 
    if ( verbose )
@@ -314,7 +317,7 @@ void solve( MeshInfo&               meshInfo,
    const auto initialMass = mass;
    auto       massChange  = ( mass / initialMass ) - 1.0;
    real_t     timeTotal   = 0;
-   real_t     vMax        = velocityMaxMagnitude( u, v, w, tmp, tmp2, level, All );
+   real_t     vMax        = velocityMaxMagnitude( uvw[0], uvw[1], uvw[2], tmp, tmp2, level, All );
 
    if ( verbose )
    {
@@ -326,12 +329,7 @@ void solve( MeshInfo&               meshInfo,
 
    if ( vtkOutputVelocity )
    {
-      vtkOutput.add( u );
-      vtkOutput.add( v );
-      if ( storage->hasGlobalCells() )
-      {
-         vtkOutput.add( w );
-      }
+      vtkOutput.add( uvw );
    }
    vtkOutput.add( c );
    vtkOutput.add( cSolution );
@@ -394,22 +392,22 @@ void solve( MeshInfo&               meshInfo,
       velocityY.setTime( startTimeY + dt * real_c(tsVelocityCurrent) );
       velocityZ.setTime( startTimeZ + dt * real_c(tsVelocityCurrent) );
 
-      uLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
-      vLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
+      uvwLast[0].interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
+      uvwLast[1].interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
       if ( storage->hasGlobalCells() )
       {
-         wLast.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityZ ) ), level );
+         uvwLast[2].interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityZ ) ), level );
       }
 
       velocityX.setTime( startTimeX + dt * real_c(tsVelocityNext) );
       velocityY.setTime( startTimeY + dt * real_c(tsVelocityNext) );
       velocityZ.setTime( startTimeZ + dt * real_c(tsVelocityNext) );
 
-      u.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
-      v.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
+      uvw[0].interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityX ) ), level );
+      uvw[1].interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityY ) ), level );
       if ( storage->hasGlobalCells() )
       {
-         w.interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityZ ) ), level );
+         uvw[2].interpolate( std::function< real_t( const Point3D& ) >( std::ref( velocityZ ) ), level );
       }
 
       if ( verbose )
@@ -417,7 +415,7 @@ void solve( MeshInfo&               meshInfo,
 
       real_t advectionTimeStepRunTime;
 
-      vMax = velocityMaxMagnitude( u, v, w, tmp, tmp2, level, All );
+      vMax = velocityMaxMagnitude( uvw[0], uvw[1], uvw[2], tmp, tmp2, level, All );
 
       if ( enableDiffusion && strangSplitting )
       {
@@ -437,12 +435,8 @@ void solve( MeshInfo&               meshInfo,
          const real_t adjustedAdvectionPertubation = 0.1 * ( hMin / vMax );
          localTimer.start();
          transport.step( c,
-                         u,
-                         v,
-                         w,
-                         uLast,
-                         vLast,
-                         wLast,
+                         uvw,
+                         uvwLast,
                          level,
                          Inner,
                          dt,
@@ -459,12 +453,8 @@ void solve( MeshInfo&               meshInfo,
       {
          localTimer.start();
          transport.step( c,
-                         u,
-                         v,
-                         w,
-                         uLast,
-                         vLast,
-                         wLast,
+                         uvw,
+                         uvwLast,
                          level,
                          Inner,
                          dt,
