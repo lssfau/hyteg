@@ -403,18 +403,7 @@ void simulate( int argc, char* argv[] )
 
       time += dt;
 
-      transport.step( temp,
-                      u.uvw[0],
-                      u.uvw[1],
-                      u.uvw[2],
-                      uLastTimeStep.uvw[0],
-                      uLastTimeStep.uvw[1],
-                      uLastTimeStep.uvw[2],
-                      maxLevel,
-                      All,
-                      dt,
-                      1,
-                      true );
+      transport.step( temp, u.uvw, uLastTimeStep.uvw, maxLevel, All, dt, 1, true );
 
       timer.end();
       WALBERLA_LOG_INFO_ON_ROOT( "" )
