@@ -89,9 +89,9 @@ MeshInfo MeshInfo::refinedCoarseMesh( const MeshInfo& originalMesh, uint_t refin
          std::vector< MeshInfo::Cell > newCells( 8 );
          // 4 tets contain the original vertices
          newCells[0] = Cell( { oldVerticesVector[0], newVertexIds[0], newVertexIds[1], newVertexIds[3] }, 0 );
-         newCells[1] = Cell( { oldVerticesVector[1], newVertexIds[0], newVertexIds[2], newVertexIds[4] }, 0 );
-         newCells[2] = Cell( { oldVerticesVector[2], newVertexIds[1], newVertexIds[2], newVertexIds[5] }, 0 );
-         newCells[3] = Cell( { oldVerticesVector[3], newVertexIds[3], newVertexIds[4], newVertexIds[5] }, 0 );
+         newCells[1] = Cell( { newVertexIds[0], oldVerticesVector[1], newVertexIds[2], newVertexIds[4] }, 0 );
+         newCells[2] = Cell( { newVertexIds[1], newVertexIds[2], oldVerticesVector[2], newVertexIds[5] }, 0 );
+         newCells[3] = Cell( { newVertexIds[3], newVertexIds[4], newVertexIds[5], oldVerticesVector[3] }, 0 );
 
          // 4 tets are construced from new points
          newCells[4] = Cell( { newVertexIds[0], newVertexIds[1], newVertexIds[2], newVertexIds[4] }, 0 );

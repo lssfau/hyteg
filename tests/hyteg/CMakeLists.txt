@@ -232,8 +232,11 @@ waLBerla_compile_test(FILES math/IntersectionTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME IntersectionTest)
 
 ## meshes ##
-waLBerla_compile_test(FILES meshes/RefineCoarseMeshTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME RefineCoarseMeshTest)
+waLBerla_compile_test(FILES meshes/RefineCoarseMeshCGTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME RefineCoarseMeshCGTest)
+
+waLBerla_compile_test(FILES meshes/RefineCoarseMeshComparisonTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME RefineCoarseMeshComparisonTest)
 
 ## VertexDoFSpace ##
 
