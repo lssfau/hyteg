@@ -425,6 +425,74 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCellForm( con
   return macroCellStencilEntries;
 }
 
+// as above but using the new integrateRow()-interface. Old version is kept for legacy purposes, e.g., P2 Operators.
+// todo: remove old version once all Operators are renewed
+/// \brief Calculates the stencil weights from the stiffness matrices of neighboring elements at an index in a macro-cell.
+///
+/// Also works for indices on the boundary of a macro-cell. In this case the stencil map simply contains less elements.
+/// It automatically computes / selects the neighboring elements depending on the micro-vertex' location.
+/// Note that only the weights for the stencil that lie in the specified macro-cell are returned.
+///
+/// \param microVertexIndex the logical index of the micro-vertex in a macro-cell (can also be located on the macro-cell's boundary)
+/// \param cell the surrounding macro-cell
+/// \param level the hierarchy level
+/// \param form the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \return a (variable sized) map from stencil directions to stencil weights
+///
+template< class P1Form >
+inline std::map< stencilDirection, real_t > calculateStencilInMacroCellForm_new( const indexing::Index & microVertexIndex, const Cell & cell,
+                                                                             const uint_t & level, const P1Form & form )
+{
+  std::map< stencilDirection, real_t > macroCellStencilEntries;
+
+  const auto neighboringElements = getNeighboringElements( microVertexIndex, level );
+
+  // 1. Going over all neighboring cells of a micro-vertex
+  //    A neighboring cell is defined by a 4-tuple of (different) stencil directions with one of them being VERTEX_C.
+  //    VERTEX_C represents the reference micro-vertex.
+  for ( const auto & cellAtVertex : neighboringElements )
+  {
+    WALBERLA_ASSERT_EQUAL( cellAtVertex[0], sd::VERTEX_C );
+
+    // 2. Collecting the logical index offsets of each micro-vertex of the current neighboring cell from the reference micro-vertex
+    std::array< indexing::Index, 4 > logicalOffsetsFromCenter;
+    for ( uint_t localID = 0; localID < 4; localID++ ) {
+      logicalOffsetsFromCenter[localID] = microVertexIndex + vertexdof::logicalIndexOffsetFromVertex( cellAtVertex[localID] );
+    }
+
+    // 3. Calculating the absolute offsets of each micro-vertex of the current cell from the reference micro-vertex
+    std::array< Point3D, 4 > geometricCoordinates;
+    for ( uint_t localID = 0; localID < 4; localID++ ) {
+      geometricCoordinates[localID] = vertexdof::macrocell::coordinateFromIndex( level, cell, logicalOffsetsFromCenter[localID] );
+    }
+
+    std::array< Point3D, 4 > geometricOffsetsFromCenter;
+    for ( uint_t localID = 0; localID < 4; localID++ ) {
+      geometricOffsetsFromCenter[localID] = geometricCoordinates[localID] - geometricCoordinates[0];
+    }
+
+    // 4. Computing the local stiffness matrix
+    //    To calculate the 4x4 stiffness matrix, we need the geometric offsets from the reference micro-vertex
+    //    from all micro-vertices in the neighbor cell (including the reference micro-vertex itself -> the first offset is always (0.0, 0.0, 0.0))
+    Matrixr<1,4> localStiffnessMatrixRow;
+    form.integrateRow(0, geometricOffsetsFromCenter, localStiffnessMatrixRow );
+
+    // 5. Adding contribution to stencil
+    //    Since we enforced that the first entry in the local cell micro-vertex array is always the reference micro-vertex
+    //    we only need to get the result of the form integrator which gives us the first row of the local stiffness matrix
+    for ( uint_t localID = 0; localID < 4; localID++ )
+    {
+      const stencilDirection stencilDir = cellAtVertex[ localID ];
+      if ( macroCellStencilEntries.count( stencilDir ) == 0 )
+      {
+        macroCellStencilEntries[ stencilDir ] = real_c( 0 );
+      }
+      macroCellStencilEntries[ stencilDir ] += real_c( localStiffnessMatrixRow(0,localID) );
+    }
+  }
+  return macroCellStencilEntries;
+}
+
 
 /// \brief Assembles the local P1 operator stencil on a macro-vertex
 ///
@@ -799,6 +867,34 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
   return calculateStencilInMacroCellForm( microVertexIndex, cell, level, form );
 }
 
+// as above but using the new integrateRow()-interface. Old version is kept for legacy purposes, e.g., P2 Operators.
+// todo: remove old version once all Operators are renewed
+/// \brief Assembles the local P1 operator stencil on a macro-cell
+///
+/// \param storage the governing \ref PrimitiveStorage
+/// \param cell the macro-cell
+/// \param microVertexIndex the micro-vertex index on the macro-cell (must lie in the interior of the macro-cell)
+/// \param level the multigrid level
+/// \param form the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \return a map containing the stencil weights for the micro-vertex on that macro-cell,
+///
+template< class P1Form >
+inline std::map< stencilDirection, real_t > assembleP1LocalStencil_new( const std::shared_ptr< PrimitiveStorage > & storage, const Cell & cell,
+                                                                    const indexing::Index & microVertexIndex, const uint_t & level, const P1Form & form )
+{
+  WALBERLA_UNUSED( storage );
+  WALBERLA_DEBUG_SECTION()
+  {
+    const auto onCellVertices = vertexdof::macrocell::isOnCellVertex( microVertexIndex, level );
+    const auto onCellEdges = vertexdof::macrocell::isOnCellEdge( microVertexIndex, level );
+    const auto onCellFaces = vertexdof::macrocell::isOnCellFace( microVertexIndex, level );
+    WALBERLA_CHECK_EQUAL( onCellVertices.size(), 0 );
+    WALBERLA_CHECK_EQUAL( onCellEdges.size(), 0 );
+    WALBERLA_CHECK_EQUAL( onCellFaces.size(), 0 );
+  }
+  return calculateStencilInMacroCellForm_new( microVertexIndex, cell, level, form );
+}
+
 /// \brief Assembles the local P1 operator stencil on a macro-cell
 ///
 /// \param storage the governing \ref PrimitiveStorage
@@ -823,6 +919,40 @@ inline std::map< indexing::IndexIncrement, real_t > assembleP1LocalStencilNew( c
 //    WALBERLA_CHECK_EQUAL( onCellFaces.size(), 0 );
   }
   auto stencilMap = calculateStencilInMacroCellForm( microVertexIndex, cell, level, form );
+  std::map< indexing::IndexIncrement, real_t > convertedMap;
+  for ( const auto & it : stencilMap )
+  {
+    convertedMap[vertexdof::logicalIndexOffsetFromVertex(it.first)] = it.second;
+  }
+  return convertedMap;
+}
+
+// as above but using the new integrateRow()-interface. Old version is kept for legacy purposes, e.g., P2 Operators.
+// todo: remove old version once all Operators are renewed
+/// \brief Assembles the local P1 operator stencil on a macro-cell
+///
+/// \param storage the governing \ref PrimitiveStorage
+/// \param cell the macro-cell
+/// \param microVertexIndex the micro-vertex index on the macro-cell (must lie in the interior of the macro-cell)
+/// \param level the multigrid level
+/// \param form the UFC object that implements tabulate_tensor() to calculate the local stiffness matrix
+/// \return a map containing the stencil weights for the micro-vertex on that macro-cell,
+///
+template< class P1Form >
+inline std::map< indexing::IndexIncrement, real_t > assembleP1LocalStencilNew_new( const std::shared_ptr< PrimitiveStorage > & storage, const Cell & cell,
+                                                                               const indexing::Index & microVertexIndex, const uint_t & level, const P1Form & form )
+{
+  WALBERLA_UNUSED( storage );
+  WALBERLA_DEBUG_SECTION()
+  {
+//    const auto onCellVertices = vertexdof::macrocell::isOnCellVertex( microVertexIndex, level );
+//    const auto onCellEdges = vertexdof::macrocell::isOnCellEdge( microVertexIndex, level );
+//    const auto onCellFaces = vertexdof::macrocell::isOnCellFace( microVertexIndex, level );
+//    WALBERLA_CHECK_EQUAL( onCellVertices.size(), 0 );
+//    WALBERLA_CHECK_EQUAL( onCellEdges.size(), 0 );
+//    WALBERLA_CHECK_EQUAL( onCellFaces.size(), 0 );
+  }
+  auto stencilMap = calculateStencilInMacroCellForm_new( microVertexIndex, cell, level, form );
   std::map< indexing::IndexIncrement, real_t > convertedMap;
   for ( const auto & it : stencilMap )
   {

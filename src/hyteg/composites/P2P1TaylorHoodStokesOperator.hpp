@@ -25,6 +25,7 @@
 #include "hyteg/mixedoperators/P1ToP2Operator.hpp"
 #include "hyteg/mixedoperators/P2ToP1Operator.hpp"
 #include "hyteg/mixedoperators/P2VectorToP1ScalarOperator.hpp"
+#include "hyteg/operators/VectorLaplaceOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 
 namespace hyteg {
@@ -38,6 +39,7 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
    P2P1TaylorHoodStokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )
    , A( storage, minLevel, maxLevel )
+   , Lapl( storage, minLevel, maxLevel )
    , div_x( storage, minLevel, maxLevel )
    , div_y( storage, minLevel, maxLevel )
    , div_z( storage, minLevel, maxLevel )
@@ -56,37 +58,23 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
                const uint_t                            level,
                const DoFType                           flag ) const
    {
-      A.apply( src.uvw.u, dst.uvw.u, level, flag, Replace );
-      divT_x.apply( src.p, dst.uvw.u, level, flag, Add );
-
-      A.apply( src.uvw.v, dst.uvw.v, level, flag, Replace );
-      divT_y.apply( src.p, dst.uvw.v, level, flag, Add );
-
-      if ( hasGlobalCells_ )
-      {
-         A.apply( src.uvw.w, dst.uvw.w, level, flag, Replace );
-         divT_z.apply( src.p, dst.uvw.w, level, flag, Add );
-      }
-
-      div_x.apply( src.uvw.u, dst.p, level, flag, Replace );
-      div_y.apply( src.uvw.v, dst.p, level, flag, Add );
-
-      if ( hasGlobalCells_ )
-      {
-         div_z.apply( src.uvw.w, dst.p, level, flag, Add );
-      }
+      Lapl.apply( src.uvw, dst.uvw, level, flag, Replace );
+      divT.apply( src.p, dst.uvw, level, flag, Add );
+      div.apply( src.uvw, dst.p, level, flag, Replace );
    }
 
-   P2ConstantLaplaceOperator   A;
-   P2ToP1ConstantDivxOperator  div_x;
-   P2ToP1ConstantDivyOperator  div_y;
-   P2ToP1ConstantDivzOperator  div_z;
-   P1ToP2ConstantDivTxOperator divT_x;
-   P1ToP2ConstantDivTyOperator divT_y;
-   P1ToP2ConstantDivTzOperator divT_z;
-
+   P2ConstantVectorLaplaceOperator Lapl;
    P2ToP1ConstantDivOperator  div;
    P1ToP2ConstantDivTOperator divT;
+
+   // currently need these for being able to call createMatrix()
+   P2ConstantLaplaceOperator A;
+   P2ToP1ConstantDivxOperator      div_x;
+   P2ToP1ConstantDivyOperator      div_y;
+   P2ToP1ConstantDivzOperator      div_z;
+   P1ToP2ConstantDivTxOperator     divT_x;
+   P1ToP2ConstantDivTyOperator     divT_y;
+   P1ToP2ConstantDivTzOperator     divT_z;
 
    /// this operator is need in the uzawa smoother
    P1PSPGOperator        pspg_;

@@ -20,20 +20,22 @@
 
 #include "core/Environment.h"
 #include "core/config/Config.h"
-#include "core/timing/TimingJSON.h"
 #include "core/math/Constants.h"
+#include "core/timing/TimingJSON.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "hyteg/gridtransferoperators/P1toP2Conversion.hpp"
+#include "hyteg/gridtransferoperators/P2toP1Conversion.hpp"
 #include "hyteg/gridtransferoperators/P2toP2QuadraticProlongation.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
@@ -152,7 +154,8 @@ static void defectCorrection( int argc, char** argv )
 
    tmp_P2.interpolate( rhsAnalytical, maxLevel - 1, All );
    M_P2.apply( tmp_P2, f_P2, maxLevel - 1, All );
-   f_P2_on_P1_space.assign( f_P2, maxLevel, All );
+   // f_P2_on_P1_space.assign( f_P2, maxLevel, All );
+   P2toP1Conversion( f_P2, f_P2_on_P1_space, maxLevel, All );
 
    tmp.interpolate( rhsAnalytical, maxLevel, All );
    M_P1.apply( tmp, f, maxLevel, All );
@@ -202,9 +205,9 @@ static void defectCorrection( int argc, char** argv )
 
       // A_higher_order * u (quadratic)
       // u_quadratic is given by direct injection of the linear coefficients
-      u_P2.assign( u, maxLevel - 1, All );
+      P1toP2Conversion( u, u_P2, maxLevel - 1, All );
       A_P2.apply( u_P2, Au_P2, maxLevel - 1, Inner );
-      Au_P2_converted_to_P2.assign( Au_P2, maxLevel, All );
+      P2toP1Conversion( Au_P2, Au_P2_converted_to_P2, maxLevel, All );
 
       // defect correction
       // f_correction = f - (A_higher_order * u^i-1) + (A * u^i-1)

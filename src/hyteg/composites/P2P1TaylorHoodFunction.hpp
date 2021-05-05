@@ -53,9 +53,11 @@ class P2P1TaylorHoodFunction
                            size_t                                     minLevel,
                            size_t                                     maxLevel,
                            BoundaryCondition                          velocityBC )
-   : uvw( _name + "_vector", storage, minLevel, maxLevel, velocityBC )
+   : uvw( _name + "_vector", storage, minLevel, maxLevel )
    , p( _name + "_p", storage, minLevel, maxLevel, BoundaryCondition::createAllInnerBC() )
-   {}
+   {
+     uvw.setBoundaryCondition( velocityBC );
+   }
 
    std::shared_ptr< PrimitiveStorage > getStorage() const { return uvw.getStorage(); }
 
@@ -184,9 +186,10 @@ class P2P1TaylorHoodFunction
          offset += static_cast< ValueType >( doFsPerRank[i] );
       }
 
-      uvw[0].enumerate( level, offset );
-      uvw[1].enumerate( level, offset );
-      uvw[2].enumerate( level, offset );
+      for ( uint_t k = 0; k < uvw.getDimension(); k++ )
+      {
+         uvw[k].enumerate( level, offset );
+      }
       p.enumerate( level, offset );
    }
 
@@ -210,9 +213,7 @@ class P2P1TaylorHoodFunction
 
    void setVelocityBoundaryCondition( BoundaryCondition bc )
    {
-      uvw[0].setBoundaryCondition( bc );
-      uvw[1].setBoundaryCondition( bc );
-      uvw[2].setBoundaryCondition( bc );
+      uvw.setBoundaryCondition( bc );
    }
 
    void setPressureBoundaryCondition( BoundaryCondition bc ) { p.setBoundaryCondition( bc ); }

@@ -65,24 +65,24 @@ class P2P1ElementwiseConstantCoefficientStokesOperator
                const uint_t                            level,
                const DoFType                           flag ) const
    {
-      A.apply( src.uvw.u, dst.uvw.u, level, flag, Replace );
-      divT_x.apply( src.p, dst.uvw.u, level, flag, Add );
+      A.apply( src.uvw[0], dst.uvw[0], level, flag, Replace );
+      divT_x.apply( src.p, dst.uvw[0], level, flag, Add );
 
-      A.apply( src.uvw.v, dst.uvw.v, level, flag, Replace );
-      divT_y.apply( src.p, dst.uvw.v, level, flag, Add );
+      A.apply( src.uvw[1], dst.uvw[1], level, flag, Replace );
+      divT_y.apply( src.p, dst.uvw[1], level, flag, Add );
 
       if ( hasGlobalCells_ )
       {
-         A.apply( src.uvw.w, dst.uvw.w, level, flag, Replace );
-         divT_z.apply( src.p, dst.uvw.w, level, flag, Add );
+         A.apply( src.uvw[2], dst.uvw[2], level, flag, Replace );
+         divT_z.apply( src.p, dst.uvw[2], level, flag, Add );
       }
 
-      div_x.apply( src.uvw.u, dst.p, level, flag, Replace );
-      div_y.apply( src.uvw.v, dst.p, level, flag, Add );
+      div_x.apply( src.uvw[0], dst.p, level, flag, Replace );
+      div_y.apply( src.uvw[1], dst.p, level, flag, Add );
 
       if ( hasGlobalCells_ )
       {
-         div_z.apply( src.uvw.w, dst.p, level, flag, Add );
+         div_z.apply( src.uvw[2], dst.p, level, flag, Add );
       }
    }
 

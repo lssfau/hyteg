@@ -84,6 +84,9 @@ template< typename VType >
 class P1VectorFunction;
 
 template< typename VType >
+class P1VectorFunction_AltKind;
+
+template< typename VType >
 class P2VectorFunction;
 
 
@@ -171,6 +174,10 @@ struct FunctionTrait< P1VectorFunction< VType > >
 {
    typedef VType ValueType;
    typedef P1VectorFunctionTag Tag;
+   typedef vertexdof::VertexDoFFunction< VType > VectorComponentType;
+   // I'd prefer to have P1Function< VType > above, but couldn't get
+   // that to work. Forward declaration of P1Function as class fails
+   // since it is no class, see P1Function.hpp
 
    static std::string getTypeName() { return "P1VectorFunction"; }
 };
@@ -181,6 +188,7 @@ struct FunctionTrait< P2VectorFunction< VType > >
 {
    typedef VType ValueType;
    typedef P2VectorFunctionTag Tag;
+   typedef P2Function< VType > VectorComponentType;
 
    static std::string getTypeName() { return "P2VectorFunction"; }
 };

@@ -91,6 +91,8 @@ void benchmark( int argc, char** argv )
    coarseGridSettings.solverType                = mainConf.getParameter< uint_t >( "coarseGridSolverType" );
 
    const uint_t normCalculationLevelIncrement = mainConf.getParameter< uint_t >( "normCalculationLevelIncrement" );
+   const bool   solveWithCoarseGridSolverOnEachFMGLevel =
+       mainConf.getParameter< bool >( "solveWithCoarseGridSolverOnEachFMGLevel" );
 
    Discretization discretization = Discretization::P2_P1;
    if ( discretizationString == "p1p1" )
@@ -98,12 +100,12 @@ void benchmark( int argc, char** argv )
       discretization = Discretization::P1_P1;
    }
 
-   Point3D leftBottom3D( {0, 0, 0} );
+   Point3D leftBottom3D( { 0, 0, 0 } );
 
    auto meshInfo =
-       MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( {1, 1, 1} ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
+       MeshInfo::meshSymmetricCuboid( leftBottom3D, Point3D( { 1, 1, 1 } ), numEdgesPerSide, numEdgesPerSide, numEdgesPerSide );
 
-   auto onBoundary = []( const Point3D & ){ return true; };
+   auto onBoundary = []( const Point3D& ) { return true; };
    meshInfo.setMeshBoundaryFlagsByVertexLocation( 1, onBoundary );
 
    auto setupStorage = std::make_shared< SetupPrimitiveStorage >(
@@ -134,6 +136,7 @@ void benchmark( int argc, char** argv )
           true,
           false,
           normCalculationLevelIncrement,
+          solveWithCoarseGridSolverOnEachFMGLevel,
           vtk,
           "Benchmark_01_Cube",
           false,

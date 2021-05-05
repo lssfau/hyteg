@@ -197,34 +197,25 @@ void solveRHS0Implementation( const std::shared_ptr< PrimitiveStorage >&        
 
    for ( uint_t level = minLevel; level <= maxLevel; level++ )
    {
-      u.uvw.u.interpolate( initialU, level, All );
-      u.uvw.v.interpolate( initialV, level, All );
-      u.uvw.w.interpolate( initialW, level, All );
+      u.uvw.interpolate( { initialU, initialV, initialW }, level, All );
+      u.uvw.interpolate( { solutionU, solutionV, solutionW }, level, DirichletBoundary );
       u.p.interpolate( initialP, level, All );
-
-      u.uvw.u.interpolate( solutionU, level, DirichletBoundary );
-      u.uvw.v.interpolate( solutionV, level, DirichletBoundary );
-      u.uvw.w.interpolate( solutionW, level, DirichletBoundary );
 
       if ( RHSisZero )
       {
          if ( level < maxLevel )
          {
-            f.uvw.u.interpolate( 0, level, All );
-            f.uvw.v.interpolate( 0, level, All );
-            f.uvw.w.interpolate( 0, level, All );
+            f.uvw.interpolate( 0, level, All );
             f.p.interpolate( 0, level, All );
          }
       }
       else
       {
-         tmp.uvw.u.interpolate( rhsU, level, All );
-         tmp.uvw.v.interpolate( rhsV, level, All );
-         tmp.uvw.w.interpolate( rhsW, level, All );
+         tmp.uvw.interpolate( { rhsU,rhsV, rhsW }, level, All );
 
-         velocityMassOperator.apply( tmp.uvw.u, f.uvw.u, level, All );
-         velocityMassOperator.apply( tmp.uvw.v, f.uvw.v, level, All );
-         velocityMassOperator.apply( tmp.uvw.w, f.uvw.w, level, All );
+         velocityMassOperator.apply( tmp.uvw[0], f.uvw[0], level, All );
+         velocityMassOperator.apply( tmp.uvw[1], f.uvw[1], level, All );
+         velocityMassOperator.apply( tmp.uvw[2], f.uvw[2], level, All );
 
          f.p.interpolate( 0, level, All );
       }

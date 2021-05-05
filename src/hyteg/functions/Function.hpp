@@ -31,14 +31,15 @@
 #include "hyteg/communication/BufferedCommunication.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
+#include "hyteg/functions/GenericFunction.hpp"
 #include "hyteg/types/flags.hpp"
 #include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
 
-
+/// Base class for all HyTeG functions representing scalar fields
 template< typename FunctionType >
-class Function {
+class Function : public GenericFunction {
 public:
 
   typedef typename FunctionTrait< FunctionType >::Tag Tag;
@@ -74,6 +75,9 @@ public:
   virtual ~Function() = default;
 
   const std::string &getFunctionName() const { return functionName_; }
+
+  /// Returns a 1 as an object of this class represents a scalar field
+  uint_t getDimension() const override final { return 1; };
 
   std::shared_ptr< PrimitiveStorage > getStorage() const { return storage_; }
 

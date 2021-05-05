@@ -45,14 +45,12 @@ class P1Transport
    , cOld_( "cOld", storage, minLevel, maxLevel )
    {}
 
-   void step( P1Function< real_t >& c,
-              P1Function< real_t >& ux,
-              P1Function< real_t >& uy,
-              P1Function< real_t >& uz,
-              const uint_t&         level,
-              const DoFType&        flag,
-              const real_t&         dt,
-              const real_t&         a )
+   void step( P1Function< real_t >&       c,
+              P1VectorFunction< real_t >& vel,
+              const uint_t&               level,
+              const DoFType&              flag,
+              const real_t&               dt,
+              const real_t&               a )
    {
       cOld_.assign( {1.0}, {c}, level, flag );
 
@@ -61,7 +59,7 @@ class P1Transport
       tmp0_.assign( {a * dt}, {tmp0_}, level, flag );
 
       //      transportStupidApply( c, tmp4_, ux, uy, uz, level, flag );
-      transportApply< true >( c, tmp4_, ux, uy, uz, level, flag );
+      transportApply< true >( c, tmp4_, vel, level, flag );
 
       tmp0_.add( {-dt}, {tmp4_}, level, flag );
       invLumpedMass_.apply( tmp0_, c, level, flag, Add );
@@ -91,32 +89,29 @@ class P1Transport
    }
 
  private:
-   void transportStupidApply( P1Function< real_t >& in,
-                              P1Function< real_t >& out,
-                              P1Function< real_t >& ux,
-                              P1Function< real_t >& uy,
-                              P1Function< real_t >& uz,
-                              const uint_t&         level,
-                              const DoFType&        flag )
+   void transportStupidApply( P1Function< real_t >&       in,
+                              P1Function< real_t >&       out,
+                              P1VectorFunction< real_t >& vel,
+                              const uint_t&               level,
+                              const DoFType&              flag )
    {
       divT_x_.apply( in, tmp1_, level, flag, Replace );
       divT_y_.apply( in, tmp2_, level, flag, Replace );
       divT_z_.apply( in, tmp3_, level, flag, Replace );
-      tmp1_.multElementwise( {ux, tmp1_}, level, flag );
-      tmp2_.multElementwise( {uy, tmp2_}, level, flag );
-      tmp3_.multElementwise( {uz, tmp3_}, level, flag );
+      tmp1_.multElementwise( {vel[0], tmp1_}, level, flag );
+      tmp2_.multElementwise( {vel[1], tmp2_}, level, flag );
+      if ( vel.getDimension() == 3 )
+         tmp3_.multElementwise( {vel[2], tmp3_}, level, flag );
 
       out.assign( {1.0, 1.0, 1.0}, {tmp1_, tmp2_, tmp3_}, level, flag );
    }
 
    template < bool AlgebraicUpwind >
-   void transportApply( P1Function< real_t >& src,
-                        P1Function< real_t >& dst,
-                        P1Function< real_t >& ux,
-                        P1Function< real_t >& uy,
-                        P1Function< real_t >& uz,
-                        const uint_t&         level,
-                        const DoFType&        flag )
+   void transportApply( P1Function< real_t >&       src,
+                        P1Function< real_t >&       dst,
+                        P1VectorFunction< real_t >& vel,
+                        const uint_t&               level,
+                        const DoFType&              flag )
    {
       src.communicate< Vertex, Edge >( level );
       src.communicate< Edge, Face >( level );
@@ -126,81 +121,101 @@ class P1Transport
       src.communicate< Face, Edge >( level );
       src.communicate< Edge, Vertex >( level );
 
-      for( const auto& it : storage_->getVertices() )
+      for ( const auto& it : storage_->getVertices() )
       {
          Vertex& vertex = *it.second;
 
          const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-         if( testFlag( vertexBC, flag ) )
+         if ( testFlag( vertexBC, flag ) )
          {
+            auto uxID = vel[0].getVertexDataID();
+            auto uyID = vel[1].getVertexDataID();
+            // A hack that is not nice :(
+            auto uzID = vel.getDimension() == 3 ? vel[2].getVertexDataID() : vel[0].getVertexDataID();
+
             vertexdof::transport::macrovertex::apply< real_t, AlgebraicUpwind >( level,
                                                                                  vertex,
                                                                                  src.getVertexDataID(),
                                                                                  dst.getVertexDataID(),
-                                                                                 ux.getVertexDataID(),
-                                                                                 uy.getVertexDataID(),
-                                                                                 uz.getVertexDataID(),
+                                                                                 uxID,
+                                                                                 uyID,
+                                                                                 uzID,
                                                                                  divT_x_.getVertexStencilID(),
                                                                                  divT_y_.getVertexStencilID(),
                                                                                  divT_z_.getVertexStencilID() );
          }
       }
 
-      for( const auto& it : storage_->getEdges() )
+      for ( const auto& it : storage_->getEdges() )
       {
          Edge& edge = *it.second;
 
          const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-         if( testFlag( edgeBC, flag ) )
+         if ( testFlag( edgeBC, flag ) )
          {
+            auto uxID = vel[0].getEdgeDataID();
+            auto uyID = vel[1].getEdgeDataID();
+            // A hack that is not nice :(
+            auto uzID = vel.getDimension() == 3 ? vel[2].getEdgeDataID() : vel[0].getEdgeDataID();
+
             vertexdof::transport::macroedge::apply< real_t, AlgebraicUpwind >( level,
                                                                                edge,
                                                                                src.getEdgeDataID(),
                                                                                dst.getEdgeDataID(),
-                                                                               ux.getEdgeDataID(),
-                                                                               uy.getEdgeDataID(),
-                                                                               uz.getEdgeDataID(),
+                                                                               uxID,
+                                                                               uyID,
+                                                                               uzID,
                                                                                divT_x_.getEdgeStencilID(),
                                                                                divT_y_.getEdgeStencilID(),
                                                                                divT_z_.getEdgeStencilID() );
          }
       }
 
-      for( const auto& it : storage_->getFaces() )
+      for ( const auto& it : storage_->getFaces() )
       {
          Face& face = *it.second;
 
          const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if( testFlag( faceBC, flag ) )
+         if ( testFlag( faceBC, flag ) )
          {
+            auto uxID = vel[0].getFaceDataID();
+            auto uyID = vel[1].getFaceDataID();
+            // A hack that is not nice :(
+            auto uzID = vel.getDimension() == 3 ? vel[2].getFaceDataID() : vel[0].getFaceDataID();
+
             vertexdof::transport::macroface::apply< real_t, AlgebraicUpwind >( level,
                                                                                face,
                                                                                *src.getStorage(),
                                                                                src.getFaceDataID(),
                                                                                dst.getFaceDataID(),
-                                                                               ux.getFaceDataID(),
-                                                                               uy.getFaceDataID(),
-                                                                               uz.getFaceDataID(),
+                                                                               uxID,
+                                                                               uyID,
+                                                                               uzID,
                                                                                divT_x_.getFaceStencil3DID(),
                                                                                divT_y_.getFaceStencil3DID(),
                                                                                divT_z_.getFaceStencil3DID() );
          }
       }
 
-      for( const auto& it : storage_->getCells() )
+      for ( const auto& it : storage_->getCells() )
       {
          Cell& cell = *it.second;
 
          const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-         if( testFlag( cellBC, flag ) )
+         if ( testFlag( cellBC, flag ) )
          {
+            auto uxID = vel[0].getCellDataID();
+            auto uyID = vel[1].getCellDataID();
+            // A hack that is not nice :(
+            auto uzID = vel.getDimension() == 3 ? vel[2].getCellDataID() : vel[0].getCellDataID();
+
             vertexdof::transport::macrocell::apply< real_t, AlgebraicUpwind >( level,
                                                                                cell,
                                                                                src.getCellDataID(),
                                                                                dst.getCellDataID(),
-                                                                               ux.getCellDataID(),
-                                                                               uy.getCellDataID(),
-                                                                               uz.getCellDataID(),
+                                                                               uxID,
+                                                                               uyID,
+                                                                               uzID,
                                                                                divT_x_.getCellStencilID(),
                                                                                divT_y_.getCellStencilID(),
                                                                                divT_z_.getCellStencilID() );

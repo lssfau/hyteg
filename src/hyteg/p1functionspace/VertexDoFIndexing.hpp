@@ -25,6 +25,7 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/StencilDirections.hpp"
+#include "hyteg/facedofspace/FaceDoFIndexing.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/indexing/MacroCellIndexing.hpp"
 #include "hyteg/indexing/MacroEdgeIndexing.hpp"
@@ -514,6 +515,11 @@ uint_t stencilIndexFromBlueFace( const stencilDirection& dir );
 // ##############
 // ### Others ###
 // ##############
+void getVertexDoFDataIndicesFromMicroFace( const indexing::Index & microFaceIndex,
+                                           const facedof::FaceType & faceType,
+                                           const uint_t level,
+                                           std::array<uint_t, 3>& vertexDoFIndices );
+
 void getVertexDoFDataIndicesFromMicroCell( const indexing::Index & microCellIndex,
                                            const celldof::CellType & cellType,
                                            const uint_t level,

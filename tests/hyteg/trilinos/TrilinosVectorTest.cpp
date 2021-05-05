@@ -18,7 +18,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hyteg/trilinos/TrilinosSparseMatrix.hpp"
+#include "hyteg/trilinos/TrilinosVector.hpp"
 
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
@@ -26,7 +26,7 @@
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/trilinos/TrilinosVector.hpp"
+#include "hyteg/trilinos/TrilinosSparseMatrix.hpp"
 
 using walberla::real_t;
 using walberla::uint_c;
@@ -50,19 +50,15 @@ int main( int argc, char* argv[] )
    setupStorage->setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    auto storage = std::make_shared< PrimitiveStorage >( *setupStorage );
 
-   P2P1TaylorHoodFunction< real_t >      xTrilinos( "xTrilinos", storage, level, level );
-   P2P1TaylorHoodFunction< real_t >      xOriginal( "xOriginal", storage, level, level );
-   P2P1TaylorHoodFunction< real_t >      error( "error", storage, level, level );
-   P2P1TaylorHoodFunction< PetscInt >    numerator( "numerator", storage, level, level );
+   P2P1TaylorHoodFunction< real_t >   xTrilinos( "xTrilinos", storage, level, level );
+   P2P1TaylorHoodFunction< real_t >   xOriginal( "xOriginal", storage, level, level );
+   P2P1TaylorHoodFunction< real_t >   error( "error", storage, level, level );
+   P2P1TaylorHoodFunction< PetscInt > numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
 
-   auto f = []( const Point3D & p ) -> real_t {
-      return std::sin(p[0]) + 0.5 * p[1];
-   };
+   auto f = []( const Point3D& p ) -> real_t { return std::sin( p[0] ) + 0.5 * p[1]; };
 
-   xOriginal.uvw.u.interpolate( f, level, All );
-   xOriginal.uvw.v.interpolate( f, level, All );
-   xOriginal.uvw.w.interpolate( f, level, All );
+   xOriginal.uvw.interpolate( {f, f}, level, All );
    xOriginal.p.interpolate( f, level, All );
 
    trilinos::TrilinosVector< P2P1TaylorHoodFunction > vector( storage, level );
@@ -70,14 +66,12 @@ int main( int argc, char* argv[] )
    vector.writeToFunction( xTrilinos, numerator );
 
    error.assign( {1.0, -1.0}, {xTrilinos, xOriginal}, level );
-   const auto maxMagnitudeU = error.uvw.u.getMaxMagnitude( level );
-   const auto maxMagnitudeV = error.uvw.v.getMaxMagnitude( level );
-   const auto maxMagnitudeW = error.uvw.w.getMaxMagnitude( level );
+   const auto maxMagnitudeU = error.uvw[0].getMaxMagnitude( level );
+   const auto maxMagnitudeV = error.uvw[1].getMaxMagnitude( level );
    const auto maxMagnitudeP = error.p.getMaxMagnitude( level );
 
    WALBERLA_CHECK_LESS( maxMagnitudeU, 1e-14 );
    WALBERLA_CHECK_LESS( maxMagnitudeV, 1e-14 );
-   WALBERLA_CHECK_LESS( maxMagnitudeW, 1e-14 );
    WALBERLA_CHECK_LESS( maxMagnitudeP, 1e-14 );
 
    return EXIT_SUCCESS;

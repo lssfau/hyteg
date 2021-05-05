@@ -73,14 +73,9 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
   walberla::math::seedRandomGenerator( 0 );
   std::function< real_t( const Point3D& ) > rand = []( const Point3D& ) { return walberla::math::realRandom( 0.0, 1.0 ); };
 
-  b.uvw.u.interpolate( exactU, level, hyteg::DirichletBoundary );
-  b.uvw.v.interpolate( exactV, level, hyteg::DirichletBoundary );
-
-  x.uvw.u.interpolate( exactU, level, DirichletBoundary );
-  x.uvw.v.interpolate( exactV, level, DirichletBoundary );
-
-  x_exact.uvw.u.interpolate( exactU, level );
-  x_exact.uvw.v.interpolate( exactV, level );
+  b.uvw.interpolate( { exactU, exactV }, level, hyteg::DirichletBoundary );
+  x.uvw.interpolate( { exactU, exactV }, level, DirichletBoundary );
+  x_exact.uvw.interpolate( { exactU, exactV }, level );
   x_exact.p.interpolate( exactP, level );
 
 //  VTKOutput vtkOutput("../../output", "P2P2Stokes2DPetscSolve", storage);
@@ -117,8 +112,8 @@ void petscSolveTest( const uint_t & level, const MeshInfo & meshInfo, const real
 
   err.assign( {1.0, -1.0}, {x, x_exact}, level );
 
-  real_t discr_l2_err_1_u = std::sqrt( err.uvw.u.dotGlobal( err.uvw.u, level ) / (real_t) globalDoFs1 );
-  real_t discr_l2_err_1_v = std::sqrt( err.uvw.v.dotGlobal( err.uvw.v, level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_u = std::sqrt( err.uvw[0].dotGlobal( err.uvw[0], level ) / (real_t) globalDoFs1 );
+  real_t discr_l2_err_1_v = std::sqrt( err.uvw[1].dotGlobal( err.uvw[1], level ) / (real_t) globalDoFs1 );
   real_t discr_l2_err_1_p = std::sqrt( err.p.dotGlobal( err.p, level ) / (real_t) globalDoFs1 );
   real_t residuum_l2_1  = std::sqrt( residuum.dotGlobal( residuum, level ) / (real_t) globalDoFs1 );
 

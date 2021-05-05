@@ -48,6 +48,23 @@ inline void assembleLocalStencil( const P1Form&                            form,
    opr_data[vertexdof::stencilIndexFromVertex( directions[2] )] += matrixRow[2];
 }
 
+// as above but using the new integrateRow()-interface. Old version is kept for legacy purposes, e.g., P2 Operators.
+// todo: remove old version once all Operators are renewed
+template < class P1Form >
+inline void assembleLocalStencil_new( const P1Form&                            form,
+                                  const std::array< Point3D, 3 >&          coords,
+                                  const std::array< stencilDirection, 3 >& directions,
+                                  real_t*                                  opr_data )
+{
+   Matrixr<1,3> matrixRow;
+
+   form.integrateRow(0, coords, matrixRow );
+
+   opr_data[vertexdof::stencilIndexFromVertex( directions[0] )] += matrixRow(0,0);
+   opr_data[vertexdof::stencilIndexFromVertex( directions[1] )] += matrixRow(0,1);
+   opr_data[vertexdof::stencilIndexFromVertex( directions[2] )] += matrixRow(0,2);
+}
+
 namespace macroface {
 
 template < typename ValueType, class P1Form >

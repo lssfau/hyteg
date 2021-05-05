@@ -58,7 +58,7 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                const P1Function< real_t >& dst,
                size_t                      level,
                DoFType                     flag,
-               UpdateType                  updateType = Replace ) const;
+               UpdateType                  updateType = Replace ) const override final;
 
    void smooth_jac( const P1Function< real_t >& dst,
                     const P1Function< real_t >& rhs,

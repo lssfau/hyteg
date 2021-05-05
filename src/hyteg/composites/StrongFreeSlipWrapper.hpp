@@ -82,7 +82,7 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
       if ( PreProjection && projFlag_ != None )
       {
          tmp_->assign( {1}, {src}, level, All );
-         projOp_->apply( *tmp_, level, projFlag_ );
+         projOp_->project( *tmp_, level, projFlag_ );
          op_->apply( *tmp_, dst, level, flag );
       }
       else
@@ -91,7 +91,7 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
       }
 
       if ( projFlag_ != None )
-         projOp_->apply( dst, level, projFlag_ );
+         projOp_->project( dst, level, projFlag_ );
    }
 
 #ifdef HYTEG_BUILD_WITH_PETSC
@@ -113,7 +113,8 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
       hyteg::petsc::createMatrix< OpType >( *op_, numeratorSrc, numeratorDst, matProxyOp, level, flag );
 
       auto matProxyProjectionPost = mat->createCopy();
-      projOp_->assembleLocalMatrix( matProxyProjectionPost, numeratorSrc.uvw.u, numeratorSrc.uvw.v, numeratorSrc.uvw.w, level, projFlag_ );
+      // projOp_->assembleLocalMatrix( matProxyProjectionPost, numeratorSrc.uvw[0], numeratorSrc.uvw[1], numeratorSrc.uvw[2], level, projFlag_ );
+      projOp_->assembleLocalMatrix( matProxyProjectionPost, numeratorSrc.uvw, level, projFlag_ );
 
       // we need the Id also in the pressure block
       petsc::saveIdentityOperator( numeratorDst.p, matProxyProjectionPost, level, All );
@@ -125,7 +126,8 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
       if ( PreProjection )
       {
          auto matProxyProjectionPre = mat->createCopy();
-         projOp_->assembleLocalMatrix( matProxyProjectionPre, numeratorSrc.uvw.u, numeratorSrc.uvw.v, numeratorSrc.uvw.w, level, projFlag_ );
+         // projOp_->assembleLocalMatrix( matProxyProjectionPre, numeratorSrc.uvw[0], numeratorSrc.uvw[1], numeratorSrc.uvw[2], level, projFlag_ );
+         projOp_->assembleLocalMatrix( matProxyProjectionPre, numeratorSrc.uvw, level, projFlag_ );
 
          petsc::saveIdentityOperator( numeratorDst.p, matProxyProjectionPre, level, All );
 

@@ -230,9 +230,12 @@ void simulate( int argc, char* argv[] )
        storage, minLevel, 1e-12, 2000, 1 );
    auto stokesRestriction  = std::make_shared< P2P1StokesToP2P1StokesRestriction >( true );
    auto stokesProlongation = std::make_shared< P2P1StokesToP2P1StokesProlongation >();
-   auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< P2P1TaylorHoodStokesOperator::VelocityOperator_T > >();
-   auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< P2P1TaylorHoodStokesOperator > >( storage, gaussSeidel );
-   auto uzawaSmoother = std::make_shared< UzawaSmoother< P2P1TaylorHoodStokesOperator > >( storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.3 );
+   auto gaussSeidel        = std::make_shared< hyteg::GaussSeidelSmoother< P2P1TaylorHoodStokesOperator::VelocityOperator_T > >();
+   auto uzawaVelocityPreconditioner =
+       std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< P2P1TaylorHoodStokesOperator > >( storage,
+                                                                                                                  gaussSeidel );
+   auto uzawaSmoother = std::make_shared< UzawaSmoother< P2P1TaylorHoodStokesOperator > >(
+       storage, uzawaVelocityPreconditioner, minLevel, maxLevel, 0.3 );
    const auto uzawaRelaxationParameter = estimateUzawaRelaxationParameter( storage, uzawaVelocityPreconditioner, 2, 20, 2 );
    uzawaSmoother->setRelaxationParameter( uzawaRelaxationParameter );
    WALBERLA_LOG_INFO_ON_ROOT( "Estimated relaxation parameter for Uzawa: " << uzawaRelaxationParameter );
@@ -242,8 +245,9 @@ void simulate( int argc, char* argv[] )
 
    MMOCTransport< P2Function< real_t > > transport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
-   P2ConstantUnsteadyDiffusionOperator diffusionOperator( storage, minLevel, maxLevel, dt, diffusivity, DiffusionTimeIntegrator::ImplicitEuler );
-   auto                        diffusionCoarseGridSolver =
+   P2ConstantUnsteadyDiffusionOperator diffusionOperator(
+       storage, minLevel, maxLevel, dt, diffusivity, DiffusionTimeIntegrator::ImplicitEuler );
+   auto diffusionCoarseGridSolver =
        std::make_shared< CGSolver< P2ConstantUnsteadyDiffusionOperator > >( storage, minLevel, maxLevel, 2000, 1e-12 );
    auto diffusionRestriction  = std::make_shared< P2toP2QuadraticRestriction >();
    auto diffusionProlongation = std::make_shared< P2toP2QuadraticProlongation >();
@@ -253,8 +257,11 @@ void simulate( int argc, char* argv[] )
    auto diffusionSolver =
        std::make_shared< SolverLoop< P2ConstantUnsteadyDiffusionOperator > >( diffusionGMGSolver, numDiffusionVCycles );
 
-   UnsteadyDiffusion< P2Function< real_t >, P2ConstantUnsteadyDiffusionOperator, P2ConstantLaplaceOperator, P2ConstantMassOperator > diffusion(
-       storage, minLevel, maxLevel, diffusionSolver );
+   UnsteadyDiffusion< P2Function< real_t >,
+                      P2ConstantUnsteadyDiffusionOperator,
+                      P2ConstantLaplaceOperator,
+                      P2ConstantMassOperator >
+       diffusion( storage, minLevel, maxLevel, diffusionSolver );
 
    printFunctionAllocationInfo( *storage, 1 );
 
@@ -263,7 +270,7 @@ void simulate( int argc, char* argv[] )
 
    auto calculateResidualStokes = [&]() {
       L.apply( u, r, maxLevel, Inner | NeumannBoundary );
-      r.assign( {1.0, -1.0}, {f, r}, maxLevel, Inner | NeumannBoundary );
+      r.assign( { 1.0, -1.0 }, { f, r }, maxLevel, Inner | NeumannBoundary );
 
       real_t res = sqrt( r.dotGlobal( r, maxLevel, All ) ) /
                    real_c( numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *storage, maxLevel ) );
@@ -273,7 +280,7 @@ void simulate( int argc, char* argv[] )
    auto calculateResidualDiffusion = [&]() {
       diffusionOperator.apply( temp, tempR, maxLevel, Inner | NeumannBoundary );
       M.apply( tempOld, tempTmp, maxLevel, Inner | NeumannBoundary );
-      tempR.assign( {1.0, -1.0}, {tempTmp, tempR}, maxLevel, Inner | NeumannBoundary );
+      tempR.assign( { 1.0, -1.0 }, { tempTmp, tempR }, maxLevel, Inner | NeumannBoundary );
 
       real_t res =
           sqrt( tempR.dotGlobal( tempR, maxLevel, All ) ) / real_c( numberOfGlobalDoFs< P2FunctionTag >( *storage, maxLevel ) );
@@ -304,17 +311,17 @@ void simulate( int argc, char* argv[] )
    auto maxMagnitudeVelocity = [&]() {
       tmp2.interpolate( 0, maxLevel, All );
 
-      tmp.assign( {1.0}, {u.uvw.u}, maxLevel, All );
-      tmp.multElementwise( {tmp, tmp}, maxLevel, All );
-      tmp2.assign( {1.0, 1.0}, {tmp2, tmp}, maxLevel, All );
+      tmp.assign( { 1.0 }, { u.uvw[0] }, maxLevel, All );
+      tmp.multElementwise( { tmp, tmp }, maxLevel, All );
+      tmp2.assign( { 1.0, 1.0 }, { tmp2, tmp }, maxLevel, All );
 
-      tmp.assign( {1.0}, {u.uvw.v}, maxLevel, All );
-      tmp.multElementwise( {tmp, tmp}, maxLevel, All );
-      tmp2.assign( {1.0, 1.0}, {tmp2, tmp}, maxLevel, All );
+      tmp.assign( { 1.0 }, { u.uvw[1] }, maxLevel, All );
+      tmp.multElementwise( { tmp, tmp }, maxLevel, All );
+      tmp2.assign( { 1.0, 1.0 }, { tmp2, tmp }, maxLevel, All );
 
-      tmp.assign( {1.0}, {u.uvw.w}, maxLevel, All );
-      tmp.multElementwise( {tmp, tmp}, maxLevel, All );
-      tmp2.assign( {1.0, 1.0}, {tmp2, tmp}, maxLevel, All );
+      tmp.assign( { 1.0 }, { u.uvw[2] }, maxLevel, All );
+      tmp.multElementwise( { tmp, tmp }, maxLevel, All );
+      tmp2.assign( { 1.0, 1.0 }, { tmp2, tmp }, maxLevel, All );
 
       return std::sqrt( tmp2.getMaxMagnitude( maxLevel, All ) );
    };
@@ -331,21 +338,19 @@ void simulate( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( "##### Time step " << step << " #####" )
       WALBERLA_LOG_INFO_ON_ROOT( "" )
 
-      uLastTimeStep.assign( {1.0}, {u}, maxLevel, All );
+      uLastTimeStep.assign( { 1.0 }, { u }, maxLevel, All );
 
       // Updating right-hand side (Boussinesq approximation)
 
-      M.apply( temp, f.uvw.u, maxLevel, All );
-      M.apply( temp, f.uvw.v, maxLevel, All );
-      M.apply( temp, f.uvw.w, maxLevel, All );
+      M.apply( temp, f.uvw[0], maxLevel, All );
+      M.apply( temp, f.uvw[1], maxLevel, All );
+      M.apply( temp, f.uvw[2], maxLevel, All );
 
-      f.uvw.u.multElementwise( {f.uvw.u, normalX}, maxLevel, All );
-      f.uvw.v.multElementwise( {f.uvw.v, normalY}, maxLevel, All );
-      f.uvw.w.multElementwise( {f.uvw.w, normalZ}, maxLevel, All );
+      f.uvw[0].multElementwise( { f.uvw[0], normalX }, maxLevel, All );
+      f.uvw[1].multElementwise( { f.uvw[1], normalY }, maxLevel, All );
+      f.uvw[2].multElementwise( { f.uvw[2], normalZ }, maxLevel, All );
 
-      f.uvw.u.assign( {rhsScaleFactor}, {f.uvw.u}, maxLevel, All );
-      f.uvw.v.assign( {rhsScaleFactor}, {f.uvw.v}, maxLevel, All );
-      f.uvw.w.assign( {rhsScaleFactor}, {f.uvw.w}, maxLevel, All );
+      f.uvw.assign( { rhsScaleFactor }, { f.uvw }, maxLevel, All );
 
       // Stokes solver
 
@@ -398,7 +403,18 @@ void simulate( int argc, char* argv[] )
 
       time += dt;
 
-      transport.step( temp, u.uvw.u, u.uvw.v, u.uvw.w, uLastTimeStep.uvw.u, uLastTimeStep.uvw.v, uLastTimeStep.uvw.w, maxLevel, All, dt, 1, true );
+      transport.step( temp,
+                      u.uvw[0],
+                      u.uvw[1],
+                      u.uvw[2],
+                      uLastTimeStep.uvw[0],
+                      uLastTimeStep.uvw[1],
+                      uLastTimeStep.uvw[2],
+                      maxLevel,
+                      All,
+                      dt,
+                      1,
+                      true );
 
       timer.end();
       WALBERLA_LOG_INFO_ON_ROOT( "" )
@@ -415,7 +431,7 @@ void simulate( int argc, char* argv[] )
 
          timer.start();
 
-         tempOld.assign( {1.0}, {temp}, maxLevel, All );
+         tempOld.assign( { 1.0 }, { temp }, maxLevel, All );
          diffusion.step( diffusionOperator, laplace, M, temp, tempOld, maxLevel, Inner | NeumannBoundary );
 
          const auto residualDiffusion = calculateResidualDiffusion();

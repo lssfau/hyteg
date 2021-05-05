@@ -86,26 +86,26 @@ public:
                 const uint_t level )
     {
         real_t alpha, alpha_n, alpha_d, beta, beta_n, beta_d;
-        const uint_t numGlobalDoFs = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *u.uvw.u.getStorage(), level );
+        const uint_t numGlobalDoFs = numberOfGlobalDoFs< P2P1TaylorHoodFunctionTag >( *u.uvw[0].getStorage(), level );
 
         /////////
         // R_0 //
         /////////
 
         // velocity
-        R.uvw.u.assign( {1.0}, {b.uvw.u}, level, flag_ );
-        R.uvw.v.assign( {1.0}, {b.uvw.v}, level, flag_ );
-        stokesOperator.A.apply( u.uvw.u, tmp.uvw.u, level, flag_ );
-        stokesOperator.A.apply( u.uvw.v, tmp.uvw.v, level, flag_ );
-        // stokesOperator.divT_x.apply( u.p, tmp.uvw.u, level, flag_, Add );
-        // stokesOperator.divT_y.apply( u.p, tmp.uvw.v, level, flag_, Add );
+        R.uvw[0].assign( {1.0}, {b.uvw[0]}, level, flag_ );
+        R.uvw[1].assign( {1.0}, {b.uvw[1]}, level, flag_ );
+        stokesOperator.A.apply( u.uvw[0], tmp.uvw[0], level, flag_ );
+        stokesOperator.A.apply( u.uvw[1], tmp.uvw[1], level, flag_ );
+        // stokesOperator.divT_x.apply( u.p, tmp.uvw[0], level, flag_, Add );
+        // stokesOperator.divT_y.apply( u.p, tmp.uvw[1], level, flag_, Add );
         stokesOperator.divT.apply( u.p, tmp.uvw, level, flag_, Add );
-        R.uvw.u.add( {-1.0}, {tmp.uvw.u}, level, flag_ );
-        R.uvw.v.add( {-1.0}, {tmp.uvw.v}, level, flag_ );
+        R.uvw[0].add( {-1.0}, {tmp.uvw[0]}, level, flag_ );
+        R.uvw[1].add( {-1.0}, {tmp.uvw[1]}, level, flag_ );
 
         // pressure
-        // stokesOperator.div_x.apply( u.uvw.u, tmp.p, level, flag_ | DirichletBoundary, Replace );
-        // stokesOperator.div_y.apply( u.uvw.v, tmp.p, level, flag_ | DirichletBoundary, Add );
+        // stokesOperator.div_x.apply( u.uvw[0], tmp.p, level, flag_ | DirichletBoundary, Replace );
+        // stokesOperator.div_y.apply( u.uvw[1], tmp.p, level, flag_ | DirichletBoundary, Add );
         stokesOperator.div.apply( u.uvw, tmp.p, level, flag_ | DirichletBoundary, Replace );
         R.p.assign( {-1.0}, {tmp.p}, level, flag_ | DirichletBoundary );
 
@@ -114,8 +114,8 @@ public:
         /////////////
 
         // velocity
-        velocityBlockSolver_->solve( stokesOperator.A, RHat.uvw.u, R.uvw.u, level );
-        velocityBlockSolver_->solve( stokesOperator.A, RHat.uvw.v, R.uvw.v, level );
+        velocityBlockSolver_->solve( stokesOperator.A, RHat.uvw[0], R.uvw[0], level );
+        velocityBlockSolver_->solve( stokesOperator.A, RHat.uvw[1], R.uvw[1], level );
 
         // pressure
         stokesOperator.div.apply( RHat.uvw, RHat.p, level, flag_ | DirichletBoundary, Replace );
@@ -142,14 +142,14 @@ public:
 
         // calculate M * P
         // 1. calc tmp := A^-1 * B^T * P_pressure
-        // stokesOperator.divT_x.apply( P.p, tmp.uvw.u, level, flag_ );
-        // stokesOperator.divT_y.apply( P.p, tmp.uvw.v, level, flag_ );
+        // stokesOperator.divT_x.apply( P.p, tmp.uvw[0], level, flag_ );
+        // stokesOperator.divT_y.apply( P.p, tmp.uvw[1], level, flag_ );
         stokesOperator.divT.apply( P.p, tmp.uvw, level, flag_ );
-        velocityBlockSolver_->solve( stokesOperator.A, tmp_2.uvw.u, tmp.uvw.u, level );
-        velocityBlockSolver_->solve( stokesOperator.A, tmp_2.uvw.v, tmp.uvw.v, level );
+        velocityBlockSolver_->solve( stokesOperator.A, tmp_2.uvw[0], tmp.uvw[0], level );
+        velocityBlockSolver_->solve( stokesOperator.A, tmp_2.uvw[1], tmp.uvw[1], level );
         // 2. velocity of M * P
-        MP.uvw.u.assign( {1.0, 1.0}, {P.uvw.u, tmp_2.uvw.u}, level, flag_ );
-        MP.uvw.v.assign( {1.0, 1.0}, {P.uvw.v, tmp_2.uvw.v}, level, flag_ );
+        MP.uvw[0].assign( {1.0, 1.0}, {P.uvw[0], tmp_2.uvw[0]}, level, flag_ );
+        MP.uvw[1].assign( {1.0, 1.0}, {P.uvw[1], tmp_2.uvw[1]}, level, flag_ );
         // 3. pressure of M * P
         stokesOperator.div.apply( tmp_2.uvw, MP.p, level, flag_ | DirichletBoundary, Replace );
 
@@ -164,8 +164,8 @@ public:
         ///////
 
         // u.add( {alpha}, {P}, level, flag_ );
-        u.uvw.u.add( {alpha}, {P.uvw.u}, level, flag_ );
-        u.uvw.v.add( {alpha}, {P.uvw.v}, level, flag_ );
+        u.uvw[0].add( {alpha}, {P.uvw[0]}, level, flag_ );
+        u.uvw[1].add( {alpha}, {P.uvw[1]}, level, flag_ );
         u.p.add( {alpha}, {P.p}, level, flag_ | DirichletBoundary );
 
         //////////////
@@ -210,12 +210,12 @@ public:
 
             if ( !solveExactly_ )
             {
-              stokesOperator.A.apply( RHat.uvw.u, tmp.uvw.u, level, flag_ );
-              stokesOperator.A.apply( RHat.uvw.v, tmp.uvw.v, level, flag_ );
-              tmp.uvw.u.add( {-1.0}, {R.uvw.u}, level );
-              tmp.uvw.v.add( {-1.0}, {R.uvw.v}, level );
-              beta_n += RHat.uvw.u.dotGlobal( tmp.uvw.u, level, flag_ );
-              beta_n += RHat.uvw.v.dotGlobal( tmp.uvw.v, level, flag_ );
+              stokesOperator.A.apply( RHat.uvw[0], tmp.uvw[0], level, flag_ );
+              stokesOperator.A.apply( RHat.uvw[1], tmp.uvw[1], level, flag_ );
+              tmp.uvw[0].add( {-1.0}, {R.uvw[0]}, level );
+              tmp.uvw[1].add( {-1.0}, {R.uvw[1]}, level );
+              beta_n += RHat.uvw[0].dotGlobal( tmp.uvw[0], level, flag_ );
+              beta_n += RHat.uvw[1].dotGlobal( tmp.uvw[1], level, flag_ );
             }
 
             beta_d = alpha_n;
@@ -252,17 +252,17 @@ public:
 
             // calculate M * P
             // 1. calc tmp := A^-1 * B^T * P_pressure
-            // stokesOperator.divT_x.apply( P.p, tmp.uvw.u, level, flag_ );
-            // stokesOperator.divT_y.apply( P.p, tmp.uvw.v, level, flag_ );
+            // stokesOperator.divT_x.apply( P.p, tmp.uvw[0], level, flag_ );
+            // stokesOperator.divT_y.apply( P.p, tmp.uvw[1], level, flag_ );
             stokesOperator.divT.apply( P.p, tmp.uvw, level, flag_ );
-            velocityBlockSolver_->solve( stokesOperator.A, tmp_2.uvw.u, tmp.uvw.u, level );
-            velocityBlockSolver_->solve( stokesOperator.A, tmp_2.uvw.v, tmp.uvw.v, level );
+            velocityBlockSolver_->solve( stokesOperator.A, tmp_2.uvw[0], tmp.uvw[0], level );
+            velocityBlockSolver_->solve( stokesOperator.A, tmp_2.uvw[1], tmp.uvw[1], level );
             // 2. velocity of M * P
-            MP.uvw.u.assign( {1.0, 1.0}, {P.uvw.u, tmp_2.uvw.u}, level, flag_ );
-            MP.uvw.v.assign( {1.0, 1.0}, {P.uvw.v, tmp_2.uvw.v}, level, flag_ );
+            MP.uvw[0].assign( {1.0, 1.0}, {P.uvw[0], tmp_2.uvw[0]}, level, flag_ );
+            MP.uvw[1].assign( {1.0, 1.0}, {P.uvw[1], tmp_2.uvw[1]}, level, flag_ );
             // 3. pressure of M * P
-            // stokesOperator.div_x.apply( tmp_2.uvw.u, MP.p, level, flag_ | DirichletBoundary, Replace );
-            // stokesOperator.div_y.apply( tmp_2.uvw.v, MP.p, level, flag_ | DirichletBoundary, Add );
+            // stokesOperator.div_x.apply( tmp_2.uvw[0], MP.p, level, flag_ | DirichletBoundary, Replace );
+            // stokesOperator.div_y.apply( tmp_2.uvw[1], MP.p, level, flag_ | DirichletBoundary, Add );
             stokesOperator.div.apply( tmp_2.uvw, MP.p, level, flag_ | DirichletBoundary, Replace );
 
             alpha_d = P.p.dotGlobal( MP.p, level, flag_ | DirichletBoundary );
@@ -294,8 +294,8 @@ public:
             // X //
             ///////
 
-            u.uvw.u.add( {alpha}, {P.uvw.u}, level, flag_ );
-            u.uvw.v.add( {alpha}, {P.uvw.v}, level, flag_ );
+            u.uvw[0].add( {alpha}, {P.uvw[0]}, level, flag_ );
+            u.uvw[1].add( {alpha}, {P.uvw[1]}, level, flag_ );
             u.p.add( {alpha}, {P.p}, level, flag_ | DirichletBoundary );
 
             //////////////

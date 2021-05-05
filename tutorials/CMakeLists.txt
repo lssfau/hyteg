@@ -16,3 +16,4 @@ waLBerla_add_executable( NAME 04_Indexing
 
 add_subdirectory(05_FullAppP1GMG)
 add_subdirectory(06_FullAppPlumeInCube)
+add_subdirectory(07_IsoviscousConvectionAnnulus)

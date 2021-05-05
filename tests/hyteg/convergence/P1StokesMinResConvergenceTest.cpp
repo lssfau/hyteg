@@ -71,8 +71,7 @@ int main( int argc, char* argv[] )
    std::function< real_t( const hyteg::Point3D& ) > zero = []( const hyteg::Point3D& ) { return 0.0; };
    std::function< real_t( const hyteg::Point3D& ) > ones = []( const hyteg::Point3D& ) { return 1.0; };
 
-   u.uvw.u.interpolate( bc_x, maxLevel, hyteg::DirichletBoundary );
-   u.uvw.v.interpolate( zero, maxLevel, hyteg::DirichletBoundary );
+   u.uvw.interpolate( {bc_x, zero}, maxLevel, hyteg::DirichletBoundary );
 
    auto solver = hyteg::MinResSolver< hyteg::P1StokesOperator >( storage, minLevel, maxLevel );
    solver.solve( L, u, f, maxLevel );

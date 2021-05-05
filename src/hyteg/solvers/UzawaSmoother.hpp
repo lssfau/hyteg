@@ -153,30 +153,30 @@ class UzawaSmoother : public Solver< OperatorType >
    {
       if ( rhsZero_ && algorithms::contains( rhsZeroLevels_, level ) )
       {
-         A.divT_x.apply( x.p, r_.uvw.u, level, flag_, Replace );
-         r_.uvw.u.assign( {-1.0}, {r_.uvw.u}, level, flag_ );
+         A.divT_x.apply( x.p, r_.uvw[0], level, flag_, Replace );
+         r_.uvw[0].assign( {-1.0}, {r_.uvw[0]}, level, flag_ );
 
-         A.divT_y.apply( x.p, r_.uvw.v, level, flag_, Replace );
-         r_.uvw.v.assign( {-1.0}, {r_.uvw.v}, level, flag_ );
+         A.divT_y.apply( x.p, r_.uvw[1], level, flag_, Replace );
+         r_.uvw[1].assign( {-1.0}, {r_.uvw[1]}, level, flag_ );
 
          if ( hasGlobalCells_ )
          {
-            A.divT_z.apply( x.p, r_.uvw.w, level, flag_, Replace );
-            r_.uvw.w.assign( {-1.0}, {r_.uvw.w}, level, flag_ );
+            A.divT_z.apply( x.p, r_.uvw[2], level, flag_, Replace );
+            r_.uvw[2].assign( {-1.0}, {r_.uvw[2]}, level, flag_ );
          }
       }
       else
       {
-         A.divT_x.apply( x.p, r_.uvw.u, level, flag_, Replace );
-         r_.uvw.u.assign( {1.0, -1.0}, {b.uvw.u, r_.uvw.u}, level, flag_ );
+         A.divT_x.apply( x.p, r_.uvw[0], level, flag_, Replace );
+         r_.uvw[0].assign( {1.0, -1.0}, {b.uvw[0], r_.uvw[0]}, level, flag_ );
 
-         A.divT_y.apply( x.p, r_.uvw.v, level, flag_, Replace );
-         r_.uvw.v.assign( {1.0, -1.0}, {b.uvw.v, r_.uvw.v}, level, flag_ );
+         A.divT_y.apply( x.p, r_.uvw[1], level, flag_, Replace );
+         r_.uvw[1].assign( {1.0, -1.0}, {b.uvw[1], r_.uvw[1]}, level, flag_ );
 
          if ( hasGlobalCells_ )
          {
-            A.divT_z.apply( x.p, r_.uvw.w, level, flag_, Replace );
-            r_.uvw.w.assign( {1.0, -1.0}, {b.uvw.w, r_.uvw.w}, level, flag_ );
+            A.divT_z.apply( x.p, r_.uvw[2], level, flag_, Replace );
+            r_.uvw[2].assign( {1.0, -1.0}, {b.uvw[2], r_.uvw[2]}, level, flag_ );
          }
       }
 
@@ -186,12 +186,12 @@ class UzawaSmoother : public Solver< OperatorType >
       }
 
       A.pspg.apply( x.p, r_.p, level, flag_, Replace );
-      A.div_x.apply( x.uvw.u, r_.p, level, flag_, Add );
-      A.div_y.apply( x.uvw.v, r_.p, level, flag_, Add );
+      A.div_x.apply( x.uvw[0], r_.p, level, flag_, Add );
+      A.div_y.apply( x.uvw[1], r_.p, level, flag_, Add );
 
       if ( hasGlobalCells_ )
       {
-         A.div_z.apply( x.uvw.w, r_.p, level, flag_, Add );
+         A.div_z.apply( x.uvw[2], r_.p, level, flag_, Add );
       }
 
       if ( rhsZero_ && algorithms::contains( rhsZeroLevels_, level ) )
@@ -244,30 +244,30 @@ class UzawaSmoother : public Solver< OperatorType >
    {
       if ( rhsZero_ && algorithms::contains( rhsZeroLevels_, level ) )
       {
-         A.divT_x.apply( x.p, r_.uvw.u, level, flag_, Replace );
-         r_.uvw.u.assign( {-1.0}, {r_.uvw.u}, level, flag_ );
+         A.divT_x.apply( x.p, r_.uvw[0], level, flag_, Replace );
+         r_.uvw[0].assign( {-1.0}, {r_.uvw[0]}, level, flag_ );
 
-         A.divT_y.apply( x.p, r_.uvw.v, level, flag_, Replace );
-         r_.uvw.v.assign( {-1.0}, {r_.uvw.v}, level, flag_ );
+         A.divT_y.apply( x.p, r_.uvw[1], level, flag_, Replace );
+         r_.uvw[1].assign( {-1.0}, {r_.uvw[1]}, level, flag_ );
 
          if ( hasGlobalCells_ )
          {
-            A.divT_z.apply( x.p, r_.uvw.w, level, flag_, Replace );
-            r_.uvw.w.assign( {-1.0}, {r_.uvw.w}, level, flag_ );
+            A.divT_z.apply( x.p, r_.uvw[2], level, flag_, Replace );
+            r_.uvw[2].assign( {-1.0}, {r_.uvw[2]}, level, flag_ );
          }
       }
       else
       {
-         A.divT_x.apply( x.p, r_.uvw.u, level, flag_, Replace );
-         r_.uvw.u.assign( {1.0, -1.0}, {b.uvw.u, r_.uvw.u}, level, flag_ );
+         A.divT_x.apply( x.p, r_.uvw[0], level, flag_, Replace );
+         r_.uvw[0].assign( {1.0, -1.0}, {b.uvw[0], r_.uvw[0]}, level, flag_ );
 
-         A.divT_y.apply( x.p, r_.uvw.v, level, flag_, Replace );
-         r_.uvw.v.assign( {1.0, -1.0}, {b.uvw.v, r_.uvw.v}, level, flag_ );
+         A.divT_y.apply( x.p, r_.uvw[1], level, flag_, Replace );
+         r_.uvw[1].assign( {1.0, -1.0}, {b.uvw[1], r_.uvw[1]}, level, flag_ );
 
          if ( hasGlobalCells_ )
          {
-            A.divT_z.apply( x.p, r_.uvw.w, level, flag_, Replace );
-            r_.uvw.w.assign( {1.0, -1.0}, {b.uvw.w, r_.uvw.w}, level, flag_ );
+            A.divT_z.apply( x.p, r_.uvw[2], level, flag_, Replace );
+            r_.uvw[2].assign( {1.0, -1.0}, {b.uvw[2], r_.uvw[2]}, level, flag_ );
          }
       }
 
@@ -276,12 +276,12 @@ class UzawaSmoother : public Solver< OperatorType >
          velocitySmoother_->solve( A, x, r_, level );
       }
 
-      A.div_x.apply( x.uvw.u, r_.p, level, flag_, Replace );
-      A.div_y.apply( x.uvw.v, r_.p, level, flag_, Add );
+      A.div_x.apply( x.uvw[0], r_.p, level, flag_, Replace );
+      A.div_y.apply( x.uvw[1], r_.p, level, flag_, Add );
 
       if ( hasGlobalCells_ )
       {
-         A.div_z.apply( x.uvw.w, r_.p, level, flag_, Add );
+         A.div_z.apply( x.uvw[2], r_.p, level, flag_, Add );
       }
 
       if ( rhsZero_ && algorithms::contains( rhsZeroLevels_, level ) )

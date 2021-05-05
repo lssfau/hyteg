@@ -376,9 +376,6 @@ waLBerla_execute_test(NAME P2SwapTest)
 waLBerla_compile_test(FILES P2/P2FunctionTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2FunctionTest)
 
-waLBerla_compile_test(FILES P2/P2VectorFunctionTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME P2VectorFunctionTest)
-
 waLBerla_compile_test(FILES P2/P2Level0Test.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2Level0Test1 COMMAND $<TARGET_FILE:P2Level0Test> PROCESSES 1)
 waLBerla_execute_test(NAME P2Level0Test2 COMMAND $<TARGET_FILE:P2Level0Test> PROCESSES 2)
@@ -472,6 +469,14 @@ endif()
 
 waLBerla_compile_test(FILES composites/P2P1ElementwiseStokesOperatorTest.cpp DEPENDS hyteg core )
 waLBerla_execute_test(NAME P2P1ElementwiseStokesOperatorTest)
+
+############################################
+
+## VectorFunctions ##
+waLBerla_compile_test(FILES VectorFunctions/VectorFunctionBasicTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME VectorFunctionBasicTest)
+waLBerla_compile_test(FILES operators/VectorOperatorBasicTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME VectorOperatorBasicTest)
 
 ## Other ##
 
@@ -642,6 +647,9 @@ endif()
 ## Form Evaluation ##
 waLBerla_compile_test(FILES forms/HytegVsFenicsFormTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME HytegVsFenicsFormTest )
+
+waLBerla_compile_test(FILES forms/SingleRowIntegrationTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME SingleRowIntegrationTest )
 
 ## Floating point exceptions ##
 waLBerla_compile_test(FILES fpe/invertElementwiseTest.cpp DEPENDS hyteg core)

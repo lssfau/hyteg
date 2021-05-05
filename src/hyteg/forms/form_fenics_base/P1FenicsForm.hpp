@@ -112,6 +112,26 @@ class P1FenicsForm : public P1Form
       out[3] = localStiffnessMatrix( 0, 3 );
    }
 
+   void integrateRow0( const std::array< Point3D, 3 >& coords, Matrixr< 1, 3 >& elMat ) const override
+   {
+      Point3D row;
+      integrate(coords, row);
+      for (int i = 0; i < 3; ++i)
+      {
+         elMat(0,i) = row[i];
+      }
+   }
+
+   void integrateRow0( const std::array< Point3D, 4 >& coords, Matrixr< 1, 4 >& elMat ) const override
+   {
+      Point4D row;
+      integrate(coords, row);
+      for (int i = 0; i < 4; ++i)
+      {
+         elMat(0,i) = row[i];
+      }
+   }
+
    void integrateAll( const std::array< Point3D, 3 >& coords, Matrix3r& elMat ) const
    {
       real_t fenicsCoords[6];
