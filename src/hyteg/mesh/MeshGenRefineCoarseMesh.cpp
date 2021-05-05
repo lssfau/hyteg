@@ -18,6 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "core/math/Vector3.h"
+
 #include "MeshInfo.hpp"
 
 namespace hyteg {
@@ -43,9 +45,16 @@ MeshInfo MeshInfo::refinedCoarseMesh( const MeshInfo& originalMesh, uint_t refin
             maxVertexId = vertex.first;
          }
       }
-      uint_t newVertexId = maxVertexId + 1;
+      uint_t newVertexIdStart = maxVertexId + 1;
+      uint_t newVertexIds[6];
       // copy vertices from old mesh
       newMesh.vertices_ = oldMesh.vertices_;
+      // create tmpMap for lookup of vertices:
+      std::unordered_map< walberla::Vector3< real_t >, IDType > vertexLookUp;
+      for ( auto& it : newMesh.vertices_ )
+      {
+         vertexLookUp[toVec3( it.second.getCoordinates() )] = it.first;
+      }
       for ( const auto& cell : oldMesh.cells_ )
       {
          // create new vertices at the middle points ///
@@ -61,29 +70,39 @@ MeshInfo MeshInfo::refinedCoarseMesh( const MeshInfo& originalMesh, uint_t refin
          newPoints[5] = getMidPoint( oldVerticesVector[2], oldVerticesVector[3], oldMesh );
          for ( uint_t i = 0; i < 6; i++ )
          {
-            newMesh.addVertex( MeshInfo::Vertex( newVertexId + i, newPoints[i], 0 ) );
+            // check if newPoint already exists in MeshInfo
+            if ( vertexLookUp.count( toVec3( newPoints[i] ) ) != 0 )
+            {
+               newVertexIds[i] = vertexLookUp[toVec3( newPoints[i] )];
+            }
+            else
+            {
+               newVertexIds[i] = newVertexIdStart;
+               newVertexIdStart++;
+               auto newVertex = MeshInfo::Vertex( newVertexIds[i], newPoints[i], 0 );
+               newMesh.addVertex( newVertex );
+               vertexLookUp[toVec3( newVertex.getCoordinates() )] = newVertexIds[i];
+            }
          }
 
          // create new tetrahedrons //
          std::vector< MeshInfo::Cell > newCells( 8 );
          // 4 tets contain the original vertices
-         newCells[0] = Cell( { oldVerticesVector[0], newVertexId + 0, newVertexId + 1, newVertexId + 3 }, 0 );
-         newCells[1] = Cell( { oldVerticesVector[1], newVertexId + 0, newVertexId + 2, newVertexId + 4 }, 0 );
-         newCells[2] = Cell( { oldVerticesVector[2], newVertexId + 1, newVertexId + 2, newVertexId + 5 }, 0 );
-         newCells[3] = Cell( { oldVerticesVector[3], newVertexId + 3, newVertexId + 4, newVertexId + 5 }, 0 );
+         newCells[0] = Cell( { oldVerticesVector[0], newVertexIds[0], newVertexIds[1], newVertexIds[3] }, 0 );
+         newCells[1] = Cell( { oldVerticesVector[1], newVertexIds[0], newVertexIds[2], newVertexIds[4] }, 0 );
+         newCells[2] = Cell( { oldVerticesVector[2], newVertexIds[1], newVertexIds[2], newVertexIds[5] }, 0 );
+         newCells[3] = Cell( { oldVerticesVector[3], newVertexIds[3], newVertexIds[4], newVertexIds[5] }, 0 );
 
          // 4 tets are construced from new points
-         newCells[4] = Cell( { newVertexId + 0, newVertexId + 1, newVertexId + 2, newVertexId + 4 }, 0 );
-         newCells[5] = Cell( { newVertexId + 0, newVertexId + 1, newVertexId + 3, newVertexId + 4 }, 0 );
-         newCells[6] = Cell( { newVertexId + 1, newVertexId + 2, newVertexId + 4, newVertexId + 5 }, 0 );
-         newCells[7] = Cell( { newVertexId + 1, newVertexId + 3, newVertexId + 4, newVertexId + 5 }, 0 );
+         newCells[4] = Cell( { newVertexIds[0], newVertexIds[1], newVertexIds[2], newVertexIds[4] }, 0 );
+         newCells[5] = Cell( { newVertexIds[0], newVertexIds[1], newVertexIds[3], newVertexIds[4] }, 0 );
+         newCells[6] = Cell( { newVertexIds[1], newVertexIds[2], newVertexIds[4], newVertexIds[5] }, 0 );
+         newCells[7] = Cell( { newVertexIds[1], newVertexIds[3], newVertexIds[4], newVertexIds[5] }, 0 );
 
          for ( const auto& newCell : newCells )
          {
             newMesh.addCellAndAllEdgesAndFaces( newCell );
          }
-
-         newVertexId += 6;
       }
       return newMesh;
    };
