@@ -55,6 +55,7 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/geometry/CircularMap.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
+#include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "core/Format.hpp"
 
 using walberla::real_t;
@@ -69,7 +70,7 @@ using namespace hyteg;
 typedef std::function<real_t(const hyteg::Point3D&)> c_function;
 
 // cartesian to polar coordinates
-c_function radius = [](const hyteg::Point3D& x) {return std::hypot(x[0], x[1]);};
+c_function radius = [](const hyteg::Point3D& x) {return std::sqrt(x[0]*x[0] + x[1]*x[1] + x[2]*x[2]);};
 c_function angle = [](const hyteg::Point3D& x) {return std::atan2(x[1], x[0]);};
 
 // ==================== FE-spaces ====================
@@ -148,7 +149,8 @@ struct FE_Space<ElementType::P1, StencilType::NONE>
   using Restriction = hyteg::P1toP1LinearRestriction;
   using Prolongation = hyteg::P1toP1LinearProlongation;
 
-  using Mass = hyteg::P1ConstantMassOperator; //! todo use new operator for blending mass
+  using Mass = hyteg::P1BlendingMassOperator_new;
+  // using Mass = hyteg::P1ConstantMassOperator;
 
   using LaplaceCONST = hyteg::P1ConstantLaplaceOperator;
   using LaplaceCONST_NEW = hyteg::P1ConstantLaplaceOperator_new;
@@ -156,7 +158,6 @@ struct FE_Space<ElementType::P1, StencilType::NONE>
   using LaplaceVAR_NEW = hyteg::P1BlendingLaplaceOperator_new;
   using LaplaceLSQP = hyteg::P1PolynomialBlendingLaplaceOperator;
   using LaplaceLSQP_NEW = hyteg::P1SurrogateLaplaceOperator_new;
-  // using LaplaceLSQP_NEW = hyteg::P1BlendingLaplaceOperator_new;// todo
 };
 
 template <>
@@ -548,11 +549,13 @@ int main(int argc, char* argv[])
   {
     if (nZ > 0)
     {
-      // todo
-      WALBERLA_ABORT("spherical shell not supported yet!");
+      WALBERLA_LOG_INFO_ON_ROOT( "Geometry: Spherical Shell" );
+    }
+    else
+    {
+      WALBERLA_LOG_INFO_ON_ROOT("Geometry: Annulus");
     }
 
-    WALBERLA_LOG_INFO_ON_ROOT("Geometry: Annulus");
     if (blending)
     {
       WALBERLA_LOG_INFO_ON_ROOT("Geometry blending enabled");
@@ -584,7 +587,8 @@ int main(int argc, char* argv[])
 
   MeshInfo meshInfo = MeshInfo::meshRectangle(Point2D({0.0, 0.0}), Point2D({1.0, 1.0}), MeshInfo::CRISS, nX, nY);
 
-  if (nZ > 0)
+  /// case cube
+  if ( nZ > 0 )
   {
     exact = [](const hyteg::Point3D& x) { return sin(pi*x[0])*sin(pi*x[1])*sin(pi*x[2]); };
     rhs = [](const hyteg::Point3D& x) { return 3*pi*pi*sin(pi*x[0])*sin(pi*x[1])*sin(pi*x[2]); };
@@ -617,11 +621,49 @@ int main(int argc, char* argv[])
     meshInfo = MeshInfo::meshAnnulus(rMin, rMax, MeshInfo::CRISS, nX, nY);
   }
 
+  /// case spherical shell
+  if (annulus && nZ > 0)
+  {
+     exact = [=]( const hyteg::Point3D& x ) {
+        return sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) * sin( 4 * atan2( x[1], x[0] ) );
+     };
+    boundary = exact;
+     rhs = [=]( const hyteg::Point3D& x ) {
+        return 4 * pow( x[0], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
+                   sin( 4 * atan2( x[1], x[0] ) ) / ( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) +
+               2 * pow( x[0], 2 ) * sin( 4 * atan2( x[1], x[0] ) ) *
+                   cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
+                   pow( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ), 3.0 / 2.0 ) +
+               16 * pow( x[0], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
+                   sin( 4 * atan2( x[1], x[0] ) ) / pow( pow( x[0], 2 ) + pow( x[1], 2 ), 2 ) +
+               4 * pow( x[1], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
+                   sin( 4 * atan2( x[1], x[0] ) ) / ( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) +
+               2 * pow( x[1], 2 ) * sin( 4 * atan2( x[1], x[0] ) ) *
+                   cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
+                   pow( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ), 3.0 / 2.0 ) +
+               16 * pow( x[1], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
+                   sin( 4 * atan2( x[1], x[0] ) ) / pow( pow( x[0], 2 ) + pow( x[1], 2 ), 2 ) +
+               4 * pow( x[2], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
+                   sin( 4 * atan2( x[1], x[0] ) ) / ( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) +
+               2 * pow( x[2], 2 ) * sin( 4 * atan2( x[1], x[0] ) ) *
+                   cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
+                   pow( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ), 3.0 / 2.0 ) -
+               6 * sin( 4 * atan2( x[1], x[0] ) ) * cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
+                   sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) );
+     };
+     meshInfo = MeshInfo::meshSphericalShell(nX,nY, rMin, rMax,MeshInfo::SHELLMESH_CLASSIC);
+  }
+
   SetupPrimitiveStorage setupStorage(meshInfo, uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
   setupStorage.setMeshBoundaryFlagsOnBoundary(1, 0, true);
 
   if (annulus && blending)
-    AnnulusMap::setMap(setupStorage);
+  {
+    if (nZ > 0)
+       IcosahedralShellMap::setMap( setupStorage );
+    else
+       AnnulusMap::setMap( setupStorage );
+  }
 
   hyteg::loadbalancing::roundRobin(setupStorage);
   std::shared_ptr<PrimitiveStorage> storage = std::make_shared<PrimitiveStorage>(setupStorage);

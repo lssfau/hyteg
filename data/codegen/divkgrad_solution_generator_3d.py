@@ -24,6 +24,13 @@ def torusCoords(R0,R1,R2, x, y, z):
 
     return (φ,θ,ϱ)
 
+def φ(x, y):
+    return atan2(y, x)
+
+
+def r(x, y, z):
+    return sqrt(x*x + y*y + z*z)
+
 
 #------ sample solutions -------#
 
@@ -69,6 +76,11 @@ def tokamak_jump():
     return u,k,ϱ*ϱ
 
 
+def spherical_shell_example():
+    u = sin(4*φ(x, y))*sin(2*r(x, y, z))
+    return (u, 1)
+
+
 def example():
     u = sin(pi*x)*sin(pi*y)*sin(pi*z)
     k = 1
@@ -83,10 +95,19 @@ def gradient(u):
 def divergence(u):
     return diff(u[0],x) + diff(u[1],y) + diff(u[2],z)
 
-if __name__ == '__main__':
+
+def function_template(name, body):
+    return 'std::function<real_t(const hyteg::Point3D&)> %s = [=](const hyteg::Point3D& x) { return %s; };' % (name, body)
+
+def to_cpp_function(name, expr):
+    print(function_template(name, ccode(expr)))
+
+
+# ---------- tokamak ---------------
+def tokamak_solution(foo):
 
     # exact solution and diffusion coefficient
-    u,k,ϱ2 = tokamak_jump()
+    u,k,ϱ2 = foo()
 
     # Right hand side
     f = -divergence(k * gradient(u))
@@ -110,10 +131,50 @@ if __name__ == '__main__':
     z.name = 'x[2]'
     r2.name = 'r2(x)'
 
-    def function_template(name, body):
-        return 'std::function<real_t(const hyteg::Point3D&)> %s = [=](const hyteg::Point3D& x) { return %s; };' % (name, body)
+    print(function_template('r2', 'std::max(1e-100, %s)' %ccode(ϱ2)))
+    # to_cpp_function('r2', max(1e-100,ϱ2))
+    to_cpp_function('coeff', k)
+    to_cpp_function('exact', u)
+    to_cpp_function('rhs', f)
+    # print(function_template('r2', 'std::max(1e-100,  %s)' %ccode(ϱ2)))
+    # print(function_template('coeff', ccode(k)))
+    # print(function_template('exact', ccode(u)))
+    # print(function_template('rhs', ccode(f)))
 
-    print(function_template('r2', 'std::max(1e-100,  %s)' %ccode(ϱ2)))
-    print(function_template('coeff', ccode(k)))
-    print(function_template('exact', ccode(u)))
-    print(function_template('rhs', ccode(f)))
+
+def generic_solution(foo):
+    # exact solution and diffusion coefficient
+    u,k = foo()
+
+    # Right hand side
+    f = -divergence(k * gradient(u))
+
+    # r2 = symbols('r2_xyz')
+    # r2.name = 'r2(x,y,z)'
+
+    # u = u.subs(ϱ2,r2)
+    # k = k.subs(ϱ2,r2)
+    # f = f.subs(ϱ2,r2)
+
+    # print('r2 = @(x,y,z) max(1e-100,', octave_code(ϱ2), ');')
+    # print('u = @(x,y,z)', octave_code(u), ';')
+    # print('k = @(x,y,z)', octave_code(k), ';')
+    # print('f = @(x,y,z)', octave_code(f), ';')
+
+
+    # Generate code
+    x.name = 'x[0]'
+    y.name = 'x[1]'
+    z.name = 'x[2]'
+    # r2.name = 'r2(x)'
+
+    # print(function_template('r2', 'std::max(1e-100, %s)' %ccode(ϱ2)))
+    # to_cpp_function('r2', max(1e-100,ϱ2))
+    to_cpp_function('coeff', k)
+    to_cpp_function('exact', u)
+    to_cpp_function('rhs', f)
+
+
+if __name__ == '__main__':
+    # tokamak_solution(tokamak_jump)
+    generic_solution(spherical_shell_example)
