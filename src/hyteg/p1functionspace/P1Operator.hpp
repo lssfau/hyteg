@@ -386,7 +386,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
             form_.setGeometryMap(vertex->getGeometryMap());
             auto stencil =
-               P1Elements::P1Elements3D::assembleP1LocalStencil(storage_, *vertex, indexing::Index(0, 0, 0), level, form_);
+               P1Elements::P1Elements3D::assembleP1LocalStencil_new<P1Form>(storage_, *vertex, indexing::Index(0, 0, 0), level, form_);
 
             WALBERLA_ASSERT_EQUAL(stencilSize, stencil.size());
 
@@ -438,8 +438,8 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
                      x) *
                     h;
 
-               Point3D matrixRow;
-               form_.integrate({{x, x + d0, x + d2}}, matrixRow);
+               Matrixr<1,3> matrixRow;
+               form_.integrateRow(0,{{x, x + d0, x + d2}}, matrixRow);
 
                uint_t i = 1;
 
@@ -448,12 +448,12 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
                {
                   uint_t edge_idx = vertex.edge_index(edgeId) + 1;
 
-                  vertex_stencil[edge_idx] += matrixRow[i];
+                  vertex_stencil[edge_idx] += matrixRow(0,i);
                   i += 1;
                }
 
                // add contribution of center vertex
-               vertex_stencil[0] += matrixRow[0];
+               vertex_stencil[0] += matrixRow(0,0);
 
                ++neighborId;
             }
@@ -1513,8 +1513,8 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       if (storage_->hasGlobalCells())
       {
          // new map not yet used -> use old linear stencil memory
-         auto stencil = P1Elements::P1Elements3D::assembleP1LocalStencil(
-                           storage_, *edge_, indexing::Index(i, 0, 0), level_, form_);
+         auto stencil = P1Elements::P1Elements3D::assembleP1LocalStencil_new< P1Form >(
+             storage_, *edge_, indexing::Index( i, 0, 0 ), level_, form_ );
 
          WALBERLA_ASSERT_EQUAL(stencilSize_, stencil.size());
 
@@ -1529,21 +1529,21 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
          std::memset(edge_stencil, 0, stencilSize_ * sizeof(real_t));
 
          // south face
-         vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+         vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
             formS_, {x, x + stencil_directions_2D_.W, x + stencil_directions_2D_.S}, P1Elements::P1Elements2D::elementSW, edge_stencil);
-         vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+         vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
             formS_, {x, x + stencil_directions_2D_.S, x + stencil_directions_2D_.SE}, P1Elements::P1Elements2D::elementS, edge_stencil);
-         vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+         vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
             formS_, {x, x + stencil_directions_2D_.SE, x + stencil_directions_2D_.E}, P1Elements::P1Elements2D::elementSE, edge_stencil);
 
          // north face
          if (north_)
          {
-            vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+            vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
                formN_, {x, x + stencil_directions_2D_.E, x + stencil_directions_2D_.N}, P1Elements::P1Elements2D::elementNE, edge_stencil);
-            vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+            vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
                formN_, {x, x + stencil_directions_2D_.N, x + stencil_directions_2D_.NW}, P1Elements::P1Elements2D::elementN, edge_stencil);
-            vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+            vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
                formN_, {x, x + stencil_directions_2D_.NW, x + stencil_directions_2D_.W}, P1Elements::P1Elements2D::elementNW, edge_stencil);
          }
       }
@@ -1593,17 +1593,17 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       WALBERLA_ASSERT(!(storage_->hasGlobalCells()));
       Point3D x = x0_ + i * dx_ + j * dy_;
 
-      vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+      vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
          form_, {x, x + stencil_directions_2D_.W, x + stencil_directions_2D_.S}, P1Elements::P1Elements2D::elementSW, face_stencil);
-      vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+      vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
          form_, {x, x + stencil_directions_2D_.S, x + stencil_directions_2D_.SE}, P1Elements::P1Elements2D::elementS, face_stencil);
-      vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+      vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
          form_, {x, x + stencil_directions_2D_.SE, x + stencil_directions_2D_.E}, P1Elements::P1Elements2D::elementSE, face_stencil);
-      vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+      vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
          form_, {x, x + stencil_directions_2D_.E, x + stencil_directions_2D_.N}, P1Elements::P1Elements2D::elementNE, face_stencil);
-      vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+      vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
          form_, {x, x + stencil_directions_2D_.N, x + stencil_directions_2D_.NW}, P1Elements::P1Elements2D::elementN, face_stencil);
-      vertexdof::variablestencil::assembleLocalStencil< P1Form >(
+      vertexdof::variablestencil::assembleLocalStencil_new< P1Form >(
          form_, {x, x + stencil_directions_2D_.NW, x + stencil_directions_2D_.W}, P1Elements::P1Elements2D::elementNW, face_stencil);
    }
 
@@ -1618,8 +1618,8 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
          auto neighborCell = storage_->getCell(face_->neighborCells().at(neighborCellID));
          auto vertexAssemblyIndexInCell =
             vertexdof::macroface::getIndexInNeighboringMacroCell({ i, j, 0 }, *face_, neighborCellID, *storage_, level_);
-         face_stencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
-                                           storage_, *neighborCell, vertexAssemblyIndexInCell, level_, form_);
+         face_stencil[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew_new< P1Form >(
+             storage_, *neighborCell, vertexAssemblyIndexInCell, level_, form_ );
       }
    }
 
@@ -1637,8 +1637,8 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    */
    inline void assemble_variableStencil_cell(vertexdof::macrocell::StencilMap_T& cell_stencil, const uint_t i, const uint_t j, const uint_t k) const
    {
-      cell_stencil = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
-                        storage_, *cell_, indexing::Index(i, j, k), level_, form_);
+      cell_stencil = P1Elements::P1Elements3D::assembleP1LocalStencilNew_new< P1Form >(
+          storage_, *cell_, indexing::Index( i, j, k ), level_, form_ );
    }
 
    ////////////////////////////////////////////////////////////////////////////////////////////////////////

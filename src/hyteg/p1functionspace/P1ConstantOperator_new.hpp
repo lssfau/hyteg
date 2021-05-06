@@ -33,9 +33,11 @@
 #endif
 
 #include "hyteg/forms/P1RowSumForm.hpp"
-#include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
-#include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
-#include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
+// #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
+// #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
+// #include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_affine_qe.hpp"
 #include "hyteg/p1functionspace/generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_add.hpp"
 #include "hyteg/p1functionspace/generatedKernels/apply_2D_macroface_vertexdof_to_vertexdof_replace.hpp"
 #include "hyteg/p1functionspace/generatedKernels/apply_3D_macrocell_vertexdof_to_vertexdof_add.hpp"
@@ -554,10 +556,12 @@ class P1ConstantOperator_new : public P1Operator<P1Form>
    }
 };
 
+// todo test other forms
+// todo maybe replace old P1ConstantOperator. This requires new implementation of P2ConstantOperator s.th. integrateRow() can be used.
+
 // typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, fenics::NoAssemble > > P1ZeroOperator;
 
-typedef P1ConstantOperator_new< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > >
-    P1ConstantLaplaceOperator_new;
+typedef P1ConstantOperator_new< forms::p1_diffusion_affine_q2 > P1ConstantLaplaceOperator_new;
 
 // typedef P1ConstantOperator< P1FenicsForm< p1_stokes_epsilon_cell_integral_0_otherwise > > P1ConstantEpsilonOperator_11;
 // typedef P1ConstantOperator< P1FenicsForm< p1_stokes_epsilon_cell_integral_1_otherwise > > P1ConstantEpsilonOperator_12;
@@ -572,7 +576,7 @@ typedef P1ConstantOperator_new< P1FenicsForm< p1_diffusion_cell_integral_0_other
 // typedef P1ConstantOperator< P1FenicsForm< p1_divt_cell_integral_1_otherwise, p1_tet_divt_tet_cell_integral_1_otherwise > > P1DivTyOperator;
 // typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet_cell_integral_2_otherwise > > P1DivTzOperator;
 
-// typedef P1ConstantOperator< P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise > > P1ConstantMassOperator;
+typedef P1ConstantOperator< forms::p1_mass_affine_qe > P1ConstantMassOperator_new;
 
 // typedef P1ConstantOperator< P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > > P1PSPGOperator;
 
