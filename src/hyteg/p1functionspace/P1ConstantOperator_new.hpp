@@ -93,25 +93,7 @@ class P1ConstantOperator_new : public P1Operator<P1Form>
       WALBERLA_LOG_INFO_ON_ROOT("=== CTOR NEW CONSTANT OPERATOR ===");
 
       // pre-assemble edge, face and cell stencils
-      if (storage_->hasGlobalCells())
-      {
-         const bool assemblyDefined = form_.assembly3DDefined();
-         WALBERLA_CHECK(assemblyDefined, "Assembly undefined for 3D elements.");
-
-         if (form_.assemble3D())
-         {
-            assembleStencils();
-         }
-      }
-      else
-      {
-         if (form_.assemble2D())
-         {
-            const bool assemblyDefined = form_.assembly2DDefined();
-            WALBERLA_CHECK(assemblyDefined, "Assembly undefined for 2D elements.");
-            assembleStencils();
-         }
-      }
+      assembleStencils();
    }
 
  protected:
