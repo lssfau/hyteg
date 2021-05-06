@@ -533,6 +533,16 @@ class MeshInfo
                               real_t                toroidalStartAngle = 0,
                               real_t                poloidalStartAngle = 0 );
 
+   /// \brief Creates a finer coarse mesh from a given mesh
+   ///
+   /// Takes a given MeshInfo and refines it with the default refinment algorithm.
+   /// Afterwards a new MeshInfo based on that refinement is created.
+   /// This allows to refine the coarse mesh
+   ///
+   /// \param oldMesh Original MeshIfno
+   /// \param refinmentSteps number of refinements
+   static MeshInfo refinedCoarseMesh( const MeshInfo& oldMesh, uint_t refinementSteps );
+
    /// Returns vertices of the mesh
    const VertexContainer& getVertices() const { return vertices_; };
 
