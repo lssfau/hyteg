@@ -62,7 +62,7 @@ Parameters
 
     coarseMeshAndQuit         false;
     dbFile                    Tokamak.db;
-    vtk                       true;
+    vtk                       false;
     vtkDirectory              ./vtk;
     precomputeElementMatrices true;
 
