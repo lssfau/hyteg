@@ -23,6 +23,7 @@
 #include "core/math/Random.h"
 #include "core/timing/Timer.h"
 
+#include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/dataexport/SQL.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
@@ -104,6 +105,7 @@ struct TokamakDomain
    std::vector< real_t > tubeLayerRadii;
    real_t                torodialStartAngle;
    real_t                polodialStartAngle;
+   uint_t                refineCoarseMesh;
 
    real_t delta;
    real_t r1;
@@ -247,12 +249,15 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
 
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Setting up torus mesh ..." )
 
-   const auto meshInfo = MeshInfo::meshTorus( tokamakDomain.numToroidalSlices,
+   auto meshInfo = MeshInfo::meshTorus( tokamakDomain.numToroidalSlices,
                                               tokamakDomain.numPoloidalSlices,
                                               tokamakDomain.radiusOriginToCenterOfTube,
                                               tokamakDomain.tubeLayerRadii,
                                               tokamakDomain.torodialStartAngle,
                                               tokamakDomain.polodialStartAngle );
+   if (tokamakDomain.refineCoarseMesh > 0 ){
+      meshInfo = MeshInfo::refinedCoarseMesh(meshInfo, tokamakDomain.refineCoarseMesh);
+   }
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
@@ -726,6 +731,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " iteration |  residual | res. rate |     error " ) )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ----------+-----------+-----------+-----------" ) )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9s | %9.2e | %9s | %9.2e", "initial", residualL2, "-", errorL2 ) )
+   LIKWID_MARKER_START("Solve");
 
    if ( solverSettings.solverType == CG )
    {
@@ -778,7 +784,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    {
       WALBERLA_ABORT( "Invalid solver type: " << solverSettings.solverType )
    }
-
+   LIKWID_MARKER_STOP("Solve");
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Residual and error calculation ..." )
    errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
 
@@ -816,9 +822,10 @@ std::vector< T > parseStringToVector( std::string inputStr )
 
 void run( int argc, char** argv )
 {
+   LIKWID_MARKER_INIT;
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
-
+   LIKWID_MARKER_THREADINIT;
    PETScManager petScManager;
 
    auto cfg = std::make_shared< walberla::config::Config >();
@@ -846,6 +853,7 @@ void run( int argc, char** argv )
    tokamakDomain.tubeLayerRadii     = parseStringToVector< real_t >( mainConf.getParameter< std::string >( "tubeLayerRadii" ) );
    tokamakDomain.torodialStartAngle = mainConf.getParameter< real_t >( "torodialStartAngle" );
    tokamakDomain.polodialStartAngle = mainConf.getParameter< real_t >( "polodialStartAngle" );
+   tokamakDomain.refineCoarseMesh = mainConf.getParameter< uint_t >( "refineCoarseMesh" );
 
    tokamakDomain.delta = mainConf.getParameter< real_t >( "delta" );
    tokamakDomain.r1    = mainConf.getParameter< real_t >( "r1" );
@@ -891,6 +899,7 @@ void run( int argc, char** argv )
    {
       WALBERLA_ABORT( "Discretization " << discretization.elementType << " not supported." );
    }
+   LIKWID_MARKER_CLOSE;
 }
 
 } // namespace hyteg
