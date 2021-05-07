@@ -1024,6 +1024,9 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
       const uint_t rowsizeZ = levelinfo::num_microvertices_per_edge(level);
       uint_t rowsizeY, rowsizeX;
 
+      // skip level 0 (no interior points)
+      if ( level == 0 ) return;
+
       for (uint_t k = 1; k < rowsizeZ - 3; ++k)
       {
          assemble_stencil_cell_init_z(k);
@@ -1338,6 +1341,9 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
       const uint_t rowsizeZ = levelinfo::num_microvertices_per_edge(level);
       uint_t rowsizeY, rowsizeX;
+
+      // skip level 0 (no interior points)
+      if (level == 0) return;
 
       for (uint_t k = 1; k < rowsizeZ - 3; ++k)
       {

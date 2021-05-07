@@ -31,7 +31,6 @@ def φ(x, y):
 def r(x, y, z):
     return sqrt(x*x + y*y + z*z)
 
-
 #------ sample solutions -------#
 
 def tokamak_jump():
@@ -77,7 +76,7 @@ def tokamak_jump():
 
 
 def spherical_shell_example():
-    u = sin(4*φ(x, y))*sin(2*r(x, y, z))
+    u = sin(2*r(x, y, z))
     return (u, 1)
 
 

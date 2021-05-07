@@ -195,6 +195,9 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
    {
       for (uint_t level = minLevel_; level <= maxLevel_; ++level)
       {
+         // skip level 0 (no interior points)
+         if (level == 0) continue;
+
          const uint_t interpolationLevel  = std::min(level, maxInterpolationLevel);
          const uint_t lvlDiff             = level - interpolationLevel;
          const uint_t rowsizeZ            = levelinfo::num_microvertices_per_edge(interpolationLevel);

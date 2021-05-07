@@ -598,8 +598,8 @@ int main(int argc, char* argv[])
 
   /// case annulus
   Point3D circleCenter{{0, 0, 0}};
-  real_t rMin = pi;
-  real_t rMax = 2.0*pi;
+  real_t rMin = pi/2;
+  real_t rMax = pi;
   real_t middle = (rMax + rMin) / 2.0;
   std::function<real_t(const real_t, const real_t)> exact_polar = [](const real_t r, const real_t phi) { return sin(2*r) * sin(4*phi); };
   if (annulus)
@@ -625,32 +625,61 @@ int main(int argc, char* argv[])
   if (annulus && nZ > 0)
   {
      exact = [=]( const hyteg::Point3D& x ) {
-        return sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) * sin( 4 * atan2( x[1], x[0] ) );
+        return sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) );
      };
-    boundary = exact;
      rhs = [=]( const hyteg::Point3D& x ) {
-        return 4 * pow( x[0], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
-                   sin( 4 * atan2( x[1], x[0] ) ) / ( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) +
-               2 * pow( x[0], 2 ) * sin( 4 * atan2( x[1], x[0] ) ) *
-                   cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
+        return 4 * pow( x[0], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
+                   ( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) +
+               2 * pow( x[0], 2 ) * cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
                    pow( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ), 3.0 / 2.0 ) +
-               16 * pow( x[0], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
-                   sin( 4 * atan2( x[1], x[0] ) ) / pow( pow( x[0], 2 ) + pow( x[1], 2 ), 2 ) +
-               4 * pow( x[1], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
-                   sin( 4 * atan2( x[1], x[0] ) ) / ( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) +
-               2 * pow( x[1], 2 ) * sin( 4 * atan2( x[1], x[0] ) ) *
-                   cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
+               4 * pow( x[1], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
+                   ( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) +
+               2 * pow( x[1], 2 ) * cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
                    pow( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ), 3.0 / 2.0 ) +
-               16 * pow( x[1], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
-                   sin( 4 * atan2( x[1], x[0] ) ) / pow( pow( x[0], 2 ) + pow( x[1], 2 ), 2 ) +
-               4 * pow( x[2], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
-                   sin( 4 * atan2( x[1], x[0] ) ) / ( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) +
-               2 * pow( x[2], 2 ) * sin( 4 * atan2( x[1], x[0] ) ) *
-                   cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
+               4 * pow( x[2], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
+                   ( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) +
+               2 * pow( x[2], 2 ) * cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
                    pow( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ), 3.0 / 2.0 ) -
-               6 * sin( 4 * atan2( x[1], x[0] ) ) * cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
+               6 * cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
                    sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) );
      };
+
+
+     //  exact = []( const hyteg::Point3D& x ) { return sin( pi * x[0] ) * sin( pi * x[1] ) * sin( pi * x[2] ); };
+     //  rhs   = []( const hyteg::Point3D& x ) { return 3 * pi * pi * sin( pi * x[0] ) * sin( pi * x[1] ) * sin( pi * x[2] ); };
+     //  exact = [=]( const hyteg::Point3D& x ) {
+     //     return sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) * sin( 4 * atan2( x[1], x[0] ) );
+     //  };
+     boundary = exact;
+
+     rhs = []( const hyteg::Point3D& ) { return 0.0; };
+     boundary = []( const hyteg::Point3D& ) { return 1.0; };
+     exact = boundary;
+     // boundary = [=](const hyteg::Point3D& x) {return (radius(x) > middle)? sin(2*rMax) : sin(2*rMin);};
+     //  rhs = [=]( const hyteg::Point3D& x ) {
+     //     return 4 * pow( x[0], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
+     //                sin( 4 * atan2( x[1], x[0] ) ) / ( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) +
+     //            2 * pow( x[0], 2 ) * sin( 4 * atan2( x[1], x[0] ) ) *
+     //                cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
+     //                pow( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ), 3.0 / 2.0 ) +
+     //            16 * pow( x[0], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
+     //                sin( 4 * atan2( x[1], x[0] ) ) / pow( pow( x[0], 2 ) + pow( x[1], 2 ), 2 ) +
+     //            4 * pow( x[1], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
+     //                sin( 4 * atan2( x[1], x[0] ) ) / ( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) +
+     //            2 * pow( x[1], 2 ) * sin( 4 * atan2( x[1], x[0] ) ) *
+     //                cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
+     //                pow( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ), 3.0 / 2.0 ) +
+     //            16 * pow( x[1], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
+     //                sin( 4 * atan2( x[1], x[0] ) ) / pow( pow( x[0], 2 ) + pow( x[1], 2 ), 2 ) +
+     //            4 * pow( x[2], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
+     //                sin( 4 * atan2( x[1], x[0] ) ) / ( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) +
+     //            2 * pow( x[2], 2 ) * sin( 4 * atan2( x[1], x[0] ) ) *
+     //                cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
+     //                pow( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ), 3.0 / 2.0 ) -
+     //            6 * sin( 4 * atan2( x[1], x[0] ) ) * cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
+     //                sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) );
+     //  };
+
      meshInfo = MeshInfo::meshSphericalShell(nX,nY, rMin, rMax,MeshInfo::SHELLMESH_CLASSIC);
   }
 
