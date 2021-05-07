@@ -695,8 +695,8 @@ waLBerla_compile_test(FILES freeslip/ProjectNormalTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME ProjectNormalTest)
 waLBerla_execute_test(NAME ProjectNormalTestMPI COMMAND $<TARGET_FILE:ProjectNormalTest> PROCESSES 2 )
 
-if ( HYTEG_BUILD_WITH_TRILINOS )
 ## Trilinos ##
+if ( HYTEG_BUILD_WITH_TRILINOS )
 waLBerla_compile_test(FILES trilinos/TrilinosVersionTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME TrilinosVersionTest)
 
@@ -719,3 +719,7 @@ endif()
 ## BoundaryUID stuff ##
 waLBerla_compile_test(FILES boundaryUID/BoundaryUIDTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME BoundaryUIDTest)
+
+## BlockFunctions ##
+waLBerla_compile_test(FILES BlockFunctions/FunctionWrapperTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME FunctionWrapperTest)
