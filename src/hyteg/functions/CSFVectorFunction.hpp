@@ -36,7 +36,7 @@ using walberla::uint_t;
 /// which have scalar component functions, i.e. where the VectorClass is basically a
 /// Container for Scalar Functions (CSF)
 template < typename VectorFunctionType >
-class CSFVectorFunction : public GenericFunction
+class CSFVectorFunction
 {
  public:
    typedef typename FunctionTrait< VectorFunctionType >::Tag                 Tag;
@@ -96,7 +96,7 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   void interpolate( const valueType& constant, size_t level, DoFType flag = All ) const
+   void interpolate( valueType constant, size_t level, DoFType flag = All ) const
    {
       for ( uint_t k = 0; k < compFunc_.size(); k++ )
       {
@@ -201,7 +201,7 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
-   void assign( const std::vector< valueType >                                           scalars,
+   void assign( const std::vector< valueType >&                                          scalars,
                 const std::vector< std::reference_wrapper< const VectorFunctionType > >& functions,
                 size_t                                                                   level,
                 DoFType                                                                  flag = All ) const

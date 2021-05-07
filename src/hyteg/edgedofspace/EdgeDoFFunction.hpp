@@ -60,7 +60,7 @@ unsigned long long edgeDoFGlobalFunctionMemorySize( const uint_t & level, const 
 } // namespace edgedof
 
 template < typename ValueType >
-class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
+class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
 {
  public:
    typedef ValueType valueType;
@@ -127,7 +127,7 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
                 uint_t                                                                             level,
                 DoFType                                                                            flag = All ) const;
 
-   void add( const ValueType& scalar, uint_t level, DoFType flag = All ) const;
+   void add( ValueType scalar, uint_t level, DoFType flag = All ) const;
 
    void add( const std::vector< ValueType >&                                                    scalars,
              const std::vector< std::reference_wrapper< const EdgeDoFFunction< ValueType > > >& functions,
@@ -136,7 +136,7 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
 
    /// Interpolates a given expression to a EdgeDoFFunction
 
-   void interpolate( const ValueType& constant, uint_t level, DoFType flag = All ) const;
+   void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
 
@@ -170,7 +170,12 @@ class EdgeDoFFunction : public Function< EdgeDoFFunction< ValueType > >
    /// Replace values of the function by their inverses in an elementwise fashion
    void invertElementwise( uint_t level, DoFType flag = All, bool workOnHalos = false ) const;
 
-   ValueType dotLocal( const EdgeDoFFunction< ValueType >& rhs, const uint_t level, const DoFType flag = All ) const;
+   ValueType dotLocal( const EdgeDoFFunction< ValueType >& secondOp, const uint_t level, const DoFType flag = All ) const;
+
+   /// @name Unimplemented methods (only dummys for inheritance)
+   /// @{
+   ValueType dotGlobal( const EdgeDoFFunction< ValueType >&, uint_t, DoFType ) const {
+       WALBERLA_ABORT( "EdgeDoFFunction::dotGlobal not implemented!" )} /// @}
 
    ValueType sumLocal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
    ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
