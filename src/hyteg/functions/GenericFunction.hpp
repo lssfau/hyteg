@@ -73,6 +73,15 @@ class GenericFunction
 
    virtual void interpolate( value_t constant, uint_t level, DoFType flag = All ) const = 0;
 
+   virtual value_t
+       dotGlobal( const GenericFunction< value_t >& secondOp, const uint_t level, const DoFType flag = All ) const = 0;
+
+   virtual value_t dotLocal( const GenericFunction< value_t >& secondOp, uint_t level, DoFType flag = All ) const = 0;
+
+   virtual void              enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree ) = 0;
+   virtual void              setBoundaryCondition( BoundaryCondition bc )                                = 0;
+   virtual BoundaryCondition getBoundaryCondition() const                                                = 0;
+
 #ifdef WRAPPER_IMPLEMENTS
 
    virtual void add( const std::vector< value_t >                                                     scalars,
@@ -105,14 +114,6 @@ class GenericFunction
                         uint_t                                                                           level,
                         DoFType                                                                          flag = All ) const = 0;
 
-   virtual value_t
-       dotGlobal( const GenericFunction< value_t >& secondOp, const uint_t level, const DoFType flag = All ) const = 0;
-
-   virtual value_t dotLocal( const GenericFunction< value_t >& secondOp, uint_t level, DoFType flag = All ) const = 0;
-
-   virtual void              setBoundaryCondition( BoundaryCondition bc )                                = 0;
-   virtual void              enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree ) = 0;
-   virtual BoundaryCondition getBoundaryCondition() const                                                = 0;
    virtual void              add( const value_t scalar, uint_t level, DoFType flag = All ) const         = 0;
    virtual void
        interpolate( const std::function< value_t( const hyteg::Point3D& ) >& expr, uint_t level, DoFType flag = All ) const = 0;
