@@ -32,7 +32,7 @@ using walberla::uint_t;
 
 /// Base class for VectorFunctions
 ///
-/// This is the base class for all function classes in HyTeG representing vector fileds
+/// This is the base class for all function classes in HyTeG representing vector fields
 /// which have scalar component functions, i.e. where the VectorClass is basically a
 /// Container for Scalar Functions (CSF)
 template < typename VectorFunctionType >
