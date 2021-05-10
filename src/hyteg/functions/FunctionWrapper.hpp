@@ -48,6 +48,11 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
       wrappedFunc_ = std::make_unique< func_t >( name, storage, minLevel, maxLevel );
    };
 
+   ~FunctionWrapper()
+   {
+     WALBERLA_LOG_INFO_ON_ROOT( "Destructing '" << this->getFunctionName() << "'" );
+   }
+
    /// provide access to wrapped function
    /// @{
    func_t& unwrap() { return *wrappedFunc_; }

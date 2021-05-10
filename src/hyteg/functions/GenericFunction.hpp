@@ -38,6 +38,9 @@ template < typename value_t >
 class GenericFunction
 {
  public:
+
+   virtual ~GenericFunction() {};
+
    template < typename func_t >
    func_t& unwrap()
    {
