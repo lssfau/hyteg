@@ -97,13 +97,12 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
 
    value_t dotGlobal( const GenericFunction< value_t >& secondOp, const uint_t level, const DoFType flag = All ) const
    {
-      const func_t& aux = secondOp.template unwrap< func_t >();
-      wrappedFunc_->dotGlobal( aux, level, flag );
+      return wrappedFunc_->dotGlobal( secondOp.template unwrap< func_t >(), level, flag );
    };
 
    value_t dotLocal( const GenericFunction< value_t >& secondOp, uint_t level, DoFType flag = All ) const
    {
-      wrappedFunc_->dotLocal( secondOp.template unwrap< func_t >(), level, flag );
+     return wrappedFunc_->dotLocal( secondOp.template unwrap< func_t >(), level, flag );
    };
 
    void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree ) { wrappedFunc_->enableTiming( timingTree ); };

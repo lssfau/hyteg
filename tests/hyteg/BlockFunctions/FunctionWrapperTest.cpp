@@ -112,12 +112,7 @@ int main( int argc, char* argv[] )
    // check inner product
    p2Wrap.interpolate( real_t( 2 ), maxLevel, All );
    p2Wrap.interpolate( real_t( 0 ), maxLevel, Boundary );
-// #define LET_IT_CRASH
-#ifdef LET_IT_CRASH
    real_t aux   = p2Wrap.dotGlobal( p2Wrap, maxLevel, Inner );
-#else
-   real_t aux   = 12.0;
-#endif
    uint_t nDoFs = numberOfGlobalInnerDoFs< FunctionTrait< P2Function< real_t > >::Tag >( *storage, maxLevel );
    WALBERLA_CHECK_FLOAT_EQUAL( aux, real_c( nDoFs * 4 ) );
    WALBERLA_LOG_INFO_ON_ROOT( "dotGlobal() -> check" );
