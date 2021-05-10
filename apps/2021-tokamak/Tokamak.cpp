@@ -133,6 +133,7 @@ struct TokamakDomain
       ss << "  - coeff max:           " << coeff_k_max << "\n";
       ss << "  - coeff jump location: " << coeff_r_jump << "\n";
       ss << "  - coeff jump width:    " << coeff_d_jump << "\n";
+      ss << "  - coarse mesh refine:  " << refineCoarseMesh << "\n";
       return ss.str();
    }
 };
@@ -300,7 +301,7 @@ void tokamak( TokamakDomain         tokamakDomain,
    {
       const auto numInnerDoFs = numberOfGlobalInnerDoFs< typename Function_T< real_t >::Tag >( *storage, l );
       const auto numDoFs      = numberOfGlobalDoFs< typename Function_T< real_t >::Tag >( *storage, l );
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%5d | %14d | %14d", l, numInnerDoFs, numDoFs ) )
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%5u | %14u | %14u", l, numInnerDoFs, numDoFs ) )
       if ( appSettings.database )
       {
          db->setConstantEntry( "dofs_inner_level_" + std::to_string( l ), numInnerDoFs );
