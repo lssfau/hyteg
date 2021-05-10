@@ -78,6 +78,18 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
       wrappedFunc_->interpolate( constant, level, flag );
    };
 
+   void interpolate( const std::function< value_t( const hyteg::Point3D& ) >& expr, uint_t level, DoFType flag = All ) const
+   {
+      wrappedFunc_->interpolate( expr, level, flag );
+   };
+
+   void interpolate( const std::vector< std::function< value_t( const hyteg::Point3D& ) > >& expressions,
+                     uint_t                                                                  level,
+                     DoFType                                                                 flag = All ) const
+   {
+      wrappedFunc_->interpolate( expressions, level, flag );
+   };
+
    value_t dotGlobal( const GenericFunction< value_t >& secondOp, const uint_t level, const DoFType flag = All ) const
    {
       const func_t& aux = secondOp.template unwrap< func_t >();
@@ -91,8 +103,50 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
 
    void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree ) { wrappedFunc_->enableTiming( timingTree ); };
 
-   void              setBoundaryCondition( BoundaryCondition bc ) { wrappedFunc_->setBoundaryCondition( bc ); };
+   void setBoundaryCondition( BoundaryCondition bc ) { wrappedFunc_->setBoundaryCondition( bc ); };
+
    BoundaryCondition getBoundaryCondition() const { return wrappedFunc_->getBoundaryCondition(); };
+
+   void add( const value_t scalar, uint_t level, DoFType flag = All ) const { wrappedFunc_->add( scalar, level, flag ); };
+
+   void add( const std::vector< value_t >                                                     scalars,
+             const std::vector< std::reference_wrapper< const GenericFunction< value_t > > >& functions,
+             uint_t                                                                           level,
+             DoFType                                                                          flag = All ) const
+   {
+      std::vector< std::reference_wrapper< const func_t > > realFuncs;
+      for ( const GenericFunction< value_t >& func : functions )
+      {
+         realFuncs.push_back( func.template unwrap< func_t >() );
+      }
+      wrappedFunc_->add( scalars, realFuncs, level, flag );
+   };
+
+   void assign( const std::vector< value_t >                                                     scalars,
+                const std::vector< std::reference_wrapper< const GenericFunction< value_t > > >& functions,
+                uint_t                                                                           level,
+                DoFType                                                                          flag = All ) const
+   {
+      std::vector< std::reference_wrapper< const func_t > > realFuncs;
+      for ( const GenericFunction< value_t >& func : functions )
+      {
+         realFuncs.push_back( func.template unwrap< func_t >() );
+      }
+      wrappedFunc_->assign( scalars, realFuncs, level, flag );
+   };
+
+   void swap( const GenericFunction< value_t >& other, const uint_t& level, const DoFType& flag = All ) const
+   {
+      wrappedFunc_->swap( other.template unwrap< func_t >(), level, flag );
+   };
+
+   void copyFrom( const GenericFunction< value_t >&              other,
+                  const uint_t&                                  level,
+                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
+   {
+      wrappedFunc_->copyFrom( other.template unwrap< func_t >(), level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
+   };
 
  private:
    std::unique_ptr< func_t > wrappedFunc_;

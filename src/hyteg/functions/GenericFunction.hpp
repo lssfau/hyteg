@@ -78,23 +78,32 @@ class GenericFunction
 
    virtual value_t dotLocal( const GenericFunction< value_t >& secondOp, uint_t level, DoFType flag = All ) const = 0;
 
-   virtual void              enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree ) = 0;
-   virtual void              setBoundaryCondition( BoundaryCondition bc )                                = 0;
-   virtual BoundaryCondition getBoundaryCondition() const                                                = 0;
+   virtual void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree ) = 0;
 
-#ifdef WRAPPER_IMPLEMENTS
+   virtual void setBoundaryCondition( BoundaryCondition bc ) = 0;
+
+   virtual BoundaryCondition getBoundaryCondition() const = 0;
+
+   virtual void add( const value_t scalar, uint_t level, DoFType flag = All ) const = 0;
 
    virtual void add( const std::vector< value_t >                                                     scalars,
                      const std::vector< std::reference_wrapper< const GenericFunction< value_t > > >& functions,
                      uint_t                                                                           level,
                      DoFType                                                                          flag = All ) const = 0;
 
-   virtual void swap( const GenericFunction< value_t >& other, const uint_t& level, const DoFType& flag = All ) const = 0;
-
    virtual void assign( const std::vector< value_t >                                                     scalars,
                         const std::vector< std::reference_wrapper< const GenericFunction< value_t > > >& functions,
                         uint_t                                                                           level,
                         DoFType                                                                          flag = All ) const = 0;
+
+   virtual void
+       interpolate( const std::function< value_t( const hyteg::Point3D& ) >& expr, uint_t level, DoFType flag = All ) const = 0;
+
+   virtual void interpolate( const std::vector< std::function< value_t( const hyteg::Point3D& ) > >& expr,
+                             uint_t                                                                  level,
+                             DoFType                                                                 flag = All ) const = 0;
+
+   virtual void swap( const GenericFunction< value_t >& other, const uint_t& level, const DoFType& flag = All ) const = 0;
 
    virtual void copyFrom( const GenericFunction< value_t >&              other,
                           const uint_t&                                  level,
@@ -102,23 +111,11 @@ class GenericFunction
                           const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const = 0;
 
    template < typename OtherType >
-   void copyBoundaryConditionFromFunction( const OtherType& other );
+   void copyBoundaryConditionFromFunction( const OtherType& other )
+   {
+      this->setBoundaryCondition( other.getBoundaryCondition() );
+   };
 
-   // need to be dispatched, because that variant is not available for scalar functions!
-   virtual void interpolate( const std::vector< std::function< value_t( const hyteg::Point3D& ) > >& expr,
-                             uint_t                                                                  level,
-                             DoFType                                                                 flag = All ) const = 0;
-
-   virtual void assign( const std::vector< value_t >&                                                    scalars,
-                        const std::vector< std::reference_wrapper< const GenericFunction< value_t > > >& functions,
-                        uint_t                                                                           level,
-                        DoFType                                                                          flag = All ) const = 0;
-
-   virtual void              add( const value_t scalar, uint_t level, DoFType flag = All ) const         = 0;
-   virtual void
-       interpolate( const std::function< value_t( const hyteg::Point3D& ) >& expr, uint_t level, DoFType flag = All ) const = 0;
-
-#endif
 };
 
 } // namespace hyteg

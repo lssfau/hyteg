@@ -119,6 +119,14 @@ class P2Function final : public Function< P2Function< ValueType > >
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
 
+   void interpolate( const std::vector< std::function< ValueType( const Point3D& ) > >& expr,
+                     uint_t                                                             level,
+                     DoFType                                                            flag = All ) const
+   {
+      WALBERLA_ASSERT_EQUAL( expr.size(), 1 );
+      this->interpolate( expr[0], level, flag );
+   };
+
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
 
    void interpolate( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
