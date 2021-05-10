@@ -19,6 +19,7 @@ Parameters
     tubeLayerRadii             3; // list
     torodialStartAngle         0;
     polodialStartAngle         0;
+    refineCoarseMesh           0;
 
     delta                      0.32404302839;
     r1                         2.0;
@@ -62,6 +63,7 @@ Parameters
 
     coarseMeshAndQuit         false;
     dbFile                    Tokamak.db;
+    database                  false;
     vtk                       false;
     vtkDirectory              ./vtk;
     precomputeElementMatrices true;

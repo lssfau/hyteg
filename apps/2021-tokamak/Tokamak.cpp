@@ -21,7 +21,6 @@
 #include "core/Environment.h"
 #include "core/logging/Logging.h"
 #include "core/math/Random.h"
-#include "core/timing/Timer.h"
 
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/dataexport/SQL.hpp"
@@ -30,17 +29,14 @@
 #include "hyteg/geometry/TokamakMap.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/petsc/PETScExportFunctionAsVector.hpp"
 #include "hyteg/petsc/PETScExportLinearSystem.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
-#include "hyteg/petsc/PETScMinResSolver.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
-#include "hyteg/solvers/ChebyshevSmoother.hpp"
 #include "hyteg/solvers/FullMultigridSolver.hpp"
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/WeightedJacobiSmoother.hpp"
@@ -52,18 +48,18 @@ using walberla::uint_t;
 namespace hyteg {
 
 // Solver types
-const std::string CG       = "cg";
-const std::string GMG_WJAC = "gmg_wjac";
-const std::string FMG_WJAC = "fmg_wjac";
+const std::string_view CG       = "cg";
+const std::string_view GMG_WJAC = "gmg_wjac";
+const std::string_view FMG_WJAC = "fmg_wjac";
 
 struct SolverSettings
 {
    std::string solverType;
-   real_t      relativeResidualReduction;
-   uint_t      preSmooth;
-   uint_t      postSmooth;
+   real_t      relativeResidualReduction{};
+   uint_t      preSmooth{};
+   uint_t      postSmooth{};
 
-   std::string toString() const
+   [[nodiscard]] std::string toString() const
    {
       std::stringstream ss;
       ss << "Solver settings"
@@ -82,10 +78,10 @@ struct SolverSettings
 struct Discretization
 {
    std::string elementType;
-   uint_t      minLevel;
-   uint_t      maxLevel;
+   uint_t      minLevel{};
+   uint_t      maxLevel{};
 
-   std::string toString() const
+   [[nodiscard]] std::string toString() const
    {
       std::stringstream ss;
       ss << "Discretization"
@@ -99,28 +95,28 @@ struct Discretization
 
 struct TokamakDomain
 {
-   uint_t                numToroidalSlices;
-   uint_t                numPoloidalSlices;
-   real_t                radiusOriginToCenterOfTube;
+   uint_t                numToroidalSlices{};
+   uint_t                numPoloidalSlices{};
+   real_t                radiusOriginToCenterOfTube{};
    std::vector< real_t > tubeLayerRadii;
-   real_t                torodialStartAngle;
-   real_t                polodialStartAngle;
-   uint_t                refineCoarseMesh;
+   real_t                torodialStartAngle{};
+   real_t                polodialStartAngle{};
+   uint_t                refineCoarseMesh{};
 
-   real_t delta;
-   real_t r1;
-   real_t r2;
+   real_t delta{};
+   real_t r1{};
+   real_t r2{};
 
-   real_t coeff_R0;
-   real_t coeff_R1;
-   real_t coeff_R2;
-   real_t coeff_delta;
-   real_t coeff_r_jump;
-   real_t coeff_d_jump;
-   real_t coeff_k_min;
-   real_t coeff_k_max;
+   real_t coeff_R0{};
+   real_t coeff_R1{};
+   real_t coeff_R2{};
+   real_t coeff_delta{};
+   real_t coeff_r_jump{};
+   real_t coeff_d_jump{};
+   real_t coeff_k_min{};
+   real_t coeff_k_max{};
 
-   std::string toString() const
+   [[nodiscard]] std::string toString() const
    {
       std::stringstream ss;
       ss << "Tokamak domain and PDE config"
@@ -144,15 +140,16 @@ struct TokamakDomain
 struct AppSettings
 {
    std::string dbFile;
-   bool        coarseMeshAndQuit;
-   bool        vtk;
+   bool        coarseMeshAndQuit{};
+   bool        database{};
+   bool        vtk{};
    std::string vtkDirectory;
-   bool        precomputeElementMatrices;
-   bool        outputLinearSystem;
+   bool        precomputeElementMatrices{};
+   bool        outputLinearSystem{};
    std::string outputLinearSystemBaseName;
    std::string outputLinearSystemFormat;
 
-   std::string toString() const
+   [[nodiscard]] std::string toString() const
    {
       std::stringstream ss;
       ss << "App settings"
@@ -169,13 +166,20 @@ struct AppSettings
    }
 };
 
-void writeDBEntry( FixedSizeSQLDB db, uint_t entryID, real_t residual, real_t error )
+void writeDBEntry( const std::shared_ptr< FixedSizeSQLDB >& db,
+                   uint_t                                   entryID,
+                   real_t                                   residual,
+                   real_t                                   error,
+                   bool                                     writeDataBase )
 {
-   db.setVariableEntry( "entryID", entryID );
-   db.setVariableEntry( "residual", residual );
-   db.setVariableEntry( "error", error );
+   if ( writeDataBase )
+   {
+      db->setVariableEntry( "entryID", entryID );
+      db->setVariableEntry( "residual", residual );
+      db->setVariableEntry( "error", error );
 
-   db.writeRowOnRoot();
+      db->writeRowOnRoot();
+   }
 }
 
 template < typename Function_T, typename LaplaceOperator_T >
@@ -205,58 +209,65 @@ template < template < class > class Function_T,
            typename MassOperator_T,
            typename Restriction_T,
            typename Prolongation_T >
-void tokamak( TokamakDomain tokamakDomain, Discretization discretization, SolverSettings solverSettings, AppSettings appSettings )
+void tokamak( TokamakDomain         tokamakDomain,
+              const Discretization& discretization,
+              SolverSettings        solverSettings,
+              const AppSettings&    appSettings )
 {
-   FixedSizeSQLDB db( appSettings.dbFile );
-
-   db.setConstantEntry( "solverType", solverSettings.solverType );
-   db.setConstantEntry( "relativeResidualReduction", solverSettings.relativeResidualReduction );
-   db.setConstantEntry( "preSmooth", solverSettings.preSmooth );
-   db.setConstantEntry( "postSmooth", solverSettings.postSmooth );
-
-   db.setConstantEntry( "elementType", discretization.elementType );
-   db.setConstantEntry( "minLevel", discretization.minLevel );
-   db.setConstantEntry( "maxLevel", discretization.maxLevel );
-
-   db.setConstantEntry( "numToroidalSlices", tokamakDomain.numToroidalSlices );
-   db.setConstantEntry( "numPoloidalSlices", tokamakDomain.numPoloidalSlices );
-   db.setConstantEntry( "radiusOriginToCenterOfTube", tokamakDomain.radiusOriginToCenterOfTube );
-   for ( uint_t i = 0; i < tokamakDomain.tubeLayerRadii.size(); i++ )
+   std::shared_ptr< FixedSizeSQLDB > db;
+   if ( appSettings.database )
    {
-      db.setConstantEntry( "tubeLayerRadii_" + std::to_string( i ), tokamakDomain.tubeLayerRadii[i] );
+      db = std::make_shared< FixedSizeSQLDB >( appSettings.dbFile );
+
+      db->setConstantEntry( "solverType", solverSettings.solverType );
+      db->setConstantEntry( "relativeResidualReduction", solverSettings.relativeResidualReduction );
+      db->setConstantEntry( "preSmooth", solverSettings.preSmooth );
+      db->setConstantEntry( "postSmooth", solverSettings.postSmooth );
+
+      db->setConstantEntry( "elementType", discretization.elementType );
+      db->setConstantEntry( "minLevel", discretization.minLevel );
+      db->setConstantEntry( "maxLevel", discretization.maxLevel );
+
+      db->setConstantEntry( "numToroidalSlices", tokamakDomain.numToroidalSlices );
+      db->setConstantEntry( "numPoloidalSlices", tokamakDomain.numPoloidalSlices );
+      db->setConstantEntry( "radiusOriginToCenterOfTube", tokamakDomain.radiusOriginToCenterOfTube );
+      for ( uint_t i = 0; i < tokamakDomain.tubeLayerRadii.size(); i++ )
+      {
+         db->setConstantEntry( "tubeLayerRadii_" + std::to_string( i ), tokamakDomain.tubeLayerRadii[i] );
+      }
+      db->setConstantEntry( "torodialStartAngle", tokamakDomain.torodialStartAngle );
+      db->setConstantEntry( "polodialStartAngle", tokamakDomain.polodialStartAngle );
+      db->setConstantEntry( "delta", tokamakDomain.delta );
+      db->setConstantEntry( "r1", tokamakDomain.r1 );
+      db->setConstantEntry( "r2", tokamakDomain.r2 );
+
+      db->setConstantEntry( "dbFile", appSettings.dbFile );
+      db->setConstantEntry( "coarseMeshAndQuit", appSettings.coarseMeshAndQuit );
+      db->setConstantEntry( "vtk", appSettings.vtk );
+      db->setConstantEntry( "vtkDirectory", appSettings.vtkDirectory );
+      db->setConstantEntry( "precomputeElementMatrices", appSettings.precomputeElementMatrices );
+      db->setConstantEntry( "outputLinearSystem", appSettings.outputLinearSystem );
+      db->setConstantEntry( "outputLinearSystemBaseName", appSettings.outputLinearSystemBaseName );
    }
-   db.setConstantEntry( "torodialStartAngle", tokamakDomain.torodialStartAngle );
-   db.setConstantEntry( "polodialStartAngle", tokamakDomain.polodialStartAngle );
-   db.setConstantEntry( "delta", tokamakDomain.delta );
-   db.setConstantEntry( "r1", tokamakDomain.r1 );
-   db.setConstantEntry( "r2", tokamakDomain.r2 );
-
-   db.setConstantEntry( "dbFile", appSettings.dbFile );
-   db.setConstantEntry( "coarseMeshAndQuit", appSettings.coarseMeshAndQuit );
-   db.setConstantEntry( "vtk", appSettings.vtk );
-   db.setConstantEntry( "vtkDirectory", appSettings.vtkDirectory );
-   db.setConstantEntry( "precomputeElementMatrices", appSettings.precomputeElementMatrices );
-   db.setConstantEntry( "outputLinearSystem", appSettings.outputLinearSystem );
-   db.setConstantEntry( "outputLinearSystemBaseName", appSettings.outputLinearSystemBaseName );
-
    const auto minLevel = discretization.minLevel;
    const auto maxLevel = discretization.maxLevel;
 
-   WALBERLA_LOG_INFO_ON_ROOT( solverSettings.toString() );
-   WALBERLA_LOG_INFO_ON_ROOT( discretization.toString() );
-   WALBERLA_LOG_INFO_ON_ROOT( tokamakDomain.toString() );
-   WALBERLA_LOG_INFO_ON_ROOT( appSettings.toString() );
+   WALBERLA_LOG_INFO_ON_ROOT( solverSettings.toString() )
+   WALBERLA_LOG_INFO_ON_ROOT( discretization.toString() )
+   WALBERLA_LOG_INFO_ON_ROOT( tokamakDomain.toString() )
+   WALBERLA_LOG_INFO_ON_ROOT( appSettings.toString() )
 
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Setting up torus mesh ..." )
 
    auto meshInfo = MeshInfo::meshTorus( tokamakDomain.numToroidalSlices,
-                                              tokamakDomain.numPoloidalSlices,
-                                              tokamakDomain.radiusOriginToCenterOfTube,
-                                              tokamakDomain.tubeLayerRadii,
-                                              tokamakDomain.torodialStartAngle,
-                                              tokamakDomain.polodialStartAngle );
-   if (tokamakDomain.refineCoarseMesh > 0 ){
-      meshInfo = MeshInfo::refinedCoarseMesh(meshInfo, tokamakDomain.refineCoarseMesh);
+                                        tokamakDomain.numPoloidalSlices,
+                                        tokamakDomain.radiusOriginToCenterOfTube,
+                                        tokamakDomain.tubeLayerRadii,
+                                        tokamakDomain.torodialStartAngle,
+                                        tokamakDomain.polodialStartAngle );
+   if ( tokamakDomain.refineCoarseMesh > 0 )
+   {
+      meshInfo = MeshInfo::refinedCoarseMesh( meshInfo, tokamakDomain.refineCoarseMesh );
    }
 
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -277,10 +288,10 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
 
    const auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   WALBERLA_CHECK( storage->hasGlobalCells() );
+   WALBERLA_CHECK( storage->hasGlobalCells() )
 
    const auto domainInfo = storage->getGlobalInfo();
-   WALBERLA_LOG_INFO_ON_ROOT( domainInfo );
+   WALBERLA_LOG_INFO_ON_ROOT( domainInfo )
 
    WALBERLA_LOG_INFO_ON_ROOT( "DoFs" )
    WALBERLA_LOG_INFO_ON_ROOT( "level |          inner |          total " )
@@ -289,9 +300,12 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    {
       const auto numInnerDoFs = numberOfGlobalInnerDoFs< typename Function_T< real_t >::Tag >( *storage, l );
       const auto numDoFs      = numberOfGlobalDoFs< typename Function_T< real_t >::Tag >( *storage, l );
-      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%5d | %14d | %14d", l, numInnerDoFs, numDoFs ) );
-      db.setConstantEntry( "dofs_inner_level_" + std::to_string( l ), numInnerDoFs );
-      db.setConstantEntry( "dofs_total_level_" + std::to_string( l ), numDoFs );
+      WALBERLA_LOG_INFO_ON_ROOT( walberla::format( "%5d | %14d | %14d", l, numInnerDoFs, numDoFs ) )
+      if ( appSettings.database )
+      {
+         db->setConstantEntry( "dofs_inner_level_" + std::to_string( l ), numInnerDoFs );
+         db->setConstantEntry( "dofs_total_level_" + std::to_string( l ), numDoFs );
+      }
    }
    WALBERLA_LOG_INFO_ON_ROOT( "---------------------------------------" )
 
@@ -715,7 +729,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
 
    const real_t initialResidualL2 = residualL2;
 
-   writeDBEntry( db, dbEntry, residualL2, errorL2 );
+   writeDBEntry( db, dbEntry, residualL2, errorL2, appSettings.database );
    dbEntry++;
 
    if ( appSettings.vtk )
@@ -731,13 +745,13 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " iteration |  residual | res. rate |     error " ) )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ----------+-----------+-----------+-----------" ) )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9s | %9.2e | %9s | %9.2e", "initial", residualL2, "-", errorL2 ) )
-   LIKWID_MARKER_START("Solve");
+   LIKWID_MARKER_START( "Solve" );
 
    if ( solverSettings.solverType == CG )
    {
       solver->solve( A, u, f, maxLevel );
       errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
-      writeDBEntry( db, dbEntry, residualL2, errorL2 );
+      writeDBEntry( db, dbEntry, residualL2, errorL2, appSettings.database );
       auto residualRate = residualL2 / lastResidualL2;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9s | %9.2e | %9.2e | %9.2e", "final", residualL2, residualRate, errorL2 ) )
    }
@@ -747,7 +761,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
       {
          solver->solve( A, u, f, maxLevel );
          errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
-         writeDBEntry( db, dbEntry, residualL2, errorL2 );
+         writeDBEntry( db, dbEntry, residualL2, errorL2, appSettings.database );
          dbEntry++;
          auto residualRate = residualL2 / lastResidualL2;
          lastResidualL2    = residualL2;
@@ -760,7 +774,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    {
       solverPre->solve( A, u, f, maxLevel );
       errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
-      writeDBEntry( db, dbEntry, residualL2, errorL2 );
+      writeDBEntry( db, dbEntry, residualL2, errorL2, appSettings.database );
       dbEntry++;
       auto residualRate = residualL2 / lastResidualL2;
       lastResidualL2    = residualL2;
@@ -771,7 +785,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
       {
          solver->solve( A, u, f, maxLevel );
          errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
-         writeDBEntry( db, dbEntry, residualL2, errorL2 );
+         writeDBEntry( db, dbEntry, residualL2, errorL2, appSettings.database );
          dbEntry++;
          residualRate   = residualL2 / lastResidualL2;
          lastResidualL2 = residualL2;
@@ -784,7 +798,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
    {
       WALBERLA_ABORT( "Invalid solver type: " << solverSettings.solverType )
    }
-   LIKWID_MARKER_STOP("Solve");
+   LIKWID_MARKER_STOP( "Solve" );
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Residual and error calculation ..." )
    errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
 
@@ -802,7 +816,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
                                                                         PETSC_VIEWER_ASCII_MATLAB );
    }
 
-   writeDBEntry( db, dbEntry, residualL2, errorL2 );
+   writeDBEntry( db, dbEntry, residualL2, errorL2, appSettings.database );
    dbEntry++;
 
    if ( appSettings.vtk )
@@ -813,7 +827,7 @@ void tokamak( TokamakDomain tokamakDomain, Discretization discretization, Solver
 }
 
 template < typename T >
-std::vector< T > parseStringToVector( std::string inputStr )
+std::vector< T > parseStringToVector( const std::string& inputStr )
 {
    std::istringstream iss( inputStr );
    std::vector< T >   outputVtr{ std::istream_iterator< T >( iss ), std::istream_iterator< T >() };
@@ -832,7 +846,7 @@ void run( int argc, char** argv )
    if ( env.config() == nullptr )
    {
       auto defaultFile = "./Tokamak.prm";
-      WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
+      WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile )
       cfg->readParameterFile( defaultFile );
    }
    else
@@ -853,7 +867,7 @@ void run( int argc, char** argv )
    tokamakDomain.tubeLayerRadii     = parseStringToVector< real_t >( mainConf.getParameter< std::string >( "tubeLayerRadii" ) );
    tokamakDomain.torodialStartAngle = mainConf.getParameter< real_t >( "torodialStartAngle" );
    tokamakDomain.polodialStartAngle = mainConf.getParameter< real_t >( "polodialStartAngle" );
-   tokamakDomain.refineCoarseMesh = mainConf.getParameter< uint_t >( "refineCoarseMesh" );
+   tokamakDomain.refineCoarseMesh   = mainConf.getParameter< uint_t >( "refineCoarseMesh" );
 
    tokamakDomain.delta = mainConf.getParameter< real_t >( "delta" );
    tokamakDomain.r1    = mainConf.getParameter< real_t >( "r1" );
@@ -879,6 +893,7 @@ void run( int argc, char** argv )
 
    appSettings.dbFile                     = mainConf.getParameter< std::string >( "dbFile" );
    appSettings.coarseMeshAndQuit          = mainConf.getParameter< bool >( "coarseMeshAndQuit" );
+   appSettings.database                   = mainConf.getParameter< bool >( "database" );
    appSettings.vtk                        = mainConf.getParameter< bool >( "vtk" );
    appSettings.vtkDirectory               = mainConf.getParameter< std::string >( "vtkDirectory" );
    appSettings.precomputeElementMatrices  = mainConf.getParameter< bool >( "precomputeElementMatrices" );
@@ -897,7 +912,7 @@ void run( int argc, char** argv )
    }
    else
    {
-      WALBERLA_ABORT( "Discretization " << discretization.elementType << " not supported." );
+      WALBERLA_ABORT( "Discretization " << discretization.elementType << " not supported." )
    }
    LIKWID_MARKER_CLOSE;
 }
