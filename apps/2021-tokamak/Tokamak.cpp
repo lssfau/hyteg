@@ -24,11 +24,13 @@
 
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/dataexport/SQL.hpp"
+#include "hyteg/dataexport/TimingOutput.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/geometry/TokamakMap.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
+#include "hyteg/memory/MemoryAllocation.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/petsc/PETScExportFunctionAsVector.hpp"
 #include "hyteg/petsc/PETScExportLinearSystem.hpp"
@@ -149,6 +151,8 @@ struct AppSettings
    bool        outputLinearSystem{};
    std::string outputLinearSystemBaseName;
    std::string outputLinearSystemFormat;
+   bool        writeJson;
+   std::string jsonFileName;
 
    [[nodiscard]] std::string toString() const
    {
@@ -615,6 +619,9 @@ void tokamak( TokamakDomain         tokamakDomain,
       M.computeAndStoreLocalElementMatrices();
    }
 
+   hyteg::printFunctionAllocationInfo( *storage );
+   hyteg::printCurrentMemoryUsage();
+
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Interpolating boundary conditions, coefficient, and exact solution ..." )
 
    for ( uint_t l = minLevel; l <= maxLevel; l++ )
@@ -825,6 +832,11 @@ void tokamak( TokamakDomain         tokamakDomain,
       WALBERLA_LOG_INFO_ON_ROOT( "[progress] Writing VTK ..." )
       vtkOutput.write( maxLevel, 1 );
    }
+   if ( appSettings.writeJson )
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "[progress] Writing JSON file:" << appSettings.jsonFileName )
+      hyteg::writeTimingTreeJSON( *( storage->getTimingTree() ), appSettings.jsonFileName );
+   }
 }
 
 template < typename T >
@@ -898,6 +910,8 @@ void run( int argc, char** argv )
    appSettings.vtk                        = mainConf.getParameter< bool >( "vtk" );
    appSettings.vtkDirectory               = mainConf.getParameter< std::string >( "vtkDirectory" );
    appSettings.precomputeElementMatrices  = mainConf.getParameter< bool >( "precomputeElementMatrices" );
+   appSettings.jsonFileName               = mainConf.getParameter< std::string >( "jsonFileName" );
+   appSettings.writeJson                  = mainConf.getParameter< bool >( "writeJson" );
    appSettings.outputLinearSystem         = mainConf.getParameter< bool >( "outputLinearSystem" );
    appSettings.outputLinearSystemBaseName = mainConf.getParameter< std::string >( "outputLinearSystemBaseName" );
    appSettings.outputLinearSystemFormat   = mainConf.getParameter< std::string >( "outputLinearSystemFormat" );

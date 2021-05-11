@@ -67,6 +67,8 @@ Parameters
     vtk                       false;
     vtkDirectory              ./vtk;
     precomputeElementMatrices true;
+    writeJson                 false;
+    jsonFileName              TokamakTiming.json;
 
     outputLinearSystem         false;
     outputLinearSystemBaseName test;
