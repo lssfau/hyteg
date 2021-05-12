@@ -24,6 +24,8 @@
 
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
 
 
 namespace hyteg {
@@ -122,6 +124,9 @@ class P1VariableOperator_new : public P1Operator<P1Form>
 
 // typedef P1VariableOperator_new< P1Form_laplace > P1BlendingLaplaceOperator_new;
 typedef P1VariableOperator_new< forms::p1_diffusion_blending_q3 > P1BlendingLaplaceOperator_new;
+typedef P1VariableOperator_new< forms::p1_div_k_grad_blending_q3 > P1BlendingDivkGradOperator_new;
+typedef P1VariableOperator_new< forms::p1_div_k_grad_affine_q3 > P1AffineDivkGradOperator_new;
+
 // typedef P1VariableOperator_new< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise > > P1BlendingLaplaceOperator_new;
 // typedef P1VariableOperator_new< P1Form_mass >    P1BlendingMassOperator_new;
 typedef P1VariableOperator_new< forms::p1_mass_blending_q4 >    P1BlendingMassOperator_new;

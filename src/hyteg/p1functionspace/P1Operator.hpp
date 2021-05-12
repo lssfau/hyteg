@@ -55,7 +55,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
    {}
 
    P1Operator(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form& form)
-      : Operator(storage, minLevel, maxLevel), form_(form)
+      : Operator(storage, minLevel, maxLevel), form_(form), formS_(form), formN_(form)
    {
       auto cellP1StencilMemoryDataHandling =
          std::make_shared< LevelWiseMemoryDataHandling< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell >>(
