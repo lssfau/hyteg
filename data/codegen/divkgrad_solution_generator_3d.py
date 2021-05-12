@@ -82,7 +82,7 @@ def spherical_shell_example():
 
 def example():
     u = sin(pi*x)*sin(pi*y)*sin(pi*z)
-    k = 1
+    k = x*x + 1
     return (u,k)
 
 
@@ -99,7 +99,12 @@ def function_template(name, body):
     return 'std::function<real_t(const hyteg::Point3D&)> %s = [=](const hyteg::Point3D& x) { return %s; };' % (name, body)
 
 def to_cpp_function(name, expr):
-    print(function_template(name, ccode(expr)))
+    cs = cse(expr)
+    # print(cs)
+    print('std::function<real_t(const hyteg::Point3D&)> %s = [=](const hyteg::Point3D& x) \n{'%name)
+    for (var,val) in cs[0]:
+        print('   auto %s = %s;'%(ccode(var),ccode(val)))
+    print('   return %s;\n};'%ccode(cs[1][0]))
 
 
 # ---------- tokamak ---------------
@@ -175,5 +180,6 @@ def generic_solution(foo):
 
 
 if __name__ == '__main__':
-    # tokamak_solution(tokamak_jump)
-    generic_solution(spherical_shell_example)
+    tokamak_solution(tokamak_jump)
+    # generic_solution(spherical_shell_example)
+    # generic_solution(example)
