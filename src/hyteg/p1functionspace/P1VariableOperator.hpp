@@ -21,7 +21,7 @@
 #pragma once
 
 #include <array>
-#include <hyteg/Operator.hpp>
+#include <hyteg/operators/Operator.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroEdge.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroVertex.hpp>

@@ -21,7 +21,7 @@
 
 #include <array>
 
-#include "hyteg/Operator.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/forms/P1LinearCombinationForm.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"

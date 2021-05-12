@@ -20,7 +20,7 @@
 
 #pragma once
 #include <array>
-#include <hyteg/Operator.hpp>
+#include <hyteg/operators/Operator.hpp>
 #include <hyteg/mixedoperators/polynomial/P2P1MacroFacePolynomial.hpp>
 #include <hyteg/mixedoperators/polynomial/P2P1PolynomialDataHandling.hpp>
 #include <hyteg/mixedoperators/variablestencil/P2P1VariableStencilCommon.hpp>

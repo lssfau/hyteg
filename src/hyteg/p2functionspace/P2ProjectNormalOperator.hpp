@@ -19,7 +19,7 @@
  */
 #pragma once
 
-#include "hyteg/Operator.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/composites/petsc/P2P1TaylorHoodPetsc.hpp"
