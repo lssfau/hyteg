@@ -84,7 +84,7 @@ class CSFVectorFunction
    {
       for ( uint_t k = 0; k < compFunc_.size(); k++ )
       {
-         compFunc_[k]->multElementwise( vectorFunctionTools::filter( 0, functions ), level, flag );
+         compFunc_[k]->multElementwise( vectorFunctionTools::filter( k, functions ), level, flag );
       }
    }
 
