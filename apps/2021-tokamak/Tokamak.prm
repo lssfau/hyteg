@@ -6,7 +6,7 @@ Parameters
 
     elementType p1;
 
-    minLevel 0;
+    minLevel 2;
     maxLevel 4;
 
     // ##########
@@ -52,7 +52,12 @@ Parameters
     // gmg_wjac: HyTeG GMG with weighted Jacobi relaxation
     // fmg_wjac: HyTeG FMG with weighted Jacobi relaxation, and subsequent v-cycles until convergence
 
+    // coarse grid solvers:
+    // cg_hyteg: HyTeG CG
+    // cg_petsc: PETSc CG
+
     solverType                gmg_wjac;
+    coarseGridSolverType      cg_petsc;
     preSmooth                 3;
     postSmooth                3;
     relativeResidualReduction 1e-06;

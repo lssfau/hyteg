@@ -686,7 +686,7 @@ void runBenchmark( real_t      cflMax,
    if ( solverInfo.diffusionSolverType == DiffusionSolverType::PETSC_MINRES )
    {
       auto internalDiffusionSolver = std::make_shared< PETScMinResSolver< UnsteadyDiffusionOperator > >(
-          storage, level, solverInfo.diffusionAbsoluteResidualUTolerance, solverInfo.diffusionMaxNumIterations );
+          storage, level, 1e-30, solverInfo.diffusionAbsoluteResidualUTolerance, solverInfo.diffusionMaxNumIterations );
       internalDiffusionSolver->reassembleMatrix( true );
       diffusionLinearSolver = internalDiffusionSolver;
    }
