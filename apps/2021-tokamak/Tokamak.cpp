@@ -151,7 +151,7 @@ struct AppSettings
    bool        outputLinearSystem{};
    std::string outputLinearSystemBaseName;
    std::string outputLinearSystemFormat;
-   bool        writeJson;
+   bool        writeJson{};
    std::string jsonFileName;
 
    [[nodiscard]] std::string toString() const
@@ -342,263 +342,106 @@ void tokamak( TokamakDomain         tokamakDomain,
       return std::max( 1e-100,
                        pow( x[2], 2 ) / pow( R2, 2 ) + pow( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ), 2 ) / pow( R1, 2 ) );
    };
-
    std::function< real_t( const hyteg::Point3D& ) > coeff = [=]( const hyteg::Point3D& x ) {
       return k_min + ( 0.5 * k_max - 0.5 * k_min ) * ( tanh( 3.5 * ( sqrt( r2( x ) ) - r_jump ) / d_jump ) + 1 );
    };
-
-   //! in order to test correctness of blending function, initialize dirichlet boundary with u = 0, rather than u = exact !
    std::function< real_t( const hyteg::Point3D& ) > exact = [=]( const hyteg::Point3D& x ) {
-      return -pow( x[2], 2 ) *
-             ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) + ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-             ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) + ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-             sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) / pow( R2, 2 );
+      auto x0 = x[2] / R2;
+      auto x1 = ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1;
+      auto x2 = asin( x0 );
+      auto x3 = x0 * asin( delta );
+      return -pow( x[2], 2 ) * ( x1 + cos( x2 - x3 ) ) * ( x1 - cos( x2 + x3 ) ) * sin( M_PI * x0 ) * sin( delta - x1 ) /
+             pow( R2, 2 );
    };
-
    std::function< real_t( const hyteg::Point3D& ) > rhs = [=]( const hyteg::Point3D& x ) {
-      return -( k_min + ( 0.5 * k_max - 0.5 * k_min ) * ( tanh( 3.5 * ( sqrt( r2( x ) ) - r_jump ) / d_jump ) + 1 ) ) *
-                 ( -pow( x[0], 2 ) * pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * pow( pow( x[0], 2 ) + pow( x[1], 2 ), 3.0L / 2.0L ) ) +
-                   pow( x[0], 2 ) * pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * pow( pow( x[0], 2 ) + pow( x[1], 2 ), 3.0L / 2.0L ) ) +
-                   pow( x[0], 2 ) * pow( x[2], 2 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * pow( pow( x[0], 2 ) + pow( x[1], 2 ), 3.0L / 2.0L ) ) +
-                   pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   pow( x[2], 2 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) +
-                   pow( x[0], 2 ) * pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( pow( R1, 2 ) * pow( R2, 2 ) * ( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) +
-                   2 * pow( x[0], 2 ) * pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( pow( R1, 2 ) * pow( R2, 2 ) * ( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) +
-                   2 * pow( x[0], 2 ) * pow( x[2], 2 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( pow( R1, 2 ) * pow( R2, 2 ) * ( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   2 * pow( x[0], 2 ) * pow( x[2], 2 ) * sin( M_PI * x[2] / R2 ) *
-                       sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( pow( R1, 2 ) * pow( R2, 2 ) * ( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) ) -
-             ( k_min + ( 0.5 * k_max - 0.5 * k_min ) * ( tanh( 3.5 * ( sqrt( r2( x ) ) - r_jump ) / d_jump ) + 1 ) ) *
-                 ( -pow( x[2], 2 ) * pow( x[1], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * pow( pow( x[0], 2 ) + pow( x[1], 2 ), 3.0L / 2.0L ) ) +
-                   pow( x[2], 2 ) * pow( x[1], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * pow( pow( x[0], 2 ) + pow( x[1], 2 ), 3.0L / 2.0L ) ) +
-                   pow( x[2], 2 ) * pow( x[1], 2 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * pow( pow( x[0], 2 ) + pow( x[1], 2 ), 3.0L / 2.0L ) ) +
-                   pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   pow( x[2], 2 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) +
-                   pow( x[2], 2 ) * pow( x[1], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( pow( R1, 2 ) * pow( R2, 2 ) * ( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) +
-                   2 * pow( x[2], 2 ) * pow( x[1], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( pow( R1, 2 ) * pow( R2, 2 ) * ( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) +
-                   2 * pow( x[2], 2 ) * pow( x[1], 2 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( pow( R1, 2 ) * pow( R2, 2 ) * ( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   2 * pow( x[2], 2 ) * pow( x[1], 2 ) * sin( M_PI * x[2] / R2 ) *
-                       sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( pow( R1, 2 ) * pow( R2, 2 ) * ( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) ) -
-             ( k_min + ( 0.5 * k_max - 0.5 * k_min ) * ( tanh( 3.5 * ( sqrt( r2( x ) ) - r_jump ) / d_jump ) + 1 ) ) *
-                 ( pow( x[2], 2 ) * pow( -asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ), 2 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) / pow( R2, 2 ) +
-                   2 * pow( x[2], 2 ) * ( -asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ) ) *
-                       ( asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ) ) * sin( M_PI * x[2] / R2 ) *
-                       sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) *
-                       sin( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) / pow( R2, 2 ) -
-                   pow( x[2], 2 ) * pow( asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ), 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) / pow( R2, 2 ) +
-                   4 * x[2] * ( -asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ) ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) / pow( R2, 2 ) -
-                   4 * x[2] * ( asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ) ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) / pow( R2, 2 ) -
-                   2 * ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) + ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       pow( R2, 2 ) +
-                   2 * M_PI * pow( x[2], 2 ) * ( -asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ) ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) * cos( M_PI * x[2] / R2 ) / pow( R2, 3 ) -
-                   2 * M_PI * pow( x[2], 2 ) * ( asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ) ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) * cos( M_PI * x[2] / R2 ) / pow( R2, 3 ) -
-                   4 * M_PI * x[2] *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) * cos( M_PI * x[2] / R2 ) /
-                       pow( R2, 3 ) +
-                   pow( M_PI, 2 ) * pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       pow( R2, 4 ) -
-                   pow( x[2], 3 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) /
-                       ( pow( R2, 5 ) * pow( 1 - pow( x[2], 2 ) / pow( R2, 2 ), 3.0L / 2.0L ) ) +
-                   pow( x[2], 3 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) /
-                       ( pow( R2, 5 ) * pow( 1 - pow( x[2], 2 ) / pow( R2, 2 ), 3.0L / 2.0L ) ) ) -
-             3.5 * x[2] * ( 0.5 * k_max - 0.5 * k_min ) * ( -pow( tanh( 3.5 * ( sqrt( r2( x ) ) - r_jump ) / d_jump ), 2 ) + 1 ) *
-                 ( pow( x[2], 2 ) * ( -asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ) ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) / pow( R2, 2 ) -
-                   pow( x[2], 2 ) * ( asin( delta ) / R2 + 1 / ( R2 * sqrt( 1 - pow( x[2], 2 ) / pow( R2, 2 ) ) ) ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) / pow( R2, 2 ) -
-                   2 * x[2] *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       pow( R2, 2 ) -
-                   M_PI * pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) * cos( M_PI * x[2] / R2 ) /
-                       pow( R2, 3 ) ) /
-                 ( pow( R2, 2 ) * d_jump * sqrt( r2( x ) ) ) -
-             3.5 * x[0] * ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) * ( 0.5 * k_max - 0.5 * k_min ) *
-                 ( -pow( tanh( 3.5 * ( sqrt( r2( x ) ) - r_jump ) / d_jump ), 2 ) + 1 ) *
-                 ( x[0] * pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   x[0] * pow( x[2], 2 ) *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   x[0] * pow( x[2], 2 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) ) /
-                 ( pow( R1, 2 ) * d_jump * sqrt( r2( x ) ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-             3.5 * x[1] * ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) * ( 0.5 * k_max - 0.5 * k_min ) *
-                 ( -pow( tanh( 3.5 * ( sqrt( r2( x ) ) - r_jump ) / d_jump ), 2 ) + 1 ) *
-                 ( pow( x[2], 2 ) * x[1] *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * cos( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   pow( x[2], 2 ) * x[1] *
-                       ( cos( asin( x[2] / R2 ) - x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) -
-                   pow( x[2], 2 ) * x[1] *
-                       ( -cos( asin( x[2] / R2 ) + x[2] * asin( delta ) / R2 ) +
-                         ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) *
-                       sin( M_PI * x[2] / R2 ) * sin( delta - ( -R0 + sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) / R1 ) /
-                       ( R1 * pow( R2, 2 ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) ) ) /
-                 ( pow( R1, 2 ) * d_jump * sqrt( r2( x ) ) * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) ) );
+      auto x0  = 1.0 / R1;
+      auto x1  = pow( x[0], 2 );
+      auto x2  = pow( x[1], 2 );
+      auto x3  = x1 + x2;
+      auto x4  = sqrt( x3 );
+      auto x5  = 1.0 / x4;
+      auto x6  = x0 * x5;
+      auto x7  = 1.0 / R2;
+      auto x8  = x7 * x[2];
+      auto x9  = asin( x8 );
+      auto x10 = asin( delta );
+      auto x11 = x10 * x8;
+      auto x12 = -x11 + x9;
+      auto x13 = cos( x12 );
+      auto x14 = -R0 + x4;
+      auto x15 = x0 * x14;
+      auto x16 = x13 + x15;
+      auto x17 = delta - x15;
+      auto x18 = sin( x17 );
+      auto x19 = x16 * x18;
+      auto x20 = M_PI * x8;
+      auto x21 = sin( x20 );
+      auto x22 = pow( R2, -2 );
+      auto x23 = pow( x[2], 2 );
+      auto x24 = x22 * x23;
+      auto x25 = x21 * x24;
+      auto x26 = x19 * x25;
+      auto x27 = x26 * x6;
+      auto x28 = x11 + x9;
+      auto x29 = cos( x28 );
+      auto x30 = x15 - x29;
+      auto x31 = x18 * x21 * x30;
+      auto x32 = x24 * x31;
+      auto x33 = x32 * x6;
+      auto x34 = cos( x17 );
+      auto x35 = x30 * x34;
+      auto x36 = x16 * x35;
+      auto x37 = x25 * x36;
+      auto x38 = x37 * x6;
+      auto x39 = pow( R1, -2 );
+      auto x40 = 0.5 * k_max - 0.5 * k_min;
+      auto x41 = sqrt( r2( x ) );
+      auto x42 = 3.5 / d_jump;
+      auto x43 = tanh( x42 * ( -r_jump + x41 ) );
+      auto x44 = x40 * x42 * ( 1 - pow( x43, 2 ) ) / x41;
+      auto x45 = x14 * x39 * x44 * x5;
+      auto x46 = 2 * x16;
+      auto x47 = x22 * x31;
+      auto x48 = x46 * x47;
+      auto x49 = pow( R2, -3 );
+      auto x50 = cos( x20 );
+      auto x51 = M_PI * x23 * x49 * x50;
+      auto x52 = x19 * x30;
+      auto x53 = sin( x28 );
+      auto x54 = x10 * x7;
+      auto x55 = 1 - x24;
+      auto x56 = x7 / sqrt( x55 );
+      auto x57 = x54 + x56;
+      auto x58 = x53 * x57;
+      auto x59 = sin( x12 );
+      auto x60 = -x54 + x56;
+      auto x61 = x59 * x60;
+      auto x62 = k_min + x40 * ( x43 + 1 );
+      auto x63 = 2 * x18;
+      auto x64 = x1 * x25;
+      auto x65 = x39 / x3;
+      auto x66 = x64 * x65;
+      auto x67 = x0 / pow( x3, 3.0 / 2.0 );
+      auto x68 = x1 * x32;
+      auto x69 = x26 * x67;
+      auto x70 = 2 * x35;
+      auto x71 = x34 * x46;
+      auto x72 = -x27 - x33 + x38;
+      auto x73 = x2 * x65;
+      auto x74 = x25 * x63;
+      auto x75 = x2 * x67;
+      auto x76 = x25 * x73;
+      auto x77 = pow( x[2], 3 ) / ( pow( R2, 5 ) * pow( x55, 3.0 / 2.0 ) );
+      auto x78 = x19 * x21 * x53;
+      auto x79 = 4 * x[2];
+      return -x[0] * x45 * ( -x[0] * x27 - x[0] * x33 + x[0] * x38 ) -
+             x22 * x44 * x[2] * ( -x26 * x58 + x32 * x61 - x48 * x[2] - x51 * x52 ) -
+             x45 * x[1] * ( -x27 * x[1] - x33 * x[1] + x38 * x[1] ) -
+             x62 * ( x1 * x69 + x16 * x65 * x68 - x36 * x64 * x67 - x63 * x66 + x66 * x70 + x66 * x71 + x67 * x68 + x72 ) -
+             x62 * ( x16 * x32 * x73 + x2 * x69 + x32 * x75 - x37 * x75 + x70 * x76 + x71 * x76 + x72 - x73 * x74 ) -
+             x62 * ( x13 * x32 * pow( x60, 2 ) - x18 * x46 * x51 * x58 - x22 * x57 * x78 * x79 - x26 * x29 * pow( x57, 2 ) +
+                     x30 * x51 * x61 * x63 + x31 * x59 * x77 + x47 * x61 * x79 - x48 - M_PI * x49 * x50 * x52 * x79 +
+                     x58 * x61 * x74 - x77 * x78 + pow( M_PI, 2 ) * x16 * x23 * x31 / pow( R2, 4 ) );
    };
 
    LaplaceForm_T     form( coeff, coeff );
