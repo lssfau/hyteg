@@ -32,6 +32,7 @@
 #include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/memory/MemoryAllocation.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/petsc/PETScCGSolver.hpp"
 #include "hyteg/petsc/PETScExportFunctionAsVector.hpp"
 #include "hyteg/petsc/PETScExportLinearSystem.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
@@ -54,9 +55,13 @@ const std::string_view CG       = "cg";
 const std::string_view GMG_WJAC = "gmg_wjac";
 const std::string_view FMG_WJAC = "fmg_wjac";
 
+const std::string_view COARSE_GRID_CG_HYTEG = "cg_hyteg";
+const std::string_view COARSE_GRID_CG_PETSC = "cg_petsc";
+
 struct SolverSettings
 {
    std::string solverType;
+   std::string coarseGridSolverType;
    real_t      relativeResidualReduction{};
    uint_t      preSmooth{};
    uint_t      postSmooth{};
@@ -72,6 +77,7 @@ struct SolverSettings
       {
          ss << "  - pre smooth:                  " << preSmooth << "\n";
          ss << "  - post smooth:                 " << postSmooth << "\n";
+         ss << "  - coarse grid:                 " << coarseGridSolverType << "\n";
       }
       return ss.str();
    }
@@ -225,6 +231,7 @@ void tokamak( TokamakDomain         tokamakDomain,
       db = std::make_shared< FixedSizeSQLDB >( appSettings.dbFile );
 
       db->setConstantEntry( "solverType", solverSettings.solverType );
+      db->setConstantEntry( "coarseGridSolverType", solverSettings.coarseGridSolverType );
       db->setConstantEntry( "relativeResidualReduction", solverSettings.relativeResidualReduction );
       db->setConstantEntry( "preSmooth", solverSettings.preSmooth );
       db->setConstantEntry( "postSmooth", solverSettings.postSmooth );
@@ -524,7 +531,31 @@ void tokamak( TokamakDomain         tokamakDomain,
       auto prolongation = std::make_shared< Prolongation_T >();
 
       auto smoother = std::make_shared< WeightedJacobiSmoother< LaplaceOperator_T > >( storage, minLevel, maxLevel, 0.66 );
-      auto coarseGridSolver = std::make_shared< CGSolver< LaplaceOperator_T > >( storage, minLevel, minLevel );
+
+      std::shared_ptr< Solver< LaplaceOperator_T > > coarseGridSolver;
+
+      if ( solverSettings.coarseGridSolverType == COARSE_GRID_CG_HYTEG )
+      {
+         auto actualCoarseGridSolver = std::make_shared< CGSolver< LaplaceOperator_T > >( storage, minLevel, minLevel );
+         coarseGridSolver            = actualCoarseGridSolver;
+      }
+      else if ( solverSettings.coarseGridSolverType == COARSE_GRID_CG_PETSC )
+      {
+         const auto relativeResidualToleranceCoarseGrid = 1e-30;
+         const auto absoluteResidualToleranceCoarseGrid = 1e-12;
+         const auto maxIterationsCoarseGrid             = std::numeric_limits< PetscInt >::max();
+         auto       actualCoarseGridSolver =
+             std::make_shared< PETScCGSolver< LaplaceOperator_T > >( storage,
+                                                                     minLevel,
+                                                                     relativeResidualToleranceCoarseGrid,
+                                                                     absoluteResidualToleranceCoarseGrid,
+                                                                     maxIterationsCoarseGrid );
+         coarseGridSolver = actualCoarseGridSolver;
+      }
+      else
+      {
+         WALBERLA_ABORT( "Invalid coarse grid solver type." );
+      }
 
       auto gmgSolver = std::make_shared< GeometricMultigridSolver< LaplaceOperator_T > >( storage,
                                                                                           smoother,
@@ -543,7 +574,31 @@ void tokamak( TokamakDomain         tokamakDomain,
       auto prolongation = std::make_shared< Prolongation_T >();
 
       auto smoother = std::make_shared< WeightedJacobiSmoother< LaplaceOperator_T > >( storage, minLevel, maxLevel, 0.66 );
-      auto coarseGridSolver = std::make_shared< CGSolver< LaplaceOperator_T > >( storage, minLevel, minLevel );
+
+      std::shared_ptr< Solver< LaplaceOperator_T > > coarseGridSolver;
+
+      if ( solverSettings.coarseGridSolverType == COARSE_GRID_CG_HYTEG )
+      {
+         auto actualCoarseGridSolver = std::make_shared< CGSolver< LaplaceOperator_T > >( storage, minLevel, minLevel );
+         coarseGridSolver            = actualCoarseGridSolver;
+      }
+      else if ( solverSettings.coarseGridSolverType == COARSE_GRID_CG_PETSC )
+      {
+         const auto relativeResidualToleranceCoarseGrid = 1e-30;
+         const auto absoluteResidualToleranceCoarseGrid = 1e-12;
+         const auto maxIterationsCoarseGrid             = std::numeric_limits< PetscInt >::max();
+         auto       actualCoarseGridSolver =
+             std::make_shared< PETScCGSolver< LaplaceOperator_T > >( storage,
+                                                                     minLevel,
+                                                                     relativeResidualToleranceCoarseGrid,
+                                                                     absoluteResidualToleranceCoarseGrid,
+                                                                     maxIterationsCoarseGrid );
+         coarseGridSolver = actualCoarseGridSolver;
+      }
+      else
+      {
+         WALBERLA_ABORT( "Invalid coarse grid solver type." );
+      }
 
       auto gmgSolver = std::make_shared< GeometricMultigridSolver< LaplaceOperator_T > >( storage,
                                                                                           smoother,
@@ -743,6 +798,7 @@ void run( int argc, char** argv )
    discretization.maxLevel    = mainConf.getParameter< uint_t >( "maxLevel" );
 
    solverSettings.solverType                = mainConf.getParameter< std::string >( "solverType" );
+   solverSettings.coarseGridSolverType      = mainConf.getParameter< std::string >( "coarseGridSolverType" );
    solverSettings.relativeResidualReduction = mainConf.getParameter< real_t >( "relativeResidualReduction" );
    solverSettings.preSmooth                 = mainConf.getParameter< uint_t >( "preSmooth" );
    solverSettings.postSmooth                = mainConf.getParameter< uint_t >( "postSmooth" );
