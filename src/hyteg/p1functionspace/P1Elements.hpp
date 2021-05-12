@@ -441,8 +441,10 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCellForm( con
 ///
 template< class P1Form >
 inline std::map< stencilDirection, real_t > calculateStencilInMacroCellForm_new( const indexing::Index & microVertexIndex, const Cell & cell,
-                                                                             const uint_t & level, const P1Form & form )
+                                                                             const uint_t & level, P1Form & form )
 {
+  form.setGeometryMap(cell.getGeometryMap());
+
   std::map< stencilDirection, real_t > macroCellStencilEntries;
 
   const auto neighboringElements = getNeighboringElements( microVertexIndex, level );
@@ -600,7 +602,7 @@ inline std::vector< real_t > assembleP1LocalStencil_new( const std::shared_ptr< 
                                                      const Vertex&                              vertex,
                                                      const indexing::Index&                     microVertexIndex,
                                                      const uint_t&                              level,
-                                                     const P1Form&                              form )
+                                                     P1Form&                              form )
 {
    WALBERLA_CHECK_EQUAL(
        microVertexIndex, indexing::Index( 0, 0, 0 ), "[P1 vertex stencil assembly] micro-vertex index must be (0, 0, 0)" );
@@ -828,7 +830,7 @@ inline std::vector< real_t > assembleP1LocalStencil_new( const std::shared_ptr< 
                                                      const Edge&                                edge,
                                                      const indexing::Index&                     microVertexIndex,
                                                      const uint_t&                              level,
-                                                     const P1Form&                              form )
+                                                     P1Form&                              form )
 {
    // check if index lies in the edges's interior
    WALBERLA_CHECK_EQUAL( microVertexIndex.y(), 0, "[P1 edge stencil assembly] y-coordinate on edge must be zero" );
@@ -1124,7 +1126,7 @@ inline std::map< stencilDirection, real_t > assembleP1LocalStencil( const std::s
 ///
 template< class P1Form >
 inline std::map< stencilDirection, real_t > assembleP1LocalStencil_new( const std::shared_ptr< PrimitiveStorage > & storage, const Cell & cell,
-                                                                    const indexing::Index & microVertexIndex, const uint_t & level, const P1Form & form )
+                                                                    const indexing::Index & microVertexIndex, const uint_t & level, P1Form & form )
 {
   WALBERLA_UNUSED( storage );
   WALBERLA_DEBUG_SECTION()
@@ -1184,7 +1186,7 @@ inline std::map< indexing::IndexIncrement, real_t > assembleP1LocalStencilNew( c
 ///
 template< class P1Form >
 inline std::map< indexing::IndexIncrement, real_t > assembleP1LocalStencilNew_new( const std::shared_ptr< PrimitiveStorage > & storage, const Cell & cell,
-                                                                               const indexing::Index & microVertexIndex, const uint_t & level, const P1Form & form )
+                                                                               const indexing::Index & microVertexIndex, const uint_t & level, P1Form & form )
 {
   WALBERLA_UNUSED( storage );
   WALBERLA_DEBUG_SECTION()
