@@ -55,6 +55,7 @@
 #endif
 
 #include "core/OpenMP.h"
+
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
@@ -70,12 +71,12 @@
 #include "hyteg/p2functionspace/generatedKernels/sor_3D_macrocell_P2_update_vertexdofs_backwards.hpp"
 #include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_edgedofs.hpp"
 #include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_edgedofs_backwards.hpp"
+#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_edgedofs_one_sided.hpp"
+#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_edgedofs_one_sided_backwards.hpp"
 #include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_vertexdofs.hpp"
 #include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_vertexdofs_backwards.hpp"
 #include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_vertexdofs_one_sided.hpp"
 #include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_vertexdofs_one_sided_backwards.hpp"
-#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_edgedofs_one_sided.hpp"
-#include "hyteg/p2functionspace/generatedKernels/sor_3D_macroface_P2_update_edgedofs_one_sided_backwards.hpp"
 
 namespace hyteg {
 
@@ -92,13 +93,13 @@ template < class P2Form >
 P2ConstantOperator< P2Form >::P2ConstantOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                                   size_t                                     minLevel,
                                                   size_t                                     maxLevel,
-                                                  const P2Form & form )
-    : Operator( storage, minLevel, maxLevel )
-    , vertexToVertex( storage, minLevel, maxLevel, form )
-    , edgeToVertex( storage, minLevel, maxLevel, form )
-    , vertexToEdge( storage, minLevel, maxLevel, form )
-    , edgeToEdge( storage, minLevel, maxLevel, form )
-    , form_( form )
+                                                  const P2Form&                              form )
+: Operator( storage, minLevel, maxLevel )
+, vertexToVertex( storage, minLevel, maxLevel, form )
+, edgeToVertex( storage, minLevel, maxLevel, form )
+, vertexToEdge( storage, minLevel, maxLevel, form )
+, edgeToEdge( storage, minLevel, maxLevel, form )
+, form_( form )
 {}
 
 template < class P2Form >
@@ -112,7 +113,7 @@ void P2ConstantOperator< P2Form >::apply( const P2Function< real_t >& src,
 
    if ( src.isDummy() )
    {
-     return;
+      return;
    }
 
    vertexToVertex.apply( src.getVertexDoFFunction(), dst.getVertexDoFFunction(), level, flag, updateType );
@@ -133,11 +134,11 @@ void P2ConstantOperator< P2Form >::smooth_gs( const P2Function< real_t >& dst,
 
 template < class P2Form >
 void P2ConstantOperator< P2Form >::smooth_sor_macro_vertices( const P2Function< real_t >& dst,
-                                               const P2Function< real_t >& rhs,
-                                               const real_t&               relax,
-                                               const size_t                level,
-                                               const DoFType               flag,
-                                               const bool&                 backwards ) const
+                                                              const P2Function< real_t >& rhs,
+                                                              const real_t&               relax,
+                                                              const size_t                level,
+                                                              const DoFType               flag,
+                                                              const bool&                 backwards ) const
 {
    WALBERLA_UNUSED( backwards );
 
@@ -181,11 +182,11 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_vertices( const P2Function< 
 
 template < class P2Form >
 void P2ConstantOperator< P2Form >::smooth_sor_macro_edges( const P2Function< real_t >& dst,
-                                               const P2Function< real_t >& rhs,
-                                               const real_t&               relax,
-                                               const size_t                level,
-                                               const DoFType               flag,
-                                               const bool&                 backwards ) const
+                                                           const P2Function< real_t >& rhs,
+                                                           const real_t&               relax,
+                                                           const size_t                level,
+                                                           const DoFType               flag,
+                                                           const bool&                 backwards ) const
 {
    this->timingTree_->start( "Macro-Edge" );
 
@@ -195,9 +196,9 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_edges( const P2Function< rea
       edgeIDs.push_back( it.first );
    }
 
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
       Edge& edge = *storage_->getEdge( PrimitiveID( edgeIDs[uint_c( i )] ) );
@@ -245,11 +246,11 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_edges( const P2Function< rea
 
 template < class P2Form >
 void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< real_t >& dst,
-                                               const P2Function< real_t >& rhs,
-                                               const real_t&               relax,
-                                               const size_t                level,
-                                               const DoFType               flag,
-                                               const bool&                 backwards ) const
+                                                           const P2Function< real_t >& rhs,
+                                                           const real_t&               relax,
+                                                           const size_t                level,
+                                                           const DoFType               flag,
+                                                           const bool&                 backwards ) const
 {
    this->timingTree_->start( "Macro-Face" );
 
@@ -259,9 +260,9 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< rea
       faceIDs.push_back( it.first );
    }
 
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
    {
       Face& face = *storage_->getFace( PrimitiveID( faceIDs[uint_c( i )] ) );
@@ -307,33 +308,33 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< rea
 
                   auto neighbor_cell_0_local_vertex_id_0 =
                       static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
-                          .at( neighborCell0->getLocalFaceID( face.getID() ) )
-                          .at( 0 ) );
+                                                  .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                                  .at( 0 ) );
                   auto neighbor_cell_0_local_vertex_id_1 =
                       static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
-                          .at( neighborCell0->getLocalFaceID( face.getID() ) )
-                          .at( 1 ) );
+                                                  .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                                  .at( 1 ) );
                   auto neighbor_cell_0_local_vertex_id_2 =
                       static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
-                          .at( neighborCell0->getLocalFaceID( face.getID() ) )
-                          .at( 2 ) );
+                                                  .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                                  .at( 2 ) );
 
                   auto neighbor_cell_1_local_vertex_id_0 =
                       static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
-                          .at( neighborCell1->getLocalFaceID( face.getID() ) )
-                          .at( 0 ) );
+                                                  .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                                  .at( 0 ) );
                   auto neighbor_cell_1_local_vertex_id_1 =
                       static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
-                          .at( neighborCell1->getLocalFaceID( face.getID() ) )
-                          .at( 1 ) );
+                                                  .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                                  .at( 1 ) );
                   auto neighbor_cell_1_local_vertex_id_2 =
                       static_cast< int32_t >( neighborCell1->getFaceLocalVertexToCellLocalVertexMaps()
-                          .at( neighborCell1->getLocalFaceID( face.getID() ) )
-                          .at( 2 ) );
+                                                  .at( neighborCell1->getLocalFaceID( face.getID() ) )
+                                                  .at( 2 ) );
 
                   const uint_t vertex_offset_gl_0 = levelinfo::num_microvertices_per_face( level );
                   const uint_t vertex_offset_gl_1 = vertex_offset_gl_0 + levelinfo::num_microvertices_per_face_from_width(
-                      levelinfo::num_microvertices_per_edge( level ) - 1 );
+                                                                             levelinfo::num_microvertices_per_edge( level ) - 1 );
 
                   if ( neighbor_cell_0_local_vertex_id_0 > neighbor_cell_1_local_vertex_id_0 ||
                        ( neighbor_cell_0_local_vertex_id_0 == neighbor_cell_1_local_vertex_id_0 &&
@@ -344,7 +345,6 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< rea
                   {
                      if ( backwards )
                      {
-
                         P2::macroface::generated::sor_3D_macroface_P2_update_edgedofs_backwards(
                             &e_dst_data[offset_x],
                             &e_dst_data[offset_xy],
@@ -416,7 +416,6 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< rea
                             relax,
                             v2v_operator[1],
                             v2v_operator[0] );
-
                      }
                      else
                      {
@@ -651,16 +650,16 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< rea
 
                   auto neighbor_cell_0_local_vertex_id_0 =
                       static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
-                          .at( neighborCell0->getLocalFaceID( face.getID() ) )
-                          .at( 0 ) );
+                                                  .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                                  .at( 0 ) );
                   auto neighbor_cell_0_local_vertex_id_1 =
                       static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
-                          .at( neighborCell0->getLocalFaceID( face.getID() ) )
-                          .at( 1 ) );
+                                                  .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                                  .at( 1 ) );
                   auto neighbor_cell_0_local_vertex_id_2 =
                       static_cast< int32_t >( neighborCell0->getFaceLocalVertexToCellLocalVertexMaps()
-                          .at( neighborCell0->getLocalFaceID( face.getID() ) )
-                          .at( 2 ) );
+                                                  .at( neighborCell0->getLocalFaceID( face.getID() ) )
+                                                  .at( 2 ) );
 
                   const uint_t vertex_offset_gl_0 = levelinfo::num_microvertices_per_face( level );
 
@@ -846,7 +845,6 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_faces( const P2Function< rea
    }
 
    this->timingTree_->stop( "Macro-Face" );
-
 }
 
 template < class P2Form >
@@ -865,9 +863,9 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
       cellIDs.push_back( it.first );
    }
 
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
    {
       Cell& cell = *storage_->getCell( PrimitiveID( cellIDs[uint_c( i )] ) );
@@ -897,7 +895,6 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
             {
                WALBERLA_NON_OPENMP_SECTION() { this->timingTree_->start( "Updating EdgeDoFs" ); }
 
-
                // Splitting the SOR into multiple sweeps: one per edge type.
                // This has severe performance advantages.
                // Due to the memory layout of the edge DoFs and the coincidence that there are
@@ -920,7 +917,6 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
                                                                                           static_cast< int32_t >( level ),
                                                                                           relax,
                                                                                           v2e_opr_data );
-
 
                P2::macrocell::generated::sor_3D_macrocell_P2_update_edgedofs_by_type_YZ( &e_dst_data[firstIdx[eo::X]],
                                                                                          &e_dst_data[firstIdx[eo::XY]],
@@ -1182,7 +1178,7 @@ void P2ConstantOperator< P2Form >::smooth_sor_macro_cells( const P2Function< rea
 template < class P2Form >
 void P2ConstantOperator< P2Form >::smooth_sor( const P2Function< real_t >& dst,
                                                const P2Function< real_t >& rhs,
-                                               const real_t&               relax,
+                                               real_t                      relax,
                                                const size_t                level,
                                                const DoFType               flag,
                                                const bool&                 backwards ) const
@@ -1249,7 +1245,7 @@ template < class P2Form >
 void P2ConstantOperator< P2Form >::smooth_jac( const P2Function< real_t >& dst,
                                                const P2Function< real_t >& rhs,
                                                const P2Function< real_t >& src,
-                                               const real_t&               relax,
+                                               real_t                      relax,
                                                size_t                      level,
                                                DoFType                     flag ) const
 {
@@ -1366,6 +1362,5 @@ template class P2ConstantOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwi
 
 template class P2ConstantOperator< P2LinearCombinationForm >;
 template class P2ConstantOperator< P2RowSumForm >;
-
 
 } // namespace hyteg

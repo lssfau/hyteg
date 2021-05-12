@@ -40,7 +40,8 @@
 namespace hyteg {
 
 template <class P2Form, OperatorType OprType>
-class P2SurrogateOperator : public Operator<P2Function<real_t>, P2Function<real_t>>
+class P2SurrogateOperator : public Operator<P2Function<real_t>, P2Function<real_t>>,
+                            public GSSmoothable< P2Function< real_t > >
 {
  public:
    P2SurrogateOperator(const std::shared_ptr<PrimitiveStorage>& storage,

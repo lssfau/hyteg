@@ -54,7 +54,8 @@
 namespace hyteg {
 
 template < class P1Form, OperatorType OprType >
-class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
+class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Function< real_t > >,
+                                     public GSSmoothable< P1Function< real_t > >
 {
  public:
    typedef LSQPInterpolator< MonomialBasis2D, LSQPType::EDGE >   EdgeInterpolator;
@@ -83,8 +84,8 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
                                  uint_t                                     polyDegree )
    : P1PolynomialBlendingOperator( storage, minLevel, maxLevel, interpolationLevel )
    {
-      interpolateStencils(polyDegree);
-      useDegree(polyDegree);
+      interpolateStencils( polyDegree );
+      useDegree( polyDegree );
    }
 
    ~P1PolynomialBlendingOperator() {}
@@ -110,7 +111,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
 
       for ( auto& it : storage_->getFaces() )
       {
-         Face& face       = *it.second;
+         Face& face = *it.second;
          form.setGeometryMap( face.getGeometryMap() );
 
          for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
@@ -164,17 +165,17 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
                   std::fill( faceStencil.begin(), faceStencil.end(), 0.0 );
 
                   vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                      form, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, faceStencil.data() );
+                      form, { x, x + dirW, x + dirS }, P1Elements::P1Elements2D::elementSW, faceStencil.data() );
                   vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                      form, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, faceStencil.data() );
+                      form, { x, x + dirS, x + dirSE }, P1Elements::P1Elements2D::elementS, faceStencil.data() );
                   vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                      form, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, faceStencil.data() );
+                      form, { x, x + dirSE, x + dirE }, P1Elements::P1Elements2D::elementSE, faceStencil.data() );
                   vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                      form, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, faceStencil.data() );
+                      form, { x, x + dirE, x + dirN }, P1Elements::P1Elements2D::elementNE, faceStencil.data() );
                   vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                      form, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, faceStencil.data() );
+                      form, { x, x + dirN, x + dirNW }, P1Elements::P1Elements2D::elementN, faceStencil.data() );
                   vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                      form, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, faceStencil.data() );
+                      form, { x, x + dirNW, x + dirW }, P1Elements::P1Elements2D::elementNW, faceStencil.data() );
 
                   //if (i == 1 && j == 1) {
                   //   PointND<real_t, 7> test(faceStencil.data());
@@ -184,27 +185,27 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
                   centerInterpolator.addInterpolationPoint( ref_x,
                                                             faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_C )] );
 
-                  horiInterpolator.addInterpolationPoint( ref_x + Point2D{{0.5 * ref_h, 0.0}},
+                  horiInterpolator.addInterpolationPoint( ref_x + Point2D{ { 0.5 * ref_h, 0.0 } },
                                                           faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_E )] );
 
-                  vertInterpolator.addInterpolationPoint( ref_x + Point2D{{0.0, -0.5 * ref_h}},
+                  vertInterpolator.addInterpolationPoint( ref_x + Point2D{ { 0.0, -0.5 * ref_h } },
                                                           faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_S )] );
 
-                  diagInterpolator.addInterpolationPoint( ref_x + Point2D{{0.5 * ref_h, -0.5 * ref_h}},
+                  diagInterpolator.addInterpolationPoint( ref_x + Point2D{ { 0.5 * ref_h, -0.5 * ref_h } },
                                                           faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_SE )] );
 
                   if ( i == 1 )
                   {
-                     diagInterpolator.addInterpolationPoint( ref_x + Point2D{{-0.5 * ref_h, 0.5 * ref_h}},
+                     diagInterpolator.addInterpolationPoint( ref_x + Point2D{ { -0.5 * ref_h, 0.5 * ref_h } },
                                                              faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_NW )] );
-                     horiInterpolator.addInterpolationPoint( ref_x + Point2D{{-0.5 * ref_h, 0.0}},
+                     horiInterpolator.addInterpolationPoint( ref_x + Point2D{ { -0.5 * ref_h, 0.0 } },
                                                              faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_W )] );
                   }
 
                   x += d0;
                }
 
-               vertInterpolator.addInterpolationPoint( ref_x + Point2D{{0.0, 0.5 * ref_h}},
+               vertInterpolator.addInterpolationPoint( ref_x + Point2D{ { 0.0, 0.5 * ref_h } },
                                                        faceStencil[vertexdof::stencilIndexFromVertex( SD::VERTEX_N )] );
 
                --inner_rowsize;
@@ -227,7 +228,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
 
       for ( auto& it : storage_->getFaces() )
       {
-         Face& face       = *it.second;
+         Face& face = *it.second;
          form.setGeometryMap( face.getGeometryMap() );
 
          for ( uint_t level = minLevel_; level <= maxLevel_; ++level )
@@ -284,17 +285,17 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
                   std::fill( faceStencil.begin(), faceStencil.end(), 0.0 );
 
                   vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                      form, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, faceStencil.data() );
+                      form, { x, x + dirW, x + dirS }, P1Elements::P1Elements2D::elementSW, faceStencil.data() );
                   vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                      form, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, faceStencil.data() );
+                      form, { x, x + dirS, x + dirSE }, P1Elements::P1Elements2D::elementS, faceStencil.data() );
                   vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                      form, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, faceStencil.data() );
+                      form, { x, x + dirSE, x + dirE }, P1Elements::P1Elements2D::elementSE, faceStencil.data() );
                   vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                      form, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, faceStencil.data() );
+                      form, { x, x + dirE, x + dirN }, P1Elements::P1Elements2D::elementNE, faceStencil.data() );
                   vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                      form, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, faceStencil.data() );
+                      form, { x, x + dirN, x + dirNW }, P1Elements::P1Elements2D::elementN, faceStencil.data() );
                   vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                      form, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, faceStencil.data() );
+                      form, { x, x + dirNW, x + dirW }, P1Elements::P1Elements2D::elementNW, faceStencil.data() );
 
                   //if (i == 1 && j == 1) {
                   //   PointND<real_t, 7> test(faceStencil.data());
@@ -397,7 +398,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
       }
    }
 
-   void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const
+   void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const override
    {
       checkForMissingPolynomial( level, polyDegree_ );
 
@@ -482,7 +483,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
                     const P1Function< real_t >& rhs,
                     const P1Function< real_t >& tmp,
                     size_t                      level,
-                    DoFType                     flag ) const
+                    DoFType                     flag ) const override
    {
       checkForMissingPolynomial( level, polyDegree_ );
 

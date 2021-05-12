@@ -19,6 +19,8 @@
  */
 #pragma once
 
+#include "hyteg/solvers/Smoothables.hpp"
+
 namespace hyteg {
 
 template < class OperatorType >
@@ -34,11 +36,18 @@ class JacobiPreconditioner : public Solver< OperatorType >
 
    void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
    {
-      x.assign( {1.0}, {b}, level, flag_ );
-      for ( uint_t i = 0; i < iterations_; ++i )
+      if ( const auto* A_sor = dynamic_cast< const WeightedJacobiSmoothable< typename OperatorType::srcType >* >( &A ) )
       {
-         tmp_.assign( {1.0}, {x}, level, flag_ );
-         A.smooth_jac( x, b, tmp_, 1.0, level, flag_ );
+         x.assign( { 1.0 }, { b }, level, flag_ );
+         for ( uint_t i = 0; i < iterations_; ++i )
+         {
+            tmp_.assign( { 1.0 }, { x }, level, flag_ );
+            A.smooth_jac( x, b, tmp_, 1.0, level, flag_ );
+         }
+      }
+      else
+      {
+         throw std::runtime_error( "The SOR-Smoother requires the SORSmoothable interface." );
       }
    }
 
