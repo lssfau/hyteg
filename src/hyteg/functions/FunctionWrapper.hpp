@@ -50,7 +50,7 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
 
    ~FunctionWrapper()
    {
-     WALBERLA_LOG_INFO_ON_ROOT( "Destructing '" << this->getFunctionName() << "'" );
+     // WALBERLA_LOG_INFO_ON_ROOT( "Destructing '" << this->getFunctionName() << "'" );
    }
 
    /// provide access to wrapped function

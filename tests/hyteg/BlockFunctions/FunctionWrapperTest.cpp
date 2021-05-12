@@ -24,19 +24,12 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
-// #include "hyteg/communication/Syncing.hpp"
-// #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-// #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
-// #include "hyteg/dataexport/VTKOutput.hpp"
-// #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
-#include "hyteg/p1functionspace/P1VectorFunction.hpp"
-#include "hyteg/p2functionspace/P2VectorFunction.hpp"
-// #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
-
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+#include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 // Perform some basic test on the FunctionWrapper class
@@ -91,17 +84,30 @@ int main( int argc, char* argv[] )
    // (only works w/o further debugging, as then assertions kill the process)
 #ifdef NDEBUG
    uint_t failed = 0;
-   try
+   if ( walberla::mpi::MPIManager::instance()->numProcesses() == 1 )
    {
-      real_t aux = p2Wrap.dotGlobal( p1Wrap, maxLevel, Inner );
-      WALBERLA_UNUSED( aux );
-   } catch ( const std::exception& ex )
-   {
-      WALBERLA_LOG_INFO_ON_ROOT( "Exception encountered is '" << ex.what() << "'" );
-      WALBERLA_LOG_INFO_ON_ROOT( "Unwrapping failed, as it should ;-)" );
-      failed = 1;
+      try
+      {
+         WALBERLA_LOG_INFO( "Trying to unwrap p1Wrap to P2Function (bad idea)" );
+         real_t aux = p2Wrap.dotGlobal( p1Wrap, maxLevel, Inner );
+         WALBERLA_UNUSED( aux );
+      } catch ( const std::exception& ex )
+      {
+         WALBERLA_LOG_INFO( "Unwrapping failed, as it should ;-)" );
+         WALBERLA_LOG_INFO( "Exception encountered is '" << ex.what() << "'" );
+         failed = 1;
+      } catch ( ... )
+      {
+         WALBERLA_LOG_INFO( "Unwrapping failed, as it should ;-)" );
+         WALBERLA_LOG_INFO( "Precise type of exception unknown" );
+         failed = 1;
+      }
+      if ( !failed )
+      {
+         WALBERLA_LOG_INFO( "Unwrapping worked, but it should not :-(" );
+      }
+      WALBERLA_CHECK( failed );
    }
-   WALBERLA_CHECK( failed );
 #endif
 
    // check assign
