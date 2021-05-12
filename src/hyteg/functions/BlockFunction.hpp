@@ -51,6 +51,9 @@ class BlockFunction
 
    /// A block function in itself has no dimension (only its sub-functions do)
    uint_t getDimension() const { return 0; }
+
+   /// Query the number of "blocks", i.e. number of sub-functions
+   uint_t getNumberOfBlocks() const { return subFunc_.size(); }
    /// @}
 
    /// @name Component access
@@ -73,14 +76,21 @@ class BlockFunction
    const GenericFunction< value_t >& operator[]( uint_t idx ) const { return getSubFunction( idx ); }
    /// @}
 
-   void multElementwise( const std::vector< std::reference_wrapper< const GenericFunction< value_t > > >& functions,
-                         uint_t                                                                           level,
-                         DoFType                                                                          flag = All ) const
+   void multElementwise( const std::vector< std::reference_wrapper< const BlockFunction< value_t > > >& functions,
+                         uint_t                                                                         level,
+                         DoFType                                                                        flag = All ) const
    {
+      WALBERLA_DEBUG_SECTION()
+      {
+         for ( auto func : functions )
+         {
+            WALBERLA_ASSERT_EQUAL( subFunc_.size(), func.get().getNumberOfBlocks() );
+         }
+      }
+
       for ( uint_t k = 0; k < subFunc_.size(); k++ )
       {
-         // subFunc_[k]->multElementwise( vectorFunctionTools::filter( 0, functions ), level, flag );
-         WALBERLA_ABORT( "Implement me!!!!" );
+         subFunc_[k]->multElementwise( filter( k, functions ), level, flag );
       }
    }
 
@@ -126,15 +136,22 @@ class BlockFunction
       }
    }
 
-   void add( const std::vector< value_t >                                                     scalars,
-             const std::vector< std::reference_wrapper< const GenericFunction< value_t > > >& functions,
-             size_t                                                                           level,
-             DoFType                                                                          flag = All ) const
+   void add( const std::vector< value_t >                                                   scalars,
+             const std::vector< std::reference_wrapper< const BlockFunction< value_t > > >& functions,
+             size_t                                                                         level,
+             DoFType                                                                        flag = All ) const
    {
+      WALBERLA_DEBUG_SECTION()
+      {
+         for ( auto func : functions )
+         {
+            WALBERLA_ASSERT_EQUAL( subFunc_.size(), func.get().getNumberOfBlocks() );
+         }
+      }
+
       for ( uint_t k = 0; k < subFunc_.size(); ++k )
       {
-         // subFunc_[k]->add( scalars, vectorFunctionTools::filter( k, functions ), level, flag );
-         WALBERLA_ABORT( "Implement me!!!!" );
+         subFunc_[k]->add( scalars, filter( k, functions ), level, flag );
       }
    }
 
@@ -146,27 +163,35 @@ class BlockFunction
       }
    }
 
-   void swap( const GenericFunction< value_t >& other, const uint_t& level, const DoFType& flag = All ) const
+   void swap( const BlockFunction< value_t >& other, const uint_t& level, const DoFType& flag = All ) const
    {
+      WALBERLA_ASSERT_EQUAL( subFunc_.size(), other.subFunc_.size() );
       for ( uint_t k = 0; k < subFunc_.size(); ++k )
       {
          subFunc_[k]->swap( other[k], level, flag );
       }
    }
 
-   void assign( const std::vector< value_t >&                                                    scalars,
-                const std::vector< std::reference_wrapper< const GenericFunction< value_t > > >& functions,
-                size_t                                                                           level,
-                DoFType                                                                          flag = All ) const
+   void assign( const std::vector< value_t >&                                                  scalars,
+                const std::vector< std::reference_wrapper< const BlockFunction< value_t > > >& functions,
+                size_t                                                                         level,
+                DoFType                                                                        flag = All ) const
    {
+      WALBERLA_DEBUG_SECTION()
+      {
+         for ( auto func : functions )
+         {
+            WALBERLA_ASSERT_EQUAL( subFunc_.size(), func.get().getNumberOfBlocks() );
+         }
+      }
+
       for ( uint_t k = 0; k < subFunc_.size(); ++k )
       {
-         // subFunc_[k]->assign( scalars, vectorFunctionTools::filter( k, functions ), level, flag );
-         WALBERLA_ABORT( "Implement me!!!!" );
+         subFunc_[k]->assign( scalars, filter( k, functions ), level, flag );
       }
    }
 
-   value_t dotLocal( const GenericFunction< value_t >& rhs, const uint_t level, const DoFType flag = All ) const
+   value_t dotLocal( const BlockFunction< value_t >& rhs, const uint_t level, const DoFType flag = All ) const
    {
       value_t sum = value_t( 0 );
       for ( uint_t k = 0; k < subFunc_.size(); ++k )
@@ -176,7 +201,7 @@ class BlockFunction
       return sum;
    }
 
-   value_t dotGlobal( const GenericFunction< value_t >& rhs, const uint_t level, const DoFType flag = All ) const
+   value_t dotGlobal( const BlockFunction< value_t >& rhs, const uint_t level, const DoFType flag = All ) const
    {
       auto sum = dotLocal( rhs, level, flag );
       walberla::mpi::allReduceInplace( sum, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
@@ -197,7 +222,7 @@ class BlockFunction
    ///                                storage of the other function, and as values the MPI ranks of the processes that own these
    ///                                primitives regarding the storage this function lives on.
    ///
-   void copyFrom( const GenericFunction< value_t >&              other,
+   void copyFrom( const BlockFunction< value_t >&                other,
                   const uint_t&                                  level,
                   const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
                   const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
@@ -211,6 +236,17 @@ class BlockFunction
  protected:
    const std::string                                            functionName_;
    std::vector< std::shared_ptr< GenericFunction< value_t > > > subFunc_;
+
+   // extract a vector of generic sub-functions from a vector of block functions
+   std::vector< std::reference_wrapper< const GenericFunction< value_t > > >
+       filter( uint_t idx, const std::vector< std::reference_wrapper< const BlockFunction< value_t > > >& functions ) const
+   {
+      std::vector< std::reference_wrapper< const GenericFunction< value_t > > > subFuncVec;
+      std::transform( functions.begin(), functions.end(), std::back_inserter( subFuncVec ), [idx]( auto& function ) {
+         return std::cref( function.get().getSubFunction( idx ) );
+      } );
+      return subFuncVec;
+   }
 };
 
 } // namespace hyteg

@@ -45,11 +45,12 @@ using namespace hyteg;
 template < typename value_t >
 class P1P1TaylorHoodStokesBlockFunction : public BlockFunction< value_t >
 {
-public:
+ public:
    P1P1TaylorHoodStokesBlockFunction( const std::string&                         name,
                                       const std::shared_ptr< PrimitiveStorage >& storage,
                                       size_t                                     minLevel,
-                                      size_t                                     maxLevel ) : BlockFunction< value_t >( name )
+                                      size_t                                     maxLevel )
+   : BlockFunction< value_t >( name )
    {
       this->subFunc_.push_back(
           std::make_shared< FunctionWrapper< P1VectorFunction< value_t > > >( name + "_uvw", storage, minLevel, maxLevel ) );
@@ -57,6 +58,14 @@ public:
           std::make_shared< FunctionWrapper< P1Function< value_t > > >( name + "_p", storage, minLevel, maxLevel ) );
    };
 };
+
+void logCall( const std::string& msg )
+{
+   size_t      len = msg.length();
+   size_t      fw = 30;
+   std::string dots( len < fw ? fw - len : 3, '.' );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> " << msg << "() " << dots << " called" );
+}
 
 int main( int argc, char* argv[] )
 {
@@ -75,21 +84,62 @@ int main( int argc, char* argv[] )
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
 
-   BlockFunction< real_t > emptyFunc( "Dummy BlockFunction" );
-   BlockFunction< uint_t > emptyIntFunc( "Dummy BlockFunction<int>" );
+   BlockFunction< double > emptyFunc1( "Dummy BlockFunction<double>" );
+   BlockFunction< float >  emptyFunc2( "Dummy BlockFunction<float>" );
+   BlockFunction< uint_t > emptyFunc3( "Dummy BlockFunction<uint_t>" );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Successfully created '" << emptyFunc.getFunctionName() << "'" );
-   WALBERLA_LOG_INFO_ON_ROOT( "Successfully created '" << emptyIntFunc.getFunctionName() << "'" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Successfully created '" << emptyFunc1.getFunctionName() << "'" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Successfully created '" << emptyFunc2.getFunctionName() << "'" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Successfully created '" << emptyFunc3.getFunctionName() << "'" );
 
    // typedef P1Function< real_t > p1FuncType;
 
    uint_t minLevel = 1;
    uint_t maxLevel = 3;
-     
-   P1P1TaylorHoodStokesBlockFunction< real_t > stokes( "Stokes", storage, minLevel, maxLevel );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Successfully created '" << stokes.getFunctionName() << "'" );
-   WALBERLA_LOG_INFO_ON_ROOT( " -> dimension = '" << stokes.getDimension() << "'" );
+   P1P1TaylorHoodStokesBlockFunction< real_t > stokes1( "Stokes #1", storage, minLevel, maxLevel );
+   P1P1TaylorHoodStokesBlockFunction< real_t > stokes2( "Stokes #2", storage, minLevel, maxLevel );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Successfully created '" << stokes1.getFunctionName() << "'" );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> dimension = '" << stokes1.getDimension() << "'" );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> # blocks  = '" << stokes1.getNumberOfBlocks() << "'" );
+
+   std::shared_ptr< walberla::WcTimingTree >        timingTree( new walberla::WcTimingTree() );
+   std::function< real_t( const hyteg::Point3D& ) > expr = []( const Point3D& x ) { return real_c( 2 ) * x[0]; };
+
+   // -----------------------------------------
+   //  Check whether we can call class methods
+   // -----------------------------------------
+   stokes1.enableTiming( timingTree );
+   logCall( "enableTiming" );
+
+   stokes1.interpolate( real_c( 5 ), maxLevel );
+   logCall( "interpolate[constant]" );
+
+   stokes1.interpolate( expr, maxLevel );
+   logCall( "interpolate[expression]" );
+
+   stokes1.interpolate( {expr}, maxLevel );
+   logCall( "interpolate[vector]" );
+
+   stokes1.add( real_c( 5 ), maxLevel );
+   logCall( "add[scalar]" );
+
+   stokes1.add( {real_c( 2 )}, {stokes2}, maxLevel );
+   logCall( "add[functions]" );
+
+   stokes1.swap( stokes2, maxLevel );
+   logCall( "swap" );
+
+   stokes1.assign( {2.0, -3.0}, {stokes1, stokes2}, maxLevel );
+   logCall( "assign" );
+
+   real_t aux = stokes1.dotGlobal( stokes2, maxLevel );
+   WALBERLA_UNUSED( aux );
+   logCall( "dotGlobal" );
+
+   stokes1.multElementwise( {stokes1, stokes2}, maxLevel );
+   logCall( "multElementwise" );
 
    return EXIT_SUCCESS;
 }
