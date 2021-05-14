@@ -763,6 +763,8 @@ template class P1ElementwiseOperator< P1FenicsForm< p1_divt_cell_integral_0_othe
 template class P1ElementwiseOperator< P1FenicsForm< p1_divt_cell_integral_1_otherwise, p1_tet_divt_tet_cell_integral_1_otherwise > >;
 template class P1ElementwiseOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet_cell_integral_2_otherwise > >;
 
+template class P1ElementwiseOperator< forms::p1_diffusion_blending_q3 >;
+
 template class P1ElementwiseOperator< forms::p1_epsiloncc_0_0_affine_q2 >;
 template class P1ElementwiseOperator< forms::p1_epsiloncc_0_1_affine_q2 >;
 template class P1ElementwiseOperator< forms::p1_epsiloncc_0_2_affine_q2 >;
