@@ -22,6 +22,8 @@
 #include <core/Environment.h>
 #include <core/math/Constants.h>
 
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
+
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
 
@@ -107,6 +109,10 @@ int main( int argc, char** argv )
                                           Point3D( { 0.985, 0.3, 0.48 } ),
                                           Point3D( { 0.23, 0.434, 0.0001 } ) };
 
+   auto coeff = [](const hyteg::Point3D& x) { return x[0]*x[1]*x[2]; };
+
+   forms::p1_div_k_grad_affine_q3 form_p1_div_k_grad_affine_q3(coeff, coeff);
+
    forms::p1_diffusion_affine_q2 form_p1_diffusion_affine_q2;
    forms::p2_diffusion_affine_q2 form_p2_diffusion_affine_q2;
 
@@ -118,6 +124,9 @@ int main( int argc, char** argv )
    form_p2_diffusion_blending_q3.setGeometryMap( identityMap );
 
    const double eps = 1e-14;
+
+   compareRows< forms::p1_div_k_grad_affine_q3, 2, 3, 3 >( form_p1_div_k_grad_affine_q3, element2D, 0, eps );
+   compareRows< forms::p1_div_k_grad_affine_q3, 3, 4, 4 >( form_p1_div_k_grad_affine_q3, element3D, 0, eps );
 
    compareRows< forms::p1_diffusion_affine_q2, 2, 3, 3 >( form_p1_diffusion_affine_q2, element2D, 0, eps );
    compareRows< forms::p1_diffusion_affine_q2, 3, 4, 4 >( form_p1_diffusion_affine_q2, element3D, 0, eps );
