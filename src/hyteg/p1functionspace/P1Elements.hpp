@@ -364,7 +364,7 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCell( const i
 /// Also works for indices on the boundary of a macro-cell. In this case the stencil map simply contains less elements.
 /// It automatically computes / selects the neighboring elements depending on the micro-vertex' location.
 /// Note that only the weights for the stencil that lie in the specified macro-cell are returned.
-///
+/// USE WITH CAUTION: ONLY WORKS FOR CONSTANT STENCILS!
 /// \param microVertexIndex the logical index of the micro-vertex in a macro-cell (can also be located on the macro-cell's boundary)
 /// \param cell the surrounding macro-cell
 /// \param level the hierarchy level
@@ -406,6 +406,7 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCellForm( con
     // 4. Computing the local stiffness matrix
     //    To calculate the 4x4 stiffness matrix, we need the geometric offsets from the reference micro-vertex
     //    from all micro-vertices in the neighbor cell (including the reference micro-vertex itself -> the first offset is always (0.0, 0.0, 0.0))
+    //!!! This shift results in wrong stencils unless the stencil is constant !!!
     Point4D localStiffnessMatrixRow;
     form.integrate( geometricOffsetsFromCenter, localStiffnessMatrixRow );
 
@@ -468,16 +469,10 @@ inline std::map< stencilDirection, real_t > calculateStencilInMacroCellForm_new(
       geometricCoordinates[localID] = vertexdof::macrocell::coordinateFromIndex( level, cell, logicalOffsetsFromCenter[localID] );
     }
 
-    std::array< Point3D, 4 > geometricOffsetsFromCenter;
-    for ( uint_t localID = 0; localID < 4; localID++ ) {
-      geometricOffsetsFromCenter[localID] = geometricCoordinates[localID] - geometricCoordinates[0];
-    }
-
     // 4. Computing the local stiffness matrix
-    //    To calculate the 4x4 stiffness matrix, we need the geometric offsets from the reference micro-vertex
-    //    from all micro-vertices in the neighbor cell (including the reference micro-vertex itself -> the first offset is always (0.0, 0.0, 0.0))
     Matrixr<1,4> localStiffnessMatrixRow;
-    form.integrateRow(0, geometricOffsetsFromCenter, localStiffnessMatrixRow );
+    form.integrateRow(0, geometricCoordinates, localStiffnessMatrixRow );
+    // std::cout << " " << localStiffnessMatrixRow(0,0);
 
     // 5. Adding contribution to stencil
     //    Since we enforced that the first entry in the local cell micro-vertex array is always the reference micro-vertex
