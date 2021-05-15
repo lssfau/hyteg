@@ -711,3 +711,7 @@ if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   waLBerla_execute_test(NAME TokamakLaplaceTest)
   waLBerla_execute_test(NAME TokamakLaplaceTestLongrun COMMAND $<TARGET_FILE:TokamakLaplaceTest> --longrun LABELS longrun)
 endif()
+
+## BoundaryUID stuff ##
+waLBerla_compile_test(FILES boundaryUID/BoundaryUIDTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME BoundaryUIDTest)
