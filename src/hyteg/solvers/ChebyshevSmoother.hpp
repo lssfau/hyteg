@@ -50,7 +50,7 @@ class ChebyshevSmoother : public Solver< OperatorType >
       if ( const auto* A_with_inv_diag =
                dynamic_cast< const OperatorWithInverseDiagonal< typename OperatorType::srcType >* >( &A ) )
       {
-         inverseDiagonalValues = A.getInverseDiagonalValues();
+         inverseDiagonalValues = A_with_inv_diag->getInverseDiagonalValues();
       }
       else
       {
