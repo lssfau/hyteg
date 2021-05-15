@@ -122,6 +122,24 @@ class CSFVectorFunction : public GenericFunction
       }
    }
 
+   void interpolate( const std::vector< std::function< valueType( const Point3D& ) > >& expr,
+                     uint_t                                                             level,
+                     BoundaryUID                                                        boundaryUID ) const
+   {
+      WALBERLA_ASSERT_GREATER_EQUAL( expr.size(), compFunc_.size() );
+      WALBERLA_DEBUG_SECTION()
+      {
+         if ( expr.size() > compFunc_.size() )
+         {
+            WALBERLA_LOG_WARNING_ON_ROOT( "CSFVectorFunction::interpolate(): Ignoring excess std::functions!" );
+         }
+      }
+      for ( uint_t k = 0; k < compFunc_.size(); ++k )
+      {
+         compFunc_[k]->interpolate( expr[k], level, boundaryUID );
+      }
+   }
+
    void add( real_t scalar, size_t level, DoFType flag = All ) const
    {
       for ( uint_t k = 0; k < compFunc_.size(); ++k )
