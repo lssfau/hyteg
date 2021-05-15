@@ -79,7 +79,6 @@ int main( int argc, char* argv[] )
 
    // generate the setupStorage and associate blending map
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
-   // setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    AnnulusMap::setMap( setupStorage );
 
    auto storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -96,8 +95,8 @@ int main( int argc, char* argv[] )
    BoundaryUID       outerBC = bcs.createDirichletBC( "Dirichlet on outer radius", markerOuterBoundary );
    BoundaryUID       innerBC = bcs.createDirichletBC( "Dirichlet on inner radius", markerInnerBoundary );
 
-   std::function< real_t( const Point3D& ) > DirichletInner = []( const Point3D& x ) { return real_c( 3 ); };
-   std::function< real_t( const Point3D& ) > DirichletOuter = []( const Point3D& x ) { return real_c( 1 ); };
+   std::function< real_t( const Point3D& ) > DirichletInner = []( const Point3D& ) { return real_c( 3 ); };
+   std::function< real_t( const Point3D& ) > DirichletOuter = []( const Point3D& ) { return real_c( 1 ); };
 
    func.setBoundaryCondition( bcs );
 
@@ -111,12 +110,12 @@ int main( int argc, char* argv[] )
    // ------------------
    std::function< real_t( const Point3D& ) > controlValues = [innerRad, outerRad]( const Point3D& x ) {
       real_t radius = std::sqrt( x[0] * x[0] + x[1] * x[1] );
-      real_t tol    = 1e-14;
-      if ( std::abs( innerRad - radius ) < tol )
+      real_t mytol  = 1e-14;
+      if ( std::abs( innerRad - radius ) < mytol )
       {
          return real_c( 3 );
       }
-      else if ( std::abs( outerRad - radius ) < tol )
+      else if ( std::abs( outerRad - radius ) < mytol )
       {
          return real_c( 1 );
       }
