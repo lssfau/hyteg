@@ -35,7 +35,7 @@
 #include "hyteg/p1functionspace/P1VariableOperator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator_new.hpp"
 #include "hyteg/p1functionspace/P1PolynomialBlendingOperator.hpp"
-#include "hyteg/p1functionspace/P1SurrogateOperator_new.hpp"
+#include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
 
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2VariableOperator.hpp"
@@ -162,7 +162,7 @@ struct FE_Space<ElementType::P1, StencilType::NONE>
   using LaplaceVAR = hyteg::P1BlendingLaplaceOperator;
   using LaplaceVAR_NEW = hyteg::P1BlendingLaplaceOperator_new;
   using LaplaceLSQP = hyteg::P1PolynomialBlendingLaplaceOperator;
-  using LaplaceLSQP_NEW = hyteg::P1SurrogateLaplaceOperator_new;
+  using LaplaceLSQP_NEW = hyteg::P1SurrogateLaplaceOperator;
 };
 
 template <>
@@ -645,41 +645,6 @@ int main(int argc, char* argv[])
                6 * cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
                    sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) );
      };
-
-     //  exact = []( const hyteg::Point3D& x ) { return sin( pi * x[0] ) * sin( pi * x[1] ) * sin( pi * x[2] ); };
-     //  rhs   = []( const hyteg::Point3D& x ) { return 3 * pi * pi * sin( pi * x[0] ) * sin( pi * x[1] ) * sin( pi * x[2] ); };
-     //  exact = [=]( const hyteg::Point3D& x ) {
-     //     return sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) * sin( 4 * atan2( x[1], x[0] ) );
-     //  };
-    //  boundary = exact;
-
-    //  rhs = []( const hyteg::Point3D& ) { return 0.0; };
-    //  boundary = []( const hyteg::Point3D& ) { return 1.0; };
-    //  exact = boundary;
-    //  boundary = [=](const hyteg::Point3D& x) {return (radius(x) > middle)? sin(2*rMax) : sin(2*rMin);};
-     //  rhs = [=]( const hyteg::Point3D& x ) {
-     //     return 4 * pow( x[0], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
-     //                sin( 4 * atan2( x[1], x[0] ) ) / ( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) +
-     //            2 * pow( x[0], 2 ) * sin( 4 * atan2( x[1], x[0] ) ) *
-     //                cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
-     //                pow( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ), 3.0 / 2.0 ) +
-     //            16 * pow( x[0], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
-     //                sin( 4 * atan2( x[1], x[0] ) ) / pow( pow( x[0], 2 ) + pow( x[1], 2 ), 2 ) +
-     //            4 * pow( x[1], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
-     //                sin( 4 * atan2( x[1], x[0] ) ) / ( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) +
-     //            2 * pow( x[1], 2 ) * sin( 4 * atan2( x[1], x[0] ) ) *
-     //                cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
-     //                pow( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ), 3.0 / 2.0 ) +
-     //            16 * pow( x[1], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
-     //                sin( 4 * atan2( x[1], x[0] ) ) / pow( pow( x[0], 2 ) + pow( x[1], 2 ), 2 ) +
-     //            4 * pow( x[2], 2 ) * sin( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) *
-     //                sin( 4 * atan2( x[1], x[0] ) ) / ( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) +
-     //            2 * pow( x[2], 2 ) * sin( 4 * atan2( x[1], x[0] ) ) *
-     //                cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
-     //                pow( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ), 3.0 / 2.0 ) -
-     //            6 * sin( 4 * atan2( x[1], x[0] ) ) * cos( 2 * sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) ) ) /
-     //                sqrt( pow( x[0], 2 ) + pow( x[1], 2 ) + pow( x[2], 2 ) );
-     //  };
 
      meshInfo = MeshInfo::meshSphericalShell(nX,nY, rMin, rMax,MeshInfo::SHELLMESH_CLASSIC);
   }

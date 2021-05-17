@@ -24,6 +24,8 @@
 
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
 
 #include "hyteg/polynomial/PolynomialEvaluator.hpp"
 #include "hyteg/polynomial/LSQPInterpolator.hpp"
@@ -31,7 +33,7 @@
 namespace hyteg {
 
 template < class P1Form >
-class P1SurrogateOperator_new : public P1Operator<P1Form>
+class P1SurrogateOperator : public P1Operator<P1Form>
 {
    using Poly2D = Polynomial2D<MonomialBasis2D>;
    using Poly3D = Polynomial3D<MonomialBasis3D>;
@@ -73,14 +75,13 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
    using P1Operator<P1Form>::assemble_variableStencil_cell;
 
  public:
-   P1SurrogateOperator_new(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel)
-      : P1SurrogateOperator_new(storage, minLevel, maxLevel, P1Form())
+   P1SurrogateOperator(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel)
+      : P1SurrogateOperator(storage, minLevel, maxLevel, P1Form())
    {}
 
-   P1SurrogateOperator_new(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form& form)
+   P1SurrogateOperator(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form& form)
       : P1Operator<P1Form>(storage, minLevel, maxLevel, form)
    {
-      WALBERLA_LOG_INFO_ON_ROOT("=== CTOR NEW SURROGATE OPERATOR ===");
 
       // todo add polynomials for macro-bounaries
       auto cellDataHandling =
@@ -411,24 +412,9 @@ class P1SurrogateOperator_new : public P1Operator<P1Form>
 
 // todo test other forms
 
-typedef P1SurrogateOperator_new< forms::p1_diffusion_blending_q3 > P1SurrogateLaplaceOperator_new;
-// typedef P1SurrogateOperator_new< P1Form_laplace > P1BlendingLaplaceOperator_new;
-// typedef P1SurrogateOperator_new< P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise >> P1SurrogateLaplaceOperator_new;
-// typedef P1SurrogateOperator_new< P1Form_mass >    P1BlendingMassOperator_new;
-// typedef P1SurrogateOperator_new< P1Form_mass >    P1SurrogateMassOperator_new;
-typedef P1SurrogateOperator_new< forms::p1_mass_blending_q4 >    P1SurrogateMassOperator_new;
-
-// typedef P1VariableOperator< P1Form_epsilon_11 > P1BlendingEpsilonOperator_11;
-// typedef P1VariableOperator< P1Form_epsilon_12 > P1BlendingEpsilonOperator_12;
-// typedef P1VariableOperator< P1Form_epsilon_21 > P1BlendingEpsilonOperator_21;
-// typedef P1VariableOperator< P1Form_epsilon_22 > P1BlendingEpsilonOperator_22;
-
-// typedef P1VariableOperator< P1Form_divT_1 > P1BlendingDivTOperator_1;
-// typedef P1VariableOperator< P1Form_divT_2 > P1BlendingDivTOperator_2;
-
-// typedef P1VariableOperator< P1Form_div_1 > P1BlendingDivOperator_1;
-// typedef P1VariableOperator< P1Form_div_2 > P1BlendingDivOperator_2;
-
-// typedef P1VariableOperator< P1Form_pspg > P1BlendingPSPGOperator;
+typedef P1SurrogateOperator< forms::p1_diffusion_blending_q3 > P1SurrogateLaplaceOperator;
+typedef P1SurrogateOperator< forms::p1_mass_blending_q4 >    P1SurrogateMassOperator;
+typedef P1VariableOperator_new< forms::p1_div_k_grad_blending_q3 > P1SurrogateDivkGradOperator;
+typedef P1VariableOperator_new< forms::p1_div_k_grad_affine_q3 > P1SurrogateAffineDivkGradOperator;
 
 } // namespace hyteg

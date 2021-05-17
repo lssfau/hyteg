@@ -27,6 +27,7 @@
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
 
+// todo replace old variable operator once all required forms are available for the new one!
 
 namespace hyteg {
 
