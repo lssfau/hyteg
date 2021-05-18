@@ -30,7 +30,7 @@
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
 /* This test checks whether the P1 surrogate
-   operators works correctly. In particular
+   operator works correctly. In particular
    we verify the following theorem:
    Let A be the discrete operator associated with
       -div(k grad(u)) = f,
@@ -44,19 +44,19 @@ using namespace hyteg;
 
 void P1SurrogateOperatorTest( std::shared_ptr< PrimitiveStorage >               storage,
                               std::function< real_t( const hyteg::Point3D& ) >& k,
-                              const uint_t                                      p,
+                              const uint_t                                      q,
                               const uint_t                                      level )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "P1 surrogate operator test" )
 
-   const real_t epsilon = 1e-14;
+   const real_t epsilon = 1e-12;
 
    // operators
    forms::p1_div_k_grad_affine_q3    form( k, k );
    P1AffineDivkGradOperator_new      A( storage, level, level, form );
    P1SurrogateAffineDivkGradOperator A_q( storage, level, level, form );
 
-   A_q.interpolateStencils( p, level );
+   A_q.interpolateStencils( q, level );
 
    // functions
    hyteg::P1Function< real_t > u( "u", storage, level, level );
