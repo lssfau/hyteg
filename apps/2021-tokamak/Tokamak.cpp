@@ -22,6 +22,7 @@
 #include "core/logging/Logging.h"
 #include "core/math/Random.h"
 
+#include "hyteg/Git.hpp"
 #include "hyteg/LikwidWrapper.hpp"
 #include "hyteg/dataexport/SQL.hpp"
 #include "hyteg/dataexport/TimingOutput.hpp"
@@ -65,6 +66,7 @@ struct SolverSettings
    real_t      relativeResidualReduction{};
    uint_t      preSmooth{};
    uint_t      postSmooth{};
+   uint_t      maxCoarseGridSolverIterations{};
 
    [[nodiscard]] std::string toString() const
    {
@@ -232,6 +234,7 @@ void tokamak( TokamakDomain         tokamakDomain,
 
       db->setConstantEntry( "solverType", solverSettings.solverType );
       db->setConstantEntry( "coarseGridSolverType", solverSettings.coarseGridSolverType );
+      db->setConstantEntry( "maxCoarseGridSolverIterations", solverSettings.maxCoarseGridSolverIterations );
       db->setConstantEntry( "relativeResidualReduction", solverSettings.relativeResidualReduction );
       db->setConstantEntry( "preSmooth", solverSettings.preSmooth );
       db->setConstantEntry( "postSmooth", solverSettings.postSmooth );
@@ -470,7 +473,7 @@ void tokamak( TokamakDomain         tokamakDomain,
    }
 
    hyteg::printFunctionAllocationInfo( *storage );
-   hyteg::printCurrentMemoryUsage();
+   hyteg::printCurrentMemoryUsage( MemoryUsageDeterminationType::PETSC );
 
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Interpolating boundary conditions, coefficient, and exact solution ..." )
 
@@ -525,100 +528,80 @@ void tokamak( TokamakDomain         tokamakDomain,
       cgSolver->setPrintInfo( true );
       solver = cgSolver;
    }
-   else if ( solverSettings.solverType == GMG_WJAC )
-   {
-      auto restriction  = std::make_shared< Restriction_T >();
-      auto prolongation = std::make_shared< Prolongation_T >();
-
-      auto smoother = std::make_shared< WeightedJacobiSmoother< LaplaceOperator_T > >( storage, minLevel, maxLevel, 0.66 );
-
-      std::shared_ptr< Solver< LaplaceOperator_T > > coarseGridSolver;
-
-      if ( solverSettings.coarseGridSolverType == COARSE_GRID_CG_HYTEG )
-      {
-         auto actualCoarseGridSolver = std::make_shared< CGSolver< LaplaceOperator_T > >( storage, minLevel, minLevel );
-         coarseGridSolver            = actualCoarseGridSolver;
-      }
-      else if ( solverSettings.coarseGridSolverType == COARSE_GRID_CG_PETSC )
-      {
-         const auto relativeResidualToleranceCoarseGrid = 1e-30;
-         const auto absoluteResidualToleranceCoarseGrid = 1e-12;
-         const auto maxIterationsCoarseGrid             = std::numeric_limits< PetscInt >::max();
-         auto       actualCoarseGridSolver =
-             std::make_shared< PETScCGSolver< LaplaceOperator_T > >( storage,
-                                                                     minLevel,
-                                                                     relativeResidualToleranceCoarseGrid,
-                                                                     absoluteResidualToleranceCoarseGrid,
-                                                                     maxIterationsCoarseGrid );
-         coarseGridSolver = actualCoarseGridSolver;
-      }
-      else
-      {
-         WALBERLA_ABORT( "Invalid coarse grid solver type." );
-      }
-
-      auto gmgSolver = std::make_shared< GeometricMultigridSolver< LaplaceOperator_T > >( storage,
-                                                                                          smoother,
-                                                                                          coarseGridSolver,
-                                                                                          restriction,
-                                                                                          prolongation,
-                                                                                          minLevel,
-                                                                                          maxLevel,
-                                                                                          solverSettings.preSmooth,
-                                                                                          solverSettings.postSmooth );
-      solver         = gmgSolver;
-   }
-   else if ( solverSettings.solverType == FMG_WJAC )
-   {
-      auto restriction  = std::make_shared< Restriction_T >();
-      auto prolongation = std::make_shared< Prolongation_T >();
-
-      auto smoother = std::make_shared< WeightedJacobiSmoother< LaplaceOperator_T > >( storage, minLevel, maxLevel, 0.66 );
-
-      std::shared_ptr< Solver< LaplaceOperator_T > > coarseGridSolver;
-
-      if ( solverSettings.coarseGridSolverType == COARSE_GRID_CG_HYTEG )
-      {
-         auto actualCoarseGridSolver = std::make_shared< CGSolver< LaplaceOperator_T > >( storage, minLevel, minLevel );
-         coarseGridSolver            = actualCoarseGridSolver;
-      }
-      else if ( solverSettings.coarseGridSolverType == COARSE_GRID_CG_PETSC )
-      {
-         const auto relativeResidualToleranceCoarseGrid = 1e-30;
-         const auto absoluteResidualToleranceCoarseGrid = 1e-12;
-         const auto maxIterationsCoarseGrid             = std::numeric_limits< PetscInt >::max();
-         auto       actualCoarseGridSolver =
-             std::make_shared< PETScCGSolver< LaplaceOperator_T > >( storage,
-                                                                     minLevel,
-                                                                     relativeResidualToleranceCoarseGrid,
-                                                                     absoluteResidualToleranceCoarseGrid,
-                                                                     maxIterationsCoarseGrid );
-         coarseGridSolver = actualCoarseGridSolver;
-      }
-      else
-      {
-         WALBERLA_ABORT( "Invalid coarse grid solver type." );
-      }
-
-      auto gmgSolver = std::make_shared< GeometricMultigridSolver< LaplaceOperator_T > >( storage,
-                                                                                          smoother,
-                                                                                          coarseGridSolver,
-                                                                                          restriction,
-                                                                                          prolongation,
-                                                                                          minLevel,
-                                                                                          maxLevel,
-                                                                                          solverSettings.preSmooth,
-                                                                                          solverSettings.postSmooth );
-
-      auto fmgSolver =
-          std::make_shared< FullMultigridSolver< LaplaceOperator_T > >( storage, gmgSolver, prolongation, minLevel, maxLevel );
-
-      solverPre = fmgSolver;
-      solver    = gmgSolver;
-   }
    else
    {
-      WALBERLA_ABORT( "Invalid solver type: " << solverSettings.solverType )
+      std::shared_ptr< Solver< LaplaceOperator_T > > coarseGridSolver;
+
+      if ( solverSettings.coarseGridSolverType == COARSE_GRID_CG_HYTEG )
+      {
+         auto actualCoarseGridSolver = std::make_shared< CGSolver< LaplaceOperator_T > >(
+             storage, minLevel, minLevel, solverSettings.maxCoarseGridSolverIterations );
+         actualCoarseGridSolver->setPrintInfo( true );
+         coarseGridSolver = actualCoarseGridSolver;
+      }
+      else if ( solverSettings.coarseGridSolverType == COARSE_GRID_CG_PETSC )
+      {
+         const auto relativeResidualToleranceCoarseGrid = 1e-30;
+         const auto absoluteResidualToleranceCoarseGrid = 1e-12;
+         const auto maxIterationsCoarseGrid             = static_cast< PetscInt >( solverSettings.maxCoarseGridSolverIterations );
+         auto       actualCoarseGridSolver =
+             std::make_shared< PETScCGSolver< LaplaceOperator_T > >( storage,
+                                                                     minLevel,
+                                                                     relativeResidualToleranceCoarseGrid,
+                                                                     absoluteResidualToleranceCoarseGrid,
+                                                                     maxIterationsCoarseGrid );
+         coarseGridSolver = actualCoarseGridSolver;
+      }
+      else
+      {
+         WALBERLA_ABORT( "Invalid coarse grid solver type." );
+      }
+
+      if ( solverSettings.solverType == GMG_WJAC )
+      {
+         auto restriction  = std::make_shared< Restriction_T >();
+         auto prolongation = std::make_shared< Prolongation_T >();
+
+         auto smoother = std::make_shared< WeightedJacobiSmoother< LaplaceOperator_T > >( storage, minLevel, maxLevel, 0.66 );
+
+         auto gmgSolver = std::make_shared< GeometricMultigridSolver< LaplaceOperator_T > >( storage,
+                                                                                             smoother,
+                                                                                             coarseGridSolver,
+                                                                                             restriction,
+                                                                                             prolongation,
+                                                                                             minLevel,
+                                                                                             maxLevel,
+                                                                                             solverSettings.preSmooth,
+                                                                                             solverSettings.postSmooth );
+         solver         = gmgSolver;
+      }
+      else if ( solverSettings.solverType == FMG_WJAC )
+      {
+         auto restriction  = std::make_shared< Restriction_T >();
+         auto prolongation = std::make_shared< Prolongation_T >();
+
+         auto smoother = std::make_shared< WeightedJacobiSmoother< LaplaceOperator_T > >( storage, minLevel, maxLevel, 0.66 );
+
+         auto gmgSolver = std::make_shared< GeometricMultigridSolver< LaplaceOperator_T > >( storage,
+                                                                                             smoother,
+                                                                                             coarseGridSolver,
+                                                                                             restriction,
+                                                                                             prolongation,
+                                                                                             minLevel,
+                                                                                             maxLevel,
+                                                                                             solverSettings.preSmooth,
+                                                                                             solverSettings.postSmooth );
+
+         auto fmgSolver =
+             std::make_shared< FullMultigridSolver< LaplaceOperator_T > >( storage, gmgSolver, prolongation, minLevel, maxLevel );
+
+         solverPre = fmgSolver;
+         solver    = gmgSolver;
+      }
+      else
+      {
+         WALBERLA_ABORT( "Invalid solver type: " << solverSettings.solverType )
+      }
    }
 
    VTKOutput vtkOutput( "./vtk", "Tokamak", storage );
@@ -751,7 +734,8 @@ void run( int argc, char** argv )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
    LIKWID_MARKER_THREADINIT;
-   PETScManager petScManager;
+   PETScManager petScManager( &argc, &argv );
+   hyteg::printGitInfo();
 
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( env.config() == nullptr )
@@ -802,6 +786,9 @@ void run( int argc, char** argv )
    solverSettings.relativeResidualReduction = mainConf.getParameter< real_t >( "relativeResidualReduction" );
    solverSettings.preSmooth                 = mainConf.getParameter< uint_t >( "preSmooth" );
    solverSettings.postSmooth                = mainConf.getParameter< uint_t >( "postSmooth" );
+   // use numeric_limits<int> here to prevent overflow when casting to PetscINt
+   solverSettings.maxCoarseGridSolverIterations =
+       mainConf.getParameter< uint_t >( "maxCoarseGridSolverIterations", std::numeric_limits< int >::max() );
 
    appSettings.dbFile                     = mainConf.getParameter< std::string >( "dbFile" );
    appSettings.coarseMeshAndQuit          = mainConf.getParameter< bool >( "coarseMeshAndQuit" );

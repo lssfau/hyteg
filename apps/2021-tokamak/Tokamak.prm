@@ -6,7 +6,7 @@ Parameters
 
     elementType p1;
 
-    minLevel 2;
+    minLevel 0;
     maxLevel 4;
 
     // ##########
@@ -27,12 +27,12 @@ Parameters
 
     coeff_R0                         6.2;
     coeff_R1                         2.0;
-    coeff_R2                         4.0;
+    coeff_R2                         3.70000001;
     coeff_delta                      0.32404302839;
     coeff_r_jump                     0.5;
     coeff_d_jump                     0.1;
-    coeff_k_min                      1e0;
-    coeff_k_max                      1e4;
+    coeff_k_min                      1e-6;
+    coeff_k_max                      1e0;
 
     // ------------------
     // ITER configuration
@@ -61,6 +61,7 @@ Parameters
     preSmooth                 3;
     postSmooth                3;
     relativeResidualReduction 1e-06;
+    maxCoarseGridSolverIterations 1000000000;
 
     // ################
     // # app settings #
