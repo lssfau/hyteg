@@ -30,6 +30,8 @@
 #include "hyteg/polynomial/PolynomialEvaluator.hpp"
 #include "hyteg/polynomial/LSQPInterpolator.hpp"
 
+#ifdef HYTEG_BUILD_WITH_EIGEN
+
 namespace hyteg {
 
 template < class P1Form >
@@ -418,3 +420,5 @@ typedef P1SurrogateOperator< forms::p1_div_k_grad_blending_q3 > P1SurrogateDivkG
 typedef P1SurrogateOperator< forms::p1_div_k_grad_affine_q3 > P1SurrogateAffineDivkGradOperator;
 
 } // namespace hyteg
+
+#endif
