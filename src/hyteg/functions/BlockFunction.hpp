@@ -38,6 +38,9 @@ template < typename value_t >
 class BlockFunction
 {
  public:
+
+   typedef value_t ValueType;
+
    BlockFunction( const std::string name )
    : functionName_( name )
    {}
