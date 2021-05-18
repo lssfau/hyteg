@@ -25,17 +25,13 @@
 #include "core/timing/all.h"
 
 #include "hyteg/communication/Syncing.hpp"
+#include "hyteg/composites/P2P1TaylorHoodBlockFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
-// #include "hyteg/p1functionspace/P1VectorFunction.hpp"
-// #include "hyteg/p1functionspace/P1VectorFunction_AltKind.hpp"
-// #include "hyteg/p2functionspace/P2Function.hpp"
-// #include "hyteg/p2functionspace/P2VectorFunction.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-// #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
 // Perform some basic test to check that BlockFunctions can be instantiated,
 // called, executed and exported
@@ -62,22 +58,15 @@ class P1P1TaylorHoodStokesBlockFunction : public BlockFunction< value_t >
 void logCall( const std::string& msg )
 {
    size_t      len = msg.length();
-   size_t      fw = 30;
+   size_t      fw  = 30;
    std::string dots( len < fw ? fw - len : 3, '.' );
    WALBERLA_LOG_INFO_ON_ROOT( " -> " << msg << "() " << dots << " called" );
 }
 
-int main( int argc, char* argv[] )
+template < typename func_t >
+void runTest( const std::string& kind )
 {
-   walberla::debug::enterTestMode();
-
-   walberla::Environment walberlaEnv( argc, argv );
-   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
-   walberla::MPIManager::instance()->useWorldComm();
-
-   WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
-   WALBERLA_LOG_INFO_ON_ROOT( " Testing BlockFunction" );
-   WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
+   WALBERLA_LOG_INFO_ON_ROOT( "RUNNING WITH '" << kind << "'" );
 
    MeshInfo              mesh = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -92,13 +81,11 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "Successfully created '" << emptyFunc2.getFunctionName() << "'" );
    WALBERLA_LOG_INFO_ON_ROOT( "Successfully created '" << emptyFunc3.getFunctionName() << "'" );
 
-   // typedef P1Function< real_t > p1FuncType;
-
    uint_t minLevel = 1;
    uint_t maxLevel = 3;
 
-   P1P1TaylorHoodStokesBlockFunction< real_t > stokes1( "Stokes #1", storage, minLevel, maxLevel );
-   P1P1TaylorHoodStokesBlockFunction< real_t > stokes2( "Stokes #2", storage, minLevel, maxLevel );
+   func_t stokes1( "Stokes #1", storage, minLevel, maxLevel );
+   func_t stokes2( "Stokes #2", storage, minLevel, maxLevel );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Successfully created '" << stokes1.getFunctionName() << "'" );
    WALBERLA_LOG_INFO_ON_ROOT( " -> dimension = '" << stokes1.getDimension() << "'" );
@@ -110,8 +97,8 @@ int main( int argc, char* argv[] )
    // -----------------------------------------
    //  Check whether we can call class methods
    // -----------------------------------------
-   stokes1.enableTiming( timingTree );
-   logCall( "enableTiming" );
+   // stokes1.enableTiming( timingTree );
+   // logCall( "enableTiming" );
 
    stokes1.interpolate( real_c( 5 ), maxLevel );
    logCall( "interpolate[constant]" );
@@ -140,6 +127,22 @@ int main( int argc, char* argv[] )
 
    stokes1.multElementwise( {stokes1, stokes2}, maxLevel );
    logCall( "multElementwise" );
+}
+
+int main( int argc, char* argv[] )
+{
+   walberla::debug::enterTestMode();
+
+   walberla::Environment walberlaEnv( argc, argv );
+   walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
+   walberla::MPIManager::instance()->useWorldComm();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
+   WALBERLA_LOG_INFO_ON_ROOT( " Testing BlockFunction" );
+   WALBERLA_LOG_INFO_ON_ROOT( "==========================" );
+
+   runTest< P1P1TaylorHoodStokesBlockFunction< real_t > >( "P1P1TaylorHoodStokesBlockFunction" );
+   runTest< P2P1TaylorHoodBlockFunction< real_t > >( "P2P1TaylorHoodBlockFunction" );
 
    return EXIT_SUCCESS;
 }
