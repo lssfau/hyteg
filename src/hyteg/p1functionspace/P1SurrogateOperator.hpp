@@ -414,7 +414,7 @@ class P1SurrogateOperator : public P1Operator<P1Form>
 
 typedef P1SurrogateOperator< forms::p1_diffusion_blending_q3 > P1SurrogateLaplaceOperator;
 typedef P1SurrogateOperator< forms::p1_mass_blending_q4 >    P1SurrogateMassOperator;
-typedef P1VariableOperator_new< forms::p1_div_k_grad_blending_q3 > P1SurrogateDivkGradOperator;
-typedef P1VariableOperator_new< forms::p1_div_k_grad_affine_q3 > P1SurrogateAffineDivkGradOperator;
+typedef P1SurrogateOperator< forms::p1_div_k_grad_blending_q3 > P1SurrogateDivkGradOperator;
+typedef P1SurrogateOperator< forms::p1_div_k_grad_affine_q3 > P1SurrogateAffineDivkGradOperator;
 
 } // namespace hyteg
