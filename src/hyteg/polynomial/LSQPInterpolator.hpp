@@ -63,7 +63,8 @@ constexpr uint_t GetNumInterpolationPoints3D(uint_t level)
 
       // todo other node types
       default:
-         WALBERLA_ABORT("3D Polynomial Interpolation only implemented for P1 elements");
+         return 0;
+         // WALBERLA_ABORT("3D Polynomial Interpolation only implemented for P1 elements");
    }
 }
 
