@@ -32,7 +32,7 @@ using walberla::uint_t;
 
 // forward declaration of child for use in mother class
 template < typename func_t >
-struct FunctionWrapper;
+class FunctionWrapper;
 
 template < typename value_t >
 class GenericFunction

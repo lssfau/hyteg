@@ -720,10 +720,16 @@ endif()
 waLBerla_compile_test(FILES boundaryUID/BoundaryUIDTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME BoundaryUIDTest)
 
-## BlockFunctions ##
+## BlockFunctions + BlockOperators ##
 waLBerla_compile_test(FILES BlockFunctions/FunctionWrapperTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionWrapperTest)
 waLBerla_execute_test(NAME FunctionWrapperTestMPI COMMAND $<TARGET_FILE:FunctionWrapperTest> PROCESSES 2 )
 
 waLBerla_compile_test(FILES BlockFunctions/BlockFunctionBasicTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME BlockFunctionBasicTest)
+
+waLBerla_compile_test(FILES operators/OperatorWrapperBasicTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME OperatorWrapperBasicTest)
+
+waLBerla_compile_test(FILES operators/BlockOperatorBasicTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME BlockOperatorBasicTest)
