@@ -1139,6 +1139,8 @@ template < typename FunctionType >
 class MMOCTransport
 {
  public:
+   typedef typename FunctionTrait< FunctionType >::AssocVectorFunctionType vecfun_t;
+
    MMOCTransport( const std::shared_ptr< PrimitiveStorage >& storage,
                   const uint_t                               minLevel,
                   const uint_t                               maxLevel,
@@ -1161,6 +1163,68 @@ class MMOCTransport
       particleLocationRadius_ = 0.1 * MeshQuality::getMinimalEdgeLength( storage, maxLevel );
    }
 
+   void step( const FunctionType&                                                    c,
+              const vecfun_t& u,
+              const vecfun_t& uLastTimeStep,
+              const uint_t&                                                          level,
+              const DoFType&                                                         flag,
+              const real_t&                                                          dt,
+              const uint_t&                                                          innerSteps,
+              const bool&                                                            resetParticles                  = true,
+              const bool&                                                            globalMaxLimiter                = true,
+              const bool&                                                            setParticlesOutsideDomainToZero = false )
+   {
+      uint_t aux = u.getDimension() == 3 ? 2 : 0;
+      step( c,
+            u[0],
+            u[1],
+            u[aux],
+            uLastTimeStep[0],
+            uLastTimeStep[1],
+            uLastTimeStep[aux],
+            level,
+            flag,
+            dt,
+            innerSteps,
+            resetParticles,
+            globalMaxLimiter,
+            setParticlesOutsideDomainToZero );
+   }
+
+   template < typename MassOperator >
+   void step( const FunctionType&       c,
+              const vecfun_t& u,
+              const vecfun_t& uLastTimeStep,
+              const uint_t&             level,
+              const DoFType&            flag,
+              const real_t&             dt,
+              const uint_t&             innerSteps,
+              const MassOperator&       massOperator,
+              const real_t&             allowedRelativeMassDifference,
+              const real_t&             dtPertubationAdjustedAdvection,
+              const bool&               globalMaxLimiter                = true,
+              const bool&               setParticlesOutsideDomainToZero = false )
+   {
+      uint_t aux = u.getDimension() == 3 ? 2 : 0;
+      step( c,
+            u[0],
+            u[1],
+            u[aux],
+            uLastTimeStep[0],
+            uLastTimeStep[1],
+            uLastTimeStep[aux],
+            level,
+            flag,
+            dt,
+            innerSteps,
+            massOperator,
+            allowedRelativeMassDifference,
+            dtPertubationAdjustedAdvection,
+            globalMaxLimiter,
+            setParticlesOutsideDomainToZero );
+   }
+
+ private:
    void step( const FunctionType& c,
               const FunctionType& ux,
               const FunctionType& uy,
@@ -1338,7 +1402,6 @@ class MMOCTransport
       c.assign( {theta, 1 - theta}, {c, cAdjusted_}, level, flag );
    }
 
- private:
    const std::shared_ptr< PrimitiveStorage >             storage_;
    FunctionType                                          cOld_;
    FunctionType                                          cTmp_;

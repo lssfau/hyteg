@@ -189,7 +189,7 @@ int main( int argc, char* argv[] )
 
       gmgLoop.solve( L, u, f, maxLevel );
 
-      transport.step( c, u.uvw[0], u.uvw[1], u.uvw[2], uLast.uvw[0], uLast.uvw[1], uLast.uvw[2], maxLevel, Inner, dt, 1, true );
+      transport.step( c, u.uvw, uLast.uvw, maxLevel, Inner, dt, 1, true );
 
       max_temp = c.getMaxMagnitude( maxLevel, All );
       M.apply( c, cMass, maxLevel, All );

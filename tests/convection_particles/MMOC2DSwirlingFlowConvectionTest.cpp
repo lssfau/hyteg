@@ -218,27 +218,15 @@ int main( int argc, char* argv[] )
    FunctionType cError( "cError", storage, minLevel, maxLevel );
    FunctionType cMass( "cMass", storage, minLevel, maxLevel );
    FunctionType tmp0( "tmp0", storage, minLevel, maxLevel );
-   FunctionType tmp1( "tmp1", storage, minLevel, maxLevel );
-   FunctionType u( "u", storage, minLevel, maxLevel );
-   FunctionType v( "v", storage, minLevel, maxLevel );
-   FunctionType w( "w", storage, minLevel, maxLevel );
-   FunctionType uLastTimeStep( "uLast", storage, minLevel, maxLevel );
-   FunctionType vLastTimeStep( "vLast", storage, minLevel, maxLevel );
-   FunctionType wLastTimeStep( "wLast", storage, minLevel, maxLevel );
+   FunctionType                                                    tmp1( "tmp1", storage, minLevel, maxLevel );
+   typename FunctionTrait< FunctionType >::AssocVectorFunctionType uv( "uv", storage, minLevel, maxLevel );
+   typename FunctionTrait< FunctionType >::AssocVectorFunctionType uvLastTimeStep( "uvLast", storage, minLevel, maxLevel );
 
    MassOperator                  M( storage, minLevel, maxLevel );
    MMOCTransport< FunctionType > transport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
    c.interpolate( initialBodies, maxLevel );
    cInitial.interpolate( initialBodies, maxLevel );
-
-//   hyteg::VTKOutput vtkOutput( "../../output", "MMOC2DSwirlingFlowConvectionTest", storage );
-//
-//   vtkOutput.add( u );
-//   vtkOutput.add( v );
-//   vtkOutput.add( c );
-//   vtkOutput.add( cInitial );
-//   vtkOutput.add( cError );
 
    WALBERLA_LOG_INFO_ON_ROOT( " timestep | max temperature | total mass | mass lost since last outer step " )
    WALBERLA_LOG_INFO_ON_ROOT( "----------+-----------------+------------+---------------------------------" )
@@ -251,14 +239,12 @@ int main( int argc, char* argv[] )
 
    for ( uint_t i = 1; i <= steps; i++ )
    {
-      uLastTimeStep.interpolate( vel_x, maxLevel );
-      vLastTimeStep.interpolate( vel_y, maxLevel );
+      uvLastTimeStep.interpolate( { vel_x, vel_y }, maxLevel );
       vel_x.step();
       vel_y.step();
-      u.interpolate( vel_x, maxLevel );
-      v.interpolate( vel_y, maxLevel );
+      uv.interpolate( { vel_x, vel_y }, maxLevel );
 
-      transport.step( c, u, v, w, uLastTimeStep, vLastTimeStep, wLastTimeStep, maxLevel, Inner, dt, 1, i == 1 );
+      transport.step( c, uv, uvLastTimeStep, maxLevel, Inner, dt, 1, i == 1 );
 
       cError.assign( {1.0, -1.0}, {c, cInitial}, maxLevel, All );
       auto max_temp = c.getMaxMagnitude( maxLevel, All );

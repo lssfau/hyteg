@@ -22,6 +22,7 @@
 #include "core/Abort.h"
 #include "core/timing/TimingTree.h"
 
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/solvers/Solver.hpp"
 #include "hyteg/solvers/preconditioners/IdentityPreconditioner.hpp"
 

@@ -64,7 +64,9 @@ void exportLinearSystem( OperatorType                        op,
                          std::shared_ptr< PrimitiveStorage > storage,
                          uint_t                              level,
                          bool                                elimDirichletBC,
-                         bool                                beVerbose = false )
+                         bool                                beVerbose = false,
+                         bool                                binary    = false,
+                         PetscViewerFormat                   format    = PETSC_VIEWER_ASCII_MATRIXMARKET )
 {
    // Get dimension of function space
    uint_t localDoFs  = hyteg::numberOfLocalDoFs< FunctionTag >( *storage, level );
@@ -112,13 +114,13 @@ void exportLinearSystem( OperatorType                        op,
    {
       WALBERLA_LOG_INFO_ON_ROOT( " * Exporting Operator to file '" << fileMatrix << "'" );
    }
-   petscMatrix.print( fileMatrix.c_str() );
+   petscMatrix.print( fileMatrix.c_str(), binary, format );
 
    if ( beVerbose )
    {
       WALBERLA_LOG_INFO_ON_ROOT( " * Exporting RHS to file '" << fileRHS << "'" );
    }
-   petscRHS.print( fileRHS.c_str() );
+   petscRHS.print( fileRHS.c_str(), binary, format );
 }
 
 } // namespace hyteg

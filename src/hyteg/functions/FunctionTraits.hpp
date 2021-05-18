@@ -104,6 +104,7 @@ struct FunctionTrait< vertexdof::VertexDoFFunction< VType > >
 {
   typedef VType ValueType;
   typedef VertexDoFFunctionTag Tag;
+  typedef P1VectorFunction< VType > AssocVectorFunctionType;
 
   static std::string getTypeName() { return "P1Function / VertexDoFFunction"; }
 };
@@ -134,6 +135,7 @@ struct FunctionTrait< P2Function< VType > >
 {
   typedef VType ValueType;
   typedef P2FunctionTag Tag;
+  typedef P2VectorFunction< VType > AssocVectorFunctionType;
 
   static std::string getTypeName() { return "P2Function"; }
 };

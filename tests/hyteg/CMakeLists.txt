@@ -84,6 +84,10 @@ waLBerla_compile_test(FILES convergence/P2CGConvergenceTest.cpp DEPENDS hyteg co
 waLBerla_execute_test(NAME P2CGConvergenceTest)
 waLBerla_execute_test(NAME P2CGConvergenceTestMPI COMMAND $<TARGET_FILE:P2CGConvergenceTest> PROCESSES 2 )
 
+waLBerla_compile_test(FILES convergence/P1ElementwiseCGConvergenceTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME P1ElementwiseCGConvergenceTest)
+waLBerla_execute_test(NAME P1ElementwiseCGConvergenceTestMPI COMMAND $<TARGET_FILE:P1ElementwiseCGConvergenceTest> PROCESSES 2 )
+
 waLBerla_compile_test(FILES convergence/P2ElementwiseCGConvergenceTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P2ElementwiseCGConvergenceTest)
 waLBerla_execute_test(NAME P2ElementwiseCGConvergenceTestMPI COMMAND $<TARGET_FILE:P2ElementwiseCGConvergenceTest> PROCESSES 2 )
@@ -226,6 +230,13 @@ endif()
 
 waLBerla_compile_test(FILES math/IntersectionTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME IntersectionTest)
+
+## meshes ##
+waLBerla_compile_test(FILES meshes/RefineCoarseMeshCGTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME RefineCoarseMeshCGTest)
+
+waLBerla_compile_test(FILES meshes/RefineCoarseMeshComparisonTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME RefineCoarseMeshComparisonTest)
 
 ## VertexDoFSpace ##
 
@@ -621,6 +632,12 @@ if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   endif()
 endif()
 
+waLBerla_compile_test(FILES blending/TokamakMapTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME TokamakMapTest)
+
+waLBerla_compile_test(FILES blending/PolygonDistanceTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME PolygonDistanceTest )
+
 ## Elementwise Operators ##
 if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES operators/ElementwiseOperatorPetscTest.cpp DEPENDS hyteg core)
@@ -691,3 +708,13 @@ waLBerla_execute_test(NAME TrilinosSparseMatrixTest)
 waLBerla_compile_test(FILES trilinos/TrilinosDirectSolverTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME TrilinosDirectSolverTest)
 endif()
+
+waLBerla_compile_test(FILES meshes/TokamakLaplaceTest.cpp DEPENDS hyteg core)
+if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+  waLBerla_execute_test(NAME TokamakLaplaceTest)
+  waLBerla_execute_test(NAME TokamakLaplaceTestLongrun COMMAND $<TARGET_FILE:TokamakLaplaceTest> --longrun LABELS longrun)
+endif()
+
+## BoundaryUID stuff ##
+waLBerla_compile_test(FILES boundaryUID/BoundaryUIDTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME BoundaryUIDTest)

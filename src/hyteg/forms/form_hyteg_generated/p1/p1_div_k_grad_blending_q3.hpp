@@ -51,15 +51,15 @@ class p1_div_k_grad_blending_q3 : public P1FormHyTeG
 
    p1_div_k_grad_blending_q3() { WALBERLA_ABORT("Not implemented."); }
 
-   p1_div_k_grad_blending_q3( std::function< real_t ( const Point3D & ) > _callback2D, std::function< real_t ( const Point3D & ) > _callback3D )
-   : callback2D(_callback2D)
-   , callback3D(_callback3D)
+   p1_div_k_grad_blending_q3( std::function< real_t ( const Point3D & ) > _callback3D, std::function< real_t ( const Point3D & ) > _callback2D )
+   : callback3D(_callback3D)
+   , callback2D(_callback2D)
    {}
 
  private:
 
-   std::function< real_t ( const Point3D & ) > callback2D;
    std::function< real_t ( const Point3D & ) > callback3D;
+   std::function< real_t ( const Point3D & ) > callback2D;
 
 
  public:

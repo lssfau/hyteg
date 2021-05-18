@@ -20,20 +20,21 @@
 
 #pragma once
 
-#include "core/debug/Debug.h"
-#include "core/Abort.h"
-#include "hyteg/types/pointnd.hpp"
-#include "hyteg/types/flags.hpp"
-
 #include <array>
 #include <map>
 #include <set>
 #include <vector>
 
+#include "core/Abort.h"
+#include "core/debug/Debug.h"
+
+#include "hyteg/types/flags.hpp"
+#include "hyteg/types/pointnd.hpp"
+
 namespace hyteg {
 
-using walberla::uint_t;
 using walberla::real_t;
+using walberla::uint_t;
 
 /// \brief Contains information about a mesh
 /// \author Daniel Drzisga (drzisga@ma.tum.de) \n
@@ -264,294 +265,337 @@ using walberla::real_t;
 ///       1 and those inside the domain, and of course all face primitives, to 0
 class MeshInfo
 {
-public:
+ public:
+   typedef uint_t IDType;
 
-  typedef uint_t IDType;
+   typedef enum
+   {
+      CRISS,
+      CROSS,
+      CRISSCROSS,
+      DIAMOND
+   } meshFlavour;
 
-  typedef enum
-  {
-     CRISS,
-     CROSS,
-     CRISSCROSS,
-     DIAMOND
-  } meshFlavour;
+   // Precise type of meshing approach
+   typedef enum
+   {
+      SHELLMESH_ON_THE_FLY, //!< meshing is done on-the-fly
+      SHELLMESH_CLASSIC     //!< meshing by midpoint refinement
+   } shellMeshType;
 
-  // Precise type of meshing approach
-  typedef enum
-  {
-     SHELLMESH_ON_THE_FLY, //!< meshing is done on-the-fly
-     SHELLMESH_CLASSIC     //!< meshing by midpoint refinement
-  } shellMeshType;
+   class Vertex
+   {
+    public:
+      Vertex()
+      : id_( 0 )
+      , coordinates_( Point3D() )
+      , boundaryFlag_( 0 ){};
 
-  class Vertex
-  {
-   public:
-     Vertex()
-     : id_( 0 )
-     , coordinates_( Point3D() )
-     , boundaryFlag_( 0 ){};
+      Vertex( const IDType& id, const Point3D& coordinates, const uint_t& boundaryFlag )
+      : id_( id )
+      , coordinates_( coordinates )
+      , boundaryFlag_( boundaryFlag )
+      {}
 
-     Vertex( const IDType& id, const Point3D& coordinates, const uint_t& boundaryFlag )
-     : id_( id )
-     , coordinates_( coordinates )
-     , boundaryFlag_( boundaryFlag )
-     {}
+      IDType  getID() const { return id_; }
+      Point3D getCoordinates() const { return coordinates_; }
+      uint_t  getBoundaryFlag() const { return boundaryFlag_; }
 
-     IDType  getID() const { return id_; }
-     Point3D getCoordinates() const { return coordinates_; }
-     uint_t  getBoundaryFlag() const { return boundaryFlag_; }
+      void setCoordinates( const Point3D& coords ) { coordinates_ = coords; }
+      void setBoundaryFlag( uint_t boundaryFlag ) { boundaryFlag_ = boundaryFlag; }
 
-     void setCoordinates( const Point3D& coords ) { coordinates_ = coords; }
-     void setBoundaryFlag( uint_t boundaryFlag ) { boundaryFlag_ = boundaryFlag; }
+    private:
+      IDType  id_;
+      Point3D coordinates_;
+      uint_t  boundaryFlag_;
+   };
 
-   private:
-     IDType  id_;
-     Point3D coordinates_;
-     uint_t  boundaryFlag_;
-  };
+   class Edge
+   {
+    public:
+      Edge()
+      : boundaryFlag_( 0 ){};
 
-  class Edge
-  {
-   public:
-     Edge()
-     : boundaryFlag_( 0 ){};
+      Edge( const std::array< IDType, 2 >& vertices, const uint_t& boundaryFlag )
+      : vertices_( vertices )
+      , boundaryFlag_( boundaryFlag )
+      {}
 
-     Edge( const std::array< IDType, 2 >& vertices, const uint_t& boundaryFlag )
-     : vertices_( vertices )
-     , boundaryFlag_( boundaryFlag )
-     {}
+      std::array< IDType, 2 > getVertices() const { return vertices_; }
+      uint_t                  getBoundaryFlag() const { return boundaryFlag_; }
 
-     std::array< IDType, 2 > getVertices() const { return vertices_; }
-     uint_t                  getBoundaryFlag() const { return boundaryFlag_; }
+      void setBoundaryFlag( uint_t boundaryFlag ) { boundaryFlag_ = boundaryFlag; }
 
-     void setBoundaryFlag( uint_t boundaryFlag ) { boundaryFlag_ = boundaryFlag; }
+    private:
+      std::array< IDType, 2 > vertices_;
+      uint_t                  boundaryFlag_;
+   };
 
-   private:
-     std::array< IDType, 2 > vertices_;
-     uint_t                  boundaryFlag_;
-  };
+   class Face
+   {
+    public:
+      Face()
+      : boundaryFlag_( 0 ){};
 
-  class Face
-  {
-   public:
-     Face()
-     : boundaryFlag_( 0 ){};
+      Face( const std::vector< IDType >& vertices, const uint_t& boundaryFlag )
+      : vertices_( vertices )
+      , boundaryFlag_( boundaryFlag )
+      {}
 
-     Face( const std::vector< IDType >& vertices, const uint_t& boundaryFlag )
-     : vertices_( vertices )
-     , boundaryFlag_( boundaryFlag )
-     {}
+      std::vector< IDType > getVertices() const { return vertices_; }
+      uint_t                getBoundaryFlag() const { return boundaryFlag_; }
 
-     std::vector< IDType > getVertices() const { return vertices_; }
-     uint_t                getBoundaryFlag() const { return boundaryFlag_; }
+      void setBoundaryFlag( uint_t boundaryFlag ) { boundaryFlag_ = boundaryFlag; }
 
-     void setBoundaryFlag( uint_t boundaryFlag ) { boundaryFlag_ = boundaryFlag; }
+    private:
+      std::vector< IDType > vertices_;
+      uint_t                boundaryFlag_;
+   };
 
-   private:
-     std::vector< IDType > vertices_;
-     uint_t                boundaryFlag_;
-  };
+   class Cell
+   {
+    public:
+      Cell()
+      : boundaryFlag_( 0 ){};
 
-  class Cell
-  {
-   public:
-     Cell()
-     : boundaryFlag_( 0 ){};
+      Cell( const std::vector< IDType >& vertices, const uint_t& boundaryFlag )
+      : vertices_( vertices )
+      , boundaryFlag_( boundaryFlag )
+      {}
 
-     Cell( const std::vector< IDType >& vertices, const uint_t& boundaryFlag )
-     : vertices_( vertices )
-     , boundaryFlag_( boundaryFlag )
-     {}
+      std::vector< IDType > getVertices() const { return vertices_; }
+      uint_t                getBoundaryFlag() const { return boundaryFlag_; }
 
-     std::vector< IDType > getVertices() const { return vertices_; }
-     uint_t                getBoundaryFlag() const { return boundaryFlag_; }
+      void setBoundaryFlag( uint_t boundaryFlag ) { boundaryFlag_ = boundaryFlag; }
 
-     void setBoundaryFlag( uint_t boundaryFlag ) { boundaryFlag_ = boundaryFlag; }
+    private:
+      std::vector< IDType > vertices_;
+      uint_t                boundaryFlag_;
+   };
 
-   private:
-     std::vector< IDType > vertices_;
-     uint_t                boundaryFlag_;
-  };
+   /// \brief Applies a custom function to all vertices of the mesh, transforming their coordinates.
+   void applyCoordinateMap( const std::function< Point3D( const Point3D& ) >& map )
+   {
+      for ( auto& v : vertices_ )
+      {
+         auto newCoords = map( v.second.getCoordinates() );
+         v.second.setCoordinates( newCoords );
+      }
+   }
 
-  /// \brief Applies a custom function to all vertices of the mesh, transforming their coordinates.
-  void applyCoordinateMap( const std::function< Point3D( const Point3D& ) >& map )
-  {
-     for ( auto& v : vertices_ )
-     {
-        auto newCoords = map( v.second.getCoordinates() );
-        v.second.setCoordinates( newCoords );
-     }
-  }
+   void setAllMeshBoundaryFlags( const uint_t& meshBoundaryFlag );
 
-  void setAllMeshBoundaryFlags( const uint_t& meshBoundaryFlag );
+   /// Every primitive for which onBoundary() returns true for all / any (if allVertices == true / false) of the primitve's vertices is assigned the passed mesh boundary flag.
+   void setMeshBoundaryFlagsByVertexLocation( const uint_t&                                    meshBoundaryFlag,
+                                              const std::function< bool( const Point3D& x ) >& onBoundary,
+                                              const bool&                                      allVertices = true );
 
-  /// Every primitive for which onBoundary() returns true for all / any (if allVertices == true / false) of the primitve's vertices is assigned the passed mesh boundary flag.
-  void setMeshBoundaryFlagsByVertexLocation( const uint_t&                                    meshBoundaryFlag,
-                                             const std::function< bool( const Point3D& x ) >& onBoundary,
-                                             const bool&                                      allVertices = true );
+   typedef std::map< IDType, Vertex >                VertexContainer;
+   typedef std::map< std::array< IDType, 2 >, Edge > EdgeContainer;
+   typedef std::map< std::vector< IDType >, Face >   FaceContainer;
+   typedef std::map< std::vector< IDType >, Cell >   CellContainer;
 
-  typedef std::map< IDType,                  Vertex > VertexContainer;
-  typedef std::map< std::array< IDType, 2 >, Edge   > EdgeContainer;
-  typedef std::map< std::vector< IDType >,   Face   > FaceContainer;
-  typedef std::map< std::vector< IDType >,   Cell   > CellContainer;
+   void clear()
+   {
+      vertices_.clear();
+      edges_.clear();
+      faces_.clear();
+      cells_.clear();
+   }
 
-  void clear()
-  {
-     vertices_.clear();
-     edges_.clear();
-     faces_.clear();
-     cells_.clear();
-  }
+   /// Construct empty MeshInfo (for testing)
+   static MeshInfo emptyMeshInfo() { return MeshInfo(); }
 
-  /// Construct empty MeshInfo (for testing)
-  static MeshInfo emptyMeshInfo() { return MeshInfo(); }
+   /// Construct a MeshInfo object from a file in Gmsh format
+   static MeshInfo fromGmshFile( const std::string& meshFileName );
 
-  /// Construct a MeshInfo object from a file in Gmsh format
-  static MeshInfo fromGmshFile( const std::string & meshFileName );
+   /// Construct a MeshInfo object for a rectangular domain
 
-  /// Construct a MeshInfo object for a rectangular domain
+   /// \param lowerLeft    coordinates of lower left corner of rectangle
+   /// \param upperRight   coordinates of upper right corner of rectangle
+   /// \param flavour      meshing strategy (CRISS, CROSS, CRISSCROSS or DIAMOND)
+   /// \param nx           (nx+1) gives the number of vertices along the top and bottom edge of the rectangle
+   /// \param ny           (ny+1) gives the number of vertices along the left and right edge of the rectangle
+   static MeshInfo
+       meshRectangle( const Point2D lowerLeft, const Point2D upperRight, const meshFlavour flavour, uint_t nx, uint_t ny );
 
-  /// \param lowerLeft    coordinates of lower left corner of rectangle
-  /// \param upperRight   coordinates of upper right corner of rectangle
-  /// \param flavour      meshing strategy (CRISS, CROSS, CRISSCROSS or DIAMOND)
-  /// \param nx           (nx+1) gives the number of vertices along the top and bottom edge of the rectangle
-  /// \param ny           (ny+1) gives the number of vertices along the left and right edge of the rectangle
-  static MeshInfo meshRectangle( const Point2D lowerLeft, const Point2D upperRight, const meshFlavour flavour,
-                                 uint_t nx, uint_t ny );
+   /// Construct a MeshInfo object for a partial annulus
 
-  /// Construct a MeshInfo object for a partial annulus
+   /// \param rhoMin       radius of inner circle of partial annulus
+   /// \param rhoMax       radius of outer circle of partial annulus
+   /// \param phiLeft      smaller angle of radial boundary in polar coordinates
+   /// \param phiRight     larger angle of radial boundary in polar coordinates
+   /// \param flavour      meshing strategy (CRISS, CROSS, CRISSCROSS or DIAMOND)
+   /// \param nTan         number of tangential subdivisions (along inner and outer circle)
+   /// \param nRad         number of radial subdivisions (along left and right radial boundary)
+   static MeshInfo meshAnnulus( const real_t      rhoMin,
+                                const real_t      rhoMax,
+                                const real_t      phiLeft,
+                                const real_t      phiRight,
+                                const meshFlavour flavour,
+                                uint_t            nTan,
+                                uint_t            nRad );
 
-  /// \param rhoMin       radius of inner circle of partial annulus
-  /// \param rhoMax       radius of outer circle of partial annulus
-  /// \param phiLeft      smaller angle of radial boundary in polar coordinates
-  /// \param phiRight     larger angle of radial boundary in polar coordinates
-  /// \param flavour      meshing strategy (CRISS, CROSS, CRISSCROSS or DIAMOND)
-  /// \param nTan         number of tangential subdivisions (along inner and outer circle)
-  /// \param nRad         number of radial subdivisions (along left and right radial boundary)
-  static MeshInfo meshAnnulus( const real_t rhoMin, const real_t rhoMax, const real_t phiLeft,
-                               const real_t phiRight, const meshFlavour flavour, uint_t nTan, uint_t nRad );
+   /// Construct a MeshInfo object for a full annulus
+   static MeshInfo meshAnnulus( const real_t rmin, const real_t rmax, uint_t nTan, uint_t nRad );
 
-  /// Construct a MeshInfo object for a full annulus
-  static MeshInfo meshAnnulus( const real_t rmin, const real_t rmax, uint_t nTan, uint_t nRad );
+   /// Construct a MeshInfo object for a full annulus
+   static MeshInfo meshAnnulus( const real_t rmin, const real_t rmax, const meshFlavour flavour, uint_t nTan, uint_t nRad );
 
-  /// Construct a MeshInfo object for a full annulus
-  static MeshInfo meshAnnulus( const real_t rmin, const real_t rmax, const meshFlavour flavour, uint_t nTan, uint_t nRad );
+   /// Constuct a MeshInfo describing a unit cube discretized by 2 * 4^{level} macro-faces
+   static MeshInfo meshUnitSquare( uint_t level );
 
-  /// Constuct a MeshInfo describing a unit cube discretized by 2 * 4^{level} macro-faces
-  static MeshInfo meshUnitSquare( uint_t level );
+   /// Constructs a MeshInfo object for a spherical shell (equidistant radial layers)
+   ///
+   /// \param ntan    number of nodes along spherical diamond edge
+   /// \param nrad    number of radial layers
+   /// \param rmin    radius of innermost shell (core-mantle-boundary)
+   /// \param rmax    radius of outermost shell
+   static MeshInfo meshSphericalShell( uint_t        ntan,
+                                       uint_t        nrad,
+                                       double        rmin,
+                                       double        rmax,
+                                       shellMeshType meshType = shellMeshType::SHELLMESH_CLASSIC );
 
-  /// Constructs a MeshInfo object for a spherical shell (equidistant radial layers)
-  ///
-  /// \param ntan    number of nodes along spherical diamond edge
-  /// \param nrad    number of radial layers
-  /// \param rmin    radius of innermost shell (core-mantle-boundary)
-  /// \param rmax    radius of outermost shell
-  static MeshInfo meshSphericalShell( uint_t ntan, uint_t nrad, double rmin, double rmax, shellMeshType meshType = shellMeshType::SHELLMESH_CLASSIC );
+   /// Constructs a MeshInfo object for a spherical shell (externally computed radial layers)
+   ///
+   /// \param ntan    number of nodes along spherical diamond edge
+   /// \param layers  vector that gives the radii of all layers, sorted from the
+   ///                CMB outwards
+   static MeshInfo meshSphericalShell( uint_t                       ntan,
+                                       const std::vector< double >& layers,
+                                       shellMeshType                meshType = shellMeshType::SHELLMESH_CLASSIC );
 
-  /// Constructs a MeshInfo object for a spherical shell (externally computed radial layers)
-  ///
-  /// \param ntan    number of nodes along spherical diamond edge
-  /// \param layers  vector that gives the radii of all layers, sorted from the
-  ///                CMB outwards
-  static MeshInfo meshSphericalShell( uint_t ntan, const std::vector< double > & layers, shellMeshType meshType = shellMeshType::SHELLMESH_CLASSIC );
+   /// Constructs a MeshInfo object for a chain of triangles.
+   ///
+   /// Starting from the left side, numFaces faces are connected to each other in an alternating fashion
+   /// to build a channel-like domain.
+   /// There are no inner vertices in this mesh - each face is connected to its two neighbors only.
+   /// If numFaces is not even, the channel is not rectangular but a trapezoid.
+   ///
+   /// \param numFaces number of faces in the mesh
+   /// \param width width of the domain
+   /// \param height height of the domain
+   static MeshInfo meshFaceChain( uint_t numFaces, real_t width, real_t height );
 
-  /// Constructs a MeshInfo object for a chain of triangles.
-  ///
-  /// Starting from the left side, numFaces faces are connected to each other in an alternating fashion
-  /// to build a channel-like domain.
-  /// There are no inner vertices in this mesh - each face is connected to its two neighbors only.
-  /// If numFaces is not even, the channel is not rectangular but a trapezoid.
-  ///
-  /// \param numFaces number of faces in the mesh
-  /// \param width width of the domain
-  /// \param height height of the domain
-  static MeshInfo meshFaceChain( uint_t numFaces, real_t width, real_t height );
+   /// Constructs a MeshInfo object for a chain of triangles with regular size.
+   static MeshInfo meshFaceChain( uint_t numFaces );
 
-  /// Constructs a MeshInfo object for a chain of triangles with regular size.
-  static MeshInfo meshFaceChain( uint_t numFaces );
+   /// Construct a MeshInfo object for a rectangular cuboid
+   ///
+   /// \param lowerLeftFront   coordinates of lower left front corner of cuboid
+   /// \param upperRightBack   coordinates of upper right back corner of cuboid
+   /// \param nx               (nx+1) gives the number of vertices along cuboid edges in x-direction
+   /// \param ny               (ny+1) gives the number of vertices along cuboid edges in y-direction
+   /// \param nz               (nz+1) gives the number of vertices along cuboid edges in z-direction
+   static MeshInfo meshCuboid( const Point3D lowerLeftFront, const Point3D upperRightBack, uint_t nx, uint_t ny, uint_t nz );
 
-  /// Construct a MeshInfo object for a rectangular cuboid
-  ///
-  /// \param lowerLeftFront   coordinates of lower left front corner of cuboid
-  /// \param upperRightBack   coordinates of upper right back corner of cuboid
-  /// \param nx               (nx+1) gives the number of vertices along cuboid edges in x-direction
-  /// \param ny               (ny+1) gives the number of vertices along cuboid edges in y-direction
-  /// \param nz               (nz+1) gives the number of vertices along cuboid edges in z-direction
-  static MeshInfo meshCuboid( const Point3D lowerLeftFront, const Point3D upperRightBack,
-                              uint_t nx, uint_t ny, uint_t nz );
+   /// Construct a MeshInfo object for a symmetric, rectangular cuboid.
+   /// This version of the cuboid is made up of numCubesX * numCubesY * numCubesZ 24-element-cubes,
+   /// and has the following properties:
+   /// - point symmetric at the center,
+   /// - no edge at the corner points towards its interior.
+   ///
+   /// \param lowerLeftFront   coordinates of lower left front corner of cuboid
+   /// \param upperRightBack   coordinates of upper right back corner of cuboid
+   /// \param numCubesX        gives the number of 24-element cubes in x-direction
+   /// \param numCubesY        gives the number of 24-element cubes in y-direction
+   /// \param numCubesZ        gives the number of 24-element cubes in z-direction
+   static MeshInfo meshSymmetricCuboid( const Point3D lowerLeftFront,
+                                        const Point3D upperRightBack,
+                                        uint_t        numCubesX,
+                                        uint_t        numCubesY,
+                                        uint_t        numCubesZ );
 
-  /// Construct a MeshInfo object for a symmetric, rectangular cuboid.
-  /// This version of the cuboid is made up of numCubesX * numCubesY * numCubesZ 24-element-cubes,
-  /// and has the following properties:
-  /// - point symmetric at the center,
-  /// - no edge at the corner points towards its interior.
-  ///
-  /// \param lowerLeftFront   coordinates of lower left front corner of cuboid
-  /// \param upperRightBack   coordinates of upper right back corner of cuboid
-  /// \param numCubesX        gives the number of 24-element cubes in x-direction
-  /// \param numCubesY        gives the number of 24-element cubes in y-direction
-  /// \param numCubesZ        gives the number of 24-element cubes in z-direction
-  static MeshInfo meshSymmetricCuboid( const Point3D lowerLeftFront, const Point3D upperRightBack,
-                                       uint_t numCubesX, uint_t numCubesY, uint_t numCubesZ );
+   /// Constructs a cubed domain from a list of cube "coordinates".
+   ///
+   /// \param cubeCoordinates contains the x, y, and z coordinates of all cubes that shall be meshed
+   /// \param cubeType 0: "smallest" possible cubes with 6 tetrahedrons, 1: 24 tets per cube, has inner edges at all vertices
+   static MeshInfo meshCubedDomain( const std::set< std::array< int, 3 > >& cubeCoordinates, int cubeType = 0 );
 
-  /// Constructs a cubed domain from a list of cube "coordinates".
-  ///
-  /// \param cubeCoordinates contains the x, y, and z coordinates of all cubes that shall be meshed
-  /// \param cubeType 0: "smallest" possible cubes with 6 tetrahedrons, 1: 24 tets per cube, has inner edges at all vertices
-  static MeshInfo meshCubedDomain( const std::set< std::array< int, 3 > >& cubeCoordinates, int cubeType = 0 );
+   /// \brief Meshes a torus around the z-axis.
+   ///
+   /// The GeometryMap TokamakMap provides a blending function that maps this mesh onto a tokamak geometry.
+   /// The very same map can be parameterized so that is reduces to the special case of a torus.
+   ///
+   /// \param setupStorage the SetupPrimitiveStorage instance
+   /// \param numToroidalSlices number of prisms in toroidal direction (along the ring)
+   /// \param numPoloidalSlices number of vertices on the boundary of a slice through the tube
+   /// \param radiusOriginToCenterOfTube distance from origin to the center of the tube
+   /// \param tubeLayerRadii list of radii of layers of the sliced tube - the last element defines the actual radius of the tube
+   /// \param toroidalStartAngle angle (in radians) by which the domain shall be rotated about the z-axis
+   /// \param poloidalStartAngle angle (in radians) by which the domain shall be rotated about the ring through the center of the tube
+   ///
+   static MeshInfo meshTorus( uint_t                numToroidalSlices,
+                              uint_t                numPoloidalSlices,
+                              real_t                radiusOriginToCenterOfTube,
+                              std::vector< real_t > tubeLayerRadii,
+                              real_t                toroidalStartAngle = 0,
+                              real_t                poloidalStartAngle = 0 );
+
+   /// \brief Creates a finer coarse mesh from a given mesh
+   ///
+   /// Takes a given MeshInfo and refines it with the default refinment algorithm.
+   /// Afterwards a new MeshInfo based on that refinement is created.
+   /// This allows to refine the coarse mesh
+   ///
+   /// \param oldMesh Original MeshIfno
+   /// \param refinmentSteps number of refinements
+   static MeshInfo refinedCoarseMesh( const MeshInfo& oldMesh, uint_t refinementSteps );
 
    /// Returns vertices of the mesh
-  const VertexContainer & getVertices() const { return vertices_; };
+   const VertexContainer& getVertices() const { return vertices_; };
 
-  /// Returns edges of the mesh
-  const EdgeContainer & getEdges() const { return edges_; };
+   /// Returns edges of the mesh
+   const EdgeContainer& getEdges() const { return edges_; };
 
-  /// Returns faces of the mesh
-  const FaceContainer & getFaces() const { return faces_; }
+   /// Returns faces of the mesh
+   const FaceContainer& getFaces() const { return faces_; }
 
-  /// Returns cells of the mesh
-  const CellContainer & getCells() const { return cells_; }
+   /// Returns cells of the mesh
+   const CellContainer& getCells() const { return cells_; }
 
-private:
+ private:
+   MeshInfo(){};
 
-  MeshInfo() {};
+   /// Adds vertex to the mesh
+   void addVertex( const Vertex& vertex );
 
-  /// Adds edge in ascending index order and performs checks
-  void addEdge( const Edge & edge );
+   /// Adds edge in ascending index order and performs checks
+   void addEdge( const Edge& edge );
 
-  /// Adds face in ascending index order and performs checks
-  void addFace( const Face & face );
+   /// Adds face in ascending index order and performs checks
+   void addFace( const Face& face );
 
-  /// Adds cell and all edges and faces
-  void addCellAndAllEdgesAndFaces( const Cell & cell );
+   /// Adds cell and all edges and faces
+   void addCellAndAllEdgesAndFaces( const Cell& cell );
 
-  /// Construct a MeshInfo for a rectangular domain using diamond approach
-  static MeshInfo meshRectangleDiamond( const Point2D lowerLeft, const Point2D upperRight, uint_t nx, uint_t ny );
+   /// Construct a MeshInfo for a rectangular domain using diamond approach
+   static MeshInfo meshRectangleDiamond( const Point2D lowerLeft, const Point2D upperRight, uint_t nx, uint_t ny );
 
-  /// Derive information on edges from vertices and faces (for rectangles)
+   /// Derive information on edges from vertices and faces (for rectangles)
 
-  /// This method is used in the 2D inline mesh generators for rectangles. The latter
-  /// provide only information on vertices and faces. The information on the edges is
-  /// derived from the faces, as each face has three edges.
-  /// \param lowerLeft   lower left vertex of rectangle
-  /// \param upperRight  upper right vertex of rectangle
-  /// \param tol         parameter used to determine, whether an edge is part of the boundary, or not
-  void deriveEdgesForRectangles( const Point2D lowerLeft, const Point2D upperRight, real_t tol );
+   /// This method is used in the 2D inline mesh generators for rectangles. The latter
+   /// provide only information on vertices and faces. The information on the edges is
+   /// derived from the faces, as each face has three edges.
+   /// \param lowerLeft   lower left vertex of rectangle
+   /// \param upperRight  upper right vertex of rectangle
+   /// \param tol         parameter used to determine, whether an edge is part of the boundary, or not
+   void deriveEdgesForRectangles( const Point2D lowerLeft, const Point2D upperRight, real_t tol );
 
-  /// Derive information on edges from vertices and faces (for full annulus)
+   /// Derive information on edges from vertices and faces (for full annulus)
 
-  /// This method is used in the 2D inline mesh generator for the full annulus. The latter
-  /// provides only information on vertices and faces. The information on the edges is then
-  /// derived from the faces, as each face has three edges.
-  /// \param minTol  parameter used to determine, whether an edge is part of the inner boundary, or not
-  /// \param maxTol  parameter used to determine, whether an edge is part of the outer boundary, or not
-  void deriveEdgesForFullAnnulus( real_t minTol, real_t maxTol );
+   /// This method is used in the 2D inline mesh generator for the full annulus. The latter
+   /// provides only information on vertices and faces. The information on the edges is then
+   /// derived from the faces, as each face has three edges.
+   /// \param minTol  parameter used to determine, whether an edge is part of the inner boundary, or not
+   /// \param maxTol  parameter used to determine, whether an edge is part of the outer boundary, or not
+   void deriveEdgesForFullAnnulus( real_t minTol, real_t maxTol );
 
-  VertexContainer vertices_;
-  EdgeContainer   edges_;
-  FaceContainer   faces_;
-  CellContainer   cells_;
-
+   VertexContainer vertices_;
+   EdgeContainer   edges_;
+   FaceContainer   faces_;
+   CellContainer   cells_;
 };
 
-}
+} // namespace hyteg

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2021 Daniel Drzisga, Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -152,6 +152,10 @@ int main( int argc, char* argv[] )
         return x[0] - 0.5;
    };
 
+   auto zero = []( const hyteg::Point3D& ) -> real_t {
+        return real_t(0);
+   };
+
    writeDomainPartitioningVTK( storage, "../../output", "MMOC3DCircularConvectionTest_Domain" );
 
    typedef P2Function< real_t >   FunctionType;
@@ -161,10 +165,8 @@ int main( int argc, char* argv[] )
    FunctionType cInitial( "cInitial", storage, minLevel, maxLevel );
    FunctionType cError( "cError", storage, minLevel, maxLevel );
    FunctionType cMass( "cError", storage, minLevel, maxLevel );
-   FunctionType u( "u", storage, minLevel, maxLevel );
-   FunctionType v( "v", storage, minLevel, maxLevel );
-   FunctionType w( "w", storage, minLevel, maxLevel );
    FunctionType velocityMagnitude( "velocityMagnitude", storage, minLevel, maxLevel );
+   typename FunctionTrait< FunctionType >::AssocVectorFunctionType uvw( "uvw", storage, minLevel, maxLevel );
 
    FunctionType tmp0( "tmp0", storage, minLevel, maxLevel );
    FunctionType tmp1( "tmp1", storage, minLevel, maxLevel );
@@ -172,9 +174,7 @@ int main( int argc, char* argv[] )
    MassOperator                  M( storage, minLevel, maxLevel );
    MMOCTransport< FunctionType > transport( storage, minLevel, maxLevel, TimeSteppingScheme::RK4 );
 
-   u.interpolate( vel_x, maxLevel );
-   v.interpolate( vel_y, maxLevel );
-   w.interpolate( 0, maxLevel );
+   uvw.interpolate( { vel_x, vel_y, zero }, maxLevel );
    c.interpolate( initialBodies, maxLevel );
    cInitial.interpolate( initialBodies, maxLevel );
 
@@ -183,13 +183,11 @@ int main( int argc, char* argv[] )
      return Point3D( {values[0], values[1], values[2]} ).norm();
    };
 
-   velocityMagnitude.interpolate( magnitude, {u, v, w}, maxLevel, All );
+   velocityMagnitude.interpolate( magnitude, {uvw[0], uvw[1], uvw[2]}, maxLevel, All );
 
    hyteg::VTKOutput vtkOutput( "../../output", "MMOC3DCircularConvectionTest", storage );
 
-   vtkOutput.add( u );
-   vtkOutput.add( v );
-   vtkOutput.add( w );
+   vtkOutput.add( uvw );
    vtkOutput.add( c );
    vtkOutput.add( cError );
    vtkOutput.add( cInitial );
@@ -209,7 +207,7 @@ int main( int argc, char* argv[] )
 
    for ( uint_t i = 1; i <= outerSteps; i++ )
    {
-      transport.step( c, u, v, w, u, v, w, maxLevel, Inner, dt, innerSteps, i == 1 );
+      transport.step( c, uvw, uvw, maxLevel, Inner, dt, innerSteps, i == 1 );
 
       cError.assign( {1.0, -1.0}, {c, cInitial}, maxLevel, All );
       max_temp = c.getMaxMagnitude( maxLevel, All );

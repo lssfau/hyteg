@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2021 Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -17,36 +17,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#pragma once
+
+#include <cmath>
 #include <vector>
 
-#include "core/DataTypes.h"
+#include "core/math/Constants.h"
 
-#include "hyteg/solvers/Solver.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
 
-template < class OperatorType >
-class IdentityPreconditioner : public Solver< OperatorType >
+using walberla::math::pi;
+
+inline Point3D torusCoordinates( real_t torusRadiusToTubeCenter, real_t tubeRadius, real_t toroidalAngle, real_t poloidalAngle )
 {
- public:
-   IdentityPreconditioner()
-   : updateType_( Replace )
-   , flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
-   {}
-
-   void solve( const OperatorType&,
-               const typename OperatorType::srcType& x,
-               const typename OperatorType::dstType& b,
-               const walberla::uint_t                level ) override
-   {
-      x.assign( { 1.0 }, { b }, level, flag_ );
-   }
-
- private:
-   UpdateType updateType_;
-   DoFType    flag_;
-};
+   Point3D x( { ( torusRadiusToTubeCenter + tubeRadius * std::cos( poloidalAngle ) ) * std::cos( toroidalAngle ),
+                ( torusRadiusToTubeCenter + tubeRadius * std::cos( poloidalAngle ) ) * std::sin( toroidalAngle ),
+                tubeRadius * std::sin( poloidalAngle ) } );
+   return x;
+}
 
 } // namespace hyteg
