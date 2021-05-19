@@ -69,17 +69,19 @@ class VTKOutput
       vtkDataFormat_ = vtkDataFormat;
    }
 
-   void add( P1Function< real_t > function );
-   void add( P2Function< real_t > function );
+   void add( const P1Function< real_t >& function );
+   void add( const P2Function< real_t >& function );
 
-   void add( EdgeDoFFunction< real_t > function );
-   void add( DGFunction< real_t > function );
+   void add( const EdgeDoFFunction< real_t >& function );
+   void add( const DGFunction< real_t >& function );
 
-   void add( P1VectorFunction< real_t > function );
-   void add( P2VectorFunction< real_t > function );
+   void add( const P1VectorFunction< real_t >& function );
+   void add( const P2VectorFunction< real_t >& function );
 
-   void add( P1StokesFunction< real_t > function );
-   void add( P2P1TaylorHoodFunction< real_t > function );
+   void add( const P1StokesFunction< real_t >& function );
+   void add( const P2P1TaylorHoodFunction< real_t >& function );
+
+   // void add( BlockFunction< real_t > function );
 
    /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
    /// Therefore always writes output if timestep is 0.

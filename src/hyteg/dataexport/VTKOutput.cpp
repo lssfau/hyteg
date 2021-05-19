@@ -93,45 +93,43 @@ VTKOutput::VTKOutput( std::string                                dir,
    }
 }
 
-void VTKOutput::add( const P2Function< real_t > function )
+void VTKOutput::add( const P2Function< real_t >& function )
 {
    p2Functions_.push_back( function );
-   // p1Functions_.push_back( function.getVertexDoFFunctionCopy() );
-   // edgeDoFFunctions_.push_back( function.getEdgeDoFFunctionCopy() );
 }
 
-void VTKOutput::add( const P1VectorFunction< real_t > function )
+void VTKOutput::add( const P1VectorFunction< real_t >& function )
 {
    p1VecFunctions_.push_back( function );
 }
 
-void VTKOutput::add( const P2VectorFunction< real_t > function )
+void VTKOutput::add( const P2VectorFunction< real_t >& function )
 {
    p2VecFunctions_.push_back( function );
 }
 
-void VTKOutput::add( P1Function< real_t > function )
+void VTKOutput::add( const P1Function< real_t >& function )
 {
    p1Functions_.push_back( function );
 }
 
-void VTKOutput::add( EdgeDoFFunction< real_t > function )
+void VTKOutput::add( const EdgeDoFFunction< real_t >& function )
 {
    edgeDoFFunctions_.push_back( function );
 }
 
-void VTKOutput::add( DGFunction< real_t > function )
+void VTKOutput::add( const DGFunction< real_t >& function )
 {
    dgFunctions_.push_back( function );
 }
 
-void VTKOutput::add( P1StokesFunction< real_t > function )
+void VTKOutput::add( const P1StokesFunction< real_t >& function )
 {
    add( function.uvw );
    add( function.p );
 }
 
-void VTKOutput::add( P2P1TaylorHoodFunction< real_t > function )
+void VTKOutput::add( const P2P1TaylorHoodFunction< real_t >& function )
 {
    add( function.uvw );
    add( function.p );
