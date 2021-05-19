@@ -71,7 +71,8 @@ void runTest( const std::string& kind )
    MeshInfo              mesh = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
    SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+   std::shared_ptr< PrimitiveStorage >       storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
 
    BlockFunction< double > emptyFunc1( "Dummy BlockFunction<double>" );
    BlockFunction< float >  emptyFunc2( "Dummy BlockFunction<float>" );
@@ -91,16 +92,17 @@ void runTest( const std::string& kind )
    WALBERLA_LOG_INFO_ON_ROOT( " -> dimension = '" << stokes1.getDimension() << "'" );
    WALBERLA_LOG_INFO_ON_ROOT( " -> # blocks  = '" << stokes1.getNumberOfBlocks() << "'" );
 
-   std::shared_ptr< walberla::WcTimingTree >        timingTree( new walberla::WcTimingTree() );
    std::function< real_t( const hyteg::Point3D& ) > expr = []( const Point3D& x ) { return real_c( 2 ) * x[0]; };
 
    // -----------------------------------------
    //  Check whether we can call class methods
    // -----------------------------------------
 
+#ifdef TIMING_TREE
    // Fails for P2P1TaylorHoodBlockFunction! Why?
-   // stokes1.enableTiming( timingTree );
-   // logCall( "enableTiming" );
+   stokes1.enableTiming( storage->getTimingTree() );
+   logCall( "enableTiming" );
+#endif
 
    stokes1.interpolate( real_c( 5 ), maxLevel );
    logCall( "interpolate[constant]" );
