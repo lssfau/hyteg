@@ -68,6 +68,11 @@ public:
      evalQuadraturePoint(x_hat, coords, DFinv, 0.16666666666666666, out);
   }
 
+  void integrate( const std::array< Point3D, 4 >& coords, Point4D& out ) const
+  {
+    WALBERLA_ABORT( "P1Form_mass not implemented for 3D" )
+  }
+
   std::shared_ptr<GeometryMap> geometryMap;
 };
 

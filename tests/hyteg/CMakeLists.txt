@@ -313,6 +313,10 @@ waLBerla_execute_test(NAME ElementwiseOperatorAdditiveApplyTest)
 waLBerla_compile_test(FILES operators/DiagonalNonConstantOperatorTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME DiagonalNonConstantOperatorTest)
 
+if( HYTEG_BUILD_WITH_EIGEN )
+  waLBerla_compile_test(FILES operators/P1SurrogateOperatorTest.cpp DEPENDS hyteg core)
+  waLBerla_execute_test(NAME P1SurrogateOperatorTest)
+endif()
 #################### P1 ####################
 
 waLBerla_compile_test(FILES P1/P1LaplaceOperator3DTest.cpp DEPENDS hyteg core)
