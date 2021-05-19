@@ -55,23 +55,24 @@ class BlockOperator : public Operator< srcBlockFunc_t, dstBlockFunc_t >
                const dstBlockFunc_t& dst,
                size_t                level,
                DoFType               flag,
-               UpdateType            updateType = Replace ) const {
-       // WALBERLA_ASSERT_EQUAL( dim_, src.getDimension() );
-       // WALBERLA_ASSERT_EQUAL( dim_, dst.getDimension() );
+               UpdateType            updateType = Replace ) const
+   {
+      WALBERLA_ASSERT_EQUAL( nCols_, src.getNumberOfBlocks() );
+      WALBERLA_ASSERT_EQUAL( nRows_, dst.getNumberOfBlocks() );
 
-       // for ( uint_t i = 0; i < dim_; i++ )
-       // {
-       //    UpdateType upType = updateType;
-       //    for ( uint_t j = 0; j < dim_; j++ )
-       //    {
-       //       if ( subOper_[i][j] != nullptr )
-       //       {
-       //          // WALBERLA_LOG_INFO_ON_ROOT( " -> applying sub-operator (" << i << ", " << j << ")" );
-       //          subOper_[i][j]->apply( src[j], dst[i], level, flag, upType );
-       //          upType = Add;
-       //       }
-       //    }
-       // }
+      for ( uint_t i = 0; i < nRows_; i++ )
+      {
+         UpdateType upType = updateType;
+         for ( uint_t j = 0; j < nCols_; j++ )
+         {
+            if ( subOper_[i][j] != nullptr )
+            {
+               WALBERLA_LOG_INFO_ON_ROOT( " -> applying sub-operator (" << i << ", " << j << ")" );
+               subOper_[i][j]->apply( src[j], dst[i], level, flag, upType );
+               upType = Add;
+            }
+         }
+      }
    };
 
    void setSubOperator( uint_t i, uint_t j, std::shared_ptr< GenericOperator< value_t > > subOp )

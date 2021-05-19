@@ -67,7 +67,12 @@ int main( int argc, char* argv[] )
    uint_t maxLevel = 1;
 
    typedef P2P1TaylorHoodBlockFunction< real_t > thType;
-   BlockOperator< thType, thType > blockOper( storage, minLevel, maxLevel, 2, 3 );
-   
+   BlockOperator< thType, thType > blockOper( storage, minLevel, maxLevel, 2, 2 );
+
+   thType src( "src", storage, minLevel, maxLevel );
+   thType dst( "dst", storage, minLevel, maxLevel );
+
+   blockOper.apply( src, dst, maxLevel, All );
+
    return EXIT_SUCCESS;
 }
