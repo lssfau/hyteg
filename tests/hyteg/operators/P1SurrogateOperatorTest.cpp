@@ -60,12 +60,12 @@ void P1SurrogateOperatorTest( std::shared_ptr< PrimitiveStorage >               
 
    // functions
    hyteg::P1Function< real_t > u( "u", storage, level, level );
-   hyteg::P1Function< real_t > Au( "A*u", storage, level, level );
-   hyteg::P1Function< real_t > Aqu( "A_q*u", storage, level, level );
+   hyteg::P1Function< real_t > Au( "Au", storage, level, level );
+   hyteg::P1Function< real_t > Aqu( "(A_q)u", storage, level, level );
    hyteg::P1Function< real_t > err( "(A-A_q)u", storage, level, level );
 
-   std::function< real_t( const hyteg::Point3D& ) > initialU = []( const hyteg::Point3D& ) {
-      return walberla::math::realRandom();
+   std::function< real_t( const hyteg::Point3D& ) > initialU = []( const hyteg::Point3D& x ) {
+      return cos( 2 * M_PI * x[0] ) * cos( 2 * M_PI * x[1] ) * cos( 2 * M_PI * x[2] );
    };
    u.interpolate( initialU, level );
 

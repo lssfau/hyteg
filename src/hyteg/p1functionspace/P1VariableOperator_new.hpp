@@ -52,9 +52,7 @@ class P1VariableOperator_new : public P1Operator<P1Form>
 
    P1VariableOperator_new(const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form& form)
       : P1Operator<P1Form>(storage, minLevel, maxLevel, form)
-   {
-      WALBERLA_LOG_INFO_ON_ROOT("=== CTOR NEW VARIABLE OPERATOR ===");
-   }
+   {}
 
  protected:
 
