@@ -14,7 +14,7 @@ Parameters
     // ##########
 
     numToroidalSlices          8;
-    numPoloidalSlices          5;
+    numPoloidalSlices          6;
     radiusOriginToCenterOfTube 6.2;
     tubeLayerRadii             3; // list
     torodialStartAngle         0;
@@ -58,6 +58,7 @@ Parameters
 
     solverType                gmg_wjac;
     coarseGridSolverType      cg_petsc;
+    cgHytegVerbose            false;
     preSmooth                 3;
     postSmooth                3;
     relativeResidualReduction 1e-06;

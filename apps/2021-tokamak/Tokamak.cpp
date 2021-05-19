@@ -67,6 +67,7 @@ struct SolverSettings
    uint_t      preSmooth{};
    uint_t      postSmooth{};
    uint_t      maxCoarseGridSolverIterations{};
+   bool        cgHytegVerbose{};
 
    [[nodiscard]] std::string toString() const
    {
@@ -235,6 +236,7 @@ void tokamak( TokamakDomain         tokamakDomain,
       db->setConstantEntry( "solverType", solverSettings.solverType );
       db->setConstantEntry( "coarseGridSolverType", solverSettings.coarseGridSolverType );
       db->setConstantEntry( "maxCoarseGridSolverIterations", solverSettings.maxCoarseGridSolverIterations );
+      db->setConstantEntry( "cgHytegVerbose", solverSettings.cgHytegVerbose );
       db->setConstantEntry( "relativeResidualReduction", solverSettings.relativeResidualReduction );
       db->setConstantEntry( "preSmooth", solverSettings.preSmooth );
       db->setConstantEntry( "postSmooth", solverSettings.postSmooth );
@@ -525,7 +527,10 @@ void tokamak( TokamakDomain         tokamakDomain,
    if ( solverSettings.solverType == CG )
    {
       auto cgSolver = std::make_shared< CGSolver< LaplaceOperator_T > >( storage, minLevel, maxLevel );
-      cgSolver->setPrintInfo( true );
+      if ( solverSettings.cgHytegVerbose )
+      {
+         cgSolver->setPrintInfo( true );
+      }
       solver = cgSolver;
    }
    else
@@ -536,7 +541,10 @@ void tokamak( TokamakDomain         tokamakDomain,
       {
          auto actualCoarseGridSolver = std::make_shared< CGSolver< LaplaceOperator_T > >(
              storage, minLevel, minLevel, solverSettings.maxCoarseGridSolverIterations );
-         actualCoarseGridSolver->setPrintInfo( true );
+         if ( solverSettings.cgHytegVerbose )
+         {
+            actualCoarseGridSolver->setPrintInfo( true );
+         }
          coarseGridSolver = actualCoarseGridSolver;
       }
       else if ( solverSettings.coarseGridSolverType == COARSE_GRID_CG_PETSC )
@@ -786,6 +794,7 @@ void run( int argc, char** argv )
    solverSettings.relativeResidualReduction = mainConf.getParameter< real_t >( "relativeResidualReduction" );
    solverSettings.preSmooth                 = mainConf.getParameter< uint_t >( "preSmooth" );
    solverSettings.postSmooth                = mainConf.getParameter< uint_t >( "postSmooth" );
+   solverSettings.cgHytegVerbose            = mainConf.getParameter< bool >( "cgHytegVerbose" );
    // use numeric_limits<int> here to prevent overflow when casting to PetscINt
    solverSettings.maxCoarseGridSolverIterations =
        mainConf.getParameter< uint_t >( "maxCoarseGridSolverIterations", std::numeric_limits< int >::max() );
