@@ -135,6 +135,32 @@ void VTKOutput::add( const P2P1TaylorHoodFunction< real_t >& function )
    add( function.p );
 }
 
+void VTKOutput::add( const BlockFunction< real_t >& function )
+{
+   for ( uint_t k = 0; k < function.getNumberOfBlocks(); k++ )
+   {
+      add( function[k] );
+   }
+}
+
+void VTKOutput::add( const GenericFunction< real_t >& function )
+{
+   if ( tryUnwrapAndAdd< FunctionWrapper< P1Function< real_t > > >( function ) )
+      return;
+   if ( tryUnwrapAndAdd< FunctionWrapper< P2Function< real_t > > >( function ) )
+      return;
+   if ( tryUnwrapAndAdd< FunctionWrapper< P1VectorFunction< real_t > > >( function ) )
+      return;
+   if ( tryUnwrapAndAdd< FunctionWrapper< P2VectorFunction< real_t > > >( function ) )
+      return;
+   if ( tryUnwrapAndAdd< FunctionWrapper< EdgeDoFFunction< real_t > > >( function ) )
+      return;
+   if ( tryUnwrapAndAdd< FunctionWrapper< DGFunction< real_t > > >( function ) )
+      return;
+
+   WALBERLA_ABORT( "VTKOutput: Failed to add GenericFunction object!" );
+}
+
 void VTKOutput::writeVertexDoFData( std::ostream&                                 output,
                                     const vertexdof::VertexDoFFunction< real_t >& function,
                                     const std::shared_ptr< PrimitiveStorage >&    storage,

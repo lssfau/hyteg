@@ -97,6 +97,8 @@ void runTest( const std::string& kind )
    // -----------------------------------------
    //  Check whether we can call class methods
    // -----------------------------------------
+
+   // Fails for P2P1TaylorHoodBlockFunction! Why?
    // stokes1.enableTiming( timingTree );
    // logCall( "enableTiming" );
 
@@ -127,6 +129,13 @@ void runTest( const std::string& kind )
 
    stokes1.multElementwise( {stokes1, stokes2}, maxLevel );
    logCall( "multElementwise" );
+
+   // -----------------------------------------------
+   //  Check whether we can export the BlockFunction
+   // -----------------------------------------------
+   VTKOutput vtkOutput( "../../output", "BlockFunctionBasicTest", storage );
+   vtkOutput.add( stokes1 );
+   vtkOutput.write( maxLevel );
 }
 
 int main( int argc, char* argv[] )

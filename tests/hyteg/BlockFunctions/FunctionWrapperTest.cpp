@@ -80,6 +80,10 @@ int main( int argc, char* argv[] )
    WALBERLA_CHECK_EQUAL( p1Func.getFunctionName(), p1Wrap.getFunctionName() );
    WALBERLA_LOG_INFO_ON_ROOT( "Successfully unwrapped '" << p1Func.getFunctionName() << "'" );
 
+   // test unwrapping with free-function
+   const P2Function< real_t >& foo = unwrap( p2Wrap );
+   WALBERLA_LOG_INFO_ON_ROOT( "Successfully unwrapped '" << foo.getFunctionName() << "'" );
+
    // detection of incorrect unwrapping
    // (only works w/o further debugging, as then assertions kill the process)
 #ifdef NDEBUG

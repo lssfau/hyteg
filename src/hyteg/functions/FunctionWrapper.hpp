@@ -34,7 +34,10 @@ template < typename func_t >
 class FunctionWrapper final : public GenericFunction< typename FunctionTrait< func_t >::ValueType >
 {
  public:
+
    typedef typename FunctionTrait< func_t >::ValueType value_t;
+   typedef typename FunctionTrait< func_t >::Tag Tag;
+   typedef func_t FunctionType;
 
    /// No need for this one, if we do not implement a setter method for wrappedFunc_;
    FunctionWrapper() = delete;
@@ -154,6 +157,19 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
 
  private:
    std::unique_ptr< func_t > wrappedFunc_;
+};
+
+
+template < template<typename> class WrapperFunc, typename func_t >
+const func_t& unwrap( const WrapperFunc< func_t >& wrapped )
+{
+   return wrapped.unwrap();
+};
+
+template < template<typename> class WrapperFunc, typename func_t >
+func_t& unwrap( WrapperFunc< func_t >& wrapped )
+{
+   return wrapped.unwrap();
 };
 
 } // namespace hyteg
