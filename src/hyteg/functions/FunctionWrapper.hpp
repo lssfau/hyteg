@@ -67,6 +67,11 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
 
    const std::string& getFunctionName() const { return wrappedFunc_->getFunctionName(); };
 
+   functionTraits::FunctionKind getFunctionKind() const
+   {
+     return FunctionTrait< func_t >::kind;
+   };
+
    std::shared_ptr< PrimitiveStorage > getStorage() const { return wrappedFunc_->getStorage(); }
 
    void multElementwise( const std::vector< std::reference_wrapper< const GenericFunction< value_t > > >& functions,

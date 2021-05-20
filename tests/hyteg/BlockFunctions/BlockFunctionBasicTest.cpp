@@ -138,6 +138,9 @@ void runTest( const std::string& kind )
    VTKOutput vtkOutput( "../../output", "BlockFunctionBasicTest", storage );
    vtkOutput.add( stokes1 );
    vtkOutput.write( maxLevel );
+   logCall( "VTKOutput::add" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
 }
 
 int main( int argc, char* argv[] )

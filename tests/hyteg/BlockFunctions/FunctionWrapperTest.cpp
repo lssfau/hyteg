@@ -114,6 +114,15 @@ int main( int argc, char* argv[] )
    }
 #endif
 
+   // check getting info from a GenericFunction on its type
+   GenericFunction< real_t >* ptr1 = &p1Wrap;
+   GenericFunction< real_t >* ptr2 = &p2Wrap;
+   functionTraits::FunctionKind fk1 = ptr1->getFunctionKind();
+   functionTraits::FunctionKind fk2 = ptr2->getFunctionKind();
+   WALBERLA_ASSERT_EQUAL( fk1, functionTraits::P1_FUNCTION );
+   WALBERLA_ASSERT_EQUAL( fk2, functionTraits::P2_FUNCTION );
+   WALBERLA_LOG_INFO_ON_ROOT( "getFunctionKind() -> check" );
+
    // check assign
    FunctionWrapper< P1Function< real_t > > p1WrapOther( "Another P1func", storage, minLevel, maxLevel );
    p1Wrap.assign( {1.0, -2.0}, {p1Wrap, p1WrapOther}, maxLevel );

@@ -145,20 +145,41 @@ void VTKOutput::add( const BlockFunction< real_t >& function )
 
 void VTKOutput::add( const GenericFunction< real_t >& function )
 {
-   if ( tryUnwrapAndAdd< FunctionWrapper< P1Function< real_t > > >( function ) )
-      return;
-   if ( tryUnwrapAndAdd< FunctionWrapper< P2Function< real_t > > >( function ) )
-      return;
-   if ( tryUnwrapAndAdd< FunctionWrapper< P1VectorFunction< real_t > > >( function ) )
-      return;
-   if ( tryUnwrapAndAdd< FunctionWrapper< P2VectorFunction< real_t > > >( function ) )
-      return;
-   if ( tryUnwrapAndAdd< FunctionWrapper< EdgeDoFFunction< real_t > > >( function ) )
-      return;
-   if ( tryUnwrapAndAdd< FunctionWrapper< DGFunction< real_t > > >( function ) )
-      return;
+   bool matchFound = false;
+   switch ( function.getFunctionKind() )
+   {
+   case functionTraits::P1_FUNCTION:
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< P1Function< real_t > > >( function );
+      break;
 
-   WALBERLA_ABORT( "VTKOutput: Failed to add GenericFunction object!" );
+   case functionTraits::P2_FUNCTION:
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< P2Function< real_t > > >( function );
+      break;
+
+   case functionTraits::P1_VECTOR_FUNCTION:
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< P1VectorFunction< real_t > > >( function );
+      break;
+
+   case functionTraits::P2_VECTOR_FUNCTION:
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< P2VectorFunction< real_t > > >( function );
+      break;
+
+   case functionTraits::EDGE_DOF_FUNCTION:
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< EdgeDoFFunction< real_t > > >( function );
+      break;
+
+   case functionTraits::DG_FUNCTION:
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< DGFunction< real_t > > >( function );
+      break;
+
+   default:
+      matchFound = false;
+   }
+
+   if ( !matchFound )
+   {
+      WALBERLA_ABORT( "VTKOutput: Failed to add GenericFunction object!" );
+   }
 }
 
 void VTKOutput::writeVertexDoFData( std::ostream&                                 output,

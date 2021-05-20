@@ -68,6 +68,8 @@ class GenericFunction
 
    virtual const std::string& getFunctionName() const = 0;
 
+   virtual functionTraits::FunctionKind getFunctionKind() const = 0;
+
    virtual std::shared_ptr< PrimitiveStorage > getStorage() const = 0;
 
    virtual void multElementwise( const std::vector< std::reference_wrapper< const GenericFunction< value_t > > >& functions,
