@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Dominik Thoennes, Marcus Mohr.
+ * Copyright (c) 2021 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -25,26 +25,107 @@
 #include "core/timing/all.h"
 
 #include "hyteg/composites/P2P1TaylorHoodBlockFunction.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-
+#include "hyteg/mixedoperators/P1ScalarToP2VectorOperator.hpp"
+#include "hyteg/mixedoperators/P2VectorToP1ScalarOperator.hpp"
 #include "hyteg/operators/BlockOperator.hpp"
+#include "hyteg/operators/VectorToVectorOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 // Perform a bacis compile and apply test for BlockOperator class
 
 using namespace hyteg;
 
-template < typename vfType, typename opType >
-static void runTest( bool beVerbose, std::string tag, std::string opName )
+typedef P2P1TaylorHoodBlockFunction< real_t > thType;
+
+std::shared_ptr< OperatorWrapper< VectorToVectorOperator< P1VectorFunction< real_t >, P1VectorFunction< real_t > > > >
+    createP1EpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
 {
-   if ( beVerbose )
+   std::shared_ptr< OperatorWrapper< VectorToVectorOperator< P1VectorFunction< real_t >, P1VectorFunction< real_t > > > >
+       wrapped = std::make_shared<
+           OperatorWrapper< VectorToVectorOperator< P1VectorFunction< real_t >, P1VectorFunction< real_t > > > >(
+           storage, minLevel, maxLevel );
+
+   VectorToVectorOperator< P1VectorFunction< real_t >, P1VectorFunction< real_t > > oper = wrapped->unwrap();
+
+   oper.setSubOperator( 0, 0, std::make_shared< P1ConstantEpsilonOperator_11 >( storage, minLevel, maxLevel ) );
+   oper.setSubOperator( 1, 0, std::make_shared< P1ConstantEpsilonOperator_12 >( storage, minLevel, maxLevel ) );
+   oper.setSubOperator( 0, 1, std::make_shared< P1ConstantEpsilonOperator_21 >( storage, minLevel, maxLevel ) );
+   oper.setSubOperator( 1, 1, std::make_shared< P1ConstantEpsilonOperator_22 >( storage, minLevel, maxLevel ) );
+
+   return wrapped;
+}
+
+std::shared_ptr< BlockOperator< thType, thType > > createOperator( uint_t                                     kind,
+                                                                   const std::shared_ptr< PrimitiveStorage >& storage,
+                                                                   size_t                                     minLevel,
+                                                                   size_t                                     maxLevel,
+                                                                   uint_t                                     nRows,
+                                                                   uint_t                                     nCols )
+{
+   // setup empty block operator for Taylor Hood functions
+   auto oper = std::make_shared< BlockOperator< thType, thType > >( storage, minLevel, maxLevel, nRows, nCols );
+
+   // fill operator with sub-blocks, depending on kind value
+   switch ( kind )
    {
-      WALBERLA_LOG_INFO_ON_ROOT( "checking " << opName );
+   case 1:
+      oper->setSubOperator(
+          0, 0, std::make_shared< OperatorWrapper< P2ConstantLaplaceOperator > >( storage, minLevel, maxLevel ) );
+      oper->setSubOperator(
+          0, 1, std::make_shared< OperatorWrapper< P1ToP2ConstantDivTOperator > >( storage, minLevel, maxLevel ) );
+      oper->setSubOperator(
+          1, 0, std::make_shared< OperatorWrapper< P2ToP1ConstantDivOperator > >( storage, minLevel, maxLevel ) );
+      oper->setSubOperator( 1, 1, nullptr );
+      break;
+
+   case 2:
+      oper->setSubOperator( 0, 0, createP1EpsilonOperator( storage, minLevel, maxLevel ) );
+      oper->setSubOperator(
+          0, 1, std::make_shared< OperatorWrapper< P1ToP2ConstantDivTOperator > >( storage, minLevel, maxLevel ) );
+      oper->setSubOperator(
+          1, 0, std::make_shared< OperatorWrapper< P2ToP1ConstantDivOperator > >( storage, minLevel, maxLevel ) );
+      oper->setSubOperator( 1, 1, std::make_shared< OperatorWrapper< P1PSPGOperator > >( storage, minLevel, maxLevel ) );
+      break;
+
+   default:
+      WALBERLA_LOG_INFO_ON_ROOT( "Unsupported kind value '" << kind << "'" );
+   }
+   return oper;
+}
+
+void runTest( uint_t kind, std::string tag, const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "RUNNING with " << tag );
+
+   // need functions to work on
+   thType src( "src", storage, minLevel, maxLevel );
+   thType dst( "dst", storage, minLevel, maxLevel );
+
+   // let factory generate an operator
+   auto stokesOper = createOperator( kind, storage, minLevel, maxLevel, 2, 2 );
+   WALBERLA_LOG_INFO_ON_ROOT( "Factory generation ............. worked" );
+
+   // apply block operator to block function
+   stokesOper->apply( src, dst, minLevel, All );
+   WALBERLA_LOG_INFO_ON_ROOT( "BlockOperator application ...... worked" );
+
+   // extract and apply "A" block separately to velocity
+   const std::shared_ptr< GenericOperator< real_t > > aBlock = stokesOper->getSubOperator( 0, 0 );
+   aBlock->apply( src.getSubFunction( 0 ), dst.getSubFunction( 0 ), maxLevel, Inner, Replace );
+   WALBERLA_LOG_INFO_ON_ROOT( "'A-block' application .......... worked" );
+
+   // apply stabilisation operator, if present
+   auto stabOper = stokesOper->getSubOperator( 1, 1 );
+   if ( stabOper != nullptr )
+   {
+      stabOper->apply( src.getSubFunction( 1 ), dst.getSubFunction( 1 ), maxLevel, All );
+      WALBERLA_LOG_INFO_ON_ROOT( "PSPG block application ......... worked" );
    }
 
-   // not using this currently
-   WALBERLA_UNUSED( tag );
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
 }
+
 
 int main( int argc, char* argv[] )
 {
@@ -66,13 +147,16 @@ int main( int argc, char* argv[] )
    uint_t minLevel = 1;
    uint_t maxLevel = 1;
 
-   typedef P2P1TaylorHoodBlockFunction< real_t > thType;
    BlockOperator< thType, thType > blockOper( storage, minLevel, maxLevel, 2, 2 );
 
    thType src( "src", storage, minLevel, maxLevel );
    thType dst( "dst", storage, minLevel, maxLevel );
 
    blockOper.apply( src, dst, maxLevel, All );
+
+   // use factory
+   runTest( 1, "P2P1ConstantStokesOperator", storage, minLevel, maxLevel );
+   runTest( 2, "P1P1ConstantEpsilonOperator", storage, minLevel, maxLevel );
 
    return EXIT_SUCCESS;
 }
