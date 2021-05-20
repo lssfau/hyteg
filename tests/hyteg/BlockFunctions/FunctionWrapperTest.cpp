@@ -119,8 +119,8 @@ int main( int argc, char* argv[] )
    GenericFunction< real_t >* ptr2 = &p2Wrap;
    functionTraits::FunctionKind fk1 = ptr1->getFunctionKind();
    functionTraits::FunctionKind fk2 = ptr2->getFunctionKind();
-   WALBERLA_ASSERT_EQUAL( fk1, functionTraits::P1_FUNCTION );
-   WALBERLA_ASSERT_EQUAL( fk2, functionTraits::P2_FUNCTION );
+   WALBERLA_CHECK_EQUAL( fk1, functionTraits::P1_FUNCTION );
+   WALBERLA_CHECK_EQUAL( fk2, functionTraits::P2_FUNCTION );
    WALBERLA_LOG_INFO_ON_ROOT( "getFunctionKind() -> check" );
 
    // check assign
