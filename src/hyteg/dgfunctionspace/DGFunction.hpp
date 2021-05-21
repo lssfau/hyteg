@@ -152,20 +152,37 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    {
       WALBERLA_ABORT( "DGFunction::add not implemented!" )
    }
+
+   void copyFrom( const DGFunction< ValueType >& other, const uint_t& level ) const
+   {
+      WALBERLA_ABORT( "DGFunction::copyFrom not implemented!" )
+   }
+
+   void copyFrom( const DGFunction< ValueType >&            other,
+                  const uint_t&                                  level,
+                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
+   {
+      WALBERLA_ABORT( "DGFunction::copyFrom not implemented!" )
+   }
+
    void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const
    {
       WALBERLA_ABORT( "DGFunction::interpolate not implemented!" )
    }
+
    void interpolate( const std::function< ValueType( const hyteg::Point3D& ) >& expr, uint_t level, DoFType flag = All ) const
    {
       WALBERLA_ABORT( "DGFunction::interpolate not implemented!" )
    }
+
    void interpolate( const std::vector< std::function< ValueType( const hyteg::Point3D& ) > >& expr,
                      uint_t                                                                    level,
                      DoFType                                                                   flag = All ) const
    {
       WALBERLA_ABORT( "DGFunction::interpolate not implemented!" )
    }
+
    void setBoundaryCondition( BoundaryCondition bc ){WALBERLA_ABORT( "DGFunction::setBoundaryCondition not implemented!" )}
 
    ValueType dotLocal( const DGFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const
@@ -177,12 +194,26 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    {
       WALBERLA_ABORT( "DGFunction::dotGlobal not implemented!" )
    }
+
    void assign( const std::vector< ValueType >&                                               scalars,
                 const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
                 uint_t                                                                        level,
                 DoFType                                                                       flag = All ) const
    {
       WALBERLA_ABORT( "DGFunction::assign with const qualifier not implemented!" )
+   }
+
+   void swap( const DGFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
+   {
+      WALBERLA_ABORT( "DGFunction::swap not implemented!" )
+   }
+
+   void add( const std::vector< ValueType >&                                                    scalars,
+             const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+             uint_t                                                                             level,
+             DoFType                                                                            flag = All ) const
+   {
+      WALBERLA_ABORT( "DGFunction::add for vector of functions not implemented!" )
    }
 
    /// @}

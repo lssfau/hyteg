@@ -26,6 +26,7 @@
 
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -37,6 +38,20 @@
 #include "hyteg/functions/FunctionWrapper.hpp"
 
 using namespace hyteg;
+
+template < typename func_t >
+void wrapFunction( const std::shared_ptr< PrimitiveStorage >& storage,
+                   size_t                                     minLevel,
+                   size_t                                     maxLevel,
+                   uint_t dim )
+
+{
+  std::string kind = FunctionTrait< func_t >::getTypeName();
+  FunctionWrapper< func_t > wrappedFunc( kind, storage, minLevel, maxLevel );
+  WALBERLA_LOG_INFO_ON_ROOT( "-> wrapped a '" << kind << "'" );
+  WALBERLA_CHECK_EQUAL( dim, wrappedFunc.getDimension() );
+}
+ 
 
 int main( int argc, char* argv[] )
 {
@@ -58,15 +73,26 @@ int main( int argc, char* argv[] )
    uint_t minLevel = 1;
    uint_t maxLevel = 1;
 
+   // WALBERLA_LOG_INFO_ON_ROOT( "P1func -> dimension = " << p1Wrap.getDimension() );
+   // WALBERLA_LOG_INFO_ON_ROOT( "P2func -> dimension = " << p2Wrap.getDimension() );
+   // WALBERLA_LOG_INFO_ON_ROOT( "P1VecFunc -> dimension = " << p1vecWrap.getDimension() );
+   // WALBERLA_LOG_INFO_ON_ROOT( "P2VecFunc -> dimension = " << p2vecWrap.getDimension() );
+
+   // check wrapping for different function classes
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing wrapping functions:" );
+   wrapFunction< vertexdof::VertexDoFFunction< real_t > >( storage, minLevel, maxLevel, 1 );
+   wrapFunction< EdgeDoFFunction< real_t > >( storage, minLevel, maxLevel, 1 );
+   wrapFunction< DGFunction< real_t > >( storage, minLevel, maxLevel, 1 );
+   wrapFunction< P1Function< real_t > >( storage, minLevel, maxLevel, 1 );
+   wrapFunction< P2Function< real_t > >( storage, minLevel, maxLevel, 1 );
+   wrapFunction< P1VectorFunction< real_t > >( storage, minLevel, maxLevel, 2 );
+   wrapFunction< P2VectorFunction< real_t > >( storage, minLevel, maxLevel, 2 );
+
+   // some wraps for eating later ;-)
    FunctionWrapper< P1Function< real_t > >       p1Wrap( "P1func", storage, minLevel, maxLevel );
    FunctionWrapper< P2Function< real_t > >       p2Wrap( "P2func", storage, minLevel, maxLevel );
    FunctionWrapper< P1VectorFunction< real_t > > p1vecWrap( "P1VecFunc", storage, minLevel, maxLevel );
    FunctionWrapper< P2VectorFunction< real_t > > p2vecWrap( "P2VecFunc", storage, minLevel, maxLevel );
-
-   WALBERLA_LOG_INFO_ON_ROOT( "P1func -> dimension = " << p1Wrap.getDimension() );
-   WALBERLA_LOG_INFO_ON_ROOT( "P2func -> dimension = " << p2Wrap.getDimension() );
-   WALBERLA_LOG_INFO_ON_ROOT( "P1VecFunc -> dimension = " << p1vecWrap.getDimension() );
-   WALBERLA_LOG_INFO_ON_ROOT( "P2VecFunc -> dimension = " << p2vecWrap.getDimension() );
 
    // access storage
    WALBERLA_CHECK_EQUAL( p1Wrap.getStorage()->hasGlobalCells(), false );
@@ -115,10 +141,10 @@ int main( int argc, char* argv[] )
 #endif
 
    // check getting info from a GenericFunction on its type
-   GenericFunction< real_t >* ptr1 = &p1Wrap;
-   GenericFunction< real_t >* ptr2 = &p2Wrap;
-   functionTraits::FunctionKind fk1 = ptr1->getFunctionKind();
-   functionTraits::FunctionKind fk2 = ptr2->getFunctionKind();
+   GenericFunction< real_t >*   ptr1 = &p1Wrap;
+   GenericFunction< real_t >*   ptr2 = &p2Wrap;
+   functionTraits::FunctionKind fk1  = ptr1->getFunctionKind();
+   functionTraits::FunctionKind fk2  = ptr2->getFunctionKind();
    WALBERLA_CHECK_EQUAL( fk1, functionTraits::P1_FUNCTION );
    WALBERLA_CHECK_EQUAL( fk2, functionTraits::P2_FUNCTION );
    WALBERLA_LOG_INFO_ON_ROOT( "getFunctionKind() -> check" );
