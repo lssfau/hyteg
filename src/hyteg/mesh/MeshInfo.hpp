@@ -533,6 +533,18 @@ class MeshInfo
                               real_t                toroidalStartAngle = 0,
                               real_t                poloidalStartAngle = 0 );
 
+   /// \brief Create a mesh composed of a single triangle
+   ///
+   /// For testing and performance checks this convenience method allows to generate
+   /// a mesh composed of a single triangle by providing its vertices.
+   static MeshInfo singleTriangle( const Point2D& v1, const Point2D& v2, const Point2D& v3 );
+
+   /// \brief Create a mesh composed of a single tetrahedron
+   ///
+   /// For testing and performance checks this convenience method allows to generate
+   /// a mesh composed of a single tetrahedron by providing its vertices.
+   static MeshInfo singleTetrahedron( const std::array< Point3D, 4 >& vertices );
+
    /// \brief Creates a finer coarse mesh from a given mesh
    ///
    /// Takes a given MeshInfo and refines it with the default refinment algorithm.
