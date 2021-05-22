@@ -20,10 +20,11 @@
 
 #pragma once
 
-#include <hyteg/Operator.hpp>
 #include <hyteg/communication/Syncing.hpp>
 #include <hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp>
 #include <hyteg/forms/form_hyteg_manual/P2FormMass.hpp>
+
+#include <hyteg/operators/Operator.hpp>
 #include <hyteg/p1functionspace/VertexDoFFunction.hpp>
 #include <hyteg/p2functionspace/P2Function.hpp>
 #include <hyteg/p2functionspace/variablestencil/P2VariableStencilCommon.hpp>

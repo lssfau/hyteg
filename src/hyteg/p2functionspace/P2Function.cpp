@@ -94,7 +94,7 @@ void P2Function< ValueType >::evaluateGradient( const Point3D& coordinates, uint
 }
 
 template < typename ValueType >
-void P2Function< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag ) const
+void P2Function< ValueType >::interpolate( ValueType constant, uint_t level, DoFType flag ) const
 {
    vertexDoFFunction_.interpolate( constant, level, flag );
    edgeDoFFunction_.interpolate( constant, level, flag );
@@ -189,7 +189,7 @@ void P2Function< ValueType >::assign( const std::vector< ValueType >&           
 }
 
 template < typename ValueType >
-void P2Function< ValueType >::add( const ValueType& scalar, uint_t level, DoFType flag ) const
+void P2Function< ValueType >::add( ValueType scalar, uint_t level, DoFType flag ) const
 {
    vertexDoFFunction_.add( scalar, level, flag );
    edgeDoFFunction_.add( scalar, level, flag );

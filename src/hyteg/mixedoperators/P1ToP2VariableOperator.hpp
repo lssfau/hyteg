@@ -21,7 +21,7 @@
 #pragma once
 
 #include <array>
-#include <hyteg/Operator.hpp>
+#include <hyteg/operators/Operator.hpp>
 #include <hyteg/communication/Syncing.hpp>
 #include <hyteg/mixedoperators/variablestencil/P2P1VariableStencilCommon.hpp>
 #include <hyteg/p1functionspace/VertexDoFFunction.hpp>

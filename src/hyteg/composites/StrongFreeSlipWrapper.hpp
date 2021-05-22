@@ -22,7 +22,7 @@
 #include <type_traits>
 #include <vector>
 
-#include "hyteg/Operator.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/composites/P1StokesOperator.hpp"
 #include "hyteg/composites/P1BlendingStokesOperator.hpp"
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"

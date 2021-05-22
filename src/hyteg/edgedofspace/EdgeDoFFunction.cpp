@@ -217,7 +217,7 @@ void EdgeDoFFunction< ValueType >::deleteMemory( const uint_t & level, const Cel
 }
 
 template < typename ValueType >
-void EdgeDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag ) const
+void EdgeDoFFunction< ValueType >::interpolate( ValueType constant, uint_t level, DoFType flag ) const
 {
    if ( isDummy() )
    {
@@ -951,7 +951,7 @@ void EdgeDoFFunction< ValueType >::assign(
 }
 
 template < typename ValueType >
-void EdgeDoFFunction< ValueType >::add( const ValueType& scalar, uint_t level, DoFType flag ) const
+void EdgeDoFFunction< ValueType >::add( ValueType scalar, uint_t level, DoFType flag ) const
 {
    if ( isDummy() )
    {

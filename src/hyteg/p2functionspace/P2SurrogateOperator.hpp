@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include <hyteg/Operator.hpp>
+#include <hyteg/operators/Operator.hpp>
 
 #include "hyteg/types/pointnd.hpp"
 

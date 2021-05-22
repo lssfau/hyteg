@@ -29,7 +29,7 @@
 namespace hyteg {
 
 template < typename ValueType >
-class P2VectorFunction : public CSFVectorFunction< P2VectorFunction< ValueType > >
+class P2VectorFunction final : public CSFVectorFunction< P2VectorFunction< ValueType > >
 {
  public:
    using valueType = ValueType;
