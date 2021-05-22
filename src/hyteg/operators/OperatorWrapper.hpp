@@ -24,13 +24,16 @@
 
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/operators/GenericOperator.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 
 namespace hyteg {
 
 using walberla::uint_t;
 
 template < typename oper_t >
-class OperatorWrapper final : public GenericOperator< typename FunctionTrait< typename oper_t::srcType >::ValueType >
+class OperatorWrapper final
+: public GenericOperator< typename FunctionTrait< typename oper_t::srcType >::ValueType >,
+  public GSSmoothable< GenericFunction< typename FunctionTrait< typename oper_t::srcType >::ValueType > >
 {
  public:
    typedef typename FunctionTrait< typename oper_t::srcType >::ValueType value_t;
@@ -65,6 +68,36 @@ class OperatorWrapper final : public GenericOperator< typename FunctionTrait< ty
                            flag,
                            updateType );
    };
+
+   void smooth_gs( const GenericFunction< value_t >& dst,
+                   const GenericFunction< value_t >& rhs,
+                   size_t                            level,
+                   DoFType                           flag ) const override
+   {
+      // the "real" types of our operator
+      using srcType = typename oper_t::srcType;
+      using dstType = typename oper_t::dstType;
+
+      // if both operator types are not the same we will violate the GSSmoothable interface
+      // we throw an exception in this case, since GS is not defined properly in this case
+      if constexpr ( std::is_same< srcType, dstType >::value )
+      {
+         if ( const auto* op_gs = dynamic_cast< const GSSmoothable< srcType >* >( wrappedOper_.get() ) )
+         {
+            const auto& dst_unwrapped = dst.template unwrap< typename oper_t::srcType >();
+            const auto& rhs_unwrapped = rhs.template unwrap< typename oper_t::dstType >();
+            op_gs->smooth_gs(dst_unwrapped, rhs_unwrapped, level, flag );
+         }
+         else
+         {
+            throw std::runtime_error( "The Gauss-Seidel Operator requires the GSSmoothable interface." );
+         }
+      }
+      else
+      {
+         throw std::runtime_error( "For GaussSeidel src and dst functions must coincide" );
+      }
+   }
 
  private:
    std::unique_ptr< oper_t > wrappedOper_;

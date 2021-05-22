@@ -736,3 +736,6 @@ waLBerla_execute_test(NAME OperatorWrapperBasicTest)
 
 waLBerla_compile_test(FILES operators/BlockOperatorBasicTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME BlockOperatorBasicTest)
+
+waLBerla_compile_test(FILES operators/BlockOperatorGSSmoothableTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME BlockOperatorGSSmoothableTest)
