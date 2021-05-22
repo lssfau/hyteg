@@ -135,7 +135,29 @@ class UnsteadyDiffusionOperator : public Operator< FunctionType, FunctionType >,
                     DoFType             flag,
                     const bool&         backwards ) const
    {
-      unsteadyDiffusionOperator_->smooth_sor( dst, rhs, relax, level, flag, backwards );
+      if ( !backwards )
+      {
+         if ( const auto* op_sor = dynamic_cast< const SORSmoothable< FunctionType >* >( unsteadyDiffusionOperator_.get() ) )
+         {
+            op_sor->smooth_sor( dst, rhs, relax, level, flag );
+         }
+         else
+         {
+            throw std::runtime_error( "The UnsteadyDiffusionOperator requires the SORSmoothable interface." );
+         }
+      }
+      else
+      {
+         if ( const auto* op_sor =
+                  dynamic_cast< const SORBackwardsSmoothable< FunctionType >* >( unsteadyDiffusionOperator_.get() ) )
+         {
+            op_sor->smooth_sor_backwards( dst, rhs, relax, level, flag );
+         }
+         else
+         {
+            throw std::runtime_error( "The UnsteadyDiffusionOperator requires the SORBackwardsSmoothable interface." );
+         }
+      }
    }
 
    void smooth_gs( const FunctionType& dst, const FunctionType& rhs, size_t level, DoFType flag, const bool& backwards ) const
@@ -160,7 +182,15 @@ class UnsteadyDiffusionOperator : public Operator< FunctionType, FunctionType >,
                     size_t              level,
                     DoFType             flag ) const override
    {
-      unsteadyDiffusionOperator_->smooth_jac( dst, rhs, src, relax, level, flag );
+      if ( const auto* op_jac =
+               dynamic_cast< const WeightedJacobiSmoothable< FunctionType >* >( unsteadyDiffusionOperator_.get() ) )
+      {
+         op_jac->smooth_jac( dst, rhs, src, relax, level, flag );
+      }
+      else
+      {
+         throw std::runtime_error( "The UnsteadyDiffusionOperator requires the WeightedJacobiSmoothable interface." );
+      }
    }
 
    real_t dt() const { return dt_; }
