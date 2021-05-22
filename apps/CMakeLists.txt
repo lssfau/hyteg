@@ -99,5 +99,6 @@ add_subdirectory(2021-tokamak)
 endif()
 add_subdirectory(GKBTestProblemGeneration)
 add_subdirectory(SphericalHarmonics)
+add_subdirectory(Surrogates)
 
 add_subdirectory(blockOperators)
