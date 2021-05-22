@@ -28,8 +28,8 @@ def smooth_jump():
 
 
 def basic_example():
-    k = 1 + 3*x + 4*y + 7*x**2
-    u = sin(x)*sinh(y)
+    u = sin(pi*x)*sin(pi*y)
+    k = x*x + 1
 
     return (k,u)
 
@@ -63,7 +63,7 @@ def plume_example():
     return (k,u)
 
 
-k, u = annulus()
+k, u = basic_example()
 
 def gradient(u):
     return np.array([diff(u,x), diff(u,y)])
