@@ -483,7 +483,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
                     const P1Function< real_t >& rhs,
                     const P1Function< real_t >& tmp,
                     size_t                      level,
-                    DoFType                     flag ) const override
+                    DoFType                     flag ) const
    {
       checkForMissingPolynomial( level, polyDegree_ );
 
