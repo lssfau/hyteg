@@ -22,6 +22,7 @@
 #include "core/DataTypes.h"
 
 #include "hyteg/solvers/Solver.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 
 namespace hyteg {
 
@@ -46,7 +47,14 @@ class WeightedJacobiSmoother : public Solver< OperatorType >
       x.getStorage()->getTimingTree()->start( "Weighted Jacobi" );
       tmp_.copyBoundaryConditionFromFunction( x );
       tmp_.assign( {1.0}, {x}, level, All );
-      A.smooth_jac( x, b, tmp_, relax_, level, flag_ );
+      if ( const auto* A_jac = dynamic_cast< const WeightedJacobiSmoothable< typename OperatorType::srcType >* >( &A ) )
+      {
+         A_jac->smooth_jac( x, b, tmp_, relax_, level, flag_ );
+      }
+      else
+      {
+         throw std::runtime_error( "The WeightedJacobiSmoother requires the WeightedJacobiSmoothable interface." );
+      }
       x.getStorage()->getTimingTree()->stop( "Weighted Jacobi" );
    }
 

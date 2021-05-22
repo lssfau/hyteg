@@ -101,8 +101,10 @@ int main( int argc, char** argv )
    SymmetricGaussSeidelSmoother< P1VarOp > sgsVar;
    SymmetricSORSmoother< P1VarOp > ssorVar(1.);
    SORSmoother< P1VarOp > sorVar(1.);
+   WeightedJacobiSmoother< P1VarOp > wJacVar(storage, minLevel, maxLevel, maxLevel);
    WALBERLA_CHECK( smootherThrowsException(chebVar, p1VarOp, p1Src, p1Dst, minLevel) );
    WALBERLA_CHECK( smootherThrowsException(sgsVar, p1VarOp, p1Src, p1Dst, minLevel) );
    WALBERLA_CHECK( smootherThrowsException(ssorVar, p1VarOp, p1Src, p1Dst, minLevel) );
    WALBERLA_CHECK( smootherThrowsException(sorVar, p1VarOp, p1Src, p1Dst, minLevel) );
+   WALBERLA_CHECK( smootherThrowsException(wJacVar, p1VarOp, p1Src, p1Dst, minLevel) );
 }
