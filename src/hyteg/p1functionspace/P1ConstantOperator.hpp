@@ -117,7 +117,7 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       return diagonalValues_;
    };
 
-   std::shared_ptr< P1Function< real_t > > getInverseDiagonalValues() const
+   std::shared_ptr< P1Function< real_t > > getInverseDiagonalValues() const override
    {
       WALBERLA_CHECK_NOT_NULLPTR(
           inverseDiagonalValues_,
