@@ -1,0 +1,10 @@
+Parameters
+{
+  minLevel 4;
+  maxLevel 4;
+
+  tau 5e-3;
+  epsilon 4e-2;
+  t_end 1;
+  num_max_time_steps 300;
+}

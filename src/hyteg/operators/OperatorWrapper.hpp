@@ -39,9 +39,10 @@ class OperatorWrapper final : public GenericOperator< typename FunctionTrait< ty
    OperatorWrapper() = delete;
 
    /// Constructor that constructs the operator which the class wraps itself around
-   OperatorWrapper( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   template < typename... ConstructorArguments >
+   OperatorWrapper( const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel, ConstructorArguments... args )
    {
-      wrappedOper_ = std::make_unique< oper_t >( storage, minLevel, maxLevel );
+      wrappedOper_ = std::make_unique< oper_t >( storage, minLevel, maxLevel, args... );
    };
 
    ~OperatorWrapper() {}

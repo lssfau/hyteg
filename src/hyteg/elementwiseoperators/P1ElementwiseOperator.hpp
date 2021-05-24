@@ -30,6 +30,7 @@
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_k_mass_affine_q4.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
 #include "hyteg/p1functionspace/P1Elements.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -347,5 +348,7 @@ typedef P1ElementwiseOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet
 
 typedef P1ElementwiseOperator< forms::p1_div_k_grad_affine_q3 >   P1ElementwiseAffineDivKGradOperator;
 typedef P1ElementwiseOperator< forms::p1_div_k_grad_blending_q3 > P1ElementwiseBlendingDivKGradOperator;
+
+typedef P1ElementwiseOperator< forms::p1_k_mass_affine_q4 > P1ElementwiseKMassOperator;
 
 } // namespace hyteg
