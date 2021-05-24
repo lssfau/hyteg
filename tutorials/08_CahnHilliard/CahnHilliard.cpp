@@ -42,6 +42,203 @@ using walberla::uint_t;
 
 using namespace hyteg;
 
+/**
+ * \page 08_CahnHilliard A full app for the Cahn-Hilliard equation.
+ *
+ * \dontinclude tutorials/08_CahnHilliard/CahnHilliard.cpp
+ *
+ * \brief In this tutorial we will use the LinearCombinationForm to define specialized bilinear forms for the Cahn-Hilliard (CH) equations.
+ *        In combination with block-functions and block-operators we will discretize the CH-Equations.
+ *        We will speed up our solvers by implementing a simple diagonal preconditioner.
+ *
+ * We already showed how to solve the Poisson- and the Stokes-Equation, which already are well supported by HyTeG.
+ * In this tutorial, we will implement a solver for a completely unrelated problem, which is not a core application for HyTeG (yet ;)).
+ * In addition, we will learn about block-functions, block-operators and the composition of finite-element forms.
+ *
+ * \section Problem
+ *
+ * As an example we will try to solve the Cahn-Hilliard equation,
+ * which simulates the phase separation of a mixture of two fluids.
+ * For convenience, lets call these fluids A and B.
+ * They are represented by an indicator function \f$\phi \in [-1, +1]\f$,
+ * such that \f$\phi(x) = +1\f$ if only fluid A is present and \f$\phi(x) = -1\f$  if only fluid B is present.
+ * All intermediate values correspond to mixtures of the fluid, where either A (\f$\phi(x) < 1\f$) or B dominates (\f$\phi(x) > 1\f$).
+ *
+ * We want to assign an energy functional to these equations by given by
+ * \f{align*}{
+ *     F(\phi) = \int \boldsymbol \psi(\phi) dx + \frac{\epsilon^2}{2}\int |\nabla \phi |^2 dx
+ * \f}
+ * where \f$\psi(\phi) = \frac{1}{4}(1-\phi^2)^2\f$ is a double well potential, which penalizes mixed states,
+ * while the second term models a surface energy and encourages small interfaces.
+ * A gradient-flow for this functional is given by the Cahn-Hilliard equations
+ * \f{align*}{
+ *     \partial_t \phi &= \Delta \mu \\
+ *     \mu &= \boldsymbol \psi'(\phi) - \epsilon^2 \Delta \phi
+ *     ,
+ * \f}
+ * which minimizes \f$F(\phi(t))\f$ as time passes, i.e. \f$F(\phi(t)) \leq F(\phi(s))\f$ for \f$t \leq s\f$.
+ * The equations are a mixed system of the fields \f$\phi\f$ and \f$\mu\f$.
+ *
+ * \section Time-discretization
+ *
+ * The energy minimization of $F$ is usually something we want to enforce by our time discretization.
+ *
+ * For this we split up the potential $\boldsymbol \psi$ into a convex and a concave part, such that
+ * \f{align*}{
+ *     \boldsymbol \psi = \boldsymbol \psi_c - \boldsymbol \psi_e
+ * \f}
+ * where \f$\boldsymbol \psi_e\f$, \f$\boldsymbol \psi_c\f$ are convex.
+ * It can be shown that if we treat \f$\psi_e\f$ implicitly and \f$\psi_c\f$ explicitly the resulting scheme will be unconditionally gradient stable.
+ * That means that \f$F(\phi^{n+1}) \leq F(\phi^{n})\f$ for our time-discrete solutions \f$\phi^n\f$ independent of the time-step size \f$\tau\f$.
+ * The resulting scheme is
+ *
+ * \f{align}{
+ *     \phi^{(n+1)}-\phi^{(n)} &= \tau \Delta \mu \\
+ *     \mu &= \boldsymbol \psi_c'(\phi^{(n+1)}) - \boldsymbol \psi_e'(\phi^{(n)}) - \epsilon^2 \Delta \phi^{(n+1)}
+ *     .
+ * \f}
+ *
+ * The decomposition of the potential in a convex and concave function is typically not unique.
+ * A possible choice is
+ * \f{align}{
+ *     \boldsymbol \psi_c(\phi) = \frac{1}{4}
+ *     \left( 4 \phi^2 + 1 \right)
+ *     \quad \text{ and } \quad
+ *     \boldsymbol \psi_e(\phi) = \frac{1}{4}
+ *     \left( 6 \phi^2 - \phi^4 \right)
+ * \f}
+ * yielding the derivatives
+ * \f{align}{
+ *     \boldsymbol \psi_c'(\phi) =
+ *     2 \phi
+ *     \quad \text{ and } \quad
+ *     \boldsymbol \psi_e'(\phi) =
+ *     3 \phi - \phi^3
+ *     .
+ * \f}
+ *
+ * \section Space-discretization
+ *
+ * Applying a FEM discretization on the equations yields the following system of equations
+ * \f{align}{
+ *     \begin{pmatrix}
+ *         \tau K & M\\
+ *         M & - \epsilon^2 K - 2 M
+ *     \end{pmatrix}
+ *     \begin{pmatrix}
+ *         \boldsymbol \mu \\
+ *         \boldsymbol{\phi}^{(n+1)}
+ *     \end{pmatrix}
+ *     =
+ *     \begin{pmatrix}
+ *         \boldsymbol f^{(n)} \\ \boldsymbol g^{(n)}
+ *     \end{pmatrix}
+ *     ,
+ * \f}
+ * with the stiffness matrix \f$K\f$, the mass matrix \f$M\f$ and the right-hand side given by
+ * \f{align}{
+ *     \boldsymbol{f}^{(n)}_i = \left\langle\phi^n_h, \nu_{h,i}\right\rangle_{L_2}
+ * \f}
+ * and
+ * \f{align}{
+ *     \boldsymbol g^{(n)}_i = \left\langle-3 \phi^n_h + (\phi^n_h)^3, \psi_{h,i} \right\rangle_{L_2}
+ * \f}
+ * with test functions \f$\nu_{h,i}\f$ and \f$\psi_{h,i}\f$.
+ * We consider a \f$\mathcal P^1\f$ (continuous, piecewise linear polynomials) discretization of FE-shape functions.
+ *
+ *
+ * \section Preconditioner
+ *
+ * To solve our problem efficiently we will need a preconditioner.
+ * Here, we will follow the approach in [BRENNER2018] and get simply by rescaling the equations
+ * \f{align}{
+ *     \begin{pmatrix}
+ *         \tau K & M\\
+ *         M & - \epsilon^2 K - 2 M
+ *     \end{pmatrix}^{-1}
+ *     =
+ *     \begin{pmatrix}
+ *         \tau^{-1/4} & \\
+ *         & \tau^{1/4}
+ *     \end{pmatrix}
+ *     \begin{pmatrix}
+ *         \sqrt{\tau} K & M\\
+ *         M & - \sqrt \tau \epsilon^2 K - 2 \sqrt \tau M
+ *     \end{pmatrix}^{-1}
+ *     \begin{pmatrix}
+ *         \tau^{-1/4} & \\
+ *         & \tau^{1/4}
+ *     \end{pmatrix}
+ *     .
+ * \f}
+ * We define
+ * \f{align}{
+ *     B:=
+ *     \begin{pmatrix}
+ *         \sqrt{\tau} K & M\\
+ *         M & - \sqrt \tau \epsilon^2 K - 2 \sqrt \tau M
+ *     \end{pmatrix}
+ *     .
+ * \f}
+ * As shown in [Brenner2018] \f$P^{-1} B\f$ can be solved efficiently with MINRES, where
+ * \f{align}{
+ *     P^{-1}
+ *     :=
+ *     \begin{pmatrix}
+ *         (\sqrt{\tau} K + M)^{-1} & \\
+ *         &
+ *         (\sqrt{\tau} \epsilon^2 K + M)^{-1}
+ *     \end{pmatrix}
+ *     .
+ * \f}
+ *
+ * To get an optimal solver, we can use a geometric multigrid to invert the diagonal blocks.
+ *
+ * \section Implementation
+ *
+ * We start with defining a block function representing the state of our system at a given time step by inheriting from the hyteg::BlockFunction.
+ *
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction definition
+ *
+ * The two components for the \f$\phi \f$ and \f$\mu\f$ are defined inside the constructor by pushing a hyteg::P1Function onto
+ * `subFunc_` vector.
+ *
+ * For our own convenience we define two helper functions `getMu` and `getPhi`, which return the subcomponents of our vector.
+ *
+ * TODO: Write why we need hyteg::FunctionWrapper
+ *
+ * The compiler needs to be able to infer some static information about each function.
+ * For instance its name, its value type and it needs a tag for certain meta programming features.
+ * This can be achieved by extending the given trait system:
+ *
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction meta-information
+ *
+ * If now one of HyTeG's internal algorithms needs to now the value type of a unknown function type ```UnknownType```, it can do this by calling
+ * ```hyteg::FunctionTrait< UnknownType >::ValueType```.
+ * This is implemented for hyteg::P1Function, hyteg::P2Function, hyteg::P2P1TaylorHoodFunction, ... and now also for our
+ * `CahnHilliardFunction`.
+ *
+ * A more in-depth tutorial about traits can be found at [TRAITS].
+ *
+ *
+ *
+ * TODO: Write the rest
+ *
+ * The full code is:
+ *
+ * \include tutorials/08_CahnHilliard/CahnHilliard.cpp
+ *
+ * \section References
+ *
+ * [Brenner2018] BRENNER, Susanne C.; DIEGEL, Amanda E.; SUNG, Li-Yeng.
+ *               A robust solver for a mixed finite element method for the Cahn–Hilliard equation.
+ *               Journal of Scientific Computing, 2018, 77. Jg., Nr. 2, S. 1234-1249.
+ *
+ * [TRAITS] https://www.boost.org/doc/libs/1_53_0/libs/geometry/doc/html/geometry/design.html
+ *
+ */
+
+/// [CahnHilliardFunction definition]
 template < typename value_t >
 class P1CahnHilliardFunction : public BlockFunction< value_t >
 {
@@ -78,7 +275,9 @@ class P1CahnHilliardFunction : public BlockFunction< value_t >
       }
    }
 };
+/// [CahnHilliardFunction definition]
 
+/// [CahnHilliardFunction meta-information]
 class P1CahnHilliardFunctionTag
 {};
 
@@ -92,6 +291,7 @@ struct FunctionTrait< P1CahnHilliardFunction< VType > >
 
    static const functionTraits::FunctionKind kind = functionTraits::OTHER_FUNCTION;
 };
+/// [CahnHilliardFunction meta-information]
 
 using chType = P1CahnHilliardFunction< real_t >;
 
