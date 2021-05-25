@@ -74,7 +74,7 @@ void showUsage()
 bool getParamValue( int argc, char* argv[], const char* param, uint_t& value )
 {
    bool found = false;
-   for ( uint_t k = 1; k < argc; k += 2 )
+   for ( int k = 1; k < argc; k += 2 )
    {
       if ( strcmp( argv[k], param ) == 0 )
       {
