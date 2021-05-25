@@ -642,20 +642,24 @@ void tokamak( TokamakDomain         tokamakDomain,
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " iteration |  residual | res. rate |     error " ) )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " ----------+-----------+-----------+-----------" ) )
    WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9s | %9.2e | %9s | %9.2e", "initial", residualL2, "-", errorL2 ) )
+   auto timingTree = storage->getTimingTree();
    LIKWID_MARKER_START( "Solve" );
-
+   timingTree->start( "Solve" );
    if ( solverSettings.solverType == CG )
    {
+      timingTree->start( "CG" );
       solver->solve( A, u, f, maxLevel );
       errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
       writeDBEntry( db, dbEntry, residualL2, errorL2, appSettings.database );
       auto residualRate = residualL2 / lastResidualL2;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9s | %9.2e | %9.2e | %9.2e", "final", residualL2, residualRate, errorL2 ) )
+      timingTree->stop( "CG" );
    }
    else if ( solverSettings.solverType == GMG_WJAC )
    {
       while ( residualL2 / initialResidualL2 > solverSettings.relativeResidualReduction )
       {
+         timingTree->start( std::to_string( iteration ) );
          solver->solve( A, u, f, maxLevel );
          errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
          writeDBEntry( db, dbEntry, residualL2, errorL2, appSettings.database );
@@ -664,11 +668,13 @@ void tokamak( TokamakDomain         tokamakDomain,
          lastResidualL2    = residualL2;
          WALBERLA_LOG_INFO_ON_ROOT(
              walberla::format( " %9d | %9.2e | %9.2e | %9.2e", iteration, residualL2, residualRate, errorL2 ) )
+         timingTree->stop( std::to_string( iteration ) );
          iteration++;
       }
    }
    else if ( solverSettings.solverType == FMG_WJAC )
    {
+      timingTree->start( std::to_string( iteration ) );
       solverPre->solve( A, u, f, maxLevel );
       errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
       writeDBEntry( db, dbEntry, residualL2, errorL2, appSettings.database );
@@ -676,10 +682,12 @@ void tokamak( TokamakDomain         tokamakDomain,
       auto residualRate = residualL2 / lastResidualL2;
       lastResidualL2    = residualL2;
       WALBERLA_LOG_INFO_ON_ROOT( walberla::format( " %9s | %9.2e | %9.2e | %9.2e", "FMG", residualL2, residualRate, errorL2 ) )
+      timingTree->stop( std::to_string( iteration ) );
       iteration++;
 
       while ( residualL2 / initialResidualL2 > solverSettings.relativeResidualReduction )
       {
+         timingTree->start( std::to_string( iteration ) );
          solver->solve( A, u, f, maxLevel );
          errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
          writeDBEntry( db, dbEntry, residualL2, errorL2, appSettings.database );
@@ -688,6 +696,7 @@ void tokamak( TokamakDomain         tokamakDomain,
          lastResidualL2 = residualL2;
          WALBERLA_LOG_INFO_ON_ROOT(
              walberla::format( " %9d | %9.2e | %9.2e | %9.2e", iteration, residualL2, residualRate, errorL2 ) )
+         timingTree->stop( std::to_string( iteration ) );
          iteration++;
       }
    }
@@ -695,6 +704,7 @@ void tokamak( TokamakDomain         tokamakDomain,
    {
       WALBERLA_ABORT( "Invalid solver type: " << solverSettings.solverType )
    }
+   timingTree->stop( "Solve" );
    LIKWID_MARKER_STOP( "Solve" );
    WALBERLA_LOG_INFO_ON_ROOT( "[progress] Residual and error calculation ..." )
    errorAndResidual( A, u, f, uExact, maxLevel, numInnerUnknowns, r, err, errorL2, residualL2 );
