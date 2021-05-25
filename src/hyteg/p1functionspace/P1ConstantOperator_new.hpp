@@ -556,7 +556,7 @@ typedef P1ConstantOperator_new< forms::p1_diffusion_affine_q2 > P1ConstantLaplac
 // typedef P1ConstantOperator< P1FenicsForm< p1_divt_cell_integral_1_otherwise, p1_tet_divt_tet_cell_integral_1_otherwise > > P1DivTyOperator;
 // typedef P1ConstantOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet_cell_integral_2_otherwise > > P1DivTzOperator;
 
-typedef P1ConstantOperator< forms::p1_mass_affine_qe > P1ConstantMassOperator_new;
+typedef P1ConstantOperator_new< forms::p1_mass_affine_qe > P1ConstantMassOperator_new;
 
 // typedef P1ConstantOperator< P1FenicsForm< p1_pspg_cell_integral_0_otherwise, p1_tet_pspg_tet_cell_integral_0_otherwise > > P1PSPGOperator;
 

@@ -371,8 +371,6 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t >>
 
    const PrimitiveDataID< LevelWiseMemory< vertexdof::macrocell::StencilMap_T >, Cell >&  getCellStencilID() const { return cellStencilID_; }
 
- private:
-
    // assemble stencils for all macro-vertices
    void assemble_stencil_vertices3D()
    {

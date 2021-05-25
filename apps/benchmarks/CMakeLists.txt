@@ -22,3 +22,7 @@ if( HYTEG_BUILD_WITH_PETSC )
     add_subdirectory(PetscCompare-2D-P2-Apply)
     add_subdirectory(PetscCompare-3D-P1-Apply)
 endif()
+
+if( HYTEG_BUILD_WITH_EIGEN )
+    add_subdirectory(surrogates)
+endif()

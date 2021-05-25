@@ -1,0 +1,9 @@
+Parameters
+{
+    level 5;
+    minTime 1;
+    operatorType constant; // either constant, variable or surrogate
+    polyDegree 2;
+    dimension 3;
+    blending true;
+}
