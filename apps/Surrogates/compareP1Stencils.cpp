@@ -175,9 +175,7 @@ int main( int argc, char* argv[] )
       return real_c( 0.2 ) + damping * std::sin( omg1 * pi * x[0] ) * std::cos( omg2 * pi * x[1] );
    };
 
-   expression parameterFunction = []( const hyteg::Point3D& x ) {
-      return 1.0 * x[0] + 0.0 * x[1] + 1.0;
-   };
+   expression parameterFunction = []( const hyteg::Point3D& x ) { return 1.0 * x[0] + 0.0 * x[1] + 1.0; };
 
    P1Function< real_t > kappa( "kappa", storage, minLevel, maxLevel );
    kappa.interpolate( parameterFunction, maxLevel, All );
@@ -188,6 +186,7 @@ int main( int argc, char* argv[] )
    logMessage( "Performing sanity check" );
    uint_t nSamples = getNumInnerMicroVertices( params.lsqLevel );
    uint_t nCoeffs  = ( params.degree + 2 ) * ( params.degree + 1 ) / 2;
+   WALBERLA_ASSERT_EQUAL( nCoeffs, Polynomial2D< MonomialBasis2D >::getNumCoefficients( params.degree ) );
    WALBERLA_LOG_INFO_ON_ROOT( " -> Sampling on level " << params.lsqLevel << " gives " << nSamples << " samples" );
    WALBERLA_LOG_INFO_ON_ROOT( " -> Polynomial of degree " << params.degree << " has " << nCoeffs << " coefficients" );
    if ( nSamples < nCoeffs )
@@ -268,12 +267,9 @@ int main( int argc, char* argv[] )
    sOp.interpolateStencils( params.degree, params.lsqLevel );
 
    logMessage( "Extracting polynomial" );
-   typedef Polynomial2D<MonomialBasis2D> Poly2D;
-   // typedef Polynomial< 2, Point2D, MonomialBasis2D > Poly2D;
-
-   auto                   polyID      = sOp.getFacePolyID();
-   std::vector< Poly2D >& stencilPoly = face.getData( polyID )->getData( maxLevel );
-   Poly2D&                poly        = stencilPoly[vertexdof::stencilIndexFromVertex( direction )];
+   auto                                            polyID      = sOp.getFacePolyID();
+   std::vector< Polynomial2D< MonomialBasis2D > >& stencilPoly = face.getData( polyID )->getData( maxLevel );
+   Polynomial2D< MonomialBasis2D >&                poly        = stencilPoly[vertexdof::stencilIndexFromVertex( direction )];
 
    for ( uint_t k = 0; k < nCoeffs; k++ )
    {
@@ -310,7 +306,7 @@ int main( int argc, char* argv[] )
 
    aux.assign( {1.0}, {stencilWeight}, maxLevel, All );
    aux.invertElementwise( maxLevel, All );
-   aux.multElementwise( { difference, aux }, maxLevel, All );
+   aux.multElementwise( {difference, aux}, maxLevel, All );
    real_t errorMaxRel = aux.getMaxMagnitude( maxLevel, Inner );
 
    WALBERLA_LOG_INFO_ON_ROOT( " -> maximum norm ........ " << errorNormMax );
@@ -339,7 +335,7 @@ int main( int argc, char* argv[] )
    vtkOutput.write( maxLevel );
 
    std::string separatorTop( 50, '=' );
-   WALBERLA_LOG_INFO_ON_ROOT( "" << separatorTop ); 
+   WALBERLA_LOG_INFO_ON_ROOT( "" << separatorTop );
 
    return 0;
 }
