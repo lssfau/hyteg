@@ -250,7 +250,7 @@ real_t solve( std::shared_ptr< StokesOperator >   L,
          break;
       }
 
-      hyteg::VTKOutput vtkOutput( "../output", name, storage );
+      hyteg::VTKOutput vtkOutput( "../../output", name, storage );
       vtkOutput.add( up.uvw );
       vtkOutput.add( up.p );
       vtkOutput.add( up_exact.uvw );
@@ -275,7 +275,7 @@ int main( int argc, char* argv[] )
    if ( argc == 1 )
    {
       walberla::shared_ptr< walberla::config::Config > cfg_( new walberla::config::Config );
-      cfg_->readParameterFile( "../data/param/Stokes2d_Surrogates.prm" );
+      cfg_->readParameterFile( "../../data/param/Stokes2d_Surrogates.prm" );
       cfg = cfg_;
    }
    else

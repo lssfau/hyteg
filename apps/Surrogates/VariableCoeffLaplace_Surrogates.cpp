@@ -325,7 +325,7 @@ void solveTmpl(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel,
           break;
       }
 
-      hyteg::VTKOutput vtkOutput("../output", name, storage);
+      hyteg::VTKOutput vtkOutput("../../output", name, storage);
       vtkOutput.add(u_exact);
       vtkOutput.add(u);
       vtkOutput.add(err);
@@ -447,7 +447,7 @@ void showStencilFunction(std::shared_ptr<PrimitiveStorage> storage, const uint_t
   }
 
   std::string name = "divKgrad_stencil_alpha=" + std::to_string(int(alpha));
-  hyteg::VTKOutput vtkOutput("../output", name, storage);
+  hyteg::VTKOutput vtkOutput("../../output", name, storage);
   vtkOutput.add(stencil);
   vtkOutput.write(level, 0);
 }
@@ -463,7 +463,7 @@ int main(int argc, char* argv[])
   if (argc == 1)
   {
     walberla::shared_ptr<walberla::config::Config> cfg_(new walberla::config::Config);
-    cfg_->readParameterFile("../data/param/VariableCoeffLaplace_Surrogates.prm");
+    cfg_->readParameterFile("../../data/param/VariableCoeffLaplace_Surrogates.prm");
     cfg = cfg_;
   }
   else
@@ -518,7 +518,7 @@ int main(int argc, char* argv[])
     return PI * (t1 + t2) * sinh(PI*x[1]);
   };
 
-  std::string msh = "../data/meshes/tri_" + std::to_string(n_el) + "el.msh";
+  std::string msh = "../../data/meshes/tri_" + std::to_string(n_el) + "el.msh";
   MeshInfo meshInfo = MeshInfo::fromGmshFile(msh);
   P2Form_divKgrad::callback = k;
 
