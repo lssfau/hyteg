@@ -26,6 +26,7 @@
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator_new.hpp"
@@ -118,6 +119,11 @@ void processCLI( int argc, char* argv[], param_t& params )
    }
 }
 
+uint_t getNumInnerMicroVertices( uint_t level )
+{
+   return levelinfo::num_microvertices_per_face( level ) - 3 * levelinfo::num_microvertices_per_edge( level ) + 3;
+}
+
 void logMessage( const char* msg )
 {
    WALBERLA_LOG_INFO_ON_ROOT( " " << msg );
@@ -161,23 +167,27 @@ int main( int argc, char* argv[] )
    uint_t minLevel = maxLevel;
 
    logMessage( "Selecting parameter function" );
-   real_t omg1 = real_c( 0 );
-   real_t omg2 = real_c( 0 );
+   real_t omg1 = real_c( 1 );
+   real_t omg2 = real_c( 1 );
 
-   expression parameterFunction = [omg1, omg2]( const hyteg::Point3D& x ) {
-      return real_c( 1.5 ) + std::sin( omg1 * pi * x[0] ) * std::sin( omg2 * pi * x[1] );
+   expression parameterFunction2 = [omg1, omg2]( const hyteg::Point3D& x ) {
+      real_t damping = real_c( 0.1 );
+      return real_c( 0.2 ) + damping * std::sin( omg1 * pi * x[0] ) * std::cos( omg2 * pi * x[1] );
    };
 
-   P1Function< real_t > kappa( "demo", storage, minLevel, maxLevel );
+   expression parameterFunction = []( const hyteg::Point3D& x ) {
+      return 1.0 * x[0] + 0.0 * x[1] + 1.0;
+   };
+
+   P1Function< real_t > kappa( "kappa", storage, minLevel, maxLevel );
    kappa.interpolate( parameterFunction, maxLevel, All );
 
    logMessage( "Setting up P1Form" );
    forms::p1_div_k_grad_affine_q3 form( parameterFunction, parameterFunction );
 
    logMessage( "Performing sanity check" );
-   uint_t nSamples = levelinfo::num_microvertices_per_face( params.lsqLevel )
-     - 3 * levelinfo::num_microvertices_per_edge( params.lsqLevel ) + 3;
-   uint_t nCoeffs = ( params.degree + 2 ) * ( params.degree + 1 ) / 2;
+   uint_t nSamples = getNumInnerMicroVertices( params.lsqLevel );
+   uint_t nCoeffs  = ( params.degree + 2 ) * ( params.degree + 1 ) / 2;
    WALBERLA_LOG_INFO_ON_ROOT( " -> Sampling on level " << params.lsqLevel << " gives " << nSamples << " samples" );
    WALBERLA_LOG_INFO_ON_ROOT( " -> Polynomial of degree " << params.degree << " has " << nCoeffs << " coefficients" );
    if ( nSamples < nCoeffs )
@@ -212,7 +222,6 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( "-> stencilSize = " << stencilSize );
 
    // select stencil weight
-   // auto direction = stencilDirection::VERTEX_C;
    auto direction = static_cast< stencilDirection >( params.weightIdx ); // makes me shiver a little ;-)
 
    // defines a function to evaluate the variable stencils and return one of the weights
@@ -259,13 +268,14 @@ int main( int argc, char* argv[] )
    sOp.interpolateStencils( params.degree, params.lsqLevel );
 
    logMessage( "Extracting polynomial" );
-   typedef Polynomial< 2, Point2D, MonomialBasis2D > Poly2D;
+   typedef Polynomial2D<MonomialBasis2D> Poly2D;
+   // typedef Polynomial< 2, Point2D, MonomialBasis2D > Poly2D;
 
    auto                   polyID      = sOp.getFacePolyID();
    std::vector< Poly2D >& stencilPoly = face.getData( polyID )->getData( maxLevel );
    Poly2D&                poly        = stencilPoly[vertexdof::stencilIndexFromVertex( direction )];
 
-   for ( uint_t k = 0; k <= params.degree; k++ )
+   for ( uint_t k = 0; k < nCoeffs; k++ )
    {
       WALBERLA_LOG_INFO_ON_ROOT( " -> coeff[" << k << "] = " << poly.getCoefficient( k ) );
    }
@@ -284,8 +294,34 @@ int main( int argc, char* argv[] )
    // =================
    logSectionHeader( "Postprocessing" );
 
+   logMessage( "Checking differences:" );
+   P1Function< real_t > difference( "approximation error", storage, minLevel, maxLevel );
+   difference.assign( {1.0, -1.0}, {stencilWeight, surrogateWeight}, maxLevel );
+
+   // compute error norms
+   real_t errorNormMax = difference.getMaxMagnitude( maxLevel, Inner );
+   real_t errorNormL2discr =
+       std::sqrt( difference.dotGlobal( difference, maxLevel, Inner ) ) / real_c( getNumInnerMicroVertices( params.lsqLevel ) );
+
+   P1ConstantMassOperator mass( storage, minLevel, maxLevel );
+   P1Function< real_t >   aux( "auxilliary", storage, minLevel, maxLevel );
+   mass.apply( difference, aux, maxLevel, Inner );
+   real_t errorNormL2 = std::sqrt( aux.dotGlobal( difference, maxLevel, Inner ) );
+
+   aux.assign( {1.0}, {stencilWeight}, maxLevel, All );
+   aux.invertElementwise( maxLevel, All );
+   aux.multElementwise( { difference, aux }, maxLevel, All );
+   real_t errorMaxRel = aux.getMaxMagnitude( maxLevel, Inner );
+
+   WALBERLA_LOG_INFO_ON_ROOT( " -> maximum norm ........ " << errorNormMax );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> discrete L2 norm .... " << errorNormL2discr );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> H0 norm ............. " << errorNormL2 );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> maximum relative .... " << errorMaxRel );
+
    logMessage( "Exporting weight functions" );
-   std::string oFile   = "surrogates";
+   std::stringstream stream;
+   stream << "surrogates_level-" << params.evalLevel << "_lsq-" << params.lsqLevel << "_degree-" << params.degree;
+   std::string oFile   = stream.str();
    std::string oFolder = "../../output";
    WALBERLA_LOG_INFO_ON_ROOT( " -> directory = " << oFolder );
    WALBERLA_LOG_INFO_ON_ROOT( " -> baseName  = " << oFile );
@@ -293,7 +329,17 @@ int main( int argc, char* argv[] )
    vtkOutput.add( kappa );
    vtkOutput.add( stencilWeight );
    vtkOutput.add( surrogateWeight );
+   vtkOutput.add( difference );
+
+   // set stencil functions to zero on boundaries
+   // stencilWeight.interpolate( real_c(0), maxLevel, Boundary );
+   // surrogateWeight.interpolate( real_c(0), maxLevel, Boundary );
+   // difference.interpolate( real_c(0), maxLevel, Boundary );
+
    vtkOutput.write( maxLevel );
+
+   std::string separatorTop( 50, '=' );
+   WALBERLA_LOG_INFO_ON_ROOT( "" << separatorTop ); 
 
    return 0;
 }
