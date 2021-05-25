@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Christoph Schwarzmeier, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2021 Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -55,15 +55,18 @@ typedef struct
 void showUsage()
 {
    std::cout << "\n --------\n  USAGE:\n --------\n\n"
-             << " show_mesh demonstrates generation of a MeshInfo object by one of the\n following methods:\n\n"
-             << " This is steered by choosing one of the options below:\n\n"
-             << "  --help ............ show this usage info\n"
+             << " compareP1Stencils: For the div-k-grad problem we evaluate a specific stencil weight\n"
+             << " for a standard FE approach and for a corresponding surrogate polynomial. The results\n"
+             << " are obtained for a single macro-face, compared and stored for visualisation.\n\n"
+             << " Required arguments are:\n\n"
              << "  --degree [n] ...... degree of interpolating polynomial\n"
              << "  --level [n] ....... refinement level for stencil evaluation\n"
              << "  --lsqLevel [n] .... sampling level for fitting surrogate polynomial\n"
              << "  --weight [n] ...... index of stencil weight to examine\n"
              << "                      (see enum stencilDirection for numeric values)\n\n"
-             << " For [n] please supply an integer value\n"
+             << " For [n] please supply an integer value\n\n"
+             << " or:\n\n"
+             << "  --help ............ show this usage info\n"
              << std::endl;
 }
 
@@ -171,6 +174,17 @@ int main( int argc, char* argv[] )
    logMessage( "Setting up P1Form" );
    forms::p1_div_k_grad_affine_q3 form( parameterFunction, parameterFunction );
 
+   logMessage( "Performing sanity check" );
+   uint_t nSamples = levelinfo::num_microvertices_per_face( params.lsqLevel )
+     - 3 * levelinfo::num_microvertices_per_edge( params.lsqLevel ) + 3;
+   uint_t nCoeffs = ( params.degree + 2 ) * ( params.degree + 1 ) / 2;
+   WALBERLA_LOG_INFO_ON_ROOT( " -> Sampling on level " << params.lsqLevel << " gives " << nSamples << " samples" );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> Polynomial of degree " << params.degree << " has " << nCoeffs << " coefficients" );
+   if ( nSamples < nCoeffs )
+   {
+      WALBERLA_ABORT( " -> Cowardly refusing to work with these parameters!" );
+   }
+
    // ===================
    //  Standard FEM Part
    // ===================
@@ -199,7 +213,7 @@ int main( int argc, char* argv[] )
 
    // select stencil weight
    // auto direction = stencilDirection::VERTEX_C;
-   auto direction = static_cast< stencilDirection >( params.weightIdx ); // makes me shiver
+   auto direction = static_cast< stencilDirection >( params.weightIdx ); // makes me shiver a little ;-)
 
    // defines a function to evaluate the variable stencils and return one of the weights
    expression weight = [&stencil, &form, sDir, direction]( const hyteg::Point3D& x ) {
@@ -249,11 +263,11 @@ int main( int argc, char* argv[] )
 
    auto                   polyID      = sOp.getFacePolyID();
    std::vector< Poly2D >& stencilPoly = face.getData( polyID )->getData( maxLevel );
-   Poly2D&                poly        = stencilPoly[params.weightIdx];
+   Poly2D&                poly        = stencilPoly[vertexdof::stencilIndexFromVertex( direction )];
 
    for ( uint_t k = 0; k <= params.degree; k++ )
    {
-     WALBERLA_LOG_INFO_ON_ROOT( " -> coeff[" << k << "] = " << poly.getCoefficient( k ) );
+      WALBERLA_LOG_INFO_ON_ROOT( " -> coeff[" << k << "] = " << poly.getCoefficient( k ) );
    }
 
    logMessage( "Evaluating surrogate polynomial" );
