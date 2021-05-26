@@ -138,6 +138,28 @@ void logSectionHeader( const char* header )
    WALBERLA_LOG_INFO_ON_ROOT( separatorTop << "\n " << hdr << "\n" << separatorBot );
 }
 
+Matrix< real_t, 2, 2 > computeMappingFunction( std::vector< Point3D >& vertices )
+{
+   Matrix< real_t, 2, 2 > M;
+
+   real_t x0 = vertices[0][0];
+   real_t x1 = vertices[1][0];
+   real_t x2 = vertices[2][0];
+
+   real_t y0 = vertices[0][1];
+   real_t y1 = vertices[1][1];
+   real_t y2 = vertices[2][1];
+
+   real_t det = ( x1 - x0 ) * ( y2 - y0 ) - ( x2 - x0 ) * ( y1 - y0 );
+
+   M( 0, 0 ) = ( y2 - y0 ) / det;
+   M( 0, 1 ) = ( x0 - x2 ) / det;
+   M( 1, 0 ) = ( y0 - y1 ) / det;
+   M( 1, 1 ) = ( x1 - x0 ) / det;
+
+   return M;
+}
+
 int main( int argc, char* argv[] )
 {
    walberla::mpi::Environment MPIenv( argc, argv );
@@ -158,7 +180,8 @@ int main( int argc, char* argv[] )
    echoParams( params );
 
    logMessage( "Generating single triangle mesh" );
-   MeshInfo meshInfo = MeshInfo::singleTriangle( Point2D( {0.0, 0.0} ), Point2D( {0.0, 1.0} ), Point2D( {1.0, 0.0} ) );
+   // MeshInfo meshInfo = MeshInfo::singleTriangle( Point2D( {0.0, 0.0} ), Point2D( {1.0, 0.0} ), Point2D( {0.0, 1.0} ) );
+   MeshInfo meshInfo = MeshInfo::singleTriangle( Point2D( {0.0, 0.0} ), Point2D( {2.0, 0.0} ), Point2D( {2.0, 1.0} ) );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
@@ -167,18 +190,30 @@ int main( int argc, char* argv[] )
    uint_t minLevel = maxLevel;
 
    logMessage( "Selecting parameter function" );
-   real_t omg1 = real_c( 1 );
-   real_t omg2 = real_c( 1 );
+   real_t omg1 = real_c( 0.25 );
+   real_t omg2 = real_c( 0.50 );
 
-   expression parameterFunction2 = [omg1, omg2]( const hyteg::Point3D& x ) {
+   expression parameterFunction1 = [omg1, omg2]( const hyteg::Point3D& x ) {
       real_t damping = real_c( 0.1 );
-      return real_c( 0.2 ) + damping * std::sin( omg1 * pi * x[0] ) * std::cos( omg2 * pi * x[1] );
+      return real_c( 0.2 ) + damping * std::cos( omg1 * pi * x[0] ) * std::sin( omg2 * pi * ( x[1] - 0.5 ) );
    };
 
-   expression parameterFunction = []( const hyteg::Point3D& x ) { return 1.0 * x[0] + 0.0 * x[1] + 1.0; };
+   expression parameterFunction = []( const hyteg::Point3D& x ) {
+      real_t value = real_c( 1.2 ) + std::sin( pi * ( x[1] * 0.5 + 0.1 ) ) + std::cos( 0.5 * pi * x[0] );
+      return 0.1 * value;
+   };
+
+   expression parameterFunction2 = []( const hyteg::Point3D& x ) { return 1.0 * x[0] + 0.0 * x[1] + 1.0; };
 
    P1Function< real_t > kappa( "kappa", storage, minLevel, maxLevel );
    kappa.interpolate( parameterFunction, maxLevel, All );
+   real_t kappaMin = kappa.getMinValue( maxLevel, All );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> kappa (minVal) = " << kappaMin );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> kappa (maxVal) = " << kappa.getMaxValue( maxLevel, All ) );
+   if ( kappaMin < real_c( 0 ) )
+   {
+      WALBERLA_ABORT( "Expecting positive values of kappa!" );
+   }
 
    logMessage( "Setting up P1Form" );
    forms::p1_div_k_grad_affine_q3 form( parameterFunction, parameterFunction );
@@ -194,6 +229,21 @@ int main( int argc, char* argv[] )
       WALBERLA_ABORT( " -> Cowardly refusing to work with these parameters!" );
    }
 
+   logMessage( "Extracting face and vertex info" );
+   std::vector< PrimitiveID > faceIDs = storage->getFaceIDs();
+   WALBERLA_ASSERT_EQUAL( faceIDs.size(), 1 );
+   Face& face = *storage->getFace( faceIDs[0] );
+
+   std::vector< Point3D > vertices;
+   for ( auto vertexID : face.neighborVertices() )
+   {
+      Vertex& vert = *storage->getVertex( vertexID );
+      vertices.push_back( vert.getCoordinates() );
+   }
+
+   logMessage( "Preparing affine mapping function" );
+   Matrix< real_t, 2, 2 > Phi = computeMappingFunction( vertices );
+
    // ===================
    //  Standard FEM Part
    // ===================
@@ -203,21 +253,16 @@ int main( int argc, char* argv[] )
    P1AffineDivkGradOperator_new varOp( storage, minLevel, maxLevel, form );
 
    logMessage( "Preparing Stencil Generation" );
-   std::vector< PrimitiveID > faceIDs = storage->getFaceIDs();
-   WALBERLA_ASSERT_EQUAL( faceIDs.size(), 1 );
-
-   Face&                                                   face        = *storage->getFace( faceIDs[0] );
    const PrimitiveDataID< StencilMemory< real_t >, Face >& stencilID   = varOp.getFaceStencilID();
    uint_t                                                  stencilSize = face.getData( stencilID )->getSize( maxLevel );
+   std::vector< real_t >                                   stencil( stencilSize );
 
-   std::vector< real_t > stencil( stencilSize );
+   real_t delta = real_c( 1 ) / ( walberla::real_c( levelinfo::num_microvertices_per_edge( maxLevel ) - 1 ) );
 
-   real_t h = real_c( 1 ) / ( walberla::real_c( levelinfo::num_microvertices_per_edge( maxLevel ) - 1 ) );
-
-   stencil::Directions2D sDir = stencil::Directions2D( h, face );
+   stencil::Directions2D sDir = stencil::Directions2D( delta, face );
 
    WALBERLA_LOG_INFO_ON_ROOT( "-> test level  = " << maxLevel );
-   WALBERLA_LOG_INFO_ON_ROOT( "-> mesh width  = " << h );
+   WALBERLA_LOG_INFO_ON_ROOT( "-> mesh width  = " << delta );
    WALBERLA_LOG_INFO_ON_ROOT( "-> stencilSize = " << stencilSize );
 
    // select stencil weight
@@ -277,9 +322,12 @@ int main( int argc, char* argv[] )
    }
 
    logMessage( "Evaluating surrogate polynomial" );
-   expression surrogate = [&poly]( const hyteg::Point3D& x ) {
-      Point2D p( {x[0], x[1]} );
-      return poly.eval( p );
+   expression surrogate = [&poly, &Phi, &vertices]( const hyteg::Point3D& x ) {
+      // polynomial is given in barycentric coordinates, so we must map x
+      // to the reference element here
+      Point2D aux( {x[0] - vertices[0][0], x[1] - vertices[0][1]} );
+      Point2D pnt = Phi.mul( aux );
+      return poly.eval( pnt );
    };
 
    P1Function< real_t > surrogateWeight( "surrogate weights", storage, minLevel, maxLevel );
@@ -300,19 +348,20 @@ int main( int argc, char* argv[] )
        std::sqrt( difference.dotGlobal( difference, maxLevel, Inner ) ) / real_c( getNumInnerMicroVertices( params.lsqLevel ) );
 
    P1ConstantMassOperator mass( storage, minLevel, maxLevel );
+   P1Function< real_t >   relErr( "relative error", storage, minLevel, maxLevel );
    P1Function< real_t >   aux( "auxilliary", storage, minLevel, maxLevel );
    mass.apply( difference, aux, maxLevel, Inner );
    real_t errorNormL2 = std::sqrt( aux.dotGlobal( difference, maxLevel, Inner ) );
 
-   aux.assign( {1.0}, {stencilWeight}, maxLevel, All );
-   aux.invertElementwise( maxLevel, All );
-   aux.multElementwise( {difference, aux}, maxLevel, All );
-   real_t errorMaxRel = aux.getMaxMagnitude( maxLevel, Inner );
+   relErr.assign( {1.0}, {stencilWeight}, maxLevel, All );
+   relErr.invertElementwise( maxLevel, All );
+   relErr.multElementwise( {difference, relErr}, maxLevel, All );
+   real_t errorMaxRel = relErr.getMaxMagnitude( maxLevel, Inner );
 
-   WALBERLA_LOG_INFO_ON_ROOT( " -> maximum norm ........ " << errorNormMax );
-   WALBERLA_LOG_INFO_ON_ROOT( " -> discrete L2 norm .... " << errorNormL2discr );
-   WALBERLA_LOG_INFO_ON_ROOT( " -> H0 norm ............. " << errorNormL2 );
-   WALBERLA_LOG_INFO_ON_ROOT( " -> maximum relative .... " << errorMaxRel );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> maximum norm ........ " << std::scientific << errorNormMax );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> discrete L2 norm .... " << std::scientific << errorNormL2discr );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> H0 norm ............. " << std::scientific << errorNormL2 );
+   WALBERLA_LOG_INFO_ON_ROOT( " -> maximum relative .... " << std::scientific << errorMaxRel );
 
    logMessage( "Exporting weight functions" );
    std::stringstream stream;
@@ -326,6 +375,7 @@ int main( int argc, char* argv[] )
    vtkOutput.add( stencilWeight );
    vtkOutput.add( surrogateWeight );
    vtkOutput.add( difference );
+   vtkOutput.add( relErr );
 
    // set stencil functions to zero on boundaries
    // stencilWeight.interpolate( real_c(0), maxLevel, Boundary );
