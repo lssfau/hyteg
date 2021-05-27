@@ -189,11 +189,13 @@ void benchmark( OpType optype, uint_t dim, bool blending, uint_t q, uint_t level
 
    // ===== run benchmark =====
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Benchmark: y = Ax" );
+
    uint_t n_iter = 0;
    while ( timer.total() < minTime )
    {
       timer.start();
-      LIKWID_MARKER_START( "applyCell" );
+      LIKWID_MARKER_START( "apply" );
 
       switch ( optype )
       {
@@ -232,14 +234,74 @@ void benchmark( OpType optype, uint_t dim, bool blending, uint_t q, uint_t level
          break;
       }
 
-      LIKWID_MARKER_STOP( "applyCell" );
+      LIKWID_MARKER_STOP( "apply" );
       timer.end();
 
       ++n_iter;
       // WALBERLA_LOG_INFO_ON_ROOT( "Iteration: " << n_iter << ": " << timer.last() << " s" );
    }
 
-   const auto avgTimePerIteration = timer.total() / real_c( n_iter );
+   auto avgTimePerIteration = timer.total() / real_c( n_iter );
+   WALBERLA_LOG_INFO_ON_ROOT( "Total number of iterations: " << n_iter );
+   WALBERLA_LOG_INFO_ON_ROOT( "Total time:                 " << timer.total() << " s" );
+   WALBERLA_LOG_INFO_ON_ROOT( "Avg. time per iteration:    " << avgTimePerIteration << " s" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "=====================================================" );
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Benchmark: x = (D+L)^{-1}(-Ux + b) , i.e. Gauss-Seidel" );
+
+   timer.reset();
+   n_iter = 0;
+   while ( timer.total() < minTime )
+   {
+      timer.start();
+      LIKWID_MARKER_START( "GS" );
+
+      switch ( optype )
+      {
+      case CONSTANT:
+         switch ( dim )
+         {
+         case 2:
+            L_const.smooth_sor_face( *face, src.getFaceDataID(), dst.getFaceDataID(), level, 1 );
+            break;
+         case 3:
+            L_const.smooth_sor_cell( *cell, src.getCellDataID(), dst.getCellDataID(), level, 1 );
+            break;
+         }
+         break;
+      case VARIABLE:
+         switch ( dim )
+         {
+         case 2:
+            L_var.smooth_sor_face( *face, src.getFaceDataID(), dst.getFaceDataID(), level, 1 );
+            break;
+         case 3:
+            L_var.smooth_sor_cell( *cell, src.getCellDataID(), dst.getCellDataID(), level, 1 );
+            break;
+         }
+         break;
+      case SURROGATE:
+         switch ( dim )
+         {
+         case 2:
+            L_q.smooth_sor_face( *face, src.getFaceDataID(), dst.getFaceDataID(), level, 1 );
+            break;
+         case 3:
+            L_q.smooth_sor_cell( *cell, src.getCellDataID(), dst.getCellDataID(), level, 1 );
+            break;
+         }
+         break;
+      }
+
+      LIKWID_MARKER_STOP( "GS" );
+      timer.end();
+
+      ++n_iter;
+      // WALBERLA_LOG_INFO_ON_ROOT( "Iteration: " << n_iter << ": " << timer.last() << " s" );
+   }
+
+   avgTimePerIteration = timer.total() / real_c( n_iter );
    WALBERLA_LOG_INFO_ON_ROOT( "Total number of iterations: " << n_iter )
    WALBERLA_LOG_INFO_ON_ROOT( "Total time:                 " << timer.total() << " s" )
    WALBERLA_LOG_INFO_ON_ROOT( "Avg. time per iteration:    " << avgTimePerIteration << " s" )
@@ -253,7 +315,8 @@ int main( int argc, char* argv[] )
    walberla::MPIManager::instance()->useWorldComm();
 
    LIKWID_MARKER_THREADINIT;
-   LIKWID_MARKER_REGISTER( "applyCell" );
+   LIKWID_MARKER_REGISTER( "apply" );
+   LIKWID_MARKER_REGISTER( "GS" );
 
    auto cfg = std::make_shared< walberla::config::Config >();
    if ( walberlaEnv.config() == nullptr )
