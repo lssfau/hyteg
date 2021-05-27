@@ -22,7 +22,7 @@
 
 #include <core/math/MatrixMxN.h>
 
-#include "hyteg/Operator.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"

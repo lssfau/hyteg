@@ -235,7 +235,7 @@ void VertexDoFFunction< ValueType >::setBoundaryCondition( BoundaryCondition bc 
 
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag ) const
+void VertexDoFFunction< ValueType >::interpolate( ValueType constant, uint_t level, DoFType flag ) const
 {
    if ( isDummy() )
    {
@@ -1067,7 +1067,7 @@ void VertexDoFFunction< ValueType >::assign(
 }
 
 template < typename ValueType >
-void VertexDoFFunction< ValueType >::add( const ValueType& scalar, const uint_t& level, DoFType flag ) const
+void VertexDoFFunction< ValueType >::add( ValueType scalar, uint_t level, DoFType flag ) const
 {
    if ( isDummy() )
    {

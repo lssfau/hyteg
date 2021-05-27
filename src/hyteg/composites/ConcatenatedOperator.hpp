@@ -21,7 +21,7 @@
 
 #include <type_traits>
 
-#include "hyteg/Operator.hpp"
+#include "hyteg/operators/Operator.hpp"
 
 namespace hyteg {
 

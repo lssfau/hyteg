@@ -25,7 +25,6 @@
 using walberla::uint_t;
 
 #include "hyteg/functions/FunctionTraits.hpp"
-// #include "hyteg/Operator.hpp"
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 

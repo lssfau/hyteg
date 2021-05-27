@@ -19,7 +19,7 @@
  */
 #pragma once
 
-#include "hyteg/Operator.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
