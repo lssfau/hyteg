@@ -1,6 +1,7 @@
 Parameters
 {
     level 5;
+    samplelevel 5;
     minTime 1;
     operatorType constant; // either constant, variable or surrogate
     polyDegree 2;

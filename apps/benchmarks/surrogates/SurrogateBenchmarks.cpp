@@ -126,7 +126,7 @@ std::shared_ptr< PrimitiveStorage > domain( uint_t dim, bool blending )
    return std::make_shared< PrimitiveStorage >( setupStorage );
 }
 
-void benchmark( OpType optype, uint_t dim, bool blending, uint_t q, uint_t level, real_t minTime )
+void benchmark( OpType optype, uint_t dim, bool blending, uint_t q, uint_t level, uint_t sample, real_t minTime )
 {
    // ===== parameters =====
 
@@ -138,29 +138,38 @@ void benchmark( OpType optype, uint_t dim, bool blending, uint_t q, uint_t level
    WALBERLA_LOG_INFO_ON_ROOT( "level:     " << level );
 
    // ===== number of DoF =====
-   uint_t ndof;
+   uint_t ndof, nsamples;
    switch ( dim )
    {
    case 2:
-      ndof = numberOfInnerDoFs< P1FunctionTag, Face >( level );
+      ndof     = numberOfInnerDoFs< P1FunctionTag, Face >( level );
+      nsamples = numberOfInnerDoFs< P1FunctionTag, Face >( sample );
       WALBERLA_LOG_INFO_ON_ROOT( "Number of inner DoFs / face: " << ndof );
-
       break;
    case 3:
-      ndof = numberOfInnerDoFs< P1FunctionTag, Cell >( level );
+      ndof     = numberOfInnerDoFs< P1FunctionTag, Cell >( level );
+      nsamples = numberOfInnerDoFs< P1FunctionTag, Cell >( sample );
       WALBERLA_LOG_INFO_ON_ROOT( "Number of inner DoFs / cell: " << ndof );
       break;
-
    default:
       WALBERLA_ABORT( "dimension must be either 2 or 3!" );
       break;
    }
 
+   if (optype == SURROGATE)
+   {
+      WALBERLA_LOG_INFO_ON_ROOT( "sampling:  " << sample );
+      WALBERLA_LOG_INFO_ON_ROOT( "number of sample points: " << nsamples );
+   }
+
    // ===== init domain =====
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Setting up domain" );
    auto storage = domain( dim, blending );
 
    // ===== init functions =====
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Initialize functions" );
 
    P1Function< real_t > src( "u", storage, level, level );
    P1Function< real_t > dst( "v", storage, level, level );
@@ -174,18 +183,29 @@ void benchmark( OpType optype, uint_t dim, bool blending, uint_t q, uint_t level
 
    // ===== init operators =====
 
+   WALBERLA_LOG_INFO_ON_ROOT( "Intitialize operators" );
+
    P1ConstantLaplaceOperator_new L_const( storage, level, level );
    P1BlendingLaplaceOperator_new L_var( storage, level, level );
    P1SurrogateLaplaceOperator    L_q( storage, level, level );
-   L_q.interpolateStencils( q, level );
+   L_q.interpolateStencils( q, sample );
 
    // ===== init benchmark =====
 
    walberla::WcTimer timer;
 
    //// extract first element from storage
-   auto cell = storage->getCell( storage->getCellIDs().front() );
-   auto face = storage->getFace( storage->getFaceIDs().front() );
+   Cell* cell = nullptr;
+   Face* face = nullptr;
+
+   if ( dim == 2 )
+   {
+      face = storage->getFace( storage->getFaceIDs().front() );
+   }
+   else
+   {
+      cell = storage->getCell( storage->getCellIDs().front() );
+   }
 
    // ===== run benchmark =====
 
@@ -333,12 +353,13 @@ int main( int argc, char* argv[] )
    walberla::Config::BlockHandle parameters   = cfg->getOneBlock( "Parameters" );
    const uint_t                  q            = parameters.getParameter< uint_t >( "polyDegree" );
    const uint_t                  level        = parameters.getParameter< uint_t >( "level" );
+   const uint_t                  sample       = parameters.getParameter< uint_t >( "samplelevel" );
    const real_t                  minTime      = parameters.getParameter< real_t >( "minTime" );
    const std::string             operatorType = parameters.getParameter< std::string >( "operatorType" );
    const uint_t                  dim          = parameters.getParameter< uint_t >( "dimension" );
    const bool                    blending     = parameters.getParameter< bool >( "blending" );
 
-   benchmark( strToOpType.at( operatorType ), dim, blending, q, level, minTime );
+   benchmark( strToOpType.at( operatorType ), dim, blending, q, level, sample, minTime );
 
    LIKWID_MARKER_CLOSE;
 
