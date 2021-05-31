@@ -80,7 +80,15 @@ public:
   }
 
   real_t evalX(real_t x) const {
-    return poly1_.eval(x);
+    // return poly1_.eval(x);
+    real_t px = poly1_.getCoefficient(0);
+    real_t xk = 1.0;
+    for (uint_t k = 1; k <= degree_; ++k)
+    {
+      xk *= x;
+      px += poly1_.getCoefficient(k) * xk;
+    }
+    return px;
   }
 
   template<uint_t Degree>
@@ -344,7 +352,15 @@ class Polynomial3DEvaluator{
 
   // evaluate p|yz(x)
   real_t evalX(real_t x) const {
-    return poly_yz_.eval(x);
+    // return poly_yz_.eval(x);
+    real_t px = poly_yz_.getCoefficient(0);
+    real_t xk = 1.0;
+    for (uint_t k = 1; k <= degree_; ++k)
+    {
+      xk *= x;
+      px += poly_yz_.getCoefficient(k) * xk;
+    }
+    return px;
   }
 
  private:
