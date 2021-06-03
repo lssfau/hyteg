@@ -19,7 +19,11 @@
  */
 #pragma once
 
+#include "core/DataTypes.h"
+
 namespace hyteg {
+
+using walberla::real_t;
 
 template < typename Function >
 class WeightedJacobiSmoothable
