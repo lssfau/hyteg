@@ -34,6 +34,7 @@
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "hyteg/p1functionspace/variablestencil/VertexDoFVariableStencil.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 
 #include "P1Elements.hpp"
 
@@ -43,7 +44,13 @@ using walberla::int_c;
 using walberla::real_t;
 
 template < class P1Form >
-class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
+class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >,
+                   public GSSmoothable< P1Function< real_t > >,
+                   public GSBackwardsSmoothable< P1Function< real_t > >,
+                   public SORSmoothable< P1Function< real_t > >,
+                   public SORBackwardsSmoothable< P1Function< real_t > >,
+                   public WeightedJacobiSmoothable< P1Function< real_t > >,
+                   public OperatorWithInverseDiagonal< P1Function< real_t > >
 {
  protected:
    using Operator< P1Function< real_t >, P1Function< real_t > >::storage_;
@@ -228,13 +235,13 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       this->stopTiming( "Apply" );
    }
 
-   void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const
+   void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const override
 
    {
       smooth_sor( dst, rhs, 1.0, level, flag );
    }
 
-   void smooth_gs_backwards( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const
+   void smooth_gs_backwards( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const override
    {
       smooth_sor_backwards( dst, rhs, 1.0, level, flag );
    }
@@ -243,8 +250,17 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
                     const P1Function< real_t >& rhs,
                     real_t                      relax,
                     size_t                      level,
+                    DoFType                     flag ) const override
+   {
+      smooth_sor( dst, rhs, relax, level, flag, false );
+   }
+
+   void smooth_sor( const P1Function< real_t >& dst,
+                    const P1Function< real_t >& rhs,
+                    real_t                      relax,
+                    size_t                      level,
                     DoFType                     flag,
-                    const bool&                 backwards = false ) const
+                    const bool&                 backwards ) const
    {
       if ( backwards )
       {
@@ -309,7 +325,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
                               const P1Function< real_t >& rhs,
                               real_t                      relax,
                               size_t                      level,
-                              DoFType                     flag ) const
+                              DoFType                     flag ) const override
    {
       smooth_sor( dst, rhs, relax, level, flag, true );
    }
@@ -317,9 +333,9 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
    void smooth_jac( const P1Function< real_t >& dst,
                     const P1Function< real_t >& rhs,
                     const P1Function< real_t >& src,
-                    const real_t&               relax,
+                    const real_t                relax,
                     size_t                      level,
-                    DoFType                     flag ) const
+                    DoFType                     flag ) const override
    {
       this->startTiming( "smooth_jac" );
 
@@ -350,7 +366,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       return diagonalValues_;
    };
 
-   std::shared_ptr< P1Function< real_t > > getInverseDiagonalValues() const
+   std::shared_ptr< P1Function< real_t > > getInverseDiagonalValues() const override
    {
       WALBERLA_CHECK_NOT_NULLPTR(
           inverseDiagonalValues_,

@@ -59,6 +59,11 @@ class GenericOperator
                        size_t                            level,
                        DoFType                           flag,
                        UpdateType                        updateType = Replace ) const = 0;
+
+   virtual void smooth_gs( const GenericFunction< value_t >& src,
+                           const GenericFunction< value_t >& dst,
+                           size_t                            level,
+                           DoFType                           flag ) const = 0;
 };
 
 } // namespace hyteg

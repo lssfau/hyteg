@@ -52,13 +52,16 @@
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 
 namespace hyteg {
 
 using walberla::real_t;
 
 template < class P2Form >
-class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function< real_t > >
+class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function< real_t > >,
+                              public WeightedJacobiSmoothable< P2Function< real_t > >,
+                              public OperatorWithInverseDiagonal< P2Function< real_t > >
 {
  public:
    P2ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
@@ -96,7 +99,7 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
       return diagonalValues_;
    };
 
-   std::shared_ptr< P2Function< real_t > > getInverseDiagonalValues() const
+   std::shared_ptr< P2Function< real_t > > getInverseDiagonalValues() const override
    {
       WALBERLA_CHECK_NOT_NULLPTR(
           inverseDiagonalValues_,
@@ -115,7 +118,7 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
                     const P2Function< real_t >& src,
                     real_t                      omega,
                     size_t                      level,
-                    DoFType                     flag ) const;
+                    DoFType                     flag ) const override;
 
    void smooth_gs( const P2Function< real_t >&, const P2Function< real_t >&, size_t, DoFType ) const
    {
