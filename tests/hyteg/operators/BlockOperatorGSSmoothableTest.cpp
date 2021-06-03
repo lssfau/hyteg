@@ -24,12 +24,11 @@
 #include "core/debug/TestSubsystem.h"
 #include "core/timing/all.h"
 
-#include "hyteg/operators/BlockOperator.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
+#include "hyteg/operators/BlockOperator.hpp"
 #include "hyteg/operators/VectorToVectorOperator.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-
 
 // Test, that the Gauss-Seidel-Smoother of the block operator, finds in one iteration the correct solution.
 
@@ -57,6 +56,8 @@ class TestBlockFunction : public BlockFunction< value_t >
 class TestBlockFunctionTag
 {};
 
+namespace hyteg {
+
 template < typename VType >
 struct FunctionTrait< TestBlockFunction< VType > >
 {
@@ -67,6 +68,8 @@ struct FunctionTrait< TestBlockFunction< VType > >
 
    static const functionTraits::FunctionKind kind = functionTraits::OTHER_FUNCTION;
 };
+
+} // namespace hyteg
 
 typedef TestBlockFunction< real_t > fType;
 
@@ -174,30 +177,34 @@ int main( int argc, char* argv[] )
    fType b( "b", storage, minLevel, maxLevel );
    fType error( "error", storage, minLevel, maxLevel );
 
-   auto dirichlet0 = [](auto p){ return std::sin(5*p[0])*p[1]; };
-   auto dirichlet1 = [](auto p){ return std::cos(5*p[1])*p[0]; };
+   auto dirichlet0 = []( auto p ) { return std::sin( 5 * p[0] ) * p[1]; };
+   auto dirichlet1 = []( auto p ) { return std::cos( 5 * p[1] ) * p[0]; };
 
-   for (uint_t level = minLevel; level <= maxLevel; level += 1) {
+   for ( uint_t level = minLevel; level <= maxLevel; level += 1 )
+   {
       // manufactured solution
-      x_exact[0].interpolate([](auto p){ return p[0] + p[1]; }, level, All);
-      x_exact[1].interpolate([](auto p){ return p[0] - p[1]; }, level, All);
-      x_exact[0].interpolate(dirichlet0, level, DirichletBoundary);
-      x_exact[1].interpolate(dirichlet1, level, DirichletBoundary);
+      x_exact[0].interpolate( []( auto p ) { return p[0] + p[1]; }, level, All );
+      x_exact[1].interpolate( []( auto p ) { return p[0] - p[1]; }, level, All );
+      x_exact[0].interpolate( dirichlet0, level, DirichletBoundary );
+      x_exact[1].interpolate( dirichlet1, level, DirichletBoundary );
       // random stuff
-      x[0].interpolate(dirichlet0, level, All);
-      x[1].interpolate(dirichlet1, level, All);
+      x[0].interpolate( dirichlet0, level, All );
+      x[1].interpolate( dirichlet1, level, All );
       // righthand side
-      b[0].interpolate([](auto p){ return (2*p[0] + p[1] + 1) * (p[0] + p[1]); }, level, All);
-      b[1].interpolate([](auto p){ return (p[0] - p[1]) * (p[0] + p[1]) + (5. * p[0] - 0.5 * p[1] + 0.75) * (p[0] - p[1]); }, level, All);
+      b[0].interpolate( []( auto p ) { return ( 2 * p[0] + p[1] + 1 ) * ( p[0] + p[1] ); }, level, All );
+      b[1].interpolate(
+          []( auto p ) { return ( p[0] - p[1] ) * ( p[0] + p[1] ) + ( 5. * p[0] - 0.5 * p[1] + 0.75 ) * ( p[0] - p[1] ); },
+          level,
+          All );
    }
 
-   op->smooth_gs(x, b, maxLevel, Inner | NeumannBoundary);
+   op->smooth_gs( x, b, maxLevel, Inner | NeumannBoundary );
 
-   error.assign({1, -1}, {x, x_exact}, maxLevel, All);
+   error.assign( { 1, -1 }, { x, x_exact }, maxLevel, All );
 
-   const auto errorValue = error.dotGlobal(error, maxLevel, All);
+   const auto errorValue = error.dotGlobal( error, maxLevel, All );
 
-   WALBERLA_CHECK_FLOAT_EQUAL(errorValue, 0.);
+   WALBERLA_CHECK_FLOAT_EQUAL( errorValue, 0. );
 
    return EXIT_SUCCESS;
 }
