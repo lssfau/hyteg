@@ -17,30 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include <cmath>
-#include <utility>
-
-#include "core/DataTypes.h"
-#include "core/Environment.h"
-#include "core/math/Random.h"
-#include "core/mpi/MPIManager.h"
-
-#include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
-#include "hyteg/functions/BlockFunction.hpp"
-#include "hyteg/operators/BlockOperator.hpp"
-#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-#include "hyteg/solvers/GaussSeidelSmoother.hpp"
-#include "hyteg/solvers/MinresSolver.hpp"
-
-using walberla::real_t;
-using walberla::uint_c;
-using walberla::uint_t;
-
-using namespace hyteg;
 
 /**
  * \page 08_CahnHilliard A full app for the Cahn-Hilliard equation.
@@ -213,8 +189,8 @@ using namespace hyteg;
  *
  * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction meta-information
  *
- * If now one of HyTeG's internal algorithms needs to now the value type of a unknown function type ```UnknownType```, it can do this by calling
- * ```hyteg::FunctionTrait< UnknownType >::ValueType```.
+ * If now one of HyTeG's internal algorithms needs to now the value type of a unknown function type `UnknownType`, it can do this by calling
+ * `hyteg::FunctionTrait< UnknownType >::ValueType`.
  * This is implemented for hyteg::P1Function, hyteg::P2Function, hyteg::P2P1TaylorHoodFunction, ... and now also for our
  * `CahnHilliardFunction`.
  *
@@ -237,6 +213,31 @@ using namespace hyteg;
  * [TRAITS] https://www.boost.org/doc/libs/1_53_0/libs/geometry/doc/html/geometry/design.html
  *
  */
+
+#include <cmath>
+#include <utility>
+
+#include "core/DataTypes.h"
+#include "core/Environment.h"
+#include "core/math/Random.h"
+#include "core/mpi/MPIManager.h"
+
+#include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
+#include "hyteg/functions/BlockFunction.hpp"
+#include "hyteg/operators/BlockOperator.hpp"
+#include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/solvers/MinresSolver.hpp"
+
+using walberla::real_t;
+using walberla::uint_c;
+using walberla::uint_t;
+
+using namespace hyteg;
 
 /// [CahnHilliardFunction definition]
 template < typename value_t >
@@ -281,6 +282,8 @@ class P1CahnHilliardFunction : public BlockFunction< value_t >
 class P1CahnHilliardFunctionTag
 {};
 
+namespace hyteg {
+
 template < typename VType >
 struct FunctionTrait< P1CahnHilliardFunction< VType > >
 {
@@ -291,6 +294,8 @@ struct FunctionTrait< P1CahnHilliardFunction< VType > >
 
    static const functionTraits::FunctionKind kind = functionTraits::OTHER_FUNCTION;
 };
+
+} // namespace hyteg
 /// [CahnHilliardFunction meta-information]
 
 using chType = P1CahnHilliardFunction< real_t >;
@@ -310,6 +315,40 @@ std::shared_ptr< BlockOperator< chType, chType > > create_lhs_operator( const st
    P1LinearCombinationForm form11;
    form11.addOwnedForm< LaplaceFormType >( -std::pow( epsilon, 2 ) );
    form11.addOwnedForm< MassFormType >( -2 );
+
+   auto op = std::make_shared< BlockOperator< chType, chType > >( storage, minLevel, maxLevel, 2, 2 );
+   op->createSubOperator< P1ConstantLinearCombinationOperator >( 0, 0, storage, minLevel, maxLevel, form00 );
+   op->createSubOperator< P1ConstantLinearCombinationOperator >( 1, 1, storage, minLevel, maxLevel, form11 );
+   op->createSubOperator< P1ConstantMassOperator >( 0, 1, storage, minLevel, maxLevel );
+   op->createSubOperator< P1ConstantMassOperator >( 1, 0, storage, minLevel, maxLevel );
+
+   return op;
+}
+
+std::shared_ptr< MinResSolver< BlockOperator< chType, chType > > >
+    create_solver( const std::shared_ptr< PrimitiveStorage >& storage,
+                   uint_t                                     minLevel,
+                   uint_t                                     maxLevel,
+                   real_t                                     tau,
+                   real_t                                     epsilon )
+{
+   WALBERLA_UNUSED( tau );
+   WALBERLA_UNUSED( epsilon );
+   return std::make_shared< MinResSolver< BlockOperator< chType, chType > > >( storage, minLevel, maxLevel );
+}
+
+std::shared_ptr< BlockOperator< chType, chType > > create_lhs_operator_v2( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                                           uint_t                                     minLevel,
+                                                                           uint_t                                     maxLevel,
+                                                                           real_t                                     tau,
+                                                                           real_t                                     epsilon )
+{
+   P1LinearCombinationForm form00;
+   form00.addOwnedForm< LaplaceFormType >( std::sqrt( tau ) );
+
+   P1LinearCombinationForm form11;
+   form11.addOwnedForm< LaplaceFormType >( -std::pow( epsilon, 2 ) * std::sqrt( tau ) );
+   form11.addOwnedForm< MassFormType >( -2 * std::sqrt( tau ) );
 
    auto op = std::make_shared< BlockOperator< chType, chType > >( storage, minLevel, maxLevel, 2, 2 );
    op->createSubOperator< P1ConstantLinearCombinationOperator >( 0, 0, storage, minLevel, maxLevel, form00 );
@@ -358,6 +397,56 @@ class RHSAssembler
    real_t epsilon_;
 };
 
+class CahnHilliardEvolutionOperator
+{
+ public:
+   CahnHilliardEvolutionOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                  uint_t                                     minLevel,
+                                  uint_t                                     maxLevel,
+                                  real_t                                     tau,
+                                  real_t                                     epsilon )
+   : epsilon_( epsilon )
+   , tau_( tau )
+   , lhsOp_( create_lhs_operator_v2( storage, minLevel, maxLevel, tau, epsilon ) )
+   , solver_( create_solver( storage, minLevel, maxLevel, tau, epsilon ) )
+   , rhsAssembler_( storage, minLevel, maxLevel, epsilon )
+   , rhs_( "rhs", storage, minLevel, maxLevel )
+   {}
+
+   void apply( const chType& u_old, const chType& u_now, uint_t level )
+   {
+      rhsAssembler_.assemble( u_old, rhs_, level, All );
+
+      scale( rhs_, rhs_, level, All );
+
+      // solve the system
+      u_now.assign( { 1 }, { u_old }, level, All );
+      solver_->solve( *lhsOp_, u_now, rhs_, level );
+
+      scale( u_now, u_now, level, All );
+   }
+
+ protected:
+   void scale( const chType& src, const chType& dst, uint_t level, DoFType flag ) const
+   {
+      const real_t factor = std::pow( tau_, 0.25 );
+      dst.getMu().assign( { 1. / factor }, { src.getMu() }, level, flag );
+      dst.getPhi().assign( { factor }, { src.getPhi() }, level, flag );
+   }
+
+ protected:
+   real_t epsilon_;
+   real_t tau_;
+
+   std::shared_ptr< BlockOperator< chType, chType > > lhsOp_;
+
+   std::shared_ptr< MinResSolver< BlockOperator< chType, chType > > > solver_;
+
+   RHSAssembler rhsAssembler_;
+
+   chType rhs_;
+};
+
 std::shared_ptr< hyteg::PrimitiveStorage > create_storage()
 {
    hyteg::Point2D lowerRight( { -1, -1 } );
@@ -403,9 +492,8 @@ int main( int argc, char** argv )
 
    auto lhsOp = create_lhs_operator( storage, minLevel, maxLevel, tau, epsilon );
 
-   RHSAssembler rhsAssembler( storage, minLevel, maxLevel, epsilon );
+   CahnHilliardEvolutionOperator chOperator( storage, minLevel, maxLevel, tau, epsilon );
 
-   // one species has a slight majority
    u_prev.getPhi().interpolate(
        []( const Point3D& ) { return walberla::math::realRandom( real_t( -0.01 ), real_t( 0.01 ) ); }, maxLevel, All );
    u_prev.getMu().interpolate( 0, maxLevel, All );
@@ -423,10 +511,7 @@ int main( int argc, char** argv )
          break;
 
       WALBERLA_LOG_INFO( "iter = " << k << " t = " << t_now );
-
-      rhsAssembler.assemble( u_prev, rhs, maxLevel, All );
-
-      solver->solve( *lhsOp, u_now, rhs, maxLevel );
+      chOperator.apply( u_prev, u_now, maxLevel );
 
       u_prev.assign( { 1. }, { u_now }, maxLevel, All );
 
