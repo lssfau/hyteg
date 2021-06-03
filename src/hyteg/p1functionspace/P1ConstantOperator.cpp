@@ -30,6 +30,8 @@
 #pragma warning( pop )
 #endif
 
+#include "core/OpenMP.h"
+
 #include "hyteg/forms/P1RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
@@ -56,8 +58,6 @@
 #include "hyteg/p1functionspace/variablestencil/VertexDoFVariableStencil.hpp"
 
 #include "P1Elements.hpp"
-
-#include "core/OpenMP.h"
 
 namespace hyteg {
 
@@ -241,7 +241,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
             {
                auto neighborCell = storage_->getCell( edge->neighborCells().at( neighborCellID ) );
                auto vertexAssemblyIndexInCell =
-                   vertexdof::macroedge::getIndexInNeighboringMacroCell( {1, 0, 0}, *edge, neighborCellID, *storage_, level );
+                   vertexdof::macroedge::getIndexInNeighboringMacroCell( { 1, 0, 0 }, *edge, neighborCellID, *storage_, level );
                stencilMap[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
                    storage_, *neighborCell, vertexAssemblyIndexInCell, level, form_ );
             }
@@ -250,96 +250,96 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
 
       if ( level >= 1 )
       {
-        for ( const auto & it : storage_->getFaces())
-        {
-          auto face = it.second;
-          auto & stencilMemory = face->getData( getFaceStencil3DID())->getData( level );
+         for ( const auto& it : storage_->getFaces() )
+         {
+            auto  face          = it.second;
+            auto& stencilMemory = face->getData( getFaceStencil3DID() )->getData( level );
 
-          for ( uint_t neighborCellID = 0; neighborCellID < face->getNumNeighborCells(); neighborCellID++ )
-          {
-            auto neighborCell = storage_->getCell( face->neighborCells().at( neighborCellID ));
-            auto vertexAssemblyIndexInCell =
-            vertexdof::macroface::getIndexInNeighboringMacroCell( { 1, 1, 0 }, *face, neighborCellID, *storage_, level );
-            stencilMemory[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
-            storage_, *neighborCell, vertexAssemblyIndexInCell, level, form_ );
-          }
-
-          // The lumping and inverted diagonal modifications for split stencils is realized
-          // by adding up the diagonal entries on the _first_ neighbor cell and setting all other parts to zero.
-
-          WALBERLA_ASSERT_GREATER( face->getNumNeighborCells(), 0 );
-
-          if ( Lumped )
-          {
             for ( uint_t neighborCellID = 0; neighborCellID < face->getNumNeighborCells(); neighborCellID++ )
             {
-              for ( auto & stencilIt : stencilMemory[neighborCellID] )
-              {
-                if ( !( neighborCellID == 0 && stencilIt.first == indexing::IndexIncrement( { 0, 0, 0 } )))
-                {
-                  stencilMemory[0][{ 0, 0, 0 }] += stencilIt.second;
-                  stencilIt.second = 0;
-                }
-              }
+               auto neighborCell = storage_->getCell( face->neighborCells().at( neighborCellID ) );
+               auto vertexAssemblyIndexInCell =
+                   vertexdof::macroface::getIndexInNeighboringMacroCell( { 1, 1, 0 }, *face, neighborCellID, *storage_, level );
+               stencilMemory[neighborCellID] = P1Elements::P1Elements3D::assembleP1LocalStencilNew(
+                   storage_, *neighborCell, vertexAssemblyIndexInCell, level, form_ );
             }
-          }
-          if ( Diagonal )
-          {
-            for ( uint_t neighborCellID = 0; neighborCellID < face->getNumNeighborCells(); neighborCellID++ )
+
+            // The lumping and inverted diagonal modifications for split stencils is realized
+            // by adding up the diagonal entries on the _first_ neighbor cell and setting all other parts to zero.
+
+            WALBERLA_ASSERT_GREATER( face->getNumNeighborCells(), 0 );
+
+            if ( Lumped )
             {
-              for ( auto & stencilIt : stencilMemory[neighborCellID] )
-              {
-                if ( stencilIt.first != indexing::IndexIncrement( { 0, 0, 0 } ))
-                {
-                  stencilIt.second = 0;
-                }
-              }
+               for ( uint_t neighborCellID = 0; neighborCellID < face->getNumNeighborCells(); neighborCellID++ )
+               {
+                  for ( auto& stencilIt : stencilMemory[neighborCellID] )
+                  {
+                     if ( !( neighborCellID == 0 && stencilIt.first == indexing::IndexIncrement( { 0, 0, 0 } ) ) )
+                     {
+                        stencilMemory[0][{ 0, 0, 0 }] += stencilIt.second;
+                        stencilIt.second = 0;
+                     }
+                  }
+               }
             }
-          }
-          if ( InvertDiagonal )
-          {
-            for ( uint_t neighborCellID = 1; neighborCellID < face->getNumNeighborCells(); neighborCellID++ )
+            if ( Diagonal )
             {
-              stencilMemory[0][{ 0, 0, 0 }] += stencilMemory[neighborCellID][{ 0, 0, 0 }];
-              stencilMemory[neighborCellID][{ 0, 0, 0 }] = 0;
+               for ( uint_t neighborCellID = 0; neighborCellID < face->getNumNeighborCells(); neighborCellID++ )
+               {
+                  for ( auto& stencilIt : stencilMemory[neighborCellID] )
+                  {
+                     if ( stencilIt.first != indexing::IndexIncrement( { 0, 0, 0 } ) )
+                     {
+                        stencilIt.second = 0;
+                     }
+                  }
+               }
             }
-            stencilMemory[0][{ 0, 0, 0 }] = 1.0 / stencilMemory[0][{ 0, 0, 0 }];
-          }
-        }
+            if ( InvertDiagonal )
+            {
+               for ( uint_t neighborCellID = 1; neighborCellID < face->getNumNeighborCells(); neighborCellID++ )
+               {
+                  stencilMemory[0][{ 0, 0, 0 }] += stencilMemory[neighborCellID][{ 0, 0, 0 }];
+                  stencilMemory[neighborCellID][{ 0, 0, 0 }] = 0;
+               }
+               stencilMemory[0][{ 0, 0, 0 }] = 1.0 / stencilMemory[0][{ 0, 0, 0 }];
+            }
+         }
       }
 
       if ( level >= 2 )
       {
-        for ( const auto & it : storage_->getCells())
-        {
-          auto cell = it.second;
-          auto & stencilMemory = cell->getData( getCellStencilID())->getData( level );
+         for ( const auto& it : storage_->getCells() )
+         {
+            auto  cell          = it.second;
+            auto& stencilMemory = cell->getData( getCellStencilID() )->getData( level );
 
-          form_.setGeometryMap( cell->getGeometryMap() );
+            form_.setGeometryMap( cell->getGeometryMap() );
 
-          stencilMemory =
-          P1Elements::P1Elements3D::assembleP1LocalStencilNew( storage_, *cell, indexing::Index( 1, 1, 1 ), level, form_ );
+            stencilMemory =
+                P1Elements::P1Elements3D::assembleP1LocalStencilNew( storage_, *cell, indexing::Index( 1, 1, 1 ), level, form_ );
 
-          if ( Lumped )
-          {
-            for ( auto dir : vertexdof::macrocell::neighborsWithoutCenter )
+            if ( Lumped )
             {
-              stencilMemory[{ 0, 0, 0 }] += stencilMemory[vertexdof::logicalIndexOffsetFromVertex( dir )];
-              stencilMemory[vertexdof::logicalIndexOffsetFromVertex( dir )] = 0;
+               for ( auto dir : vertexdof::macrocell::neighborsWithoutCenter )
+               {
+                  stencilMemory[{ 0, 0, 0 }] += stencilMemory[vertexdof::logicalIndexOffsetFromVertex( dir )];
+                  stencilMemory[vertexdof::logicalIndexOffsetFromVertex( dir )] = 0;
+               }
             }
-          }
-          if ( Diagonal )
-          {
-            for ( auto dir : vertexdof::macrocell::neighborsWithoutCenter )
+            if ( Diagonal )
             {
-              stencilMemory[vertexdof::logicalIndexOffsetFromVertex( dir )] = 0;
+               for ( auto dir : vertexdof::macrocell::neighborsWithoutCenter )
+               {
+                  stencilMemory[vertexdof::logicalIndexOffsetFromVertex( dir )] = 0;
+               }
             }
-          }
-          if ( InvertDiagonal )
-          {
-            stencilMemory[{ 0, 0, 0 }] = 1.0 / stencilMemory[{ 0, 0, 0 }];
-          }
-        }
+            if ( InvertDiagonal )
+            {
+               stencilMemory[{ 0, 0, 0 }] = 1.0 / stencilMemory[{ 0, 0, 0 }];
+            }
+         }
       }
    }
 }
@@ -375,17 +375,17 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
          Point3D dirN  = d2;
 
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form_, {x, x + dirW, x + dirS}, P1Elements::P1Elements2D::elementSW, face_stencil );
+             form_, { x, x + dirW, x + dirS }, P1Elements::P1Elements2D::elementSW, face_stencil );
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form_, {x, x + dirS, x + dirSE}, P1Elements::P1Elements2D::elementS, face_stencil );
+             form_, { x, x + dirS, x + dirSE }, P1Elements::P1Elements2D::elementS, face_stencil );
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form_, {x, x + dirSE, x + dirE}, P1Elements::P1Elements2D::elementSE, face_stencil );
+             form_, { x, x + dirSE, x + dirE }, P1Elements::P1Elements2D::elementSE, face_stencil );
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form_, {x, x + dirE, x + dirN}, P1Elements::P1Elements2D::elementNE, face_stencil );
+             form_, { x, x + dirE, x + dirN }, P1Elements::P1Elements2D::elementNE, face_stencil );
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form_, {x, x + dirN, x + dirNW}, P1Elements::P1Elements2D::elementN, face_stencil );
+             form_, { x, x + dirN, x + dirNW }, P1Elements::P1Elements2D::elementN, face_stencil );
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form_, {x, x + dirNW, x + dirW}, P1Elements::P1Elements2D::elementNW, face_stencil );
+             form_, { x, x + dirNW, x + dirW }, P1Elements::P1Elements2D::elementNW, face_stencil );
 
          if ( Lumped )
          {
@@ -460,21 +460,21 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
          // assemble south
          form_.setGeometryMap( faceS->getGeometryMap() );
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form_, {x, x + dir_W, x + dir_S}, P1Elements::P1Elements2D::elementSW, edge_stencil );
+             form_, { x, x + dir_W, x + dir_S }, P1Elements::P1Elements2D::elementSW, edge_stencil );
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form_, {x, x + dir_S, x + dir_SE}, P1Elements::P1Elements2D::elementS, edge_stencil );
+             form_, { x, x + dir_S, x + dir_SE }, P1Elements::P1Elements2D::elementS, edge_stencil );
          vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-             form_, {x, x + dir_SE, x + dir_E}, P1Elements::P1Elements2D::elementSE, edge_stencil );
+             form_, { x, x + dir_SE, x + dir_E }, P1Elements::P1Elements2D::elementSE, edge_stencil );
 
          if ( edge.getNumNeighborFaces() == 2 )
          {
             form_.setGeometryMap( faceN->getGeometryMap() );
             vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                form_, {x, x + dir_E, x + dir_N}, P1Elements::P1Elements2D::elementNE, edge_stencil );
+                form_, { x, x + dir_E, x + dir_N }, P1Elements::P1Elements2D::elementNE, edge_stencil );
             vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                form_, {x, x + dir_N, x + dir_NW}, P1Elements::P1Elements2D::elementN, edge_stencil );
+                form_, { x, x + dir_N, x + dir_NW }, P1Elements::P1Elements2D::elementN, edge_stencil );
             vertexdof::variablestencil::assembleLocalStencil< P1Form >(
-                form_, {x, x + dir_NW, x + dir_W}, P1Elements::P1Elements2D::elementNW, edge_stencil );
+                form_, { x, x + dir_NW, x + dir_W }, P1Elements::P1Elements2D::elementNW, edge_stencil );
          }
 
          if ( Lumped )
@@ -549,7 +549,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
          uint_t neighborId = 0;
          for ( auto& faceId : vertex.neighborFaces() )
          {
-            Face* face       = storage_->getFace( faceId );
+            Face* face = storage_->getFace( faceId );
             form_.setGeometryMap( face->getGeometryMap() );
 
             uint_t                     v_i       = face->vertex_index( vertex.getID() );
@@ -564,7 +564,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::assembleSte
                  h;
 
             Point3D matrixRow;
-            form_.integrate( {{x, x + d0, x + d2}}, matrixRow );
+            form_.integrate( { { x, x + d0, x + d2 } }, matrixRow );
 
             uint_t i = 1;
             // iterate over adjacent edges
@@ -628,12 +628,12 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
    this->timingTree_->start( "Macro-Vertex" );
 
    std::vector< PrimitiveID > vertexIDs = this->getStorage()->getVertexIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( vertexIDs.size() ); i++ )
    {
-      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c(i)] );
+      Vertex& vertex = *this->getStorage()->getVertex( vertexIDs[uint_c( i )] );
 
       const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if ( testFlag( vertexBC, flag ) )
@@ -650,20 +650,20 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
    if ( level >= 1 )
    {
       std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-      #ifdef WALBERLA_BUILD_WITH_OPENMP
-      #pragma omp parallel for default(shared)
-      #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
       for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
       {
-         Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
+         Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
-          const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag());
-          if ( testFlag( edgeBC, flag ))
-          {
+         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if ( testFlag( edgeBC, flag ) )
+         {
             vertexdof::macroedge::apply< real_t >(
-            level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType );
-          }
-     }
+                level, edge, edgeStencilID_, src.getEdgeDataID(), dst.getEdgeDataID(), updateType );
+         }
+      }
    }
 
    this->timingTree_->stop( "Macro-Edge" );
@@ -673,12 +673,12 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
    if ( level >= 2 )
    {
       std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-      #ifdef WALBERLA_BUILD_WITH_OPENMP
-      #pragma omp parallel for default(shared)
-      #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
       {
-         Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
+         Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
 
          const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
          if ( testFlag( faceBC, flag ) )
@@ -822,12 +822,12 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::apply( cons
    if ( level >= 2 )
    {
       std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-      #ifdef WALBERLA_BUILD_WITH_OPENMP
-      #pragma omp parallel for default(shared)
-      #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
+         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
 
          const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
          if ( testFlag( cellBC, flag ) )
@@ -1421,7 +1421,6 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_sor(
       smooth_sor_macro_cells( dst, rhs, relax, level, flag, backwards );
    }
 
-
    if ( backwards )
       this->stopTiming( "SOR backwards" );
    else
@@ -1432,7 +1431,7 @@ template < class P1Form, bool Diagonal, bool Lumped, bool InvertDiagonal >
 void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_jac( const P1Function< real_t >& dst,
                                                                                  const P1Function< real_t >& rhs,
                                                                                  const P1Function< real_t >& src,
-                                                                                 const real_t&               omega,
+                                                                                 real_t                      omega,
                                                                                  size_t                      level,
                                                                                  DoFType                     flag ) const
 {
@@ -1440,11 +1439,11 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::smooth_jac(
 
    // compute the current residual
    this->apply( src, dst, level, flag );
-   dst.assign( {real_c( 1 ), real_c( -1 )}, {rhs, dst}, level, flag );
+   dst.assign( { real_c( 1 ), real_c( -1 ) }, { rhs, dst }, level, flag );
 
    // perform Jacobi update step
-   dst.multElementwise( {*getInverseDiagonalValues(), dst}, level, flag );
-   dst.assign( {1.0, omega}, {src, dst}, level, flag );
+   dst.multElementwise( { *getInverseDiagonalValues(), dst }, level, flag );
+   dst.assign( { 1.0, omega }, { src, dst }, level, flag );
 
    this->stopTiming( "smooth_jac" );
 }
@@ -1554,7 +1553,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::computeDiag
                {
                   for ( auto stencilIt : stencilMap[neighborCellID] )
                   {
-                     if ( stencilIt.first == indexing::IndexIncrement( {0, 0, 0} ) )
+                     if ( stencilIt.first == indexing::IndexIncrement( { 0, 0, 0 } ) )
                      {
                         centerValue += stencilIt.second;
                      }
@@ -1589,7 +1588,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::computeDiag
                {
                   for ( auto stencilIt : stencilMap[neighborCellID] )
                   {
-                     if ( stencilIt.first == indexing::IndexIncrement( {0, 0, 0} ) )
+                     if ( stencilIt.first == indexing::IndexIncrement( { 0, 0, 0 } ) )
                      {
                         centerValue += stencilIt.second;
                      }
@@ -1603,7 +1602,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::computeDiag
 
             for ( auto idx : vertexdof::macroface::Iterator( level ) )
             {
-               targetMemory [vertexdof::macroface::index( level, idx.x(), idx.y() )] = centerValue;
+               targetMemory[vertexdof::macroface::index( level, idx.x(), idx.y() )] = centerValue;
             }
          }
       }
@@ -1616,7 +1615,7 @@ void P1ConstantOperator< P1Form, Diagonal, Lumped, InvertDiagonal >::computeDiag
             auto stencilMap   = cell->getData( getCellStencilID() )->getData( level );
             auto targetMemory = cell->getData( targetFunction->getCellDataID() )->getPointer( level );
 
-            real_t centerValue = stencilMap[indexing::IndexIncrement( {0, 0, 0} )];
+            real_t centerValue = stencilMap[indexing::IndexIncrement( { 0, 0, 0 } )];
 
             for ( auto idx : vertexdof::macrocell::Iterator( level ) )
             {

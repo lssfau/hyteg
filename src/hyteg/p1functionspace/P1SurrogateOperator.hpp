@@ -111,6 +111,22 @@ class P1SurrogateOperator : public P1Operator<P1Form>
 
    }
 
+   const PrimitiveDataID< LevelWiseMemory< StencilPoly_face >, Face > getFacePolyID() {
+     if( storage_->hasGlobalCells() )
+       {
+         WALBERLA_LOG_WARNING( "P1SurrogateOperator::getFacePolyID() called for 3D mesh!" );
+       }
+     return facePolyID_;
+   }
+
+   const PrimitiveDataID< LevelWiseMemory< StencilPoly_cell >, Cell > getCellPolyID() {
+     if( !storage_->hasGlobalCells() )
+       {
+         WALBERLA_LOG_WARNING( "P1SurrogateOperator::getCellPolyID() called for 2D mesh!" );
+       }
+     return cellPolyID_;
+   }
+ 
  protected:
 
    static const uint_t faceStencilSize2D = 9;

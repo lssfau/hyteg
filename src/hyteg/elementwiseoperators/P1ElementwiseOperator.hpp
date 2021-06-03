@@ -36,16 +36,19 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 
 namespace hyteg {
 
 using walberla::real_t;
 
 template < class P1Form >
-class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
+class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function< real_t > >,
+                              public WeightedJacobiSmoothable< P1Function< real_t > >,
+                              public OperatorWithInverseDiagonal< P1Function< real_t > >
 {
- public:
-   P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
+public:
+P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
 
    P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                           size_t                                     minLevel,
@@ -69,7 +72,7 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                     const P1Function< real_t >& src,
                     real_t                      omega,
                     size_t                      level,
-                    DoFType                     flag ) const;
+                    DoFType                     flag ) const override;
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    /// Assemble operator as sparse matrix
@@ -110,7 +113,7 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
       return diagonalValues_;
    };
 
-   std::shared_ptr< P1Function< real_t > > getInverseDiagonalValues() const
+   std::shared_ptr< P1Function< real_t > > getInverseDiagonalValues() const override
    {
       WALBERLA_CHECK_NOT_NULLPTR(
           inverseDiagonalValues_,

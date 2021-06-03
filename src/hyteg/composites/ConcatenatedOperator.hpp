@@ -22,6 +22,7 @@
 #include <type_traits>
 
 #include "hyteg/operators/Operator.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 
 namespace hyteg {
 
@@ -36,7 +37,8 @@ namespace hyteg {
 /// \tparam OpType1     Type of the operator applied first.
 /// \tparam OpType2     Type of the operator applied second.
 template < typename OpType1, typename OpType2 >
-class ConcatenatedOperator : public Operator< typename OpType1::srcType, typename OpType2::dstType >
+class ConcatenatedOperator : public Operator< typename OpType1::srcType, typename OpType2::dstType >,
+                             public OperatorWithInverseDiagonal< typename OpType1::srcType >
 {
  public:
    /// Creates a composite operator.
