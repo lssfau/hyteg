@@ -36,7 +36,8 @@ namespace hyteg {
 
 template < class P2Form >
 class P2VariableOperator : public Operator< P2Function< real_t >, P2Function< real_t > >,
-                           public GSSmoothable< P2Function< real_t > >
+                           public GSSmoothable< P2Function< real_t > >,
+                           public ConstantJacobiSmoothable< P2Function< real_t > >
 {
  public:
    P2VariableOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
@@ -191,7 +192,7 @@ class P2VariableOperator : public Operator< P2Function< real_t >, P2Function< re
                     const P2Function< real_t >& rhs,
                     const P2Function< real_t >& tmp,
                     size_t                      level,
-                    DoFType                     flag ) const
+                    DoFType                     flag ) const override
    {
       WALBERLA_ABORT( "To be implemented" );
    }

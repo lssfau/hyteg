@@ -40,6 +40,19 @@ class WeightedJacobiSmoothable
 };
 
 template < typename Function >
+class ConstantJacobiSmoothable
+{
+ public:
+   virtual ~ConstantJacobiSmoothable() = default;
+
+   virtual void smooth_jac( const Function& dst,
+                            const Function& rhs,
+                            const Function& tmp,
+                            size_t          level,
+                            DoFType         flag ) const = 0;
+};
+
+template < typename Function >
 class GSSmoothable
 {
  public:

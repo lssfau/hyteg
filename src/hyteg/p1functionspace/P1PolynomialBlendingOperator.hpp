@@ -55,7 +55,8 @@ namespace hyteg {
 
 template < class P1Form, OperatorType OprType >
 class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Function< real_t > >,
-                                     public GSSmoothable< P1Function< real_t > >
+                                     public GSSmoothable< P1Function< real_t > >,
+                                     public ConstantJacobiSmoothable< P1Function< real_t > >
 {
  public:
    typedef LSQPInterpolator< MonomialBasis2D, LSQPType::EDGE >   EdgeInterpolator;
@@ -483,7 +484,7 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
                     const P1Function< real_t >& rhs,
                     const P1Function< real_t >& tmp,
                     size_t                      level,
-                    DoFType                     flag ) const
+                    DoFType                     flag ) const override
    {
       checkForMissingPolynomial( level, polyDegree_ );
 

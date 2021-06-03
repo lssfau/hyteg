@@ -43,7 +43,8 @@ namespace hyteg {
 
 template < class P1Form >
 class P1VariableOperator : public Operator< P1Function< real_t >, P1Function< real_t > >,
-                           public GSSmoothable< P1Function< real_t > >
+                           public GSSmoothable< P1Function< real_t > >,
+                           public ConstantJacobiSmoothable< P1Function< real_t > >
 {
  public:
    P1VariableOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
@@ -102,7 +103,7 @@ class P1VariableOperator : public Operator< P1Function< real_t >, P1Function< re
       }
    }
 
-   void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const
+   void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const override
    {
       dst.communicate< Vertex, Edge >( level );
       dst.communicate< Edge, Face >( level );
@@ -159,7 +160,7 @@ class P1VariableOperator : public Operator< P1Function< real_t >, P1Function< re
                     const P1Function< real_t >& rhs,
                     const P1Function< real_t >& tmp,
                     size_t                      level,
-                    DoFType                     flag ) const
+                    DoFType                     flag ) const override
    {
       // start pulling vertex halos
       tmp.startCommunication< Edge, Vertex >( level );
