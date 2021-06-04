@@ -357,11 +357,11 @@ void run2DTestsWithoutBlending()
    compareForms< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >,
                  forms::p2_diffusion_affine_q2,
                  Matrix6r,
-                 2 >( triangle, 5e-14 );
+                 2 >( triangle, 1e-13 );
 
    logSectionHeader( "P2 mass, 2D, no blending (HFG)" );
    compareForms< P2FenicsForm< p2_mass_cell_integral_0_otherwise, fenics::NoAssemble >, forms::p2_mass_affine_qe, Matrix6r, 2 >(
-       triangle, 5e-14 );
+       triangle, 1e-13 );
 
    logSectionHeader( "P2 Epsilon, 2D, no blending (HFG)" );
    compareForms< P2FenicsForm< p2_stokes_epsilon_cell_integral_0_otherwise, fenics::NoAssemble >,
@@ -655,7 +655,7 @@ void run3DTestsWithoutBlending()
    compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >,
                  forms::p2_diffusion_affine_q2,
                  Matrix10r,
-                 3 >( theTet, 3e-14 );
+                 3 >( theTet, 1e-13 );
 
    logSectionHeader( "P1 Epsilon, 3D, no blending (HFG)" );
    compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_stokes_epsilon_tet_cell_integral_0_otherwise >,
