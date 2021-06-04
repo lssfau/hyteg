@@ -225,12 +225,16 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearProlongation.hpp"
+#include "hyteg/gridtransferoperators/P1toP1LinearRestriction.hpp"
 #include "hyteg/operators/BlockOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
+#include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 
 using walberla::real_t;
@@ -238,6 +242,9 @@ using walberla::uint_c;
 using walberla::uint_t;
 
 using namespace hyteg;
+
+// forward declarations:
+class CahnHilliardDiagonalPreconditioner;
 
 /// [CahnHilliardFunction definition]
 template < typename value_t >
@@ -332,9 +339,20 @@ std::shared_ptr< MinResSolver< BlockOperator< chType, chType > > >
                    real_t                                     tau,
                    real_t                                     epsilon )
 {
-   WALBERLA_UNUSED( tau );
-   WALBERLA_UNUSED( epsilon );
-   return std::make_shared< MinResSolver< BlockOperator< chType, chType > > >( storage, minLevel, maxLevel );
+   auto preconditioner =
+       std::make_shared< CahnHilliardDiagonalPreconditioner >( storage, minLevel, maxLevel, tau, epsilon, 2, 2 );
+
+   // auto preconditioner = std::make_shared< IdentityPreconditioner< BlockOperator< chType, chType > > >();
+
+   const uint_t maxIter   = std::numeric_limits< uint_t >::max();
+   const real_t tolerance = 1e-10;
+
+   auto solver = std::make_shared< MinResSolver< BlockOperator< chType, chType > > >(
+       storage, minLevel, maxLevel, maxIter, tolerance, preconditioner );
+
+   solver->setPrintInfo( true );
+
+   return solver;
 }
 
 std::shared_ptr< BlockOperator< chType, chType > > create_lhs_operator_v2( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -395,6 +413,77 @@ class RHSAssembler
    uint_t                              maxLevel_;
 
    real_t epsilon_;
+};
+
+class CahnHilliardDiagonalPreconditioner : public Solver< BlockOperator< chType, chType > >
+{
+ public:
+   CahnHilliardDiagonalPreconditioner( const std::shared_ptr< PrimitiveStorage >& storage,
+                                       uint_t                                     minLevel,
+                                       uint_t                                     maxLevel,
+                                       real_t                                     tau,
+                                       real_t                                     epsilon,
+                                       uint_t                                     numVCyclesMu,
+                                       uint_t                                     numVCyclesPhi )
+   : block_00_operator( storage, minLevel, maxLevel, create_block_00_form( tau ) )
+   , block_11_operator( storage, minLevel, maxLevel, create_block_11_form( tau, epsilon ) )
+   , solver( create_multigrid_solver( storage, minLevel, maxLevel ) )
+   , numVCyclesMu_( numVCyclesMu )
+   , numVCyclesPhi_( numVCyclesPhi )
+   {}
+
+   // y = M^{-1} * x
+   void solve( const BlockOperator< chType, chType >&, const chType& x, const chType& b, const uint_t level ) override
+   {
+      for ( uint_t k = 0; k < numVCyclesMu_; k += 1 )
+         solver->solve( block_00_operator, x.getMu(), b.getMu(), level );
+      for ( uint_t k = 0; k < numVCyclesPhi_; k += 1 )
+         solver->solve( block_11_operator, x.getPhi(), b.getPhi(), level );
+   }
+
+ protected:
+   static P1LinearCombinationForm create_block_00_form( real_t tau )
+   {
+      P1LinearCombinationForm form;
+      form.addOwnedForm< LaplaceFormType >( std::sqrt( tau ) );
+      form.addOwnedForm< MassFormType >( 1. );
+      return form;
+   }
+
+   static P1LinearCombinationForm create_block_11_form( real_t tau, real_t epsilon )
+   {
+      P1LinearCombinationForm form;
+      form.addOwnedForm< LaplaceFormType >( std::sqrt( tau ) * std::pow( epsilon, 2 ) );
+      form.addOwnedForm< MassFormType >( 1. );
+      return form;
+   }
+
+   static std::shared_ptr< GeometricMultigridSolver< P1ConstantLinearCombinationOperator > >
+       create_multigrid_solver( std::shared_ptr< PrimitiveStorage > storage, const uint_t minLevel, const uint_t maxLevel )
+   {
+      const real_t coarse_tolerance = 1e-12;
+      const uint_t max_coarse_iter  = 1000;
+
+      auto smoother         = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLinearCombinationOperator > >();
+      auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P1ConstantLinearCombinationOperator > >(
+          storage, minLevel, minLevel, max_coarse_iter, coarse_tolerance );
+      auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction >();
+      auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
+
+      auto gmg = std::make_shared< GeometricMultigridSolver< P1ConstantLinearCombinationOperator > >(
+          storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
+
+      return gmg;
+   }
+
+ protected:
+   P1ConstantLinearCombinationOperator block_00_operator;
+   P1ConstantLinearCombinationOperator block_11_operator;
+
+   std::shared_ptr< GeometricMultigridSolver< P1ConstantLinearCombinationOperator > > solver;
+
+   uint_t numVCyclesMu_;
+   uint_t numVCyclesPhi_;
 };
 
 class CahnHilliardEvolutionOperator
@@ -493,6 +582,8 @@ int main( int argc, char** argv )
    auto lhsOp = create_lhs_operator( storage, minLevel, maxLevel, tau, epsilon );
 
    CahnHilliardEvolutionOperator chOperator( storage, minLevel, maxLevel, tau, epsilon );
+
+   walberla::math::seedRandomGenerator( static_cast< uint_t >( walberla::mpi::MPIManager::instance()->rank() ) );
 
    u_prev.getPhi().interpolate(
        []( const Point3D& ) { return walberla::math::realRandom( real_t( -0.01 ), real_t( 0.01 ) ); }, maxLevel, All );

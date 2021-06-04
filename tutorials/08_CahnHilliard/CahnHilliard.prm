@@ -1,7 +1,7 @@
 Parameters
 {
-  minLevel 4;
-  maxLevel 4;
+  minLevel 2;
+  maxLevel 6;
 
   tau 5e-3;
   epsilon 4e-2;
