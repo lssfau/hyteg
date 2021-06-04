@@ -169,13 +169,13 @@ int main( int argc, char* argv[] )
 
    level = 3;
    compareMatrices< P2ConstantLaplaceOperator, P2ElementwiseLaplaceOperator, P2Function >(
-       storage, "P2Laplace", level, {1.5e-12, 1e-13, 1.5e-13}, beVerbose );
+       storage, "P2Laplace", level, {1.5e-12, 1.5e-13, 1.5e-13}, beVerbose );
    compareMatrices< P2ConstantMassOperator, P2ElementwiseMassOperator, P2Function >(
        storage, "P2Mass", level, {1e-16, 1e-17, 1e-17}, beVerbose );
    compareMatrices< P2ConstantLaplaceOperator, P2ElementwiseDivKGradOperator, P2Function >(
        storage, "P2DivKGrad", level, {1.5e-12, 1e-13, 1.5e-13}, beVerbose );
    compareMatrices< P2P1TaylorHoodStokesOperator, P2P1ElementwiseConstantCoefficientStokesOperator, P2P1TaylorHoodFunction >(
-       storage, "P2P1StokesCC", level, {2.0e-12, 1e-13, 1.5e-13}, beVerbose );
+       storage, "P2P1StokesCC", level, {2.0e-12, 1.5e-13, 1.5e-13}, beVerbose );
 
    // ----------------------------
    //  Prepare setup for 3D tests
@@ -200,7 +200,7 @@ int main( int argc, char* argv[] )
    compareMatrices< P2ConstantMassOperator, P2ElementwiseMassOperator, P2Function >(
        storage3D, "P2Mass - 3D", level, {1e-17, 1e-18, 1e-18}, beVerbose );
    compareMatrices< P2P1TaylorHoodStokesOperator, P2P1ElementwiseConstantCoefficientStokesOperator, P2P1TaylorHoodFunction >(
-       storage3D, "P2P1StokesCC", level, {1.5e-12, 1e-13, 1.5e-13}, beVerbose );
+       storage3D, "P2P1StokesCC", level, {1.5e-12, 1.5e-13, 1.5e-13}, beVerbose );
 
    return 0;
 }

@@ -1,0 +1,6 @@
+v = TestFunction( testElement )
+u = TrialFunction( trialElement )
+
+forms = [ u.dx(i)*v.dx(j)*dx for i in range(3) for j in range(3) ]
+for i in range(3):
+  forms[3*i+i] += dot(grad(u),grad(v))*dx
