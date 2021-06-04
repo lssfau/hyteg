@@ -40,19 +40,22 @@ using walberla::uint_t;
 using walberla::math::pi;
 using namespace hyteg;
 
-enum OpType
+enum KerType
 {
    VARIABLE,
    CONSTANT,
+   GENERATED,
    SURROGATE
 };
 
-const std::map< std::string, OpType > strToOpType = { { "variable", VARIABLE },
+const std::map< std::string, KerType > strToKerType = { { "variable", VARIABLE },
                                                       { "constant", CONSTANT },
+                                                      { "generated", GENERATED },
                                                       { "surrogate", SURROGATE } };
 
-const std::map< OpType, std::string > opTypeToStr = { { VARIABLE, "variable" },
+const std::map< KerType, std::string > kerTypeToStr = { { VARIABLE, "variable" },
                                                       { CONSTANT, "constant" },
+                                                      { GENERATED, "generated" },
                                                       { SURROGATE, "surrogate" } };
 
 std::shared_ptr< PrimitiveStorage > domain( uint_t dim, bool blending )
@@ -126,12 +129,12 @@ std::shared_ptr< PrimitiveStorage > domain( uint_t dim, bool blending )
    return std::make_shared< PrimitiveStorage >( setupStorage );
 }
 
-void benchmark( OpType optype, uint_t dim, bool blending, uint_t q, uint_t level, uint_t sample, real_t minTime )
+void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t level, uint_t sample, real_t minTime )
 {
    // ===== parameters =====
 
-   WALBERLA_LOG_INFO_ON_ROOT( "operator:  " << opTypeToStr.at( optype ) );
-   if ( optype == SURROGATE )
+   WALBERLA_LOG_INFO_ON_ROOT( "operator:  " << kerTypeToStr.at( kertype ) );
+   if ( kertype == SURROGATE )
       WALBERLA_LOG_INFO_ON_ROOT( "           with q =  " << q );
    WALBERLA_LOG_INFO_ON_ROOT( "dimension: " << dim << "D" );
    WALBERLA_LOG_INFO_ON_ROOT( "blending:  " << blending );
@@ -156,7 +159,7 @@ void benchmark( OpType optype, uint_t dim, bool blending, uint_t q, uint_t level
       break;
    }
 
-   if (optype == SURROGATE)
+   if (kertype == SURROGATE)
    {
       WALBERLA_LOG_INFO_ON_ROOT( "sampling:  " << sample );
       WALBERLA_LOG_INFO_ON_ROOT( "number of sample points: " << nsamples );
@@ -217,8 +220,19 @@ void benchmark( OpType optype, uint_t dim, bool blending, uint_t q, uint_t level
       timer.start();
       LIKWID_MARKER_START( "apply" );
 
-      switch ( optype )
+      switch ( kertype )
       {
+      case GENERATED:
+         switch ( dim )
+         {
+         case 2:
+            L_const.apply_face_generated( *face, src.getFaceDataID(), dst.getFaceDataID(), level, Replace );
+            break;
+         case 3:
+            L_const.apply_cell_generated( *cell, src.getCellDataID(), dst.getCellDataID(), level, Replace );
+            break;
+         }
+         break;
       case CONSTANT:
          switch ( dim )
          {
@@ -277,8 +291,19 @@ void benchmark( OpType optype, uint_t dim, bool blending, uint_t q, uint_t level
       timer.start();
       LIKWID_MARKER_START( "GS" );
 
-      switch ( optype )
+      switch ( kertype )
       {
+      case GENERATED:
+         switch ( dim )
+         {
+         case 2:
+            L_const.smooth_sor_face_generated( *face, src.getFaceDataID(), dst.getFaceDataID(), level, 1 );
+            break;
+         case 3:
+            L_const.smooth_sor_cell_generated( *cell, src.getCellDataID(), dst.getCellDataID(), level, 1 );
+            break;
+         }
+         break;
       case CONSTANT:
          switch ( dim )
          {
@@ -355,11 +380,11 @@ int main( int argc, char* argv[] )
    const uint_t                  level        = parameters.getParameter< uint_t >( "level" );
    const uint_t                  sample       = parameters.getParameter< uint_t >( "samplelevel" );
    const real_t                  minTime      = parameters.getParameter< real_t >( "minTime" );
-   const std::string             operatorType = parameters.getParameter< std::string >( "operatorType" );
+   const std::string             kernelType = parameters.getParameter< std::string >( "kernelType" );
    const uint_t                  dim          = parameters.getParameter< uint_t >( "dimension" );
    const bool                    blending     = parameters.getParameter< bool >( "blending" );
 
-   benchmark( strToOpType.at( operatorType ), dim, blending, q, level, sample, minTime );
+   benchmark( strToKerType.at( kernelType ), dim, blending, q, level, sample, minTime );
 
    LIKWID_MARKER_CLOSE;
 

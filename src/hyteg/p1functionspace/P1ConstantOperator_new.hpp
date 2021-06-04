@@ -94,8 +94,6 @@ class P1ConstantOperator_new : public P1Operator<P1Form>
       assembleStencils();
    }
 
- protected:
-
    /// stencil assembly: stencils are pre-assembled -> nothing to do here! ///////////
 
    /* Initialize assembly of variable edge stencil.
