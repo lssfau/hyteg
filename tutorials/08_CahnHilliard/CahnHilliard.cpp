@@ -172,16 +172,20 @@
  *
  * \section Implementation
  *
+ * \subsection defining-the-block-function-space Defining the block function space
+ *
  * We start with defining a block function representing the state of our system at a given time step by inheriting from the hyteg::BlockFunction.
+ * The first component will correspond to the chemical potential, while the second is the indicator function for our mixtures.
  *
  * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction definition
  *
- * The two components for the \f$\phi \f$ and \f$\mu\f$ are defined inside the constructor by pushing a hyteg::P1Function onto
+ * The two components for the \f$\phi \f$ and \f$\mu\f$ are defined inside the constructor by pushing a hyteg::P1Function onto the
  * `subFunc_` vector.
  *
  * For our own convenience we define two helper functions `getMu` and `getPhi`, which return the subcomponents of our vector.
- *
- * TODO: Write why we need hyteg::FunctionWrapper
+ * In principle, these be accessed with hyteg::BlockFunction< value_t >::getSubFunction, which returns a hyteg::GenericFunction.
+ * To get the underlying hyteg::P1Function we have to "cast" it to this type using the hyteg::GenericFunction::unwrap method,
+ * which internally delegates this task to the hyteg::FunctionWrapper.
  *
  * The compiler needs to be able to infer some static information about each function.
  * For instance its name, its value type and it needs a tag for certain meta programming features.
@@ -189,13 +193,62 @@
  *
  * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction meta-information
  *
- * If now one of HyTeG's internal algorithms needs to now the value type of a unknown function type `UnknownType`, it can do this by calling
- * `hyteg::FunctionTrait< UnknownType >::ValueType`.
+ * If one of HyTeG's internal algorithms needs to now the value type of a unknown function type `UnknownType`, it can do this by calling
+ * hyteg::FunctionTrait< UnknownType >::ValueType at compile time.
  * This is implemented for hyteg::P1Function, hyteg::P2Function, hyteg::P2P1TaylorHoodFunction, ... and now also for our
  * `CahnHilliardFunction`.
  *
- * A more in-depth tutorial about traits can be found at [TRAITS].
+ * A more in-depth tutorial about the rationality behind traits can be found at [TRAITS].
  *
+ * To keep our typenames within "reasonable bounds" we will introduce the shorthand `chType` for our `P1CahnHilliardFunction`:
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction chType-definition
+ *
+ * \subsection rhs-assembly The right-hand-side assembly
+ *
+ * Next we will implement the assembly of the right-hand-side vector
+ * \f{align}{
+ *     \boldsymbol{f}^{(n)}_i = \left\langle\phi^n_h, \nu_{h,i}\right\rangle_{L_2}
+ *     \quad \text{ and } \quad
+ *     \boldsymbol g^{(n)}_i = \left\langle-3 \phi^n_h + (\phi^n_h)^3, \psi_{h,i} \right\rangle_{L_2}
+ * \f}
+ * which has to happen after every time step using the updated value for our indicator function \f$\phi^n_h\f$.
+ *
+ * We will hide the assembly process in the RhsAssembler class, given by
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction ClassRhsAssembler
+ *
+ * The `RhsAssembler::assemble` method, will take the solution of the previous time step `u_prev` as an input value
+ * and write the result into the vector `rhs`.
+ *
+ * Since HyTeG does not support yet the assembly of vectors this will have to happen with a matrix vector multiplication.
+ * This is certainly not the most efficient way to implement this, but we will see in the final simulation that the additional
+ * costs are negligible compared to solving the system.
+ *
+ * For an arbitrary scalar function \f$\kappa\f$, we define the bilinear form \f$m_\kappa(\nu_j, \nu_i) := \int \kappa \nu_i \nu_j \text{d}x\f$
+ * for test functions \f$\nu_i, \nu_j\f$ and the associated matrix \f$M_\kappa\f$ given by \f$(M_{\kappa})_{i,j} = m_\kappa(\nu_j, \nu_i)\f$.
+ * The right-hand-side can now be written with these generalized mass-matrices as
+ * \f{align}{
+ *  \boldsymbol{f}^{(n)} = M_1 \boldsymbol{\phi^n}
+ *  \quad \text{ and } \quad \boldsymbol{g}^{(n)} = M_{\tilde \kappa} \boldsymbol{\phi^n}
+ *  \quad \text{ with } \quad \tilde \kappa = -3 + (\phi^n_h)^2
+ *  .
+ * \f}
+ *
+ * In HyTeG \f$m_\kappa\f$ is given by hyteg::forms::p1_k_mass_affine_q4.
+ * Here `p1` stands for the used function space, `k_mass` is the common name of the bilinear form,
+ * `affine` stresses that it does not support geometry blending and `q4` denotes the degree of the quadrature rule.
+ * It has two scalar callback functions \f$\kappa\f$ as constructor arguments, which correspond to \f$\kappa\f$ in 2D and 3D.
+ *
+ * The operator \f$M_{\kappa}\f$ is realized in the hyteg::P1ElementwiseKMassOperator, and takes the given bilinear form in its constructor.
+ * The assembly code becomes
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction assemble
+ * To calculate \f$\boldsymbol{g}\f$, we first define a lambda function `kappa` which takes a quadrature point and returns the value of \f$\tilde \kappa\f$ at that point.
+ * For this we get the \f$\phi\f$-component of `u_prev` and evaluate it at `p` with hyteg::P1Function::evaluate.
+ * The functional is inserted into the form for \f$m_{\tilde \kappa}\f$, which is used to initialize the operator `op_phi` \f$M_{\tilde \kappa}\f$.
+ * Since the \f$\tilde \kappa\f$ is dimension independent, we use it both for 2D and 3D.
+ * Finally, we apply the operator to the \f$\phi\f$-component of `u_prev` and store the result in the \f$\phi\f$-component of `rhs`.
+ *
+ * The calculation of \f$\boldsymbol{f}\f$ is simpler: First we define the usual mass-matrix in `op_mu`.
+ * We apply it to the \f$\phi\f$-component of `u_prev` and store the result in the \f$\mu\f$-component of `rhs`.
  *
  *
  * TODO: Write the rest
@@ -305,32 +358,12 @@ struct FunctionTrait< P1CahnHilliardFunction< VType > >
 } // namespace hyteg
 /// [CahnHilliardFunction meta-information]
 
+/// [CahnHilliardFunction chType-definition]
 using chType = P1CahnHilliardFunction< real_t >;
+/// [CahnHilliardFunction chType-definition]
 
 using MassFormType    = hyteg::P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >;
 using LaplaceFormType = hyteg::P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise >;
-
-std::shared_ptr< BlockOperator< chType, chType > > create_lhs_operator( const std::shared_ptr< PrimitiveStorage >& storage,
-                                                                        uint_t                                     minLevel,
-                                                                        uint_t                                     maxLevel,
-                                                                        real_t                                     dt,
-                                                                        real_t                                     epsilon )
-{
-   P1LinearCombinationForm form00;
-   form00.addOwnedForm< LaplaceFormType >( dt );
-
-   P1LinearCombinationForm form11;
-   form11.addOwnedForm< LaplaceFormType >( -std::pow( epsilon, 2 ) );
-   form11.addOwnedForm< MassFormType >( -2 );
-
-   auto op = std::make_shared< BlockOperator< chType, chType > >( storage, minLevel, maxLevel, 2, 2 );
-   op->createSubOperator< P1ConstantLinearCombinationOperator >( 0, 0, storage, minLevel, maxLevel, form00 );
-   op->createSubOperator< P1ConstantLinearCombinationOperator >( 1, 1, storage, minLevel, maxLevel, form11 );
-   op->createSubOperator< P1ConstantMassOperator >( 0, 1, storage, minLevel, maxLevel );
-   op->createSubOperator< P1ConstantMassOperator >( 1, 0, storage, minLevel, maxLevel );
-
-   return op;
-}
 
 std::shared_ptr< MinResSolver< BlockOperator< chType, chType > > >
     create_solver( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -340,7 +373,7 @@ std::shared_ptr< MinResSolver< BlockOperator< chType, chType > > >
                    real_t                                     epsilon )
 {
    auto preconditioner =
-       std::make_shared< CahnHilliardDiagonalPreconditioner >( storage, minLevel, maxLevel, tau, epsilon, 4, 4 );
+       std::make_shared< CahnHilliardDiagonalPreconditioner >( storage, minLevel, maxLevel, tau, epsilon, 2, 2 );
 
    // auto preconditioner = std::make_shared< IdentityPreconditioner< BlockOperator< chType, chType > > >();
 
@@ -353,11 +386,11 @@ std::shared_ptr< MinResSolver< BlockOperator< chType, chType > > >
    return solver;
 }
 
-std::shared_ptr< BlockOperator< chType, chType > > create_lhs_operator_v2( const std::shared_ptr< PrimitiveStorage >& storage,
-                                                                           uint_t                                     minLevel,
-                                                                           uint_t                                     maxLevel,
-                                                                           real_t                                     tau,
-                                                                           real_t                                     epsilon )
+std::shared_ptr< BlockOperator< chType, chType > > create_lhs_operator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                                        uint_t                                     minLevel,
+                                                                        uint_t                                     maxLevel,
+                                                                        real_t                                     tau,
+                                                                        real_t                                     epsilon )
 {
    P1LinearCombinationForm form00;
    form00.addOwnedForm< LaplaceFormType >( std::sqrt( tau ) );
@@ -375,6 +408,7 @@ std::shared_ptr< BlockOperator< chType, chType > > create_lhs_operator_v2( const
    return op;
 }
 
+/// [CahnHilliardFunction ClassRhsAssembler]
 class RHSAssembler
 {
  public:
@@ -385,25 +419,7 @@ class RHSAssembler
    , epsilon_( epsilon )
    {}
 
-   void assemble( const chType& u_prev, const chType& rhs, uint_t level, DoFType flag )
-   {
-      auto kappa = [&]( const Point3D& p ) -> real_t {
-         real_t phi_prev_value;
-         WALBERLA_CHECK( u_prev.getPhi().evaluate( p, level, phi_prev_value ) );
-
-         return -3. + std::pow( phi_prev_value, 2 );
-      };
-
-      forms::p1_k_mass_affine_q4 form( kappa, kappa );
-
-      P1ElementwiseKMassOperator op_phi( storage_, minLevel_, maxLevel_, form );
-
-      op_phi.apply( u_prev.getPhi(), rhs.getPhi(), level, flag );
-
-      P1ElementwiseMassOperator op_mu( storage_, minLevel_, maxLevel_ );
-
-      op_mu.apply( u_prev.getPhi(), rhs.getMu(), level, flag );
-   }
+   void assemble( const chType& u_prev, const chType& rhs, uint_t level, DoFType flag );
 
  protected:
    std::shared_ptr< PrimitiveStorage > storage_;
@@ -412,6 +428,29 @@ class RHSAssembler
 
    real_t epsilon_;
 };
+/// [CahnHilliardFunction ClassRhsAssembler]
+
+/// [CahnHilliardFunction assemble]
+void RHSAssembler::assemble( const chType& u_prev, const chType& rhs, uint_t level, DoFType flag )
+{
+   auto kappa = [&]( const Point3D& p ) -> real_t {
+      real_t phi_prev_value;
+      WALBERLA_CHECK( u_prev.getPhi().evaluate( p, level, phi_prev_value ) );
+
+      return -3. + std::pow( phi_prev_value, 2 );
+   };
+
+   forms::p1_k_mass_affine_q4 form( kappa, kappa );
+
+   P1ElementwiseKMassOperator op_phi( storage_, minLevel_, maxLevel_, form );
+
+   op_phi.apply( u_prev.getPhi(), rhs.getPhi(), level, flag );
+
+   P1ElementwiseMassOperator op_mu( storage_, minLevel_, maxLevel_ );
+
+   op_mu.apply( u_prev.getPhi(), rhs.getMu(), level, flag );
+}
+/// [CahnHilliardFunction assemble]
 
 class CahnHilliardDiagonalPreconditioner : public Solver< BlockOperator< chType, chType > >
 {
@@ -431,50 +470,15 @@ class CahnHilliardDiagonalPreconditioner : public Solver< BlockOperator< chType,
    {}
 
    // y = M^{-1} * x
-   void solve( const BlockOperator< chType, chType >&, const chType& x, const chType& b, const uint_t level ) override
-   {
-      for ( uint_t k = 0; k < numVCyclesMu_; k += 1 )
-         solver->solve( block_00_operator, x.getMu(), b.getMu(), level );
-      for ( uint_t k = 0; k < numVCyclesPhi_; k += 1 )
-         solver->solve( block_11_operator, x.getPhi(), b.getPhi(), level );
-   }
+   void solve( const BlockOperator< chType, chType >&, const chType& x, const chType& b, const uint_t level ) override;
 
  protected:
-   static P1LinearCombinationForm create_block_00_form( real_t tau )
-   {
-      P1LinearCombinationForm form;
-      form.addOwnedForm< LaplaceFormType >( std::sqrt( tau ) );
-      form.addOwnedForm< MassFormType >( 1. );
-      return form;
-   }
+   static P1LinearCombinationForm create_block_00_form( real_t tau );
 
-   static P1LinearCombinationForm create_block_11_form( real_t tau, real_t epsilon )
-   {
-      P1LinearCombinationForm form;
-      form.addOwnedForm< LaplaceFormType >( std::sqrt( tau ) * std::pow( epsilon, 2 ) );
-      form.addOwnedForm< MassFormType >( 1. );
-      return form;
-   }
+   static P1LinearCombinationForm create_block_11_form( real_t tau, real_t epsilon );
 
    static std::shared_ptr< GeometricMultigridSolver< P1ConstantLinearCombinationOperator > >
-       create_multigrid_solver( std::shared_ptr< PrimitiveStorage > storage, const uint_t minLevel, const uint_t maxLevel )
-   {
-      const real_t coarse_tolerance = 1e-16;
-      const uint_t max_coarse_iter  = 1000;
-
-      auto smoother         = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLinearCombinationOperator > >();
-      auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P1ConstantLinearCombinationOperator > >(
-          storage, minLevel, minLevel, max_coarse_iter, coarse_tolerance );
-      auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction >();
-      auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
-
-      auto gmg = std::make_shared< GeometricMultigridSolver< P1ConstantLinearCombinationOperator > >(
-          storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
-
-      gmg->setSmoothingSteps(3, 3);
-
-      return gmg;
-   }
+       create_multigrid_solver( std::shared_ptr< PrimitiveStorage > storage, const uint_t minLevel, const uint_t maxLevel );
 
  protected:
    P1ConstantLinearCombinationOperator block_00_operator;
@@ -486,6 +490,55 @@ class CahnHilliardDiagonalPreconditioner : public Solver< BlockOperator< chType,
    uint_t numVCyclesPhi_;
 };
 
+void CahnHilliardDiagonalPreconditioner::solve( const BlockOperator< chType, chType >&,
+                                                const chType& x,
+                                                const chType& b,
+                                                const uint_t  level )
+{
+   for ( uint_t k = 0; k < numVCyclesMu_; k += 1 )
+      solver->solve( block_00_operator, x.getMu(), b.getMu(), level );
+   for ( uint_t k = 0; k < numVCyclesPhi_; k += 1 )
+      solver->solve( block_11_operator, x.getPhi(), b.getPhi(), level );
+}
+
+P1LinearCombinationForm CahnHilliardDiagonalPreconditioner::create_block_00_form( real_t tau )
+{
+   P1LinearCombinationForm form;
+   form.addOwnedForm< LaplaceFormType >( std::sqrt( tau ) );
+   form.addOwnedForm< MassFormType >( 1. );
+   return form;
+}
+
+P1LinearCombinationForm CahnHilliardDiagonalPreconditioner::create_block_11_form( real_t tau, real_t epsilon )
+{
+   P1LinearCombinationForm form;
+   form.addOwnedForm< LaplaceFormType >( std::sqrt( tau ) * std::pow( epsilon, 2 ) );
+   form.addOwnedForm< MassFormType >( 1. );
+   return form;
+}
+
+std::shared_ptr< GeometricMultigridSolver< P1ConstantLinearCombinationOperator > >
+    CahnHilliardDiagonalPreconditioner::create_multigrid_solver( std::shared_ptr< PrimitiveStorage > storage,
+                                                                 const uint_t                        minLevel,
+                                                                 const uint_t                        maxLevel )
+{
+   const real_t coarse_tolerance = 1e-16;
+   const uint_t max_coarse_iter  = 1000;
+
+   auto smoother         = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLinearCombinationOperator > >();
+   auto coarseGridSolver = std::make_shared< hyteg::CGSolver< hyteg::P1ConstantLinearCombinationOperator > >(
+       storage, minLevel, minLevel, max_coarse_iter, coarse_tolerance );
+   auto restrictionOperator  = std::make_shared< hyteg::P1toP1LinearRestriction >();
+   auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
+
+   auto gmg = std::make_shared< GeometricMultigridSolver< P1ConstantLinearCombinationOperator > >(
+       storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
+
+   gmg->setSmoothingSteps( 3, 3 );
+
+   return gmg;
+}
+
 class CahnHilliardEvolutionOperator
 {
  public:
@@ -496,40 +549,18 @@ class CahnHilliardEvolutionOperator
                                   real_t                                     epsilon )
    : epsilon_( epsilon )
    , tau_( tau )
-   , lhsOp_( create_lhs_operator_v2( storage, minLevel, maxLevel, tau, epsilon ) )
+   , lhsOp_( create_lhs_operator( storage, minLevel, maxLevel, tau, epsilon ) )
    , solver_( create_solver( storage, minLevel, maxLevel, tau, epsilon ) )
    , rhsAssembler_( storage, minLevel, maxLevel, epsilon )
    , rhs_( "rhs", storage, minLevel, maxLevel )
    {}
 
-   void apply( const chType& u_old, const chType& u_now, uint_t level )
-   {
-      lhsOp_->getStorage()->getTimingTree()->start( "apply CH evolution operator" );
-
-      lhsOp_->getStorage()->getTimingTree()->start( "assemble rhs vector" );
-      rhsAssembler_.assemble( u_old, rhs_, level, All );
-      lhsOp_->getStorage()->getTimingTree()->stop( "assemble rhs vector" );
-
-      scale( rhs_, rhs_, level, All );
-
-      // solve the system
-      u_now.assign( { 1 }, { u_old }, level, All );
-      solver_->solve( *lhsOp_, u_now, rhs_, level );
-
-      scale( u_now, u_now, level, All );
-
-      lhsOp_->getStorage()->getTimingTree()->stop( "apply CH evolution operator" );
-   }
+   void apply( const chType& u_old, const chType& u_now, uint_t level );
 
    void setPrintInfo( bool printInfo ) { solver_->setPrintInfo( printInfo ); }
 
  protected:
-   void scale( const chType& src, const chType& dst, uint_t level, DoFType flag ) const
-   {
-      const real_t factor = std::pow( tau_, 0.25 );
-      dst.getMu().assign( { 1. / factor }, { src.getMu() }, level, flag );
-      dst.getPhi().assign( { factor }, { src.getPhi() }, level, flag );
-   }
+   void scale( const chType& src, const chType& dst, uint_t level, DoFType flag ) const;
 
  protected:
    real_t epsilon_;
@@ -543,6 +574,32 @@ class CahnHilliardEvolutionOperator
 
    chType rhs_;
 };
+
+void CahnHilliardEvolutionOperator::apply( const chType& u_old, const chType& u_now, uint_t level )
+{
+   lhsOp_->getStorage()->getTimingTree()->start( "apply CH evolution operator" );
+
+   lhsOp_->getStorage()->getTimingTree()->start( "assemble rhs vector" );
+   rhsAssembler_.assemble( u_old, rhs_, level, All );
+   lhsOp_->getStorage()->getTimingTree()->stop( "assemble rhs vector" );
+
+   scale( rhs_, rhs_, level, All );
+
+   // solve the system
+   u_now.assign( { 1 }, { u_old }, level, All );
+   solver_->solve( *lhsOp_, u_now, rhs_, level );
+
+   scale( u_now, u_now, level, All );
+
+   lhsOp_->getStorage()->getTimingTree()->stop( "apply CH evolution operator" );
+}
+
+void CahnHilliardEvolutionOperator::scale( const chType& src, const chType& dst, uint_t level, DoFType flag ) const
+{
+   const real_t factor = std::pow( tau_, 0.25 );
+   dst.getMu().assign( { 1. / factor }, { src.getMu() }, level, flag );
+   dst.getPhi().assign( { factor }, { src.getPhi() }, level, flag );
+}
 
 std::shared_ptr< hyteg::PrimitiveStorage > create_storage( bool use3D )
 {
@@ -601,8 +658,6 @@ int main( int argc, char** argv )
    chType rhs( "rhs", storage, minLevel, maxLevel );
 
    auto solver = std::make_shared< MinResSolver< BlockOperator< chType, chType > > >( storage, minLevel, maxLevel );
-
-   auto lhsOp = create_lhs_operator( storage, minLevel, maxLevel, tau, epsilon );
 
    CahnHilliardEvolutionOperator chOperator( storage, minLevel, maxLevel, tau, epsilon );
 
