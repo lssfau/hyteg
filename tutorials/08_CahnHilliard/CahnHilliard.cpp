@@ -250,6 +250,55 @@
  * The calculation of \f$\boldsymbol{f}\f$ is simpler: First we define the usual mass-matrix in `op_mu`.
  * We apply it to the \f$\phi\f$-component of `u_prev` and store the result in the \f$\mu\f$-component of `rhs`.
  *
+ * \subsection lhs-assembly The Left-hand-side assembly
+ *
+ * Next we want to discuss the assembly of the matrix we want to invert, namely
+ * \f{align}{
+ *     \begin{pmatrix}
+ *         \sqrt{\tau} K & M\\
+ *         M & - \sqrt \tau \epsilon^2 K - 2 \sqrt \tau M
+ *     \end{pmatrix}
+ * \f}
+ * All these operators are not yet defined in HyTeG and have to be constructed from their respective bilinear forms.
+ * But since they are all linear combinations of the mass- and stiffness matrix, we can use the hyteg::P1LinearCombinationForm to construct
+ * them from the mass and stiffness forms already defined in HyTeG. The mass and stiffness forms are
+ *
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction forms-definitions
+ *
+ * Here, they are given as `hyteg::P1FenicsForm`s, with the first type-argument for the 2D form and the second type-argument for the 3D form.
+ * The form for the lower-right block can now be constructed by
+ *
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction block-form-11
+ *
+ * We first define the hyteg::P1LinearCombinationForm, which defaults to the zero form.
+ * We then add the stiffness form scaled by \f$-\epsilon^2\sqrt{\tau}\f$.
+ * Finally, we add the mass scaled with \f$ - 2 \sqrt \tau \f$.
+ *
+ * The upper-left block is a bit simpler to construct, since it only requires to scale the stiffness form:
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction block-form-00
+ *
+ * We now have the correct forms, but still need to construct proper operators from them.
+ * We could do this explicitly by
+ * ```
+ * hyteg::P1ConstantLinearCombinationOperator operator00( storage, minLevel, maxLevel, form00)
+ * ```
+ *
+ * For the off-diagonal blocks no additional forms are needed and we can resort directly to the hyteg::P1ConstantMassOperator.
+ *
+ * We construct the complete block-operator in the following factory-function:
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction lhs-assembly
+ *
+ * The hyteg::BlockOperator takes the dimension of the block-system in the last two arguments.
+ * By calling the hyteg::BlockOperator::createSubOperator method we can construct the blocks.
+ * The type of the block operator is given in the angled brakets, followed by the two indices of the respective block and the arguments to its constructor.
+ *
+ * For the diagonal blocks we construct a hyteg::P1ConstantLinearCombinationOperator as described before
+ * and pass the correct linear combination of forms in its constructor.
+ *
+ * This is all we have to do to get a working operator in HyTeG.
+ *
+ * \subsection time-evolution The time-evolution operator
+ *
  *
  * TODO: Write the rest
  *
@@ -362,8 +411,10 @@ struct FunctionTrait< P1CahnHilliardFunction< VType > >
 using chType = P1CahnHilliardFunction< real_t >;
 /// [CahnHilliardFunction chType-definition]
 
+/// [CahnHilliardFunction forms-definitions]
 using MassFormType    = hyteg::P1FenicsForm< p1_mass_cell_integral_0_otherwise, p1_tet_mass_cell_integral_0_otherwise >;
 using LaplaceFormType = hyteg::P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise >;
+/// [CahnHilliardFunction forms-definitions]
 
 std::shared_ptr< MinResSolver< BlockOperator< chType, chType > > >
     create_solver( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -386,18 +437,23 @@ std::shared_ptr< MinResSolver< BlockOperator< chType, chType > > >
    return solver;
 }
 
+/// [CahnHilliardFunction lhs-assembly]
 std::shared_ptr< BlockOperator< chType, chType > > create_lhs_operator( const std::shared_ptr< PrimitiveStorage >& storage,
                                                                         uint_t                                     minLevel,
                                                                         uint_t                                     maxLevel,
                                                                         real_t                                     tau,
                                                                         real_t                                     epsilon )
 {
+   /// [CahnHilliardFunction block-form-00]
    P1LinearCombinationForm form00;
    form00.addOwnedForm< LaplaceFormType >( std::sqrt( tau ) );
+   /// [CahnHilliardFunction block-form-00]
 
+   /// [CahnHilliardFunction block-form-11]
    P1LinearCombinationForm form11;
    form11.addOwnedForm< LaplaceFormType >( -std::pow( epsilon, 2 ) * std::sqrt( tau ) );
    form11.addOwnedForm< MassFormType >( -2 * std::sqrt( tau ) );
+   /// [CahnHilliardFunction block-form-11]
 
    auto op = std::make_shared< BlockOperator< chType, chType > >( storage, minLevel, maxLevel, 2, 2 );
    op->createSubOperator< P1ConstantLinearCombinationOperator >( 0, 0, storage, minLevel, maxLevel, form00 );
@@ -407,6 +463,7 @@ std::shared_ptr< BlockOperator< chType, chType > > create_lhs_operator( const st
 
    return op;
 }
+/// [CahnHilliardFunction lhs-assembly]
 
 /// [CahnHilliardFunction ClassRhsAssembler]
 class RHSAssembler
