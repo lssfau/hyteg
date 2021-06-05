@@ -290,7 +290,7 @@
  *
  * The hyteg::BlockOperator takes the dimension of the block-system in the last two arguments.
  * By calling the hyteg::BlockOperator::createSubOperator method we can construct the blocks.
- * The type of the block operator is given in the angled brakets, followed by the two indices of the respective block and the arguments to its constructor.
+ * The type of the block operator is given in the angled brakets, followed by the two indices of the respective block and the arguments for constructor of the operator.
  *
  * For the diagonal blocks we construct a hyteg::P1ConstantLinearCombinationOperator as described before
  * and pass the correct linear combination of forms in its constructor.
@@ -299,6 +299,62 @@
  *
  * \subsection time-evolution The time-evolution operator
  *
+ * We will postpone the discussion how to invert the given operator for now and concentrate on the time-evolution, i.e.
+ * given \f$ \boldsymbol u^n = (\boldsymbol \mu^n, \boldsymbol \phi^n) \f$ we want to calculate the values at the next time step
+ * \f$ \boldsymbol u^{n+1} = (\boldsymbol \mu^{n+1}, \boldsymbol \phi^{n+1}) \f$.
+ * This will be handled by the following operator
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction ClassCahnHilliardEvolutionOperator
+ *
+ * Note that `lhsOp_` is the operator we constructed in the previous step and ignore all the references to solvers for now.
+ * The apply method takes function `u_prev` and "evolves' it `u_now` on the given level.
+ * This method thus executes the operation
+ * \f{align}{
+ *     \begin{pmatrix}
+ *         \tau K & M\\
+ *         M & - \epsilon^2 K - 2 M
+ *     \end{pmatrix}^{-1}
+ *     \begin{pmatrix}
+ *          \boldsymbol f^n \\
+ *          \boldsymbol g^n
+ *     \end{pmatrix}
+ *     =
+ *     \begin{pmatrix}
+ *         \tau^{-1/4} & \\
+ *         & \tau^{1/4}
+ *     \end{pmatrix}
+ *     \begin{pmatrix}
+ *         \sqrt{\tau} K & M\\
+ *         M & - \sqrt \tau \epsilon^2 K - 2 \sqrt \tau M
+ *     \end{pmatrix}^{-1}
+ *     \begin{pmatrix}
+ *         \tau^{-1/4} & \\
+ *         & \tau^{1/4}
+ *     \end{pmatrix}
+ *     \begin{pmatrix}
+ *          \boldsymbol f^n \\
+ *          \boldsymbol g^n
+ *     \end{pmatrix}
+ *     .
+ * \f}
+ * Which means, that it has to
+ * - assemble the right hand side,
+ * - scale the vector components with the diagonal matrix,
+ * - invert the `lhsOp_` matrix,
+ * - and scale again the result with the diagonal matrix.
+ *
+ * The multiplication with the diagonal matrix is done implicitly in the `scale` method
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction scale
+ *
+ * The apply method can thus be written as
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction time-evolution-apply
+ * which is essentially the list of operations given before wrapped by some calls to the timing-tree API.
+ * This is especially useful to get a feeling how long solving the system takes in relation to assembling the right-hand-side.
+ *
+ * \subsection minres-solver The outer solver
+ *
+ * We will now discuss how to invert the `lhsOp_` Operator from the previous step.
+ * As an outer solver we will use a diagonally preconditioned MINRES.
+ * Ignoring
  *
  * TODO: Write the rest
  *
@@ -596,6 +652,7 @@ std::shared_ptr< GeometricMultigridSolver< P1ConstantLinearCombinationOperator >
    return gmg;
 }
 
+/// [CahnHilliardFunction ClassCahnHilliardEvolutionOperator]
 class CahnHilliardEvolutionOperator
 {
  public:
@@ -631,7 +688,9 @@ class CahnHilliardEvolutionOperator
 
    chType rhs_;
 };
+/// [CahnHilliardFunction ClassCahnHilliardEvolutionOperator]
 
+/// [CahnHilliardFunction time-evolution-apply]
 void CahnHilliardEvolutionOperator::apply( const chType& u_old, const chType& u_now, uint_t level )
 {
    lhsOp_->getStorage()->getTimingTree()->start( "apply CH evolution operator" );
@@ -650,13 +709,16 @@ void CahnHilliardEvolutionOperator::apply( const chType& u_old, const chType& u_
 
    lhsOp_->getStorage()->getTimingTree()->stop( "apply CH evolution operator" );
 }
+/// [CahnHilliardFunction time-evolution-apply]
 
+/// [CahnHilliardFunction scale]
 void CahnHilliardEvolutionOperator::scale( const chType& src, const chType& dst, uint_t level, DoFType flag ) const
 {
    const real_t factor = std::pow( tau_, 0.25 );
    dst.getMu().assign( { 1. / factor }, { src.getMu() }, level, flag );
    dst.getPhi().assign( { factor }, { src.getPhi() }, level, flag );
 }
+/// [CahnHilliardFunction scale]
 
 std::shared_ptr< hyteg::PrimitiveStorage > create_storage( bool use3D )
 {
