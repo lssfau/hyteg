@@ -340,17 +340,15 @@ std::shared_ptr< MinResSolver< BlockOperator< chType, chType > > >
                    real_t                                     epsilon )
 {
    auto preconditioner =
-       std::make_shared< CahnHilliardDiagonalPreconditioner >( storage, minLevel, maxLevel, tau, epsilon, 2, 2 );
+       std::make_shared< CahnHilliardDiagonalPreconditioner >( storage, minLevel, maxLevel, tau, epsilon, 4, 4 );
 
    // auto preconditioner = std::make_shared< IdentityPreconditioner< BlockOperator< chType, chType > > >();
 
    const uint_t maxIter   = std::numeric_limits< uint_t >::max();
-   const real_t tolerance = 1e-10;
+   const real_t tolerance = 1e-8;
 
    auto solver = std::make_shared< MinResSolver< BlockOperator< chType, chType > > >(
        storage, minLevel, maxLevel, maxIter, tolerance, preconditioner );
-
-   solver->setPrintInfo( true );
 
    return solver;
 }
@@ -461,7 +459,7 @@ class CahnHilliardDiagonalPreconditioner : public Solver< BlockOperator< chType,
    static std::shared_ptr< GeometricMultigridSolver< P1ConstantLinearCombinationOperator > >
        create_multigrid_solver( std::shared_ptr< PrimitiveStorage > storage, const uint_t minLevel, const uint_t maxLevel )
    {
-      const real_t coarse_tolerance = 1e-12;
+      const real_t coarse_tolerance = 1e-16;
       const uint_t max_coarse_iter  = 1000;
 
       auto smoother         = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLinearCombinationOperator > >();
@@ -472,6 +470,8 @@ class CahnHilliardDiagonalPreconditioner : public Solver< BlockOperator< chType,
 
       auto gmg = std::make_shared< GeometricMultigridSolver< P1ConstantLinearCombinationOperator > >(
           storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel );
+
+      gmg->setSmoothingSteps(3, 3);
 
       return gmg;
    }
@@ -504,7 +504,11 @@ class CahnHilliardEvolutionOperator
 
    void apply( const chType& u_old, const chType& u_now, uint_t level )
    {
+      lhsOp_->getStorage()->getTimingTree()->start( "apply CH evolution operator" );
+
+      lhsOp_->getStorage()->getTimingTree()->start( "assemble rhs vector" );
       rhsAssembler_.assemble( u_old, rhs_, level, All );
+      lhsOp_->getStorage()->getTimingTree()->stop( "assemble rhs vector" );
 
       scale( rhs_, rhs_, level, All );
 
@@ -513,7 +517,11 @@ class CahnHilliardEvolutionOperator
       solver_->solve( *lhsOp_, u_now, rhs_, level );
 
       scale( u_now, u_now, level, All );
+
+      lhsOp_->getStorage()->getTimingTree()->stop( "apply CH evolution operator" );
    }
+
+   void setPrintInfo( bool printInfo ) { solver_->setPrintInfo( printInfo ); }
 
  protected:
    void scale( const chType& src, const chType& dst, uint_t level, DoFType flag ) const
@@ -536,14 +544,28 @@ class CahnHilliardEvolutionOperator
    chType rhs_;
 };
 
-std::shared_ptr< hyteg::PrimitiveStorage > create_storage()
+std::shared_ptr< hyteg::PrimitiveStorage > create_storage( bool use3D )
 {
-   hyteg::Point2D lowerRight( { -1, -1 } );
-   hyteg::Point2D upperLeft( { +1, +1 } );
+   uint_t numProcesses = walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
 
-   auto meshInfo     = hyteg::MeshInfo::meshRectangle( lowerRight, upperLeft, hyteg::MeshInfo::CROSS, 2, 2 );
-   auto setupStorage = std::make_shared< hyteg::SetupPrimitiveStorage >(
-       meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   std::shared_ptr< SetupPrimitiveStorage > setupStorage;
+
+   if ( use3D )
+   {
+      const hyteg::Point3D lowerRight( { -1, -1, -1 } );
+      const hyteg::Point3D upperLeft( { +1, +1, +1 } );
+
+      auto meshInfo = hyteg::MeshInfo::meshCuboid( lowerRight, upperLeft, 2, 2, 2 );
+      setupStorage  = std::make_shared< hyteg::SetupPrimitiveStorage >( meshInfo, numProcesses );
+   }
+   else
+   {
+      hyteg::Point2D lowerRight( { -1, -1 } );
+      hyteg::Point2D upperLeft( { +1, +1 } );
+
+      auto meshInfo = hyteg::MeshInfo::meshRectangle( lowerRight, upperLeft, hyteg::MeshInfo::CROSS, 2, 2 );
+      setupStorage  = std::make_shared< hyteg::SetupPrimitiveStorage >( meshInfo, numProcesses );
+   }
 
    // Neumann BC everywhere
    setupStorage->setMeshBoundaryFlagsOnBoundary( 2, 0, true );
@@ -561,17 +583,18 @@ int main( int argc, char** argv )
    walberla::Config::BlockHandle parameters = cfg->getOneBlock( "Parameters" );
    parameters.listParameters();
 
-   const uint_t minLevel = parameters.getParameter< uint_t >( "minLevel" );
-   const uint_t maxLevel = parameters.getParameter< uint_t >( "maxLevel" );
+   const uint_t minLevel       = parameters.getParameter< uint_t >( "minLevel" );
+   const uint_t maxLevel       = parameters.getParameter< uint_t >( "maxLevel" );
+   const uint_t outputInterval = parameters.getParameter< uint_t >( "outputInterval" );
 
-   const real_t tau     = 5e-3;
-   const real_t epsilon = 4e-2;
+   const real_t tau     = parameters.getParameter< real_t >( "tau" );
+   const real_t epsilon = parameters.getParameter< real_t >( "epsilon" );
 
-   const real_t t_end = 1;
+   const real_t t_end = parameters.getParameter< real_t >( "t_end" );
 
-   const uint_t max_time_steps = 300;
+   const uint_t max_time_steps = 100000;
 
-   const auto storage = create_storage();
+   const auto storage = create_storage( parameters.getParameter< bool >( "use3D" ) );
 
    chType u_now( "u_now", storage, minLevel, maxLevel );
    chType u_prev( "u_prev", storage, minLevel, maxLevel );
@@ -582,6 +605,9 @@ int main( int argc, char** argv )
    auto lhsOp = create_lhs_operator( storage, minLevel, maxLevel, tau, epsilon );
 
    CahnHilliardEvolutionOperator chOperator( storage, minLevel, maxLevel, tau, epsilon );
+
+   if ( parameters.getParameter< bool >( "printMinresConvergence" ) )
+      chOperator.setPrintInfo( true );
 
    walberla::math::seedRandomGenerator( static_cast< uint_t >( walberla::mpi::MPIManager::instance()->rank() ) );
 
@@ -601,13 +627,19 @@ int main( int argc, char** argv )
       if ( t_now > t_end )
          break;
 
-      WALBERLA_LOG_INFO( "iter = " << k << " t = " << t_now );
+      WALBERLA_LOG_INFO_ON_ROOT( "iter = " << k << " t = " << t_now );
       chOperator.apply( u_prev, u_now, maxLevel );
 
       u_prev.assign( { 1. }, { u_now }, maxLevel, All );
 
       // vtk output
-      vtkOutput.add( u_now );
-      vtkOutput.write( maxLevel, k );
+      if ( k % outputInterval == 0 )
+      {
+         vtkOutput.add( u_now );
+         vtkOutput.write( maxLevel, k );
+      }
    }
+
+   if ( parameters.getParameter< bool >( "printTimingTree" ) )
+      WALBERLA_LOG_INFO_ON_ROOT( *storage->getTimingTree() );
 }
