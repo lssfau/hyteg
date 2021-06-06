@@ -458,7 +458,7 @@
  * This can be done by printing the walberla::timing::TimingTree of the hyteg::PrimitiveStorage to the console.
  * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp main timing-tree
  *
- * \section Results in 2D
+ * \section results Results in 2D
  *
  * \htmlonly
   <center>
