@@ -73,7 +73,6 @@ class BlockOperator : public Operator< srcBlockFunc_t, dstBlockFunc_t >,
          {
             if ( subOper_[i][j] != nullptr )
             {
-               WALBERLA_LOG_INFO_ON_ROOT( " -> applying sub-operator (" << i << ", " << j << ")" );
                subOper_[i][j]->apply( src[j], dst[i], level, flag, upType );
                upType = Add;
             }
