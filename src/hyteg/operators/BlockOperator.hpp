@@ -73,7 +73,6 @@ class BlockOperator : public Operator< srcBlockFunc_t, dstBlockFunc_t >,
          {
             if ( subOper_[i][j] != nullptr )
             {
-               WALBERLA_LOG_INFO_ON_ROOT( " -> applying sub-operator (" << i << ", " << j << ")" );
                subOper_[i][j]->apply( src[j], dst[i], level, flag, upType );
                upType = Add;
             }
@@ -86,6 +85,18 @@ class BlockOperator : public Operator< srcBlockFunc_t, dstBlockFunc_t >,
       WALBERLA_ASSERT_LESS( i, nRows_ );
       WALBERLA_ASSERT_LESS( j, nCols_ );
       subOper_[i][j] = subOp;
+   }
+
+   template < typename OperatorType, typename... ConstructorArguments >
+   void createSubOperator( uint_t                                     i,
+                           uint_t                                     j,
+                           const std::shared_ptr< PrimitiveStorage >& storage,
+                           uint_t                                     minLevel,
+                           uint_t                                     maxLevel,
+                           ConstructorArguments... args )
+   {
+      const auto op = std::make_shared< OperatorWrapper< OperatorType > >( storage, minLevel, maxLevel, args... );
+      setSubOperator(i, j, op);
    }
 
    const std::shared_ptr< GenericOperator< value_t > > getSubOperator( uint_t i, uint_t j )
