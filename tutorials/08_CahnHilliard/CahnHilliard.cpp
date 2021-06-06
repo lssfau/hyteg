@@ -43,7 +43,7 @@
  * such that \f$\phi(x) = +1\f$ if only fluid A is present and \f$\phi(x) = -1\f$  if only fluid B is present.
  * All intermediate values correspond to mixtures of the fluid, where either A (\f$\phi(x) < 1\f$) or B dominates (\f$\phi(x) > 1\f$).
  *
- * We want to assign an energy functional to these equations by given by
+ * We want to assign an energy functional to these equations given by
  * \f{align*}{
  *     F(\phi) = \int \boldsymbol \psi(\phi) dx + \frac{\epsilon^2}{2}\int |\nabla \phi |^2 dx
  * \f}
@@ -56,7 +56,7 @@
  *     \partial_n \phi &= \partial_n \mu = 0 \quad \text{ on } \quad \partial \Omega
  *     ,
  * \f}
- * which minimizes \f$F(\phi(t))\f$ as time passes, i.e. \f$F(\phi(t)) \leq F(\phi(s))\f$ for \f$t \leq s\f$.
+ * which minimizes \f$F(\phi(t))\f$ as time passes, i.e. \f$F(\phi(s)) \leq F(\phi(t))\f$ for \f$t \leq s\f$.
  * The equations are a mixed system of the fields \f$\phi\f$ and \f$\mu\f$.
  *
  * \section Time-discretization
@@ -121,7 +121,7 @@
  * \f}
  * and
  * \f{align}{
- *     \boldsymbol g^{(n)}_i = \left\langle-3 \phi^{(n)}_h + (\phi^({n})_h)^3, \psi_{h,i} \right\rangle_{L_2}
+ *     \boldsymbol g^{(n)}_i = \left\langle-3 \phi^{(n)}_h + (\phi^{(n)}_h)^3, \psi_{h,i} \right\rangle_{L_2}
  * \f}
  * with test functions \f$\nu_{h,i}\f$ and \f$\psi_{h,i}\f$.
  * We consider a \f$\mathcal P^1\f$ (continuous, piecewise linear polynomials) discretization of FE-shape functions.
@@ -239,7 +239,7 @@
  *
  * In HyTeG \f$m_\kappa\f$ is given by hyteg::forms::p1_k_mass_affine_q4.
  * Here
- * - `p1` stands for the used function space,
+ * - `p1` stands for the used function space of piecewise linear continuous functions,
  * - `k_mass` is the common name of the bilinear form,
  * - `affine` stresses that it does not support geometry blending and
  * - `q4` denotes the degree of the quadrature rule.
@@ -251,11 +251,11 @@
  * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction assemble
  * To calculate \f$\boldsymbol{g}\f$, we first define a lambda function `kappa` which takes a quadrature point and returns the value of \f$\tilde \kappa\f$ at that point.
  * For this, we get the \f$\phi\f$-component of `u_prev` and evaluate it at `p` with hyteg::P1Function::evaluate.
- * The functional is inserted into the form for \f$m_{\tilde \kappa}\f$, which is used to initialize the operator `op_phi` or \f$M_{\tilde \kappa}\f$ in our previous notation.
+ * The functional is inserted into the form for \f$m_{\tilde \kappa}\f$, which is used to initialize the operator `op_m_kappa_tilde` or \f$M_{\tilde \kappa}\f$ in our previous notation.
  * Since the \f$\tilde \kappa\f$ is dimension-independent, we use it both for 2D and 3D.
  * Finally, we apply the operator to the \f$\phi\f$-component of `u_prev` and store the result in the \f$\phi\f$-component of `rhs`.
  *
- * The calculation of \f$\boldsymbol{f}\f$ is simpler: First, we define the usual mass-matrix in `op_mu`.
+ * The calculation of \f$\boldsymbol{f}\f$ is simpler: First, we define the usual mass-matrix in `op_m_1`.
  * We apply it to the \f$\phi\f$-component of `u_prev` and store the result in the \f$\mu\f$-component of `rhs`.
  *
  * \subsection lhs-assembly The left-hand-side assembly
@@ -458,6 +458,23 @@
  * This can be done by printing the walberla::timing::TimingTree of the hyteg::PrimitiveStorage to the console.
  * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp main timing-tree
  *
+ * \section Results in 2D
+ *
+ * \htmlonly
+  <center>
+  <table>
+  <tr>
+  <td><img src="cahn_hilliard_2d.00.png" width="100%"/><center>initial random state</center></td>
+  <td><img src="cahn_hilliard_2d.01.png" width="100%"/><center>at t=0.05</center></td>
+  </tr>
+  <tr>
+  <td><img src="cahn_hilliard_2d.02.png" width="100%"/><center>at t=0.25</center></td>
+  <td><img src="cahn_hilliard_2d.04.png" width="100%"/><center>at t=0.95</center></td>
+  </tr>
+  </table>
+  </center>
+  \endhtmlonly
+ *
  * \section code Code
  *
  * The full code is:
@@ -659,13 +676,13 @@ void RHSAssembler::assemble( const chType& u_prev, const chType& rhs, uint_t lev
 
    forms::p1_k_mass_affine_q4 form( kappa, kappa );
 
-   P1ElementwiseKMassOperator op_phi( storage_, minLevel_, maxLevel_, form );
+   P1ElementwiseKMassOperator op_m_kappa_tilde( storage_, minLevel_, maxLevel_, form );
 
-   op_phi.apply( u_prev.getPhi(), rhs.getPhi(), level, flag );
+   op_m_kappa_tilde.apply( u_prev.getPhi(), rhs.getPhi(), level, flag );
 
-   P1ElementwiseMassOperator op_mu( storage_, minLevel_, maxLevel_ );
+   P1ElementwiseMassOperator op_m_1( storage_, minLevel_, maxLevel_ );
 
-   op_mu.apply( u_prev.getPhi(), rhs.getMu(), level, flag );
+   op_m_1.apply( u_prev.getPhi(), rhs.getMu(), level, flag );
 }
 /// [CahnHilliardFunction assemble]
 
@@ -874,9 +891,9 @@ int main( int argc, char** argv )
 {
    walberla::Environment env( argc, argv );
    walberla::mpi::MPIManager::instance()->useWorldComm();
-/// [main config-walberla]
+   /// [main config-walberla]
 
-/// [main config-file]
+   /// [main config-file]
    walberla::shared_ptr< walberla::config::Config > cfg( new walberla::config::Config );
    cfg->readParameterFile( "./CahnHilliard.prm" );
    walberla::Config::BlockHandle parameters = cfg->getOneBlock( "Parameters" );
@@ -890,38 +907,43 @@ int main( int argc, char** argv )
    const real_t epsilon = parameters.getParameter< real_t >( "epsilon" );
 
    const real_t t_end = parameters.getParameter< real_t >( "t_end" );
-/// [main config-file]
+   /// [main config-file]
 
-/// [main storage]
+   /// [main storage]
    const auto storage = create_storage( parameters.getParameter< bool >( "use3D" ) );
-/// [main storage]
+   /// [main storage]
 
-/// [main functions]
+   /// [main functions]
    chType u_now( "u_now", storage, minLevel, maxLevel );
    chType u_prev( "u_prev", storage, minLevel, maxLevel );
-/// [main functions]
+   /// [main functions]
 
-/// [main evolution-operator]
+   /// [main evolution-operator]
    CahnHilliardEvolutionOperator chOperator( storage, minLevel, maxLevel, tau, epsilon );
 
    if ( parameters.getParameter< bool >( "printMinresConvergence" ) )
       chOperator.setPrintInfo( true );
-/// [main evolution-operator]
+   /// [main evolution-operator]
 
-/// [main initial-values]
+   /// [main initial-values]
    walberla::math::seedRandomGenerator( static_cast< uint_t >( walberla::mpi::MPIManager::instance()->rank() ) );
 
    u_prev.getPhi().interpolate(
        []( const Point3D& ) { return walberla::math::realRandom( real_t( -0.01 ), real_t( 0.01 ) ); }, maxLevel, All );
    u_prev.getMu().interpolate( 0, maxLevel, All );
-/// [main initial-values]
+   /// [main initial-values]
 
-/// [main time-loop]
+   /// [main time-loop]
    real_t t_now = 0;
 
    VTKOutput vtkOutput( ".", "CahnHilliard", storage );
 
-   for ( uint_t k = 0; k < std::numeric_limits< uint_t >::max(); ++k )
+   // save initial state:
+   u_now.assign( { 1. }, { u_prev }, maxLevel, All );
+   vtkOutput.add( u_now );
+   vtkOutput.write( maxLevel, 0 );
+
+   for ( uint_t k = 1; k < std::numeric_limits< uint_t >::max(); ++k )
    {
       t_now += tau;
 
@@ -939,9 +961,9 @@ int main( int argc, char** argv )
          vtkOutput.write( maxLevel, k );
       }
    }
-/// [main time-loop]
+   /// [main time-loop]
 
-/// [main timing-tree]
+   /// [main timing-tree]
    if ( parameters.getParameter< bool >( "printTimingTree" ) )
       WALBERLA_LOG_INFO_ON_ROOT( *storage->getTimingTree() );
 }
