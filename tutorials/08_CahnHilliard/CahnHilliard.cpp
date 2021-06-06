@@ -350,22 +350,109 @@
  * which is essentially the list of operations given before wrapped by some calls to the timing-tree API.
  * This is especially useful to get a feeling how long solving the system takes in relation to assembling the right-hand-side.
  *
- * \subsection minres-solver The outer solver
+ * \subsection minres-solver The solver
  *
  * We will now discuss how to invert the `lhsOp_` Operator from the previous step.
- * As an outer solver we will use a diagonally preconditioned MINRES.
- * Ignoring
+ * As an outer solver we will use a diagonally preconditioned MINRES, which is configured in the `create_solver`,
+ * which was called in the constructor of the CahnHilliardEvolutionOperator of the previous step.
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction minres-solver
+ * First, we construct the CahnHilliardDiagonalPreconditioner, which we will implement in a second and has the usual hyteg::Solver interface.
+ * The preconditioner is passed to the constructor of the hyteg::MinResSolver, together with the maxium number of iteration and the absolute tolerance of the residual.
+ * The default preconditioner is the hyteg::IdentityPreconditioner which is commented out.
  *
- * TODO: Write the rest
+ * For the diagonal preconditioner we will have to evaluate the matrix
+ * \f{align}{
+ *     P^{-1}
+ *     :=
+ *     \begin{pmatrix}
+ *         (\sqrt{\tau} K + M)^{-1} & \\
+ *         &
+ *         (\sqrt{\tau} \epsilon^2 K + M)^{-1}
+ *     \end{pmatrix}
+ *     .
+ * \f}
+ * We will use a multigrid algorithm to invert the diagonal blocks.
+ *
+ * The CahnHilliardDiagonalPreconditioner inherits from the solver interface:
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction CahnHilliardDiagonalPreconditioner
+ * The CahnHilliardDiagonalPreconditioner::create_block_00_form and CahnHilliardDiagonalPreconditioner::create_block_11_form methods
+ * will create the hyteg::P1LinearCombinationForm%s for \f$ \sqrt{\tau} K + M \f$
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardDiagonalPreconditioner block00form
+ * and \f$\sqrt{\tau} \epsilon^2 K + M\f$
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardDiagonalPreconditioner block11form
+ * which are used to construct the operators `block_00_operator` and `block_11_operator`.
+ *
+ * The CahnHilliardDiagonalPreconditioner::create_multigrid_solver initializes our multigrid algorithm in the same way as in \ref 05_FullAppP1GMG:
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardDiagonalPreconditioner create-multigrid-solver
+ *
+ * Now that we are finished with the setup phase, implementing the action of the preconditioner in the `solve` method becomes is simple:
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardDiagonalPreconditioner solve
+ * We apply the multigrid solver first on the \f$\mu\f$-component of our solver `numVCyclesMu_`-times.
+ * After that we do the same for the lower-right block.
+ *
+ * \subsection domain The domain
+ *
+ * We will solve the Cahn-Hilliard equations on a rectangular or cubic domain, depending on whether we are in 2D or 3D.
+ * A rectangular domain can be constructed with
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp create_storage rectangle
+ * The only notable thing which changes compared to the previous tutorial is, that we need Neumann boundary conditions on the whole domain.
+ * For this we use the hyteg::SetupPrimitiveStorage::setMeshBoundaryFlagsOnBoundary method.
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp create_storage neumann
+ *
+ * Since we want to seamlessly switch between 2D and 3D the whole construction of the primitive storage gets moved into an auxillary function,
+ * which takes the boolean flag `use3D` as argument:
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp create_storage fun
+ * We stress, that this will be the only place in our code where different codepaths are taken depending the spatial-dimension.
+ *
+ * \subsection main The main function
+ *
+ * We are still in need of a main function to start the simulation, which ties all the previously defined classes and functions together.
+ * In principle, it should not contain anything surprising which was not encountered in the previous tutorials yet.
+ *
+ * We start with configuring walberla
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp main config-walberla
+ *
+ * We do not want to hardcode most of our parameters and hence have to read in a configuration file:
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp main config-file
+ * As before `minLevel` and `maxLevel` refer to the coarsest and finest level of our multigrid algorithm.
+ * Since we do not want to output our solution after every time step, we define an `outputInterval`, so that we only get every `outputInterval`th step.
+ * The parameters `tau` and `epsilon` refer to the time step width and interface width.
+ *
+ * In practice choices for `maxLevel`, `tau` and `epsilon` will depend on one another,
+ * since if we refine the mesh for a smaller spatial-error we will also want to decrease `tau`, since otherwise the temporal error would dominate.
+ * And since we often want the interfacial width to be as small as possible, we will decrease this parameter too.
+ *
+ * We create the storage with our previously defined helper function
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp main storage
+ *
+ * Next we define functions for storing the state of our CH equation at the current and previous time step
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp main functions
+ *
+ * Next we setup the CahnHilliardEvolutionOperator as
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp main evolution-operator
+ * We have added the flag `printMinresConvergence` to activate the verbose outut mode of our MINRES solver.
+ * This allows us to check how many iterations we need to convergence and how the iteration count changes for finer meshes.
+ *
+ * A common benchmark for a Cahn-Hilliard solver is to start with a homogeneous mixture of fluids which is disturbed by some random noise.
+ * We will thus use walberla::math::realRandom to initialize `u_prev` with random values in the interval \f$[-0.01, +0.01]\f$
+ * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp main initial-values
+ * The seed for these random functions can be set with walberla::math::seedRandomGenerator.
+ * We use the processor rank as an initial seed to avoid having the same random values on all processes.
+ * This would lead to symmetric patterns in our solution, due to the homogeneous mesh.
+ *
+ *
+ *
+ *
+ * \section code Code
  *
  * The full code is:
  *
  * \include tutorials/08_CahnHilliard/CahnHilliard.cpp
  *
- * \section References
+ * \section references References
  *
  * [Brenner2018] BRENNER, Susanne C.; DIEGEL, Amanda E.; SUNG, Li-Yeng.
- *               A robust solver for a mixed finite element method for the Cahn–Hilliard equation.
+ *               <a href="https://arxiv.org/pdf/1811.03430.pdf">A robust solver for a mixed finite element method for the Cahn–Hilliard equation</a>.
  *               Journal of Scientific Computing, 2018, 77. Jg., Nr. 2, S. 1234-1249.
  *
  * [TRAITS] https://www.boost.org/doc/libs/1_53_0/libs/geometry/doc/html/geometry/design.html
@@ -472,6 +559,7 @@ using MassFormType    = hyteg::P1FenicsForm< p1_mass_cell_integral_0_otherwise, 
 using LaplaceFormType = hyteg::P1FenicsForm< p1_diffusion_cell_integral_0_otherwise, p1_tet_diffusion_cell_integral_0_otherwise >;
 /// [CahnHilliardFunction forms-definitions]
 
+/// [CahnHilliardFunction minres-solver]
 std::shared_ptr< MinResSolver< BlockOperator< chType, chType > > >
     create_solver( const std::shared_ptr< PrimitiveStorage >& storage,
                    uint_t                                     minLevel,
@@ -492,6 +580,7 @@ std::shared_ptr< MinResSolver< BlockOperator< chType, chType > > >
 
    return solver;
 }
+/// [CahnHilliardFunction minres-solver]
 
 /// [CahnHilliardFunction lhs-assembly]
 std::shared_ptr< BlockOperator< chType, chType > > create_lhs_operator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -565,6 +654,7 @@ void RHSAssembler::assemble( const chType& u_prev, const chType& rhs, uint_t lev
 }
 /// [CahnHilliardFunction assemble]
 
+/// [CahnHilliardFunction CahnHilliardDiagonalPreconditioner]
 class CahnHilliardDiagonalPreconditioner : public Solver< BlockOperator< chType, chType > >
 {
  public:
@@ -602,7 +692,9 @@ class CahnHilliardDiagonalPreconditioner : public Solver< BlockOperator< chType,
    uint_t numVCyclesMu_;
    uint_t numVCyclesPhi_;
 };
+/// [CahnHilliardFunction CahnHilliardDiagonalPreconditioner]
 
+/// [CahnHilliardDiagonalPreconditioner solve]
 void CahnHilliardDiagonalPreconditioner::solve( const BlockOperator< chType, chType >&,
                                                 const chType& x,
                                                 const chType& b,
@@ -613,7 +705,9 @@ void CahnHilliardDiagonalPreconditioner::solve( const BlockOperator< chType, chT
    for ( uint_t k = 0; k < numVCyclesPhi_; k += 1 )
       solver->solve( block_11_operator, x.getPhi(), b.getPhi(), level );
 }
+/// [CahnHilliardDiagonalPreconditioner solve]
 
+/// [CahnHilliardDiagonalPreconditioner block00form]
 P1LinearCombinationForm CahnHilliardDiagonalPreconditioner::create_block_00_form( real_t tau )
 {
    P1LinearCombinationForm form;
@@ -621,7 +715,9 @@ P1LinearCombinationForm CahnHilliardDiagonalPreconditioner::create_block_00_form
    form.addOwnedForm< MassFormType >( 1. );
    return form;
 }
+/// [CahnHilliardDiagonalPreconditioner block00form]
 
+/// [CahnHilliardDiagonalPreconditioner block11form]
 P1LinearCombinationForm CahnHilliardDiagonalPreconditioner::create_block_11_form( real_t tau, real_t epsilon )
 {
    P1LinearCombinationForm form;
@@ -629,7 +725,9 @@ P1LinearCombinationForm CahnHilliardDiagonalPreconditioner::create_block_11_form
    form.addOwnedForm< MassFormType >( 1. );
    return form;
 }
+/// [CahnHilliardDiagonalPreconditioner block11form]
 
+/// [CahnHilliardDiagonalPreconditioner create-multigrid-solver]
 std::shared_ptr< GeometricMultigridSolver< P1ConstantLinearCombinationOperator > >
     CahnHilliardDiagonalPreconditioner::create_multigrid_solver( std::shared_ptr< PrimitiveStorage > storage,
                                                                  const uint_t                        minLevel,
@@ -651,6 +749,7 @@ std::shared_ptr< GeometricMultigridSolver< P1ConstantLinearCombinationOperator >
 
    return gmg;
 }
+/// [CahnHilliardDiagonalPreconditioner create-multigrid-solver]
 
 /// [CahnHilliardFunction ClassCahnHilliardEvolutionOperator]
 class CahnHilliardEvolutionOperator
@@ -720,6 +819,7 @@ void CahnHilliardEvolutionOperator::scale( const chType& src, const chType& dst,
 }
 /// [CahnHilliardFunction scale]
 
+/// [create_storage fun]
 std::shared_ptr< hyteg::PrimitiveStorage > create_storage( bool use3D )
 {
    uint_t numProcesses = walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() );
@@ -736,24 +836,32 @@ std::shared_ptr< hyteg::PrimitiveStorage > create_storage( bool use3D )
    }
    else
    {
+      /// [create_storage rectangle]
       hyteg::Point2D lowerRight( { -1, -1 } );
       hyteg::Point2D upperLeft( { +1, +1 } );
 
       auto meshInfo = hyteg::MeshInfo::meshRectangle( lowerRight, upperLeft, hyteg::MeshInfo::CROSS, 2, 2 );
       setupStorage  = std::make_shared< hyteg::SetupPrimitiveStorage >( meshInfo, numProcesses );
+      /// [create_storage rectangle]
    }
 
+   /// [create_storage neumann]
    // Neumann BC everywhere
    setupStorage->setMeshBoundaryFlagsOnBoundary( 2, 0, true );
+   /// [create_storage neumann]
 
    return std::make_shared< hyteg::PrimitiveStorage >( *setupStorage );
 }
+/// [create_storage fun]
 
+/// [main config-walberla]
 int main( int argc, char** argv )
 {
    walberla::Environment env( argc, argv );
    walberla::mpi::MPIManager::instance()->useWorldComm();
+/// [main config-walberla]
 
+/// [main config-file]
    walberla::shared_ptr< walberla::config::Config > cfg( new walberla::config::Config );
    cfg->readParameterFile( "./CahnHilliard.prm" );
    walberla::Config::BlockHandle parameters = cfg->getOneBlock( "Parameters" );
@@ -767,34 +875,38 @@ int main( int argc, char** argv )
    const real_t epsilon = parameters.getParameter< real_t >( "epsilon" );
 
    const real_t t_end = parameters.getParameter< real_t >( "t_end" );
+/// [main config-file]
 
-   const uint_t max_time_steps = 100000;
-
+/// [main storage]
    const auto storage = create_storage( parameters.getParameter< bool >( "use3D" ) );
+/// [main storage]
 
+/// [main functions]
    chType u_now( "u_now", storage, minLevel, maxLevel );
    chType u_prev( "u_prev", storage, minLevel, maxLevel );
-   chType rhs( "rhs", storage, minLevel, maxLevel );
+/// [main functions]
 
-   auto solver = std::make_shared< MinResSolver< BlockOperator< chType, chType > > >( storage, minLevel, maxLevel );
-
+/// [main evolution-operator]
    CahnHilliardEvolutionOperator chOperator( storage, minLevel, maxLevel, tau, epsilon );
 
    if ( parameters.getParameter< bool >( "printMinresConvergence" ) )
       chOperator.setPrintInfo( true );
+/// [main evolution-operator]
 
+/// [main initial-values]
    walberla::math::seedRandomGenerator( static_cast< uint_t >( walberla::mpi::MPIManager::instance()->rank() ) );
 
    u_prev.getPhi().interpolate(
        []( const Point3D& ) { return walberla::math::realRandom( real_t( -0.01 ), real_t( 0.01 ) ); }, maxLevel, All );
    u_prev.getMu().interpolate( 0, maxLevel, All );
+/// [main initial-values]
 
+/// [main time-loop]
    real_t t_now = 0;
 
-   // output
    VTKOutput vtkOutput( ".", "CahnHilliard", storage );
 
-   for ( uint_t k = 0; k < max_time_steps; ++k )
+   for ( uint_t k = 0; k < std::numeric_limits< uint_t >::max(); ++k )
    {
       t_now += tau;
 
@@ -806,13 +918,13 @@ int main( int argc, char** argv )
 
       u_prev.assign( { 1. }, { u_now }, maxLevel, All );
 
-      // vtk output
       if ( k % outputInterval == 0 )
       {
          vtkOutput.add( u_now );
          vtkOutput.write( maxLevel, k );
       }
    }
+/// [main time-loop]
 
    if ( parameters.getParameter< bool >( "printTimingTree" ) )
       WALBERLA_LOG_INFO_ON_ROOT( *storage->getTimingTree() );
