@@ -314,7 +314,7 @@
  * \snippet tutorials/08_CahnHilliard/CahnHilliard.cpp CahnHilliardFunction ClassCahnHilliardEvolutionOperator
  *
  * Note that `lhsOp_` is the operator we constructed in the previous step and ignore all the references to solvers for now.
- * The apply method takes function `u_prev` and "evolves' it `u_now` on the given level.
+ * The apply method takes function `u_prev` and "evolves" it to `u_now` on the given level.
  * This method thus executes the operation
  * \f{align}{
  *     \begin{pmatrix}
