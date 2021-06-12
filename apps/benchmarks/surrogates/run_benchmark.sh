@@ -1,7 +1,7 @@
 #!/bin/bash
 
 LEVEL=$1
-SAMPLE=$((${1}-2))
+SAMPLE=$((${1}-4))
 DIM=$2
 
 for BENCHMARK in MEM_DP #HBM_CACHE L2 DATA
