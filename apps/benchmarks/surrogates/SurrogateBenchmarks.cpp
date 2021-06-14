@@ -45,18 +45,21 @@ enum KerType
    VARIABLE,
    CONSTANT,
    GENERATED,
-   SURROGATE
+   SURROGATE,
+   SURROGATE_FAST,
 };
 
 const std::map< std::string, KerType > strToKerType = { { "variable", VARIABLE },
                                                       { "constant", CONSTANT },
                                                       { "generated", GENERATED },
-                                                      { "surrogate", SURROGATE } };
+                                                      { "surrogate", SURROGATE },
+                                                      { "surrogate_fast", SURROGATE_FAST } };
 
 const std::map< KerType, std::string > kerTypeToStr = { { VARIABLE, "variable" },
                                                       { CONSTANT, "constant" },
                                                       { GENERATED, "generated" },
-                                                      { SURROGATE, "surrogate" } };
+                                                      { SURROGATE, "surrogate" },
+                                                      { SURROGATE_FAST, "surrogate_fast" } };
 
 std::shared_ptr< PrimitiveStorage > domain( uint_t dim, bool blending )
 {
@@ -134,7 +137,7 @@ void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t lev
    // ===== parameters =====
 
    WALBERLA_LOG_INFO_ON_ROOT( "operator:  " << kerTypeToStr.at( kertype ) );
-   if ( kertype == SURROGATE )
+   if ( kertype >= SURROGATE )
       WALBERLA_LOG_INFO_ON_ROOT( "           with q =  " << q );
    WALBERLA_LOG_INFO_ON_ROOT( "dimension: " << dim << "D" );
    WALBERLA_LOG_INFO_ON_ROOT( "blending:  " << blending );
@@ -159,7 +162,7 @@ void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t lev
       break;
    }
 
-   if (kertype == SURROGATE)
+   if (kertype >= SURROGATE)
    {
       WALBERLA_LOG_INFO_ON_ROOT( "sampling:  " << sample );
       WALBERLA_LOG_INFO_ON_ROOT( "number of sample points: " << nsamples );
@@ -191,7 +194,9 @@ void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t lev
    P1ConstantLaplaceOperator_new L_const( storage, level, level );
    P1BlendingLaplaceOperator_new L_var( storage, level, level );
    P1SurrogateLaplaceOperator    L_q( storage, level, level );
+   P1SurrogateOperator<hyteg::forms::p1_diffusion_blending_q3, true>    L_q_fast( storage, level, level );
    L_q.interpolateStencils( q, sample );
+   L_q_fast.interpolateStencils( q, sample );
 
    // ===== init benchmark =====
 
@@ -266,6 +271,18 @@ void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t lev
             break;
          }
          break;
+      case SURROGATE_FAST:
+         switch ( dim )
+         {
+         case 2:
+            L_q_fast.apply_face( *face, src.getFaceDataID(), dst.getFaceDataID(), level, Replace );
+            break;
+         case 3:
+            L_q_fast.apply_cell( *cell, src.getCellDataID(), dst.getCellDataID(), level, Replace );
+            break;
+         }
+         break;
+
       }
 
       LIKWID_MARKER_STOP( "apply" );
@@ -334,6 +351,17 @@ void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t lev
             break;
          case 3:
             L_q.smooth_sor_cell( *cell, src.getCellDataID(), dst.getCellDataID(), level, 1 );
+            break;
+         }
+         break;
+      case SURROGATE_FAST:
+         switch ( dim )
+         {
+         case 2:
+            L_q_fast.smooth_sor_face( *face, src.getFaceDataID(), dst.getFaceDataID(), level, 1 );
+            break;
+         case 3:
+            L_q_fast.smooth_sor_cell( *cell, src.getCellDataID(), dst.getCellDataID(), level, 1 );
             break;
          }
          break;

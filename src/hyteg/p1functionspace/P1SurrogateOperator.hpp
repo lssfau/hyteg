@@ -34,7 +34,7 @@
 
 namespace hyteg {
 
-template < class P1Form >
+template < class P1Form, bool USE_INCREMENTAL_EVAL = false >
 class P1SurrogateOperator : public P1Operator<P1Form>
 {
    using Poly2D = Polynomial2D<MonomialBasis2D>;
@@ -326,6 +326,10 @@ class P1SurrogateOperator : public P1Operator<P1Form>
          for (auto& evaluator : facePolyEvaluator_)
          {
             evaluator.setY(y);
+            if (USE_INCREMENTAL_EVAL)
+         {
+            evaluator.setStartX(0, h_);
+         }
          }
       }
    }
@@ -339,7 +343,14 @@ class P1SurrogateOperator : public P1Operator<P1Form>
 
       for (uint_t c = 0; c < facePolyEvaluator_.size(); ++c)
       {
-         face_stencil[c] = facePolyEvaluator_[c].evalX(x);
+         if (USE_INCREMENTAL_EVAL)
+         {
+            face_stencil[c] = facePolyEvaluator_[c].incrementEval();
+         }
+         else
+         {
+            face_stencil[c] = facePolyEvaluator_[c].evalX(x);
+         }
       }
    }
 
@@ -383,6 +394,10 @@ class P1SurrogateOperator : public P1Operator<P1Form>
       for (auto& [idx,evaluator] : cellPolyEvaluator_)
       {
          evaluator.setY(y);
+         if (USE_INCREMENTAL_EVAL)
+         {
+            evaluator.setStartX(0, h_);
+         }
       }
    }
 
@@ -395,7 +410,14 @@ class P1SurrogateOperator : public P1Operator<P1Form>
 
       for (auto& [idx,evaluator] : cellPolyEvaluator_)
       {
-         cell_stencil[idx] = evaluator.evalX(x);
+         if (USE_INCREMENTAL_EVAL)
+         {
+            cell_stencil[idx] = evaluator.incrementEval();
+         }
+         else
+         {
+            cell_stencil[idx] = evaluator.evalX(x);
+         }
       }
    }
 

@@ -10,10 +10,10 @@ do
     echo ====================================================
     echo "benchmark: ${BENCHMARK}"
 
-    for KER in generated constant variable surrogate
+    for KER in generated constant variable surrogate surrogate_fast
     do
         QMAX=0
-        if [[ ${KER} == surrogate ]]
+        if [[ ${KER} == surrogate || ${KER} == surrogate_fast ]]
         then
             QMAX=12
         fi

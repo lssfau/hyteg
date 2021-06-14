@@ -66,7 +66,7 @@ class PolynomialStencil
       for (uint_t i = 0; i < N; ++i)
       {
          Polynomial2DEvaluator& eval = *evaluator_[i];
-         stencil_[i] = eval.setStartX<PolyDegree>(x0, h);
+         stencil_[i] = eval.setStartX(x0, h);
       }
    }
 
@@ -76,7 +76,7 @@ class PolynomialStencil
       for (uint_t i = 0; i < N; ++i)
       {
          Polynomial2DEvaluator& eval = *evaluator_[i];
-         stencil_[i] = eval.incrementEval<PolyDegree>();
+         stencil_[i] = eval.incrementEval();
       }
    }
 
