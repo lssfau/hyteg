@@ -23,7 +23,7 @@ do
             # generate parameter file
             # echo "Parameters{level ${LEVEL};samplelevel ${SAMPLE}; minTime 1; kernelType ${KER}; polyDegree ${Q}; dimension ${DIM}; blending false;}" > tmp.prm
             # run benchmark
-            likwid-perfctr -C 0 -g ${BENCHMARK} -m ./SurrogateBenchmarks SurrogateBenchmarks.prm -Parameters.level=${LEVEL} -Parameters.samplelevel=${SAMPLE} -Parameters.minTime=1 -Parameters.kernelType=${KER} -Parameters.polyDegree=${Q} -Parameters.dimension=${DIM} -Parameters.blending=false
+            likwid-perfctr -C 0 -g ${BENCHMARK} -m ./SurrogateBenchmarks SurrogateBenchmarks.prm -Parameters.level=${LEVEL} -Parameters.samplelevel=${SAMPLE} -Parameters.minTime=100 -Parameters.kernelType=${KER} -Parameters.polyDegree=${Q} -Parameters.dimension=${DIM} -Parameters.blending=false
 
             # same with blending
             if [[ ${KER} == variable ]]
@@ -31,7 +31,7 @@ do
                 # generate parameter file
                 # echo "Parameters{level ${LEVEL};samplelevel ${SAMPLE}; minTime 1; kernelType ${KER}; polyDegree ${Q}; dimension ${DIM}; blending true;}" > tmp.prm
                 # run benchmark
-                likwid-perfctr -C 0 -g ${BENCHMARK} -m ./SurrogateBenchmarks SurrogateBenchmarks.prm -Parameters.level=${LEVEL} -Parameters.samplelevel=${SAMPLE} -Parameters.minTime=1 -Parameters.kernelType=${KER} -Parameters.polyDegree=${Q} -Parameters.dimension=${DIM} -Parameters.blending=true
+                likwid-perfctr -C 0 -g ${BENCHMARK} -m ./SurrogateBenchmarks SurrogateBenchmarks.prm -Parameters.level=${LEVEL} -Parameters.samplelevel=${SAMPLE} -Parameters.minTime=100 -Parameters.kernelType=${KER} -Parameters.polyDegree=${Q} -Parameters.dimension=${DIM} -Parameters.blending=true
             fi
         done
     done
