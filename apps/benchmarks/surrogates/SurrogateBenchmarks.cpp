@@ -192,7 +192,7 @@ void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t lev
    WALBERLA_LOG_INFO_ON_ROOT( "Intitialize operators" );
 
    P1ConstantLaplaceOperator_new L_const( storage, level, level );
-   hyteg::P1VariableOperator_new<hyteg::forms::p1_diffusion_blending_q1>; L_var( storage, level, level );
+   hyteg::P1VariableOperator_new<hyteg::forms::p1_diffusion_blending_q1> L_var( storage, level, level );
    P1SurrogateLaplaceOperator    L_q( storage, level, level );
    P1SurrogateOperator<hyteg::forms::p1_diffusion_blending_q3, true>    L_q_fast( storage, level, level );
    L_q.interpolateStencils( q, sample );
