@@ -46,9 +46,12 @@
 #include "hyteg/solvers/GeometricMultigridSolver.hpp"
 #include "hyteg/solvers/MinresSolver.hpp"
 #include "hyteg/solvers/UzawaSmoother.hpp"
+#include "hyteg/solvers/preconditioners/JacobiPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesBlockDiagonalPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesPressureBlockPreconditioner.hpp"
 #include "hyteg/solvers/preconditioners/stokes/StokesVelocityBlockBlockDiagonalPreconditioner.hpp"
+
+#include "hyteg/solvers/GMRESSolver.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
@@ -59,11 +62,10 @@ int main( int argc, char* argv[] )
    walberla::Environment env( argc, argv );
    walberla::MPIManager::instance()->useWorldComm();
 
-   //check if a config was given on command line or load default file otherwise
    auto cfg = std::make_shared< walberla::config::Config >();
    if( env.config() == nullptr )
    {
-      auto defaultFile = "./StokesSphere.prm";
+      auto defaultFile = "./StokesGMRES.prm";
       WALBERLA_LOG_INFO_ON_ROOT( "No Parameter file given loading default parameter file: " << defaultFile );
       cfg->readParameterFile( defaultFile );
    } else
@@ -73,13 +75,6 @@ int main( int argc, char* argv[] )
    /////////////// Parameters ///////////////
    const walberla::Config::BlockHandle mainConf    = cfg->getBlock( "Parameters" );
    const walberla::Config::BlockHandle layersParam = cfg->getBlock( "Layers" );
-
-   if( mainConf.getParameter< bool >( "printParameters" ) )
-   {
-      mainConf.listParameters();
-      WALBERLA_LOG_INFO_ON_ROOT( "Layers: " );
-      layersParam.listParameters();
-   }
 
    const uint_t          ntan = mainConf.getParameter< uint_t >( "ntan" );
    std::vector< double > layers;
@@ -97,12 +92,11 @@ int main( int argc, char* argv[] )
    const uint_t minLevel            = mainConf.getParameter< uint_t >( "minLevel" );
    const uint_t maxLevel            = mainConf.getParameter< uint_t >( "maxLevel" );
    const uint_t numVCycle           = mainConf.getParameter< uint_t >( "numVCycle" );
-   const uint_t maxMinResIterations = mainConf.getParameter< uint_t >( "maxMinResIterations" );
-
-   const real_t uzawaTolerance = mainConf.getParameter< double >( "uzawaTolerance" );
-   //const uint_t uzawaMaxIter   = mainConf.getParameter< uint_t >( "uzawaMaxIter" );
-
-   //////////////////////////////////////////
+   const uint_t maxKrylowDim        = mainConf.getParameter< uint_t >( "maxKrylowDim" );
+   const uint_t restartLength       = mainConf.getParameter< uint_t >( "restartLength" );
+   const real_t arnoldiTOL          = mainConf.getParameter< real_t >( "arnoldiTOL" );
+   const real_t approxTOL           = mainConf.getParameter< real_t >( "approxTOL" );
+   const real_t doubleOrthoTOL      = mainConf.getParameter< real_t >( "doubleOrthoTOL" );
 
    hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::meshSphericalShell( ntan, layers );
    hyteg::SetupPrimitiveStorage setupStorage( meshInfo, walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
@@ -113,22 +107,6 @@ int main( int argc, char* argv[] )
    std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
 
    std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage, timingTree );
-
-   if( mainConf.getParameter< bool >( "useParMETIS" ) )
-   {
-      hyteg::loadbalancing::distributed::parmetis( *storage );
-   }
-
-   if( mainConf.getParameter< bool >( "printGlobalStorageInfo" ) )
-   {
-      auto globalInfo = storage->getGlobalInfo();
-      WALBERLA_LOG_INFO_ON_ROOT( globalInfo );
-   }
-
-   if( mainConf.getParameter< bool >( "writeDomainVTK" ) )
-   {
-      hyteg::writeDomainPartitioningVTK( storage, "./output", "StokesSphere_domain" );
-   }
 
    hyteg::P1StokesFunction< real_t > r( "r", storage, minLevel, maxLevel );
    hyteg::P1StokesFunction< real_t > f( "f", storage, minLevel, maxLevel );
@@ -146,7 +124,7 @@ int main( int argc, char* argv[] )
       WALBERLA_LOG_INFO_ON_ROOT( "Total Stokes DoFs on all level :" << totalGlobalDofsStokes );
    }
 
-   hyteg::VTKOutput vtkOutput("./output", "StokesSphere", storage);
+   hyteg::VTKOutput vtkOutput("./output", "StokesGMRES", storage);
    if( mainConf.getParameter< bool >( "VTKOutput" ) )
    {
       vtkOutput.add( u.uvw );
@@ -193,56 +171,51 @@ int main( int argc, char* argv[] )
 
    std::string solverType = mainConf.getParameter< std::string >( "solver" );
 
-   if( solverType == "minres" )
+   if( solverType == "plain" )
    {
-      ///// Coarse Grid solver for the A block GMG preconditioner in MinRes /////
-      typedef CGSolver< hyteg::P1ConstantLaplaceOperator > CoarseGridSolver_T;
-      auto coarseGridSolver = std::make_shared< CoarseGridSolver_T >( storage, minLevel, maxLevel );
+      typedef hyteg::GMRESSolver< hyteg::P1StokesOperator  >GMRESsolv;
+      auto KleinerFeinerGMRES = GMRESsolv( storage, minLevel, maxLevel, maxKrylowDim, restartLength, arnoldiTOL, approxTOL, doubleOrthoTOL);
+      KleinerFeinerGMRES.solve( L, u, f, maxLevel );
 
-      ///// Geometric Multigrid A block preconditioner for MinRes /////
-      typedef GeometricMultigridSolver< hyteg::P1ConstantLaplaceOperator >GMGSolver_T;
-
-      auto smoother = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1ConstantLaplaceOperator > >();
-      auto coarseGridSolver = std::make_shared< hyteg::MinResSolver< hyteg::P1StokesOperator > >( storage, minLevel, minLevel, coarseMaxiter );
-      auto restrictionOperator = std::make_shared< hyteg::P1toP1LinearRestriction>();
-      auto prolongationOperator = std::make_shared< hyteg::P1toP1LinearProlongation >();
-
-
-      auto gmgSolver = std::make_shared< GMGSolver_T >( storage, smoother, coarseGridSolver, restrictionOperator, prolongationOperator, minLevel, maxLevel, 2, 2 );
-
-      /// A block Preconditioner for MinRes /////
+      L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      r.assign( {1.0, -1.0}, {f, r}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      real_t currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner ) );
+      WALBERLA_LOG_INFO_ON_ROOT("currentResidualL2 : " << currentResidualL2);
+   } else if( solverType == "simplePrec" )
+   {
+      /// A block Preconditioner for GMRES /////
       typedef StokesBlockDiagonalPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator >Preconditioner_T;
 
-      auto prec = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 2 );
+      auto prec = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 5 );
 
-      /// MinResSolver
-      typedef hyteg::MinResSolver< hyteg::P1StokesOperator  >PreconditionedMinRes_T;
-      auto preconditionedMinResSolver = PreconditionedMinRes_T( storage, minLevel, maxLevel, maxMinResIterations, uzawaTolerance, prec );
-      preconditionedMinResSolver.solve( L, u, f, maxLevel );
+      typedef hyteg::GMRESSolver< hyteg::P1StokesOperator  >GMRESsolv;
+      auto KleinerFeinerGMRES = GMRESsolv( storage, minLevel, maxLevel, maxKrylowDim, restartLength, arnoldiTOL, approxTOL, doubleOrthoTOL, prec );
+      KleinerFeinerGMRES.solve( L, u, f, maxLevel );
 
-   } else if( solverType == "uzawa" )
+      L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      r.assign( {1.0, -1.0}, {f, r}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      real_t currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner ) );
+      WALBERLA_LOG_INFO_ON_ROOT("currentResidualL2 : " << currentResidualL2);
+   } else if( solverType == "multigrid") 
    {
-      ///// MinRes coarse grid solver for UZAWA /////
       typedef StokesPressureBlockPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator >PressurePreconditioner_T;
-
       auto pressurePrec = std::make_shared< PressurePreconditioner_T>( storage, minLevel, minLevel );
 
-      typedef hyteg::MinResSolver< hyteg::P1StokesOperator >PressurePreconditionedMinRes_T;
+      typedef hyteg::GMRESSolver< hyteg::P1StokesOperator >PressurePreconditionedGMRES_T;
+      auto pressurePreconditionedGMRESSolver = std::make_shared< PressurePreconditionedGMRES_T >(
+          storage, minLevel, maxLevel, maxKrylowDim, restartLength, arnoldiTOL, approxTOL, doubleOrthoTOL, pressurePrec );
 
-      auto pressurePreconditionedMinResSolver = std::make_shared< PressurePreconditionedMinRes_T >( storage, minLevel, minLevel, maxMinResIterations, uzawaTolerance, pressurePrec );
-
-      ///// UZAWA solver /////
-      typedef GeometricMultigridSolver< hyteg::P1StokesOperator >UzawaSolver_T;
+      typedef GeometricMultigridSolver< hyteg::P1StokesOperator >GMRESMultigrid_T;
 
       auto stokesRestriction = std::make_shared< hyteg::P1P1StokesToP1P1StokesRestriction>();
       auto stokesProlongation = std::make_shared< hyteg::P1P1StokesToP1P1StokesProlongation >();
       auto gaussSeidel = std::make_shared< hyteg::GaussSeidelSmoother< hyteg::P1StokesOperator::VelocityOperator_T > >();
-      auto uzawaVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1StokesOperator > >( storage, gaussSeidel );
+      auto multigridVelocityPreconditioner = std::make_shared< hyteg::StokesVelocityBlockBlockDiagonalPreconditioner< hyteg::P1StokesOperator > >( storage, gaussSeidel );
 
-      auto uzawaSmoother = std::make_shared< hyteg::UzawaSmoother< P1StokesOperator > >(storage, uzawaVelocityPreconditioner,minLevel, maxLevel, 0.3);
+      auto GMRESMultigridSmoother = std::make_shared< hyteg::UzawaSmoother< P1StokesOperator > >(storage, multigridVelocityPreconditioner,minLevel, maxLevel, 0.3);
 
-      UzawaSolver_T uzawaSolver(
-          storage, uzawaSmoother, pressurePreconditionedMinResSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 2, 2, 2 );
+      GMRESMultigrid_T GMRESsolv(
+          storage, GMRESMultigridSmoother, pressurePreconditionedGMRESSolver, stokesRestriction, stokesProlongation, minLevel, maxLevel, 2, 2, 2 );
 
       auto count = hyteg::Function< hyteg::vertexdof::VertexDoFFunction< real_t > >::getLevelWiseFunctionCounter();
       if( mainConf.getParameter< bool >( "printFunctionCount" ) ) {
@@ -262,7 +235,7 @@ int main( int argc, char* argv[] )
                                  << " | " << std::setw( 16 ) << std::scientific << currentResidualL2 / lastResidualL2 );
       for( uint_t i = 0; i < numVCycle; i++ )
       {
-         uzawaSolver.solve( L, u, f, maxLevel );
+         GMRESsolv.solve( L, u, f, maxLevel );
 
          lastResidualL2 = currentResidualL2;
          L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
@@ -274,10 +247,9 @@ int main( int argc, char* argv[] )
                                     << " | " << std::setw( 16 ) << std::scientific << currentResidualL2 / lastResidualL2 )
          //WALBERLA_LOG_INFO_ON_ROOT( "after it " << i << ": " << std::scientific << residualMG );
       }
-
-   } else
+   } else 
    {
-      WALBERLA_ABORT( "Unkown solver type" );
+      WALBERLA_LOG_INFO_ON_ROOT( "Unkown solver type" );
    }
 
 #if 0

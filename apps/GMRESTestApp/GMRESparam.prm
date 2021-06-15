@@ -1,0 +1,11 @@
+Parameters
+{
+    minLevel 2;
+    maxLevel 3;
+    maxKrylowDim 600;
+    restartLength 20;
+    arnoldiTOL 10e-14;
+    approxTOL 10e-16;
+    doubleOrthoTOL 0.1;
+    vtkOutput true;
+}
