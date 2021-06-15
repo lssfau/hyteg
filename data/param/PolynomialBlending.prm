@@ -1,7 +1,7 @@
 Parameters
 {
   level_h_coarse 2;
-  level_h_fine 9;
+  level_h_fine 4;
 
   # use P1 or P2 elements;
   elementType 1;
@@ -13,7 +13,7 @@ Parameters
   # 3: new_constant;
   # 4: new_variable;
   # 5: new_polynomial;
-  operatorType 2;
+  operatorType 4;
 
   # parameters for surrogate polynomials;
   interpolationLevel 6;
