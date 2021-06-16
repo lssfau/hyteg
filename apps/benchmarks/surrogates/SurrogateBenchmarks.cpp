@@ -135,8 +135,8 @@ std::shared_ptr< PrimitiveStorage > domain( uint_t dim, bool blending )
 void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t level, uint_t sample, real_t minTime )
 {
    // ===== parameters =====
-
-   WALBERLA_LOG_INFO_ON_ROOT( "operator:  " << kerTypeToStr.at( kertype ) );
+   auto appnd = (blending)? "_blending" : "";
+   WALBERLA_LOG_INFO_ON_ROOT( "operator:  " << kerTypeToStr.at( kertype ) << appnd);
    if ( kertype >= SURROGATE )
       WALBERLA_LOG_INFO_ON_ROOT( "           with q =  " << q );
    WALBERLA_LOG_INFO_ON_ROOT( "dimension: " << dim << "D" );
@@ -192,9 +192,11 @@ void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t lev
    WALBERLA_LOG_INFO_ON_ROOT( "Intitialize operators" );
 
    P1ConstantLaplaceOperator_new L_const( storage, level, level );
-   hyteg::P1VariableOperator_new<hyteg::forms::p1_diffusion_blending_q1> L_var( storage, level, level );
+   hyteg::P1VariableOperator_new<hyteg::forms::p1_diffusion_blending_q1> L_blend( storage, level, level );
+   // hyteg::P1VariableOperator_new<hyteg::forms::p1_diffusion_blending_q1> L_aff( storage, level, level );
+   hyteg::P1VariableOperator_new<hyteg::forms::p1_diffusion_affine_q1> L_aff( storage, level, level );
    P1SurrogateLaplaceOperator    L_q( storage, level, level );
-   P1SurrogateOperator<hyteg::forms::p1_diffusion_blending_q3, true>    L_q_fast( storage, level, level );
+   P1SurrogateOperator<hyteg::forms::p1_diffusion_blending_q1, true>    L_q_fast( storage, level, level );
    L_q.interpolateStencils( q, sample );
    L_q_fast.interpolateStencils( q, sample );
 
@@ -253,10 +255,16 @@ void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t lev
          switch ( dim )
          {
          case 2:
-            L_var.apply_face( *face, src.getFaceDataID(), dst.getFaceDataID(), level, Replace );
+            if (blending)
+               L_blend.apply_face( *face, src.getFaceDataID(), dst.getFaceDataID(), level, Replace );
+            else
+               L_aff.apply_face( *face, src.getFaceDataID(), dst.getFaceDataID(), level, Replace );
             break;
          case 3:
-            L_var.apply_cell( *cell, src.getCellDataID(), dst.getCellDataID(), level, Replace );
+            if (blending)
+               L_blend.apply_cell( *cell, src.getCellDataID(), dst.getCellDataID(), level, Replace );
+            else
+               L_aff.apply_cell( *cell, src.getCellDataID(), dst.getCellDataID(), level, Replace );
             break;
          }
          break;
@@ -336,10 +344,16 @@ void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t lev
          switch ( dim )
          {
          case 2:
-            L_var.smooth_sor_face( *face, src.getFaceDataID(), dst.getFaceDataID(), level, 1 );
+            if (blending)
+               L_blend.smooth_sor_face( *face, src.getFaceDataID(), dst.getFaceDataID(), level, 1 );
+            else
+               L_aff.smooth_sor_face( *face, src.getFaceDataID(), dst.getFaceDataID(), level, 1 );
             break;
          case 3:
-            L_var.smooth_sor_cell( *cell, src.getCellDataID(), dst.getCellDataID(), level, 1 );
+            if (blending)
+               L_blend.smooth_sor_cell( *cell, src.getCellDataID(), dst.getCellDataID(), level, 1 );
+            else
+               L_aff.smooth_sor_cell( *cell, src.getCellDataID(), dst.getCellDataID(), level, 1 );
             break;
          }
          break;
