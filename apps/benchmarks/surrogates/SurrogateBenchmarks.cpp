@@ -50,16 +50,16 @@ enum KerType
 };
 
 const std::map< std::string, KerType > strToKerType = { { "variable", VARIABLE },
-                                                      { "constant", CONSTANT },
-                                                      { "generated", GENERATED },
-                                                      { "surrogate", SURROGATE },
-                                                      { "surrogate_fast", SURROGATE_FAST } };
+                                                        { "constant", CONSTANT },
+                                                        { "generated", GENERATED },
+                                                        { "surrogate", SURROGATE },
+                                                        { "surrogate_fast", SURROGATE_FAST } };
 
 const std::map< KerType, std::string > kerTypeToStr = { { VARIABLE, "variable" },
-                                                      { CONSTANT, "constant" },
-                                                      { GENERATED, "generated" },
-                                                      { SURROGATE, "surrogate" },
-                                                      { SURROGATE_FAST, "surrogate_fast" } };
+                                                        { CONSTANT, "constant" },
+                                                        { GENERATED, "generated" },
+                                                        { SURROGATE, "surrogate" },
+                                                        { SURROGATE_FAST, "surrogate_fast" } };
 
 std::shared_ptr< PrimitiveStorage > domain( uint_t dim, bool blending )
 {
@@ -135,8 +135,8 @@ std::shared_ptr< PrimitiveStorage > domain( uint_t dim, bool blending )
 void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t level, uint_t sample, real_t minTime )
 {
    // ===== parameters =====
-   auto appnd = (blending)? "_blending" : "";
-   WALBERLA_LOG_INFO_ON_ROOT( "operator:  " << kerTypeToStr.at( kertype ) << appnd);
+   auto appnd = ( blending ) ? "_blending" : "";
+   WALBERLA_LOG_INFO_ON_ROOT( "operator:  " << kerTypeToStr.at( kertype ) << appnd );
    if ( kertype >= SURROGATE )
       WALBERLA_LOG_INFO_ON_ROOT( "           with q =  " << q );
    WALBERLA_LOG_INFO_ON_ROOT( "dimension: " << dim << "D" );
@@ -162,7 +162,7 @@ void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t lev
       break;
    }
 
-   if (kertype >= SURROGATE)
+   if ( kertype >= SURROGATE )
    {
       WALBERLA_LOG_INFO_ON_ROOT( "sampling:  " << sample );
       WALBERLA_LOG_INFO_ON_ROOT( "number of sample points: " << nsamples );
@@ -191,12 +191,11 @@ void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t lev
 
    WALBERLA_LOG_INFO_ON_ROOT( "Intitialize operators" );
 
-   P1ConstantLaplaceOperator_new L_const( storage, level, level );
-   hyteg::P1VariableOperator_new<hyteg::forms::p1_diffusion_blending_q1> L_blend( storage, level, level );
-   // hyteg::P1VariableOperator_new<hyteg::forms::p1_diffusion_blending_q1> L_aff( storage, level, level );
-   hyteg::P1VariableOperator_new<hyteg::forms::p1_diffusion_affine_q1> L_aff( storage, level, level );
-   P1SurrogateLaplaceOperator    L_q( storage, level, level );
-   P1SurrogateOperator<hyteg::forms::p1_diffusion_blending_q1, true>    L_q_fast( storage, level, level );
+   P1ConstantLaplaceOperator_new                                           L_const( storage, level, level );
+   hyteg::P1VariableOperator_new< hyteg::forms::p1_diffusion_blending_q1 > L_blend( storage, level, level );
+   hyteg::P1VariableOperator_new< hyteg::forms::p1_diffusion_affine_q1 >   L_aff( storage, level, level );
+   P1SurrogateOperator< hyteg::forms::p1_diffusion_blending_q1, false >    L_q( storage, level, level );
+   P1SurrogateOperator< hyteg::forms::p1_diffusion_blending_q1, true >     L_q_fast( storage, level, level );
    L_q.interpolateStencils( q, sample );
    L_q_fast.interpolateStencils( q, sample );
 
@@ -255,13 +254,13 @@ void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t lev
          switch ( dim )
          {
          case 2:
-            if (blending)
+            if ( blending )
                L_blend.apply_face( *face, src.getFaceDataID(), dst.getFaceDataID(), level, Replace );
             else
                L_aff.apply_face( *face, src.getFaceDataID(), dst.getFaceDataID(), level, Replace );
             break;
          case 3:
-            if (blending)
+            if ( blending )
                L_blend.apply_cell( *cell, src.getCellDataID(), dst.getCellDataID(), level, Replace );
             else
                L_aff.apply_cell( *cell, src.getCellDataID(), dst.getCellDataID(), level, Replace );
@@ -290,7 +289,6 @@ void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t lev
             break;
          }
          break;
-
       }
 
       LIKWID_MARKER_STOP( "apply" );
@@ -344,13 +342,13 @@ void benchmark( KerType kertype, uint_t dim, bool blending, uint_t q, uint_t lev
          switch ( dim )
          {
          case 2:
-            if (blending)
+            if ( blending )
                L_blend.smooth_sor_face( *face, src.getFaceDataID(), dst.getFaceDataID(), level, 1 );
             else
                L_aff.smooth_sor_face( *face, src.getFaceDataID(), dst.getFaceDataID(), level, 1 );
             break;
          case 3:
-            if (blending)
+            if ( blending )
                L_blend.smooth_sor_cell( *cell, src.getCellDataID(), dst.getCellDataID(), level, 1 );
             else
                L_aff.smooth_sor_cell( *cell, src.getCellDataID(), dst.getCellDataID(), level, 1 );
@@ -417,14 +415,14 @@ int main( int argc, char* argv[] )
 
    // read parameter file
 
-   walberla::Config::BlockHandle parameters   = cfg->getOneBlock( "Parameters" );
-   const uint_t                  q            = parameters.getParameter< uint_t >( "polyDegree" );
-   const uint_t                  level        = parameters.getParameter< uint_t >( "level" );
-   const uint_t                  sample       = parameters.getParameter< uint_t >( "samplelevel" );
-   const real_t                  minTime      = parameters.getParameter< real_t >( "minTime" );
+   walberla::Config::BlockHandle parameters = cfg->getOneBlock( "Parameters" );
+   const uint_t                  q          = parameters.getParameter< uint_t >( "polyDegree" );
+   const uint_t                  level      = parameters.getParameter< uint_t >( "level" );
+   const uint_t                  sample     = parameters.getParameter< uint_t >( "samplelevel" );
+   const real_t                  minTime    = parameters.getParameter< real_t >( "minTime" );
    const std::string             kernelType = parameters.getParameter< std::string >( "kernelType" );
-   const uint_t                  dim          = parameters.getParameter< uint_t >( "dimension" );
-   const bool                    blending     = parameters.getParameter< bool >( "blending" );
+   const uint_t                  dim        = parameters.getParameter< uint_t >( "dimension" );
+   const bool                    blending   = parameters.getParameter< bool >( "blending" );
 
    benchmark( strToKerType.at( kernelType ), dim, blending, q, level, sample, minTime );
 

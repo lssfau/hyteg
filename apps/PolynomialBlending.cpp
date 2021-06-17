@@ -160,8 +160,7 @@ struct FE_Space<ElementType::P1, StencilType::NONE>
   using LaplaceCONST = hyteg::P1ConstantLaplaceOperator;
   using LaplaceCONST_NEW = hyteg::P1ConstantLaplaceOperator_new;
   using LaplaceVAR = hyteg::P1BlendingLaplaceOperator;
-  // using LaplaceVAR_NEW = hyteg::P1BlendingLaplaceOperator_new;
-  using LaplaceVAR_NEW = hyteg::P1VariableOperator_new<hyteg::forms::p1_diffusion_blending_q1>;
+  using LaplaceVAR_NEW = hyteg::P1BlendingLaplaceOperator_new;
   using LaplaceLSQP = hyteg::P1PolynomialBlendingLaplaceOperator;
   using LaplaceLSQP_NEW = hyteg::P1SurrogateLaplaceOperator;
 };
