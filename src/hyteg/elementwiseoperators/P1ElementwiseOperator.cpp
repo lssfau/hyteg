@@ -827,4 +827,6 @@ template class P1ElementwiseOperator< forms::p1_epsilonvar_2_0_affine_q2 >;
 template class P1ElementwiseOperator< forms::p1_epsilonvar_2_1_affine_q2 >;
 template class P1ElementwiseOperator< forms::p1_epsilonvar_2_2_affine_q2 >;
 
+template class P1ElementwiseOperator< forms::p1_k_mass_affine_q4 >;
+
 } // namespace hyteg

@@ -21,7 +21,7 @@
 
 #include "hyteg/HytegDefinitions.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
-#include "hyteg/Operator.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/composites//P1StokesFunction.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 

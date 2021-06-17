@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2021 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -34,7 +34,7 @@
 namespace hyteg {
 
 template < typename ValueType >
-class DGFunction : public Function< DGFunction< ValueType > >
+class DGFunction final : public Function< DGFunction< ValueType > >
 {
  public:
    DGFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
@@ -115,13 +115,12 @@ class DGFunction : public Function< DGFunction< ValueType > >
       communicators_.at( level )->template endCommunication< SenderType, ReceiverType >();
    }
 
-  template< typename SenderType, typename ReceiverType >
-  inline void communicate( const uint_t & level ) const
-  {
-     startCommunication< SenderType, ReceiverType >( level );
-     endCommunication< SenderType, ReceiverType >( level );
-
-  }
+   template < typename SenderType, typename ReceiverType >
+   inline void communicate( const uint_t& level ) const
+   {
+      startCommunication< SenderType, ReceiverType >( level );
+      endCommunication< SenderType, ReceiverType >( level );
+   }
 
    inline void
        setLocalCommunicationMode( const communication::BufferedCommunicator::LocalCommunicationMode& localCommunicationMode )
@@ -146,6 +145,78 @@ class DGFunction : public Function< DGFunction< ValueType > >
    inline void multElementwise( const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
                                 uint_t                                                                        level,
                                 DoFType                                                                       flag = All ) const;
+
+   /// @name Unimplemented methods (see other kinds of functions)
+   /// @{
+   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const
+   {
+      WALBERLA_ABORT( "DGFunction::add not implemented!" )
+   }
+
+   void copyFrom( const DGFunction< ValueType >& other, const uint_t& level ) const
+   {
+      WALBERLA_ABORT( "DGFunction::copyFrom not implemented!" )
+   }
+
+   void copyFrom( const DGFunction< ValueType >&            other,
+                  const uint_t&                                  level,
+                  const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
+                  const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
+   {
+      WALBERLA_ABORT( "DGFunction::copyFrom not implemented!" )
+   }
+
+   void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const
+   {
+      WALBERLA_ABORT( "DGFunction::interpolate not implemented!" )
+   }
+
+   void interpolate( const std::function< ValueType( const hyteg::Point3D& ) >& expr, uint_t level, DoFType flag = All ) const
+   {
+      WALBERLA_ABORT( "DGFunction::interpolate not implemented!" )
+   }
+
+   void interpolate( const std::vector< std::function< ValueType( const hyteg::Point3D& ) > >& expr,
+                     uint_t                                                                    level,
+                     DoFType                                                                   flag = All ) const
+   {
+      WALBERLA_ABORT( "DGFunction::interpolate not implemented!" )
+   }
+
+   void setBoundaryCondition( BoundaryCondition bc ){WALBERLA_ABORT( "DGFunction::setBoundaryCondition not implemented!" )}
+
+   ValueType dotLocal( const DGFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const
+   {
+      WALBERLA_ABORT( "DGFunction::dotLocal not implemented!" )
+   }
+
+   ValueType dotGlobal( const DGFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const
+   {
+      WALBERLA_ABORT( "DGFunction::dotGlobal not implemented!" )
+   }
+
+   void assign( const std::vector< ValueType >&                                               scalars,
+                const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+                uint_t                                                                        level,
+                DoFType                                                                       flag = All ) const
+   {
+      WALBERLA_ABORT( "DGFunction::assign with const qualifier not implemented!" )
+   }
+
+   void swap( const DGFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
+   {
+      WALBERLA_ABORT( "DGFunction::swap not implemented!" )
+   }
+
+   void add( const std::vector< ValueType >&                                                    scalars,
+             const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+             uint_t                                                                             level,
+             DoFType                                                                            flag = All ) const
+   {
+      WALBERLA_ABORT( "DGFunction::add for vector of functions not implemented!" )
+   }
+
+   /// @}
 
  private:
    using Function< DGFunction< ValueType > >::communicators_;

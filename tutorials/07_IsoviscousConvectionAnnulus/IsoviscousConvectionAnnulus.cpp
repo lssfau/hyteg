@@ -33,9 +33,9 @@
  * equation. The system is given as:
  *
  * \f{align*}{
- *  -\Delta u + \nabla p &= \text{Ra} c g \\
+ *  -\Delta u + \nabla p &= \text{Ra}\, c\, g \\
  *  \nabla u &= 0 \\
- *  \frac{\partial}{\partial t}c + u \cdot \nabla c - \kappa \nabla c &= q
+ *  \frac{\partial}{\partial t}c + u \cdot \nabla c - \nabla \cdot \kappa \nabla c &= q
  * \f}
  *
  * where \f$u\f$ is the velocity of the fluid, \f$p\f$ the pressure, \f$c\f$ the temperature,

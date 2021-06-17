@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2021 Dominik Thoennes, Nils Kohl, Marcus Mohr.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -32,22 +32,31 @@ namespace hyteg {
 //
 // See also: https://stackoverflow.com/a/6006629
 
-
 /////////////////////
 // Tag dispatching //
 /////////////////////
 
-struct VertexDoFFunctionTag {};
+struct VertexDoFFunctionTag
+{};
 typedef VertexDoFFunctionTag P1FunctionTag;
-struct EdgeDoFFunctionTag {};
-struct DGFunctionTag {};
-struct P2FunctionTag {};
-struct P1StokesFunctionTag {};
-struct P2P1TaylorHoodFunctionTag {};
-struct P2P2StokesFunctionTag {};
-struct P1VectorFunctionTag {};
-struct P2VectorFunctionTag {};
-
+struct EdgeDoFFunctionTag
+{};
+struct DGFunctionTag
+{};
+struct P2FunctionTag
+{};
+struct P1StokesFunctionTag
+{};
+struct P2P1TaylorHoodFunctionTag
+{};
+struct P2P1TaylorHoodBlockFunctionTag
+{};
+struct P2P2StokesFunctionTag
+{};
+struct P1VectorFunctionTag
+{};
+struct P2VectorFunctionTag
+{};
 
 //////////////////////////
 // Forward declarations //
@@ -55,144 +64,195 @@ struct P2VectorFunctionTag {};
 
 namespace vertexdof {
 
-template< typename VType >
+template < typename VType >
 class VertexDoFFunction;
 
 } // namespace vertexdof
 
-template< typename VType >
+template < typename VType >
 class EdgeDoFFunction;
 
-template< typename VType >
+template < typename VType >
 class DGFunction;
 
 // Composites
 
-template< typename VType >
+template < typename VType >
 class P2Function;
 
-template< typename VType >
+template < typename VType >
 class P1StokesFunction;
 
-template< typename VType >
+template < typename VType >
 class P2P1TaylorHoodFunction;
 
-template< typename VType >
+template < typename VType >
+class P2P1TaylorHoodBlockFunction;
+
+template < typename VType >
 class P2P2StokesFunction;
 
-template< typename VType >
+template < typename VType >
 class P1VectorFunction;
 
-template< typename VType >
+template < typename VType >
 class P1VectorFunction_AltKind;
 
-template< typename VType >
+template < typename VType >
 class P2VectorFunction;
 
+///////////////////////////////////////////////////////////////////
+// Enum for getting info on type of a GenericFunction
+///////////////////////////////////////////////////////////////////
+
+namespace functionTraits {
+
+typedef enum
+{
+   P1_FUNCTION,
+   P2_FUNCTION,
+   EDGE_DOF_FUNCTION,
+   DG_FUNCTION,
+   P1_VECTOR_FUNCTION,
+   P2_VECTOR_FUNCTION,
+   OTHER_FUNCTION
+} FunctionKind;
+
+}
 
 ///////////////////////////////////////////////////////////////////
 // Function trait defining the value type of the derived classes //
 ///////////////////////////////////////////////////////////////////
 
 /// Empty trait
-template< typename FunctionType >
+template < typename FunctionType >
 struct FunctionTrait;
 
 /// Vertex DoF specialization
-template< typename VType >
+template < typename VType >
 struct FunctionTrait< vertexdof::VertexDoFFunction< VType > >
 {
-  typedef VType ValueType;
-  typedef VertexDoFFunctionTag Tag;
-  typedef P1VectorFunction< VType > AssocVectorFunctionType;
+   typedef VType                     ValueType;
+   typedef VertexDoFFunctionTag      Tag;
+   typedef P1VectorFunction< VType > AssocVectorFunctionType;
 
-  static std::string getTypeName() { return "P1Function / VertexDoFFunction"; }
+   static std::string getTypeName() { return "P1Function / VertexDoFFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::P1_FUNCTION;
 };
 
 /// Edge DoF specialization
-template< typename VType >
+template < typename VType >
 struct FunctionTrait< EdgeDoFFunction< VType > >
 {
-  typedef VType ValueType;
-  typedef EdgeDoFFunctionTag Tag;
+   typedef VType              ValueType;
+   typedef EdgeDoFFunctionTag Tag;
 
-  static std::string getTypeName() { return "EdgeDoFFunction"; }
+   static std::string getTypeName() { return "EdgeDoFFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::EDGE_DOF_FUNCTION;
 };
 
 /// DG specialization
-template< typename VType >
+template < typename VType >
 struct FunctionTrait< DGFunction< VType > >
 {
-  typedef VType ValueType;
-  typedef DGFunctionTag Tag;
+   typedef VType         ValueType;
+   typedef DGFunctionTag Tag;
 
-  static std::string getTypeName() { return "DGFunction"; }
+   static std::string getTypeName() { return "DGFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::DG_FUNCTION;
 };
 
 /// P2 specialization
-template< typename VType >
+template < typename VType >
 struct FunctionTrait< P2Function< VType > >
 {
-  typedef VType ValueType;
-  typedef P2FunctionTag Tag;
-  typedef P2VectorFunction< VType > AssocVectorFunctionType;
+   typedef VType                     ValueType;
+   typedef P2FunctionTag             Tag;
+   typedef P2VectorFunction< VType > AssocVectorFunctionType;
 
-  static std::string getTypeName() { return "P2Function"; }
+   static std::string getTypeName() { return "P2Function"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::P2_FUNCTION;
 };
 
 /// P1Stokes specialization
-template< typename VType >
+template < typename VType >
 struct FunctionTrait< P1StokesFunction< VType > >
 {
-    typedef VType ValueType;
-    typedef P1StokesFunctionTag Tag;
+   typedef VType               ValueType;
+   typedef P1StokesFunctionTag Tag;
 
-    static std::string getTypeName() { return "P1StokesFunction"; }
+   static std::string getTypeName() { return "P1StokesFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::OTHER_FUNCTION;
 };
 
 /// P2P1TaylorHood specialization
-template< typename VType >
+template < typename VType >
 struct FunctionTrait< P2P1TaylorHoodFunction< VType > >
 {
-    typedef VType ValueType;
-    typedef P2P1TaylorHoodFunctionTag Tag;
+   typedef VType                     ValueType;
+   typedef P2P1TaylorHoodFunctionTag Tag;
 
-    static std::string getTypeName() { return "P2P1TaylorHoodFunction"; }
+   static std::string getTypeName() { return "P2P1TaylorHoodFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::OTHER_FUNCTION;
+};
+
+/// P2P1TaylorHood specialization
+template < typename VType >
+struct FunctionTrait< P2P1TaylorHoodBlockFunction< VType > >
+{
+   typedef VType                          ValueType;
+   typedef P2P1TaylorHoodBlockFunctionTag Tag;
+
+   static std::string getTypeName() { return "P2P1TaylorHoodBlockFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::OTHER_FUNCTION;
 };
 
 /// P2P2Stokes specialization
-template< typename VType >
+template < typename VType >
 struct FunctionTrait< P2P2StokesFunction< VType > >
 {
-    typedef VType ValueType;
-    typedef P2P2StokesFunctionTag Tag;
+   typedef VType                 ValueType;
+   typedef P2P2StokesFunctionTag Tag;
 
-    static std::string getTypeName() { return "P2P2StokesFunction"; }
+   static std::string getTypeName() { return "P2P2StokesFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::OTHER_FUNCTION;
 };
 
 /// P1VectorFunction specialization
-template< typename VType >
+template < typename VType >
 struct FunctionTrait< P1VectorFunction< VType > >
 {
-   typedef VType ValueType;
-   typedef P1VectorFunctionTag Tag;
+   typedef VType                                 ValueType;
+   typedef P1VectorFunctionTag                   Tag;
    typedef vertexdof::VertexDoFFunction< VType > VectorComponentType;
    // I'd prefer to have P1Function< VType > above, but couldn't get
    // that to work. Forward declaration of P1Function as class fails
    // since it is no class, see P1Function.hpp
 
    static std::string getTypeName() { return "P1VectorFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::P1_VECTOR_FUNCTION;
 };
 
 /// P2VectorFunction specialization
-template< typename VType >
+template < typename VType >
 struct FunctionTrait< P2VectorFunction< VType > >
 {
-   typedef VType ValueType;
+   typedef VType               ValueType;
    typedef P2VectorFunctionTag Tag;
    typedef P2Function< VType > VectorComponentType;
 
    static std::string getTypeName() { return "P2VectorFunction"; }
+
+   static const functionTraits::FunctionKind kind = functionTraits::P2_VECTOR_FUNCTION;
 };
 
-}
+} // namespace hyteg

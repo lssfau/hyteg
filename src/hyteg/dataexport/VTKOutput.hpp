@@ -25,14 +25,17 @@
 #include <vector>
 
 #include "core/DataTypes.h"
-#include "vtk/Base64Writer.h"
 
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
+#include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
+
+// from walblera
+#include "vtk/Base64Writer.h"
 
 namespace hyteg {
 
@@ -47,7 +50,6 @@ class PrimitiveStorage;
 class VTKOutput
 {
  public:
-
    enum class VTK_DATA_FORMAT
    {
       ASCII,
@@ -64,22 +66,22 @@ class VTKOutput
               const std::shared_ptr< PrimitiveStorage >& storage,
               const uint_t&                              writeFrequency = 1 );
 
-   void setVTKDataFormat( VTK_DATA_FORMAT vtkDataFormat )
-   {
-      vtkDataFormat_ = vtkDataFormat;
-   }
+   void setVTKDataFormat( VTK_DATA_FORMAT vtkDataFormat ) { vtkDataFormat_ = vtkDataFormat; }
 
-   void add( P1Function< real_t > function );
-   void add( P2Function< real_t > function );
+   void add( const P1Function< real_t >& function );
+   void add( const P2Function< real_t >& function );
 
-   void add( EdgeDoFFunction< real_t > function );
-   void add( DGFunction< real_t > function );
+   void add( const EdgeDoFFunction< real_t >& function );
+   void add( const DGFunction< real_t >& function );
 
-   void add( P1VectorFunction< real_t > function );
-   void add( P2VectorFunction< real_t > function );
+   void add( const P1VectorFunction< real_t >& function );
+   void add( const P2VectorFunction< real_t >& function );
 
-   void add( P1StokesFunction< real_t > function );
-   void add( P2P1TaylorHoodFunction< real_t > function );
+   void add( const P1StokesFunction< real_t >& function );
+   void add( const P2P1TaylorHoodFunction< real_t >& function );
+
+   void add( const GenericFunction< real_t >& function );
+   void add( const BlockFunction< real_t >& function );
 
    /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
    /// Therefore always writes output if timestep is 0.
@@ -105,7 +107,7 @@ class VTKOutput
    /// Wrapper class that handles writing data in ASCII or binary format.
    ///
    /// \tparam DTypeInVTK data type that the input data is converted to before writing it to the VTK file
-   template< typename DTypeInVTK >
+   template < typename DTypeInVTK >
    class VTKStreamWriter
    {
     public:
@@ -146,8 +148,8 @@ class VTKOutput
       }
 
     private:
-      VTK_DATA_FORMAT vtkDataFormat_;
-      std::ostringstream outputAscii_;
+      VTK_DATA_FORMAT             vtkDataFormat_;
+      std::ostringstream          outputAscii_;
       walberla::vtk::Base64Writer outputBase64_;
    };
 
@@ -208,6 +210,25 @@ class VTKOutput
    void set2D() { write2D_ = true; }
    /// Writes only macro-cells.
    void set3D() { write2D_ = false; }
+
+   template < template < typename > class WrapperFunc, typename func_t >
+   void unwrapAndAdd( const WrapperFunc< func_t >& function )
+   {
+      add( function.unwrap() );
+   }
+
+   template < typename WrapperFunc >
+   bool tryUnwrapAndAdd( const GenericFunction< real_t >& function )
+   {
+      bool               success = false;
+      const WrapperFunc* aux     = dynamic_cast< const WrapperFunc* >( &function );
+      if ( aux != nullptr )
+      {
+         add( aux->unwrap() );
+         success = true;
+      }
+      return success;
+   }
 
    std::string dir_;
    std::string filename_;

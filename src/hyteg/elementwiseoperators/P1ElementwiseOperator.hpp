@@ -24,16 +24,18 @@
 #include "hyteg/forms/P1LinearCombinationForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_generated/p1_polar_laplacian.h"
-#include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
-#include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
+#include "hyteg/forms/form_hyteg_generated/deprecated/P1FormLaplace.hpp"
+#include "hyteg/forms/form_hyteg_generated/deprecated/P1FormMass.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_k_mass_affine_q4.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
 #include "hyteg/p1functionspace/P1Elements.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 
 namespace hyteg {
@@ -41,10 +43,12 @@ namespace hyteg {
 using walberla::real_t;
 
 template < class P1Form >
-class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
+class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function< real_t > >,
+                              public WeightedJacobiSmoothable< P1Function< real_t > >,
+                              public OperatorWithInverseDiagonal< P1Function< real_t > >
 {
- public:
-   P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
+public:
+P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
 
    P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                           size_t                                     minLevel,
@@ -68,7 +72,7 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                     const P1Function< real_t >& src,
                     real_t                      omega,
                     size_t                      level,
-                    DoFType                     flag ) const;
+                    DoFType                     flag ) const override;
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    /// Assemble operator as sparse matrix
@@ -109,7 +113,7 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
       return diagonalValues_;
    };
 
-   std::shared_ptr< P1Function< real_t > > getInverseDiagonalValues() const
+   std::shared_ptr< P1Function< real_t > > getInverseDiagonalValues() const override
    {
       WALBERLA_CHECK_NOT_NULLPTR(
           inverseDiagonalValues_,
@@ -347,5 +351,7 @@ typedef P1ElementwiseOperator< P1FenicsForm< fenics::NoAssemble, p1_tet_divt_tet
 
 typedef P1ElementwiseOperator< forms::p1_div_k_grad_affine_q3 >   P1ElementwiseAffineDivKGradOperator;
 typedef P1ElementwiseOperator< forms::p1_div_k_grad_blending_q3 > P1ElementwiseBlendingDivKGradOperator;
+
+typedef P1ElementwiseOperator< forms::p1_k_mass_affine_q4 > P1ElementwiseKMassOperator;
 
 } // namespace hyteg

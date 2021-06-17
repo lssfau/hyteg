@@ -93,48 +93,93 @@ VTKOutput::VTKOutput( std::string                                dir,
    }
 }
 
-void VTKOutput::add( const P2Function< real_t > function )
+void VTKOutput::add( const P2Function< real_t >& function )
 {
    p2Functions_.push_back( function );
-   // p1Functions_.push_back( function.getVertexDoFFunctionCopy() );
-   // edgeDoFFunctions_.push_back( function.getEdgeDoFFunctionCopy() );
 }
 
-void VTKOutput::add( const P1VectorFunction< real_t > function )
+void VTKOutput::add( const P1VectorFunction< real_t >& function )
 {
    p1VecFunctions_.push_back( function );
 }
 
-void VTKOutput::add( const P2VectorFunction< real_t > function )
+void VTKOutput::add( const P2VectorFunction< real_t >& function )
 {
    p2VecFunctions_.push_back( function );
 }
 
-void VTKOutput::add( P1Function< real_t > function )
+void VTKOutput::add( const P1Function< real_t >& function )
 {
    p1Functions_.push_back( function );
 }
 
-void VTKOutput::add( EdgeDoFFunction< real_t > function )
+void VTKOutput::add( const EdgeDoFFunction< real_t >& function )
 {
    edgeDoFFunctions_.push_back( function );
 }
 
-void VTKOutput::add( DGFunction< real_t > function )
+void VTKOutput::add( const DGFunction< real_t >& function )
 {
    dgFunctions_.push_back( function );
 }
 
-void VTKOutput::add( P1StokesFunction< real_t > function )
+void VTKOutput::add( const P1StokesFunction< real_t >& function )
 {
    add( function.uvw );
    add( function.p );
 }
 
-void VTKOutput::add( P2P1TaylorHoodFunction< real_t > function )
+void VTKOutput::add( const P2P1TaylorHoodFunction< real_t >& function )
 {
    add( function.uvw );
    add( function.p );
+}
+
+void VTKOutput::add( const BlockFunction< real_t >& function )
+{
+   for ( uint_t k = 0; k < function.getNumberOfBlocks(); k++ )
+   {
+      add( function[k] );
+   }
+}
+
+void VTKOutput::add( const GenericFunction< real_t >& function )
+{
+   bool matchFound = false;
+   switch ( function.getFunctionKind() )
+   {
+   case functionTraits::P1_FUNCTION:
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< P1Function< real_t > > >( function );
+      break;
+
+   case functionTraits::P2_FUNCTION:
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< P2Function< real_t > > >( function );
+      break;
+
+   case functionTraits::P1_VECTOR_FUNCTION:
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< P1VectorFunction< real_t > > >( function );
+      break;
+
+   case functionTraits::P2_VECTOR_FUNCTION:
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< P2VectorFunction< real_t > > >( function );
+      break;
+
+   case functionTraits::EDGE_DOF_FUNCTION:
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< EdgeDoFFunction< real_t > > >( function );
+      break;
+
+   case functionTraits::DG_FUNCTION:
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< DGFunction< real_t > > >( function );
+      break;
+
+   default:
+      matchFound = false;
+   }
+
+   if ( !matchFound )
+   {
+      WALBERLA_ABORT( "VTKOutput: Failed to add GenericFunction object!" );
+   }
 }
 
 void VTKOutput::writeVertexDoFData( std::ostream&                                 output,

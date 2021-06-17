@@ -54,7 +54,7 @@ class Cell;
 namespace vertexdof {
 
 template < typename ValueType >
-class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
+class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
 {
  public:
    typedef ValueType valueType;
@@ -163,7 +163,7 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
                 uint_t                                                                               level,
                 DoFType                                                                              flag = All ) const;
 
-   void add( const ValueType& scalar, const uint_t& level, DoFType flag = All ) const;
+   void add( ValueType scalar, uint_t level, DoFType flag = All ) const;
 
    void add( const std::vector< ValueType >&                                                      scalars,
              const std::vector< std::reference_wrapper< const VertexDoFFunction< ValueType > > >& functions,
@@ -197,9 +197,17 @@ class VertexDoFFunction : public Function< VertexDoFFunction< ValueType > >
    void integrateDG( DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
 
    /// Interpolates a given expression to a VertexDoFFunction
-   void interpolate( const ValueType& constant, uint_t level, DoFType flag = All ) const;
+   void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
+
+   void interpolate( const std::vector< std::function< ValueType( const Point3D& ) > >& expr,
+                     uint_t                                                             level,
+                     DoFType                                                            flag = All ) const
+   {
+      WALBERLA_ASSERT_EQUAL( expr.size(), 1 );
+      this->interpolate( expr[0], level, flag );
+   };
 
    void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, BoundaryUID boundaryUID ) const;
 

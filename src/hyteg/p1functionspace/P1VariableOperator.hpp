@@ -21,7 +21,7 @@
 #pragma once
 
 #include <array>
-#include <hyteg/Operator.hpp>
+#include <hyteg/operators/Operator.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroEdge.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
 #include <hyteg/p1functionspace/VertexDoFMacroVertex.hpp>
@@ -29,11 +29,12 @@
 
 #include "hyteg/forms/form_hyteg_generated/P1FormDiv.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormDivT.hpp"
-#include "hyteg/forms/form_hyteg_generated/P1FormEpsilon.hpp"
-#include "hyteg/forms/form_hyteg_generated/P1FormLaplace.hpp"
-#include "hyteg/forms/form_hyteg_generated/P1FormMass.hpp"
-#include "hyteg/forms/form_hyteg_generated/P1FormPSPG.hpp"
+#include "hyteg/forms/form_hyteg_generated/deprecated/P1FormEpsilon.hpp"
+#include "hyteg/forms/form_hyteg_generated/deprecated/P1FormLaplace.hpp"
+#include "hyteg/forms/form_hyteg_generated/deprecated/P1FormMass.hpp"
+#include "hyteg/forms/form_hyteg_generated/deprecated/P1FormPSPG.hpp"
 #include "hyteg/p1functionspace/VertexDoFMemory.hpp"
+#include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/types/pointnd.hpp"
 
 #include "P1DataHandling.hpp"
@@ -41,7 +42,9 @@
 namespace hyteg {
 
 template < class P1Form >
-class P1VariableOperator : public Operator< P1Function< real_t >, P1Function< real_t > >
+class P1VariableOperator : public Operator< P1Function< real_t >, P1Function< real_t > >,
+                           public GSSmoothable< P1Function< real_t > >,
+                           public ConstantJacobiSmoothable< P1Function< real_t > >
 {
  public:
    P1VariableOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
@@ -100,7 +103,7 @@ class P1VariableOperator : public Operator< P1Function< real_t >, P1Function< re
       }
    }
 
-   void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const
+   void smooth_gs( const P1Function< real_t >& dst, const P1Function< real_t >& rhs, size_t level, DoFType flag ) const override
    {
       dst.communicate< Vertex, Edge >( level );
       dst.communicate< Edge, Face >( level );
@@ -157,7 +160,7 @@ class P1VariableOperator : public Operator< P1Function< real_t >, P1Function< re
                     const P1Function< real_t >& rhs,
                     const P1Function< real_t >& tmp,
                     size_t                      level,
-                    DoFType                     flag ) const
+                    DoFType                     flag ) const override
    {
       // start pulling vertex halos
       tmp.startCommunication< Edge, Vertex >( level );
