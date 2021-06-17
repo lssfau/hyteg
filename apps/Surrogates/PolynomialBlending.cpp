@@ -60,7 +60,7 @@
 #include "hyteg/geometry/IcosahedralShellMap.hpp"
 #include "core/Format.hpp"
 
-#include "hyteg/petsc/PETScExportOperatorMatrix.hpp"
+// #include "hyteg/petsc/PETScExportOperatorMatrix.hpp"
 
 
 using walberla::real_t;

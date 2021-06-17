@@ -23,68 +23,9 @@
 
 namespace hyteg {
 
-class Polynomial2DEvaluator {
-public:
-
-  typedef Polynomial1D<MonomialBasis1D> Polynomial1;
-  typedef Polynomial2D<MonomialBasis2D> Polynomial2;
-
-  Polynomial2DEvaluator(uint_t degree)
-    : degree_(degree)
-    , poly1_(degree)
-    , deltas(degree+1)
-  {}
-
-  Polynomial2DEvaluator(const Polynomial2& poly)
-    : Polynomial2DEvaluator(poly.getDegree())
-  {
-    setPolynomial(poly);
-  }
-
-  void setPolynomial(const Polynomial2& poly)
-  {
-    WALBERLA_ASSERT(poly.getDegree() == degree_, "Polynomial degrees don't match!");
-    poly2_ = &poly;
-    // std::cout << "ptr to poly2_ = " << poly2_ << std::endl;
-  }
-
-  real_t eval(const Point2D &x) const {
-    return poly2_->eval(x);
-  }
-
-  void setY(real_t y) {
-    // std::cout << "Evaluator2D(q=" << degree_ << ")::setY of p2 with q = "<< poly2_->getDegree() << "\n";
-
-    for (uint_t degree = 0; degree <= degree_; ++degree) {
-      poly1_.setCoefficient(degree, 0.0);
-    }
-
-    uint_t start = 0;
-    real_t y_;
-
-    for (uint_t coeff = 0; coeff <= degree_; ++coeff) {
-
-      uint_t idx = start;
-      y_ = real_t(1.0);
-
-      for(uint_t degree = 0; degree <= degree_-coeff; ++degree) {
-
-        poly1_.addToCoefficient(coeff, poly2_->getCoefficient(idx) * y_);
-
-        idx += coeff + degree + 2;
-        y_ *= y;
-      }
-
-      start += coeff + 1;
-    }
-  }
-
-  real_t evalX(real_t x) const {
-    return poly1_.eval(x);
-  }
-
+namespace polynomialevaluator{
   template<uint_t Degree>
-  real_t setStartX(real_t x, real_t h) {
+  inline real_t setStartX(real_t x, real_t h, const Polynomial1D<MonomialBasis1D>& poly1_, std::vector<real_t>& deltas) {
     static_assert(Degree <= 12, "Polynomial2DEvaluator not implemented for degree larger than 12");
     if (Degree == 0) {
       deltas[0] = poly1_.getCoefficient(0);
@@ -207,7 +148,8 @@ public:
   }
 
   template<uint_t Degree>
-  real_t incrementEval() {
+  inline real_t incrementEval(std::vector<real_t>& deltas) {
+    static_assert(Degree <= 12, "Polynomial2DEvaluator not implemented for degree larger than 12");
     if (Degree >= 1) {
       deltas[0] += deltas[1];
     }
@@ -247,6 +189,116 @@ public:
     return deltas[0];
   }
 
+} // namespace polynomialevaluator
+
+class Polynomial2DEvaluator {
+public:
+
+  typedef Polynomial1D<MonomialBasis1D> Polynomial1;
+  typedef Polynomial2D<MonomialBasis2D> Polynomial2;
+
+  Polynomial2DEvaluator(uint_t degree)
+    : degree_(degree)
+    , poly1_(degree)
+    , deltas(degree+1)
+  {}
+
+  Polynomial2DEvaluator(const Polynomial2& poly)
+    : Polynomial2DEvaluator(poly.getDegree())
+  {
+    setPolynomial(poly);
+  }
+
+  void setPolynomial(const Polynomial2& poly)
+  {
+    WALBERLA_ASSERT(poly.getDegree() == degree_, "Polynomial degrees don't match!");
+    poly2_ = &poly;
+    // std::cout << "ptr to poly2_ = " << poly2_ << std::endl;
+  }
+
+  real_t eval(const Point2D &x) const {
+    return poly2_->eval(x);
+  }
+
+  void setY(real_t y) {
+    // std::cout << "Evaluator2D(q=" << degree_ << ")::setY of p2 with q = "<< poly2_->getDegree() << "\n";
+
+    for (uint_t degree = 0; degree <= degree_; ++degree) {
+      poly1_.setCoefficient(degree, 0.0);
+    }
+
+    uint_t start = 0;
+    real_t y_;
+
+    for (uint_t coeff = 0; coeff <= degree_; ++coeff) {
+
+      uint_t idx = start;
+      y_ = real_t(1.0);
+
+      for(uint_t degree = 0; degree <= degree_-coeff; ++degree) {
+
+        poly1_.addToCoefficient(coeff, poly2_->getCoefficient(idx) * y_);
+
+        idx += coeff + degree + 2;
+        y_ *= y;
+      }
+
+      start += coeff + 1;
+    }
+  }
+
+  real_t evalX(real_t x) const {
+    // return poly1_.eval(x);
+    real_t px = poly1_.getCoefficient(0);
+    real_t xk = 1.0;
+    for (uint_t k = 1; k <= degree_; ++k)
+    {
+      xk *= x;
+      px += poly1_.getCoefficient(k) * xk;
+    }
+    return px;
+  }
+
+  real_t setStartX(real_t x, real_t h) {
+    switch (degree_)
+    {
+    case 0: return polynomialevaluator::setStartX<0>(x, h, poly1_, deltas);
+    case 1: return polynomialevaluator::setStartX<1>(x, h, poly1_, deltas);
+    case 2: return polynomialevaluator::setStartX<2>(x, h, poly1_, deltas);
+    case 3: return polynomialevaluator::setStartX<3>(x, h, poly1_, deltas);
+    case 4: return polynomialevaluator::setStartX<4>(x, h, poly1_, deltas);
+    case 5: return polynomialevaluator::setStartX<5>(x, h, poly1_, deltas);
+    case 6: return polynomialevaluator::setStartX<6>(x, h, poly1_, deltas);
+    case 7: return polynomialevaluator::setStartX<7>(x, h, poly1_, deltas);
+    case 8: return polynomialevaluator::setStartX<8>(x, h, poly1_, deltas);
+    case 9: return polynomialevaluator::setStartX<9>(x, h, poly1_, deltas);
+    case 10: return polynomialevaluator::setStartX<10>(x, h, poly1_, deltas);
+    case 11: return polynomialevaluator::setStartX<11>(x, h, poly1_, deltas);
+    case 12: return polynomialevaluator::setStartX<12>(x, h, poly1_, deltas);
+    default:return 0;
+    }
+  }
+
+  real_t incrementEval() {
+    switch (degree_)
+    {
+    case 0: return polynomialevaluator::incrementEval<0>(deltas);
+    case 1: return polynomialevaluator::incrementEval<1>(deltas);
+    case 2: return polynomialevaluator::incrementEval<2>(deltas);
+    case 3: return polynomialevaluator::incrementEval<3>(deltas);
+    case 4: return polynomialevaluator::incrementEval<4>(deltas);
+    case 5: return polynomialevaluator::incrementEval<5>(deltas);
+    case 6: return polynomialevaluator::incrementEval<6>(deltas);
+    case 7: return polynomialevaluator::incrementEval<7>(deltas);
+    case 8: return polynomialevaluator::incrementEval<8>(deltas);
+    case 9: return polynomialevaluator::incrementEval<9>(deltas);
+    case 10: return polynomialevaluator::incrementEval<10>(deltas);
+    case 11: return polynomialevaluator::incrementEval<11>(deltas);
+    case 12: return polynomialevaluator::incrementEval<12>(deltas);
+    default:return 0;
+    }
+  }
+
 private:
   const Polynomial2* poly2_;
 
@@ -270,6 +322,7 @@ class Polynomial3DEvaluator{
     : degree_(degree)
     , poly_z_(degree)
     , poly_yz_(degree)
+    , deltas(degree+1)
   {
   }
 
@@ -344,7 +397,55 @@ class Polynomial3DEvaluator{
 
   // evaluate p|yz(x)
   real_t evalX(real_t x) const {
-    return poly_yz_.eval(x);
+    // return poly_yz_.eval(x);
+    real_t px = poly_yz_.getCoefficient(0);
+    real_t xk = 1.0;
+    for (uint_t k = 1; k <= degree_; ++k)
+    {
+      xk *= x;
+      px += poly_yz_.getCoefficient(k) * xk;
+    }
+    return px;
+  }
+
+  real_t setStartX(real_t x, real_t h) {
+    switch (degree_)
+    {
+    case 0: return polynomialevaluator::setStartX<0>(x, h, poly_yz_, deltas);
+    case 1: return polynomialevaluator::setStartX<1>(x, h, poly_yz_, deltas);
+    case 2: return polynomialevaluator::setStartX<2>(x, h, poly_yz_, deltas);
+    case 3: return polynomialevaluator::setStartX<3>(x, h, poly_yz_, deltas);
+    case 4: return polynomialevaluator::setStartX<4>(x, h, poly_yz_, deltas);
+    case 5: return polynomialevaluator::setStartX<5>(x, h, poly_yz_, deltas);
+    case 6: return polynomialevaluator::setStartX<6>(x, h, poly_yz_, deltas);
+    case 7: return polynomialevaluator::setStartX<7>(x, h, poly_yz_, deltas);
+    case 8: return polynomialevaluator::setStartX<8>(x, h, poly_yz_, deltas);
+    case 9: return polynomialevaluator::setStartX<9>(x, h, poly_yz_, deltas);
+    case 10: return polynomialevaluator::setStartX<10>(x, h, poly_yz_, deltas);
+    case 11: return polynomialevaluator::setStartX<11>(x, h, poly_yz_, deltas);
+    case 12: return polynomialevaluator::setStartX<12>(x, h, poly_yz_, deltas);
+    default:return 0;
+    }
+  }
+
+  real_t incrementEval() {
+    switch (degree_)
+    {
+    case 0: return polynomialevaluator::incrementEval<0>(deltas);
+    case 1: return polynomialevaluator::incrementEval<1>(deltas);
+    case 2: return polynomialevaluator::incrementEval<2>(deltas);
+    case 3: return polynomialevaluator::incrementEval<3>(deltas);
+    case 4: return polynomialevaluator::incrementEval<4>(deltas);
+    case 5: return polynomialevaluator::incrementEval<5>(deltas);
+    case 6: return polynomialevaluator::incrementEval<6>(deltas);
+    case 7: return polynomialevaluator::incrementEval<7>(deltas);
+    case 8: return polynomialevaluator::incrementEval<8>(deltas);
+    case 9: return polynomialevaluator::incrementEval<9>(deltas);
+    case 10: return polynomialevaluator::incrementEval<10>(deltas);
+    case 11: return polynomialevaluator::incrementEval<11>(deltas);
+    case 12: return polynomialevaluator::incrementEval<12>(deltas);
+    default:return 0;
+    }
   }
 
  private:
@@ -354,6 +455,8 @@ class Polynomial3DEvaluator{
   uint_t              degree_;  // polynomial degree
   Polynomial2         poly_z_;  // p restricted to given z, i.e., p|z
   Polynomial1         poly_yz_;  // p|z restricted to given y, i.e., p|yz
+
+  std::vector<real_t> deltas;
 
 };
 

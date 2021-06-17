@@ -395,7 +395,6 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       return cellStencilID_;
    }
 
- private:
    // assemble stencils for all macro-vertices
    void assemble_stencil_vertices3D()
    {
@@ -1453,7 +1452,6 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
       // }
    }
 
- protected:
    /// callback functions for generated kernels //////////////////////////////////////////////////
 
    /* apply the operator to all DoF on a given macro-face using generated kernels
@@ -1530,6 +1528,8 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
    {
       smooth_sor_cell( cell, dstId, rhsId, level, relax, backwards );
    }
+
+ protected:
 
    /// functions for variable stencil assembly. To be used in ,e.g., Ctor of constant operator, callback functions of variable operator, etc.
 

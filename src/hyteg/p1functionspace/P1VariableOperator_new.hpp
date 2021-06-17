@@ -23,6 +23,8 @@
 #include "hyteg/p1functionspace/P1Operator.hpp"
 
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
@@ -122,7 +124,7 @@ class P1VariableOperator_new : public P1Operator<P1Form>
 // todo test other forms
 
 // typedef P1VariableOperator_new< P1Form_laplace > P1BlendingLaplaceOperator_new;
-typedef P1VariableOperator_new< forms::p1_diffusion_blending_q3 > P1BlendingLaplaceOperator_new;
+typedef P1VariableOperator_new< forms::p1_diffusion_blending_q1 > P1BlendingLaplaceOperator_new;
 typedef P1VariableOperator_new< forms::p1_div_k_grad_blending_q3 > P1BlendingDivkGradOperator_new;
 typedef P1VariableOperator_new< forms::p1_div_k_grad_affine_q3 > P1AffineDivkGradOperator_new;
 
