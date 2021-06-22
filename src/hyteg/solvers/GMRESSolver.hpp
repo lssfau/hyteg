@@ -54,7 +54,7 @@ class GMRESSolver : public Solver< OperatorType >
       , wPrec_( "wPrec", storage_, minLevel_, maxLevel_ )
       , orthoDiff_( "orthoDiff", storage_, minLevel_, maxLevel_ )
       , saveApproxERRinFile_( true )
-      , saveTrueResidualInFile_( true )
+      , saveTrueResidualInFile_( false )
       , trueResidualHelperFunction0_( "trueResHelper0", storage_, minLevel_, maxLevel_ )
       , trueResidualHelperFunction1_( "trueResHelper1", storage_, minLevel_, maxLevel_ )
     {}

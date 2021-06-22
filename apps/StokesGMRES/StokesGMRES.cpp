@@ -171,7 +171,7 @@ int main( int argc, char* argv[] )
 
    std::string solverType = mainConf.getParameter< std::string >( "solver" );
 
-   if( solverType == "plain" )
+   if( solverType == "plainGMRES" )
    {
       typedef hyteg::GMRESSolver< hyteg::P1StokesOperator  >GMRESsolv;
       auto KleinerFeinerGMRES = GMRESsolv( storage, minLevel, maxLevel, maxKrylowDim, restartLength, arnoldiTOL, approxTOL, doubleOrthoTOL);
@@ -181,7 +181,7 @@ int main( int argc, char* argv[] )
       r.assign( {1.0, -1.0}, {f, r}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
       real_t currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner ) );
       WALBERLA_LOG_INFO_ON_ROOT("currentResidualL2 : " << currentResidualL2);
-   } else if( solverType == "simplePrec" )
+   } else if( solverType == "simplePrecGMRES" )
    {
       /// A block Preconditioner for GMRES /////
       typedef StokesBlockDiagonalPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator >Preconditioner_T;
@@ -191,6 +191,31 @@ int main( int argc, char* argv[] )
       typedef hyteg::GMRESSolver< hyteg::P1StokesOperator  >GMRESsolv;
       auto KleinerFeinerGMRES = GMRESsolv( storage, minLevel, maxLevel, maxKrylowDim, restartLength, arnoldiTOL, approxTOL, doubleOrthoTOL, prec );
       KleinerFeinerGMRES.solve( L, u, f, maxLevel );
+
+      L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      r.assign( {1.0, -1.0}, {f, r}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      real_t currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner ) );
+      WALBERLA_LOG_INFO_ON_ROOT("currentResidualL2 : " << currentResidualL2);
+      } else if( solverType == "plainMINRES" )
+   {
+      typedef hyteg::MinResSolver< hyteg::P1StokesOperator  >MinResSolv;
+      auto KleinerFeinerMinRes = MinResSolv( storage, minLevel, maxLevel, maxKrylowDim, approxTOL );
+      KleinerFeinerMinRes.solve( L, u, f, maxLevel );
+
+      L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      r.assign( {1.0, -1.0}, {f, r}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
+      real_t currentResidualL2 = sqrt( r.dotGlobal( r, maxLevel, hyteg::Inner ) );
+      WALBERLA_LOG_INFO_ON_ROOT("currentResidualL2 : " << currentResidualL2);
+   } else if( solverType == "simplePrecMINRES" )
+   {
+      /// A block Preconditioner for MinRes /////
+      typedef StokesBlockDiagonalPreconditioner< hyteg::P1StokesOperator, hyteg::P1LumpedInvMassOperator >Preconditioner_T;
+
+      auto prec = std::make_shared< Preconditioner_T >( storage, minLevel, maxLevel, 5 );
+
+      typedef hyteg::MinResSolver< hyteg::P1StokesOperator  >MinResSolv;
+      auto KleinerFeinerMinRes = MinResSolv( storage, minLevel, maxLevel, maxKrylowDim, approxTOL, prec );
+      KleinerFeinerMinRes.solve( L, u, f, maxLevel );
 
       L.apply( u, r, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );
       r.assign( {1.0, -1.0}, {f, r}, maxLevel, hyteg::Inner | hyteg::NeumannBoundary );

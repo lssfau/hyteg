@@ -4,13 +4,13 @@ Parameters
   minLevel 2;
   maxLevel 3;
   numVCycle 2;
-  maxKrylowDim 1500;
-  restartLength 150;
+  maxKrylowDim 400;
+  restartLength 405;
   arnoldiTOL 1e-16;
   approxTOL 1e-14;
-  doubleOrthoTOL 10;
+  doubleOrthoTOL 0;
 
-  solver simplePrec;
+  solver simplePrecMINRES;
 
   /// output
   printGlobalStorageInfo true;
