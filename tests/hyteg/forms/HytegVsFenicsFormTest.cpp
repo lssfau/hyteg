@@ -959,9 +959,9 @@ int main( int argc, char** argv )
 #ifndef __APPLE__
    // clang 9 seams to produce a problem related to vectorized division
    // https://stackoverflow.com/questions/63125919/how-to-avoid-floating-point-exceptions-in-unused-simd-lanes
-   //
+#if defined(NDEBUG) && defined(__clang__)
    // clang 10 has problems with some of the forms in Release mode (see issue #147)
-#if __clang_major__ != 9 && __clang_major__ != 10
+#else
    // abort in case of common floating-point exceptions
    feenableexcept( FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
 #endif
