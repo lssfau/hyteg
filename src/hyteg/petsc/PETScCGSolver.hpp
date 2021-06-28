@@ -31,16 +31,16 @@
 namespace hyteg {
 
 template < class OperatorType >
-class PETScMinResSolver : public Solver< OperatorType >
+class PETScCGSolver : public Solver< OperatorType >
 {
  public:
    typedef typename OperatorType::srcType FunctionType;
 
-   PETScMinResSolver( const std::shared_ptr< PrimitiveStorage >& storage,
-                      const uint_t&                              level,
-                      const real_t                               relativeTolerance = 1e-30,
-                      const real_t                               absoluteTolerance = 1e-12,
-                      const PetscInt                             maxIterations = std::numeric_limits< PetscInt >::max() )
+   PETScCGSolver( const std::shared_ptr< PrimitiveStorage >& storage,
+                  const uint_t&                              level,
+                  const real_t                               relativeTolerance = 1e-30,
+                  const real_t                               absoluteTolerance = 1e-12,
+                  const PetscInt                             maxIterations     = std::numeric_limits< PetscInt >::max() )
    : allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
@@ -60,13 +60,13 @@ class PETScMinResSolver : public Solver< OperatorType >
    , reassembleMatrix_( false )
    {
       KSPCreate( petscCommunicator_, &ksp );
-      KSPSetType( ksp, KSPMINRES );
+      KSPSetType( ksp, KSPCG );
       KSPSetTolerances( ksp, relativeTolerance, absoluteTolerance, PETSC_DEFAULT, maxIterations );
       KSPSetInitialGuessNonzero( ksp, PETSC_TRUE );
       KSPSetFromOptions( ksp );
    }
 
-   ~PETScMinResSolver()
+   ~PETScCGSolver()
    {
       KSPDestroy( &ksp );
       if ( nullSpaceSet_ )
@@ -86,7 +86,7 @@ class PETScMinResSolver : public Solver< OperatorType >
    {
       WALBERLA_CHECK_EQUAL( level, allocatedLevel_ );
 
-      x.getStorage()->getTimingTree()->start( "PETSc MinRes Solver" );
+      x.getStorage()->getTimingTree()->start( "PETSc CG Solver" );
 
       num.copyBoundaryConditionFromFunction( x );
       num.enumerate( level );
@@ -121,7 +121,7 @@ class PETScMinResSolver : public Solver< OperatorType >
 
       xVec.createFunctionFromVector( x, num, level, flag_ );
 
-      x.getStorage()->getTimingTree()->stop( "PETSc MinRes Solver" );
+      x.getStorage()->getTimingTree()->stop( "PETSc CG Solver" );
    }
 
  private:
@@ -138,8 +138,8 @@ class PETScMinResSolver : public Solver< OperatorType >
    PC             pc;
    MatNullSpace   nullspace_;
    hyteg::DoFType flag_;
-   bool nullSpaceSet_;
-   bool reassembleMatrix_;
+   bool           nullSpaceSet_;
+   bool           reassembleMatrix_;
 };
 
 } // namespace hyteg

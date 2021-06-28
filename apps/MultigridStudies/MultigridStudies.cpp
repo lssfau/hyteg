@@ -391,7 +391,7 @@ void calculateDiscretizationErrorStokes( const std::shared_ptr< PrimitiveStorage
    M.apply( tmp.uvw[2], f.uvw[2], level, All );
 
 #ifdef HYTEG_BUILD_WITH_PETSC
-   // auto solver = std::make_shared< PETScMinResSolver< StokesOperator > >( storage, level, 1e-16 );
+   // auto solver = std::make_shared< PETScMinResSolver< StokesOperator > >( storage, level, 1e-30, 1e-16 );
    auto solver = std::make_shared< PETScBlockPreconditionedStokesSolver< StokesOperator > >( storage, level, 1e-16 );
    // auto solver = std::make_shared< PETScLUSolver< StokesOperator > >( storage, level );
 #else

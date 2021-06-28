@@ -22,6 +22,8 @@
 
 #include "MeshInfo.hpp"
 
+#include <unordered_map>
+
 namespace hyteg {
 
 Point3D getMidPoint( MeshInfo::IDType v0, MeshInfo::IDType v1, const MeshInfo& originalMeshInfo )

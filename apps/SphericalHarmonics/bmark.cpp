@@ -269,7 +269,7 @@ void runBenchmarkTests( std::shared_ptr< walberla::config::Config > cfg,
    }
    case BC_MIXED:
    {
-      // PETScMinResSolver< StokesOperatorFreeSlip > stokesSolver( storage, maxLevel, 1e-08, 200 );
+      // PETScMinResSolver< StokesOperatorFreeSlip > stokesSolver( storage, maxLevel, 1e-30, 1e-08, 200 );
       // PETScBlockPreconditionedStokesSolver< StokesOperatorFreeSlip > stokesSolver( storage, maxLevel, 1e-08, 5000, 4, 1 );
       auto stokesSolver = solvertemplates::stokesMinResSolver< StokesOperatorFreeSlip >( storage, maxLevel, 1e-08, 200, true );
       WALBERLA_LOG_PROGRESS_ON_ROOT( "Iterative solution with MINRES ... " );
