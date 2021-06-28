@@ -56,7 +56,7 @@ using namespace hyteg;
 
 using function = std::function< real_t( const hyteg::Point3D& ) >;
 
-enum OperatorType
+enum OpType
 {
    VARIABLE         = 0,
    SURROGATE        = 1,
@@ -125,7 +125,7 @@ void solve( std::shared_ptr< PrimitiveStorage > storage,
 
       // compute residual
       res_old = res;
-      A->apply( u, Au, l_max, hyteg::Inner, Replace );
+      A.apply( u, Au, l_max, hyteg::Inner, Replace );
       r.assign( { 1.0, -1.0 }, { b, Au }, l_max, hyteg::Inner );
       M.apply( r, tmp, l_max, hyteg::All, Replace );
       res = std::sqrt( r.dotGlobal( tmp, l_max, hyteg::Inner ) );
@@ -141,12 +141,12 @@ void solve( std::shared_ptr< PrimitiveStorage > storage,
           walberla::format( "%6d|%10.3e|%10.3e|%10.3e|%10.3e", iter, res, convRate, discr_l2_err, vCycleTime ) );
 
       // stopping criterion
-      if ( ++iter > max_outer_iter || ( iter > convergenceStartIter && convRate > 0.999 ) )
+      if ( ++iter > mg_iter || ( iter > convergenceStartIter && convRate > 0.999 ) )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "Ending multigrid without reaching desired tolerance!" );
          break;
       }
-      if ( res < mg_tolerance )
+      if ( res < mg_tol )
       {
          WALBERLA_LOG_INFO_ON_ROOT( "Multigrid converged!" );
          break;
@@ -154,7 +154,7 @@ void solve( std::shared_ptr< PrimitiveStorage > storage,
 
       // solve
       auto start = walberla::timing::getWcTime();
-      gmg.solve( *A, u, b, l_max );
+      gmg.solve( A, u, b, l_max );
       auto end   = walberla::timing::getWcTime();
       vCycleTime = end - start;
       solveTime += vCycleTime;
@@ -209,9 +209,10 @@ int main( int argc, char** argv )
    const uint_t minLevel = parameters.getParameter< uint_t >( "level_h_coarse" );
    const uint_t maxLevel = parameters.getParameter< uint_t >( "level_h_fine" );
 
-   const int          discretization = parameters.getParameter< int >( "discretization" );
-   const OperatorType opType         = OperatorType( parameters.getParameter< int >( "operatorType" ) );
-   const uint_t       polyDegree     = parameters.getParameter< uint_t >( "polyDegree" );
+   const int    discretization = parameters.getParameter< int >( "discretization" );
+   const int    tmp            = parameters.getParameter< int >( "operatorType" );
+   const OpType opType         = OpType( tmp );
+   const uint_t polyDegree     = parameters.getParameter< uint_t >( "polyDegree" );
 
    const real_t x_jump_0 = parameters.getParameter< real_t >( "x_jump_0" );
    const real_t x_jump_1 = parameters.getParameter< real_t >( "x_jump_1" );
@@ -235,14 +236,14 @@ int main( int argc, char** argv )
    // coefficient function
    function k = [=]( const hyteg::Point3D& x ) {
       // jump at { (x,y) | x + (x_jump_0 - x_jump_1)y = x_jump_0 }
-      bool low = x[0] + ( x_jump_0 - x_jump_1 ) * x[1] < x_jummp_0;
+      bool low = x[0] + ( x_jump_0 - x_jump_1 ) * x[1] < x_jump_0;
       return ( low ) ? k_min : k_max;
    };
 
    // analytic solution
    function u = [=]( const hyteg::Point3D& x ) {
       // kink at { (x,y) | x + (x_jump_0 - x_jump_1)y = x_jump_0 }
-      bool low = x[0] + ( x_jump_0 - x_jump_1 ) * x[1] < x_jummp_0;
+      bool low = x[0] + ( x_jump_0 - x_jump_1 ) * x[1] < x_jump_0;
       if ( low )
       {
          return 1.0 / k_min * ( x[0] + x[1] + x[2] );
@@ -256,9 +257,8 @@ int main( int argc, char** argv )
    // rhs
    function f = []( const hyteg::Point3D& ) { return 0.0; };
 
-   switch ( discretization )
+   if ( discretization == 1 )
    {
-   case 1:
       using M_t = P1ConstantMassOperator_new;
       using FE  = hyteg::P1Function< real_t >;
       using R_t = hyteg::P1toP1LinearRestriction;
@@ -267,18 +267,19 @@ int main( int argc, char** argv )
       using A_form = forms::p1_div_k_grad_affine_q3;
       A_form form( k, k );
 
+      P1VariableOperator_new< A_form > A1( storage, minLevel, maxLevel, form );
+      P1SurrogateOperator< A_form >    A1q( storage, minLevel, maxLevel, form );
+      A1q.interpolateStencils( polyDegree, maxLevel );
+
       switch ( opType )
       {
       case VARIABLE:
-         P1VariableOperator_new< A_form > A( storage, minLevel, maxLevel, form );
          solve< P1VariableOperator_new< A_form >, M_t, FE, R_t, P_t >(
-             storage, A, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
+             storage, A1, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
          break;
       case SURROGATE:
-         P1SurrogateOperator< A_form > A( storage, minLevel, maxLevel, form );
-         A.interpolateStencils(polyDegree, maxLevel);
          solve< P1SurrogateOperator< A_form >, M_t, FE, R_t, P_t >(
-             storage, A, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
+             storage, A1q, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
          break;
          // case SCALED_SURROGATE:
          //    break;
@@ -286,27 +287,28 @@ int main( int argc, char** argv )
       default:
          WALBERLA_ABORT( "The desired Operator Type is not supported!" );
       }
-      break;
-
-   case 2:
+   }
+   else if ( discretization == 2 )
+   {
       using M_t = P2ConstantMassOperator;
       using FE  = hyteg::P2Function< real_t >;
       using R_t = hyteg::P2toP2QuadraticRestriction;
-      using R_t = hyteg::P2toP2QuadraticProlongation;
+      using P_t = hyteg::P2toP2QuadraticProlongation;
 
       P2Form_divKgrad::callback = k;
+
+      P2divKgradOperator          A2( storage, minLevel, maxLevel );
+      P2SurrogateDivKgradOperator A2q( storage, minLevel, maxLevel, maxLevel, polyDegree );
 
       switch ( opType )
       {
       case VARIABLE:
-         P2divKgradOperator A( storage, minLevel, maxLevel );
          solve< P2divKgradOperator, M_t, FE, R_t, P_t >(
-             storage, A, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
+             storage, A2, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
          break;
       case SURROGATE:
-         P2SurrogateDivKgradOperator A( storage, minLevel, maxLevel, maxLevel, polyDegree );
          solve< P2SurrogateDivKgradOperator, M_t, FE, R_t, P_t >(
-             storage, A, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
+             storage, A2q, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
          break;
          // case SCALED_SURROGATE:
          //    break;
@@ -314,10 +316,9 @@ int main( int argc, char** argv )
       default:
          WALBERLA_ABORT( "The desired Operator Type is not supported!" );
       }
-      break;
-
-   default:
+   }
+   else
+   {
       WALBERLA_ABORT( "The desired discretization order is not supported!" );
-      break;
    }
 }

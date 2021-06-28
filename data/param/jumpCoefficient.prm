@@ -1,0 +1,30 @@
+Parameters
+{
+  level_h_coarse 2;
+  level_h_fine 2;
+
+  // discretization order (1 or 2);
+  discretization 1;
+
+  //operatorType:
+  // 0: variable;
+  // 1: surrogate polynomial;
+  // 2: surrogate polynomial with scaling;
+  operatorType 0;
+
+  // polynomial degree for surrogate operator;
+  polyDegree 12;
+
+  // magnitude of coefficient and x-position of jump
+  k_min 1;
+  k_max 10;
+  x_jump_0 0.5;
+  x_jump_1 0.5;
+
+  max_outer_iter 8;
+  max_cg_iter 1000;
+  mg_tolerance 1e-10;
+  coarse_tolerance 1e-8;
+
+  vtkOutput 1;
+}

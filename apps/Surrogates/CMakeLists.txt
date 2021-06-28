@@ -17,4 +17,8 @@ if( HYTEG_BUILD_WITH_EIGEN )
     FILES Stokes2d_Surrogates.cpp
     DEPENDS hyteg)
 
+  waLBerla_add_executable( NAME jumpCoefficient
+    FILES jumpCoefficient.cpp
+    DEPENDS hyteg)
+
 endif()
