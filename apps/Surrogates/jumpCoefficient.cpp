@@ -236,21 +236,21 @@ int main( int argc, char** argv )
    // coefficient function
    function k = [=]( const hyteg::Point3D& x ) {
       // jump at { (x,y) | x + (x_jump_0 - x_jump_1)y = x_jump_0 }
-      bool low = x[0] + ( x_jump_0 - x_jump_1 ) * x[1] < x_jump_0;
-      return ( low ) ? k_min : k_max;
+      real_t x_jump_y = x_jump_0 * ( 1.0 - x[1] ) + x_jump_1 * x[1];
+      return ( x[0] < x_jump_y ) ? k_min : k_max;
    };
 
    // analytic solution
    function u = [=]( const hyteg::Point3D& x ) {
       // kink at { (x,y) | x + (x_jump_0 - x_jump_1)y = x_jump_0 }
-      bool low = x[0] + ( x_jump_0 - x_jump_1 ) * x[1] < x_jump_0;
-      if ( low )
+      real_t x_jump_y = x_jump_0 * ( 1.0 - x[1] ) + x_jump_1 * x[1];
+      if ( x[0] < x_jump_y )
       {
-         return 1.0 / k_min * ( x[0] + x[1] + x[2] );
+         return 1.0 / k_min * x[0];
       }
       else
       {
-         return 1.0 / k_min * x_jump_0 + 1 / k_max * ( x[0] - x_jump_0 + x[1] + x[2] );
+         return 1.0 / k_min * x_jump_y + 1.0 / k_max * ( x[0] - x_jump_y );
       }
    };
 
