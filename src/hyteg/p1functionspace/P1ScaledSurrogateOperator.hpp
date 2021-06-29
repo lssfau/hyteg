@@ -57,6 +57,7 @@ class P1ScaledSurrogateOperator : public P1Operator< P1Form >
    using P1Operator< P1Form >::P1Operator;
    using P1Operator< P1Form >::storage_;
    using P1Operator< P1Form >::h_;
+   using P1Operator< P1Form >::level_;
    using P1Operator< P1Form >::minLevel_;
    using P1Operator< P1Form >::maxLevel_;
    using P1Operator< P1Form >::vertexStencilID_;
@@ -73,13 +74,18 @@ class P1ScaledSurrogateOperator : public P1Operator< P1Form >
    using P1Operator< P1Form >::assemble_variableStencil_face;
    using P1Operator< P1Form >::assemble_variableStencil_face3D;
    using P1Operator< P1Form >::assemble_variableStencil_cell;
+   using P1Operator< P1Form >::computeDiagonalOperatorValues;
+   using P1Operator< P1Form >::getDiagonalValues;
 
  public:
    P1ScaledSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : P1ScaledSurrogateOperator( storage, minLevel, maxLevel, P1Form() )
    {}
 
-   P1ScaledSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, const P1Form& form )
+   P1ScaledSurrogateOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                              size_t                                     minLevel,
+                              size_t                                     maxLevel,
+                              const P1Form&                              form )
    : P1Operator< P1Form >( storage, minLevel, maxLevel, form )
    {
       // todo add polynomials for macro-bounaries
@@ -334,6 +340,7 @@ class P1ScaledSurrogateOperator : public P1Operator< P1Form >
          }
 
          center_stencil_ = face.getData( getDiagonalValues()->getFaceDataID() )->getPointer( level );
+         level_          = level;
       }
    }
 
@@ -359,8 +366,8 @@ class P1ScaledSurrogateOperator : public P1Operator< P1Form >
    */
    inline void assemble_stencil_face( real_t* face_stencil, const uint_t i, const uint_t j ) const
    {
-      real_t x = h_ * i;
-      real_t scaling = center_stencil_[vertexdof::macroface::index( level, i, j )];
+      real_t x       = h_ * i;
+      real_t scaling = center_stencil_[vertexdof::macroface::index( level_, i, j )];
 
       for ( uint_t c = 0; c < facePolyEvaluator_.size(); ++c )
       {
@@ -398,6 +405,7 @@ class P1ScaledSurrogateOperator : public P1Operator< P1Form >
       }
 
       center_stencil_ = cell.getData( getDiagonalValues()->getCellDataID() )->getPointer( level );
+      level_          = level;
    }
 
    inline void assemble_stencil_cell_init_z( const uint_t k ) const
@@ -432,8 +440,8 @@ class P1ScaledSurrogateOperator : public P1Operator< P1Form >
                                       const uint_t                        j,
                                       const uint_t                        k ) const
    {
-      real_t x = h_ * i;
-      real_t scaling = center_stencil_[vertexdof::macrocell::index( level, i, j, k )];
+      real_t x       = h_ * i;
+      real_t scaling = center_stencil_[vertexdof::macrocell::index( level_, i, j, k )];
 
       for ( auto& [idx, evaluator] : cellPolyEvaluator_ )
       {
@@ -458,7 +466,7 @@ class P1ScaledSurrogateOperator : public P1Operator< P1Form >
 
    mutable Evaluator_cell cellPolyEvaluator_;
    mutable Evaluator_face facePolyEvaluator_;
-   mutable real_t* center_stencil_;
+   mutable real_t*        center_stencil_;
 };
 
 // todo test other forms
