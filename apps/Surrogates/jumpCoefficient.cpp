@@ -35,6 +35,7 @@
 #include "hyteg/gridtransferoperators/P2toP2QuadraticRestriction.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator_new.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/P1ScaledSurrogateOperator.hpp"
 #include "hyteg/p1functionspace/P1SurrogateOperator.hpp"
 #include "hyteg/p1functionspace/P1VariableOperator_new.hpp"
 #include "hyteg/p2functionspace/P2ConstantOperator.hpp"
@@ -276,6 +277,8 @@ int main( int argc, char** argv )
       P1VariableOperator_new< A_form > A1( storage, minLevel, maxLevel, form );
       P1SurrogateOperator< A_form >    A1q( storage, minLevel, maxLevel, form );
       A1q.interpolateStencils( polyDegree, maxLevel );
+      P1ScaledSurrogateOperator< A_form > A1qs( storage, minLevel, maxLevel, form );
+      A1qs.interpolateStencils( polyDegree, maxLevel );
 
       switch ( opType )
       {
@@ -287,9 +290,10 @@ int main( int argc, char** argv )
          solve< P1SurrogateOperator< A_form >, M_t, FE, R_t, P_t >(
              storage, A1q, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
          break;
-         // case SCALED_SURROGATE:
-         //    break;
-
+      case SCALED_SURROGATE:
+         solve< P1ScaledSurrogateOperator< A_form >, M_t, FE, R_t, P_t >(
+             storage, A1qs, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
+         break;
       default:
          WALBERLA_ABORT( "The desired Operator Type is not supported!" );
       }
