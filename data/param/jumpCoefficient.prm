@@ -1,7 +1,7 @@
 Parameters
 {
   level_h_coarse 2;
-  level_h_fine 11;
+  level_h_fine 4;
 
   // discretization order (1 or 2);
   discretization 1;
@@ -10,16 +10,18 @@ Parameters
   // 0: variable;
   // 1: surrogate polynomial;
   // 2: surrogate polynomial with scaling;
-  operatorType 0;
+  operatorType 1;
 
   // polynomial degree for surrogate operator;
-  polyDegree 0;
+  polyDegree 12;
 
-  // magnitude of coefficient and x-position of jump
-  k_min 1e-1;
+  // magnitude of coefficient;
+  k_min 9.5e-1;
   k_max 1;
-  x_jump_0 0.6;
-  x_jump_1 0.6;
+  // x-position of jump at y=0;
+  x_jump_0 0.7;
+  // x-position of jump at y=1;
+  x_jump_1 0.3;
 
   max_outer_iter 20;
   max_cg_iter 1000;

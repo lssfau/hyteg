@@ -241,16 +241,22 @@ int main( int argc, char** argv )
    };
 
    // analytic solution
+   real_t du_dx_min = 1.0 / k_min;
+   real_t du_dx_max = 1.0 / k_max;
+   real_t du_dy_min = ( x_jump_0 - x_jump_1 ) / k_min;
+   real_t du_dy_max = ( x_jump_0 - x_jump_1 ) / k_max;
+   real_t u_jump    = du_dx_min * x_jump_0;
+
    function u = [=]( const hyteg::Point3D& x ) {
       // kink at { (x,y) | x + (x_jump_0 - x_jump_1)y = x_jump_0 }
       real_t x_jump_y = x_jump_0 * ( 1.0 - x[1] ) + x_jump_1 * x[1];
       if ( x[0] < x_jump_y )
       {
-         return 1.0 / k_min * x[0];
+         return du_dx_min * x[0] + du_dy_min * x[1];
       }
       else
       {
-         return 1.0 / k_min * x_jump_y + 1.0 / k_max * ( x[0] - x_jump_y );
+         return u_jump + du_dx_max * ( x[0] - x_jump_0 ) + du_dy_max * x[1];
       }
    };
 
@@ -264,7 +270,7 @@ int main( int argc, char** argv )
       using R_t = hyteg::P1toP1LinearRestriction;
       using P_t = hyteg::P1toP1LinearProlongation;
 
-      using A_form = forms::p1_div_k_grad_affine_q3;
+      using A_form = forms::p1_div_k_grad_affine_q1;
       A_form form( k, k );
 
       P1VariableOperator_new< A_form > A1( storage, minLevel, maxLevel, form );
