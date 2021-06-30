@@ -35,13 +35,6 @@
 #pragma GCC diagnostic ignored "-Wfloat-conversion"
 #endif
 
-#include "hyteg/forms/form_fenics_generated/p2_diffusion.h"
-#include "hyteg/forms/form_fenics_generated/p2_div.h"
-#include "hyteg/forms/form_fenics_generated/p2_divt.h"
-#include "hyteg/forms/form_fenics_generated/p2_mass.h"
-#include "hyteg/forms/form_fenics_generated/p2_tet_diffusion.h"
-#include "hyteg/forms/form_fenics_generated/p2_tet_mass.h"
-
 #ifdef WALBERLA_CXX_COMPILER_IS_GNU
 #pragma GCC diagnostic pop
 #endif
@@ -1362,5 +1355,35 @@ template class P2ConstantOperator< P2FenicsForm< p2_pspg_cell_integral_0_otherwi
 
 template class P2ConstantOperator< P2LinearCombinationForm >;
 template class P2ConstantOperator< P2RowSumForm >;
+
+// The following instantiations are required as building blocks in the P2ConstantEpsilonOperator class
+// clang-format off
+template class P2ConstantOperator< P2FenicsForm< p2_stokes_epsilon_cell_integral_0_otherwise, p2_tet_stokes_epsilon_tet_cell_integral_0_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< p2_stokes_epsilon_cell_integral_1_otherwise, p2_tet_stokes_epsilon_tet_cell_integral_1_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_2_otherwise > >;
+
+template class P2ConstantOperator< P2FenicsForm< p2_stokes_epsilon_cell_integral_2_otherwise, p2_tet_stokes_epsilon_tet_cell_integral_3_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< p2_stokes_epsilon_cell_integral_3_otherwise, p2_tet_stokes_epsilon_tet_cell_integral_4_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_5_otherwise > >;
+
+template class P2ConstantOperator< P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_6_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_7_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_8_otherwise > >;
+// clang-format on
+
+// The following instantiations are required as building blocks in the P2ConstantFullViscousOperator class
+// clang-format off
+template class P2ConstantOperator< P2FenicsForm< p2_stokes_full_cell_integral_0_otherwise, p2_tet_stokes_full_tet_cell_integral_0_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< p2_stokes_full_cell_integral_1_otherwise, p2_tet_stokes_full_tet_cell_integral_1_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_2_otherwise > >;
+
+template class P2ConstantOperator< P2FenicsForm< p2_stokes_full_cell_integral_2_otherwise, p2_tet_stokes_full_tet_cell_integral_3_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< p2_stokes_full_cell_integral_3_otherwise, p2_tet_stokes_full_tet_cell_integral_4_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_5_otherwise > >;
+
+template class P2ConstantOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_6_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_7_otherwise > >;
+template class P2ConstantOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_8_otherwise > >;
+// clang-format on
 
 } // namespace hyteg

@@ -317,6 +317,10 @@ if( HYTEG_BUILD_WITH_EIGEN )
   waLBerla_compile_test(FILES operators/P1SurrogateOperatorTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME P1SurrogateOperatorTest)
 endif()
+
+waLBerla_compile_test(FILES operators/ViscousOperatorsTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME ViscousOperatorsTest)
+
 #################### P1 ####################
 
 waLBerla_compile_test(FILES P1/P1LaplaceOperator3DTest.cpp DEPENDS hyteg core)
