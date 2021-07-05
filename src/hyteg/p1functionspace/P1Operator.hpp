@@ -105,6 +105,93 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
    ~P1Operator() override = default;
 
+   std::map< indexing::Index, vertexdof::macrocell::StencilMap_T > computeStencilsForCell( Cell& cell ) const
+   {
+      typedef stencilDirection sd;
+
+      auto level = maxLevel_;
+
+      auto& operatorData = cell.getData( cellStencilID_ )->getData( level );
+
+      std::map< indexing::Index, vertexdof::macrocell::StencilMap_T > result;
+
+      assemble_stencil_cell_init( cell, level );
+
+      const uint_t rowsizeZ = levelinfo::num_microvertices_per_edge( level );
+      uint_t       rowsizeY, rowsizeX;
+
+      for ( uint_t k = 1; k < rowsizeZ - 3; ++k )
+      {
+         assemble_stencil_cell_init_z( k );
+
+         rowsizeY = rowsizeZ - k;
+
+         for ( uint_t j = 1; j < rowsizeY - 2; ++j )
+         {
+            assemble_stencil_cell_init_y( j );
+
+            rowsizeX = rowsizeY - j;
+
+            for ( uint_t i = 1; i < rowsizeX - 1; ++i )
+            {
+               indexing::Index idx{ i, j, k };
+
+               assemble_stencil_cell( operatorData, i, j, k );
+
+               result.insert_or_assign( idx, operatorData );
+            }
+         }
+      }
+
+      return result;
+   }
+
+   std::map< indexing::Index, std::vector< real_t > > computeStencilsForFace( Face& face ) const
+   {
+      if (storage_->hasGlobalCells())
+      {
+         WALBERLA_ABORT( "Only available for 2D domains!" );
+      }
+
+      typedef stencilDirection sd;
+
+      auto level = maxLevel_;
+
+      // auto stencilSize = face.getData( faceStencilID_ )->getSize( level ); = 27
+      uint_t stencilSize = 9;
+
+      std::map< indexing::Index, std::vector< real_t > > result;
+
+      uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
+      uint_t inner_rowsize = rowsize;
+
+      real_t* opr_data = face.getData( faceStencilID_ )->getPointer( level );
+
+      assemble_stencil_face_init( face, level );
+
+      for ( uint_t j = 1; j < rowsize - 2; ++j )
+      {
+         assemble_stencil_face_init_y( j );
+
+         for ( uint_t i = 1; i < inner_rowsize - 2; ++i )
+         {
+            indexing::Index idx{ i, j, 0 };
+
+            assemble_stencil_face( opr_data, i, j );
+
+            std::vector< real_t > stencil( stencilSize );
+
+            std::copy( opr_data, opr_data + stencilSize, stencil.data() );
+
+            result.insert_or_assign( idx, stencil );
+         }
+
+         --inner_rowsize;
+      }
+
+      return result;
+   }
+
    void apply( const P1Function< real_t >& src,
                const P1Function< real_t >& dst,
                size_t                      level,
@@ -709,7 +796,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
                for ( uint_t k = 1; k < rowsizeZ - 3; ++k )
                {
-                  if (not use_variable_stencil_assembly)
+                  if ( not use_variable_stencil_assembly )
                   {
                      assemble_stencil_cell_init_z( k );
                   }
@@ -718,7 +805,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
 
                   for ( uint_t j = 1; j < rowsizeY - 2; ++j )
                   {
-                     if (not use_variable_stencil_assembly)
+                     if ( not use_variable_stencil_assembly )
                      {
                         assemble_stencil_cell_init_y( j );
                      }
@@ -729,7 +816,7 @@ class P1Operator : public Operator< P1Function< real_t >, P1Function< real_t > >
                      {
                         if ( variableStencil() )
                         {
-                           if (use_variable_stencil_assembly)
+                           if ( use_variable_stencil_assembly )
                            {
                               assemble_variableStencil_cell( stencilMap, i, j, k );
                            }
