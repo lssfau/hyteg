@@ -619,4 +619,34 @@ template class VertexDoFToEdgeDoFOperator<
 template class VertexDoFToEdgeDoFOperator< P2LinearCombinationForm >;
 template class VertexDoFToEdgeDoFOperator< P2RowSumForm >;
 
+// The following instantiations are required as building blocks in the P2ConstantEpsilon operator class
+// clang-format off
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_stokes_epsilon_cell_integral_0_otherwise, p2_tet_stokes_epsilon_tet_cell_integral_0_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_stokes_epsilon_cell_integral_1_otherwise, p2_tet_stokes_epsilon_tet_cell_integral_1_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_2_otherwise > >;
+
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_stokes_epsilon_cell_integral_2_otherwise, p2_tet_stokes_epsilon_tet_cell_integral_3_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_stokes_epsilon_cell_integral_3_otherwise, p2_tet_stokes_epsilon_tet_cell_integral_4_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_5_otherwise > >;
+
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_6_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_7_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                         , p2_tet_stokes_epsilon_tet_cell_integral_8_otherwise > >;
+// clang-format on
+
+// The following instantiations are required as building blocks in the P2ConstantFullViscousOperator class
+// clang-format off
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_stokes_full_cell_integral_0_otherwise, p2_tet_stokes_full_tet_cell_integral_0_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_stokes_full_cell_integral_1_otherwise, p2_tet_stokes_full_tet_cell_integral_1_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_2_otherwise > >;
+
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_stokes_full_cell_integral_2_otherwise, p2_tet_stokes_full_tet_cell_integral_3_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< p2_stokes_full_cell_integral_3_otherwise, p2_tet_stokes_full_tet_cell_integral_4_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_5_otherwise > >;
+
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_6_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_7_otherwise > >;
+template class VertexDoFToEdgeDoFOperator< P2FenicsForm< fenics::NoAssemble                      , p2_tet_stokes_full_tet_cell_integral_8_otherwise > >;
+// clang-format on
+
 } // namespace hyteg

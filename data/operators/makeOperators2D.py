@@ -17,8 +17,8 @@ elemList.append( [ "p2_to_p1", "Lagrange", 1, "Lagrange", 2 ] )
 
 # For each element and pair set the forms to compile
 forms = {}
-forms[ "p1" ] = [ "diffusion", "div", "divt", "mass", "pspg", "stokes_epsilon", "polar_mass", "polar_laplacian", "div_K_grad" ]
-forms[ "p2" ] = [ "diffusion", "div", "divt", "mass", "pspg", "stokes_epsilon", "polar_mass", "polar_laplacian" ]
+forms[ "p1" ] = [ "diffusion", "div", "divt", "mass", "pspg", "stokes_epsilon", "stokes_full", "polar_mass", "polar_laplacian", "div_K_grad" ]
+forms[ "p2" ] = [ "diffusion", "div", "divt", "mass", "pspg", "stokes_epsilon", "stokes_full", "polar_mass", "polar_laplacian" ]
 forms[ "p1_to_p2" ] = [ "divt" ]
 forms[ "p2_to_p1" ] = [ "div" ]
 

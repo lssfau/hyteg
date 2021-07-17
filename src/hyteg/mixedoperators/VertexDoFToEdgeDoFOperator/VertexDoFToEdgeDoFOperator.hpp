@@ -30,13 +30,7 @@
 #endif
 
 #include "hyteg/fenics/fenics.hpp"
-#include "hyteg/forms/form_fenics_generated/p1_to_p2_tet_divt_tet.h"
-#include "hyteg/forms/form_fenics_generated/p2_divt.h"
-#include "hyteg/forms/form_fenics_generated/p2_tet_diffusion.h"
-#include "hyteg/forms/form_fenics_generated/p2_tet_div_tet.h"
-#include "hyteg/forms/form_fenics_generated/p2_tet_divt_tet.h"
-#include "hyteg/forms/form_fenics_generated/p2_tet_mass.h"
-#include "hyteg/forms/form_fenics_generated/p2_tet_pspg_tet.h"
+#include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 
 #ifdef _MSC_VER
 #pragma warning( pop )

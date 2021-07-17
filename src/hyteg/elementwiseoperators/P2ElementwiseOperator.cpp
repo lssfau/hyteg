@@ -985,4 +985,17 @@ template class P2ElementwiseOperator< forms::p2_epsilonvar_2_0_affine_q2 >;
 template class P2ElementwiseOperator< forms::p2_epsilonvar_2_1_affine_q2 >;
 template class P2ElementwiseOperator< forms::p2_epsilonvar_2_2_affine_q2 >;
 
+// Instantiations required for P2EpsilonOperator.hpp
+template class P2ElementwiseOperator< forms::p2_epsilonvar_0_0_blending_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsilonvar_0_1_blending_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsilonvar_0_2_blending_q2 >;
+
+template class P2ElementwiseOperator< forms::p2_epsilonvar_1_0_blending_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsilonvar_1_1_blending_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsilonvar_1_2_blending_q2 >;
+
+template class P2ElementwiseOperator< forms::p2_epsilonvar_2_0_blending_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsilonvar_2_1_blending_q2 >;
+template class P2ElementwiseOperator< forms::p2_epsilonvar_2_2_blending_q2 >;
+
 } // namespace hyteg
