@@ -64,6 +64,74 @@ enum OpType
    SCALED_SURROGATE = 2
 };
 
+// print stencils for all points
+template < class A_t >
+void printStencils( std::shared_ptr< PrimitiveStorage > storage, const A_t& A )
+{
+   if ( storage->hasGlobalCells() )
+   { // 3D version
+      for ( auto& cellID : storage->getCellIDs() )
+      {
+         auto cellptr  = storage->getCell( cellID );
+         auto stencils = A.computeStencilsForCell( *cellptr );
+
+         for ( auto& [node, stencil] : stencils )
+         {
+            std::cout << node[0] << " " << node[1] << " " << node[2];
+
+            for ( auto& [idx, weight] : stencil )
+            {
+               std::cout << " " << weight;
+            }
+
+            std::cout << "\n";
+         }
+
+         std::cout << "\n\n";
+      }
+   }
+   else
+   { // 2D version
+      for ( auto& faceID : storage->getFaceIDs() )
+      {
+         auto faceptr  = storage->getFace( faceID );
+         auto stencils = A.computeStencilsForFace( *faceptr );
+
+         for ( auto& [node, stencil] : stencils )
+         {
+            std::cout << node[0] << " " << node[1];
+
+            for ( auto& weight : stencil )
+            {
+               std::cout << " " << weight;
+            }
+
+            std::cout << "\n";
+         }
+
+         std::cout << "\n\n";
+      }
+   }
+}
+
+// print ||A-Aq||_max
+template < class A_t >
+void printError( const A_t& A, uint_t l_min, uint_t l_max)
+{
+   std::cout << "lvl | ||A-Aq||_cell for all cells\n";
+
+   for (uint_t lvl = l_min; lvl <= l_max; ++lvl)
+   {
+      auto err = A.computeSurrogateError(lvl);
+      std::cout << lvl << " | [" ;
+      for (auto& el : err)
+      {
+         std::cout << el << " ";
+      }
+      std::cout << "]\n";
+   }
+}
+
 // solve Au=b(f)
 template < class A_t, class M_t, class FE_t, class R_t, class P_t >
 void solve( std::shared_ptr< PrimitiveStorage > storage,
@@ -215,6 +283,7 @@ int main( int argc, char** argv )
    const OpType opType         = OpType( tmp );
    const uint_t polyDegree     = parameters.getParameter< uint_t >( "polyDegree" );
 
+   const real_t alpha    = parameters.getParameter< real_t >( "alpha" );
    const real_t x_jump_0 = parameters.getParameter< real_t >( "x_jump_0" );
    const real_t x_jump_1 = parameters.getParameter< real_t >( "x_jump_1" );
    const real_t k_min    = parameters.getParameter< real_t >( "k_min" );
@@ -225,7 +294,8 @@ int main( int argc, char** argv )
    const real_t mg_tolerance     = parameters.getParameter< real_t >( "mg_tolerance" );
    const real_t coarse_tolerance = parameters.getParameter< real_t >( "coarse_tolerance" );
 
-   const bool vtk = parameters.getParameter< bool >( "vtkOutput" );
+   const bool vtk            = parameters.getParameter< bool >( "vtkOutput" );
+   const bool print_stencils = parameters.getParameter< bool >( "print_stencils" );
 
    // domain
    MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( { 0.0, 0.0 } ), Point2D( { 1.0, 1.0 } ), MeshInfo::CRISS, 1, 1 );
@@ -264,6 +334,21 @@ int main( int argc, char** argv )
    // rhs
    function f = []( const hyteg::Point3D& ) { return 0.0; };
 
+   // test with smooth solution and coeff
+   if ( alpha > 0.0 )
+   {
+      real_t phi = 6;
+
+      u = [phi]( const hyteg::Point3D& x ) { return sin( phi * M_PI * x[0] ) * sinh( M_PI * x[1] ); };
+      k = [alpha]( const hyteg::Point3D& x ) { return tanh( alpha * ( x[0] - 0.5 ) ) + 2; };
+      f = [phi, alpha]( const hyteg::Point3D& x ) {
+         real_t t0 = tanh( alpha * ( x[0] - 0.5 ) );
+         real_t t1 = phi * alpha * ( t0 * t0 - 1 ) * cos( phi * M_PI * x[0] );
+         real_t t2 = ( phi * phi - 1 ) * M_PI * ( t0 + 2 ) * sin( phi * M_PI * x[0] );
+         return M_PI * ( t1 + t2 ) * sinh( M_PI * x[1] );
+      };
+   }
+
    if ( discretization == 1 )
    {
       using M_t = P1ConstantMassOperator_new;
@@ -285,14 +370,21 @@ int main( int argc, char** argv )
       case VARIABLE:
          solve< P1VariableOperator_new< A_form >, M_t, FE, R_t, P_t >(
              storage, A1, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
+         if ( print_stencils )
+            printStencils< P1VariableOperator_new< A_form > >( storage, A1 );
          break;
       case SURROGATE:
          solve< P1SurrogateOperator< A_form >, M_t, FE, R_t, P_t >(
              storage, A1q, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
+         printError< P1SurrogateOperator< A_form > >( A1q, minLevel, maxLevel );
+         if ( print_stencils )
+            printStencils< P1SurrogateOperator< A_form > >( storage, A1q );
          break;
       case SCALED_SURROGATE:
          solve< P1ScaledSurrogateOperator< A_form >, M_t, FE, R_t, P_t >(
              storage, A1qs, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
+         if ( print_stencils )
+            printStencils< P1ScaledSurrogateOperator< A_form > >( storage, A1qs );
          break;
       default:
          WALBERLA_ABORT( "The desired Operator Type is not supported!" );
