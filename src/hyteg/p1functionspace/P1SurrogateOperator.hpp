@@ -111,6 +111,9 @@ class P1SurrogateOperator : public P1Operator< P1Form >
       }
    }
 
+   /* compute h^(d/2)*||A - Aq||_F with variable operator A and surrogate Aq
+      @returns [h^(d/2)*||A - Aq||_F restricted to K] for all macro elements K
+   */
    std::vector< double > computeSurrogateError( uint_t level ) const
    {
       if ( storage_->hasGlobalCells() )
@@ -165,7 +168,7 @@ class P1SurrogateOperator : public P1Operator< P1Form >
 
          std::vector< double > variableStencil( stencilSize_ );
 
-         real_t tmp = real_c( 0 );
+         real_t normF2 = real_c( 0 );
 
          for ( uint_t j = 1; j < rowsize - 2; ++j )
          {
@@ -178,13 +181,13 @@ class P1SurrogateOperator : public P1Operator< P1Form >
 
                for ( uint_t s = 0; s < stencilSize; ++s )
                {
-                  tmp = std::max( tmp, std::abs( opr_data[s] - variableStencil[s] ) );
+                  double err_ij = opr_data[s] - variableStencil[s];
+                  normF2 += err_ij * err_ij;
                }
             }
             --inner_rowsize;
          }
-
-         err.push_back( tmp );
+         err.push_back( std::sqrt( h_ * h_ * normF2 ) );
       }
 
       return err;
@@ -208,7 +211,7 @@ class P1SurrogateOperator : public P1Operator< P1Form >
          assemble_variableStencil_cell_init( cell, level );
          assemble_stencil_cell_init( cell, level );
 
-         real_t tmp = 0;
+         real_t normF2 = 0;
 
          uint_t rowsizeY, rowsizeX;
 
@@ -234,15 +237,17 @@ class P1SurrogateOperator : public P1Operator< P1Form >
 
                      for ( const auto& neighbor : vertexdof::macrocell::neighborsWithCenter )
                      {
-                        double sur = operatorData[vertexdof::logicalIndexOffsetFromVertex( neighbor )];
-                        double var = variableStencil[vertexdof::logicalIndexOffsetFromVertex( neighbor )];
-                        tmp        = std::max( tmp, std::abs( sur - var ) );
+                        double sur     = operatorData[vertexdof::logicalIndexOffsetFromVertex( neighbor )];
+                        double var     = variableStencil[vertexdof::logicalIndexOffsetFromVertex( neighbor )];
+                        double err_ijk = sur - var;
+
+                        normF2 += err_ijk * err_ijk;
                      }
                   }
                }
             }
          }
-         err.push_back( tmp );
+         err.push_back( std::sqrt( h_ * h_ * h_ * normF2 ) );
       }
 
       return err;
