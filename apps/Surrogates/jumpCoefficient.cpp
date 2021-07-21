@@ -297,8 +297,11 @@ int main( int argc, char** argv )
    const bool vtk            = parameters.getParameter< bool >( "vtkOutput" );
    const bool print_stencils = parameters.getParameter< bool >( "print_stencils" );
 
+   const std::string msh = parameters.getParameter<std::string>("mesh");
+
    // domain
-   MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( { 0.0, 0.0 } ), Point2D( { 1.0, 1.0 } ), MeshInfo::CRISS, 1, 1 );
+   MeshInfo meshInfo = MeshInfo::fromGmshFile(msh);
+   // MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( { 0.0, 0.0 } ), Point2D( { 1.0, 1.0 } ), MeshInfo::CRISS, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
    hyteg::loadbalancing::roundRobin( setupStorage );
@@ -338,14 +341,15 @@ int main( int argc, char** argv )
    if ( alpha > 0.0 )
    {
       real_t phi = 6;
+      real_t scaling_factor_u = 1;
 
-      u = [phi]( const hyteg::Point3D& x ) { return sin( phi * M_PI * x[0] ) * sinh( M_PI * x[1] ); };
-      k = [alpha]( const hyteg::Point3D& x ) { return tanh( alpha * ( x[0] - 0.5 ) ) + 2; };
-      f = [phi, alpha]( const hyteg::Point3D& x ) {
+      u = [=]( const hyteg::Point3D& x ) { return scaling_factor_u * sin( phi * M_PI * x[0] ) * sinh( M_PI * x[1] ); };
+      k = [=]( const hyteg::Point3D& x ) { return tanh( alpha * ( x[0] - 0.5 ) ) + 2; };
+      f = [=]( const hyteg::Point3D& x ) {
          real_t t0 = tanh( alpha * ( x[0] - 0.5 ) );
          real_t t1 = phi * alpha * ( t0 * t0 - 1 ) * cos( phi * M_PI * x[0] );
          real_t t2 = ( phi * phi - 1 ) * M_PI * ( t0 + 2 ) * sin( phi * M_PI * x[0] );
-         return M_PI * ( t1 + t2 ) * sinh( M_PI * x[1] );
+         return scaling_factor_u * M_PI * ( t1 + t2 ) * sinh( M_PI * x[1] );
       };
    }
 

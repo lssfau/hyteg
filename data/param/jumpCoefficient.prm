@@ -1,7 +1,7 @@
 Parameters
 {
   level_h_coarse 2;
-  level_h_fine 8;
+  level_h_fine 6;
 
   // discretization order (1 or 2);
   discretization 1;
@@ -10,7 +10,7 @@ Parameters
   // 0: variable;
   // 1: surrogate polynomial;
   // 2: surrogate polynomial with scaling;
-  operatorType 1;
+  operatorType 0;
 
   // polynomial degree for surrogate operator;
   polyDegree 7;
@@ -34,6 +34,8 @@ Parameters
   mg_tolerance 1e-16;
   coarse_tolerance 1e-16;
 
-  vtkOutput 0;
+  vtkOutput 1;
   print_stencils 0;
+
+  mesh ../../hyteg/apps/Surrogates/meshes/square_1.msh;
 }
