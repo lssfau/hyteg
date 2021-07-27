@@ -54,7 +54,7 @@ def writeMeshToFile(filename, nodes, elements):
         f.writelines('$Elements\n%d\n' %len(elements))
         for j, el in enumerate(elements):
             f.writelines('%s\n' %elStr(j, el))
-        f.writelines('$EndNodes\n')
+        f.writelines('$EndElements\n')
 
 
 def refinement(nodes, elems, refine:list):

@@ -1,7 +1,7 @@
 Parameters
 {
   level_h_coarse 2;
-  level_h_fine 6;
+  level_h_fine 7;
 
   // discretization order (1 or 2);
   discretization 1;
@@ -13,7 +13,7 @@ Parameters
   operatorType 0;
 
   // polynomial degree for surrogate operator;
-  polyDegree 7;
+  polyDegree 3;
 
   // magnitude of coefficient;
   k_min 1e-1;
@@ -27,15 +27,15 @@ Parameters
   // alpha = 0: jump coeff;
   // alpha > 0: sigmoid coeff (with k->jump for alpha->inf);
   // note: for alpha > 0, k_min,k_max,x_jump_0/1 are ignored;
-  alpha 7;
+  alpha 10;
 
   max_outer_iter 20;
   max_cg_iter 1000;
-  mg_tolerance 1e-16;
+  mg_tolerance 1e-8;
   coarse_tolerance 1e-16;
 
   vtkOutput 1;
   print_stencils 0;
 
-  mesh ../../hyteg/apps/Surrogates/meshes/square_1.msh;
+  mesh ../../hyteg/apps/Surrogates/meshes/square_4.msh;
 }

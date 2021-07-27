@@ -116,20 +116,42 @@ void printStencils( std::shared_ptr< PrimitiveStorage > storage, const A_t& A )
 
 // print ||A-Aq||_max
 template < class A_t >
-void printError( const A_t& A, uint_t l_min, uint_t l_max)
+void printError( const A_t& A, uint_t l_min, uint_t l_max )
 {
+   double maxerr = 0;
+   double minerr = 1e100;
    std::cout << "lvl | ||A-Aq||_cell for all cells\n";
 
-   for (uint_t lvl = l_min; lvl <= l_max; ++lvl)
+   for ( uint_t lvl = l_min; lvl <= l_max; ++lvl )
    {
-      auto err = A.computeSurrogateError(lvl);
-      std::cout << lvl << " | [" ;
-      for (auto& el : err)
+      auto err = A.computeSurrogateError( lvl );
+      std::cout << lvl << " | [";
+      for ( auto& el : err )
       {
          std::cout << el << " ";
+         if ( lvl == l_max )
+         {
+            if ( el > maxerr )
+               maxerr = el;
+            if ( el < minerr )
+               minerr = el;
+         }
       }
       std::cout << "]\n";
    }
+
+   auto err = A.computeSurrogateError( l_max );
+   std::cout << "refine:\n\'";
+   for ( uint_t i = 0; i < err.size(); ++i )
+   {
+      if ( err[i] > ( minerr + maxerr ) / 2 )
+      {
+         std::cout << i;
+         if ( i < err.size() - 1 )
+            std::cout << " ";
+      }
+   }
+   std::cout << "\'\n";
 }
 
 // solve Au=b(f)
@@ -297,15 +319,56 @@ int main( int argc, char** argv )
    const bool vtk            = parameters.getParameter< bool >( "vtkOutput" );
    const bool print_stencils = parameters.getParameter< bool >( "print_stencils" );
 
-   const std::string msh = parameters.getParameter<std::string>("mesh");
+   const std::string msh = parameters.getParameter< std::string >( "mesh" );
 
    // domain
-   MeshInfo meshInfo = MeshInfo::fromGmshFile(msh);
+   MeshInfo meshInfo = MeshInfo::fromGmshFile( msh );
    // MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( { 0.0, 0.0 } ), Point2D( { 1.0, 1.0 } ), MeshInfo::CRISS, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   WALBERLA_LOG_INFO_ON_ROOT( setupStorage )
+   std::stringstream ss;
+   setupStorage.toStream( ss, true );
+   WALBERLA_LOG_INFO_ON_ROOT( ss.str() );
+
+   // correct boundary for mesh with hanging nodes
+   // constexpr real_t minH = 1e-10;
+   // std::function< bool( const hyteg::Point3D& ) > leftBnd = [=]( const hyteg::Point3D& x ) {
+   //    return x[0] < minH;
+   // };
+   // std::function< bool( const hyteg::Point3D& ) > rightBnd = [=]( const hyteg::Point3D& x ) {
+   //    return x[0] > (1-minH);
+   // };
+   // std::function< bool( const hyteg::Point3D& ) > downBnd = [=]( const hyteg::Point3D& x ) {
+   //    return x[1] < minH;
+   // };
+   // std::function< bool( const hyteg::Point3D& ) > upBnd = [=]( const hyteg::Point3D& x ) {
+   //    return x[1] > (1-minH);
+   // };
+   // setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, leftBnd, true );
+   // setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, rightBnd, true );
+   // setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, downBnd, true );
+   // setupStorage.setMeshBoundaryFlagsByVertexLocation( 1, upBnd, true );
+
    hyteg::loadbalancing::roundRobin( setupStorage );
    std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   // std::cerr << "\nfaces: ";
+   // for (auto& idx : storage->getFaces())
+   // {
+   //    std::cerr << " " << idx.second->getMeshBoundaryFlag();
+   // }
+   // std::cerr << "\nedges: ";
+   // for (auto& idx : storage->getEdges())
+   // {
+   //    std::cerr << " " << idx.second->getMeshBoundaryFlag();
+   // }
+   // std::cerr << "\nvertices: ";
+   // for (auto& idx : storage->getVertices())
+   // {
+   //    std::cerr << " " << idx.second->getMeshBoundaryFlag();
+   // }
+   // std::cerr << "\n";
 
    // coefficient function
    function k = [=]( const hyteg::Point3D& x ) {
@@ -340,7 +403,7 @@ int main( int argc, char** argv )
    // test with smooth solution and coeff
    if ( alpha > 0.0 )
    {
-      real_t phi = 6;
+      real_t phi              = 6;
       real_t scaling_factor_u = 1;
 
       u = [=]( const hyteg::Point3D& x ) { return scaling_factor_u * sin( phi * M_PI * x[0] ) * sinh( M_PI * x[1] ); };
