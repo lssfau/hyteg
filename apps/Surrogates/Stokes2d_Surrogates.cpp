@@ -24,8 +24,8 @@
 #include <core/Environment.h>
 #include <core/config/Create.h>
 #include <core/timing/Timer.h>
-#include <hyteg/composites/P2P1BlendingTaylorhoodStokesOperator.hpp>
-#include <hyteg/composites/P2P1SurrogateTaylorhoodStokesOperator.hpp>
+#include <hyteg/composites/P2P1BlendingTaylorHoodStokesOperator.hpp>
+#include <hyteg/composites/P2P1SurrogateTaylorHoodStokesOperator.hpp>
 #include <hyteg/composites/P2P1TaylorHoodStokesOperator.hpp>
 #include <hyteg/elementwiseoperators/P2P1ElementwiseBlendingStokesOperator.hpp>
 #include <hyteg/mesh/MeshInfo.hpp>
