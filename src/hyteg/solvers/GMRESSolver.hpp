@@ -1,6 +1,22 @@
-
-// DINGSBUMS EINFUEGEN
-
+/*
+ * Copyright (c) 2021 Maximilian Dechant.
+ *
+ * This file is part of HyTeG
+ * (see https://i10git.cs.fau.de/hyteg/hyteg).
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 #pragma once
 
 #include <fstream>
@@ -26,7 +42,6 @@ class GMRESSolver : public Solver< OperatorType >
  public:
    typedef typename OperatorType::srcType FunctionType;
 
-   /// VERWEIS AUF DAS SAAD-BUCH EINFUEGEN"
    GMRESSolver(
       const std::shared_ptr< PrimitiveStorage >& storage,
       uint_t                                     minLevel,
@@ -35,7 +50,8 @@ class GMRESSolver : public Solver< OperatorType >
       uint_t                                     restartLength   = 1,
       real_t                                     arnoldiTOL      = 1e-16,
       real_t                                     approxTOL       = 1e-16,
-      real_t                                     doubleOrthoTOL  = 20,
+      real_t                                     doubleOrthoTOL  = 0,
+      hyteg::DoFType flag                                        = hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary,
       std::shared_ptr< Solver< OperatorType > >  preconditioner  = std::make_shared< IdentityPreconditioner< OperatorType > >()
       )
       : storage_( storage )
@@ -47,37 +63,27 @@ class GMRESSolver : public Solver< OperatorType >
       , approxTOL_( approxTOL )
       , doubleOrthoTOL_( doubleOrthoTOL )
       , preconditioner_( preconditioner )
-      , flag_( hyteg::Inner | hyteg::NeumannBoundary | hyteg::FreeslipBoundary )
-      , printInfo_( true )
+      , flag_( flag )
+      , printInfo_( false )
       , r0_( "r0", storage_, minLevel_, maxLevel_ )
       , rPrec_( "rPrec", storage_, minLevel_, maxLevel_ )
       , wPrec_( "wPrec", storage_, minLevel_, maxLevel_ )
       , orthoDiff_( "orthoDiff", storage_, minLevel_, maxLevel_ )
-      , saveApproxERRinFile_( true )
-      , saveTrueResidualInFile_( false )
-      , trueResidualHelperFunction0_( "trueResHelper0", storage_, minLevel_, maxLevel_ )
-      , trueResidualHelperFunction1_( "trueResHelper1", storage_, minLevel_, maxLevel_ )
+      , timingTree_( storage->getTimingTree() )
     {}
 
     ~GMRESSolver() = default;
 
+    // GMRES ACCORDING TO Y.SAAD
+
     void solve( const OperatorType& A, const FunctionType& x, const FunctionType& b, const uint_t level ) override
     {   
+        timingTree_->start( "GMRES Solver" );
+
         double approxERR = approxTOL_ + 1;
         bool isOnFirstRestart = true;
 
         init(A, x, b, level, true);
-
-        std::ofstream approxErrOutputFile;
-        std::ofstream trueResiOutputFile;
-        if(saveApproxERRinFile_)
-        {
-            approxErrOutputFile.open("approxErrOutput.txt");
-        }
-        if(saveTrueResidualInFile_)
-        {
-            trueResiOutputFile.open("trueResidualOutput.txt");
-        }
 
         for(uint_t j = 1; j < maxKrylowDim_; j++) 
         {   
@@ -102,6 +108,8 @@ class GMRESSolver : public Solver< OperatorType >
                 vecV_[currentIndex].interpolate( 0.0 , level, flag_ );
             } 
             A.apply( vecV_[currentIndex - 1], vecV_[currentIndex], level, flag_ );
+            wPrec_.interpolate( 0.0, level, hyteg::Inner );
+            wPrec_.copyBoundaryConditionFromFunction( x );
             preconditioner_->solve( A, wPrec_, vecV_[currentIndex], level );
             vecV_[currentIndex].assign( {1.0}, {wPrec_}, level, flag_ );
             H_ = matrixResize( H_, currentIndex + 1, currentIndex );
@@ -130,23 +138,7 @@ class GMRESSolver : public Solver< OperatorType >
             H_(currentIndex, currentIndex - 1) = wNorm;
             y_ = hessenbergMinimizer( beta_, H_, Q_, 1, approxERR );
             if( printInfo_ ) {
-                WALBERLA_LOG_INFO_ON_ROOT(" [GMRES] total residual after " << j << " iterations : " << approxERR );
-            }
-            if(saveApproxERRinFile_) 
-            {
-                    approxErrOutputFile << approxERR << "; ";
-            }
-            if(saveTrueResidualInFile_)
-            {
-                trueResidualHelperFunction0_.assign( {1.0}, {x}, level, flag_ );
-                for(int i = 0; i < y_.size(); i++) 
-                {
-                    trueResidualHelperFunction0_.add( {y_(i)}, {vecV_[i]}, level, flag_ );
-                }
-                A.apply( trueResidualHelperFunction0_, trueResidualHelperFunction1_, level, flag_ );
-                trueResidualHelperFunction1_.assign( {1.0, -1.0}, {b, trueResidualHelperFunction1_}, level, flag_ );
-                double currentResidual = std::sqrt(trueResidualHelperFunction1_.dotGlobal( trueResidualHelperFunction1_, level, flag_ ));
-                trueResiOutputFile << currentResidual << "; ";
+                WALBERLA_LOG_INFO_ON_ROOT(" [GMRES] approximated residual after " << j << " iterations : " << approxERR );
             }
             vecV_[currentIndex].assign( {1.0/wNorm}, {vecV_[currentIndex]}, level, flag_ );
 
@@ -155,15 +147,9 @@ class GMRESSolver : public Solver< OperatorType >
                 break;
             }
         }
-        if(saveApproxERRinFile_) 
-        {
-            approxErrOutputFile.close();
-        }
-        if(saveTrueResidualInFile_)
-        {
-            trueResiOutputFile.close();
-        }
         generateFinalApproximation( x, level );
+
+        timingTree_->stop( "GMRES Solver" );
         return;
     }
 
@@ -172,11 +158,16 @@ private:
     {
         A.apply(x, r0_, level, flag_);
         r0_.assign( {1.0, -1.0}, {b, r0_}, level, flag_ );
-        r0_.copyBoundaryConditionFromFunction( x );
-        rPrec_.interpolate( 0, level, flag_ );
+        rPrec_.interpolate( 0.0, level, flag_ );
         preconditioner_->solve( A, rPrec_, r0_, level );
         r0_.assign( {1.0}, {rPrec_}, level, flag_ );
-        beta_ = std::sqrt( r0_.dotGlobal( r0_, level, hyteg::Inner ) ); 
+
+        r0_.copyBoundaryConditionFromFunction( x );
+        rPrec_.copyBoundaryConditionFromFunction( x );
+        wPrec_.copyBoundaryConditionFromFunction( x );
+        orthoDiff_.copyBoundaryConditionFromFunction( x );
+
+        beta_ = std::sqrt( r0_.dotGlobal( r0_, level, flag_ ) ); 
 
         H_ = Eigen::MatrixXd::Zero(0,0);
         Q_ = Eigen::MatrixXd::Ones(1,1);
@@ -214,10 +205,7 @@ private:
     FunctionType wPrec_;
     FunctionType orthoDiff_;
 
-    bool saveApproxERRinFile_;
-    bool saveTrueResidualInFile_;
-    FunctionType trueResidualHelperFunction0_;
-    FunctionType trueResidualHelperFunction1_;
+    std::shared_ptr< walberla::WcTimingTree > timingTree_;
 
     void generateFinalApproximation(const FunctionType& x, uint_t level) 
     {
