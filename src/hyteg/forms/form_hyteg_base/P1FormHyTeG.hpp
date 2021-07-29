@@ -81,7 +81,7 @@ class P1FormHyTeG : public P1Form
      out[0] = elMat( 0, 0 );
      out[1] = elMat( 0, 1 );
      out[2] = elMat( 0, 2 );
-     out[2] = elMat( 0, 3 );
+     out[3] = elMat( 0, 3 );
    }
 
    // We'd need to implement that in each child as we partially have separate 2D and 3D forms for P1 elements
