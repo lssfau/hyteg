@@ -29,10 +29,10 @@
 
 #include "hyteg/forms/form_hyteg_generated/P1FormDiv.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormDivT.hpp"
-#include "hyteg/forms/form_hyteg_generated/deprecated/P1FormEpsilon.hpp"
-#include "hyteg/forms/form_hyteg_generated/deprecated/P1FormLaplace.hpp"
-#include "hyteg/forms/form_hyteg_generated/deprecated/P1FormMass.hpp"
 #include "hyteg/forms/form_hyteg_generated/deprecated/P1FormPSPG.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
 #include "hyteg/p1functionspace/VertexDoFMemory.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/types/pointnd.hpp"
@@ -261,13 +261,13 @@ class P1VariableOperator : public Operator< P1Function< real_t >, P1Function< re
 #endif
 };
 
-typedef P1VariableOperator< P1Form_laplace > P1BlendingLaplaceOperator;
-typedef P1VariableOperator< P1Form_mass >    P1BlendingMassOperator;
+typedef P1VariableOperator< forms::p1_diffusion_blending_q3 > P1BlendingLaplaceOperator;
+typedef P1VariableOperator< forms::p1_mass_blending_q4 >      P1BlendingMassOperator;
 
-typedef P1VariableOperator< P1Form_epsilon_11 > P1BlendingEpsilonOperator_11;
-typedef P1VariableOperator< P1Form_epsilon_12 > P1BlendingEpsilonOperator_12;
-typedef P1VariableOperator< P1Form_epsilon_21 > P1BlendingEpsilonOperator_21;
-typedef P1VariableOperator< P1Form_epsilon_22 > P1BlendingEpsilonOperator_22;
+typedef P1VariableOperator< forms::p1_epsiloncc_0_0_blending_q2 > P1BlendingEpsilonOperator_11;
+typedef P1VariableOperator< forms::p1_epsiloncc_0_1_blending_q2 > P1BlendingEpsilonOperator_12;
+typedef P1VariableOperator< forms::p1_epsiloncc_1_0_blending_q2 > P1BlendingEpsilonOperator_21;
+typedef P1VariableOperator< forms::p1_epsiloncc_1_1_blending_q2 > P1BlendingEpsilonOperator_22;
 
 typedef P1VariableOperator< P1Form_divT_1 > P1BlendingDivTOperator_1;
 typedef P1VariableOperator< P1Form_divT_2 > P1BlendingDivTOperator_2;

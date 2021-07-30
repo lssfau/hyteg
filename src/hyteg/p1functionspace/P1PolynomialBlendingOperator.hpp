@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2021 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -39,9 +39,9 @@
 
 #include "hyteg/forms/form_hyteg_generated/P1FormDiv.hpp"
 #include "hyteg/forms/form_hyteg_generated/P1FormDivT.hpp"
-#include "hyteg/forms/form_hyteg_generated/deprecated/P1FormEpsilon.hpp"
-#include "hyteg/forms/form_hyteg_generated/deprecated/P1FormLaplace.hpp"
-#include "hyteg/forms/form_hyteg_generated/deprecated/P1FormMass.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/deprecated/P1FormPSPG.hpp"
 #include "hyteg/p1functionspace/VertexDoFMemory.hpp"
 #include "hyteg/polynomial/LSQPInterpolator.hpp"
@@ -600,13 +600,21 @@ class P1PolynomialBlendingOperator : public Operator< P1Function< real_t >, P1Fu
    P1Form form;
 };
 
-typedef P1PolynomialBlendingOperator< P1Form_laplace, OperatorType::EVEN > P1PolynomialBlendingLaplaceOperator;
-typedef P1PolynomialBlendingOperator< P1Form_mass, OperatorType::MASS >    P1PolynomialBlendingMassOperator;
+// typedef P1PolynomialBlendingOperator< P1Form_laplace, OperatorType::EVEN > P1PolynomialBlendingLaplaceOperator;
+// typedef P1PolynomialBlendingOperator< P1Form_mass, OperatorType::MASS >    P1PolynomialBlendingMassOperator;
 
-typedef P1PolynomialBlendingOperator< P1Form_epsilon_11, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_11;
-typedef P1PolynomialBlendingOperator< P1Form_epsilon_12, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_12;
-typedef P1PolynomialBlendingOperator< P1Form_epsilon_21, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_21;
-typedef P1PolynomialBlendingOperator< P1Form_epsilon_22, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_22;
+typedef P1PolynomialBlendingOperator< forms::p1_diffusion_blending_q1, OperatorType::EVEN > P1PolynomialBlendingLaplaceOperator;
+typedef P1PolynomialBlendingOperator< forms::p1_mass_blending_q4, OperatorType::MASS >      P1PolynomialBlendingMassOperator;
+
+// typedef P1PolynomialBlendingOperator< P1Form_epsilon_11, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_11;
+// typedef P1PolynomialBlendingOperator< P1Form_epsilon_12, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_12;
+// typedef P1PolynomialBlendingOperator< P1Form_epsilon_21, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_21;
+// typedef P1PolynomialBlendingOperator< P1Form_epsilon_22, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_22;
+
+typedef P1PolynomialBlendingOperator< forms::p1_epsiloncc_0_0_blending_q2, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_11;
+typedef P1PolynomialBlendingOperator< forms::p1_epsiloncc_0_1_blending_q2, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_12;
+typedef P1PolynomialBlendingOperator< forms::p1_epsiloncc_1_0_blending_q2, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_21;
+typedef P1PolynomialBlendingOperator< forms::p1_epsiloncc_1_1_blending_q2, OperatorType::EVEN > P1PolynomialBlendingEpsilonOperator_22;
 
 typedef P1PolynomialBlendingOperator< P1Form_divT_1, OperatorType::ODD > P1PolynomialBlendingDivTOperator_1;
 typedef P1PolynomialBlendingOperator< P1Form_divT_2, OperatorType::ODD > P1PolynomialBlendingDivTOperator_2;

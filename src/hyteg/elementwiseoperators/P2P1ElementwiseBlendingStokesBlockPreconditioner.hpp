@@ -3,6 +3,7 @@
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
 #include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
 
 namespace hyteg {
 
@@ -20,8 +21,8 @@ class P2P1ElementwiseBlendingStokesBlockPreconditioner
    , P( storage,
         minLevel,
         maxLevel,
-        storage->hasGlobalCells() ? std::make_shared< P1RowSumForm >( std::make_shared< P1Form_mass3D >() ) :
-                                    std::make_shared< P1RowSumForm >( std::make_shared< P1Form_mass >() ) )
+        // a lower quadrature order might well be sufficient for a preconditioner
+        std::make_shared< P1RowSumForm >( std::make_shared< forms::p1_mass_blending_q4 >() ) )
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
