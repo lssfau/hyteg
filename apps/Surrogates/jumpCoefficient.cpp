@@ -259,7 +259,8 @@ void solve( std::shared_ptr< PrimitiveStorage > storage,
 
    if ( vtk )
    {
-      std::string name = "JumpCoefficient";
+      auto        Nel  = ( storage->hasGlobalCells() ) ? storage->getNumberOfGlobalCells() : storage->getNumberOfGlobalFaces();
+      std::string name = "JumpCoefficient_Nel" + std::to_string( Nel );
 
       hyteg::VTKOutput vtkOutput( "output", name, storage );
       vtkOutput.setVTKDataFormat( VTKOutput::VTK_DATA_FORMAT::BINARY );
@@ -294,7 +295,7 @@ int main( int argc, char** argv )
    }
 
    // read parameter file
-   // WALBERLA_LOG_INFO_ON_ROOT("config = " << *cfg);
+   WALBERLA_LOG_INFO_ON_ROOT( "config = " << *cfg );
    walberla::Config::BlockHandle parameters = cfg->getOneBlock( "Parameters" );
 
    const uint_t minLevel = parameters.getParameter< uint_t >( "level_h_coarse" );
@@ -326,7 +327,6 @@ int main( int argc, char** argv )
    // MeshInfo meshInfo = MeshInfo::meshRectangle( Point2D( { 0.0, 0.0 } ), Point2D( { 1.0, 1.0 } ), MeshInfo::CRISS, 1, 1 );
    SetupPrimitiveStorage setupStorage( meshInfo, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
    setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
-   WALBERLA_LOG_INFO_ON_ROOT( setupStorage )
    std::stringstream ss;
    setupStorage.toStream( ss, true );
    WALBERLA_LOG_INFO_ON_ROOT( ss.str() );
@@ -403,16 +403,23 @@ int main( int argc, char** argv )
    // test with smooth solution and coeff
    if ( alpha > 0.0 )
    {
-      real_t phi              = 6;
+      // real_t phi              = 6;
       real_t scaling_factor_u = 1;
 
-      u = [=]( const hyteg::Point3D& x ) { return scaling_factor_u * sin( phi * M_PI * x[0] ) * sinh( M_PI * x[1] ); };
-      k = [=]( const hyteg::Point3D& x ) { return tanh( alpha * ( x[0] - 0.5 ) ) + 2; };
-      f = [=]( const hyteg::Point3D& x ) {
-         real_t t0 = tanh( alpha * ( x[0] - 0.5 ) );
-         real_t t1 = phi * alpha * ( t0 * t0 - 1 ) * cos( phi * M_PI * x[0] );
-         real_t t2 = ( phi * phi - 1 ) * M_PI * ( t0 + 2 ) * sin( phi * M_PI * x[0] );
-         return scaling_factor_u * M_PI * ( t1 + t2 ) * sinh( M_PI * x[1] );
+      // u = [=]( const hyteg::Point3D& x ) { return scaling_factor_u * sin( phi * M_PI * x[0] ) * sinh( M_PI * x[1] ); };
+      // k = [=]( const hyteg::Point3D& x ) { return tanh( alpha * ( x[0] - 0.5 ) ) + 2; };
+      // f = [=]( const hyteg::Point3D& x ) {
+      //    real_t t0 = tanh( alpha * ( x[0] - 0.5 ) );
+      //    real_t t1 = phi * alpha * ( t0 * t0 - 1 ) * cos( phi * M_PI * x[0] );
+      //    real_t t2 = ( phi * phi - 1 ) * M_PI * ( t0 + 2 ) * sin( phi * M_PI * x[0] );
+      //    return scaling_factor_u * M_PI * ( t1 + t2 ) * sinh( M_PI * x[1] );
+      // };
+
+      u = [=]( const hyteg::Point3D& x ) {
+         return scaling_factor_u * ( -2 * alpha * x[0] + log( 2 * exp( alpha * ( x[0] - 0.5 ) ) + 1 ) ) / alpha;
+      };
+      k = [=]( const hyteg::Point3D& x ) {
+         return ( 2 * exp( alpha * ( x[0] - 0.5 ) ) + 1 ) / ( exp( alpha * ( x[0] - 0.5 ) ) + 1 );
       };
    }
 
