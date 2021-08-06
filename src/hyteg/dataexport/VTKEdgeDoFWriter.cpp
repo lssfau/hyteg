@@ -25,7 +25,12 @@
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
 
+// from walberla
+#include "vtk/UtilityFunctions.h"
+
 namespace hyteg {
+
+using walberla::vtk::typeToString;
 
 void VTKEdgeDoFWriter::write( const VTKOutput& mgr, std::ostream& output, uint_t level, const vtk::DoFType& dofType )
 {
@@ -67,7 +72,7 @@ void VTKEdgeDoFWriter::write( const VTKOutput& mgr, std::ostream& output, uint_t
       vtk::writePieceHeader( output, numberOfPoints3D, numberOfCells3D );
    }
    output << "<Points>\n";
-   vtk::openDataElement( output, "Float64", "", 3, mgr.vtkDataFormat_ );
+   vtk::openDataElement( output, typeToString< real_t >(), "", 3, mgr.vtkDataFormat_ );
 
    VTKMeshWriter::writePointsForMicroEdges( mgr, output, storage, level, dofType );
 
@@ -78,7 +83,7 @@ void VTKEdgeDoFWriter::write( const VTKOutput& mgr, std::ostream& output, uint_t
 
    for ( const auto& function : mgr.edgeDoFFunctions_ )
    {
-      vtk::openDataElement( output, "Float64", function.getFunctionName(), 1, mgr.vtkDataFormat_ );
+      vtk::openDataElement( output, typeToString< real_t >(), function.getFunctionName(), 1, mgr.vtkDataFormat_ );
 
       writeScalarFunction( mgr, output, function, storage, level, dofType );
 
@@ -109,7 +114,7 @@ void VTKEdgeDoFWriter::writeScalarFunction( const VTKOutput&                    
                                             uint_t                                     level,
                                             const vtk::DoFType&                        dofType )
 {
-   using ScalarType = double;
+   using ScalarType = real_t;
 
    WALBERLA_ASSERT( dofType == vtk::DoFType::EDGE_X || dofType == vtk::DoFType::EDGE_Y || dofType == vtk::DoFType::EDGE_Z ||
                     dofType == vtk::DoFType::EDGE_XY || dofType == vtk::DoFType::EDGE_XZ || dofType == vtk::DoFType::EDGE_YZ ||

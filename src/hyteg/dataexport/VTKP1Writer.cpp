@@ -24,7 +24,12 @@
 #include "hyteg/dataexport/VTKHelpers.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 
+// from walberla
+#include "vtk/UtilityFunctions.h"
+
 namespace hyteg {
+
+using walberla::vtk::typeToString;
 
 void VTKP1Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_t& level )
 {
@@ -51,7 +56,7 @@ void VTKP1Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
    }
 
    output << "<Points>\n";
-   vtk::openDataElement( output, "Float64", "", 3, mgr.vtkDataFormat_ );
+   vtk::openDataElement( output, typeToString< real_t >(), "", 3, mgr.vtkDataFormat_ );
 
    VTKMeshWriter::writePointsForMicroVertices( mgr, output, storage, level );
 
@@ -71,7 +76,7 @@ void VTKP1Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
 
    for ( const auto& function : mgr.p1Functions_ )
    {
-      vtk::openDataElement( output, "Float64", function.getFunctionName(), 1, mgr.vtkDataFormat_ );
+      vtk::openDataElement( output, typeToString< real_t >(), function.getFunctionName(), 1, mgr.vtkDataFormat_ );
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
       output << "\n</DataArray>\n";
    }
@@ -79,7 +84,7 @@ void VTKP1Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
    for ( const auto& function : mgr.p1VecFunctions_ )
    {
       uint_t dim = mgr.write2D_ ? 2 : 3;
-      vtk::openDataElement( output, "Float64", function.getFunctionName(), dim, mgr.vtkDataFormat_ );
+      vtk::openDataElement( output, typeToString< real_t >(), function.getFunctionName(), dim, mgr.vtkDataFormat_ );
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
       output << "\n</DataArray>\n";
    }
@@ -96,7 +101,7 @@ void VTKP1Writer::writeScalarFunction( std::ostream&                            
                                        bool                                          write2D,
                                        vtk::DataFormat                               vtkDataFormat )
 {
-   using ScalarType = double;
+   using ScalarType = real_t;
 
    VTKOutput::VTKStreamWriter< ScalarType > streamWriter( vtkDataFormat );
 
@@ -138,7 +143,7 @@ void VTKP1Writer::writeVectorFunction( std::ostream&                            
                                        bool                                       write2D,
                                        vtk::DataFormat                            vtkDataFormat )
 {
-   using ScalarType = double;
+   using ScalarType = real_t;
 
    VTKOutput::VTKStreamWriter< ScalarType > streamWriter( vtkDataFormat );
 

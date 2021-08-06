@@ -24,7 +24,12 @@
 #include "hyteg/dataexport/VTKHelpers.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 
+// from walberla
+#include "vtk/UtilityFunctions.h"
+
 namespace hyteg {
+
+using walberla::vtk::typeToString;
 
 void VTKDGDoFWriter::write( const VTKOutput& mgr, std::ostream& output, const uint_t& level )
 {
@@ -41,7 +46,7 @@ void VTKDGDoFWriter::write( const VTKOutput& mgr, std::ostream& output, const ui
    vtk::writePieceHeader( output, numberOfPoints, numberOfCells );
 
    output << "<Points>\n";
-   vtk::openDataElement( output, "Float64", "", 3, mgr.vtkDataFormat_ );
+   vtk::openDataElement( output, typeToString< real_t >(), "", 3, mgr.vtkDataFormat_ );
 
    VTKMeshWriter::writePointsForMicroVertices( mgr, output, storage, level );
 
@@ -54,7 +59,7 @@ void VTKDGDoFWriter::write( const VTKOutput& mgr, std::ostream& output, const ui
 
    for ( const auto& function : mgr.dgFunctions_ )
    {
-      vtk::openDataElement( output, "Float64", function.getFunctionName(), 1, mgr.vtkDataFormat_ );
+      vtk::openDataElement( output, typeToString< real_t >(), function.getFunctionName(), 1, mgr.vtkDataFormat_ );
 
       for ( const auto& it : storage->getFaces() )
       {

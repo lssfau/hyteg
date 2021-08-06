@@ -37,7 +37,7 @@ void VTKMeshWriter::writePointsForMicroVertices( const VTKOutput&               
                                                  const std::shared_ptr< PrimitiveStorage >& storage,
                                                  uint_t                                     level )
 {
-   using ScalarType = double;
+   using ScalarType = real_t;
    VTKOutput::VTKStreamWriter< ScalarType > streamWriter( mgr.vtkDataFormat_ );
 
    if ( mgr.write2D_ )
@@ -97,7 +97,7 @@ void VTKMeshWriter::writePointsForMicroEdges( const VTKOutput&                  
                                               uint_t                                     level,
                                               const vtk::DoFType&                        dofType )
 {
-   using ScalarType = double;
+   using ScalarType = real_t;
    VTKOutput::VTKStreamWriter< ScalarType > streamWriter( mgr.vtkDataFormat_ );
 
    if ( mgr.write2D_ )

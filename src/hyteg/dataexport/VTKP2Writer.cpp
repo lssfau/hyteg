@@ -52,7 +52,7 @@ void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
    vtk::writePieceHeader( output, numberOfPoints, numberOfCells );
 
    output << "<Points>\n";
-   vtk::openDataElement( output, "Float64", "", 3, mgr.vtkDataFormat_ );
+   vtk::openDataElement( output, typeToString< real_t >(), "", 3, mgr.vtkDataFormat_ );
 
    VTKMeshWriter::writePointsForMicroVertices( mgr, output, storage, level + 1 );
 
@@ -102,7 +102,7 @@ void VTKP2Writer::writeScalarFunction( const P2Function< real_t >& function,
                                        vtk::DataFormat             vtkDataFormat )
 
 {
-   using ScalarType = double;
+   using ScalarType = real_t;
    auto storage     = function.getStorage();
    vtk::openDataElement( output, typeToString< ScalarType >(), function.getFunctionName(), 1, vtkDataFormat );
 
@@ -209,7 +209,7 @@ void VTKP2Writer::writeVectorFunction( const P2VectorFunction< real_t >& functio
                                        bool                              write2D,
                                        vtk::DataFormat                   vtkDataFormat )
 {
-   using ScalarType = double;
+   using ScalarType = real_t;
 
    auto storage = function.getStorage();
    vtk::openDataElement(
