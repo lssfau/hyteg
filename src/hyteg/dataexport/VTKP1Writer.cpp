@@ -28,7 +28,7 @@ namespace hyteg {
 
 void VTKP1Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_t& level )
 {
-   if ( mgr.getNumRegisteredFunctions( VTKOutput::DoFType::VERTEX ) == 0 )
+   if ( mgr.getNumRegisteredFunctions( vtk::DoFType::VERTEX ) == 0 )
    {
       return;
    }

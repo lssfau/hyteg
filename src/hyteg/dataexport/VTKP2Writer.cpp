@@ -33,7 +33,7 @@ using walberla::vtk::typeToString;
 
 void VTKP2Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_t& level )
 {
-   if ( mgr.getNumRegisteredFunctions( VTKOutput::DoFType::P2 ) == 0 )
+   if ( mgr.getNumRegisteredFunctions( vtk::DoFType::P2 ) == 0 )
    {
       return;
    }

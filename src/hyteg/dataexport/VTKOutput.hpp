@@ -28,16 +28,17 @@
 
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/dataexport/VTKHelpers.hpp"
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 
+// our friends and helpers
+#include "hyteg/dataexport/VTKDGDoFWriter.hpp"
+#include "hyteg/dataexport/VTKHelpers.hpp"
 #include "hyteg/dataexport/VTKP1Writer.hpp"
 #include "hyteg/dataexport/VTKP2Writer.hpp"
-#include "hyteg/dataexport/VTKDGDoFWriter.hpp"
 
 // from walblera
 #include "vtk/Base64Writer.h"
@@ -89,20 +90,6 @@ class VTKOutput
    void write( const uint_t& level, const uint_t& timestep = 0 ) const;
 
  private:
-   enum class DoFType
-   {
-      VERTEX,
-      EDGE_X,
-      EDGE_Y,
-      EDGE_Z,
-      EDGE_XY,
-      EDGE_XZ,
-      EDGE_YZ,
-      EDGE_XYZ,
-      DG,
-      P2
-   };
-
    /// Wrapper class that handles writing data in ASCII or binary format.
    ///
    /// \tparam DTypeInVTK data type that the input data is converted to before writing it to the VTK file
@@ -152,14 +139,14 @@ class VTKOutput
       walberla::vtk::Base64Writer outputBase64_;
    };
 
-   static const std::map< VTKOutput::DoFType, std::string > DoFTypeToString_;
+   static const std::map< vtk::DoFType, std::string > DoFTypeToString_;
 
-   void   writeDoFByType( std::ostream& output, const uint_t& level, const VTKOutput::DoFType& dofType ) const;
-   uint_t getNumRegisteredFunctions( const VTKOutput::DoFType& dofType ) const;
+   void   writeDoFByType( std::ostream& output, const uint_t& level, const vtk::DoFType& dofType ) const;
+   uint_t getNumRegisteredFunctions( const vtk::DoFType& dofType ) const;
 
-   void writeEdgeDoFs( std::ostream& output, const uint_t& level, const VTKOutput::DoFType& dofType ) const;
+   void writeEdgeDoFs( std::ostream& output, const uint_t& level, const vtk::DoFType& dofType ) const;
 
-   std::string fileNameExtension( const VTKOutput::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const;
+   std::string fileNameExtension( const vtk::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const;
 
    void writeHeader( std::ostringstream& output, const uint_t& numberOfPoints, const uint_t& numberOfCells ) const;
    void writeFooterAndFile( std::ostringstream& output, const std::string& completeFilePath ) const;
@@ -171,13 +158,13 @@ class VTKOutput
    void writePointsForMicroEdges( std::ostream&                              output,
                                   const std::shared_ptr< PrimitiveStorage >& storage,
                                   const uint_t&                              level,
-                                  const VTKOutput::DoFType&                  dofType ) const;
+                                  const vtk::DoFType&                        dofType ) const;
 
    void writeEdgeDoFData( std::ostream&                              output,
                           const EdgeDoFFunction< real_t >&           function,
                           const std::shared_ptr< PrimitiveStorage >& storage,
                           const uint_t&                              level,
-                          const DoFType&                             dofType ) const;
+                          const vtk::DoFType&                        dofType ) const;
 
    void writeCells2D( std::ostream& output, const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& faceWidth ) const;
    void writeCells3D( std::ostream& output, const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level ) const;
@@ -231,11 +218,10 @@ class VTKOutput
 
    vtk::DataFormat vtkDataFormat_;
 
-  // all writers currently need to be our friends
-  friend class VTKP1Writer;
-  friend class VTKP2Writer;
-  friend class VTKDGDoFWriter;
-
+   // all writers currently need to be our friends
+   friend class VTKP1Writer;
+   friend class VTKP2Writer;
+   friend class VTKDGDoFWriter;
 };
 
 } // namespace hyteg

@@ -29,6 +29,20 @@ enum DataFormat
    BINARY
 };
 
+enum class DoFType
+{
+   VERTEX,
+   EDGE_X,
+   EDGE_Y,
+   EDGE_Z,
+   EDGE_XY,
+   EDGE_XZ,
+   EDGE_YZ,
+   EDGE_XYZ,
+   DG,
+   P2
+};
+
 inline void writeXMLHeader( std::ostream& output )
 {
    WALBERLA_ROOT_SECTION()

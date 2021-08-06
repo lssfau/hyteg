@@ -154,14 +154,13 @@ void VTKOutput::writeEdgeDoFData( std::ostream&                              out
                                   const EdgeDoFFunction< real_t >&           function,
                                   const std::shared_ptr< PrimitiveStorage >& storage,
                                   const uint_t&                              level,
-                                  const DoFType&                             dofType ) const
+                                  const vtk::DoFType&                        dofType ) const
 {
    using ScalarType = double;
 
-   WALBERLA_ASSERT( dofType == VTKOutput::DoFType::EDGE_X || dofType == VTKOutput::DoFType::EDGE_Y ||
-                    dofType == VTKOutput::DoFType::EDGE_Z || dofType == VTKOutput::DoFType::EDGE_XY ||
-                    dofType == VTKOutput::DoFType::EDGE_XZ || dofType == VTKOutput::DoFType::EDGE_YZ ||
-                    dofType == VTKOutput::DoFType::EDGE_XYZ );
+   WALBERLA_ASSERT( dofType == vtk::DoFType::EDGE_X || dofType == vtk::DoFType::EDGE_Y || dofType == vtk::DoFType::EDGE_Z ||
+                    dofType == vtk::DoFType::EDGE_XY || dofType == vtk::DoFType::EDGE_XZ || dofType == vtk::DoFType::EDGE_YZ ||
+                    dofType == vtk::DoFType::EDGE_XYZ );
 
    VTKStreamWriter< ScalarType > streamWriter( vtkDataFormat_ );
 
@@ -173,7 +172,7 @@ void VTKOutput::writeEdgeDoFData( std::ostream&                              out
 
          switch ( dofType )
          {
-         case VTKOutput::DoFType::EDGE_X:
+         case vtk::DoFType::EDGE_X:
          {
             for ( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
@@ -182,7 +181,7 @@ void VTKOutput::writeEdgeDoFData( std::ostream&                              out
             }
             break;
          }
-         case VTKOutput::DoFType::EDGE_Y:
+         case vtk::DoFType::EDGE_Y:
          {
             for ( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
@@ -191,7 +190,7 @@ void VTKOutput::writeEdgeDoFData( std::ostream&                              out
             }
             break;
          }
-         case VTKOutput::DoFType::EDGE_XY:
+         case vtk::DoFType::EDGE_XY:
          {
             for ( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
@@ -213,7 +212,7 @@ void VTKOutput::writeEdgeDoFData( std::ostream&                              out
          const Cell& cell     = *it.second;
          const auto  cellData = cell.getData( function.getCellDataID() )->getPointer( level );
 
-         if ( dofType == VTKOutput::DoFType::EDGE_XYZ )
+         if ( dofType == vtk::DoFType::EDGE_XYZ )
          {
             for ( const auto& itIdx : edgedof::macrocell::IteratorXYZ( level ) )
             {
@@ -227,22 +226,22 @@ void VTKOutput::writeEdgeDoFData( std::ostream&                              out
                uint_t idx;
                switch ( dofType )
                {
-               case VTKOutput::DoFType::EDGE_X:
+               case vtk::DoFType::EDGE_X:
                   idx = edgedof::macrocell::xIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
                   break;
-               case VTKOutput::DoFType::EDGE_Y:
+               case vtk::DoFType::EDGE_Y:
                   idx = edgedof::macrocell::yIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
                   break;
-               case VTKOutput::DoFType::EDGE_Z:
+               case vtk::DoFType::EDGE_Z:
                   idx = edgedof::macrocell::zIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
                   break;
-               case VTKOutput::DoFType::EDGE_XY:
+               case vtk::DoFType::EDGE_XY:
                   idx = edgedof::macrocell::xyIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
                   break;
-               case VTKOutput::DoFType::EDGE_XZ:
+               case vtk::DoFType::EDGE_XZ:
                   idx = edgedof::macrocell::xzIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
                   break;
-               case VTKOutput::DoFType::EDGE_YZ:
+               case vtk::DoFType::EDGE_YZ:
                   idx = edgedof::macrocell::yzIndex( level, itIdx.x(), itIdx.y(), itIdx.z() );
                   break;
                default:
@@ -258,22 +257,22 @@ void VTKOutput::writeEdgeDoFData( std::ostream&                              out
    streamWriter.toStream( output );
 }
 
-const std::map< VTKOutput::DoFType, std::string > VTKOutput::DoFTypeToString_ = {
-    {DoFType::VERTEX, "VertexDoF"},
-    {DoFType::EDGE_X, "XEdgeDoF"},
-    {DoFType::EDGE_Y, "YEdgeDoF"},
-    {DoFType::EDGE_Z, "ZEdgeDoF"},
-    {DoFType::EDGE_XY, "XYEdgeDoF"},
-    {DoFType::EDGE_XZ, "XZEdgeDoF"},
-    {DoFType::EDGE_YZ, "YZEdgeDoF"},
-    {DoFType::EDGE_XYZ, "XYZEdgeDoF"},
-    {DoFType::DG, "DGDoF"},
-    {DoFType::P2, "P2"},
+const std::map< vtk::DoFType, std::string > VTKOutput::DoFTypeToString_ = {
+    {vtk::DoFType::VERTEX, "VertexDoF"},
+    {vtk::DoFType::EDGE_X, "XEdgeDoF"},
+    {vtk::DoFType::EDGE_Y, "YEdgeDoF"},
+    {vtk::DoFType::EDGE_Z, "ZEdgeDoF"},
+    {vtk::DoFType::EDGE_XY, "XYEdgeDoF"},
+    {vtk::DoFType::EDGE_XZ, "XZEdgeDoF"},
+    {vtk::DoFType::EDGE_YZ, "YZEdgeDoF"},
+    {vtk::DoFType::EDGE_XYZ, "XYZEdgeDoF"},
+    {vtk::DoFType::DG, "DGDoF"},
+    {vtk::DoFType::P2, "P2"},
 };
 
-std::string VTKOutput::fileNameExtension( const VTKOutput::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const
+std::string VTKOutput::fileNameExtension( const vtk::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const
 {
-   return walberla::format( "_%s_level%u_ts%u", DoFTypeToString_.at( dofType ).c_str(), level, timestep );
+   return walberla::format( "_%s_level%u_ts%u", VTKOutput::DoFTypeToString_.at( dofType ).c_str(), level, timestep );
 }
 
 void VTKOutput::writePointsForMicroVertices( std::ostream&                              output,
@@ -337,15 +336,14 @@ void VTKOutput::writePointsForMicroVertices( std::ostream&                      
 void VTKOutput::writePointsForMicroEdges( std::ostream&                              output,
                                           const std::shared_ptr< PrimitiveStorage >& storage,
                                           const uint_t&                              level,
-                                          const VTKOutput::DoFType&                  dofType ) const
+                                          const vtk::DoFType&                        dofType ) const
 {
    using ScalarType = double;
    VTKStreamWriter< ScalarType > streamWriter( vtkDataFormat_ );
 
    if ( write2D_ )
    {
-      WALBERLA_ASSERT( dofType == VTKOutput::DoFType::EDGE_X || dofType == VTKOutput::DoFType::EDGE_Y ||
-                       dofType == VTKOutput::DoFType::EDGE_XY );
+      WALBERLA_ASSERT( dofType == vtk::DoFType::EDGE_X || dofType == vtk::DoFType::EDGE_Y || dofType == vtk::DoFType::EDGE_XY );
 
       for ( const auto& it : storage->getFaces() )
       {
@@ -364,7 +362,7 @@ void VTKOutput::writePointsForMicroEdges( std::ostream&                         
 
          switch ( dofType )
          {
-         case DoFType::EDGE_X:
+         case vtk::DoFType::EDGE_X:
          {
             for ( const auto& itIdx : edgedof::macroface::Iterator( level, 0 ) )
             {
@@ -376,7 +374,7 @@ void VTKOutput::writePointsForMicroEdges( std::ostream&                         
             }
             break;
          }
-         case DoFType::EDGE_Y:
+         case vtk::DoFType::EDGE_Y:
          {
             for ( const auto& itIdx : edgedof::macroface::Iterator( level, 0 ) )
             {
@@ -388,7 +386,7 @@ void VTKOutput::writePointsForMicroEdges( std::ostream&                         
             }
             break;
          }
-         case DoFType::EDGE_XY:
+         case vtk::DoFType::EDGE_XY:
          {
             for ( const auto& itIdx : edgedof::macroface::Iterator( level, 0 ) )
             {
@@ -409,17 +407,16 @@ void VTKOutput::writePointsForMicroEdges( std::ostream&                         
    }
    else
    {
-      WALBERLA_ASSERT( dofType == VTKOutput::DoFType::EDGE_X || dofType == VTKOutput::DoFType::EDGE_Y ||
-                       dofType == VTKOutput::DoFType::EDGE_Z || dofType == VTKOutput::DoFType::EDGE_XY ||
-                       dofType == VTKOutput::DoFType::EDGE_XZ || dofType == VTKOutput::DoFType::EDGE_YZ ||
-                       dofType == VTKOutput::DoFType::EDGE_XYZ );
+      WALBERLA_ASSERT( dofType == vtk::DoFType::EDGE_X || dofType == vtk::DoFType::EDGE_Y || dofType == vtk::DoFType::EDGE_Z ||
+                       dofType == vtk::DoFType::EDGE_XY || dofType == vtk::DoFType::EDGE_XZ || dofType == vtk::DoFType::EDGE_YZ ||
+                       dofType == vtk::DoFType::EDGE_XYZ );
 
       for ( const auto& it : storage->getCells() )
       {
          Cell&   cell = *it.second;
          Point3D microEdgePosition;
 
-         if ( dofType == VTKOutput::DoFType::EDGE_XYZ )
+         if ( dofType == vtk::DoFType::EDGE_XYZ )
          {
             for ( const auto& itIdx : edgedof::macrocell::IteratorXYZ( level, 0 ) )
             {
@@ -437,29 +434,29 @@ void VTKOutput::writePointsForMicroEdges( std::ostream&                         
                microEdgePosition = vertexdof::macrocell::coordinateFromIndex( level, cell, itIdx );
                switch ( dofType )
                {
-               case DoFType::EDGE_X:
+               case vtk::DoFType::EDGE_X:
                   microEdgePosition += edgedof::macrocell::xShiftFromVertex( level, cell );
                   break;
-               case DoFType::EDGE_Y:
+               case vtk::DoFType::EDGE_Y:
                   microEdgePosition += edgedof::macrocell::yShiftFromVertex( level, cell );
                   break;
-               case DoFType::EDGE_Z:
+               case vtk::DoFType::EDGE_Z:
                   microEdgePosition += edgedof::macrocell::zShiftFromVertex( level, cell );
                   break;
-               case DoFType::EDGE_XY:
+               case vtk::DoFType::EDGE_XY:
                   microEdgePosition +=
                       edgedof::macrocell::xShiftFromVertex( level, cell ) + edgedof::macrocell::yShiftFromVertex( level, cell );
                   break;
-               case DoFType::EDGE_XZ:
+               case vtk::DoFType::EDGE_XZ:
                   microEdgePosition +=
                       edgedof::macrocell::xShiftFromVertex( level, cell ) + edgedof::macrocell::zShiftFromVertex( level, cell );
                   break;
-               case DoFType::EDGE_YZ:
+               case vtk::DoFType::EDGE_YZ:
                   microEdgePosition +=
                       edgedof::macrocell::yShiftFromVertex( level, cell ) + edgedof::macrocell::zShiftFromVertex( level, cell );
                   break;
                default:
-                  WALBERLA_ABORT( "[VTK] Invalid DoFType" );
+                  WALBERLA_ABORT( "[VTK] Invalid vtk::DoFType" );
                   break;
                }
                streamWriter << microEdgePosition[0] << microEdgePosition[1] << microEdgePosition[2];
@@ -698,12 +695,11 @@ void VTKOutput::writeCells3D( std::ostream&                              output,
    output << "</Cells>\n";
 }
 
-void VTKOutput::writeEdgeDoFs( std::ostream& output, const uint_t& level, const VTKOutput::DoFType& dofType ) const
+void VTKOutput::writeEdgeDoFs( std::ostream& output, const uint_t& level, const vtk::DoFType& dofType ) const
 {
-   WALBERLA_ASSERT( dofType == VTKOutput::DoFType::EDGE_X || dofType == VTKOutput::DoFType::EDGE_Y ||
-                    dofType == VTKOutput::DoFType::EDGE_Z || dofType == VTKOutput::DoFType::EDGE_XY ||
-                    dofType == VTKOutput::DoFType::EDGE_XZ || dofType == VTKOutput::DoFType::EDGE_YZ ||
-                    dofType == VTKOutput::DoFType::EDGE_XYZ );
+   WALBERLA_ASSERT( dofType == vtk::DoFType::EDGE_X || dofType == vtk::DoFType::EDGE_Y || dofType == vtk::DoFType::EDGE_Z ||
+                    dofType == vtk::DoFType::EDGE_XY || dofType == vtk::DoFType::EDGE_XZ || dofType == vtk::DoFType::EDGE_YZ ||
+                    dofType == vtk::DoFType::EDGE_XYZ );
 
    if ( edgeDoFFunctions_.size() == 0 )
    {
@@ -718,13 +714,13 @@ void VTKOutput::writeEdgeDoFs( std::ostream& output, const uint_t& level, const 
                                                                        ( ( ( faceWidth - 2 ) * ( faceWidth - 1 ) ) / 2 ) );
 
    const uint_t numberOfPoints3D = storage->getNumberOfLocalCells() * [dofType, level]() {
-      if ( dofType == VTKOutput::DoFType::EDGE_XYZ )
+      if ( dofType == vtk::DoFType::EDGE_XYZ )
          return levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) - 1 );
       else
          return levelinfo::num_microvertices_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) );
    }();
    const uint_t numberOfCells3D = storage->getNumberOfLocalCells() * [dofType, level]() {
-      if ( dofType == VTKOutput::DoFType::EDGE_XYZ )
+      if ( dofType == vtk::DoFType::EDGE_XYZ )
          return levelinfo::num_microcells_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) - 1 );
       else
          return levelinfo::num_microcells_per_cell_from_width( levelinfo::num_microedges_per_edge( level ) );
@@ -765,7 +761,7 @@ void VTKOutput::writeEdgeDoFs( std::ostream& output, const uint_t& level, const 
    }
    else
    {
-      if ( dofType == VTKOutput::DoFType::EDGE_XYZ )
+      if ( dofType == vtk::DoFType::EDGE_XYZ )
          writeCells3D( output, storage, levelinfo::num_microedges_per_edge( level ) - 1 );
       else
          writeCells3D( output, storage, levelinfo::num_microedges_per_edge( level ) );
@@ -774,26 +770,26 @@ void VTKOutput::writeEdgeDoFs( std::ostream& output, const uint_t& level, const 
    vtk::writePieceFooter( output );
 }
 
-void VTKOutput::writeDoFByType( std::ostream& output, const uint_t& level, const VTKOutput::DoFType& dofType ) const
+void VTKOutput::writeDoFByType( std::ostream& output, const uint_t& level, const vtk::DoFType& dofType ) const
 {
    switch ( dofType )
    {
-   case DoFType::VERTEX:
+   case vtk::DoFType::VERTEX:
       VTKP1Writer::write( *this, output, level );
       break;
-   case DoFType::EDGE_X:
-   case DoFType::EDGE_Y:
-   case DoFType::EDGE_Z:
-   case DoFType::EDGE_XY:
-   case DoFType::EDGE_XZ:
-   case DoFType::EDGE_YZ:
-   case DoFType::EDGE_XYZ:
+   case vtk::DoFType::EDGE_X:
+   case vtk::DoFType::EDGE_Y:
+   case vtk::DoFType::EDGE_Z:
+   case vtk::DoFType::EDGE_XY:
+   case vtk::DoFType::EDGE_XZ:
+   case vtk::DoFType::EDGE_YZ:
+   case vtk::DoFType::EDGE_XYZ:
       writeEdgeDoFs( output, level, dofType );
       break;
-   case DoFType::DG:
+   case vtk::DoFType::DG:
       VTKDGDoFWriter::write( *this, output, level );
       break;
-   case DoFType::P2:
+   case vtk::DoFType::P2:
       VTKP2Writer::write( *this, output, level );
       break;
    default:
@@ -802,24 +798,24 @@ void VTKOutput::writeDoFByType( std::ostream& output, const uint_t& level, const
    }
 }
 
-uint_t VTKOutput::getNumRegisteredFunctions( const VTKOutput::DoFType& dofType ) const
+uint_t VTKOutput::getNumRegisteredFunctions( const vtk::DoFType& dofType ) const
 {
    switch ( dofType )
    {
-   case DoFType::VERTEX:
+   case vtk::DoFType::VERTEX:
       return p1Functions_.size() + p1VecFunctions_.size();
-   case DoFType::EDGE_X:
-   case DoFType::EDGE_Y:
-   case DoFType::EDGE_Z:
-   case DoFType::EDGE_XY:
-   case DoFType::EDGE_XZ:
-   case DoFType::EDGE_YZ:
-   case DoFType::EDGE_XYZ:
+   case vtk::DoFType::EDGE_X:
+   case vtk::DoFType::EDGE_Y:
+   case vtk::DoFType::EDGE_Z:
+   case vtk::DoFType::EDGE_XY:
+   case vtk::DoFType::EDGE_XZ:
+   case vtk::DoFType::EDGE_YZ:
+   case vtk::DoFType::EDGE_XYZ:
       return edgeDoFFunctions_.size();
-   case DoFType::DG:
+   case vtk::DoFType::DG:
       return dgFunctions_.size();
       break;
-   case DoFType::P2:
+   case vtk::DoFType::P2:
       return p2Functions_.size() + p2VecFunctions_.size();
       break;
    default:
@@ -841,19 +837,19 @@ void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
    {
       syncAllFunctions( level );
 
-      const std::vector< VTKOutput::DoFType > dofTypes2D = {
-          DoFType::VERTEX, DoFType::EDGE_X, DoFType::EDGE_Y, DoFType::EDGE_XY, DoFType::DG, DoFType::P2};
+      const std::vector< vtk::DoFType > dofTypes2D = {
+          vtk::DoFType::VERTEX, vtk::DoFType::EDGE_X, vtk::DoFType::EDGE_Y, vtk::DoFType::EDGE_XY, vtk::DoFType::DG, vtk::DoFType::P2};
 
-      const std::vector< VTKOutput::DoFType > dofTypes3D = {DoFType::VERTEX,
-                                                            DoFType::EDGE_X,
-                                                            DoFType::EDGE_Y,
-                                                            DoFType::EDGE_Z,
-                                                            DoFType::EDGE_XY,
-                                                            DoFType::EDGE_XZ,
-                                                            DoFType::EDGE_YZ,
-                                                            DoFType::EDGE_XYZ,
-                                                            DoFType::DG,
-                                                            DoFType::P2};
+      const std::vector< vtk::DoFType > dofTypes3D = {vtk::DoFType::VERTEX,
+                                                      vtk::DoFType::EDGE_X,
+                                                      vtk::DoFType::EDGE_Y,
+                                                      vtk::DoFType::EDGE_Z,
+                                                      vtk::DoFType::EDGE_XY,
+                                                      vtk::DoFType::EDGE_XZ,
+                                                      vtk::DoFType::EDGE_YZ,
+                                                      vtk::DoFType::EDGE_XYZ,
+                                                      vtk::DoFType::DG,
+                                                      vtk::DoFType::P2};
 
       auto dofTypes = write2D_ ? dofTypes2D : dofTypes3D;
 
@@ -887,7 +883,6 @@ void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
 
    storage_->getTimingTree()->stop( "VTK write" );
 }
-
 
 void VTKOutput::syncAllFunctions( const uint_t& level ) const
 {
