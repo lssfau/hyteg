@@ -230,6 +230,9 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    /// \param level
    void enumerate( uint_t level ) const;
 
+   /// like enumerate() but starting with value given by offset parameter
+   void enumerate( uint_t level, ValueType& offset ) const;
+
    // TODO: write more general version(s)
    ValueType getMaxValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
    ValueType getMinValue( uint_t level, DoFType flag = All, bool mpiReduce = true ) const;
@@ -389,8 +392,6 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    template < typename PrimitiveType >
    void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
 
-   void enumerate( uint_t level, ValueType& offset ) const;
-
    using Function< VertexDoFFunction< ValueType > >::communicators_;
    using Function< VertexDoFFunction< ValueType > >::additiveCommunicators_;
 
@@ -400,11 +401,6 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    PrimitiveDataID< FunctionMemory< ValueType >, Cell >   cellDataID_;
 
    BoundaryCondition boundaryCondition_;
-
-   /// friend Stokes and P2Function for usage of enumerate
-   friend class P2Function< ValueType >;
-   friend class P1StokesFunction< ValueType >;
-   friend class P2P1TaylorHoodFunction< ValueType >;
 };
 
 inline void projectMean( const VertexDoFFunction< real_t >& pressure, const uint_t& level )
