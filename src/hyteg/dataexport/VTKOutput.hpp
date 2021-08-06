@@ -36,7 +36,9 @@
 
 // our friends and helpers
 #include "hyteg/dataexport/VTKDGDoFWriter.hpp"
+#include "hyteg/dataexport/VTKEdgeDoFWriter.hpp"
 #include "hyteg/dataexport/VTKHelpers.hpp"
+#include "hyteg/dataexport/VTKMeshWriter.hpp"
 #include "hyteg/dataexport/VTKP1Writer.hpp"
 #include "hyteg/dataexport/VTKP2Writer.hpp"
 
@@ -144,30 +146,11 @@ class VTKOutput
    void   writeDoFByType( std::ostream& output, const uint_t& level, const vtk::DoFType& dofType ) const;
    uint_t getNumRegisteredFunctions( const vtk::DoFType& dofType ) const;
 
-   void writeEdgeDoFs( std::ostream& output, const uint_t& level, const vtk::DoFType& dofType ) const;
-
    std::string fileNameExtension( const vtk::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const;
 
    void writeHeader( std::ostringstream& output, const uint_t& numberOfPoints, const uint_t& numberOfCells ) const;
+
    void writeFooterAndFile( std::ostringstream& output, const std::string& completeFilePath ) const;
-
-   void writePointsForMicroVertices( std::ostream&                              output,
-                                     const std::shared_ptr< PrimitiveStorage >& storage,
-                                     const uint_t&                              level ) const;
-
-   void writePointsForMicroEdges( std::ostream&                              output,
-                                  const std::shared_ptr< PrimitiveStorage >& storage,
-                                  const uint_t&                              level,
-                                  const vtk::DoFType&                        dofType ) const;
-
-   void writeEdgeDoFData( std::ostream&                              output,
-                          const EdgeDoFFunction< real_t >&           function,
-                          const std::shared_ptr< PrimitiveStorage >& storage,
-                          const uint_t&                              level,
-                          const vtk::DoFType&                        dofType ) const;
-
-   void writeCells2D( std::ostream& output, const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& faceWidth ) const;
-   void writeCells3D( std::ostream& output, const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level ) const;
 
    void syncAllFunctions( const uint_t& level ) const;
 
@@ -219,9 +202,11 @@ class VTKOutput
    vtk::DataFormat vtkDataFormat_;
 
    // all writers currently need to be our friends
+   friend class VTKDGDoFWriter;
+   friend class VTKEdgeDoFWriter;
+   friend class VTKMeshWriter;
    friend class VTKP1Writer;
    friend class VTKP2Writer;
-   friend class VTKDGDoFWriter;
 };
 
 } // namespace hyteg

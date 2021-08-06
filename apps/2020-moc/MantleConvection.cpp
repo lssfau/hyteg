@@ -758,7 +758,7 @@ void runBenchmark( real_t      cflMax,
    real_t timeVTK       = 0;
 
    hyteg::VTKOutput vtkOutput( outputDirectory, outputBaseName, storage, vtkInterval );
-   vtkOutput.setVTKDataFormat( vtk::BINARY );
+   vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
 
    if ( vtkOutputVertexDoFs )
    {

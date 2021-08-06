@@ -430,7 +430,7 @@ void solveTmpl(std::shared_ptr<PrimitiveStorage> storage, const uint_t minLevel,
     }
 
     hyteg::VTKOutput vtkOutput("output", name, storage);
-    vtkOutput.setVTKDataFormat( vtk::BINARY );
+    vtkOutput.setVTKDataFormat( vtk::DataFormat::BINARY );
     vtkOutput.add(u);
     vtkOutput.add(err);
     vtkOutput.add(r);

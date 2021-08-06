@@ -23,7 +23,7 @@ namespace hyteg {
 
 namespace vtk {
 
-enum DataFormat
+enum class DataFormat
 {
    ASCII,
    BINARY
