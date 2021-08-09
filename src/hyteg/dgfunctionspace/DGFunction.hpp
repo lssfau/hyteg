@@ -414,7 +414,11 @@ void DGFunction< ValueType >::enumerate( uint_t level, ValueType offset )
 
    std::vector< uint_t > dofs_per_rank = walberla::mpi::allGather( counter );
 
-   ValueType startOnRank = offset;
+   // the next line does not make sense, because the implementation of enumerate()
+   // in DGVertex, DGEdge and DGFace expects to receive a uint_t!
+   // ValueType startOnRank = offset;
+   // replaced it by this "hotfix"
+   auto startOnRank = static_cast< uint_t >( offset );
 
    for ( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
    {

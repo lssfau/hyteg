@@ -34,10 +34,9 @@ template < typename func_t >
 class FunctionWrapper final : public GenericFunction< typename FunctionTrait< func_t >::ValueType >
 {
  public:
-
    typedef typename FunctionTrait< func_t >::ValueType value_t;
-   typedef typename FunctionTrait< func_t >::Tag Tag;
-   typedef func_t FunctionType;
+   typedef typename FunctionTrait< func_t >::Tag       Tag;
+   typedef func_t                                      FunctionType;
 
    /// No need for this one, if we do not implement a setter method for wrappedFunc_;
    FunctionWrapper() = delete;
@@ -53,7 +52,7 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
 
    ~FunctionWrapper()
    {
-     // WALBERLA_LOG_INFO_ON_ROOT( "Destructing '" << this->getFunctionName() << "'" );
+      // WALBERLA_LOG_INFO_ON_ROOT( "Destructing '" << this->getFunctionName() << "'" );
    }
 
    /// provide access to wrapped function
@@ -67,10 +66,7 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
 
    const std::string& getFunctionName() const { return wrappedFunc_->getFunctionName(); };
 
-   functionTraits::FunctionKind getFunctionKind() const
-   {
-     return FunctionTrait< func_t >::kind;
-   };
+   functionTraits::FunctionKind getFunctionKind() const { return FunctionTrait< func_t >::kind; };
 
    std::shared_ptr< PrimitiveStorage > getStorage() const { return wrappedFunc_->getStorage(); }
 
@@ -110,7 +106,7 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
 
    value_t dotLocal( const GenericFunction< value_t >& secondOp, uint_t level, DoFType flag = All ) const
    {
-     return wrappedFunc_->dotLocal( secondOp.template unwrap< func_t >(), level, flag );
+      return wrappedFunc_->dotLocal( secondOp.template unwrap< func_t >(), level, flag );
    };
 
    void enableTiming( const std::shared_ptr< walberla::WcTimingTree >& timingTree ) { wrappedFunc_->enableTiming( timingTree ); };
@@ -160,18 +156,19 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
       wrappedFunc_->copyFrom( other.template unwrap< func_t >(), level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
    };
 
+   void enumerate( uint_t level, value_t& offset ) const { wrappedFunc_->enumerate( level, offset ); };
+
  private:
    std::unique_ptr< func_t > wrappedFunc_;
 };
 
-
-template < template<typename> class WrapperFunc, typename func_t >
+template < template < typename > class WrapperFunc, typename func_t >
 const func_t& unwrap( const WrapperFunc< func_t >& wrapped )
 {
    return wrapped.unwrap();
 };
 
-template < template<typename> class WrapperFunc, typename func_t >
+template < template < typename > class WrapperFunc, typename func_t >
 func_t& unwrap( WrapperFunc< func_t >& wrapped )
 {
    return wrapped.unwrap();
