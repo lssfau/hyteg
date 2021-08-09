@@ -78,6 +78,11 @@ static void testVectorFunction( bool beVerbose, std::string tag, std::string typ
    aux_f.add( { { 4.0, 3.0 } }, { { vec_f, vec_f } }, maxLevel, DoFType::All );
    timer["Add"].end();
 
+   // GetMaxMagnitude
+   timer["GetMaxComponentMagnitude"].start();
+   aux_f.getMaxComponentMagnitude( maxLevel, DoFType::All );
+   timer["GetMaxComponentMagnitude"].end();
+
    // Dot
    timer["Dot"].start();
    const real_t scalarProduct = aux_f.dotGlobal( vec_f, maxLevel, DoFType::All );
