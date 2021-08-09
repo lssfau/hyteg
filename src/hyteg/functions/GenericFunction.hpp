@@ -38,8 +38,7 @@ template < typename value_t >
 class GenericFunction
 {
  public:
-
-   virtual ~GenericFunction() {};
+   virtual ~GenericFunction(){};
 
    template < typename func_t >
    func_t& unwrap()
@@ -121,6 +120,7 @@ class GenericFunction
       this->setBoundaryCondition( other.getBoundaryCondition() );
    };
 
+   virtual void enumerate( uint_t level, value_t& offset ) const = 0;
 };
 
 } // namespace hyteg

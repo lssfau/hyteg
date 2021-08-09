@@ -235,7 +235,7 @@ class BlockFunction
       }
    }
 
-   uint_t getNumberOfLocalDoFs( uint_t level )
+   uint_t getNumberOfLocalDoFs( uint_t level ) const
    {
       uint_t nDoFs = 0;
       const PrimitiveStorage& storage = *( this->getStorage() );
@@ -266,6 +266,25 @@ class BlockFunction
          }
       }
       return nDoFs;
+   }
+
+   void enumerate( uint_t level ) const
+   {
+      uint_t counterDoFs = getNumberOfLocalDoFs( level );
+
+      std::vector< uint_t > doFsPerRank = walberla::mpi::allGather( counterDoFs );
+
+      ValueType offset = 0;
+
+      for ( uint_t i = 0; i < uint_c( walberla::MPIManager::instance()->rank() ); ++i )
+      {
+         offset += static_cast< ValueType >( doFsPerRank[i] );
+      }
+
+      for ( uint_t k = 0; k < subFunc_.size(); k++ )
+      {
+         subFunc_[k]->enumerate( level, offset );
+      }
    }
 
  protected:
