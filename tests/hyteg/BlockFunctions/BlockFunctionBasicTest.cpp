@@ -132,6 +132,18 @@ void runTest( const std::string& kind )
    stokes1.multElementwise( {stokes1, stokes2}, maxLevel );
    logCall( "multElementwise" );
 
+   uint_t nDoFs = stokes1.getNumberOfLocalDoFs( maxLevel );
+   logCall( "getNumberOfLocalDoFs" );
+   if constexpr ( std::is_same< P2P1TaylorHoodBlockFunction< real_t >, func_t >::value )
+   {
+      WALBERLA_CHECK_EQUAL( nDoFs, numberOfLocalDoFs< P2P1TaylorHoodBlockFunctionTag >( *storage, maxLevel ) );
+   }
+   else
+   {
+      WALBERLA_UNUSED( nDoFs );
+   }
+   // WALBERLA_LOG_INFO( " -> # of local DoFs = " << nDoFs );
+
    // -----------------------------------------------
    //  Check whether we can export the BlockFunction
    // -----------------------------------------------

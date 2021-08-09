@@ -38,7 +38,6 @@ template < typename value_t >
 class BlockFunction
 {
  public:
-
    typedef value_t ValueType;
 
    BlockFunction( const std::string name )
@@ -236,6 +235,39 @@ class BlockFunction
       }
    }
 
+   uint_t getNumberOfLocalDoFs( uint_t level )
+   {
+      uint_t nDoFs = 0;
+      const PrimitiveStorage& storage = *( this->getStorage() );
+      for ( uint_t k = 0; k < subFunc_.size(); ++k )
+      {
+         switch ( subFunc_[k]->getFunctionKind() )
+         {
+         case functionTraits::P1_FUNCTION:
+            nDoFs += numberOfLocalDoFs< P1FunctionTag >( storage, level );
+            break;
+         case functionTraits::P2_FUNCTION:
+            nDoFs += numberOfLocalDoFs< P2FunctionTag >( storage, level );
+            break;
+         case functionTraits::P1_VECTOR_FUNCTION:
+            nDoFs += numberOfLocalDoFs< P1VectorFunctionTag >( storage, level );
+            break;
+         case functionTraits::P2_VECTOR_FUNCTION:
+            nDoFs += numberOfLocalDoFs< P2VectorFunctionTag >( storage, level );
+            break;
+         case functionTraits::EDGE_DOF_FUNCTION:
+            nDoFs += numberOfLocalDoFs< EdgeDoFFunctionTag >( storage, level );
+            break;
+         case functionTraits::DG_FUNCTION:
+            nDoFs += numberOfLocalDoFs< VertexDoFFunctionTag >( storage, level );
+            break;
+         default:
+           WALBERLA_ABORT( "Blockfunction::getNumberOfLocalDoFs() encountered unsupported FunctionKind!" );
+         }
+      }
+      return nDoFs;
+   }
+
  protected:
    const std::string                                            functionName_;
    std::vector< std::shared_ptr< GenericFunction< value_t > > > subFunc_;
@@ -250,6 +282,7 @@ class BlockFunction
       } );
       return subFuncVec;
    }
+
 };
 
 } // namespace hyteg
