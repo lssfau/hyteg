@@ -193,6 +193,8 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
 
    void enumerate( uint_t level ) const;
 
+   void enumerate( uint_t level, ValueType& offset ) const;
+
    const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& getVertexDataID() const { return vertexDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Edge >&   getEdgeDataID() const { return edgeDataID_; }
    const PrimitiveDataID< FunctionMemory< ValueType >, Face >&   getFaceDataID() const { return faceDataID_; }
@@ -355,8 +357,6 @@ class EdgeDoFFunction final : public Function< EdgeDoFFunction< ValueType > >
  private:
    template < typename PrimitiveType >
    void interpolateByPrimitiveType( const ValueType& constant, uint_t level, DoFType flag = All ) const;
-
-   void enumerate( uint_t level, ValueType& offset ) const;
 
    using Function< EdgeDoFFunction< ValueType > >::communicators_;
    using Function< EdgeDoFFunction< ValueType > >::additiveCommunicators_;

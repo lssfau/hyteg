@@ -22,6 +22,7 @@
 
 #include "core/DataTypes.h"
 
+#include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/functions/FunctionWrapper.hpp"
 
 namespace hyteg {
