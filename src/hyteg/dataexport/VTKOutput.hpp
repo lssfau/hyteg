@@ -34,6 +34,14 @@
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 
+// our friends and helpers
+#include "hyteg/dataexport/VTKDGDoFWriter.hpp"
+#include "hyteg/dataexport/VTKEdgeDoFWriter.hpp"
+#include "hyteg/dataexport/VTKHelpers.hpp"
+#include "hyteg/dataexport/VTKMeshWriter.hpp"
+#include "hyteg/dataexport/VTKP1Writer.hpp"
+#include "hyteg/dataexport/VTKP2Writer.hpp"
+
 // from walblera
 #include "vtk/Base64Writer.h"
 
@@ -50,12 +58,6 @@ class PrimitiveStorage;
 class VTKOutput
 {
  public:
-   enum class VTK_DATA_FORMAT
-   {
-      ASCII,
-      BINARY
-   };
-
    ///
    /// \param dir             Directory where the files are stored
    /// \param filename        Basename of the vtk files
@@ -66,7 +68,7 @@ class VTKOutput
               const std::shared_ptr< PrimitiveStorage >& storage,
               const uint_t&                              writeFrequency = 1 );
 
-   void setVTKDataFormat( VTK_DATA_FORMAT vtkDataFormat ) { vtkDataFormat_ = vtkDataFormat; }
+   void setVTKDataFormat( vtk::DataFormat vtkDataFormat ) { vtkDataFormat_ = vtkDataFormat; }
 
    void add( const P1Function< real_t >& function );
    void add( const P2Function< real_t >& function );
@@ -90,20 +92,6 @@ class VTKOutput
    void write( const uint_t& level, const uint_t& timestep = 0 ) const;
 
  private:
-   enum class DoFType
-   {
-      VERTEX,
-      EDGE_X,
-      EDGE_Y,
-      EDGE_Z,
-      EDGE_XY,
-      EDGE_XZ,
-      EDGE_YZ,
-      EDGE_XYZ,
-      DG,
-      P2
-   };
-
    /// Wrapper class that handles writing data in ASCII or binary format.
    ///
    /// \tparam DTypeInVTK data type that the input data is converted to before writing it to the VTK file
@@ -111,10 +99,10 @@ class VTKOutput
    class VTKStreamWriter
    {
     public:
-      explicit VTKStreamWriter( VTK_DATA_FORMAT vtkDataFormat )
+      explicit VTKStreamWriter( vtk::DataFormat vtkDataFormat )
       : vtkDataFormat_( vtkDataFormat )
       {
-         if ( vtkDataFormat_ == VTK_DATA_FORMAT::ASCII )
+         if ( vtkDataFormat_ == vtk::DataFormat::ASCII )
          {
             outputAscii_ << std::scientific;
          }
@@ -123,11 +111,11 @@ class VTKOutput
       template < typename T >
       VTKStreamWriter& operator<<( const T& data )
       {
-         if ( vtkDataFormat_ == VTK_DATA_FORMAT::ASCII )
+         if ( vtkDataFormat_ == vtk::DataFormat::ASCII )
          {
             outputAscii_ << static_cast< DTypeInVTK >( data ) << "\n";
          }
-         else if ( vtkDataFormat_ == VTK_DATA_FORMAT::BINARY )
+         else if ( vtkDataFormat_ == vtk::DataFormat::BINARY )
          {
             outputBase64_ << static_cast< DTypeInVTK >( data );
          }
@@ -137,77 +125,38 @@ class VTKOutput
 
       void toStream( std::ostream& os )
       {
-         if ( vtkDataFormat_ == VTK_DATA_FORMAT::ASCII )
+         if ( vtkDataFormat_ == vtk::DataFormat::ASCII )
          {
             os << outputAscii_.str();
          }
-         else if ( vtkDataFormat_ == VTK_DATA_FORMAT::BINARY )
+         else if ( vtkDataFormat_ == vtk::DataFormat::BINARY )
          {
             outputBase64_.toStream( os );
          }
       }
 
     private:
-      VTK_DATA_FORMAT             vtkDataFormat_;
+      vtk::DataFormat             vtkDataFormat_;
       std::ostringstream          outputAscii_;
       walberla::vtk::Base64Writer outputBase64_;
    };
 
-   static const std::map< VTKOutput::DoFType, std::string > DoFTypeToString_;
+   static const std::map< vtk::DoFType, std::string > DoFTypeToString_;
 
-   void   writeDoFByType( std::ostream& output, const uint_t& level, const VTKOutput::DoFType& dofType ) const;
-   uint_t getNumRegisteredFunctions( const VTKOutput::DoFType& dofType ) const;
+   void   writeDoFByType( std::ostream& output, const uint_t& level, const vtk::DoFType& dofType ) const;
+   uint_t getNumRegisteredFunctions( const vtk::DoFType& dofType ) const;
 
-   void writeP1( std::ostream& output, const uint_t& level ) const;
-   void writeEdgeDoFs( std::ostream& output, const uint_t& level, const VTKOutput::DoFType& dofType ) const;
-   void writeDGDoFs( std::ostream& output, const uint_t& level ) const;
-   void writeP2( std::ostream& output, const uint_t& level ) const;
-
-   void writeSingleP2Function( const P2Function< real_t >& function, std::ostream& output, const uint_t& level ) const;
-   void
-       writeSingleP2VectorFunction( const P2VectorFunction< real_t >& function, std::ostream& output, const uint_t& level ) const;
-
-   std::string fileNameExtension( const VTKOutput::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const;
+   std::string fileNameExtension( const vtk::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const;
 
    void writeHeader( std::ostringstream& output, const uint_t& numberOfPoints, const uint_t& numberOfCells ) const;
+
    void writeFooterAndFile( std::ostringstream& output, const std::string& completeFilePath ) const;
-
-   void writePointsForMicroVertices( std::ostream&                              output,
-                                     const std::shared_ptr< PrimitiveStorage >& storage,
-                                     const uint_t&                              level ) const;
-   void writePointsForMicroEdges( std::ostream&                              output,
-                                  const std::shared_ptr< PrimitiveStorage >& storage,
-                                  const uint_t&                              level,
-                                  const VTKOutput::DoFType&                  dofType ) const;
-
-   void writeVertexDoFData( std::ostream&                                 output,
-                            const vertexdof::VertexDoFFunction< real_t >& function,
-                            const std::shared_ptr< PrimitiveStorage >&    storage,
-                            const uint_t&                                 level ) const;
-   void writeEdgeDoFData( std::ostream&                              output,
-                          const EdgeDoFFunction< real_t >&           function,
-                          const std::shared_ptr< PrimitiveStorage >& storage,
-                          const uint_t&                              level,
-                          const DoFType&                             dofType ) const;
-
-   void writeP1VectorFunctionData( std::ostream&                              output,
-                                   const P1VectorFunction< real_t >&          function,
-                                   const std::shared_ptr< PrimitiveStorage >& storage,
-                                   const uint_t&                              level ) const;
-
-   void writeCells2D( std::ostream& output, const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& faceWidth ) const;
-   void writeCells3D( std::ostream& output, const std::shared_ptr< PrimitiveStorage >& storage, const uint_t& level ) const;
 
    void syncAllFunctions( const uint_t& level ) const;
 
-   void openDataElement( std::ostream&         output,
-                         const std::string&    type,
-                         const std::string&    name,
-                         const uint_t          nComponents,
-                         const VTK_DATA_FORMAT fmt ) const;
-
    /// Writes only macro-faces.
    void set2D() { write2D_ = true; }
+
    /// Writes only macro-cells.
    void set3D() { write2D_ = false; }
 
@@ -250,7 +199,14 @@ class VTKOutput
 
    std::shared_ptr< PrimitiveStorage > storage_;
 
-   VTK_DATA_FORMAT vtkDataFormat_;
+   vtk::DataFormat vtkDataFormat_;
+
+   // all writers currently need to be our friends
+   friend class VTKDGDoFWriter;
+   friend class VTKEdgeDoFWriter;
+   friend class VTKMeshWriter;
+   friend class VTKP1Writer;
+   friend class VTKP2Writer;
 };
 
 } // namespace hyteg

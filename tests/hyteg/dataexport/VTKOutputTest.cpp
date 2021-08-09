@@ -150,6 +150,7 @@ static void exportFunctions3D()
       fName = "VTKOutputTest3DP2";
       WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
       VTKOutput vtkOutput2( fPath, fName, storage );
+      vtkOutput2.setVTKDataFormat( vtk::DataFormat::BINARY );
       vtkOutput2.add( p2ScalarFunc1 );
       vtkOutput2.add( p2ScalarFunc2 );
       vtkOutput2.add( p2ScalarFunc3 );
