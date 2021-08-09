@@ -450,18 +450,24 @@ void P2Function< ValueType >::restrictInjection( uint_t sourceLevel, DoFType fla
 }
 
 template < typename ValueType >
-ValueType P2Function< ValueType >::getMaxValue( uint_t level, DoFType flag ) const
+ValueType P2Function< ValueType >::getMaxValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    auto localMax = -std::numeric_limits< ValueType >::max();
    localMax      = std::max( localMax, vertexDoFFunction_.getMaxValue( level, flag, false ) );
    localMax      = std::max( localMax, edgeDoFFunction_.getMaxValue( level, flag, false ) );
    walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
 
-   return localMax;
+   ValueType globalMax = localMax;
+   if ( mpiReduce )
+   {
+      globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+   }
+
+   return globalMax;
 }
 
 template < typename ValueType >
-ValueType P2Function< ValueType >::getMaxMagnitude( uint_t level, DoFType flag ) const
+ValueType P2Function< ValueType >::getMaxMagnitude( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    auto localMax = ValueType( 0.0 );
    localMax      = std::max( localMax, vertexDoFFunction_.getMaxMagnitude( level, flag, false ) );
@@ -469,18 +475,30 @@ ValueType P2Function< ValueType >::getMaxMagnitude( uint_t level, DoFType flag )
 
    walberla::mpi::allReduceInplace( localMax, walberla::mpi::MAX, walberla::mpi::MPIManager::instance()->comm() );
 
-   return localMax;
+   ValueType globalMax = localMax;
+   if ( mpiReduce )
+   {
+      globalMax = walberla::mpi::allReduce( localMax, walberla::mpi::MAX );
+   }
+
+   return globalMax;
 }
 
 template < typename ValueType >
-ValueType P2Function< ValueType >::getMinValue( uint_t level, DoFType flag ) const
+ValueType P2Function< ValueType >::getMinValue( uint_t level, DoFType flag, bool mpiReduce ) const
 {
    auto localMin = std::numeric_limits< ValueType >::max();
    localMin      = std::min( localMin, vertexDoFFunction_.getMinValue( level, flag, false ) );
    localMin      = std::min( localMin, edgeDoFFunction_.getMinValue( level, flag, false ) );
    walberla::mpi::allReduceInplace( localMin, walberla::mpi::MIN, walberla::mpi::MPIManager::instance()->comm() );
 
-   return localMin;
+   ValueType globalMin = localMin;
+   if ( mpiReduce )
+   {
+      globalMin = -walberla::mpi::allReduce( -localMin, walberla::mpi::MAX );
+   }
+
+   return globalMin;
 }
 
 template < typename ValueType >
