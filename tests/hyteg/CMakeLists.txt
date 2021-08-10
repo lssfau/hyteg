@@ -628,6 +628,9 @@ waLBerla_execute_test(NAME FunctionMemorySerializationTest1 COMMAND $<TARGET_FIL
 waLBerla_execute_test(NAME FunctionMemorySerializationTest2 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> PROCESSES 2 )
 waLBerla_execute_test(NAME FunctionMemorySerializationTest8 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> PROCESSES 8 )
 
+waLBerla_compile_test(FILES functions/FunctionMultiStoreTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME FunctionMultiStoreTest)
+
 waLBerla_compile_test(FILES blending/AnnulusMapTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME AnnulusMapTest1 COMMAND $<TARGET_FILE:AnnulusMapTest> )
 
@@ -658,7 +661,6 @@ if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_execute_test(NAME ElementwiseOperatorPetscTest COMMAND $<TARGET_FILE:ElementwiseOperatorPetscTest> )
   waLBerla_execute_test(NAME ElementwiseOperatorPetscTest2 COMMAND $<TARGET_FILE:ElementwiseOperatorPetscTest> PROCESSES 2 )
 endif()
-
 
 # Test some basic auxiliary stuff for application layer
 waLBerla_compile_test(FILES functions/FindMaxMinMagTest.cpp DEPENDS hyteg core)

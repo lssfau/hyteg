@@ -76,11 +76,6 @@ void VTKOutput::add( const P2VectorFunction< real_t >& function )
    p2VecFunctions_.push_back( function );
 }
 
-void VTKOutput::add( const P1Function< real_t >& function )
-{
-   p1Functions_.push_back( function );
-}
-
 void VTKOutput::add( const EdgeDoFFunction< real_t >& function )
 {
    edgeDoFFunctions_.push_back( function );
@@ -288,10 +283,21 @@ void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
 
 void VTKOutput::syncAllFunctions( const uint_t& level ) const
 {
-   for ( const auto& function : p1Functions_ )
+
+   // P1Functions [double, int32_t, int64_t] -------------------------------------------------------------------
+   for ( const auto& function : p1Functions_.getFunctions<double>() )
    {
-      hyteg::communication::syncFunctionBetweenPrimitives< hyteg::P1Function< real_t > >( function, level );
+      hyteg::communication::syncFunctionBetweenPrimitives< hyteg::P1Function< double > >( function, level );
    }
+   for ( const auto& function : p1Functions_.getFunctions<int32_t>() )
+   {
+      hyteg::communication::syncFunctionBetweenPrimitives< hyteg::P1Function< int32_t > >( function, level );
+   }
+   for ( const auto& function : p1Functions_.getFunctions<int64_t>() )
+   {
+      hyteg::communication::syncFunctionBetweenPrimitives< hyteg::P1Function< int64_t > >( function, level );
+   }
+   // P1Functions ----------------------------------------------------------------------------------------------
 
    for ( const auto& function : p1VecFunctions_ )
    {

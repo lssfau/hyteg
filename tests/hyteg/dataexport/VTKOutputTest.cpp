@@ -68,6 +68,10 @@ static void exportFunctions2D()
    p1VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
    p2VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
 
+   // An integer function
+   P1Function< int > p1Enumerator( "int it is!", storage, minLevel, maxLevel );
+   p1Enumerator.enumerate( maxLevel );
+
    // Output VTK
    bool beVerbose = true;
    if ( beVerbose )
@@ -79,6 +83,7 @@ static void exportFunctions2D()
       vtkOutput.add( p1ScalarFunc1 );
       vtkOutput.add( p1ScalarFunc2 );
       vtkOutput.add( p1VectorFunc );
+      vtkOutput.add( p1Enumerator );
       vtkOutput.write( maxLevel );
 
       fName = "VTKOutputTestP2";

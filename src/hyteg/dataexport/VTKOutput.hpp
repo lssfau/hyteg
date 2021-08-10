@@ -31,6 +31,7 @@
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
+#include "hyteg/functions/FunctionMultiStore.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 
@@ -70,7 +71,12 @@ class VTKOutput
 
    void setVTKDataFormat( vtk::DataFormat vtkDataFormat ) { vtkDataFormat_ = vtkDataFormat; }
 
-   void add( const P1Function< real_t >& function );
+   template < typename value_t >
+   inline void add( const P1Function< value_t >& function )
+   {
+      p1Functions_.push_back( function );
+   }
+
    void add( const P2Function< real_t >& function );
 
    void add( const EdgeDoFFunction< real_t >& function );
@@ -184,7 +190,8 @@ class VTKOutput
 
    bool write2D_;
 
-   std::vector< P1Function< real_t > > p1Functions_;
+   // std::vector< P1Function< real_t > > p1Functions_;
+   FunctionMultiStore< P1Function >    p1Functions_;
    std::vector< P2Function< real_t > > p2Functions_;
 
    std::vector< P1VectorFunction< real_t > > p1VecFunctions_;
