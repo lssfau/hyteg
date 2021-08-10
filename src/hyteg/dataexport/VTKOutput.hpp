@@ -148,10 +148,6 @@ class VTKOutput
 
    std::string fileNameExtension( const vtk::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const;
 
-   void writeHeader( std::ostringstream& output, const uint_t& numberOfPoints, const uint_t& numberOfCells ) const;
-
-   void writeFooterAndFile( std::ostringstream& output, const std::string& completeFilePath ) const;
-
    void syncAllFunctions( const uint_t& level ) const;
 
    /// Writes only macro-faces.
