@@ -49,7 +49,7 @@ inline void writeXMLHeader( std::ostream& output )
    {
       output << "<?xml version=\"1.0\"?>\n";
       output << "<VTKFile type=\"UnstructuredGrid\" version=\"0.1\">\n";
-      output << " <UnstructuredGrid>\n";
+      output << "<UnstructuredGrid>\n";
    }
 }
 
@@ -57,7 +57,7 @@ inline void writeXMLFooter( std::ostream& output )
 {
    WALBERLA_ROOT_SECTION()
    {
-      output << " </UnstructuredGrid>\n";
+      output << "</UnstructuredGrid>\n";
       output << "</VTKFile>\n";
    }
 }

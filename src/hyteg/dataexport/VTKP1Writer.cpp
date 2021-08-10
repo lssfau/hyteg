@@ -76,17 +76,12 @@ void VTKP1Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
 
    for ( const auto& function : mgr.p1Functions_ )
    {
-      vtk::openDataElement( output, typeToString< real_t >(), function.getFunctionName(), 1, mgr.vtkDataFormat_ );
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
-      output << "\n</DataArray>\n";
    }
 
    for ( const auto& function : mgr.p1VecFunctions_ )
    {
-      uint_t dim = mgr.write2D_ ? 2 : 3;
-      vtk::openDataElement( output, typeToString< real_t >(), function.getFunctionName(), dim, mgr.vtkDataFormat_ );
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
-      output << "\n</DataArray>\n";
    }
 
    output << "</PointData>\n";
@@ -104,6 +99,8 @@ void VTKP1Writer::writeScalarFunction( std::ostream&                            
    using ScalarType = real_t;
 
    VTKOutput::VTKStreamWriter< ScalarType > streamWriter( vtkDataFormat );
+
+   vtk::openDataElement( output, typeToString< real_t >(), function.getFunctionName(), 1, vtkDataFormat );
 
    if ( write2D )
    {
@@ -134,6 +131,8 @@ void VTKP1Writer::writeScalarFunction( std::ostream&                            
    }
 
    streamWriter.toStream( output );
+
+   output << "\n</DataArray>\n";
 }
 
 void VTKP1Writer::writeVectorFunction( std::ostream&                              output,
@@ -146,6 +145,9 @@ void VTKP1Writer::writeVectorFunction( std::ostream&                            
    using ScalarType = real_t;
 
    VTKOutput::VTKStreamWriter< ScalarType > streamWriter( vtkDataFormat );
+
+   uint_t dim = write2D ? 2 : 3;
+   vtk::openDataElement( output, typeToString< real_t >(), function.getFunctionName(), dim, vtkDataFormat );
 
    if ( write2D )
    {
@@ -182,6 +184,8 @@ void VTKP1Writer::writeVectorFunction( std::ostream&                            
    }
 
    streamWriter.toStream( output );
+
+   output << "\n</DataArray>\n";
 }
 
 } // namespace hyteg
