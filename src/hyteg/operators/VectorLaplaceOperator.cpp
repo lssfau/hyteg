@@ -23,11 +23,12 @@ namespace hyteg {
 
 using walberla::real_t;
 
-template < class VecFuncType, class SubOpType >
-VectorLaplaceOperator< VecFuncType, SubOpType >::VectorLaplaceOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                                                                        size_t                                     minLevel,
-                                                                        size_t                                     maxLevel )
-: VectorToVectorOperator< VecFuncType, VecFuncType >( storage, minLevel, maxLevel )
+template < typename ValueType, template < typename > class VecFuncKind, class SubOpType >
+VectorLaplaceOperator< ValueType, VecFuncKind, SubOpType >::VectorLaplaceOperator(
+    const std::shared_ptr< PrimitiveStorage >& storage,
+    size_t                                     minLevel,
+    size_t                                     maxLevel )
+: VectorToVectorOperator< ValueType, VecFuncKind, VecFuncKind >( storage, minLevel, maxLevel )
 {
    std::shared_ptr< SubOpType > zero( nullptr );
    std::shared_ptr< SubOpType > lapl = std::make_shared< SubOpType >( storage, minLevel, maxLevel );
@@ -57,21 +58,21 @@ VectorLaplaceOperator< VecFuncType, SubOpType >::VectorLaplaceOperator( const st
 }
 
 // P1ConstantVectorLaplaceOperator
-template class VectorLaplaceOperator< P1VectorFunction< real_t >, P1ConstantLaplaceOperator >;
+template class VectorLaplaceOperator< real_t, P1VectorFunction, P1ConstantLaplaceOperator >;
 
 // P1ElementwiseVectorLaplaceOperator
-template class VectorLaplaceOperator< P1VectorFunction< real_t >, P1ElementwiseLaplaceOperator >;
+template class VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseLaplaceOperator >;
 
 // P1ElementwiseBlendingVectorLaplaceOperator
-template class VectorLaplaceOperator< P1VectorFunction< real_t >, P1ElementwiseBlendingLaplaceOperator >;
+template class VectorLaplaceOperator< real_t, P1VectorFunction, P1ElementwiseBlendingLaplaceOperator >;
 
 // P2ConstantVectorLaplaceOperator
-template class VectorLaplaceOperator< P2VectorFunction< real_t >, P2ConstantLaplaceOperator >;
+template class VectorLaplaceOperator< real_t, P2VectorFunction, P2ConstantLaplaceOperator >;
 
 // P2ElementwiseVectorLaplaceOperator
-template class VectorLaplaceOperator< P2VectorFunction< real_t >, P2ElementwiseLaplaceOperator >;
+template class VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseLaplaceOperator >;
 
 // P2ElementwiseBlendingVectorLaplaceOperator
-template class VectorLaplaceOperator< P2VectorFunction< real_t >, P2ElementwiseBlendingLaplaceOperator >;
+template class VectorLaplaceOperator< real_t, P2VectorFunction, P2ElementwiseBlendingLaplaceOperator >;
 
 } // namespace hyteg

@@ -28,13 +28,11 @@ namespace hyteg {
 
 using walberla::real_t;
 
-class P2ConstantEpsilonOperator : public VectorToVectorOperator< P2VectorFunction< real_t >, P2VectorFunction< real_t > >
+class P2ConstantEpsilonOperator : public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >
 {
  public:
-   P2ConstantEpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                              size_t                                     minLevel,
-                              size_t                                     maxLevel )
-   : VectorToVectorOperator< P2VectorFunction< real_t >, P2VectorFunction< real_t > >( storage, minLevel, maxLevel )
+   P2ConstantEpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
+   : VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >( storage, minLevel, maxLevel )
    {
       // clang-format off
       typedef P2ConstantOperator< P2FenicsForm< p2_stokes_epsilon_cell_integral_0_otherwise, p2_tet_stokes_epsilon_tet_cell_integral_0_otherwise > > eps_0_0;
@@ -75,14 +73,14 @@ class P2ConstantEpsilonOperator : public VectorToVectorOperator< P2VectorFunctio
    }
 };
 
-class P2ElementwiseAffineEpsilonOperator : public VectorToVectorOperator< P2VectorFunction< real_t >, P2VectorFunction< real_t > >
+class P2ElementwiseAffineEpsilonOperator : public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >
 {
  public:
    P2ElementwiseAffineEpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                        size_t                                     minLevel,
                                        size_t                                     maxLevel,
                                        std::function< real_t( const Point3D& ) >  viscosity )
-   : VectorToVectorOperator< P2VectorFunction< real_t >, P2VectorFunction< real_t > >( storage, minLevel, maxLevel )
+   : VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >( storage, minLevel, maxLevel )
    {
       typedef P2ElementwiseOperator< forms::p2_epsilonvar_0_0_affine_q2 > eps_0_0;
       typedef P2ElementwiseOperator< forms::p2_epsilonvar_0_1_affine_q2 > eps_0_1;
@@ -140,15 +138,14 @@ class P2ElementwiseAffineEpsilonOperator : public VectorToVectorOperator< P2Vect
 };
 
 /// Uses forms::p2_epsilonvar_*_*_blending_q2, if that is insufficient upgrade to q3
-class P2ElementwiseBlendingEpsilonOperator
-: public VectorToVectorOperator< P2VectorFunction< real_t >, P2VectorFunction< real_t > >
+class P2ElementwiseBlendingEpsilonOperator : public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >
 {
  public:
    P2ElementwiseBlendingEpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                                          size_t                                     minLevel,
                                          size_t                                     maxLevel,
                                          std::function< real_t( const Point3D& ) >  viscosity )
-   : VectorToVectorOperator< P2VectorFunction< real_t >, P2VectorFunction< real_t > >( storage, minLevel, maxLevel )
+   : VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >( storage, minLevel, maxLevel )
    {
       typedef P2ElementwiseOperator< forms::p2_epsilonvar_0_0_blending_q2 > eps_0_0;
       typedef P2ElementwiseOperator< forms::p2_epsilonvar_0_1_blending_q2 > eps_0_1;

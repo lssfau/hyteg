@@ -29,11 +29,11 @@ namespace hyteg {
 
 using walberla::real_t;
 
-class P2ConstantFullViscousOperator : public VectorToVectorOperator< P2VectorFunction< real_t >, P2VectorFunction< real_t > >
+class P2ConstantFullViscousOperator : public VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >
 {
  public:
    P2ConstantFullViscousOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
-   : VectorToVectorOperator< P2VectorFunction< real_t >, P2VectorFunction< real_t > >( storage, minLevel, maxLevel )
+   : VectorToVectorOperator< real_t, P2VectorFunction, P2VectorFunction >( storage, minLevel, maxLevel )
    {
       // clang-format off
       typedef P2ConstantOperator< P2FenicsForm< p2_stokes_full_cell_integral_0_otherwise, p2_tet_stokes_full_tet_cell_integral_0_otherwise > > eps_0_0;

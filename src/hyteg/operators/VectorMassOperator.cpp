@@ -23,11 +23,11 @@ namespace hyteg {
 
 using walberla::real_t;
 
-template < class VecFuncType, class SubOpType >
-VectorMassOperator< VecFuncType, SubOpType >::VectorMassOperator( const std::shared_ptr< PrimitiveStorage >& storage,
-                                                                  size_t                                     minLevel,
-                                                                  size_t                                     maxLevel )
-: VectorToVectorOperator< VecFuncType, VecFuncType >( storage, minLevel, maxLevel )
+template < typename ValueType, template < typename > class VecFuncKind, class SubOpType >
+VectorMassOperator< ValueType, VecFuncKind, SubOpType >::VectorMassOperator( const std::shared_ptr< PrimitiveStorage >& storage,
+                                                                             size_t                                     minLevel,
+                                                                             size_t                                     maxLevel )
+: VectorToVectorOperator< ValueType, VecFuncKind, VecFuncKind >( storage, minLevel, maxLevel )
 {
    std::shared_ptr< SubOpType > zero( nullptr );
    std::shared_ptr< SubOpType > lapl = std::make_shared< SubOpType >( storage, minLevel, maxLevel );
@@ -57,21 +57,21 @@ VectorMassOperator< VecFuncType, SubOpType >::VectorMassOperator( const std::sha
 }
 
 // P1ConstantVectorMassOperator
-template class VectorMassOperator< P1VectorFunction< real_t >, P1ConstantMassOperator >;
+template class VectorMassOperator< real_t, P1VectorFunction, P1ConstantMassOperator >;
 
 // P1ElementwiseVectorMassOperator
-template class VectorMassOperator< P1VectorFunction< real_t >, P1ElementwiseMassOperator >;
+template class VectorMassOperator< real_t, P1VectorFunction, P1ElementwiseMassOperator >;
 
 // P1ElementwiseBlendingVectorMassOperator
-template class VectorMassOperator< P1VectorFunction< real_t >, P1ElementwiseBlendingMassOperator >;
+template class VectorMassOperator< real_t, P1VectorFunction, P1ElementwiseBlendingMassOperator >;
 
 // P2ConstantVectorMassOperator
-template class VectorMassOperator< P2VectorFunction< real_t >, P2ConstantMassOperator >;
+template class VectorMassOperator< real_t, P2VectorFunction, P2ConstantMassOperator >;
 
 // P2ElementwiseVectorMassOperator
-template class VectorMassOperator< P2VectorFunction< real_t >, P2ElementwiseMassOperator >;
+template class VectorMassOperator< real_t, P2VectorFunction, P2ElementwiseMassOperator >;
 
 // P2ElementwiseBlendingVectorMassOperator
-template class VectorMassOperator< P2VectorFunction< real_t >, P2ElementwiseBlendingMassOperator >;
+template class VectorMassOperator< real_t, P2VectorFunction, P2ElementwiseBlendingMassOperator >;
 
 } // namespace hyteg
