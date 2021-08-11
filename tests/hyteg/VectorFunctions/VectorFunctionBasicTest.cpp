@@ -41,7 +41,7 @@
 
 namespace hyteg {
 
-template < vfType >
+template < typename vfType >
 static void testVectorFunction( bool beVerbose, std::string tag, std::string typeName )
 {
    const uint_t minLevel = 2;
