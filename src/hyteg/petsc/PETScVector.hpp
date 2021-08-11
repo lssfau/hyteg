@@ -84,13 +84,13 @@ class PETScVector
       VecAssemblyEnd( vec );
    }
 
-   void createFunctionFromVector( const FunctionType< ValueType >& src,
+   void createFunctionFromVector( const FunctionType< ValueType >& dst,
                                   const FunctionType< PetscInt >&  numerator,
                                   uint_t                           level,
                                   DoFType                          flag = All )
    {
       auto proxy = std::make_shared< PETScVectorProxy >( vec );
-      hyteg::petsc::createFunctionFromVector( src, numerator, proxy, level, flag );
+      hyteg::petsc::createFunctionFromVector( dst, numerator, proxy, level, flag );
    }
 
    void print( const char filename[], bool binary = false, PetscViewerFormat format = PETSC_VIEWER_ASCII_MATRIXMARKET )
