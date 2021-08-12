@@ -29,23 +29,21 @@ namespace hyteg {
 
 using walberla::real_t;
 
-template < class VecFuncType, class SubOpType >
-class VectorMassOperator : public VectorToVectorOperator< VecFuncType, VecFuncType >
+template < typename ValueType, template < typename > class VecFuncKind, class SubOpType >
+class VectorMassOperator : public VectorToVectorOperator< ValueType, VecFuncKind, VecFuncKind >
 {
  public:
    VectorMassOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
 };
 
 // P1 versions
-typedef VectorMassOperator< P1VectorFunction< real_t >, P1ConstantMassOperator >    P1ConstantVectorMassOperator;
-typedef VectorMassOperator< P1VectorFunction< real_t >, P1ElementwiseMassOperator > P1ElementwiseVectorMassOperator;
-typedef VectorMassOperator< P1VectorFunction< real_t >, P1ElementwiseBlendingMassOperator >
-    P1ElementwiseBlendingVectorMassOperator;
+typedef VectorMassOperator< real_t, P1VectorFunction, P1ConstantMassOperator >            P1ConstantVectorMassOperator;
+typedef VectorMassOperator< real_t, P1VectorFunction, P1ElementwiseMassOperator >         P1ElementwiseVectorMassOperator;
+typedef VectorMassOperator< real_t, P1VectorFunction, P1ElementwiseBlendingMassOperator > P1ElementwiseBlendingVectorMassOperator;
 
 // P2 versions
-typedef VectorMassOperator< P2VectorFunction< real_t >, P2ConstantMassOperator >    P2ConstantVectorMassOperator;
-typedef VectorMassOperator< P2VectorFunction< real_t >, P2ElementwiseMassOperator > P2ElementwiseVectorMassOperator;
-typedef VectorMassOperator< P2VectorFunction< real_t >, P2ElementwiseBlendingMassOperator >
-    P2ElementwiseBlendingVectorMassOperator;
+typedef VectorMassOperator< real_t, P2VectorFunction, P2ConstantMassOperator >            P2ConstantVectorMassOperator;
+typedef VectorMassOperator< real_t, P2VectorFunction, P2ElementwiseMassOperator >         P2ElementwiseVectorMassOperator;
+typedef VectorMassOperator< real_t, P2VectorFunction, P2ElementwiseBlendingMassOperator > P2ElementwiseBlendingVectorMassOperator;
 
 } // namespace hyteg

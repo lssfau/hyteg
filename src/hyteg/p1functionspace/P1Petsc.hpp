@@ -19,13 +19,13 @@
  */
 #pragma once
 
-#include <hyteg/p1functionspace/P1Function.hpp>
-#include <hyteg/p1functionspace/VertexDoFFunction.hpp>
-#include <hyteg/p1functionspace/VertexDoFMacroCell.hpp>
-#include <hyteg/p1functionspace/VertexDoFMacroEdge.hpp>
-#include <hyteg/p1functionspace/VertexDoFMacroFace.hpp>
-#include <hyteg/p1functionspace/VertexDoFMacroVertex.hpp>
-
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p1functionspace/P1VectorFunction.hpp"
+#include "hyteg/p1functionspace/VertexDoFFunction.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 
@@ -34,6 +34,9 @@
 namespace hyteg {
 namespace petsc {
 
+// ============
+//  P1Function
+// ============
 inline void createVectorFromFunction( const P1Function< PetscReal >&        function,
                                       const P1Function< PetscInt >&         numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
@@ -189,6 +192,44 @@ inline void applyDirichletBC( const P1Function< PetscInt >& numerator, std::vect
    }
 }
 
+// ==================
+//  P1VectorFunction
+// ==================
+inline void createVectorFromFunction( const P1VectorFunction< PetscReal >&  function,
+                                      const P1VectorFunction< PetscInt >&   numerator,
+                                      const std::shared_ptr< VectorProxy >& vec,
+                                      uint_t                                level,
+                                      DoFType                               flag )
+{
+   for ( uint_t k = 0; k < function.getDimension(); k++ )
+   {
+      createVectorFromFunction( function[k], numerator[k], vec, level, flag );
+   }
+}
+
+inline void createFunctionFromVector( const P1VectorFunction< PetscReal >&  function,
+                                      const P1VectorFunction< PetscInt >&   numerator,
+                                      const std::shared_ptr< VectorProxy >& vec,
+                                      uint_t                                level,
+                                      DoFType                               flag )
+{
+   for ( uint_t k = 0; k < function.getDimension(); k++ )
+   {
+      createFunctionFromVector( function[k], numerator[k], vec, level, flag );
+   }
+}
+
+inline void applyDirichletBC( const P1VectorFunction< PetscInt >& numerator, std::vector< PetscInt >& mat, uint_t level )
+{
+   for ( uint_t k = 0; k < numerator.getDimension(); k++ )
+   {
+      applyDirichletBC( numerator[k], mat, level );
+   }
+}
+
+// =============
+//  P1Operators
+// =============
 inline void saveIdentityOperator( const P1Function< PetscInt >&               dst,
                                   const std::shared_ptr< SparseMatrixProxy >& mat,
                                   size_t                                      level,

@@ -38,15 +38,14 @@ using namespace hyteg;
 
 typedef P2P1TaylorHoodBlockFunction< real_t > thType;
 
-std::shared_ptr< OperatorWrapper< VectorToVectorOperator< P1VectorFunction< real_t >, P1VectorFunction< real_t > > > >
+std::shared_ptr< OperatorWrapper< VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction > > >
     createP1EpsilonOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
 {
-   std::shared_ptr< OperatorWrapper< VectorToVectorOperator< P1VectorFunction< real_t >, P1VectorFunction< real_t > > > >
-       wrapped = std::make_shared<
-           OperatorWrapper< VectorToVectorOperator< P1VectorFunction< real_t >, P1VectorFunction< real_t > > > >(
+   std::shared_ptr< OperatorWrapper< VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction > > > wrapped =
+       std::make_shared< OperatorWrapper< VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction > > >(
            storage, minLevel, maxLevel );
 
-   VectorToVectorOperator< P1VectorFunction< real_t >, P1VectorFunction< real_t > > oper = wrapped->unwrap();
+   VectorToVectorOperator< real_t, P1VectorFunction, P1VectorFunction > oper = wrapped->unwrap();
 
    oper.setSubOperator( 0, 0, std::make_shared< P1ConstantEpsilonOperator_11 >( storage, minLevel, maxLevel ) );
    oper.setSubOperator( 1, 0, std::make_shared< P1ConstantEpsilonOperator_12 >( storage, minLevel, maxLevel ) );
@@ -125,7 +124,6 @@ void runTest( uint_t kind, std::string tag, const std::shared_ptr< PrimitiveStor
 
    WALBERLA_LOG_INFO_ON_ROOT( "" );
 }
-
 
 int main( int argc, char* argv[] )
 {

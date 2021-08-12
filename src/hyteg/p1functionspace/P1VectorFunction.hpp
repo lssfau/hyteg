@@ -34,7 +34,8 @@ class P1VectorFunction final : public CSFVectorFunction< P1VectorFunction< Value
  public:
    using valueType = ValueType;
 
-   using FunctionType = P1VectorFunction< ValueType >;
+   template < typename VType >
+   using FunctionType = P1VectorFunction< VType >;
 
    typedef P1Function< ValueType > VectorComponentType;
 

@@ -34,7 +34,8 @@ class P2VectorFunction final : public CSFVectorFunction< P2VectorFunction< Value
  public:
    using valueType = ValueType;
 
-   using FunctionType = P2VectorFunction< ValueType >;
+   template < typename VType >
+   using FunctionType = P2VectorFunction< VType >;
 
    using VectorComponentType = P2Function< ValueType >;
 
