@@ -36,7 +36,13 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
  public:
    typedef typename FunctionTrait< func_t >::ValueType value_t;
    typedef typename FunctionTrait< func_t >::Tag       Tag;
-   typedef func_t                                      FunctionType;
+
+   // is this really helpful, as it is not templated?
+   // typedef func_t FunctionType;
+   // how about this instead:
+   using WrappedFuncType = func_t;
+   template< typename VType >
+   using WrappedFuncKind = typename WrappedFuncType::template FunctionType< VType >;
 
    /// No need for this one, if we do not implement a setter method for wrappedFunc_;
    FunctionWrapper() = delete;
@@ -164,6 +170,18 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
    {
       return numberOfLocalDoFs< typename FunctionType::Tag >( *( getStorage() ), level );
    }
+
+      /// conversion to/from linear algebra representation
+      /// @{
+#if 0
+#ifdef HYTEG_BUILD_WITH_PETSC
+   void toVector( const P2VectorFunction< PetscInt >&   numerator,
+                                 const std::shared_ptr< VectorProxy >& vec,
+                                 uint_t                                level,
+                                 DoFType                               flag );
+   /// @}
+#endif
+#endif
 
  private:
    std::unique_ptr< func_t > wrappedFunc_;
