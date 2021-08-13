@@ -41,7 +41,7 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
    // typedef func_t FunctionType;
    // how about this instead:
    using WrappedFuncType = func_t;
-   template< typename VType >
+   template < typename VType >
    using WrappedFuncKind = typename WrappedFuncType::template FunctionType< VType >;
 
    /// No need for this one, if we do not implement a setter method for wrappedFunc_;
@@ -168,20 +168,9 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
 
    uint_t getNumberOfLocalDoFs( uint_t level ) const
    {
-      return numberOfLocalDoFs< typename FunctionType::Tag >( *( getStorage() ), level );
+      auto storage = wrappedFunc_->getStorage();
+      return numberOfLocalDoFs< typename FunctionTrait< WrappedFuncType >::Tag >( *storage, level );
    }
-
-      /// conversion to/from linear algebra representation
-      /// @{
-#if 0
-#ifdef HYTEG_BUILD_WITH_PETSC
-   void toVector( const P2VectorFunction< PetscInt >&   numerator,
-                                 const std::shared_ptr< VectorProxy >& vec,
-                                 uint_t                                level,
-                                 DoFType                               flag );
-   /// @}
-#endif
-#endif
 
  private:
    std::unique_ptr< func_t > wrappedFunc_;
