@@ -690,8 +690,9 @@ void P2Function< real_t >::evaluateGradient( const Point3D& coordinates, uint_t 
 //  explicit instantiation
 // ========================
 template class P2Function< double >;
-template class P2Function< int >;
-template class P2Function< long >;
+// template class P2Function< float >;
+template class P2Function< int32_t >;
+template class P2Function< int64_t >;
 
 namespace p2function {
 
