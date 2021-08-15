@@ -527,6 +527,32 @@ inline void
    std::cout << std::string( 100, '*' ) << std::endl;
 }
 
+template < typename ValueType >
+inline void add( const uint_t&                                               level,
+                 Edge&                                                       edge,
+                 const ValueType                                             scalar,
+                 const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstId )
+{
+   ValueType* dstPtr = edge.getData( dstId )->getPointer( level );
+
+   size_t rowsize = levelinfo::num_microvertices_per_edge( level );
+
+   // gray south cells
+   for ( uint_t i = 1; i < rowsize - 2; ++i )
+   {
+      uint_t index = facedof::macroedge::indexFaceFromVertex( level, i, stencilDirection::CELL_GRAY_SE );
+      dstPtr[index] += scalar;
+   }
+
+   if ( edge.getNumNeighborFaces() == 2 )
+   {
+      for ( uint_t i = 1; i < rowsize - 2; ++i )
+      {
+         uint_t index = facedof::macroedge::indexFaceFromVertex( level, i, stencilDirection::CELL_GRAY_NE );
+         dstPtr[index] += scalar;
+      }
+   }
+}
 
 }//namespace DGEdge
 }//namespace hyteg

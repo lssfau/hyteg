@@ -146,12 +146,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                                 uint_t                                                                        level,
                                 DoFType                                                                       flag = All ) const;
 
-   /// @name Unimplemented methods (see other kinds of functions)
-   /// @{
-   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const
-   {
-      WALBERLA_ABORT( "DGFunction::add not implemented!" )
-   }
+   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const;
 
    void copyFrom( const DGFunction< ValueType >& other, const uint_t& level ) const
    {
@@ -627,6 +622,46 @@ void DGFunction< ValueType >::multElementwise(
       }
    }
    this->stopTiming( "Multiply elementwise" );
+}
+
+template < typename ValueType >
+void DGFunction< ValueType >::add( const ValueType scalar, uint_t level, DoFType flag ) const
+{
+   this->startTiming( "Add scalar" );
+
+   if ( this->getStorage()->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "DGFunction::add() not implemented for 3D!" );
+   }
+
+   for ( auto& it : this->getStorage()->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      {
+         DGVertex::add( level, vertex, scalar, vertexDataID_ );
+      }
+   }
+   for ( auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      {
+         DGEdge::add( level, edge, scalar, edgeDataID_ );
+      }
+   }
+   for ( auto& it : this->getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      {
+         DGFace::add( level, face, scalar, faceDataID_ );
+      }
+   }
+   this->stopTiming( "Add scalar" );
 }
 
 } // namespace hyteg

@@ -659,5 +659,40 @@ inline void multElementwise( const uint_t&                                      
    }
 }
 
+template < typename ValueType >
+inline void add( const uint_t&                                               level,
+                 Face&                                                       face,
+                 const ValueType                                             scalar,
+                 const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstId )
+{
+   ValueType* dstPtr = face.getData( dstId )->getPointer( level );
+
+   size_t rowsize       = levelinfo::num_microvertices_per_edge( level );
+   size_t inner_rowsize = rowsize;
+
+   // gray cells
+   for ( size_t j = 1; j < rowsize - 2; ++j )
+   {
+      for ( size_t i = 1; i < inner_rowsize - 3; ++i )
+      {
+         auto cellIndex = facedof::macroface::indexFaceFromGrayFace( level, i, j, stencilDirection::CELL_GRAY_C );
+         dstPtr[cellIndex] += scalar;
+      }
+      --inner_rowsize;
+   }
+
+   // blue cells
+   inner_rowsize = rowsize;
+   for ( size_t j = 0; j < rowsize - 2; ++j )
+   {
+      for ( size_t i = 0; i < inner_rowsize - 2; ++i )
+      {
+         auto cellIndex = facedof::macroface::indexFaceFromGrayFace( level, i, j, stencilDirection::CELL_GRAY_C );
+         dstPtr[cellIndex] += scalar;
+      }
+      --inner_rowsize;
+   }
+}
+
 } //namespace DGFace
 } //namespace hyteg

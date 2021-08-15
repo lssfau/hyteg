@@ -119,7 +119,16 @@ inline void multElementwise( const uint_t&                                      
   }
 }
 
-
+template < typename ValueType >
+inline void add( const uint_t&                                                 level,
+                 Vertex&                                                       vertex,
+                 const ValueType                                               scalar,
+                 const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId )
+{
+   ValueType* dstPtr = vertex.getData( dstId )->getPointer( level );
+   for ( uint_t i = 0; i < vertex.getNumNeighborFaces(); ++i )
+      dstPtr[i * 2] += scalar;
+}
 
 template< typename ValueType >
 inline void upwind(const uint_t & Level, Vertex &vertex,

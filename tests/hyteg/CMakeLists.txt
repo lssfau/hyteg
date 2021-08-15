@@ -508,6 +508,9 @@ waLBerla_execute_test(NAME VectorOperatorBasicTest)
 waLBerla_compile_test(FILES DGInterpolateTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME DGInterpolateTest)
 
+waLBerla_compile_test(FILES DGAddTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DGAddTest)
+
 waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest> )
 
