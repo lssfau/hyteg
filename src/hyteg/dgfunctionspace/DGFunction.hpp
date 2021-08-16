@@ -530,7 +530,7 @@ real_t DGFunction< ValueType >::getMaxValue( const uint_t level, DoFType flag )
 template < typename ValueType >
 real_t DGFunction< ValueType >::getMinValue( const uint_t level, DoFType flag )
 {
-   real_t localMin = std::numeric_limits< ValueType >::min();
+   ValueType localMin = std::numeric_limits< ValueType >::max();
 
    for ( auto& it : this->getStorage()->getFaces() )
    {
@@ -549,7 +549,7 @@ real_t DGFunction< ValueType >::getMinValue( const uint_t level, DoFType flag )
 template < typename ValueType >
 real_t DGFunction< ValueType >::getMaxMagnitude( const uint_t level, DoFType flag )
 {
-   real_t localMax = real_t( 0.0 );
+   ValueType localMax = -std::numeric_limits< ValueType >::max();
 
    for ( auto& it : this->getStorage()->getFaces() )
    {
