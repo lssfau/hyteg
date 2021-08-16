@@ -555,6 +555,39 @@ inline void add( const uint_t&                                               lev
 }
 
 template < typename ValueType >
+inline ValueType dot( const uint_t&                                                 level,
+                      Edge&                                                         edge,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& lhsMemoryId,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& rhsMemoryId )
+{
+   walberla::math::KahanAccumulator< ValueType > scalarProduct;
+
+   ValueType* lhsPtr = edge.getData( lhsMemoryId )->getPointer( level );
+   ValueType* rhsPtr = edge.getData( rhsMemoryId )->getPointer( level );
+
+   size_t rowsize = levelinfo::num_microvertices_per_edge( level );
+
+   // gray south cells
+   for ( uint_t i = 1; i < rowsize - 2; ++i )
+   {
+      uint_t index = facedof::macroedge::indexFaceFromVertex( level, i, stencilDirection::CELL_GRAY_SE );
+      scalarProduct += lhsPtr[index] * rhsPtr[index];
+   }
+
+   if ( edge.getNumNeighborFaces() == 2 )
+   {
+      // gray north cells
+      for ( uint_t i = 1; i < rowsize - 2; ++i )
+      {
+         uint_t index = facedof::macroedge::indexFaceFromVertex( level, i, stencilDirection::CELL_GRAY_NE );
+         scalarProduct += lhsPtr[index] * rhsPtr[index];
+      }
+   }
+
+   return scalarProduct.get();
+}
+
+template < typename ValueType >
 inline void swap( const uint_t&                                               level,
                   Edge&                                                       edge,
                   const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcID,

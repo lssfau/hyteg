@@ -130,6 +130,22 @@ inline void add( const uint_t&                                                 l
       dstPtr[i * 2] += scalar;
 }
 
+template < typename ValueType >
+inline ValueType dot( const uint_t&                                                 level,
+                      Vertex&                                                       vertex,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& lhsMemoryId,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& rhsMemoryId )
+{
+   walberla::math::KahanAccumulator< ValueType > scalarProduct;
+
+   ValueType* lhsPtr = vertex.getData( lhsMemoryId )->getPointer( level );
+   ValueType* rhsPtr = vertex.getData( rhsMemoryId )->getPointer( level );
+   for ( uint_t i = 0; i < vertex.getNumNeighborFaces(); ++i )
+      scalarProduct += rhsPtr[i * 2] * lhsPtr[i * 2];
+
+   return scalarProduct.get();
+}
+
 template< typename ValueType >
 inline void upwind(const uint_t & Level, Vertex &vertex,
                    const std::shared_ptr< PrimitiveStorage >& storage,

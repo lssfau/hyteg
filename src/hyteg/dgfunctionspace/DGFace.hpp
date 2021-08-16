@@ -695,6 +695,46 @@ inline void add( const uint_t&                                               lev
 }
 
 template < typename ValueType >
+inline ValueType dot( const uint_t&                                                 level,
+                      Face&                                                         face,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Face >& lhsMemoryId,
+                      const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsMemoryId )
+{
+   walberla::math::KahanAccumulator< ValueType > scalarProduct;
+
+   ValueType* lhsPtr = face.getData( lhsMemoryId )->getPointer( level );
+   ValueType* rhsPtr = face.getData( rhsMemoryId )->getPointer( level );
+
+   size_t rowsize       = levelinfo::num_microvertices_per_edge( level );
+   size_t inner_rowsize = rowsize;
+
+   // gray cells
+   for ( size_t j = 1; j < rowsize - 2; ++j )
+   {
+      for ( size_t i = 1; i < inner_rowsize - 3; ++i )
+      {
+         auto cellIndex = facedof::macroface::indexFaceFromGrayFace( level, i, j, stencilDirection::CELL_GRAY_C );
+         scalarProduct += lhsPtr[cellIndex] * rhsPtr[cellIndex];
+      }
+      --inner_rowsize;
+   }
+
+   // blue cells
+   inner_rowsize = rowsize;
+   for ( size_t j = 0; j < rowsize - 2; ++j )
+   {
+      for ( size_t i = 0; i < inner_rowsize - 2; ++i )
+      {
+         auto cellIndex = facedof::macroface::indexFaceFromBlueFace( level, i, j, stencilDirection::CELL_BLUE_C );
+         scalarProduct += lhsPtr[cellIndex] * rhsPtr[cellIndex];
+      }
+      --inner_rowsize;
+   }
+
+   return scalarProduct.get();
+}
+
+template < typename ValueType >
 inline void swap( const uint_t&                                               level,
                   Face&                                                       face,
                   const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcID,

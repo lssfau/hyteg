@@ -168,15 +168,9 @@ class DGFunction final : public Function< DGFunction< ValueType > >
 
    void setBoundaryCondition( BoundaryCondition bc ){WALBERLA_ABORT( "DGFunction::setBoundaryCondition not implemented!" )}
 
-   ValueType dotLocal( const DGFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const
-   {
-      WALBERLA_ABORT( "DGFunction::dotLocal not implemented!" )
-   }
+   inline ValueType dotLocal( const DGFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const;
 
-   ValueType dotGlobal( const DGFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const
-   {
-      WALBERLA_ABORT( "DGFunction::dotGlobal not implemented!" )
-   }
+   inline ValueType dotGlobal( const DGFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const;
 
    inline void swap( const DGFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const;
 
@@ -683,6 +677,58 @@ inline void DGFunction< ValueType >::swap( const DGFunction< ValueType >& other,
       }
    }
    this->stopTiming( "Swap" );
+}
+
+template < typename ValueType >
+ValueType DGFunction< ValueType >::dotLocal( const DGFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const
+{
+   this->startTiming( "Dot (local)" );
+
+   walberla::math::KahanAccumulator< ValueType > scalarProduct;
+
+   for ( const auto& it : this->getStorage()->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      {
+         scalarProduct += DGVertex::dot( level, vertex, vertexDataID_, secondOp.vertexDataID_ );
+      }
+   }
+
+   for ( const auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      {
+         scalarProduct += DGEdge::dot< ValueType >( level, edge, edgeDataID_, secondOp.edgeDataID_ );
+      }
+   }
+
+   for ( const auto& it : this->getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      {
+         scalarProduct += DGFace::dot< ValueType >( level, face, faceDataID_, secondOp.faceDataID_ );
+      }
+   }
+
+   this->stopTiming( "Dot (local)" );
+
+   return scalarProduct.get();
+}
+
+template < typename ValueType >
+ValueType DGFunction< ValueType >::dotGlobal( const DGFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const
+{
+   ValueType scalarProduct = dotLocal( secondOp, level, flag );
+   this->startTiming( "Dot (reduce)" );
+   walberla::mpi::allReduceInplace( scalarProduct, walberla::mpi::SUM, walberla::mpi::MPIManager::instance()->comm() );
+   this->stopTiming( "Dot (reduce)" );
+   return scalarProduct;
 }
 
 } // namespace hyteg
