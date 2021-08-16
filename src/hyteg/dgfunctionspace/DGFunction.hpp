@@ -80,10 +80,10 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                             uint_t                                                                    level,
                             DoFType                                                                   flag = All ) const;
 
-   inline void assign( const std::vector< ValueType >&                                               scalars,
-                       const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
-                       uint_t                                                                        level,
-                       DoFType                                                                       flag = All );
+   void assign( const std::vector< ValueType >&                                               scalars,
+                const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+                uint_t                                                                        level,
+                DoFType                                                                       flag = All ) const;
 
    inline void add( ValueType scalar, uint_t level, DoFType flag = All ) const;
 
@@ -176,14 +176,6 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    ValueType dotGlobal( const DGFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const
    {
       WALBERLA_ABORT( "DGFunction::dotGlobal not implemented!" )
-   }
-
-   void assign( const std::vector< ValueType >&                                               scalars,
-                const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
-                uint_t                                                                        level,
-                DoFType                                                                       flag = All ) const
-   {
-      WALBERLA_ABORT( "DGFunction::assign with const qualifier not implemented!" )
    }
 
    inline void swap( const DGFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const;
@@ -323,7 +315,7 @@ template < typename ValueType >
 void DGFunction< ValueType >::assign( const std::vector< ValueType >&                                               scalars,
                                       const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
                                       uint_t                                                                        level,
-                                      DoFType                                                                       flag )
+                                      DoFType                                                                       flag ) const
 {
    this->startTiming( "Assign" );
 
@@ -352,7 +344,7 @@ void DGFunction< ValueType >::assign( const std::vector< ValueType >&           
       }
    }
 
-   communicators_[level]->template startCommunication< Vertex, Edge >();
+   startCommunication< Vertex, Edge >( level );
 
    for ( auto& it : this->getStorage()->getEdges() )
    {
@@ -365,8 +357,8 @@ void DGFunction< ValueType >::assign( const std::vector< ValueType >&           
       }
    }
 
-   communicators_[level]->template endCommunication< Vertex, Edge >();
-   communicators_[level]->template startCommunication< Edge, Face >();
+   endCommunication< Vertex, Edge >( level );
+   startCommunication< Edge, Face >( level );
 
    for ( auto& it : this->getStorage()->getFaces() )
    {
@@ -379,7 +371,7 @@ void DGFunction< ValueType >::assign( const std::vector< ValueType >&           
       }
    }
 
-   communicators_[level]->template endCommunication< Edge, Face >();
+   endCommunication< Edge, Face >( level );
    this->stopTiming( "Assign" );
 }
 
