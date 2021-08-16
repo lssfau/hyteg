@@ -45,10 +45,12 @@ int main( int argc, char** argv )
    const uint_t maxLevel = 4;
 
    hyteg::DGFunction< real_t > x( "x", storage, minLevel, maxLevel );
+   hyteg::DGFunction< real_t > y( "y", storage, minLevel, maxLevel );
+   hyteg::DGFunction< real_t > z( "z", storage, minLevel, maxLevel );
 
    x.interpolate( 0., maxLevel, All );
 
-   // check adding on the whole domain
+   // check adding a scalar
    {
       WALBERLA_CHECK_FLOAT_EQUAL( x.getMinValue( maxLevel, All ), 0. );
       WALBERLA_CHECK_FLOAT_EQUAL( x.getMaxValue( maxLevel, All ), 0. );
@@ -61,6 +63,22 @@ int main( int argc, char** argv )
 
       WALBERLA_CHECK_FLOAT_EQUAL( x.getMinValue( maxLevel, All ), 1. );
       WALBERLA_CHECK_FLOAT_EQUAL( x.getMaxValue( maxLevel, All ), 1. );
+   }
+
+   // check adding a scalar
+   {
+      x.interpolate(1, maxLevel, All);
+      y.interpolate(2, maxLevel, All);
+      z.interpolate(3, maxLevel, All);
+
+      x.add( {-1., 3.}, {y, z}, maxLevel, All );
+
+      // the min/max value functions
+      x.communicate< hyteg::Vertex, hyteg::Edge >( maxLevel );
+      x.communicate< hyteg::Edge, hyteg::Face >( maxLevel );
+
+      WALBERLA_CHECK_FLOAT_EQUAL( x.getMinValue( maxLevel, All ), 8. );
+      WALBERLA_CHECK_FLOAT_EQUAL( x.getMaxValue( maxLevel, All ), 8. );
    }
 
    return 0;

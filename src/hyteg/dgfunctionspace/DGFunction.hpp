@@ -85,10 +85,13 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                        uint_t                                                                        level,
                        DoFType                                                                       flag = All );
 
-   inline void add( const std::vector< ValueType >                scalars,
-                    const std::vector< DGFunction< ValueType >* > functions,
-                    uint_t                                        level,
-                    DoFType                                       flag = All );
+   inline void add( ValueType scalar, uint_t level, DoFType flag = All ) const;
+
+   inline void add( const std::vector< ValueType >&                                               scalars,
+                    const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+                    uint_t                                                                        level,
+                    DoFType                                                                       flag = All ) const;
+
    inline void enumerate( uint_t level, ValueType offset );
 
    inline void enumerate( uint_t level );
@@ -150,8 +153,6 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                                 uint_t                                                                        level,
                                 DoFType                                                                       flag = All ) const;
 
-   void add( ValueType scalar, uint_t level, DoFType flag = All ) const;
-
    void copyFrom( const DGFunction< ValueType >& other, const uint_t& level ) const
    {
       WALBERLA_ABORT( "DGFunction::copyFrom not implemented!" )
@@ -190,14 +191,6 @@ class DGFunction final : public Function< DGFunction< ValueType > >
       WALBERLA_ABORT( "DGFunction::swap not implemented!" )
    }
 
-   void add( const std::vector< ValueType >&                                                    scalars,
-             const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
-             uint_t                                                                             level,
-             DoFType                                                                            flag = All ) const
-   {
-      WALBERLA_ABORT( "DGFunction::add for vector of functions not implemented!" )
-   }
-
    /// @}
 
  private:
@@ -211,10 +204,10 @@ class DGFunction final : public Function< DGFunction< ValueType > >
 };
 
 template < typename ValueType >
-void DGFunction< ValueType >::add( const std::vector< ValueType >                scalars,
-                                   const std::vector< DGFunction< ValueType >* > functions,
-                                   uint_t                                        level,
-                                   DoFType                                       flag )
+void DGFunction< ValueType >::add( const std::vector< ValueType >&                                               scalars,
+                                   const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+                                   uint_t                                                                        level,
+                                   DoFType                                                                       flag ) const
 {
    // Collect all source IDs in a vector
    //  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
@@ -225,7 +218,7 @@ void DGFunction< ValueType >::add( const std::vector< ValueType >               
    {
       //    srcVertexIDs.push_back(function->vertexDataID_);
       //    srcEdgeIDs.push_back(function->edgeDataID_);
-      srcFaceIDs.push_back( function->faceDataID_ );
+      srcFaceIDs.push_back( function.get().faceDataID_ );
    }
 
    for ( auto& it : this->getStorage()->getFaces() )
