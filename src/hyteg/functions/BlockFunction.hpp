@@ -305,4 +305,11 @@ class BlockFunction
 
 };
 
+// Special version of numberOfLocalDoFs for GenericFunctions
+template < typename value_t >
+inline uint_t numberOfLocalDoFs( const BlockFunction< value_t >& func, const uint_t& level )
+{
+   return func.getNumberOfLocalDoFs( level );
+}
+
 } // namespace hyteg

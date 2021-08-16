@@ -182,6 +182,13 @@ inline uint_t numberOfLocalDoFs< P2P2StokesFunctionTag >( const PrimitiveStorage
    return ( primitiveStorage.hasGlobalCells() ? 4 : 3 ) * numberOfLocalDoFs< P2FunctionTag >( primitiveStorage, level );
 }
 
+/// variant of numberOfLocalDoFs that works on a function object
+template < typename func_t >
+inline uint_t numberOfLocalDoFs( const func_t& func, const uint_t& level )
+{
+   return numberOfLocalDoFs< typename func_t::Tag >( *( func.getStorage() ), level );
+}
+
 template < typename FunctionTag_T >
 inline uint_t numberOfGlobalDoFs( const PrimitiveStorage& primitiveStorage,
                                   const uint_t&           level,

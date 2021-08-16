@@ -156,7 +156,14 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
       wrappedFunc_->copyFrom( other.template unwrap< func_t >(), level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
    };
 
+   void enumerate( uint_t level ) const { wrappedFunc_->enumerate( level ); };
+
    void enumerate( uint_t level, value_t& offset ) const { wrappedFunc_->enumerate( level, offset ); };
+
+   uint_t getNumberOfLocalDoFs( uint_t level ) const
+   {
+      return numberOfLocalDoFs< typename FunctionType::Tag >( *( getStorage() ), level );
+   }
 
  private:
    std::unique_ptr< func_t > wrappedFunc_;
