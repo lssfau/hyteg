@@ -24,6 +24,17 @@
 
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/functions/GenericFunction.hpp"
+#include "hyteg/sparseassembly/VectorProxy.hpp"
+
+// A whole lot of includes, so that createVectorFromFunction below has
+// a valid prototype for all possible cases
+#include "hyteg/dgfunctionspace/DGPetsc.hpp"
+#include "hyteg/edgedofspace/EdgeDoFPetsc.hpp"
+#include "hyteg/p1functionspace/P1Petsc.hpp"
+#include "hyteg/p2functionspace/P2Petsc.hpp"
+
+// only needed for using PetscInt in to/fromVector() below!
+#include "hyteg/petsc/PETScWrapper.hpp"
 
 namespace hyteg {
 
@@ -171,6 +182,43 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
       auto storage = wrappedFunc_->getStorage();
       return numberOfLocalDoFs< typename FunctionTrait< WrappedFuncType >::Tag >( *storage, level );
    }
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+   /// conversion to/from linear algebra representation
+   /// @{
+   void toVector( const GenericFunction< PetscInt >&    numerator,
+                  const std::shared_ptr< VectorProxy >& vec,
+                  uint_t                                level,
+                  DoFType                               flag ) const
+   {
+      if constexpr ( std::is_same< value_t, PetscReal >::value )
+      {
+         using numer_t = typename func_t::template FunctionType< PetscInt >;
+         petsc::createVectorFromFunction( *wrappedFunc_, numerator.template unwrap< numer_t >(), vec, level, flag );
+      }
+      else
+      {
+         WALBERLA_ABORT( "FunctionWrapper::toVector() only works for ValueType being identical to PetscReal" );
+      }
+   };
+
+   void fromVector( const GenericFunction< PetscInt >&    numerator,
+                    const std::shared_ptr< VectorProxy >& vec,
+                    uint_t                                level,
+                    DoFType                               flag ) const
+   {
+      if constexpr ( std::is_same< value_t, PetscReal >::value )
+      {
+         using numer_t = typename func_t::template FunctionType< PetscInt >;
+         petsc::createFunctionFromVector( *wrappedFunc_, numerator.template unwrap< numer_t >(), vec, level, flag );
+      }
+      else
+      {
+         WALBERLA_ABORT( "FunctionWrapper::fromVector() only works for ValueType being identical to PetscReal" );
+      }
+   };
+      /// @}
+#endif
 
  private:
    std::unique_ptr< func_t > wrappedFunc_;
