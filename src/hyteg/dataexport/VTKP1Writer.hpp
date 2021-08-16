@@ -31,7 +31,7 @@ class VTKP1Writer
    static void write( const VTKOutput& mgr, std::ostream& output, const uint_t& level );
 
  private:
-   template< typename value_t >
+   template < typename value_t >
    static void writeScalarFunction( std::ostream&                                  output,
                                     const vertexdof::VertexDoFFunction< value_t >& function,
                                     const std::shared_ptr< PrimitiveStorage >&     storage,
@@ -39,13 +39,13 @@ class VTKP1Writer
                                     bool                                           write2D,
                                     vtk::DataFormat                                vtkDataFormat );
 
-   template< typename value_t >
-   static void writeVectorFunction( std::ostream&                               output,
-                                    const P1VectorFunction< value_t >&          function,
-                                    const std::shared_ptr< PrimitiveStorage >&  storage,
-                                    const uint_t&                               level,
-                                    bool                                        write2D,
-                                    vtk::DataFormat                             vtkDataFormat );
+   template < typename value_t >
+   static void writeVectorFunction( std::ostream&                              output,
+                                    const P1VectorFunction< value_t >&         function,
+                                    const std::shared_ptr< PrimitiveStorage >& storage,
+                                    const uint_t&                              level,
+                                    bool                                       write2D,
+                                    vtk::DataFormat                            vtkDataFormat );
 };
 
 } // namespace hyteg

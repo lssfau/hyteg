@@ -61,31 +61,6 @@ VTKOutput::VTKOutput( std::string                                dir,
    }
 }
 
-void VTKOutput::add( const P2Function< real_t >& function )
-{
-   p2Functions_.push_back( function );
-}
-
-void VTKOutput::add( const P1VectorFunction< real_t >& function )
-{
-   p1VecFunctions_.push_back( function );
-}
-
-void VTKOutput::add( const P2VectorFunction< real_t >& function )
-{
-   p2VecFunctions_.push_back( function );
-}
-
-void VTKOutput::add( const EdgeDoFFunction< real_t >& function )
-{
-   edgeDoFFunctions_.push_back( function );
-}
-
-void VTKOutput::add( const DGFunction< real_t >& function )
-{
-   dgFunctions_.push_back( function );
-}
-
 void VTKOutput::add( const P1StokesFunction< real_t >& function )
 {
    add( function.uvw );
@@ -146,16 +121,16 @@ void VTKOutput::add( const GenericFunction< real_t >& function )
 }
 
 const std::map< vtk::DoFType, std::string > VTKOutput::DoFTypeToString_ = {
-    {vtk::DoFType::VERTEX, "VertexDoF"},
-    {vtk::DoFType::EDGE_X, "XEdgeDoF"},
-    {vtk::DoFType::EDGE_Y, "YEdgeDoF"},
-    {vtk::DoFType::EDGE_Z, "ZEdgeDoF"},
-    {vtk::DoFType::EDGE_XY, "XYEdgeDoF"},
-    {vtk::DoFType::EDGE_XZ, "XZEdgeDoF"},
-    {vtk::DoFType::EDGE_YZ, "YZEdgeDoF"},
-    {vtk::DoFType::EDGE_XYZ, "XYZEdgeDoF"},
-    {vtk::DoFType::DG, "DGDoF"},
-    {vtk::DoFType::P2, "P2"},
+    { vtk::DoFType::VERTEX, "VertexDoF" },
+    { vtk::DoFType::EDGE_X, "XEdgeDoF" },
+    { vtk::DoFType::EDGE_Y, "YEdgeDoF" },
+    { vtk::DoFType::EDGE_Z, "ZEdgeDoF" },
+    { vtk::DoFType::EDGE_XY, "XYEdgeDoF" },
+    { vtk::DoFType::EDGE_XZ, "XZEdgeDoF" },
+    { vtk::DoFType::EDGE_YZ, "YZEdgeDoF" },
+    { vtk::DoFType::EDGE_XYZ, "XYZEdgeDoF" },
+    { vtk::DoFType::DG, "DGDoF" },
+    { vtk::DoFType::P2, "P2" },
 };
 
 std::string VTKOutput::fileNameExtension( const vtk::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const
@@ -230,23 +205,23 @@ void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
    {
       syncAllFunctions( level );
 
-      const std::vector< vtk::DoFType > dofTypes2D = {vtk::DoFType::VERTEX,
-                                                      vtk::DoFType::EDGE_X,
-                                                      vtk::DoFType::EDGE_Y,
-                                                      vtk::DoFType::EDGE_XY,
-                                                      vtk::DoFType::DG,
-                                                      vtk::DoFType::P2};
+      const std::vector< vtk::DoFType > dofTypes2D = { vtk::DoFType::VERTEX,
+                                                       vtk::DoFType::EDGE_X,
+                                                       vtk::DoFType::EDGE_Y,
+                                                       vtk::DoFType::EDGE_XY,
+                                                       vtk::DoFType::DG,
+                                                       vtk::DoFType::P2 };
 
-      const std::vector< vtk::DoFType > dofTypes3D = {vtk::DoFType::VERTEX,
-                                                      vtk::DoFType::EDGE_X,
-                                                      vtk::DoFType::EDGE_Y,
-                                                      vtk::DoFType::EDGE_Z,
-                                                      vtk::DoFType::EDGE_XY,
-                                                      vtk::DoFType::EDGE_XZ,
-                                                      vtk::DoFType::EDGE_YZ,
-                                                      vtk::DoFType::EDGE_XYZ,
-                                                      vtk::DoFType::DG,
-                                                      vtk::DoFType::P2};
+      const std::vector< vtk::DoFType > dofTypes3D = { vtk::DoFType::VERTEX,
+                                                       vtk::DoFType::EDGE_X,
+                                                       vtk::DoFType::EDGE_Y,
+                                                       vtk::DoFType::EDGE_Z,
+                                                       vtk::DoFType::EDGE_XY,
+                                                       vtk::DoFType::EDGE_XZ,
+                                                       vtk::DoFType::EDGE_YZ,
+                                                       vtk::DoFType::EDGE_XYZ,
+                                                       vtk::DoFType::DG,
+                                                       vtk::DoFType::P2 };
 
       auto dofTypes = write2D_ ? dofTypes2D : dofTypes3D;
 
@@ -283,43 +258,100 @@ void VTKOutput::write( const uint_t& level, const uint_t& timestep ) const
 
 void VTKOutput::syncAllFunctions( const uint_t& level ) const
 {
-
-   // P1Functions [double, int32_t, int64_t] -------------------------------------------------------------------
-   for ( const auto& function : p1Functions_.getFunctions<double>() )
+   // ----------------------------------------
+   //  P1Functions [double, int32_t, int64_t]
+   // ----------------------------------------
+   for ( const auto& function : p1Functions_.getFunctions< double >() )
    {
       hyteg::communication::syncFunctionBetweenPrimitives< hyteg::P1Function< double > >( function, level );
    }
-   for ( const auto& function : p1Functions_.getFunctions<int32_t>() )
+   for ( const auto& function : p1Functions_.getFunctions< int32_t >() )
    {
       hyteg::communication::syncFunctionBetweenPrimitives< hyteg::P1Function< int32_t > >( function, level );
    }
-   for ( const auto& function : p1Functions_.getFunctions<int64_t>() )
+   for ( const auto& function : p1Functions_.getFunctions< int64_t >() )
    {
       hyteg::communication::syncFunctionBetweenPrimitives< hyteg::P1Function< int64_t > >( function, level );
    }
-   // P1Functions ----------------------------------------------------------------------------------------------
 
-   for ( const auto& function : p1VecFunctions_ )
+   // ----------------------------------------------
+   //  P1VectorFunctions [double, int32_t, int64_t]
+   // ----------------------------------------------
+   for ( const auto& function : p1VecFunctions_.getFunctions< double >() )
+   {
+      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
+   }
+   for ( const auto& function : p1VecFunctions_.getFunctions< int32_t >() )
+   {
+      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
+   }
+   for ( const auto& function : p1VecFunctions_.getFunctions< int64_t >() )
    {
       hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
    }
 
-   for ( const auto& function : p2Functions_ )
+   // ----------------------------------------
+   //  P2Functions [double, int32_t, int64_t]
+   // ----------------------------------------
+   for ( const auto& function : p2Functions_.getFunctions< double >() )
+   {
+      hyteg::communication::syncP2FunctionBetweenPrimitives( function, level );
+   }
+   for ( const auto& function : p2Functions_.getFunctions< int32_t >() )
+   {
+      hyteg::communication::syncP2FunctionBetweenPrimitives( function, level );
+   }
+   for ( const auto& function : p2Functions_.getFunctions< int64_t >() )
    {
       hyteg::communication::syncP2FunctionBetweenPrimitives( function, level );
    }
 
-   for ( const auto& function : p2VecFunctions_ )
+   // ----------------------------------------------
+   //  P2VectorFunctions [double, int32_t, int64_t]
+   // ----------------------------------------------
+   for ( const auto& function : p2VecFunctions_.getFunctions< double >() )
+   {
+      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
+   }
+   for ( const auto& function : p2VecFunctions_.getFunctions< int32_t >() )
+   {
+      hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
+   }
+   for ( const auto& function : p2VecFunctions_.getFunctions< int64_t >() )
    {
       hyteg::communication::syncVectorFunctionBetweenPrimitives( function, level );
    }
 
-   for ( const auto& function : edgeDoFFunctions_ )
+   // ---------------------------------------------
+   //  EdgeDoFFunctions [double, int32_t, int64_t]
+   // ---------------------------------------------
+   for ( const auto& function : edgeDoFFunctions_.getFunctions< double >() )
    {
-      hyteg::communication::syncFunctionBetweenPrimitives< hyteg::EdgeDoFFunction< real_t > >( function, level );
+      hyteg::communication::syncFunctionBetweenPrimitives( function, level );
+   }
+   for ( const auto& function : edgeDoFFunctions_.getFunctions< int32_t >() )
+   {
+      hyteg::communication::syncFunctionBetweenPrimitives( function, level );
+   }
+   for ( const auto& function : edgeDoFFunctions_.getFunctions< int64_t >() )
+   {
+      hyteg::communication::syncFunctionBetweenPrimitives( function, level );
    }
 
-   for ( const auto& function : dgFunctions_ )
+   // ----------------------------------------
+   //  DGFunctions [double, int32_t, int64_t]
+   // ----------------------------------------
+   for ( const auto& function : dgFunctions_.getFunctions< double >() )
+   {
+      function.communicate< Vertex, Edge >( level );
+      function.communicate< Edge, Face >( level );
+   }
+   for ( const auto& function : dgFunctions_.getFunctions< int32_t >() )
+   {
+      function.communicate< Vertex, Edge >( level );
+      function.communicate< Edge, Face >( level );
+   }
+   for ( const auto& function : dgFunctions_.getFunctions< int64_t >() )
    {
       function.communicate< Vertex, Edge >( level );
       function.communicate< Edge, Face >( level );

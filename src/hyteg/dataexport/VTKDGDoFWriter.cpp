@@ -57,40 +57,59 @@ void VTKDGDoFWriter::write( const VTKOutput& mgr, std::ostream& output, const ui
 
    output << "<CellData>";
 
-   for ( const auto& function : mgr.dgFunctions_ )
+   for ( const auto& function : mgr.dgFunctions_.getFunctions< double >() )
    {
-      vtk::openDataElement( output, typeToString< real_t >(), function.getFunctionName(), 1, mgr.vtkDataFormat_ );
-
-      for ( const auto& it : storage->getFaces() )
-      {
-         const Face& face = *it.second;
-
-         uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
-         uint_t inner_rowsize = rowsize;
-         output << std::scientific;
-
-         uint_t idx;
-
-         for ( size_t j = 0; j < rowsize - 1; ++j )
-         {
-            for ( size_t i = 0; i < inner_rowsize - 2; ++i )
-            {
-               idx = facedof::macroface::indexFaceFromGrayFace( level, i, j, stencilDirection::CELL_GRAY_C );
-               output << face.getData( function.getFaceDataID() )->getPointer( level )[idx] << " ";
-               idx = facedof::macroface::indexFaceFromBlueFace( level, i, j, stencilDirection::CELL_BLUE_C );
-               output << face.getData( function.getFaceDataID() )->getPointer( level )[idx] << " ";
-            }
-            idx = facedof::macroface::indexFaceFromGrayFace( level, inner_rowsize - 2, j, stencilDirection::CELL_GRAY_C );
-            output << face.getData( function.getFaceDataID() )->getPointer( level )[idx] << " ";
-            --inner_rowsize;
-         }
-      }
-      output << "\n</DataArray>\n";
+      writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
+   }
+   for ( const auto& function : mgr.dgFunctions_.getFunctions< int32_t >() )
+   {
+      writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
+   }
+   for ( const auto& function : mgr.dgFunctions_.getFunctions< int64_t >() )
+   {
+      writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
 
    output << "\n</CellData>\n";
 
    vtk::writePieceFooter( output );
+}
+
+template < typename value_t >
+void VTKDGDoFWriter::writeScalarFunction( std::ostream&                              output,
+                                          const DGFunction< value_t >&               function,
+                                          const std::shared_ptr< PrimitiveStorage >& storage,
+                                          const uint_t&                              level,
+                                          bool                                       write2D,
+                                          vtk::DataFormat                            vtkDataFormat )
+{
+   vtk::openDataElement( output, typeToString< real_t >(), function.getFunctionName(), 1, vtkDataFormat );
+
+   for ( const auto& it : storage->getFaces() )
+   {
+      const Face& face = *it.second;
+
+      uint_t rowsize       = levelinfo::num_microvertices_per_edge( level );
+      uint_t inner_rowsize = rowsize;
+      output << std::scientific;
+
+      uint_t idx;
+
+      for ( size_t j = 0; j < rowsize - 1; ++j )
+      {
+         for ( size_t i = 0; i < inner_rowsize - 2; ++i )
+         {
+            idx = facedof::macroface::indexFaceFromGrayFace( level, i, j, stencilDirection::CELL_GRAY_C );
+            output << face.getData( function.getFaceDataID() )->getPointer( level )[idx] << " ";
+            idx = facedof::macroface::indexFaceFromBlueFace( level, i, j, stencilDirection::CELL_BLUE_C );
+            output << face.getData( function.getFaceDataID() )->getPointer( level )[idx] << " ";
+         }
+         idx = facedof::macroface::indexFaceFromGrayFace( level, inner_rowsize - 2, j, stencilDirection::CELL_GRAY_C );
+         output << face.getData( function.getFaceDataID() )->getPointer( level )[idx] << " ";
+         --inner_rowsize;
+      }
+   }
+   output << "\n</DataArray>\n";
 }
 
 } // namespace hyteg
