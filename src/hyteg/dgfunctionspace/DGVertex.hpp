@@ -296,6 +296,14 @@ inline void projectP1(const uint_t & Level, Vertex &vertex,
   }
 }
 
+template < typename ValueType >
+inline void swap( const uint_t&                                                 level,
+                  Vertex&                                                       vertex,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstID )
+{
+   vertex.getData( srcID )->swap( *vertex.getData( dstID ), level );
+}
 
 }//namespace DGVertex
 }//namespace hyteg

@@ -694,5 +694,14 @@ inline void add( const uint_t&                                               lev
    }
 }
 
+template < typename ValueType >
+inline void swap( const uint_t&                                               level,
+                  Face&                                                       face,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Face >& dstID )
+{
+   face.getData( srcID )->swap( *face.getData( dstID ), level );
+}
+
 } //namespace DGFace
 } //namespace hyteg

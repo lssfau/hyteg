@@ -554,5 +554,14 @@ inline void add( const uint_t&                                               lev
    }
 }
 
+template < typename ValueType >
+inline void swap( const uint_t&                                               level,
+                  Edge&                                                       edge,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcID,
+                  const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& dstID )
+{
+   edge.getData( srcID )->swap( *edge.getData( dstID ), level );
+}
+
 }//namespace DGEdge
 }//namespace hyteg

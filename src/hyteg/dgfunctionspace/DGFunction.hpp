@@ -186,10 +186,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
       WALBERLA_ABORT( "DGFunction::assign with const qualifier not implemented!" )
    }
 
-   void swap( const DGFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const
-   {
-      WALBERLA_ABORT( "DGFunction::swap not implemented!" )
-   }
+   inline void swap( const DGFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const;
 
    /// @}
 
@@ -654,6 +651,46 @@ void DGFunction< ValueType >::add( const ValueType scalar, uint_t level, DoFType
       }
    }
    this->stopTiming( "Add scalar" );
+}
+
+template < typename ValueType >
+inline void DGFunction< ValueType >::swap( const DGFunction< ValueType >& other, const uint_t& level, const DoFType& flag ) const
+{
+   this->startTiming( "Swap" );
+
+   if ( this->getStorage()->hasGlobalCells() )
+   {
+      WALBERLA_ABORT( "DGFunction::swap() not implemented for 3D!" );
+   }
+
+   for ( auto& it : this->getStorage()->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
+      {
+         DGVertex::swap( level, vertex, vertexDataID_, other.vertexDataID_ );
+      }
+   }
+   for ( auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
+      {
+         DGEdge::swap( level, edge, edgeDataID_, other.edgeDataID_ );
+      }
+   }
+   for ( auto& it : this->getStorage()->getFaces() )
+   {
+      Face& face = *it.second;
+
+      if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
+      {
+         DGFace::swap( level, face, faceDataID_, other.faceDataID_ );
+      }
+   }
+   this->stopTiming( "Swap" );
 }
 
 } // namespace hyteg
