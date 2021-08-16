@@ -39,7 +39,7 @@ template< typename ValueType >
 inline void interpolate(const uint_t & Level, Vertex &vertex,
                         const PrimitiveDataID<FunctionMemory< ValueType >, Vertex>& vertexMemoryId,
                         const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>>& srcMemoryIds,
-                        std::function<ValueType(const hyteg::Point3D &, const std::vector<ValueType>& f)> &expr,
+                        const std::function<ValueType(const hyteg::Point3D &, const std::vector<ValueType>& f)> &expr,
                         const std::shared_ptr< PrimitiveStorage >& storage ) {
 
   auto vertexMemory = vertex.getData(vertexMemoryId)->getPointer( Level );

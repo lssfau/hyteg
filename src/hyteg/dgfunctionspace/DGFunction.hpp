@@ -67,14 +67,18 @@ class DGFunction final : public Function< DGFunction< ValueType > >
       }
    }
 
-   inline void interpolate( std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All );
+   inline void interpolate( const std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag = All ) const;
 
-   inline void interpolate( const ValueType& constant, uint_t level, DoFType flag = All );
+   inline void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;
 
-   inline void interpolateExtended( std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                                    const std::vector< DGFunction< ValueType >* >                                  srcFunctions,
-                                    uint_t                                                                         level,
-                                    DoFType                                                                        flag = All );
+   inline void interpolate( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+                            const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >&        srcFunctions,
+                            uint_t                                                                               level,
+                            DoFType                                                                              flag = All ) const;
+
+   inline void interpolate( const std::vector< std::function< ValueType( const hyteg::Point3D& ) > >& expr,
+                            uint_t                                                                    level,
+                            DoFType                                                                   flag = All ) const;
 
    inline void assign( const std::vector< ValueType >&                                               scalars,
                        const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
@@ -146,7 +150,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                                 uint_t                                                                        level,
                                 DoFType                                                                       flag = All ) const;
 
-   void add( const ValueType scalar, uint_t level, DoFType flag = All ) const;
+   void add( ValueType scalar, uint_t level, DoFType flag = All ) const;
 
    void copyFrom( const DGFunction< ValueType >& other, const uint_t& level ) const
    {
@@ -159,23 +163,6 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                   const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const
    {
       WALBERLA_ABORT( "DGFunction::copyFrom not implemented!" )
-   }
-
-   void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const
-   {
-      WALBERLA_ABORT( "DGFunction::interpolate not implemented!" )
-   }
-
-   void interpolate( const std::function< ValueType( const hyteg::Point3D& ) >& expr, uint_t level, DoFType flag = All ) const
-   {
-      WALBERLA_ABORT( "DGFunction::interpolate not implemented!" )
-   }
-
-   void interpolate( const std::vector< std::function< ValueType( const hyteg::Point3D& ) > >& expr,
-                     uint_t                                                                    level,
-                     DoFType                                                                   flag = All ) const
-   {
-      WALBERLA_ABORT( "DGFunction::interpolate not implemented!" )
    }
 
    void setBoundaryCondition( BoundaryCondition bc ){WALBERLA_ABORT( "DGFunction::setBoundaryCondition not implemented!" )}
@@ -254,26 +241,28 @@ void DGFunction< ValueType >::add( const std::vector< ValueType >               
 }
 
 template < typename ValueType >
-inline void DGFunction< ValueType >::interpolate( std::function< ValueType( const Point3D& ) >& expr, uint_t level, DoFType flag )
+inline void DGFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
+                                                  uint_t                                              level,
+                                                  DoFType                                             flag ) const
 {
    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) > exprExtended =
        [&expr]( const hyteg::Point3D& x, const std::vector< ValueType >& ) { return expr( x ); };
-   interpolateExtended( exprExtended, {}, level, flag );
+   interpolate( exprExtended, {}, level, flag );
 }
 
 template < typename ValueType >
-inline void DGFunction< ValueType >::interpolate( const ValueType& constant, uint_t level, DoFType flag )
+inline void DGFunction< ValueType >::interpolate( ValueType constant, uint_t level, DoFType flag ) const
 {
    std::function< ValueType( const Point3D& ) > auxFunc = [constant]( const hyteg::Point3D& x ) { return constant; };
-   this->interpolate( {auxFunc}, level, flag );
+   this->interpolate( { auxFunc }, level, flag );
 }
 
 template < typename ValueType >
-void DGFunction< ValueType >::interpolateExtended(
-    std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-    const std::vector< DGFunction< ValueType >* >                                  srcFunctions,
-    uint_t                                                                         level,
-    DoFType                                                                        flag )
+void DGFunction< ValueType >::interpolate(
+    const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
+    const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >&        srcFunctions,
+    uint_t                                                                               level,
+    DoFType                                                                              flag ) const
 {
    this->startTiming( "Interpolate" );
    // Collect all source IDs in a vector
@@ -283,9 +272,9 @@ void DGFunction< ValueType >::interpolateExtended(
 
    for ( auto& function : srcFunctions )
    {
-      srcVertexIDs.push_back( function->vertexDataID_ );
-      srcEdgeIDs.push_back( function->edgeDataID_ );
-      srcFaceIDs.push_back( function->faceDataID_ );
+      srcVertexIDs.push_back( function.get().vertexDataID_ );
+      srcEdgeIDs.push_back( function.get().edgeDataID_ );
+      srcFaceIDs.push_back( function.get().faceDataID_ );
    }
 
    for ( auto& it : this->getStorage()->getVertices() )
@@ -299,7 +288,7 @@ void DGFunction< ValueType >::interpolateExtended(
       }
    }
 
-   communicators_[level]->template startCommunication< Vertex, Edge >();
+   startCommunication< Vertex, Edge >( level );
 
    for ( auto& it : this->getStorage()->getEdges() )
    {
@@ -312,8 +301,8 @@ void DGFunction< ValueType >::interpolateExtended(
       }
    }
 
-   communicators_[level]->template endCommunication< Vertex, Edge >();
-   communicators_[level]->template startCommunication< Edge, Face >();
+   endCommunication< Vertex, Edge >( level );
+   startCommunication< Edge, Face >( level );
 
    for ( auto& it : this->getStorage()->getFaces() )
    {
@@ -326,9 +315,19 @@ void DGFunction< ValueType >::interpolateExtended(
       }
    }
 
-   communicators_[level]->template endCommunication< Edge, Face >();
+   endCommunication< Edge, Face >( level );
    this->stopTiming( "Interpolate" );
 }
+
+template < typename ValueType >
+void DGFunction< ValueType >::interpolate( const std::vector< std::function< ValueType( const hyteg::Point3D& ) > >& expr,
+                                           uint_t                                                                    level,
+                                           DoFType                                                                   flag ) const
+{
+   WALBERLA_ASSERT_EQUAL( expr.size(), 1 );
+   this->interpolate( expr[0], level, flag );
+}
+
 
 template < typename ValueType >
 void DGFunction< ValueType >::assign( const std::vector< ValueType >&                                               scalars,

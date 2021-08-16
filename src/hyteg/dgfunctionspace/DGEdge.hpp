@@ -243,7 +243,7 @@ template< typename ValueType >
 inline void interpolate(const uint_t & Level, Edge &edge,
                         const PrimitiveDataID<FunctionMemory< ValueType >, Edge>& edgeMemoryId,
                         const std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>& srcMemoryIds,
-                        std::function<ValueType(const hyteg::Point3D &, const std::vector<ValueType>& f)> &expr,
+                        const std::function<ValueType(const hyteg::Point3D &, const std::vector<ValueType>& f)> &expr,
                         const std::shared_ptr< PrimitiveStorage >& storage ) {
 
   auto edgeMemory = edge.getData(edgeMemoryId)->getPointer( Level );

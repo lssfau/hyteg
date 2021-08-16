@@ -60,11 +60,11 @@ inline void
 }
 
 template < typename ValueType >
-inline void interpolate( const uint_t&                                                                           Level,
-                         Face&                                                                                   face,
-                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                             faceMemoryId,
-                         const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >&              srcMemoryIds,
-                         std::function< ValueType( const hyteg::Point3D&, const std::vector< ValueType >& f ) >& expr )
+inline void interpolate( const uint_t&                                                              Level,
+                         Face&                                                                      face,
+                         const PrimitiveDataID< FunctionMemory< ValueType >, Face >&                faceMemoryId,
+                         const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >& srcMemoryIds,
+                         const std::function< ValueType( const hyteg::Point3D&, const std::vector< ValueType >& f ) >& expr )
 {
    auto faceMemory = face.getData( faceMemoryId )->getPointer( Level );
 

@@ -181,7 +181,7 @@ int main( int argc, char* argv[] )
       {
          WALBERLA_LOG_PROGRESS_ON_ROOT( "Solving Stokes system..." )
 
-         f_dg->interpolateExtended( expr_f, {c_old.get()}, maxLevel );
+         f_dg->interpolate( expr_f, { *c_old }, maxLevel );
 
          f->uvw[0].integrateDG( *f_dg, *n_x, maxLevel, hyteg::All );
          f->uvw[1].integrateDG( *f_dg, *n_y, maxLevel, hyteg::All );
