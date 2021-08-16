@@ -73,41 +73,34 @@ void VTKOutput::add( const P2P1TaylorHoodFunction< real_t >& function )
    add( function.p );
 }
 
-void VTKOutput::add( const BlockFunction< real_t >& function )
-{
-   for ( uint_t k = 0; k < function.getNumberOfBlocks(); k++ )
-   {
-      add( function[k] );
-   }
-}
-
-void VTKOutput::add( const GenericFunction< real_t >& function )
+template < typename value_t >
+void VTKOutput::add( const GenericFunction< value_t >& function )
 {
    bool matchFound = false;
    switch ( function.getFunctionKind() )
    {
    case functionTraits::P1_FUNCTION:
-      matchFound = tryUnwrapAndAdd< FunctionWrapper< P1Function< real_t > > >( function );
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< P1Function< value_t > > >( function );
       break;
 
    case functionTraits::P2_FUNCTION:
-      matchFound = tryUnwrapAndAdd< FunctionWrapper< P2Function< real_t > > >( function );
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< P2Function< value_t > > >( function );
       break;
 
    case functionTraits::P1_VECTOR_FUNCTION:
-      matchFound = tryUnwrapAndAdd< FunctionWrapper< P1VectorFunction< real_t > > >( function );
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< P1VectorFunction< value_t > > >( function );
       break;
 
    case functionTraits::P2_VECTOR_FUNCTION:
-      matchFound = tryUnwrapAndAdd< FunctionWrapper< P2VectorFunction< real_t > > >( function );
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< P2VectorFunction< value_t > > >( function );
       break;
 
    case functionTraits::EDGE_DOF_FUNCTION:
-      matchFound = tryUnwrapAndAdd< FunctionWrapper< EdgeDoFFunction< real_t > > >( function );
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< EdgeDoFFunction< value_t > > >( function );
       break;
 
    case functionTraits::DG_FUNCTION:
-      matchFound = tryUnwrapAndAdd< FunctionWrapper< DGFunction< real_t > > >( function );
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< DGFunction< value_t > > >( function );
       break;
 
    default:
@@ -357,5 +350,12 @@ void VTKOutput::syncAllFunctions( const uint_t& level ) const
       function.communicate< Edge, Face >( level );
    }
 }
+
+// -------------------------
+//  Explicit Instantiations
+// -------------------------
+template void VTKOutput::add( const GenericFunction< double >& function );
+template void VTKOutput::add( const GenericFunction< int32_t >& function );
+template void VTKOutput::add( const GenericFunction< int64_t >& function );
 
 } // namespace hyteg

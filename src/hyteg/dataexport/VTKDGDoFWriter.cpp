@@ -83,6 +83,10 @@ void VTKDGDoFWriter::writeScalarFunction( std::ostream&                         
                                           bool                                       write2D,
                                           vtk::DataFormat                            vtkDataFormat )
 {
+
+   // hopefully at some point we will have DGFunctions also in 3D :)
+   WALBERLA_UNUSED( write2D );
+
    vtk::openDataElement( output, typeToString< real_t >(), function.getFunctionName(), 1, vtkDataFormat );
 
    for ( const auto& it : storage->getFaces() )

@@ -112,11 +112,20 @@ class VTKOutput
       dgFunctions_.push_back( function );
    }
 
+   template < typename value_t >
+   inline void add( const BlockFunction< value_t >& function )
+   {
+      for ( uint_t k = 0; k < function.getNumberOfBlocks(); k++ )
+      {
+         add( function[k] );
+      }
+   }
+
+   template < typename value_t >
+   void add( const GenericFunction< value_t >& function );
+
    void add( const P1StokesFunction< real_t >& function );
    void add( const P2P1TaylorHoodFunction< real_t >& function );
-
-   void add( const GenericFunction< real_t >& function );
-   void add( const BlockFunction< real_t >& function );
 
    /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
    /// Therefore always writes output if timestep is 0.
@@ -195,8 +204,8 @@ class VTKOutput
       add( function.unwrap() );
    }
 
-   template < typename WrapperFunc >
-   bool tryUnwrapAndAdd( const GenericFunction< real_t >& function )
+   template < typename WrapperFunc, typename value_t >
+   bool tryUnwrapAndAdd( const GenericFunction< value_t >& function )
    {
       bool               success = false;
       const WrapperFunc* aux     = dynamic_cast< const WrapperFunc* >( &function );
