@@ -81,13 +81,17 @@ void VTKEdgeDoFWriter::write( const VTKOutput& mgr, std::ostream& output, uint_t
 
    output << "<PointData>\n";
 
-   for ( const auto& function : mgr.edgeDoFFunctions_ )
+   for ( const auto& function : mgr.edgeDoFFunctions_.getFunctions< double >() )
    {
-      vtk::openDataElement( output, typeToString< real_t >(), function.getFunctionName(), 1, mgr.vtkDataFormat_ );
-
       writeScalarFunction( mgr, output, function, storage, level, dofType );
-
-      output << "\n</DataArray>\n";
+   }
+   for ( const auto& function : mgr.edgeDoFFunctions_.getFunctions< int32_t >() )
+   {
+      writeScalarFunction( mgr, output, function, storage, level, dofType );
+   }
+   for ( const auto& function : mgr.edgeDoFFunctions_.getFunctions< int64_t >() )
+   {
+      writeScalarFunction( mgr, output, function, storage, level, dofType );
    }
 
    output << "</PointData>\n";
@@ -107,20 +111,23 @@ void VTKEdgeDoFWriter::write( const VTKOutput& mgr, std::ostream& output, uint_t
    vtk::writePieceFooter( output );
 }
 
+template < typename value_t >
 void VTKEdgeDoFWriter::writeScalarFunction( const VTKOutput&                           mgr,
                                             std::ostream&                              output,
-                                            const EdgeDoFFunction< real_t >&           function,
+                                            const EdgeDoFFunction< value_t >&          function,
                                             const std::shared_ptr< PrimitiveStorage >& storage,
                                             uint_t                                     level,
                                             const vtk::DoFType&                        dofType )
 {
-   using ScalarType = real_t;
+   WALBERLA_ASSERT_EQUAL( storage, function.getStorage() );
+
+   vtk::openDataElement( output, typeToString< value_t >(), function.getFunctionName(), 1, mgr.vtkDataFormat_ );
 
    WALBERLA_ASSERT( dofType == vtk::DoFType::EDGE_X || dofType == vtk::DoFType::EDGE_Y || dofType == vtk::DoFType::EDGE_Z ||
                     dofType == vtk::DoFType::EDGE_XY || dofType == vtk::DoFType::EDGE_XZ || dofType == vtk::DoFType::EDGE_YZ ||
                     dofType == vtk::DoFType::EDGE_XYZ );
 
-   VTKOutput::VTKStreamWriter< ScalarType > streamWriter( mgr.vtkDataFormat_ );
+   VTKOutput::VTKStreamWriter< value_t > streamWriter( mgr.vtkDataFormat_ );
 
    if ( mgr.write2D_ )
    {
@@ -130,8 +137,7 @@ void VTKEdgeDoFWriter::writeScalarFunction( const VTKOutput&                    
 
          switch ( dofType )
          {
-         case vtk::DoFType::EDGE_X:
-         {
+         case vtk::DoFType::EDGE_X: {
             for ( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
                streamWriter << face.getData( function.getFaceDataID() )
@@ -139,8 +145,7 @@ void VTKEdgeDoFWriter::writeScalarFunction( const VTKOutput&                    
             }
             break;
          }
-         case vtk::DoFType::EDGE_Y:
-         {
+         case vtk::DoFType::EDGE_Y: {
             for ( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
                streamWriter << face.getData( function.getFaceDataID() )
@@ -148,8 +153,7 @@ void VTKEdgeDoFWriter::writeScalarFunction( const VTKOutput&                    
             }
             break;
          }
-         case vtk::DoFType::EDGE_XY:
-         {
+         case vtk::DoFType::EDGE_XY: {
             for ( const auto& itIdx : edgedof::macroface::Iterator( level ) )
             {
                streamWriter << face.getData( function.getFaceDataID() )
@@ -213,6 +217,8 @@ void VTKEdgeDoFWriter::writeScalarFunction( const VTKOutput&                    
    }
 
    streamWriter.toStream( output );
+
+   output << "\n</DataArray>\n";
 }
 
 } // namespace hyteg
