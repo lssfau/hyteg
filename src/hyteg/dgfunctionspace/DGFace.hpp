@@ -687,7 +687,7 @@ inline void add( const uint_t&                                               lev
    {
       for ( size_t i = 0; i < inner_rowsize - 2; ++i )
       {
-         auto cellIndex = facedof::macroface::indexFaceFromGrayFace( level, i, j, stencilDirection::CELL_GRAY_C );
+         auto cellIndex = facedof::macroface::indexFaceFromBlueFace( level, i, j, stencilDirection::CELL_BLUE_C );
          dstPtr[cellIndex] += scalar;
       }
       --inner_rowsize;
