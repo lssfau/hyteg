@@ -36,7 +36,13 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
  public:
    typedef typename FunctionTrait< func_t >::ValueType value_t;
    typedef typename FunctionTrait< func_t >::Tag       Tag;
-   typedef func_t                                      FunctionType;
+
+   // is this really helpful, as it is not templated?
+   // typedef func_t FunctionType;
+   // how about this instead:
+   using WrappedFuncType = func_t;
+   template < typename VType >
+   using WrappedFuncKind = typename WrappedFuncType::template FunctionType< VType >;
 
    /// No need for this one, if we do not implement a setter method for wrappedFunc_;
    FunctionWrapper() = delete;
@@ -156,7 +162,15 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
       wrappedFunc_->copyFrom( other.template unwrap< func_t >(), level, localPrimitiveIDsToRank, otherPrimitiveIDsToRank );
    };
 
+   void enumerate( uint_t level ) const { wrappedFunc_->enumerate( level ); };
+
    void enumerate( uint_t level, value_t& offset ) const { wrappedFunc_->enumerate( level, offset ); };
+
+   uint_t getNumberOfLocalDoFs( uint_t level ) const
+   {
+      auto storage = wrappedFunc_->getStorage();
+      return numberOfLocalDoFs< typename FunctionTrait< WrappedFuncType >::Tag >( *storage, level );
+   }
 
  private:
    std::unique_ptr< func_t > wrappedFunc_;

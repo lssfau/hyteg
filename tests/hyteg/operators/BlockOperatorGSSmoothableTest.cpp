@@ -39,6 +39,10 @@ template < typename value_t >
 class TestBlockFunction : public BlockFunction< value_t >
 {
  public:
+
+   template < typename VType >
+   using FunctionType = TestBlockFunction< VType >;
+
    TestBlockFunction( const std::string&                         name,
                       const std::shared_ptr< PrimitiveStorage >& storage,
                       size_t                                     minLevel,

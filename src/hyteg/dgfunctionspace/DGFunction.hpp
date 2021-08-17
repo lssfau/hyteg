@@ -37,6 +37,11 @@ template < typename ValueType >
 class DGFunction final : public Function< DGFunction< ValueType > >
 {
  public:
+   typedef ValueType valueType;
+
+   template < typename VType >
+   using FunctionType = DGFunction< VType >;
+
    DGFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
    : DGFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
    {}
