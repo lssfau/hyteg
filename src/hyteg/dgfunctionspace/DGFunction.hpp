@@ -160,7 +160,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                          const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
                          const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const;
 
-   void setBoundaryCondition( BoundaryCondition bc ){WALBERLA_ABORT( "DGFunction::setBoundaryCondition not implemented!" )}
+   inline void setBoundaryCondition( BoundaryCondition bc ) { boundaryCondition_ = std::move(bc); }
 
    inline ValueType dotLocal( const DGFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const;
 
