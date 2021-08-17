@@ -517,6 +517,9 @@ waLBerla_execute_test(NAME DGSwapTest)
 waLBerla_compile_test(FILES DGDotTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME DGDotTest)
 
+waLBerla_compile_test(FILES DGCopyFromTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DGCopyFromTest)
+
 waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest> )
 
