@@ -38,9 +38,10 @@ class VTKEdgeDoFWriter
    static void write( const VTKOutput& mgr, std::ostream& output, uint_t level, const vtk::DoFType& dofType );
 
  private:
+   template < typename value_t >
    static void writeScalarFunction( const VTKOutput&                           mgr,
                                     std::ostream&                              output,
-                                    const EdgeDoFFunction< real_t >&           function,
+                                    const EdgeDoFFunction< value_t >&          function,
                                     const std::shared_ptr< PrimitiveStorage >& storage,
                                     uint_t                                     level,
                                     const vtk::DoFType&                        dofType );

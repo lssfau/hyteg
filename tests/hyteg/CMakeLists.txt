@@ -616,12 +616,12 @@ waLBerla_compile_test(FILES MeshGenTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME MeshInfoTest3 COMMAND $<TARGET_FILE:MeshGenTest> )
 waLBerla_execute_test(NAME MeshInfoTest4 COMMAND $<TARGET_FILE:MeshGenTest> PROCESSES 2 )
 
-waLBerla_compile_test(FILES FunctionMemoryAllocationTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES functions/FunctionMemoryAllocationTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionMemoryAllocationTest1 COMMAND $<TARGET_FILE:FunctionMemoryAllocationTest> )
 waLBerla_execute_test(NAME FunctionMemoryAllocationTest2 COMMAND $<TARGET_FILE:FunctionMemoryAllocationTest> PROCESSES 2 )
 waLBerla_execute_test(NAME FunctionMemoryAllocationTest8 COMMAND $<TARGET_FILE:FunctionMemoryAllocationTest> PROCESSES 8 )
 
-waLBerla_compile_test(FILES FunctionSpaceDataTypesTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES functions/FunctionSpaceDataTypesTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionSpaceDataTypesTest1 COMMAND $<TARGET_FILE:FunctionSpaceDataTypesTest> )
 
 if( HYTEG_BUILD_WITH_PETSC )
@@ -630,15 +630,18 @@ if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_execute_test(NAME PetscTest2 COMMAND $<TARGET_FILE:PetscTest> PROCESSES 2 )
 endif()
 
-waLBerla_compile_test(FILES FunctionIteratorTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES functions/FunctionIteratorTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionIteratorTest1 COMMAND $<TARGET_FILE:FunctionIteratorTest> )
 waLBerla_execute_test(NAME FunctionIteratorTest2 COMMAND $<TARGET_FILE:FunctionIteratorTest> PROCESSES 2 )
 waLBerla_execute_test(NAME FunctionIteratorTest8 COMMAND $<TARGET_FILE:FunctionIteratorTest> PROCESSES 8 )
 
-waLBerla_compile_test(FILES FunctionMemorySerializationTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES functions/FunctionMemorySerializationTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionMemorySerializationTest1 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> )
 waLBerla_execute_test(NAME FunctionMemorySerializationTest2 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> PROCESSES 2 )
 waLBerla_execute_test(NAME FunctionMemorySerializationTest8 COMMAND $<TARGET_FILE:FunctionMemorySerializationTest> PROCESSES 8 )
+
+waLBerla_compile_test(FILES functions/FunctionMultiStoreTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME FunctionMultiStoreTest)
 
 waLBerla_compile_test(FILES blending/AnnulusMapTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME AnnulusMapTest1 COMMAND $<TARGET_FILE:AnnulusMapTest> )
@@ -671,16 +674,15 @@ if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_execute_test(NAME ElementwiseOperatorPetscTest2 COMMAND $<TARGET_FILE:ElementwiseOperatorPetscTest> PROCESSES 2 )
 endif()
 
-
 # Test some basic auxiliary stuff for application layer
-waLBerla_compile_test(FILES FindMaxMinMagTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES functions/FindMaxMinMagTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FindMaxMinMagTest1 COMMAND $<TARGET_FILE:FindMaxMinMagTest> )
 waLBerla_execute_test(NAME FindMaxMinMagTest2 COMMAND $<TARGET_FILE:FindMaxMinMagTest> PROCESSES 2 )
 
-waLBerla_compile_test(FILES FunctionPropertiesTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES functions/FunctionPropertiesTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionPropertiesTest)
 
-waLBerla_compile_test(FILES FunctionMultElementwiseTest.cpp DEPENDS hyteg core)
+waLBerla_compile_test(FILES functions/FunctionMultElementwiseTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME FunctionMultElementwiseTest)
 
 ## numeric tools ##

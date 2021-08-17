@@ -74,19 +74,31 @@ void VTKP1Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
 
    output << "<PointData>\n";
 
-   for ( const auto& function : mgr.p1Functions_ )
+   // write all scalar P1Functions of supported value type
+   for ( const auto& function : mgr.p1Functions_.getFunctions< double >() )
    {
-      vtk::openDataElement( output, typeToString< real_t >(), function.getFunctionName(), 1, mgr.vtkDataFormat_ );
       writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
-      output << "\n</DataArray>\n";
+   }
+   for ( const auto& function : mgr.p1Functions_.getFunctions< int32_t >() )
+   {
+      writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
+   }
+   for ( const auto& function : mgr.p1Functions_.getFunctions< int64_t >() )
+   {
+      writeScalarFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
 
-   for ( const auto& function : mgr.p1VecFunctions_ )
+   for ( const auto& function : mgr.p1VecFunctions_.getFunctions< double >() )
    {
-      uint_t dim = mgr.write2D_ ? 2 : 3;
-      vtk::openDataElement( output, typeToString< real_t >(), function.getFunctionName(), dim, mgr.vtkDataFormat_ );
       writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
-      output << "\n</DataArray>\n";
+   }
+   for ( const auto& function : mgr.p1VecFunctions_.getFunctions< int32_t >() )
+   {
+      writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
+   }
+   for ( const auto& function : mgr.p1VecFunctions_.getFunctions< int64_t >() )
+   {
+      writeVectorFunction( output, function, storage, level, mgr.write2D_, mgr.vtkDataFormat_ );
    }
 
    output << "</PointData>\n";
@@ -94,16 +106,18 @@ void VTKP1Writer::write( const VTKOutput& mgr, std::ostream& output, const uint_
    vtk::writePieceFooter( output );
 }
 
-void VTKP1Writer::writeScalarFunction( std::ostream&                                 output,
-                                       const vertexdof::VertexDoFFunction< real_t >& function,
-                                       const std::shared_ptr< PrimitiveStorage >&    storage,
-                                       const uint_t&                                 level,
-                                       bool                                          write2D,
-                                       vtk::DataFormat                               vtkDataFormat )
+template < typename value_t >
+void VTKP1Writer::writeScalarFunction( std::ostream&                                  output,
+                                       const vertexdof::VertexDoFFunction< value_t >& function,
+                                       const std::shared_ptr< PrimitiveStorage >&     storage,
+                                       const uint_t&                                  level,
+                                       bool                                           write2D,
+                                       vtk::DataFormat                                vtkDataFormat )
 {
-   using ScalarType = real_t;
+   WALBERLA_ASSERT_EQUAL( storage, function.getStorage() );
 
-   VTKOutput::VTKStreamWriter< ScalarType > streamWriter( vtkDataFormat );
+   VTKOutput::VTKStreamWriter< value_t > streamWriter( vtkDataFormat );
+   vtk::openDataElement( output, typeToString< value_t >(), function.getFunctionName(), 1, vtkDataFormat );
 
    if ( write2D )
    {
@@ -134,18 +148,24 @@ void VTKP1Writer::writeScalarFunction( std::ostream&                            
    }
 
    streamWriter.toStream( output );
+
+   output << "\n</DataArray>\n";
 }
 
+template < typename value_t >
 void VTKP1Writer::writeVectorFunction( std::ostream&                              output,
-                                       const P1VectorFunction< real_t >&          function,
+                                       const P1VectorFunction< value_t >&         function,
                                        const std::shared_ptr< PrimitiveStorage >& storage,
                                        const uint_t&                              level,
                                        bool                                       write2D,
                                        vtk::DataFormat                            vtkDataFormat )
 {
-   using ScalarType = real_t;
+   WALBERLA_ASSERT_EQUAL( storage, function.getStorage() );
 
-   VTKOutput::VTKStreamWriter< ScalarType > streamWriter( vtkDataFormat );
+   VTKOutput::VTKStreamWriter< value_t > streamWriter( vtkDataFormat );
+
+   uint_t dim = write2D ? 2 : 3;
+   vtk::openDataElement( output, typeToString< value_t >(), function.getFunctionName(), dim, vtkDataFormat );
 
    if ( write2D )
    {
@@ -182,6 +202,8 @@ void VTKP1Writer::writeVectorFunction( std::ostream&                            
    }
 
    streamWriter.toStream( output );
+
+   output << "\n</DataArray>\n";
 }
 
 } // namespace hyteg

@@ -31,13 +31,19 @@
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
+#include "hyteg/functions/FunctionMultiStore.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 
 // our friends and helpers
+
+// clang off
+// ordering matter here, otherwise we need to add forward declarations
+#include "hyteg/dataexport/VTKHelpers.hpp"
+// clang on
+
 #include "hyteg/dataexport/VTKDGDoFWriter.hpp"
 #include "hyteg/dataexport/VTKEdgeDoFWriter.hpp"
-#include "hyteg/dataexport/VTKHelpers.hpp"
 #include "hyteg/dataexport/VTKMeshWriter.hpp"
 #include "hyteg/dataexport/VTKP1Writer.hpp"
 #include "hyteg/dataexport/VTKP2Writer.hpp"
@@ -70,20 +76,56 @@ class VTKOutput
 
    void setVTKDataFormat( vtk::DataFormat vtkDataFormat ) { vtkDataFormat_ = vtkDataFormat; }
 
-   void add( const P1Function< real_t >& function );
-   void add( const P2Function< real_t >& function );
+   template < typename value_t >
+   inline void add( const P1Function< value_t >& function )
+   {
+      p1Functions_.push_back( function );
+   }
 
-   void add( const EdgeDoFFunction< real_t >& function );
-   void add( const DGFunction< real_t >& function );
+   template < typename value_t >
+   inline void add( const P2Function< value_t >& function )
+   {
+      p2Functions_.push_back( function );
+   }
 
-   void add( const P1VectorFunction< real_t >& function );
-   void add( const P2VectorFunction< real_t >& function );
+   template < typename value_t >
+   inline void add( const P1VectorFunction< value_t >& function )
+   {
+      p1VecFunctions_.push_back( function );
+   }
+
+   template < typename value_t >
+   inline void add( const P2VectorFunction< value_t >& function )
+   {
+      p2VecFunctions_.push_back( function );
+   }
+
+   template < typename value_t >
+   inline void add( const EdgeDoFFunction< value_t >& function )
+   {
+      edgeDoFFunctions_.push_back( function );
+   }
+
+   template < typename value_t >
+   inline void add( const DGFunction< value_t >& function )
+   {
+      dgFunctions_.push_back( function );
+   }
+
+   template < typename value_t >
+   inline void add( const BlockFunction< value_t >& function )
+   {
+      for ( uint_t k = 0; k < function.getNumberOfBlocks(); k++ )
+      {
+         add( function[k] );
+      }
+   }
+
+   template < typename value_t >
+   void add( const GenericFunction< value_t >& function );
 
    void add( const P1StokesFunction< real_t >& function );
    void add( const P2P1TaylorHoodFunction< real_t >& function );
-
-   void add( const GenericFunction< real_t >& function );
-   void add( const BlockFunction< real_t >& function );
 
    /// Writes the VTK output only if writeFrequency > 0 and timestep % writeFrequency == 0.
    /// Therefore always writes output if timestep is 0.
@@ -148,10 +190,6 @@ class VTKOutput
 
    std::string fileNameExtension( const vtk::DoFType& dofType, const uint_t& level, const uint_t& timestep ) const;
 
-   void writeHeader( std::ostringstream& output, const uint_t& numberOfPoints, const uint_t& numberOfCells ) const;
-
-   void writeFooterAndFile( std::ostringstream& output, const std::string& completeFilePath ) const;
-
    void syncAllFunctions( const uint_t& level ) const;
 
    /// Writes only macro-faces.
@@ -166,8 +204,8 @@ class VTKOutput
       add( function.unwrap() );
    }
 
-   template < typename WrapperFunc >
-   bool tryUnwrapAndAdd( const GenericFunction< real_t >& function )
+   template < typename WrapperFunc, typename value_t >
+   bool tryUnwrapAndAdd( const GenericFunction< value_t >& function )
    {
       bool               success = false;
       const WrapperFunc* aux     = dynamic_cast< const WrapperFunc* >( &function );
@@ -188,14 +226,14 @@ class VTKOutput
 
    bool write2D_;
 
-   std::vector< P1Function< real_t > > p1Functions_;
-   std::vector< P2Function< real_t > > p2Functions_;
+   FunctionMultiStore< P1Function > p1Functions_;
+   FunctionMultiStore< P2Function > p2Functions_;
 
-   std::vector< P1VectorFunction< real_t > > p1VecFunctions_;
-   std::vector< P2VectorFunction< real_t > > p2VecFunctions_;
+   FunctionMultiStore< P1VectorFunction > p1VecFunctions_;
+   FunctionMultiStore< P2VectorFunction > p2VecFunctions_;
 
-   std::vector< EdgeDoFFunction< real_t > > edgeDoFFunctions_;
-   std::vector< DGFunction< real_t > >      dgFunctions_;
+   FunctionMultiStore< EdgeDoFFunction > edgeDoFFunctions_;
+   FunctionMultiStore< DGFunction >      dgFunctions_;
 
    std::shared_ptr< PrimitiveStorage > storage_;
 

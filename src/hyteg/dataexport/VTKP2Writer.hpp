@@ -31,17 +31,21 @@ class VTKP2Writer
    static void write( const VTKOutput& mgr, std::ostream& output, const uint_t& level );
 
  private:
-   static void writeScalarFunction( const P2Function< real_t >& function,
-                                    std::ostream&               output,
-                                    const uint_t&               level,
-                                    bool                        write2D,
-                                    vtk::DataFormat             vtkDataFormat );
+   template < typename value_t >
+   static void writeScalarFunction( std::ostream&                              output,
+                                    const P2Function< value_t >&               function,
+                                    const std::shared_ptr< PrimitiveStorage >& storage,
+                                    const uint_t&                              level,
+                                    bool                                       write2D,
+                                    vtk::DataFormat                            vtkDataFormat );
 
-   static void writeVectorFunction( const P2VectorFunction< real_t >& function,
-                                    std::ostream&                     output,
-                                    const uint_t&                     level,
-                                    bool                              write2D,
-                                    vtk::DataFormat                   vtkDataFormat );
+   template < typename value_t >
+   static void writeVectorFunction( std::ostream&                              output,
+                                    const P2VectorFunction< value_t >&         function,
+                                    const std::shared_ptr< PrimitiveStorage >& storage,
+                                    const uint_t&                              level,
+                                    bool                                       write2D,
+                                    vtk::DataFormat                            vtkDataFormat );
 };
 
 } // namespace hyteg

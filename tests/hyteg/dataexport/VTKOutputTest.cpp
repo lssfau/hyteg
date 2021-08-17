@@ -34,6 +34,9 @@
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/solvers/solvertemplates/StokesSolverTemplates.hpp"
 
+// from walberla
+#include "vtk/UtilityFunctions.h"
+
 // Perform basic I/O test with VTKOutput objects
 
 namespace hyteg {
@@ -64,7 +67,7 @@ static void exportFunctions2D()
 
    std::function< real_t( const hyteg::Point3D& ) > xFunc = []( const Point3D& p ) -> real_t { return -2.0 * p[0]; };
    std::function< real_t( const hyteg::Point3D& ) > yFunc = []( const Point3D& p ) -> real_t { return p[0] + p[1]; };
-   std::vector< std::function< real_t( const hyteg::Point3D& ) > > vecExpr = {xFunc, yFunc};
+   std::vector< std::function< real_t( const hyteg::Point3D& ) > > vecExpr = { xFunc, yFunc };
    p1VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
    p2VectorFunc.interpolate( vecExpr, maxLevel, DoFType::All );
 
@@ -107,7 +110,7 @@ static void exportFunctions3D()
    std::function< real_t( const hyteg::Point3D& ) >                xFunc   = []( const Point3D& p ) -> real_t { return p[0]; };
    std::function< real_t( const hyteg::Point3D& ) >                yFunc   = []( const Point3D& p ) -> real_t { return p[1]; };
    std::function< real_t( const hyteg::Point3D& ) >                zFunc   = []( const Point3D& p ) -> real_t { return p[2]; };
-   std::vector< std::function< real_t( const hyteg::Point3D& ) > > vecExpr = {xFunc, yFunc, zFunc};
+   std::vector< std::function< real_t( const hyteg::Point3D& ) > > vecExpr = { xFunc, yFunc, zFunc };
 
    // Setup some functions
    P1Function< real_t > p1ScalarFunc1( "P1 scalar function 1", storage, minLevel, maxLevel );
@@ -159,6 +162,47 @@ static void exportFunctions3D()
    }
 }
 
+template < typename value_t >
+static void exportIntegerFunctions()
+{
+   const uint_t minLevel = 2;
+   const uint_t maxLevel = 2;
+
+   MeshInfo                            mesh = MeshInfo::fromGmshFile( "../../data/meshes/penta_5el.msh" );
+   SetupPrimitiveStorage               setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   std::shared_ptr< PrimitiveStorage > storage = std::make_shared< PrimitiveStorage >( setupStorage );
+
+   // Setup some functions
+   P1Function< value_t >       p1Enumerator( "P1", storage, minLevel, maxLevel );
+   P2Function< value_t >       p2Enumerator( "P2", storage, minLevel, maxLevel );
+   EdgeDoFFunction< value_t >  edEnumerator( "EdgeDoF", storage, minLevel, maxLevel );
+   DGFunction< value_t >       dgEnumerator( "DGDoF", storage, minLevel, maxLevel );
+   P2VectorFunction< value_t > v2Enumerator( "P2Vector", storage, minLevel, maxLevel );
+
+   // Fill with values
+   p1Enumerator.enumerate( maxLevel );
+   p2Enumerator.enumerate( maxLevel );
+   dgEnumerator.enumerate( maxLevel );
+   edEnumerator.enumerate( maxLevel );
+   v2Enumerator.enumerate( maxLevel );
+
+   // Output VTK
+   bool beVerbose = true;
+   if ( beVerbose )
+   {
+      std::string fPath = "../../output";
+      std::string fName = "VTKOutputTestIntFuncs" + walberla::vtk::typeToString< value_t >();
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutput( fPath, fName, storage );
+      vtkOutput.add( p1Enumerator );
+      vtkOutput.add( p2Enumerator );
+      vtkOutput.add( dgEnumerator );
+      vtkOutput.add( edEnumerator );
+      vtkOutput.add( v2Enumerator );
+      vtkOutput.write( maxLevel );
+   }
+}
+
 } // namespace hyteg
 
 int main( int argc, char* argv[] )
@@ -168,10 +212,18 @@ int main( int argc, char* argv[] )
    walberla::Environment walberlaEnv( argc, argv );
    walberla::logging::Logging::instance()->setLogLevel( walberla::logging::Logging::PROGRESS );
    walberla::MPIManager::instance()->useWorldComm();
+
    WALBERLA_LOG_INFO_ON_ROOT( "Testing export for 2D meshes:" );
    hyteg::exportFunctions2D();
+
    WALBERLA_LOG_INFO_ON_ROOT( "Testing export for 3D meshes:" );
    hyteg::exportFunctions3D();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing export for value_t = int32_t:" );
+   hyteg::exportIntegerFunctions< int32_t >();
+
+   WALBERLA_LOG_INFO_ON_ROOT( "Testing export for value_t = int64_t:" );
+   hyteg::exportIntegerFunctions< int64_t >();
 
    return EXIT_SUCCESS;
 }
