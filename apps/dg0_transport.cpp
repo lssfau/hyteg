@@ -22,7 +22,7 @@
 
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace/DGUpwindOperator.hpp"
-#include "hyteg/facedofspace/FaceDoFFunction.hpp"
+#include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
@@ -74,8 +74,8 @@ int main(int argc, char* argv[])
 
   std::shared_ptr< hyteg::PrimitiveStorage> storage = std::make_shared< hyteg::PrimitiveStorage>(setupStorage);
 
-  std::shared_ptr< hyteg::FaceDoFFunction<real_t>> c_old = std::make_shared< hyteg::FaceDoFFunction<real_t>>("c_old", storage, minLevel, maxLevel);
-  std::shared_ptr< hyteg::FaceDoFFunction<real_t>> c = std::make_shared< hyteg::FaceDoFFunction<real_t>>("c", storage, minLevel, maxLevel);
+  std::shared_ptr< hyteg::DGFunction<real_t>> c_old = std::make_shared< hyteg::DGFunction<real_t>>("c_old", storage, minLevel, maxLevel);
+  std::shared_ptr< hyteg::DGFunction<real_t>> c = std::make_shared< hyteg::DGFunction<real_t>>("c", storage, minLevel, maxLevel);
   std::shared_ptr< hyteg::P1Function<real_t>> u = std::make_shared< hyteg::P1Function<real_t>>("u", storage, minLevel, maxLevel);
   std::shared_ptr< hyteg::P1Function<real_t>> v = std::make_shared< hyteg::P1Function<real_t>>("v", storage, minLevel, maxLevel);
 

@@ -25,7 +25,7 @@
 #include "hyteg/composites/P1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/dgfunctionspace/DGUpwindOperator.hpp"
-#include "hyteg/facedofspace/FaceDoFFunction.hpp"
+#include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
@@ -99,10 +99,10 @@ int main( int argc, char* argv[] )
 #endif
 
    // Setting up Functions
-   auto c_old = std::make_shared< hyteg::FaceDoFFunction< real_t > >( "c", storage, minLevel, maxLevel );
-   auto c     = std::make_shared< hyteg::FaceDoFFunction< real_t > >( "c", storage, minLevel, maxLevel );
+   auto c_old = std::make_shared< hyteg::DGFunction< real_t > >( "c", storage, minLevel, maxLevel );
+   auto c     = std::make_shared< hyteg::DGFunction< real_t > >( "c", storage, minLevel, maxLevel );
 
-   auto f_dg = std::make_shared< hyteg::FaceDoFFunction< real_t > >( "f_dg", storage, minLevel, maxLevel );
+   auto f_dg = std::make_shared< hyteg::DGFunction< real_t > >( "f_dg", storage, minLevel, maxLevel );
 
    auto r = std::make_shared< hyteg::P1StokesFunction< real_t > >( "r", storage, minLevel, maxLevel );
    auto f = std::make_shared< hyteg::P1StokesFunction< real_t > >( "f", storage, minLevel, maxLevel );

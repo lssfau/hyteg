@@ -121,11 +121,11 @@ int main( int argc, char* argv[] )
    hyteg::P1Function< real_t > res( "res", storage, minLevel, maxLevel );
    hyteg::P1Function< real_t > ones( "ones", storage, minLevel, maxLevel );
 
-   auto u_dg = std::make_shared< hyteg::FaceDoFFunction< real_t > >( "u_dg", storage, minLevel, maxLevel );
-   auto v_dg = std::make_shared< hyteg::FaceDoFFunction< real_t > >( "v_dg", storage, minLevel, maxLevel );
+   auto u_dg = std::make_shared< hyteg::DGFunction< real_t > >( "u_dg", storage, minLevel, maxLevel );
+   auto v_dg = std::make_shared< hyteg::DGFunction< real_t > >( "v_dg", storage, minLevel, maxLevel );
 
-   auto u_dg_old = std::make_shared< hyteg::FaceDoFFunction< real_t > >( "u_dg", storage, minLevel, maxLevel );
-   auto v_dg_old = std::make_shared< hyteg::FaceDoFFunction< real_t > >( "v_dg", storage, minLevel, maxLevel );
+   auto u_dg_old = std::make_shared< hyteg::DGFunction< real_t > >( "u_dg", storage, minLevel, maxLevel );
+   auto v_dg_old = std::make_shared< hyteg::DGFunction< real_t > >( "v_dg", storage, minLevel, maxLevel );
 
    hyteg::P1ConstantLaplaceOperator A( storage, minLevel, maxLevel );
    hyteg::P1ConstantLaplaceOperator Ascaled( storage, minLevel, maxLevel );

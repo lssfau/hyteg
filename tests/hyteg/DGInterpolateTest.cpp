@@ -54,8 +54,8 @@ int main(int argc, char **argv) {
   }
   FaceDoFFunction< real_t > x("x", storage, minLevel, maxLevel);
 
-  DGEdge::interpolate< real_t >(maxLevel, *edgeWithTwoFaces,x.getEdgeDataID(),{},exact,storage);
-  //DGEdge::interpolate< real_t >(maxLevel,*edgeWithTwoFaces,x.getEdgeDataID(),{},exact,storage);
+  facedof::macroedge::interpolate< real_t >(maxLevel, *edgeWithTwoFaces,x.getEdgeDataID(),{},exact,storage);
+  //facedof::macroedge::interpolate< real_t >(maxLevel,*edgeWithTwoFaces,x.getEdgeDataID(),{},exact,storage);
 
 
   Point3D edgeZeroPoint = edgeWithTwoFaces->getCoordinates()[0];

@@ -21,14 +21,14 @@
 
 #include <array>
 
-#include "hyteg/facedofspace/FaceDoFFunction.hpp"
+#include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
 
 template < class VelocityBaseType >
-class DGUpwindOperator : public Operator< FaceDoFFunction< real_t >, FaceDoFFunction< real_t > >
+class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
 {
    typedef std::array< VelocityBaseType , 2 > VelocityType;
 
@@ -41,10 +41,10 @@ class DGUpwindOperator : public Operator< FaceDoFFunction< real_t >, FaceDoFFunc
    , velocity_( velocity )
    {}
 
-   ~DGUpwindOperator() = default;
+   ~DGUpwindOperator() override = default;
 
-   void apply( const FaceDoFFunction< real_t >& src,
-               const FaceDoFFunction< real_t >& dst,
+   void apply( const DGFunction< real_t >& src,
+               const DGFunction< real_t >& dst,
                uint_t                      level,
                DoFType                     flag,
                UpdateType                  updateType = Replace ) const
@@ -83,7 +83,7 @@ class DGUpwindOperator : public Operator< FaceDoFFunction< real_t >, FaceDoFFunc
          const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
          if( testFlag( vertexBC, flag ) )
          {
-            DGVertex::upwind< real_t >( level,
+            dgfunction::macrovertex::upwind< real_t >( level,
                                         vertex,
                                         storage_,
                                         src.getVertexDataID(),
@@ -108,7 +108,7 @@ class DGUpwindOperator : public Operator< FaceDoFFunction< real_t >, FaceDoFFunc
          const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
          if( testFlag( edgeBC, flag ) )
          {
-            DGEdge::upwind< real_t >( level,
+            dgfunction::macroedge::upwind< real_t >( level,
                                       edge,
                                       storage_,
                                       src.getEdgeDataID(),
@@ -130,7 +130,7 @@ class DGUpwindOperator : public Operator< FaceDoFFunction< real_t >, FaceDoFFunc
          const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
          if( testFlag( faceBC, flag ) )
          {
-            DGFace::upwind< real_t >( level,
+            dgfunction::macroface::upwind< real_t >( level,
                                       face,
                                       storage_,
                                       src.getFaceDataID(),

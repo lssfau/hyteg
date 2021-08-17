@@ -34,7 +34,7 @@
 namespace hyteg {
 
 template < typename ValueType >
-class FaceDoFFunction final : public Function< FaceDoFFunction< ValueType > >
+class FaceDoFFunction : public Function< FaceDoFFunction< ValueType > >
 {
  public:
    FaceDoFFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
@@ -105,8 +105,6 @@ class FaceDoFFunction final : public Function< FaceDoFFunction< ValueType > >
    const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& getEdgeDataID() const { return edgeDataID_; }
 
    const PrimitiveDataID< FunctionMemory< ValueType >, Face >& getFaceDataID() const { return faceDataID_; }
-
-   void projectP1( P1Function< real_t >& src, uint_t level, DoFType flag, UpdateType updateType = Replace );
 
    inline BoundaryCondition getBoundaryCondition() const { return boundaryCondition_; }
 
@@ -420,62 +418,6 @@ void FaceDoFFunction< ValueType >::enumerate( uint_t level, ValueType offset )
    this->stopTiming( "Enumerate" );
 }
 
-template < typename ValueType >
-void FaceDoFFunction< ValueType >::projectP1( P1Function< real_t >& src, uint_t level, DoFType flag, UpdateType updateType )
-{
-   this->startTiming( "projectP1" );
-
-   src.startCommunication< Edge, Vertex >( level );
-   src.startCommunication< Face, Edge >( level );
-   src.endCommunication< Edge, Vertex >( level );
-
-   for ( auto& it : this->getStorage()->getVertices() )
-   {
-      Vertex& vertex = *it.second;
-
-      const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-      if ( testFlag( vertexBC, flag ) )
-      {
-         facedof::macrovertex::projectP1< real_t >(
-             level, vertex, this->getStorage(), src.getVertexDataID(), this->getVertexDataID(), updateType );
-      }
-   }
-
-   startCommunication< Vertex, Edge >( level );
-
-   src.endCommunication< Face, Edge >( level );
-
-   for ( auto& it : this->getStorage()->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-
-      if ( testFlag( edgeBC, flag ) )
-      {
-         facedof::macroedge::projectP1< real_t >( level, edge, this->getStorage(), src.getEdgeDataID(), this->getEdgeDataID(), updateType );
-      }
-   }
-
-   endCommunication< Vertex, Edge >( level );
-
-   startCommunication< Edge, Face >( level );
-
-   for ( auto& it : this->getStorage()->getFaces() )
-   {
-      Face& face = *it.second;
-
-      const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-      if ( testFlag( faceBC, flag ) )
-      {
-         facedof::macroface::projectP1< real_t >( level, face, this->getStorage(), src.getFaceDataID(), this->getFaceDataID(), updateType );
-      }
-   }
-
-   endCommunication< Edge, Face >( level );
-
-   this->stopTiming( "projectP1" );
-}
 
 template < typename ValueType >
 real_t FaceDoFFunction< ValueType >::getMaxValue( const uint_t level, DoFType flag )
