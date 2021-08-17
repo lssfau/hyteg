@@ -21,16 +21,16 @@
 
 #include "hyteg/memory/FunctionMemory.hpp"
 #include "hyteg/primitives/all.hpp"
-#include "DGMemory.hpp"
+
+#include "FaceDoFMemory.hpp"
 
 namespace hyteg {
 
 template< typename ValueType >
-class VertexDGFunctionMemoryDataHandling : public FunctionMemoryDataHandling< FunctionMemory < ValueType >, Vertex >
+class VertexFaceDoFMemoryDataHandling : public FunctionMemoryDataHandling< FunctionMemory < ValueType >, Vertex >
 {
 public:
-
-  VertexDGFunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel )
+  VertexFaceDoFMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel )
     : minLevel_( minLevel ),
       maxLevel_( maxLevel )
   {}
@@ -46,11 +46,10 @@ uint_t maxLevel_;
 
 
 template< typename ValueType >
-class EdgeDGFunctionMemoryDataHandling : public FunctionMemoryDataHandling< FunctionMemory < ValueType >, Edge >
+class EdgeFaceDoFMemoryDataHandling : public FunctionMemoryDataHandling< FunctionMemory < ValueType >, Edge >
 {
 public:
-
-  EdgeDGFunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel )
+  EdgeFaceDoFMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel )
     : minLevel_( minLevel ),
       maxLevel_( maxLevel )
   {}
@@ -65,11 +64,10 @@ private:
 };
 
 template< typename ValueType >
-class FaceDGFunctionMemoryDataHandling : public FunctionMemoryDataHandling< FunctionMemory < ValueType >, Face >
+class FaceFaceDoFMemoryDataHandling : public FunctionMemoryDataHandling< FunctionMemory < ValueType >, Face >
 {
 public:
-
-  FaceDGFunctionMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel )
+  FaceFaceDoFMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel )
     : minLevel_( minLevel ),
       maxLevel_( maxLevel )
   {}
@@ -84,21 +82,24 @@ private:
 };
 
 template< typename ValueType >
-std::shared_ptr< FunctionMemory< ValueType > > VertexDGFunctionMemoryDataHandling< ValueType >::initialize( const Vertex * const vertex ) const
+std::shared_ptr< FunctionMemory< ValueType > >
+    VertexFaceDoFMemoryDataHandling< ValueType >::initialize( const Vertex * const vertex ) const
 {
-  return std::make_shared< FunctionMemory< ValueType > >( DGVertexFunctionMemorySize, *vertex, minLevel_, maxLevel_ );
+  return std::make_shared< FunctionMemory< ValueType > >( faceDoFMacroVertexFunctionMemorySize, *vertex, minLevel_, maxLevel_ );
 }
 
 template< typename ValueType >
-std::shared_ptr< FunctionMemory< ValueType > > EdgeDGFunctionMemoryDataHandling< ValueType >::initialize( const Edge * const edge ) const
+std::shared_ptr< FunctionMemory< ValueType > >
+    EdgeFaceDoFMemoryDataHandling< ValueType >::initialize( const Edge * const edge ) const
 {
-  return std::make_shared< FunctionMemory< ValueType > >( DGEdgeFunctionMemorySize, *edge, minLevel_, maxLevel_ );
+  return std::make_shared< FunctionMemory< ValueType > >( faceDoFMacroEdgeFunctionMemorySize, *edge, minLevel_, maxLevel_ );
 }
 
 template< typename ValueType >
-std::shared_ptr< FunctionMemory< ValueType > > FaceDGFunctionMemoryDataHandling< ValueType >::initialize( const Face * const face ) const
+std::shared_ptr< FunctionMemory< ValueType > >
+    FaceFaceDoFMemoryDataHandling< ValueType >::initialize( const Face * const face ) const
 {
-  return std::make_shared< FunctionMemory< ValueType > >( DGFaceFunctionMemorySize, *face, minLevel_, maxLevel_ );
+  return std::make_shared< FunctionMemory< ValueType > >( faceDoFMacroFaceFunctionMemorySize, *face, minLevel_, maxLevel_ );
 }
 
 

@@ -23,15 +23,16 @@
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
 #include "core/debug/TestSubsystem.h"
-#include "core/mpi/SendBuffer.h"
 #include "core/mpi/RecvBuffer.h"
+#include "core/mpi/SendBuffer.h"
+
+#include "hyteg/facedofspace/FaceDoFFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
+#include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/p1functionspace/P1Function.hpp"
-#include "hyteg/p2functionspace/P2Function.hpp"
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
 
 using walberla::uint_t;
 
@@ -255,7 +256,7 @@ int main( int argc, char* argv[] )
   WALBERLA_LOG_INFO_ON_ROOT( "\n\nDGFunction (DoFType=All)\n" );
 
   theLevel = 2;
-  hyteg::DGFunction< real_t > dgFunc( "", storage, theLevel, theLevel );
+  hyteg::FaceDoFFunction< real_t > dgFunc( "", storage, theLevel, theLevel );
   runFindTest( "Test #C (combo    ): maximum   = ", FIND_MAX, theLevel, dgFunc, testFuncCombo,  3.0 );
   runFindTest( "                     minimum   = ", FIND_MIN, theLevel, dgFunc, testFuncCombo, -5.0 );
   runFindTest( "                     magnitude = ", FIND_MAG, theLevel, dgFunc, testFuncCombo,  5.0 );
@@ -281,7 +282,7 @@ int main( int argc, char* argv[] )
 
   hyteg::P1Function< real_t > p1Func3D( "", storage3D, theLevel, theLevel );
   hyteg::P2Function< real_t > p2Func3D( "", storage3D, theLevel, theLevel );
-  hyteg::DGFunction< real_t > dgFunc3D( "", storage3D, theLevel, theLevel );
+  hyteg::FaceDoFFunction< real_t > dgFunc3D( "", storage3D, theLevel, theLevel );
 
 
   // --------------------------------------------------------------------------------------------------

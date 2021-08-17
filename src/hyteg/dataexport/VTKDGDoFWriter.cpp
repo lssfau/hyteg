@@ -77,7 +77,7 @@ void VTKDGDoFWriter::write( const VTKOutput& mgr, std::ostream& output, const ui
 
 template < typename value_t >
 void VTKDGDoFWriter::writeScalarFunction( std::ostream&                              output,
-                                          const DGFunction< value_t >&               function,
+                                          const FaceDoFFunction< value_t >&               function,
                                           const std::shared_ptr< PrimitiveStorage >& storage,
                                           const uint_t&                              level,
                                           bool                                       write2D,

@@ -21,14 +21,14 @@
 
 #include <array>
 
+#include "hyteg/facedofspace/FaceDoFFunction.hpp"
 #include "hyteg/operators/Operator.hpp"
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
 
 template < class VelocityBaseType >
-class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
+class DGUpwindOperator : public Operator< FaceDoFFunction< real_t >, FaceDoFFunction< real_t > >
 {
    typedef std::array< VelocityBaseType , 2 > VelocityType;
 
@@ -43,8 +43,8 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
 
    ~DGUpwindOperator() = default;
 
-   void apply( const DGFunction< real_t >& src,
-               const DGFunction< real_t >& dst,
+   void apply( const FaceDoFFunction< real_t >& src,
+               const FaceDoFFunction< real_t >& dst,
                uint_t                      level,
                DoFType                     flag,
                UpdateType                  updateType = Replace ) const

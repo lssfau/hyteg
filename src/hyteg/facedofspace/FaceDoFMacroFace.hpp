@@ -26,7 +26,8 @@
 #include "hyteg/facedofspace/FaceDoFIndexing.hpp"
 
 namespace hyteg {
-namespace DGFace {
+namespace facedof {
+namespace macroface {
 
 template < typename ValueType >
 inline void
@@ -695,8 +696,8 @@ inline void add( const uint_t&                                               lev
 }
 
 template < typename ValueType >
-inline ValueType dot( const uint_t&                                                 level,
-                      Face&                                                         face,
+inline ValueType dot( const uint_t&                                               level,
+                      Face&                                                       face,
                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& lhsMemoryId,
                       const PrimitiveDataID< FunctionMemory< ValueType >, Face >& rhsMemoryId )
 {
@@ -743,5 +744,6 @@ inline void swap( const uint_t&                                               le
    face.getData( srcID )->swap( *face.getData( dstID ), level );
 }
 
-} //namespace DGFace
+} // namespace macroface
+} // namespace facedof
 } //namespace hyteg

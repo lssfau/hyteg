@@ -39,7 +39,7 @@ using walberla::real_t;
 using walberla::uint_t;
 
 template < typename ValueType >
-class DGFunction;
+class FaceDoFFunction;
 template < typename ValueType >
 class FunctionMemory;
 template < typename DataType, typename PrimitiveType >
@@ -194,7 +194,7 @@ class VertexDoFFunction final: public Function< VertexDoFFunction< ValueType > >
    ValueType sumLocal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
    ValueType sumGlobal( const uint_t& level, const DoFType& flag = All, const bool& absolute = false ) const;
 
-   void integrateDG( DGFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
+   void integrateDG( FaceDoFFunction< ValueType >& rhs, VertexDoFFunction< ValueType >& rhsP1, uint_t level, DoFType flag );
 
    /// Interpolates a given expression to a VertexDoFFunction
    void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;

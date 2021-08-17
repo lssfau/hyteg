@@ -24,37 +24,37 @@
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 
-#include "DGDataHandling.hpp"
-#include "DGEdge.hpp"
-#include "DGFace.hpp"
-#include "DGMemory.hpp"
-#include "DGPackInfo.hpp"
-#include "DGVertex.hpp"
+#include "FaceDoFDataHandling.hpp"
+#include "FaceDoFMacroEdge.hpp"
+#include "FaceDoFMacroFace.hpp"
+#include "FaceDoFMacroVertex.hpp"
+#include "FaceDoFMemory.hpp"
+#include "FaceDoFPackInfo.hpp"
 
 namespace hyteg {
 
 template < typename ValueType >
-class DGFunction final : public Function< DGFunction< ValueType > >
+class FaceDoFFunction final : public Function< FaceDoFFunction< ValueType > >
 {
  public:
-   DGFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
-   : DGFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
+   FaceDoFFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
+   : FaceDoFFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
    {}
 
-   DGFunction( const std::string&                         name,
+   FaceDoFFunction( const std::string&                         name,
                const std::shared_ptr< PrimitiveStorage >& storage,
                uint_t                                     minLevel,
                uint_t                                     maxLevel,
                BoundaryCondition                          boundaryCondition )
-   : Function< DGFunction< ValueType > >( name, storage, minLevel, maxLevel )
+   : Function< FaceDoFFunction< ValueType > >( name, storage, minLevel, maxLevel )
    , boundaryCondition_( boundaryCondition )
    {
       auto vertexDGFunctionMemoryDataHandling =
-          std::make_shared< VertexDGFunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
+          std::make_shared< VertexFaceDoFMemoryDataHandling< ValueType > >( minLevel, maxLevel );
       auto edgeDGFunctionMemoryDataHandling =
-          std::make_shared< EdgeDGFunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
+          std::make_shared< EdgeFaceDoFMemoryDataHandling< ValueType > >( minLevel, maxLevel );
       auto faceDGFunctionMemoryDataHandling =
-          std::make_shared< FaceDGFunctionMemoryDataHandling< ValueType > >( minLevel, maxLevel );
+          std::make_shared< FaceFaceDoFMemoryDataHandling< ValueType > >( minLevel, maxLevel );
 
       storage->addFaceData( faceDataID_, faceDGFunctionMemoryDataHandling, name );
       storage->addEdgeData( edgeDataID_, edgeDGFunctionMemoryDataHandling, name );
@@ -63,7 +63,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
       {
          //communicators_[level]->setLocalCommunicationMode(communication::BufferedCommunicator::BUFFERED_MPI);
          communicators_[level]->addPackInfo(
-             std::make_shared< DGPackInfo< ValueType > >( level, vertexDataID_, edgeDataID_, faceDataID_, this->getStorage() ) );
+             std::make_shared< FaceDoFPackInfo< ValueType > >( level, vertexDataID_, edgeDataID_, faceDataID_, this->getStorage() ) );
       }
    }
 
@@ -72,7 +72,7 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    inline void interpolate( ValueType constant, uint_t level, DoFType flag = All ) const;
 
    inline void interpolate( const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-                            const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >&        srcFunctions,
+                            const std::vector< std::reference_wrapper< const FaceDoFFunction< ValueType > > >&        srcFunctions,
                             uint_t                                                                               level,
                             DoFType                                                                              flag = All ) const;
 
@@ -81,14 +81,14 @@ class DGFunction final : public Function< DGFunction< ValueType > >
                             DoFType                                                                   flag = All ) const;
 
    void assign( const std::vector< ValueType >&                                               scalars,
-                const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+                const std::vector< std::reference_wrapper< const FaceDoFFunction< ValueType > > >& functions,
                 uint_t                                                                        level,
                 DoFType                                                                       flag = All ) const;
 
    inline void add( ValueType scalar, uint_t level, DoFType flag = All ) const;
 
    inline void add( const std::vector< ValueType >&                                               scalars,
-                    const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+                    const std::vector< std::reference_wrapper< const FaceDoFFunction< ValueType > > >& functions,
                     uint_t                                                                        level,
                     DoFType                                                                       flag = All ) const;
 
@@ -149,29 +149,29 @@ class DGFunction final : public Function< DGFunction< ValueType > >
    /// \param functions  the functions forming the product
    /// \param level      level on which the multiplication should be computed
    /// \param flag       marks those primitives which are partaking in the computation of the product
-   inline void multElementwise( const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+   inline void multElementwise( const std::vector< std::reference_wrapper< const FaceDoFFunction< ValueType > > >& functions,
                                 uint_t                                                                        level,
                                 DoFType                                                                       flag = All ) const;
 
-   inline void copyFrom( const DGFunction< ValueType >& other, const uint_t& level ) const;
+   inline void copyFrom( const FaceDoFFunction< ValueType >& other, const uint_t& level ) const;
 
-   inline void copyFrom( const DGFunction< ValueType >&                 other,
+   inline void copyFrom( const FaceDoFFunction< ValueType >&                 other,
                          const uint_t&                                  level,
                          const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
                          const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const;
 
    inline void setBoundaryCondition( BoundaryCondition bc ) { boundaryCondition_ = std::move(bc); }
 
-   inline ValueType dotLocal( const DGFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const;
+   inline ValueType dotLocal( const FaceDoFFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const;
 
-   inline ValueType dotGlobal( const DGFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const;
+   inline ValueType dotGlobal( const FaceDoFFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const;
 
-   inline void swap( const DGFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const;
+   inline void swap( const FaceDoFFunction< ValueType >& other, const uint_t& level, const DoFType& flag = All ) const;
 
    /// @}
 
  private:
-   using Function< DGFunction< ValueType > >::communicators_;
+   using Function< FaceDoFFunction< ValueType > >::communicators_;
 
    PrimitiveDataID< FunctionMemory< ValueType >, Vertex > vertexDataID_;
    PrimitiveDataID< FunctionMemory< ValueType >, Edge >   edgeDataID_;
@@ -181,8 +181,8 @@ class DGFunction final : public Function< DGFunction< ValueType > >
 };
 
 template < typename ValueType >
-void DGFunction< ValueType >::add( const std::vector< ValueType >&                                               scalars,
-                                   const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+void FaceDoFFunction< ValueType >::add( const std::vector< ValueType >&                                               scalars,
+                                   const std::vector< std::reference_wrapper< const FaceDoFFunction< ValueType > > >& functions,
                                    uint_t                                                                        level,
                                    DoFType                                                                       flag ) const
 {
@@ -205,13 +205,13 @@ void DGFunction< ValueType >::add( const std::vector< ValueType >&              
       const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         DGFace::add< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
+         facedof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
       }
    }
 }
 
 template < typename ValueType >
-inline void DGFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
+inline void FaceDoFFunction< ValueType >::interpolate( const std::function< ValueType( const Point3D& ) >& expr,
                                                   uint_t                                              level,
                                                   DoFType                                             flag ) const
 {
@@ -221,16 +221,16 @@ inline void DGFunction< ValueType >::interpolate( const std::function< ValueType
 }
 
 template < typename ValueType >
-inline void DGFunction< ValueType >::interpolate( ValueType constant, uint_t level, DoFType flag ) const
+inline void FaceDoFFunction< ValueType >::interpolate( ValueType constant, uint_t level, DoFType flag ) const
 {
    std::function< ValueType( const Point3D& ) > auxFunc = [constant]( const hyteg::Point3D& x ) { return constant; };
    this->interpolate( { auxFunc }, level, flag );
 }
 
 template < typename ValueType >
-void DGFunction< ValueType >::interpolate(
+void FaceDoFFunction< ValueType >::interpolate(
     const std::function< ValueType( const Point3D&, const std::vector< ValueType >& ) >& expr,
-    const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >&        srcFunctions,
+    const std::vector< std::reference_wrapper< const FaceDoFFunction< ValueType > > >&        srcFunctions,
     uint_t                                                                               level,
     DoFType                                                                              flag ) const
 {
@@ -254,7 +254,7 @@ void DGFunction< ValueType >::interpolate(
       const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if ( testFlag( vertexBC, flag ) )
       {
-         DGVertex::interpolate< ValueType >( level, vertex, vertexDataID_, srcVertexIDs, expr, this->getStorage() );
+         facedof::macrovertex::interpolate< ValueType >( level, vertex, vertexDataID_, srcVertexIDs, expr, this->getStorage() );
       }
    }
 
@@ -267,7 +267,7 @@ void DGFunction< ValueType >::interpolate(
       const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, flag ) )
       {
-         DGEdge::interpolate< ValueType >( level, edge, edgeDataID_, srcEdgeIDs, expr, this->getStorage() );
+         facedof::macroedge::interpolate< ValueType >( level, edge, edgeDataID_, srcEdgeIDs, expr, this->getStorage() );
       }
    }
 
@@ -281,7 +281,7 @@ void DGFunction< ValueType >::interpolate(
       const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         DGFace::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
+         facedof::macroface::interpolate< ValueType >( level, face, faceDataID_, srcFaceIDs, expr );
       }
    }
 
@@ -290,7 +290,7 @@ void DGFunction< ValueType >::interpolate(
 }
 
 template < typename ValueType >
-void DGFunction< ValueType >::interpolate( const std::vector< std::function< ValueType( const hyteg::Point3D& ) > >& expr,
+void FaceDoFFunction< ValueType >::interpolate( const std::vector< std::function< ValueType( const hyteg::Point3D& ) > >& expr,
                                            uint_t                                                                    level,
                                            DoFType                                                                   flag ) const
 {
@@ -300,8 +300,8 @@ void DGFunction< ValueType >::interpolate( const std::vector< std::function< Val
 
 
 template < typename ValueType >
-void DGFunction< ValueType >::assign( const std::vector< ValueType >&                                               scalars,
-                                      const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+void FaceDoFFunction< ValueType >::assign( const std::vector< ValueType >&                                               scalars,
+                                      const std::vector< std::reference_wrapper< const FaceDoFFunction< ValueType > > >& functions,
                                       uint_t                                                                        level,
                                       DoFType                                                                       flag ) const
 {
@@ -314,7 +314,7 @@ void DGFunction< ValueType >::assign( const std::vector< ValueType >&           
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > >   srcEdgeIDs;
    std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
 
-   for ( const DGFunction< ValueType >& function : functions )
+   for ( const FaceDoFFunction< ValueType >& function : functions )
    {
       srcVertexIDs.push_back( function.vertexDataID_ );
       srcEdgeIDs.push_back( function.edgeDataID_ );
@@ -328,7 +328,7 @@ void DGFunction< ValueType >::assign( const std::vector< ValueType >&           
       const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if ( testFlag( vertexBC, flag ) )
       {
-         DGVertex::assign< ValueType >( level, vertex, scalars, srcVertexIDs, vertexDataID_ );
+         facedof::macrovertex::assign< ValueType >( level, vertex, scalars, srcVertexIDs, vertexDataID_ );
       }
    }
 
@@ -341,7 +341,7 @@ void DGFunction< ValueType >::assign( const std::vector< ValueType >&           
       const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, flag ) )
       {
-         DGEdge::assign< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
+         facedof::macroedge::assign< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
       }
    }
 
@@ -355,7 +355,7 @@ void DGFunction< ValueType >::assign( const std::vector< ValueType >&           
       const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         DGFace::assign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
+         facedof::macroface::assign< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
       }
    }
 
@@ -364,13 +364,13 @@ void DGFunction< ValueType >::assign( const std::vector< ValueType >&           
 }
 
 template < typename ValueType >
-void DGFunction< ValueType >::enumerate( uint_t level )
+void FaceDoFFunction< ValueType >::enumerate( uint_t level )
 {
    enumerate( level, static_cast< ValueType >( 0 ) );
 }
 
 template < typename ValueType >
-void DGFunction< ValueType >::enumerate( uint_t level, ValueType offset )
+void FaceDoFFunction< ValueType >::enumerate( uint_t level, ValueType offset )
 {
    this->startTiming( "Enumerate" );
 
@@ -391,7 +391,7 @@ void DGFunction< ValueType >::enumerate( uint_t level, ValueType offset )
    for ( auto& it : this->getStorage()->getVertices() )
    {
       Vertex& vertex = *it.second;
-      DGVertex::enumerate( vertex, vertexDataID_, level, startOnRank );
+      facedof::macrovertex::enumerate( vertex, vertexDataID_, level, startOnRank );
    }
 
    communicators_[level]->template startCommunication< Vertex, Edge >();
@@ -400,7 +400,7 @@ void DGFunction< ValueType >::enumerate( uint_t level, ValueType offset )
    for ( auto& it : this->getStorage()->getEdges() )
    {
       Edge& edge = *it.second;
-      DGEdge::enumerate< ValueType >( level, edge, edgeDataID_, startOnRank );
+      facedof::macroedge::enumerate< ValueType >( level, edge, edgeDataID_, startOnRank );
    }
 
    communicators_[level]->template startCommunication< Edge, Face >();
@@ -409,7 +409,7 @@ void DGFunction< ValueType >::enumerate( uint_t level, ValueType offset )
    for ( auto& it : this->getStorage()->getFaces() )
    {
       Face& face = *it.second;
-      DGFace::enumerate< ValueType >( level, face, faceDataID_, startOnRank );
+      facedof::macroface::enumerate< ValueType >( level, face, faceDataID_, startOnRank );
    }
 
    communicators_[level]->template startCommunication< Face, Edge >();
@@ -421,7 +421,7 @@ void DGFunction< ValueType >::enumerate( uint_t level, ValueType offset )
 }
 
 template < typename ValueType >
-void DGFunction< ValueType >::projectP1( P1Function< real_t >& src, uint_t level, DoFType flag, UpdateType updateType )
+void FaceDoFFunction< ValueType >::projectP1( P1Function< real_t >& src, uint_t level, DoFType flag, UpdateType updateType )
 {
    this->startTiming( "projectP1" );
 
@@ -436,7 +436,7 @@ void DGFunction< ValueType >::projectP1( P1Function< real_t >& src, uint_t level
       const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
       if ( testFlag( vertexBC, flag ) )
       {
-         DGVertex::projectP1< real_t >(
+         facedof::macrovertex::projectP1< real_t >(
              level, vertex, this->getStorage(), src.getVertexDataID(), this->getVertexDataID(), updateType );
       }
    }
@@ -453,7 +453,7 @@ void DGFunction< ValueType >::projectP1( P1Function< real_t >& src, uint_t level
 
       if ( testFlag( edgeBC, flag ) )
       {
-         DGEdge::projectP1< real_t >( level, edge, this->getStorage(), src.getEdgeDataID(), this->getEdgeDataID(), updateType );
+         facedof::macroedge::projectP1< real_t >( level, edge, this->getStorage(), src.getEdgeDataID(), this->getEdgeDataID(), updateType );
       }
    }
 
@@ -468,7 +468,7 @@ void DGFunction< ValueType >::projectP1( P1Function< real_t >& src, uint_t level
       const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         DGFace::projectP1< real_t >( level, face, this->getStorage(), src.getFaceDataID(), this->getFaceDataID(), updateType );
+         facedof::macroface::projectP1< real_t >( level, face, this->getStorage(), src.getFaceDataID(), this->getFaceDataID(), updateType );
       }
    }
 
@@ -478,7 +478,7 @@ void DGFunction< ValueType >::projectP1( P1Function< real_t >& src, uint_t level
 }
 
 template < typename ValueType >
-real_t DGFunction< ValueType >::getMaxValue( const uint_t level, DoFType flag )
+real_t FaceDoFFunction< ValueType >::getMaxValue( const uint_t level, DoFType flag )
 {
    real_t localMax = -std::numeric_limits< ValueType >::max();
 
@@ -488,7 +488,7 @@ real_t DGFunction< ValueType >::getMaxValue( const uint_t level, DoFType flag )
       const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         localMax = std::max( localMax, DGFace::getMaxValue< ValueType >( level, face, faceDataID_ ) );
+         localMax = std::max( localMax, facedof::macroface::getMaxValue< ValueType >( level, face, faceDataID_ ) );
       }
    }
 
@@ -497,7 +497,7 @@ real_t DGFunction< ValueType >::getMaxValue( const uint_t level, DoFType flag )
 }
 
 template < typename ValueType >
-real_t DGFunction< ValueType >::getMinValue( const uint_t level, DoFType flag )
+real_t FaceDoFFunction< ValueType >::getMinValue( const uint_t level, DoFType flag )
 {
    ValueType localMin = std::numeric_limits< ValueType >::max();
 
@@ -507,7 +507,7 @@ real_t DGFunction< ValueType >::getMinValue( const uint_t level, DoFType flag )
       const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         localMin = std::min( localMin, DGFace::getMinValue< ValueType >( level, face, faceDataID_ ) );
+         localMin = std::min( localMin, facedof::macroface::getMinValue< ValueType >( level, face, faceDataID_ ) );
       }
    }
 
@@ -516,7 +516,7 @@ real_t DGFunction< ValueType >::getMinValue( const uint_t level, DoFType flag )
 }
 
 template < typename ValueType >
-real_t DGFunction< ValueType >::getMaxMagnitude( const uint_t level, DoFType flag )
+real_t FaceDoFFunction< ValueType >::getMaxMagnitude( const uint_t level, DoFType flag )
 {
    ValueType localMax = -std::numeric_limits< ValueType >::max();
 
@@ -526,7 +526,7 @@ real_t DGFunction< ValueType >::getMaxMagnitude( const uint_t level, DoFType fla
       const DoFType faceBC = this->getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
       if ( testFlag( faceBC, flag ) )
       {
-         localMax = std::max( localMax, DGFace::getMaxMagnitude< ValueType >( level, face, faceDataID_ ) );
+         localMax = std::max( localMax, facedof::macroface::getMaxMagnitude< ValueType >( level, face, faceDataID_ ) );
       }
    }
 
@@ -535,8 +535,8 @@ real_t DGFunction< ValueType >::getMaxMagnitude( const uint_t level, DoFType fla
 }
 
 template < typename ValueType >
-void DGFunction< ValueType >::multElementwise(
-    const std::vector< std::reference_wrapper< const DGFunction< ValueType > > >& functions,
+void FaceDoFFunction< ValueType >::multElementwise(
+    const std::vector< std::reference_wrapper< const FaceDoFFunction< ValueType > > >& functions,
     uint_t                                                                        level,
     DoFType                                                                       flag ) const
 {
@@ -552,20 +552,20 @@ void DGFunction< ValueType >::multElementwise(
       Vertex& vertex = *it.second;
 
       std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcIDs;
-      for ( const DGFunction& function : functions )
+      for ( const FaceDoFFunction& function : functions )
       {
          srcIDs.push_back( function.getVertexDataID() );
       }
 
       if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
-         DGVertex::multElementwise( level, vertex, srcIDs, vertexDataID_ );
+         facedof::macrovertex::multElementwise( level, vertex, srcIDs, vertexDataID_ );
       }
    }
    for ( auto& it : this->getStorage()->getEdges() )
    {
       std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > > srcIDs;
-      for ( const DGFunction& function : functions )
+      for ( const FaceDoFFunction& function : functions )
       {
          srcIDs.push_back( function.getEdgeDataID() );
       }
@@ -573,7 +573,7 @@ void DGFunction< ValueType >::multElementwise(
       Edge& edge = *it.second;
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
-         DGEdge::multElementwise( level, edge, srcIDs, edgeDataID_ );
+         facedof::macroedge::multElementwise( level, edge, srcIDs, edgeDataID_ );
       }
    }
    for ( auto& it : this->getStorage()->getFaces() )
@@ -581,20 +581,20 @@ void DGFunction< ValueType >::multElementwise(
       Face& face = *it.second;
 
       std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcIDs;
-      for ( const DGFunction& function : functions )
+      for ( const FaceDoFFunction& function : functions )
       {
          srcIDs.push_back( function.getFaceDataID() );
       }
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
-         DGFace::multElementwise( level, face, srcIDs, faceDataID_ );
+         facedof::macroface::multElementwise( level, face, srcIDs, faceDataID_ );
       }
    }
    this->stopTiming( "Multiply elementwise" );
 }
 
 template < typename ValueType >
-void DGFunction< ValueType >::add( const ValueType scalar, uint_t level, DoFType flag ) const
+void FaceDoFFunction< ValueType >::add( const ValueType scalar, uint_t level, DoFType flag ) const
 {
    this->startTiming( "Add scalar" );
 
@@ -609,7 +609,7 @@ void DGFunction< ValueType >::add( const ValueType scalar, uint_t level, DoFType
 
       if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
-         DGVertex::add( level, vertex, scalar, vertexDataID_ );
+         facedof::macrovertex::add( level, vertex, scalar, vertexDataID_ );
       }
    }
    for ( auto& it : this->getStorage()->getEdges() )
@@ -618,7 +618,7 @@ void DGFunction< ValueType >::add( const ValueType scalar, uint_t level, DoFType
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
-         DGEdge::add( level, edge, scalar, edgeDataID_ );
+         facedof::macroedge::add( level, edge, scalar, edgeDataID_ );
       }
    }
    for ( auto& it : this->getStorage()->getFaces() )
@@ -627,14 +627,14 @@ void DGFunction< ValueType >::add( const ValueType scalar, uint_t level, DoFType
 
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
-         DGFace::add( level, face, scalar, faceDataID_ );
+         facedof::macroface::add( level, face, scalar, faceDataID_ );
       }
    }
    this->stopTiming( "Add scalar" );
 }
 
 template < typename ValueType >
-inline void DGFunction< ValueType >::swap( const DGFunction< ValueType >& other, const uint_t& level, const DoFType& flag ) const
+inline void FaceDoFFunction< ValueType >::swap( const FaceDoFFunction< ValueType >& other, const uint_t& level, const DoFType& flag ) const
 {
    this->startTiming( "Swap" );
 
@@ -649,7 +649,7 @@ inline void DGFunction< ValueType >::swap( const DGFunction< ValueType >& other,
 
       if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
-         DGVertex::swap( level, vertex, vertexDataID_, other.vertexDataID_ );
+         facedof::macrovertex::swap( level, vertex, vertexDataID_, other.vertexDataID_ );
       }
    }
    for ( auto& it : this->getStorage()->getEdges() )
@@ -658,7 +658,7 @@ inline void DGFunction< ValueType >::swap( const DGFunction< ValueType >& other,
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
-         DGEdge::swap( level, edge, edgeDataID_, other.edgeDataID_ );
+         facedof::macroedge::swap( level, edge, edgeDataID_, other.edgeDataID_ );
       }
    }
    for ( auto& it : this->getStorage()->getFaces() )
@@ -667,14 +667,14 @@ inline void DGFunction< ValueType >::swap( const DGFunction< ValueType >& other,
 
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
-         DGFace::swap( level, face, faceDataID_, other.faceDataID_ );
+         facedof::macroface::swap( level, face, faceDataID_, other.faceDataID_ );
       }
    }
    this->stopTiming( "Swap" );
 }
 
 template < typename ValueType >
-ValueType DGFunction< ValueType >::dotLocal( const DGFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const
+ValueType FaceDoFFunction< ValueType >::dotLocal( const FaceDoFFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const
 {
    if ( this->getStorage()->hasGlobalCells() )
    {
@@ -691,7 +691,7 @@ ValueType DGFunction< ValueType >::dotLocal( const DGFunction< ValueType >& seco
 
       if ( testFlag( boundaryCondition_.getBoundaryType( vertex.getMeshBoundaryFlag() ), flag ) )
       {
-         scalarProduct += DGVertex::dot( level, vertex, vertexDataID_, secondOp.vertexDataID_ );
+         scalarProduct += facedof::macrovertex::dot( level, vertex, vertexDataID_, secondOp.vertexDataID_ );
       }
    }
 
@@ -701,7 +701,7 @@ ValueType DGFunction< ValueType >::dotLocal( const DGFunction< ValueType >& seco
 
       if ( testFlag( boundaryCondition_.getBoundaryType( edge.getMeshBoundaryFlag() ), flag ) )
       {
-         scalarProduct += DGEdge::dot< ValueType >( level, edge, edgeDataID_, secondOp.edgeDataID_ );
+         scalarProduct += facedof::macroedge::dot< ValueType >( level, edge, edgeDataID_, secondOp.edgeDataID_ );
       }
    }
 
@@ -711,7 +711,7 @@ ValueType DGFunction< ValueType >::dotLocal( const DGFunction< ValueType >& seco
 
       if ( testFlag( boundaryCondition_.getBoundaryType( face.getMeshBoundaryFlag() ), flag ) )
       {
-         scalarProduct += DGFace::dot< ValueType >( level, face, faceDataID_, secondOp.faceDataID_ );
+         scalarProduct += facedof::macroface::dot< ValueType >( level, face, faceDataID_, secondOp.faceDataID_ );
       }
    }
 
@@ -721,7 +721,8 @@ ValueType DGFunction< ValueType >::dotLocal( const DGFunction< ValueType >& seco
 }
 
 template < typename ValueType >
-ValueType DGFunction< ValueType >::dotGlobal( const DGFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const
+ValueType
+    FaceDoFFunction< ValueType >::dotGlobal( const FaceDoFFunction< ValueType >& secondOp, uint_t level, DoFType flag ) const
 {
    ValueType scalarProduct = dotLocal( secondOp, level, flag );
    this->startTiming( "Dot (reduce)" );
@@ -731,7 +732,7 @@ ValueType DGFunction< ValueType >::dotGlobal( const DGFunction< ValueType >& sec
 }
 
 template < typename ValueType >
-void DGFunction< ValueType >::copyFrom( const DGFunction< ValueType >& other, const uint_t& level ) const
+void FaceDoFFunction< ValueType >::copyFrom( const FaceDoFFunction< ValueType >& other, const uint_t& level ) const
 {
    if ( this->getStorage()->hasGlobalCells() )
    {
@@ -774,7 +775,7 @@ void DGFunction< ValueType >::copyFrom( const DGFunction< ValueType >& other, co
 }
 
 template < typename ValueType >
-void DGFunction< ValueType >::copyFrom( const DGFunction< ValueType >&          other,
+void FaceDoFFunction< ValueType >::copyFrom( const FaceDoFFunction< ValueType >&          other,
                                         const uint_t&                                  level,
                                         const std::map< PrimitiveID::IDType, uint_t >& localPrimitiveIDsToRank,
                                         const std::map< PrimitiveID::IDType, uint_t >& otherPrimitiveIDsToRank ) const

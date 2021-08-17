@@ -17,14 +17,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "core/mpi/all.h"
 #include "core/debug/all.h"
+#include "core/mpi/all.h"
 
+#include "hyteg/facedofspace/FaceDoFFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
 
 using namespace hyteg;
 
@@ -44,7 +44,7 @@ int main (int argc, char ** argv )
   const uint_t minLevel = 2;
   const uint_t maxLevel = 4;
 
-  hyteg::DGFunction< uint_t > x("x", storage, minLevel, maxLevel);
+  hyteg::FaceDoFFunction< uint_t > x("x", storage, minLevel, maxLevel);
 
   uint_t check = 1;
   uint_t sum = 0;

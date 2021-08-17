@@ -73,7 +73,7 @@ template < typename VType >
 class EdgeDoFFunction;
 
 template < typename VType >
-class DGFunction;
+class FaceDoFFunction;
 
 // Composites
 
@@ -155,7 +155,7 @@ struct FunctionTrait< EdgeDoFFunction< VType > >
 
 /// DG specialization
 template < typename VType >
-struct FunctionTrait< DGFunction< VType > >
+struct FunctionTrait< FaceDoFFunction< VType > >
 {
    typedef VType         ValueType;
    typedef DGFunctionTag Tag;

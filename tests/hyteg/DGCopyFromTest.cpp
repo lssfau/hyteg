@@ -21,7 +21,7 @@
 #include "core/mpi/all.h"
 
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
+#include "hyteg/facedofspace/FaceDoFFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
@@ -45,8 +45,8 @@ int main( int argc, char** argv )
    const uint_t minLevel = 2;
    const uint_t maxLevel = 4;
 
-   hyteg::DGFunction< real_t > x1( "x1", storage1, minLevel, maxLevel );
-   hyteg::DGFunction< real_t > x2( "x2", storage2, minLevel, maxLevel );
+   hyteg::FaceDoFFunction< real_t > x1( "x1", storage1, minLevel, maxLevel );
+   hyteg::FaceDoFFunction< real_t > x2( "x2", storage2, minLevel, maxLevel );
 
    x1.interpolate(1, maxLevel, All);
    x2.copyFrom(x1, maxLevel);
