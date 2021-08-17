@@ -28,6 +28,7 @@
 #include "hyteg/sparseassembly/VectorProxy.hpp"
 #include "hyteg/types/flags.hpp"
 
+#ifdef HYTEG_BUILD_WITH_PETSC
 namespace hyteg {
 namespace petsc {
 
@@ -55,3 +56,4 @@ inline void createFunctionFromVector( const BlockFunction< PetscReal >&   functi
 
 } // namespace petsc
 } // namespace hyteg
+#endif
