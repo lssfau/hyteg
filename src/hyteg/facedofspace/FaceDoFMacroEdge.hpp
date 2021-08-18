@@ -193,6 +193,94 @@ inline void add( const uint_t&                                                  
 }
 
 template < typename ValueType >
+inline ValueType getMinValue( const uint_t& Level, Edge& edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId )
+{
+   size_t rowsize = levelinfo::num_microvertices_per_edge( Level );
+
+   auto srcPtr = edge.getData( srcId )->getPointer( Level );
+
+   ValueType localMin = +std::numeric_limits< ValueType >::max();
+
+   // gray south cells
+   for ( size_t i = 1; i < rowsize - 2; ++i )
+   {
+      uint_t cellIndex = facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE );
+      localMin         = std::min( localMin, srcPtr[cellIndex] );
+   }
+
+   if ( edge.getNumNeighborFaces() == 2 )
+   {
+      // gray north cells
+      for ( size_t i = 1; i < rowsize - 2; ++i )
+      {
+         uint_t cellIndex = facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE );
+         localMin         = std::min( localMin, srcPtr[cellIndex] );
+      }
+   }
+
+   return localMin;
+}
+
+template < typename ValueType >
+inline ValueType getMaxValue( const uint_t& Level, Edge& edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId )
+{
+   size_t rowsize = levelinfo::num_microvertices_per_edge( Level );
+
+   auto srcPtr = edge.getData( srcId )->getPointer( Level );
+
+   ValueType localMax = -std::numeric_limits< ValueType >::max();
+
+   // gray south cells
+   for ( size_t i = 1; i < rowsize - 2; ++i )
+   {
+      uint_t cellIndex = facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE );
+      localMax         = std::max( localMax, srcPtr[cellIndex] );
+   }
+
+   if ( edge.getNumNeighborFaces() == 2 )
+   {
+      // gray north cells
+      for ( size_t i = 1; i < rowsize - 2; ++i )
+      {
+         uint_t cellIndex = facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE );
+         localMax         = std::max( localMax, srcPtr[cellIndex] );
+      }
+   }
+
+   return localMax;
+}
+
+template < typename ValueType >
+inline ValueType
+    getMaxMagnitude( const uint_t& Level, Edge& edge, const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId )
+{
+   size_t rowsize = levelinfo::num_microvertices_per_edge( Level );
+
+   auto srcPtr = edge.getData( srcId )->getPointer( Level );
+
+   ValueType localMax = ValueType( 0. );
+
+   // gray south cells
+   for ( size_t i = 1; i < rowsize - 2; ++i )
+   {
+      uint_t cellIndex = facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_SE );
+      localMax         = std::max( localMax, std::abs( srcPtr[cellIndex] ) );
+   }
+
+   if ( edge.getNumNeighborFaces() == 2 )
+   {
+      // gray north cells
+      for ( size_t i = 1; i < rowsize - 2; ++i )
+      {
+         uint_t cellIndex = facedof::macroedge::indexFaceFromVertex( Level, i, stencilDirection::CELL_GRAY_NE );
+         localMax         = std::max( localMax, std::abs( srcPtr[cellIndex] ) );
+      }
+   }
+
+   return localMax;
+}
+
+template < typename ValueType >
 inline void multElementwise( const uint_t&                                                              level,
                              Edge&                                                                      edge,
                              const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > >& srcIds,

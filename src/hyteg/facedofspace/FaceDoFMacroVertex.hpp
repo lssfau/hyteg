@@ -161,6 +161,45 @@ inline void add( const uint_t&                                                 l
 }
 
 template < typename ValueType >
+inline ValueType
+    getMaxValue( const uint_t& level, Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId )
+{
+   ValueType localMax = -std::numeric_limits< ValueType >::max();
+
+   ValueType* srcPtr = vertex.getData( srcId )->getPointer( level );
+   for ( uint_t i = 0; i < vertex.getNumNeighborFaces(); ++i )
+      localMax = std::max( localMax, srcPtr[i * 2] );
+
+   return localMax;
+}
+
+template < typename ValueType >
+inline ValueType
+    getMinValue( const uint_t& level, Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId )
+{
+   ValueType localMin = +std::numeric_limits< ValueType >::max();
+
+   ValueType* srcPtr = vertex.getData( srcId )->getPointer( level );
+   for ( uint_t i = 0; i < vertex.getNumNeighborFaces(); ++i )
+      localMin = std::min( localMin, srcPtr[i * 2] );
+
+   return localMin;
+}
+
+template < typename ValueType >
+inline ValueType
+    getMaxMagnitude( const uint_t& level, Vertex& vertex, const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId )
+{
+   ValueType localMax = ValueType( 0.0 );
+
+   ValueType* srcPtr = vertex.getData( srcId )->getPointer( level );
+   for ( uint_t i = 0; i < vertex.getNumNeighborFaces(); ++i )
+      localMax = std::max( localMax, std::abs( srcPtr[i * 2] ) );
+
+   return localMax;
+}
+
+template < typename ValueType >
 inline ValueType dot( const uint_t&                                                 level,
                       Vertex&                                                       vertex,
                       const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& lhsMemoryId,
