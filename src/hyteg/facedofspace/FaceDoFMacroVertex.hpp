@@ -103,6 +103,28 @@ inline void assign( const uint_t&                                               
 }
 
 template < typename ValueType >
+inline void add( const uint_t&                                                                Level,
+                 Vertex&                                                                      vertex,
+                 const std::vector< ValueType >&                                              scalars,
+                 const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > >& srcIds,
+                 const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >&                dstId )
+{
+   auto dst = vertex.getData( dstId )->getPointer( Level );
+
+   for ( uint_t i = 0; i < vertex.getNumNeighborFaces(); ++i )
+   {
+      uint_t index = i * 2;
+      //tmp is necessary since dstId can also be in srcIds
+      ValueType tmp = scalars[0] * vertex.getData( srcIds[0] )->getPointer( Level )[index];
+      for ( uint_t k = 1; k < srcIds.size(); ++k )
+      {
+         tmp += scalars[k] * vertex.getData( srcIds[k] )->getPointer( Level )[index];
+      }
+      dst[index] += tmp;
+   }
+}
+
+template < typename ValueType >
 inline void multElementwise( const uint_t&                                                                level,
                              Vertex&                                                                      vertex,
                              const std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > >& srcIds,

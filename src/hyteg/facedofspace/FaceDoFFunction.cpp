@@ -62,17 +62,48 @@ void FaceDoFFunction< ValueType >::add(
     uint_t                                                                             level,
     DoFType                                                                            flag ) const
 {
+   this->startTiming( "Add" );
+
+   WALBERLA_ASSERT_EQUAL( scalars.size(), functions.size() )
+
    // Collect all source IDs in a vector
-   //  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Vertex>> srcVertexIDs;
-   //  std::vector<PrimitiveDataID<FunctionMemory< ValueType >, Edge>>   srcEdgeIDs;
-   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > > srcFaceIDs;
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Vertex > > srcVertexIDs;
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Edge > >   srcEdgeIDs;
+   std::vector< PrimitiveDataID< FunctionMemory< ValueType >, Face > >   srcFaceIDs;
 
    for ( auto& function : functions )
    {
-      //    srcVertexIDs.push_back(function->vertexDataID_);
-      //    srcEdgeIDs.push_back(function->edgeDataID_);
+      srcVertexIDs.push_back( function.get().vertexDataID_ );
+      srcEdgeIDs.push_back( function.get().edgeDataID_ );
       srcFaceIDs.push_back( function.get().faceDataID_ );
    }
+
+   for ( auto& it : this->getStorage()->getVertices() )
+   {
+      Vertex& vertex = *it.second;
+
+      const DoFType vertexBC = this->getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+      if ( testFlag( vertexBC, flag ) )
+      {
+         facedof::macrovertex::add< ValueType >( level, vertex, scalars, srcVertexIDs, vertexDataID_ );
+      }
+   }
+
+   startCommunication< Vertex, Edge >( level );
+
+   for ( auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      const DoFType edgeBC = this->getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if ( testFlag( edgeBC, flag ) )
+      {
+         facedof::macroedge::add< ValueType >( level, edge, scalars, srcEdgeIDs, edgeDataID_ );
+      }
+   }
+
+   endCommunication< Vertex, Edge >( level );
+   startCommunication< Edge, Face >( level );
 
    for ( auto& it : this->getStorage()->getFaces() )
    {
@@ -84,6 +115,9 @@ void FaceDoFFunction< ValueType >::add(
          facedof::macroface::add< ValueType >( level, face, scalars, srcFaceIDs, faceDataID_ );
       }
    }
+
+   endCommunication< Edge, Face >( level );
+   this->stopTiming( "Add" );
 }
 
 template < typename ValueType >
