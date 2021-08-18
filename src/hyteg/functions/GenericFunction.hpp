@@ -69,6 +69,8 @@ class GenericFunction
 
    virtual functionTraits::FunctionKind getFunctionKind() const = 0;
 
+   virtual uint_t getNumberOfLocalDoFs( uint_t level ) const = 0;
+
    virtual std::shared_ptr< PrimitiveStorage > getStorage() const = 0;
 
    virtual void multElementwise( const std::vector< std::reference_wrapper< const GenericFunction< value_t > > >& functions,
@@ -120,7 +122,16 @@ class GenericFunction
       this->setBoundaryCondition( other.getBoundaryCondition() );
    };
 
+   virtual void enumerate( uint_t level ) const = 0;
+
    virtual void enumerate( uint_t level, value_t& offset ) const = 0;
 };
+
+// Special version of numberOfLocalDoFs for GenericFunctions
+template < typename value_t >
+inline uint_t numberOfLocalDoFs( const GenericFunction< value_t >& func, const uint_t& level )
+{
+   return func.getNumberOfLocalDoFs( level );
+}
 
 } // namespace hyteg

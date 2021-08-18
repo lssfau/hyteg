@@ -528,6 +528,9 @@ template < typename value_t >
 class P1CahnHilliardFunction : public BlockFunction< value_t >
 {
  public:
+   template < typename VType >
+   using FunctionType = P1CahnHilliardFunction< VType >;
+
    P1CahnHilliardFunction( const std::string&                         name,
                            const std::shared_ptr< PrimitiveStorage >& storage,
                            size_t                                     minLevel,

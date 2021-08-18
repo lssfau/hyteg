@@ -30,6 +30,10 @@ template < typename ValueType >
 class DGFunction : public FaceDoFFunction< ValueType >
 {
  public:
+   typedef ValueType valueType;
+
+   template < typename VType >
+   using FunctionType = DGFunction< VType >;
 
    DGFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
    : FaceDoFFunction< ValueType >( name, storage, minLevel, maxLevel )

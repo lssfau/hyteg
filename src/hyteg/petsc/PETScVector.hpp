@@ -49,9 +49,7 @@ class PETScVector
                 const DoFType&                   flag              = All,
                 const std::string&               name              = "Vec",
                 const MPI_Comm&                  petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
-   : PETScVector( numberOfLocalDoFs< typename FunctionType< ValueType >::Tag >( *function.getStorage(), level ),
-                  name,
-                  petscCommunicator )
+   : PETScVector( numberOfLocalDoFs( function, level ), name, petscCommunicator )
    {
       createVectorFromFunction( function, numerator, level, flag );
    }

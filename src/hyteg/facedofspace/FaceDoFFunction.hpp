@@ -37,6 +37,11 @@ template < typename ValueType >
 class FaceDoFFunction : public Function< FaceDoFFunction< ValueType > >
 {
  public:
+   typedef ValueType valueType;
+
+   template < typename VType >
+   using FunctionType = FaceDoFFunction< VType >;
+
    FaceDoFFunction( const std::string& name, const std::shared_ptr< PrimitiveStorage >& storage, uint_t minLevel, uint_t maxLevel )
    : FaceDoFFunction( name, storage, minLevel, maxLevel, BoundaryCondition::create0123BC() )
    {}
