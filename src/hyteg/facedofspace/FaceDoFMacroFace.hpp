@@ -241,13 +241,13 @@ inline void assign( const uint_t&                                               
 }
 
 template < typename ValueType >
-inline real_t getMaxValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
+inline ValueType getMaxValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
 {
    size_t rowsize       = levelinfo::num_microvertices_per_edge( level );
    size_t inner_rowsize = rowsize;
 
    auto   src      = face.getData( srcId )->getPointer( level );
-   real_t localMax = -std::numeric_limits< ValueType >::max();
+   ValueType localMax = -std::numeric_limits< ValueType >::max();
 
    // gray cells
    for ( size_t j = 1; j < rowsize - 2; ++j )
@@ -276,13 +276,13 @@ inline real_t getMaxValue( const uint_t& level, Face& face, const PrimitiveDataI
 }
 
 template < typename ValueType >
-inline real_t getMinValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
+inline ValueType getMinValue( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
 {
    size_t rowsize       = levelinfo::num_microvertices_per_edge( level );
    size_t inner_rowsize = rowsize;
 
    auto   src      = face.getData( srcId )->getPointer( level );
-   real_t localMin = std::numeric_limits< ValueType >::max();
+   ValueType localMin = std::numeric_limits< ValueType >::max();
 
    // gray cells
    for ( size_t j = 1; j < rowsize - 2; ++j )
@@ -311,14 +311,14 @@ inline real_t getMinValue( const uint_t& level, Face& face, const PrimitiveDataI
 }
 
 template < typename ValueType >
-inline real_t
+inline ValueType
     getMaxMagnitude( const uint_t& level, Face& face, const PrimitiveDataID< FunctionMemory< ValueType >, Face >& srcId )
 {
    size_t rowsize       = levelinfo::num_microvertices_per_edge( level );
    size_t inner_rowsize = rowsize;
 
    auto   src      = face.getData( srcId )->getPointer( level );
-   real_t localMax = real_t( 0.0 );
+   ValueType localMax = ValueType( 0.0 );
 
    // gray cells
    for ( size_t j = 1; j < rowsize - 2; ++j )

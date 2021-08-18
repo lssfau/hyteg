@@ -26,81 +26,73 @@
 
 namespace hyteg {
 
-template< typename ValueType >
-class VertexFaceDoFMemoryDataHandling : public FunctionMemoryDataHandling< FunctionMemory < ValueType >, Vertex >
+template < typename ValueType >
+class VertexFaceDoFMemoryDataHandling : public FunctionMemoryDataHandling< FunctionMemory< ValueType >, Vertex >
 {
-public:
-  VertexFaceDoFMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel )
-    : minLevel_( minLevel ),
-      maxLevel_( maxLevel )
-  {}
+ public:
+   VertexFaceDoFMemoryDataHandling( const uint_t& minLevel, const uint_t& maxLevel )
+   : minLevel_( minLevel )
+   , maxLevel_( maxLevel )
+   {}
 
-  std::shared_ptr< FunctionMemory< ValueType > > initialize( const Vertex * const vertex ) const override;
+   std::shared_ptr< FunctionMemory< ValueType > > initialize( const Vertex* const vertex ) const override;
 
-private:
-
-uint_t minLevel_;
-uint_t maxLevel_;
-
+ private:
+   uint_t minLevel_;
+   uint_t maxLevel_;
 };
 
-
-template< typename ValueType >
-class EdgeFaceDoFMemoryDataHandling : public FunctionMemoryDataHandling< FunctionMemory < ValueType >, Edge >
+template < typename ValueType >
+class EdgeFaceDoFMemoryDataHandling : public FunctionMemoryDataHandling< FunctionMemory< ValueType >, Edge >
 {
-public:
-  EdgeFaceDoFMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel )
-    : minLevel_( minLevel ),
-      maxLevel_( maxLevel )
-  {}
+ public:
+   EdgeFaceDoFMemoryDataHandling( const uint_t& minLevel, const uint_t& maxLevel )
+   : minLevel_( minLevel )
+   , maxLevel_( maxLevel )
+   {}
 
-  std::shared_ptr< FunctionMemory< ValueType > > initialize( const Edge * const vertex ) const override;
+   std::shared_ptr< FunctionMemory< ValueType > > initialize( const Edge* const vertex ) const override;
 
-private:
-
-  uint_t minLevel_;
-  uint_t maxLevel_;
-
+ private:
+   uint_t minLevel_;
+   uint_t maxLevel_;
 };
 
-template< typename ValueType >
-class FaceFaceDoFMemoryDataHandling : public FunctionMemoryDataHandling< FunctionMemory < ValueType >, Face >
+template < typename ValueType >
+class FaceFaceDoFMemoryDataHandling : public FunctionMemoryDataHandling< FunctionMemory< ValueType >, Face >
 {
-public:
-  FaceFaceDoFMemoryDataHandling( const uint_t & minLevel, const uint_t & maxLevel )
-    : minLevel_( minLevel ),
-      maxLevel_( maxLevel )
-  {}
+ public:
+   FaceFaceDoFMemoryDataHandling( const uint_t& minLevel, const uint_t& maxLevel )
+   : minLevel_( minLevel )
+   , maxLevel_( maxLevel )
+   {}
 
-  std::shared_ptr<FunctionMemory<ValueType>> initialize( const Face *const face) const override;
+   std::shared_ptr< FunctionMemory< ValueType > > initialize( const Face* const face ) const override;
 
-private:
-
-  uint_t minLevel_;
-  uint_t maxLevel_;
-
+ private:
+   uint_t minLevel_;
+   uint_t maxLevel_;
 };
 
-template< typename ValueType >
+template < typename ValueType >
 std::shared_ptr< FunctionMemory< ValueType > >
-    VertexFaceDoFMemoryDataHandling< ValueType >::initialize( const Vertex * const vertex ) const
+    VertexFaceDoFMemoryDataHandling< ValueType >::initialize( const Vertex* const vertex ) const
 {
-  return std::make_shared< FunctionMemory< ValueType > >( faceDoFMacroVertexFunctionMemorySize, *vertex, minLevel_, maxLevel_ );
+   return std::make_shared< FunctionMemory< ValueType > >( faceDoFMacroVertexFunctionMemorySize, *vertex, minLevel_, maxLevel_ );
 }
 
-template< typename ValueType >
+template < typename ValueType >
 std::shared_ptr< FunctionMemory< ValueType > >
-    EdgeFaceDoFMemoryDataHandling< ValueType >::initialize( const Edge * const edge ) const
+    EdgeFaceDoFMemoryDataHandling< ValueType >::initialize( const Edge* const edge ) const
 {
-  return std::make_shared< FunctionMemory< ValueType > >( faceDoFMacroEdgeFunctionMemorySize, *edge, minLevel_, maxLevel_ );
+   return std::make_shared< FunctionMemory< ValueType > >( faceDoFMacroEdgeFunctionMemorySize, *edge, minLevel_, maxLevel_ );
 }
 
-template< typename ValueType >
+template < typename ValueType >
 std::shared_ptr< FunctionMemory< ValueType > >
-    FaceFaceDoFMemoryDataHandling< ValueType >::initialize( const Face * const face ) const
+    FaceFaceDoFMemoryDataHandling< ValueType >::initialize( const Face* const face ) const
 {
-  return std::make_shared< FunctionMemory< ValueType > >( faceDoFMacroFaceFunctionMemorySize, *face, minLevel_, maxLevel_ );
+   return std::make_shared< FunctionMemory< ValueType > >( faceDoFMacroFaceFunctionMemorySize, *face, minLevel_, maxLevel_ );
 }
 
-
-}
+} // namespace hyteg

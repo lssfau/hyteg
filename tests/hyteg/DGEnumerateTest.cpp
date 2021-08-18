@@ -44,7 +44,7 @@ int main (int argc, char ** argv )
   const uint_t minLevel = 2;
   const uint_t maxLevel = 4;
 
-  hyteg::FaceDoFFunction< uint_t > x("x", storage, minLevel, maxLevel);
+  hyteg::FaceDoFFunction< int32_t > x("x", storage, minLevel, maxLevel);
 
   uint_t check = 1;
   uint_t sum = 0;
@@ -55,7 +55,7 @@ int main (int argc, char ** argv )
 
   for (auto &vertexIt : storage->getVertices()){
     Vertex &vertex = *vertexIt.second;
-    uint_t *vertexData = vertex.getData(x.getVertexDataID())->getPointer(maxLevel);
+    int32_t *vertexData = vertex.getData(x.getVertexDataID())->getPointer(maxLevel);
     for(uint_t i = 0; i < vertex.getNumNeighborFaces(); ++i){
       WALBERLA_CHECK_EQUAL(vertexData[i*2],check);
       sum += check;
@@ -67,7 +67,7 @@ int main (int argc, char ** argv )
 
   for (auto &edgeIt : storage->getEdges()) {
     Edge &edge = *edgeIt.second;
-    uint_t *edgeData = edge.getData(x.getEdgeDataID())->getPointer(maxLevel);
+    int32_t *edgeData = edge.getData(x.getEdgeDataID())->getPointer(maxLevel);
     uint_t FaceDoFonFace = hyteg::levelinfo::num_microvertices_per_edge(maxLevel) * 2 - 3 ;
     //this only works with the linear default layout; can be changed to use index function
     for(uint_t i = 0; i < edge.getNumHigherDimNeighbors(); ++i){
@@ -82,7 +82,7 @@ int main (int argc, char ** argv )
 
   for ( auto &faceIt : storage->getFaces() ) {
     Face &face = *faceIt.second;
-    uint_t *faceData = face.getData(x.getFaceDataID())->getPointer(maxLevel);
+    int32_t *faceData = face.getData(x.getFaceDataID())->getPointer(maxLevel);
     uint_t rowsize = levelinfo::num_microvertices_per_edge(maxLevel) - 2;
     uint_t inner_rowsize = rowsize;
     for(uint_t i = 1; i < (rowsize -1 ); ++i){

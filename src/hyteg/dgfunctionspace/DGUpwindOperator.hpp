@@ -22,6 +22,9 @@
 #include <array>
 
 #include "hyteg/dgfunctionspace/DGFunction.hpp"
+#include "hyteg/dgfunctionspace/DGFunctionMacroEdge.hpp"
+#include "hyteg/dgfunctionspace/DGFunctionMacroFace.hpp"
+#include "hyteg/dgfunctionspace/DGFunctionMacroVertex.hpp"
 #include "hyteg/operators/Operator.hpp"
 #include "hyteg/types/pointnd.hpp"
 
@@ -30,7 +33,7 @@ namespace hyteg {
 template < class VelocityBaseType >
 class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real_t > >
 {
-   typedef std::array< VelocityBaseType , 2 > VelocityType;
+   typedef std::array< VelocityBaseType, 2 > VelocityType;
 
  public:
    DGUpwindOperator( const std::shared_ptr< PrimitiveStorage >& storage,
@@ -61,61 +64,61 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
       // end pulling vertex halos
       src.endCommunication< Edge, Vertex >( level );
 
-      for( auto velocityComponent : velocity_ )
+      for ( auto velocityComponent : velocity_ )
       {
          velocityComponent.template startCommunication< Edge, Vertex >( level );
       }
 
-      for( auto velocityComponent : velocity_ )
+      for ( auto velocityComponent : velocity_ )
       {
          velocityComponent.template startCommunication< Face, Edge >( level );
       }
 
-      for( auto velocityComponent : velocity_ )
+      for ( auto velocityComponent : velocity_ )
       {
          velocityComponent.template endCommunication< Edge, Vertex >( level );
       }
 
-      for( auto& it : storage_->getVertices() )
+      for ( auto& it : storage_->getVertices() )
       {
          Vertex& vertex = *it.second;
 
          const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-         if( testFlag( vertexBC, flag ) )
+         if ( testFlag( vertexBC, flag ) )
          {
             dgfunction::macrovertex::upwind< real_t >( level,
-                                        vertex,
-                                        storage_,
-                                        src.getVertexDataID(),
-                                        dst.getVertexDataID(),
-                                        std::array< PrimitiveDataID< FunctionMemory< real_t >, Vertex >, 2 >{
-                                            {velocity_[0].getVertexDataID(), velocity_[1].getVertexDataID()}},
-                                        updateType );
+                                                       vertex,
+                                                       storage_,
+                                                       src.getVertexDataID(),
+                                                       dst.getVertexDataID(),
+                                                       std::array< PrimitiveDataID< FunctionMemory< real_t >, Vertex >, 2 >{
+                                                           { velocity_[0].getVertexDataID(), velocity_[1].getVertexDataID() } },
+                                                       updateType );
          }
       }
 
       dst.startCommunication< Vertex, Edge >( level );
 
-      for( auto velocityComponent : velocity_ )
+      for ( auto velocityComponent : velocity_ )
       {
          velocityComponent.template endCommunication< Face, Edge >( level );
       }
 
-      for( auto& it : storage_->getEdges() )
+      for ( auto& it : storage_->getEdges() )
       {
          Edge& edge = *it.second;
 
          const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-         if( testFlag( edgeBC, flag ) )
+         if ( testFlag( edgeBC, flag ) )
          {
             dgfunction::macroedge::upwind< real_t >( level,
-                                      edge,
-                                      storage_,
-                                      src.getEdgeDataID(),
-                                      dst.getEdgeDataID(),
-                                      std::array< PrimitiveDataID< FunctionMemory< real_t >, Edge >, 2 >{
-                                          {velocity_[0].getEdgeDataID(), velocity_[1].getEdgeDataID()}},
-                                      updateType );
+                                                     edge,
+                                                     storage_,
+                                                     src.getEdgeDataID(),
+                                                     dst.getEdgeDataID(),
+                                                     std::array< PrimitiveDataID< FunctionMemory< real_t >, Edge >, 2 >{
+                                                         { velocity_[0].getEdgeDataID(), velocity_[1].getEdgeDataID() } },
+                                                     updateType );
          }
       }
 
@@ -123,21 +126,21 @@ class DGUpwindOperator : public Operator< DGFunction< real_t >, DGFunction< real
 
       dst.startCommunication< Edge, Face >( level );
 
-      for( auto& it : storage_->getFaces() )
+      for ( auto& it : storage_->getFaces() )
       {
          Face& face = *it.second;
 
          const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if( testFlag( faceBC, flag ) )
+         if ( testFlag( faceBC, flag ) )
          {
             dgfunction::macroface::upwind< real_t >( level,
-                                      face,
-                                      storage_,
-                                      src.getFaceDataID(),
-                                      dst.getFaceDataID(),
-                                      std::array< PrimitiveDataID< FunctionMemory< real_t >, Face >, 2 >{
-                                          {velocity_[0].getFaceDataID(), velocity_[1].getFaceDataID()}},
-                                      updateType );
+                                                     face,
+                                                     storage_,
+                                                     src.getFaceDataID(),
+                                                     dst.getFaceDataID(),
+                                                     std::array< PrimitiveDataID< FunctionMemory< real_t >, Face >, 2 >{
+                                                         { velocity_[0].getFaceDataID(), velocity_[1].getFaceDataID() } },
+                                                     updateType );
          }
       }
 
