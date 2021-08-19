@@ -17,11 +17,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
-#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
-
 #include "core/Environment.h"
 #include "core/debug/TestSubsystem.h"
+
+#include "hyteg/facedofspace/FaceDoFFunction.hpp"
+#include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 using walberla::real_t;
 using walberla::real_c;
@@ -52,10 +52,10 @@ int main(int argc, char **argv) {
       edgeWithTwoFaces = edgeIt.second;
     }
   }
-  DGFunction < real_t > x("x", storage, minLevel, maxLevel);
+  FaceDoFFunction< real_t > x("x", storage, minLevel, maxLevel);
 
-  DGEdge::interpolate< real_t >(maxLevel, *edgeWithTwoFaces,x.getEdgeDataID(),{},exact,storage);
-  //DGEdge::interpolate< real_t >(maxLevel,*edgeWithTwoFaces,x.getEdgeDataID(),{},exact,storage);
+  facedof::macroedge::interpolate< real_t >(maxLevel, *edgeWithTwoFaces,x.getEdgeDataID(),{},exact,storage);
+  //facedof::macroedge::interpolate< real_t >(maxLevel,*edgeWithTwoFaces,x.getEdgeDataID(),{},exact,storage);
 
 
   Point3D edgeZeroPoint = edgeWithTwoFaces->getCoordinates()[0];

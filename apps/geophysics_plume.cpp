@@ -24,8 +24,8 @@
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P1StokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGUpwindOperator.hpp"
+#include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesProlongation.hpp"
 #include "hyteg/gridtransferoperators/P1P1StokesToP1P1StokesRestriction.hpp"
@@ -181,7 +181,7 @@ int main( int argc, char* argv[] )
       {
          WALBERLA_LOG_PROGRESS_ON_ROOT( "Solving Stokes system..." )
 
-         f_dg->interpolateExtended( expr_f, {c_old.get()}, maxLevel );
+         f_dg->interpolate( expr_f, { *c_old }, maxLevel );
 
          f->uvw[0].integrateDG( *f_dg, *n_x, maxLevel, hyteg::All );
          f->uvw[1].integrateDG( *f_dg, *n_y, maxLevel, hyteg::All );

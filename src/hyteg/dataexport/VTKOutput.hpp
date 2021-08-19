@@ -28,8 +28,8 @@
 
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/P2P1TaylorHoodFunction.hpp"
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
+#include "hyteg/facedofspace/FaceDoFFunction.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
 #include "hyteg/functions/FunctionMultiStore.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -107,7 +107,7 @@ class VTKOutput
    }
 
    template < typename value_t >
-   inline void add( const DGFunction< value_t >& function )
+   inline void add( const FaceDoFFunction< value_t >& function )
    {
       dgFunctions_.push_back( function );
    }
@@ -233,7 +233,7 @@ class VTKOutput
    FunctionMultiStore< P2VectorFunction > p2VecFunctions_;
 
    FunctionMultiStore< EdgeDoFFunction > edgeDoFFunctions_;
-   FunctionMultiStore< DGFunction >      dgFunctions_;
+   FunctionMultiStore< FaceDoFFunction >      dgFunctions_;
 
    std::shared_ptr< PrimitiveStorage > storage_;
 

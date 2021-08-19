@@ -24,10 +24,10 @@
 #include "hyteg/Levelinfo.hpp"
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroCell.hpp"
+#include "hyteg/facedofspace/FaceDoFFunction.hpp"
 #include "hyteg/facedofspace/FaceDoFIndexing.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFFunction.hpp"
@@ -100,7 +100,7 @@ void VTKOutput::add( const GenericFunction< value_t >& function )
       break;
 
    case functionTraits::DG_FUNCTION:
-      matchFound = tryUnwrapAndAdd< FunctionWrapper< DGFunction< value_t > > >( function );
+      matchFound = tryUnwrapAndAdd< FunctionWrapper< FaceDoFFunction< value_t > > >( function );
       break;
 
    default:

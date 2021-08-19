@@ -508,6 +508,21 @@ waLBerla_execute_test(NAME VectorOperatorBasicTest)
 waLBerla_compile_test(FILES DGInterpolateTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME DGInterpolateTest)
 
+waLBerla_compile_test(FILES DGAddTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DGAddTest)
+
+waLBerla_compile_test(FILES DGSwapTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DGSwapTest)
+
+waLBerla_compile_test(FILES DGDotTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DGDotTest)
+
+waLBerla_compile_test(FILES DGCopyFromTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DGCopyFromTest)
+
+waLBerla_compile_test(FILES DGMinMaxTest.cpp DEPENDS hyteg core)
+waLBerla_execute_test(NAME DGMinMaxTest)
+
 waLBerla_compile_test(FILES vCycleTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME vCycleTest1 COMMAND $<TARGET_FILE:vCycleTest> )
 

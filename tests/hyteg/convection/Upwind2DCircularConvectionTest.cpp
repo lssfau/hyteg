@@ -19,12 +19,12 @@
  */
 
 #include <core/Environment.h>
-#include <core/timing/Timer.h>
 #include <core/math/Constants.h>
+#include <core/timing/Timer.h>
 
 #include "hyteg/dataexport/VTKOutput.hpp"
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/dgfunctionspace/DGUpwindOperator.hpp"
+#include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
