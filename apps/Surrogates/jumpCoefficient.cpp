@@ -44,6 +44,7 @@
 #include "hyteg/p2functionspace/P2VariableOperator.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/primitivestorage/Visualization.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 #include "hyteg/solvers/CGSolver.hpp"
 #include "hyteg/solvers/GaussSeidelSmoother.hpp"
@@ -154,9 +155,18 @@ void printError( const A_t& A, uint_t l_min, uint_t l_max )
    std::cout << "\'\n";
 }
 
+template < class M_t, class FE_t >
+double discrete_L2_error(const M_t& M, const FE_t& u, const FE_t& v, FE_t& err, FE_t& tmp, uint_t lvl)
+{
+   err.assign( { 1.0, -1.0 }, { u, v }, lvl );
+   M.apply( err, tmp, lvl, hyteg::All, Replace );
+   return std::sqrt( err.dotGlobal( tmp, lvl ) );
+}
+
 // solve Au=b(f)
 template < class A_t, class M_t, class FE_t, class R_t, class P_t >
-void solve( std::shared_ptr< PrimitiveStorage > storage,
+FE_t solve( const OpType                        opType,
+            std::shared_ptr< PrimitiveStorage > storage,
             const A_t&                          A,
             const function&                     u_anal,
             const function&                     f,
@@ -210,9 +220,10 @@ void solve( std::shared_ptr< PrimitiveStorage > storage,
    while ( 1 )
    {
       // compute error
-      err.assign( { 1.0, -1.0 }, { u, u_exact }, l_max );
-      M.apply( err, tmp, l_max, hyteg::All, Replace );
-      discr_l2_err = std::sqrt( err.dotGlobal( tmp, l_max ) );
+      // err.assign( { 1.0, -1.0 }, { u, u_exact }, l_max );
+      // M.apply( err, tmp, l_max, hyteg::All, Replace );
+      // discr_l2_err = std::sqrt( err.dotGlobal( tmp, l_max ) );
+      discr_l2_err = discrete_L2_error(M, u, u_exact, err, tmp, l_max);
 
       // compute residual
       res_old = res;
@@ -260,7 +271,7 @@ void solve( std::shared_ptr< PrimitiveStorage > storage,
    if ( vtk )
    {
       auto        Nel  = ( storage->hasGlobalCells() ) ? storage->getNumberOfGlobalCells() : storage->getNumberOfGlobalFaces();
-      std::string name = "JumpCoefficient_Nel" + std::to_string( Nel );
+      std::string name = "JumpCoefficient_Nel" + std::to_string( Nel ) + "_Op" + std::to_string( opType );
 
       hyteg::VTKOutput vtkOutput( "output", name, storage );
       vtkOutput.setVTKDataFormat( VTKOutput::VTK_DATA_FORMAT::BINARY );
@@ -270,9 +281,13 @@ void solve( std::shared_ptr< PrimitiveStorage > storage,
       vtkOutput.add( u_exact );
       vtkOutput.add( b );
       vtkOutput.write( l_max, 0 );
+
+      hyteg::writeDomainPartitioningVTK( storage, "output", name + "_domain_partitioning" );
    }
 
    WALBERLA_LOG_INFO_ON_ROOT( "=======================================================" );
+
+   return u;
 }
 
 int main( int argc, char** argv )
@@ -319,6 +334,7 @@ int main( int argc, char** argv )
 
    const bool vtk            = parameters.getParameter< bool >( "vtkOutput" );
    const bool print_stencils = parameters.getParameter< bool >( "print_stencils" );
+   const bool surrogate_error= parameters.getParameter< bool >( "surrogate_error" );
 
    const std::string msh = parameters.getParameter< std::string >( "mesh" );
 
@@ -439,29 +455,47 @@ int main( int argc, char** argv )
       P1ScaledSurrogateOperator< A_form > A1qs( storage, minLevel, maxLevel, form );
       A1qs.interpolateStencils( polyDegree, maxLevel );
 
-      switch ( opType )
+      if (surrogate_error)
       {
-      case VARIABLE:
-         solve< P1VariableOperator_new< A_form >, M_t, FE, R_t, P_t >(
-             storage, A1, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
-         if ( print_stencils )
-            printStencils< P1VariableOperator_new< A_form > >( storage, A1 );
-         break;
-      case SURROGATE:
-         solve< P1SurrogateOperator< A_form >, M_t, FE, R_t, P_t >(
-             storage, A1q, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
-         printError< P1SurrogateOperator< A_form > >( A1q, minLevel, maxLevel );
-         if ( print_stencils )
-            printStencils< P1SurrogateOperator< A_form > >( storage, A1q );
-         break;
-      case SCALED_SURROGATE:
-         solve< P1ScaledSurrogateOperator< A_form >, M_t, FE, R_t, P_t >(
-             storage, A1qs, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
-         if ( print_stencils )
-            printStencils< P1ScaledSurrogateOperator< A_form > >( storage, A1qs );
-         break;
-      default:
-         WALBERLA_ABORT( "The desired Operator Type is not supported!" );
+         auto u_var  = solve< P1VariableOperator_new< A_form >, M_t, FE, R_t, P_t >(
+               opType, storage, A1, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
+
+         auto u_surr = solve< P1SurrogateOperator< A_form >, M_t, FE, R_t, P_t >(
+               opType, storage, A1q, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
+
+         M_t M( storage, minLevel, maxLevel );
+         FE err( "err", storage, minLevel, maxLevel );
+         FE t( "tmp", storage, minLevel, maxLevel );
+         auto discr_l2_err = discrete_L2_error(M, u_var, u_surr, err, t, maxLevel);
+
+         WALBERLA_LOG_INFO_ON_ROOT( "||u - u_s||_L^2_discrete = " << std::scientific << discr_l2_err );
+      }
+      else
+      {
+         switch ( opType )
+         {
+         case VARIABLE:
+            solve< P1VariableOperator_new< A_form >, M_t, FE, R_t, P_t >(
+               opType, storage, A1, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
+            if ( print_stencils )
+               printStencils< P1VariableOperator_new< A_form > >( storage, A1 );
+            break;
+         case SURROGATE:
+            solve< P1SurrogateOperator< A_form >, M_t, FE, R_t, P_t >(
+               opType, storage, A1q, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
+            printError< P1SurrogateOperator< A_form > >( A1q, minLevel, maxLevel );
+            if ( print_stencils )
+               printStencils< P1SurrogateOperator< A_form > >( storage, A1q );
+            break;
+         case SCALED_SURROGATE:
+            solve< P1ScaledSurrogateOperator< A_form >, M_t, FE, R_t, P_t >(
+               opType, storage, A1qs, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
+            if ( print_stencils )
+               printStencils< P1ScaledSurrogateOperator< A_form > >( storage, A1qs );
+            break;
+         default:
+            WALBERLA_ABORT( "The desired Operator Type is not supported!" );
+         }
       }
    }
    else if ( discretization == 2 )
@@ -480,11 +514,11 @@ int main( int argc, char** argv )
       {
       case VARIABLE:
          solve< P2divKgradOperator, M_t, FE, R_t, P_t >(
-             storage, A2, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
+             opType, storage, A2, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
          break;
       case SURROGATE:
          solve< P2SurrogateDivKgradOperator, M_t, FE, R_t, P_t >(
-             storage, A2q, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
+             opType, storage, A2q, u, f, minLevel, maxLevel, max_outer_iter, max_cg_iter, mg_tolerance, coarse_tolerance, vtk );
          break;
          // case SCALED_SURROGATE:
          //    break;
