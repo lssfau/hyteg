@@ -70,13 +70,13 @@ real_t
 template < typename Form, uint_t dim, uint_t rows, uint_t cols >
 void compareRows( const Form& form, const std::array< Point3D, dim + 1 >& element, uint_t row, real_t tol )
 {
-   typedef Matrixr< rows, cols > MatType;
-   typedef Matrixr< 1, cols >    RowType;
+   typedef Matrixr< rows, cols > LocalMatType;
+   typedef Matrixr< 1, cols >    LocalRowType;
 
-   MatType elMat;
-   RowType elRow;
-   RowType elRowOfFullMat;
-   RowType elRowDifference;
+   LocalMatType elMat;
+   LocalRowType elRow;
+   LocalRowType elRowOfFullMat;
+   LocalRowType elRowDifference;
 
    form.integrateAll( element, elMat );
    form.integrateRow( row, element, elRow );
