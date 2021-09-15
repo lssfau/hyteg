@@ -19,7 +19,6 @@
  */
 #pragma once
 
-#include "hyteg/dgfunctionspace/DGFunction.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
@@ -29,22 +28,22 @@
 namespace hyteg {
 namespace petsc {
 
-inline void createVectorFromFunction( const DGFunction< PetscReal >&        function,
-                                      const DGFunction< PetscInt >&         numerator,
+inline void createVectorFromFunction( const FaceDoFFunction< PetscReal >&        function,
+                                      const FaceDoFFunction< PetscInt >&         numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-  WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of DGFunction" );
+  WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of FaceDoFFunction" );
 }
 
-inline void createFunctionFromVector( const DGFunction< PetscReal >&        function,
-                                      const DGFunction< PetscInt >&         numerator,
+inline void createFunctionFromVector( const FaceDoFFunction< PetscReal >&        function,
+                                      const FaceDoFFunction< PetscInt >&         numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-  WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of DGFunction" );
+  WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of FaceDoFFunction" );
 }
 
 } // namespace petsc
