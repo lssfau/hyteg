@@ -30,7 +30,10 @@
 #include "hyteg/composites/P2P1TaylorHoodStokesOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
 #include "hyteg/functions/BlockFunction.hpp"
+#include "hyteg/functions/BlockFunctionPetsc.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScVector.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
 
@@ -191,6 +194,51 @@ void testEnumerate()
    WALBERLA_CHECK_EQUAL( nDoFs, value + 1 );
 }
 
+#ifdef HYTEG_BUILD_WITH_PETSC
+template < template < typename > class FunctionKind >
+void testPETScConversion( const std::string& kind, bool exportVTU = false )
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "RUNNING WITH '" << kind << "'" );
+   // WALBERLA_LOG_INFO_ON_ROOT( "-> Running test for " << FunctionTrait< FunctionKind< real_t > >::getTypeName() );
+
+   MeshInfo              mesh = MeshInfo::fromGmshFile( "../../data/meshes/tri_1el.msh" );
+   SetupPrimitiveStorage setupStorage( mesh, uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
+   setupStorage.setMeshBoundaryFlagsOnBoundary( 1, 0, true );
+   std::shared_ptr< walberla::WcTimingTree > timingTree( new walberla::WcTimingTree() );
+   std::shared_ptr< PrimitiveStorage >       storage = std::make_shared< PrimitiveStorage >( setupStorage, timingTree );
+
+   uint_t level = 4;
+
+   FunctionKind< real_t >   src( "src", storage, level, level );
+   FunctionKind< real_t >   dst( "dst", storage, level, level );
+   FunctionKind< PetscInt > numerator( "numerator", storage, level, level );
+
+   std::function< real_t( const hyteg::Point3D& ) > expression = []( const hyteg::Point3D& x ) {
+      real_t value;
+      value = std::sin( real_c( 3 ) * x[0] ) + real_c( 0.5 ) * x[1] * x[1];
+      return value;
+   };
+
+   numerator.enumerate( level );
+   src.interpolate( expression, level );
+
+   PETScVector< real_t, BlockFunction > vector( src, numerator, level, All );
+   vector.createFunctionFromVector( dst, numerator, level, All );
+
+   if ( exportVTU )
+   {
+      std::string fPath = "../../output";
+      std::string fName = "BlockFunctionConversion";
+      WALBERLA_LOG_INFO_ON_ROOT( "Exporting to '" << fPath << "/" << fName << "'" );
+      VTKOutput vtkOutput( fPath, fName, storage );
+      vtkOutput.add( src );
+      vtkOutput.add( dst );
+      vtkOutput.add( numerator );
+      vtkOutput.write( level );
+   }
+}
+#endif
+
 int main( int argc, char* argv[] )
 {
    walberla::debug::enterTestMode();
@@ -208,6 +256,16 @@ int main( int argc, char* argv[] )
 
    // test enumerating using a P2P1TaylorHoodBlockFunction
    testEnumerate();
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+   WALBERLA_LOG_INFO_ON_ROOT( "" );
+   WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------" );
+   WALBERLA_LOG_INFO_ON_ROOT( " Function <-> Vector Conversion" );
+   WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------" );
+   PETScManager petscManager( &argc, &argv );
+   testPETScConversion< P1P1TaylorHoodStokesBlockFunction >( "P1P1TaylorHoodStokesBlockFunction" );
+   testPETScConversion< P2P1TaylorHoodBlockFunction >( "P2P1TaylorHoodBlockFunction" );
+#endif
 
    return EXIT_SUCCESS;
 }

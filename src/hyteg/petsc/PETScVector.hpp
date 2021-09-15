@@ -114,6 +114,7 @@ class PETScVector
  protected:
    MPI_Comm petscCommunicator_;
    Vec      vec;
+
 };
 
 } // namespace hyteg

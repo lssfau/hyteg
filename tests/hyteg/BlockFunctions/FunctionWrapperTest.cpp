@@ -18,6 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "hyteg/functions/FunctionWrapper.hpp"
+
 #include "core/DataTypes.h"
 #include "core/Environment.h"
 #include "core/debug/CheckFunctions.h"
@@ -26,32 +28,59 @@
 
 #include "hyteg/facedofspace/FaceDoFFunction.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
+#include "hyteg/functions/GenericFunctionPetsc.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/P1VectorFunction.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/p2functionspace/P2VectorFunction.hpp"
+#include "hyteg/petsc/PETScManager.hpp"
+#include "hyteg/petsc/PETScVector.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 
 // Perform some basic test on the FunctionWrapper class
 
-#include "hyteg/functions/FunctionWrapper.hpp"
-
 using namespace hyteg;
 
 template < typename func_t >
-void wrapFunction( const std::shared_ptr< PrimitiveStorage >& storage,
-                   size_t                                     minLevel,
-                   size_t                                     maxLevel,
-                   uint_t dim )
+void wrapFunction( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel, uint_t dim )
 
 {
-  std::string kind = FunctionTrait< func_t >::getTypeName();
-  FunctionWrapper< func_t > wrappedFunc( kind, storage, minLevel, maxLevel );
-  WALBERLA_LOG_INFO_ON_ROOT( "-> wrapped a '" << kind << "'" );
-  WALBERLA_CHECK_EQUAL( dim, wrappedFunc.getDimension() );
+   std::string               kind = FunctionTrait< func_t >::getTypeName();
+   FunctionWrapper< func_t > wrappedFunc( kind, storage, minLevel, maxLevel );
+   WALBERLA_LOG_INFO_ON_ROOT( "-> wrapped a '" << kind << "'" );
+   WALBERLA_CHECK_EQUAL( dim, wrappedFunc.getDimension() );
 }
- 
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+template < template < typename > class FunctionKind >
+void testPETScConversion( const std::shared_ptr< PrimitiveStorage >& storage )
+{
+   WALBERLA_LOG_INFO_ON_ROOT( "-> Running test for " << FunctionTrait< FunctionKind< real_t > >::getTypeName() );
+
+   uint_t level = 4;
+
+   FunctionWrapper< FunctionKind< real_t > >   src( "testing", storage, level, level );
+   FunctionWrapper< FunctionKind< real_t > >   dst( "testing", storage, level, level );
+   FunctionWrapper< FunctionKind< PetscInt > > numerator( "numerator", storage, level, level );
+
+   std::function< real_t( const hyteg::Point3D& ) > expression = []( const hyteg::Point3D& x ) {
+      real_t value;
+      value = std::sin( real_c( 3 ) * x[0] ) + real_c( 0.5 ) * x[1] * x[1];
+      return value;
+   };
+
+   numerator.enumerate( level );
+   src.interpolate( expression, level );
+
+   PETScVector< real_t, GenericFunction > vector( src, numerator, level, All );
+   vector.createFunctionFromVector( dst, numerator, level, All );
+   dst.assign( {real_c( 1 ), real_c( -1 )}, {dst, src}, level, All );
+   // real_t diff = dst.getMaxComponentMagnitude( level, All );
+   // WALBERLA_CHECK_FLOAT_EQUAL( diff, real_c( 0 ) );
+   // WALBERLA_LOG_INFO_ON_ROOT( "   max. difference = " << diff );
+}
+#endif
 
 int main( int argc, char* argv[] )
 {
@@ -170,6 +199,18 @@ int main( int argc, char* argv[] )
    p2vecWrap.multElementwise( {p2vecWrap, p2vecWrap}, maxLevel, All );
    WALBERLA_CHECK_FLOAT_EQUAL( p2vec[0].getMaxMagnitude( maxLevel ), real_c( 4 ) );
    WALBERLA_LOG_INFO_ON_ROOT( "P2VecFunc.interpolate() -> check" );
+
+#ifdef HYTEG_BUILD_WITH_PETSC
+   WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------" );
+   WALBERLA_LOG_INFO_ON_ROOT( " Function <-> Vector Conversion" );
+   WALBERLA_LOG_INFO_ON_ROOT( "--------------------------------" );
+   PETScManager petscManager( &argc, &argv );
+   testPETScConversion< P1Function >( storage );
+   testPETScConversion< P2Function >( storage );
+   testPETScConversion< EdgeDoFFunction >( storage );
+   testPETScConversion< P1VectorFunction >( storage );
+   testPETScConversion< P2VectorFunction >( storage );
+#endif
 
    return EXIT_SUCCESS;
 }
