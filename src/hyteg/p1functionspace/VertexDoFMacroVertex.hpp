@@ -184,33 +184,6 @@ inline void apply( Vertex&                                                      
 }
 
 template < typename ValueType >
-inline void applyPointwise( const uint_t&                                                 level,
-                            const Vertex&                                                 vertex,
-                            const PrimitiveDataID< StencilMemory< ValueType >, Vertex >&  operatorId,
-                            const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& srcId,
-                            const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId,
-                            UpdateType                                                    update )
-{
-   auto opr_data = vertex.getData( operatorId )->getPointer( level );
-   auto src      = vertex.getData( srcId )->getPointer( level );
-   auto dst      = vertex.getData( dstId )->getPointer( level );
-
-   if ( update == Replace )
-   {
-      dst[0] = opr_data[0] * src[0];
-   }
-   else if ( update == Add )
-   {
-      dst[0] += opr_data[0] * src[0];
-   }
-
-   for ( size_t i = 0; i < vertex.getNumNeighborEdges(); ++i )
-   {
-      dst[0] += opr_data[i + 1] * src[i + 1];
-   }
-}
-
-template < typename ValueType >
 inline void smooth_gs( Vertex&                                                       vertex,
                        const PrimitiveDataID< StencilMemory< ValueType >, Vertex >&  operatorId,
                        const PrimitiveDataID< FunctionMemory< ValueType >, Vertex >& dstId,
@@ -310,7 +283,7 @@ inline void integrateDG( Vertex&                                                
       uint_t faceMemoryIndex = 2 * localFaceId;
 
       std::vector< PrimitiveID > adj_edges   = face->adjacent_edges( vertex.getID() );
-      uint_t                     edge_idx[2] = {vertex.edge_index( adj_edges[0] ) + 1, vertex.edge_index( adj_edges[1] ) + 1};
+      uint_t                     edge_idx[2] = { vertex.edge_index( adj_edges[0] ) + 1, vertex.edge_index( adj_edges[1] ) + 1 };
 
       tmp += weightedFaceArea * rhs[faceMemoryIndex] *
              ( 0.5 * 0.5 * ( rhsP1[0] + rhsP1[edge_idx[0]] ) + 0.5 * 0.5 * ( rhsP1[0] + rhsP1[edge_idx[1]] ) );
@@ -348,7 +321,7 @@ inline void saveOperator( Vertex&                                               
                           const PrimitiveDataID< StencilMemory< real_t >, Vertex >&    operatorId,
                           const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& srcId,
                           const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& dstId,
-                          const std::shared_ptr< SparseMatrixProxy >&                                                         mat,
+                          const std::shared_ptr< SparseMatrixProxy >&                  mat,
                           uint_t                                                       level )
 {
    auto opr_data = vertex.getData( operatorId )->getPointer( level );

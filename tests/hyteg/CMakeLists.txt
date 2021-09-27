@@ -338,9 +338,6 @@ waLBerla_execute_test(NAME P1DataHandlingTest)
 waLBerla_compile_test(FILES P1/P1EvaluateTest.cpp DEPENDS hyteg core)
 waLBerla_execute_test(NAME P1EvaluateTest)
 
-waLBerla_compile_test(FILES P1/P1PointwiseOperatorTest.cpp DEPENDS hyteg core)
-waLBerla_execute_test(NAME P1PointwiseOperatorTest)
-
 if( HYTEG_BUILD_WITH_PETSC )
   waLBerla_compile_test(FILES P1/P1PetscApplyTest.cpp DEPENDS hyteg core)
   waLBerla_execute_test(NAME P1PetscApplyTest1 COMMAND $<TARGET_FILE:P1PetscApplyTest> )
