@@ -84,5 +84,8 @@ enum class CycleType
    WCYCLE
 };
 
+
+typedef int32_t matIdx_t;
+
 } // namespace hyteg
 

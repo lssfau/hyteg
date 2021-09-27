@@ -21,16 +21,22 @@
 
 #include <array>
 
-#include "hyteg/operators/Operator.hpp"
 #include "hyteg/forms/P1LinearCombinationForm.hpp"
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1FenicsForm.hpp"
 #include "hyteg/memory/LevelWiseMemory.hpp"
 #include "hyteg/memory/StencilMemory.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
+#include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
+
+// This include can be removed once the implementation of createMatrix() was moved into toMatrix()
+#ifdef HYTEG_BUILD_WITH_PETSC
+#include "hyteg/p1functionspace/P1Petsc.hpp"
+#endif
 
 namespace hyteg {
 
@@ -145,6 +151,18 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
    {
       return cellStencilID_;
    }
+
+// Remove guard once the implementation of createMatrix() here
+#ifdef HYTEG_BUILD_WITH_PETSC
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1Function< matIdx_t >&               src,
+                  const P1Function< matIdx_t >&               dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      hyteg::petsc::createMatrix( *this, src, dst, mat, level, flag );
+   }
+#endif
 
  private:
    void assembleStencils();

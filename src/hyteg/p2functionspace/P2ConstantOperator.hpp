@@ -29,6 +29,11 @@
 #include "hyteg/p2functionspace/P2Function.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 
+// This include can be removed once the implementation of createMatrix() was moved into toMatrix()
+#ifdef HYTEG_BUILD_WITH_PETSC
+#include "hyteg/p2functionspace/P2Petsc.hpp"
+#endif
+
 namespace hyteg {
 
 using walberla::real_t;
@@ -100,6 +105,18 @@ class P2ConstantOperator : public Operator< P2Function< real_t >, P2Function< re
                     real_t                      relax,
                     size_t                      level,
                     DoFType                     flag ) const override;
+
+// Remove guard once the implementation of createMatrix() here
+#ifdef HYTEG_BUILD_WITH_PETSC
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2Function< matIdx_t >&               src,
+                  const P2Function< matIdx_t >&               dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      hyteg::petsc::createMatrix( *this, src, dst, mat, level, flag );
+   }
+#endif
 
  private:
    void smooth_sor_macro_vertices( const P2Function< real_t >& dst,

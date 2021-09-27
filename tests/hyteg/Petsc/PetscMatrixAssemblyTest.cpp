@@ -26,10 +26,10 @@
 #include "hyteg/composites/P1EpsilonStokesOperator.hpp"
 #include "hyteg/composites/P1P1UzawaDampingFactorEstimationOperator.hpp"
 #include "hyteg/dataexport/VTKOutput.hpp"
+#include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
 #include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
-#include "hyteg/elementwiseoperators/DiagonalNonConstantOperator.hpp"
 #include "hyteg/functions/FunctionTraits.hpp"
 #include "hyteg/geometry/AnnulusMap.hpp"
 #include "hyteg/mesh/MeshInfo.hpp"
@@ -54,12 +54,14 @@
 #include "hyteg/composites/P2P2StabilizedStokesOperator.hpp"
 #include "hyteg/composites/P2P2UnstableStokesOperator.hpp"
 #include "hyteg/composites/UnsteadyDiffusion.hpp"
+#include "hyteg/operators/BlockOperator.hpp"
 #include "hyteg/operators/VectorMassOperator.hpp"
 #include "hyteg/petsc/PETScExportOperatorMatrix.hpp"
 #include "hyteg/petsc/PETScManager.hpp"
 #include "hyteg/petsc/PETScSparseMatrix.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
 #include "hyteg/primitivestorage/loadbalancing/SimpleBalancer.hpp"
+#include "hyteg/composites/P2P1TaylorHoodBlockFunction.hpp"
 
 /// This test checks whether we can assemble a sparse matrix
 /// (for/with PETSc) for the given operators. It is mostly a
@@ -79,6 +81,22 @@ void printTestHdr( std::string msg )
 }
 
 template < class operType >
+void testAssembly_newAPI( std::shared_ptr< PrimitiveStorage >& storage, uint_t level, std::string tag )
+{
+   WALBERLA_LOG_INFO_ON_ROOT( " * " << tag );
+
+   PETScManager                                                            petscManager;
+   PETScSparseMatrix< operType, operType::srcType::template FunctionType > matrix( storage, level, tag.c_str() );
+
+   typename operType::srcType::template FunctionType< PetscInt > enumerator( "enumerator", storage, level, level );
+   enumerator.enumerate( level );
+
+   operType oper( storage, level, level );
+   matrix.createMatrixFromOperator_newAPI( oper, level, enumerator, All );
+}
+
+template < class operType >
+
 void testAssembly( std::shared_ptr< PrimitiveStorage >& storage, uint_t level, std::string tag )
 {
    WALBERLA_LOG_INFO_ON_ROOT( " * " << tag );
@@ -95,7 +113,10 @@ void testAssembly( std::shared_ptr< PrimitiveStorage >& storage, uint_t level, s
 
 // Version for operators the require a form in their ctors
 template < class operType, class formType >
-void testAssembly( std::shared_ptr< PrimitiveStorage >& storage, uint_t level, std::shared_ptr< formType >& form, std::string tag  )
+void testAssembly( std::shared_ptr< PrimitiveStorage >& storage,
+                   uint_t                               level,
+                   std::shared_ptr< formType >&         form,
+                   std::string                          tag )
 {
    WALBERLA_LOG_INFO_ON_ROOT( " * " << tag );
 
@@ -162,7 +183,9 @@ void testAssembly( uint_t level, std::string tag )
 //  Specialised one case versions
 // -------------------------------
 template <>
-void testAssembly< P1ConstantUnsteadyDiffusionOperator >( std::shared_ptr< PrimitiveStorage >& storage, uint_t level, std::string tag )
+void testAssembly< P1ConstantUnsteadyDiffusionOperator >( std::shared_ptr< PrimitiveStorage >& storage,
+                                                          uint_t                               level,
+                                                          std::string                          tag )
 {
    WALBERLA_LOG_INFO_ON_ROOT( " * " << tag );
 
@@ -205,7 +228,7 @@ int main( int argc, char* argv[] )
 
    printTestHdr( "Testing P1 Operators" );
 
-   testAssembly< P1ConstantMassOperator >( storage, level, "P1ConstantOperator" );
+   testAssembly_newAPI< P1ConstantMassOperator >( storage, level, "P1ConstantOperator" );
    testAssembly< P1ConstantMassOperator_new >( storage, level, "P1ConstantOperator_new" );
    testAssembly< P1SurrogateMassOperator >( storage, level, "P1SurrogateOperator" );
    testAssembly< P1BlendingMassOperator_new >( storage, level, "P1VariableOperator_new" );
@@ -220,7 +243,7 @@ int main( int argc, char* argv[] )
 
    printTestHdr( "Testing P2 Operators" );
 
-   testAssembly< P2ConstantMassOperator >( storage, level, "P2ConstantOperator" );
+   testAssembly_newAPI< P2ConstantMassOperator >( storage, level, "P2ConstantOperator" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Skipping: (since assembly doesn't compile)" );
    WALBERLA_LOG_INFO_ON_ROOT( " * P2SurrogateVariableOperator" );
@@ -234,7 +257,8 @@ int main( int argc, char* argv[] )
    //  Low-level Operators
    // ---------------------
    WALBERLA_LOG_INFO_ON_ROOT( "" << rule << "\n  LOW-LEVEL OPERATORS\n" << rule );
-   typedef EdgeDoFOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > > E2EMassOperator;
+   typedef EdgeDoFOperator< P2FenicsForm< p2_mass_cell_integral_0_otherwise, p2_tet_mass_cell_integral_0_otherwise > >
+       E2EMassOperator;
    testAssembly< E2EMassOperator >( storage, level, "EdgeDoFOperator" );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Skipping: (since assembly doesn't compile)" );
@@ -255,7 +279,8 @@ int main( int argc, char* argv[] )
 
    auto                            p2MassFormHyTeG       = std::make_shared< P2Form_mass >();
    std::shared_ptr< P2RowSumForm > lumpedMassFormP2HyTeG = std::make_shared< P2RowSumForm >( p2MassFormHyTeG );
-   testAssembly< P2BlendingLumpedDiagonalOperator, P2RowSumForm >( storage, level, lumpedMassFormP2HyTeG, "DiagonalNonConstantOperator" );
+   testAssembly< P2BlendingLumpedDiagonalOperator, P2RowSumForm >(
+       storage, level, lumpedMassFormP2HyTeG, "DiagonalNonConstantOperator" );
 
    testAssembly< P2P1ElementwiseBlendingStokesOperator >( storage, level, "P2P1ElementwiseBlendingStokesOperator" );
 
@@ -280,6 +305,7 @@ int main( int argc, char* argv[] )
    testAssembly< P2P1TaylorHoodStokesOperator >( storage, level, "P2P1TaylorHoodStokesOperator" );
    testAssembly< P2P2StabilizedStokesOperator >( storage, level, "P2P2StabilizedStokesOperator" );
 
+   testAssembly< P2P1TaylorHoodStokesOperator >( storage, level, "P2P1TaylorHoodStokesOperator" );
    WALBERLA_LOG_INFO_ON_ROOT( "Skipping: (since assembly doesn't compile)" );
    WALBERLA_LOG_INFO_ON_ROOT( " * P1PolynomialBlendingStokesOperator" );
    WALBERLA_LOG_INFO_ON_ROOT( " * P1BlendingStokesOperator" );
@@ -288,8 +314,8 @@ int main( int argc, char* argv[] )
    WALBERLA_LOG_INFO_ON_ROOT( " * P2P2UnstableStokesOperator" );
    WALBERLA_LOG_INFO_ON_ROOT( " * P2P1BlendingTaylorHoodStokesOperator" );
    WALBERLA_LOG_INFO_ON_ROOT( " * P2P1SurrogateTaylorHoodStokesOperator" );
-   // testAssembly< P1BlendingStokesOperator >( storage, level, "P1BlendingStokesOperator" );
    // testAssembly< P1StokesBlockLaplaceOperator >( storage, level, "P1StokesBlockLaplaceOperator" );
+   // testAssembly< P1BlendingStokesOperator >( storage, level, "P1BlendingStokesOperator" );
    // testAssembly< P1EpsilonStokesOperator >( storage, level, "P1EpsilonStokesOperator" );
    // testAssembly< P2P2UnstableStokesOperator >( storage, level, "P2P2UnstableStokesOperator" );
    // testAssembly< P2P1BlendingTaylorHoodStokesOperator >( storage, level, "P2P1BlendingTaylorHoodStokesOperator" );
@@ -321,10 +347,36 @@ int main( int argc, char* argv[] )
    //  Vector Operators
    // ------------------
    WALBERLA_LOG_INFO_ON_ROOT( "" << rule << "\n  VECTOR TO VECTOR OPERATORS\n" << rule );
+   testAssembly_newAPI< P1ConstantVectorMassOperator >( storage, level, "P1ConstantVectorMassOperator" );
+   testAssembly_newAPI< P2ConstantVectorMassOperator >( storage, level, "P2ConstantVectorMassOperator" );
+   testAssembly_newAPI< P2ElementwiseBlendingVectorMassOperator >( storage, level, "P2ElementwiseBlendingVectorMassOperator" );
 
-   WALBERLA_LOG_INFO_ON_ROOT( "Skipping: (since assembly doesn't compile)" );
-   WALBERLA_LOG_INFO_ON_ROOT( " * [all of this kind]" );
-   // testAssembly< P2ElementwiseBlendingVectorMassOperator >( storage, level, "VectorToVectorOperator" );
+   // WALBERLA_LOG_INFO_ON_ROOT( "Skipping: (since assembly doesn't compile)" );
+   // WALBERLA_LOG_INFO_ON_ROOT( " * [all of this kind]" );
+
+   // ------------------
+   //  Block Operators
+   // ------------------
+#ifdef FUTURE_OR_WIP
+   WALBERLA_LOG_INFO_ON_ROOT( "" << rule << "\n BLOCK OPERATORS\n" << rule );
+
+   // setup empty block operator
+   typedef BlockOperator< P2P1TaylorHoodBlockFunction< real_t >, P2P1TaylorHoodBlockFunction< real_t > > myBlockOper;
+   auto oper =
+       std::make_shared< myBlockOper >( storage, level, level, 3, 3 );
+   oper->setSubOperator( 0, 0, std::make_shared< OperatorWrapper< P2ConstantLaplaceOperator > >( storage, level, level ) );
+   oper->setSubOperator( 1, 0, std::make_shared< OperatorWrapper< P2ConstantLaplaceOperator > >( storage, level, level ) );
+   oper->setSubOperator( 2, 0, std::make_shared< OperatorWrapper< P1ConstantLaplaceOperator > >( storage, level, level ) );
+
+   oper->setSubOperator( 0, 1, std::make_shared< OperatorWrapper< P2ConstantLaplaceOperator > >( storage, level, level ) );
+   oper->setSubOperator( 1, 1, std::make_shared< OperatorWrapper< P2ConstantLaplaceOperator > >( storage, level, level ) );
+   oper->setSubOperator( 2, 1, std::make_shared< OperatorWrapper< P1ConstantLaplaceOperator > >( storage, level, level ) );
+
+   oper->setSubOperator( 0, 2, std::make_shared< OperatorWrapper< P2ConstantLaplaceOperator > >( storage, level, level ) );
+   oper->setSubOperator( 1, 2, std::make_shared< OperatorWrapper< P2ConstantLaplaceOperator > >( storage, level, level ) );
+   oper->setSubOperator( 2, 2, std::make_shared< OperatorWrapper< P1ConstantLaplaceOperator > >( storage, level, level ) );
+   testAssembly_newAPI< myBlockOper >( storage, level, "myBlockOper" );
+#endif
 
    return 0;
 }

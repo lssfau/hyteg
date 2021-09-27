@@ -41,6 +41,9 @@ class BlockFunction
  public:
    typedef value_t ValueType;
 
+   template < typename VType >
+   using FunctionType = BlockFunction< VType >;
+
    BlockFunction( const std::string name )
    : functionName_( name )
    {}

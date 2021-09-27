@@ -87,6 +87,19 @@ class PETScSparseMatrix
       assembled_ = true;
    }
 
+   inline void createMatrixFromOperator_newAPI( const OperatorType&             op,
+                                                uint_t                          level,
+                                                const FunctionType< PetscInt >& numerator,
+                                                DoFType                         flag = All )
+   {
+      auto proxy = std::make_shared< PETScSparseMatrixProxy >( mat );
+      op.toMatrix( proxy, numerator, numerator, level, flag );
+
+      MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
+      MatAssemblyEnd( mat, MAT_FINAL_ASSEMBLY );
+      assembled_ = true;
+   }
+
    inline bool createMatrixFromOperatorOnce( const OperatorType&             op,
                                              uint_t                          level,
                                              const FunctionType< PetscInt >& numerator,
