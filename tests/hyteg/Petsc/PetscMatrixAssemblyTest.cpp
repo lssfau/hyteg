@@ -274,8 +274,8 @@ int main( int argc, char* argv[] )
    // -----------------------
    WALBERLA_LOG_INFO_ON_ROOT( "" << rule << "\n  ELEMENTWISE OPERATORS\n" << rule );
 
-   testAssembly< P1ElementwiseMassOperator >( storage, level, "P1ElementwiseOperator" );
-   testAssembly< P2ElementwiseMassOperator >( storage, level, "P2ElementwiseOperator" );
+   testAssembly_newAPI< P1ElementwiseMassOperator >( storage, level, "P1ElementwiseOperator" );
+   testAssembly_newAPI< P2ElementwiseMassOperator >( storage, level, "P2ElementwiseOperator" );
 
    auto                            p2MassFormHyTeG       = std::make_shared< P2Form_mass >();
    std::shared_ptr< P2RowSumForm > lumpedMassFormP2HyTeG = std::make_shared< P2RowSumForm >( p2MassFormHyTeG );
@@ -357,6 +357,7 @@ int main( int argc, char* argv[] )
    // ------------------
    //  Block Operators
    // ------------------
+// #define FUTURE_OR_WIP
 #ifdef FUTURE_OR_WIP
    WALBERLA_LOG_INFO_ON_ROOT( "" << rule << "\n BLOCK OPERATORS\n" << rule );
 

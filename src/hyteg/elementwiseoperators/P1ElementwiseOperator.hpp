@@ -72,7 +72,6 @@ P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_
                     size_t                      level,
                     DoFType                     flag ) const override;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    /// Assemble operator as sparse matrix
    ///
    /// \param mat   a sparse matrix proxy
@@ -83,11 +82,29 @@ P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_
    ///
    /// \note src and dst are legal to and often will be the same function object
    void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                             const P1Function< PetscInt >&               src,
-                             const P1Function< PetscInt >&               dst,
+                             const P1Function< matIdx_t >&               src,
+                             const P1Function< matIdx_t >&               dst,
                              uint_t                                      level,
                              DoFType                                     flag ) const;
-#endif
+
+   /// Assemble operator as sparse matrix.
+   ///
+   /// \param mat   a sparse matrix proxy
+   /// \param src   P2Function for determining column indices
+   /// \param dst   P2Function for determining row indices
+   /// \param level level in mesh hierarchy for which local operator is to be assembled
+   /// \param flag  ignored
+   ///
+   /// \note src and dst are legal to and often will be the same function object
+   /// \note we should rename assembleLocalMatrix() to toMatrix() and skip the delegation
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1Function< matIdx_t >&               src,
+                  const P1Function< matIdx_t >&               dst,
+                  uint_t                                      level,
+                  DoFType                                     flag ) const override
+   {
+      this->assembleLocalMatrix( mat, src, dst, level, flag );
+   }
 
    /// \brief Pre-computes the local stiffness matrices for each (micro-)element and stores them all in memory.
    ///
@@ -182,24 +199,22 @@ P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_
                                              const celldof::CellType cType,
                                              real_t* const           vertexData );
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    void localMatrixAssembly2D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Face&                                 face,
                                const uint_t                                level,
                                const uint_t                                xIdx,
                                const uint_t                                yIdx,
                                const P1Elements::P1Elements2D::P1Element&  element,
-                               const PetscInt* const                       srcIdx,
-                               const PetscInt* const                       dstIdx ) const;
+                               const matIdx_t* const                       srcIdx,
+                               const matIdx_t* const                       dstIdx ) const;
 
    void localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Cell&                                 cell,
                                const uint_t                                level,
                                const indexing::Index&                      microCell,
                                const celldof::CellType                     cType,
-                               const PetscInt* const                       srcIdx,
-                               const PetscInt* const                       dstIdx ) const;
-#endif
+                               const matIdx_t* const                       srcIdx,
+                               const matIdx_t* const                       dstIdx ) const;
 
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)
    /// Allocates the required memory if the function was not yet allocated.
