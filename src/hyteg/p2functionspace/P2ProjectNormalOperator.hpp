@@ -60,9 +60,9 @@ class P2ProjectNormalOperator : public Operator< P2Function< real_t >, P2Functio
    /// \param flag  determines on which primitives this operator is assembled
    ///
    void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                             const P2Function< PetscInt >&               numU,
-                             const P2Function< PetscInt >&               numV,
-                             const P2Function< PetscInt >&               numW,
+                             const P2Function< idx_t >&                  numU,
+                             const P2Function< idx_t >&                  numV,
+                             const P2Function< idx_t >&                  numW,
                              uint_t                                      level,
                              DoFType                                     flag );
 
@@ -74,7 +74,7 @@ class P2ProjectNormalOperator : public Operator< P2Function< real_t >, P2Functio
    /// \param flag  determines on which primitives this operator is assembled
    ///
    void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                             const P2VectorFunction< PetscInt >&         num,
+                             const P2VectorFunction< idx_t >&            num,
                              uint_t                                      level,
                              DoFType                                     flag );
 #endif

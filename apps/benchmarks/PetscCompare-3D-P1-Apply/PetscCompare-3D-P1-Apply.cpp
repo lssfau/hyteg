@@ -108,7 +108,7 @@ int main( int argc, char* argv[] )
    hyteg::P1Function< double >   y( "y", storage, level, level );
    hyteg::P1Function< double >   z( "z", storage, level, level );
    hyteg::P1Function< double >   diff( "diff", storage, level, level );
-   hyteg::P1Function< PetscInt > numerator( "numerator", storage, level, level );
+   hyteg::P1Function< idx_t >    numerator( "numerator", storage, level, level );
    wcTimingTreeApp.stop( "Function allocation" );
 
    const uint_t totalDoFs = numberOfGlobalDoFs< hyteg::P1FunctionTag >( *storage, level );

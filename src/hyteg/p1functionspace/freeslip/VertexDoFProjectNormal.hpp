@@ -207,13 +207,13 @@ inline void projectNormal3D( uint_t                                             
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
-inline void saveProjectNormalOperator2D( uint_t                                                     level,
-                                         const Edge&                                                edge,
-                                         const std::shared_ptr< PrimitiveStorage >&                 storage,
-                                         const std::function< void( const Point3D&, Point3D& ) >&   normal_function,
-                                         const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& dstIdU,
-                                         const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& dstIdV,
-                                         const std::shared_ptr< SparseMatrixProxy >&                mat )
+inline void saveProjectNormalOperator2D( uint_t                                                   level,
+                                         const Edge&                                              edge,
+                                         const std::shared_ptr< PrimitiveStorage >&               storage,
+                                         const std::function< void( const Point3D&, Point3D& ) >& normal_function,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdU,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&  dstIdV,
+                                         const std::shared_ptr< SparseMatrixProxy >&              mat )
 {
    size_t rowsize = levelinfo::num_microvertices_per_edge( level );
 
@@ -223,8 +223,8 @@ inline void saveProjectNormalOperator2D( uint_t                                 
    Face* faceS = storage->getFace( edge.neighborFaces()[0] );
 
    Point3D                 normal;
-   std::vector< PetscInt > in( 2 );
-   std::vector< PetscInt > out( 2 );
+   std::vector< idx_t >    in( 2 );
+   std::vector< idx_t >    out( 2 );
 
    Point3D x  = edge.getCoordinates()[0];
    real_t  h  = 1.0 / ( walberla::real_c( rowsize - 1 ) );
@@ -338,13 +338,13 @@ inline void projectNormal3D( uint_t                                             
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
-inline void saveProjectNormalOperator2D( uint_t                                                       level,
-                                         const Vertex&                                                vertex,
-                                         const std::shared_ptr< PrimitiveStorage >&                   storage,
-                                         const std::function< void( const Point3D&, Point3D& ) >&     normal_function,
-                                         const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& dstIdU,
-                                         const PrimitiveDataID< FunctionMemory< PetscInt >, Vertex >& dstIdV,
-                                         const std::shared_ptr< SparseMatrixProxy >&                  mat )
+inline void saveProjectNormalOperator2D( uint_t                                                    level,
+                                         const Vertex&                                             vertex,
+                                         const std::shared_ptr< PrimitiveStorage >&                storage,
+                                         const std::function< void( const Point3D&, Point3D& ) >&  normal_function,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstIdU,
+                                         const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& dstIdV,
+                                         const std::shared_ptr< SparseMatrixProxy >&               mat )
 {
    WALBERLA_CHECK( storage->onBoundary( vertex.getID() ) );
 

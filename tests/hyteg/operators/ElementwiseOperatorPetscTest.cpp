@@ -60,10 +60,10 @@ void compareMatrices( std::shared_ptr< PrimitiveStorage > storage,
    WALBERLA_LOG_INFO_ON_ROOT( "-------------------------------------------------" );
 
    // determine indices and dimensions
-   FuncType< PetscInt > enumerator( "enumerator", storage, level, level );
+   FuncType< idx_t > enumerator( "enumerator", storage, level, level );
    enumerator.enumerate( level );
 
-   typedef typename FunctionTrait< FuncType< PetscInt > >::Tag enumTag;
+   typedef typename FunctionTrait< FuncType< idx_t > >::Tag    enumTag;
    uint_t                                                      globalDoFs = numberOfGlobalDoFs< enumTag >( *storage, level );
    uint_t                                                      localDoFs  = numberOfLocalDoFs< enumTag >( *storage, level );
 

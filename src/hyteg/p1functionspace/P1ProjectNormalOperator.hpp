@@ -58,9 +58,9 @@ class P1ProjectNormalOperator : public Operator< P1Function< real_t >, P1Functio
    /// \param flag  determines on which primitives this operator is assembled
    ///
    void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                             const P1Function< PetscInt >&               numU,
-                             const P1Function< PetscInt >&               numV,
-                             const P1Function< PetscInt >&               numW,
+                             const P1Function< idx_t >&                  numU,
+                             const P1Function< idx_t >&                  numV,
+                             const P1Function< idx_t >&                  numW,
                              uint_t                                      level,
                              DoFType                                     flag ) const;
 #endif

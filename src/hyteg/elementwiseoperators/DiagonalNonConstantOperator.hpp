@@ -40,11 +40,11 @@ using walberla::real_t;
 namespace workaround {
 
 template < typename func_T >
-void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >&               mat,
-                               const func_T&                                             diagVals,
-                               const typename func_T::template FunctionType< PetscInt >& numerator,
-                               uint_t                                                    level,
-                               DoFType                                                   flag );
+void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >&            mat,
+                               const func_T&                                          diagVals,
+                               const typename func_T::template FunctionType< idx_t >& numerator,
+                               uint_t                                                 level,
+                               DoFType                                                flag );
 
 } // namespace workaround
 
@@ -123,10 +123,10 @@ class DiagonalNonConstantOperator : public Operator< typename opType< formType >
    }
 
 #ifdef HYTEG_BUILD_WITH_PETSC
-   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >&                                    mat,
-                             const typename opType< formType >::srcType::template FunctionType< PetscInt >& numerator,
-                             uint_t                                                                         level,
-                             DoFType                                                                        flag ) const
+   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >&                                 mat,
+                             const typename opType< formType >::srcType::template FunctionType< idx_t >& numerator,
+                             uint_t                                                                      level,
+                             DoFType                                                                     flag ) const
    {
       std::shared_ptr< funcType > opVals = InvertDiagonal ? oper_->getInverseDiagonalValues() : oper_->getDiagonalValues();
       workaround::externalDiagonalAssembly< funcType >( mat, *opVals, numerator, level, flag );
@@ -160,12 +160,12 @@ namespace petsc {
 /// Version of createMatrix function for DiagonalNonConstantOperator
 template < template < class > class opType, class formType, bool InvertDiagonal = false >
 inline void createMatrix(
-    const DiagonalNonConstantOperator< opType, formType, InvertDiagonal >&                                             opr,
-    const typename DiagonalNonConstantOperator< opType, formType, InvertDiagonal >::template FunctionType< PetscInt >& src,
-    const typename DiagonalNonConstantOperator< opType, formType, InvertDiagonal >::template FunctionType< PetscInt >& dst,
-    const std::shared_ptr< SparseMatrixProxy >&                                                                        mat,
-    uint_t                                                                                                             level,
-    DoFType                                                                                                            flag )
+    const DiagonalNonConstantOperator< opType, formType, InvertDiagonal >&                                          opr,
+    const typename DiagonalNonConstantOperator< opType, formType, InvertDiagonal >::template FunctionType< idx_t >& src,
+    const typename DiagonalNonConstantOperator< opType, formType, InvertDiagonal >::template FunctionType< idx_t >& dst,
+    const std::shared_ptr< SparseMatrixProxy >&                                                                     mat,
+    uint_t                                                                                                          level,
+    DoFType                                                                                                         flag )
 {
    // we don't need to pass same info twice
    WALBERLA_UNUSED( dst );
@@ -181,8 +181,8 @@ inline void createMatrix(
 // Maybe a missing include somewhere?
 template <>
 inline void createMatrix( const P1BlendingLumpedDiagonalOperator&     opr,
-                          const P1Function< PetscInt >&               src,
-                          const P1Function< PetscInt >&               dst,
+                          const P1Function< idx_t >&                  src,
+                          const P1Function< idx_t >&                  dst,
                           const std::shared_ptr< SparseMatrixProxy >& mat,
                           uint_t                                      level,
                           DoFType                                     flag )
@@ -193,8 +193,8 @@ inline void createMatrix( const P1BlendingLumpedDiagonalOperator&     opr,
 
 template <>
 inline void createMatrix( const P1BlendingLumpedInverseDiagonalOperator& opr,
-                          const P1Function< PetscInt >&                  src,
-                          const P1Function< PetscInt >&                  dst,
+                          const P1Function< idx_t >&                     src,
+                          const P1Function< idx_t >&                     dst,
                           const std::shared_ptr< SparseMatrixProxy >&    mat,
                           uint_t                                         level,
                           DoFType                                        flag )
@@ -205,8 +205,8 @@ inline void createMatrix( const P1BlendingLumpedInverseDiagonalOperator& opr,
 
 template <>
 inline void createMatrix( const P2BlendingLumpedDiagonalOperator&     opr,
-                          const P2Function< PetscInt >&               src,
-                          const P2Function< PetscInt >&               dst,
+                          const P2Function< idx_t >&                  src,
+                          const P2Function< idx_t >&                  dst,
                           const std::shared_ptr< SparseMatrixProxy >& mat,
                           uint_t                                      level,
                           DoFType                                     flag )
@@ -217,8 +217,8 @@ inline void createMatrix( const P2BlendingLumpedDiagonalOperator&     opr,
 
 template <>
 inline void createMatrix( const P2BlendingLumpedInverseDiagonalOperator& opr,
-                          const P2Function< PetscInt >&                  src,
-                          const P2Function< PetscInt >&                  dst,
+                          const P2Function< idx_t >&                     src,
+                          const P2Function< idx_t >&                     dst,
                           const std::shared_ptr< SparseMatrixProxy >&    mat,
                           uint_t                                         level,
                           DoFType                                        flag )

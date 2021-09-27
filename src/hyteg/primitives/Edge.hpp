@@ -20,14 +20,12 @@
 
 #pragma once
 
-#include "hyteg/types/pointnd.hpp"
-
+#include <core/DataTypes.h>
+#include <hyteg/primitives/Primitive.hpp>
+#include <hyteg/types/types.hpp>
 #include <vector>
 
-#include <hyteg/types/flags.hpp>
-#include <hyteg/primitives/Primitive.hpp>
-
-#include <core/DataTypes.h>
+#include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
 

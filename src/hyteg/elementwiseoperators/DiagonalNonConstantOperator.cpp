@@ -26,11 +26,11 @@ namespace hyteg {
 namespace workaround {
 
 template < typename func_T >
-void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >&               mat,
-                               const func_T&                                             diagVals,
-                               const typename func_T::template FunctionType< PetscInt >& numerator,
-                               uint_t                                                    level,
-                               DoFType                                                   flag )
+void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >&            mat,
+                               const func_T&                                          diagVals,
+                               const typename func_T::template FunctionType< idx_t >& numerator,
+                               uint_t                                                 level,
+                               DoFType                                                flag )
 {
    WALBERLA_ABORT( "externalDiagonalAssembly() not implemented for " << typeid( func_T ).name() );
 }
@@ -38,7 +38,7 @@ void externalDiagonalAssembly( const std::shared_ptr< SparseMatrixProxy >&      
 template <>
 void externalDiagonalAssembly< P1Function< real_t > >( const std::shared_ptr< SparseMatrixProxy >& mat,
                                                        const P1Function< real_t >&                 diagVals,
-                                                       const P1Function< PetscInt >&               numerator,
+                                                       const P1Function< idx_t >&                  numerator,
                                                        uint_t                                      level,
                                                        DoFType                                     flag )
 {
@@ -47,7 +47,7 @@ void externalDiagonalAssembly< P1Function< real_t > >( const std::shared_ptr< Sp
       WALBERLA_LOG_WARNING_ON_ROOT( "Input flag ignored in externalDiagonalAssembly(); using flag = All" );
    }
 
-   FunctionIterator< P1Function< PetscInt > > idxIter( numerator, level );
+   FunctionIterator< P1Function< idx_t > > idxIter( numerator, level );
    for ( auto valIter : FunctionIterator< P1Function< real_t > >( diagVals, level ) )
    {
       WALBERLA_ASSERT( valIter.isVertexDoF() );
@@ -60,7 +60,7 @@ void externalDiagonalAssembly< P1Function< real_t > >( const std::shared_ptr< Sp
 template <>
 void externalDiagonalAssembly< P2Function< real_t > >( const std::shared_ptr< SparseMatrixProxy >& mat,
                                                        const P2Function< real_t >&                 diagVals,
-                                                       const P2Function< PetscInt >&               numerator,
+                                                       const P2Function< idx_t >&                  numerator,
                                                        uint_t                                      level,
                                                        DoFType                                     flag )
 {
@@ -71,7 +71,7 @@ void externalDiagonalAssembly< P2Function< real_t > >( const std::shared_ptr< Sp
 
    using vertexdof::VertexDoFFunction;
 
-   FunctionIterator< VertexDoFFunction< PetscInt > > idxIterV( numerator.getVertexDoFFunction(), level );
+   FunctionIterator< VertexDoFFunction< idx_t > > idxIterV( numerator.getVertexDoFFunction(), level );
    for ( auto valIter : FunctionIterator< VertexDoFFunction< real_t > >( diagVals.getVertexDoFFunction(), level ) )
    {
       WALBERLA_ASSERT( valIter.isVertexDoF() );
@@ -80,7 +80,7 @@ void externalDiagonalAssembly< P2Function< real_t > >( const std::shared_ptr< Sp
       idxIterV++;
    }
 
-   FunctionIterator< EdgeDoFFunction< PetscInt > > idxIterE( numerator.getEdgeDoFFunction(), level );
+   FunctionIterator< EdgeDoFFunction< idx_t > > idxIterE( numerator.getEdgeDoFFunction(), level );
    for ( auto valIter : FunctionIterator< EdgeDoFFunction< real_t > >( diagVals.getEdgeDoFFunction(), level ) )
    {
       WALBERLA_ASSERT( valIter.isEdgeDoF() );

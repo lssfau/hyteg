@@ -33,19 +33,19 @@ using walberla::uint_t;
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 
-inline void saveEdgeOperator( const uint_t&                                              Level,
-                              const Edge&                                                edge,
-                              const PrimitiveDataID< StencilMemory< real_t >, Edge >&    operatorId,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& srcId,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& dstId,
-                              const std::shared_ptr< SparseMatrixProxy >&                mat )
+inline void saveEdgeOperator( const uint_t&                                           Level,
+                              const Edge&                                             edge,
+                              const PrimitiveDataID< StencilMemory< real_t >, Edge >& operatorId,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& srcId,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& dstId,
+                              const std::shared_ptr< SparseMatrixProxy >&             mat )
 {
    const real_t*   opr_data = edge.getData( operatorId )->getPointer( Level );
-   const PetscInt* src      = edge.getData( srcId )->getPointer( Level );
-   const PetscInt* dst      = edge.getData( dstId )->getPointer( Level );
+   const idx_t*    src      = edge.getData( srcId )->getPointer( Level );
+   const idx_t*    dst      = edge.getData( dstId )->getPointer( Level );
 
-   PetscInt srcInt;
-   PetscInt dstInt;
+   idx_t srcInt;
+   idx_t dstInt;
 
    for ( const auto it : edgedof::macroedge::Iterator( Level, 0 ) )
    {
@@ -78,8 +78,8 @@ inline void saveEdgeOperator3D( const uint_t&                                   
                                 const Edge&                                                              edge,
                                 const PrimitiveStorage&                                                  storage,
                                 const PrimitiveDataID< LevelWiseMemory< MacroEdgeStencilMap_T >, Edge >& operatorId,
-                                const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >&               srcId,
-                                const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >&               dstId,
+                                const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&                  srcId,
+                                const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&                  dstId,
                                 const std::shared_ptr< SparseMatrixProxy >&                              mat )
 {
    auto opr_data = edge.getData( operatorId )->getData( level );
@@ -161,19 +161,19 @@ inline void saveEdgeOperator3D( const uint_t&                                   
    }
 }
 
-inline void saveFaceOperator( const uint_t&                                              Level,
-                              const Face&                                                face,
-                              const PrimitiveDataID< StencilMemory< real_t >, Face >&    operatorId,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Face >& srcId,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Face >& dstId,
-                              const std::shared_ptr< SparseMatrixProxy >&                mat )
+inline void saveFaceOperator( const uint_t&                                           Level,
+                              const Face&                                             face,
+                              const PrimitiveDataID< StencilMemory< real_t >, Face >& operatorId,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Face >& srcId,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Face >& dstId,
+                              const std::shared_ptr< SparseMatrixProxy >&             mat )
 {
    const real_t*   opr_data = face.getData( operatorId )->getPointer( Level );
-   const PetscInt* src      = face.getData( srcId )->getPointer( Level );
-   const PetscInt* dst      = face.getData( dstId )->getPointer( Level );
+   const idx_t*    src      = face.getData( srcId )->getPointer( Level );
+   const idx_t*    dst      = face.getData( dstId )->getPointer( Level );
 
-   PetscInt srcInt;
-   PetscInt dstInt;
+   idx_t srcInt;
+   idx_t dstInt;
 
    for ( const auto& it : edgedof::macroface::Iterator( Level, 0 ) )
    {
@@ -213,8 +213,8 @@ inline void saveFaceOperator3D( const uint_t&                                   
                                 const Face&                                                              face,
                                 const PrimitiveStorage&                                                  storage,
                                 const PrimitiveDataID< LevelWiseMemory< MacroFaceStencilMap_T >, Face >& operatorId,
-                                const PrimitiveDataID< FunctionMemory< PetscInt >, Face >&               srcId,
-                                const PrimitiveDataID< FunctionMemory< PetscInt >, Face >&               dstId,
+                                const PrimitiveDataID< FunctionMemory< idx_t >, Face >&                  srcId,
+                                const PrimitiveDataID< FunctionMemory< idx_t >, Face >&                  dstId,
                                 const std::shared_ptr< SparseMatrixProxy >&                              mat )
 {
    auto opr_data = face.getData( operatorId )->getData( level );
@@ -282,13 +282,13 @@ inline void saveFaceOperator3D( const uint_t&                                   
 inline void saveCellOperator( const uint_t&                                                            Level,
                               const Cell&                                                              cell,
                               const PrimitiveDataID< LevelWiseMemory< MacroCellStencilMap_T >, Cell >& operatorId,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Cell >&               srcId,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Cell >&               dstId,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Cell >&                  srcId,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Cell >&                  dstId,
                               const std::shared_ptr< SparseMatrixProxy >&                              mat )
 {
    auto            opr_data = cell.getData( operatorId )->getData( Level );
-   const PetscInt* src      = cell.getData( srcId )->getPointer( Level );
-   const PetscInt* dst      = cell.getData( dstId )->getPointer( Level );
+   const idx_t*    src      = cell.getData( srcId )->getPointer( Level );
+   const idx_t*    dst      = cell.getData( dstId )->getPointer( Level );
 
    for ( const auto& it : hyteg::edgedof::macrocell::Iterator( Level, 0 ) )
    {
@@ -351,8 +351,8 @@ namespace petsc {
 
 template < class OperatorType >
 inline void createMatrix( const OperatorType&                         opr,
-                          const P1Function< PetscInt >&               src,
-                          const EdgeDoFFunction< PetscInt >&          dst,
+                          const P1Function< idx_t >&                  src,
+                          const EdgeDoFFunction< idx_t >&             dst,
                           const std::shared_ptr< SparseMatrixProxy >& mat,
                           size_t                                      level,
                           DoFType                                     flag )

@@ -60,9 +60,9 @@ void testPETScConversion( const std::shared_ptr< PrimitiveStorage >& storage )
 
    uint_t level = 4;
 
-   FunctionWrapper< FunctionKind< real_t > >   src( "testing", storage, level, level );
-   FunctionWrapper< FunctionKind< real_t > >   dst( "testing", storage, level, level );
-   FunctionWrapper< FunctionKind< PetscInt > > numerator( "numerator", storage, level, level );
+   FunctionWrapper< FunctionKind< real_t > > src( "testing", storage, level, level );
+   FunctionWrapper< FunctionKind< real_t > > dst( "testing", storage, level, level );
+   FunctionWrapper< FunctionKind< idx_t > >  numerator( "numerator", storage, level, level );
 
    std::function< real_t( const hyteg::Point3D& ) > expression = []( const hyteg::Point3D& x ) {
       real_t value;
@@ -75,7 +75,7 @@ void testPETScConversion( const std::shared_ptr< PrimitiveStorage >& storage )
 
    PETScVector< real_t, GenericFunction > vector( src, numerator, level, All );
    vector.createFunctionFromVector( dst, numerator, level, All );
-   dst.assign( {real_c( 1 ), real_c( -1 )}, {dst, src}, level, All );
+   dst.assign( { real_c( 1 ), real_c( -1 ) }, { dst, src }, level, All );
    // real_t diff = dst.getMaxComponentMagnitude( level, All );
    // WALBERLA_CHECK_FLOAT_EQUAL( diff, real_c( 0 ) );
    // WALBERLA_LOG_INFO_ON_ROOT( "   max. difference = " << diff );

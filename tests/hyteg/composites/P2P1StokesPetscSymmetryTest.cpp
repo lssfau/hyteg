@@ -39,7 +39,7 @@ static void test( const std::string & meshFile, const uint_t & level )
 {
   auto storage = PrimitiveStorage::createFromGmshFile( meshFile );
 
-  P2P1TaylorHoodFunction< PetscInt > numerator( "numerator", storage, level, level );
+  P2P1TaylorHoodFunction< idx_t > numerator( "numerator", storage, level, level );
   P2P1TaylorHoodStokesOperator L( storage, level, level );
 
   const uint_t globalDoFs = numberOfGlobalDoFs< hyteg::P2P1TaylorHoodFunctionTag >( *storage, level );

@@ -28,22 +28,22 @@
 namespace hyteg {
 namespace petsc {
 
-inline void createVectorFromFunction( const FaceDoFFunction< PetscReal >&        function,
-                                      const FaceDoFFunction< PetscInt >&         numerator,
+inline void createVectorFromFunction( const FaceDoFFunction< PetscReal >&   function,
+                                      const FaceDoFFunction< idx_t >&       numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-  WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of FaceDoFFunction" );
+   WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of FaceDoFFunction" );
 }
 
-inline void createFunctionFromVector( const FaceDoFFunction< PetscReal >&        function,
-                                      const FaceDoFFunction< PetscInt >&         numerator,
+inline void createFunctionFromVector( const FaceDoFFunction< PetscReal >&   function,
+                                      const FaceDoFFunction< idx_t >&       numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-  WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of FaceDoFFunction" );
+   WALBERLA_ABORT( "Congrats :( You have detected another unimplemented feature of FaceDoFFunction" );
 }
 
 } // namespace petsc

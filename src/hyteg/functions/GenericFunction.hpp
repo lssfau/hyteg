@@ -26,7 +26,7 @@
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 
@@ -131,12 +131,12 @@ class GenericFunction
 #ifdef HYTEG_BUILD_WITH_PETSC
    /// conversion to/from linear algebra representation
    /// @{
-   virtual void toVector( const GenericFunction< PetscInt >&    numerator,
+   virtual void toVector( const GenericFunction< idx_t >&       numerator,
                           const std::shared_ptr< VectorProxy >& vec,
                           uint_t                                level,
                           DoFType                               flag ) const = 0;
 
-   virtual void fromVector( const GenericFunction< PetscInt >&    numerator,
+   virtual void fromVector( const GenericFunction< idx_t >&       numerator,
                             const std::shared_ptr< VectorProxy >& vec,
                             uint_t                                level,
                             DoFType                               flag ) const = 0;

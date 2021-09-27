@@ -40,7 +40,7 @@ class PETScMinResSolver : public Solver< OperatorType >
                       const uint_t&                              level,
                       const real_t                               relativeTolerance = 1e-30,
                       const real_t                               absoluteTolerance = 1e-12,
-                      const PetscInt                             maxIterations = std::numeric_limits< PetscInt >::max() )
+                      const idx_t                                maxIterations     = std::numeric_limits< idx_t >::max() )
    : allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
@@ -127,7 +127,7 @@ class PETScMinResSolver : public Solver< OperatorType >
  private:
    uint_t                                                                                        allocatedLevel_;
    MPI_Comm                                                                                      petscCommunicator_;
-   typename OperatorType::srcType::template FunctionType< PetscInt >                             num;
+   typename OperatorType::srcType::template FunctionType< idx_t >                                num;
    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               Amat;
    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               AmatNonEliminatedBC;
    PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;

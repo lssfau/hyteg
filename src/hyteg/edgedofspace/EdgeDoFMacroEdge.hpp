@@ -581,7 +581,7 @@ template < typename ValueType >
 inline void createVectorFromFunction( const uint_t&                                               Level,
                                       Edge&                                                       edge,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId,
-                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >&  numeratorId,
+                                      const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&     numeratorId,
                                       const std::shared_ptr< VectorProxy >&                       vec )
 {
    auto src       = edge.getData( srcId )->getPointer( Level );
@@ -598,7 +598,7 @@ template < typename ValueType >
 inline void createFunctionFromVector( const uint_t&                                               Level,
                                       Edge&                                                       edge,
                                       const PrimitiveDataID< FunctionMemory< ValueType >, Edge >& srcId,
-                                      const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >&  numeratorId,
+                                      const PrimitiveDataID< FunctionMemory< idx_t >, Edge >&     numeratorId,
                                       const std::shared_ptr< VectorProxy >&                       vec )
 {
    auto src       = edge.getData( srcId )->getPointer( Level );
@@ -611,17 +611,17 @@ inline void createFunctionFromVector( const uint_t&                             
    }
 }
 
-inline void applyDirichletBC( const uint_t&                                              Level,
-                              Edge&                                                      edge,
-                              std::vector< PetscInt >&                                   mat,
-                              const PrimitiveDataID< FunctionMemory< PetscInt >, Edge >& numeratorId )
+inline void applyDirichletBC( const uint_t&                                           Level,
+                              Edge&                                                   edge,
+                              std::vector< PetscInt >&                                mat,
+                              const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& numeratorId )
 {
    auto numerator = edge.getData( numeratorId )->getPointer( Level );
 
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
       const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
-      mat.push_back( numerator[idx] );
+      mat.push_back( static_cast< PetscInt >( numerator[idx] ) );
    }
 }
 #endif

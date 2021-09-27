@@ -63,7 +63,7 @@ caseResult analyseCase( std::shared_ptr< PrimitiveStorage > storage,
                         const funcType&                     u,
                         funcType&                           error )
 {
-   typedef typename FunctionTrait< typename funcType::template FunctionType< PetscInt > >::Tag funcTag;
+   typedef typename FunctionTrait< typename funcType::template FunctionType< idx_t > >::Tag funcTag;
 
    // embed numeric solution in next finer space
    P2toP2QuadraticProlongation embeddor;

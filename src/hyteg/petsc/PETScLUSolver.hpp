@@ -268,7 +268,7 @@ class PETScLUSolver : public Solver< OperatorType >
    std::shared_ptr< PrimitiveStorage >                                                           storage_;
    uint_t                                                                                        allocatedLevel_;
    MPI_Comm                                                                                      petscCommunicator_;
-   typename OperatorType::srcType::template FunctionType< PetscInt >                             num;
+   typename OperatorType::srcType::template FunctionType< idx_t >                                num;
    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               Amat;
    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               AmatUnsymmetric;
    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >               AmatTmp;

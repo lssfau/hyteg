@@ -267,8 +267,8 @@ typedef UnsteadyDiffusionOperator< P2Function< real_t >,
 namespace petsc {
 template <>
 inline void createMatrix< P1ConstantUnsteadyDiffusionOperator >( const P1ConstantUnsteadyDiffusionOperator&  opr,
-                                                                 const P1Function< PetscInt >&               src,
-                                                                 const P1Function< PetscInt >&               dst,
+                                                                 const P1Function< idx_t >&                  src,
+                                                                 const P1Function< idx_t >&                  dst,
                                                                  const std::shared_ptr< SparseMatrixProxy >& mat,
                                                                  uint_t                                      level,
                                                                  DoFType                                     flag )
@@ -278,8 +278,8 @@ inline void createMatrix< P1ConstantUnsteadyDiffusionOperator >( const P1Constan
 
 template <>
 inline void createMatrix< P2ConstantUnsteadyDiffusionOperator >( const P2ConstantUnsteadyDiffusionOperator&  opr,
-                                                                 const P2Function< PetscInt >&               src,
-                                                                 const P2Function< PetscInt >&               dst,
+                                                                 const P2Function< idx_t >&                  src,
+                                                                 const P2Function< idx_t >&                  dst,
                                                                  const std::shared_ptr< SparseMatrixProxy >& mat,
                                                                  uint_t                                      level,
                                                                  DoFType                                     flag )
@@ -289,8 +289,8 @@ inline void createMatrix< P2ConstantUnsteadyDiffusionOperator >( const P2Constan
 
 template <>
 inline void createMatrix< P2ElementwiseUnsteadyDiffusionOperator >( const P2ElementwiseUnsteadyDiffusionOperator& opr,
-                                                                    const P2Function< PetscInt >&                 src,
-                                                                    const P2Function< PetscInt >&                 dst,
+                                                                    const P2Function< idx_t >&                    src,
+                                                                    const P2Function< idx_t >&                    dst,
                                                                     const std::shared_ptr< SparseMatrixProxy >&   mat,
                                                                     uint_t                                        level,
                                                                     DoFType                                       flag )

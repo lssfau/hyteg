@@ -113,7 +113,7 @@ class TrilinosDirectSolver : public Solver< OperatorType >
    TrilinosSparseMatrix< OperatorType, FunctionTemplate > ATrilinos_;
    TrilinosVector< FunctionTemplate >                     xTrilinos_;
    TrilinosVector< FunctionTemplate >                     bTrilinos_;
-   FunctionTemplate< PetscInt >                           numerator_;
+   FunctionTemplate< idx_t >                              numerator_;
    DoFType                                                flag_;
    RCP< Amesos2::Solver< typename TrilinosSparseMatrix< OperatorType, FunctionTemplate >::MatrixType,
                          typename TrilinosVector< FunctionTemplate >::VectorType > >

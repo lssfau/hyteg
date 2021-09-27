@@ -116,7 +116,7 @@ void exportOperator( OperatorType&                       op,
    }
    PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType > petscMatrix(
        localDoFs, globalDoFs, matrixName.c_str() );
-   typename OperatorType::srcType::template FunctionType< PetscInt > numerator( "numerator", storage, level, level );
+   typename OperatorType::srcType::template FunctionType< idx_t > numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
    petscMatrix.createMatrixFromOperator( op, level, numerator );
 

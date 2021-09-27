@@ -32,7 +32,7 @@ namespace hyteg {
 namespace petsc {
 
 inline void createVectorFromFunction( const P1StokesFunction< PetscReal >&  function,
-                                      const P1StokesFunction< PetscInt >&   numerator,
+                                      const P1StokesFunction< idx_t >&      numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
@@ -47,7 +47,7 @@ inline void createVectorFromFunction( const P1StokesFunction< PetscReal >&  func
 }
 
 inline void createFunctionFromVector( const P1StokesFunction< PetscReal >&  function,
-                                      const P1StokesFunction< PetscInt >&   numerator,
+                                      const P1StokesFunction< idx_t >&      numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
@@ -61,7 +61,7 @@ inline void createFunctionFromVector( const P1StokesFunction< PetscReal >&  func
    createFunctionFromVector( function.p, numerator.p, vec, level, flag );
 }
 
-inline void applyDirichletBC( const P1StokesFunction< PetscInt >& numerator, std::vector< PetscInt >& mat, uint_t level )
+inline void applyDirichletBC( const P1StokesFunction< idx_t >& numerator, std::vector< PetscInt >& mat, uint_t level )
 {
    applyDirichletBC( numerator.uvw[0], mat, level );
    applyDirichletBC( numerator.uvw[1], mat, level );
@@ -74,8 +74,8 @@ inline void applyDirichletBC( const P1StokesFunction< PetscInt >& numerator, std
 
 template < class OperatorType >
 inline void createMatrix( const OperatorType&                         opr,
-                          const P1StokesFunction< PetscInt >&         src,
-                          const P1StokesFunction< PetscInt >&         dst,
+                          const P1StokesFunction< idx_t >&            src,
+                          const P1StokesFunction< idx_t >&            dst,
                           const std::shared_ptr< SparseMatrixProxy >& mat,
                           size_t                                      level,
                           DoFType                                     flag )
@@ -103,8 +103,8 @@ inline void createMatrix( const OperatorType&                         opr,
 
 template <>
 inline void createMatrix< P1StokesBlockPreconditioner >( const P1StokesBlockPreconditioner&          opr,
-                                                         const P1StokesFunction< PetscInt >&         src,
-                                                         const P1StokesFunction< PetscInt >&         dst,
+                                                         const P1StokesFunction< idx_t >&            src,
+                                                         const P1StokesFunction< idx_t >&            dst,
                                                          const std::shared_ptr< SparseMatrixProxy >& mat,
                                                          size_t                                      level,
                                                          DoFType                                     flag )

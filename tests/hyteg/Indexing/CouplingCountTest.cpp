@@ -63,9 +63,9 @@ void compareCounts( std::shared_ptr< PrimitiveStorage > storage, std::string tag
    for ( uint_t level = 0; level <= maxLevel; level++ )
    {
       // determine indices and dimensions
-      fType< PetscInt > enumerator( "enumerator", storage, level, level );
+      fType< idx_t > enumerator( "enumerator", storage, level, level );
       enumerator.enumerate( level );
-      typedef typename FunctionTrait< fType< PetscInt > >::Tag enumTag;
+      typedef typename FunctionTrait< fType< idx_t > >::Tag enumTag;
 
       uint_t globalDoFs = numberOfGlobalDoFs< enumTag >( *storage, level );
       uint_t localDoFs  = numberOfLocalDoFs< enumTag >( *storage, level );

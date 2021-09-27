@@ -24,7 +24,7 @@
 
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/types/types.hpp"
 
 namespace hyteg {
 

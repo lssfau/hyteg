@@ -34,7 +34,7 @@
 #include "hyteg/p1functionspace/P1Petsc.hpp"
 #include "hyteg/p2functionspace/P2Petsc.hpp"
 
-// only needed for using PetscInt in to/fromVector() below!
+// only needed for using idx_t in to/fromVector() below!
 #include "hyteg/petsc/PETScWrapper.hpp"
 
 namespace hyteg {
@@ -187,14 +187,14 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
 #ifdef HYTEG_BUILD_WITH_PETSC
    /// conversion to/from linear algebra representation
    /// @{
-   void toVector( const GenericFunction< PetscInt >&    numerator,
+   void toVector( const GenericFunction< idx_t >&       numerator,
                   const std::shared_ptr< VectorProxy >& vec,
                   uint_t                                level,
                   DoFType                               flag ) const
    {
       if constexpr ( std::is_same< value_t, PetscReal >::value )
       {
-         using numer_t = typename func_t::template FunctionType< PetscInt >;
+         using numer_t = typename func_t::template FunctionType< idx_t >;
          petsc::createVectorFromFunction( *wrappedFunc_, numerator.template unwrap< numer_t >(), vec, level, flag );
       }
       else
@@ -203,14 +203,14 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
       }
    };
 
-   void fromVector( const GenericFunction< PetscInt >&    numerator,
+   void fromVector( const GenericFunction< idx_t >&       numerator,
                     const std::shared_ptr< VectorProxy >& vec,
                     uint_t                                level,
                     DoFType                               flag ) const
    {
       if constexpr ( std::is_same< value_t, PetscReal >::value )
       {
-         using numer_t = typename func_t::template FunctionType< PetscInt >;
+         using numer_t = typename func_t::template FunctionType< idx_t >;
          petsc::createFunctionFromVector( *wrappedFunc_, numerator.template unwrap< numer_t >(), vec, level, flag );
       }
       else

@@ -50,7 +50,7 @@ void testConversion( const std::shared_ptr< hyteg::PrimitiveStorage >& storage )
 
    uint_t level = 4;
 
-   vFunc_t< PetscInt > numerator( "numerator", storage, level, level );
+   vFunc_t< idx_t >    numerator( "numerator", storage, level, level );
    vFunc_t< real_t >   src( "src", storage, level, level );
    vFunc_t< real_t >   dst( "dst", storage, level, level );
 

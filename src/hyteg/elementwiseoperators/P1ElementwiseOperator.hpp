@@ -83,8 +83,8 @@ P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_
    ///
    /// \note src and dst are legal to and often will be the same function object
    void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                             const P1Function< PetscInt >&               src,
-                             const P1Function< PetscInt >&               dst,
+                             const P1Function< idx_t >&                  src,
+                             const P1Function< idx_t >&                  dst,
                              uint_t                                      level,
                              DoFType                                     flag ) const;
 #endif
@@ -189,16 +189,16 @@ P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_
                                const uint_t                                xIdx,
                                const uint_t                                yIdx,
                                const P1Elements::P1Elements2D::P1Element&  element,
-                               const PetscInt* const                       srcIdx,
-                               const PetscInt* const                       dstIdx ) const;
+                               const idx_t* const                          srcIdx,
+                               const idx_t* const                          dstIdx ) const;
 
    void localMatrixAssembly3D( const std::shared_ptr< SparseMatrixProxy >& mat,
                                const Cell&                                 cell,
                                const uint_t                                level,
                                const indexing::Index&                      microCell,
                                const celldof::CellType                     cType,
-                               const PetscInt* const                       srcIdx,
-                               const PetscInt* const                       dstIdx ) const;
+                               const idx_t* const                          srcIdx,
+                               const idx_t* const                          dstIdx ) const;
 #endif
 
    /// Trigger (re)computation of diagonal matrix entries (central operator weights)

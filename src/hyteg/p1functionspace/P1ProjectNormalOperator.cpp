@@ -269,9 +269,9 @@ void P1ProjectNormalOperator::project( const P1StokesFunction< real_t >& dst, si
 #ifdef HYTEG_BUILD_WITH_PETSC
 
 void P1ProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                   const P1Function< PetscInt >&               numU,
-                                                   const P1Function< PetscInt >&               numV,
-                                                   const P1Function< PetscInt >&               numW,
+                                                   const P1Function< idx_t >&                  numU,
+                                                   const P1Function< idx_t >&                  numV,
+                                                   const P1Function< idx_t >&                  numW,
                                                    uint_t                                      level,
                                                    DoFType                                     flag ) const
 {

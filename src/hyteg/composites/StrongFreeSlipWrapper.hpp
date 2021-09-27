@@ -103,11 +103,11 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
    /// \param level level in mesh hierarchy for which local operator is to be assembled
    /// \param flag  determines on which primitives this operator is assembled
    ///
-   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >&                        mat,
-                             const typename OpType::srcType::template FunctionType< PetscInt >& numeratorSrc,
-                             const typename OpType::dstType::template FunctionType< PetscInt >& numeratorDst,
-                             uint_t                                                             level,
-                             DoFType                                                            flag ) const
+   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >&                     mat,
+                             const typename OpType::srcType::template FunctionType< idx_t >& numeratorSrc,
+                             const typename OpType::dstType::template FunctionType< idx_t >& numeratorDst,
+                             uint_t                                                          level,
+                             DoFType                                                         flag ) const
    {
       auto matProxyOp = mat->createCopy();
       hyteg::petsc::createMatrix< OpType >( *op_, numeratorSrc, numeratorDst, matProxyOp, level, flag );
@@ -153,30 +153,30 @@ namespace petsc {
 
 template <>
 inline void createMatrix( const StrongFreeSlipWrapper< P1BlendingStokesOperator, P1ProjectNormalOperator, true >& opr,
-                          const P1StokesFunction< PetscInt >&                                             src,
-                          const P1StokesFunction< PetscInt >&                                             dst,
-                          const std::shared_ptr< SparseMatrixProxy >&                                     mat,
-                          size_t                                                                          level,
-                          DoFType                                                                         flag )
+                          const P1StokesFunction< idx_t >&                                                        src,
+                          const P1StokesFunction< idx_t >&                                                        dst,
+                          const std::shared_ptr< SparseMatrixProxy >&                                             mat,
+                          size_t                                                                                  level,
+                          DoFType                                                                                 flag )
 {
    WALBERLA_ABORT( "Not implemented." );
 }
 
 template <>
 inline void createMatrix( const StrongFreeSlipWrapper< P1BlendingStokesOperator, P1ProjectNormalOperator, false >& opr,
-                          const P1StokesFunction< PetscInt >&                                              src,
-                          const P1StokesFunction< PetscInt >&                                              dst,
-                          const std::shared_ptr< SparseMatrixProxy >&                                      mat,
-                          size_t                                                                           level,
-                          DoFType                                                                          flag )
+                          const P1StokesFunction< idx_t >&                                                         src,
+                          const P1StokesFunction< idx_t >&                                                         dst,
+                          const std::shared_ptr< SparseMatrixProxy >&                                              mat,
+                          size_t                                                                                   level,
+                          DoFType                                                                                  flag )
 {
    WALBERLA_ABORT( "Not implemented." );
 }
 
 template <>
 inline void createMatrix( const StrongFreeSlipWrapper< P2P1TaylorHoodStokesOperator, P2ProjectNormalOperator, true >& opr,
-                          const P2P1TaylorHoodFunction< PetscInt >&                                                   src,
-                          const P2P1TaylorHoodFunction< PetscInt >&                                                   dst,
+                          const P2P1TaylorHoodFunction< idx_t >&                                                      src,
+                          const P2P1TaylorHoodFunction< idx_t >&                                                      dst,
                           const std::shared_ptr< SparseMatrixProxy >&                                                 mat,
                           size_t                                                                                      level,
                           DoFType                                                                                     flag )
@@ -186,8 +186,8 @@ inline void createMatrix( const StrongFreeSlipWrapper< P2P1TaylorHoodStokesOpera
 
 template <>
 inline void createMatrix( const StrongFreeSlipWrapper< P2P1TaylorHoodStokesOperator, P2ProjectNormalOperator, false >& opr,
-                          const P2P1TaylorHoodFunction< PetscInt >&                                                    src,
-                          const P2P1TaylorHoodFunction< PetscInt >&                                                    dst,
+                          const P2P1TaylorHoodFunction< idx_t >&                                                       src,
+                          const P2P1TaylorHoodFunction< idx_t >&                                                       dst,
                           const std::shared_ptr< SparseMatrixProxy >&                                                  mat,
                           size_t                                                                                       level,
                           DoFType                                                                                      flag )
@@ -196,23 +196,25 @@ inline void createMatrix( const StrongFreeSlipWrapper< P2P1TaylorHoodStokesOpera
 }
 
 template <>
-inline void createMatrix( const StrongFreeSlipWrapper< P2P1ElementwiseBlendingStokesOperator, P2ProjectNormalOperator, true >& opr,
-                          const P2P1TaylorHoodFunction< PetscInt >&                                                   src,
-                          const P2P1TaylorHoodFunction< PetscInt >&                                                   dst,
-                          const std::shared_ptr< SparseMatrixProxy >&                                                 mat,
-                          size_t                                                                                      level,
-                          DoFType                                                                                     flag )
+inline void
+    createMatrix( const StrongFreeSlipWrapper< P2P1ElementwiseBlendingStokesOperator, P2ProjectNormalOperator, true >& opr,
+                  const P2P1TaylorHoodFunction< idx_t >&                                                               src,
+                  const P2P1TaylorHoodFunction< idx_t >&                                                               dst,
+                  const std::shared_ptr< SparseMatrixProxy >&                                                          mat,
+                  size_t                                                                                               level,
+                  DoFType                                                                                              flag )
 {
    opr.assembleLocalMatrix( mat, src, dst, level, flag );
 }
 
 template <>
-inline void createMatrix( const StrongFreeSlipWrapper< P2P1ElementwiseBlendingStokesOperator, P2ProjectNormalOperator, false >& opr,
-                          const P2P1TaylorHoodFunction< PetscInt >&                                                    src,
-                          const P2P1TaylorHoodFunction< PetscInt >&                                                    dst,
-                          const std::shared_ptr< SparseMatrixProxy >&                                                  mat,
-                          size_t                                                                                       level,
-                          DoFType                                                                                      flag )
+inline void
+    createMatrix( const StrongFreeSlipWrapper< P2P1ElementwiseBlendingStokesOperator, P2ProjectNormalOperator, false >& opr,
+                  const P2P1TaylorHoodFunction< idx_t >&                                                                src,
+                  const P2P1TaylorHoodFunction< idx_t >&                                                                dst,
+                  const std::shared_ptr< SparseMatrixProxy >&                                                           mat,
+                  size_t                                                                                                level,
+                  DoFType                                                                                               flag )
 {
    opr.assembleLocalMatrix( mat, src, dst, level, flag );
 }

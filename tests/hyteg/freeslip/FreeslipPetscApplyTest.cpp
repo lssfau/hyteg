@@ -92,7 +92,7 @@ void run( const real_t absErrorTolerance )
    StokesFunctionType                                             u_dst_hyteg( "u_dst_hyteg", storage, minLevel, maxLevel );
    StokesFunctionType                                             u_dst_petsc( "u_dst_petsc", storage, minLevel, maxLevel );
    StokesFunctionType                                             diff( "diff", storage, minLevel, maxLevel );
-   typename StokesFunctionType::template FunctionType< PetscInt > numerator( "numerator", storage, minLevel, maxLevel );
+   typename StokesFunctionType::template FunctionType< idx_t >    numerator( "numerator", storage, minLevel, maxLevel );
 
    numerator.enumerate( maxLevel );
 

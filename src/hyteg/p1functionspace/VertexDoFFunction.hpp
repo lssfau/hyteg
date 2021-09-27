@@ -28,7 +28,7 @@
 #include "hyteg/boundary/BoundaryConditions.hpp"
 #include "hyteg/functions/Function.hpp"
 #include "hyteg/functions/FunctionProperties.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/types/types.hpp"
 /// \todo This should be improved, but we need the enum which can't be forward declared
 #include "hyteg/communication/BufferedCommunication.hpp"
 

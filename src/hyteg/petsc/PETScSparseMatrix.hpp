@@ -19,7 +19,7 @@
  */
 #pragma once
 
-#include "hyteg/types/flags.hpp"
+#include "hyteg/types/types.hpp"
 
 #include "PETScWrapper.hpp"
 
@@ -55,7 +55,7 @@ class PETScSparseMatrix
    {
       MatCreate( petscCommunicator, &mat );
       MatSetType( mat, MATMPIAIJ );
-      MatSetSizes( mat, (PetscInt) localSize, (PetscInt) localSize, (PetscInt) globalSize, (PetscInt) globalSize );
+      MatSetSizes( mat, (idx_t) localSize, (idx_t) localSize, (idx_t) globalSize, (idx_t) globalSize );
       // Roughly overestimate number of non-zero entries for faster assembly of matrix
       MatMPIAIJSetPreallocation( mat, 500, NULL, 500, NULL );
       setName( name );
@@ -74,10 +74,10 @@ class PETScSparseMatrix
 
    virtual ~PETScSparseMatrix() { MatDestroy( &mat ); }
 
-   inline void createMatrixFromOperator( const OperatorType&             op,
-                                         uint_t                          level,
-                                         const FunctionType< PetscInt >& numerator,
-                                         DoFType                         flag = All )
+   inline void createMatrixFromOperator( const OperatorType&          op,
+                                         uint_t                       level,
+                                         const FunctionType< idx_t >& numerator,
+                                         DoFType                      flag = All )
    {
       auto proxy = std::make_shared< PETScSparseMatrixProxy >( mat );
       hyteg::petsc::createMatrix< OperatorType >( op, numerator, numerator, proxy, level, flag );
@@ -87,10 +87,10 @@ class PETScSparseMatrix
       assembled_ = true;
    }
 
-   inline bool createMatrixFromOperatorOnce( const OperatorType&             op,
-                                             uint_t                          level,
-                                             const FunctionType< PetscInt >& numerator,
-                                             DoFType                         flag = All )
+   inline bool createMatrixFromOperatorOnce( const OperatorType&          op,
+                                             uint_t                       level,
+                                             const FunctionType< idx_t >& numerator,
+                                             DoFType                      flag = All )
    {
       if ( assembled_ )
          return false;
@@ -114,7 +114,7 @@ class PETScSparseMatrix
       PetscViewerDestroy( &viewer );
    }
 
-   void applyDirichletBC( const FunctionType< PetscInt >& numerator, uint_t level )
+   void applyDirichletBC( const FunctionType< idx_t >& numerator, uint_t level )
    {
       std::vector< PetscInt > ind;
       hyteg::petsc::applyDirichletBC( numerator, ind, level );
@@ -124,7 +124,7 @@ class PETScSparseMatrix
       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
       MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
-      MatZeroRows( mat, ind.size(), ind.data(), 1.0, 0, 0 );
+      MatZeroRows( mat, static_cast< PetscInt >( ind.size() ), ind.data(), 1.0, nullptr, nullptr );
 
       MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
       MatAssemblyEnd( mat, MAT_FINAL_ASSEMBLY );
@@ -148,7 +148,7 @@ class PETScSparseMatrix
    /// \param level the refinement level
    ///
    void applyDirichletBCSymmetrically( const FunctionType< real_t >&        dirichletSolution,
-                                       const FunctionType< PetscInt >&      numerator,
+                                       const FunctionType< idx_t >&         numerator,
                                        PETScVector< real_t, FunctionType >& rhsVec,
                                        const uint_t&                        level )
    {
@@ -169,7 +169,7 @@ class PETScSparseMatrix
    /// \brief Variant of applyDirichletBCSymmetrically() that only modifies the matrix itself
    ///
    /// \return Vector with global indices of the Dirichlet DoFs
-   std::vector< PetscInt > applyDirichletBCSymmetrically( const FunctionType< PetscInt >& numerator, const uint_t& level )
+   std::vector< PetscInt > applyDirichletBCSymmetrically( const FunctionType< idx_t >& numerator, const uint_t& level )
    {
       std::vector< PetscInt > bcIndices;
       hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );
@@ -179,7 +179,7 @@ class PETScSparseMatrix
       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
       MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
-      MatZeroRowsColumns( mat, bcIndices.size(), bcIndices.data(), 1.0, NULL, NULL );
+      MatZeroRowsColumns( mat, static_cast< PetscInt >( bcIndices.size() ), bcIndices.data(), 1.0, nullptr, nullptr );
 
       return bcIndices;
    }

@@ -26,32 +26,34 @@
 #include "hyteg/functions/GenericFunctionPetsc.hpp"
 #include "hyteg/petsc/PETScWrapper.hpp"
 #include "hyteg/sparseassembly/VectorProxy.hpp"
-#include "hyteg/types/flags.hpp"
+#include "hyteg/types/types.hpp"
 
 #ifdef HYTEG_BUILD_WITH_PETSC
 namespace hyteg {
 namespace petsc {
 
-inline void createVectorFromFunction( const BlockFunction< PetscReal >&   function,
-                                      const BlockFunction< PetscInt >&    numerator,
+inline void createVectorFromFunction( const BlockFunction< PetscReal >&     function,
+                                      const BlockFunction< idx_t >&         numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-  for( uint_t k = 0; k < function.getNumberOfBlocks(); k++ ) {
-    createVectorFromFunction( function[k], numerator[k], vec, level, flag ); 
-  }
+   for ( uint_t k = 0; k < function.getNumberOfBlocks(); k++ )
+   {
+      createVectorFromFunction( function[k], numerator[k], vec, level, flag );
+   }
 }
 
-inline void createFunctionFromVector( const BlockFunction< PetscReal >&   function,
-                                      const BlockFunction< PetscInt >&    numerator,
+inline void createFunctionFromVector( const BlockFunction< PetscReal >&     function,
+                                      const BlockFunction< idx_t >&         numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
 {
-  for( uint_t k = 0; k < function.getNumberOfBlocks(); k++ ) {
-    createFunctionFromVector( function[k], numerator[k], vec, level, flag ); 
-  }
+   for ( uint_t k = 0; k < function.getNumberOfBlocks(); k++ )
+   {
+      createFunctionFromVector( function[k], numerator[k], vec, level, flag );
+   }
 }
 
 } // namespace petsc

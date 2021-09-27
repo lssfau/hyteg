@@ -114,7 +114,7 @@ int main( int argc, char* argv[] )
    hyteg::P1Function< double > diff( "diff", storage, level, level );
    x.interpolate( exact, level, hyteg::Inner );
    //hyteg::communication::syncFunctionBetweenPrimitives(x,level);
-   hyteg::P1Function< PetscInt >    numerator( "numerator", storage, level, level );
+   hyteg::P1Function< idx_t >       numerator( "numerator", storage, level, level );
    hyteg::P1ConstantLaplaceOperator mass( storage, level, level );
 
    //  for (const auto & faceIT : storage->getFaces()) {
@@ -155,7 +155,7 @@ int main( int argc, char* argv[] )
    //   WALBERLA_CRITICAL_SECTION_START
    //  for (auto &edgeIT : storage->getEdges()) {
    //    auto edge = edgeIT.second;
-   //    hyteg::vertexdof::macroedge::printFunctionMemory< PetscInt >(level, *edge, numerator.getEdgeDataID());
+   //    hyteg::vertexdof::macroedge::printFunctionMemory< idx_t >(level, *edge, numerator.getEdgeDataID());
    //  }
    //   WALBERLA_CRITICAL_SECTION_END
 

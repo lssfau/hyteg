@@ -180,7 +180,7 @@ caseResult analyseCase( std::shared_ptr< PrimitiveStorage > storage,
                         funcType&                           u,
                         funcType&                           error )
 {
-   typedef typename FunctionTrait< typename funcType::template FunctionType< PetscInt > >::Tag funcTag;
+   typedef typename FunctionTrait< typename funcType::template FunctionType< idx_t > >::Tag funcTag;
 
    // embed numeric solution in next finer space
    embedInRefinedSpace( u, level );
@@ -379,7 +379,7 @@ void solve_using_pimped_form( uint_t minLevel, uint_t maxLevel, bool outputVTK )
 {
    // perform some template magic
    typedef typename opType::srcType funcType;
-   // typedef typename FunctionTrait< typename opType::srcType::template FunctionType<PetscInt> >::Tag funcTag;
+   // typedef typename FunctionTrait< typename opType::srcType::template FunctionType<idx_t> >::Tag funcTag;
 
    // generate annulus mesh in polar coordinates
    real_t   rmin = 1.0;

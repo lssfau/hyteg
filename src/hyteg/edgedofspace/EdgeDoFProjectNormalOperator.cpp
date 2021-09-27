@@ -127,9 +127,9 @@ void EdgeDoFProjectNormalOperator::project( const EdgeDoFFunction< real_t >& dst
 #ifdef HYTEG_BUILD_WITH_PETSC
 
 void EdgeDoFProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                        const EdgeDoFFunction< PetscInt >&          numU,
-                                                        const EdgeDoFFunction< PetscInt >&          numV,
-                                                        const EdgeDoFFunction< PetscInt >&          numW,
+                                                        const EdgeDoFFunction< idx_t >&             numU,
+                                                        const EdgeDoFFunction< idx_t >&             numV,
+                                                        const EdgeDoFFunction< idx_t >&             numW,
                                                         uint_t                                      level,
                                                         DoFType                                     flag ) const
 {

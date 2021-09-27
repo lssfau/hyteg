@@ -37,7 +37,7 @@ namespace petsc {
 //  P2Function
 // ============
 inline void createVectorFromFunction( const P2Function< PetscReal >&        function,
-                                      const P2Function< PetscInt >&         numerator,
+                                      const P2Function< idx_t >&            numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
@@ -47,7 +47,7 @@ inline void createVectorFromFunction( const P2Function< PetscReal >&        func
 }
 
 inline void createFunctionFromVector( const P2Function< PetscReal >&        function,
-                                      const P2Function< PetscInt >&         numerator,
+                                      const P2Function< idx_t >&            numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
@@ -56,7 +56,7 @@ inline void createFunctionFromVector( const P2Function< PetscReal >&        func
    createFunctionFromVector( function.getEdgeDoFFunction(), numerator.getEdgeDoFFunction(), vec, level, flag );
 }
 
-inline void applyDirichletBC( const P2Function< PetscInt >& numerator, std::vector< PetscInt >& mat, uint_t level )
+inline void applyDirichletBC( const P2Function< idx_t >& numerator, std::vector< PetscInt >& mat, uint_t level )
 {
    applyDirichletBC( numerator.getVertexDoFFunction(), mat, level );
    applyDirichletBC( numerator.getEdgeDoFFunction(), mat, level );
@@ -66,7 +66,7 @@ inline void applyDirichletBC( const P2Function< PetscInt >& numerator, std::vect
 //  P2VectorFunction
 // ==================
 inline void createVectorFromFunction( const P2VectorFunction< PetscReal >&  function,
-                                      const P2VectorFunction< PetscInt >&   numerator,
+                                      const P2VectorFunction< idx_t >&      numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
@@ -78,7 +78,7 @@ inline void createVectorFromFunction( const P2VectorFunction< PetscReal >&  func
 }
 
 inline void createFunctionFromVector( const P2VectorFunction< PetscReal >&  function,
-                                      const P2VectorFunction< PetscInt >&   numerator,
+                                      const P2VectorFunction< idx_t >&      numerator,
                                       const std::shared_ptr< VectorProxy >& vec,
                                       uint_t                                level,
                                       DoFType                               flag )
@@ -89,7 +89,7 @@ inline void createFunctionFromVector( const P2VectorFunction< PetscReal >&  func
    }
 }
 
-inline void applyDirichletBC( const P2VectorFunction< PetscInt >& numerator, std::vector< PetscInt >& mat, uint_t level )
+inline void applyDirichletBC( const P2VectorFunction< idx_t >& numerator, std::vector< PetscInt >& mat, uint_t level )
 {
    for ( uint_t k = 0; k < numerator.getDimension(); k++ )
    {
@@ -102,8 +102,8 @@ inline void applyDirichletBC( const P2VectorFunction< PetscInt >& numerator, std
 // =============
 template < class OperatorType >
 inline void createMatrix( const OperatorType&                         opr,
-                          const P2Function< PetscInt >&               src,
-                          const P2Function< PetscInt >&               dst,
+                          const P2Function< idx_t >&                  src,
+                          const P2Function< idx_t >&                  dst,
                           const std::shared_ptr< SparseMatrixProxy >& mat,
                           uint_t                                      level,
                           DoFType                                     flag )

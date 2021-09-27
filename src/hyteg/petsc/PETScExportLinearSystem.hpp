@@ -93,7 +93,7 @@ void exportLinearSystem( OperatorType                        op,
       WALBERLA_LOG_INFO_ON_ROOT( " * Converting Operator to PETSc matrix" );
    }
    PETScSparseMatrix< OperatorType, FunctionType > petscMatrix( localDoFs, globalDoFs, nameMatrix.c_str() );
-   FunctionType< PetscInt >                        numerator( "numerator", storage, level, level );
+   FunctionType< idx_t >                           numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
    petscMatrix.createMatrixFromOperator( op, level, numerator );
 
