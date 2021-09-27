@@ -395,11 +395,11 @@ inline void createFunctionFromVector( Vertex&                                   
 }
 
 inline void applyDirichletBC( Vertex&                                                   vertex,
-                              std::vector< PetscInt >&                                  mat,
+                              std::vector< idx_t >&                                     mat,
                               uint_t                                                    level,
                               const PrimitiveDataID< FunctionMemory< idx_t >, Vertex >& numeratorId )
 {
-   mat.push_back( static_cast< PetscInt >( vertex.getData( numeratorId )->getPointer( level )[0] ) );
+   mat.push_back( vertex.getData( numeratorId )->getPointer( level )[0] );
 }
 
 #endif

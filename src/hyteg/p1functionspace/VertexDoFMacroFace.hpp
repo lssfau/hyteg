@@ -1263,13 +1263,12 @@ inline void createFunctionFromVector( const uint_t&                             
 
 inline void applyDirichletBC( const uint_t&                                           level,
                               Face&                                                   face,
-                              std::vector< PetscInt >&                                mat,
+                              std::vector< idx_t >&                                   mat,
                               const PrimitiveDataID< FunctionMemory< idx_t >, Face >& numeratorId )
 {
    for ( const auto& it : vertexdof::macroface::Iterator( level, 1 ) )
    {
-      mat.push_back( static_cast< PetscInt >(
-          face.getData( numeratorId )->getPointer( level )[vertexdof::macroface::index( level, it.x(), it.y() )] ) );
+      mat.push_back( face.getData( numeratorId )->getPointer( level )[vertexdof::macroface::index( level, it.x(), it.y() )] );
    }
 }
 

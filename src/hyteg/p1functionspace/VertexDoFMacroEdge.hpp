@@ -809,14 +809,14 @@ inline void createFunctionFromVector( const uint_t&                             
 
 inline void applyDirichletBC( const uint_t&                                           level,
                               Edge&                                                   edge,
-                              std::vector< PetscInt >&                                mat,
+                              std::vector< idx_t >&                                   mat,
                               const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& numeratorId )
 {
    size_t rowsize = levelinfo::num_microvertices_per_edge( level );
 
    for ( uint_t i = 1; i < rowsize - 1; i++ )
    {
-      mat.push_back( static_cast< PetscInt >( edge.getData( numeratorId )->getPointer( level )[i] ) );
+      mat.push_back( edge.getData( numeratorId )->getPointer( level )[i] );
    }
 }
 #endif

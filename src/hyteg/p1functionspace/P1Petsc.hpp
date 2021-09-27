@@ -156,7 +156,7 @@ inline void createFunctionFromVector( const P1Function< PetscReal >&        func
    }
 }
 
-inline void applyDirichletBC( const P1Function< idx_t >& numerator, std::vector< PetscInt >& mat, uint_t level )
+inline void applyDirichletBC( const P1Function< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    for ( auto& it : numerator.getStorage()->getVertices() )
    {
@@ -219,7 +219,7 @@ inline void createFunctionFromVector( const P1VectorFunction< PetscReal >&  func
    }
 }
 
-inline void applyDirichletBC( const P1VectorFunction< idx_t >& numerator, std::vector< PetscInt >& mat, uint_t level )
+inline void applyDirichletBC( const P1VectorFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    for ( uint_t k = 0; k < numerator.getDimension(); k++ )
    {

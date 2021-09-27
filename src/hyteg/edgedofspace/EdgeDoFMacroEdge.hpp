@@ -613,7 +613,7 @@ inline void createFunctionFromVector( const uint_t&                             
 
 inline void applyDirichletBC( const uint_t&                                           Level,
                               Edge&                                                   edge,
-                              std::vector< PetscInt >&                                mat,
+                              std::vector< idx_t >&                                   mat,
                               const PrimitiveDataID< FunctionMemory< idx_t >, Edge >& numeratorId )
 {
    auto numerator = edge.getData( numeratorId )->getPointer( Level );
@@ -621,7 +621,7 @@ inline void applyDirichletBC( const uint_t&                                     
    for ( const auto& it : edgedof::macroedge::Iterator( Level ) )
    {
       const uint_t idx = edgedof::macroedge::indexFromHorizontalEdge( Level, it.col(), stencilDirection::EDGE_HO_C );
-      mat.push_back( static_cast< PetscInt >( numerator[idx] ) );
+      mat.push_back( static_cast< idx_t >( numerator[idx] ) );
    }
 }
 #endif

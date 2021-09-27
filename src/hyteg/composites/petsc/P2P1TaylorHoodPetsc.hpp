@@ -62,7 +62,7 @@ inline void createFunctionFromVector( const P2P1TaylorHoodFunction< PetscReal >&
    createFunctionFromVector( function.p, numerator.p, vec, level, flag );
 }
 
-inline void applyDirichletBC( const P2P1TaylorHoodFunction< idx_t >& numerator, std::vector< PetscInt >& mat, uint_t level )
+inline void applyDirichletBC( const P2P1TaylorHoodFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    applyDirichletBC( numerator.uvw[0], mat, level );
    applyDirichletBC( numerator.uvw[1], mat, level );

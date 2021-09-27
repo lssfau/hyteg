@@ -56,7 +56,7 @@ inline void createFunctionFromVector( const P2Function< PetscReal >&        func
    createFunctionFromVector( function.getEdgeDoFFunction(), numerator.getEdgeDoFFunction(), vec, level, flag );
 }
 
-inline void applyDirichletBC( const P2Function< idx_t >& numerator, std::vector< PetscInt >& mat, uint_t level )
+inline void applyDirichletBC( const P2Function< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    applyDirichletBC( numerator.getVertexDoFFunction(), mat, level );
    applyDirichletBC( numerator.getEdgeDoFFunction(), mat, level );
@@ -89,7 +89,7 @@ inline void createFunctionFromVector( const P2VectorFunction< PetscReal >&  func
    }
 }
 
-inline void applyDirichletBC( const P2VectorFunction< idx_t >& numerator, std::vector< PetscInt >& mat, uint_t level )
+inline void applyDirichletBC( const P2VectorFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    for ( uint_t k = 0; k < numerator.getDimension(); k++ )
    {

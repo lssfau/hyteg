@@ -116,15 +116,16 @@ class PETScSparseMatrix
 
    void applyDirichletBC( const FunctionType< idx_t >& numerator, uint_t level )
    {
-      std::vector< PetscInt > ind;
-      hyteg::petsc::applyDirichletBC( numerator, ind, level );
+      std::vector< idx_t > bcIndices;
+      hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );
+      std::vector< PetscInt > PetscIntBcIndices( bcIndices.begin(), bcIndices.end() );
 
       // This is required as the implementation of MatZeroRows() checks (for performance reasons?!)
       // if there are zero diagonals in the matrix. If there are, the function halts.
       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
       MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
-      MatZeroRows( mat, static_cast< PetscInt >( ind.size() ), ind.data(), 1.0, nullptr, nullptr );
+      MatZeroRows( mat, static_cast< PetscInt >( PetscIntBcIndices.size() ), PetscIntBcIndices.data(), 1.0, nullptr, nullptr );
 
       MatAssemblyBegin( mat, MAT_FINAL_ASSEMBLY );
       MatAssemblyEnd( mat, MAT_FINAL_ASSEMBLY );
@@ -152,8 +153,9 @@ class PETScSparseMatrix
                                        PETScVector< real_t, FunctionType >& rhsVec,
                                        const uint_t&                        level )
    {
-      std::vector< PetscInt > bcIndices;
+      std::vector< idx_t > bcIndices;
       hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );
+      std::vector< PetscInt > PetscIntBcIndices( bcIndices.begin(), bcIndices.end() );
 
       PETScVector< real_t, FunctionType > dirichletSolutionVec(
           dirichletSolution, numerator, level, All, "dirichletSolutionVec", rhsVec.getCommunicator() );
@@ -163,23 +165,26 @@ class PETScSparseMatrix
       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
       MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
-      MatZeroRowsColumns( mat, bcIndices.size(), bcIndices.data(), 1.0, dirichletSolutionVec.get(), rhsVec.get() );
+      MatZeroRowsColumns(
+          mat, PetscIntBcIndices.size(), PetscIntBcIndices.data(), 1.0, dirichletSolutionVec.get(), rhsVec.get() );
    }
 
    /// \brief Variant of applyDirichletBCSymmetrically() that only modifies the matrix itself
    ///
    /// \return Vector with global indices of the Dirichlet DoFs
-   std::vector< PetscInt > applyDirichletBCSymmetrically( const FunctionType< idx_t >& numerator, const uint_t& level )
+   std::vector< idx_t > applyDirichletBCSymmetrically( const FunctionType< idx_t >& numerator, const uint_t& level )
    {
-      std::vector< PetscInt > bcIndices;
+      std::vector< idx_t > bcIndices;
       hyteg::petsc::applyDirichletBC( numerator, bcIndices, level );
+      std::vector< PetscInt > PetscIntBcIndices( bcIndices.begin(), bcIndices.end() );
 
       // This is required as the implementation of MatZeroRowsColumns() checks (for performance reasons?!)
       // if there are zero diagonals in the matrix. If there are, the function halts.
       // To disable that check, we need to allow setting MAT_NEW_NONZERO_LOCATIONS to true.
       MatSetOption( mat, MAT_NEW_NONZERO_LOCATIONS, PETSC_TRUE );
 
-      MatZeroRowsColumns( mat, static_cast< PetscInt >( bcIndices.size() ), bcIndices.data(), 1.0, nullptr, nullptr );
+      MatZeroRowsColumns(
+          mat, static_cast< PetscInt >( PetscIntBcIndices.size() ), PetscIntBcIndices.data(), 1.0, nullptr, nullptr );
 
       return bcIndices;
    }

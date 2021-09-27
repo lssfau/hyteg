@@ -61,7 +61,7 @@ inline void createFunctionFromVector( const P1StokesFunction< PetscReal >&  func
    createFunctionFromVector( function.p, numerator.p, vec, level, flag );
 }
 
-inline void applyDirichletBC( const P1StokesFunction< idx_t >& numerator, std::vector< PetscInt >& mat, uint_t level )
+inline void applyDirichletBC( const P1StokesFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    applyDirichletBC( numerator.uvw[0], mat, level );
    applyDirichletBC( numerator.uvw[1], mat, level );

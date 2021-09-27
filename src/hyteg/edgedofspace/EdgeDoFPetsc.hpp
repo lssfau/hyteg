@@ -601,7 +601,7 @@ inline void createFunctionFromVector( const EdgeDoFFunction< PetscReal >&   func
    }
 }
 
-inline void applyDirichletBC( const EdgeDoFFunction< idx_t >& numerator, std::vector< PetscInt >& mat, uint_t level )
+inline void applyDirichletBC( const EdgeDoFFunction< idx_t >& numerator, std::vector< idx_t >& mat, uint_t level )
 {
    for ( auto& it : numerator.getStorage()->getEdges() )
    {
