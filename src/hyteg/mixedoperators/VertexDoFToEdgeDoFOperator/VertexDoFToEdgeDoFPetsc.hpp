@@ -31,8 +31,6 @@ namespace VertexDoFToEdgeDoF {
 using walberla::real_t;
 using walberla::uint_t;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 inline void saveEdgeOperator( const uint_t&                                              Level,
                               const Edge&                                                edge,
                               const PrimitiveDataID< StencilMemory< real_t >, Edge >&    operatorId,
@@ -344,74 +342,6 @@ inline void saveCellOperator( const uint_t&                                     
       }
    }
 }
-
-} // namespace VertexDoFToEdgeDoF
-
-namespace petsc {
-
-template < class OperatorType >
-inline void createMatrix( const OperatorType&                         opr,
-                          const P1Function< PetscInt >&               src,
-                          const EdgeDoFFunction< PetscInt >&          dst,
-                          const std::shared_ptr< SparseMatrixProxy >& mat,
-                          size_t                                      level,
-                          DoFType                                     flag )
-{
-   const auto storage = src.getStorage();
-
-   for ( auto& it : opr.getStorage()->getEdges() )
-   {
-      Edge& edge = *it.second;
-
-      const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-      if ( testFlag( edgeBC, flag ) )
-      {
-         if ( storage->hasGlobalCells() )
-         {
-            VertexDoFToEdgeDoF::saveEdgeOperator3D( level, edge, *storage, opr.getEdgeStencil3DID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
-         }
-         else
-         {
-            VertexDoFToEdgeDoF::saveEdgeOperator( level, edge, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
-         }
-      }
-   }
-
-   if ( level >= 1 )
-   {
-      for ( auto& it : opr.getStorage()->getFaces() )
-      {
-         Face& face = *it.second;
-
-         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if ( testFlag( faceBC, flag ) )
-         {
-            if ( storage->hasGlobalCells() )
-            {
-               VertexDoFToEdgeDoF::saveFaceOperator3D(
-                   level, face, *storage, opr.getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
-            }
-            else
-            {
-               VertexDoFToEdgeDoF::saveFaceOperator( level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
-            }
-         }
-      }
-
-      for ( auto& it : opr.getStorage()->getCells() )
-      {
-         Cell& cell = *it.second;
-
-         const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-         if ( testFlag( cellBC, flag ) )
-         {
-            VertexDoFToEdgeDoF::saveCellOperator( level, cell, opr.getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
-         }
-      }
-   }
-}
-
-#endif
 
 } // namespace VertexDoFToEdgeDoF
 } // namespace hyteg

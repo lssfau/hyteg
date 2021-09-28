@@ -63,18 +63,52 @@ class P2P1TaylorHoodStokesOperator : public Operator< P2P1TaylorHoodFunction< re
       div.apply( src.uvw, dst.p, level, flag, Replace );
    }
 
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2P1TaylorHoodFunction< matIdx_t >&   src,
+                  const P2P1TaylorHoodFunction< matIdx_t >&   dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      A.toMatrix( mat, src.uvw[0], dst.uvw[0], level, flag );
+      divT_x.getVertexToVertexOpr().toMatrix( mat, src.p, dst.uvw[0].getVertexDoFFunction(), level, flag );
+      divT_x.getVertexToEdgeOpr().toMatrix( mat, src.p, dst.uvw[0].getEdgeDoFFunction(), level, flag );
+
+      A.toMatrix( mat, src.uvw[1], dst.uvw[1], level, flag );
+      divT_y.getVertexToVertexOpr().toMatrix( mat, src.p, dst.uvw[1].getVertexDoFFunction(), level, flag );
+      divT_y.getVertexToEdgeOpr().toMatrix( mat, src.p, dst.uvw[1].getEdgeDoFFunction(), level, flag );
+
+      if ( src.uvw[0].getStorage()->hasGlobalCells() )
+      {
+         A.toMatrix( mat, src.uvw[2], dst.uvw[2], level, flag );
+         divT_z.getVertexToVertexOpr().toMatrix( mat, src.p, dst.uvw[2].getVertexDoFFunction(), level, flag );
+         divT_z.getVertexToEdgeOpr().toMatrix( mat, src.p, dst.uvw[2].getEdgeDoFFunction(), level, flag );
+      }
+
+      div_x.getVertexToVertexOpr().toMatrix( mat, src.uvw[0].getVertexDoFFunction(), dst.p, level, flag | DirichletBoundary );
+      div_x.getEdgeToVertexOpr().toMatrix( mat, src.uvw[0].getEdgeDoFFunction(), dst.p, level, flag | DirichletBoundary );
+
+      div_y.getVertexToVertexOpr().toMatrix( mat, src.uvw[1].getVertexDoFFunction(), dst.p, level, flag | DirichletBoundary );
+      div_y.getEdgeToVertexOpr().toMatrix( mat, src.uvw[1].getEdgeDoFFunction(), dst.p, level, flag | DirichletBoundary );
+
+      if ( src.uvw[0].getStorage()->hasGlobalCells() )
+      {
+         div_z.getVertexToVertexOpr().toMatrix( mat, src.uvw[2].getVertexDoFFunction(), dst.p, level, flag | DirichletBoundary );
+         div_z.getEdgeToVertexOpr().toMatrix( mat, src.uvw[2].getEdgeDoFFunction(), dst.p, level, flag | DirichletBoundary );
+      }
+   }
+
    P2ConstantVectorLaplaceOperator Lapl;
-   P2ToP1ConstantDivOperator  div;
-   P1ToP2ConstantDivTOperator divT;
+   P2ToP1ConstantDivOperator       div;
+   P1ToP2ConstantDivTOperator      divT;
 
    // currently need these for being able to call createMatrix()
-   P2ConstantLaplaceOperator A;
-   P2ToP1ConstantDivxOperator      div_x;
-   P2ToP1ConstantDivyOperator      div_y;
-   P2ToP1ConstantDivzOperator      div_z;
-   P1ToP2ConstantDivTxOperator     divT_x;
-   P1ToP2ConstantDivTyOperator     divT_y;
-   P1ToP2ConstantDivTzOperator     divT_z;
+   P2ConstantLaplaceOperator   A;
+   P2ToP1ConstantDivxOperator  div_x;
+   P2ToP1ConstantDivyOperator  div_y;
+   P2ToP1ConstantDivzOperator  div_z;
+   P1ToP2ConstantDivTxOperator divT_x;
+   P1ToP2ConstantDivTyOperator divT_y;
+   P1ToP2ConstantDivTzOperator divT_z;
 
    /// this operator is need in the uzawa smoother
    P1PSPGOperator        pspg_;

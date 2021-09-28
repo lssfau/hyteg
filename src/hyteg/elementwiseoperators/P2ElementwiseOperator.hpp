@@ -122,30 +122,11 @@ class P2ElementwiseOperator : public Operator< P2Function< real_t >, P2Function<
    /// \param flag  ignored
    ///
    /// \note src and dst are legal to and often will be the same function object
-   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                             const P2Function< matIdx_t >&               src,
-                             const P2Function< matIdx_t >&               dst,
-                             uint_t                                      level,
-                             DoFType                                     flag ) const;
-
-   /// Assemble operator as sparse matrix.
-   ///
-   /// \param mat   a sparse matrix proxy
-   /// \param src   P2Function for determining column indices
-   /// \param dst   P2Function for determining row indices
-   /// \param level level in mesh hierarchy for which local operator is to be assembled
-   /// \param flag  ignored
-   ///
-   /// \note src and dst are legal to and often will be the same function object
-   /// \note we should rename assembleLocalMatrix() to toMatrix() and skip the delegation
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const P2Function< matIdx_t >&               src,
                   const P2Function< matIdx_t >&               dst,
                   uint_t                                      level,
-                  DoFType                                     flag ) const override
-   {
-      this->assembleLocalMatrix( mat, src, dst, level, flag );
-   }
+                  DoFType                                     flag ) const override;
 
    P2Form getForm() const;
 

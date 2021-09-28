@@ -81,6 +81,34 @@ class P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFu
       pspg.apply( src.p, dst.p, level, flag, Add );
    }
 
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1StokesFunction< matIdx_t >&         src,
+                  const P1StokesFunction< matIdx_t >&         dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      A.toMatrix( mat, src.uvw[0], dst.uvw[0], level, flag );
+      divT_x.toMatrix( mat, src.p, dst.uvw[0], level, flag );
+
+      A.toMatrix( mat, src.uvw[1], dst.uvw[1], level, flag );
+      divT_y.toMatrix( mat, src.p, dst.uvw[1], level, flag );
+
+      if ( src.uvw[0].getStorage()->hasGlobalCells() )
+      {
+         A.toMatrix( mat, src.uvw[2], dst.uvw[2], level, flag );
+         divT_z.toMatrix( mat, src.p, dst.uvw[2], level, flag );
+      }
+
+      div_x.toMatrix( mat, src.uvw[0], dst.p, level, flag | DirichletBoundary );
+      div_y.toMatrix( mat, src.uvw[1], dst.p, level, flag | DirichletBoundary );
+      if ( src.uvw[0].getStorage()->hasGlobalCells() )
+      {
+         div_z.toMatrix( mat, src.uvw[2], dst.p, level, flag | DirichletBoundary );
+      }
+
+      pspg.toMatrix( mat, src.p, dst.p, level, flag | DirichletBoundary );
+   }
+
    P1ConstantLaplaceOperator A;
    P1DivxOperator            div_x;
    P1DivyOperator            div_y;

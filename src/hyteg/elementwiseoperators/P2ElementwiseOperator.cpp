@@ -320,11 +320,11 @@ void P2ElementwiseOperator< P2Form >::smooth_jac( const P2Function< real_t >& ds
 
    // compute the current residual
    this->apply( src, dst, level, flag );
-   dst.assign( {real_c( 1 ), real_c( -1 )}, {rhs, dst}, level, flag );
+   dst.assign( { real_c( 1 ), real_c( -1 ) }, { rhs, dst }, level, flag );
 
    // perform Jacobi update step
-   dst.multElementwise( {*getInverseDiagonalValues(), dst}, level, flag );
-   dst.assign( {1.0, omega}, {src, dst}, level, flag );
+   dst.multElementwise( { *getInverseDiagonalValues(), dst }, level, flag );
+   dst.assign( { 1.0, omega }, { src, dst }, level, flag );
 
    this->stopTiming( "smooth_jac" );
 }
@@ -596,7 +596,7 @@ void P2ElementwiseOperator< P2Form >::computeLocalDiagonalContributions2D( const
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( {v0, v1, v2}, elMat );
+   form.integrateAll( { v0, v1, v2 }, elMat );
 
    // get global indices for local dofs
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );
@@ -664,11 +664,11 @@ P2Form P2ElementwiseOperator< P2Form >::getForm() const
 
 // Assemble operator as sparse matrix
 template < class P2Form >
-void P2ElementwiseOperator< P2Form >::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                           const P2Function< matIdx_t >&               src,
-                                                           const P2Function< matIdx_t >&               dst,
-                                                           uint_t                                      level,
-                                                           DoFType                                     flag ) const
+void P2ElementwiseOperator< P2Form >::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                const P2Function< matIdx_t >&               src,
+                                                const P2Function< matIdx_t >&               dst,
+                                                uint_t                                      level,
+                                                DoFType                                     flag ) const
 {
    // We currently ignore the flag provided!
    // WALBERLA_UNUSED( flag );
@@ -829,7 +829,7 @@ void P2ElementwiseOperator< P2Form >::localMatrixAssembly2D( const std::shared_p
 
    // assemble local element matrix
    form.setGeometryMap( face.getGeometryMap() );
-   form.integrateAll( {v0, v1, v2}, elMat );
+   form.integrateAll( { v0, v1, v2 }, elMat );
 
    // determine global indices of our local DoFs (note the tweaked ordering to go along with FEniCS indexing)
    dofDataIdx[0] = vertexdof::macroface::indexFromVertex( level, xIdx, yIdx, element[0] );

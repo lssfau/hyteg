@@ -19,6 +19,23 @@ class P2P1TaylorHoodStokesBlockPreconditioner
    , hasGlobalCells_( storage->hasGlobalCells() )
    {}
 
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P2P1TaylorHoodFunction< matIdx_t >&   src,
+                  const P2P1TaylorHoodFunction< matIdx_t >&   dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      A.toMatrix( mat, src.uvw[0], dst.uvw[0], level, flag );
+      A.toMatrix( mat, src.uvw[1], dst.uvw[1], level, flag );
+
+      if ( src.uvw[0].getStorage()->hasGlobalCells() )
+      {
+         A.toMatrix( mat, src.uvw[2], dst.uvw[2], level, flag );
+      }
+
+      P.toMatrix( mat, src.p, dst.p, level, flag );
+   }
+
    P2ConstantLaplaceOperator A;
    P1LumpedMassOperator      P;
 

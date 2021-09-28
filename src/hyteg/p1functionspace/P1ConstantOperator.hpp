@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2021 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -32,11 +32,12 @@
 #include "hyteg/p1functionspace/VertexDoFIndexing.hpp"
 #include "hyteg/solvers/Smoothables.hpp"
 #include "hyteg/sparseassembly/SparseMatrixProxy.hpp"
-
-// This include can be removed once the implementation of createMatrix() was moved into toMatrix()
-#ifdef HYTEG_BUILD_WITH_PETSC
 #include "hyteg/p1functionspace/P1Petsc.hpp"
-#endif
+#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
+
 
 namespace hyteg {
 
@@ -152,17 +153,73 @@ class P1ConstantOperator : public Operator< P1Function< real_t >, P1Function< re
       return cellStencilID_;
    }
 
-// Remove guard once the implementation of createMatrix() here
-#ifdef HYTEG_BUILD_WITH_PETSC
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const P1Function< matIdx_t >&               src,
                   const P1Function< matIdx_t >&               dst,
                   size_t                                      level,
                   DoFType                                     flag ) const override
    {
-      hyteg::petsc::createMatrix( *this, src, dst, mat, level, flag );
+      const auto storage = src.getStorage();
+
+      for ( auto& it : this->getStorage()->getVertices() )
+      {
+         Vertex& vertex = *it.second;
+
+         const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
+         if ( testFlag( vertexBC, flag ) )
+         {
+            vertexdof::macrovertex::saveOperator(
+                vertex, this->getVertexStencilID(), src.getVertexDataID(), dst.getVertexDataID(), mat, level );
+         }
+      }
+
+      for ( auto& it : this->getStorage()->getEdges() )
+      {
+         Edge& edge = *it.second;
+
+         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+         if ( testFlag( edgeBC, flag ) )
+         {
+            vertexdof::macroedge::saveOperator(
+                level, edge, *storage, this->getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
+         }
+      }
+
+      if ( level >= 2 )
+      {
+         for ( auto& it : this->getStorage()->getFaces() )
+         {
+            Face& face = *it.second;
+
+            const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+            if ( testFlag( faceBC, flag ) )
+            {
+               if ( storage->hasGlobalCells() )
+               {
+                  vertexdof::macroface::saveOperator3D(
+                      level, face, *storage, this->getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+               }
+               else
+               {
+                  vertexdof::macroface::saveOperator(
+                      level, face, this->getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+               }
+            }
+         }
+
+         for ( auto& it : this->getStorage()->getCells() )
+         {
+            Cell& cell = *it.second;
+
+            const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+            if ( testFlag( cellBC, flag ) )
+            {
+               vertexdof::macrocell::saveOperator(
+                   level, cell, this->getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
+            }
+         }
+      }
    }
-#endif
 
  private:
    void assembleStencils();

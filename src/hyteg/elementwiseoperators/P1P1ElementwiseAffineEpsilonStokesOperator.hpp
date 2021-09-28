@@ -111,6 +111,47 @@ class P1P1ElementwiseAffineEpsilonStokesOperator : public Operator< P1StokesFunc
       pspg.apply( src.p, dst.p, level, flag, Add );
    }
 
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1StokesFunction< matIdx_t >&         src,
+                  const P1StokesFunction< matIdx_t >&         dst,
+                  uint_t                                      level,
+                  DoFType                                     flag ) const
+   {
+      A_0_0.toMatrix( mat, src.uvw[0], dst.uvw[0], level, flag );
+      A_0_1.toMatrix( mat, src.uvw[1], dst.uvw[0], level, flag );
+      if ( src.getStorage()->hasGlobalCells() )
+      {
+         A_0_2.toMatrix( mat, src.uvw[2], dst.uvw[0], level, flag );
+      }
+      divT_x.toMatrix( mat, src.p, dst.uvw[0], level, flag );
+
+      A_1_0.toMatrix( mat, src.uvw[0], dst.uvw[1], level, flag );
+      A_1_1.toMatrix( mat, src.uvw[1], dst.uvw[1], level, flag );
+      if ( src.getStorage()->hasGlobalCells() )
+      {
+         A_1_2.toMatrix( mat, src.uvw[2], dst.uvw[1], level, flag );
+      }
+      divT_y.toMatrix( mat, src.p, dst.uvw[1], level, flag );
+
+      if ( src.getStorage()->hasGlobalCells() )
+      {
+         A_2_0.toMatrix( mat, src.uvw[0], dst.uvw[2], level, flag );
+         A_2_1.toMatrix( mat, src.uvw[1], dst.uvw[2], level, flag );
+         A_2_2.toMatrix( mat, src.uvw[2], dst.uvw[2], level, flag );
+
+         divT_z.toMatrix( mat, src.p, dst.uvw[2], level, flag );
+      }
+
+      div_x.toMatrix( mat, src.uvw[0], dst.p, level, flag );
+      div_y.toMatrix( mat, src.uvw[1], dst.p, level, flag );
+      if ( src.getStorage()->hasGlobalCells() )
+      {
+         div_z.toMatrix( mat, src.uvw[2], dst.p, level, flag );
+      }
+
+      pspg.toMatrix( mat, src.p, dst.p, level, flag );
+   }
+
    P1ElementwiseOperator< forms::p1_epsilonvar_0_0_affine_q2 > A_0_0;
    P1ElementwiseOperator< forms::p1_epsilonvar_0_1_affine_q2 > A_0_1;
    P1ElementwiseOperator< forms::p1_epsilonvar_0_2_affine_q2 > A_0_2;

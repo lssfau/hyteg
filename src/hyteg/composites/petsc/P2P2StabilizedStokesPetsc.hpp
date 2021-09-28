@@ -68,34 +68,5 @@ inline void applyDirichletBC( const P2P2StokesFunction< PetscInt >& numerator, s
    //  applyDirichletBC(numerator.p, mat, level);
 }
 
-template < class OperatorType >
-inline void createMatrix( const OperatorType&                         opr,
-                          const P2P2StokesFunction< PetscInt >&       src,
-                          const P2P2StokesFunction< PetscInt >&       dst,
-                          const std::shared_ptr< SparseMatrixProxy >& mat,
-                          size_t                                      level,
-                          DoFType                                     flag )
-{
-   createMatrix( opr.A, src.uvw[0], dst.uvw[0], mat, level, flag );
-   createMatrix( opr.divT_x, src.p, dst.uvw[0], mat, level, flag );
-
-   createMatrix( opr.A, src.uvw[1], dst.uvw[1], mat, level, flag );
-   createMatrix( opr.divT_y, src.p, dst.uvw[1], mat, level, flag );
-
-   if ( src.uvw[0].getStorage()->hasGlobalCells() )
-   {
-      createMatrix( opr.A, src.uvw[2], dst.uvw[2], mat, level, flag );
-      createMatrix( opr.divT_z, src.p, dst.uvw[2], mat, level, flag );
-   }
-
-   createMatrix( opr.div_x, src.uvw[0], dst.p, mat, level, flag | DirichletBoundary );
-   createMatrix( opr.div_y, src.uvw[1], dst.p, mat, level, flag | DirichletBoundary );
-   if ( src.uvw[0].getStorage()->hasGlobalCells() )
-   {
-      createMatrix( opr.div_z, src.uvw[2], dst.p, mat, level, flag | DirichletBoundary );
-   }
-   createMatrix( opr.pspg, src.p, dst.p, mat, level, flag | DirichletBoundary );
-}
-
 } // namespace petsc
 } // namespace hyteg

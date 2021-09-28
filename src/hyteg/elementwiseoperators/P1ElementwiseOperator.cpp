@@ -575,11 +575,11 @@ void P1ElementwiseOperator< P1Form >::computeLocalDiagonalContributions3D( const
 
 // Assemble operator as sparse matrix
 template < class P1Form >
-void P1ElementwiseOperator< P1Form >::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                           const P1Function< matIdx_t >&               src,
-                                                           const P1Function< matIdx_t >&               dst,
-                                                           uint_t                                      level,
-                                                           DoFType                                     flag ) const
+void P1ElementwiseOperator< P1Form >::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                const P1Function< matIdx_t >&               src,
+                                                const P1Function< matIdx_t >&               dst,
+                                                uint_t                                      level,
+                                                DoFType                                     flag ) const
 {
    // We currently ignore the flag provided!
    // WALBERLA_UNUSED( flag );

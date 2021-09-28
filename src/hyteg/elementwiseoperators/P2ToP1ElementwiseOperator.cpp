@@ -238,7 +238,7 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::apply( const P2Function< real_t >&
          }
 
          Matrixr< 3, 6 > elMat;
-         P2toP1Form       form;
+         P2toP1Form      form;
 
          // loop over micro-faces
          for ( const auto& fType : facedof::allFaceTypes )
@@ -270,15 +270,14 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::apply( const P2Function< real_t >&
    this->stopTiming( "apply" );
 }
 
-
 template < class P2toP1Form >
 void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixVectorMultiply2D( uint_t                 level,
-                                                                   const indexing::Index& microFace,
-                                                                   facedof::FaceType      fType,
-                                                                   const real_t* const    srcVertexData,
-                                                                   const real_t* const    srcEdgeData,
-                                                                   real_t* const          dstVertexData,
-                                                                   const Matrixr< 3, 6 >&        elMat ) const
+                                                                           const indexing::Index& microFace,
+                                                                           facedof::FaceType      fType,
+                                                                           const real_t* const    srcVertexData,
+                                                                           const real_t* const    srcEdgeData,
+                                                                           real_t* const          dstVertexData,
+                                                                           const Matrixr< 3, 6 >& elMat ) const
 {
    // obtain data indices of dofs associated with micro-face
    std::array< uint_t, 3 > vertexDoFIndices;
@@ -389,15 +388,13 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::assembleLocalElementMatrix3D( cons
    form.integrateAll( coords, elMat );
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
 // Assemble operator as sparse matrix
 template < class P2toP1Form >
-void P2ToP1ElementwiseOperator< P2toP1Form >::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                                   const P2Function< PetscInt >&               src,
-                                                                   const P1Function< PetscInt >&               dst,
-                                                                   uint_t                                      level,
-                                                                   DoFType                                     flag ) const
+void P2ToP1ElementwiseOperator< P2toP1Form >::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                        const P2Function< matIdx_t >&               src,
+                                                        const P1Function< matIdx_t >&               dst,
+                                                        uint_t                                      level,
+                                                        DoFType                                     flag ) const
 {
    // We currently ignore the flag provided!
    WALBERLA_UNUSED( flag );
@@ -508,9 +505,9 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixAssembly2D( const std::
                                                                      const uint_t                                xIdx,
                                                                      const uint_t                                yIdx,
                                                                      const P2Elements::P2Element&                element,
-                                                                     const PetscInt* const                       srcVertexIdx,
-                                                                     const PetscInt* const                       srcEdgeIdx,
-                                                                     const PetscInt* const dstVertexIdx ) const
+                                                                     const matIdx_t* const                       srcVertexIdx,
+                                                                     const matIdx_t* const                       srcEdgeIdx,
+                                                                     const matIdx_t* const dstVertexIdx ) const
 
 {
    Matrixr< 3, 6 >          elMat;
@@ -572,9 +569,9 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixAssembly3D( const std::
                                                                      const uint_t                                level,
                                                                      const indexing::Index&                      microCell,
                                                                      const celldof::CellType                     cType,
-                                                                     const PetscInt* const                       srcVertexIdx,
-                                                                     const PetscInt* const                       srcEdgeIdx,
-                                                                     const PetscInt* const dstVertexIdx ) const
+                                                                     const matIdx_t* const                       srcVertexIdx,
+                                                                     const matIdx_t* const                       srcEdgeIdx,
+                                                                     const matIdx_t* const dstVertexIdx ) const
 {
    // determine coordinates of vertices of micro-element
    std::array< indexing::Index, 4 > verts = celldof::macrocell::getMicroVerticesFromMicroCell( microCell, cType );
@@ -620,8 +617,6 @@ void P2ToP1ElementwiseOperator< P2toP1Form >::localMatrixAssembly3D( const std::
    // add local matrix into global matrix
    mat->addValues( rowIdx, colIdx, blockMatData );
 }
-
-#endif
 
 template class P2ToP1ElementwiseOperator<
     P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, p2_to_p1_tet_div_tet_cell_integral_0_otherwise > >;

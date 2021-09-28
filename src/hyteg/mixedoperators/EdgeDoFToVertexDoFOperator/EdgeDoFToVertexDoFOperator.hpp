@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
+ * Copyright (c) 2017-2021 Daniel Drzisga, Dominik Thoennes, Marcus Mohr, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -19,12 +19,12 @@
  */
 #pragma once
 
-#include "hyteg/operators/Operator.hpp"
 #include "hyteg/edgedofspace/EdgeDoFFunction.hpp"
 #include "hyteg/forms/form_fenics_base/P2FenicsForm.hpp"
 #include "hyteg/forms/form_fenics_base/P2ToP1FenicsForm.hpp"
 #include "hyteg/memory/LevelWiseMemory.hpp"
 #include "hyteg/mixedoperators/EdgeDoFToVertexDoFOperator/EdgeDoFToVertexDoFApply.hpp"
+#include "hyteg/operators/Operator.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
 #include "hyteg/primitivestorage/PrimitiveStorage.hpp"
 
@@ -59,6 +59,12 @@ class EdgeDoFToVertexDoFOperator final : public Operator< hyteg::EdgeDoFFunction
                uint_t                           level,
                DoFType                          flag,
                UpdateType                       updateType ) const;
+
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const EdgeDoFFunction< matIdx_t >&          src,
+                  const P1Function< matIdx_t >&               dst,
+                  size_t                                      level,
+                  DoFType                                     flag ) const;
 
    const PrimitiveDataID< StencilMemory< real_t >, Vertex >&                                        getVertexStencilID() const;
    const PrimitiveDataID< LevelWiseMemory< EdgeDoFToVertexDoF::MacroVertexStencilMap_T >, Vertex >& getVertexStencil3DID() const;
@@ -109,10 +115,10 @@ void assembleEdgeToVertexStencils(
             const auto& cell = *( storage->getCell( vertex.neighborCells().at( neighborCellID ) ) );
 
             const uint_t cellLocalVertexID = cell.getLocalVertexID( vertex.getID() );
-            const auto   basisInCell       = algorithms::getMissingIntegersAscending< 1, 4 >( {cellLocalVertexID} );
+            const auto   basisInCell       = algorithms::getMissingIntegersAscending< 1, 4 >( { cellLocalVertexID } );
 
             const auto vertexAssemblyIndexInCell = indexing::basisConversion(
-                indexing::Index( 0, 0, 0 ), basisInCell, {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
+                indexing::Index( 0, 0, 0 ), basisInCell, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ) );
 
             auto& edgeToVertexStencilMemory = vertex.getData( macroVertexStencilID )->getData( level );
             for ( const auto& leafOrientation : edgedof::allEdgeDoFOrientationsWithoutXYZ )
@@ -142,11 +148,11 @@ void assembleEdgeToVertexStencils(
 
                const uint_t cellLocalEdgeID = cell.getLocalEdgeID( edge.getID() );
                const auto   basisInCell     = algorithms::getMissingIntegersAscending< 2, 4 >(
-                   {cell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
-                    cell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 )} );
+                   { cell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
+                     cell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 ) } );
 
                const auto vertexAssemblyIndexInCell = indexing::basisConversion(
-                   indexing::Index( 1, 0, 0 ), basisInCell, {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
+                   indexing::Index( 1, 0, 0 ), basisInCell, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ) );
 
                auto& edgeToVertexStencilMemory = edge.getData( macroEdgeStencilID )->getData( level );
                for ( const auto& leafOrientation : edgedof::allEdgeDoFOrientations )
@@ -182,10 +188,10 @@ void assembleEdgeToVertexStencils(
                    cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 ),
                    6 - cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 0 ) -
                        cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 1 ) -
-                       cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 )};
+                       cell.getFaceLocalVertexToCellLocalVertexMaps().at( localFaceID ).at( 2 ) };
                const auto vertexAssemblyIndexInCell = indexing::basisConversion( indexing::Index( 1, 1, 0 ),
                                                                                  localVertexIDsAtCell,
-                                                                                 {0, 1, 2, 3},
+                                                                                 { 0, 1, 2, 3 },
                                                                                  levelinfo::num_microvertices_per_edge( level ) );
 
                auto& edgeToVertexStencilMemory = face.getData( macroFaceStencilID )->getData( level );
@@ -213,7 +219,7 @@ void assembleEdgeToVertexStencils(
             {
                const auto edgeToVertexStencilMap = P2Elements::P2Elements3D::calculateEdgeToVertexStencilInMacroCell(
                    indexing::Index( 1, 1, 1 ), leafOrientation, cell, level, form );
-               for ( const auto & stencilIt : edgeToVertexStencilMap )
+               for ( const auto& stencilIt : edgeToVertexStencilMap )
                {
                   edgeToVertexStencilMemory[leafOrientation][stencilIt.first] = stencilIt.second;
                }
@@ -260,8 +266,7 @@ typedef EdgeDoFToVertexDoFOperator<
     P2ToP1FenicsForm< p2_to_p1_div_cell_integral_1_otherwise, p2_to_p1_tet_div_tet_cell_integral_1_otherwise > >
     P2ToP1DivyEdgeToVertexOperator;
 
-typedef EdgeDoFToVertexDoFOperator<
-    P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise > >
+typedef EdgeDoFToVertexDoFOperator< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise > >
     P2ToP1DivzEdgeToVertexOperator;
 
 } // namespace hyteg

@@ -64,7 +64,6 @@ class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
                DoFType                     flag,
                UpdateType                  updateType = Replace ) const;
 
-#ifdef HYTEG_BUILD_WITH_PETSC
    /// Assemble operator as sparse matrix
    ///
    /// \param mat   a sparse matrix proxy
@@ -74,12 +73,11 @@ class P1ToP2ElementwiseOperator : public Operator< P1Function< real_t >, P2Funct
    /// \param flag  ignored
    ///
    /// \note src and dst are legal to and often will be the same function object
-   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                             const P1Function< PetscInt >&               src,
-                             const P2Function< PetscInt >&               dst,
-                             uint_t                                      level,
-                             DoFType                                     flag ) const;
-#endif
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                  const P1Function< matIdx_t >&               src,
+                  const P2Function< matIdx_t >&               dst,
+                  uint_t                                      level,
+                  DoFType                                     flag ) const;
 
  private:
    /// compute product of element local vector with element matrix

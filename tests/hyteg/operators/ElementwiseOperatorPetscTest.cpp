@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-#include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 
 #include "core/DataTypes.h"
 #include "core/math/Random.h"

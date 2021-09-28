@@ -22,6 +22,7 @@
 #include "hyteg/forms/P2LinearCombinationForm.hpp"
 #include "hyteg/forms/P2RowSumForm.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
+#include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/VertexDoFToEdgeDoFPetsc.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/apply_2D_macroface_vertexdof_to_edgedof_add.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/apply_2D_macroface_vertexdof_to_edgedof_replace.hpp"
 #include "hyteg/mixedoperators/VertexDoFToEdgeDoFOperator/generatedKernels/apply_3D_macrocell_vertexdof_to_edgedof_add.hpp"
@@ -102,6 +103,71 @@ VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::VertexDoFToEdgeDoFOperator
 }
 
 template < class VertexDoFToEdgeDoFForm >
+void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                                                     const P1Function< matIdx_t >&               src,
+                                                                     const EdgeDoFFunction< matIdx_t >&          dst,
+                                                                     size_t                                      level,
+                                                                     DoFType                                     flag ) const
+{
+   const auto storage = src.getStorage();
+
+   for ( auto& it : this->getStorage()->getEdges() )
+   {
+      Edge& edge = *it.second;
+
+      const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
+      if ( testFlag( edgeBC, flag ) )
+      {
+         if ( storage->hasGlobalCells() )
+         {
+            VertexDoFToEdgeDoF::saveEdgeOperator3D(
+                level, edge, *storage, this->getEdgeStencil3DID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
+         }
+         else
+         {
+            VertexDoFToEdgeDoF::saveEdgeOperator(
+                level, edge, this->getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
+         }
+      }
+   }
+
+   if ( level >= 1 )
+   {
+      for ( auto& it : this->getStorage()->getFaces() )
+      {
+         Face& face = *it.second;
+
+         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
+         if ( testFlag( faceBC, flag ) )
+         {
+            if ( storage->hasGlobalCells() )
+            {
+               VertexDoFToEdgeDoF::saveFaceOperator3D(
+                   level, face, *storage, this->getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+            }
+            else
+            {
+               VertexDoFToEdgeDoF::saveFaceOperator(
+                   level, face, this->getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
+            }
+         }
+      }
+
+      for ( auto& it : this->getStorage()->getCells() )
+      {
+         Cell& cell = *it.second;
+
+         const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
+         if ( testFlag( cellBC, flag ) )
+         {
+            VertexDoFToEdgeDoF::saveCellOperator(
+                level, cell, this->getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
+         }
+      }
+   }
+}
+
+template < class VertexDoFToEdgeDoFForm >
 void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils()
 {
    using namespace P2Elements;
@@ -167,50 +233,50 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils()
          const Point3D diagonalMicroEdgePosition = horizontalMicroEdgePosition + verticalMicroEdgeOffset;
 
          P2::variablestencil::assembleVertexToEdgeStencil( form_,
-                                                           {horizontalMicroEdgePosition + dirHO_W,
-                                                            horizontalMicroEdgePosition + dirHO_E,
-                                                            horizontalMicroEdgePosition + dirHO_NW},
-                                                           {vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_W ),
-                                                            vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_E ),
-                                                            vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_NW )},
+                                                           { horizontalMicroEdgePosition + dirHO_W,
+                                                             horizontalMicroEdgePosition + dirHO_E,
+                                                             horizontalMicroEdgePosition + dirHO_NW },
+                                                           { vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_W ),
+                                                             vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_E ),
+                                                             vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_NW ) },
                                                            vStencil );
          P2::variablestencil::assembleVertexToEdgeStencil( form_,
-                                                           {horizontalMicroEdgePosition + dirHO_W,
-                                                            horizontalMicroEdgePosition + dirHO_E,
-                                                            horizontalMicroEdgePosition + dirHO_SE},
-                                                           {vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_W ),
-                                                            vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_E ),
-                                                            vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_SE )},
+                                                           { horizontalMicroEdgePosition + dirHO_W,
+                                                             horizontalMicroEdgePosition + dirHO_E,
+                                                             horizontalMicroEdgePosition + dirHO_SE },
+                                                           { vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_W ),
+                                                             vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_E ),
+                                                             vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_SE ) },
                                                            vStencil );
 
          P2::variablestencil::assembleVertexToEdgeStencil(
              form_,
-             {verticalMicroEdgePosition + dirVE_N, verticalMicroEdgePosition + dirVE_S, verticalMicroEdgePosition + dirVE_NW},
-             {vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_N ),
-              vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_S ),
-              vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_NW )},
+             { verticalMicroEdgePosition + dirVE_N, verticalMicroEdgePosition + dirVE_S, verticalMicroEdgePosition + dirVE_NW },
+             { vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_N ),
+               vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_S ),
+               vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_NW ) },
              vStencil );
          P2::variablestencil::assembleVertexToEdgeStencil(
              form_,
-             {verticalMicroEdgePosition + dirVE_N, verticalMicroEdgePosition + dirVE_S, verticalMicroEdgePosition + dirVE_SE},
-             {vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_N ),
-              vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_S ),
-              vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_SE )},
+             { verticalMicroEdgePosition + dirVE_N, verticalMicroEdgePosition + dirVE_S, verticalMicroEdgePosition + dirVE_SE },
+             { vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_N ),
+               vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_S ),
+               vertexdof::stencilIndexFromVerticalEdge( SD::VERTEX_SE ) },
              vStencil );
 
          P2::variablestencil::assembleVertexToEdgeStencil(
              form_,
-             {diagonalMicroEdgePosition + dirDI_NW, diagonalMicroEdgePosition + dirDI_SE, diagonalMicroEdgePosition + dirDI_SW},
-             {vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_NW ),
-              vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_SE ),
-              vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_SW )},
+             { diagonalMicroEdgePosition + dirDI_NW, diagonalMicroEdgePosition + dirDI_SE, diagonalMicroEdgePosition + dirDI_SW },
+             { vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_NW ),
+               vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_SE ),
+               vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_SW ) },
              vStencil );
          P2::variablestencil::assembleVertexToEdgeStencil(
              form_,
-             {diagonalMicroEdgePosition + dirDI_NW, diagonalMicroEdgePosition + dirDI_SE, diagonalMicroEdgePosition + dirDI_NE},
-             {vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_NW ),
-              vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_SE ),
-              vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_NE )},
+             { diagonalMicroEdgePosition + dirDI_NW, diagonalMicroEdgePosition + dirDI_SE, diagonalMicroEdgePosition + dirDI_NE },
+             { vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_NW ),
+               vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_SE ),
+               vertexdof::stencilIndexFromDiagonalEdge( SD::VERTEX_NE ) },
              vStencil );
       }
 
@@ -267,22 +333,23 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::assembleStencils()
          form_.setGeometryMap( faceS->getGeometryMap() );
          P2::variablestencil::assembleVertexToEdgeStencil(
              form_,
-             {horizontalMicroEdgePosition + dir_W, horizontalMicroEdgePosition + dir_E, horizontalMicroEdgePosition + dir_SE},
-             {vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_W ),
-              vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_E ),
-              vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_SE )},
+             { horizontalMicroEdgePosition + dir_W, horizontalMicroEdgePosition + dir_E, horizontalMicroEdgePosition + dir_SE },
+             { vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_W ),
+               vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_E ),
+               vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_SE ) },
              vStencil );
 
          if ( edge.getNumNeighborFaces() == 2 )
          {
             form_.setGeometryMap( faceN->getGeometryMap() );
-            P2::variablestencil::assembleVertexToEdgeStencil(
-                form_,
-                {horizontalMicroEdgePosition + dir_W, horizontalMicroEdgePosition + dir_E, horizontalMicroEdgePosition + dir_NW},
-                {vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_W ),
-                 vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_E ),
-                 vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_NW )},
-                vStencil );
+            P2::variablestencil::assembleVertexToEdgeStencil( form_,
+                                                              { horizontalMicroEdgePosition + dir_W,
+                                                                horizontalMicroEdgePosition + dir_E,
+                                                                horizontalMicroEdgePosition + dir_NW },
+                                                              { vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_W ),
+                                                                vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_E ),
+                                                                vertexdof::stencilIndexFromHorizontalEdge( SD::VERTEX_NW ) },
+                                                              vStencil );
          }
       }
    }
@@ -311,12 +378,12 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
    if ( level >= 1 )
    {
       std::vector< PrimitiveID > cellIDs = this->getStorage()->getCellIDs();
-      #ifdef WALBERLA_BUILD_WITH_OPENMP
-      #pragma omp parallel for default(shared)
-      #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
       for ( int i = 0; i < int_c( cellIDs.size() ); i++ )
       {
-         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c(i)] );
+         Cell& cell = *this->getStorage()->getCell( cellIDs[uint_c( i )] );
 
          const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
          if ( testFlag( cellBC, flag ) )
@@ -373,12 +440,12 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
    if ( level >= 1 )
    {
       std::vector< PrimitiveID > faceIDs = this->getStorage()->getFaceIDs();
-      #ifdef WALBERLA_BUILD_WITH_OPENMP
-      #pragma omp parallel for default(shared)
-      #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
       for ( int i = 0; i < int_c( faceIDs.size() ); i++ )
       {
-         Face& face = *this->getStorage()->getFace( faceIDs[uint_c(i)] );
+         Face& face = *this->getStorage()->getFace( faceIDs[uint_c( i )] );
 
          const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
          if ( testFlag( faceBC, flag ) )
@@ -539,12 +606,12 @@ void VertexDoFToEdgeDoFOperator< VertexDoFToEdgeDoFForm >::apply( const P1Functi
    this->timingTree_->start( "Macro-Edge" );
 
    std::vector< PrimitiveID > edgeIDs = this->getStorage()->getEdgeIDs();
-   #ifdef WALBERLA_BUILD_WITH_OPENMP
-   #pragma omp parallel for default(shared)
-   #endif
+#ifdef WALBERLA_BUILD_WITH_OPENMP
+#pragma omp parallel for default( shared )
+#endif
    for ( int i = 0; i < int_c( edgeIDs.size() ); i++ )
    {
-      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c(i)] );
+      Edge& edge = *this->getStorage()->getEdge( edgeIDs[uint_c( i )] );
 
       const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
       if ( testFlag( edgeBC, flag ) )

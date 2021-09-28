@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
+ * Copyright (c) 2017-2021 Daniel Drzisga, Dominik Thoennes, Nils Kohl.
  *
  * This file is part of HyTeG
  * (see https://i10git.cs.fau.de/hyteg/hyteg).
@@ -73,10 +73,10 @@ inline void saveVertexOperator3D( const uint_t&                                 
       const Cell& neighborCell      = *( storage.getCell( vertex.neighborCells().at( neighborCellID ) ) );
       auto        cellLocalVertexID = neighborCell.getLocalVertexID( vertex.getID() );
 
-      const auto basisInCell = algorithms::getMissingIntegersAscending< 1, 4 >( {cellLocalVertexID} );
+      const auto basisInCell = algorithms::getMissingIntegersAscending< 1, 4 >( { cellLocalVertexID } );
 
       const auto centerIndexInCell = indexing::basisConversion(
-          centerIndexOnVertex, basisInCell, {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
+          centerIndexOnVertex, basisInCell, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ) );
 
       for ( const auto& leafOrientationInCell : edgedof::allEdgeDoFOrientationsWithoutXYZ )
       {
@@ -211,11 +211,11 @@ inline void saveEdgeOperator3D( const uint_t&                                   
          auto        cellLocalEdgeID = neighborCell.getLocalEdgeID( edge.getID() );
 
          const auto basisInCell = algorithms::getMissingIntegersAscending< 2, 4 >(
-             {neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
-              neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 )} );
+             { neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 0 ),
+               neighborCell.getEdgeLocalVertexToCellLocalVertexMaps().at( cellLocalEdgeID ).at( 1 ) } );
 
          const auto centerIndexInCell = indexing::basisConversion(
-             centerIndexOnEdge, basisInCell, {0, 1, 2, 3}, levelinfo::num_microvertices_per_edge( level ) );
+             centerIndexOnEdge, basisInCell, { 0, 1, 2, 3 }, levelinfo::num_microvertices_per_edge( level ) );
 
          for ( const auto& leafOrientationInCell : edgedof::allEdgeDoFOrientations )
          {
@@ -283,13 +283,13 @@ inline void saveEdgeOperator3D( const uint_t&                                   
                   }
 
                   const auto leafIndexOnEdgeGhostLayer = indexing::basisConversion(
-                      leafIndexInCell, {0, 1, 2, 3}, faceBasisInCell, levelinfo::num_microedges_per_edge( level ) );
+                      leafIndexInCell, { 0, 1, 2, 3 }, faceBasisInCell, levelinfo::num_microedges_per_edge( level ) );
                   const auto leafOrientationOnEdgeGhostLayer = edgedof::convertEdgeDoFOrientationCellToFace(
                       leafOrientationInCell, faceBasisInCell.at( 0 ), faceBasisInCell.at( 1 ), faceBasisInCell.at( 2 ) );
 
                   const auto localFaceIDOnEdge = edge.face_index( facePrimitiveID );
                   leafArrayIndexOnEdge         = edgedof::macroedge::indexOnNeighborFace(
-                      level, leafIndexOnEdgeGhostLayer.x(), localFaceIDOnEdge, leafOrientationOnEdgeGhostLayer );
+                              level, leafIndexOnEdgeGhostLayer.x(), localFaceIDOnEdge, leafOrientationOnEdgeGhostLayer );
                }
                else
                {
@@ -433,101 +433,7 @@ inline void
    }
 }
 
-} // namespace EdgeDoFToVertexDoF
-
-namespace petsc {
-
-template < class OperatorType >
-inline void createMatrix( const OperatorType&                         opr,
-                          const EdgeDoFFunction< PetscInt >&          src,
-                          const P1Function< PetscInt >&               dst,
-                          const std::shared_ptr< SparseMatrixProxy >& mat,
-                          size_t                                      level,
-                          DoFType                                     flag )
-{
-   const auto storage = src.getStorage();
-
-   for ( auto& it : opr.getStorage()->getVertices() )
-   {
-      Vertex& vertex = *it.second;
-
-      const DoFType vertexBC = dst.getBoundaryCondition().getBoundaryType( vertex.getMeshBoundaryFlag() );
-      if ( testFlag( vertexBC, flag ) )
-      {
-         if ( storage->hasGlobalCells() )
-         {
-            EdgeDoFToVertexDoF::saveVertexOperator3D(
-                level, vertex, *storage, opr.getVertexStencil3DID(), src.getVertexDataID(), dst.getVertexDataID(), mat );
-         }
-         else
-         {
-            EdgeDoFToVertexDoF::saveVertexOperator(
-                level, vertex, opr.getVertexStencilID(), src.getVertexDataID(), dst.getVertexDataID(), mat );
-         }
-      }
-   }
-
-   if ( level >= 1 )
-   {
-      for ( auto& it : opr.getStorage()->getEdges() )
-      {
-         Edge& edge = *it.second;
-
-         const DoFType edgeBC = dst.getBoundaryCondition().getBoundaryType( edge.getMeshBoundaryFlag() );
-         if ( testFlag( edgeBC, flag ) )
-         {
-            if ( storage->hasGlobalCells() )
-            {
-               EdgeDoFToVertexDoF::saveEdgeOperator3D(
-                   level, edge, *storage, opr.getEdgeStencil3DID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
-            }
-            else
-            {
-               EdgeDoFToVertexDoF::saveEdgeOperator(
-                   level, edge, opr.getEdgeStencilID(), src.getEdgeDataID(), dst.getEdgeDataID(), mat );
-            }
-         }
-      }
-   }
-
-   if ( level >= 2 )
-   {
-      for ( auto& it : opr.getStorage()->getFaces() )
-      {
-         Face& face = *it.second;
-
-         const DoFType faceBC = dst.getBoundaryCondition().getBoundaryType( face.getMeshBoundaryFlag() );
-         if ( testFlag( faceBC, flag ) )
-         {
-            if ( storage->hasGlobalCells() )
-            {
-               EdgeDoFToVertexDoF::saveFaceOperator3D(
-                   level, face, *storage, opr.getFaceStencil3DID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
-            }
-            else
-            {
-               EdgeDoFToVertexDoF::saveFaceOperator(
-                   level, face, opr.getFaceStencilID(), src.getFaceDataID(), dst.getFaceDataID(), mat );
-            }
-         }
-      }
-
-      for ( auto& it : opr.getStorage()->getCells() )
-      {
-         Cell& cell = *it.second;
-
-         const DoFType cellBC = dst.getBoundaryCondition().getBoundaryType( cell.getMeshBoundaryFlag() );
-         if ( testFlag( cellBC, flag ) )
-         {
-            EdgeDoFToVertexDoF::saveCellOperator(
-                level, cell, opr.getCellStencilID(), src.getCellDataID(), dst.getCellDataID(), mat );
-         }
-      }
-   }
-}
-
 #endif
 
 } // namespace EdgeDoFToVertexDoF
-
 } // namespace hyteg

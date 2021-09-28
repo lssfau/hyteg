@@ -26,7 +26,6 @@
 #include "hyteg/edgedofspace/EdgeDoFIndexing.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroEdge.hpp"
 #include "hyteg/edgedofspace/EdgeDoFMacroFace.hpp"
-#include "hyteg/elementwiseoperators/ElementwiseOperatorPetsc.hpp"
 #include "hyteg/elementwiseoperators/P1ElementwiseOperator.hpp"
 #include "hyteg/elementwiseoperators/P2ElementwiseOperator.hpp"
 #include "hyteg/forms/P1LinearCombinationForm.hpp"
@@ -205,6 +204,15 @@ class UnsteadyDiffusionOperator : public Operator< FunctionType, FunctionType >,
           LinearCombinationForm_T( { 1.0, dtScaling() * dt * diffusionCoefficient_ }, { massForm_.get(), laplaceForm_.get() } ) );
    }
 
+   void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                                                       mat,
+                  const typename Operator_T< LinearCombinationForm_T >::srcType::template FunctionType< matIdx_t >& src,
+                  const typename Operator_T< LinearCombinationForm_T >::srcType::template FunctionType< matIdx_t >& dst,
+                  size_t                                                                                            level,
+                  DoFType                                                                                           flag ) const
+   {
+      unsteadyDiffusionOperator_->toMatrix( mat, src, dst, level, flag );
+   }
+
    DiffusionTimeIntegrator getTimeIntegrator() const { return timeIntegrator_; }
 
    const Operator_T< LinearCombinationForm_T >& getOperator() const { return *unsteadyDiffusionOperator_; }
@@ -262,44 +270,6 @@ typedef UnsteadyDiffusionOperator< P2Function< real_t >,
                                    P2Form_mass,
                                    P2LinearCombinationForm >
     P2ElementwiseUnsteadyDiffusionOperator;
-
-#ifdef HYTEG_BUILD_WITH_PETSC
-namespace petsc {
-template <>
-inline void createMatrix< P1ConstantUnsteadyDiffusionOperator >( const P1ConstantUnsteadyDiffusionOperator&  opr,
-                                                                 const P1Function< PetscInt >&               src,
-                                                                 const P1Function< PetscInt >&               dst,
-                                                                 const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                                 uint_t                                      level,
-                                                                 DoFType                                     flag )
-{
-   createMatrix( opr.getOperator(), src, dst, mat, level, flag );
-}
-
-template <>
-inline void createMatrix< P2ConstantUnsteadyDiffusionOperator >( const P2ConstantUnsteadyDiffusionOperator&  opr,
-                                                                 const P2Function< PetscInt >&               src,
-                                                                 const P2Function< PetscInt >&               dst,
-                                                                 const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                                 uint_t                                      level,
-                                                                 DoFType                                     flag )
-{
-   createMatrix( opr.getOperator(), src, dst, mat, level, flag );
-}
-
-template <>
-inline void createMatrix< P2ElementwiseUnsteadyDiffusionOperator >( const P2ElementwiseUnsteadyDiffusionOperator& opr,
-                                                                    const P2Function< PetscInt >&                 src,
-                                                                    const P2Function< PetscInt >&                 dst,
-                                                                    const std::shared_ptr< SparseMatrixProxy >&   mat,
-                                                                    uint_t                                        level,
-                                                                    DoFType                                       flag )
-{
-   createMatrix< P2ElementwiseOperator< P2LinearCombinationForm >, P2LinearCombinationForm >(
-       opr.getOperator(), src, dst, mat, level, flag );
-}
-} // namespace petsc
-#endif
 
 /// \brief Wrapper class to solve the unsteady diffusion equation in time.
 ///

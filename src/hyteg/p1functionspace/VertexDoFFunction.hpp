@@ -420,6 +420,7 @@ bool VertexDoFFunction< real_t >::evaluate( const Point3D& coordinates, uint_t l
 
 // extern template class VertexDoFFunction< double >;
 extern template class VertexDoFFunction< int >;
+extern template class VertexDoFFunction< matIdx_t >;
 
 } // namespace vertexdof
 } // namespace hyteg

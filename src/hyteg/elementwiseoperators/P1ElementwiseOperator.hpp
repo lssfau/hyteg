@@ -27,8 +27,8 @@
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_affine_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_div_k_grad_blending_q3.hpp"
-#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_k_mass_affine_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
 #include "hyteg/p1functionspace/P1Elements.hpp"
 #include "hyteg/p1functionspace/P1Function.hpp"
@@ -45,8 +45,8 @@ class P1ElementwiseOperator : public Operator< P1Function< real_t >, P1Function<
                               public WeightedJacobiSmoothable< P1Function< real_t > >,
                               public OperatorWithInverseDiagonal< P1Function< real_t > >
 {
-public:
-P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
+ public:
+   P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel );
 
    P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                           size_t                                     minLevel,
@@ -81,30 +81,11 @@ P1ElementwiseOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_
    /// \param flag  ignored
    ///
    /// \note src and dst are legal to and often will be the same function object
-   void assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                             const P1Function< matIdx_t >&               src,
-                             const P1Function< matIdx_t >&               dst,
-                             uint_t                                      level,
-                             DoFType                                     flag ) const;
-
-   /// Assemble operator as sparse matrix.
-   ///
-   /// \param mat   a sparse matrix proxy
-   /// \param src   P2Function for determining column indices
-   /// \param dst   P2Function for determining row indices
-   /// \param level level in mesh hierarchy for which local operator is to be assembled
-   /// \param flag  ignored
-   ///
-   /// \note src and dst are legal to and often will be the same function object
-   /// \note we should rename assembleLocalMatrix() to toMatrix() and skip the delegation
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
                   const P1Function< matIdx_t >&               src,
                   const P1Function< matIdx_t >&               dst,
                   uint_t                                      level,
-                  DoFType                                     flag ) const override
-   {
-      this->assembleLocalMatrix( mat, src, dst, level, flag );
-   }
+                  DoFType                                     flag ) const override;
 
    /// \brief Pre-computes the local stiffness matrices for each (micro-)element and stores them all in memory.
    ///
