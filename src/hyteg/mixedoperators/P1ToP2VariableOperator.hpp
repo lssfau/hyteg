@@ -27,7 +27,9 @@
 #include <hyteg/p1functionspace/VertexDoFFunction.hpp>
 #include <hyteg/p2functionspace/P2Function.hpp>
 
-#include "hyteg/forms/form_hyteg_manual/P1ToP2FormDivT.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_0_blending_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_1_blending_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_2_blending_q2.hpp"
 #include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
@@ -109,8 +111,8 @@ class P1ToP2VariableOperator : public Operator< P1Function< real_t >, P2Function
    }
 };
 
-typedef P1ToP2VariableOperator< P1ToP2Form_divt< 0 > > P1ToP2BlendingDivTxOperator;
-typedef P1ToP2VariableOperator< P1ToP2Form_divt< 1 > > P1ToP2BlendingDivTyOperator;
-typedef P1ToP2VariableOperator< P1ToP2Form_divt< 2 > > P1ToP2BlendingDivTzOperator;
+typedef P1ToP2VariableOperator< forms::p1_to_p2_divt_0_blending_q2 > P1ToP2BlendingDivTxOperator;
+typedef P1ToP2VariableOperator< forms::p1_to_p2_divt_1_blending_q2 > P1ToP2BlendingDivTyOperator;
+typedef P1ToP2VariableOperator< forms::p1_to_p2_divt_2_blending_q2 > P1ToP2BlendingDivTzOperator;
 
 } // namespace hyteg

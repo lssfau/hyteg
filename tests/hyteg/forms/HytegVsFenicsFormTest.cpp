@@ -63,7 +63,6 @@ using walberla::math::pi;
 #include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_2_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_2_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
-#include "hyteg/forms/form_hyteg_manual/P1ToP2FormDivT.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDiv.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivT.hpp"
@@ -270,21 +269,11 @@ void run2DTestsWithoutBlending()
 
    logSectionHeader( "P1ToP2 DivX^T Forms" );
    compareForms< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, fenics::NoAssemble >,
-                 P1ToP2Form_divt< 0 >,
-                 Matrixr< 6, 3 >,
-                 2 >( triangle, 1.2e-14 );
-
-   compareForms< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, fenics::NoAssemble >,
                  forms::p1_to_p2_divt_0_affine_q2,
                  Matrixr< 6, 3 >,
                  2 >( triangle, 1.2e-14 );
 
    logSectionHeader( "P1ToP2 DivY^T Forms" );
-   compareForms< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, fenics::NoAssemble >,
-                 P1ToP2Form_divt< 1 >,
-                 Matrixr< 6, 3 >,
-                 2 >( triangle, 1.2e-14 );
-
    compareForms< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, fenics::NoAssemble >,
                  forms::p1_to_p2_divt_1_affine_q2,
                  Matrixr< 6, 3 >,
@@ -424,21 +413,11 @@ void run2DTestsWithAffineMap()
 
    logSectionHeader( "P1ToP2 DivX^T Forms" );
    compareUsingAffineMap< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, fenics::NoAssemble >,
-                          P1ToP2Form_divt< 0 >,
-                          Matrixr< 6, 3 >,
-                          2 >( triangle, 5e-14, map );
-
-   compareUsingAffineMap< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, fenics::NoAssemble >,
                           forms::p1_to_p2_divt_0_blending_q2,
                           Matrixr< 6, 3 >,
                           2 >( triangle, 5e-14, map );
 
    logSectionHeader( "P1ToP2 DivY^T Forms" );
-   compareUsingAffineMap< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, fenics::NoAssemble >,
-                          P1ToP2Form_divt< 1 >,
-                          Matrixr< 6, 3 >,
-                          2 >( triangle, 5e-14, map );
-
    compareUsingAffineMap< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, fenics::NoAssemble >,
                           forms::p1_to_p2_divt_1_blending_q2,
                           Matrixr< 6, 3 >,
@@ -554,32 +533,17 @@ void run3DTestsWithoutBlending()
 
    logSectionHeader( "P1ToP2 DivX^T Forms (3D)" );
    compareForms< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise >,
-                 P1ToP2Form_divt< 0 >,
-                 Matrixr< 10, 4 >,
-                 3 >( theTet, 1e-14 );
-
-   compareForms< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise >,
                  forms::p1_to_p2_divt_0_affine_q2,
                  Matrixr< 10, 4 >,
                  3 >( theTet, 1e-14 );
 
    logSectionHeader( "P1ToP2 DivY^T Forms (3D)" );
    compareForms< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise >,
-                 P1ToP2Form_divt< 1 >,
-                 Matrixr< 10, 4 >,
-                 3 >( theTet, 1e-14 );
-
-   compareForms< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise >,
                  forms::p1_to_p2_divt_1_affine_q2,
                  Matrixr< 10, 4 >,
                  3 >( theTet, 1e-14 );
 
    logSectionHeader( "P1ToP2 DivZ^T Forms (3D)" );
-   compareForms< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise >,
-                 P1ToP2Form_divt< 2 >,
-                 Matrixr< 10, 4 >,
-                 3 >( theTet, 1e-14 );
-
    compareForms< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise >,
                  forms::p1_to_p2_divt_2_affine_q2,
                  Matrixr< 10, 4 >,

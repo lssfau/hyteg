@@ -22,10 +22,12 @@
 #include "hyteg/celldofspace/CellDoFIndexing.hpp"
 #include "hyteg/communication/Syncing.hpp"
 #include "hyteg/forms/form_fenics_base/P1ToP2FenicsForm.hpp"
-#include "hyteg/forms/form_hyteg_manual/P1ToP2FormDivT.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_0_blending_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_1_blending_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_2_blending_q2.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -229,8 +231,8 @@ typedef P1ToP2ElementwiseOperator<
 typedef P1ToP2ElementwiseOperator< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise > >
     P1ToP2ElementwiseDivTzOperator;
 
-typedef P1ToP2ElementwiseOperator< P1ToP2Form_divt< 0 > > P1ToP2ElementwiseBlendingDivTxOperator;
-typedef P1ToP2ElementwiseOperator< P1ToP2Form_divt< 1 > > P1ToP2ElementwiseBlendingDivTyOperator;
-typedef P1ToP2ElementwiseOperator< P1ToP2Form_divt< 2 > > P1ToP2ElementwiseBlendingDivTzOperator;
+typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_divt_0_blending_q2 > P1ToP2ElementwiseBlendingDivTxOperator;
+typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_divt_1_blending_q2 > P1ToP2ElementwiseBlendingDivTyOperator;
+typedef P1ToP2ElementwiseOperator< forms::p1_to_p2_divt_2_blending_q2 > P1ToP2ElementwiseBlendingDivTzOperator;
 
 } // namespace hyteg
