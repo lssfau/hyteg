@@ -40,7 +40,7 @@ class PETScMinResSolver : public Solver< OperatorType >
                       const uint_t&                              level,
                       const real_t                               relativeTolerance = 1e-30,
                       const real_t                               absoluteTolerance = 1e-12,
-                      const idx_t                                maxIterations     = std::numeric_limits< idx_t >::max() )
+                      const PetscInt                             maxIterations     = std::numeric_limits< PetscInt >::max() )
    : allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )

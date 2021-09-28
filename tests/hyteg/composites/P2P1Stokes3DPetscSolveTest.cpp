@@ -159,7 +159,7 @@ void petscSolveTest( const uint_t & solverType, const uint_t & blockPrecondition
   PETScLUSolver< P2P1TaylorHoodStokesOperator > solver_0( storage, level );
   PETScMinResSolver< P2P1TaylorHoodStokesOperator > solver_1( storage, level );
   PETScBlockPreconditionedStokesSolver< P2P1TaylorHoodStokesOperator > solver_2(
-      storage, level, 1e-12, std::numeric_limits< idx_t >::max(), blockPreconditionerType );
+      storage, level, 1e-12, std::numeric_limits< PetscInt >::max(), blockPreconditionerType );
 
   std::string precondType;
   switch ( blockPreconditionerType )

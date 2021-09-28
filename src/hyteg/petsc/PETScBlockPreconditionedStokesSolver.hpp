@@ -33,9 +33,9 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
    PETScBlockPreconditionedStokesSolver( const std::shared_ptr< PrimitiveStorage >& storage,
                                          const uint_t&                              level,
                                          const real_t                               tolerance = 1e-12,
-                                         const idx_t   maxIterations              = std::numeric_limits< idx_t >::max(),
-                                         const uint_t& velocityPreconditionerType = 1,
-                                         const uint_t& pressurePreconditionerType = 1 )
+                                         const PetscInt maxIterations              = std::numeric_limits< PetscInt >::max(),
+                                         const uint_t&  velocityPreconditionerType = 1,
+                                         const uint_t&  pressurePreconditionerType = 1 )
    : allocatedLevel_( level )
    , petscCommunicator_( storage->getSplitCommunicatorByPrimitiveDistribution() )
    , num( "numerator", storage, level, level )
