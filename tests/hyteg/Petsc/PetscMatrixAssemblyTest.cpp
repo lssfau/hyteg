@@ -85,11 +85,11 @@ void testAssembly_newAPI( std::shared_ptr< PrimitiveStorage >& storage, uint_t l
 {
    WALBERLA_LOG_INFO_ON_ROOT( " * " << tag );
 
-   PETScManager                                                            petscManager;
-   PETScSparseMatrix< operType, operType::srcType::template FunctionType > matrix( storage, level, tag.c_str() );
-
    typename operType::srcType::template FunctionType< PetscInt > enumerator( "enumerator", storage, level, level );
    enumerator.enumerate( level );
+
+   PETScManager                                                            petscManager;
+   PETScSparseMatrix< operType, operType::srcType::template FunctionType > matrix( enumerator, level, tag.c_str() );
 
    operType oper( storage, level, level );
    matrix.createMatrixFromOperator_newAPI( oper, level, enumerator, All );

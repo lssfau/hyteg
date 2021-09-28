@@ -51,7 +51,8 @@ class PETScSparseMatrix
                       uint_t          globalSize,
                       const char      name[]            = "Mat",
                       const MPI_Comm& petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
-   : petscCommunicator_( petscCommunicator ), assembled_( false )
+   : petscCommunicator_( petscCommunicator )
+   , assembled_( false )
    {
       MatCreate( petscCommunicator, &mat );
       MatSetType( mat, MATMPIAIJ );
@@ -68,6 +69,16 @@ class PETScSparseMatrix
                       const MPI_Comm& petscCommunicator                 = walberla::mpi::MPIManager::instance()->comm() )
    : PETScSparseMatrix( numberOfLocalDoFs< typename OperatorType::dstType::Tag >( *storage, level ),
                         numberOfGlobalDoFs< typename OperatorType::dstType::Tag >( *storage, level, petscCommunicator ),
+                        name,
+                        petscCommunicator )
+   {}
+
+   PETScSparseMatrix( const FunctionType< PetscInt >& enumerator,
+                      const uint_t&                   level,
+                      const char                      name[]            = "Mat",
+                      const MPI_Comm&                 petscCommunicator = walberla::mpi::MPIManager::instance()->comm() )
+   : PETScSparseMatrix( numberOfLocalDoFs( enumerator, level ),
+                        numberOfGlobalDoFs( enumerator, level, petscCommunicator ),
                         name,
                         petscCommunicator )
    {}
