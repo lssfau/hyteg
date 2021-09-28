@@ -64,7 +64,6 @@ using walberla::math::pi;
 #include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_2_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
-#include "hyteg/forms/form_hyteg_manual/P2FormLaplacePimped3D.hpp"
 #include "hyteg/geometry/AffineMap2D.hpp"
 #include "hyteg/geometry/AffineMap3D.hpp"
 #include "hyteg/geometry/IdentityMap.hpp"
@@ -501,12 +500,6 @@ void run3DTestsWithoutBlending()
    compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >, P2Form_laplace, Matrix10r, 3 >(
        theTet, 3e-14 );
 
-   logSectionHeader( "P2 Laplace Forms (3D) - HyTeG pimped" );
-   compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >,
-                 P2Form_laplacePimped3D,
-                 Matrix10r,
-                 3 >( theTet, 3e-14 );
-
    // HyTeG form generator test
 
    logSectionHeader( "P1 mass, 3D, no blending (HFG)" );
@@ -648,12 +641,6 @@ void run3DTestsWithAffineMap()
    logSectionHeader( "P2 Laplace Forms (3D)" );
    compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >,
                           P2Form_laplace,
-                          Matrix10r,
-                          3 >( theTet, 5e-14, map );
-
-   logSectionHeader( "P2 Laplace Forms (3D) -- HyTeG pimped" );
-   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >,
-                          P2Form_laplacePimped3D,
                           Matrix10r,
                           3 >( theTet, 5e-14, map );
 

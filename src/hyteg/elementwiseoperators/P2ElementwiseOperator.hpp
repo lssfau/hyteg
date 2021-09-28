@@ -30,7 +30,6 @@
 #include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
-#include "hyteg/forms/form_hyteg_manual/P2FormLaplacePimped3D.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/p2functionspace/P2Elements.hpp"
 #include "hyteg/p2functionspace/P2Function.hpp"
@@ -363,8 +362,5 @@ typedef P2ElementwiseOperator< P2Form_divKgrad > P2ElementwiseDivKGradOperator;
 typedef P2ElementwiseOperator< P2LinearCombinationForm > P2ElementwiseLinearCombinationOperator;
 
 typedef P2ElementwiseOperator< forms::p2_div_k_grad_affine_q4 > P2ElementwiseAffineDivKGradOperator;
-
-// For testing performance
-typedef P2ElementwiseOperator< P2Form_laplacePimped3D > P2ElementwiseBlendingLaplaceOperatorPimped3D;
 
 } // namespace hyteg
