@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
+#include "hyteg/composites/P1StokesFunction.hpp"
 
 namespace hyteg {
 
