@@ -37,14 +37,33 @@ using walberla::math::pi;
 #include "hyteg/forms/form_hyteg_generated/P1FormDivT.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_diffusion_blending_q3.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_0_affine_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_0_blending_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_1_affine_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_div_1_blending_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_divt_0_affine_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_divt_0_blending_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_divt_1_affine_q1.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1/p1_divt_1_blending_q1.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_epsilon_all_forms.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_affine_qe.hpp"
 #include "hyteg/forms/form_hyteg_generated/p1/p1_mass_blending_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_0_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_0_blending_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_1_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_1_blending_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p1_to_p2/p1_to_p2_divt_2_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_diffusion_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_diffusion_blending_q3.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_epsilon_all_forms.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_mass_affine_qe.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_0_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_0_blending_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_1_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_1_blending_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_2_affine_q2.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_2_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
 #include "hyteg/forms/form_hyteg_manual/P1ToP2FormDivT.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDiv.hpp"
@@ -192,24 +211,37 @@ void compareUsingAffineMap( const std::array< Point3D, dim + 1 >& element, real_
 void run2DTestsWithoutBlending()
 {
    // define our test triangle
-   std::array< Point3D, 3 > triangle{Point3D( {-0.7, -2.0, 0.0} ), Point3D( {1.0, 1.0, 0.0} ), Point3D( {-1.0, 0.5, 0.0} )};
+   std::array< Point3D, 3 > triangle{
+       Point3D( { -0.7, -2.0, 0.0 } ), Point3D( { 1.0, 1.0, 0.0 } ), Point3D( { -1.0, 0.5, 0.0 } ) };
    // std::array< Point3D, 3 > triangle{Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 0.0, 0.0} ), Point3D( {0.0, 1.0, 0.0} )};
 
    logSectionHeader( "P1 DivX Forms" );
    compareForms< P1FenicsForm< p1_div_cell_integral_0_otherwise, fenics::NoAssemble >, P1Form_div_1, Matrix3r, 2 >( triangle,
                                                                                                                     2e-15 );
 
+   compareForms< P1FenicsForm< p1_div_cell_integral_0_otherwise, fenics::NoAssemble >, forms::p1_div_0_affine_q1, Matrix3r, 2 >(
+       triangle, 2e-15 );
+
    logSectionHeader( "P1 DivY Forms" );
    compareForms< P1FenicsForm< p1_div_cell_integral_1_otherwise, fenics::NoAssemble >, P1Form_div_2, Matrix3r, 2 >( triangle,
                                                                                                                     2e-15 );
+
+   compareForms< P1FenicsForm< p1_div_cell_integral_1_otherwise, fenics::NoAssemble >, forms::p1_div_1_affine_q1, Matrix3r, 2 >(
+       triangle, 2e-15 );
 
    logSectionHeader( "P1 DivX^T Forms" );
    compareForms< P1FenicsForm< p1_divt_cell_integral_0_otherwise, fenics::NoAssemble >, P1Form_divT_1, Matrix3r, 2 >( triangle,
                                                                                                                       1.2e-14 );
 
+   compareForms< P1FenicsForm< p1_divt_cell_integral_0_otherwise, fenics::NoAssemble >, forms::p1_divt_0_affine_q1, Matrix3r, 2 >(
+       triangle, 2e-15 );
+
    logSectionHeader( "P1 DivY^T Forms" );
    compareForms< P1FenicsForm< p1_divt_cell_integral_1_otherwise, fenics::NoAssemble >, P1Form_divT_2, Matrix3r, 2 >( triangle,
                                                                                                                       1.2e-14 );
+
+   compareForms< P1FenicsForm< p1_divt_cell_integral_1_otherwise, fenics::NoAssemble >, forms::p1_divt_1_affine_q1, Matrix3r, 2 >(
+       triangle, 2e-15 );
 
    logSectionHeader( "P2 Mass Forms" );
    compareForms< P2FenicsForm< p2_mass_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_mass, Matrix6r, 2 >( triangle,
@@ -245,9 +277,19 @@ void run2DTestsWithoutBlending()
                  Matrixr< 3, 6 >,
                  2 >( triangle, 1.2e-14 );
 
+   compareForms< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, fenics::NoAssemble >,
+                 forms::p2_to_p1_div_0_affine_q2,
+                 Matrixr< 3, 6 >,
+                 2 >( triangle, 1.2e-14 );
+
    logSectionHeader( "P2ToP1 DivY Forms" );
    compareForms< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_1_otherwise, fenics::NoAssemble >,
                  P2ToP1Form_div< 1 >,
+                 Matrixr< 3, 6 >,
+                 2 >( triangle, 1.2e-14 );
+
+   compareForms< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_1_otherwise, fenics::NoAssemble >,
+                 forms::p2_to_p1_div_1_affine_q2,
                  Matrixr< 3, 6 >,
                  2 >( triangle, 1.2e-14 );
 
@@ -257,9 +299,19 @@ void run2DTestsWithoutBlending()
                  Matrixr< 6, 3 >,
                  2 >( triangle, 1.2e-14 );
 
+   compareForms< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, fenics::NoAssemble >,
+                 forms::p1_to_p2_divt_0_affine_q2,
+                 Matrixr< 6, 3 >,
+                 2 >( triangle, 1.2e-14 );
+
    logSectionHeader( "P1ToP2 DivY^T Forms" );
    compareForms< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, fenics::NoAssemble >,
                  P1ToP2Form_divt< 1 >,
+                 Matrixr< 6, 3 >,
+                 2 >( triangle, 1.2e-14 );
+
+   compareForms< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, fenics::NoAssemble >,
+                 forms::p1_to_p2_divt_1_affine_q2,
                  Matrixr< 6, 3 >,
                  2 >( triangle, 1.2e-14 );
 
@@ -331,11 +383,12 @@ void run2DTestsWithAffineMap()
    mat( 0, 1 )  = -std::sin( phi );
    mat( 1, 0 )  = +std::sin( phi ) * 2.25;
    mat( 1, 1 )  = +std::cos( phi ) * 2.25;
-   Point2D vec( {-7.0, 3.0} );
+   Point2D vec( { -7.0, 3.0 } );
    auto    map = std::make_shared< AffineMap2D >( mat, vec );
 
    // define our test triangle
-   std::array< Point3D, 3 > triangle{Point3D( {-0.7, -2.0, 0.0} ), Point3D( {1.0, 1.0, 0.0} ), Point3D( {-1.0, 0.5, 0.0} )};
+   std::array< Point3D, 3 > triangle{
+       Point3D( { -0.7, -2.0, 0.0 } ), Point3D( { 1.0, 1.0, 0.0 } ), Point3D( { -1.0, 0.5, 0.0 } ) };
    // std::array< Point3D, 3 > triangle{Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 0.0, 0.0} ), Point3D( {0.0, 1.0, 0.0} )};
 
    logSectionHeader( "P2 Mass Forms" );
@@ -348,19 +401,39 @@ void run2DTestsWithAffineMap()
                           Matrixr< 3, 6 >,
                           2 >( triangle, 3.5e-14, map );
 
+   compareUsingAffineMap< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, fenics::NoAssemble >,
+                          forms::p2_to_p1_div_0_blending_q2,
+                          Matrixr< 3, 6 >,
+                          2 >( triangle, 3.5e-14, map );
+
    logSectionHeader( "P2ToP1 DivY Forms" );
    compareUsingAffineMap< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_1_otherwise, fenics::NoAssemble >,
                           P2ToP1Form_div< 1 >,
                           Matrixr< 3, 6 >,
                           2 >( triangle, 5e-14, map );
 
+   compareUsingAffineMap< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_1_otherwise, fenics::NoAssemble >,
+                          forms::p2_to_p1_div_1_blending_q2,
+                          Matrixr< 3, 6 >,
+                          2 >( triangle, 3.5e-14, map );
+
    logSectionHeader( "P1 DivX Forms" );
    compareUsingAffineMap< P1FenicsForm< p1_div_cell_integral_0_otherwise, fenics::NoAssemble >, P1Form_div_1, Matrix3r, 2 >(
        triangle, 5e-15, map );
 
+   compareUsingAffineMap< P1FenicsForm< p1_div_cell_integral_0_otherwise, fenics::NoAssemble >,
+                          forms::p1_div_0_blending_q1,
+                          Matrix3r,
+                          2 >( triangle, 5e-15, map );
+
    logSectionHeader( "P1 DivY Forms" );
    compareUsingAffineMap< P1FenicsForm< p1_div_cell_integral_1_otherwise, fenics::NoAssemble >, P1Form_div_2, Matrix3r, 2 >(
        triangle, 5e-15, map );
+
+   compareUsingAffineMap< P1FenicsForm< p1_div_cell_integral_1_otherwise, fenics::NoAssemble >,
+                          forms::p1_div_1_blending_q1,
+                          Matrix3r,
+                          2 >( triangle, 5e-15, map );
 
    logSectionHeader( "P2 DivX Forms" );
    compareUsingAffineMap< P2FenicsForm< p2_div_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_div< 0 >, Matrix6r, 2 >(
@@ -382,9 +455,19 @@ void run2DTestsWithAffineMap()
    compareUsingAffineMap< P1FenicsForm< p1_divt_cell_integral_0_otherwise, fenics::NoAssemble >, P1Form_divT_1, Matrix3r, 2 >(
        triangle, 5e-14, map );
 
+   compareUsingAffineMap< P1FenicsForm< p1_divt_cell_integral_0_otherwise, fenics::NoAssemble >,
+                          forms::p1_divt_0_blending_q1,
+                          Matrix3r,
+                          2 >( triangle, 5e-14, map );
+
    logSectionHeader( "P1 DivY^T Forms" );
    compareUsingAffineMap< P1FenicsForm< p1_divt_cell_integral_1_otherwise, fenics::NoAssemble >, P1Form_divT_2, Matrix3r, 2 >(
        triangle, 5e-14, map );
+
+   compareUsingAffineMap< P1FenicsForm< p1_divt_cell_integral_1_otherwise, fenics::NoAssemble >,
+                          forms::p1_divt_1_blending_q1,
+                          Matrix3r,
+                          2 >( triangle, 5e-14, map );
 
    logSectionHeader( "P1ToP2 DivX^T Forms" );
    compareUsingAffineMap< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, fenics::NoAssemble >,
@@ -392,9 +475,19 @@ void run2DTestsWithAffineMap()
                           Matrixr< 6, 3 >,
                           2 >( triangle, 5e-14, map );
 
+   compareUsingAffineMap< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_0_otherwise, fenics::NoAssemble >,
+                          forms::p1_to_p2_divt_0_blending_q2,
+                          Matrixr< 6, 3 >,
+                          2 >( triangle, 5e-14, map );
+
    logSectionHeader( "P1ToP2 DivY^T Forms" );
    compareUsingAffineMap< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, fenics::NoAssemble >,
                           P1ToP2Form_divt< 1 >,
+                          Matrixr< 6, 3 >,
+                          2 >( triangle, 5e-14, map );
+
+   compareUsingAffineMap< P1ToP2FenicsForm< p1_to_p2_divt_cell_integral_1_otherwise, fenics::NoAssemble >,
+                          forms::p1_to_p2_divt_1_blending_q2,
                           Matrixr< 6, 3 >,
                           2 >( triangle, 5e-14, map );
 
@@ -475,10 +568,10 @@ void run3DTestsWithoutBlending()
 
    // std::array<Point3D,4> theTet{ Point3D({0.0, 0.0, 0.0}), Point3D({1.0, 0.0, 0.0}), Point3D({0.0, 1.0, 0.0}), Point3D({0.0, 0.0, 1.0}) };
 
-   std::array< Point3D, 4 > theTet{Point3D( {1.80901699437495e-01, 1.31432778029783e-01, 8.61803398874989e-01} ),
-                                   Point3D( {1.80901699437495e-01, -1.31432778029783e-01, 8.61803398874989e-01} ),
-                                   Point3D( {1.80901699437495e-01, 1.31432778029783e-01, 1.11180339887499e+00} ),
-                                   Point3D( {0.00000000000000e+00, 0.00000000000000e+00, 1.25000000000000e+00} )};
+   std::array< Point3D, 4 > theTet{ Point3D( { 1.80901699437495e-01, 1.31432778029783e-01, 8.61803398874989e-01 } ),
+                                    Point3D( { 1.80901699437495e-01, -1.31432778029783e-01, 8.61803398874989e-01 } ),
+                                    Point3D( { 1.80901699437495e-01, 1.31432778029783e-01, 1.11180339887499e+00 } ),
+                                    Point3D( { 0.00000000000000e+00, 0.00000000000000e+00, 1.25000000000000e+00 } ) };
 
    logSectionHeader( "P1 Mass Forms (3D)" );
    compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >( theTet,
@@ -494,9 +587,19 @@ void run3DTestsWithoutBlending()
                  Matrixr< 4, 10 >,
                  3 >( theTet, 1e-14 );
 
+   compareForms< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise >,
+                 forms::p2_to_p1_div_0_affine_q2,
+                 Matrixr< 4, 10 >,
+                 3 >( theTet, 1e-14 );
+
    logSectionHeader( "P2ToP1 DivY Forms (3D)" );
    compareForms< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise >,
                  P2ToP1Form_div< 1 >,
+                 Matrixr< 4, 10 >,
+                 3 >( theTet, 1e-14 );
+
+   compareForms< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise >,
+                 forms::p2_to_p1_div_1_affine_q2,
                  Matrixr< 4, 10 >,
                  3 >( theTet, 1e-14 );
 
@@ -506,9 +609,19 @@ void run3DTestsWithoutBlending()
                  Matrixr< 4, 10 >,
                  3 >( theTet, 1e-14 );
 
+   compareForms< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise >,
+                 forms::p2_to_p1_div_2_affine_q2,
+                 Matrixr< 4, 10 >,
+                 3 >( theTet, 1e-14 );
+
    logSectionHeader( "P1ToP2 DivX^T Forms (3D)" );
    compareForms< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise >,
                  P1ToP2Form_divt< 0 >,
+                 Matrixr< 10, 4 >,
+                 3 >( theTet, 1e-14 );
+
+   compareForms< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_0_otherwise >,
+                 forms::p1_to_p2_divt_0_affine_q2,
                  Matrixr< 10, 4 >,
                  3 >( theTet, 1e-14 );
 
@@ -518,9 +631,19 @@ void run3DTestsWithoutBlending()
                  Matrixr< 10, 4 >,
                  3 >( theTet, 1e-14 );
 
+   compareForms< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_1_otherwise >,
+                 forms::p1_to_p2_divt_1_affine_q2,
+                 Matrixr< 10, 4 >,
+                 3 >( theTet, 1e-14 );
+
    logSectionHeader( "P1ToP2 DivZ^T Forms (3D)" );
    compareForms< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise >,
                  P1ToP2Form_divt< 2 >,
+                 Matrixr< 10, 4 >,
+                 3 >( theTet, 1e-14 );
+
+   compareForms< P1ToP2FenicsForm< fenics::NoAssemble, p1_to_p2_tet_divt_tet_cell_integral_2_otherwise >,
+                 forms::p1_to_p2_divt_2_affine_q2,
                  Matrixr< 10, 4 >,
                  3 >( theTet, 1e-14 );
 
@@ -662,15 +785,15 @@ void run3DTestsWithAffineMap()
 #endif
 #undef CHALLENGING
 
-   Point3D vec( {-7.0, 3.0, 2.0} );
+   Point3D vec( { -7.0, 3.0, 2.0 } );
    auto    map = std::make_shared< AffineMap3D >( mat, vec );
 
    // define our test tetrahedrons
-   Point3D                  v1( {0.0, 0.00, 0.0} );
-   Point3D                  v2( {1.0, 1.00, 0.0} );
-   Point3D                  v3( {-1.0, 0.50, 0.0} );
-   Point3D                  v4( {0.3, 0.21, -1.2} );
-   std::array< Point3D, 4 > theTet{v1, v2, v3, v4};
+   Point3D                  v1( { 0.0, 0.00, 0.0 } );
+   Point3D                  v2( { 1.0, 1.00, 0.0 } );
+   Point3D                  v3( { -1.0, 0.50, 0.0 } );
+   Point3D                  v4( { 0.3, 0.21, -1.2 } );
+   std::array< Point3D, 4 > theTet{ v1, v2, v3, v4 };
 
    logSectionHeader( "P1 Mass Forms (3D)" );
    compareUsingAffineMap< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >(
@@ -698,9 +821,19 @@ void run3DTestsWithAffineMap()
                           Matrixr< 4, 10 >,
                           3 >( theTet, 1e-14, map );
 
+   compareUsingAffineMap< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise >,
+                          forms::p2_to_p1_div_0_blending_q2,
+                          Matrixr< 4, 10 >,
+                          3 >( theTet, 1e-14, map );
+
    logSectionHeader( "P2ToP1 DivY Forms (3D)" );
    compareUsingAffineMap< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise >,
                           P2ToP1Form_div< 1 >,
+                          Matrixr< 4, 10 >,
+                          3 >( theTet, 1e-14, map );
+
+   compareUsingAffineMap< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_1_otherwise >,
+                          forms::p2_to_p1_div_1_blending_q2,
                           Matrixr< 4, 10 >,
                           3 >( theTet, 1e-14, map );
 
@@ -709,6 +842,11 @@ void run3DTestsWithAffineMap()
                           P2ToP1Form_div< 2 >,
                           Matrixr< 4, 10 >,
                           3 >( theTet, 1e-14, map );
+
+   compareUsingAffineMap< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_2_otherwise >,
+       forms::p2_to_p1_div_2_blending_q2,
+       Matrixr< 4, 10 >,
+       3 >( theTet, 1e-14, map );
 
    // HyTeG form generator test
 
@@ -862,7 +1000,7 @@ int main( int argc, char** argv )
 #ifndef __APPLE__
    // clang 9 seams to produce a problem related to vectorized division
    // https://stackoverflow.com/questions/63125919/how-to-avoid-floating-point-exceptions-in-unused-simd-lanes
-#if defined(NDEBUG) && defined(__clang__)
+#if defined( NDEBUG ) && defined( __clang__ )
    // clang 10 has problems with some of the forms in Release mode (see issue #147)
 #else
    // abort in case of common floating-point exceptions
