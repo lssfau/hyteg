@@ -62,13 +62,11 @@ using walberla::math::pi;
 #include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_1_blending_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_2_affine_q2.hpp"
 #include "hyteg/forms/form_hyteg_generated/p2_to_p1/p2_to_p1_div_2_blending_q2.hpp"
-#include "hyteg/forms/form_hyteg_manual/P1FormMass3D.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDiv.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivKGrad.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormDivT.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplace.hpp"
 #include "hyteg/forms/form_hyteg_manual/P2FormLaplacePimped3D.hpp"
-#include "hyteg/forms/form_hyteg_manual/P2FormMass.hpp"
 #include "hyteg/geometry/AffineMap2D.hpp"
 #include "hyteg/geometry/AffineMap3D.hpp"
 #include "hyteg/geometry/IdentityMap.hpp"
@@ -227,10 +225,6 @@ void run2DTestsWithoutBlending()
    compareForms< P1FenicsForm< p1_divt_cell_integral_1_otherwise, fenics::NoAssemble >, forms::p1_divt_1_affine_q1, Matrix3r, 2 >(
        triangle, 2e-15 );
 
-   logSectionHeader( "P2 Mass Forms" );
-   compareForms< P2FenicsForm< p2_mass_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_mass, Matrix6r, 2 >( triangle,
-                                                                                                                    5e-14 );
-
    logSectionHeader( "P2 Laplace Form" );
    compareForms< P2FenicsForm< p2_diffusion_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_laplace, Matrix6r, 2 >(
        triangle, 5e-14 );
@@ -354,10 +348,6 @@ void run2DTestsWithAffineMap()
    std::array< Point3D, 3 > triangle{
        Point3D( { -0.7, -2.0, 0.0 } ), Point3D( { 1.0, 1.0, 0.0 } ), Point3D( { -1.0, 0.5, 0.0 } ) };
    // std::array< Point3D, 3 > triangle{Point3D( {0.0, 0.0, 0.0} ), Point3D( {1.0, 0.0, 0.0} ), Point3D( {0.0, 1.0, 0.0} )};
-
-   logSectionHeader( "P2 Mass Forms" );
-   compareUsingAffineMap< P2FenicsForm< p2_mass_cell_integral_0_otherwise, fenics::NoAssemble >, P2Form_mass, Matrix6r, 2 >(
-       triangle, 1e-13, map );
 
    logSectionHeader( "P2ToP1 DivX Forms" );
    compareUsingAffineMap< P2ToP1FenicsForm< p2_to_p1_div_cell_integral_0_otherwise, fenics::NoAssemble >,
@@ -504,14 +494,6 @@ void run3DTestsWithoutBlending()
                                     Point3D( { 1.80901699437495e-01, -1.31432778029783e-01, 8.61803398874989e-01 } ),
                                     Point3D( { 1.80901699437495e-01, 1.31432778029783e-01, 1.11180339887499e+00 } ),
                                     Point3D( { 0.00000000000000e+00, 0.00000000000000e+00, 1.25000000000000e+00 } ) };
-
-   logSectionHeader( "P1 Mass Forms (3D)" );
-   compareForms< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >( theTet,
-                                                                                                                          1e-15 );
-
-   logSectionHeader( "P2 Mass Forms (3D)" );
-   compareForms< P2FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >, P2Form_mass, Matrix10r, 3 >(
-       theTet, 1e-8 ); // need to improve our cubature !!!
 
    logSectionHeader( "P2ToP1 DivX Forms (3D)" );
    compareForms< P2ToP1FenicsForm< fenics::NoAssemble, p2_to_p1_tet_div_tet_cell_integral_0_otherwise >,
@@ -696,14 +678,6 @@ void run3DTestsWithAffineMap()
    Point3D                  v3( { -1.0, 0.50, 0.0 } );
    Point3D                  v4( { 0.3, 0.21, -1.2 } );
    std::array< Point3D, 4 > theTet{ v1, v2, v3, v4 };
-
-   logSectionHeader( "P1 Mass Forms (3D)" );
-   compareUsingAffineMap< P1FenicsForm< fenics::NoAssemble, p1_tet_mass_cell_integral_0_otherwise >, P1Form_mass3D, Matrix4r, 3 >(
-       theTet, 5e-15, map );
-
-   logSectionHeader( "P2 Mass Forms (3D)" );
-   compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_mass_cell_integral_0_otherwise >, P2Form_mass, Matrix10r, 3 >(
-       theTet, 5e-7, map ); // need to improve our cubature !!!
 
    logSectionHeader( "P2 Laplace Forms (3D)" );
    compareUsingAffineMap< P2FenicsForm< fenics::NoAssemble, p2_tet_diffusion_cell_integral_0_otherwise >,

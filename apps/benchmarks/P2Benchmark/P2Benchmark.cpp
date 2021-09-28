@@ -38,6 +38,7 @@
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
 #include "hyteg/primitivestorage/SetupPrimitiveStorage.hpp"
+#include "hyteg/forms/form_hyteg_generated/p2/p2_mass_blending_q4.hpp"
 
 using walberla::real_c;
 using walberla::real_t;
@@ -246,10 +247,10 @@ void runMassOperatorTests( SetupPrimitiveStorage& setupStorage, uint_t level,
    P2ElementwiseMassOperator L_elementwise_otf_cc( storage, level, level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_id ..." );
-   P2ElementwiseBlendingMassOperator L_elementwise_otf_blending_id( storage, level, level, P2Form_mass(), false );
+   P2ElementwiseBlendingMassOperator L_elementwise_otf_blending_id( storage, level, level, forms::p2_mass_blending_q4(), false );
 
    WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_stored_blending_id ..." );
-   P2ElementwiseBlendingMassOperator L_elementwise_stored_blending_id( storage, level, level, P2Form_mass(), false );
+   P2ElementwiseBlendingMassOperator L_elementwise_stored_blending_id( storage, level, level, forms::p2_mass_blending_q4(), false );
    L_elementwise_stored_blending_id.computeAndStoreLocalElementMatrices();
 
    if ( running3D )
@@ -260,7 +261,7 @@ void runMassOperatorTests( SetupPrimitiveStorage& setupStorage, uint_t level,
    {
       WALBERLA_LOG_INFO_ON_ROOT( "- L_elementwise_otf_blending_annulus ..." );
    }
-   P2ElementwiseBlendingMassOperator L_elementwise_otf_blending_shell( storage, level, level, P2Form_mass(), false );
+   P2ElementwiseBlendingMassOperator L_elementwise_otf_blending_shell( storage, level, level, forms::p2_mass_blending_q4(), false );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Done." );
 
