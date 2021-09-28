@@ -28,7 +28,6 @@
 #include <hyteg/p2functionspace/P2Function.hpp>
 
 #include "hyteg/forms/form_hyteg_manual/P1ToP2FormDivT.hpp"
-#include "hyteg/forms/form_hyteg_manual/P2ToP1FormDiv.hpp"
 #include "hyteg/types/pointnd.hpp"
 
 namespace hyteg {
