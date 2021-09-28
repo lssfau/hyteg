@@ -22,6 +22,7 @@
 #include "hyteg/geometry/GeometryMap.hpp"
 #include "hyteg/types/matrix.hpp"
 #include "hyteg/types/pointnd.hpp"
+#include "hyteg/forms/Form.hpp"
 
 namespace hyteg {
 
