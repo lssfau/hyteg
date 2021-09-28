@@ -36,11 +36,11 @@ using walberla::real_t;
 template < class srcBlockFunc_t, class dstBlockFunc_t >
 class BlockOperator : public Operator< srcBlockFunc_t, dstBlockFunc_t >,
                       public GSSmoothable< srcBlockFunc_t >,
-                      public GSSmoothable< GenericFunction< typename srcBlockFunc_t::ValueType > >
+                      public GSSmoothable< GenericFunction< typename srcBlockFunc_t::valueType > >
 {
  public:
    // temporary, need to add corresponding FunctionTrait?
-   typedef typename srcBlockFunc_t::ValueType value_t;
+   typedef typename srcBlockFunc_t::valueType value_t;
 
    BlockOperator( const std::shared_ptr< PrimitiveStorage >& storage,
                   size_t                                     minLevel,

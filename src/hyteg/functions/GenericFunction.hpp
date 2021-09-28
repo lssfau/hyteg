@@ -42,6 +42,8 @@ class GenericFunction
  public:
    virtual ~GenericFunction(){};
 
+   typedef value_t valueType;
+
    template < typename func_t >
    func_t& unwrap()
    {
@@ -147,22 +149,5 @@ class GenericFunction
    /// @}
 #endif
 };
-
-// Special version of numberOfLocalDoFs for GenericFunctions
-template < typename value_t >
-inline uint_t numberOfLocalDoFs( const GenericFunction< value_t >& func, const uint_t& level )
-{
-   return func.getNumberOfLocalDoFs( level );
-}
-
-// Special version of numberOfLocalDoFs for GenericFunctions
-template < typename value_t >
-inline uint_t numberOfGlobalDoFs( const GenericFunction< value_t >& func,
-                                  const uint_t&                     level,
-                                  const MPI_Comm&                   communicator = walberla::mpi::MPIManager::instance()->comm(),
-                                  const bool&                       onRootOnly   = false )
-{
-   return func.getNumberOfGlobalDoFs( level, communicator, onRootOnly );
-}
 
 } // namespace hyteg
