@@ -249,6 +249,18 @@ class BlockFunction
       return nDoFs;
    }
 
+   uint_t getNumberOfGlobalDoFs( uint_t          level,
+                                 const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                 const bool&     onRootOnly   = false ) const
+   {
+      uint_t nDoFs = 0;
+      for ( uint_t k = 0; k < subFunc_.size(); ++k )
+      {
+         nDoFs += subFunc_[k]->getNumberOfGlobalDoFs( level, communicator, onRootOnly );
+      }
+      return nDoFs;
+   }
+
    void enumerate( uint_t level ) const
    {
       uint_t counterDoFs = getNumberOfLocalDoFs( level );
@@ -284,11 +296,22 @@ class BlockFunction
    }
 };
 
-// Special version of numberOfLocalDoFs for GenericFunctions
+// Special version of numberOfLocalDoFs for BlockFunctions
 template < typename value_t >
 inline uint_t numberOfLocalDoFs( const BlockFunction< value_t >& func, const uint_t& level )
 {
    return func.getNumberOfLocalDoFs( level );
+}
+
+// Special version of numberOfGlobalDoFs for BlockFunctions
+template < typename value_t >
+inline uint_t numberOfGlobalDoFs( const BlockFunction< value_t >& func,
+                                  const uint_t&                   level,
+                                  const MPI_Comm&                 communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                  const bool&                     onRootOnly   = false )
+
+{
+   return func.getNumberOfGlobalDoFs( level, communicator, onRootOnly );
 }
 
 } // namespace hyteg

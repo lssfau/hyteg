@@ -184,6 +184,14 @@ class FunctionWrapper final : public GenericFunction< typename FunctionTrait< fu
       return numberOfLocalDoFs< typename FunctionTrait< WrappedFuncType >::Tag >( *storage, level );
    }
 
+   uint_t getNumberOfGlobalDoFs( uint_t          level,
+                                 const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                 const bool&     onRootOnly   = false ) const
+   {
+      auto storage = wrappedFunc_->getStorage();
+      return numberOfGlobalDoFs< typename FunctionTrait< WrappedFuncType >::Tag >( *storage, level, communicator, onRootOnly );
+   }
+
 #ifdef HYTEG_BUILD_WITH_PETSC
    /// conversion to/from linear algebra representation
    /// @{

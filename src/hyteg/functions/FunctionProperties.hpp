@@ -207,6 +207,16 @@ inline uint_t numberOfGlobalDoFs( const PrimitiveStorage& primitiveStorage,
    }
 }
 
+/// variant of numberOfGlobalDoFs that works on a function object
+template < typename func_t >
+inline uint_t numberOfGlobalDoFs( const func_t&   func,
+                                  const uint_t&   level,
+                                  const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                  const bool&     onRootOnly   = false )
+{
+   return numberOfGlobalDoFs< typename func_t::Tag >( *( func.getStorage() ), level, communicator, onRootOnly );
+}
+
 template < typename FunctionTag_T >
 inline uint_t minNumberOfLocalDoFs( const PrimitiveStorage& primitiveStorage, const uint_t& level )
 {

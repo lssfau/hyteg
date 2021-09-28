@@ -73,6 +73,10 @@ class GenericFunction
 
    virtual uint_t getNumberOfLocalDoFs( uint_t level ) const = 0;
 
+   virtual uint_t getNumberOfGlobalDoFs( uint_t          level,
+                                         const MPI_Comm& communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                         const bool&     onRootOnly   = false ) const = 0;
+
    virtual std::shared_ptr< PrimitiveStorage > getStorage() const = 0;
 
    virtual void multElementwise( const std::vector< std::reference_wrapper< const GenericFunction< value_t > > >& functions,
@@ -149,6 +153,16 @@ template < typename value_t >
 inline uint_t numberOfLocalDoFs( const GenericFunction< value_t >& func, const uint_t& level )
 {
    return func.getNumberOfLocalDoFs( level );
+}
+
+// Special version of numberOfLocalDoFs for GenericFunctions
+template < typename value_t >
+inline uint_t numberOfGlobalDoFs( const GenericFunction< value_t >& func,
+                                  const uint_t&                     level,
+                                  const MPI_Comm&                   communicator = walberla::mpi::MPIManager::instance()->comm(),
+                                  const bool&                       onRootOnly   = false )
+{
+   return func.getNumberOfGlobalDoFs( level, communicator, onRootOnly );
 }
 
 } // namespace hyteg
