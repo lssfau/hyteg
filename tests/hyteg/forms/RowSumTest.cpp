@@ -49,10 +49,14 @@ using namespace hyteg;
 template < class P1Form >
 using P1ConstOp = P1ConstantOperator< P1Form, false, false, false >;
 
-template< typename rowSumFormType, template < class > class funcType, template < class > class opType, typename opTypeLap, typename opTypeMass >
-bool RowSumTest( const uint_t& level, const std::string& meshFile,
-                 rowSumFormType rowSumLaplace,
-                 rowSumFormType rowSumMass )
+template < typename rowSumFormType,
+           template < class >
+           class funcType,
+           template < class >
+           class opType,
+           typename opTypeLap,
+           typename opTypeMass >
+bool RowSumTest( const uint_t& level, const std::string& meshFile, rowSumFormType rowSumLaplace, rowSumFormType rowSumMass )
 {
    WALBERLA_LOG_INFO_ON_ROOT( "Running with mesh = " << meshFile << ", level = " << level );
 
@@ -78,8 +82,8 @@ bool RowSumTest( const uint_t& level, const std::string& meshFile,
    opTypeLap  L( storage, level, level );
    opTypeMass M( storage, level, level );
 
-   opType<rowSumFormType> LLumped( storage, level, level, rowSumLaplace );
-   opType<rowSumFormType> MLumped( storage, level, level, rowSumMass );
+   opType< rowSumFormType > LLumped( storage, level, level, rowSumLaplace );
+   opType< rowSumFormType > MLumped( storage, level, level, rowSumMass );
 
    // apply operators
 
@@ -91,11 +95,11 @@ bool RowSumTest( const uint_t& level, const std::string& meshFile,
 
    // compare
    real_t maxError;
-   error.assign( {1.0, -1.0}, {dstVerificationLaplace, dstRowSumLaplace}, level, All );
+   error.assign( { 1.0, -1.0 }, { dstVerificationLaplace, dstRowSumLaplace }, level, All );
    maxError = error.getMaxMagnitude( level );
    WALBERLA_LOG_INFO_ON_ROOT( " -> error max magnitude Laplace: " << maxError << ", eps: " << eps );
 
-   error.assign( {1.0, -1.0}, {dstVerificationMass, dstRowSumMass}, level, All );
+   error.assign( { 1.0, -1.0 }, { dstVerificationMass, dstRowSumMass }, level, All );
    maxError = error.getMaxMagnitude( level );
    WALBERLA_LOG_INFO_ON_ROOT( " -> error max magnitude mass: " << maxError << ", eps: " << eps );
 
@@ -103,24 +107,24 @@ bool RowSumTest( const uint_t& level, const std::string& meshFile,
 
 #ifdef HYTEG_BUILD_WITH_PETSC
    // check if matrices diagonal
-   PETScManager           manager;
+   PETScManager                                                manager;
    typedef typename FunctionTrait< funcType< PetscInt > >::Tag enumTag;
-   const auto             localSize  = numberOfLocalDoFs< enumTag >( *storage, level );
-   const auto             globalSize = numberOfGlobalDoFs< enumTag >( *storage, level );
-   funcType< PetscInt > numerator( "numerator", storage, level, level );
+   const auto                                                  localSize  = numberOfLocalDoFs< enumTag >( *storage, level );
+   const auto                                                  globalSize = numberOfGlobalDoFs< enumTag >( *storage, level );
+   funcType< PetscInt >                                        numerator( "numerator", storage, level, level );
    numerator.enumerate( level );
 
-   PETScSparseMatrix< opType< rowSumFormType >, funcType > massLumpedPetsc( localSize, globalSize );
+   PETScSparseMatrix< opType< rowSumFormType > > massLumpedPetsc( localSize, globalSize );
    massLumpedPetsc.createMatrixFromOperator( MLumped, level, numerator );
 
-   PETScSparseMatrix< opType< rowSumFormType >, funcType > laplaceLumpedPetsc( localSize, globalSize );
+   PETScSparseMatrix< opType< rowSumFormType > > laplaceLumpedPetsc( localSize, globalSize );
    laplaceLumpedPetsc.createMatrixFromOperator( LLumped, level, numerator );
 
    const auto massDiagonal    = massLumpedPetsc.isDiagonal();
    const auto laplaceDiagonal = laplaceLumpedPetsc.isDiagonal();
 
    // just to make sure petsc is diagonal check works...
-   PETScSparseMatrix< opTypeLap, funcType > laplacePetsc( localSize, globalSize );
+   PETScSparseMatrix< opTypeLap > laplacePetsc( localSize, globalSize );
    laplacePetsc.createMatrixFromOperator( L, level, numerator );
    WALBERLA_CHECK( !laplacePetsc.isDiagonal() );
 
@@ -148,7 +152,7 @@ int main( int argc, char* argv[] )
    meshes.push_back( "../../data/meshes/3D/regular_octahedron_8el.msh" );
    meshes.push_back( "../../data/meshes/3D/cube_6el.msh" );
 
-   uint maxLevel = 3;
+   uint maxLevel  = 3;
    bool succeeded = true;
 
    // -----------------------------
@@ -168,10 +172,13 @@ int main( int argc, char* argv[] )
    P1RowSumForm rowSumLaplaceP1( p1DiffusionFormFenics );
    P1RowSumForm rowSumMassP1( p1MassFormFenics );
 
-   for( auto mesh = meshes.begin(); mesh != meshes.end(); ++mesh ) {
-     for( uint level = 0; level <= maxLevel; ++level ) {
-       succeeded &= RowSumTest< P1RowSumForm, P1Function, P1ConstOp, P1ConstantLaplaceOperator, P1ConstantMassOperator >( level, *mesh, rowSumLaplaceP1, rowSumMassP1 );
-     }
+   for ( auto mesh = meshes.begin(); mesh != meshes.end(); ++mesh )
+   {
+      for ( uint level = 0; level <= maxLevel; ++level )
+      {
+         succeeded &= RowSumTest< P1RowSumForm, P1Function, P1ConstOp, P1ConstantLaplaceOperator, P1ConstantMassOperator >(
+             level, *mesh, rowSumLaplaceP1, rowSumMassP1 );
+      }
    }
 
    WALBERLA_CHECK( succeeded, "One of the tests for P1RowSumForm failed" )
@@ -194,10 +201,14 @@ int main( int argc, char* argv[] )
    P2RowSumForm rowSumLaplaceP2( p2DiffusionFormFenics );
    P2RowSumForm rowSumMassP2( p2MassFormFenics );
 
-   for( auto mesh = meshes.begin(); mesh != meshes.end(); ++mesh ) {
-     for( uint level = 0; level <= maxLevel; ++level ) {
-       succeeded &= RowSumTest< P2RowSumForm, P2Function, P2ConstantOperator, P2ConstantLaplaceOperator, P2ConstantMassOperator >( level, *mesh, rowSumLaplaceP2, rowSumMassP2 );
-     }
+   for ( auto mesh = meshes.begin(); mesh != meshes.end(); ++mesh )
+   {
+      for ( uint level = 0; level <= maxLevel; ++level )
+      {
+         succeeded &=
+             RowSumTest< P2RowSumForm, P2Function, P2ConstantOperator, P2ConstantLaplaceOperator, P2ConstantMassOperator >(
+                 level, *mesh, rowSumLaplaceP2, rowSumMassP2 );
+      }
    }
 
    WALBERLA_CHECK( succeeded, "One of the tests for P2RowSumForm failed" )

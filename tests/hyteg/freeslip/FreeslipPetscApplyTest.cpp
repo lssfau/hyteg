@@ -112,12 +112,12 @@ void run( const real_t absErrorTolerance )
 
    L.apply( u_src, u_dst_hyteg, maxLevel, All );
 
-   PETScSparseMatrix< StokesOperatorType, StokesFunctionType::template FunctionType > petscMatStokes(
+   PETScSparseMatrix< StokesOperatorType > petscMatStokes(
        storage, maxLevel, "stokes_pure" );
    petscMatStokes.createMatrixFromOperator( *stokes, maxLevel, numerator );
    // petscMatStokes.print( "/tmp/stokes.m" );
 
-   PETScSparseMatrix< StokesOperatorFS, StokesFunctionType::template FunctionType > petscMatFS( storage, maxLevel, "stokes_fs" );
+   PETScSparseMatrix< StokesOperatorFS > petscMatFS( storage, maxLevel, "stokes_fs" );
    petscMatFS.createMatrixFromOperator( L, maxLevel, numerator );
    // petscMatFS.print( "/tmp/free_slip.m" );
 

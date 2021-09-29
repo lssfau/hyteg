@@ -200,8 +200,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
          case 1:
             PCSetType( pc_u, PCJACOBI );
             break;
-         case 3:
-         {
+         case 3: {
             PCSetType( pc_u, PCHYPRE );
             break;
          }
@@ -225,9 +224,7 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
          default:
             WALBERLA_ABORT( "Invalid pressure preconditioner for PETSc block prec MinRes solver." );
             break;
-
          }
-
       }
 
       timer.end();
@@ -302,7 +299,8 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
                        uint_t                                    level,
                        const P2P1TaylorHoodFunction< PetscInt >& numerator )
    {
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw[0].getVertexDoFFunction(), level ) )
+      for ( auto dof :
+            FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw[0].getVertexDoFFunction(), level ) )
       {
          velocityIndices.push_back( dof.value() );
       }
@@ -310,7 +308,8 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       {
          velocityIndices.push_back( dof.value() );
       }
-      for ( auto dof : FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw[1].getVertexDoFFunction(), level ) )
+      for ( auto dof :
+            FunctionIterator< vertexdof::VertexDoFFunction< PetscInt > >( numerator.uvw[1].getVertexDoFFunction(), level ) )
       {
          velocityIndices.push_back( dof.value() );
       }
@@ -336,15 +335,15 @@ class PETScBlockPreconditionedStokesSolver : public Solver< OperatorType >
       }
    }
 
-   uint_t                                                                                            allocatedLevel_;
-   MPI_Comm                                                                                          petscCommunicator_;
-   typename OperatorType::srcType::template FunctionType< PetscInt >                                 num;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >                   Amat;
-   PETScSparseMatrix< OperatorType, OperatorType::srcType::template FunctionType >                   AmatNonEliminatedBC;
-   PETScSparseMatrix< BlockPreconditioner_T, BlockPreconditioner_T::srcType::template FunctionType > Pmat;
-   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType >     xVec;
-   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType >     bVec;
-   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType >     nullspaceVec_;
+   uint_t                                                                                        allocatedLevel_;
+   MPI_Comm                                                                                      petscCommunicator_;
+   typename OperatorType::srcType::template FunctionType< PetscInt >                             num;
+   PETScSparseMatrix< OperatorType >                                                             Amat;
+   PETScSparseMatrix< OperatorType >                                                             AmatNonEliminatedBC;
+   PETScSparseMatrix< BlockPreconditioner_T >                                                    Pmat;
+   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > xVec;
+   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > bVec;
+   PETScVector< typename FunctionType::valueType, OperatorType::srcType::template FunctionType > nullspaceVec_;
 
    std::shared_ptr< PrimitiveStorage > storage_;
 

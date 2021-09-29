@@ -51,31 +51,26 @@ void P2ProjectNormalOperator::project( const P2P1TaylorHoodFunction< real_t >& d
    project( dst.uvw[0], dst.uvw[1], dst.uvw[idx], level, flag );
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
-void P2ProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                   const P2Function< PetscInt >&               numU,
-                                                   const P2Function< PetscInt >&               numV,
-                                                   const P2Function< PetscInt >&               numW,
-                                                   uint_t                                      level,
-                                                   DoFType                                     flag )
+void P2ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                        const P2Function< matIdx_t >&               numU,
+                                        const P2Function< matIdx_t >&               numV,
+                                        const P2Function< matIdx_t >&               numW,
+                                        uint_t                                      level,
+                                        DoFType                                     flag ) const
 {
-   p1Operator.assembleLocalMatrix(
-       mat, numU.getVertexDoFFunction(), numV.getVertexDoFFunction(), numW.getVertexDoFFunction(), level, flag );
+   p1Operator.toMatrix( mat, numU.getVertexDoFFunction(), numV.getVertexDoFFunction(), numW.getVertexDoFFunction(), level, flag );
    edgeDoFOperator.assembleLocalMatrix(
        mat, numU.getEdgeDoFFunction(), numV.getEdgeDoFFunction(), numW.getEdgeDoFFunction(), level, flag );
 }
 
-void P2ProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                   const P2VectorFunction< PetscInt >&         num,
-                                                   uint_t                                      level,
-                                                   DoFType                                     flag )
+void P2ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                        const P2VectorFunction< matIdx_t >&         num,
+                                        uint_t                                      level,
+                                        DoFType                                     flag ) const
 {
    // UGLY FIX (for 2D the 3rd component function is not accessed later on anyway!)
    uint_t idx = num.getDimension() == 2 ? 0 : 2;
-   assembleLocalMatrix( mat, num[0], num[1], num[idx], level, flag );
+   toMatrix( mat, num[0], num[1], num[idx], level, flag );
 }
-
-#endif
 
 } // namespace hyteg

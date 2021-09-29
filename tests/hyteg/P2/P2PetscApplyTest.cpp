@@ -90,9 +90,9 @@ bool p2PetscApplyTest( const uint_t& level, const std::string& meshFile, const D
    L.apply( src, hhgDst, level, location );
 
    // PETSc apply
-   PETScVector< real_t, P2Function >                          srcPetscVec( localDoFs );
-   PETScVector< real_t, P2Function >                          dstPetscVec( localDoFs );
-   PETScSparseMatrix< P2ConstantLaplaceOperator, P2Function > petscMatrix( localDoFs, globalDoFs );
+   PETScVector< real_t, P2Function >              srcPetscVec( localDoFs );
+   PETScVector< real_t, P2Function >              dstPetscVec( localDoFs );
+   PETScSparseMatrix< P2ConstantLaplaceOperator > petscMatrix( localDoFs, globalDoFs );
 
    srcPetscVec.createVectorFromFunction( src, numerator, level, All );
    dstPetscVec.createVectorFromFunction( petscDst, numerator, level, All );
@@ -105,7 +105,7 @@ bool p2PetscApplyTest( const uint_t& level, const std::string& meshFile, const D
    dstPetscVec.createFunctionFromVector( petscDst, numerator, level, location );
 
    // compare
-   err.assign( {1.0, -1.0}, {hhgDst, petscDst}, level, location );
+   err.assign( { 1.0, -1.0 }, { hhgDst, petscDst }, level, location );
    const auto maxError = err.getMaxMagnitude( level );
 
    WALBERLA_LOG_INFO_ON_ROOT( "Error max Magnitude = " << maxError << " eps: " << eps );

@@ -101,8 +101,8 @@ class StrongFreeSlipWrapper : public Operator< typename OpType::srcType, typenam
    /// \param flag  determines on which primitives this operator is assembled
    ///
    void toMatrix( const std::shared_ptr< SparseMatrixProxy >&                        mat,
-                  const typename OpType::srcType::template FunctionType< PetscInt >& numeratorSrc,
-                  const typename OpType::dstType::template FunctionType< PetscInt >& numeratorDst,
+                  const typename OpType::srcType::template FunctionType< matIdx_t >& numeratorSrc,
+                  const typename OpType::dstType::template FunctionType< matIdx_t >& numeratorDst,
                   uint_t                                                             level,
                   DoFType                                                            flag ) const
    {

@@ -20,11 +20,11 @@
 #include "P1ProjectNormalOperator.hpp"
 
 #include "hyteg/communication/Syncing.hpp"
-#include "hyteg/p1functionspace/freeslip/VertexDoFProjectNormal.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroEdge.hpp"
 #include "hyteg/p1functionspace/VertexDoFMacroFace.hpp"
-#include "hyteg/p1functionspace/VertexDoFMacroCell.hpp"
+#include "hyteg/p1functionspace/VertexDoFMacroVertex.hpp"
+#include "hyteg/p1functionspace/freeslip/VertexDoFProjectNormal.hpp"
 
 namespace hyteg {
 
@@ -266,14 +266,12 @@ void P1ProjectNormalOperator::project( const P1StokesFunction< real_t >& dst, si
    this->stopTiming( "Project" );
 }
 
-#ifdef HYTEG_BUILD_WITH_PETSC
-
-void P1ProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
-                                                   const P1Function< PetscInt >&               numU,
-                                                   const P1Function< PetscInt >&               numV,
-                                                   const P1Function< PetscInt >&               numW,
-                                                   uint_t                                      level,
-                                                   DoFType                                     flag ) const
+void P1ProjectNormalOperator::toMatrix( const std::shared_ptr< SparseMatrixProxy >& mat,
+                                        const P1Function< matIdx_t >&               numU,
+                                        const P1Function< matIdx_t >&               numV,
+                                        const P1Function< matIdx_t >&               numW,
+                                        uint_t                                      level,
+                                        DoFType                                     flag ) const
 {
    communication::syncFunctionBetweenPrimitives( numU, level );
    communication::syncFunctionBetweenPrimitives( numV, level );
@@ -373,12 +371,7 @@ void P1ProjectNormalOperator::assembleLocalMatrix( const std::shared_ptr< Sparse
             }
          }
       }
-
-
-
    }
 }
-
-#endif
 
 } // namespace hyteg

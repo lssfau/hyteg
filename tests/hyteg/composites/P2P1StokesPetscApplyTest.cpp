@@ -90,9 +90,9 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
    L.apply( src, hhgDst, level, location );
 
    // PETSc apply
-   PETScVector< real_t, P2P1TaylorHoodFunction >                             srcPetscVec( localDoFs );
-   PETScVector< real_t, P2P1TaylorHoodFunction >                             dstPetscVec( localDoFs );
-   PETScSparseMatrix< P2P1TaylorHoodStokesOperator, P2P1TaylorHoodFunction > petscMatrix( localDoFs, globalDoFs );
+   PETScVector< real_t, P2P1TaylorHoodFunction >     srcPetscVec( localDoFs );
+   PETScVector< real_t, P2P1TaylorHoodFunction >     dstPetscVec( localDoFs );
+   PETScSparseMatrix< P2P1TaylorHoodStokesOperator > petscMatrix( localDoFs, globalDoFs );
 
    srcPetscVec.createVectorFromFunction( src, numerator, level, All );
    dstPetscVec.createVectorFromFunction( petscDst, numerator, level, All );
@@ -105,9 +105,9 @@ bool p2p1StokesPetscApplyTest( const uint_t& level, const std::string& meshFile,
    dstPetscVec.createFunctionFromVector( petscDst, numerator, level, location );
 
    // compare
-   err.assign( {1.0, -1.0}, {hhgDst, petscDst}, level, location );
+   err.assign( { 1.0, -1.0 }, { hhgDst, petscDst }, level, location );
    auto maxError = err.uvw[0].getMaxMagnitude( level );
-   maxError = std::max(maxError,err.uvw[1].getMaxMagnitude( level ));
+   maxError      = std::max( maxError, err.uvw[1].getMaxMagnitude( level ) );
    if ( err.uvw.getDimension() == 3 )
    {
       maxError = std::max( maxError, err.uvw[2].getMaxMagnitude( level ) );

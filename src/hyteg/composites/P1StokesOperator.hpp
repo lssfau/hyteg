@@ -22,6 +22,7 @@
 #include "hyteg/composites/P1StokesBlockPreconditioner.hpp"
 #include "hyteg/composites/P1StokesFunction.hpp"
 #include "hyteg/composites/StokesOperatorTraits.hpp"
+#include "hyteg/operators/VectorLaplaceOperator.hpp"
 #include "hyteg/p1functionspace/P1ConstantOperator.hpp"
 #include "hyteg/p1functionspace/P1ScalarToP1VectorOperator.hpp"
 #include "hyteg/p1functionspace/P1VectorToP1ScalarOperator.hpp"
@@ -31,9 +32,10 @@ namespace hyteg {
 class P1StokesOperator : public Operator< P1StokesFunction< real_t >, P1StokesFunction< real_t > >
 {
  public:
-   typedef P1ConstantLaplaceOperator   VelocityOperator_T;
-   typedef P1ConstantLaplaceOperator   PressureOperator_T;
-   typedef P1StokesBlockPreconditioner BlockPreconditioner_T;
+   typedef P1ConstantVectorLaplaceOperator VelocityBlockOperator_T;
+   typedef P1ConstantLaplaceOperator       VelocityOperator_T;
+   typedef P1ConstantLaplaceOperator       PressureOperator_T;
+   typedef P1StokesBlockPreconditioner     BlockPreconditioner_T;
 
    P1StokesOperator( const std::shared_ptr< PrimitiveStorage >& storage, size_t minLevel, size_t maxLevel )
    : Operator( storage, minLevel, maxLevel )

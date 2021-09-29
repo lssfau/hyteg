@@ -80,7 +80,7 @@ void compareCounts( std::shared_ptr< PrimitiveStorage > storage, std::string tag
       uint_t nnzHyTeG = indexing::getNumberOfGlobalDoFCouplings( oper, level );
 
       // assemble matrix
-      PETScSparseMatrix< opType, fType > petscMat( localDoFs, globalDoFs );
+      PETScSparseMatrix< opType > petscMat( localDoFs, globalDoFs );
       petscMat.createMatrixFromOperator( oper, level, enumerator, All );
       uint_t nnzPETSc = petscMat.getInfo().getNNZ();
 

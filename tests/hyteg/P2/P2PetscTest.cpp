@@ -32,50 +32,53 @@
 
 using walberla::real_t;
 
-int main(int argc, char* argv[])
+int main( int argc, char* argv[] )
 {
-  walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
-  walberla::MPIManager::instance()->useWorldComm();
+   walberla::MPIManager::instance()->initializeMPI( &argc, &argv );
+   walberla::MPIManager::instance()->useWorldComm();
 
-  hyteg::PETScManager petscManager( &argc, &argv );
+   hyteg::PETScManager petscManager( &argc, &argv );
 
-  std::string meshFileName = "../../data/meshes/quad_16el.msh";
+   std::string meshFileName = "../../data/meshes/quad_16el.msh";
 
-  hyteg::MeshInfo meshInfo = hyteg::MeshInfo::fromGmshFile(meshFileName);
-  hyteg::SetupPrimitiveStorage setupStorage(meshInfo, walberla::uint_c(walberla::mpi::MPIManager::instance()->numProcesses()));
+   hyteg::MeshInfo              meshInfo = hyteg::MeshInfo::fromGmshFile( meshFileName );
+   hyteg::SetupPrimitiveStorage setupStorage( meshInfo,
+                                              walberla::uint_c( walberla::mpi::MPIManager::instance()->numProcesses() ) );
 
-  hyteg::loadbalancing::roundRobin( setupStorage );
+   hyteg::loadbalancing::roundRobin( setupStorage );
 
-  uint_t level = 4;
+   uint_t level = 4;
 
-  std::shared_ptr< hyteg::PrimitiveStorage> storage = std::make_shared< hyteg::PrimitiveStorage>(setupStorage);
+   std::shared_ptr< hyteg::PrimitiveStorage > storage = std::make_shared< hyteg::PrimitiveStorage >( setupStorage );
 
-  hyteg::P2Function<PetscInt> numerator("numerator", storage, level, level);
-  hyteg::P2Function<real_t> ones("ones", storage, level, level);
-  hyteg::P2Function<real_t> dst("dst", storage, level, level);
+   hyteg::P2Function< PetscInt > numerator( "numerator", storage, level, level );
+   hyteg::P2Function< real_t >   ones( "ones", storage, level, level );
+   hyteg::P2Function< real_t >   dst( "dst", storage, level, level );
 
-  std::function<real_t(const hyteg::Point3D&)> one  = [](const hyteg::Point3D&) { return 1.0; };
-  std::function<real_t(const hyteg::Point3D&)> rand  = [](const hyteg::Point3D&) { return walberla::math::realRandom<real_t>(); };
+   std::function< real_t( const hyteg::Point3D& ) > one  = []( const hyteg::Point3D& ) { return 1.0; };
+   std::function< real_t( const hyteg::Point3D& ) > rand = []( const hyteg::Point3D& ) {
+      return walberla::math::realRandom< real_t >();
+   };
 
-  ones.interpolate(one, level);
-  dst.interpolate(rand, level);
+   ones.interpolate( one, level );
+   dst.interpolate( rand, level );
 
-  hyteg::P2ConstantLaplaceOperator L(storage, level, level);
-  L.apply(ones, dst, level, hyteg::All, hyteg::Replace);
+   hyteg::P2ConstantLaplaceOperator L( storage, level, level );
+   L.apply( ones, dst, level, hyteg::All, hyteg::Replace );
 
-  real_t sqSum = dst.dotGlobal(dst, level, hyteg::All);
+   real_t sqSum = dst.dotGlobal( dst, level, hyteg::All );
 
-  // Check if row sum is zero
-  WALBERLA_CHECK_LESS( sqSum, 1e-14 );
+   // Check if row sum is zero
+   WALBERLA_CHECK_LESS( sqSum, 1e-14 );
 
-  uint_t globalDoFs = hyteg::numberOfGlobalDoFs< hyteg::P2FunctionTag >( *storage, level );
-  uint_t localDoFs  = hyteg::numberOfLocalDoFs< hyteg::P2FunctionTag >( *storage, level );
-  numerator.enumerate( level );
+   uint_t globalDoFs = hyteg::numberOfGlobalDoFs< hyteg::P2FunctionTag >( *storage, level );
+   uint_t localDoFs  = hyteg::numberOfLocalDoFs< hyteg::P2FunctionTag >( *storage, level );
+   numerator.enumerate( level );
 
-  hyteg::PETScSparseMatrix< hyteg::P2ConstantLaplaceOperator, hyteg::P2Function> Lpetsc(localDoFs, globalDoFs);
-  Lpetsc.createMatrixFromOperator(L, level, numerator, hyteg::All);
+   hyteg::PETScSparseMatrix< hyteg::P2ConstantLaplaceOperator > Lpetsc( localDoFs, globalDoFs );
+   Lpetsc.createMatrixFromOperator( L, level, numerator, hyteg::All );
 
-  WALBERLA_CHECK_EQUAL( Lpetsc.isSymmetric(), true );
+   WALBERLA_CHECK_EQUAL( Lpetsc.isSymmetric(), true );
 
-  return 0;
+   return 0;
 }
